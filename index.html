@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pastry Pirates on the Sugar Seas — Lab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --sea: #cfe8f0; --sea2: #bcdde9; --ink: #2b2118; --parch: #f6efe0;
+    --parch2: #efe4cc; --line: #d8c9a8; --accent: #b3541e;
+    --p0: #d64541; --p1: #2e7dbf; --p2: #3e9e5c; --p3: #d1a021;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Georgia, 'Times New Roman', serif; background: var(--parch); color: var(--ink); }
+  header { padding: 10px 18px; border-bottom: 2px solid var(--line); display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 22px; margin: 0; letter-spacing: 1px; }
+  header .sub { font-size: 13px; opacity: .7; }
+  #layout { display: flex; gap: 14px; padding: 14px; align-items: flex-start; flex-wrap: wrap; }
+  #left { flex: 0 0 auto; }
+  #right { flex: 1 1 340px; min-width: 320px; max-width: 1160px; }
+  #cols { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+  #cols .col { flex: 1 1 320px; min-width: 300px; }
+  #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); border: 2px solid var(--line); border-radius: 10px; display: block; }
+  .panel { background: #fffdf6; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+  .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+  #controls { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button { font-family: inherit; font-size: 14px; padding: 6px 14px; border: 1.5px solid var(--ink); border-radius: 7px; background: var(--parch2); cursor: pointer; }
+  button:hover { background: #e6d9ba; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.primary:hover { filter: brightness(1.1); }
+  button:disabled { opacity: .4; cursor: default; }
+  input[type=range] { accent-color: var(--accent); }
+  #scrub { width: 100%; margin-top: 8px; }
+  select, input[type=number] { font-family: inherit; font-size: 13px; padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+  .rulegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; font-size: 13.5px; }
+  .rulegrid label { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 0; }
+  .rulegrid label span { flex: 1; }
+  .player-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; }
+  .player-row .dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; border: 1.5px solid rgba(0,0,0,.35); }
+  .player-row .pname { font-weight: bold; width: 118px; }
+  .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; gap: 3px; flex-wrap: wrap; }
+  .chip { font-size: 15px; padding: 0 3px; border-radius: 5px; background: #eee; border: 1px solid #ccc; opacity: .35; }
+  .chip.have { opacity: 1; background: #dff2df; border-color: #7bbb7b; }
+  .chip.extra { opacity: 1; background: #fdf3d7; border-color: #d9b64e; }
+  .crown { font-size: 15px; }
+  #log { max-height: 520px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
+  .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
+  @keyframes popfloat {
+    0% { opacity: 0; transform: translateY(8px) scale(.6); }
+    18% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-32px) scale(1.3); }
+  }
+  #log .line { padding: 1.5px 4px; border-radius: 4px; }
+  #log .line.cur { background: #fceec9; }
+  #log .battle { color: #8c2b1e; }
+  #log .trade { color: #1e6e8c; }
+  #log .roundhdr { font-weight: bold; opacity: .65; margin-top: 4px; border-top: 1px dashed var(--line); }
+  #statsPanel table, #batchPanel table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  #statsPanel td, #batchPanel td, #batchPanel th { padding: 2.5px 6px; border-bottom: 1px solid #eee4cc; text-align: left; }
+  #batchPanel th { border-bottom: 1.5px solid var(--line); }
+  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; background: #f6e7b2; border: 1.5px solid #d9b64e; border-radius: 8px; margin-bottom: 8px; }
+  .windbox { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  #windArrow { display: inline-block; transition: transform .4s; font-size: 20px; }
+  .muted { opacity: .6; font-size: 12px; }
+  .num3 { width: 58px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏴‍☠️ Pastry Pirates <span style="font-weight:normal;font-style:italic">on the Sugar Seas</span></h1>
+  <span class="sub">the rules lab — tweak → watch → scrub → run the numbers</span>
+</header>
+<div id="layout">
+  <div id="left">
+    <svg id="board" width="640" height="640"></svg>
+    <div id="controls">
+      <button class="primary" id="btnNew">⚓ New game</button>
+      <button id="btnPlay">▶ Play</button>
+      <button id="btnStep">Step</button>
+      <button id="btnEnd">⏭ To end</button>
+      <span style="margin-left:6px">speed</span>
+      <input type="range" id="speed" min="1" max="40" value="8" style="width:110px">
+      <span class="windbox">wind <span id="windArrow">➤</span><b id="windLabel">–</b></span>
+      <span id="roundLabel" class="muted"></span>
+    </div>
+    <input type="range" id="scrub" min="0" max="0" value="0">
+  </div>
+  <div id="right">
+    <div class="panel">
+      <h3>Captains</h3>
+      <div id="players"></div>
+    </div>
+    <div id="cols">
+    <div class="col">
+    <div class="panel">
+      <h3>Captain's log</h3>
+      <div id="log"></div>
+    </div>
+    <div class="panel" id="statsWrap" style="display:none">
+      <h3>End of voyage</h3>
+      <div id="statsPanel"></div>
+    </div>
+    </div>
+    <div class="col">
+    <div class="panel">
+      <h3>Ship's Articles (rules)</h3>
+      <div class="rulegrid">
+        <label><span>Players</span><select id="cfgPlayers"><option>2</option><option>3</option><option selected>4</option></select></label>
+        <label><span>Board size</span><select id="cfgGrid"><option>9</option><option selected>11</option><option>13</option><option>15</option></select></label>
+        <label><span>Islands</span><select id="cfgIslands"><option selected>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></label>
+        <label><span>Recipe size</span><select id="cfgRecipe"><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
+        <label><span>Crates per island</span><select id="cfgCrates"><option value="-1" selected>players − 1</option><option value="0">unlimited</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+        <label><span>Starting coins</span><input class="num3" type="number" id="cfgCoins" value="3" min="0" max="10"></label>
+        <label><span>Powder (attack cost)</span><select id="cfgPowder"><option>0</option><option>1</option><option selected>2</option><option>3</option></select></label>
+        <label><span>Broadside (reflip)</span><select id="cfgBroadside"><option value="free" selected>free, once</option><option value="paid">1 coin, once</option><option value="none">none</option></select></label>
+        <label><span>Buy on tails (3c)</span><input type="checkbox" id="cfgDockBuy" checked></label>
+        <label><span>Ship's hold (any cargo)</span><input type="checkbox" id="cfgMerchant" checked></label>
+        <label><span>Parley (trade anywhere)</span><input type="checkbox" id="cfgParley" checked></label>
+        <label><span>Harbor tax refund (+1c)</span><input type="checkbox" id="cfgTradeBonus" checked></label>
+        <label><span>Raider (loser-attacker pays 2c)</span><input type="checkbox" id="cfgAsym"></label>
+        <label><span>Rotate first player</span><input type="checkbox" id="cfgRotate" checked></label>
+        <label><span>Storm chance</span><select id="cfgStorm"><option value="0">never</option><option value="0.125" selected>1 in 8</option><option value="0.25">1 in 4</option></select></label>
+        <label><span>Island size</span><select id="cfgIslandSize"><option value="1,1" selected>1×1</option><option value="2,2">2×2</option><option value="2,3">2×3</option></select></label>
+        <label><span>Single dock per island</span><input type="checkbox" id="cfgSingleDock"></label>
+        <label><span>Sardines (tails fish = 1c)</span><input type="checkbox" id="cfgSardine" checked></label>
+        <label><span>Seed</span><input class="num3" type="number" id="cfgSeed" value="7"></label>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button id="presetClassic" title="11×11, 5 islands, recipe 4 — the ~20-round family game">🏝️ Classic</button>
+        <button id="presetEpic" title="13×13, 7 islands, recipe 5-of-7 — most trade, least luck, ~27 rounds">🗺️ Epic Voyage</button>
+      </div>
+      <div class="muted" style="margin-top:6px">Changes apply on ⚓ New game. Strategy dropdowns are per captain, above.</div>
+    </div>
+    <div class="panel">
+      <h3>Balance check</h3>
+      <button id="btnBatch">🎲 Run 400 games with these rules</button>
+      <div id="batchPanel" style="margin-top:8px"></div>
+    </div>
+    </div>
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+/* ================= RNG ================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+
+/* ================= Engine (port of cocoa_pirates_sim.py) ================= */
+const ING_ALL=["wheat","eggs","sugar","cocoa","dairy","vanilla","spice","honey","salt"];
+const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️",honey:"🍯",salt:"🧂"};
+const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
+const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
+const NAMES=["Capt. Crumble","Capt. Biscotti","Capt. Gingersnap","Capt. Shortbread"];
+const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
+const HEXCOL=["#d64541","#2e7dbf","#3e9e5c","#d1a021"];
+const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
+
+class Game{
+  constructor(cfg,seed,record){
+    this.cfg=cfg; this.record=record; this.rng=mulberry32(seed);
+    const n=cfg.grid; this.home=[Math.floor(n/2),Math.floor(n/2)];
+    this.ings=ING_ALL.slice(0,cfg.nIslands);
+    // island placement (rectangles of islandW x islandH)
+    const iw=cfg.islandW||1, ih=cfg.islandH||1;
+    const rects=[];
+    for(let k=0;k<this.ings.length;k++){
+      let done=false;
+      for(const spacing of [3,2,1]){
+        const tops=[]; for(let x=0;x<n;x++)for(let y=0;y<n;y++)tops.push([x,y]);
+        this.shuffle(tops);
+        for(const [x,y] of tops){
+          const flip=this.r()<.5, w=flip?ih:iw, h=flip?iw:ih;
+          if(x+w>n||y+h>n)continue;
+          const cellsR=[];
+          for(let a=x;a<x+w;a++)for(let b=y;b<y+h;b++)cellsR.push([a,b]);
+          if(cellsR.some(c=>man(c,this.home)<2))continue;
+          if(cellsR.some(c=>rects.some(r2=>r2.some(d=>man(c,d)<spacing))))continue;
+          rects.push(cellsR);done=true;break;
+        }
+        if(done)break;
+      }
+    }
+    this.islands={}; this.islandRect={}; this.dockOf={}; this.islandOf={};
+    this.ings.forEach((ing,i)=>{
+      const cellsR=rects[i]||[[0,0]];
+      this.islandRect[ing]=cellsR;
+      for(const c of cellsR)this.islands[c]=ing;
+    });
+    if(cfg.singleDock){
+      for(const ing of this.ings){
+        const waters=[];
+        for(const c of this.islandRect[ing]){
+          for(const d of Object.values(DIRS)){
+            const w2=[c[0]+d[0],c[1]+d[1]];
+            if(!(w2[0]<0||w2[1]<0||w2[0]>=n||w2[1]>=n)&&this.islands[w2]===undefined
+               &&!(w2[0]===this.home[0]&&w2[1]===this.home[1]))waters.push(w2);
+          }
+        }
+        this.dockOf[ing]=waters.length?waters[Math.floor(this.r()*waters.length)]:this.home;
+      }
+    }
+    this.dockCells=new Set(Object.values(this.dockOf).map(c=>c[0]+","+c[1]));
+    this.ings.forEach(ing=>{this.islandOf[ing]=cfg.singleDock?this.dockOf[ing]:this.islandRect[ing][0];});
+    const tok=cfg.crates===0?1e9:cfg.crates;
+    this.tokens={}; this.ings.forEach(i=>this.tokens[i]=tok);
+    this.players=cfg.strategies.map((s,i)=>({idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
+      ing:[],recipe:this.sample(this.ings,cfg.recipeSize),firstFlip:new Set(),dockedNow:new Set(),
+      done:false,heads:0,flips:0}));
+    this.round=0;this.battles=0;this.attWins=0;this.trades=0;this.finishOrder=[];this.events=[];this.winner=null;
+  }
+  r(){return this.rng();}
+  shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(this.r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+  sample(a,k){const c=[...a];this.shuffle(c);return c.slice(0,k);}
+  flip(p){p.flips++;const h=this.r()<.5;if(h)p.heads++;return h;}
+  key(c){return c[0]+","+c[1];}
+  isIsland(c){return this.islands[c]!==undefined;}
+  ev(o){if(!this.record)return;o.round=this.round;o.wind=this.windNow;o.storm=this.stormNow;
+    o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done}));
+    o.tokens={...this.tokens};this.events.push(o);}
+  needs(p){return p.recipe.filter(i=>!p.ing.includes(i));}
+  blocked(c){const n=this.cfg.grid;return c[0]<0||c[1]<0||c[0]>=n||c[1]>=n;}
+  windPush(p,d,dist){
+    for(let s=0;s<dist;s++){
+      const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
+      if(this.blocked(nx))return;
+      if(this.isIsland(nx)){
+        if(p.coins>=3){p.coins--;this.ev({t:"dodge",p:p.idx});}
+        else if(this.flip(p)){this.ev({t:"anchor",p:p.idx});}
+        else{p.coins-=Math.floor(p.coins/2);this.ev({t:"aground",p:p.idx});}
+        return;
+      }
+      p.pos=nx;
+    }
+  }
+  stepToward(p,target,steps){
+    for(let s=0;s<steps;s++){
+      if(p.pos[0]===target[0]&&p.pos[1]===target[1])return;
+      const dx=target[0]-p.pos[0],dy=target[1]-p.pos[1];let opts=[];
+      if(dx)opts.push([p.pos[0]+(dx>0?1:-1),p.pos[1]]);
+      if(dy)opts.push([p.pos[0],p.pos[1]+(dy>0?1:-1)]);
+      const pass=o=>{
+        if(this.blocked(o)||this.isIsland(o))return false;
+        if(this.dockCells.has(o[0]+","+o[1])&&this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]))return false;
+        return true;};
+      opts=opts.filter(pass);
+      if(!opts.length){
+        for(const d of Object.values(DIRS)){const o=[p.pos[0]+d[0],p.pos[1]+d[1]];
+          if(pass(o))opts.push(o);}
+        if(!opts.length)return;
+      }
+      opts.sort((a,b)=>man(a,target)-man(b,target));p.pos=opts[0];
+    }
+  }
+  adjPort(p){
+    if(this.cfg.singleDock){
+      for(const ing of this.ings){const d=this.dockOf[ing];
+        if(p.pos[0]===d[0]&&p.pos[1]===d[1])return ing;}
+      return null;
+    }
+    for(const d of Object.values(DIRS)){const c=[p.pos[0]+d[0],p.pos[1]+d[1]];
+      if(this.isIsland(c))return this.islands[c];}
+    return null;
+  }
+  dockOccupiedBy(ing,exclude){
+    const d=this.dockOf[ing];if(!d)return null;
+    for(const q of this.players)if(q!==exclude&&!q.done&&q.pos[0]===d[0]&&q.pos[1]===d[1])return q;
+    return null;
+  }
+  adjOpp(p){const out=this.players.filter(q=>q!==p&&!q.done&&man(p.pos,q.pos)<=1);this.shuffle(out);return out;}
+  tradeOpp(p){if(this.cfg.parley)return this.players.filter(q=>q!==p&&!q.done);
+    return this.players.filter(q=>q!==p&&!q.done&&man(p.pos,q.pos)<=1);}
+  doDock(p,port){
+    const ing=port,k=port; // ports are identified by ingredient name
+    if(this.cfg.singleDock&&this.dockOccupiedBy(ing,p))return false;
+    if(p.firstFlip.has(k)&&p.dockedNow.has(k))return false;
+    p.firstFlip.add(k);p.dockedNow.add(k);
+    if(this.flip(p)){
+      if(this.tokens[ing]>0){this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
+      else{p.coins+=3;this.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
+    }else{
+      if(this.cfg.dockBuy&&p.coins>=3&&this.needs(p).includes(ing)&&this.tokens[ing]>0){
+        p.coins-=3;this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:0,got:"bought"});}
+      else{p.coins+=3;this.ev({t:"dock",p:p.idx,ing,heads:0,got:"coins"});}
+    }
+    return true;
+  }
+  cnt(arr,x){return arr.filter(v=>v===x).length;}
+  tryTrade(p){
+    for(const q of this.tradeOpp(p)){
+      const give=p.ing.filter(i=>this.needs(q).includes(i)&&this.cnt(p.ing,i)>(p.recipe.includes(i)?1:0));
+      const get=q.ing.filter(i=>this.needs(p).includes(i)&&this.cnt(q.ing,i)>(q.recipe.includes(i)?1:0));
+      if(give.length&&get.length){
+        const gi=give[0],ge=get[0];
+        p.ing.splice(p.ing.indexOf(gi),1);q.ing.push(gi);
+        q.ing.splice(q.ing.indexOf(ge),1);p.ing.push(ge);
+        this.trades++;if(this.cfg.tradeBonus){p.coins++;q.coins++;}
+        this.ev({t:"trade",a:p.idx,b:q.idx,gave:gi,got:ge,kind:"swap"});return true;
+      }
+      if(get.length&&p.coins>=4){
+        const ge=get[0];q.ing.splice(q.ing.indexOf(ge),1);p.ing.push(ge);
+        p.coins-=4;q.coins+=4;this.trades++;if(this.cfg.tradeBonus){p.coins++;q.coins++;}
+        this.ev({t:"trade",a:p.idx,b:q.idx,gave:"4 coins",got:ge,kind:"buy"});return true;
+      }
+    }
+    return false;
+  }
+  battle(att,def){
+    const c=this.cfg;
+    if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}
+    this.battles++;
+    let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
+    const rounds=[];
+    while(a<3&&d<3){
+      let bs=false,ah=this.flip(att),dh=this.flip(def);
+      if(free&&!ah){ah=this.flip(att);free=false;bs=true;}
+      else if(paid&&!ah&&att.coins>=1){att.coins--;ah=this.flip(att);paid=false;bs=true;}
+      rounds.push([ah?1:0,dh?1:0,bs?1:0]);
+      if(ah&&dh){} else if(ah)a++; else if(dh)d++;
+    }
+    const win=a>=3?att:def,lose=a>=3?def:att;
+    if(win===att)this.attWins++;
+    let spoil;
+    if(c.asym&&lose===att){
+      const take=Math.min(2,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+"c (raider)";
+    }else{
+      const wanted=lose.ing.filter(i=>this.needs(win).includes(i));
+      if(lose.coins>=5&&!wanted.length){lose.coins-=5;win.coins+=5;spoil="5 coins";}
+      else if(wanted.length){const i=wanted[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ING_EMOJI[i]+" "+i;}
+      else if(lose.ing.length){const i=lose.ing[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ING_EMOJI[i]+" "+i;}
+      else{const take=Math.min(5,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+" coins (all they had)";}
+    }
+    [att.pos,def.pos]=[def.pos,att.pos];
+    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
+    for(const pl of [att,def]){
+      const port=this.adjPort(pl);
+      if(port&&!pl.firstFlip.has(port))this.doDock(pl,port);
+    }
+    return win;
+  }
+  chooseTarget(p){
+    const needs=this.needs(p);
+    if(!needs.length)return this.home;
+    let cands=needs.filter(i=>this.tokens[i]>0).map(i=>this.islandOf[i]);
+    if(this.cfg.merchant&&p.strategy==="trader"){
+      let extra=this.ings.filter(i=>!needs.includes(i)&&!p.ing.includes(i)&&this.tokens[i]>0&&
+        this.players.some(q=>q!==p&&!q.done&&this.needs(q).includes(i))).map(i=>this.islandOf[i]);
+      if(cands.length){const best=Math.min(...cands.map(c=>man(p.pos,c)));
+        extra=extra.filter(c=>man(p.pos,c)+3<=best);}
+      cands=cands.concat(extra);
+    }
+    if(!cands.length){
+      const holders=this.players.filter(q=>q!==p&&!q.done&&q.ing.some(i=>needs.includes(i)));
+      if(holders.length){holders.sort((x,y)=>man(p.pos,x.pos)-man(p.pos,y.pos));return holders[0].pos;}
+      return this.home;
+    }
+    cands.sort((x,y)=>man(p.pos,x)-man(p.pos,y));return cands[0];
+  }
+  wantsAttack(p){
+    if(p.strategy==="rusher")return null;
+    if(p.coins<this.cfg.powder)return null;
+    for(const q of this.adjOpp(p)){
+      const steals=q.ing.some(i=>this.needs(p).includes(i));
+      const rich=q.coins>=5;
+      if(p.strategy==="pirate"&&(steals||rich))return q;
+      if((p.strategy==="balanced"||p.strategy==="trader")&&steals)return q;
+      if(this.cfg.singleDock&&p.strategy!=="rusher"){
+        for(const ing of this.needs(p))
+          if(this.tokens[ing]>0&&this.dockOccupiedBy(ing)===q)return q;
+      }
+    }
+    return null;
+  }
+  takeTurn(p,windDir,storm){
+    this.ev({t:"turn",p:p.idx});
+    const before=[...p.pos];
+    this.windPush(p,DIRS[windDir],storm?2:1);
+    if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:"windmove",p:p.idx});
+    const port0=this.adjPort(p);
+    if(!port0)p.dockedNow.clear();
+    let target=this.chooseTarget(p);
+    if(p.strategy==="pirate"&&this.needs(p).length){
+      const prey=this.players.filter(q=>q!==p&&!q.done&&q.ing.some(i=>this.needs(p).includes(i)));
+      if(prey.length){prey.sort((x,y)=>man(p.pos,x.pos)-man(p.pos,y.pos));
+        if(man(p.pos,prey[0].pos)<man(p.pos,target))target=prey[0].pos;}
+    }
+    if(man(p.pos,target)>1&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,3);
+      if(p.pos[0]!==b[0]||p.pos[1]!==b[1])this.ev({t:"sail",p:p.idx});else p.coins++;}
+    const port=this.adjPort(p);
+    if((p.strategy==="trader"||this.cfg.parley)&&this.tryTrade(p))return;
+    const victim=this.wantsAttack(p);
+    if(victim){if(!this.tryTrade(p))this.battle(p,victim);return;}
+    if(port&&this.needs(p).includes(port)&&this.tokens[port]>0){
+      if(this.doDock(p,port))return;}
+    if(port&&this.cfg.merchant&&(p.strategy==="trader"||p.strategy==="balanced")){
+      const ing=port;
+      if(this.tokens[ing]>0&&!p.ing.includes(ing)&&this.players.some(q=>q!==p&&this.needs(q).includes(ing))){
+        if(this.doDock(p,port))return;}}
+    if(port&&!p.firstFlip.has(port)){if(this.doDock(p,port))return;}
+    if(p.coins<=1){const h=this.flip(p);
+      if(h)p.coins+=2;else if(this.cfg.sardine)p.coins+=1;
+      this.ev({t:"fish",p:p.idx,heads:h?1:0});}
+  }
+  checkFinish(p){
+    if(!this.needs(p).length&&p.pos[0]===this.home[0]&&p.pos[1]===this.home[1]){
+      p.done=true;this.finishOrder.push(p.idx);this.ev({t:"finish",p:p.idx});return true;}
+    return false;
+  }
+  play(){
+    let order=this.players.map((_,i)=>i);
+    while(this.round<150){
+      this.round++;
+      if(this.cfg.rotate&&this.round>1)order=order.slice(1).concat(order.slice(0,1));
+      const wind="NSEW"[Math.floor(this.r()*4)];
+      const storm=this.r()<this.cfg.storm;
+      this.windNow=wind;this.stormNow=storm;
+      this.ev({t:"newround",dir:wind});
+      for(const i of order){
+        const p=this.players[i];
+        if(p.done)continue;
+        this.takeTurn(p,wind,storm);
+        if(this.checkFinish(p)){
+          if(this.finishOrder.length===1){
+            for(const j of order){const q=this.players[j];
+              if(q.done||j===i)continue;
+              this.takeTurn(q,wind,storm);this.checkFinish(q);}
+            return this.resolveEnd();
+          }
+        }
+      }
+    }
+    return this.resolveEnd();
+  }
+  resolveEnd(){
+    if(!this.finishOrder.length){this.ev({t:"end",winner:null});return null;}
+    if(this.finishOrder.length===1){this.winner=this.finishOrder[0];this.ev({t:"end",winner:this.winner});return this.winner;}
+    let champ=this.players[this.finishOrder[0]];
+    for(const idx of this.finishOrder.slice(1)){
+      const ch=this.players[idx];let a=0,d=0;
+      while(a<5&&d<5){const ah=this.flip(champ),dh=this.flip(ch);
+        if(ah&&dh){}else if(ah)a++;else if(dh)d++;}
+      const w=a>=5?champ:ch;
+      this.ev({t:"bakeoff",a:champ.idx,b:ch.idx,winner:w.idx});
+      champ=w;
+    }
+    this.winner=champ.idx;this.ev({t:"end",winner:this.winner});return this.winner;
+  }
+}
+
+/* ================= UI ================= */
+const $=id=>document.getElementById(id);
+let game=null,evIdx=0,timer=null,logLines=[];
+
+function readCfg(){
+  const np=+$("cfgPlayers").value;
+  let crates=+$("cfgCrates").value;
+  if(crates===-1)crates=Math.max(1,np-1);
+  const nIsl=+$("cfgIslands").value;
+  const strategies=[];
+  for(let i=0;i<np;i++){const sel=$("strat"+i);strategies.push(sel?sel.value:["balanced","pirate","trader","rusher"][i]);}
+  const [iw,ih]=$("cfgIslandSize").value.split(",").map(Number);
+  return {grid:+$("cfgGrid").value,nIslands:nIsl,recipeSize:Math.min(+$("cfgRecipe").value,nIsl),
+    crates,startCoins:+$("cfgCoins").value,powder:+$("cfgPowder").value,broadside:$("cfgBroadside").value,
+    dockBuy:$("cfgDockBuy").checked,merchant:$("cfgMerchant").checked,parley:$("cfgParley").checked,
+    tradeBonus:$("cfgTradeBonus").checked,asym:$("cfgAsym").checked,rotate:$("cfgRotate").checked,
+    storm:+$("cfgStorm").value,islandW:iw,islandH:ih,singleDock:$("cfgSingleDock").checked,
+    sardine:$("cfgSardine").checked,strategies};
+}
+
+function buildPlayerRows(){
+  const np=+$("cfgPlayers").value,defaults=["balanced","pirate","trader","rusher"];
+  let html="";
+  for(let i=0;i<np;i++){
+    const cur=$("strat"+i)?$("strat"+i).value:defaults[i];
+    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18">
+      <span class="dot" style="background:${HEXCOL[i]}"></span>
+      <span class="pname">${NAMES[i]}</span>
+      <select id="strat${i}">${["balanced","pirate","trader","rusher"].map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select>
+      <span class="coins" id="coins${i}">🌕 –</span>
+      <span class="chips" id="chips${i}"></span>
+      <span class="crown" id="crown${i}"></span></div>`;
+  }
+  $("players").innerHTML=html;
+}
+$("cfgPlayers").addEventListener("change",buildPlayerRows);
+
+/* ---------- board rendering ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+let cell=0,shipEls=[];
+function drawBoard(){
+  const svg=$("board");svg.innerHTML="";
+  const n=game.cfg.grid,W=640;cell=W/n;
+  for(let i=0;i<=n;i++){
+    el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#9fc6d4","stroke-width":1},svg);
+    el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#9fc6d4","stroke-width":1},svg);
+  }
+  // home
+  const [hx,hy]=game.home;
+  el("circle",{cx:(hx+.5)*cell,cy:(hy+.5)*cell,r:cell*.42,fill:"#e8dcbf",stroke:"#8c7a52","stroke-width":2},svg);
+  const ht=el("text",{x:(hx+.5)*cell,y:(hy+.5)*cell+cell*.16,"text-anchor":"middle","font-size":cell*.5},svg);
+  ht.textContent="⚓";
+  // islands (may be multi-cell rectangles)
+  for(const ing of game.ings){
+    const cells=game.islandRect[ing];
+    const xs=cells.map(c=>c[0]),ys=cells.map(c=>c[1]);
+    const x0=Math.min(...xs),y0=Math.min(...ys),x1=Math.max(...xs)+1,y1=Math.max(...ys)+1;
+    el("rect",{x:x0*cell+2,y:y0*cell+2,width:(x1-x0)*cell-4,height:(y1-y0)*cell-4,
+      rx:cell*.35,fill:"#dfe8b9",stroke:"#7c8a4a","stroke-width":2},svg);
+    const cx=(x0+x1)/2*cell,cy=(y0+y1)/2*cell;
+    const t=el("text",{x:cx,y:cy+cell*.15,"text-anchor":"middle","font-size":cell*.45},svg);
+    t.textContent=ING_EMOJI[ing];
+    const b=el("text",{x:cx+cell*.4,y:cy-cell*.3,"text-anchor":"middle","font-size":cell*.28,
+      fill:"#5a4a1a","font-weight":"bold",id:"tok_"+ing},svg);
+    b.textContent=game.cfg.crates>=1e9?"":game.tokens[ing];
+    if(game.cfg.singleDock){
+      const d=game.dockOf[ing];
+      el("rect",{x:d[0]*cell+cell*.25,y:d[1]*cell+cell*.25,width:cell*.5,height:cell*.5,
+        rx:3,fill:"#8c6a3f",stroke:"#5a4425","stroke-width":1.5,opacity:.85},svg);
+      const dt=el("text",{x:(d[0]+.5)*cell,y:(d[1]+.5)*cell+cell*.12,"text-anchor":"middle","font-size":cell*.3,fill:"#fff"},svg);
+      dt.textContent="⚓";
+    }
+  }
+  // ships
+  shipEls=[];
+  game.players.forEach((p,i)=>{
+    const g=el("g",{style:"transition: transform .35s ease"},svg);
+    el("circle",{cx:0,cy:0,r:cell*.3,fill:HEXCOL[i],stroke:"#fff","stroke-width":2,opacity:.92},g);
+    const t=el("text",{x:0,y:cell*.11,"text-anchor":"middle","font-size":cell*.34},g);
+    t.textContent="⛵";
+    shipEls.push(g);
+  });
+}
+function shipXY(pos,i,state){
+  // offset ships sharing a cell
+  const same=state.map((s,j)=>({j,k:s.pos[0]+","+s.pos[1]})).filter(o=>o.k===pos[0]+","+pos[1]);
+  const my=same.findIndex(o=>o.j===i),m=same.length;
+  const ox=m>1?(my%2?1:-1)*cell*.18:0, oy=m>2?(my<2?-1:1)*cell*.18:0;
+  return [(pos[0]+.5)*cell+ox,(pos[1]+.5)*cell+oy];
+}
+
+/* ---------- event text ---------- */
+function pn(i){return `<b style="color:${HEXCOL[i]}">${NAMES[i].replace("Capt. ","")}</b>`;}
+function fl(h){return h?"⚪H":"⚫T";}
+function describe(e){
+  switch(e.t){
+    case "newround":return {cls:"roundhdr",txt:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]}${e.storm?" ⛈️ STORM!":""} —`};
+    case "windmove":return {txt:`${pn(e.p)} drifts with the wind`};
+    case "sail":return {txt:`${pn(e.p)} pays 1🌕 and sails`};
+    case "dodge":return {txt:`${pn(e.p)} pays 1🌕 to dodge an island`};
+    case "anchor":return {txt:`${pn(e.p)} flips ⚪H — drops anchor safely!`};
+    case "aground":return {txt:`${pn(e.p)} flips ⚫T — runs aground! Loses half their coins ⚠️`};
+    case "dock":{
+      const g={ing:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚪H, gets the crate!`,
+        empty:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — ⚪H but the island is empty; takes 3🌕`,
+        bought:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, buys the crate for 3🌕`,
+        coins:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, takes 3🌕`};
+      return {txt:`${pn(e.p)} ${g[e.got]}`};}
+    case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${e.gave==="4 coins"?"4🌕":ING_EMOJI[e.gave]+" "+e.gave} to ${pn(e.b)} for ${ING_EMOJI[e.got]} ${e.got}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
+    case "battle":{
+      const seq=e.rounds.map(r=>fl(r[0])+(r[2]?"🔥":"")+"/"+fl(r[1])).join("  ");
+      return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)}! &nbsp;[att/def: ${seq}] → ${pn(e.winner)} wins, takes ${e.spoil}. Ships swap places!`};}
+    case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
+    case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to Barbados with a full recipe!`};
+    case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
+    case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
+    case "turn":return null;
+    default:return null;
+  }
+}
+
+/* ---------- playback ---------- */
+function render(){
+  const e=game.events[evIdx];if(!e)return;
+  const st=e.state;
+  game.players.forEach((p,i)=>{
+    const [x,y]=shipXY(st[i].pos,i,st);
+    shipEls[i].style.transform=`translate(${x}px,${y}px)`;
+    shipEls[i].style.opacity=st[i].done?.45:1;
+    $("coins"+i).textContent="🌕 "+st[i].coins;
+    const chips=game.players[i].recipe.map(ing=>{
+      const have=st[i].ing.includes(ing);
+      return `<span class="chip ${have?"have":""}" title="${ing}">${ING_EMOJI[ing]}</span>`;
+    });
+    const extras=st[i].ing.filter(x2=>!game.players[i].recipe.includes(x2))
+      .map(x2=>`<span class="chip extra" title="cargo: ${x2}">${ING_EMOJI[x2]}</span>`);
+    $("chips"+i).innerHTML=chips.join("")+extras.join("");
+    $("crown"+i).textContent=(game.events[game.events.length-1].winner===i&&evIdx===game.events.length-1)?"👑":"";
+  });
+  for(const ing of game.ings){const b=document.getElementById("tok_"+ing);
+    if(b&&game.cfg.crates<1e9)b.textContent=e.tokens[ing];}
+  $("windLabel").textContent=e.wind?DIRNAME[e.wind]+(e.storm?" ⛈️":""):"–";
+  const rot={N:-90,S:90,E:0,W:180}[e.wind]??0;
+  $("windArrow").style.transform=`rotate(${rot}deg)`;
+  $("roundLabel").textContent=`round ${e.round} · event ${evIdx+1}/${game.events.length}`;
+  $("scrub").value=evIdx;
+  renderLog();
+  // end stats
+  if(evIdx===game.events.length-1)showStats();else $("statsWrap").style.display="none";
+}
+let logRenderedTo=-1;
+function renderLog(){
+  const box=$("log");
+  const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<50;
+  if(evIdx===logRenderedTo+1){
+    const prev=box.querySelector(".line.cur");if(prev)prev.classList.remove("cur");
+    const L=logLines[evIdx];
+    if(L){const d=document.createElement("div");d.className="line "+(L.cls||"")+" cur";d.innerHTML=L.txt;box.appendChild(d);}
+  }else if(evIdx!==logRenderedTo){
+    let html="";
+    for(let i=0;i<=evIdx;i++){const L=logLines[i];if(!L)continue;
+      html+=`<div class="line ${L.cls||""} ${i===evIdx?"cur":""}">${L.txt}</div>`;}
+    box.innerHTML=html;
+  }
+  logRenderedTo=evIdx;
+  if(atBottom)box.scrollTop=box.scrollHeight;
+}
+
+/* ---------- action popups on the map ---------- */
+function popEmoji(x,y,emo,big){
+  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop"},$("board"));
+  t.textContent=emo;
+  setTimeout(()=>t.remove(),1300);
+}
+function spawnPops(e){
+  if(!e)return;
+  const st=e.state;
+  const at=i=>{const [x,y]=shipXY(st[i].pos,i,st);return [x,y-cell*.42];};
+  switch(e.t){
+    case "battle":{
+      const loser=e.winner===e.a?e.d:e.a;
+      const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
+      popEmoji((x1+x2)/2,Math.min(y1,y2)-cell*.15,"⚔️",true);
+      popEmoji(...at(loser),"💸");
+      const sp=(e.spoil||"").includes("coin")?"💰":(e.spoil||"💰").split(" ")[0];
+      popEmoji(...at(e.winner),sp||"💰");
+      break;}
+    case "fish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
+    case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
+    case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
+    case "aground":popEmoji(...at(e.p),"💥");break;
+    case "anchor":popEmoji(...at(e.p),"⚓");break;
+    case "dodge":popEmoji(...at(e.p),"💨");break;
+    case "finish":popEmoji(...at(e.p),"🏁",true);break;
+    case "bakeoff":popEmoji(...at(e.winner),"🧁",true);break;
+    case "end":if(e.winner!==null)popEmoji(...at(e.winner),"👑",true);break;
+  }
+}
+
+function showStats(){
+  $("statsWrap").style.display="";
+  const w=game.winner;
+  const banner=w===null?"⏳ Nobody finished!":`👑 ${NAMES[w]} (${game.cfg.strategies[w]}) wins!`;
+  const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
+  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
+    <table>
+    <tr><td>Rounds</td><td>${game.round}</td></tr>
+    <tr><td>Battles</td><td>${game.battles} (attacker won ${game.battles?Math.round(100*game.attWins/game.battles):0}%)</td></tr>
+    <tr><td>Trades</td><td>${game.trades}</td></tr>
+    <tr><td>Bakeoff</td><td>${game.finishOrder.length>1?"yes — "+game.finishOrder.length+" finishers":"no"}</td></tr>
+    ${game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${NAMES[i]} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
+    </table>`;
+}
+function newGame(){
+  stop();
+  buildPlayerRowsIfNeeded();
+  const cfg=readCfg();
+  const seed=+$("cfgSeed").value;
+  game=new Game(cfg,seed,true);
+  game.play();
+  logLines=game.events.map(describe);
+  evIdx=0;
+  logRenderedTo=-2;
+  $("log").innerHTML="";
+  $("scrub").max=game.events.length-1;
+  drawBoard();render();
+  $("cfgSeed").value=seed+1; // next game differs
+}
+function buildPlayerRowsIfNeeded(){
+  const np=+$("cfgPlayers").value;
+  if(!$("prow0")||document.querySelectorAll(".player-row").length!==np)buildPlayerRows();
+}
+function tick(){
+  if(evIdx<game.events.length-1){evIdx++;render();spawnPops(game.events[evIdx]);}
+  else stop();
+}
+function play(){
+  if(timer)return stop();
+  $("btnPlay").textContent="⏸ Pause";
+  timer=setInterval(tick,1000/(+$("speed").value));
+}
+function stop(){if(timer){clearInterval(timer);timer=null;}$("btnPlay").textContent="▶ Play";}
+$("btnNew").onclick=newGame;
+$("btnPlay").onclick=play;
+$("btnStep").onclick=()=>{stop();tick();};
+$("btnEnd").onclick=()=>{stop();evIdx=game.events.length-1;render();};
+$("scrub").oninput=e=>{stop();evIdx=+e.target.value;render();};
+$("speed").oninput=()=>{if(timer){stop();play();}};
+
+/* ---------- batch mode ---------- */
+$("btnBatch").onclick=()=>{
+  const cfg=readCfg();
+  const N=400,wins={},games={},seatW=new Array(cfg.strategies.length).fill(0);
+  let rounds=0,battles=0,trades=0,attW=0,attB=0,unfin=0,luckW=0,luckG=0;
+  const rng=mulberry32(12345);
+  for(let g=0;g<N;g++){
+    const strat=[...cfg.strategies];
+    for(let i=strat.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[strat[i],strat[j]]=[strat[j],strat[i]];}
+    const gm=new Game({...cfg,strategies:strat},Math.floor(rng()*1e9),false);
+    const w=gm.play();
+    strat.forEach(s=>games[s]=(games[s]||0)+1);
+    rounds+=gm.round;battles+=gm.battles;trades+=gm.trades;attW+=gm.attWins;attB+=gm.battles;
+    if(w===null)unfin++;
+    else{wins[strat[w]]=(wins[strat[w]]||0)+1;seatW[w]++;
+      const rates=gm.players.map(p=>p.flips?p.heads/p.flips:0);
+      if(rates[w]===Math.max(...rates))luckW++;luckG++;}
+  }
+  const stratSet=[...new Set(cfg.strategies)].sort();
+  $("batchPanel").innerHTML=`<table>
+    <tr><th>Strategy</th><th>Win rate</th></tr>
+    ${stratSet.map(s=>`<tr><td>${s}</td><td>${(100*(wins[s]||0)/(games[s]||1)).toFixed(1)}%</td></tr>`).join("")}
+    <tr><td colspan=2 style="border-top:1.5px solid var(--line)"></td></tr>
+    <tr><td>Avg rounds</td><td>${(rounds/N).toFixed(1)}</td></tr>
+    <tr><td>Battles / game</td><td>${(battles/N).toFixed(1)}</td></tr>
+    <tr><td>Trades / game</td><td>${(trades/N).toFixed(2)}</td></tr>
+    <tr><td>Attacker wins</td><td>${attB?(100*attW/attB).toFixed(1):0}% of battles</td></tr>
+    <tr><td>Winner was luckiest flipper</td><td>${luckG?(100*luckW/luckG).toFixed(1):0}%</td></tr>
+    <tr><td>Seat wins</td><td>${seatW.map((v,i)=>`P${i+1}:${v}`).join(" ")}</td></tr>
+    <tr><td>Unfinished</td><td>${unfin}</td></tr>
+  </table><div class="muted">${N} games, seats shuffled each game.</div>`;
+};
+
+/* ---------- presets ---------- */
+function applyPreset(vals){
+  for(const [id,v] of Object.entries(vals)){
+    const n=$(id);
+    if(n.type==="checkbox")n.checked=v;else n.value=v;
+  }
+  newGame();
+}
+$("presetClassic").onclick=()=>applyPreset({cfgGrid:11,cfgIslands:5,cfgRecipe:4,cfgCrates:-1,
+  cfgIslandSize:"1,1",cfgSingleDock:false});
+$("presetEpic").onclick=()=>applyPreset({cfgGrid:13,cfgIslands:7,cfgRecipe:5,cfgCrates:-1,
+  cfgIslandSize:"1,1",cfgSingleDock:false});
+
+/* ---------- boot ---------- */
+buildPlayerRows();
+newGame();
+</script>
+</body>
+</html>
