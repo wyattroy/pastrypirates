@@ -91,7 +91,8 @@
       <svg id="board" width="640" height="640"></svg>
     </div>
     <div id="controls">
-      <button class="primary" id="btnNew">⚓ New game</button>
+      <button id="btnNew">⚓ New game</button>
+      <button class="primary" id="btnResume" style="display:none">⛵ Resume voyage</button>
       <button id="btnPlay">▶ Play</button>
       <button id="btnStep">Step</button>
       <button id="btnEnd">⏭ To end</button>
@@ -171,6 +172,7 @@ const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 class Game{
   constructor(cfg,seed,record){
     this.cfg=cfg; this.record=record; this.rng=mulberry32(seed);
+    this.seed=seed; this.randCalls=0;
     const n=cfg.grid; this.home=[Math.floor(n/2),Math.floor(n/2)];
     this.ings=ING_ALL.slice(0,cfg.nIslands);
     // island placement (rectangles of islandW x islandH)
@@ -218,7 +220,11 @@ class Game{
     this.tokens={}; this.ings.forEach(i=>this.tokens[i]=tok);
     this.players=cfg.strategies.map((s,i)=>({idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
       ing:[],recipe:this.sample(this.ings,cfg.recipeSize),firstFlip:new Set(),dockedNow:new Set(),
-      done:false,heads:0,flips:0,corner:null}));
+      done:false,heads:0,flips:0,corner:null,justDocked:false}));
+    // ships start at Barbados's four docks (N/S/E/W of the island)
+    const dirsArr=Object.values(DIRS);
+    this.players.forEach((p,i)=>{const d=dirsArr[i%4];
+      p.pos=[this.home[0]+d[0],this.home[1]+d[1]];});
     // monopolists pick the most-demanded scarce ingredient to corner
     if(cfg.crates>=1&&cfg.crates<1e9){
       for(const p of this.players){
@@ -230,7 +236,8 @@ class Game{
     }
     this.round=0;this.battles=0;this.attWins=0;this.trades=0;this.finishOrder=[];this.events=[];this.winner=null;
   }
-  r(){return this.rng();}
+  r(){this.randCalls++;return this.rng();}
+  isHome(c){return c[0]===this.home[0]&&c[1]===this.home[1];}
   shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(this.r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
   sample(a,k){const c=[...a];this.shuffle(c);return c.slice(0,k);}
   flip(p){p.flips++;const h=this.r()<.5;if(h)p.heads++;return h;}
@@ -241,15 +248,23 @@ class Game{
     o.tokens={...this.tokens};this.events.push(o);}
   needs(p){return p.recipe.filter(i=>!p.ing.includes(i));}
   blocked(c){const n=this.cfg.grid;return c[0]<0||c[1]<0||c[0]>=n||c[1]>=n;}
+  moored(p){ // ships that DOCKED last turn (or sit at a berth / Barbados) can't be wind-forced into land
+    return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
+  }
   windPush(p,d,dist){
     for(let s=0;s<dist;s++){
       const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
       if(this.blocked(nx))return;
+      if(this.isHome(nx)){this.ev({t:"moored",p:p.idx});return;} // safe harbor
       if(this.isIsland(nx)){
+        if(this.moored(p)){this.ev({t:"moored",p:p.idx});return;}
         if(p.coins>=3){p.coins--;this.ev({t:"dodge",p:p.idx});}
         else if(this.flip(p)){this.ev({t:"anchor",p:p.idx});}
         else{p.coins-=Math.floor(p.coins/2);this.ev({t:"aground",p:p.idx});}
         return;
+      }
+      if(this.dockCells.has(nx[0]+","+nx[1])&&this.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
+        this.ev({t:"moored",p:p.idx});return; // full berth blocks the wind
       }
       p.pos=nx;
     }
@@ -261,7 +276,7 @@ class Game{
       if(dx)opts.push([p.pos[0]+(dx>0?1:-1),p.pos[1]]);
       if(dy)opts.push([p.pos[0],p.pos[1]+(dy>0?1:-1)]);
       const pass=o=>{
-        if(this.blocked(o)||this.isIsland(o))return false;
+        if(this.blocked(o)||this.isIsland(o)||this.isHome(o))return false;
         if(this.dockCells.has(o[0]+","+o[1])&&this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]))return false;
         return true;};
       opts=opts.filter(pass);
@@ -295,7 +310,7 @@ class Game{
     const ing=port,k=port; // ports are identified by ingredient name
     if(this.cfg.singleDock&&this.dockOccupiedBy(ing,p))return false;
     if(p.firstFlip.has(k)&&p.dockedNow.has(k))return false;
-    p.firstFlip.add(k);p.dockedNow.add(k);
+    p.firstFlip.add(k);p.dockedNow.add(k);p.justDocked=true;
     if(this.flip(p)){
       if(this.tokens[ing]>0){this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
       else{p.coins+=3;this.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
@@ -403,6 +418,7 @@ class Game{
     this.ev({t:"turn",p:p.idx});
     const before=[...p.pos];
     this.windPush(p,DIRS[windDir],storm?2:1);
+    p.justDocked=false;
     if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:"windmove",p:p.idx});
     const port0=this.adjPort(p);
     if(!port0)p.dockedNow.clear();
@@ -413,9 +429,10 @@ class Game{
         if(man(p.pos,prey[0].pos)<man(p.pos,target))target=prey[0].pos;}
     }
     const dist=man(p.pos,target);
-    const exact=(target[0]===this.home[0]&&target[1]===this.home[1])||this.dockCells.has(target[0]+","+target[1]);
+    const exact=this.dockCells.has(target[0]+","+target[1]);
     if((dist>1||(dist===1&&exact))&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,3);
       if(p.pos[0]!==b[0]||p.pos[1]!==b[1])this.ev({t:"sail",p:p.idx});else p.coins++;}
+    if(!this.adjPort(p))p.dockedNow.clear(); // leaving a port re-arms its dock flip
     const port=this.adjPort(p);
     if((p.strategy==="trader"||this.cfg.parley)&&this.tryTrade(p))return;
     const victim=this.wantsAttack(p);
@@ -434,7 +451,7 @@ class Game{
       this.ev({t:"fish",p:p.idx,heads:h?1:0});}
   }
   checkFinish(p){
-    if(!this.needs(p).length&&p.pos[0]===this.home[0]&&p.pos[1]===this.home[1]){
+    if(!this.needs(p).length&&man(p.pos,this.home)<=1){
       p.done=true;this.finishOrder.push(p.idx);this.ev({t:"finish",p:p.idx});return true;}
     return false;
   }
@@ -528,11 +545,18 @@ function drawBoard(){
     el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1},svg);
     el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1},svg);
   }
-  // home
+  // home: Barbados is a 1-square island with 4 docks (N/S/E/W)
   const [hx,hy]=game.home;
-  el("circle",{cx:(hx+.5)*cell,cy:(hy+.5)*cell,r:cell*.42,fill:"#fef48b",stroke:"#f5a623","stroke-width":2},svg);
+  el("rect",{x:hx*cell+2,y:hy*cell+2,width:cell-4,height:cell-4,rx:cell*.3,
+    fill:"#fef48b",stroke:"#f5a623","stroke-width":2},svg);
   const ht=el("text",{x:(hx+.5)*cell,y:(hy+.5)*cell+cell*.16,"text-anchor":"middle","font-size":cell*.5},svg);
   ht.textContent="⚓";
+  for(const d of Object.values(DIRS)){
+    const dx=hx+d[0],dy=hy+d[1];
+    if(dx<0||dy<0||dx>=n||dy>=n)continue;
+    el("rect",{x:dx*cell+cell*.3,y:dy*cell+cell*.3,width:cell*.4,height:cell*.4,
+      rx:3,fill:"#fdd97a",stroke:"#f5a623","stroke-width":1.5,opacity:.75},svg);
+  }
   // islands (may be multi-cell rectangles)
   for(const ing of game.ings){
     const cells=game.islandRect[ing];
@@ -586,6 +610,7 @@ function describe(e){
     case "sail":return {txt:`${pn(e.p)} pays 1🌕 and sails`};
     case "dodge":return {txt:`${pn(e.p)} pays 1🌕 to dodge an island`};
     case "anchor":return {txt:`${pn(e.p)} flips ⚪H — drops anchor safely!`};
+    case "moored":return {txt:`${pn(e.p)} is safely moored — the wind can't budge them ⚓`};
     case "aground":return {txt:`${pn(e.p)} flips ⚫T — runs aground! Loses half their coins ⚠️`};
     case "dock":{
       const g={ing:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚪H, gets the crate!`,
@@ -615,14 +640,18 @@ function render(){
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     shipEls[i].style.opacity=st[i].done?.45:1;
     $("coins"+i).textContent="🌕 "+st[i].coins;
+    // recipe chips consume one matching crate each; every leftover crate is surplus cargo
+    const hold=[...st[i].ing];
     const chips=game.players[i].recipe.map(ing=>{
-      const have=st[i].ing.includes(ing);
+      const k=hold.indexOf(ing);
+      const have=k>=0;
+      if(have)hold.splice(k,1);
       return `<span class="chip ${have?"have":""}" title="${ing}">${ING_EMOJI[ing]}</span>`;
     });
-    const extras=st[i].ing.filter(x2=>!game.players[i].recipe.includes(x2))
-      .map(x2=>`<span class="chip extra" title="cargo: ${x2}">${ING_EMOJI[x2]}</span>`);
-    $("chips"+i).innerHTML=chips.join("")+extras.join("");
-    $("crown"+i).textContent=(game.events[game.events.length-1].winner===i&&evIdx===game.events.length-1)?"👑":"";
+    const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${x2}">${ING_EMOJI[x2]}</span>`);
+    $("chips"+i).innerHTML=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
+    const lastEv=game.events[game.events.length-1];
+    $("crown"+i).textContent=(lastEv.t==="end"&&lastEv.winner===i&&evIdx===game.events.length-1)?"👑":"";
   });
   // active-player ring: whose turn is it as of this event?
   if(activeRing){
@@ -692,7 +721,7 @@ function spawnPops(e){
     case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
-    case "anchor":popEmoji(...at(e.p),"⚓");break;
+    case "anchor":case "moored":popEmoji(...at(e.p),"⚓");break;
     case "dodge":popEmoji(...at(e.p),"💨");break;
     case "finish":popEmoji(...at(e.p),"🏁",true);break;
     case "bakeoff":popEmoji(...at(e.winner),"🧁",true);break;
@@ -768,10 +797,18 @@ function showStats(){
     </table>`;
 }
 function newGame(){
+  if(live&&!liveDone&&game&&game.cfg.strategies.includes("human")){
+    const ok=(typeof window!=="undefined"&&window.confirm)
+      ?window.confirm("⚓ Abandon the current voyage and start a new game? Your saved progress will be lost.")
+      :true;
+    if(!ok)return;
+    clearSave();
+  }
   stop();
   liveGen++;panel(""); // abort any live game in progress
   buildPlayerRowsIfNeeded();
   const cfg=readCfg();
+  if(cfg.strategies.includes("human"))$("btnResume").style.display="none";
   const seed=+$("cfgSeed").value;
   $("cfgSeed").value=seed+1; // next game differs
   if(cfg.strategies.includes("human")){startLive(cfg,seed);return;}
@@ -884,10 +921,13 @@ function reachable(p,steps){
     for(const dd of Object.values(DIRS)){
       const o=[c[0]+dd[0],c[1]+dd[1]],k=o[0]+","+o[1];
       if(o[0]<0||o[1]<0||o[0]>=n||o[1]>=n)continue;
-      if(game.islands[o]!==undefined)continue;
-      if(game.dockCells.has(k)&&game.players.some(q2=>q2!==p&&!q2.done&&q2.pos[0]===o[0]&&q2.pos[1]===o[1]))continue;
+      if(game.islands[o]!==undefined||game.isHome(o))continue;
       if(seen[k])continue;
-      seen[k]=true;out.push(o);q.push([o,d+1]);
+      seen[k]=true;
+      // you may sail PAST other ships, but not end your move on one
+      const occupied=game.players.some(q2=>q2!==p&&!q2.done&&q2.pos[0]===o[0]&&q2.pos[1]===o[1]);
+      if(!occupied)out.push(o);
+      q.push([o,d+1]);
     }
   }
   return out;
@@ -912,7 +952,12 @@ async function humanWind(p){
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     if(game.blocked(nx))break;
+    if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});liveRender();return;}
+    if(game.dockCells.has(nx[0]+","+nx[1])&&game.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
+      game.ev({t:"moored",p:p.idx});liveRender();return;
+    }
     if(game.islands[nx]!==undefined){
+      if(game.moored(p)){game.ev({t:"moored",p:p.idx});liveRender();return;}
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
       opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
@@ -950,6 +995,8 @@ async function humanDock(p,port){
 }
 async function asyncBattle(att,def){
   const c=game.cfg;
+  showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
+  await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to 3 points wins…`,900);
   if(c.powder)att.coins-=c.powder;
   game.battles++;
   let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
@@ -1030,9 +1077,31 @@ async function humanTrade(p){
     accept=await ask(`${NAMES[q.idx]}: accept ${give.type==="ing"?ING_EMOJI[give.v]+" "+give.v:give.v+"🌕"} for your ${ING_EMOJI[want]} ${want}?`,
       [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
   }else{
+    // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare
+    const essential=q.recipe.includes(want)&&game.cnt(q.ing,want)<=1;
+    const cost=essential?7:2;
     const val=give.type==="coins"?give.v:(game.needs(q).includes(give.v)?5:2);
-    const cost=game.needs(q).includes(want)?7:2;
-    accept=val+(game.cfg.tradeBonus?1:0)>=cost;
+    const bonus=game.cfg.tradeBonus?1:0;
+    accept=val+bonus>=cost;
+    if(!accept){
+      // counteroffer: name their price instead of flat refusal
+      const minPrice=cost-bonus;
+      if(p.coins>=minPrice&&(give.type!=="coins"||give.v<minPrice)){
+        const deal=await ask(`${NAMES[q.idx]} scoffs — but counters: "${minPrice}🌕 for my ${ING_EMOJI[want]} ${want}, take it or leave it."`,
+          [{label:`Pay ${minPrice}🌕`,value:true},{label:"Walk away",value:false}]);
+        if(deal){
+          q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
+          p.coins-=minPrice;q.coins+=minPrice;
+          game.trades++;
+          if(game.cfg.tradeBonus){p.coins++;q.coins++;}
+          game.ev({t:"trade",a:p.idx,b:q.idx,gave:minPrice+" coins",got:want,kind:"counter"});
+          liveRender();
+          return true;
+        }
+      }
+      await flash(`${NAMES[q.idx]} declines!`);
+      return true;
+    }
   }
   if(!accept){await flash(`${NAMES[q.idx]} declines!`);return true;}
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
@@ -1055,9 +1124,12 @@ async function humanAct(p){
   if(targets.length&&p.coins>=game.cfg.powder)
     opts.push({label:`⚔️ Attack${game.cfg.powder?` (−${game.cfg.powder}🌕 powder)`:""}`,value:"attack"});
   if(game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
+  if(!game.needs(p).length&&man(p.pos,game.home)<=1)
+    opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
   opts.push({label:"Pass",value:"pass"});
   const v=await ask(`${NAMES[p.idx]}, choose your action:`,opts);
+  if(v==="bakery"){await flash("🧁 Firing up the ovens in Barbados!",1200);return;}
   if(v==="dock")await humanDock(p,port);
   else if(v==="attack"){
     const t=targets.length===1?targets[0]:
@@ -1075,11 +1147,13 @@ async function humanTurn(p){
   game.ev({t:"turn",p:p.idx});
   liveRender();
   await humanWind(p);
+  p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
   if(p.coins>0){
     const dest=await pickCell(p,reachable(p,3));
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();}
-  }else await flash(`${NAMES[p.idx]}: no coins to sail — you drift.`);
+  }else await flash(`${NAMES[p.idx]}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`,1600);
+  if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
 }
 async function botTurn(p){
@@ -1089,6 +1163,7 @@ async function botTurn(p){
   await sleep(320);
   const before=[...p.pos];
   g.windPush(p,DIRS[g.windNow],g.stormNow?2:1);
+  p.justDocked=false;
   if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:"windmove",p:p.idx});
   if(!g.adjPort(p))p.dockedNow.clear();
   let target=g.chooseTarget(p);
@@ -1098,11 +1173,12 @@ async function botTurn(p){
       if(man(p.pos,prey[0].pos)<man(p.pos,target))target=prey[0].pos;}
   }
   const dist=man(p.pos,target);
-  const exact=(target[0]===g.home[0]&&target[1]===g.home[1])||g.dockCells.has(target[0]+","+target[1]);
+  const exact=g.dockCells.has(target[0]+","+target[1]);
   if((dist>1||(dist===1&&exact))&&p.coins>0){
     p.coins--;const b=[...p.pos];g.stepToward(p,target,3);
     if(p.pos[0]!==b[0]||p.pos[1]!==b[1])g.ev({t:"sail",p:p.idx});else p.coins++;
   }
+  if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
   const port=g.adjPort(p);
   if((p.strategy==="trader"||g.cfg.parley)&&g.tryTrade(p)){liveRender();return;}
@@ -1149,6 +1225,44 @@ async function liveResolveEnd(){
 function setReplayControls(on){
   for(const id of ["btnPlay","btnStep","btnEnd","scrub"])$(id).disabled=!on;
 }
+const LS=(typeof localStorage!=="undefined")?localStorage:{getItem:()=>null,setItem(){},removeItem(){}};
+function saveLive(){
+  if(!game.cfg.strategies.includes("human"))return;
+  try{
+    LS.setItem("ppsave",JSON.stringify({
+      cfg:game.cfg,seed:game.seed,randCalls:game.randCalls,round:game.round,
+      battles:game.battles,trades:game.trades,attWins:game.attWins,
+      finishOrder:game.finishOrder,tokens:game.tokens,
+      players:game.players.map(p=>({pos:p.pos,coins:p.coins,ing:p.ing,recipe:p.recipe,
+        done:p.done,heads:p.heads,flips:p.flips,corner:p.corner,justDocked:p.justDocked,
+        firstFlip:[...p.firstFlip],dockedNow:[...p.dockedNow]})),
+      events:game.events}));
+  }catch(e){}
+}
+function clearSave(){LS.removeItem("ppsave");}
+function resumeLive(){
+  let s;try{s=JSON.parse(LS.getItem("ppsave"));}catch(e){return;}
+  if(!s)return;
+  const myGen=++liveGen;
+  live=true;liveDone=false;stop();panel("");
+  const g=new Game(s.cfg,s.seed,true);
+  while(g.randCalls<s.randCalls)g.r();
+  g.round=s.round;g.battles=s.battles;g.trades=s.trades;g.attWins=s.attWins;
+  g.finishOrder=s.finishOrder;g.tokens=s.tokens;g.events=s.events;
+  s.players.forEach((sp,i)=>{const p=g.players[i];
+    p.pos=sp.pos;p.coins=sp.coins;p.ing=sp.ing;p.recipe=sp.recipe;p.done=sp.done;
+    p.heads=sp.heads;p.flips=sp.flips;p.corner=sp.corner;p.justDocked=!!sp.justDocked;
+    p.firstFlip=new Set(sp.firstFlip);p.dockedNow=new Set(sp.dockedNow);});
+  game=g;
+  $("cfgPlayers").value=s.cfg.strategies.length;buildPlayerRows();
+  s.cfg.strategies.forEach((st,i)=>{if($("strat"+i))$("strat"+i).value=st;});
+  logLines=game.events.map(describe);evIdx=Math.max(0,game.events.length-1);
+  clearBubbles();logRenderedTo=-2;$("log").innerHTML="";
+  $("scrub").max=Math.max(0,game.events.length-1);$("statsWrap").style.display="none";
+  drawBoard();setReplayControls(false);if(game.events.length)render();
+  $("btnResume").style.display="none";
+  return runLive(myGen);
+}
 async function startLive(cfg,seed){
   const myGen=++liveGen;
   live=true;liveDone=false;
@@ -1156,10 +1270,18 @@ async function startLive(cfg,seed){
   logLines=[];evIdx=0;clearBubbles();logRenderedTo=-2;
   $("log").innerHTML="";$("scrub").max=0;$("statsWrap").style.display="none";
   drawBoard();setReplayControls(false);
+  return runLive(myGen);
+}
+async function runLive(myGen){
   const alive=()=>myGen===liveGen;
   let order=game.players.map((_,i)=>i);
+  if(game.cfg.rotate&&game.round>1){
+    const rot=(game.round-1)%order.length;
+    order=order.slice(rot).concat(order.slice(0,rot));
+  }
   let ended=false;
   while(game.round<150&&!ended){
+    saveLive();
     if(!alive())return;
     game.round++;
     if(game.cfg.rotate&&game.round>1)order=order.slice(1).concat(order.slice(0,1));
@@ -1190,6 +1312,7 @@ async function startLive(cfg,seed){
   if(!alive())return;
   await liveResolveEnd();
   if(!alive())return;
+  clearSave();
   live=false;liveDone=true;setReplayControls(true);liveRender();
 }
 
@@ -1213,6 +1336,8 @@ $("presetWyatt").onclick=()=>applyPreset({cfgPlayers:4,cfgGrid:13,cfgIslands:7,c
 /* ---------- boot ---------- */
 buildPlayerRows();
 newGame();
+$("btnResume").onclick=resumeLive;
+if(LS.getItem("ppsave"))$("btnResume").style.display="";
 </script>
 </body>
 </html>

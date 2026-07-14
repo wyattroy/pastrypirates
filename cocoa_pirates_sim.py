@@ -50,6 +50,8 @@ class Player:
     finished: bool = False
     heads_count: int = 0
     flip_count: int = 0
+    corner: object = None      # monopolist's target ingredient to corner
+    just_docked: bool = False  # docked last turn -> wind can't force you into the island
 
     def needs(self):
         return [i for i in self.recipe if i not in self.ingredients]
@@ -121,6 +123,18 @@ class Game:
             p = Player(idx=i, strategy=s, pos=self.home, coins=rules.start_coins)
             p.recipe = rng.sample(self.ings, rules.recipe_size)
             self.players.append(p)
+        # ships start at Barbados's four docks (N/S/E/W of the island)
+        dirs_list = list(DIRS.values())
+        for i, p in enumerate(self.players):
+            d = dirs_list[i % 4]
+            p.pos = (self.home[0] + d[0], self.home[1] + d[1])
+        # monopolists pick which ingredient to corner: most demanded by opponents,
+        # tie-break toward one on their own recipe (dual use)
+        for p in self.players:
+            if p.strategy == "monopolist" and rules.scarcity_tokens:
+                demand = lambda ing: sum(1 for q in self.players
+                                         if q is not p and ing in q.recipe)
+                p.corner = max(self.ings, key=lambda i: (demand(i), i in p.recipe))
         self.round = 0
         self.record = False
         self.log = []
@@ -150,12 +164,28 @@ class Game:
         n = self.rules.grid
         return not (0 <= pos[0] < n and 0 <= pos[1] < n)
 
+    def moored(self, p):
+        """Ships that DOCKED last turn (or sit at a berth / Barbados) can't be wind-forced into land."""
+        return (p.just_docked
+                or (self.rules.single_dock and self.adjacent_port(p) is not None)
+                or manhattan(p.pos, self.home) <= 1)
+
     def wind_push(self, p, d, dist):
         for _ in range(dist):
             nxt = (p.pos[0] + d[0], p.pos[1] + d[1])
             if self.blocked(nxt):
                 return
+            if nxt == self.home:
+                self.ev(t="moored", p=p.idx)
+                return  # safe harbor: Barbados is an island now
+            if nxt in self.dock_cells and any(
+                    q.pos == nxt and q is not p and not q.finished for q in self.players):
+                self.ev(t="moored", p=p.idx)
+                return  # full berth blocks the wind
             if nxt in self.islands:
+                if self.moored(p):
+                    self.ev(t="moored", p=p.idx)
+                    return
                 # run-aground rule
                 if p.coins >= 3:
                     p.coins -= 1  # pay to dodge; stays put (dodged)
@@ -184,7 +214,7 @@ class Game:
             if dy != 0:
                 opts.append((p.pos[0], p.pos[1] + (1 if dy > 0 else -1)))
             def passable(o):
-                if self.blocked(o) or o in self.islands:
+                if self.blocked(o) or o in self.islands or o == self.home:
                     return False
                 if o in self.dock_cells and any(
                         q.pos == o and q is not p and not q.finished for q in self.players):
@@ -252,6 +282,7 @@ class Game:
             return False  # must leave and come back
         p.port_first_flip_done.add(port)
         p.docked_ports.add(port)
+        p.just_docked = True
         if p.flip(self.rng):
             if self.tokens[ing] > 0:
                 self.tokens[ing] -= 1
@@ -287,16 +318,18 @@ class Game:
                     p.coins += 1; q.coins += 1
                 self.ev(t="trade", a=p.idx, b=q.idx, gave=gi, got=ge, kind="swap")
                 return True
-            # coin-for-ingredient trade: buy a surplus ingredient for 4 coins
-            if get and p.coins >= 4:
+            # coin-for-ingredient trade: buy a surplus ingredient (monopolists gouge)
+            if get:
                 ge = get[0]
-                q.ingredients.remove(ge); p.ingredients.append(ge)
-                p.coins -= 4; q.coins += 4
-                self.trades += 1
-                if self.rules.trade_bonus:
-                    p.coins += 1; q.coins += 1
-                self.ev(t="trade", a=p.idx, b=q.idx, gave="4 coins", got=ge, kind="buy")
-                return True
+                price = 5 if (q.strategy == "monopolist" and ge == q.corner) else 4
+                if p.coins >= price:
+                    q.ingredients.remove(ge); p.ingredients.append(ge)
+                    p.coins -= price; q.coins += price
+                    self.trades += 1
+                    if self.rules.trade_bonus:
+                        p.coins += 1; q.coins += 1
+                    self.ev(t="trade", a=p.idx, b=q.idx, gave=f"{price} coins", got=ge, kind="buy")
+                    return True
         return False
 
     def battle(self, attacker, defender):
@@ -381,7 +414,10 @@ class Game:
     def choose_target(self, p):
         needs = p.needs()
         if not needs:
-            return self.home
+            return self.home  # recipe done — sail home to win, hoard be damned
+        # monopolist gambit: corner the market first, own recipe second
+        if p.strategy == "monopolist" and p.corner and self.tokens.get(p.corner, 0) > 0:
+            return self.island_of[p.corner]
         # nearest island that still has tokens for a needed ingredient
         cands = [self.island_of[i] for i in needs if self.tokens[i] > 0]
         if self.rules.merchant_cargo and p.strategy == "trader":
@@ -428,6 +464,7 @@ class Game:
             self.broke_turns += 1
         # 1. wind
         self.wind_push(p, DIRS[wind_dir], 2 if storm else 1)
+        p.just_docked = False  # protection lasts one turn; re-set if they dock again
         # port-visit lock resets when not adjacent
         port = self.adjacent_port(p)
         if not port:
@@ -442,11 +479,16 @@ class Game:
                 nearest_prey = min(prey, key=lambda q: manhattan(p.pos, q.pos))
                 if manhattan(p.pos, nearest_prey.pos) < manhattan(p.pos, target):
                     target = nearest_prey.pos
-        sail_worth = manhattan(p.pos, target) > 1
+        dist = manhattan(p.pos, target)
+        # single-dock berths require exact arrival, so sailing from dist 1 is worth it
+        exact = target in self.dock_cells
+        sail_worth = dist > 1 or (dist == 1 and exact)
         min_bank = 2 if p.strategy == "fisher" else 0
         if sail_worth and p.coins > min_bank:
             p.coins -= 1
             self.step_toward(p, target, 3)
+            if not self.adjacent_port(p):
+                p.docked_ports.clear()  # leaving a port re-arms its dock flip
         # 3. act
         port = self.adjacent_port(p)
         if (p.strategy == "trader" or self.rules.global_trade) and self.try_trade(p):
@@ -457,6 +499,9 @@ class Game:
             if not self.try_trade(p):
                 self.battle(p, victim)
             return
+        if port and p.strategy == "monopolist" and port == p.corner and self.tokens[port] > 0:
+            if self.do_dock(p, port):  # hoard every crate, even duplicates
+                return
         if port and port in p.needs() and self.tokens[port] > 0:
             if self.do_dock(p, port):
                 return
@@ -477,7 +522,7 @@ class Game:
                 self.fish_hits += 1
 
     def check_finish(self, p):
-        if not p.needs() and p.pos == self.home:
+        if not p.needs() and manhattan(p.pos, self.home) <= 1:
             p.finished = True
             self.finish_order.append(p.idx)
             return True
