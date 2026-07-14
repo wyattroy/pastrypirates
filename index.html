@@ -22,6 +22,9 @@
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); border: 2px solid #9edbe5; border-radius: 10px; display: block; }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
+  details.panel summary { cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--teal); font-weight: bold; border-bottom: 2px solid var(--mint); padding-bottom: 5px; margin-bottom: 8px; }
+  #scrub { width: 100%; margin-top: 8px; }
   #controls { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button { font-family: inherit; font-size: 14px; padding: 6px 14px; border: 1.5px solid var(--teal); border-radius: 7px; background: var(--lemon); cursor: pointer; color: var(--ink); }
   button:hover { background: #fdea6d; }
@@ -90,19 +93,9 @@
     <div id="boardwrap">
       <svg id="board" width="640" height="640"></svg>
     </div>
-    <div id="controls">
-      <button id="btnNew">⚓ New game</button>
-      <button class="primary" id="btnResume" style="display:none">⛵ Resume voyage</button>
-      <button id="btnPlay">▶ Play</button>
-      <button id="btnStep">Step</button>
-      <button id="btnEnd">⏭ To end</button>
-      <span style="margin-left:6px">speed</span>
-      <input type="range" id="speed" min="0.5" max="40" step="0.5" value="8" style="width:110px">
-      <span class="windbox">wind <span id="windArrow">➤</span><b id="windLabel">–</b></span>
-      <span id="roundLabel" class="muted"></span>
-    </div>
+    <div style="margin-top:8px" class="windbox">wind <span id="windArrow">➤</span><b id="windLabel">–</b>
+      <span id="roundLabel" class="muted" style="margin-left:10px"></span></div>
     <div id="actionPanel" style="display:none"></div>
-    <input type="range" id="scrub" min="0" max="0" value="0">
   </div>
   <div id="right">
     <div class="panel">
@@ -118,16 +111,29 @@
       <div id="statsPanel"></div>
     </div>
     <div class="panel">
-      <h3>Ship's Articles (rules)</h3>
+      <h3>Helm</h3>
+      <div id="controls">
+        <button id="btnNew">⚓ New game</button>
+        <button class="primary" id="btnResume" style="display:none">⛵ Resume voyage</button>
+        <button id="btnPlay">▶ Play</button>
+        <button id="btnStep">Step</button>
+        <button id="btnEnd">⏭ To end</button>
+        <span style="margin-left:6px">speed</span>
+        <input type="range" id="speed" min="0.5" max="40" step="0.5" value="8" style="width:110px">
+      </div>
+      <input type="range" id="scrub" min="0" max="0" value="0">
+    </div>
+    <details class="panel">
+      <summary>Ship's Articles (simulation settings)</summary>
       <div class="rulegrid">
         <label><span>Players</span><select id="cfgPlayers"><option>2</option><option>3</option><option selected>4</option></select></label>
-        <label><span>Board size</span><select id="cfgGrid"><option>9</option><option selected>11</option><option>13</option><option>15</option></select></label>
-        <label><span>Islands</span><select id="cfgIslands"><option selected>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></label>
-        <label><span>Recipe size</span><select id="cfgRecipe"><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
+        <label><span>Board size</span><select id="cfgGrid"><option>9</option><option>11</option><option selected>13</option><option>15</option></select></label>
+        <label><span>Islands</span><select id="cfgIslands"><option>5</option><option>6</option><option selected>7</option><option>8</option><option>9</option></select></label>
+        <label><span>Recipe size</span><select id="cfgRecipe"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></label>
         <label><span>Crates per island</span><select id="cfgCrates"><option value="-1" selected>players − 1</option><option value="0">unlimited</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
         <label><span>Starting coins</span><input class="num3" type="number" id="cfgCoins" value="3" min="0" max="10"></label>
         <label><span>Powder (attack cost)</span><select id="cfgPowder"><option>0</option><option>1</option><option selected>2</option><option>3</option></select></label>
-        <label><span>Broadside (reflip)</span><select id="cfgBroadside"><option value="free" selected>free, once</option><option value="paid">1 coin, once</option><option value="none">none</option></select></label>
+        <label><span>Broadside (reflip)</span><select id="cfgBroadside"><option value="free">free, once</option><option value="paid" selected>1 coin, once</option><option value="none">none</option></select></label>
         <label><span>Buy on tails (3c)</span><input type="checkbox" id="cfgDockBuy" checked></label>
         <label><span>Ship's hold (any cargo)</span><input type="checkbox" id="cfgMerchant" checked></label>
         <label><span>Parley (trade anywhere)</span><input type="checkbox" id="cfgParley" checked></label>
@@ -135,18 +141,18 @@
         <label><span>Raider (loser-attacker pays 2c)</span><input type="checkbox" id="cfgAsym"></label>
         <label><span>Rotate first player</span><input type="checkbox" id="cfgRotate" checked></label>
         <label><span>Storm chance</span><select id="cfgStorm"><option value="0">never</option><option value="0.125" selected>1 in 8</option><option value="0.25">1 in 4</option></select></label>
-        <label><span>Island size</span><select id="cfgIslandSize"><option value="1,1" selected>1×1</option><option value="2,2">2×2</option><option value="2,3">2×3</option></select></label>
-        <label><span>Single dock per island</span><input type="checkbox" id="cfgSingleDock"></label>
+        <label><span>Island size</span><select id="cfgIslandSize"><option value="1,1">1×1</option><option value="2,2" selected>2×2</option><option value="2,3">2×3</option></select></label>
+        <label><span>Single dock per island</span><input type="checkbox" id="cfgSingleDock" checked></label>
+        <label><span>Round world (trade winds)</span><input type="checkbox" id="cfgRound"></label>
         <label><span>Sardines (tails fish = 1c)</span><input type="checkbox" id="cfgSardine" checked></label>
         <label><span>Seed</span><input class="num3" type="number" id="cfgSeed" value="7"></label>
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <button id="presetClassic" title="11×11, 5 islands, recipe 4 — the ~20-round family game">🏝️ Classic</button>
-        <button id="presetEpic" title="13×13, 7 islands, recipe 5-of-7 — most trade, least luck, ~27 rounds">🗺️ Epic Voyage</button>
-        <button id="presetWyatt" title="13×13, 7 islands, recipe 5, 2×2 islands, single docks, paid broadside, sardines">🧑‍🍳 Wyatt Mode</button>
+        <button id="presetClassic" title="13×13, 7 islands, recipe 5, 2×2 islands, single docks, paid broadside, sardines">🏝️ Classic</button>
+        <button id="presetRound" title="Classic rules on a round world with trade-wind currents around the rim">🌍 Round World</button>
       </div>
       <div class="muted" style="margin-top:6px">Changes apply on ⚓ New game. Strategy dropdowns are per captain, above.</div>
-    </div>
+    </details>
     <div class="panel">
       <h3>Balance check</h3>
       <button id="btnBatch">🎲 Run 400 games with these rules</button>
@@ -174,6 +180,32 @@ class Game{
     this.cfg=cfg; this.record=record; this.rng=mulberry32(seed);
     this.seed=seed; this.randCalls=0;
     const n=cfg.grid; this.home=[Math.floor(n/2),Math.floor(n/2)];
+    // --- round world: pixelated circle + trade-wind rim channel ---
+    this.isRound=!!cfg.roundBoard;
+    this.valid=new Set(); this.rim=new Set(); this.rimHead={};
+    if(this.isRound){
+      const cc=(n-1)/2, r2=(cc+0.4)*(cc+0.4);
+      for(let x=0;x<n;x++)for(let y=0;y<n;y++)
+        if((x-cc)*(x-cc)+(y-cc)*(y-cc)<=r2)this.valid.add(x+","+y);
+      for(const k of this.valid){
+        const [x,y]=k.split(",").map(Number);
+        for(const d of Object.values(DIRS)){
+          const ox=x+d[0],oy=y+d[1];
+          if(ox<0||oy<0||ox>=n||oy>=n||!this.valid.has(ox+","+oy)){this.rim.add(k);break;}
+        }
+      }
+      // quadrants flow counterclockwise (N arc drops you at its W end, W at S end, etc.)
+      const cells=[...this.rim].map(k=>{
+        const [x,y]=k.split(",").map(Number);
+        let deg=(Math.atan2(y-cc,x-cc)*180/Math.PI+360)%360;
+        const q=Math.floor(((deg+45)%360)/90); // 0=E 1=S 2=W 3=N
+        let a=deg; if(q===0&&a>180)a-=360;
+        return {k,x,y,q,a};
+      });
+      const heads={};
+      for(const c of cells)if(!heads[c.q]||c.a<heads[c.q].a)heads[c.q]=c;
+      for(const c of cells)this.rimHead[c.k]=[heads[c.q].x,heads[c.q].y];
+    }
     this.ings=ING_ALL.slice(0,cfg.nIslands);
     // island placement (rectangles of islandW x islandH)
     const iw=cfg.islandW||1, ih=cfg.islandH||1;
@@ -189,6 +221,7 @@ class Game{
           const cellsR=[];
           for(let a=x;a<x+w;a++)for(let b=y;b<y+h;b++)cellsR.push([a,b]);
           if(cellsR.some(c=>man(c,this.home)<2))continue;
+          if(this.isRound&&cellsR.some(c=>!this.valid.has(c[0]+","+c[1])||this.rim.has(c[0]+","+c[1])))continue;
           if(cellsR.some(c=>rects.some(r2=>r2.some(d=>man(c,d)<spacing))))continue;
           rects.push(cellsR);done=true;break;
         }
@@ -207,7 +240,7 @@ class Game{
         for(const c of this.islandRect[ing]){
           for(const d of Object.values(DIRS)){
             const w2=[c[0]+d[0],c[1]+d[1]];
-            if(!(w2[0]<0||w2[1]<0||w2[0]>=n||w2[1]>=n)&&this.islands[w2]===undefined
+            if(!this.blocked(w2)&&!this.onRim(w2)&&this.islands[w2]===undefined
                &&!(w2[0]===this.home[0]&&w2[1]===this.home[1]))waters.push(w2);
           }
         }
@@ -247,7 +280,18 @@ class Game{
     o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done}));
     o.tokens={...this.tokens};this.events.push(o);}
   needs(p){return p.recipe.filter(i=>!p.ing.includes(i));}
-  blocked(c){const n=this.cfg.grid;return c[0]<0||c[1]<0||c[0]>=n||c[1]>=n;}
+  blocked(c){const n=this.cfg.grid;
+    if(c[0]<0||c[1]<0||c[0]>=n||c[1]>=n)return true;
+    return this.isRound&&!this.valid.has(c[0]+","+c[1]);}
+  onRim(c){return this.isRound&&this.rim.has(c[0]+","+c[1]);}
+  tradewind(p){ // entering the rim channel sweeps you to the head of that quadrant
+    if(!this.isRound)return false;
+    const head=this.rimHead[p.pos[0]+","+p.pos[1]];
+    if(head&&(head[0]!==p.pos[0]||head[1]!==p.pos[1])){
+      p.pos=[...head];this.ev({t:"tradewind",p:p.idx});return true;
+    }
+    return false;
+  }
   moored(p){ // ships that DOCKED last turn (or sit at a berth / Barbados) can't be wind-forced into land
     return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
   }
@@ -267,6 +311,7 @@ class Game{
         this.ev({t:"moored",p:p.idx});return; // full berth blocks the wind
       }
       p.pos=nx;
+      if(this.onRim(nx)){this.tradewind(p);return;} // swept into the trade winds
     }
   }
   stepToward(p,target,steps){
@@ -277,6 +322,7 @@ class Game{
       if(dy)opts.push([p.pos[0],p.pos[1]+(dy>0?1:-1)]);
       const pass=o=>{
         if(this.blocked(o)||this.isIsland(o)||this.isHome(o))return false;
+        if(this.onRim(o))return false; // bots stay out of the trade-wind channel
         if(this.dockCells.has(o[0]+","+o[1])&&this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]))return false;
         return true;};
       opts=opts.filter(pass);
@@ -372,6 +418,7 @@ class Game{
       else{const take=Math.min(5,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+" coins (all they had)";}
     }
     [att.pos,def.pos]=[def.pos,att.pos];
+    this.tradewind(att);this.tradewind(def);
     this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
     for(const pl of [att,def]){
       const port=this.adjPort(pl);
@@ -513,7 +560,7 @@ function readCfg(){
     dockBuy:$("cfgDockBuy").checked,merchant:$("cfgMerchant").checked,parley:$("cfgParley").checked,
     tradeBonus:$("cfgTradeBonus").checked,asym:$("cfgAsym").checked,rotate:$("cfgRotate").checked,
     storm:+$("cfgStorm").value,islandW:iw,islandH:ih,singleDock:$("cfgSingleDock").checked,
-    sardine:$("cfgSardine").checked,strategies};
+    sardine:$("cfgSardine").checked,roundBoard:$("cfgRound").checked,strategies};
 }
 
 function buildPlayerRows(){
@@ -541,9 +588,29 @@ let cell=0,shipEls=[],activeRing=null;
 function drawBoard(){
   const svg=$("board");svg.innerHTML="";
   const n=game.cfg.grid,W=640;cell=W/n;
-  for(let i=0;i<=n;i++){
-    el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1},svg);
-    el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1},svg);
+  if(game.isRound){
+    svg.style.background="transparent";
+    for(const k of game.valid){
+      const [x,y]=k.split(",").map(Number);
+      const rimC=game.rim.has(k);
+      el("rect",{x:x*cell,y:y*cell,width:cell,height:cell,
+        fill:rimC?"#ccd4f5":"#cdeef3",stroke:"#a6dee8","stroke-width":1},svg);
+    }
+    // mark each quadrant's drop-off point
+    const seenHeads=new Set();
+    for(const k in game.rimHead){
+      const h=game.rimHead[k],hk=h[0]+","+h[1];
+      if(seenHeads.has(hk))continue;
+      seenHeads.add(hk);
+      const t=el("text",{x:(h[0]+.5)*cell,y:(h[1]+.5)*cell+cell*.13,"text-anchor":"middle","font-size":cell*.4},svg);
+      t.textContent="🌀";
+    }
+  }else{
+    svg.style.background="";
+    for(let i=0;i<=n;i++){
+      el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1},svg);
+      el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1},svg);
+    }
   }
   // home: Barbados is a 1-square island with 4 docks (N/S/E/W)
   const [hx,hy]=game.home;
@@ -611,6 +678,8 @@ function describe(e){
     case "dodge":return {txt:`${pn(e.p)} pays 1🌕 to dodge an island`};
     case "anchor":return {txt:`${pn(e.p)} flips ⚪H — drops anchor safely!`};
     case "moored":return {txt:`${pn(e.p)} is safely moored — the wind can't budge them ⚓`};
+    case "tradewind":return {txt:`🌀 ${pn(e.p)} is swept along the trade winds around the rim!`};
+    case "parley":return {cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`};
     case "aground":return {txt:`${pn(e.p)} flips ⚫T — runs aground! Loses half their coins ⚠️`};
     case "dock":{
       const g={ing:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚪H, gets the crate!`,
@@ -722,6 +791,8 @@ function spawnPops(e){
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
     case "anchor":case "moored":popEmoji(...at(e.p),"⚓");break;
+    case "tradewind":popEmoji(...at(e.p),"🌀",true);break;
+    case "parley":popEmoji(...at(e.a),e.ok?"🤝":"🙅");break;
     case "dodge":popEmoji(...at(e.p),"💨");break;
     case "finish":popEmoji(...at(e.p),"🏁",true);break;
     case "bakeoff":popEmoji(...at(e.winner),"🧁",true);break;
@@ -754,7 +825,7 @@ function captions(e){
 }
 function anchorFor(e){
   switch(e.t){
-    case "trade":case "battle":return e.a;
+    case "trade":case "battle":case "parley":return e.a;
     case "bakeoff":case "end":return e.winner;
     case "newround":case "turn":return null;
     default:return typeof e.p==="number"?e.p:null;
@@ -920,14 +991,14 @@ function reachable(p,steps){
     if(d>=steps)continue;
     for(const dd of Object.values(DIRS)){
       const o=[c[0]+dd[0],c[1]+dd[1]],k=o[0]+","+o[1];
-      if(o[0]<0||o[1]<0||o[0]>=n||o[1]>=n)continue;
+      if(game.blocked(o))continue;
       if(game.islands[o]!==undefined||game.isHome(o))continue;
       if(seen[k])continue;
       seen[k]=true;
       // you may sail PAST other ships, but not end your move on one
       const occupied=game.players.some(q2=>q2!==p&&!q2.done&&q2.pos[0]===o[0]&&q2.pos[1]===o[1]);
       if(!occupied)out.push(o);
-      q.push([o,d+1]);
+      if(!game.onRim(o))q.push([o,d+1]); // entering the trade winds ends your move
     }
   }
   return out;
@@ -1020,8 +1091,12 @@ async function asyncBattle(att,def){
               :(await sleep(250),game.flip(def));
     rounds.push([ah?1:0,dh?1:0,bs?1:0]);
     if(ah&&dh){}else if(ah)a++;else if(dh)d++;
-    if(hA||hD){await flash(`⚔️ ${fl(ah)} vs ${fl(dh)} — score ${a} – ${d}`,700);}
+    // live scoreboard popup, round by round, for every battle
+    panel(`<div class="apMsg">⚔️ ${NAMES[att.idx]} <b style="font-size:19px">${a}</b> – <b style="font-size:19px">${d}</b> ${NAMES[def.idx]}</div>
+      <div>${rounds.slice(-5).map(r=>`${r[0]?"⚪H":"⚫T"}${r[2]?"🔥":""}<span class="muted">/</span>${r[1]?"⚪H":"⚫T"}`).join("&nbsp;&nbsp;")}</div>`);
+    await sleep(hA||hD?750:500);
   }
+  panel("");
   const win=a>=3?att:def,lose=a>=3?def:att;
   if(win===att)game.attWins++;
   let spoil;
@@ -1047,6 +1122,7 @@ async function asyncBattle(att,def){
     }
   }
   [att.pos,def.pos]=[def.pos,att.pos];
+  game.tradewind(att);game.tradewind(def);
   game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
   liveRender();
   for(const pl of [att,def]){
@@ -1077,10 +1153,11 @@ async function humanTrade(p){
     accept=await ask(`${NAMES[q.idx]}: accept ${give.type==="ing"?ING_EMOJI[give.v]+" "+give.v:give.v+"🌕"} for your ${ING_EMOJI[want]} ${want}?`,
       [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
   }else{
-    // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare
+    // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare;
+    // receiving a crate they still LACK is worth just as much (essential-for-essential swaps are fair)
     const essential=q.recipe.includes(want)&&game.cnt(q.ing,want)<=1;
     const cost=essential?7:2;
-    const val=give.type==="coins"?give.v:(game.needs(q).includes(give.v)?5:2);
+    const val=give.type==="coins"?give.v:(game.needs(q).includes(give.v)?7:2);
     const bonus=game.cfg.tradeBonus?1:0;
     accept=val+bonus>=cost;
     if(!accept){
@@ -1099,11 +1176,18 @@ async function humanTrade(p){
           return true;
         }
       }
+      game.ev({t:"parley",a:p.idx,b:q.idx,offer:give.type==="coins"?give.v+" coins":give.v,want,ok:false});
+      liveRender();
       await flash(`${NAMES[q.idx]} declines!`);
       return true;
     }
   }
-  if(!accept){await flash(`${NAMES[q.idx]} declines!`);return true;}
+  if(!accept){
+    game.ev({t:"parley",a:p.idx,b:q.idx,offer:give.type==="coins"?give.v+" coins":give.v,want,ok:false});
+    liveRender();
+    await flash(`${NAMES[q.idx]} declines!`);
+    return true;
+  }
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
   let gaveStr;
   if(give.type==="ing"){p.ing.splice(p.ing.indexOf(give.v),1);q.ing.push(give.v);gaveStr=give.v;}
@@ -1146,12 +1230,17 @@ async function humanAct(p){
 async function humanTurn(p){
   game.ev({t:"turn",p:p.idx});
   liveRender();
+  await flash(`⛵ Ahoy, ${NAMES[p.idx]} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
+  const before=[...p.pos];
   await humanWind(p);
+  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])
+    await flash(`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`,1000);
   p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
   if(p.coins>0){
     const dest=await pickCell(p,reachable(p,3));
-    if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();}
+    if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
+      if(game.tradewind(p)){liveRender();await flash("🌀 The trade winds sweep you around the rim!",1200);}}
   }else await flash(`${NAMES[p.idx]}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`,1600);
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
@@ -1180,6 +1269,27 @@ async function botTurn(p){
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
+  // hail humans: locked-out bots offer coins for a crate they can't get any other way
+  if(g.cfg.parley&&(game.round-(p.lastOffer||-9))>=3){
+    for(const ing of g.needs(p)){
+      if(g.tokens[ing]>0)continue; // island still has crates — no need to beg
+      const human=g.players.find(q=>q.strategy==="human"&&!q.done&&q.ing.includes(ing));
+      if(human&&p.coins>=5){
+        p.lastOffer=game.round;
+        const sell=await ask(`📯 ${NAMES[p.idx]} hails you: "Ahoy! 5🌕 for your ${ING_EMOJI[ing]} ${ing} — what say ye?"`,
+          [{label:"Sell for 5🌕",value:true},{label:"Refuse",value:false}]);
+        g.ev({t:"parley",a:p.idx,b:human.idx,offer:"5 coins",want:ing,ok:sell});
+        if(sell){
+          human.ing.splice(human.ing.indexOf(ing),1);p.ing.push(ing);
+          p.coins-=5;human.coins+=5;g.trades++;
+          if(g.cfg.tradeBonus){p.coins++;human.coins++;}
+          g.ev({t:"trade",a:p.idx,b:human.idx,gave:"5 coins",got:ing,kind:"hail"});
+        }
+        liveRender();
+        break;
+      }
+    }
+  }
   const port=g.adjPort(p);
   if((p.strategy==="trader"||g.cfg.parley)&&g.tryTrade(p)){liveRender();return;}
   const victim=g.wantsAttack(p);
@@ -1274,6 +1384,8 @@ async function startLive(cfg,seed){
 }
 async function runLive(myGen){
   const alive=()=>myGen===liveGen;
+  if(game.cfg.strategies.includes("human")&&game.round===0)
+    await flash("⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at Barbados to win. Each turn: the wind moves you, then you may sail (1🌕), then act. Watch this panel for your prompts!",3200);
   let order=game.players.map((_,i)=>i);
   if(game.cfg.rotate&&game.round>1){
     const rot=(game.round-1)%order.length;
@@ -1324,14 +1436,12 @@ function applyPreset(vals){
   }
   newGame();
 }
-$("presetClassic").onclick=()=>applyPreset({cfgGrid:11,cfgIslands:5,cfgRecipe:4,cfgCrates:-1,
-  cfgIslandSize:"1,1",cfgSingleDock:false});
-$("presetEpic").onclick=()=>applyPreset({cfgGrid:13,cfgIslands:7,cfgRecipe:5,cfgCrates:-1,
-  cfgIslandSize:"1,1",cfgSingleDock:false});
-$("presetWyatt").onclick=()=>applyPreset({cfgPlayers:4,cfgGrid:13,cfgIslands:7,cfgRecipe:5,
+const CLASSIC={cfgPlayers:4,cfgGrid:13,cfgIslands:7,cfgRecipe:5,
   cfgCrates:-1,cfgCoins:3,cfgPowder:2,cfgBroadside:"paid",cfgDockBuy:true,cfgMerchant:true,
   cfgParley:true,cfgTradeBonus:true,cfgAsym:false,cfgRotate:true,cfgStorm:"0.125",
-  cfgIslandSize:"2,2",cfgSingleDock:true,cfgSardine:true});
+  cfgIslandSize:"2,2",cfgSingleDock:true,cfgSardine:true,cfgRound:false};
+$("presetClassic").onclick=()=>applyPreset(CLASSIC);
+$("presetRound").onclick=()=>applyPreset({...CLASSIC,cfgRound:true,cfgGrid:15});
 
 /* ---------- boot ---------- */
 buildPlayerRows();
