@@ -6,26 +6,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
-    --sea: #cfe8f0; --sea2: #bcdde9; --ink: #2b2118; --parch: #f6efe0;
-    --parch2: #efe4cc; --line: #d8c9a8; --accent: #b3541e;
-    --p0: #d64541; --p1: #2e7dbf; --p2: #3e9e5c; --p3: #d1a021;
+    --teal: #29a3b2; --mint: #45dfa6; --orange: #fdb63d; --lemon: #fef48b; --pink: #fdaecb;
+    --sea: #d3f0f4; --sea2: #bfe8ee; --ink: #1f4249; --parch: #ffffff;
+    --parch2: #fff6c0; --line: #cfe7eb; --accent: #f59f2d;
+    --p0: #f2679e; --p1: #1d96a6; --p2: #27c78d; --p3: #f5a623;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: Georgia, 'Times New Roman', serif; background: var(--parch); color: var(--ink); }
-  header { padding: 10px 18px; border-bottom: 2px solid var(--line); display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  header h1 { font-size: 22px; margin: 0; letter-spacing: 1px; }
+  body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif; background: #fff; color: var(--ink); }
+  header { padding: 10px 18px; border-bottom: 3px solid var(--teal); display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 22px; margin: 0; letter-spacing: 1px; color: var(--teal); }
   header .sub { font-size: 13px; opacity: .7; }
   #layout { display: flex; gap: 14px; padding: 14px; align-items: flex-start; flex-wrap: wrap; }
   #left { flex: 0 0 auto; }
-  #right { flex: 1 1 340px; min-width: 320px; max-width: 1160px; }
-  #cols { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
-  #cols .col { flex: 1 1 320px; min-width: 300px; }
-  #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); border: 2px solid var(--line); border-radius: 10px; display: block; }
-  .panel { background: #fffdf6; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
-  .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+  #right { flex: 1 1 340px; min-width: 320px; max-width: 560px; }
+  #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); border: 2px solid #9edbe5; border-radius: 10px; display: block; }
+  .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
+  .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
   #controls { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  button { font-family: inherit; font-size: 14px; padding: 6px 14px; border: 1.5px solid var(--ink); border-radius: 7px; background: var(--parch2); cursor: pointer; }
-  button:hover { background: #e6d9ba; }
+  button { font-family: inherit; font-size: 14px; padding: 6px 14px; border: 1.5px solid var(--teal); border-radius: 7px; background: var(--lemon); cursor: pointer; color: var(--ink); }
+  button:hover { background: #fdea6d; }
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   button.primary:hover { filter: brightness(1.1); }
   button:disabled { opacity: .4; cursor: default; }
@@ -40,11 +39,11 @@
   .player-row .pname { font-weight: bold; width: 118px; }
   .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
   .chips { display: flex; gap: 3px; flex-wrap: wrap; }
-  .chip { font-size: 15px; padding: 0 3px; border-radius: 5px; background: #eee; border: 1px solid #ccc; opacity: .35; }
-  .chip.have { opacity: 1; background: #dff2df; border-color: #7bbb7b; }
-  .chip.extra { opacity: 1; background: #fdf3d7; border-color: #d9b64e; }
+  .chip { font-size: 15px; padding: 0 3px; border-radius: 5px; background: #f2f2f2; border: 1px solid #ddd; opacity: .35; }
+  .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
+  .chip.extra { opacity: 1; background: #fff6c0; border-color: #f5a623; }
   .crown { font-size: 15px; }
-  #log { max-height: 520px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
+  #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
   .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translateY(8px) scale(.6); }
@@ -52,14 +51,14 @@
     100% { opacity: 0; transform: translateY(-32px) scale(1.3); }
   }
   #log .line { padding: 1.5px 4px; border-radius: 4px; }
-  #log .line.cur { background: #fceec9; }
-  #log .battle { color: #8c2b1e; }
-  #log .trade { color: #1e6e8c; }
+  #log .line.cur { background: var(--lemon); }
+  #log .battle { color: #d6337f; }
+  #log .trade { color: #147a8a; }
   #log .roundhdr { font-weight: bold; opacity: .65; margin-top: 4px; border-top: 1px dashed var(--line); }
   #statsPanel table, #batchPanel table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  #statsPanel td, #batchPanel td, #batchPanel th { padding: 2.5px 6px; border-bottom: 1px solid #eee4cc; text-align: left; }
+  #statsPanel td, #batchPanel td, #batchPanel th { padding: 2.5px 6px; border-bottom: 1px solid #e3f2f5; text-align: left; }
   #batchPanel th { border-bottom: 1.5px solid var(--line); }
-  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; background: #f6e7b2; border: 1.5px solid #d9b64e; border-radius: 8px; margin-bottom: 8px; }
+  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; background: var(--lemon); border: 1.5px solid var(--orange); border-radius: 8px; margin-bottom: 8px; }
   .windbox { font-size: 14px; display: flex; align-items: center; gap: 6px; }
   #windArrow { display: inline-block; transition: transform .4s; font-size: 20px; }
   .muted { opacity: .6; font-size: 12px; }
@@ -91,8 +90,6 @@
       <h3>Captains</h3>
       <div id="players"></div>
     </div>
-    <div id="cols">
-    <div class="col">
     <div class="panel">
       <h3>Captain's log</h3>
       <div id="log"></div>
@@ -101,8 +98,6 @@
       <h3>End of voyage</h3>
       <div id="statsPanel"></div>
     </div>
-    </div>
-    <div class="col">
     <div class="panel">
       <h3>Ship's Articles (rules)</h3>
       <div class="rulegrid">
@@ -137,8 +132,6 @@
       <button id="btnBatch">🎲 Run 400 games with these rules</button>
       <div id="batchPanel" style="margin-top:8px"></div>
     </div>
-    </div>
-    </div>
   </div>
 </div>
 <script>
@@ -153,7 +146,7 @@ const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
 const NAMES=["Capt. Crumble","Capt. Biscotti","Capt. Gingersnap","Capt. Shortbread"];
 const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
-const HEXCOL=["#d64541","#2e7dbf","#3e9e5c","#d1a021"];
+const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
 class Game{
@@ -493,12 +486,12 @@ function drawBoard(){
   const svg=$("board");svg.innerHTML="";
   const n=game.cfg.grid,W=640;cell=W/n;
   for(let i=0;i<=n;i++){
-    el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#9fc6d4","stroke-width":1},svg);
-    el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#9fc6d4","stroke-width":1},svg);
+    el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1},svg);
+    el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1},svg);
   }
   // home
   const [hx,hy]=game.home;
-  el("circle",{cx:(hx+.5)*cell,cy:(hy+.5)*cell,r:cell*.42,fill:"#e8dcbf",stroke:"#8c7a52","stroke-width":2},svg);
+  el("circle",{cx:(hx+.5)*cell,cy:(hy+.5)*cell,r:cell*.42,fill:"#fef48b",stroke:"#f5a623","stroke-width":2},svg);
   const ht=el("text",{x:(hx+.5)*cell,y:(hy+.5)*cell+cell*.16,"text-anchor":"middle","font-size":cell*.5},svg);
   ht.textContent="⚓";
   // islands (may be multi-cell rectangles)
@@ -507,17 +500,17 @@ function drawBoard(){
     const xs=cells.map(c=>c[0]),ys=cells.map(c=>c[1]);
     const x0=Math.min(...xs),y0=Math.min(...ys),x1=Math.max(...xs)+1,y1=Math.max(...ys)+1;
     el("rect",{x:x0*cell+2,y:y0*cell+2,width:(x1-x0)*cell-4,height:(y1-y0)*cell-4,
-      rx:cell*.35,fill:"#dfe8b9",stroke:"#7c8a4a","stroke-width":2},svg);
+      rx:cell*.35,fill:"#d9f8ec",stroke:"#27c78d","stroke-width":2},svg);
     const cx=(x0+x1)/2*cell,cy=(y0+y1)/2*cell;
     const t=el("text",{x:cx,y:cy+cell*.15,"text-anchor":"middle","font-size":cell*.45},svg);
     t.textContent=ING_EMOJI[ing];
     const b=el("text",{x:cx+cell*.4,y:cy-cell*.3,"text-anchor":"middle","font-size":cell*.28,
-      fill:"#5a4a1a","font-weight":"bold",id:"tok_"+ing},svg);
+      fill:"#0f7a54","font-weight":"bold",id:"tok_"+ing},svg);
     b.textContent=game.cfg.crates>=1e9?"":game.tokens[ing];
     if(game.cfg.singleDock){
       const d=game.dockOf[ing];
       el("rect",{x:d[0]*cell+cell*.25,y:d[1]*cell+cell*.25,width:cell*.5,height:cell*.5,
-        rx:3,fill:"#8c6a3f",stroke:"#5a4425","stroke-width":1.5,opacity:.85},svg);
+        rx:3,fill:"#f5a623",stroke:"#c77f16","stroke-width":1.5,opacity:.9},svg);
       const dt=el("text",{x:(d[0]+.5)*cell,y:(d[1]+.5)*cell+cell*.12,"text-anchor":"middle","font-size":cell*.3,fill:"#fff"},svg);
       dt.textContent="⚓";
     }
