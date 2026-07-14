@@ -44,6 +44,21 @@
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f5a623; }
   .crown { font-size: 15px; }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
+  #boardwrap { position: relative; width: 640px; }
+  #actionPanel { margin-top: 10px; width: 640px; background: var(--lemon); border: 2px solid var(--teal);
+    border-radius: 10px; padding: 8px 12px; }
+  .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .apBtn { background: #fff; font-size: 14px; }
+  .apBtn:hover { background: #eafbf4; }
+  .bubble { position: absolute; background: #fff; border: 2px solid var(--teal); border-radius: 9px;
+    padding: 3px 9px; font-size: 12px; font-weight: 500; max-width: 280px; line-height: 1.35;
+    transform: translate(-50%, -108%); box-shadow: 0 2px 6px rgba(31,66,73,.18);
+    pointer-events: none; z-index: 5; transition: opacity .35s; }
+  .activering { animation: ringpulse .8s ease-in-out infinite alternate; }
+  @keyframes ringpulse { from { opacity: .35; } to { opacity: 1; } }
+  .bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -5px;
+    border: 5px solid transparent; border-top-color: inherit; border-bottom: none; }
   .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translateY(8px) scale(.6); }
@@ -72,17 +87,20 @@
 </header>
 <div id="layout">
   <div id="left">
-    <svg id="board" width="640" height="640"></svg>
+    <div id="boardwrap">
+      <svg id="board" width="640" height="640"></svg>
+    </div>
     <div id="controls">
       <button class="primary" id="btnNew">⚓ New game</button>
       <button id="btnPlay">▶ Play</button>
       <button id="btnStep">Step</button>
       <button id="btnEnd">⏭ To end</button>
       <span style="margin-left:6px">speed</span>
-      <input type="range" id="speed" min="1" max="40" value="8" style="width:110px">
+      <input type="range" id="speed" min="0.5" max="40" step="0.5" value="8" style="width:110px">
       <span class="windbox">wind <span id="windArrow">➤</span><b id="windLabel">–</b></span>
       <span id="roundLabel" class="muted"></span>
     </div>
+    <div id="actionPanel" style="display:none"></div>
     <input type="range" id="scrub" min="0" max="0" value="0">
   </div>
   <div id="right">
@@ -124,6 +142,7 @@
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
         <button id="presetClassic" title="11×11, 5 islands, recipe 4 — the ~20-round family game">🏝️ Classic</button>
         <button id="presetEpic" title="13×13, 7 islands, recipe 5-of-7 — most trade, least luck, ~27 rounds">🗺️ Epic Voyage</button>
+        <button id="presetWyatt" title="13×13, 7 islands, recipe 5, 2×2 islands, single docks, paid broadside, sardines">🧑‍🍳 Wyatt Mode</button>
       </div>
       <div class="muted" style="margin-top:6px">Changes apply on ⚓ New game. Strategy dropdowns are per captain, above.</div>
     </div>
@@ -199,7 +218,16 @@ class Game{
     this.tokens={}; this.ings.forEach(i=>this.tokens[i]=tok);
     this.players=cfg.strategies.map((s,i)=>({idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
       ing:[],recipe:this.sample(this.ings,cfg.recipeSize),firstFlip:new Set(),dockedNow:new Set(),
-      done:false,heads:0,flips:0}));
+      done:false,heads:0,flips:0,corner:null}));
+    // monopolists pick the most-demanded scarce ingredient to corner
+    if(cfg.crates>=1&&cfg.crates<1e9){
+      for(const p of this.players){
+        if(p.strategy!=="monopolist")continue;
+        const demand=ing=>this.players.filter(q=>q!==p&&q.recipe.includes(ing)).length;
+        p.corner=this.ings.slice().sort((x,y)=>
+          (demand(y)-demand(x))||((p.recipe.includes(y)?1:0)-(p.recipe.includes(x)?1:0)))[0];
+      }
+    }
     this.round=0;this.battles=0;this.attWins=0;this.trades=0;this.finishOrder=[];this.events=[];this.winner=null;
   }
   r(){return this.rng();}
@@ -281,6 +309,7 @@ class Game{
   cnt(arr,x){return arr.filter(v=>v===x).length;}
   tryTrade(p){
     for(const q of this.tradeOpp(p)){
+      if(q.strategy==="human")continue; // bots never auto-trade with humans; humans initiate via Parley
       const give=p.ing.filter(i=>this.needs(q).includes(i)&&this.cnt(p.ing,i)>(p.recipe.includes(i)?1:0));
       const get=q.ing.filter(i=>this.needs(p).includes(i)&&this.cnt(q.ing,i)>(q.recipe.includes(i)?1:0));
       if(give.length&&get.length){
@@ -290,10 +319,14 @@ class Game{
         this.trades++;if(this.cfg.tradeBonus){p.coins++;q.coins++;}
         this.ev({t:"trade",a:p.idx,b:q.idx,gave:gi,got:ge,kind:"swap"});return true;
       }
-      if(get.length&&p.coins>=4){
-        const ge=get[0];q.ing.splice(q.ing.indexOf(ge),1);p.ing.push(ge);
-        p.coins-=4;q.coins+=4;this.trades++;if(this.cfg.tradeBonus){p.coins++;q.coins++;}
-        this.ev({t:"trade",a:p.idx,b:q.idx,gave:"4 coins",got:ge,kind:"buy"});return true;
+      if(get.length){
+        const ge=get[0];
+        const price=(q.strategy==="monopolist"&&ge===q.corner)?5:4; // monopolists gouge
+        if(p.coins>=price){
+          q.ing.splice(q.ing.indexOf(ge),1);p.ing.push(ge);
+          p.coins-=price;q.coins+=price;this.trades++;if(this.cfg.tradeBonus){p.coins++;q.coins++;}
+          this.ev({t:"trade",a:p.idx,b:q.idx,gave:price+" coins",got:ge,kind:"buy"});return true;
+        }
       }
     }
     return false;
@@ -333,7 +366,9 @@ class Game{
   }
   chooseTarget(p){
     const needs=this.needs(p);
-    if(!needs.length)return this.home;
+    if(!needs.length)return this.home; // recipe done — go win
+    if(p.strategy==="monopolist"&&p.corner&&this.tokens[p.corner]>0)
+      return this.islandOf[p.corner]; // corner the market first
     let cands=needs.filter(i=>this.tokens[i]>0).map(i=>this.islandOf[i]);
     if(this.cfg.merchant&&p.strategy==="trader"){
       let extra=this.ings.filter(i=>!needs.includes(i)&&!p.ing.includes(i)&&this.tokens[i]>0&&
@@ -377,12 +412,16 @@ class Game{
       if(prey.length){prey.sort((x,y)=>man(p.pos,x.pos)-man(p.pos,y.pos));
         if(man(p.pos,prey[0].pos)<man(p.pos,target))target=prey[0].pos;}
     }
-    if(man(p.pos,target)>1&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,3);
+    const dist=man(p.pos,target);
+    const exact=(target[0]===this.home[0]&&target[1]===this.home[1])||this.dockCells.has(target[0]+","+target[1]);
+    if((dist>1||(dist===1&&exact))&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,3);
       if(p.pos[0]!==b[0]||p.pos[1]!==b[1])this.ev({t:"sail",p:p.idx});else p.coins++;}
     const port=this.adjPort(p);
     if((p.strategy==="trader"||this.cfg.parley)&&this.tryTrade(p))return;
     const victim=this.wantsAttack(p);
     if(victim){if(!this.tryTrade(p))this.battle(p,victim);return;}
+    if(port&&p.strategy==="monopolist"&&port===p.corner&&this.tokens[port]>0){
+      if(this.doDock(p,port))return;} // hoard every crate, even duplicates
     if(port&&this.needs(p).includes(port)&&this.tokens[port]>0){
       if(this.doDock(p,port))return;}
     if(port&&this.cfg.merchant&&(p.strategy==="trader"||p.strategy==="balanced")){
@@ -468,7 +507,7 @@ function buildPlayerRows(){
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18">
       <span class="dot" style="background:${HEXCOL[i]}"></span>
       <span class="pname">${NAMES[i]}</span>
-      <select id="strat${i}">${["balanced","pirate","trader","rusher"].map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select>
+      <select id="strat${i}">${["human","balanced","pirate","trader","rusher","monopolist"].map(s=>`<option value="${s}" ${s===cur?"selected":""}>${s==="human"?"🧑‍🍳 human":s}</option>`).join("")}</select>
       <span class="coins" id="coins${i}">🌕 –</span>
       <span class="chips" id="chips${i}"></span>
       <span class="crown" id="crown${i}"></span></div>`;
@@ -481,7 +520,7 @@ $("cfgPlayers").addEventListener("change",buildPlayerRows);
 const SVGNS="http://www.w3.org/2000/svg";
 function el(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag);
   for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
-let cell=0,shipEls=[];
+let cell=0,shipEls=[],activeRing=null;
 function drawBoard(){
   const svg=$("board");svg.innerHTML="";
   const n=game.cfg.grid,W=640;cell=W/n;
@@ -515,6 +554,9 @@ function drawBoard(){
       dt.textContent="⚓";
     }
   }
+  // active-player highlight ring (positioned in render)
+  activeRing=el("circle",{r:cell*.44,fill:"none",stroke:"#f5a623","stroke-width":4,
+    "stroke-dasharray":"7 5","class":"activering",opacity:0},svg);
   // ships
   shipEls=[];
   game.players.forEach((p,i)=>{
@@ -536,6 +578,7 @@ function shipXY(pos,i,state){
 /* ---------- event text ---------- */
 function pn(i){return `<b style="color:${HEXCOL[i]}">${NAMES[i].replace("Capt. ","")}</b>`;}
 function fl(h){return h?"⚪H":"⚫T";}
+function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+x;}
 function describe(e){
   switch(e.t){
     case "newround":return {cls:"roundhdr",txt:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]}${e.storm?" ⛈️ STORM!":""} —`};
@@ -550,7 +593,7 @@ function describe(e){
         bought:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, buys the crate for 3🌕`,
         coins:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, takes 3🌕`};
       return {txt:`${pn(e.p)} ${g[e.got]}`};}
-    case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${e.gave==="4 coins"?"4🌕":ING_EMOJI[e.gave]+" "+e.gave} to ${pn(e.b)} for ${ING_EMOJI[e.got]} ${e.got}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
+    case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
     case "battle":{
       const seq=e.rounds.map(r=>fl(r[0])+(r[2]?"🔥":"")+"/"+fl(r[1])).join("  ");
       return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)}! &nbsp;[att/def: ${seq}] → ${pn(e.winner)} wins, takes ${e.spoil}. Ships swap places!`};}
@@ -581,6 +624,21 @@ function render(){
     $("chips"+i).innerHTML=chips.join("")+extras.join("");
     $("crown"+i).textContent=(game.events[game.events.length-1].winner===i&&evIdx===game.events.length-1)?"👑":"";
   });
+  // active-player ring: whose turn is it as of this event?
+  if(activeRing){
+    let active=null;
+    for(let i=evIdx;i>=0&&i>evIdx-80;i--){
+      const t=game.events[i].t;
+      if(t==="turn"){active=game.events[i].p;break;}
+      if(t==="newround")break;
+    }
+    if(active!=null&&!st[active].done){
+      const [ax,ay]=shipXY(st[active].pos,active,st);
+      activeRing.setAttribute("stroke",HEXCOL[active]);
+      activeRing.style.transform=`translate(${ax}px,${ay}px)`;
+      activeRing.setAttribute("opacity",1);
+    }else activeRing.setAttribute("opacity",0);
+  }
   for(const ing of game.ings){const b=document.getElementById("tok_"+ing);
     if(b&&game.cfg.crates<1e9)b.textContent=e.tokens[ing];}
   $("windLabel").textContent=e.wind?DIRNAME[e.wind]+(e.storm?" ⛈️":""):"–";
@@ -590,7 +648,8 @@ function render(){
   $("scrub").value=evIdx;
   renderLog();
   // end stats
-  if(evIdx===game.events.length-1)showStats();else $("statsWrap").style.display="none";
+  if(evIdx===game.events.length-1&&(!live||liveDone))showStats();
+  else $("statsWrap").style.display="none";
 }
 let logRenderedTo=-1;
 function renderLog(){
@@ -641,6 +700,59 @@ function spawnPops(e){
   }
 }
 
+/* ---------- action bubbles above ships ---------- */
+const bubbles={};
+function captions(e){
+  const F=h=>h?"⚪H":"⚫T";
+  switch(e.t){
+    case "windmove":return [[e.p,"🌬️ drifts"]];
+    case "sail":return [[e.p,"⛵ sails −1🌕"]];
+    case "dodge":return [[e.p,"💨 dodges −1🌕"]];
+    case "anchor":return [[e.p,"⚪H drops anchor ⚓"]];
+    case "aground":return [[e.p,"⚫T aground! 💥 −half 🌕"]];
+    case "dock":{const m={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",
+      bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
+      return [[e.p,`docks ${F(e.heads)} ${m[e.got]}`]];}
+    case "trade":return [[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]];
+    case "battle":{const loser=e.winner===e.a?e.d:e.a;
+      return [[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]];}
+    case "fish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
+    case "finish":return [[e.p,"🏁 recipe done!"]];
+    case "bakeoff":return [[e.winner,"🧁 wins the bakeoff!"]];
+    case "end":return e.winner===null?[]:[[e.winner,"👑 BEST BAKER!"]];
+    default:return [];
+  }
+}
+function anchorFor(e){
+  switch(e.t){
+    case "trade":case "battle":return e.a;
+    case "bakeoff":case "end":return e.winner;
+    case "newround":case "turn":return null;
+    default:return typeof e.p==="number"?e.p:null;
+  }
+}
+function showEventBubble(e){
+  const anc=anchorFor(e);
+  const L=logLines[evIdx];
+  if(anc==null||anc===undefined||!L)return;
+  showBubble(anc,L.txt);
+}
+function showBubble(i,txt){
+  if(bubbles[i])bubbles[i].remove();
+  const st=game.events[evIdx].state;
+  let [x,y]=shipXY(st[i].pos,i,st);
+  x=Math.max(145,Math.min(640-145,x)); // keep wide bubbles on the board
+  const d=document.createElement("div");
+  d.className="bubble";d.style.borderColor=HEXCOL[i];d.innerHTML=txt;
+  d.style.left=x+"px";d.style.top=(y-cell*.32)+"px";
+  $("boardwrap").appendChild(d);bubbles[i]=d;
+  const mine=d;
+  const life=Math.max(1400,2.2*1000/(+$("speed").value));
+  setTimeout(()=>{if(bubbles[i]===mine){mine.style.opacity="0";
+    setTimeout(()=>{mine.remove();if(bubbles[i]===mine)delete bubbles[i];},400);}},life);
+}
+function clearBubbles(){for(const k in bubbles){bubbles[k].remove();delete bubbles[k];}}
+
 function showStats(){
   $("statsWrap").style.display="";
   const w=game.winner;
@@ -657,25 +769,34 @@ function showStats(){
 }
 function newGame(){
   stop();
+  liveGen++;panel(""); // abort any live game in progress
   buildPlayerRowsIfNeeded();
   const cfg=readCfg();
   const seed=+$("cfgSeed").value;
+  $("cfgSeed").value=seed+1; // next game differs
+  if(cfg.strategies.includes("human")){startLive(cfg,seed);return;}
+  live=false;liveDone=false;setReplayControls(true);
   game=new Game(cfg,seed,true);
   game.play();
   logLines=game.events.map(describe);
   evIdx=0;
+  clearBubbles();
   logRenderedTo=-2;
   $("log").innerHTML="";
   $("scrub").max=game.events.length-1;
   drawBoard();render();
-  $("cfgSeed").value=seed+1; // next game differs
 }
 function buildPlayerRowsIfNeeded(){
   const np=+$("cfgPlayers").value;
   if(!$("prow0")||document.querySelectorAll(".player-row").length!==np)buildPlayerRows();
 }
 function tick(){
-  if(evIdx<game.events.length-1){evIdx++;render();spawnPops(game.events[evIdx]);}
+  if(evIdx<game.events.length-1){
+    evIdx++;render();
+    const e=game.events[evIdx];
+    spawnPops(e);
+    showEventBubble(e);
+  }
   else stop();
 }
 function play(){
@@ -688,12 +809,13 @@ $("btnNew").onclick=newGame;
 $("btnPlay").onclick=play;
 $("btnStep").onclick=()=>{stop();tick();};
 $("btnEnd").onclick=()=>{stop();evIdx=game.events.length-1;render();};
-$("scrub").oninput=e=>{stop();evIdx=+e.target.value;render();};
+$("scrub").oninput=e=>{stop();clearBubbles();evIdx=+e.target.value;render();};
 $("speed").oninput=()=>{if(timer){stop();play();}};
 
 /* ---------- batch mode ---------- */
 $("btnBatch").onclick=()=>{
   const cfg=readCfg();
+  cfg.strategies=cfg.strategies.map(s=>s==="human"?"balanced":s); // batch uses bots in human seats
   const N=400,wins={},games={},seatW=new Array(cfg.strategies.length).fill(0);
   let rounds=0,battles=0,trades=0,attW=0,attB=0,unfin=0,luckW=0,luckG=0;
   const rng=mulberry32(12345);
@@ -724,6 +846,353 @@ $("btnBatch").onclick=()=>{
   </table><div class="muted">${N} games, seats shuffled each game.</div>`;
 };
 
+/* ================= LIVE (human) MODE ================= */
+let live=false, liveDone=false, liveGen=0;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function liveRender(){
+  evIdx=Math.max(0,game.events.length-1);
+  if(!game.events.length)return;
+  logLines=game.events.map(describe);
+  $("scrub").max=Math.max(0,game.events.length-1);
+  render();
+  const e=game.events[evIdx];
+  spawnPops(e);
+  showEventBubble(e);
+}
+function panel(html){$("actionPanel").innerHTML=html;$("actionPanel").style.display=html?"":"none";}
+function ask(msg,opts){
+  return new Promise(res=>{
+    panel(`<div class="apMsg">${msg}</div><div class="apBtns">`+
+      opts.map((o,i)=>`<button class="apBtn" data-i="${i}">${o.label}</button>`).join("")+`</div>`);
+    $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
+      b.onclick=()=>{panel("");res(opts[+b.dataset.i].value);};
+    });
+  });
+}
+async function flash(msg,ms){panel(`<div class="apMsg">${msg}</div>`);await sleep(ms||900);panel("");}
+async function humanFlip(p,label){
+  await ask(label||"Flip the gold bullion!",[{label:"🌕 FLIP!",value:1}]);
+  const h=game.flip(p);
+  await flash(h?"⚪ HEADS!":"⚫ TAILS",650);
+  return h;
+}
+function reachable(p,steps){
+  const n=game.cfg.grid,seen={[p.pos[0]+","+p.pos[1]]:true},q=[[p.pos,0]],out=[];
+  while(q.length){
+    const [c,d]=q.shift();
+    if(d>=steps)continue;
+    for(const dd of Object.values(DIRS)){
+      const o=[c[0]+dd[0],c[1]+dd[1]],k=o[0]+","+o[1];
+      if(o[0]<0||o[1]<0||o[0]>=n||o[1]>=n)continue;
+      if(game.islands[o]!==undefined)continue;
+      if(game.dockCells.has(k)&&game.players.some(q2=>q2!==p&&!q2.done&&q2.pos[0]===o[0]&&q2.pos[1]===o[1]))continue;
+      if(seen[k])continue;
+      seen[k]=true;out.push(o);q.push([o,d+1]);
+    }
+  }
+  return out;
+}
+function pickCell(p,cells){
+  return new Promise(res=>{
+    const svg=$("board"),hs=[];
+    const done=v=>{hs.forEach(h=>h.remove());panel("");res(v);};
+    for(const c of cells){
+      const r=el("rect",{x:c[0]*cell+2,y:c[1]*cell+2,width:cell-4,height:cell-4,rx:5,
+        fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
+      r.addEventListener("click",()=>done(c));
+      hs.push(r);
+    }
+    panel(`<div class="apMsg">${NAMES[p.idx]}: click a highlighted square to sail (−1🌕)</div>
+      <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`);
+    $("apStay").onclick=()=>done(null);
+  });
+}
+async function humanWind(p){
+  const d=DIRS[game.windNow],dist=game.stormNow?2:1;
+  for(let s=0;s<dist;s++){
+    const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
+    if(game.blocked(nx))break;
+    if(game.islands[nx]!==undefined){
+      const opts=[];
+      if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
+      opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
+      const v=await ask(`${NAMES[p.idx]}: the wind blows you toward an island!`,opts);
+      if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});}
+      else{
+        const h=await humanFlip(p,"Flip to drop anchor!");
+        if(h)game.ev({t:"anchor",p:p.idx});
+        else{p.coins-=Math.floor(p.coins/2);game.ev({t:"aground",p:p.idx});}
+      }
+      liveRender();return;
+    }
+    p.pos=nx;
+  }
+  game.ev({t:"windmove",p:p.idx});liveRender();
+}
+async function humanDock(p,port){
+  const ing=port;
+  const h=await humanFlip(p,`Docking at ${ING_EMOJI[ing]} ${ing} — flip!`);
+  if(h){
+    if(game.tokens[ing]>0){game.tokens[ing]--;p.ing.push(ing);game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
+    else{p.coins+=3;game.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
+  }else{
+    let got="coins";
+    if(game.cfg.dockBuy&&p.coins>=3&&game.needs(p).includes(ing)&&game.tokens[ing]>0){
+      const buy=await ask("Tails! Take 3🌕 — or buy the crate anyway for 3🌕?",[
+        {label:`Buy ${ING_EMOJI[ing]} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
+      if(buy){p.coins-=3;game.tokens[ing]--;p.ing.push(ing);got="bought";}
+      else p.coins+=3;
+    }else p.coins+=3;
+    game.ev({t:"dock",p:p.idx,ing,heads:0,got});
+  }
+  p.firstFlip.add(ing);p.dockedNow.add(ing);
+  liveRender();
+}
+async function asyncBattle(att,def){
+  const c=game.cfg;
+  if(c.powder)att.coins-=c.powder;
+  game.battles++;
+  let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
+  const rounds=[];
+  const hA=att.strategy==="human",hD=def.strategy==="human";
+  while(a<3&&d<3){
+    let bs=false;
+    let ah=hA?await humanFlip(att,`⚔️ ${a}–${d} · ${NAMES[att.idx]} (attacker), flip!`)
+            :(await sleep(300),game.flip(att));
+    if(!ah&&(free||(paid&&att.coins>=1))){
+      let use=true;
+      if(hA)use=await ask(paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?",
+        [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
+      if(use){
+        if(paid)att.coins--;
+        ah=hA?await humanFlip(att,"🔥 Broadside reflip!"):game.flip(att);
+        bs=true;free=false;paid=false;
+      }else if(!hA){free=false;paid=false;}
+    }
+    const dh=hD?await humanFlip(def,`🛡️ ${NAMES[def.idx]} (defender), flip!`)
+              :(await sleep(250),game.flip(def));
+    rounds.push([ah?1:0,dh?1:0,bs?1:0]);
+    if(ah&&dh){}else if(ah)a++;else if(dh)d++;
+    if(hA||hD){await flash(`⚔️ ${fl(ah)} vs ${fl(dh)} — score ${a} – ${d}`,700);}
+  }
+  const win=a>=3?att:def,lose=a>=3?def:att;
+  if(win===att)game.attWins++;
+  let spoil;
+  if(c.asym&&lose===att){
+    const take=Math.min(2,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+"c (raider)";
+  }else{
+    const canCoins=lose.coins>=5,hasIng=lose.ing.length>0;
+    let mode;
+    if(canCoins&&hasIng){
+      if(lose.strategy==="human")
+        mode=await ask(`${NAMES[lose.idx]}, you lost! Pay with…`,
+          [{label:"5🌕",value:"coins"},{label:"a crate (winner picks)",value:"ing"}]);
+      else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
+    }else if(hasIng)mode="ing";else mode="coins";
+    if(mode==="coins"){const take=Math.min(5,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+" coins";}
+    else{
+      let pick;
+      const uniq=[...new Set(lose.ing)];
+      if(win.strategy==="human"&&uniq.length>1)
+        pick=await ask(`${NAMES[win.idx]}, choose your plunder!`,uniq.map(i=>({label:ING_EMOJI[i]+" "+i,value:i})));
+      else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
+      lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ING_EMOJI[pick]+" "+pick;
+    }
+  }
+  [att.pos,def.pos]=[def.pos,att.pos];
+  game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
+  liveRender();
+  for(const pl of [att,def]){
+    const port=game.adjPort(pl);
+    if(port&&!pl.firstFlip.has(port)){
+      if(pl.strategy==="human")await humanDock(pl,port);
+      else{game.doDock(pl,port);liveRender();}
+    }
+  }
+  return win;
+}
+async function humanTrade(p){
+  const opps=game.tradeOpp(p).filter(q=>q.ing.length>0);
+  if(!opps.length){await flash("No one has cargo to trade for.");return false;}
+  const q=opps.length===1?opps[0]:
+    await ask("Parley with whom?",opps.map(o=>({label:NAMES[o.idx],value:o})).concat([{label:"Cancel",value:null}]));
+  if(!q)return false;
+  const want=await ask(`What do you want from ${NAMES[q.idx]}?`,
+    [...new Set(q.ing)].map(i=>({label:ING_EMOJI[i]+" "+i,value:i})).concat([{label:"Cancel",value:null}]));
+  if(!want)return false;
+  const gives=[...new Set(p.ing)].map(i=>({label:"Give "+ING_EMOJI[i]+" "+i,value:{type:"ing",v:i}}));
+  [2,3,4,5,6].filter(n=>p.coins>=n).forEach(n=>gives.push({label:`Give ${n}🌕`,value:{type:"coins",v:n}}));
+  gives.push({label:"Cancel",value:null});
+  const give=await ask("What do you offer?",gives);
+  if(!give)return false;
+  let accept;
+  if(q.strategy==="human"){
+    accept=await ask(`${NAMES[q.idx]}: accept ${give.type==="ing"?ING_EMOJI[give.v]+" "+give.v:give.v+"🌕"} for your ${ING_EMOJI[want]} ${want}?`,
+      [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
+  }else{
+    const val=give.type==="coins"?give.v:(game.needs(q).includes(give.v)?5:2);
+    const cost=game.needs(q).includes(want)?7:2;
+    accept=val+(game.cfg.tradeBonus?1:0)>=cost;
+  }
+  if(!accept){await flash(`${NAMES[q.idx]} declines!`);return true;}
+  q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
+  let gaveStr;
+  if(give.type==="ing"){p.ing.splice(p.ing.indexOf(give.v),1);q.ing.push(give.v);gaveStr=give.v;}
+  else{p.coins-=give.v;q.coins+=give.v;gaveStr=give.v+" coins";}
+  game.trades++;
+  if(game.cfg.tradeBonus){p.coins++;q.coins++;}
+  game.ev({t:"trade",a:p.idx,b:q.idx,gave:gaveStr,got:want,kind:"human"});
+  liveRender();
+  return true;
+}
+async function humanAct(p){
+  const port=game.adjPort(p);
+  const canDock=port&&!(p.firstFlip.has(port)&&p.dockedNow.has(port))
+    &&!(game.cfg.singleDock&&game.dockOccupiedBy(port,p));
+  const targets=game.adjOpp(p);
+  const opts=[];
+  if(canDock)opts.push({label:`⚓ Dock at ${ING_EMOJI[port]} ${port}`,value:"dock"});
+  if(targets.length&&p.coins>=game.cfg.powder)
+    opts.push({label:`⚔️ Attack${game.cfg.powder?` (−${game.cfg.powder}🌕 powder)`:""}`,value:"attack"});
+  if(game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
+  opts.push({label:"🎣 Fish",value:"fish"});
+  opts.push({label:"Pass",value:"pass"});
+  const v=await ask(`${NAMES[p.idx]}, choose your action:`,opts);
+  if(v==="dock")await humanDock(p,port);
+  else if(v==="attack"){
+    const t=targets.length===1?targets[0]:
+      await ask("Attack whom?",targets.map(o=>({label:NAMES[o.idx],value:o})));
+    await asyncBattle(p,t);
+  }
+  else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
+  else if(v==="fish"){
+    const h=await humanFlip(p,"Cast your line — flip!");
+    if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
+    game.ev({t:"fish",p:p.idx,heads:h?1:0});liveRender();
+  }
+}
+async function humanTurn(p){
+  game.ev({t:"turn",p:p.idx});
+  liveRender();
+  await humanWind(p);
+  if(!game.adjPort(p))p.dockedNow.clear();
+  if(p.coins>0){
+    const dest=await pickCell(p,reachable(p,3));
+    if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();}
+  }else await flash(`${NAMES[p.idx]}: no coins to sail — you drift.`);
+  await humanAct(p);
+}
+async function botTurn(p){
+  const g=game;
+  g.ev({t:"turn",p:p.idx});
+  liveRender();
+  await sleep(320);
+  const before=[...p.pos];
+  g.windPush(p,DIRS[g.windNow],g.stormNow?2:1);
+  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:"windmove",p:p.idx});
+  if(!g.adjPort(p))p.dockedNow.clear();
+  let target=g.chooseTarget(p);
+  if(p.strategy==="pirate"&&g.needs(p).length){
+    const prey=g.players.filter(q=>q!==p&&!q.done&&q.ing.some(i=>g.needs(p).includes(i)));
+    if(prey.length){prey.sort((x,y)=>man(p.pos,x.pos)-man(p.pos,y.pos));
+      if(man(p.pos,prey[0].pos)<man(p.pos,target))target=prey[0].pos;}
+  }
+  const dist=man(p.pos,target);
+  const exact=(target[0]===g.home[0]&&target[1]===g.home[1])||g.dockCells.has(target[0]+","+target[1]);
+  if((dist>1||(dist===1&&exact))&&p.coins>0){
+    p.coins--;const b=[...p.pos];g.stepToward(p,target,3);
+    if(p.pos[0]!==b[0]||p.pos[1]!==b[1])g.ev({t:"sail",p:p.idx});else p.coins++;
+  }
+  liveRender();
+  const port=g.adjPort(p);
+  if((p.strategy==="trader"||g.cfg.parley)&&g.tryTrade(p)){liveRender();return;}
+  const victim=g.wantsAttack(p);
+  if(victim){if(!g.tryTrade(p))await asyncBattle(p,victim);liveRender();return;}
+  if(port&&p.strategy==="monopolist"&&port===p.corner&&g.tokens[port]>0){
+    if(g.doDock(p,port)){liveRender();return;}}
+  if(port&&g.needs(p).includes(port)&&g.tokens[port]>0){if(g.doDock(p,port)){liveRender();return;}}
+  if(port&&g.cfg.merchant&&(p.strategy==="trader"||p.strategy==="balanced")){
+    if(g.tokens[port]>0&&!p.ing.includes(port)&&g.players.some(q=>q!==p&&g.needs(q).includes(port))){
+      if(g.doDock(p,port)){liveRender();return;}}}
+  if(port&&!p.firstFlip.has(port)){if(g.doDock(p,port)){liveRender();return;}}
+  if(p.coins<=1){
+    const h=g.flip(p);
+    if(h)p.coins+=2;else if(g.cfg.sardine)p.coins+=1;
+    g.ev({t:"fish",p:p.idx,heads:h?1:0});liveRender();
+  }
+}
+async function asyncBakeoff(A,B){
+  let a=0,d=0;
+  while(a<5&&d<5){
+    const ah=A.strategy==="human"?await humanFlip(A,`🧁 Bakeoff ${a}–${d}! ${NAMES[A.idx]}, flip!`)
+      :(await sleep(280),game.flip(A));
+    const dh=B.strategy==="human"?await humanFlip(B,`🧁 ${NAMES[B.idx]}, flip!`)
+      :(await sleep(280),game.flip(B));
+    if(ah&&dh){}else if(ah)a++;else if(dh)d++;
+  }
+  const w=a>=5?A:B;
+  game.ev({t:"bakeoff",a:A.idx,b:B.idx,winner:w.idx});liveRender();
+  return w;
+}
+async function liveResolveEnd(){
+  liveDone=true;
+  if(!game.finishOrder.length)game.winner=null;
+  else if(game.finishOrder.length===1)game.winner=game.finishOrder[0];
+  else{
+    let champ=game.players[game.finishOrder[0]];
+    for(const idx of game.finishOrder.slice(1))champ=await asyncBakeoff(champ,game.players[idx]);
+    game.winner=champ.idx;
+  }
+  game.ev({t:"end",winner:game.winner});
+  liveRender();
+}
+function setReplayControls(on){
+  for(const id of ["btnPlay","btnStep","btnEnd","scrub"])$(id).disabled=!on;
+}
+async function startLive(cfg,seed){
+  const myGen=++liveGen;
+  live=true;liveDone=false;
+  game=new Game(cfg,seed,true);
+  logLines=[];evIdx=0;clearBubbles();logRenderedTo=-2;
+  $("log").innerHTML="";$("scrub").max=0;$("statsWrap").style.display="none";
+  drawBoard();setReplayControls(false);
+  const alive=()=>myGen===liveGen;
+  let order=game.players.map((_,i)=>i);
+  let ended=false;
+  while(game.round<150&&!ended){
+    if(!alive())return;
+    game.round++;
+    if(game.cfg.rotate&&game.round>1)order=order.slice(1).concat(order.slice(0,1));
+    game.windNow="NSEW"[Math.floor(game.r()*4)];
+    game.stormNow=game.r()<game.cfg.storm;
+    game.ev({t:"newround",dir:game.windNow});liveRender();
+    for(const i of order){
+      if(!alive())return;
+      const p=game.players[i];
+      if(p.done)continue;
+      await (p.strategy==="human"?humanTurn(p):botTurn(p));
+      if(!alive())return;
+      if(game.checkFinish(p)){
+        liveRender();
+        if(game.finishOrder.length===1){
+          for(const j of order){
+            const q=game.players[j];
+            if(q.done||j===i)continue;
+            await (q.strategy==="human"?humanTurn(q):botTurn(q));
+            if(!alive())return;
+            if(game.checkFinish(q))liveRender();
+          }
+          ended=true;break;
+        }
+      }
+    }
+  }
+  if(!alive())return;
+  await liveResolveEnd();
+  if(!alive())return;
+  live=false;liveDone=true;setReplayControls(true);liveRender();
+}
+
 /* ---------- presets ---------- */
 function applyPreset(vals){
   for(const [id,v] of Object.entries(vals)){
@@ -736,6 +1205,10 @@ $("presetClassic").onclick=()=>applyPreset({cfgGrid:11,cfgIslands:5,cfgRecipe:4,
   cfgIslandSize:"1,1",cfgSingleDock:false});
 $("presetEpic").onclick=()=>applyPreset({cfgGrid:13,cfgIslands:7,cfgRecipe:5,cfgCrates:-1,
   cfgIslandSize:"1,1",cfgSingleDock:false});
+$("presetWyatt").onclick=()=>applyPreset({cfgPlayers:4,cfgGrid:13,cfgIslands:7,cfgRecipe:5,
+  cfgCrates:-1,cfgCoins:3,cfgPowder:2,cfgBroadside:"paid",cfgDockBuy:true,cfgMerchant:true,
+  cfgParley:true,cfgTradeBonus:true,cfgAsym:false,cfgRotate:true,cfgStorm:"0.125",
+  cfgIslandSize:"2,2",cfgSingleDock:true,cfgSardine:true});
 
 /* ---------- boot ---------- */
 buildPlayerRows();
