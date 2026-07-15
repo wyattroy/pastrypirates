@@ -177,4 +177,18 @@ Best fix found — the **Sardine rule**: tails on a fishing flip pays 1 coin ins
 All four of these are now toggles in the Lab GUI: island size (1×1 / 2×2 / 2×3), single dock, and sardines, alongside everything else.
 
 ---
+
+## Addendum 4: is cornering the market overpowered? (~5,000 games)
+
+Prompted by a playtest observation: a human could buy out a scarce island's crates and extort the players who need them. We added a **monopolist** bot that picks the ingredient most demanded by opponents (preferring one on its own recipe), hoards every crate including duplicates, and sells at a gouged price (5🌕 vs the standard 4).
+
+| Matchup | Monopolist win rate | Trades/game |
+|---|---|---|
+| Standard, vs pirate/trader/balanced | 21.2% | **0.70** (vs ~0.50 without) |
+| Standard, vs rusher/pirate/balanced | 17.9% | 0.50 |
+| Wyatt Mode (13×13, 7 isl, recipe 5, single docks) | 22.8% | **0.91** — highest recorded |
+
+**Verdict: viable, not dominant — and great for the game.** Cornering costs real tempo (extra docking trips for crates you don't need) and paints a target on your hull: every hoarded crate is one battle away from being plundered, so piracy acts as the antitrust mechanism. Meanwhile the monopolist's presence raises everyone's trade rate ~40% because they create the market. No rules change needed; the incentives already balance it. If human players ever prove better at it than the bot (likely), the first lever to pull is powder cost — cheaper attacks tax hoards harder.
+
+---
 *Method note: bots are simple heuristic players, so treat exact percentages as directional; the battle probabilities in Part 2, however, are mathematically exact. Trade rates are conservative — rigid bots negotiate worse than humans.*

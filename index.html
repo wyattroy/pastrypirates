@@ -127,7 +127,7 @@
       <summary>Ship's Articles (simulation settings)</summary>
       <div class="rulegrid">
         <label><span>Players</span><select id="cfgPlayers"><option>2</option><option>3</option><option selected>4</option></select></label>
-        <label><span>Board size</span><select id="cfgGrid"><option>9</option><option>11</option><option selected>13</option><option>15</option></select></label>
+        <label><span>Board size</span><select id="cfgGrid"><option>9</option><option>11</option><option>13</option><option selected>15</option></select></label>
         <label><span>Islands</span><select id="cfgIslands"><option>5</option><option>6</option><option selected>7</option><option>8</option><option>9</option></select></label>
         <label><span>Recipe size</span><select id="cfgRecipe"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></label>
         <label><span>Crates per island</span><select id="cfgCrates"><option value="-1" selected>players − 1</option><option value="0">unlimited</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
@@ -143,7 +143,7 @@
         <label><span>Storm chance</span><select id="cfgStorm"><option value="0">never</option><option value="0.125" selected>1 in 8</option><option value="0.25">1 in 4</option></select></label>
         <label><span>Island size</span><select id="cfgIslandSize"><option value="1,1">1×1</option><option value="2,2" selected>2×2</option><option value="2,3">2×3</option></select></label>
         <label><span>Single dock per island</span><input type="checkbox" id="cfgSingleDock" checked></label>
-        <label><span>Round world (trade winds)</span><input type="checkbox" id="cfgRound"></label>
+        <label><span>Round world (trade winds)</span><input type="checkbox" id="cfgRound" checked></label>
         <label><span>Sardines (tails fish = 1c)</span><input type="checkbox" id="cfgSardine" checked></label>
         <label><span>Seed</span><input class="num3" type="number" id="cfgSeed" value="7"></label>
       </div>
@@ -194,17 +194,18 @@ class Game{
           if(ox<0||oy<0||ox>=n||oy>=n||!this.valid.has(ox+","+oy)){this.rim.add(k);break;}
         }
       }
-      // quadrants flow counterclockwise (N arc drops you at its W end, W at S end, etc.)
+      // quadrants flow CLOCKWISE (N arc carries you to its E end, E arc to its S end, etc.)
       const cells=[...this.rim].map(k=>{
         const [x,y]=k.split(",").map(Number);
         let deg=(Math.atan2(y-cc,x-cc)*180/Math.PI+360)%360;
         const q=Math.floor(((deg+45)%360)/90); // 0=E 1=S 2=W 3=N
         let a=deg; if(q===0&&a>180)a-=360;
-        return {k,x,y,q,a};
+        return {k,x,y,q,a,deg};
       });
       const heads={};
-      for(const c of cells)if(!heads[c.q]||c.a<heads[c.q].a)heads[c.q]=c;
+      for(const c of cells)if(!heads[c.q]||c.a>heads[c.q].a)heads[c.q]=c;
       for(const c of cells)this.rimHead[c.k]=[heads[c.q].x,heads[c.q].y];
+      this.rimCellInfo=cells; // kept for rendering flow arrows
     }
     this.ings=ING_ALL.slice(0,cfg.nIslands);
     // island placement (rectangles of islandW x islandH)
@@ -596,14 +597,19 @@ function drawBoard(){
       el("rect",{x:x*cell,y:y*cell,width:cell,height:cell,
         fill:rimC?"#ccd4f5":"#cdeef3",stroke:"#a6dee8","stroke-width":1},svg);
     }
-    // mark each quadrant's drop-off point
-    const seenHeads=new Set();
-    for(const k in game.rimHead){
-      const h=game.rimHead[k],hk=h[0]+","+h[1];
-      if(seenHeads.has(hk))continue;
-      seenHeads.add(hk);
-      const t=el("text",{x:(h[0]+.5)*cell,y:(h[1]+.5)*cell+cell*.13,"text-anchor":"middle","font-size":cell*.4},svg);
-      t.textContent="🌀";
+    // flow arrows on every channel square (clockwise), 🌀 at each quadrant's drop-off
+    const headKeys=new Set(Object.values(game.rimHead).map(h=>h[0]+","+h[1]));
+    for(const c of game.rimCellInfo||[]){
+      const cx=(c.x+.5)*cell,cy=(c.y+.5)*cell;
+      if(headKeys.has(c.k)){
+        const t=el("text",{x:cx,y:cy+cell*.13,"text-anchor":"middle","font-size":cell*.4},svg);
+        t.textContent="🌀";
+      }else{
+        const rot=c.deg+90; // tangent of clockwise flow
+        const t=el("text",{x:cx,y:cy+cell*.11,"text-anchor":"middle","font-size":cell*.32,
+          fill:"#5b6bd6",transform:`rotate(${rot} ${cx} ${cy})`},svg);
+        t.textContent="➤";
+      }
     }
   }else{
     svg.style.background="";
@@ -1042,6 +1048,11 @@ async function humanWind(p){
       liveRender();return;
     }
     p.pos=nx;
+    if(game.onRim(nx)){ // swept into the trade winds
+      game.ev({t:"windmove",p:p.idx});liveRender();
+      if(game.tradewind(p)){liveRender();await flash("🌀 The trade winds sweep you around the rim!",1300);}
+      return;
+    }
   }
   game.ev({t:"windmove",p:p.idx});liveRender();
 }
