@@ -225,7 +225,7 @@
     </div>
   </div>
   <!-- hidden helpers the renderer expects -->
-  <input type="range" id="speed" min="0.5" max="40" step="0.5" value="8" style="display:none">
+  <input type="range" id="speed" min="0.5" max="40" step="0.5" value="0.5" style="display:none">
   <input type="range" id="scrub" min="0" max="0" value="0" style="display:none">
 </div>
 <script>
@@ -340,9 +340,16 @@ class Game{
     this.ings.forEach(ing=>{this.islandOf[ing]=cfg.singleDock?this.dockOf[ing]:this.islandRect[ing][0];});
     const tok=cfg.crates===0?1e9:cfg.crates;
     this.tokens={}; this.ings.forEach(i=>this.tokens[i]=tok);
-    this.players=cfg.strategies.map((s,i)=>({idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
-      ing:[],recipe:this.sample(this.ings,cfg.recipeSize),firstFlip:new Set(),dockedNow:new Set(),
-      done:false,heads:0,flips:0,corner:null,justDocked:false}));
+    this.players=cfg.strategies.map((s,i)=>{
+      // two candidate recipe cards to choose from at game start (draft phase)
+      const a=this.sample(this.ings,cfg.recipeSize);
+      let b=this.sample(this.ings,cfg.recipeSize);
+      let tries=0;
+      while(tries++<20&&a.slice().sort().join()===b.slice().sort().join())b=this.sample(this.ings,cfg.recipeSize);
+      return {idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
+        ing:[],recipe:a,recipeChoices:[a,b],firstFlip:new Set(),dockedNow:new Set(),
+        done:false,heads:0,flips:0,corner:null,justDocked:false};
+    });
     // ships start at Barbados's four docks (N/S/E/W of the island)
     const dirsArr=Object.values(DIRS);
     this.players.forEach((p,i)=>{const d=dirsArr[i%4];
@@ -717,7 +724,7 @@ function roundedPathFromLoop(loop,r){
   }
   return d+"Z";
 }
-let cell=0,shipEls=[],activeRing=null,spinNeedle=null,stormText=null;
+let cell=0,shipEls=[],activeRing=null,spinNeedle=null,stormText=null,stormDial=null,windLabels=[];
 function drawBoard(){
   const svg=$("board");svg.innerHTML="";
   const n=game.cfg.grid,W=640;cell=W/n;
@@ -778,9 +785,14 @@ function drawBoard(){
     const cx=(best[0]+.5)*cell,cy=(best[1]+.5)*cell;
     const t=el("text",{x:cx,y:cy+cell*.15,"text-anchor":"middle","font-size":cell*.45},svg);
     t.textContent=ING_EMOJI[ing];
-    const b=el("text",{x:cx+cell*.42,y:cy-cell*.32,"text-anchor":"middle","font-size":cell*.28,
-      fill:"#0f7a54","font-weight":"bold",id:"tok_"+ing},svg);
-    b.textContent=game.cfg.crates>=1e9?"":game.tokens[ing];
+    // crate-count badge: a solid disc so the number never runs into the island outline
+    if(game.cfg.crates<1e9){
+      const bx=cx+cell*.36,by=cy-cell*.36;
+      el("circle",{cx:bx,cy:by,r:cell*.23,fill:"#0f7a54",stroke:"#fff","stroke-width":2},svg);
+      const b=el("text",{x:bx,y:by+cell*.14,"text-anchor":"middle","font-size":cell*.36,
+        fill:"#fff","font-weight":"bold",id:"tok_"+ing},svg);
+      b.textContent=game.tokens[ing];
+    }
     if(game.cfg.singleDock){
       const d=game.dockOf[ing];
       // plank connecting the berth to its island
@@ -797,20 +809,21 @@ function drawBoard(){
       dt.textContent="⚓";
     }
   }
-  // wind spinner HUD (bottom-right corner)
-  const scx=W-56,scy=W-56,sr=42;
+  // wind spinner HUD (bottom-right corner) — nudged up so the STORM label fits inside the board
+  const scx=W-56,scy=W-74,sr=42;
   const hud=el("g",{opacity:.95},svg);
-  el("circle",{cx:scx,cy:scy,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
+  stormDial=el("circle",{cx:scx,cy:scy,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
+  windLabels=[];
   for(const [lab,lx,ly] of [["N",scx,scy-sr+13],["E",scx+sr-11,scy+4],["S",scx,scy+sr-6],["W",scx-sr+11,scy+4]]){
     const tx=el("text",{x:lx,y:ly,"text-anchor":"middle","font-size":12,fill:"#1f4249","font-weight":"bold"},hud);
-    tx.textContent=lab;
+    tx.textContent=lab;windLabels.push(tx);
   }
   spinNeedle=el("polygon",{points:`${scx},${scy-sr+17} ${scx-6},${scy+9} ${scx+6},${scy+9}`,
     fill:"#d6337f",stroke:"#fff","stroke-width":1},hud);
   spinNeedle.style.transition="transform .7s ease";
   spinNeedle.style.transformOrigin=`${scx}px ${scy}px`;
   el("circle",{cx:scx,cy:scy,r:4.5,fill:"#1f4249"},hud);
-  stormText=el("text",{x:scx,y:scy+sr+15,"text-anchor":"middle","font-size":14},hud);
+  stormText=el("text",{x:scx,y:scy+sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
   // active-player highlight ring (positioned in render)
   activeRing=el("circle",{r:cell*.44,fill:"none",stroke:"#f5a623","stroke-width":4,
     "stroke-dasharray":"7 5","class":"activering",opacity:0},svg);
@@ -854,6 +867,7 @@ function describe(e){
         coins:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, takes 3🌕`};
       return {txt:`${pn(e.p)} ${g[e.got]}`};}
     case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
+    case "sidebet":return {cls:"trade",txt:`💰 ${pn(e.p)} ${e.won?`wins their side bet (+${e.amt}🌕)`:`loses their side bet (−${e.amt}🌕)`}`};
     case "battle":{
       const aP=e.rounds.filter(r=>r[0]&&!r[1]).length,dP=e.rounds.filter(r=>r[1]&&!r[0]).length;
       const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
@@ -922,7 +936,15 @@ function render(){
   $("windArrow").style.transform=`rotate(${rot}deg)`;
   if(spinNeedle&&e.wind){
     spinNeedle.style.transform=`rotate(${({N:0,E:90,S:180,W:270})[e.wind]}deg)`;
-    stormText.textContent=e.storm?"⛈️ STORM":"";
+    const storming=!!e.storm;
+    stormText.textContent=storming?"⛈️ STORM":"";
+    stormText.setAttribute("fill",storming?"#e63946":"#1f4249");
+    if(stormDial){
+      stormDial.setAttribute("fill",storming?"#2a2f4a":"#fffdf0");
+      stormDial.setAttribute("stroke",storming?"#141824":"#f5a623");
+    }
+    spinNeedle.setAttribute("fill",storming?"#ffd23f":"#d6337f");
+    windLabels.forEach(t=>t.setAttribute("fill",storming?"#f4f6ff":"#1f4249"));
   }
   $("roundLabel").textContent=`round ${e.round} · event ${evIdx+1}/${game.events.length}`;
   $("scrub").value=evIdx;
@@ -1074,16 +1096,18 @@ function showNarration(html){const n=$("narration");if(!n)return;n.innerHTML=htm
 function netNarrate(html){showNarration(html);if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
 
 // ---- ask(): route the decision to whichever browser owns this seat ----
-function ask(msg,opts){
+function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${col}22;font-weight:700"`:"";}
+function ask(msg,opts,colors){
   const seat=curSeat;
   netNarrate(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
-  if(seatLocal(seat))return localAsk(msg,opts);
-  return remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label)}).then(i=>opts[i].value);
+  if(seatLocal(seat))return localAsk(msg,opts,colors);
+  return remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
+    colors:colors?colors.map(c=>c||""):null}).then(i=>opts[i].value);
 }
-function localAsk(msg,opts){
+function localAsk(msg,opts,colors){
   return new Promise(res=>{
     panel(`<div class="apMsg">${msg}</div><div class="apBtns">`+
-      opts.map((o,i)=>`<button class="apBtn" data-i="${i}">${o.label}</button>`).join("")+`</div>`);
+      opts.map((o,i)=>`<button class="apBtn" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${o.label}</button>`).join("")+`</div>`);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       b.onclick=()=>{panel("");res(opts[+b.dataset.i].value);};
     });
@@ -1194,7 +1218,7 @@ async function humanDock(p,port){
     else{p.coins+=3;game.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
   }else{
     let got="coins";
-    if(game.cfg.dockBuy&&p.coins>=3&&game.needs(p).includes(ing)&&game.tokens[ing]>0){
+    if(game.cfg.dockBuy&&p.coins>=3&&game.tokens[ing]>0){
       const buy=await ask("Tails! Take 3🌕 — or buy the crate anyway for 3🌕?",[
         {label:`Buy ${ING_EMOJI[ing]} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
       if(buy){p.coins-=3;game.tokens[ing]--;p.ing.push(ing);got="bought";}
@@ -1241,12 +1265,51 @@ function renderBattle(o){
     <div class="btl-result">${o.result||"&nbsp;"}</div>
   </div>`);
 }
+async function collectSideBets(att,def){
+  const bets=[],ns=i=>NAMES[i].replace("Capt. ","");
+  const spectators=game.players.filter(p=>p!==att&&p!==def&&!p.done);
+  for(const s of spectators){
+    if(s.coins<1)continue;
+    let amounts=[1,2,3,5].filter(n=>s.coins>=n);
+    if(s.coins>5)amounts.push(s.coins); // all-in
+    if(!amounts.length)continue;
+    if(s.strategy==="human"){
+      setActor(s.idx);
+      const who=await ask(`💰 ${NAMES[s.idx]} — place a side bet on this battle? Back the winner and the bank doubles your stake; back the loser and you forfeit it.`,
+        [{label:`Bet on ${ns(att.idx)}`,value:"a"},{label:`Bet on ${ns(def.idx)}`,value:"d"},{label:"Sit it out",value:null}],
+        [HEXCOL[att.idx],HEXCOL[def.idx],null]);
+      if(!who)continue;
+      setActor(s.idx);
+      const amt=await ask(`How much does ${NAMES[s.idx]} wager on ${who==="a"?ns(att.idx):ns(def.idx)}? (purse: ${s.coins}🌕)`,
+        amounts.map(n=>({label:n+"🌕"+(n===s.coins?" — all in!":""),value:n})).concat([{label:"Cancel bet",value:0}]));
+      if(!amt)continue;
+      bets.push({idx:s.idx,on:who,amt});
+      await flash(`💰 ${pn(s.idx)} bets ${amt}🌕 on ${pn(who==="a"?att.idx:def.idx)}!`,1100);
+    }else if(s.coins>=4&&Math.random()<.5){
+      bets.push({idx:s.idx,on:(att.coins>=def.coins?"a":"d"),amt:Math.min(2,s.coins)});
+    }
+  }
+  return bets;
+}
+async function settleSideBets(bets,winSide){
+  if(!bets.length)return;
+  const parts=[];
+  for(const bet of bets){
+    const p=game.players[bet.idx],won=bet.on===winSide;
+    if(won)p.coins+=bet.amt;else p.coins-=bet.amt;
+    game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on});
+    parts.push(`${pn(bet.idx)} ${won?`+${bet.amt}🌕`:`−${bet.amt}🌕`}`);
+  }
+  liveRender();
+  await flash("💰 Side bets settle — "+parts.join(" · "),1600);
+}
 async function asyncBattle(att,def){
   const c=game.cfg;
   showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
   await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to 3 points wins…`,900);
   if(c.powder)att.coins-=c.powder;
   game.battles++;
+  const bets=await collectSideBets(att,def);
   let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
   const rounds=[];
   const hA=att.strategy==="human",hD=def.strategy==="human";
@@ -1343,6 +1406,7 @@ async function asyncBattle(att,def){
   }
   game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
   liveRender();
+  await settleSideBets(bets,a>=3?"a":"d");
   if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
     const port=game.adjPort(pl);
     if(port&&!pl.firstFlip.has(port)){
@@ -1357,7 +1421,8 @@ async function humanTrade(p){
   const opps=game.tradeOpp(p).filter(q=>q.ing.length>0);
   if(!opps.length){await flash("No one has cargo to trade for.");return false;}
   const q=opps.length===1?opps[0]:
-    await ask("Parley with whom?",opps.map(o=>({label:NAMES[o.idx],value:o})).concat([{label:"Cancel",value:null}]));
+    await ask("Parley with whom?",opps.map(o=>({label:NAMES[o.idx],value:o})).concat([{label:"Cancel",value:null}]),
+      opps.map(o=>HEXCOL[o.idx]).concat([null]));
   if(!q)return false;
   const want=await ask(`What do you want from ${NAMES[q.idx]}?`,
     [...new Set(q.ing)].map(i=>({label:ING_EMOJI[i]+" "+i,value:i})).concat([{label:"Cancel",value:null}]));
@@ -1433,13 +1498,12 @@ async function humanAct(p){
   if(!game.needs(p).length&&man(p.pos,game.home)<=1)
     opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
-  opts.push({label:"Pass",value:"pass"});
   const v=await ask(`${NAMES[p.idx]}, choose your action:`,opts);
   if(v==="bakery"){await flash("🧁 Firing up the ovens in Barbados!",1200);return;}
   if(v==="dock")await humanDock(p,port);
   else if(v==="attack"){
     const t=targets.length===1?targets[0]:
-      await ask("Attack whom?",targets.map(o=>({label:NAMES[o.idx],value:o})));
+      await ask("Attack whom?",targets.map(o=>({label:NAMES[o.idx],value:o})),targets.map(o=>HEXCOL[o.idx]));
     await asyncBattle(p,t);
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
@@ -1545,8 +1609,24 @@ async function asyncBakeoff(A,B){
   return w;
 }
 /* ================= host game loop (networked) ================= */
+async function recipeDraftNet(){
+  const fmt=r=>r.map(i=>ING_EMOJI[i]).join(" "),picks=[];
+  for(const p of game.players){
+    if(!p.recipeChoices){picks.push(0);continue;}
+    let pick;
+    if(p.strategy==="human"){
+      setActor(p.idx);
+      pick=await ask(`${NAMES[p.idx]}, choose your recipe card — collect all of these ingredients to win:`,
+        [{label:"📜 Card A — "+fmt(p.recipeChoices[0]),value:0},{label:"📜 Card B — "+fmt(p.recipeChoices[1]),value:1}]);
+    }else pick=Math.random()<.5?0:1;
+    p.recipe=p.recipeChoices[pick];picks.push(pick);
+  }
+  if(db&&room)await db.ref("rooms/"+room+"/recipes").set(picks);
+  updateRecipeBanner();liveRender();
+}
 async function runLiveNet(){
   await flash("⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at Barbados to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!",3200);
+  await recipeDraftNet();
   let order=game.players.map((_,i)=>i);
   let ended=false;
   while(game.round<150&&!ended){
@@ -1601,11 +1681,14 @@ function writeMeta(){
 /* ================= Firebase config ================= */
 /*  ▼▼▼  PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see ONLINE_SETUP.md)  ▼▼▼  */
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://PASTE_YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "PASTE_YOUR_PROJECT",
-  appId: "PASTE_YOUR_APP_ID"
+  apiKey: "AIzaSyAA8FbPiKYc82MpCkQD2ABYirnnCl09OuA",
+  authDomain: "pastry-pirates.firebaseapp.com",
+  databaseURL: "https://pastry-pirates-default-rtdb.firebaseio.com",
+  projectId: "pastry-pirates",
+  storageBucket: "pastry-pirates.firebasestorage.app",
+  messagingSenderId: "546790679465",
+  appId: "1:546790679465:web:cdb72aa39660fca844dab8",
+  measurementId: "G-2KK6EZDZSP"
 };
 /*  ▲▲▲  ---------------------------------------------------------------  ▲▲▲  */
 
@@ -1680,8 +1763,9 @@ function watchPrompt(){
     const p=snap.val();
     if(!p||p.seat!==mySeat){panel("");return;}
     if(p.kind==="ask"){
+      const cols=p.colors||[];
       panel(`<div class="apMsg">${p.msg}</div><div class="apBtns">`+
-        (p.labels||[]).map((l,i)=>`<button class="apBtn" data-i="${i}">${l}</button>`).join("")+`</div>`);
+        (p.labels||[]).map((l,i)=>`<button class="apBtn" data-i="${i}"${apBtnStyle(cols[i])}>${l}</button>`).join("")+`</div>`);
       $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
       remotePickHighlights(p.cells||[],p.id);
@@ -1787,7 +1871,7 @@ async function startGame(){
   for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
   const cfg=roundCfg(strategies);
   const seed=Math.floor(Math.random()*1e9);
-  await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null});
+  await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,recipes:null});
 }
 function beginGame(cfg,seed){
   if(gameStarted)return;gameStarted=true;
@@ -1796,10 +1880,25 @@ function beginGame(cfg,seed){
   live=true;liveDone=false;evIdx=0;evPushed=0;appliedMeta=false;
   logLines=[];clearBubbles();logRenderedTo=-2;$("log").innerHTML="";
   drawBoard();buildPlayerRows();
-  const rc=game.players[mySeat]?game.players[mySeat].recipe.map(i=>ING_EMOJI[i]+" "+i).join("  "):"";
-  $("youAre").innerHTML=`You're <b style="color:${HEXCOL[mySeat]}">${NAMES[mySeat]}</b> &nbsp;·&nbsp; your recipe: ${rc} &nbsp;·&nbsp; room <b>${room}</b>`;
+  updateRecipeBanner();
+  watchRecipes();
   if(isHost){runLiveNet();}
   else{watchEvents();watchPrompt();watchNarr();}
+}
+function updateRecipeBanner(){
+  if(!game||!game.players[mySeat])return;
+  const rc=game.players[mySeat].recipe.map(i=>ING_EMOJI[i]+" "+i).join("  ");
+  $("youAre").innerHTML=`You're <b style="color:${HEXCOL[mySeat]}">${NAMES[mySeat]}</b> &nbsp;·&nbsp; your recipe: ${rc} &nbsp;·&nbsp; room <b>${room}</b>`;
+}
+function watchRecipes(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/recipes").on("value",snap=>{
+    const picks=snap.val();
+    if(!picks)return;
+    picks.forEach((pk,i)=>{if(game.players[i]&&game.players[i].recipeChoices)game.players[i].recipe=game.players[i].recipeChoices[pk];});
+    updateRecipeBanner();
+    if(game.events.length)render();
+  });
 }
 function leaveGame(){clearSession();location.reload();}
 
