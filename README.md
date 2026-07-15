@@ -7,6 +7,8 @@ A board game in development — plunder the Caribbean for baking ingredients, fl
 ## What's here
 
 - `index.html` — the Pastry Pirates Lab (self-contained, no dependencies)
+- `online.html` — **play online with friends**, each in their own browser over the internet (2–4 players, bots fill empty seats). Uses a free Firebase Realtime Database — see `ONLINE_SETUP.md` for the one-time setup.
+- `ONLINE_SETUP.md` — step-by-step guide to wire up the free Firebase backend and start a game
 - `cocoa_pirates_sim.py` — the Python simulation engine used for balance research (~50,000 games)
 - `DESIGN_REPORT.md` — full findings: strategy win rates, coin-flip math, and the recommended ruleset
 

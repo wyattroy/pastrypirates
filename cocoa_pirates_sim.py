@@ -384,7 +384,7 @@ class Game:
             take = min(2, loser.coins)
             loser.coins -= take
             winner.coins += take
-            attacker.pos, defender.pos = defender.pos, attacker.pos
+            # attacker lost (raider penalty): no square is taken, so no swap
             return winner
         wanted = [i for i in loser.ingredients if i in winner.needs()]
         if r.loser_protects and loser.coins >= 5:
@@ -401,13 +401,15 @@ class Game:
             take = min(5, loser.coins)
             loser.coins -= take; winner.coins += take
             self.bankrupt_spoils += 1
-        # swap positions
-        attacker.pos, defender.pos = defender.pos, attacker.pos
-        for pl in (attacker, defender):
-            port = self.adjacent_port(pl)
-            if port and port not in pl.port_first_flip_done:
-                self.do_dock(pl, port)
-            # leaving adjacency resets per-visit dock lock
+        # only a winning attacker takes the loser's square; a repelled attack moves no one.
+        # only ships that actually swapped into a new berth may dock — a ship that never
+        # left its square shouldn't trigger a re-dock.
+        if winner is attacker:
+            attacker.pos, defender.pos = defender.pos, attacker.pos
+            for pl in (attacker, defender):
+                port = self.adjacent_port(pl)
+                if port and port not in pl.port_first_flip_done:
+                    self.do_dock(pl, port)
         return winner
 
     # ---------- strategy decisions ----------
