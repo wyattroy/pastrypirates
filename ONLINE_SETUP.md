@@ -1,6 +1,6 @@
 # 🏴‍☠️ Pastry Pirates Online — Setup
 
-`online.html` lets 2–4 people play Pastry Pirates together over the internet, each in
+`index.html` lets 2–4 people play Pastry Pirates together over the internet, each in
 their own browser, anywhere. Empty seats are filled by bots. It syncs the game through a
 free **Firebase Realtime Database**. You only have to do this setup **once**, and only the
 person creating the games needs a Firebase project — everyone else just opens the page.
@@ -45,9 +45,9 @@ const firebaseConfig = {
 };
 ```
 
-## Step 4 — Paste your config into `online.html`
+## Step 4 — Paste your config into `index.html`
 
-1. Open `online.html` in any text editor.
+1. Open `index.html` in any text editor.
 2. Near the bottom of the `<script>`, find the block that starts with
    `▼▼▼ PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE`.
 3. Replace the placeholder `firebaseConfig` with the one from your Firebase tab.
@@ -87,11 +87,11 @@ change the rules to require `auth != null`.)
 
 ## Playing
 
-1. **Share the file.** Everyone needs the same `online.html` (with your config in it). The
+1. **Share the file.** Everyone needs the same `index.html` (with your config in it). The
    easiest ways:
-   - **Simplest:** send everyone the `online.html` file; each person double-clicks it to
+   - **Simplest:** send everyone the `index.html` file; each person double-clicks it to
      open it in their browser (works straight from `file://`).
-   - **Nicer:** drop `online.html` on any static host — GitHub Pages, Netlify Drop
+   - **Nicer:** drop `index.html` on any static host — GitHub Pages, Netlify Drop
      (<https://app.netlify.com/drop>), etc. — and share the link. (If you host it, make sure
      your Firebase project's *Authentication → Settings → Authorized domains* isn't blocking
      it — with these open, no-auth rules it won't, but it's the place to look if syncing fails.)
@@ -127,7 +127,7 @@ This project is served from **GitHub Pages** at `https://wyattroy.github.io/past
 and the repo is public. Here's the security posture and the reasoning, so future-you isn't
 surprised.
 
-### The Firebase config in `online.html` is public — and that's fine
+### The Firebase config in `index.html` is public — and that's fine
 
 The `firebaseConfig` block (including `apiKey`) is committed to the public repo. GitHub's
 secret scanner flags it as a "Google API key," but a Firebase **web** API key is *designed*
@@ -169,7 +169,7 @@ This stops the key from being reused by *other* websites for *other* Google APIs
 
 Two consequences to remember:
 
-- The key is now bound to `wyattroy.github.io` / `localhost`. Opening `online.html` directly
+- The key is now bound to `wyattroy.github.io` / `localhost`. Opening `index.html` directly
   from disk (`file://`) sends no referrer, so Firebase Auth/Installations calls may warn — but
   Realtime Database traffic doesn't use this key, so the **game still works**. For the cleanest
   experience, play from the GitHub Pages URL.
