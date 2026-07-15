@@ -119,4 +119,61 @@ change the rules to require `auth != null`.)
 - **Tidy up (optional).** Old rooms just sit in the database harmless and tiny. If you ever
   want to clear them, open Realtime Database in the console and delete the `rooms` node.
 
+---
+
+## Security & hosting notes (what's set up, and why)
+
+This project is served from **GitHub Pages** at `https://wyattroy.github.io/pastrypirates/`,
+and the repo is public. Here's the security posture and the reasoning, so future-you isn't
+surprised.
+
+### The Firebase config in `online.html` is public — and that's fine
+
+The `firebaseConfig` block (including `apiKey`) is committed to the public repo. GitHub's
+secret scanner flags it as a "Google API key," but a Firebase **web** API key is *designed*
+to be public — it identifies the project, it is not a password, and it does not by itself
+grant access to any data. Google's own docs say these keys don't need to be treated as
+secrets. So the GitHub "secrets detected" alert for this key is a known false alarm and can
+be dismissed. (Docs: <https://firebase.google.com/docs/projects/api-keys>.)
+
+The things that *would* be real secrets — and must **never** be committed — are a Firebase
+**Admin SDK service-account JSON** or a legacy **FCM server key**. This project uses neither.
+
+### What actually protects the data: the database rules
+
+Data access is enforced by **Realtime Database Security Rules**, not by the API key. Current
+rules are wide open on `/rooms` (`.read`/`.write: true`). That's an intentional trade-off:
+
+- **Pro:** zero friction — no login, anyone with a room code can play.
+- **Con:** anyone who discovers the database URL can read/write the `rooms` data.
+
+For this game that's acceptable — the only thing stored is transient game state (room codes,
+ship positions, coins, event log), nothing personal or sensitive. Old rooms can be deleted
+anytime. If this ever needs locking down, the standard upgrade is to enable **Firebase
+App Check** and/or switch to auth-based rules (`auth != null`) with Anonymous Authentication.
+
+### API key hardening that was applied (optional, done)
+
+In **Google Cloud Console → APIs & Services → Credentials**, the auto-created *"Browser key
+(auto created by Firebase)"* was restricted:
+
+- **Application restrictions → Websites**, allowing:
+  - `wyattroy.github.io/*` (the live GitHub Pages site)
+  - `localhost/*` (local testing over a dev server)
+- **API restrictions:** left at the standard auto-populated Firebase set (all enabled project
+  APIs). Not narrowed further — narrowing this by hand is easy to get wrong and can silently
+  break Firebase.
+
+This stops the key from being reused by *other* websites for *other* Google APIs. It does
+**not** replace the database rules — it's defense-in-depth, not the main guard.
+
+Two consequences to remember:
+
+- The key is now bound to `wyattroy.github.io` / `localhost`. Opening `online.html` directly
+  from disk (`file://`) sends no referrer, so Firebase Auth/Installations calls may warn — but
+  Realtime Database traffic doesn't use this key, so the **game still works**. For the cleanest
+  experience, play from the GitHub Pages URL.
+- If the GitHub Pages domain or repo name ever changes, update the **Websites** allow-list to
+  match, or syncing from the new URL will be blocked.
+
 Happy plundering. 🧁

@@ -50,7 +50,7 @@
   .crown { font-size: 15px; }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
   #boardwrap { position: relative; width: 640px; }
-  #actionPanel { margin-top: 10px; width: 640px; background: var(--lemon); border: 2px solid var(--teal);
+  #actionPanel { margin: 8px 0; width: auto; background: var(--lemon); border: 2px solid var(--teal);
     border-radius: 10px; padding: 8px 12px; }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -126,8 +126,6 @@
   .seat .dot { width:16px; height:16px; border-radius:50%; border:1.5px solid rgba(0,0,0,.3); flex:0 0 auto; }
   .seat .nm { flex:1; font-weight:600; }
   .seat.me { background:var(--lemon); border-color:var(--accent); }
-  #youAre { max-width:640px; margin:0 auto 10px; padding:8px 14px; border-radius:10px; font-weight:600;
-    background:var(--lemon); border:1.5px solid var(--accent); text-align:center; }
   #narration { min-height:22px; margin:8px 0; padding:8px 12px; background:#eafbf4; border:1.5px solid var(--mint);
     border-radius:9px; font-size:14px; font-weight:600; color:var(--ink); }
   .who { font-size:11px; font-weight:normal; opacity:.7; }
@@ -183,7 +181,6 @@
 
 <!-- ===================== GAME ===================== -->
 <div id="game" style="display:none">
-  <div id="youAre"></div>
   <div id="layout">
     <div id="left">
       <div id="boardwrap">
@@ -191,14 +188,14 @@
       </div>
       <div style="margin-top:8px" class="windbox">wind <span id="windArrow">➤</span><b id="windLabel">–</b>
         <span id="roundLabel" class="muted" style="margin-left:10px"></span></div>
-      <div id="narration" style="display:none"></div>
-      <div id="actionPanel" style="display:none"></div>
     </div>
     <div id="right">
       <div class="panel">
         <h3>Captains</h3>
         <div id="players"></div>
       </div>
+      <div id="narration" style="display:none"></div>
+      <div id="actionPanel" style="display:none"></div>
       <div class="panel">
         <h3>Captain's log</h3>
         <div id="log"></div>
@@ -215,7 +212,7 @@
           <p>Each turn: the <b>wind</b> drifts you 1 square (2 in a storm) — moored ships are safe. Then you may
           <b>sail</b> up to 3 squares for 1🌕. Then <b>act</b>: dock at an island to flip for a crate, attack an
           adjacent ship, parley (trade) with anyone, or fish for coins.</p>
-          <p>Watch the yellow prompt panel under the board — when it's your turn, your choices appear there. The
+          <p>Watch the yellow prompt panel by the captains list — when it's your turn, your choices appear there. The
           🌀 trade winds around the rim sweep you clockwise around the world for a fast shortcut.</p>
         </div>
       </details>
@@ -333,7 +330,15 @@ class Game{
                &&!(w2[0]===this.home[0]&&w2[1]===this.home[1]))waters.push(w2);
           }
         }
-        this.dockOf[ing]=waters.length?waters[Math.floor(this.r()*waters.length)]:this.home;
+        // a dock must be reachable from open water: if every approach cell is a rim
+        // (trade-wind) cell, a ship gets swept away before it can moor — an unwinnable dock
+        const reachable=w=>Object.values(DIRS).some(d=>{
+          const a=[w[0]+d[0],w[1]+d[1]];
+          return !this.blocked(a)&&!this.onRim(a)&&this.islands[a]===undefined;
+        });
+        const open=waters.filter(reachable);
+        const pool=open.length?open:waters;
+        this.dockOf[ing]=pool.length?pool[Math.floor(this.r()*pool.length)]:this.home;
       }
     }
     this.dockCells=new Set(Object.values(this.dockOf).map(c=>c[0]+","+c[1]));
@@ -873,6 +878,7 @@ function describe(e){
       const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
       return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`};}
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
+    case "wheelfish":return {txt:`🧭 ${pn(e.p)} passes the ship's wheel and fishes — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to Barbados with a full recipe!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
     case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
@@ -896,7 +902,7 @@ function render(){
     shipEls[i].style.opacity=st[i].done?.45:1;
     $("coins"+i).textContent="🌕 "+st[i].coins;
     const hold=[...st[i].ing];
-    if(spectator||i===youIdx){
+    if(spectator||i===mySeat){
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
       const chips=game.players[i].recipe.map(ing=>{
         const k=hold.indexOf(ing);
@@ -990,7 +996,7 @@ function spawnPops(e){
       const sp=(e.spoil||"").includes("coin")?"💰":(e.spoil||"💰").split(" ")[0];
       popEmoji(...at(e.winner),sp||"💰");
       break;}
-    case "fish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
+    case "fish":case "wheelfish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
     case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
@@ -1020,7 +1026,7 @@ function captions(e){
     case "trade":return [[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]];
     case "battle":{const loser=e.winner===e.a?e.d:e.a;
       return [[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]];}
-    case "fish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
+    case "fish":case "wheelfish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
     case "finish":return [[e.p,"🏁 recipe done!"]];
     case "bakeoff":return [[e.winner,"🧁 wins the bakeoff!"]];
     case "end":return e.winner===null?[]:[[e.winner,"👑 BEST BAKER!"]];
@@ -1484,6 +1490,15 @@ async function humanTrade(p){
   liveRender();
   return true;
 }
+async function wheelFish(p){
+  // the captain who just handed off the ship's wheel casts a line while the new leader takes over
+  setActor(p.idx);
+  await flash(`🧭 ${NAMES[p.idx]} passes the ship's wheel — and casts a line while the crew comes about…`,900);
+  const h=(p.strategy==="human")?await humanFlip(p,`🎣 ${NAMES[p.idx]}, fish as you pass the wheel — flip!`):game.flip(p);
+  if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
+  game.ev({t:"wheelfish",p:p.idx,heads:h?1:0});
+  liveRender();
+}
 async function humanAct(p){
   setActor(p.idx);
   const port=game.adjPort(p);
@@ -1631,10 +1646,15 @@ async function runLiveNet(){
   let ended=false;
   while(game.round<150&&!ended){
     game.round++;
-    if(game.cfg.rotate&&game.round>1)order=order.slice(1).concat(order.slice(0,1));
+    let wheelPasser=null;
+    if(game.cfg.rotate&&game.round>1){
+      order=order.slice(1).concat(order.slice(0,1));
+      wheelPasser=game.players[order[order.length-1]]; // last round's leader, now rotated to the back
+    }
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=game.r()<game.cfg.storm;
     game.ev({t:"newround",dir:game.windNow});liveRender();
+    if(wheelPasser&&!wheelPasser.done)await wheelFish(wheelPasser);
     for(const i of order){
       const p=game.players[i];
       if(p.done)continue;
@@ -1886,9 +1906,9 @@ function beginGame(cfg,seed){
   else{watchEvents();watchPrompt();watchNarr();}
 }
 function updateRecipeBanner(){
-  if(!game||!game.players[mySeat])return;
-  const rc=game.players[mySeat].recipe.map(i=>ING_EMOJI[i]+" "+i).join("  ");
-  $("youAre").innerHTML=`You're <b style="color:${HEXCOL[mySeat]}">${NAMES[mySeat]}</b> &nbsp;·&nbsp; your recipe: ${rc} &nbsp;·&nbsp; room <b>${room}</b>`;
+  // recipe is now shown as semi-transparent chips in your own captain row (see render());
+  // refresh the board so those chips appear as soon as recipes are drafted
+  if(game&&game.events&&game.events.length)render();
 }
 function watchRecipes(){
   if(!db||!room)return;

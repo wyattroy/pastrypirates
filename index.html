@@ -332,7 +332,15 @@ class Game{
                &&!(w2[0]===this.home[0]&&w2[1]===this.home[1]))waters.push(w2);
           }
         }
-        this.dockOf[ing]=waters.length?waters[Math.floor(this.r()*waters.length)]:this.home;
+        // a dock must be reachable from open water: if every approach cell is a rim
+        // (trade-wind) cell, a ship gets swept away before it can moor — an unwinnable dock
+        const reachable=w=>Object.values(DIRS).some(d=>{
+          const a=[w[0]+d[0],w[1]+d[1]];
+          return !this.blocked(a)&&!this.onRim(a)&&this.islands[a]===undefined;
+        });
+        const open=waters.filter(reachable);
+        const pool=open.length?open:waters;
+        this.dockOf[ing]=pool.length?pool[Math.floor(this.r()*pool.length)]:this.home;
       }
     }
     this.dockCells=new Set(Object.values(this.dockOf).map(c=>c[0]+","+c[1]));
@@ -881,6 +889,7 @@ function describe(e){
       const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
       return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`};}
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
+    case "wheelfish":return {txt:`🧭 ${pn(e.p)} passes the ship's wheel and fishes — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to Barbados with a full recipe!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
     case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
@@ -998,7 +1007,7 @@ function spawnPops(e){
       const sp=(e.spoil||"").includes("coin")?"💰":(e.spoil||"💰").split(" ")[0];
       popEmoji(...at(e.winner),sp||"💰");
       break;}
-    case "fish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
+    case "fish":case "wheelfish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
     case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
@@ -1028,7 +1037,7 @@ function captions(e){
     case "trade":return [[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]];
     case "battle":{const loser=e.winner===e.a?e.d:e.a;
       return [[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]];}
-    case "fish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
+    case "fish":case "wheelfish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
     case "finish":return [[e.p,"🏁 recipe done!"]];
     case "bakeoff":return [[e.winner,"🧁 wins the bakeoff!"]];
     case "end":return e.winner===null?[]:[[e.winner,"👑 BEST BAKER!"]];
@@ -1566,6 +1575,14 @@ async function humanAct(p){
     game.ev({t:"fish",p:p.idx,heads:h?1:0});liveRender();
   }
 }
+async function wheelFish(p){
+  // the captain who just handed off the ship's wheel casts a line while the new leader takes over
+  await flash(`🧭 ${NAMES[p.idx]} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
+  const h=(p.strategy==="human")?await humanFlip(p,`🎣 ${NAMES[p.idx]}, fish as you pass the wheel — flip!`):game.flip(p);
+  if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
+  game.ev({t:"wheelfish",p:p.idx,heads:h?1:0});
+  liveRender();
+}
 async function humanTurn(p){
   game.ev({t:"turn",p:p.idx});
   liveRender();
@@ -1749,11 +1766,16 @@ async function runLive(myGen){
     saveLive();
     if(!alive())return;
     game.round++;
-    if(game.cfg.rotate&&game.round>1)order=order.slice(1).concat(order.slice(0,1));
+    let wheelPasser=null;
+    if(game.cfg.rotate&&game.round>1){
+      order=order.slice(1).concat(order.slice(0,1));
+      wheelPasser=game.players[order[order.length-1]]; // last round's leader, now rotated to the back
+    }
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=game.r()<game.cfg.storm;
     game.ev({t:"newround",dir:game.windNow});liveRender();
     await flash(`🧭 Round ${game.round} — the wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM!":""}.`,stepDelay());
+    if(wheelPasser&&!wheelPasser.done){await wheelFish(wheelPasser);if(!alive())return;}
     for(const i of order){
       if(!alive())return;
       const p=game.players[i];
