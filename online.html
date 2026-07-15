@@ -56,6 +56,31 @@
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
+  /* ---- battle scoreboard ---- */
+  .btl { text-align: center; }
+  .btl-hd { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+  .btl-hd .rnd { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .55; font-weight: 700; }
+  .btl-body { display: flex; align-items: flex-start; justify-content: center; gap: 8px; }
+  .btl-col { flex: 1 1 0; max-width: 190px; padding: 8px 6px; border-radius: 12px; border: 2px solid transparent; transition: background .2s, border-color .2s, box-shadow .2s; }
+  .btl-col.live { background: #fff; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,166,35,.18); }
+  .btl-col .who { font-weight: 800; font-size: 14px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btl-col .role { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .5; margin-bottom: 7px; }
+  .btl-mid { align-self: center; font-weight: 800; font-size: 12px; opacity: .35; padding-top: 30px; }
+  .coin { width: 74px; height: 74px; margin: 0 auto 9px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; letter-spacing: .5px; border: 3px solid; position: relative; }
+  .coin.wait { background: #f4f4f4; border-color: #dcdcdc; color: #c2c2c2; font-size: 24px; }
+  .coin.spin { background: radial-gradient(#ffe9a8, #f5c451); border-color: #e0a500; color: transparent; animation: coinspin .34s linear infinite; }
+  .coin.heads { background: radial-gradient(#fff2c4, #f5b942); border-color: #d98e00; color: #7a4a00; }
+  .coin.tails { background: radial-gradient(#5b6b7a, #2f3b47); border-color: #1c2530; color: #e6edf4; }
+  .coin.win { box-shadow: 0 0 0 4px rgba(39,199,141,.55); }
+  @keyframes coinspin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
+  .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
+  .pips { display: flex; justify-content: center; gap: 6px; }
+  .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
+  .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
+  .btl-result { margin-top: 11px; font-weight: 700; font-size: 13.5px; min-height: 19px; }
+  .btl-result .score { color: #1c9e63; }
+  .btl-result .cancel { color: #8a8a8a; }
   .bubble { position: absolute; background: #fff; border: 2px solid var(--teal); border-radius: 9px;
     padding: 3px 9px; font-size: 12px; font-weight: 500; max-width: 280px; line-height: 1.35;
     transform: translate(-50%, -108%); box-shadow: 0 2px 6px rgba(31,66,73,.18);
@@ -830,8 +855,9 @@ function describe(e){
       return {txt:`${pn(e.p)} ${g[e.got]}`};}
     case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
     case "battle":{
-      const seq=e.rounds.map(r=>fl(r[0])+(r[2]?"🔥":"")+"/"+fl(r[1])).join("  ");
-      return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)}! &nbsp;[att/def: ${seq}] → ${pn(e.winner)} wins, takes ${e.spoil}. ${e.winner===e.a?"Attacker seizes the square — ships swap places!":"Attack repelled — no one moves."}`};}
+      const aP=e.rounds.filter(r=>r[0]&&!r[1]).length,dP=e.rounds.filter(r=>r[1]&&!r[0]).length;
+      const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
+      return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`};}
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to Barbados with a full recipe!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
@@ -1179,6 +1205,42 @@ async function humanDock(p,port){
   p.firstFlip.add(ing);p.dockedNow.add(ing);
   liveRender();
 }
+function coinHTML(state,bs,win){
+  const b=bs?`<span class="bs">🔥</span>`:"";
+  const w=win?" win":"";
+  if(state==="H")return `<div class="coin heads${w}">HEADS${b}</div>`;
+  if(state==="T")return `<div class="coin tails${w}">TAILS${b}</div>`;
+  if(state==="spin")return `<div class="coin spin">🪙${b}</div>`;
+  return `<div class="coin wait">?</div>`;
+}
+function pipsHTML(n,col){
+  let s="";
+  for(let i=0;i<3;i++)s+=`<span class="pip${i<n?" on":""}"${i<n?` style="background:${col};border-color:${col}"`:""}></span>`;
+  return `<div class="pips">${s}</div>`;
+}
+function renderBattle(o){
+  const nm=i=>NAMES[i].replace("Capt. ",""),col=i=>HEXCOL[i];
+  const A=o.att,D=o.def;
+  panel(`<div class="btl">
+    <div class="btl-hd"><span>⚔️ Broadside Battle</span><span class="rnd">Round ${o.round} · first to 3</span></div>
+    <div class="btl-body">
+      <div class="btl-col${o.live==="a"?" live":""}">
+        <div class="who" style="color:${col(A.idx)}">${nm(A.idx)}</div>
+        <div class="role">Attacker</div>
+        ${coinHTML(o.atState,o.atBs,o.winCoin==="a")}
+        ${pipsHTML(o.a,col(A.idx))}
+      </div>
+      <div class="btl-mid">VS</div>
+      <div class="btl-col${o.live==="d"?" live":""}">
+        <div class="who" style="color:${col(D.idx)}">${nm(D.idx)}</div>
+        <div class="role">Defender</div>
+        ${coinHTML(o.dfState,o.dfBs,o.winCoin==="d")}
+        ${pipsHTML(o.d,col(D.idx))}
+      </div>
+    </div>
+    <div class="btl-result">${o.result||"&nbsp;"}</div>
+  </div>`);
+}
 async function asyncBattle(att,def){
   const c=game.cfg;
   showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
@@ -1188,28 +1250,67 @@ async function asyncBattle(att,def){
   let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
   const rounds=[];
   const hA=att.strategy==="human",hD=def.strategy==="human";
+  let round=0;
+  const nm=i=>NAMES[i].replace("Capt. ","");
+  const bd=(typeof stepDelay==="function")?stepDelay():500;
+  const spin=Math.max(260,Math.min(650,bd*0.7));  // coin tumble time
+  const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
+  const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
+  const base=o=>Object.assign({att,def,a,d,round},o);
   while(a<3&&d<3){
-    let bs=false;
-    let ah=hA?await humanFlip(att,`⚔️ ${a}–${d} · ${NAMES[att.idx]} (attacker), flip!`)
-            :(await sleep(300),game.flip(att));
+    round++;
+    let bs=false,ah,dh;
+    // fresh round — both coins face-down, attacker on deck
+    renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`${nm(att.idx)} loads the cannon…`}));
+    await sleep(beat*0.5);
+    // ---- ATTACKER flips ----
+    if(hA){
+      ah=await humanFlip(att,`⚔️ ${a}–${d} · ${NAMES[att.idx]} (attacker), fire!`);
+    }else{
+      renderBattle(base({atState:"spin",dfState:"wait",live:"a"}));
+      await sleep(spin);
+      ah=game.flip(att);
+    }
+    renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
+    // ---- broadside reflip on a tails ----
     if(!ah&&(free||(paid&&att.coins>=1))){
       let use=true;
       if(hA)use=await ask(paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?",
         [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
       if(use){
         if(paid)att.coins--;
-        ah=hA?await humanFlip(att,"🔥 Broadside reflip!"):game.flip(att);
+        if(hA){ah=await humanFlip(att,"🔥 Broadside reflip!");}
+        else{
+          renderBattle(base({atState:"spin",atBs:true,dfState:"wait",live:"a",result:"🔥 Broadside — reflip!"}));
+          await sleep(spin);
+          ah=game.flip(att);
+        }
         bs=true;free=false;paid=false;
+        renderBattle(base({atState:ah?"H":"T",atBs:true,dfState:"wait",live:"a"}));
       }else if(!hA){free=false;paid=false;}
     }
-    const dh=hD?await humanFlip(def,`🛡️ ${NAMES[def.idx]} (defender), flip!`)
-              :(await sleep(250),game.flip(def));
+    // ---- suspense: hand it to the defender ----
+    await sleep(beat*0.6);
+    renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:"wait",live:"d",
+      result:`${nm(att.idx)} shows ${ah?"HEADS":"TAILS"} — ${nm(def.idx)} must answer…`}));
+    await sleep(beat);
+    // ---- DEFENDER flips ----
+    if(hD){
+      dh=await humanFlip(def,`🛡️ ${NAMES[def.idx]} (defender), fire!`);
+    }else{
+      renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:"spin",live:"d"}));
+      await sleep(spin);
+      dh=game.flip(def);
+    }
+    // ---- resolve the round ----
     rounds.push([ah?1:0,dh?1:0,bs?1:0]);
-    if(ah&&dh){}else if(ah)a++;else if(dh)d++;
-    // live scoreboard popup, round by round, for every battle
-    panel(`<div class="apMsg">⚔️ ${NAMES[att.idx]} <b style="font-size:19px">${a}</b> – <b style="font-size:19px">${d}</b> ${NAMES[def.idx]}</div>
-      <div>${rounds.slice(-5).map(r=>`${r[0]?"⚪H":"⚫T"}${r[2]?"🔥":""}<span class="muted">/</span>${r[1]?"⚪H":"⚫T"}`).join("&nbsp;&nbsp;")}</div>`);
-    await sleep(hA||hD?750:500);
+    let scorer=null,rmsg;
+    if(ah&&dh){rmsg=`<span class="cancel">Both fire HEADS — cannonballs collide, no damage.</span>`;}
+    else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(att.idx)} lands a hit! +1</span>`;}
+    else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(def.idx)} lands a hit! +1</span>`;}
+    else{rmsg=`<span class="cancel">Both miss — TAILS all round, no damage.</span>`;}
+    renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
+    await sleep(hold);
   }
   panel("");
   const win=a>=3?att:def,lose=a>=3?def:att;
