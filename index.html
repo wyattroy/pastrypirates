@@ -75,6 +75,10 @@
   .coin.win { box-shadow: 0 0 0 4px rgba(39,199,141,.55); }
   @keyframes coinspin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
   .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
+  /* fishing shares the battle coin, wrapped in a little cast panel */
+  .fishcast { text-align: center; }
+  .fishcast .fc-who { font-weight: 800; font-size: 13.5px; margin-bottom: 9px; }
+  .fishcast .fc-note { margin-top: 9px; font-weight: 700; font-size: 13.5px; min-height: 19px; }
   .pips { display: flex; justify-content: center; gap: 6px; }
   .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
   .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
@@ -1310,6 +1314,35 @@ async function humanFlip(p,label){
   await sleep(650);
   return h;
 }
+// One panel for the fishing coin, broadcast through the narration channel so
+// every seat watches the same tumble (like the battle coin).
+function fishCoinHTML(p,state,note){
+  const nm=NAMES[p.idx].replace("Capt. ","");
+  return `<div class="fishcast"><div class="fc-who" style="color:${HEXCOL[p.idx]}">🎣 ${nm} casts a line</div>`+
+    coinHTML(state)+`<div class="fc-note">${note||"&nbsp;"}</div></div>`;
+}
+// A fishing cast shown as a tumbling coin. Humans tap CAST; bots auto-cast.
+// Awards the catch and logs the event (evt is "fish" or "wheelfish").
+async function fishCast(p,evt,label){
+  const bd=(typeof stepDelay==="function")?stepDelay():500;
+  const spin=Math.max(260,Math.min(650,bd*0.7));
+  const hold=Math.max(500,Math.min(1200,bd*1.0));
+  if(p.strategy==="human"){
+    setActor(p.idx);
+    await ask(label||"🎣 Cast your line — flip!",[{label:"🎣 CAST!",value:1}]);
+  }
+  netNarrate(fishCoinHTML(p,"spin"));
+  await sleep(spin);
+  const h=game.flip(p);
+  const note=h?"⚪ HEADS — a fine catch! +2🌕"
+    :(game.cfg.sardine?"⚫ TAILS — just a sardine +1🌕":"⚫ TAILS — nothin' biting");
+  netNarrate(fishCoinHTML(p,h?"H":"T",note));
+  await sleep(hold);
+  if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
+  game.ev({t:evt,p:p.idx,heads:h?1:0});
+  liveRender();
+  return h;
+}
 function reachable(p,steps){
   const n=game.cfg.grid,seen={[p.pos[0]+","+p.pos[1]]:true},q=[[p.pos,0]],out=[];
   while(q.length){
@@ -1750,10 +1783,7 @@ async function wheelFish(p){
   // the captain who just handed off the ship's wheel casts a line while the new leader takes over
   setActor(p.idx);
   await flash(`🧭 ${NAMES[p.idx]} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
-  const h=(p.strategy==="human")?await humanFlip(p,`🎣 ${NAMES[p.idx]}, fish as you pass the wheel — flip!`):game.flip(p);
-  if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
-  game.ev({t:"wheelfish",p:p.idx,heads:h?1:0});
-  liveRender();
+  await fishCast(p,"wheelfish",`🎣 ${NAMES[p.idx]}, fish as you pass the wheel — flip!`);
 }
 async function humanAct(p){
   setActor(p.idx);
@@ -1779,9 +1809,7 @@ async function humanAct(p){
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
   else if(v==="fish"){
-    const h=await humanFlip(p,"Cast your line — flip!");
-    if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
-    game.ev({t:"fish",p:p.idx,heads:h?1:0});liveRender();
+    await fishCast(p,"fish","🎣 Cast your line — flip!");
   }
 }
 async function humanTurn(p){
@@ -1860,9 +1888,8 @@ async function botTurn(p){
       if(g.doDock(p,port)){await botBeat();return;}}}
   if(port&&!p.firstFlip.has(port)){if(g.doDock(p,port)){await botBeat();return;}}
   if(p.coins<=1){
-    const h=g.flip(p);
-    if(h)p.coins+=2;else if(g.cfg.sardine)p.coins+=1;
-    g.ev({t:"fish",p:p.idx,heads:h?1:0});await botBeat();
+    await fishCast(p,"fish");
+    await botBeat();
   }
 }
 async function asyncBakeoff(A,B){
