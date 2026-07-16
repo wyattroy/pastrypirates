@@ -179,4 +179,60 @@ Two consequences to remember:
 - If the GitHub Pages domain or repo name ever changes, update the **Websites** allow-list to
   match, or syncing from the new URL will be blocked.
 
+---
+
+## How host-refresh recovery works (and the one rule to keep it working)
+
+The host's browser *is* the game engine — the whole game loop and every player's state live
+in that one tab's memory and are broadcast to everyone else. So an accidental host refresh used
+to wipe the game for the entire table. It no longer does, and here's the mechanism, because it
+imposes a rule future edits must respect.
+
+### The idea: deterministic replay
+
+The engine is driven entirely by a **seeded pseudo-random generator** (`mulberry32`), so a game
+is a pure function of its `seed` plus the sequence of **human decisions**. Bots, dice, wind,
+battles — all of it — replays identically from the same seed. (The seed itself is random per
+game, so coin tosses are just as unpredictable to players as ever. "Deterministic" here means
+*reproducible given the seed*, not *predictable*.)
+
+So instead of trying to serialize the live game object (messy — it holds `Set`s, live
+cross-references, and the RNG's internal position) and figuring out where in a deep `await`
+stack to resume, we do something cheaper:
+
+1. **Record** every human decision to Firebase as it's made — just a tiny ordered log of
+   indices/cells under `rooms/<code>/dlog`.
+2. **On an accidental host reload**, `resumeHostGame()` re-runs the *real* game loop in
+   `replaying=true` mode: rendering, delays, and broadcasts are suppressed, and each human
+   prompt is answered instantly from the recorded log. This silently rebuilds the exact state.
+3. When the log runs out (`endReplay()`), it hands back to live play at the precise spot the
+   reload interrupted, pushing only the events the crew hasn't already seen.
+
+Because it re-runs the actual loop, it rebuilds even state that lives *only* in local
+variables — e.g. a battle's round-by-round score inside `asyncBattle`'s closure — for free.
+
+This keys off `localStorage`, so recovery works when the host comes back in the **same
+browser**. It does not migrate the host to a different device or to another player.
+
+### ⚠️ The rule: every human decision must flow through an instrumented chokepoint
+
+Replay only works because *all* human input is recorded at a few shared functions —
+currently **`ask()`**, **`pickCell()`**, and **`battleAsk()`**. Each one records the choice
+when live and returns the recorded choice when replaying.
+
+**If you add a new way to collect a player's choice, it must route through one of those
+functions — or be instrumented the same way (record on the way out, short-circuit to the log
+during replay).** A decision collected on a new, un-instrumented path won't be recorded, so on
+replay there's nothing to answer it and the rebuild will hang at that prompt.
+
+This is exactly what bit the "battle coins on screen" change: it forked a second decision
+function (`battleAsk`) off of `ask` to render buttons inside the battle scoreboard, which
+quietly moved battle flips onto a path the recorder didn't cover until `battleAsk` was
+instrumented too.
+
+If input handling ever grows enough paths that this rule feels fragile, the sturdier (but
+heavier) alternative is to snapshot the full game state as JSON after each action and rebuild
+from that — it doesn't care *how* input is collected, only *what state results*. For now the
+chokepoint approach is far less code.
+
 Happy plundering. 🧁
