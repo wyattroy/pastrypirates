@@ -1172,6 +1172,9 @@ function showStats(){
 let live=false, liveDone=false, liveGen=0;
 let curSeat=0;                 // seat currently being prompted (host drives the engine)
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// Bots play at the Lab's slowest pace (3s per action) so players can follow every move.
+function stepDelay(){return 3000;}
+async function botBeat(){liveRender();await sleep(stepDelay());}
 function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
 
@@ -1419,7 +1422,7 @@ async function settleSideBets(bets,winSide){
 async function asyncBattle(att,def){
   const c=game.cfg;
   showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
-  await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to 3 points wins…`,900);
+  await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to 3 points wins…`,Math.max(900,stepDelay()));
   if(c.powder)att.coins-=c.powder;
   game.battles++;
   const bets=await collectSideBets(att,def);
@@ -1600,7 +1603,7 @@ async function humanTrade(p){
 async function wheelFish(p){
   // the captain who just handed off the ship's wheel casts a line while the new leader takes over
   setActor(p.idx);
-  await flash(`🧭 ${NAMES[p.idx]} passes the ship's wheel — and casts a line while the crew comes about…`,900);
+  await flash(`🧭 ${NAMES[p.idx]} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
   const h=(p.strategy==="human")?await humanFlip(p,`🎣 ${NAMES[p.idx]}, fish as you pass the wheel — flip!`):game.flip(p);
   if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
   game.ev({t:"wheelfish",p:p.idx,heads:h?1:0});
@@ -1657,12 +1660,11 @@ async function humanTurn(p){
 async function botTurn(p){
   const g=game;
   g.ev({t:"turn",p:p.idx});
-  liveRender();
-  await sleep(320);
+  await botBeat();
   const before=[...p.pos];
   g.windPush(p,DIRS[g.windNow],g.stormNow?2:1);
   p.justDocked=false;
-  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:"windmove",p:p.idx});
+  if(p.pos[0]!==before[0]||p.pos[1]!==before[1]){g.ev({t:"windmove",p:p.idx});await botBeat();}
   if(!g.adjPort(p))p.dockedNow.clear();
   let target=g.chooseTarget(p);
   if(p.strategy==="pirate"&&g.needs(p).length){
@@ -1674,7 +1676,7 @@ async function botTurn(p){
   const exact=g.dockCells.has(target[0]+","+target[1]);
   if((dist>1||(dist===1&&exact))&&p.coins>0){
     p.coins--;const b=[...p.pos];g.stepToward(p,target,3);
-    if(p.pos[0]!==b[0]||p.pos[1]!==b[1])g.ev({t:"sail",p:p.idx});else p.coins++;
+    if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}else p.coins++;
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
@@ -1695,26 +1697,26 @@ async function botTurn(p){
           if(g.cfg.tradeBonus){p.coins++;human.coins++;}
           g.ev({t:"trade",a:p.idx,b:human.idx,gave:"5 coins",got:ing,kind:"hail"});
         }
-        liveRender();
+        await botBeat();
         break;
       }
     }
   }
   const port=g.adjPort(p);
-  if((p.strategy==="trader"||g.cfg.parley)&&g.tryTrade(p)){liveRender();return;}
+  if((p.strategy==="trader"||g.cfg.parley)&&g.tryTrade(p)){await botBeat();return;}
   const victim=g.wantsAttack(p);
-  if(victim){if(!g.tryTrade(p))await asyncBattle(p,victim);liveRender();return;}
+  if(victim){if(!g.tryTrade(p))await asyncBattle(p,victim);await botBeat();return;}
   if(port&&p.strategy==="monopolist"&&port===p.corner&&g.tokens[port]>0){
-    if(g.doDock(p,port)){liveRender();return;}}
-  if(port&&g.needs(p).includes(port)&&g.tokens[port]>0){if(g.doDock(p,port)){liveRender();return;}}
+    if(g.doDock(p,port)){await botBeat();return;}}
+  if(port&&g.needs(p).includes(port)&&g.tokens[port]>0){if(g.doDock(p,port)){await botBeat();return;}}
   if(port&&g.cfg.merchant&&(p.strategy==="trader"||p.strategy==="balanced")){
     if(g.tokens[port]>0&&!p.ing.includes(port)&&g.players.some(q=>q!==p&&g.needs(q).includes(port))){
-      if(g.doDock(p,port)){liveRender();return;}}}
-  if(port&&!p.firstFlip.has(port)){if(g.doDock(p,port)){liveRender();return;}}
+      if(g.doDock(p,port)){await botBeat();return;}}}
+  if(port&&!p.firstFlip.has(port)){if(g.doDock(p,port)){await botBeat();return;}}
   if(p.coins<=1){
     const h=g.flip(p);
     if(h)p.coins+=2;else if(g.cfg.sardine)p.coins+=1;
-    g.ev({t:"fish",p:p.idx,heads:h?1:0});liveRender();
+    g.ev({t:"fish",p:p.idx,heads:h?1:0});await botBeat();
   }
 }
 async function asyncBakeoff(A,B){
