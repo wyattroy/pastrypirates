@@ -178,6 +178,11 @@
       linear-gradient(160deg, #f7edd2, #ecd9ac);
     box-shadow: inset 0 0 24px rgba(120,80,35,.30), 0 2px 7px rgba(70,45,20,.22); }
   .recipeCard:hover { border-color: #8a6535;
+    background:
+      radial-gradient(ellipse at 18% 12%, rgba(150,105,50,.20), transparent 55%),
+      radial-gradient(ellipse at 88% 82%, rgba(120,80,40,.18), transparent 52%),
+      radial-gradient(ellipse at 65% 30%, rgba(200,165,105,.16), transparent 60%),
+      linear-gradient(160deg, #fbf0d4, #f0dcac);
     box-shadow: inset 0 0 24px rgba(120,80,35,.30), 0 7px 18px rgba(90,55,20,.34); }
   .recipeTitle { color: #5b3a1f; font-weight: 800; font-size: 16px; letter-spacing: .3px;
     font-family: Georgia, "Times New Roman", serif; padding: 12px 12px 9px; margin: 0 10px;
@@ -295,7 +300,7 @@
         <summary style="cursor:pointer;color:var(--teal);font-weight:bold">How to play</summary>
         <div class="rules" style="margin-top:8px">
           <p>Collect <b>every ingredient on your recipe map</b> (the chips by your name), then sail home to
-          <b>⚓ Barbados</b> in the center and dock to win.</p>
+          <b>⚓ the Isle of Tortuga</b> in the center and dock to win.</p>
           <p>Each turn: the <b>wind</b> drifts you 1 square (2 in a storm) — moored ships are safe. Then you may
           <b>sail</b> up to 3 squares for 1🌕. Then <b>act</b>: dock at an island to flip for a crate, attack an
           adjacent ship, parley (trade) with anyone, or fish for coins.</p>
@@ -450,7 +455,7 @@ class Game{
         ing:[],recipe:a,recipeChoices:[a,b],firstFlip:new Set(),dockedNow:new Set(),
         done:false,heads:0,flips:0,corner:null,justDocked:false};
     });
-    // ships start at Barbados's four docks (N/S/E/W of the island)
+    // ships start at Isle of Tortuga's four docks (N/S/E/W of the island)
     const dirsArr=Object.values(DIRS);
     this.players.forEach((p,i)=>{const d=dirsArr[i%4];
       p.pos=[this.home[0]+d[0],this.home[1]+d[1]];});
@@ -488,7 +493,7 @@ class Game{
     }
     return false;
   }
-  moored(p){ // ships that DOCKED last turn (or sit at a berth / Barbados) can't be wind-forced into land
+  moored(p){ // ships that DOCKED last turn (or sit at a berth / Isle of Tortuga) can't be wind-forced into land
     return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
   }
   windPush(p,d,dist){
@@ -925,7 +930,7 @@ function drawBoard(){
       el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1},svg);
     }
   }
-  // home: Barbados is a 1-square island with 4 docks (N/S/E/W)
+  // home: Isle of Tortuga is a 1-square island with 4 docks (N/S/E/W)
   const [hx,hy]=game.home;
   el("rect",{x:hx*cell+2,y:hy*cell+2,width:cell-4,height:cell-4,rx:cell*.3,
     fill:"#fef48b",stroke:"#f5a623","stroke-width":2},svg);
@@ -1004,7 +1009,7 @@ function drawBoard(){
     t.textContent="⛵";
     shipEls.push(g);
   });
-  // seat the ships on their Barbados docks right away, before the first event renders
+  // seat the ships on their Isle of Tortuga docks right away, before the first event renders
   game.players.forEach((p,i)=>{
     const [x,y]=shipXY(p.pos,i,game.players);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
@@ -1049,7 +1054,7 @@ function describe(e){
       return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`};}
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "wheelfish":return {txt:`🧭 ${pn(e.p)} passes the ship's wheel and fishes — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
-    case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to Barbados with a full recipe!`};
+    case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
     case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
     case "turn":return null;
@@ -1319,7 +1324,7 @@ function localAsk(msg,opts,colors){
 async function flash(msg,ms){netNarrate(msg);await sleep(ms||900);}
 async function humanFlip(p,label){
   setActor(p.idx);
-  await ask(label||"Flip the gold bullion!",[{label:"🌕 FLIP!",value:1}]);
+  await ask(label||"Flip the dubloon!",[{label:"🌕 FLIP!",value:1}]);
   const h=game.flip(p);
   netNarrate(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
   await sleep(650);
@@ -1550,7 +1555,7 @@ async function collectSideBets(att,def){
     if(s.strategy==="human"){
       setActor(s.idx);
       // The call itself is free and mandatory — no coin of your own at risk.
-      const who=await ask(`🔭 ${NAMES[s.idx]} — call it from the crow's nest! Who takes this bout? A sharp call earns a Spotter's Bounty (+1🌕) from the ship's bank — free o' charge, none o' yer own coin at risk.`,
+      const who=await ask(`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`,
         [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
         [HEXCOL[att.idx],HEXCOL[def.idx]]);
       let amt=0;
@@ -1559,7 +1564,7 @@ async function collectSideBets(att,def){
       if(amounts.length){
         setActor(s.idx);
         // Optional: sweeten the call with real coin.
-        amt=await ask(`💰 Back yer call on ${who==="a"?ns(att.idx):ns(def.idx)} with coin? Win and ye keep the Bounty AND double yer stake; lose and it sinks to the deep. (purse: ${s.coins}🌕)`,
+        amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)} with coin? Win and you keep the free dubloon AND double your stake — lose and your stake is gone. (purse: ${s.coins}🌕)`,
           [{label:"Just the free call",value:0}].concat(
             amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n}))));
       }
@@ -1811,7 +1816,7 @@ async function humanAct(p){
     opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
   const v=await ask(`${NAMES[p.idx]}, choose your action:`,opts);
-  if(v==="bakery"){await flash("🧁 Firing up the ovens in Barbados!",1200);return;}
+  if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock")await humanDock(p,port);
   else if(v==="attack"){
     const t=targets.length===1?targets[0]:
@@ -1935,7 +1940,7 @@ async function recipeDraftNet(){
   liveRender();
 }
 async function runLiveNet(){
-  await flash("⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at Barbados to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!",3200);
+  await flash("⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!",3200);
   await recipeDraftNet();
   let order=game.players.map((_,i)=>i);
   let ended=false;
