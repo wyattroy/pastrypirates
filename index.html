@@ -313,9 +313,6 @@
         </div>
       </div>
       <div id="actionPanel" style="display:none"></div>
-      <div class="panel" style="text-align:center">
-        <button id="btnShowLog" type="button">📜 Captain's log</button>
-      </div>
       <div class="panel" id="statsWrap" style="display:none">
         <h3>End of voyage</h3>
         <div id="statsPanel"></div>
@@ -332,7 +329,8 @@
           🌀 trade winds around the rim sweep you clockwise around the world for a fast shortcut.</p>
         </div>
       </details>
-      <div class="panel">
+      <div class="panel" style="text-align:center;display:flex;gap:8px;justify-content:center">
+        <button id="btnShowLog" type="button">📜 Captain's log</button>
         <button id="btnLeave">🚪 Leave game</button>
       </div>
     </div>
@@ -1021,21 +1019,24 @@ function drawBoard(){
     }
   }
   // wind spinner HUD (bottom-right corner) — sized off `cell` rather than fixed pixels, so it
-  // scales with the board's actual cell density instead of a magic number tuned for one grid size
+  // scales with the board's actual cell density instead of a magic number tuned for one grid size.
+  // Everything is drawn in a <g> translated to the dial's center, so all local coordinates are
+  // relative to (0,0) — the needle's rotation pivot is then exactly "0px 0px", which stays correct
+  // at any browser zoom level (an absolute px transform-origin drifted from the dial at non-100% zoom).
   const sr=cell*.95,scx=W-sr-14,scy=W-sr-32;
-  const hud=el("g",{opacity:.95},svg);
-  stormDial=el("circle",{cx:scx,cy:scy,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
+  const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`},svg);
+  stormDial=el("circle",{cx:0,cy:0,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
   windLabels=[];
-  for(const [lab,lx,ly] of [["N",scx,scy-sr+13],["E",scx+sr-11,scy+4],["S",scx,scy+sr-6],["W",scx-sr+11,scy+4]]){
+  for(const [lab,lx,ly] of [["N",0,-sr+13],["E",sr-11,4],["S",0,sr-6],["W",-sr+11,4]]){
     const tx=el("text",{x:lx,y:ly,"text-anchor":"middle","font-size":12,fill:"#1f4249","font-weight":"bold"},hud);
     tx.textContent=lab;windLabels.push(tx);
   }
-  spinNeedle=el("polygon",{points:`${scx},${scy-sr+17} ${scx-6},${scy+9} ${scx+6},${scy+9}`,
-    fill:"#d6337f",stroke:"#fff","stroke-width":1},hud);
+  spinNeedle=el("g",{fill:"#d6337f"},hud);
+  el("polygon",{points:`0,${-sr+17} -6,9 6,9`,stroke:"#fff","stroke-width":1},spinNeedle);
   spinNeedle.style.transition="transform .7s ease";
-  spinNeedle.style.transformOrigin=`${scx}px ${scy}px`;
-  el("circle",{cx:scx,cy:scy,r:4.5,fill:"#1f4249"},hud);
-  stormText=el("text",{x:scx,y:scy+sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
+  spinNeedle.style.transformOrigin="0px 0px";
+  el("circle",{cx:0,cy:0,r:4.5,fill:"#1f4249"},hud);
+  stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
   // active-player highlight ring (positioned in render)
   activeRing=el("circle",{r:cell*.44,fill:"none",stroke:"#f5a623","stroke-width":4,
     "stroke-dasharray":"7 5","class":"activering",opacity:0},svg);
