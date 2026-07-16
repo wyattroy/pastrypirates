@@ -384,11 +384,15 @@ class Game{
         }
       }
       // quadrants flow CLOCKWISE (N arc carries you to its E end, E arc to its S end, etc.)
+      // a random rotation offset moves the 4 whirlpool drop-off points each game — kept
+      // separate from `deg` (the true geometric angle, still used for arrow rendering below)
+      const rotOffset=this.r()*360;
       const cells=[...this.rim].map(k=>{
         const [x,y]=k.split(",").map(Number);
-        let deg=(Math.atan2(y-cc,x-cc)*180/Math.PI+360)%360;
-        const q=Math.floor(((deg+45)%360)/90); // 0=E 1=S 2=W 3=N
-        let a=deg; if(q===0&&a>180)a-=360;
+        const deg=(Math.atan2(y-cc,x-cc)*180/Math.PI+360)%360;
+        const rdeg=(deg+rotOffset)%360;
+        const q=Math.floor(((rdeg+45)%360)/90); // 0=E 1=S 2=W 3=N
+        let a=rdeg; if(q===0&&a>180)a-=360;
         return {k,x,y,q,a,deg};
       });
       const heads={};
@@ -445,6 +449,21 @@ class Game{
       for(const c of cellsR)this.islands[c]=ing;
     });
     if(cfg.singleDock){
+      // a dock must be reachable by actually sailing there from home — not just have one
+      // open neighbor. Rim (trade-wind) cells are never a valid stopping point (the wind
+      // sweeps you off them before you can act), so flood-fill open water from home,
+      // treating the rim as impassable, exactly like the game's own routing already does.
+      const passable=c=>!this.blocked(c)&&!this.onRim(c)&&this.islands[c[0]+","+c[1]]===undefined;
+      const homeReach=new Set([this.home[0]+","+this.home[1]]);
+      const bq=[this.home];
+      while(bq.length){
+        const c=bq.shift();
+        for(const d of Object.values(DIRS)){
+          const o=[c[0]+d[0],c[1]+d[1]],k=o[0]+","+o[1];
+          if(homeReach.has(k)||!passable(o))continue;
+          homeReach.add(k);bq.push(o);
+        }
+      }
       for(const ing of this.ings){
         const waters=[];
         for(const c of this.islandRect[ing]){
@@ -454,13 +473,7 @@ class Game{
                &&!(w2[0]===this.home[0]&&w2[1]===this.home[1]))waters.push(w2);
           }
         }
-        // a dock must be reachable from open water: if every approach cell is a rim
-        // (trade-wind) cell, a ship gets swept away before it can moor — an unwinnable dock
-        const reachable=w=>Object.values(DIRS).some(d=>{
-          const a=[w[0]+d[0],w[1]+d[1]];
-          return !this.blocked(a)&&!this.onRim(a)&&this.islands[a]===undefined;
-        });
-        const open=waters.filter(reachable);
+        const open=waters.filter(w=>homeReach.has(w[0]+","+w[1]));
         const pool=open.length?open:waters;
         this.dockOf[ing]=pool.length?pool[Math.floor(this.r()*pool.length)]:this.home;
       }
@@ -1007,8 +1020,9 @@ function drawBoard(){
       dt.textContent="⚓";
     }
   }
-  // wind spinner HUD (bottom-right corner) — nudged up so the STORM label fits inside the board
-  const scx=W-56,scy=W-74,sr=42;
+  // wind spinner HUD (bottom-right corner) — sized off `cell` rather than fixed pixels, so it
+  // scales with the board's actual cell density instead of a magic number tuned for one grid size
+  const sr=cell*.95,scx=W-sr-14,scy=W-sr-32;
   const hud=el("g",{opacity:.95},svg);
   stormDial=el("circle",{cx:scx,cy:scy,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
   windLabels=[];
