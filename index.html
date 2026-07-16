@@ -75,10 +75,18 @@
   .coin.win { box-shadow: 0 0 0 4px rgba(39,199,141,.55); }
   @keyframes coinspin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
   .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
-  /* fishing shares the battle coin, wrapped in a little cast panel */
-  .fishcast { text-align: center; }
-  .fishcast .fc-who { font-weight: 800; font-size: 13.5px; margin-bottom: 9px; }
-  .fishcast .fc-note { margin-top: 9px; font-weight: 700; font-size: 13.5px; min-height: 19px; }
+  /* ---- flippenator: the one physical spot every coin flip happens ---- */
+  .flippenator { display: flex; align-items: center; gap: 14px; }
+  .flipPlank { flex: 0 0 auto; width: 108px; height: 76px; border-radius: 12px;
+    background: linear-gradient(160deg, #b3814a, #8a5f2f); display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,.28); }
+  .flipPlank .coin { width: 56px; height: 56px; font-size: 10.5px; margin: 0; }
+  .flipPlank .coin.spin { font-size: 20px; }
+  .flipBtn { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%; padding: 0;
+    font-size: 11px; font-weight: 800; letter-spacing: .5px; border: 2px solid #ddd; background: #f2f2f2; color: #bbb; }
+  .flipBtn.active { border-color: var(--accent); background: var(--orange); color: #fff;
+    cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
+  @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
   .pips { display: flex; justify-content: center; gap: 6px; }
   .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
   .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
@@ -286,6 +294,13 @@
       <div class="panel">
         <h3>Captains</h3>
         <div id="players"></div>
+      </div>
+      <div class="panel">
+        <h3>Flippenator</h3>
+        <div class="flippenator">
+          <div class="flipPlank"><div id="flipCoinWrap"><div class="coin wait">?</div></div></div>
+          <button id="flipBtn" class="flipBtn" type="button" disabled>FLIP</button>
+        </div>
       </div>
       <div id="actionPanel" style="display:none"></div>
       <div class="panel">
@@ -1274,6 +1289,24 @@ function narrateCurrent(){
 function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
 
+// ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
+function setFlipCoin(state){const el=$("flipCoinWrap");if(el)el.innerHTML=coinHTML(state);}
+function setFlipActive(onClick){
+  const btn=$("flipBtn");if(!btn)return;
+  if(onClick){btn.classList.add("active");btn.disabled=false;btn.onclick=onClick;}
+  else{btn.classList.remove("active");btn.disabled=true;btn.onclick=null;}
+}
+// host: play the spin/land locally AND broadcast it so every connected browser's flippenator
+// animates in sync, whether or not that browser is the one actually flipping
+function broadcastFlip(state){
+  setFlipCoin(state);
+  if(isHost&&db&&room)db.ref("rooms/"+room+"/flip").set({state,t:Date.now()});
+}
+function watchFlip(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/flip").on("value",s=>{const v=s.val();if(v)setFlipCoin(v.state);});
+}
+
 function liveRender(){
   if(replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
   evIdx=Math.max(0,game.events.length-1);
@@ -1306,13 +1339,19 @@ function ask(msg,opts,colors){
   }
   const seat=curSeat;
   netNarrate(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
+  const isFlip=opts.length===1&&!!opts[0].flip;
   const idxP=seatLocal(seat)?localAsk(msg,opts,colors)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
-       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||"")});
+       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip});
   return idxP.then(i=>{logDecision(i);return opts[i].value;});
 }
 function localAsk(msg,opts,colors){
   return new Promise(res=>{
+    if(opts.length===1&&opts[0].flip){
+      setFlipActive(()=>{setFlipActive(null);res(0);});
+      return;
+    }
+    setFlipActive(null);
     const grid=opts.some(o=>o.cls)?" recipes":"";
     panel(`<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
       opts.map((o,i)=>`<button class="apBtn ${o.cls||""}" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${o.label}</button>`).join("")+`</div>`);
@@ -1324,36 +1363,35 @@ function localAsk(msg,opts,colors){
 async function flash(msg,ms){netNarrate(msg);await sleep(ms||900);}
 async function humanFlip(p,label){
   setActor(p.idx);
-  await ask(label||"Flip the dubloon!",[{label:"🌕 FLIP!",value:1}]);
+  await ask(label||"Flip the dubloon!",[{label:"🌕 FLIP!",value:1,flip:true}]);
+  broadcastFlip("spin");
+  await sleep(340);
   const h=game.flip(p);
+  broadcastFlip(h?"H":"T");
   netNarrate(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
   await sleep(650);
+  broadcastFlip("wait");
   return h;
 }
-// One panel for the fishing coin, broadcast through the narration channel so
-// every seat watches the same tumble (like the battle coin).
-function fishCoinHTML(p,state,note){
-  const nm=NAMES[p.idx].replace("Capt. ","");
-  return `<div class="fishcast"><div class="fc-who" style="color:${HEXCOL[p.idx]}">🎣 ${nm} casts a line</div>`+
-    coinHTML(state)+`<div class="fc-note">${note||"&nbsp;"}</div></div>`;
-}
-// A fishing cast shown as a tumbling coin. Humans tap CAST; bots auto-cast.
-// Awards the catch and logs the event (evt is "fish" or "wheelfish").
+// A fishing cast, flipped on the flippenator like every other coin in the game.
+// Humans tap CAST; bots auto-cast. Awards the catch and logs the event (evt is "fish" or "wheelfish").
 async function fishCast(p,evt,label){
   const bd=(typeof stepDelay==="function")?stepDelay():500;
   const spin=Math.max(260,Math.min(650,bd*0.7));
   const hold=Math.max(500,Math.min(1200,bd*1.0));
   if(p.strategy==="human"){
     setActor(p.idx);
-    await ask(label||"🎣 Cast your line — flip!",[{label:"🎣 CAST!",value:1}]);
+    await ask(label||`${NAMES[p.idx]}: cast your line — flip!`,[{label:"🎣 CAST!",value:1,flip:true}]);
   }
-  netNarrate(fishCoinHTML(p,"spin"));
+  netNarrate(`🎣 ${pn(p.idx)} casts a line…`);
+  broadcastFlip("spin");
   await sleep(spin);
   const h=game.flip(p);
-  const note=h?"⚪ HEADS — a fine catch! +2🌕"
-    :(game.cfg.sardine?"⚫ TAILS — just a sardine +1🌕":"⚫ TAILS — nothin' biting");
-  netNarrate(fishCoinHTML(p,h?"H":"T",note));
+  broadcastFlip(h?"H":"T");
+  const note=h?"a fine catch! +2🌕":(game.cfg.sardine?"just a sardine +1🌕":"nothin' biting");
+  netNarrate(`🎣 ${pn(p.idx)} flips ${h?"⚪ HEADS":"⚫ TAILS"} — ${note}`);
   await sleep(hold);
+  broadcastFlip("wait");
   if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
   game.ev({t:evt,p:p.idx,heads:h?1:0});
   liveRender();
@@ -2102,14 +2140,21 @@ function watchEvents(){
 function watchPrompt(){
   db.ref("rooms/"+room+"/prompt").on("value",snap=>{
     const p=snap.val();
-    if(!p||p.seat!==mySeat){panel("");return;}
+    if(!p||p.seat!==mySeat){panel("");setFlipActive(null);return;}
     if(p.kind==="ask"){
+      if(p.flip){
+        showNarration(p.msg);
+        setFlipActive(()=>{setFlipActive(null);sendResponse(p.id,0);});
+        return;
+      }
+      setFlipActive(null);
       const cols=p.colors||[],cls=p.classes||[];
       const grid=cls.some(c=>c)?" recipes":"";
       panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
         (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}"${apBtnStyle(cols[i])}>${l}</button>`).join("")+`</div>`);
       $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
+      setFlipActive(null);
       remotePickHighlights(p.cells||[],p.id);
     }
   });
@@ -2282,7 +2327,7 @@ function beginGame(cfg,seed){
   updateRecipeBanner();
   watchRecipes();
   if(isHost){runLiveNet();}
-  else{watchEvents();watchPrompt();watchNarr();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();}
 }
 function updateRecipeBanner(){
   // recipe is now shown as semi-transparent chips in your own captain row (see render());
