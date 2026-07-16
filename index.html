@@ -81,6 +81,12 @@
   .btl-result { margin-top: 11px; font-weight: 700; font-size: 13.5px; min-height: 19px; }
   .btl-result .score { color: #1c9e63; }
   .btl-result .cancel { color: #8a8a8a; }
+  /* battle decisions live inside the scoreboard — coins stay visible above them */
+  .btl-prompt { margin-top: 11px; text-align: center; }
+  .btl-prompt .msg { font-weight: 700; font-size: 13.5px; margin-bottom: 8px; }
+  .btl-prompt .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .btlBtn { font-size: 14px; }
+  .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
   .bubble { position: absolute; background: #fff; border: 2px solid var(--teal); border-radius: 9px;
     padding: 3px 9px; font-size: 12px; font-weight: 500; max-width: 280px; line-height: 1.35;
     transform: translate(-50%, -108%); box-shadow: 0 2px 6px rgba(31,66,73,.18);
@@ -1194,6 +1200,9 @@ function panel(html){$("actionPanel").innerHTML=html;$("actionPanel").style.disp
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
 function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
 function netNarrate(html){showNarration(html);if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
+// broadcast narration to spectators WITHOUT touching this screen's panel — used during
+// battles so the local scoreboard (coins) stays put while others still get the play-by-play
+function netBroadcast(html){if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
 
 // ---- ask(): route the decision to whichever browser owns this seat ----
 function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${col}22;font-weight:700"`:"";}
@@ -1363,8 +1372,37 @@ function renderBattle(o){
         ${pipsHTML(o.d,col(D.idx))}
       </div>
     </div>
-    <div class="btl-result">${o.result||"&nbsp;"}</div>
+    ${battleFooter(o)}
   </div>`);
+}
+// the footer beneath the coins: a decision (buttons), a "waiting…" note, or the round result
+function battleFooter(o){
+  if(o.prompt){
+    const {msg,opts,colors}=o.prompt;
+    return `<div class="btl-prompt">${msg?`<div class="msg">${msg}</div>`:""}<div class="btns">`+
+      opts.map((op,i)=>`<button class="apBtn btlBtn" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${op.label}</button>`).join("")+
+      `</div></div>`;
+  }
+  if(o.waiting)return `<div class="btl-wait">⏳ Waiting for ${o.waiting}…</div>`;
+  return `<div class="btl-result">${o.result||"&nbsp;"}</div>`;
+}
+// A battle decision that keeps the coins on screen: the scoreboard (o) renders with the
+// prompt buttons tucked beneath it, so nothing about the layout jumps when it's your turn.
+function battleAsk(p,o,msg,opts,colors){
+  setActor(p.idx);
+  const seat=p.idx;
+  netBroadcast(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
+  if(seatLocal(seat)){
+    return new Promise(res=>{
+      renderBattle(Object.assign({},o,{prompt:{msg,opts,colors}}));
+      $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{
+        b.onclick=()=>res(opts[+b.dataset.i].value);
+      });
+    });
+  }
+  renderBattle(Object.assign({},o,{waiting:NAMES[seat].replace("Capt. ","")}));
+  return remotePrompt(seat,{kind:"ask",msg,labels:opts.map(x=>x.label),
+    colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>"")}).then(i=>opts[i].value);
 }
 // The Lookout's Call: every spectator MUST call a winner from the crow's nest —
 // it's free, and a correct call earns a Spotter's Bounty (+1🌕) from the ship's
@@ -1436,6 +1474,21 @@ async function asyncBattle(att,def){
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
   const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
   const base=o=>Object.assign({att,def,a,d,round},o);
+  // a human flip that never leaves the scoreboard: FLIP button in the box → coin spins
+  // in place → reveals HEADS/TAILS, coins on screen the whole way through.
+  const hFlip=async(side,p,label,extra)=>{
+    extra=extra||{};
+    const key=side==="a"?"atState":"dfState";
+    await battleAsk(p,base(Object.assign({live:side,[key]:"wait"},extra)),
+      label,[{label:"🌕 FLIP!",value:1}]);
+    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));
+    await sleep(spin);
+    const h=game.flip(p);
+    netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
+    renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
+    await sleep(Math.min(hold*0.5,500));
+    return h;
+  };
   while(a<3&&d<3){
     round++;
     let bs=false,ah,dh;
@@ -1444,7 +1497,7 @@ async function asyncBattle(att,def){
     await sleep(beat*0.5);
     // ---- ATTACKER flips ----
     if(hA){
-      ah=await humanFlip(att,`⚔️ ${a}–${d} · ${NAMES[att.idx]} (attacker), fire!`);
+      ah=await hFlip("a",att,`⚔️ ${nm(att.idx)} (attacker) — fire!`,{dfState:"wait"});
     }else{
       renderBattle(base({atState:"spin",dfState:"wait",live:"a"}));
       await sleep(spin);
@@ -1454,11 +1507,12 @@ async function asyncBattle(att,def){
     // ---- broadside reflip on a tails ----
     if(!ah&&(free||(paid&&att.coins>=1))){
       let use=true;
-      if(hA)use=await ask(paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?",
+      if(hA)use=await battleAsk(att,base({atState:"T",dfState:"wait",live:"a"}),
+        paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?",
         [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
       if(use){
         if(paid)att.coins--;
-        if(hA){ah=await humanFlip(att,"🔥 Broadside reflip!");}
+        if(hA){ah=await hFlip("a",att,"🔥 Broadside — reflip!",{atBs:true,dfState:"wait"});}
         else{
           renderBattle(base({atState:"spin",atBs:true,dfState:"wait",live:"a",result:"🔥 Broadside — reflip!"}));
           await sleep(spin);
@@ -1475,7 +1529,7 @@ async function asyncBattle(att,def){
     await sleep(beat);
     // ---- DEFENDER flips ----
     if(hD){
-      dh=await humanFlip(def,`🛡️ ${NAMES[def.idx]} (defender), fire!`);
+      dh=await hFlip("d",def,`🛡️ ${nm(def.idx)} (defender) — answer!`,{atState:ah?"H":"T",atBs:bs});
     }else{
       renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:"spin",live:"d"}));
       await sleep(spin);
