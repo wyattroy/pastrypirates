@@ -156,20 +156,33 @@
   .seat .nm { flex:1; font-weight:600; }
   .seat.me { background:var(--lemon); border-color:var(--accent); }
   .who { font-size:11px; font-weight:normal; opacity:.7; }
-  /* ---- recipe draft cards (shopping-list style) ---- */
-  .apBtns.recipes { gap: 12px; }
+  /* ---- recipe draft cards: an aged treasure-map recipe leaf ---- */
+  .apBtns.recipes { gap: 14px; }
   .recipeCard { flex: 1 1 200px; min-width: 190px; text-align: left; padding: 0; overflow: hidden;
-    background: #fff; border: 2px solid var(--teal); border-radius: 12px; }
-  .recipeCard:hover { background: #fff; box-shadow: 0 4px 12px rgba(41,163,178,.22); }
-  .recipeTitle { background: linear-gradient(160deg, var(--mint), #1fb37f); color: #fff; font-weight: 800;
-    font-size: 14px; padding: 9px 12px; letter-spacing: .3px; display:flex; align-items:center; gap:6px; }
-  .recipeList { list-style: none; margin: 0; padding: 8px 12px 10px; }
-  .recipeList li { display: flex; align-items: center; gap: 9px; padding: 4px 0; font-size: 14px;
-    font-weight: 600; border-bottom: 1px dashed var(--line); }
+    border: 2px solid #a07a45; border-radius: 7px; color: #4a3223;
+    /* mottled, tea-stained parchment built from stacked radial stains */
+    background:
+      radial-gradient(ellipse at 18% 12%, rgba(150,105,50,.20), transparent 55%),
+      radial-gradient(ellipse at 88% 82%, rgba(120,80,40,.18), transparent 52%),
+      radial-gradient(ellipse at 65% 30%, rgba(200,165,105,.16), transparent 60%),
+      linear-gradient(160deg, #f7edd2, #ecd9ac);
+    box-shadow: inset 0 0 24px rgba(120,80,35,.30), 0 2px 7px rgba(70,45,20,.22); }
+  .recipeCard:hover { border-color: #8a6535;
+    box-shadow: inset 0 0 24px rgba(120,80,35,.30), 0 7px 18px rgba(90,55,20,.34); }
+  .recipeTitle { color: #5b3a1f; font-weight: 800; font-size: 16px; letter-spacing: .3px;
+    font-family: Georgia, "Times New Roman", serif; padding: 12px 12px 9px; margin: 0 10px;
+    display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center;
+    border-bottom: 3px double #b48a52; text-shadow: 0 1px 0 rgba(255,250,235,.5); }
+  .recipeDesc { padding: 9px 14px 3px; font-size: 12.5px; line-height: 1.45; color: #6b4a2c;
+    font-style: italic; font-family: Georgia, "Times New Roman", serif; }
+  .recipeList { list-style: none; margin: 0; padding: 8px 14px 12px; }
+  .recipeList li { display: flex; align-items: center; gap: 9px; padding: 5px 0; font-size: 14px;
+    font-weight: 600; color: #4a3223; border-bottom: 1px dashed rgba(120,80,40,.35); }
   .recipeList li:last-child { border-bottom: none; }
   .recipeList .ri { font-size: 19px; width: 24px; text-align: center; flex: 0 0 auto; }
   .recipeList .rn { flex: 1; }
-  .recipeList .rc { font-size: 13px; opacity: .45; }
+  .recipeList .rc { font-size: 12px; font-weight: 500; font-style: italic; color: #9a6f3e;
+    flex: 0 0 auto; padding-left: 8px; }
 </style>
 </head>
 <body>
@@ -299,7 +312,10 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 const ING_ALL=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla","salt","honey"];
 const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️",honey:"🍯",salt:"🧂"};
 const ING_NAME={wheat:"Toasty Wheat",dairy:"Fresh Milk",sugar:"Crystal Sugar",eggs:"Speckled Eggs",
-  cocoa:"Cacao Pods",salt:"Sea Salt",vanilla:"Vanilla Beans",spice:"Cinnamon Spice",honey:"Golden Honey"};
+  cocoa:"Cacao Pods",salt:"Sea Salt",vanilla:"Vanilla Beans",spice:"Hot Cinnamon",honey:"Golden Honey"};
+// the plain baker's term each pirate ingredient stands in for — shown as a gloss on recipe cards
+const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
+  cocoa:"chocolate",salt:"salt",vanilla:"vanilla",spice:"cinnamon",honey:"honey"};
 const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
@@ -737,22 +753,68 @@ function roundCfg(strategies){
     sardine:true,roundBoard:true,strategies};
 }
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
-// ---- recipe titles: a deterministic pastry name evoking a recipe's ingredients ----
-const ING_ADJ={wheat:"Toasted",dairy:"Creamy",sugar:"Sugared",eggs:"Fluffy",
-  cocoa:"Chocolate",salt:"Salted",vanilla:"Vanilla",spice:"Spiced",honey:"Honeyed"};
-const PASTRY_FORMS=["Gateau","Tart","Loaf","Brioche","Pudding","Galette","Torte","Scone","Bun","Crumble"];
-// flavours that read best as a title's lead adjective, most characterful first
-const FLAVOR_RANK=["cocoa","vanilla","spice","honey","salt","sugar","dairy","eggs","wheat"];
+// ---- the recipe book: 21 signature pastries, one per 5-of-7 ingredient combination ----
+// Ingredient keys: dairy=Milk, vanilla=Vanilla, wheat=Flour, cocoa=Chocolate,
+// sugar=Sugar, spice=Cinnamon, eggs=Eggs.
+const RECIPE_BOOK=[
+  {ings:["dairy","wheat","cocoa","sugar","spice"], title:"Spiced Cocoa Shortbread",
+    desc:"Buttery, melt-in-your-mouth shortbread biscuits infused with warm cinnamon and rich cocoa."},
+  {ings:["dairy","wheat","cocoa","sugar","eggs"], title:"Molten Chocolate Lava Cake",
+    desc:"A decadent, warm chocolate cake with an oozing, liquid fudge center."},
+  {ings:["dairy","wheat","cocoa","spice","eggs"], title:"Mayan Cocoa Soufflé",
+    desc:"A soaring, dramatic chocolate soufflé highlighting the dark, complex notes of pure cocoa and cinnamon."},
+  {ings:["dairy","wheat","sugar","spice","eggs"], title:"Cinnamon-Sugar Churros",
+    desc:"Crispy, golden pastry dough tossed in a sweet, crackly cinnamon-sugar shell."},
+  {ings:["dairy","cocoa","sugar","spice","eggs"], title:"Mexican Chocolate Torte",
+    desc:"An ultra-fudgy, dense chocolate cake whipped with eggs and spiced with sweet cinnamon."},
+  {ings:["wheat","cocoa","sugar","spice","eggs"], title:"Spiced Fudge Brownies",
+    desc:"Deep, dark brownies with a gorgeous shiny crust and a dense, chewy center."},
+  {ings:["dairy","vanilla","wheat","cocoa","sugar"], title:"Chocolate Chip Shortbread",
+    desc:"Delicate, crumbly biscuits bursting with vanilla bean and sweet chocolate chips."},
+  {ings:["dairy","vanilla","wheat","cocoa","spice"], title:"Cinnamon Snaps",
+    desc:"Crisp, rustic butter biscuits celebrating aromatic vanilla and warming cinnamon."},
+  {ings:["dairy","vanilla","wheat","sugar","spice"], title:"Snickerdoodle Bites",
+    desc:"Pillowy-soft butter cookies rolled in sweet cinnamon-sugar and pure vanilla."},
+  {ings:["dairy","vanilla","cocoa","sugar","spice"], title:"Cinnamon-Chocolate Fudge",
+    desc:"A quick-set, melt-in-your-mouth chocolate fudge layered with warm spice and vanilla."},
+  {ings:["vanilla","wheat","cocoa","sugar","spice"], title:"Crispy Cocoa Snaps",
+    desc:"Thin, highly satisfying cookies with a loud snap and deep spiced chocolate notes."},
+  {ings:["dairy","vanilla","wheat","cocoa","eggs"], title:"Dark Chocolate Cream Puffs",
+    desc:"Golden choux pastry puffs filled with an elegant, bittersweet vanilla-chocolate pastry cream."},
+  {ings:["dairy","vanilla","wheat","sugar","eggs"], title:"Golden Sweet Crêpes",
+    desc:"Paper-thin French pancakes griddled in butter and served with a splash of sweet vanilla glaze."},
+  {ings:["dairy","vanilla","cocoa","sugar","eggs"], title:"French Pots de Crème",
+    desc:"Luxurious, spoonable baked custards highlighting premium chocolate and smooth vanilla."},
+  {ings:["vanilla","wheat","cocoa","sugar","eggs"], title:"Chocolate Genoise Sponge Cake",
+    desc:"A feather-light, delicate sponge cake relying on whipped eggs for its airy lift."},
+  {ings:["dairy","vanilla","wheat","spice","eggs"], title:"Cinnamon Dutch Baby",
+    desc:"A dramatic skillet pancake that puffs up in the oven, featuring a custardy center of vanilla and spice."},
+  {ings:["dairy","vanilla","cocoa","spice","eggs"], title:"Mexican Chocolate Pots",
+    desc:"Silky-smooth custard cups naturally sweetened by vanilla bean and cinnamon."},
+  {ings:["vanilla","wheat","cocoa","spice","eggs"], title:"Cocoa Cloud Soufflé",
+    desc:"An airy, intensely rich whipped soufflé celebrating pure, dark chocolate."},
+  {ings:["dairy","vanilla","sugar","spice","eggs"], title:"Vanilla Bean Crème Brûlée",
+    desc:"Velvety baked custard topped with a satisfying, blowtorched glass-like caramelized sugar crust."},
+  {ings:["vanilla","wheat","sugar","spice","eggs"], title:"Cinnamon Sponge Cake",
+    desc:"A fluffy, golden cake scented with sweet vanilla and coated in a crisp cinnamon-sugar crust."},
+  {ings:["vanilla","cocoa","sugar","spice","eggs"], title:"Chocolate Fudge Torte",
+    desc:"A premium, dense cake utilizing whipped eggs to achieve a velvety, chocolatey mouthfeel."},
+];
+const RECIPE_LOOKUP={};
+for(const r of RECIPE_BOOK)RECIPE_LOOKUP[r.ings.slice().sort().join("|")]=r;
+function recipeInfo(recipe){return RECIPE_LOOKUP[recipe.slice().sort().join("|")];}
 function recipeTitle(recipe){
-  const sorted=recipe.slice().sort();
-  let h=0; for(const s of sorted.join("|"))h=(h*31+s.charCodeAt(0))>>>0;
-  const lead=FLAVOR_RANK.filter(i=>recipe.includes(i)).slice(0,2).map(i=>ING_ADJ[i]);
-  const form=PASTRY_FORMS[h%PASTRY_FORMS.length];
-  return `Captain's ${lead.join(" ")} ${form}`.replace(/\s+/g," ").trim();
+  const info=recipeInfo(recipe);
+  if(info)return info.title;
+  // fallback for any non-standard ingredient set: a simple ingredient-led name
+  const lead=recipe.filter(i=>ING_NAME[i]).slice(0,2).map(i=>iname(i).split(" ").pop());
+  return `Captain's ${lead.join(" & ")} Bake`.replace(/\s+/g," ").trim();
 }
 function recipeCardHTML(recipe){
-  const items=recipe.map(i=>`<li><span class="ri">${ING_EMOJI[i]}</span><span class="rn">${iname(i)}</span></li>`).join("");
-  return `<div class="recipeTitle">📜 ${recipeTitle(recipe)}</div>`+
+  const info=recipeInfo(recipe);
+  const items=recipe.map(i=>`<li><span class="ri">${ING_EMOJI[i]}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
+  const desc=info?`<div class="recipeDesc">${info.desc}</div>`:"";
+  return `<div class="recipeTitle">📜 ${recipeTitle(recipe)}</div>`+desc+
     `<ul class="recipeList">${items}</ul>`;
 }
 // Captain rows in the sidebar. `roster` holds the seat claims (name/bot/strat) from Firebase.
