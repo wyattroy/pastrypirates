@@ -2305,7 +2305,10 @@ function leaveGame(){clearSession();location.reload();}
 function wireLobby(){
   $("btnCreate").onclick=()=>{if(!($("pname").value||"").trim()){alert("Enter your captain name first.");return;}createRoom();};
   $("btnJoin").onclick=()=>{if(!($("pname").value||"").trim()){alert("Enter your captain name first.");return;}joinRoom();};
-  $("btnStart").onclick=startGame;
+  $("btnStart").onclick=()=>{
+    if(!confirm("Is everyone at the table? Once the voyage starts, no one else can join — empty seats sail with bots."))return;
+    startGame();
+  };
   $("btnLeave").onclick=leaveGame;
 }
 // The host reloaded mid-game. Rebuild the crew, load the recorded decision log, then let
