@@ -1258,7 +1258,14 @@ let resumeEvLen=0;             // # events already broadcast before the reload (
 const sleep=ms=>replaying?Promise.resolve():new Promise(r=>setTimeout(r,ms));
 // Bots play at the Lab's slowest pace (3s per action) so players can follow every move.
 function stepDelay(){return 3000;}
-async function botBeat(){liveRender();await sleep(stepDelay());}
+async function botBeat(){liveRender();narrateCurrent();await sleep(stepDelay());}
+// keep the yellow action panel in step with the bot's latest move — liveRender only
+// updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
+function narrateCurrent(){
+  const e=game.events[evIdx];if(!e)return;
+  if(e.t==="turn"){netNarrate(`🧭 ${pn(e.p)} takes the wheel…`);return;}
+  const L=logLines[evIdx];if(L)netNarrate(L.txt);
+}
 function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
 
