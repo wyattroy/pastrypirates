@@ -108,10 +108,13 @@ change the rules to require `auth != null`.)
 ## Good to know / limits
 
 - **The host's browser runs the game.** All the rules and bot logic execute on the
-  creator's device and are broadcast to everyone else. So the **host should stay on the page**
-  until the game ends. If a *non-host* player refreshes or drops, they can reopen the page and
-  rejoin the same room automatically. If the **host** closes the tab mid-game, that game can't
-  resume — just start a new one.
+  creator's device and are broadcast to everyone else. If a *non-host* player refreshes or
+  drops, they can reopen the page and rejoin the same room automatically. **The host can now
+  safely refresh, too:** if the host accidentally reloads mid-game, reopening the page silently
+  rebuilds the exact game state (by replaying the recorded moves) and keeps driving the voyage —
+  no restart needed. This works as long as the host comes back in the same browser (the recovery
+  keys off local storage). A host who fully closes the browser and doesn't return still ends the
+  game, since nobody is left to run it.
 - **One game per room code.** To play again, the host creates a new game (new code).
 - **Free-tier headroom is huge** for this use: the Spark plan gives 100 simultaneous
   connections and 1 GB stored / 10 GB downloaded per month. A full 4-player game syncs a few

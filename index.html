@@ -1171,7 +1171,15 @@ function showStats(){
 /* ================= LIVE (human) MODE — networked ================= */
 let live=false, liveDone=false, liveGen=0;
 let curSeat=0;                 // seat currently being prompted (host drives the engine)
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// --- host-refresh recovery: the host records every human decision, so after an accidental
+//     reload it can silently REPLAY the deterministic engine to rebuild the exact game
+//     state and keep driving, instead of the game dying with the host's tab. ---
+let replaying=false;           // true while fast-forwarding the recorded log after a reload
+let dlog=[];                   // recorded decisions to replay (indices for ask, cells for pickCell)
+let dlogIdx=0;                 // next log entry to consume during replay
+let dlogN=0;                   // total decisions resolved so far (replayed + live) = next log slot
+let resumeEvLen=0;             // # events already broadcast before the reload (so we don't re-push)
+const sleep=ms=>replaying?Promise.resolve():new Promise(r=>setTimeout(r,ms));
 // Bots play at the Lab's slowest pace (3s per action) so players can follow every move.
 function stepDelay(){return 3000;}
 async function botBeat(){liveRender();await sleep(stepDelay());}
@@ -1179,6 +1187,7 @@ function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
 
 function liveRender(){
+  if(replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
   evIdx=Math.max(0,game.events.length-1);
   if(!game.events.length)return;
   logLines=game.events.map(describe);
@@ -1193,16 +1202,23 @@ function panel(html){$("actionPanel").innerHTML=html;$("actionPanel").style.disp
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
 function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
-function netNarrate(html){showNarration(html);if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
+function netNarrate(html){if(replaying)return;showNarration(html);if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
 
 // ---- ask(): route the decision to whichever browser owns this seat ----
 function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${col}22;font-weight:700"`:"";}
 function ask(msg,opts,colors){
+  // during reload-replay, return the recorded choice (an index) mapped through the freshly
+  // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
+  if(replaying){
+    if(dlogIdx<dlog.length){dlogN++;return Promise.resolve(opts[dlog[dlogIdx++]].value);}
+    endReplay();
+  }
   const seat=curSeat;
   netNarrate(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
-  if(seatLocal(seat))return localAsk(msg,opts,colors);
-  return remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
-    colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||"")}).then(i=>opts[i].value);
+  const idxP=seatLocal(seat)?localAsk(msg,opts,colors)
+    :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
+       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||"")});
+  return idxP.then(i=>{logDecision(i);return opts[i].value;});
 }
 function localAsk(msg,opts,colors){
   return new Promise(res=>{
@@ -1210,7 +1226,7 @@ function localAsk(msg,opts,colors){
     panel(`<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
       opts.map((o,i)=>`<button class="apBtn ${o.cls||""}" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${o.label}</button>`).join("")+`</div>`);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
-      b.onclick=()=>{panel("");res(opts[+b.dataset.i].value);};
+      b.onclick=()=>{panel("");res(+b.dataset.i);};
     });
   });
 }
@@ -1243,10 +1259,15 @@ function reachable(p,steps){
   return out;
 }
 function pickCell(p,cells){
+  if(replaying){
+    if(dlogIdx<dlog.length){dlogN++;return Promise.resolve(dlog[dlogIdx++]);}
+    endReplay();
+  }
   setActor(p.idx);
   netNarrate(p.idx===mySeat?"":`${NAMES[p.idx]} is choosing where to sail…`);
-  if(seatLocal(p.idx))return localPickCell(p,cells);
-  return remotePrompt(p.idx,{kind:"pick",cells,msg:`${NAMES[p.idx]}: click a highlighted square to sail (−1🌕)`});
+  const cellP=seatLocal(p.idx)?localPickCell(p,cells)
+    :remotePrompt(p.idx,{kind:"pick",cells,msg:`${NAMES[p.idx]}: click a highlighted square to sail (−1🌕)`});
+  return cellP.then(c=>{logDecision(c);return c;});
 }
 function localPickCell(p,cells){
   return new Promise(res=>{
@@ -1395,8 +1416,8 @@ async function collectSideBets(att,def){
     }else{
       // Bots always call (favoring the fuller purse), and sometimes back it with coin.
       const fav=att.coins>=def.coins?"a":"d";
-      const on=Math.random()<.72?fav:(fav==="a"?"d":"a");
-      const amt=(s.coins>=4&&Math.random()<.5)?Math.min(2,s.coins):0;
+      const on=game.r()<.72?fav:(fav==="a"?"d":"a");
+      const amt=(s.coins>=4&&game.r()<.5)?Math.min(2,s.coins):0;
       bets.push({idx:s.idx,on,amt});
     }
   }
@@ -1743,11 +1764,12 @@ async function recipeDraftNet(){
       pick=await ask(`${NAMES[p.idx]}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`,
         [{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
          {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}]);
-    }else pick=Math.random()<.5?0:1;
+    }else pick=game.r()<.5?0:1;
     p.recipe=p.recipeChoices[pick];picks.push(pick);
   }
-  if(db&&room)await db.ref("rooms/"+room+"/recipes").set(picks);
-  updateRecipeBanner();liveRender();
+  if(db&&room&&!replaying)await db.ref("rooms/"+room+"/recipes").set(picks);
+  if(!replaying)updateRecipeBanner();
+  liveRender();
 }
 async function runLiveNet(){
   await flash("⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at Barbados to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!",3200);
@@ -1784,6 +1806,7 @@ async function runLiveNet(){
     }
   }
   await liveResolveEndNet();
+  if(replaying)endReplay();   // whole game was in the log: leave replay mode & paint the result
 }
 async function liveResolveEndNet(){
   if(!game.finishOrder.length)game.winner=null;
@@ -1798,10 +1821,10 @@ async function liveResolveEndNet(){
   await writeMeta();
   liveRender();
   netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${NAMES[game.winner]} is the Best Baker in the Caribbean!`);
-  if(db&&room)db.ref("rooms/"+room).update({status:"ended"});
+  if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"});
 }
 function writeMeta(){
-  if(!db||!room)return Promise.resolve();
+  if(!db||!room||replaying)return Promise.resolve();
   return db.ref("rooms/"+room+"/meta").set({
     round:game.round,battles:game.battles,trades:game.trades,attWins:game.attWins,
     finishOrder:game.finishOrder,winner:game.winner,
@@ -1841,6 +1864,26 @@ function getMyId(){
 function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
 function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({room,mySeat,isHost}));}catch(e){}}
 function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
+
+// --- host-refresh recovery: record & replay the decision log ---
+// Encode so a "stay put" (null) still persists as a non-empty object (Firebase drops nulls,
+// and setting a node to {} deletes it — which would leave a gap in the ordered log).
+function encodeDec(v){return (v===null||v===undefined)?{n:1}:{v:v};}
+function decodeDec(e){return (e&&Object.prototype.hasOwnProperty.call(e,"v"))?e.v:null;}
+// host (live): append a resolved human decision to the shared, ordered log. Issued BEFORE the
+// decision's resulting events are pushed, so the log can never lag the broadcast event feed.
+function logDecision(v){
+  const n=dlogN++;
+  if(!replaying&&db&&room)db.ref("rooms/"+room+"/dlog/"+n).set(encodeDec(v));
+}
+// leave replay mode: the recorded log is exhausted (or the game replayed to its end). Reconcile
+// the broadcast frontier so we push only events the crew hasn't already seen, then render live.
+function endReplay(){
+  if(!replaying)return;
+  replaying=false;
+  evPushed=resumeEvLen;   // events 0..resumeEvLen-1 are already in Firebase; push only what's new
+  liveRender();           // flush any freshly-rebuilt events + paint the current board
+}
 
 // host: broadcast new events to the shared feed
 function pushEvents(){
@@ -2057,13 +2100,15 @@ async function startGame(){
   for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
   const cfg=roundCfg(strategies);
   const seed=Math.floor(Math.random()*1e9);
-  await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,recipes:null});
+  await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,recipes:null,dlog:null});
 }
 function beginGame(cfg,seed){
   if(gameStarted)return;gameStarted=true;
   showGameView();
   game=new Game(cfg,seed,true);
   live=true;liveDone=false;evIdx=0;evPushed=0;appliedMeta=false;
+  // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
+  if(!replaying){dlog=[];dlogIdx=0;dlogN=0;}
   logLines=[];clearBubbles();logRenderedTo=-2;$("log").innerHTML="";
   drawBoard();buildPlayerRows();
   updateRecipeBanner();
@@ -2095,6 +2140,26 @@ function wireLobby(){
   $("btnStart").onclick=startGame;
   $("btnLeave").onclick=leaveGame;
 }
+// The host reloaded mid-game. Rebuild the crew, load the recorded decision log, then let
+// beginGame → runLiveNet fast-forward the deterministic engine through the log (replaying=true).
+// Rendering, delays, and broadcasts are suppressed until the log runs out (endReplay), at which
+// point control seamlessly returns to live play from the exact spot the reload interrupted.
+async function resumeHostGame(r){
+  numSeats=r.numSeats;
+  roster=[];for(let i=0;i<numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:BOT_STRATS[i%4]};
+  if(!r.cfg){ // never actually started (reloaded on the "playing" flag before cfg was written)
+    clearSession();showHome();return;
+  }
+  let draw={};try{draw=(await db.ref("rooms/"+room+"/dlog").get()).val()||{};}catch(e){}
+  dlog=Object.keys(draw).map(Number).sort((a,b)=>a-b).map(k=>decodeDec(draw[k]));
+  dlogIdx=0;dlogN=0;
+  let evval={};try{evval=(await db.ref("rooms/"+room+"/ev").get()).val()||{};}catch(e){}
+  resumeEvLen=evval?Object.keys(evval).length:0;
+  showGameView();
+  panel('<div class="apMsg">⚓ Reconnecting to your voyage…</div>');
+  replaying=true;
+  beginGame(r.cfg,r.seed);
+}
 function boot(){
   myId=getMyId();
   renderDecorativeBoard();
@@ -2115,9 +2180,10 @@ function boot(){
       if(!snap.exists()){clearSession();showHome();return;}
       const r=snap.val();
       isHost=(r.host===myId);
-      if(isHost&&r.status==="playing"){
-        alert("You were hosting a game that's in progress. The host's browser drives the game, so a reload can't resume it — starting a fresh lobby.");
-        clearSession();showHome();return;
+      if(isHost&&(r.status==="playing"||r.status==="ended")){
+        // The host's browser drives the game. On an accidental reload, silently replay the
+        // recorded decision log to rebuild the exact game state and keep driving it.
+        resumeHostGame(r);return;
       }
       watchRoom();
     }).catch(()=>{clearSession();showHome();});
