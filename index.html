@@ -291,6 +291,16 @@
   </div>
 </div>
 
+<!-- ===================== START-VOYAGE CONFIRM (modal) ===================== -->
+<div id="startConfirmModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:380px">
+    <div class="modalTitle">⛵ Set sail?</div>
+    <div class="modalByline">Is everyone at the table? Once the voyage starts, no one else can join — empty seats sail with bots.</div>
+    <button class="primary big" id="btnConfirmStart" type="button">⛵ Start the voyage!</button>
+    <button class="big" id="btnCancelStart" type="button">Wait, not yet</button>
+  </div>
+</div>
+
 <!-- ===================== GAME ===================== -->
 <div id="game" style="display:none">
   <div id="layout">
@@ -642,19 +652,19 @@ class Game{
     return false;
   }
   battle(att,def){
-    const c=this.cfg;
+    const c=this.cfg,need=2;
     if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}
     this.battles++;
     let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
     const rounds=[];
-    while(a<3&&d<3){
+    while(a<need&&d<need){
       let bs=false,ah=this.flip(att),dh=this.flip(def);
       if(free&&!ah){ah=this.flip(att);free=false;bs=true;}
       else if(paid&&!ah&&att.coins>=1){att.coins--;ah=this.flip(att);paid=false;bs=true;}
       rounds.push([ah?1:0,dh?1:0,bs?1:0]);
       if(ah&&dh){} else if(ah)a++; else if(dh)d++;
     }
-    const win=a>=3?att:def,lose=a>=3?def:att;
+    const win=a>=need?att:def,lose=a>=need?def:att;
     if(win===att)this.attWins++;
     let spoil;
     if(c.asym&&lose===att){
@@ -783,10 +793,10 @@ class Game{
     if(this.finishOrder.length===1){this.winner=this.finishOrder[0];this.ev({t:"end",winner:this.winner});return this.winner;}
     let champ=this.players[this.finishOrder[0]];
     for(const idx of this.finishOrder.slice(1)){
-      const ch=this.players[idx];let a=0,d=0;
-      while(a<5&&d<5){const ah=this.flip(champ),dh=this.flip(ch);
+      const ch=this.players[idx];let a=0,d=0;const bneed=3;
+      while(a<bneed&&d<bneed){const ah=this.flip(champ),dh=this.flip(ch);
         if(ah&&dh){}else if(ah)a++;else if(dh)d++;}
-      const w=a>=5?champ:ch;
+      const w=a>=bneed?champ:ch;
       this.ev({t:"bakeoff",a:champ.idx,b:ch.idx,winner:w.idx});
       champ=w;
     }
@@ -1300,6 +1310,7 @@ function showStats(){
 /* ================= LIVE (human) MODE — networked ================= */
 let live=false, liveDone=false, liveGen=0;
 let curSeat=0;                 // seat currently being prompted (host drives the engine)
+let inBattlePrompt=false;      // this client owns the active battle decision — watchBattle defers to it
 // --- host-refresh recovery: the host records every human decision, so after an accidental
 //     reload it can silently REPLAY the deterministic engine to rebuild the exact game
 //     state and keep driving, instead of the game dying with the host's tab. ---
@@ -1558,34 +1569,59 @@ function coinHTML(state,bs,win){
   if(state==="spin")return `<div class="coin spin">🪙${b}</div>`;
   return `<div class="coin wait">?</div>`;
 }
-function pipsHTML(n,col){
+function pipsHTML(n,col,total){
+  total=total||3;
   let s="";
-  for(let i=0;i<3;i++)s+=`<span class="pip${i<n?" on":""}"${i<n?` style="background:${col};border-color:${col}"`:""}></span>`;
+  for(let i=0;i<total;i++)s+=`<span class="pip${i<n?" on":""}"${i<n?` style="background:${col};border-color:${col}"`:""}></span>`;
   return `<div class="pips">${s}</div>`;
 }
+// The battle scoreboard: names, a static result circle per fighter, and pips. The coin never
+// spins here — every flip in the game (battles included) physically happens on the shared
+// flippenator; this just displays whatever it last landed on for each fighter.
 function renderBattle(o){
   if(replaying)return;          // silent during reload-replay, like liveRender
   const nm=i=>NAMES[i].replace("Capt. ",""),col=i=>HEXCOL[i];
-  const A=o.att,D=o.def;
+  const A=o.att,D=o.def,need=o.need||3,title=o.title||"⚔️ Broadside Battle";
   panel(`<div class="btl">
-    <div class="btl-hd"><span>⚔️ Broadside Battle</span><span class="rnd">Round ${o.round} · first to 3</span></div>
+    <div class="btl-hd"><span>${title}</span><span class="rnd">Round ${o.round} · first to ${need}</span></div>
     <div class="btl-body">
       <div class="btl-col${o.live==="a"?" live":""}">
         <div class="who" style="color:${col(A.idx)}">${nm(A.idx)}</div>
-        <div class="role">Attacker</div>
+        <div class="role">${o.roleA||"Attacker"}</div>
         ${coinHTML(o.atState,o.atBs,o.winCoin==="a")}
-        ${pipsHTML(o.a,col(A.idx))}
+        ${pipsHTML(o.a,col(A.idx),need)}
       </div>
       <div class="btl-mid">VS</div>
       <div class="btl-col${o.live==="d"?" live":""}">
         <div class="who" style="color:${col(D.idx)}">${nm(D.idx)}</div>
-        <div class="role">Defender</div>
+        <div class="role">${o.roleD||"Defender"}</div>
         ${coinHTML(o.dfState,o.dfBs,o.winCoin==="d")}
-        ${pipsHTML(o.d,col(D.idx))}
+        ${pipsHTML(o.d,col(D.idx),need)}
       </div>
     </div>
     ${battleFooter(o)}
-  </div>`);
+  </div>`,!!o.prompt);
+  // broadcast the read-only scoreboard (never buttons) so every connected client — not just
+  // whoever's deciding — sees the same battle unfold in real time
+  if(isHost&&db&&room&&!replaying)db.ref("rooms/"+room+"/battle").set(battleSnapshot(o));
+}
+function battleSnapshot(o){
+  const snap={};
+  for(const k of ["round","a","d","atState","dfState","atBs","dfBs","live","winCoin","result","waiting","need","title","roleA","roleD"])
+    if(o[k]!==undefined)snap[k]=o[k];
+  snap.attIdx=o.att.idx;snap.defIdx=o.def.idx;
+  return snap;
+}
+function renderBattleFromSnap(snap,extra){
+  if(!game||!game.players[snap.attIdx]||!game.players[snap.defIdx])return;
+  renderBattle(Object.assign({att:game.players[snap.attIdx],def:game.players[snap.defIdx]},snap,extra||{}));
+}
+function watchBattle(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/battle").on("value",s=>{
+    const v=s.val();
+    if(v&&!inBattlePrompt)renderBattleFromSnap(v);
+  });
 }
 // the footer beneath the coins: a decision (buttons), a "waiting…" note, or the round result
 function battleFooter(o){
@@ -1608,19 +1644,28 @@ function battleAsk(p,o,msg,opts,colors){
   }
   setActor(p.idx);
   const seat=p.idx;
+  const isFlip=opts.length===1&&!!opts[0].flip;
   netBroadcast(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
   let idxP;
   if(seatLocal(seat)){
     idxP=new Promise(res=>{
-      renderBattle(Object.assign({},o,{prompt:{msg,opts,colors}}));
-      $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{
-        b.onclick=()=>res(+b.dataset.i);
-      });
+      if(isFlip){
+        // the scoreboard just shows state — the flippenator is the actual control
+        renderBattle(o);
+        setNeedsAction(true);
+        setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});
+      }else{
+        renderBattle(Object.assign({},o,{prompt:{msg,opts,colors}}));
+        $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{
+          b.onclick=()=>res(+b.dataset.i);
+        });
+      }
     });
   }else{
     renderBattle(Object.assign({},o,{waiting:NAMES[seat].replace("Capt. ","")}));
     idxP=remotePrompt(seat,{kind:"ask",msg,labels:opts.map(x=>x.label),
-      colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>"")});
+      colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>""),
+      flip:isFlip,battle:battleSnapshot(o)});
   }
   return idxP.then(i=>{logDecision(i);return opts[i].value;});
 }
@@ -1678,9 +1723,9 @@ async function settleSideBets(bets,winSide){
   await flash("🔭 The Lookout's Call settles — "+parts.join(" · "),1600);
 }
 async function asyncBattle(att,def){
-  const c=game.cfg;
+  const c=game.cfg,need=2;
   showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
-  await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to 3 points wins…`,Math.max(900,stepDelay()));
+  await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to ${need} points wins…`,Math.max(900,stepDelay()));
   if(c.powder)att.coins-=c.powder;
   game.battles++;
   const bets=await collectSideBets(att,def);
@@ -1693,23 +1738,38 @@ async function asyncBattle(att,def){
   const spin=Math.max(260,Math.min(650,bd*0.7));  // coin tumble time
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
   const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
-  const base=o=>Object.assign({att,def,a,d,round},o);
-  // a human flip that never leaves the scoreboard: FLIP button in the box → coin spins
-  // in place → reveals HEADS/TAILS, coins on screen the whole way through.
+  const base=o=>Object.assign({att,def,a,d,round,need},o);
+  // Every flip — human or bot — physically happens on the shared flippenator: spin, land,
+  // then the result is copied into this fighter's result circle in the scoreboard.
   const hFlip=async(side,p,label,extra)=>{
     extra=extra||{};
     const key=side==="a"?"atState":"dfState";
     await battleAsk(p,base(Object.assign({live:side,[key]:"wait"},extra)),
-      label,[{label:"🌕 FLIP!",value:1}]);
-    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));
+      label,[{label:"🌕 FLIP!",value:1,flip:true}]);
+    broadcastFlip("spin");
     await sleep(spin);
     const h=game.flip(p);
+    broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
     await sleep(Math.min(hold*0.5,500));
+    broadcastFlip("wait");
     return h;
   };
-  while(a<3&&d<3){
+  // a bot's flip: same flippenator spin, just no button to wait on
+  const bFlip=async(side,p,extra)=>{
+    extra=extra||{};
+    const key=side==="a"?"atState":"dfState";
+    renderBattle(base(Object.assign({live:side,[key]:"wait"},extra)));
+    broadcastFlip("spin");
+    await sleep(spin);
+    const h=game.flip(p);
+    broadcastFlip(h?"H":"T");
+    await sleep(300);
+    broadcastFlip("wait");
+    return h;
+  };
+  while(a<need&&d<need){
     round++;
     let bs=false,ah,dh;
     // fresh round — both coins face-down, attacker on deck
@@ -1719,9 +1779,7 @@ async function asyncBattle(att,def){
     if(hA){
       ah=await hFlip("a",att,`⚔️ ${nm(att.idx)} (attacker) — fire!`,{dfState:"wait"});
     }else{
-      renderBattle(base({atState:"spin",dfState:"wait",live:"a"}));
-      await sleep(spin);
-      ah=game.flip(att);
+      ah=await bFlip("a",att,{dfState:"wait"});
     }
     renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
     // ---- broadside reflip on a tails ----
@@ -1733,11 +1791,7 @@ async function asyncBattle(att,def){
       if(use){
         if(paid)att.coins--;
         if(hA){ah=await hFlip("a",att,"🔥 Broadside — reflip!",{atBs:true,dfState:"wait"});}
-        else{
-          renderBattle(base({atState:"spin",atBs:true,dfState:"wait",live:"a",result:"🔥 Broadside — reflip!"}));
-          await sleep(spin);
-          ah=game.flip(att);
-        }
+        else{ah=await bFlip("a",att,{atBs:true,dfState:"wait",result:"🔥 Broadside — reflip!"});}
         bs=true;free=false;paid=false;
         renderBattle(base({atState:ah?"H":"T",atBs:true,dfState:"wait",live:"a"}));
       }else if(!hA){free=false;paid=false;}
@@ -1751,9 +1805,7 @@ async function asyncBattle(att,def){
     if(hD){
       dh=await hFlip("d",def,`🛡️ ${nm(def.idx)} (defender) — answer!`,{atState:ah?"H":"T",atBs:bs});
     }else{
-      renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:"spin",live:"d"}));
-      await sleep(spin);
-      dh=game.flip(def);
+      dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
     // ---- resolve the round ----
     rounds.push([ah?1:0,dh?1:0,bs?1:0]);
@@ -1766,7 +1818,7 @@ async function asyncBattle(att,def){
     await sleep(hold);
   }
   panel("");
-  const win=a>=3?att:def,lose=a>=3?def:att;
+  const win=a>=need?att:def,lose=a>=need?def:att;
   if(win===att)game.attWins++;
   let spoil;
   if(c.asym&&lose===att){
@@ -1796,7 +1848,7 @@ async function asyncBattle(att,def){
   }
   game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
   liveRender();
-  await settleSideBets(bets,a>=3?"a":"d");
+  await settleSideBets(bets,a>=need?"a":"d");
   if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
     const port=game.adjPort(pl);
     if(port&&!pl.firstFlip.has(port)){
@@ -1991,16 +2043,50 @@ async function botTurn(p){
     await botBeat();
   }
 }
+// The bakeoff gets the same scoreboard + flippenator treatment as a regular battle, just
+// without attacker/defender roles, broadsides, or spoils — just two finalists racing to `need`.
 async function asyncBakeoff(A,B){
-  let a=0,d=0;
-  while(a<5&&d<5){
-    const ah=A.strategy==="human"?await humanFlip(A,`🧁 Bakeoff ${a}–${d}! ${NAMES[A.idx]}, flip!`)
-      :(await sleep(280),game.flip(A));
-    const dh=B.strategy==="human"?await humanFlip(B,`🧁 ${NAMES[B.idx]}, flip!`)
-      :(await sleep(280),game.flip(B));
-    if(ah&&dh){}else if(ah)a++;else if(dh)d++;
+  const need=3;
+  let a=0,d=0,round=0;
+  const nm=i=>NAMES[i].replace("Capt. ","");
+  const bd=(typeof stepDelay==="function")?stepDelay():500;
+  const spin=Math.max(260,Math.min(650,bd*0.7));
+  const hold=Math.max(500,Math.min(1500,bd*1.1));
+  const base=o=>Object.assign({att:A,def:B,a,d,round,need,title:"🧁 The Bakeoff!",roleA:"Finalist",roleD:"Finalist"},o);
+  const flipSide=async(side,p)=>{
+    const key=side==="a"?"atState":"dfState";
+    if(p.strategy==="human"){
+      await battleAsk(p,base({live:side,[key]:"wait"}),
+        `🧁 ${nm(p.idx)} — flip!`,[{label:"🌕 FLIP!",value:1,flip:true}]);
+    }else{
+      renderBattle(base({live:side,[key]:"wait"}));
+    }
+    broadcastFlip("spin");
+    await sleep(spin);
+    const h=game.flip(p);
+    broadcastFlip(h?"H":"T");
+    netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
+    renderBattle(base({live:side,[key]:h?"H":"T"}));
+    await sleep(Math.min(hold*0.5,500));
+    broadcastFlip("wait");
+    return h;
+  };
+  while(a<need&&d<need){
+    round++;
+    renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`🧁 Bakeoff — round ${round}!`}));
+    await sleep(300);
+    const ah=await flipSide("a",A);
+    const dh=await flipSide("d",B);
+    let scorer=null,rmsg;
+    if(ah&&dh){rmsg=`<span class="cancel">Both HEADS — no score this round.</span>`;}
+    else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(A.idx)} scores! +1</span>`;}
+    else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(B.idx)} scores! +1</span>`;}
+    else{rmsg=`<span class="cancel">Both TAILS — no score this round.</span>`;}
+    renderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
+    await sleep(hold);
   }
-  const w=a>=5?A:B;
+  panel("");
+  const w=a>=need?A:B;
   game.ev({t:"bakeoff",a:A.idx,b:B.idx,winner:w.idx});liveRender();
   return w;
 }
@@ -2188,8 +2274,25 @@ function watchEvents(){
 function watchPrompt(){
   db.ref("rooms/"+room+"/prompt").on("value",snap=>{
     const p=snap.val();
-    if(!p||p.seat!==mySeat){panel("");setFlipActive(null);return;}
+    if(!p||p.seat!==mySeat){panel("");setFlipActive(null);inBattlePrompt=false;return;}
     if(p.kind==="ask"){
+      if(p.battle){
+        // this seat owns the live battle decision — render the same scoreboard everyone else
+        // sees, with the control (flip button or choice buttons) layered on top
+        inBattlePrompt=true;
+        if(p.flip){
+          renderBattleFromSnap(p.battle);
+          setNeedsAction(true);
+          setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,0);});
+        }else{
+          setFlipActive(null);
+          const cols=p.colors||[];
+          renderBattleFromSnap(p.battle,{prompt:{msg:p.msg,opts:(p.labels||[]).map(l=>({label:l})),colors:cols}});
+          $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
+        }
+        return;
+      }
+      inBattlePrompt=false;
       if(p.flip){
         showNarration(p.msg);
         setNeedsAction(true);
@@ -2203,6 +2306,7 @@ function watchPrompt(){
         (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}"${apBtnStyle(cols[i])}>${l}</button>`).join("")+`</div>`,true);
       $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
+      inBattlePrompt=false;
       setFlipActive(null);
       remotePickHighlights(p.cells||[],p.id);
     }
@@ -2376,7 +2480,7 @@ function beginGame(cfg,seed){
   updateRecipeBanner();
   watchRecipes();
   if(isHost){runLiveNet();}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();}
 }
 function updateRecipeBanner(){
   // recipe is now shown as semi-transparent chips in your own captain row (see render());
@@ -2399,10 +2503,9 @@ function leaveGame(){clearSession();location.reload();}
 function wireLobby(){
   $("btnCreate").onclick=()=>{if(!($("pname").value||"").trim()){alert("Enter your captain name first.");return;}createRoom();};
   $("btnJoin").onclick=()=>{if(!($("pname").value||"").trim()){alert("Enter your captain name first.");return;}joinRoom();};
-  $("btnStart").onclick=()=>{
-    if(!confirm("Is everyone at the table? Once the voyage starts, no one else can join — empty seats sail with bots."))return;
-    startGame();
-  };
+  $("btnStart").onclick=()=>{$("startConfirmModal").style.display="flex";};
+  $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
+  $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
   $("btnLeave").onclick=leaveGame;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
   $("btnCloseLog").onclick=()=>{$("logModal").style.display="none";};
