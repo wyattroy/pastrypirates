@@ -178,10 +178,9 @@ class Game:
             if nxt == self.home:
                 self.ev(t="moored", p=p.idx)
                 return  # safe harbor: Barbados is an island now
-            if nxt in self.dock_cells and any(
-                    q.pos == nxt and q is not p and not q.finished for q in self.players):
+            if any(q.pos == nxt and q is not p and not q.finished for q in self.players):
                 self.ev(t="moored", p=p.idx)
-                return  # full berth blocks the wind
+                return  # another ship holds that square — wind stops short
             if nxt in self.islands:
                 if self.moored(p):
                     self.ev(t="moored", p=p.idx)
@@ -216,9 +215,8 @@ class Game:
             def passable(o):
                 if self.blocked(o) or o in self.islands or o == self.home:
                     return False
-                if o in self.dock_cells and any(
-                        q.pos == o and q is not p and not q.finished for q in self.players):
-                    return False  # occupied berth
+                if any(q.pos == o and q is not p and not q.finished for q in self.players):
+                    return False  # another ship holds that square — can't end a move on it
                 return True
             opts = [o for o in opts if passable(o)]
             if not opts:

@@ -411,8 +411,8 @@ class Game{
         else{p.coins-=Math.floor(p.coins/2);this.ev({t:"aground",p:p.idx});}
         return;
       }
-      if(this.dockCells.has(nx[0]+","+nx[1])&&this.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
-        this.ev({t:"moored",p:p.idx});return; // full berth blocks the wind
+      if(this.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
+        this.ev({t:"moored",p:p.idx});return; // another ship holds that square — wind stops short
       }
       p.pos=nx;
       if(this.onRim(nx)){this.tradewind(p);return;} // swept into the trade winds
@@ -445,7 +445,11 @@ class Game{
     const path=[];let c=best;
     while(key(c)!==start){path.push(c);c=prev[key(c)];}
     path.reverse();
-    p.pos=[...path[Math.min(steps,path.length)-1]];
+    // may sail PAST other ships, but must not END on one: back off to the last free square in range
+    const occ=o=>this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
+    let idx=Math.min(steps,path.length)-1;
+    while(idx>=0&&occ(path[idx]))idx--;
+    if(idx>=0)p.pos=[...path[idx]];
   }
   adjPort(p){
     if(this.cfg.singleDock){
@@ -1252,8 +1256,8 @@ async function humanWind(p){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     if(game.blocked(nx))break;
     if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});liveRender();return;}
-    if(game.dockCells.has(nx[0]+","+nx[1])&&game.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
-      game.ev({t:"moored",p:p.idx});liveRender();return;
+    if(game.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
+      game.ev({t:"moored",p:p.idx});liveRender();return; // another ship holds that square — wind stops short
     }
     if(game.islands[nx]!==undefined){
       if(game.moored(p)){game.ev({t:"moored",p:p.idx});liveRender();return;}
