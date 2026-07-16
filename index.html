@@ -44,7 +44,7 @@
   .player-row .pname { font-weight: bold; width: 118px; }
   .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
   .chips { display: flex; gap: 3px; flex-wrap: wrap; }
-  .chip { font-size: 15px; padding: 0 3px; border-radius: 5px; background: #f2f2f2; border: 1px solid #ddd; opacity: .35; }
+  .chip { font-size: 22px; padding: 1px 5px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .8; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f5a623; }
   .crown { font-size: 15px; }
@@ -975,20 +975,21 @@ function drawBoard(){
       const d=roundedPathFromLoop(pxLoop,cell*.32);
       el("path",{d,fill:"#7bc47f",stroke:"#3d8b40","stroke-width":2.5,"stroke-linejoin":"round"},svg);
     }
-    // emoji + crate badge on the cell nearest the island's center of mass
-    const mx=cells.reduce((s,c)=>s+c[0],0)/cells.length, my=cells.reduce((s,c)=>s+c[1],0)/cells.length;
-    let best=cells[0],bd=1e9;
-    for(const c of cells){const dd=(c[0]-mx)**2+(c[1]-my)**2;if(dd<bd){bd=dd;best=c;}}
-    const cx=(best[0]+.5)*cell,cy=(best[1]+.5)*cell;
-    const t=el("text",{x:cx,y:cy+cell*.15,"text-anchor":"middle","font-size":cell*.45},svg);
-    t.textContent=ING_EMOJI[ing];
-    // crate-count badge: a solid disc so the number never runs into the island outline
+    // one big icon per remaining crate, one per island square — a taken crate turns fully
+    // grey in place rather than shrinking to a count badge, so the whole island reads at a glance
     if(game.cfg.crates<1e9){
-      const bx=cx+cell*.36,by=cy-cell*.36;
-      el("circle",{cx:bx,cy:by,r:cell*.23,fill:"#0f7a54",stroke:"#fff","stroke-width":2},svg);
-      const b=el("text",{x:bx,y:by+cell*.14,"text-anchor":"middle","font-size":cell*.36,
-        fill:"#fff","font-weight":"bold",id:"tok_"+ing},svg);
-      b.textContent=game.tokens[ing];
+      cells.slice(0,game.cfg.crates).forEach((c,idx)=>{
+        const scx=(c[0]+.5)*cell,scy=(c[1]+.5)*cell;
+        el("text",{x:scx,y:scy+cell*.27,"text-anchor":"middle","font-size":cell*.8,
+          id:`crate_${ing}_${idx}`},svg).textContent=ING_EMOJI[ing];
+      });
+    }else{
+      // unlimited-crate config (not used by the live game, kept for the lab): one plain icon
+      const mx=cells.reduce((s,c)=>s+c[0],0)/cells.length, my=cells.reduce((s,c)=>s+c[1],0)/cells.length;
+      let best=cells[0],bd=1e9;
+      for(const c of cells){const dd=(c[0]-mx)**2+(c[1]-my)**2;if(dd<bd){bd=dd;best=c;}}
+      const cx=(best[0]+.5)*cell,cy=(best[1]+.5)*cell;
+      el("text",{x:cx,y:cy+cell*.15,"text-anchor":"middle","font-size":cell*.45},svg).textContent=ING_EMOJI[ing];
     }
     if(game.cfg.singleDock){
       const d=game.dockOf[ing];
@@ -1112,8 +1113,9 @@ function render(){
       const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ING_EMOJI[x2]}</span>`);
       $("chips"+i).innerHTML=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else{
-      // other captains' recipe maps are private — only the crates visibly aboard their ship are shown
-      const held=hold.map(x2=>`<span class="chip have" title="${iname(x2)}">${ING_EMOJI[x2]}</span>`);
+      // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
+      // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
+      const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ING_EMOJI[x2]}</span>`);
       $("chips"+i).innerHTML=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
     const lastEv=game.events[game.events.length-1];
@@ -1134,8 +1136,15 @@ function render(){
       activeRing.setAttribute("opacity",1);
     }else activeRing.setAttribute("opacity",0);
   }
-  for(const ing of game.ings){const b=document.getElementById("tok_"+ing);
-    if(b&&game.cfg.crates<1e9)b.textContent=e.tokens[ing];}
+  if(game.cfg.crates<1e9)for(const ing of game.ings){
+    const remaining=e.tokens[ing];
+    for(let idx=0;idx<game.cfg.crates;idx++){
+      const ic=document.getElementById(`crate_${ing}_${idx}`);if(!ic)continue;
+      const taken=idx>=remaining;
+      ic.style.opacity=taken?.3:1;
+      ic.style.filter=taken?"grayscale(1)":"";
+    }
+  }
   if(spinNeedle&&e.wind){
     spinNeedle.style.transform=`rotate(${({N:0,E:90,S:180,W:270})[e.wind]}deg)`;
     const storming=!!e.storm;
