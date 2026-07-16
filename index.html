@@ -21,7 +21,7 @@
   #layout { display: flex; gap: 14px; padding: 14px; align-items: flex-start; flex-wrap: wrap; }
   #left { flex: 0 0 auto; }
   #right { flex: 1 1 340px; min-width: 320px; max-width: 560px; }
-  #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); border: 2px solid #9edbe5; border-radius: 10px; display: block; }
+  #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
   details.panel summary { cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;
@@ -105,7 +105,6 @@
   #batchPanel th { border-bottom: 1.5px solid var(--line); }
   .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; background: var(--lemon); border: 1.5px solid var(--orange); border-radius: 8px; margin-bottom: 8px; }
   .windbox { font-size: 14px; display: flex; align-items: center; gap: 6px; }
-  #windArrow { display: inline-block; transition: transform .4s; font-size: 20px; }
   .muted { opacity: .6; font-size: 12px; }
   .rules { font-size: 13.5px; line-height: 1.55; }
   .rules h4 { margin: 12px 0 4px; color: var(--teal); font-size: 14px; }
@@ -156,9 +155,21 @@
   .seat .dot { width:16px; height:16px; border-radius:50%; border:1.5px solid rgba(0,0,0,.3); flex:0 0 auto; }
   .seat .nm { flex:1; font-weight:600; }
   .seat.me { background:var(--lemon); border-color:var(--accent); }
-  #narration { min-height:22px; margin:8px 0; padding:8px 12px; background:#eafbf4; border:1.5px solid var(--mint);
-    border-radius:9px; font-size:14px; font-weight:600; color:var(--ink); }
   .who { font-size:11px; font-weight:normal; opacity:.7; }
+  /* ---- recipe draft cards (shopping-list style) ---- */
+  .apBtns.recipes { gap: 12px; }
+  .recipeCard { flex: 1 1 200px; min-width: 190px; text-align: left; padding: 0; overflow: hidden;
+    background: #fff; border: 2px solid var(--teal); border-radius: 12px; }
+  .recipeCard:hover { background: #fff; box-shadow: 0 4px 12px rgba(41,163,178,.22); }
+  .recipeTitle { background: linear-gradient(160deg, var(--mint), #1fb37f); color: #fff; font-weight: 800;
+    font-size: 14px; padding: 9px 12px; letter-spacing: .3px; display:flex; align-items:center; gap:6px; }
+  .recipeList { list-style: none; margin: 0; padding: 8px 12px 10px; }
+  .recipeList li { display: flex; align-items: center; gap: 9px; padding: 4px 0; font-size: 14px;
+    font-weight: 600; border-bottom: 1px dashed var(--line); }
+  .recipeList li:last-child { border-bottom: none; }
+  .recipeList .ri { font-size: 19px; width: 24px; text-align: center; flex: 0 0 auto; }
+  .recipeList .rn { flex: 1; }
+  .recipeList .rc { font-size: 13px; opacity: .45; }
 </style>
 </head>
 <body>
@@ -172,7 +183,7 @@
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
     <div class="modalTitle">🏴‍☠️ Pastry Pirates <span class="modalTitleSub">on the Sugar Seas</span></div>
-    <div class="modalByline">Set sail across a pixel archipelago to gather rare ingredients, out-bargain and out-battle rival captains, and race home to Barbados to be crowned Best Baker in the Caribbean.</div>
+    <div class="modalByline">You left London's fog for the sunny shores of Tortuga to start a bakery -- but you have no ingredients! Out here, it's plunder or be plundered: so sail the Sugar Seas to gather rare ingredients from the archipelago, out-bargain and out-battle rival captains, and race home to be crowned Best Baker in the Caribbean.</div>
 
     <div id="stepChoose" class="modalStep">
       <label class="nameLabel">Your captain name
@@ -241,15 +252,13 @@
       <div id="boardwrap">
         <svg id="board" width="640" height="640"></svg>
       </div>
-      <div style="margin-top:8px" class="windbox">wind <span id="windArrow">➤</span><b id="windLabel">–</b>
-        <span id="roundLabel" class="muted" style="margin-left:10px"></span></div>
+      <div style="margin-top:8px" class="windbox"><span id="roundLabel" class="muted"></span></div>
     </div>
     <div id="right">
       <div class="panel">
         <h3>Captains</h3>
         <div id="players"></div>
       </div>
-      <div id="narration" style="display:none"></div>
       <div id="actionPanel" style="display:none"></div>
       <div class="panel">
         <h3>Captain's log</h3>
@@ -286,8 +295,13 @@
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 
 /* ================= Engine (port of cocoa_pirates_sim.py) ================= */
-const ING_ALL=["wheat","eggs","sugar","cocoa","dairy","vanilla","spice","honey","salt"];
+// first `nIslands` (7) of these are the ingredients in play — kept in the requested order
+const ING_ALL=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla","salt","honey"];
 const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️",honey:"🍯",salt:"🧂"};
+const ING_NAME={wheat:"Toasty Wheat",dairy:"Fresh Milk",sugar:"Crystal Sugar",eggs:"Speckled Eggs",
+  cocoa:"Cacao Pods",salt:"Sea Salt",vanilla:"Vanilla Beans",spice:"Cinnamon Spice",honey:"Golden Honey"};
+const iname=x=>ING_NAME[x]||x;
+const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
 const NAMES=["Capt. Crumble","Capt. Biscotti","Capt. Gingersnap","Capt. Shortbread"];
@@ -578,8 +592,8 @@ class Game{
     }else{
       const wanted=lose.ing.filter(i=>this.needs(win).includes(i));
       if(lose.coins>=5&&!wanted.length){lose.coins-=5;win.coins+=5;spoil="5 coins";}
-      else if(wanted.length){const i=wanted[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ING_EMOJI[i]+" "+i;}
-      else if(lose.ing.length){const i=lose.ing[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ING_EMOJI[i]+" "+i;}
+      else if(wanted.length){const i=wanted[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ilabel(i);}
+      else if(lose.ing.length){const i=lose.ing[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ilabel(i);}
       else{const take=Math.min(5,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+" coins (all they had)";}
     }
     if(win===att){ // only a winning attacker takes the loser's square; a repelled attack moves no one
@@ -723,6 +737,24 @@ function roundCfg(strategies){
     sardine:true,roundBoard:true,strategies};
 }
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+// ---- recipe titles: a deterministic pastry name evoking a recipe's ingredients ----
+const ING_ADJ={wheat:"Toasted",dairy:"Creamy",sugar:"Sugared",eggs:"Fluffy",
+  cocoa:"Chocolate",salt:"Salted",vanilla:"Vanilla",spice:"Spiced",honey:"Honeyed"};
+const PASTRY_FORMS=["Gateau","Tart","Loaf","Brioche","Pudding","Galette","Torte","Scone","Bun","Crumble"];
+// flavours that read best as a title's lead adjective, most characterful first
+const FLAVOR_RANK=["cocoa","vanilla","spice","honey","salt","sugar","dairy","eggs","wheat"];
+function recipeTitle(recipe){
+  const sorted=recipe.slice().sort();
+  let h=0; for(const s of sorted.join("|"))h=(h*31+s.charCodeAt(0))>>>0;
+  const lead=FLAVOR_RANK.filter(i=>recipe.includes(i)).slice(0,2).map(i=>ING_ADJ[i]);
+  const form=PASTRY_FORMS[h%PASTRY_FORMS.length];
+  return `Captain's ${lead.join(" ")} ${form}`.replace(/\s+/g," ").trim();
+}
+function recipeCardHTML(recipe){
+  const items=recipe.map(i=>`<li><span class="ri">${ING_EMOJI[i]}</span><span class="rn">${iname(i)}</span></li>`).join("");
+  return `<div class="recipeTitle">📜 ${recipeTitle(recipe)}</div>`+
+    `<ul class="recipeList">${items}</ul>`;
+}
 // Captain rows in the sidebar. `roster` holds the seat claims (name/bot/strat) from Firebase.
 function buildPlayerRows(){
   let html="";
@@ -896,6 +928,11 @@ function drawBoard(){
     t.textContent="⛵";
     shipEls.push(g);
   });
+  // seat the ships on their Barbados docks right away, before the first event renders
+  game.players.forEach((p,i)=>{
+    const [x,y]=shipXY(p.pos,i,game.players);
+    shipEls[i].style.transform=`translate(${x}px,${y}px)`;
+  });
 }
 function shipXY(pos,i,state){
   // offset ships sharing a cell
@@ -908,7 +945,7 @@ function shipXY(pos,i,state){
 /* ---------- event text ---------- */
 function pn(i){return `<b style="color:${HEXCOL[i]}">${NAMES[i].replace("Capt. ","")}</b>`;}
 function fl(h){return h?"⚪H":"⚫T";}
-function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+x;}
+function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+iname(x);}
 function describe(e){
   switch(e.t){
     case "newround":return {cls:"roundhdr",txt:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]}${e.storm?" ⛈️ STORM!":""} —`};
@@ -921,13 +958,15 @@ function describe(e){
     case "parley":return {cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`};
     case "aground":return {txt:`${pn(e.p)} flips ⚫T — runs aground! Loses half their coins ⚠️`};
     case "dock":{
-      const g={ing:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚪H, gets the crate!`,
-        empty:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — ⚪H but the island is empty; takes 3🌕`,
-        bought:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, buys the crate for 3🌕`,
-        coins:`docks at ${ING_EMOJI[e.ing]} ${e.ing} — flips ⚫T, takes 3🌕`};
+      const g={ing:`docks at ${ilabel(e.ing)} — flips ⚪H, gets the crate!`,
+        empty:`docks at ${ilabel(e.ing)} — ⚪H but the island is empty; takes 3🌕`,
+        bought:`docks at ${ilabel(e.ing)} — flips ⚫T, buys the crate for 3🌕`,
+        coins:`docks at ${ilabel(e.ing)} — flips ⚫T, takes 3🌕`};
       return {txt:`${pn(e.p)} ${g[e.got]}`};}
     case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
-    case "sidebet":return {cls:"trade",txt:`💰 ${pn(e.p)} ${e.won?`wins their side bet (+${e.amt}🌕)`:`loses their side bet (−${e.amt}🌕)`}`};
+    case "sidebet":
+      if(e.won)return {cls:"trade",txt:`🔭 ${pn(e.p)} called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`};
+      return {cls:"trade",txt:e.amt?`💰 ${pn(e.p)} backed the wrong ship — loses ${e.amt}🌕`:`🔭 ${pn(e.p)} missed the call — no bounty`};
     case "battle":{
       const aP=e.rounds.filter(r=>r[0]&&!r[1]).length,dP=e.rounds.filter(r=>r[1]&&!r[0]).length;
       const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
@@ -963,13 +1002,13 @@ function render(){
         const k=hold.indexOf(ing);
         const have=k>=0;
         if(have)hold.splice(k,1);
-        return `<span class="chip ${have?"have":""}" title="${ing}">${ING_EMOJI[ing]}</span>`;
+        return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ING_EMOJI[ing]}</span>`;
       });
-      const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${x2}">${ING_EMOJI[x2]}</span>`);
+      const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ING_EMOJI[x2]}</span>`);
       $("chips"+i).innerHTML=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else{
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown
-      const held=hold.map(x2=>`<span class="chip have" title="${x2}">${ING_EMOJI[x2]}</span>`);
+      const held=hold.map(x2=>`<span class="chip have" title="${iname(x2)}">${ING_EMOJI[x2]}</span>`);
       $("chips"+i).innerHTML=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
     const lastEv=game.events[game.events.length-1];
@@ -992,9 +1031,6 @@ function render(){
   }
   for(const ing of game.ings){const b=document.getElementById("tok_"+ing);
     if(b&&game.cfg.crates<1e9)b.textContent=e.tokens[ing];}
-  $("windLabel").textContent=e.wind?DIRNAME[e.wind]+(e.storm?" ⛈️":""):"–";
-  const rot={N:-90,S:90,E:0,W:180}[e.wind]??0;
-  $("windArrow").style.transform=`rotate(${rot}deg)`;
   if(spinNeedle&&e.wind){
     spinNeedle.style.transform=`rotate(${({N:0,E:90,S:180,W:270})[e.wind]}deg)`;
     const storming=!!e.storm;
@@ -1152,8 +1188,8 @@ function liveRender(){
 }
 function panel(html){$("actionPanel").innerHTML=html;$("actionPanel").style.display=html?"":"none";}
 
-// ---- narration banner (shown to everyone) ----
-function showNarration(html){const n=$("narration");if(!n)return;n.innerHTML=html||"";n.style.display=html?"":"none";}
+// ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
+function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
 function netNarrate(html){showNarration(html);if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
 
 // ---- ask(): route the decision to whichever browser owns this seat ----
@@ -1163,12 +1199,13 @@ function ask(msg,opts,colors){
   netNarrate(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
   if(seatLocal(seat))return localAsk(msg,opts,colors);
   return remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
-    colors:colors?colors.map(c=>c||""):null}).then(i=>opts[i].value);
+    colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||"")}).then(i=>opts[i].value);
 }
 function localAsk(msg,opts,colors){
   return new Promise(res=>{
-    panel(`<div class="apMsg">${msg}</div><div class="apBtns">`+
-      opts.map((o,i)=>`<button class="apBtn" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${o.label}</button>`).join("")+`</div>`);
+    const grid=opts.some(o=>o.cls)?" recipes":"";
+    panel(`<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
+      opts.map((o,i)=>`<button class="apBtn ${o.cls||""}" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${o.label}</button>`).join("")+`</div>`);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       b.onclick=()=>{panel("");res(opts[+b.dataset.i].value);};
     });
@@ -1273,7 +1310,7 @@ async function humanWind(p){
 async function humanDock(p,port){
   setActor(p.idx);
   const ing=port;
-  const h=await humanFlip(p,`Docking at ${ING_EMOJI[ing]} ${ing} — flip!`);
+  const h=await humanFlip(p,`Docking at ${ilabel(ing)} — flip!`);
   if(h){
     if(game.tokens[ing]>0){game.tokens[ing]--;p.ing.push(ing);game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
     else{p.coins+=3;game.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
@@ -1281,7 +1318,7 @@ async function humanDock(p,port){
     let got="coins";
     if(game.cfg.dockBuy&&p.coins>=3&&game.tokens[ing]>0){
       const buy=await ask("Tails! Take 3🌕 — or buy the crate anyway for 3🌕?",[
-        {label:`Buy ${ING_EMOJI[ing]} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
+        {label:`Buy ${ilabel(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
       if(buy){p.coins-=3;game.tokens[ing]--;p.ing.push(ing);got="bought";}
       else p.coins+=3;
     }else p.coins+=3;
@@ -1326,28 +1363,38 @@ function renderBattle(o){
     <div class="btl-result">${o.result||"&nbsp;"}</div>
   </div>`);
 }
+// The Lookout's Call: every spectator MUST call a winner from the crow's nest —
+// it's free, and a correct call earns a Spotter's Bounty (+1🌕) from the ship's
+// bank. Players MAY back their call with their own coin for a bigger prize.
 async function collectSideBets(att,def){
   const bets=[],ns=i=>NAMES[i].replace("Capt. ","");
   const spectators=game.players.filter(p=>p!==att&&p!==def&&!p.done);
   for(const s of spectators){
-    if(s.coins<1)continue;
-    let amounts=[1,2,3,5].filter(n=>s.coins>=n);
-    if(s.coins>5)amounts.push(s.coins); // all-in
-    if(!amounts.length)continue;
     if(s.strategy==="human"){
       setActor(s.idx);
-      const who=await ask(`💰 ${NAMES[s.idx]} — place a side bet on this battle? Back the winner and the bank doubles your stake; back the loser and you forfeit it.`,
-        [{label:`Bet on ${ns(att.idx)}`,value:"a"},{label:`Bet on ${ns(def.idx)}`,value:"d"},{label:"Sit it out",value:null}],
-        [HEXCOL[att.idx],HEXCOL[def.idx],null]);
-      if(!who)continue;
-      setActor(s.idx);
-      const amt=await ask(`How much does ${NAMES[s.idx]} wager on ${who==="a"?ns(att.idx):ns(def.idx)}? (purse: ${s.coins}🌕)`,
-        amounts.map(n=>({label:n+"🌕"+(n===s.coins?" — all in!":""),value:n})).concat([{label:"Cancel bet",value:0}]));
-      if(!amt)continue;
+      // The call itself is free and mandatory — no coin of your own at risk.
+      const who=await ask(`🔭 ${NAMES[s.idx]} — call it from the crow's nest! Who takes this bout? A sharp call earns a Spotter's Bounty (+1🌕) from the ship's bank — free o' charge, none o' yer own coin at risk.`,
+        [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
+        [HEXCOL[att.idx],HEXCOL[def.idx]]);
+      let amt=0;
+      let amounts=[1,2,3,5].filter(n=>s.coins>=n);
+      if(s.coins>5)amounts.push(s.coins); // all-in
+      if(amounts.length){
+        setActor(s.idx);
+        // Optional: sweeten the call with real coin.
+        amt=await ask(`💰 Back yer call on ${who==="a"?ns(att.idx):ns(def.idx)} with coin? Win and ye keep the Bounty AND double yer stake; lose and it sinks to the deep. (purse: ${s.coins}🌕)`,
+          [{label:"Just the free call",value:0}].concat(
+            amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n}))));
+      }
       bets.push({idx:s.idx,on:who,amt});
-      await flash(`💰 ${pn(s.idx)} bets ${amt}🌕 on ${pn(who==="a"?att.idx:def.idx)}!`,1100);
-    }else if(s.coins>=4&&Math.random()<.5){
-      bets.push({idx:s.idx,on:(att.coins>=def.coins?"a":"d"),amt:Math.min(2,s.coins)});
+      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} and backs it with ${amt}🌕!`,1100);
+      else await flash(`🔭 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} from the crow's nest.`,900);
+    }else{
+      // Bots always call (favoring the fuller purse), and sometimes back it with coin.
+      const fav=att.coins>=def.coins?"a":"d";
+      const on=Math.random()<.72?fav:(fav==="a"?"d":"a");
+      const amt=(s.coins>=4&&Math.random()<.5)?Math.min(2,s.coins):0;
+      bets.push({idx:s.idx,on,amt});
     }
   }
   return bets;
@@ -1357,12 +1404,17 @@ async function settleSideBets(bets,winSide){
   const parts=[];
   for(const bet of bets){
     const p=game.players[bet.idx],won=bet.on===winSide;
-    if(won)p.coins+=bet.amt;else p.coins-=bet.amt;
-    game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on});
-    parts.push(`${pn(bet.idx)} ${won?`+${bet.amt}🌕`:`−${bet.amt}🌕`}`);
+    // Correct call: Spotter's Bounty (+1) plus doubled stake. Wrong: only a
+    // wagered stake sinks — a free call costs nothing.
+    const delta=won?1+bet.amt:-bet.amt;
+    p.coins+=delta;
+    game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
+    if(delta>0)parts.push(`${pn(bet.idx)} +${delta}🌕`);
+    else if(delta<0)parts.push(`${pn(bet.idx)} −${bet.amt}🌕`);
+    else parts.push(`${pn(bet.idx)} no bounty`);
   }
   liveRender();
-  await flash("💰 Side bets settle — "+parts.join(" · "),1600);
+  await flash("🔭 The Lookout's Call settles — "+parts.join(" · "),1600);
 }
 async function asyncBattle(att,def){
   const c=game.cfg;
@@ -1456,9 +1508,9 @@ async function asyncBattle(att,def){
       let pick;
       const uniq=[...new Set(lose.ing)];
       if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
-        pick=await ask(`${NAMES[win.idx]}, choose your plunder!`,uniq.map(i=>({label:ING_EMOJI[i]+" "+i,value:i})));}
+        pick=await ask(`${NAMES[win.idx]}, choose your plunder!`,uniq.map(i=>({label:ilabel(i),value:i})));}
       else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
-      lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ING_EMOJI[pick]+" "+pick;
+      lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabel(pick);
     }
   }
   if(win===att){ // only a winning attacker takes the loser's square; a repelled attack moves no one
@@ -1486,9 +1538,9 @@ async function humanTrade(p){
       opps.map(o=>HEXCOL[o.idx]).concat([null]));
   if(!q)return false;
   const want=await ask(`What do you want from ${NAMES[q.idx]}?`,
-    [...new Set(q.ing)].map(i=>({label:ING_EMOJI[i]+" "+i,value:i})).concat([{label:"Cancel",value:null}]));
+    [...new Set(q.ing)].map(i=>({label:ilabel(i),value:i})).concat([{label:"Cancel",value:null}]));
   if(!want)return false;
-  const gives=[...new Set(p.ing)].map(i=>({label:"Give "+ING_EMOJI[i]+" "+i,value:{type:"ing",v:i}}));
+  const gives=[...new Set(p.ing)].map(i=>({label:"Give "+ilabel(i),value:{type:"ing",v:i}}));
   [2,3,4,5,6].filter(n=>p.coins>=n).forEach(n=>gives.push({label:`Give ${n}🌕`,value:{type:"coins",v:n}}));
   gives.push({label:"Cancel",value:null});
   const give=await ask("What do you offer?",gives);
@@ -1496,7 +1548,7 @@ async function humanTrade(p){
   let accept;
   if(q.strategy==="human"){
     setActor(q.idx);
-    accept=await ask(`${NAMES[q.idx]}: accept ${give.type==="ing"?ING_EMOJI[give.v]+" "+give.v:give.v+"🌕"} for your ${ING_EMOJI[want]} ${want}?`,
+    accept=await ask(`${NAMES[q.idx]}: accept ${give.type==="ing"?ilabel(give.v):give.v+"🌕"} for your ${ilabel(want)}?`,
       [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
   }else{
     // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare;
@@ -1511,7 +1563,7 @@ async function humanTrade(p){
       const minPrice=cost-bonus;
       if(p.coins>=minPrice&&(give.type!=="coins"||give.v<minPrice)){
         setActor(p.idx);
-        const deal=await ask(`${NAMES[q.idx]} scoffs — but counters: "${minPrice}🌕 for my ${ING_EMOJI[want]} ${want}, take it or leave it."`,
+        const deal=await ask(`${NAMES[q.idx]} scoffs — but counters: "${minPrice}🌕 for my ${ilabel(want)}, take it or leave it."`,
           [{label:`Pay ${minPrice}🌕`,value:true},{label:"Walk away",value:false}]);
         if(deal){
           q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
@@ -1561,7 +1613,7 @@ async function humanAct(p){
     &&!(game.cfg.singleDock&&game.dockOccupiedBy(port,p));
   const targets=game.adjOpp(p);
   const opts=[];
-  if(canDock)opts.push({label:`⚓ Dock at ${ING_EMOJI[port]} ${port}`,value:"dock"});
+  if(canDock)opts.push({label:`⚓ Dock at ${ilabel(port)}`,value:"dock"});
   if(targets.length&&p.coins>=game.cfg.powder)
     opts.push({label:`⚔️ Attack${game.cfg.powder?` (−${game.cfg.powder}🌕 powder)`:""}`,value:"attack"});
   if(game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
@@ -1634,7 +1686,7 @@ async function botTurn(p){
       if(human&&p.coins>=5){
         p.lastOffer=game.round;
         setActor(human.idx);
-        const sell=await ask(`📯 ${NAMES[p.idx]} hails you: "Ahoy! 5🌕 for your ${ING_EMOJI[ing]} ${ing} — what say ye?"`,
+        const sell=await ask(`📯 ${NAMES[p.idx]} hails you: "Ahoy! 5🌕 for your ${ilabel(ing)} — what say ye?"`,
           [{label:"Sell for 5🌕",value:true},{label:"Refuse",value:false}]);
         g.ev({t:"parley",a:p.idx,b:human.idx,offer:"5 coins",want:ing,ok:sell});
         if(sell){
@@ -1680,14 +1732,15 @@ async function asyncBakeoff(A,B){
 }
 /* ================= host game loop (networked) ================= */
 async function recipeDraftNet(){
-  const fmt=r=>r.map(i=>ING_EMOJI[i]).join(" "),picks=[];
+  const picks=[];
   for(const p of game.players){
     if(!p.recipeChoices){picks.push(0);continue;}
     let pick;
     if(p.strategy==="human"){
       setActor(p.idx);
-      pick=await ask(`${NAMES[p.idx]}, choose your recipe card — collect all of these ingredients to win:`,
-        [{label:"📜 Card A — "+fmt(p.recipeChoices[0]),value:0},{label:"📜 Card B — "+fmt(p.recipeChoices[1]),value:1}]);
+      pick=await ask(`${NAMES[p.idx]}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`,
+        [{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
+         {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}]);
     }else pick=Math.random()<.5?0:1;
     p.recipe=p.recipeChoices[pick];picks.push(pick);
   }
@@ -1838,9 +1891,10 @@ function watchPrompt(){
     const p=snap.val();
     if(!p||p.seat!==mySeat){panel("");return;}
     if(p.kind==="ask"){
-      const cols=p.colors||[];
-      panel(`<div class="apMsg">${p.msg}</div><div class="apBtns">`+
-        (p.labels||[]).map((l,i)=>`<button class="apBtn" data-i="${i}"${apBtnStyle(cols[i])}>${l}</button>`).join("")+`</div>`);
+      const cols=p.colors||[],cls=p.classes||[];
+      const grid=cls.some(c=>c)?" recipes":"";
+      panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
+        (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}"${apBtnStyle(cols[i])}>${l}</button>`).join("")+`</div>`);
       $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
       remotePickHighlights(p.cells||[],p.id);
@@ -1902,7 +1956,6 @@ function renderDecorativeBoard(){
     render();
     $("statsWrap").style.display="none";
     $("actionPanel").style.display="none";
-    $("narration").style.display="none";
   }catch(err){console.error("decorative board failed",err);}
 }
 
@@ -1990,7 +2043,7 @@ function renderSeatList(seats){
       sel.onchange=()=>db.ref("rooms/"+room+"/seats/"+sel.dataset.seat).set({bot:true,strat:sel.value,name:"",id:""});
     });
     $("btnStart").style.display="";
-    $("waitMsg").innerHTML="Empty seats are played by bots (pick their style above). Start whenever your crew is ready.";
+    $("waitMsg").innerHTML="Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots (pick their style above).";
   }else{
     $("btnStart").style.display="none";
     $("waitMsg").textContent="Waiting for the host to start the voyage…";
