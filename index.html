@@ -2091,19 +2091,40 @@ async function asyncBakeoff(A,B){
   return w;
 }
 /* ================= host game loop (networked) ================= */
+// Every human seat drafts at the same time instead of taking turns. Bots resolve instantly.
+// Decisions are still logged in a fixed (seat-index) order regardless of who actually
+// finishes first, so a host-reload replay can deterministically reconstruct the same picks.
 async function recipeDraftNet(){
   const picks=[];
-  for(const p of game.players){
-    if(!p.recipeChoices){picks.push(0);continue;}
-    let pick;
-    if(p.strategy==="human"){
-      setActor(p.idx);
-      pick=await ask(`${NAMES[p.idx]}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`,
-        [{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
-         {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}]);
-    }else pick=game.r()<.5?0:1;
-    p.recipe=p.recipeChoices[pick];picks.push(pick);
+  const humans=game.players.filter(p=>p.recipeChoices&&p.strategy==="human");
+  const bots=game.players.filter(p=>p.recipeChoices&&p.strategy!=="human");
+  for(const p of bots)picks[p.idx]=game.r()<.5?0:1;
+  const pending=[];
+  for(const p of humans){
+    if(replaying){
+      if(dlogIdx<dlog.length){dlogN++;picks[p.idx]=dlog[dlogIdx++];continue;}
+      endReplay();
+    }
+    pending.push(p);
   }
+  if(pending.length){
+    const msgFor=p=>`${NAMES[p.idx]}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
+    const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
+                       {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
+    netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${NAMES[pending[0].idx]} is choosing a recipe…`);
+    const results={};
+    const jobs=pending.map(p=>{
+      setActor(p.idx);
+      if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
+        results[p.idx]=i;
+        if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…");
+      });
+      return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
+    });
+    await Promise.all(jobs);
+    for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
+  }
+  game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
   if(db&&room&&!replaying)await db.ref("rooms/"+room+"/recipes").set(picks);
   if(!replaying)updateRecipeBanner();
   liveRender();
@@ -2252,6 +2273,37 @@ function sendResponse(id,choice){
   if(choice!==null&&choice!==undefined)o.choice=choice;
   db.ref("rooms/"+room+"/response").set(o);
   panel("");
+}
+// Parallel prompt/response path used only for concurrent recipe drafting — a per-seat node
+// so several remote seats can each have an outstanding question at once, unlike the singular
+// rooms/{room}/prompt above which only ever holds one.
+function remoteDraftPrompt(seat,msg,opts){
+  const id="d"+(promptCounter++)+"_"+Date.now();
+  db.ref("rooms/"+room+"/draftPrompts/"+seat).set({id,seat,msg,
+    labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")});
+  return new Promise(res=>{
+    const rr=db.ref("rooms/"+room+"/draftResponses/"+seat);
+    const cb=snap=>{const v=snap.val();
+      if(v&&v.id===id){rr.off("value",cb);db.ref("rooms/"+room+"/draftPrompts/"+seat).remove();
+        res(v.choice);}};
+    rr.on("value",cb);
+  });
+}
+function watchDraftPrompt(){
+  db.ref("rooms/"+room+"/draftPrompts/"+mySeat).on("value",snap=>{
+    const p=snap.val();
+    if(!p){return;}
+    const cls=p.classes||[];
+    const grid=cls.some(c=>c)?" recipes":"";
+    panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
+      (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
+    $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
+      b.onclick=()=>{
+        db.ref("rooms/"+room+"/draftResponses/"+mySeat).set({id:p.id,choice:+b.dataset.i});
+        panel("");
+      };
+    });
+  });
 }
 function fixEv(e){
   if(e.state)e.state.forEach(s=>{if(!s.ing)s.ing=[];if(!s.pos)s.pos=[0,0];});
@@ -2466,7 +2518,8 @@ async function startGame(){
   for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
   const cfg=roundCfg(strategies);
   const seed=Math.floor(Math.random()*1e9);
-  await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,recipes:null,dlog:null});
+  await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
+    recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null});
 }
 function beginGame(cfg,seed){
   if(gameStarted)return;gameStarted=true;
@@ -2480,7 +2533,7 @@ function beginGame(cfg,seed){
   updateRecipeBanner();
   watchRecipes();
   if(isHost){runLiveNet();}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();}
 }
 function updateRecipeBanner(){
   // recipe is now shown as semi-transparent chips in your own captain row (see render());
