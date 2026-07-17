@@ -1973,60 +1973,82 @@ async function humanTrade(p){
   const want=await ask(`What do you want from ${NAMES[q.idx]}?`,
     [...new Set(q.ing)].map(i=>({label:ilabel(i),value:i})).concat([{label:"Cancel",value:null}]));
   if(!want)return false;
-  const gives=[...new Set(p.ing)].map(i=>({label:"Give "+ilabel(i),value:{type:"ing",v:i}}));
-  [2,3,4,5,6].filter(n=>p.coins>=n).forEach(n=>gives.push({label:`Give ${n}🌕`,value:{type:"coins",v:n}}));
-  gives.push({label:"Cancel",value:null});
-  const give=await ask("What do you offer?",gives);
-  if(!give)return false;
+  // An offer is an ingredient, coins, or both together — sweeten a crate with a few coins on top.
+  const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabel(i),value:i}));
+  ingOpts.push({label:"— coins only —",value:null});
+  ingOpts.push({label:"Cancel",value:"__cancel__"});
+  const baseIng=await ask("Offer which crate (or coins only)?",ingOpts);
+  if(baseIng==="__cancel__")return false;
+  const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
+  if(!baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
+  const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
+  coinOpts.push({label:"Cancel",value:-1});
+  const extraCoins=await ask(baseIng?`Sweeten with coin? (offering ${ilabel(baseIng)})`:"How many coins?",coinOpts);
+  if(extraCoins===-1)return false;
+  const give={ing:baseIng,coins:extraCoins};
+  // plain-text form (stored on events, later run through fmtItem for the log); emoji form for
+  // direct UI prompts below
+  const offerLabel=(give.ing?iname(give.ing):"")+(give.ing&&give.coins?" + ":"")+(give.coins?`${give.coins} coins`:"");
+  const offerDisplay=(give.ing?ilabel(give.ing):"")+(give.ing&&give.coins?" + ":"")+(give.coins?`${give.coins}🌕`:"");
   let accept;
   if(q.strategy==="human"){
     setActor(q.idx);
-    accept=await ask(`${NAMES[q.idx]}: accept ${give.type==="ing"?ilabel(give.v):give.v+"🌕"} for your ${ilabel(want)}?`,
+    accept=await ask(`${NAMES[q.idx]}: accept ${offerDisplay} for your ${ilabel(want)}?`,
       [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
   }else{
-    // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare;
-    // receiving a crate they still LACK is worth just as much (essential-for-essential swaps are fair)
+    // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare — unless
+    // they're within one turn's sail of that crate's own dock and could just go re-flip for
+    // another, in which case trading it away is the efficient path (players trading with each
+    // other instead of everyone physically re-visiting every island).
     const essential=q.recipe.includes(want)&&game.cnt(q.ing,want)<=1;
-    const cost=essential?7:2;
-    const val=give.type==="coins"?give.v:(game.needs(q).includes(give.v)?7:2);
+    const nearResupply=essential&&game.tokens[want]>0&&man(q.pos,game.islandOf[want])<=3;
+    const trulyEssential=essential&&!nearResupply;
+    // bots won't hand a human their final needed ingredient for a song
+    const humanNeeds=game.needs(p);
+    const humanFinishes=humanNeeds.length===1&&humanNeeds[0]===want;
+    let cost=trulyEssential?7:2;
+    if(humanFinishes)cost=Math.max(cost,9);
+    const ingVal=give.ing?(game.needs(q).includes(give.ing)?7:2):0;
+    const val=ingVal+give.coins;
     const bonus=game.cfg.tradeBonus?1:0;
     accept=val+bonus>=cost;
     if(!accept){
-      // counteroffer: name their price instead of flat refusal
-      const minPrice=cost-bonus;
-      if(p.coins>=minPrice&&(give.type!=="coins"||give.v<minPrice)){
+      const shortfall=Math.max(0,cost-bonus-ingVal);
+      if(!humanFinishes&&p.coins>=shortfall){
+        // counteroffer: name their price instead of flat refusal
         setActor(p.idx);
-        const deal=await ask(`${NAMES[q.idx]} scoffs — but counters: "${minPrice}🌕 for my ${ilabel(want)}, take it or leave it."`,
-          [{label:`Pay ${minPrice}🌕`,value:true},{label:"Walk away",value:false}]);
+        const deal=await ask(`${NAMES[q.idx]} scoffs — but counters: "${shortfall}🌕 more for my ${ilabel(want)}, take it or leave it."`,
+          [{label:`Pay ${shortfall}🌕 more`,value:true},{label:"Walk away",value:false}]);
         if(deal){
           q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
-          p.coins-=minPrice;q.coins+=minPrice;
+          if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
+          const totalCoins=give.coins+shortfall;
+          p.coins-=totalCoins;q.coins+=totalCoins;
           game.trades++;
           if(game.cfg.tradeBonus){p.coins++;q.coins++;}
-          game.ev({t:"trade",a:p.idx,b:q.idx,gave:minPrice+" coins",got:want,kind:"counter"});
+          game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel+(shortfall?` + ${shortfall} coins`:""),got:want,kind:"counter"});
           liveRender();
           return true;
         }
       }
-      game.ev({t:"parley",a:p.idx,b:q.idx,offer:give.type==="coins"?give.v+" coins":give.v,want,ok:false});
+      game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
       liveRender();
-      await flash(`${NAMES[q.idx]} declines!`);
+      await flash(humanFinishes?`${NAMES[q.idx]} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${NAMES[q.idx]} declines!`);
       return true;
     }
   }
   if(!accept){
-    game.ev({t:"parley",a:p.idx,b:q.idx,offer:give.type==="coins"?give.v+" coins":give.v,want,ok:false});
+    game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
     liveRender();
     await flash(`${NAMES[q.idx]} declines!`);
     return true;
   }
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
-  let gaveStr;
-  if(give.type==="ing"){p.ing.splice(p.ing.indexOf(give.v),1);q.ing.push(give.v);gaveStr=give.v;}
-  else{p.coins-=give.v;q.coins+=give.v;gaveStr=give.v+" coins";}
+  if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
+  if(give.coins){p.coins-=give.coins;q.coins+=give.coins;}
   game.trades++;
   if(game.cfg.tradeBonus){p.coins++;q.coins++;}
-  game.ev({t:"trade",a:p.idx,b:q.idx,gave:gaveStr,got:want,kind:"human"});
+  game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel||"nothing",got:want,kind:"human"});
   liveRender();
   return true;
 }
