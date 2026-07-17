@@ -71,13 +71,15 @@
   .prowTop { display: flex; align-items: center; gap: 8px; }
   .player-row .dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; border: 1.5px solid rgba(0,0,0,.35); }
   .player-row .pname { font-weight: bold; width: 118px; }
-  .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; display: inline-block; }
   .chips { display: flex; gap: 3px; flex-wrap: wrap; }
   .chip { font-size: 22px; padding: 1px 5px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
   .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; margin: 2px 0 1px 24px; }
   .crown { font-size: 15px; }
+  .pulse { animation: rowpulse .5s ease; }
+  @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
   #boardwrap { position: relative; width: 100%; max-width: min(820px, calc(100vh - 210px)); margin: 0 auto; container-type: inline-size; }
   #actionPanel { margin: 8px 0; width: auto; background: var(--paleblue); border: 2px solid var(--teal);
@@ -145,9 +147,9 @@
     border: 5px solid transparent; border-top-color: inherit; border-bottom: none; }
   .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
-    0% { opacity: 0; transform: translateY(8px) scale(.6); }
-    18% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-32px) scale(1.3); }
+    0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
+    18% { opacity: 1; transform: translate(calc(var(--dx, 0px) * .25), 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx, 0px), -32px) scale(1.3); }
   }
   #log .line { padding: 1.5px 4px; border-radius: 4px; }
   #log .line.cur { background: var(--lemon); }
@@ -1115,7 +1117,7 @@ function drawBoard(){
   // ships
   shipEls=[];
   game.players.forEach((p,i)=>{
-    const g=el("g",{style:"transition: transform .35s ease"},svg);
+    const g=el("g",{style:"transition: transform .35s cubic-bezier(.42,0,.58,1)"},svg);
     el("circle",{cx:0,cy:0,r:cell*.3,fill:HEXCOL[i],stroke:"#fff","stroke-width":2,opacity:.92},g);
     const t=el("text",{x:0,y:cell*.11,"text-anchor":"middle","font-size":cell*.34},g);
     t.textContent="⛵";
@@ -1177,6 +1179,13 @@ function describe(e){
 }
 
 /* ---------- playback ---------- */
+// re-triggers the .pulse animation (removing then re-adding forces a reflow so repeat
+// changes in quick succession each get their own pulse instead of silently no-op'ing)
+function pulseEl(el){
+  el.classList.remove("pulse");
+  void el.offsetWidth;
+  el.classList.add("pulse");
+}
 function render(){
   const e=game.events[evIdx];if(!e)return;
   const st=e.state;
@@ -1189,8 +1198,12 @@ function render(){
     const [x,y]=shipXY(st[i].pos,i,st);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     shipEls[i].style.opacity=st[i].done?.45:1;
-    $("coins"+i).textContent="🌕 "+st[i].coins;
+    const coinsEl=$("coins"+i),newCoinsTxt="🌕 "+st[i].coins;
+    if(coinsEl.textContent&&coinsEl.textContent!==newCoinsTxt)pulseEl(coinsEl);
+    coinsEl.textContent=newCoinsTxt;
     const hold=[...st[i].ing];
+    const chipsEl=$("chips"+i);
+    let newChipsHtml;
     if(spectator||i===mySeat){
       $("prowRecipe"+i).textContent=`📜 ${recipeTitle(game.players[i].recipe)}`;
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
@@ -1201,13 +1214,15 @@ function render(){
         return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ING_EMOJI[ing]}</span>`;
       });
       const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ING_EMOJI[x2]}</span>`);
-      $("chips"+i).innerHTML=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
+      newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else{
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
       // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
       const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ING_EMOJI[x2]}</span>`);
-      $("chips"+i).innerHTML=held.join("")||`<span style="opacity:.4">empty hold</span>`;
+      newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
+    if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
+    chipsEl.innerHTML=newChipsHtml;
     const lastEv=game.events[game.events.length-1];
     $("crown"+i).textContent=(lastEv.t==="end"&&lastEv.winner===i&&evIdx===game.events.length-1)?"👑":"";
   });
@@ -1274,7 +1289,11 @@ function renderLog(){
 
 /* ---------- action popups on the map ---------- */
 function popEmoji(x,y,emo,big){
-  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop"},$("board"));
+  // a little horizontal drift (instead of a rigid straight-up rise) so the reward doesn't
+  // look like it's launching from a fixed vertical rail above the ship
+  const dx=(Math.random()*2-1)*cell*.35;
+  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop",
+    style:`--dx:${dx}px`},$("board"));
   t.textContent=emo;
   setTimeout(()=>t.remove(),1300);
 }
