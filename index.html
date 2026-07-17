@@ -236,6 +236,7 @@
     <div id="stepChoose" class="modalStep">
       <label class="nameLabel">Your captain name
         <input type="text" id="pname" maxlength="18" placeholder="e.g. Wyatt"></label>
+      <div class="muted" style="font-size:12px;margin-top:-6px;margin-bottom:8px">🔍 Playtesting this build? Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
           <div class="ccIcon">⚓</div><div class="ccTitle">Play Solo</div><div class="ccSub">vs. bot captains</div>
@@ -302,6 +303,17 @@
   </div>
 </div>
 
+<!-- ===================== FEEDBACK (modal) ===================== -->
+<div id="feedbackModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalTitle">💬 Feedback</div>
+    <div class="modalByline">What's working, what's confusing, what broke — this goes straight to the devs.</div>
+    <textarea id="feedbackText" rows="5" maxlength="2000" placeholder="Type your thoughts here..." style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;resize:vertical;margin-bottom:10px"></textarea>
+    <button class="primary big" id="btnSendFeedback" type="button">Send feedback</button>
+    <button class="big" id="btnCloseFeedback" type="button">Close</button>
+  </div>
+</div>
+
 <!-- ===================== START-VOYAGE CONFIRM (modal) ===================== -->
 <div id="startConfirmModal" class="modalOverlay" style="display:none">
   <div class="modalCard" style="max-width:380px">
@@ -356,6 +368,7 @@
       </details>
       <div class="panel" style="text-align:center;display:flex;gap:8px;justify-content:center">
         <button id="btnShowLog" type="button">📜 Captain's log</button>
+        <button id="btnShowFeedback" type="button">💬 Feedback</button>
         <button id="btnLeave">🚪 Leave game</button>
       </div>
     </div>
@@ -2357,6 +2370,7 @@ async function liveResolveEndNet(){
   liveDone=true;
   game.ev({t:"end",winner:game.winner});
   await writeMeta();
+  await writeGameLog();
   liveRender();
   netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${NAMES[game.winner]} is the Best Baker in the Caribbean!`);
   if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"});
@@ -2367,6 +2381,19 @@ function writeMeta(){
     round:game.round,battles:game.battles,trades:game.trades,attWins:game.attWins,
     finishOrder:game.finishOrder,winner:game.winner,
     flips:game.players.map(p=>p.flips),heads:game.players.map(p=>p.heads)});
+}
+// Every finished game (solo or multiplayer) writes its full move-by-move transcript to a
+// permanent, room-independent path — rooms/{room}/ev is cleared on the next game in that room,
+// so this is the only durable copy for later analysis. Only the host writes it (this function
+// only ever runs from the host's own turn loop), so there's no risk of duplicate writes.
+function writeGameLog(){
+  if(!db||replaying)return Promise.resolve();
+  const ts=Date.now();
+  return db.ref("gamelogs/"+ts).set({
+    ts,room:room||null,winner:game.winner,round:game.round,
+    battles:game.battles,trades:game.trades,strategies:game.cfg.strategies,
+    events:JSON.parse(JSON.stringify(game.events))
+  }).catch(e=>console.error("game log write failed",e));
 }
 
 /* ================= Firebase config ================= */
@@ -2739,6 +2766,15 @@ function wireLobby(){
   $("btnLeave").onclick=leaveGame;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
   $("btnCloseLog").onclick=()=>{$("logModal").style.display="none";};
+  $("btnShowFeedback").onclick=()=>{$("feedbackModal").style.display="flex";};
+  $("btnCloseFeedback").onclick=()=>{$("feedbackModal").style.display="none";};
+  $("btnSendFeedback").onclick=()=>{
+    const text=($("feedbackText").value||"").trim();
+    if(!text)return;
+    if(db)db.ref("feedback/"+Date.now()).set({text,room:room||null,name:($("pname").value||"").trim()||null,t:Date.now()}).catch(e=>console.error("feedback write failed",e));
+    $("feedbackText").value="";
+    $("feedbackModal").style.display="none";
+  };
 }
 // The host reloaded mid-game. Rebuild the crew, load the recorded decision log, then let
 // beginGame → runLiveNet fast-forward the deterministic engine through the log (replaying=true).

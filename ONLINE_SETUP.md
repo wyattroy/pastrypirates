@@ -70,6 +70,14 @@ Test mode works for ~30 days, then locks. To keep the game working, set simple r
     "rooms": {
       ".read": true,
       ".write": true
+    },
+    "feedback": {
+      ".read": true,
+      ".write": true
+    },
+    "gamelogs": {
+      ".read": true,
+      ".write": true
     }
   }
 }
@@ -77,11 +85,23 @@ Test mode works for ~30 days, then locks. To keep the game working, set simple r
 
 2. Click **Publish**.
 
+`feedback` and `gamelogs` are where the in-game feedback box and end-of-game move logs are
+saved (see below) — they're separate from `rooms` because room data gets wiped when a new
+game starts, but you want to keep feedback and logs around to read later.
+
 **What this means:** anyone who knows your database URL can read/write the `rooms` data.
 That's fine for casual games with friends — there's nothing sensitive in there, just game
 state — but it is public. Don't reuse this project for anything private. (If you later want
 it locked down, the usual upgrade is to turn on Firebase **Anonymous Authentication** and
 change the rules to require `auth != null`.)
+
+### Reading playtester data back
+
+Every finished game (solo or multiplayer) writes its full move log to `gamelogs/{timestamp}`,
+and anyone who uses the in-game **💬 Feedback** button writes to `feedback/{timestamp}`. To
+read these later: **Realtime Database → Data** tab in the Firebase console, then expand the
+`gamelogs` or `feedback` node. Each entry is plain JSON — click the `⋮` menu on a node to
+export it if you want to pull everything into a spreadsheet or script at once.
 
 ---
 
