@@ -88,6 +88,11 @@
   .flipBtn.active { border-color: var(--accent); background: var(--orange); color: #fff;
     cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
   @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
+  #shotClockNum { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+  #shotClockWarn { font-size: 12.5px; font-weight: 700; margin-top: 3px; min-height: 16px; }
+  #shotClockPanel.urgent { animation: clockurgent 1s ease-in-out infinite; }
+  #shotClockPanel.urgent #shotClockWarn { color: #a32d2d; }
+  @keyframes clockurgent { 0%, 100% { background: #fff; } 50% { background: #fdeaea; } }
   .pips { display: flex; justify-content: center; gap: 6px; }
   .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
   .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
@@ -321,6 +326,10 @@
           <div class="flipPlank"><div id="flipCoinWrap"><div class="coin wait">?</div></div></div>
           <button id="flipBtn" class="flipBtn" type="button" disabled>FLIP</button>
         </div>
+      </div>
+      <div class="panel" id="shotClockPanel" style="display:none;text-align:center">
+        <div id="shotClockNum">30</div>
+        <div id="shotClockWarn" class="muted"></div>
       </div>
       <div id="actionPanel" style="display:none"></div>
       <div class="panel" id="statsWrap" style="display:none">
@@ -1105,6 +1114,8 @@ function describe(e){
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "wheelfish":return {txt:`🧭 ${pn(e.p)} passes the ship's wheel and fishes — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`};
+    case "shotclock":return {cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`};
+    case "shotclockskip":return {cls:"roundhdr",txt:`⏰ ${pn(e.p)} took too long and walks the plank — sent back to port!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
     case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
     case "turn":return null;
@@ -1311,6 +1322,12 @@ function showStats(){
 let live=false, liveDone=false, liveGen=0;
 let curSeat=0;                 // seat currently being prompted (host drives the engine)
 let inBattlePrompt=false;      // this client owns the active battle decision — watchBattle defers to it
+// ---- shot clock: 30s to finish the solo part of your turn (wind response, sail pick, action
+// choice) before you're sent back to port. Host-authoritative; every client ticks its own
+// display off the shared deadline. Stops once you commit to dock/attack/trade/fish, since those
+// are bounded, bilateral sub-flows the clock shouldn't cut off mid-way.
+let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
+let shotClockFired={}, turnExpired=false, clockState=null;
 // --- host-refresh recovery: the host records every human decision, so after an accidental
 //     reload it can silently REPLAY the deterministic engine to rebuild the exact game
 //     state and keep driving, instead of the game dying with the host's tab. ---
@@ -1350,6 +1367,78 @@ function watchFlip(){
   if(!db||!room)return;
   db.ref("rooms/"+room+"/flip").on("value",s=>{const v=s.val();if(v)setFlipCoin(v.state);});
 }
+
+// ---- shot clock ----
+function startShotClock(p){
+  if(!isHost)return;
+  shotClockSeat=p.idx;
+  shotClockDeadline=Date.now()+30000;
+  shotClockFired={};
+  turnExpired=false;
+  broadcastClock();
+  if(shotClockTimer)clearInterval(shotClockTimer);
+  shotClockTimer=setInterval(shotClockTick,500);
+}
+function stopShotClock(){
+  if(!isHost)return;
+  shotClockSeat=null;shotClockForce=null;
+  if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
+  broadcastClock();
+}
+function broadcastClock(){
+  setClockUI();
+  if(db&&room)db.ref("rooms/"+room+"/clock").set(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline});
+}
+function shotClockTick(){
+  if(shotClockSeat==null)return;
+  const elapsed=Date.now()-(shotClockDeadline-30000);
+  if(!shotClockFired.t10&&elapsed>=10000){shotClockFired.t10=true;applyShotClockPenalty();}
+  if(!shotClockFired.t20&&elapsed>=20000){shotClockFired.t20=true;applyShotClockPenalty();}
+  if(elapsed>=30000){expireShotClock();return;}
+  setClockUI();
+}
+function applyShotClockPenalty(){
+  const p=game.players[shotClockSeat];if(!p)return;
+  const others=game.players.filter(q=>q!==p&&!q.done);
+  const take=Math.min(1,p.coins);
+  p.coins-=take;others.forEach(q=>q.coins++);
+  game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
+  liveRender();
+}
+function expireShotClock(){
+  const p=game.players[shotClockSeat];
+  turnExpired=true;
+  if(shotClockForce){shotClockForce();shotClockForce=null;}
+  if(p){
+    p.pos=[...game.home];
+    game.ev({t:"shotclockskip",p:p.idx});
+    liveRender();
+    netNarrate(`⏰ ${NAMES[p.idx]} took too long — sent back to port!`);
+    if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove();
+  }
+  stopShotClock();
+}
+function watchClock(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/clock").on("value",s=>{clockState=s.val();setClockUI();});
+}
+function setClockUI(){
+  const wrap=$("shotClockPanel");if(!wrap)return;
+  const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
+  if(!state){wrap.style.display="none";return;}
+  wrap.style.display="";
+  const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
+  const numEl=$("shotClockNum"),warnEl=$("shotClockWarn");
+  numEl.textContent=remain;
+  numEl.style.color=remain<=10?"#e24b4a":(remain<=20?"#c77f16":"var(--teal)");
+  wrap.classList.toggle("urgent",remain<=10);
+  const elapsed=30-remain;
+  const p=game.players&&game.players[state.seat];
+  const who=p?NAMES[p.idx].replace("Capt. ",""):"";
+  warnEl.textContent=(elapsed>=8&&elapsed<10)||(elapsed>=18&&elapsed<20)||(elapsed>=28&&elapsed<30)
+    ?`⏱ quick play, ${who}!`:`${who}'s turn`;
+}
+setInterval(setClockUI,500);
 
 function liveRender(){
   if(replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
@@ -1391,10 +1480,22 @@ function ask(msg,opts,colors){
   const seat=curSeat;
   netNarrate(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
   const isFlip=opts.length===1&&!!opts[0].flip;
-  const idxP=seatLocal(seat)?localAsk(msg,opts,colors)
+  const base=seatLocal(seat)?localAsk(msg,opts,colors)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip});
+  const idxP=withShotClock(seat,base,0);
   return idxP.then(i=>{logDecision(i);return opts[i].value;});
+}
+// If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
+// force a default answer once 30s run out, instead of the answer waiting forever. A no-op for
+// every other decision in the game (recipe drafts, side bets, battle/trade sub-flows, etc).
+function withShotClock(seat,base,defaultVal){
+  if(!isHost||seat!==shotClockSeat)return base;
+  return new Promise(res=>{
+    let done=false;
+    shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
+    base.then(v=>{if(!done){done=true;shotClockForce=null;res(v);}});
+  });
 }
 function localAsk(msg,opts,colors){
   return new Promise(res=>{
@@ -1475,8 +1576,9 @@ function pickCell(p,cells){
   }
   setActor(p.idx);
   netNarrate(p.idx===mySeat?"":`${NAMES[p.idx]} is choosing where to sail…`);
-  const cellP=seatLocal(p.idx)?localPickCell(p,cells)
+  const base=seatLocal(p.idx)?localPickCell(p,cells)
     :remotePrompt(p.idx,{kind:"pick",cells,msg:`${NAMES[p.idx]}: click a highlighted square to sail (−1🌕)`});
+  const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{logDecision(c);return c;});
 }
 function localPickCell(p,cells){
@@ -1524,9 +1626,11 @@ async function humanWind(p){
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
       opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
       const v=await ask(`${NAMES[p.idx]}: the wind blows you toward an island!`,opts);
+      if(turnExpired)return;
       if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});}
       else{
         const h=await humanFlip(p,"Flip to drop anchor!");
+        if(turnExpired)return;
         if(h)game.ev({t:"anchor",p:p.idx});
         else{p.coins-=Math.floor(p.coins/2);game.ev({t:"aground",p:p.idx});}
       }
@@ -1947,6 +2051,8 @@ async function humanAct(p){
     opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
   const v=await ask(`${NAMES[p.idx]}, choose your action:`,opts);
+  if(turnExpired)return;
+  stopShotClock(); // committing to an action ends the clock — dock/attack/trade/fish run unbounded
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock")await humanDock(p,port);
   else if(v==="attack"){
@@ -1963,20 +2069,27 @@ async function humanTurn(p){
   setActor(p.idx);
   game.ev({t:"turn",p:p.idx});
   liveRender();
+  startShotClock(p);
   await flash(`⛵ Ahoy, ${NAMES[p.idx]} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
+  if(turnExpired)return;
   const before=[...p.pos];
   await humanWind(p);
+  if(turnExpired)return;
   if(p.pos[0]!==before[0]||p.pos[1]!==before[1])
     await flash(`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`,1000);
+  if(turnExpired)return;
   p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
   if(p.coins>0){
     const dest=await pickCell(p,reachable(p,3));
+    if(turnExpired)return;
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash("🌀 The trade winds sweep you around the rim!",1200);}}
   }else await flash(`${NAMES[p.idx]}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`,1600);
+  if(turnExpired)return;
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
+  stopShotClock();
 }
 async function botTurn(p){
   const g=game;
@@ -2519,7 +2632,7 @@ async function startGame(){
   const cfg=roundCfg(strategies);
   const seed=Math.floor(Math.random()*1e9);
   await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
-    recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null});
+    recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null});
 }
 function beginGame(cfg,seed){
   if(gameStarted)return;gameStarted=true;
@@ -2533,7 +2646,7 @@ function beginGame(cfg,seed){
   updateRecipeBanner();
   watchRecipes();
   if(isHost){runLiveNet();}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();}
 }
 function updateRecipeBanner(){
   // recipe is now shown as semi-transparent chips in your own captain row (see render());
