@@ -1352,7 +1352,7 @@ function showBubble(i,txt){
   d.style.left=x+"px";d.style.top=(y-cell*.32)+"px";
   $("boardwrap").appendChild(d);bubbles[i]=d;
   const mine=d;
-  const life=Math.max(1400,2.2*1000/(+$("speed").value));
+  const life=10000; // on-board narration bubbles fade after 10s so they don't linger over the board
   setTimeout(()=>{if(bubbles[i]===mine){mine.style.opacity="0";
     setTimeout(()=>{mine.remove();if(bubbles[i]===mine)delete bubbles[i];},400);}},life);
 }
