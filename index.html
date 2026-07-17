@@ -30,8 +30,7 @@
       grid-template-areas: "board captains" "board narration" "board stats"; }
   }
   #flipPanel { position: absolute; bottom: 8px; right: 8px; z-index: 3; }
-  #shotClockPanel { position: absolute; top: 8px; right: 8px; z-index: 3; text-align: center;
-    background: rgba(255,255,255,.88); border-radius: 10px; padding: 5px 10px; box-shadow: 0 1px 4px rgba(41,163,178,.18); }
+  #shotClockPanel { position: absolute; bottom: 8px; left: 8px; z-index: 3; }
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; width: 100%; height: auto; }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
@@ -109,23 +108,34 @@
   .coin.win { box-shadow: 0 0 0 4px rgba(39,199,141,.55); }
   @keyframes coinspin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
   .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
-  /* ---- flippenator: the one physical spot every coin flip happens ---- */
-  .flippenator { display: flex; align-items: center; gap: clamp(4px,2cqw,14px); }
-  .flipPlank { flex: 0 0 auto; width: clamp(52px,17cqw,108px); height: clamp(38px,12cqw,76px); border-radius: 12px;
-    background: linear-gradient(160deg, #b3814a, #8a5f2f); display: flex; align-items: center; justify-content: center;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,.28); }
-  .flipPlank .coin { width: clamp(28px,9cqw,56px); height: clamp(28px,9cqw,56px); font-size: clamp(5px,1.6cqw,10.5px); margin: 0; }
-  .flipPlank .coin.spin { font-size: clamp(10px,3cqw,20px); }
-  .flipBtn { flex: 0 0 auto; width: clamp(26px,8cqw,52px); height: clamp(26px,8cqw,52px); border-radius: 50%; padding: 0;
-    font-size: clamp(6px,1.7cqw,11px); font-weight: 800; letter-spacing: .5px; border: 2px solid #ddd; background: #f2f2f2; color: #bbb; }
-  .flipBtn.active { border-color: var(--accent); background: var(--orange); color: #fff;
-    cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
+  /* ---- flippenator: the one physical spot every coin flip happens — the coin IS the
+     button, so the whole thing is a single circle on the wood plank, not two elements ---- */
+  .flipPlank { display: flex; align-items: center; justify-content: center; width: fit-content;
+    border-radius: 12px; background: linear-gradient(160deg, #b3814a, #8a5f2f);
+    padding: clamp(6px,2.4cqw,11px); box-shadow: inset 0 2px 5px rgba(0,0,0,.28); }
+  #flipCoinWrap.coin { width: clamp(36px,13cqw,64px); height: clamp(36px,13cqw,64px);
+    font-size: clamp(6px,1.9cqw,11px); margin: 0; }
+  #flipCoinWrap.coin.spin { font-size: clamp(11px,3.5cqw,22px); }
+  #flipCoinWrap.active { border-color: var(--accent); background: radial-gradient(#ffe1a0, #f5a623);
+    color: #7a4a00; font-weight: 800; cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
   @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
-  #shotClockNum { font-size: clamp(14px,4.7cqw,30px); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
-  #shotClockWarn { font-size: clamp(8px,2cqw,12.5px); font-weight: 700; margin-top: 3px; min-height: 16px; max-width: 120px; }
-  #shotClockPanel.urgent { animation: clockurgent 1s ease-in-out infinite; }
-  #shotClockPanel.urgent #shotClockWarn { color: #a32d2d; }
-  @keyframes clockurgent { 0%, 100% { background: #fff; } 50% { background: #fdeaea; } }
+  /* ---- shot clock: a brass ship's gauge, left-aligned like a real instrument readout ---- */
+  #shotClockPanel { background: linear-gradient(160deg, #8a5f2f, #5c3d1c); border: 2px solid #d9a84e;
+    border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(8px,3cqw,14px);
+    min-width: clamp(70px,26cqw,118px); }
+  #shotClockPanel.idle { opacity: .55; }
+  #shotClockPanel.urgent { background: linear-gradient(160deg, #5a5f66, #25282c); border-color: #e2564c;
+    animation: clockurgent 0.9s ease-in-out infinite; }
+  #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
+  #shotClockPanel.urgent #scLabel { color: #ff9b93; }
+  #scRow { display: flex; align-items: baseline; gap: 4px; line-height: 1; margin: 1px 0; }
+  #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8; }
+  #shotClockPanel.urgent #shotClockNum { color: #ff8f86; }
+  #scUnit { font-size: clamp(7px,2.2cqw,12px); color: #e0c58f; }
+  #shotClockPanel.urgent #scUnit { color: #ff9b93; }
+  #shotClockSub { font-size: clamp(7px,2.2cqw,11px); color: #e0c58f; line-height: 1.2; }
+  #shotClockPanel.urgent #shotClockSub { color: #ff9b93; }
+  @keyframes clockurgent { 0%, 100% { box-shadow: 0 0 0 0 rgba(226,75,74,.65); } 50% { box-shadow: 0 0 0 9px rgba(226,75,74,0); } }
   .pips { display: flex; justify-content: center; gap: 6px; }
   .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
   .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
@@ -360,14 +370,12 @@
         <div id="boardTitle"><span class="flag">🏴‍☠️</span> Pastry Pirates</div>
         <svg id="board" viewBox="0 0 640 640"></svg>
         <div id="flipPanel">
-          <div class="flippenator">
-            <div class="flipPlank"><div id="flipCoinWrap"><div class="coin wait">?</div></div></div>
-            <button id="flipBtn" class="flipBtn" type="button" disabled>FLIP</button>
-          </div>
+          <div class="flipPlank"><div id="flipCoinWrap" class="coin wait">?</div></div>
         </div>
-        <div id="shotClockPanel" style="display:none">
-          <div id="shotClockNum">30</div>
-          <div id="shotClockWarn" class="muted"></div>
+        <div id="shotClockPanel" class="idle">
+          <div id="scLabel">not your turn</div>
+          <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
+          <div id="shotClockSub">&nbsp;</div>
         </div>
       </div>
       <div style="margin-top:8px" class="windbox"><span id="roundLabel" class="muted"></span></div>
@@ -1109,7 +1117,7 @@ function drawBoard(){
   // Everything is drawn in a <g> translated to the dial's center, so all local coordinates are
   // relative to (0,0) — the needle's rotation pivot is then exactly "0px 0px", which stays correct
   // at any browser zoom level (an absolute px transform-origin drifted from the dial at non-100% zoom).
-  const sr=cell*.95,scx=sr+14,scy=W-sr-32;
+  const sr=cell*.95,scx=W-sr-14,scy=sr+32;
   const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`},svg);
   stormDial=el("circle",{cx:0,cy:0,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
   windLabels=[];
@@ -1477,11 +1485,21 @@ function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
 
 // ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
-function setFlipCoin(state){const el=$("flipCoinWrap");if(el)el.innerHTML=coinHTML(state);}
+// The flippenator coin doubles as its own button — no separate FLIP button — so this sets
+// the coin's own class/text directly instead of using coinHTML() (which stays for the
+// battle scoreboard's per-fighter result circles, a separate use of the same .coin styles).
+function setFlipCoin(state){
+  const el=$("flipCoinWrap");if(!el)return;
+  el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;
+  if(state==="H"){el.classList.add("heads");el.textContent="HEADS";}
+  else if(state==="T"){el.classList.add("tails");el.textContent="TAILS";}
+  else if(state==="spin"){el.classList.add("spin");el.textContent="🪙";}
+  else{el.classList.add("wait");el.textContent="?";}
+}
 function setFlipActive(onClick){
-  const btn=$("flipBtn");if(!btn)return;
-  if(onClick){btn.classList.add("active");btn.disabled=false;btn.onclick=onClick;}
-  else{btn.classList.remove("active");btn.disabled=true;btn.onclick=null;}
+  const el=$("flipCoinWrap");if(!el)return;
+  if(onClick){el.classList.add("active");el.textContent="FLIP";el.onclick=onClick;}
+  else{el.classList.remove("active");el.onclick=null;}
 }
 // host: play the spin/land locally AND broadcast it so every connected browser's flippenator
 // animates in sync, whether or not that browser is the one actually flipping
@@ -1551,15 +1569,21 @@ function watchClock(){
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
   const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
-  if(!state){wrap.style.display="none";return;}
-  wrap.style.display="";
+  const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub");
+  if(!state){
+    wrap.classList.add("idle");wrap.classList.remove("urgent");
+    labelEl.textContent="not your turn";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
+    return;
+  }
+  wrap.classList.remove("idle");
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
-  const numEl=$("shotClockNum"),warnEl=$("shotClockWarn");
-  numEl.textContent=remain;
-  numEl.style.color=remain<=15?"#e24b4a":(remain<=25?"#c77f16":"var(--teal)");
-  wrap.classList.toggle("urgent",remain<=15);
   const elapsed=30-remain;
-  warnEl.textContent=elapsed<15?`penalty in: ${15-elapsed}s`:`forfeit turn and walk the plank in: ${30-elapsed}s`;
+  const urgent=elapsed>=15;
+  wrap.classList.toggle("urgent",urgent);
+  labelEl.textContent=urgent?"walk the plank in":"play in";
+  numEl.textContent=urgent?30-elapsed:15-elapsed;
+  unitEl.textContent="seconds";
+  subEl.textContent=urgent?"or lose your turn":"or pay 1🌕";
 }
 setInterval(setClockUI,500);
 
