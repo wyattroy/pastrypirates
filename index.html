@@ -1460,6 +1460,13 @@ let inBattlePrompt=false;      // this client owns the active battle decision �
 // without needing a special case here.
 let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
 let shotClockFired={}, turnExpired=false, clockState=null;
+// where the currently-clocked player's turn (or wheel-pass fish) began — expireShotClock()
+// sends them back here on a timeout, instead of the literal Isle of Tortuga tile
+let turnStartPos=null;
+// localPickCell() registers its own highlight-cleanup here; a forced shot-clock timeout
+// resolves pickCell()'s outer wrapped promise but never touches this inner one, so without
+// this the highlighted sail-destination squares are left stuck on the board forever
+let activePickCleanup=null;
 // --- host-refresh recovery: the host records every human decision, so after an accidental
 //     reload it can silently REPLAY the deterministic engine to rebuild the exact game
 //     state and keep driving, instead of the game dying with the host's tab. ---
@@ -1550,8 +1557,9 @@ function expireShotClock(){
   const p=game.players[shotClockSeat];
   turnExpired=true;
   if(shotClockForce){shotClockForce();shotClockForce=null;}
+  if(activePickCleanup){activePickCleanup();activePickCleanup=null;}
   if(p){
-    p.pos=[...game.home];
+    p.pos=[...(turnStartPos||game.home)];
     game.ev({t:"shotclockskip",p:p.idx});
     liveRender();
     netNarrate(`⏰ ${pn(p.idx)} took too long — sent back to port!`);
@@ -1737,7 +1745,8 @@ function pickCell(p,cells){
 function localPickCell(p,cells){
   return new Promise(res=>{
     const svg=$("board"),hs=[];
-    const done=v=>{hs.forEach(h=>h.remove());panel("");res(v);};
+    const done=v=>{hs.forEach(h=>h.remove());panel("");activePickCleanup=null;res(v);};
+    activePickCleanup=()=>{hs.forEach(h=>h.remove());panel("");};
     for(const c of cells){
       const r=el("rect",{x:c[0]*cell+2,y:c[1]*cell+2,width:cell-4,height:cell-4,rx:5,
         fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
@@ -2215,6 +2224,7 @@ async function humanTrade(p){
 async function wheelFish(p){
   // the captain who just handed off the ship's wheel casts a line while the new leader takes over
   setActor(p.idx);
+  turnStartPos=[...p.pos];
   await flash(`🧭 ${pn(p.idx)} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
   await fishCast(p,"wheelfish",`🎣 ${pn(p.idx)}, fish as you pass the wheel — flip!`);
   stopShotClock();
@@ -2251,6 +2261,7 @@ async function humanAct(p){
 }
 async function humanTurn(p){
   setActor(p.idx);
+  turnStartPos=[...p.pos];
   game.ev({t:"turn",p:p.idx});
   liveRender();
   await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
