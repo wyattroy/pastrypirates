@@ -1451,17 +1451,15 @@ function showStats(){
 let live=false, liveDone=false, liveGen=0;
 let curSeat=0;                 // seat currently being prompted (host drives the engine)
 let inBattlePrompt=false;      // this client owns the active battle decision — watchBattle defers to it
-// ---- shot clock: 30s to finish your turn — a single 1-coin penalty at 15s, then sent back
+// ---- shot clock: 30s to finish a decision — a single 1-coin penalty at 20s, then sent back
 // to port at 30s. Host-authoritative; every client ticks its own display off the shared
-// deadline. Restarts fresh at every decision point the turn's owner faces (wind response,
-// sail pick, action choice, and any sub-decision inside dock/attack/trade — broadside reflip,
-// trade counter-offers) rather than stopping after the first committed action, so a slow
-// answer anywhere in the turn is timed the same way. `clockActiveFor` is the seat currently
-// eligible for this restart-on-every-decision treatment — set for the human whose turn (or
-// wheel-pass fish) is in progress, and null otherwise (recipe drafts, spectator side bets,
-// a bot's hail to a human, etc. never arm it).
+// deadline. Every ask()/pickCell()/non-flip battleAsk() decision re-arms it fresh for whoever
+// is being asked — side bets, a bot's hail to a human, trade counter-offers, broadside
+// reflips, all of it — with one structural exception: the recipe draft never goes through
+// ask() at all (it uses its own concurrent multi-seat prompt path), so it stays untimed
+// without needing a special case here.
 let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
-let shotClockFired={}, turnExpired=false, clockState=null, clockActiveFor=null;
+let shotClockFired={}, turnExpired=false, clockState=null;
 // --- host-refresh recovery: the host records every human decision, so after an accidental
 //     reload it can silently REPLAY the deterministic engine to rebuild the exact game
 //     state and keep driving, instead of the game dying with the host's tab. ---
@@ -1536,7 +1534,7 @@ function broadcastClock(){
 function shotClockTick(){
   if(shotClockSeat==null)return;
   const elapsed=Date.now()-(shotClockDeadline-30000);
-  if(!shotClockFired.t15&&elapsed>=15000){shotClockFired.t15=true;applyShotClockPenalty();}
+  if(!shotClockFired.t20&&elapsed>=20000){shotClockFired.t20=true;applyShotClockPenalty();}
   if(elapsed>=30000){expireShotClock();return;}
   setClockUI();
 }
@@ -1551,7 +1549,6 @@ function applyShotClockPenalty(){
 function expireShotClock(){
   const p=game.players[shotClockSeat];
   turnExpired=true;
-  clockActiveFor=null; // the turn is being force-ended — no more decisions should re-arm the clock
   if(shotClockForce){shotClockForce();shotClockForce=null;}
   if(p){
     p.pos=[...game.home];
@@ -1578,10 +1575,10 @@ function setClockUI(){
   wrap.classList.remove("idle");
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
   const elapsed=30-remain;
-  const urgent=elapsed>=15;
+  const urgent=elapsed>=20;
   wrap.classList.toggle("urgent",urgent);
   labelEl.textContent=urgent?"walk the plank in":"play in";
-  numEl.textContent=urgent?30-elapsed:15-elapsed;
+  numEl.textContent=urgent?30-elapsed:20-elapsed;
   unitEl.textContent="seconds";
   subEl.textContent=urgent?"or lose your turn":"or pay 1🌕";
 }
@@ -1626,7 +1623,7 @@ function ask(msg,opts,colors){
   }
   const seat=curSeat;
   netNarrate(seat===mySeat?msg:`${pn(seat)} is deciding…`);
-  armClockIfActive(seat);
+  armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
   const base=seatLocal(seat)?localAsk(msg,opts,colors)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
@@ -1635,10 +1632,11 @@ function ask(msg,opts,colors){
   return idxP.then(i=>{logDecision(i);return opts[i].value;});
 }
 // re-arms the shot clock with a fresh 30s window right before a new decision is shown to
-// whichever seat currently owns turn-level clock coverage (see `clockActiveFor` above) —
-// a no-op for every other ask()/pickCell()/battleAsk() call in the game.
-function armClockIfActive(seat){
-  if(isHost&&seat===clockActiveFor){const p=game.players[seat];if(p)startShotClock(p);}
+// whichever seat is being asked — every ask()/pickCell()/non-flip battleAsk() call in the
+// game goes through this, so every decision anyone makes is timed the same way.
+function armClock(seat){
+  if(!isHost)return;
+  const p=game.players[seat];if(p)startShotClock(p);
 }
 // If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
 // force a default answer once 30s run out, instead of the answer waiting forever. A no-op for
@@ -1730,7 +1728,7 @@ function pickCell(p,cells){
   }
   setActor(p.idx);
   netNarrate(p.idx===mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
-  armClockIfActive(p.idx);
+  armClock(p.idx);
   const base=seatLocal(p.idx)?localPickCell(p,cells)
     :remotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
   const cellP=withShotClock(p.idx,base,null);
@@ -1906,7 +1904,7 @@ function battleAsk(p,o,msg,opts,colors){
   const isFlip=opts.length===1&&!!opts[0].flip;
   // only the yes/no decisions (e.g. the broadside reflip) get clock coverage — a forced
   // timeout on the flip button itself would leave the flippenator UI stuck mid-click
-  if(!isFlip)armClockIfActive(seat);
+  if(!isFlip)armClock(seat);
   netBroadcast(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   let idxP;
   if(seatLocal(seat)){
@@ -2218,9 +2216,8 @@ async function wheelFish(p){
   // the captain who just handed off the ship's wheel casts a line while the new leader takes over
   setActor(p.idx);
   await flash(`🧭 ${pn(p.idx)} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
-  clockActiveFor=p.idx;
   await fishCast(p,"wheelfish",`🎣 ${pn(p.idx)}, fish as you pass the wheel — flip!`);
-  clockActiveFor=null;stopShotClock();
+  stopShotClock();
 }
 async function humanAct(p){
   setActor(p.idx);
@@ -2259,8 +2256,7 @@ async function humanTurn(p){
   await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
-  // eats no time. Each ask()/pickCell() call re-arms it fresh via clockActiveFor.
-  clockActiveFor=p.idx;
+  // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
   if(turnExpired)return;
   const before=[...p.pos];
   await humanWind(p);
@@ -2279,7 +2275,7 @@ async function humanTurn(p){
   if(turnExpired)return;
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
-  clockActiveFor=null;stopShotClock();
+  stopShotClock();
 }
 async function botTurn(p){
   const g=game;
