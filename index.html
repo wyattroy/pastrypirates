@@ -19,17 +19,18 @@
     font-size: 17px; font-weight: bold; letter-spacing: .5px; color: var(--teal); pointer-events: none; z-index: 3; }
   #boardTitle .flag { font-size: 17px; }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "narration" "captains" "flip" "clock" "stats"; }
+    grid-template-areas: "board" "narration" "captains" "stats"; }
   #left { grid-area: board; min-width: 0; }
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
-  #flipPanel { grid-area: flip; }
-  #shotClockPanel { grid-area: clock; }
   #statsWrap { grid-area: stats; }
   @media (min-width: 900px) {
     #layout { grid-template-columns: 1fr 300px;
-      grid-template-areas: "board captains" "board narration" "board flip" "board clock" "board stats"; }
+      grid-template-areas: "board captains" "board narration" "board stats"; }
   }
+  #flipPanel { position: absolute; bottom: 8px; right: 8px; z-index: 3; }
+  #shotClockPanel { position: absolute; top: 8px; right: 8px; z-index: 3; text-align: center;
+    background: rgba(255,255,255,.88); border-radius: 10px; padding: 5px 10px; box-shadow: 0 1px 4px rgba(41,163,178,.18); }
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; width: 100%; height: auto; }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
@@ -78,7 +79,7 @@
   .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; margin: 2px 0 1px 24px; }
   .crown { font-size: 15px; }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
-  #boardwrap { position: relative; width: 100%; max-width: min(820px, calc(100vh - 210px)); margin: 0 auto; }
+  #boardwrap { position: relative; width: 100%; max-width: min(820px, calc(100vh - 210px)); margin: 0 auto; container-type: inline-size; }
   #actionPanel { margin: 8px 0; width: auto; background: var(--paleblue); border: 2px solid var(--teal);
     border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: var(--lemon); }
@@ -106,19 +107,19 @@
   @keyframes coinspin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
   .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
   /* ---- flippenator: the one physical spot every coin flip happens ---- */
-  .flippenator { display: flex; align-items: center; gap: 14px; }
-  .flipPlank { flex: 0 0 auto; width: 108px; height: 76px; border-radius: 12px;
+  .flippenator { display: flex; align-items: center; gap: clamp(4px,2cqw,14px); }
+  .flipPlank { flex: 0 0 auto; width: clamp(52px,17cqw,108px); height: clamp(38px,12cqw,76px); border-radius: 12px;
     background: linear-gradient(160deg, #b3814a, #8a5f2f); display: flex; align-items: center; justify-content: center;
     box-shadow: inset 0 2px 5px rgba(0,0,0,.28); }
-  .flipPlank .coin { width: 56px; height: 56px; font-size: 10.5px; margin: 0; }
-  .flipPlank .coin.spin { font-size: 20px; }
-  .flipBtn { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%; padding: 0;
-    font-size: 11px; font-weight: 800; letter-spacing: .5px; border: 2px solid #ddd; background: #f2f2f2; color: #bbb; }
+  .flipPlank .coin { width: clamp(28px,9cqw,56px); height: clamp(28px,9cqw,56px); font-size: clamp(5px,1.6cqw,10.5px); margin: 0; }
+  .flipPlank .coin.spin { font-size: clamp(10px,3cqw,20px); }
+  .flipBtn { flex: 0 0 auto; width: clamp(26px,8cqw,52px); height: clamp(26px,8cqw,52px); border-radius: 50%; padding: 0;
+    font-size: clamp(6px,1.7cqw,11px); font-weight: 800; letter-spacing: .5px; border: 2px solid #ddd; background: #f2f2f2; color: #bbb; }
   .flipBtn.active { border-color: var(--accent); background: var(--orange); color: #fff;
     cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
   @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
-  #shotClockNum { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
-  #shotClockWarn { font-size: 12.5px; font-weight: 700; margin-top: 3px; min-height: 16px; }
+  #shotClockNum { font-size: clamp(14px,4.7cqw,30px); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+  #shotClockWarn { font-size: clamp(8px,2cqw,12.5px); font-weight: 700; margin-top: 3px; min-height: 16px; max-width: 120px; }
   #shotClockPanel.urgent { animation: clockurgent 1s ease-in-out infinite; }
   #shotClockPanel.urgent #shotClockWarn { color: #a32d2d; }
   @keyframes clockurgent { 0%, 100% { background: #fff; } 50% { background: #fdeaea; } }
@@ -355,6 +356,16 @@
       <div id="boardwrap">
         <div id="boardTitle"><span class="flag">🏴‍☠️</span> Pastry Pirates</div>
         <svg id="board" viewBox="0 0 640 640"></svg>
+        <div id="flipPanel">
+          <div class="flippenator">
+            <div class="flipPlank"><div id="flipCoinWrap"><div class="coin wait">?</div></div></div>
+            <button id="flipBtn" class="flipBtn" type="button" disabled>FLIP</button>
+          </div>
+        </div>
+        <div id="shotClockPanel" style="display:none">
+          <div id="shotClockNum">30</div>
+          <div id="shotClockWarn" class="muted"></div>
+        </div>
       </div>
       <div style="margin-top:8px" class="windbox"><span id="roundLabel" class="muted"></span></div>
     </div>
@@ -362,17 +373,6 @@
     <div class="panel" id="captainsPanel">
       <h3>Captains</h3>
       <div id="players"></div>
-    </div>
-    <div class="panel" id="flipPanel">
-      <h3>Flippenator</h3>
-      <div class="flippenator">
-        <div class="flipPlank"><div id="flipCoinWrap"><div class="coin wait">?</div></div></div>
-        <button id="flipBtn" class="flipBtn" type="button" disabled>FLIP</button>
-      </div>
-    </div>
-    <div class="panel" id="shotClockPanel" style="display:none;text-align:center">
-      <div id="shotClockNum">30</div>
-      <div id="shotClockWarn" class="muted"></div>
     </div>
     <div class="panel" id="statsWrap" style="display:none">
       <h3>End of voyage</h3>
@@ -443,20 +443,27 @@ class Game{
           if(ox<0||oy<0||ox>=n||oy>=n||!this.valid.has(ox+","+oy)){this.rim.add(k);break;}
         }
       }
-      // quadrants flow CLOCKWISE (N arc carries you to its E end, E arc to its S end, etc.)
-      // a random rotation offset moves the 4 whirlpool drop-off points each game — kept
-      // separate from `deg` (the true geometric angle, still used for arrow rendering below)
-      const rotOffset=this.r()*360;
-      const cells=[...this.rim].map(k=>{
+      // quadrants flow CLOCKWISE (each arc carries you to its own clockwise-most end).
+      // Arc lengths are randomized per game (min 3 cells each, rest distributed randomly)
+      // instead of 4 fixed 90° slices, so the whirlpool layout — and how far a shortcut
+      // carries you — varies game to game; occasionally one arc spans nearly half the rim.
+      const sorted=[...this.rim].map(k=>{
         const [x,y]=k.split(",").map(Number);
-        const deg=(Math.atan2(y-cc,x-cc)*180/Math.PI+360)%360;
-        const rdeg=(deg+rotOffset)%360;
-        const q=Math.floor(((rdeg+45)%360)/90); // 0=E 1=S 2=W 3=N
-        let a=rdeg; if(q===0&&a>180)a-=360;
-        return {k,x,y,q,a,deg};
-      });
+        const deg=(Math.atan2(y-cc,x-cc)*180/Math.PI+360)%360; // true geometric angle, used for arrow rendering
+        return {k,x,y,deg};
+      }).sort((a,b)=>a.deg-b.deg);
+      const total=sorted.length,nArcs=4;
+      const startIdx=Math.floor(this.r()*total); // random rotation of the whole layout
+      const ring=sorted.slice(startIdx).concat(sorted.slice(0,startIdx));
+      const minLen=Math.min(3,Math.floor(total/nArcs));
+      const remaining=Math.max(0,total-minLen*nArcs);
+      const cuts=[0,1,2].map(()=>Math.floor(this.r()*(remaining+1))).sort((a,b)=>a-b);
+      const lens=[cuts[0],cuts[1]-cuts[0],cuts[2]-cuts[1],remaining-cuts[2]].map(e=>e+minLen);
+      const cells=[];
+      let idx=0;
+      for(let q=0;q<nArcs;q++)for(let i=0;i<lens[q];i++)cells.push({...ring[idx++],q});
       const heads={};
-      for(const c of cells)if(!heads[c.q]||c.a>heads[c.q].a)heads[c.q]=c;
+      for(const c of cells)heads[c.q]=c; // last cell in each arc is its clockwise-most end
       for(const c of cells)this.rimHead[c.k]=[heads[c.q].x,heads[c.q].y];
       this.rimCellInfo=cells; // kept for rendering flow arrows
     }
@@ -1088,7 +1095,7 @@ function drawBoard(){
   // Everything is drawn in a <g> translated to the dial's center, so all local coordinates are
   // relative to (0,0) — the needle's rotation pivot is then exactly "0px 0px", which stays correct
   // at any browser zoom level (an absolute px transform-origin drifted from the dial at non-100% zoom).
-  const sr=cell*.95,scx=W-sr-14,scy=W-sr-32;
+  const sr=cell*.95,scx=sr+14,scy=W-sr-32;
   const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`},svg);
   stormDial=el("circle",{cx:0,cy:0,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
   windLabels=[];
