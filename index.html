@@ -950,7 +950,7 @@ function buildPlayerRows(){
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18">
       <div class="prowTop">
         <span class="dot" style="background:${HEXCOL[i]}"></span>
-        <span class="pname">${NAMES[i]}<br><span class="who">${who}</span></span>
+        <span class="pname">${pn(i)}<br><span class="who">${who}</span></span>
         <span class="coins" id="coins${i}">🌕 –</span>
         <span class="crown" id="crown${i}"></span>
       </div>
@@ -1378,7 +1378,7 @@ function computeAwards(){
 function showStats(){
   $("statsWrap").style.display="";
   const w=game.winner;
-  const banner=w===null?"⏳ Nobody finished!":`👑 ${NAMES[w]} (${game.cfg.strategies[w]}) wins!`;
+  const banner=w===null?"⏳ Nobody finished!":`👑 ${pn(w)} (${game.cfg.strategies[w]}) wins!`;
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
   const {battles,fishCount,dist}=computeAwards();
   const award=(obj,label,icon,unit)=>{
@@ -1503,7 +1503,7 @@ function expireShotClock(){
     p.pos=[...game.home];
     game.ev({t:"shotclockskip",p:p.idx});
     liveRender();
-    netNarrate(`⏰ ${NAMES[p.idx]} took too long — sent back to port!`);
+    netNarrate(`⏰ ${pn(p.idx)} took too long — sent back to port!`);
     if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove();
   }
   stopShotClock();
@@ -1568,7 +1568,7 @@ function ask(msg,opts,colors){
     endReplay();
   }
   const seat=curSeat;
-  netNarrate(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
+  netNarrate(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   const isFlip=opts.length===1&&!!opts[0].flip;
   const base=seatLocal(seat)?localAsk(msg,opts,colors)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
@@ -1624,7 +1624,7 @@ async function fishCast(p,evt,label){
   const hold=Math.max(500,Math.min(1200,bd*1.0));
   if(p.strategy==="human"){
     setActor(p.idx);
-    await ask(label||`${NAMES[p.idx]}: cast your line — flip!`,[{label:"🎣 CAST!",value:1,flip:true}]);
+    await ask(label||`${pn(p.idx)}: cast your line — flip!`,[{label:"🎣 CAST!",value:1,flip:true}]);
   }
   netNarrate(`🎣 ${pn(p.idx)} casts a line…`);
   broadcastFlip("spin");
@@ -1665,9 +1665,9 @@ function pickCell(p,cells){
     endReplay();
   }
   setActor(p.idx);
-  netNarrate(p.idx===mySeat?"":`${NAMES[p.idx]} is choosing where to sail…`);
+  netNarrate(p.idx===mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
   const base=seatLocal(p.idx)?localPickCell(p,cells)
-    :remotePrompt(p.idx,{kind:"pick",cells,msg:`${NAMES[p.idx]}: click a highlighted square to sail (−1🌕)`});
+    :remotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
   const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{logDecision(c);return c;});
 }
@@ -1681,7 +1681,7 @@ function localPickCell(p,cells){
       r.addEventListener("click",()=>done(c));
       hs.push(r);
     }
-    panel(`<div class="apMsg">${NAMES[p.idx]}: click a highlighted square to sail (−1🌕)</div>
+    panel(`<div class="apMsg">${pn(p.idx)}: click a highlighted square to sail (−1🌕)</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
     $("apStay").onclick=()=>done(null);
   });
@@ -1715,7 +1715,7 @@ async function humanWind(p){
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
       opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
-      const v=await ask(`${NAMES[p.idx]}: the wind blows you toward an island!`,opts);
+      const v=await ask(`${pn(p.idx)}: the wind blows you toward an island!`,opts);
       if(turnExpired)return;
       if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});}
       else{
@@ -1839,7 +1839,7 @@ function battleAsk(p,o,msg,opts,colors){
   setActor(p.idx);
   const seat=p.idx;
   const isFlip=opts.length===1&&!!opts[0].flip;
-  netBroadcast(seat===mySeat?msg:`${NAMES[seat]} is deciding…`);
+  netBroadcast(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   let idxP;
   if(seatLocal(seat)){
     idxP=new Promise(res=>{
@@ -1856,7 +1856,7 @@ function battleAsk(p,o,msg,opts,colors){
       }
     });
   }else{
-    renderBattle(Object.assign({},o,{waiting:NAMES[seat].replace("Capt. ","")}));
+    renderBattle(Object.assign({},o,{waiting:pn(seat)}));
     idxP=remotePrompt(seat,{kind:"ask",msg,labels:opts.map(x=>x.label),
       colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>""),
       flip:isFlip,battle:battleSnapshot(o)});
@@ -1867,7 +1867,7 @@ function battleAsk(p,o,msg,opts,colors){
 // it's free, and a correct call earns a Spotter's Bounty (+1🌕) from the ship's
 // bank. Players MAY back their call with their own coin for a bigger prize.
 async function collectSideBets(att,def){
-  const bets=[],ns=i=>NAMES[i].replace("Capt. ","");
+  const bets=[],ns=pn;
   const spectators=game.players.filter(p=>p!==att&&p!==def&&!p.done);
   for(const s of spectators){
     if(s.strategy==="human"){
@@ -1919,7 +1919,7 @@ async function settleSideBets(bets,winSide){
 async function asyncBattle(att,def){
   const c=game.cfg,need=2;
   showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
-  await flash(`⚔️ ${NAMES[att.idx]} attacks ${NAMES[def.idx]}! First to ${need} points wins…`,Math.max(900,stepDelay()));
+  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()));
   if(c.powder)att.coins-=c.powder;
   game.battles++;
   const bets=await collectSideBets(att,def);
@@ -1927,7 +1927,7 @@ async function asyncBattle(att,def){
   const rounds=[];
   const hA=att.strategy==="human",hD=def.strategy==="human";
   let round=0;
-  const nm=i=>NAMES[i].replace("Capt. ","");
+  const nm=pn;
   const bd=(typeof stepDelay==="function")?stepDelay():500;
   const spin=Math.max(260,Math.min(650,bd*0.7));  // coin tumble time
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
@@ -2022,7 +2022,7 @@ async function asyncBattle(att,def){
     let mode;
     if(canCoins&&hasIng){
       if(lose.strategy==="human"){setActor(lose.idx);
-        mode=await ask(`${NAMES[lose.idx]}, you lost! Pay with…`,
+        mode=await ask(`${pn(lose.idx)}, you lost! Pay with…`,
           [{label:"5🌕",value:"coins"},{label:"a crate (winner picks)",value:"ing"}]);}
       else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
     }else if(hasIng)mode="ing";else mode="coins";
@@ -2031,7 +2031,7 @@ async function asyncBattle(att,def){
       let pick;
       const uniq=[...new Set(lose.ing)];
       if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
-        pick=await ask(`${NAMES[win.idx]}, choose your plunder!`,uniq.map(i=>({label:ilabel(i),value:i})));}
+        pick=await ask(`${pn(win.idx)}, choose your plunder!`,uniq.map(i=>({label:ilabel(i),value:i})));}
       else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
       lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabel(pick);
     }
@@ -2057,10 +2057,10 @@ async function humanTrade(p){
   const opps=game.tradeOpp(p).filter(q=>q.ing.length>0);
   if(!opps.length){await flash("No one has cargo to trade for.");return false;}
   const q=opps.length===1?opps[0]:
-    await ask("Parley with whom?",opps.map(o=>({label:NAMES[o.idx],value:o})).concat([{label:"Cancel",value:null}]),
+    await ask("Parley with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"Cancel",value:null}]),
       opps.map(o=>HEXCOL[o.idx]).concat([null]));
   if(!q)return false;
-  const want=await ask(`What do you want from ${NAMES[q.idx]}?`,
+  const want=await ask(`What do you want from ${pn(q.idx)}?`,
     [...new Set(q.ing)].map(i=>({label:ilabel(i),value:i})).concat([{label:"Cancel",value:null}]));
   if(!want)return false;
   // An offer is an ingredient, coins, or both together — sweeten a crate with a few coins on top.
@@ -2083,7 +2083,7 @@ async function humanTrade(p){
   let accept;
   if(q.strategy==="human"){
     setActor(q.idx);
-    accept=await ask(`${NAMES[q.idx]}: accept ${offerDisplay} for your ${ilabel(want)}?`,
+    accept=await ask(`${pn(q.idx)}: accept ${offerDisplay} for your ${ilabel(want)}?`,
       [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
   }else{
     // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare — unless
@@ -2107,7 +2107,7 @@ async function humanTrade(p){
       if(!humanFinishes&&p.coins>=shortfall){
         // counteroffer: name their price instead of flat refusal
         setActor(p.idx);
-        const deal=await ask(`${NAMES[q.idx]} scoffs — but counters: "${shortfall}🌕 more for my ${ilabel(want)}, take it or leave it."`,
+        const deal=await ask(`${pn(q.idx)} scoffs — but counters: "${shortfall}🌕 more for my ${ilabel(want)}, take it or leave it."`,
           [{label:`Pay ${shortfall}🌕 more`,value:true},{label:"Walk away",value:false}]);
         if(deal){
           q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
@@ -2123,14 +2123,14 @@ async function humanTrade(p){
       }
       game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
       liveRender();
-      await flash(humanFinishes?`${NAMES[q.idx]} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${NAMES[q.idx]} declines!`);
+      await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines!`);
       return true;
     }
   }
   if(!accept){
     game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
     liveRender();
-    await flash(`${NAMES[q.idx]} declines!`);
+    await flash(`${pn(q.idx)} declines!`);
     return true;
   }
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
@@ -2145,8 +2145,8 @@ async function humanTrade(p){
 async function wheelFish(p){
   // the captain who just handed off the ship's wheel casts a line while the new leader takes over
   setActor(p.idx);
-  await flash(`🧭 ${NAMES[p.idx]} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
-  await fishCast(p,"wheelfish",`🎣 ${NAMES[p.idx]}, fish as you pass the wheel — flip!`);
+  await flash(`🧭 ${pn(p.idx)} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
+  await fishCast(p,"wheelfish",`🎣 ${pn(p.idx)}, fish as you pass the wheel — flip!`);
 }
 async function humanAct(p){
   setActor(p.idx);
@@ -2162,14 +2162,14 @@ async function humanAct(p){
   if(!game.needs(p).length&&man(p.pos,game.home)<=1)
     opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
-  const v=await ask(`${NAMES[p.idx]}, choose your action:`,opts);
+  const v=await ask(`${pn(p.idx)}, choose your action:`,opts);
   if(turnExpired)return;
   stopShotClock(); // committing to an action ends the clock — dock/attack/trade/fish run unbounded
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock")await humanDock(p,port);
   else if(v==="attack"){
     const t=targets.length===1?targets[0]:
-      await ask("Attack whom?",targets.map(o=>({label:NAMES[o.idx],value:o})),targets.map(o=>HEXCOL[o.idx]));
+      await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})),targets.map(o=>HEXCOL[o.idx]));
     await asyncBattle(p,t);
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
@@ -2182,7 +2182,7 @@ async function humanTurn(p){
   game.ev({t:"turn",p:p.idx});
   liveRender();
   startShotClock(p);
-  await flash(`⛵ Ahoy, ${NAMES[p.idx]} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
+  await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
   if(turnExpired)return;
   const before=[...p.pos];
   await humanWind(p);
@@ -2197,7 +2197,7 @@ async function humanTurn(p){
     if(turnExpired)return;
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash("🌀 The trade winds sweep you around the rim!",1200);}}
-  }else await flash(`${NAMES[p.idx]}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`,1600);
+  }else await flash(`${pn(p.idx)}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`,1600);
   if(turnExpired)return;
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
@@ -2238,7 +2238,7 @@ async function botTurn(p){
       if(human&&p.coins>=5){
         p.lastOffer=game.round;
         setActor(human.idx);
-        const sell=await ask(`📯 ${NAMES[p.idx]} hails you: "Ahoy! 5🌕 for your ${ilabel(ing)} — what say ye?"`,
+        const sell=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! 5🌕 for your ${ilabel(ing)} — what say ye?"`,
           [{label:"Sell for 5🌕",value:true},{label:"Refuse",value:false}]);
         g.ev({t:"parley",a:p.idx,b:human.idx,offer:"5 coins",want:ing,ok:sell});
         if(sell){
@@ -2273,7 +2273,7 @@ async function botTurn(p){
 async function asyncBakeoff(A,B){
   const need=3;
   let a=0,d=0,round=0;
-  const nm=i=>NAMES[i].replace("Capt. ","");
+  const nm=pn;
   const bd=(typeof stepDelay==="function")?stepDelay():500;
   const spin=Math.max(260,Math.min(650,bd*0.7));
   const hold=Math.max(500,Math.min(1500,bd*1.1));
@@ -2333,10 +2333,10 @@ async function recipeDraftNet(){
     pending.push(p);
   }
   if(pending.length){
-    const msgFor=p=>`${NAMES[p.idx]}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
+    const msgFor=p=>`${pn(p.idx)}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
-    netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${NAMES[pending[0].idx]} is choosing a recipe…`);
+    netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`);
     const results={};
     const jobs=pending.map(p=>{
       setActor(p.idx);
@@ -2407,7 +2407,7 @@ async function liveResolveEndNet(){
   await writeMeta();
   await writeGameLog();
   liveRender();
-  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${NAMES[game.winner]} is the Best Baker in the Caribbean!`);
+  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} is the Best Baker in the Caribbean!`);
   if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"});
 }
 function writeMeta(){
@@ -2737,7 +2737,7 @@ function renderSeatList(seats){
     else if(isHost)label=`🤖 bot: <select data-seat="${i}" class="botsel">${BOT_STRATS.map(b=>`<option ${b===(s.strat||"pirate")?"selected":""}>${b}</option>`).join("")}</select>`;
     else label=`🤖 bot (${s.strat||"pirate"})`;
     html+=`<div class="seat ${me?"me":""}"><span class="dot" style="background:${HEXCOL[i]}"></span>
-      <span class="nm">${NAMES[i]} — ${label}</span></div>`;
+      <span class="nm">${pn(i)} — ${label}</span></div>`;
   }
   $("seatList").innerHTML=html;
   if(isHost){
