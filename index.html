@@ -1411,19 +1411,76 @@ function clearBubbles(){for(const k in bubbles){bubbles[k].remove();delete bubbl
 // Derived entirely from the event log (including each event's captured position snapshot),
 // so it works identically for live play, a host-reload replay, or scrubbing a finished game —
 // no separate live-only counters to keep in sync.
+// Walks the full event log once, tallying everything the superlative pool below might need.
+// Streak/battle-round events don't carry a separate "who flipped what" trail, so hottestStreak
+// is reconstructed here from every individual coin flip embedded in dock/fish/anchor/aground/
+// battle-round events, in chronological order.
 function computeAwards(){
-  const battles={},fishCount={},dist={};
-  game.players.forEach((p,i)=>{battles[i]=0;fishCount[i]=0;dist[i]=0;});
+  const n=game.players.length;
+  const mk=()=>Array(n).fill(0);
+  const battlesWon=mk(),battlesLost=mk(),timesAttacked=mk(),fishCount=mk(),dist=mk(),
+    trades=mk(),shotClockCount=mk(),longestBattle=mk(),hottestStreak=mk(),streak=mk();
+  const bump=(i,heads)=>{
+    if(i==null)return;
+    if(heads){streak[i]++;if(streak[i]>hottestStreak[i])hottestStreak[i]=streak[i];}
+    else streak[i]=0;
+  };
   let prevPos=game.players.map(()=>null);
   for(const e of game.events){
-    if(e.t==="battle"&&e.winner!=null)battles[e.winner]=(battles[e.winner]||0)+1;
-    if((e.t==="fish"||e.t==="wheelfish")&&e.heads)fishCount[e.p]=(fishCount[e.p]||0)+1;
+    if(e.t==="battle"){
+      if(e.winner!=null){battlesWon[e.winner]++;battlesLost[e.winner===e.a?e.d:e.a]++;}
+      timesAttacked[e.d]++;
+      const len=e.rounds.length;
+      if(len>longestBattle[e.a])longestBattle[e.a]=len;
+      if(len>longestBattle[e.d])longestBattle[e.d]=len;
+      for(const r of e.rounds){bump(e.a,!!r[0]);bump(e.d,!!r[1]);}
+    }
+    if(e.t==="fish"||e.t==="wheelfish"){if(e.heads)fishCount[e.p]++;bump(e.p,!!e.heads);}
+    if(e.t==="dock")bump(e.p,!!e.heads);
+    if(e.t==="anchor")bump(e.p,true);
+    if(e.t==="aground")bump(e.p,false);
+    if(e.t==="trade"){trades[e.a]++;trades[e.b]++;}
+    if(e.t==="shotclock"||e.t==="shotclockskip")shotClockCount[e.p]++;
     if(e.state)e.state.forEach((s,i)=>{
       if(prevPos[i])dist[i]+=Math.abs(s.pos[0]-prevPos[i][0])+Math.abs(s.pos[1]-prevPos[i][1]);
       prevPos[i]=s.pos;
     });
   }
-  return {battles,fishCount,dist};
+  return {battlesWon,battlesLost,timesAttacked,fishCount,dist,trades,shotClockCount,longestBattle,hottestStreak};
+}
+// Assigns every player exactly one superlative — walk the pool in "best stuff first" order,
+// each category claims its current top-scoring unclaimed player, so genuine standouts get the
+// flashy categories before anyone falls back to a flavor-only shoutout. Guarantees everyone
+// gets a card, including a not-so-flattering one if that's all that's left.
+function assignSuperlatives(){
+  const n=game.players.length,s=computeAwards();
+  const categories=[
+    {label:"Most battles won",icon:"⚔️",arr:s.battlesWon,unit:""},
+    {label:"Most fish caught",icon:"🎣",arr:s.fishCount,unit:""},
+    {label:"Farthest traveled",icon:"⛵",arr:s.dist,unit:" sq"},
+    {label:"Longest battle",icon:"🗡️",arr:s.longestBattle,unit:" rounds"},
+    {label:"Hottest streak",icon:"🔥",arr:s.hottestStreak,unit:" heads"},
+    {label:"Most attacked",icon:"🎯",arr:s.timesAttacked,unit:""},
+    {label:"Most trades struck",icon:"🤝",arr:s.trades,unit:""},
+    {label:"Most battles lost",icon:"💀",arr:s.battlesLost,unit:""},
+    {label:"Slowest to decide",icon:"🐌",arr:s.shotClockCount,unit:""},
+  ];
+  const claimedPlayer=new Set();
+  const result=new Array(n).fill(null);
+  for(const cat of categories){
+    if(claimedPlayer.size>=n)break;
+    let best=-1,bestScore=0;
+    for(let i=0;i<n;i++){
+      if(claimedPlayer.has(i))continue;
+      if(cat.arr[i]>bestScore){bestScore=cat.arr[i];best=i;}
+    }
+    if(best>=0){result[best]={label:cat.label,icon:cat.icon,value:bestScore,unit:cat.unit};claimedPlayer.add(best);}
+  }
+  const fallbacks=[{label:"Steady hand",icon:"🫡"},{label:"True to the crew",icon:"🧭"},
+    {label:"Kept the ship afloat",icon:"⚓"},{label:"Salt of the sea",icon:"🌊"}];
+  let fi=0;
+  for(let i=0;i<n;i++)if(!result[i])result[i]=fallbacks[fi++%fallbacks.length];
+  return result;
 }
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
 // a little celebration flourish, purely cosmetic (doesn't touch game state)
@@ -1445,26 +1502,16 @@ function showStats(){
   const w=game.winner;
   const banner=w===null?"⏳ Nobody finished!":`👑 ${pn(w)} (${game.cfg.strategies[w]}) wins!`;
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
-  const {battles,fishCount,dist}=computeAwards();
-  const award=(obj,label,icon,unit)=>{
-    const entries=Object.entries(obj).map(([i,v])=>[+i,v]).filter(([,v])=>v>0);
-    if(!entries.length)return "";
-    entries.sort((a,b)=>b[1]-a[1]);
-    const [topI,topV]=entries[0];
-    return `<div class="awardCard" style="border-color:${HEXCOL[topI]}">
-      <div class="awardIcon">${icon}</div>
-      <div class="awardLabel">${label}</div>
-      <div class="awardWinner" style="color:${HEXCOL[topI]}">${NAMES[topI].replace("Capt. ","")}</div>
-      <div class="awardValue">${topV}${unit||""}</div>
-    </div>`;
-  };
-  const awards=[
-    award(battles,"Most battles won","⚔️"),
-    award(fishCount,"Most fish caught","🎣"),
-    award(dist,"Farthest traveled","⛵"," sq"),
-  ].filter(Boolean).join("");
+  // one superlative per player — everyone gets a shoutout, not just the top 3 stats
+  const supers=assignSuperlatives();
+  const awards=game.players.map((p,i)=>`<div class="awardCard" style="border-color:${HEXCOL[i]}">
+      <div class="awardIcon">${supers[i].icon}</div>
+      <div class="awardLabel">${supers[i].label}</div>
+      <div class="awardWinner" style="color:${HEXCOL[i]}">${NAMES[i].replace("Capt. ","")}</div>
+      ${supers[i].value!=null?`<div class="awardValue">${supers[i].value}${supers[i].unit||""}</div>`:""}
+    </div>`).join("");
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
-    ${awards?`<div class="awardsRow">${awards}</div>`:""}
+    <div class="awardsRow">${awards}</div>
     <table>
     <tr><td>Rounds</td><td>${game.round}</td></tr>
     <tr><td>Battles</td><td>${game.battles} (attacker won ${game.battles?Math.round(100*game.attWins/game.battles):0}%)</td></tr>
