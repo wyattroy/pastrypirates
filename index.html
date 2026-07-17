@@ -2101,7 +2101,10 @@ async function humanTrade(p){
     const ingVal=give.ing?(game.needs(q).includes(give.ing)?7:2):0;
     const val=ingVal+give.coins;
     const bonus=game.cfg.tradeBonus?1:0;
-    accept=val+bonus>=cost;
+    // if what's on offer is something the bot needs and every island's stock of it is gone,
+    // this trade is the bot's only remaining way to ever get it — take the deal outright
+    const mustAcquire=give.ing&&game.needs(q).includes(give.ing)&&game.tokens[give.ing]===0;
+    accept=mustAcquire||val+bonus>=cost;
     if(!accept){
       const shortfall=Math.max(0,cost-bonus-ingVal);
       if(!humanFinishes&&p.coins>=shortfall){
@@ -2238,14 +2241,21 @@ async function botTurn(p){
       if(human&&p.coins>=5){
         p.lastOffer=game.round;
         setActor(human.idx);
-        const sell=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! 5🌕 for your ${ilabel(ing)} — what say ye?"`,
-          [{label:"Sell for 5🌕",value:true},{label:"Refuse",value:false}]);
-        g.ev({t:"parley",a:p.idx,b:human.idx,offer:"5 coins",want:ing,ok:sell});
-        if(sell){
+        const choice=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! 5🌕 for your ${ilabel(ing)} — what say ye?"`,
+          [{label:"Sell for 5🌕",value:"sell"},{label:"Counter",value:"counter"},{label:"Refuse",value:"refuse"}]);
+        let price=5,dealt=choice==="sell";
+        if(choice==="counter"){
+          const raises=[6,7,8,9,10].filter(n=>n<=p.coins);
+          const counterAmt=raises.length?await ask(`Counter — how much for your ${ilabel(ing)}?`,
+            raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:"Never mind",value:0}])):0;
+          if(counterAmt>0){price=counterAmt;dealt=true;} // the bot's only source is this trade, so it pays up if it can afford it
+        }
+        g.ev({t:"parley",a:p.idx,b:human.idx,offer:price+" coins",want:ing,ok:dealt});
+        if(dealt){
           human.ing.splice(human.ing.indexOf(ing),1);p.ing.push(ing);
-          p.coins-=5;human.coins+=5;g.trades++;
+          p.coins-=price;human.coins+=price;g.trades++;
           if(g.cfg.tradeBonus){p.coins++;human.coins++;}
-          g.ev({t:"trade",a:p.idx,b:human.idx,gave:"5 coins",got:ing,kind:"hail"});
+          g.ev({t:"trade",a:p.idx,b:human.idx,gave:price+" coins",got:ing,kind:"hail"});
         }
         await botBeat();
         break;
