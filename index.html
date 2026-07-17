@@ -835,7 +835,10 @@ class Game{
       if(this.tokens[ing]>0&&!p.ing.includes(ing)&&this.players.some(q=>q!==p&&this.needs(q).includes(ing))){
         if(this.doDock(p,port))return;}}
     if(port&&(this.cfg.unlimitedDock||!p.firstFlip.has(port))){if(this.doDock(p,port))return;}
-    if(p.coins<=1){const h=this.flip(p);
+    // fallback: fish regardless of purse size — otherwise a bot with nothing left to dock,
+    // trade, or attack for (its one remaining need fully depleted and unheld by anyone) just
+    // sits there forever, never taking any action at all
+    {const h=this.flip(p);
       if(h)p.coins+=2;else if(this.cfg.sardine)p.coins+=1;
       this.ev({t:"fish",p:p.idx,heads:h?1:0});}
   }
@@ -2355,10 +2358,9 @@ async function botTurn(p){
     if(g.tokens[port]>0&&!p.ing.includes(port)&&g.players.some(q=>q!==p&&g.needs(q).includes(port))){
       if(g.doDock(p,port)){await botBeat();return;}}}
   if(port&&(g.cfg.unlimitedDock||!p.firstFlip.has(port))){if(g.doDock(p,port)){await botBeat();return;}}
-  if(p.coins<=1){
-    await fishCast(p,"fish");
-    await botBeat();
-  }
+  // fallback: fish regardless of purse size — see the matching comment on the sim's takeTurn()
+  await fishCast(p,"fish");
+  await botBeat();
 }
 // The bakeoff gets the same scoreboard + flippenator treatment as a regular battle, just
 // without attacker/defender roles, broadsides, or spoils — just two finalists racing to `need`.
