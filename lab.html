@@ -256,6 +256,7 @@
         <label><span>Island size</span><select id="cfgIslandSize"><option value="tetris" selected>tetris (3–4)</option><option value="1,1">1×1</option><option value="2,2">2×2</option><option value="2,3">2×3</option></select></label>
         <label><span>Single dock per island</span><input type="checkbox" id="cfgSingleDock" checked></label>
         <label><span>Sardines (tails fish = 1c)</span><input type="checkbox" id="cfgSardine" checked></label>
+        <label><span>Unlimited dock flips (no re-dock rule)</span><input type="checkbox" id="cfgUnlimitedDock" checked></label>
         <label><span>Seed</span><input class="num3" type="number" id="cfgSeed" value="7"></label>
       </div>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
@@ -535,7 +536,7 @@ class Game{
   doDock(p,port){
     const ing=port,k=port; // ports are identified by ingredient name
     if(this.cfg.singleDock&&this.dockOccupiedBy(ing,p))return false;
-    if(p.firstFlip.has(k)&&p.dockedNow.has(k))return false;
+    if(!this.cfg.unlimitedDock&&p.firstFlip.has(k)&&p.dockedNow.has(k))return false;
     p.firstFlip.add(k);p.dockedNow.add(k);p.justDocked=true;
     if(this.flip(p)){
       if(this.tokens[ing]>0){this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
@@ -604,7 +605,7 @@ class Game{
     this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
     if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
       const port=this.adjPort(pl);
-      if(port&&!pl.firstFlip.has(port))this.doDock(pl,port);
+      if(port&&(this.cfg.unlimitedDock||!pl.firstFlip.has(port)))this.doDock(pl,port);
     }
     return win;
   }
@@ -674,7 +675,7 @@ class Game{
       const ing=port;
       if(this.tokens[ing]>0&&!p.ing.includes(ing)&&this.players.some(q=>q!==p&&this.needs(q).includes(ing))){
         if(this.doDock(p,port))return;}}
-    if(port&&!p.firstFlip.has(port)){if(this.doDock(p,port))return;}
+    if(port&&(this.cfg.unlimitedDock||!p.firstFlip.has(port))){if(this.doDock(p,port))return;}
     if(p.coins<=1){const h=this.flip(p);
       if(h)p.coins+=2;else if(this.cfg.sardine)p.coins+=1;
       this.ev({t:"fish",p:p.idx,heads:h?1:0});}
@@ -1772,7 +1773,7 @@ async function asyncBattle(att,def){
   await settleSideBets(bets,a>=need?"a":"d");
   if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
     const port=game.adjPort(pl);
-    if(port&&!pl.firstFlip.has(port)){
+    if(port&&(game.cfg.unlimitedDock||!pl.firstFlip.has(port))){
       if(pl.strategy==="human")await humanDock(pl,port);
       else{game.doDock(pl,port);liveRender();}
     }
@@ -1878,7 +1879,7 @@ async function wheelFish(p){
 async function humanAct(p){
   setActor(p.idx);
   const port=game.adjPort(p);
-  const canDock=port&&!(p.firstFlip.has(port)&&p.dockedNow.has(port))
+  const canDock=port&&(game.cfg.unlimitedDock||!(p.firstFlip.has(port)&&p.dockedNow.has(port)))
     &&!(game.cfg.singleDock&&game.dockOccupiedBy(port,p));
   const targets=game.adjOpp(p);
   const opts=[];
@@ -1989,7 +1990,7 @@ async function botTurn(p){
   if(port&&g.cfg.merchant&&(p.strategy==="trader"||p.strategy==="balanced")){
     if(g.tokens[port]>0&&!p.ing.includes(port)&&g.players.some(q=>q!==p&&g.needs(q).includes(port))){
       if(g.doDock(p,port)){await botBeat();return;}}}
-  if(port&&!p.firstFlip.has(port)){if(g.doDock(p,port)){await botBeat();return;}}
+  if(port&&(g.cfg.unlimitedDock||!p.firstFlip.has(port))){if(g.doDock(p,port)){await botBeat();return;}}
   if(p.coins<=1){
     await fishCast(p,"fish");
     await botBeat();
@@ -2193,7 +2194,7 @@ function readCfg(){
     dockBuy:$("cfgDockBuy").checked,merchant:$("cfgMerchant").checked,parley:$("cfgParley").checked,
     tradeBonus:$("cfgTradeBonus").checked,asym:$("cfgAsym").checked,rotate:$("cfgRotate").checked,
     storm:+$("cfgStorm").value,islandW:iw,islandH:ih,tetris,singleDock:$("cfgSingleDock").checked,
-    sardine:$("cfgSardine").checked,roundBoard:true,strategies};
+    sardine:$("cfgSardine").checked,unlimitedDock:$("cfgUnlimitedDock").checked,roundBoard:true,strategies};
 }
 function buildPlayerRowsIfNeeded(){
   const np=+$("cfgPlayers").value;
@@ -2293,7 +2294,7 @@ function applyPreset(vals){
 const DEFAULTS={cfgPlayers:4,cfgGrid:15,cfgIslands:7,cfgRecipe:5,
   cfgCrates:-1,cfgCoins:3,cfgPowder:2,cfgBroadside:"paid",cfgDockBuy:true,cfgMerchant:true,
   cfgParley:true,cfgTradeBonus:true,cfgAsym:false,cfgRotate:true,cfgStorm:"0.125",
-  cfgIslandSize:"tetris",cfgSingleDock:true,cfgSardine:true};
+  cfgIslandSize:"tetris",cfgSingleDock:true,cfgSardine:true,cfgUnlimitedDock:true};
 $("presetDefault").onclick=()=>applyPreset(DEFAULTS);
 
 /* ---------- boot ---------- */
