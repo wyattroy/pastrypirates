@@ -66,14 +66,16 @@
   .rulegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; font-size: 13.5px; }
   .rulegrid label { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 0; }
   .rulegrid label span { flex: 1; }
-  .player-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; }
+  .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; }
+  .prowTop { display: flex; align-items: center; gap: 8px; }
   .player-row .dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; border: 1.5px solid rgba(0,0,0,.35); }
   .player-row .pname { font-weight: bold; width: 118px; }
   .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
   .chips { display: flex; gap: 3px; flex-wrap: wrap; }
-  .chip { font-size: 22px; padding: 1px 5px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .8; }
+  .chip { font-size: 22px; padding: 1px 5px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
-  .chip.extra { opacity: 1; background: #fff6c0; border-color: #f5a623; }
+  .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
+  .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; margin: 2px 0 1px 24px; }
   .crown { font-size: 15px; }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
   #boardwrap { position: relative; width: 100%; max-width: min(820px, calc(100vh - 210px)); margin: 0 auto; }
@@ -939,11 +941,14 @@ function buildPlayerRows(){
     const who=s.id ? (i===mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||game.cfg.strategies[i]})`;
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18">
-      <span class="dot" style="background:${HEXCOL[i]}"></span>
-      <span class="pname">${NAMES[i]}<br><span class="who">${who}</span></span>
-      <span class="coins" id="coins${i}">🌕 –</span>
-      <span class="chips" id="chips${i}"></span>
-      <span class="crown" id="crown${i}"></span></div>`;
+      <div class="prowTop">
+        <span class="dot" style="background:${HEXCOL[i]}"></span>
+        <span class="pname">${NAMES[i]}<br><span class="who">${who}</span></span>
+        <span class="coins" id="coins${i}">🌕 –</span>
+        <span class="crown" id="crown${i}"></span>
+      </div>
+      <div class="prowRecipe" id="prowRecipe${i}"></div>
+      <span class="chips" id="chips${i}"></span></div>`;
   }
   $("players").innerHTML=html;
 }
@@ -1180,6 +1185,7 @@ function render(){
     $("coins"+i).textContent="🌕 "+st[i].coins;
     const hold=[...st[i].ing];
     if(spectator||i===mySeat){
+      $("prowRecipe"+i).textContent=`📜 ${recipeTitle(game.players[i].recipe)}`;
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
       const chips=game.players[i].recipe.map(ing=>{
         const k=hold.indexOf(ing);
