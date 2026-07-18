@@ -2,9 +2,9 @@
 
 A board game in development — plunder the Caribbean for baking ingredients, flip the gold bullion, and become the Best Baker in Barbados.
 
-**[▶️ Play online](https://YOUR_GITHUB_USERNAME.github.io/pastrypirates/)** — play with friends, each in their own browser over the internet (2–4 players, bots fill empty seats). Uses a free Firebase Realtime Database — see `ONLINE_SETUP.md` for the one-time setup.
+**[▶️ Play online](https://playpastrypirates.com/)** — play with friends, each in their own browser over the internet (2–4 players, bots fill empty seats). Uses a free Firebase Realtime Database — see `ONLINE_SETUP.md` for the one-time setup.
 
-**[🧪 Open the rules lab](https://YOUR_GITHUB_USERNAME.github.io/pastrypirates/lab.html)** — an interactive simulator where you can tweak every rule, watch bot games play out, scrub the timeline, and run 400-game balance checks.
+**[🧪 Open the rules lab](https://playpastrypirates.com/lab.html)** — an interactive simulator where you can tweak every rule, watch bot games play out, scrub the timeline, and run 400-game balance checks.
 
 ## What's here
 

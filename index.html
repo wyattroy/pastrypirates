@@ -3,6 +3,18 @@
 <head>
 <meta charset="utf-8">
 <title>Pastry Pirates on the Sugar Seas — Online</title>
+<meta name="description" content="A free browser pirate board game. Sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker in the Caribbean. Play online with friends — 2-4 players, bots fill empty seats.">
+<link rel="canonical" href="https://playpastrypirates.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pastry Pirates on the Sugar Seas">
+<meta property="og:description" content="A free browser pirate board game — sail, trade, battle, and bake your way to victory. Play online with friends, 2-4 players.">
+<meta property="og:url" content="https://playpastrypirates.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pastry Pirates on the Sugar Seas">
+<meta name="twitter:description" content="A free browser pirate board game — sail, trade, battle, and bake your way to victory. Play online with friends, 2-4 players.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Pastry Pirates on the Sugar Seas","url":"https://playpastrypirates.com/","description":"A free browser pirate board game — sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker.","genre":"Board Game","gamePlatform":"Web Browser","numberOfPlayers":"2-4","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏴‍☠️</text></svg>">
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
@@ -26,8 +38,12 @@
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
   @media (min-width: 900px) {
-    #layout { grid-template-columns: 1fr 300px;
-      grid-template-areas: "board captains" "board narration" "board stats"; }
+    #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
+      grid-template-areas: "board captains" "board narration" "board stats";
+      width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto;
+      align-items: start; }
+    #boardwrap { max-width: none !important; width: 100%; }
+    #footerRow { width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto; }
   }
   #flipPanel { position: absolute; bottom: 8px; right: 8px; z-index: 3; }
   #shotClockPanel { position: absolute; bottom: 8px; left: 8px; z-index: 3; }
@@ -43,20 +59,13 @@
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   button.primary:hover { filter: brightness(1.1); }
   button:disabled { opacity: .4; cursor: default; }
-  #footerRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+  #footerRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; align-items: flex-start;
     padding: 4px 14px 18px; }
   .footerBtn { font-family: inherit; font-size: 13px; padding: 6px 13px; border-radius: 7px; cursor: pointer;
-    text-decoration: none; display: inline-block; }
-  .footerLab { border: 1.5px solid var(--teal); color: var(--teal); font-weight: bold; background: #fff; }
-  .footerLab:hover { background: var(--sea); }
-  details.footerHow { border: 1.5px solid var(--teal); border-radius: 7px; background: #fff; padding: 0; }
-  details.footerHow summary { list-style: none; cursor: pointer; padding: 6px 13px; font-size: 13px;
-    font-weight: bold; color: var(--teal); }
-  details.footerHow summary::-webkit-details-marker { display: none; }
-  details.footerHow[open] summary { border-bottom: 1px solid var(--line); }
-  details.footerHow .rules { padding: 4px 13px 10px; max-width: 380px; }
-  .footerLog { border: 1.5px solid #4a7fa6; background: #eaf2f8; color: #355e7e; }
-  .footerLog:hover { background: #dcebf5; }
+    text-decoration: none; display: inline-block; border: 1.5px solid var(--teal); background: #fff;
+    color: var(--ink); }
+  .footerHow, .footerCredits, .footerLog { border: 1.5px solid #4a7fa6; background: #eaf2f8; color: #355e7e; }
+  .footerHow:hover, .footerCredits:hover, .footerLog:hover { background: #dcebf5; }
   .footerFeedback { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .footerFeedback:hover { background: #d9f1e5; }
   .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
@@ -68,15 +77,23 @@
   .rulegrid label { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 0; }
   .rulegrid label span { flex: 1; }
   .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; }
-  .prowTop { display: flex; align-items: center; gap: 8px; }
-  .player-row .dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; border: 1.5px solid rgba(0,0,0,.35); }
-  .player-row .pname { font-weight: bold; width: 118px; }
-  .player-row .coins { width: 52px; text-align: right; font-variant-numeric: tabular-nums; display: inline-block; }
-  .chips { display: flex; gap: 3px; flex-wrap: wrap; }
-  .chip { font-size: 22px; padding: 1px 5px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
+  /* fixed dot/name/coins columns (same template on every row's own grid) keep money and hold
+     aligned across all captains regardless of name length or how many ingredients they're holding */
+  .prowTop, .prowRecipeRow { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px; align-items: center; }
+  .prowRecipeRow { margin-bottom: 2px; }
+  .prowRecipeRow:has(.prowRecipe:empty) { display: none; }
+  .player-row .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35); }
+  .player-row .pname { font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
+  .pnameInner { display: inline-block; }
+  .pname.marquee .pnameInner { animation: pnamescroll 9s ease-in-out infinite; }
+  @keyframes pnamescroll { 0%, 11% { transform: translateX(0); } 44%, 66% { transform: translateX(calc(-1 * var(--scrollDist, 0px))); } 100% { transform: translateX(0); } }
+  .coinsWrap { display: flex; align-items: center; gap: 3px; }
+  .player-row .coins { font-variant-numeric: tabular-nums; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; grid-column: 4; }
+  .chip { font-size: 16px; padding: 1px 4px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
-  .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; margin: 2px 0 1px 24px; }
+  .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; grid-column: 4; }
   .crown { font-size: 15px; }
   .pulse { animation: rowpulse .5s ease; }
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
@@ -113,12 +130,15 @@
   .flipPlank { display: flex; align-items: center; justify-content: center; width: fit-content;
     border-radius: 12px; background: linear-gradient(160deg, #b3814a, #8a5f2f);
     padding: clamp(6px,2.4cqw,11px); box-shadow: inset 0 2px 5px rgba(0,0,0,.28); }
+  .flipPlank:has(#flipCoinWrap.active) { animation: plankglow 1s ease-in-out infinite; }
   #flipCoinWrap.coin { width: clamp(36px,13cqw,64px); height: clamp(36px,13cqw,64px);
     font-size: clamp(6px,1.9cqw,11px); margin: 0; }
   #flipCoinWrap.coin.spin { font-size: clamp(11px,3.5cqw,22px); }
   #flipCoinWrap.active { border-color: var(--accent); background: radial-gradient(#ffe1a0, #f5a623);
     color: #7a4a00; font-weight: 800; cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
   @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
+  @keyframes plankglow { 0%, 100% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 0 rgba(245,159,45,.65); }
+    50% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 14px rgba(245,159,45,0); } }
   /* ---- shot clock: a brass ship's gauge, left-aligned like a real instrument readout ---- */
   #shotClockPanel { background: linear-gradient(160deg, #8a5f2f, #5c3d1c); border: 2px solid #d9a84e;
     border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(8px,3cqw,14px);
@@ -278,7 +298,7 @@
 
     <div id="stepChoose" class="modalStep">
       <label class="nameLabel">Your captain name
-        <input type="text" id="pname" maxlength="18" placeholder="e.g. Wyatt"></label>
+        <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <div class="muted" style="font-size:12px;margin-top:-6px;margin-bottom:8px">🔍 Playtesting this build? Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
@@ -337,6 +357,56 @@
   </div>
 </div>
 
+<!-- ===================== HOW TO PLAY (modal) ===================== -->
+<div id="howToPlayModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:480px;text-align:left">
+    <div class="modalTitle" style="text-align:center">📖 How to play</div>
+    <div style="margin-top:14px;max-height:60vh;overflow-y:auto">
+      <h4>🎯 The goal</h4>
+      <p>Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga. First baker home wins!</p>
+      <h4>⚓ Setting sail</h4>
+      <p>Each captain gets a recipe map (5 ingredients), 3 gold coins, and a ship docked at the Isle of Tortuga. Each island holds only a few crates — when they're gone, they're gone.</p>
+      <h4>Your turn: wind → sail → act</h4>
+      <p><b>🌬️ Wind.</b> Every ship drifts 1 square with the wind (2 in a storm!). Moored ships are safe — if you docked last turn, sit at a berth, or are at the Isle of Tortuga, the wind can't push you into land. Otherwise, blown at an island you must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground and lose half your coins! The wind never blows you onto a full dock.</p>
+      <p><b>⛵ Sail.</b> Pay 1🌕 to move up to 3 squares (N/S/E/W). Sail past other ships, but don't end on one. No coins? You drift — better go fishing!</p>
+      <p><b>⚓ Act</b> — choose one:</p>
+      <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as you like and keep flipping. Ship's hold: you may take crates that aren't on your recipe — they make excellent trade bait...</p>
+      <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point), both heads cancel. Fire the broadside! Once per battle the attacker may pay 1🌕 to reflip one tails. Whoever's shooting downwind also gets one free reflip. Defend two heads in a row and you may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Win as the attacker and you seize the loser's square (ships swap places); if the attack is repelled, no one moves. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
+      <p><b>Parley</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
+      <p><b>Fish</b> — flip: heads nets 2🌕, tails... just a sardine (1🌕).</p>
+      <p><b>Start your bakery!</b> — at the Isle of Tortuga with your whole recipe? Declare victory! 🧁</p>
+      <h4>🌀 The trade winds</h4>
+      <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and you're instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
+      <h4>⛈️ Storms</h4>
+      <p>Roughly 1 in 10 rounds brews a storm: the wind spins and pushes everyone 2 squares, then spins again and pushes 2 more — you can still pay to dodge an island on either leg.</p>
+      <h4>⏰ The shot clock</h4>
+      <p>Take too long on your turn and you'll lose a random ingredient from your hold (or 5🌕 if you're out of ingredients) and miss the turn.</p>
+      <h4>👑 Winning</h4>
+      <p>When the first baker docks home, everyone else gets one last turn. If more than one makes it: BAKEOFF! Flip head-to-head, first to 3 points takes the crown.</p>
+      <p><i>May your flips be heads and your rivals be broke.</i></p>
+    </div>
+    <button class="primary big" id="btnCloseHow" type="button">Close</button>
+  </div>
+</div>
+
+<!-- ===================== CREDITS (modal) ===================== -->
+<div id="creditsModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalTitle">🎗️ Credits</div>
+    <div class="modalByline" style="text-align:left">
+      <p>Pastry Pirates is made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a> — thanks for playtesting!</p>
+      <p><b>Collaborators:</b><br>
+        <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a><br>
+        <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar Quaranto</a><br>
+        Robin Roy</p>
+      <p><b>Inspiration:</b><br>
+        <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a><br>
+        <a href="https://nuvux.nuvustudio.com/" target="_blank" rel="noopener">NuVu summer program board game class 2026</a></p>
+    </div>
+    <button class="primary big" id="btnCloseCredits" type="button">Close</button>
+  </div>
+</div>
+
 <!-- ===================== CAPTAIN'S LOG (modal) ===================== -->
 <div id="logModal" class="modalOverlay" style="display:none">
   <div class="modalCard" style="max-width:480px;text-align:left">
@@ -383,7 +453,6 @@
           <div id="shotClockSub">&nbsp;</div>
         </div>
       </div>
-      <div style="margin-top:8px" class="windbox"><span id="roundLabel" class="muted"></span></div>
     </div>
     <div id="actionPanel" style="display:none"></div>
     <div class="panel" id="captainsPanel">
@@ -396,30 +465,8 @@
     </div>
   </div>
   <div id="footerRow">
-    <a href="lab.html" target="_blank" rel="noopener" class="footerBtn footerLab">🧪 Open the Lab ↗</a>
-    <details class="footerBtn footerHow">
-      <summary>📖 How to play</summary>
-      <div class="rules" style="margin-top:8px;text-align:left">
-        <h4>🎯 The goal</h4>
-        <p>Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga. First baker home wins!</p>
-        <h4>⚓ Setting sail</h4>
-        <p>Each captain gets a recipe map (5 ingredients), 3 gold coins, and a ship docked at the Isle of Tortuga. Each island holds only a few crates — when they're gone, they're gone.</p>
-        <h4>Your turn: wind → sail → act</h4>
-        <p><b>🌬️ Wind.</b> Every ship drifts 1 square with the wind (2 in a storm!). Moored ships are safe — if you docked last turn, sit at a berth, or are at the Isle of Tortuga, the wind can't push you into land. Otherwise, blown at an island you must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground and lose half your coins! The wind never blows you onto a full dock.</p>
-        <p><b>⛵ Sail.</b> Pay 1🌕 to move up to 3 squares (N/S/E/W). Sail past other ships, but don't end on one. No coins? You drift — better go fishing!</p>
-        <p><b>⚓ Act</b> — choose one:</p>
-        <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as you like and keep flipping. Ship's hold: you may take crates that aren't on your recipe — they make excellent trade bait...</p>
-        <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point), both heads cancel. Fire the broadside! Once per battle the attacker may pay 1🌕 to reflip one tails. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Win as the attacker and you seize the loser's square (ships swap places); if the attack is repelled, no one moves. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
-        <p><b>Parley</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
-        <p><b>Fish</b> — flip: heads nets 2🌕, tails... just a sardine (1🌕).</p>
-        <p><b>Start your bakery!</b> — at the Isle of Tortuga with your whole recipe? Declare victory! 🧁</p>
-        <h4>🌀 The trade winds</h4>
-        <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and you're instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
-        <h4>👑 Winning</h4>
-        <p>When the first baker docks home, everyone else gets one last turn. If more than one makes it: BAKEOFF! Flip head-to-head, first to 3 points takes the crown.</p>
-        <p><i>May your flips be heads and your rivals be broke.</i></p>
-      </div>
-    </details>
+    <button id="btnShowHow" class="footerBtn footerHow" type="button">📖 How to play</button>
+    <button id="btnShowCredits" class="footerBtn footerCredits" type="button">🎗️ Credits</button>
     <button id="btnShowLog" class="footerBtn footerLog" type="button">📜 Captain's log</button>
     <button id="btnShowFeedback" class="footerBtn footerFeedback" type="button">💬 Feedback</button>
     <button id="btnLeave" class="footerBtn footerLeave" type="button">🚪 Leave game</button>
@@ -446,7 +493,7 @@ const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
-const NAMES=["Capt. Crumble","Capt. Biscotti","Capt. Gingersnap","Capt. Shortbread"];
+const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
 const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
@@ -902,7 +949,7 @@ function roundCfg(strategies){
   const np=strategies.length;
   return {grid:15,nIslands:7,recipeSize:5,crates:Math.max(1,np-1),startCoins:3,
     powder:2,broadside:"paid",dockBuy:true,merchant:true,parley:true,tradeBonus:true,
-    asym:false,rotate:true,storm:0.125,islandW:2,islandH:2,tetris:true,singleDock:true,
+    asym:false,rotate:true,storm:0.10,islandW:2,islandH:2,tetris:true,singleDock:true,
     sardine:true,roundBoard:true,unlimitedDock:true,strategies};
 }
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -977,17 +1024,25 @@ function buildPlayerRows(){
     const s=(roster&&roster[i])||{};
     const who=s.id ? (i===mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||game.cfg.strategies[i]})`;
-    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18">
+    const displayName=s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
+    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18" title="${who}">
+      <div class="prowRecipeRow"><span class="prowRecipe" id="prowRecipe${i}"></span></div>
       <div class="prowTop">
         <span class="dot" style="background:${HEXCOL[i]}"></span>
-        <span class="pname">${pn(i)}<br><span class="who">${who}</span></span>
-        <span class="coins" id="coins${i}">🌕 –</span>
-        <span class="crown" id="crown${i}"></span>
-      </div>
-      <div class="prowRecipe" id="prowRecipe${i}"></div>
-      <span class="chips" id="chips${i}"></span></div>`;
+        <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
+        <span class="coinsWrap"><span class="coins" id="coins${i}">🌕 –</span><span class="crown" id="crown${i}"></span></span>
+        <span class="chips" id="chips${i}"></span>
+      </div></div>`;
   }
   $("players").innerHTML=html;
+  // names have a fixed column width to keep coins/hold aligned across every row — a name that
+  // overflows it scrolls instead of blowing out the layout or truncating unreadably
+  for(let i=0;i<game.players.length;i++){
+    const wrap=$("pname"+i),inner=wrap&&wrap.firstElementChild;
+    if(!wrap||!inner)continue;
+    const overflow=inner.scrollWidth-wrap.clientWidth;
+    if(overflow>0){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
+  }
 }
 
 /* ---------- board rendering ---------- */
@@ -1174,7 +1229,7 @@ function fl(h){return h?"⚪H":"⚫T";}
 function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+iname(x);}
 function describe(e){
   switch(e.t){
-    case "newround":return {cls:"roundhdr",txt:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]}${e.storm?" ⛈️ STORM!":""} —`};
+    case "newround":return {cls:"roundhdr",txt:e.storm?`— Round ${e.round}: ⛈️ STORM! Wind blows ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]} —`:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]} —`};
     case "windmove":return {txt:`${pn(e.p)} drifts with the wind`};
     case "sail":return {txt:`${pn(e.p)} pays 1🌕 and sails`};
     case "dodge":return {txt:`${pn(e.p)} pays 1🌕 to dodge an island`};
@@ -1197,11 +1252,12 @@ function describe(e){
       const aP=e.rounds.filter(r=>r[0]&&!r[1]).length,dP=e.rounds.filter(r=>r[1]&&!r[0]).length;
       const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
       return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`};}
+    case "battleflee":return {cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.d)} holds the line twice, pays 1🌕 and flees!`};
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "wheelfish":return {txt:`🧭 ${pn(e.p)} passes the ship's wheel and fishes — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`};
     case "shotclock":return {cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`};
-    case "shotclockskip":return {cls:"roundhdr",txt:`⏰ ${pn(e.p)} took too long and walks the plank — sent back to port!`};
+    case "shotclockskip":return {cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} took too long — loses ${ilabel(e.ing)} and misses the turn!`:`⏰ ${pn(e.p)} took too long — loses ${e.coins}🌕 and misses the turn!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
     case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
     case "turn":return null;
@@ -1293,7 +1349,6 @@ function render(){
     spinNeedle.setAttribute("fill",storming?"#ffd23f":"#d6337f");
     windLabels.forEach(t=>t.setAttribute("fill",storming?"#f4f6ff":"#1f4249"));
   }
-  $("roundLabel").textContent=`round ${e.round} · event ${evIdx+1}/${game.events.length}`;
   $("scrub").value=evIdx;
   renderLog();
   // end stats
@@ -1341,6 +1396,7 @@ function spawnPops(e){
       const sp=(e.spoil||"").includes("coin")?"💰":(e.spoil||"💰").split(" ")[0];
       popEmoji(...at(e.winner),sp||"💰");
       break;}
+    case "battleflee":popEmoji(...at(e.d),"🏃");break;
     case "fish":case "wheelfish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
     case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
@@ -1371,6 +1427,7 @@ function captions(e){
     case "trade":return [[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]];
     case "battle":{const loser=e.winner===e.a?e.d:e.a;
       return [[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]];}
+    case "battleflee":return [[e.d,"🏃 flees! −1🌕"]];
     case "fish":case "wheelfish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
     case "finish":return [[e.p,"🏁 recipe done!"]];
     case "bakeoff":return [[e.winner,"🧁 wins the bakeoff!"]];
@@ -1380,7 +1437,7 @@ function captions(e){
 }
 function anchorFor(e){
   switch(e.t){
-    case "trade":case "battle":case "parley":return e.a;
+    case "trade":case "battle":case "battleflee":case "parley":return e.a;
     case "bakeoff":case "end":return e.winner;
     case "newround":case "turn":return null;
     default:return typeof e.p==="number"?e.p:null;
@@ -1533,9 +1590,6 @@ let inBattlePrompt=false;      // this client owns the active battle decision �
 // without needing a special case here.
 let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
 let shotClockFired={}, turnExpired=false, clockState=null;
-// where the currently-clocked player's turn (or wheel-pass fish) began — expireShotClock()
-// sends them back here on a timeout, instead of the literal Isle of Tortuga tile
-let turnStartPos=null;
 // localPickCell() registers its own highlight-cleanup here; a forced shot-clock timeout
 // resolves pickCell()'s outer wrapped promise but never touches this inner one, so without
 // this the highlighted sail-destination squares are left stuck on the board forever
@@ -1632,10 +1686,19 @@ function expireShotClock(){
   if(shotClockForce){shotClockForce();shotClockForce=null;}
   if(activePickCleanup){activePickCleanup();activePickCleanup=null;}
   if(p){
-    p.pos=[...(turnStartPos||game.home)];
-    game.ev({t:"shotclockskip",p:p.idx});
+    let lost;
+    if(p.ing.length){
+      const idx=Math.floor(game.r()*p.ing.length);
+      lost=p.ing.splice(idx,1)[0];
+      game.ev({t:"shotclockskip",p:p.idx,ing:lost});
+      netNarrate(`⏰ ${pn(p.idx)} took too long — loses ${ilabel(lost)} and misses the turn!`);
+    }else{
+      const take=Math.min(5,p.coins);
+      p.coins-=take;
+      game.ev({t:"shotclockskip",p:p.idx,coins:take});
+      netNarrate(`⏰ ${pn(p.idx)} took too long — loses ${take}🌕 and misses the turn!`);
+    }
     liveRender();
-    netNarrate(`⏰ ${pn(p.idx)} took too long — sent back to port!`);
     if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove();
   }
   stopShotClock();
@@ -1845,12 +1908,13 @@ function remotePickHighlights(cells,promptId){
     <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
   $("apStay").onclick=()=>done(null);
 }
-async function humanWind(p){
-  setActor(p.idx);
-  const d=DIRS[game.windNow],dist=game.stormNow?2:1;
+// one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
+// storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
+async function windLeg(p,dirKey,dist){
+  const d=DIRS[dirKey];
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
-    if(game.blocked(nx))break;
+    if(game.blocked(nx))return;
     if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});liveRender();return;}
     if(game.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
       game.ev({t:"moored",p:p.idx});liveRender();return; // another ship holds that square — wind stops short
@@ -1879,6 +1943,16 @@ async function humanWind(p){
     }
   }
   game.ev({t:"windmove",p:p.idx});liveRender();
+}
+async function humanWind(p){
+  setActor(p.idx);
+  await windLeg(p,game.windNow,game.stormNow?2:1);
+  if(turnExpired)return;
+  if(game.stormNow){
+    await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
+    if(turnExpired)return;
+    await windLeg(p,game.windNow2,2);
+  }
 }
 async function humanDock(p,port){
   setActor(p.idx);
@@ -1984,9 +2058,9 @@ function battleAsk(p,o,msg,opts,colors){
   setActor(p.idx);
   const seat=p.idx;
   const isFlip=opts.length===1&&!!opts[0].flip;
-  // only the yes/no decisions (e.g. the broadside reflip) get clock coverage — a forced
-  // timeout on the flip button itself would leave the flippenator UI stuck mid-click
-  if(!isFlip)armClock(seat);
+  // every battle decision — flip or yes/no — re-arms the clock to whoever's actually
+  // being asked, same as ask(); a forced timeout just resolves to the flip itself
+  armClock(seat);
   netBroadcast(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   let idxP;
   if(seatLocal(seat)){
@@ -2009,7 +2083,7 @@ function battleAsk(p,o,msg,opts,colors){
       colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>""),
       flip:isFlip,battle:battleSnapshot(o)});
   }
-  const wrapped=isFlip?idxP:withShotClock(seat,idxP,opts.length-1);
+  const wrapped=withShotClock(seat,idxP,opts.length-1);
   return wrapped.then(i=>{logDecision(i);return opts[i].value;});
 }
 // The Lookout's Call: every spectator MUST call a winner from the crow's nest —
@@ -2073,6 +2147,16 @@ async function asyncBattle(att,def){
   game.battles++;
   const bets=await collectSideBets(att,def);
   let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
+  // wind advantage: whoever's shooting downwind gets one free reflip, independent of the paid one above
+  let freeA=false,freeD=false;
+  {
+    const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
+    const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
+    const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
+    if(game.windNow===dirAtoD)freeA=true;
+    else if(game.windNow===dirDtoA)freeD=true;
+  }
+  let defCancels=0,fled=false;
   const rounds=[];
   const hA=att.strategy==="human",hD=def.strategy==="human";
   let round=0;
@@ -2125,19 +2209,20 @@ async function asyncBattle(att,def){
       ah=await bFlip("a",att,{dfState:"wait"});
     }
     renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
-    // ---- broadside reflip on a tails ----
-    if(!ah&&(free||(paid&&att.coins>=1))){
+    // ---- broadside reflip(s) on a tails — a downwind attacker's free wind reflip can chain
+    // straight into the paid one if it's still tails ----
+    while(!ah&&(freeA||free||(paid&&att.coins>=1))){
+      const useFree=freeA;
       let use=true;
       if(hA)use=await battleAsk(att,base({atState:"T",dfState:"wait",live:"a"}),
-        paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?",
+        useFree?"Tails! The wind's at your back — free reflip?":(paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?"),
         [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
-      if(use){
-        if(paid)att.coins--;
-        if(hA){ah=await hFlip("a",att,"🔥 Broadside — reflip!",{atBs:true,dfState:"wait"});}
-        else{ah=await bFlip("a",att,{atBs:true,dfState:"wait",result:"🔥 Broadside — reflip!"});}
-        bs=true;free=false;paid=false;
-        renderBattle(base({atState:ah?"H":"T",atBs:true,dfState:"wait",live:"a"}));
-      }else if(!hA){free=false;paid=false;}
+      if(!use)break;
+      if(useFree)freeA=false;else{if(paid)att.coins--;free=false;paid=false;}
+      if(hA){ah=await hFlip("a",att,"🔥 Broadside — reflip!",{atBs:true,dfState:"wait"});}
+      else{ah=await bFlip("a",att,{atBs:true,dfState:"wait",result:"🔥 Broadside — reflip!"});}
+      bs=true;
+      renderBattle(base({atState:ah?"H":"T",atBs:true,dfState:"wait",live:"a"}));
     }
     // ---- suspense: hand it to the defender ----
     await sleep(beat*0.6);
@@ -2150,17 +2235,51 @@ async function asyncBattle(att,def){
     }else{
       dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
+    // ---- a downwind defender's free reflip ----
+    if(!dh&&freeD){
+      let use=true;
+      if(hD)use=await battleAsk(def,base({atState:ah?"H":"T",atBs:bs,dfState:"T",live:"d"}),
+        "Tails! The wind's at your back — free reflip?",
+        [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
+      if(use){
+        freeD=false;
+        if(hD){dh=await hFlip("d",def,"🔥 Free reflip!",{atState:ah?"H":"T",atBs:bs});}
+        else{dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs,result:"🔥 Free reflip!"});}
+        renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:dh?"H":"T",live:"d"}));
+      }
+    }
     // ---- resolve the round ----
     rounds.push([ah?1:0,dh?1:0,bs?1:0]);
     let scorer=null,rmsg;
-    if(ah&&dh){rmsg=`<span class="cancel">Both fire HEADS — cannonballs collide, no damage.</span>`;}
+    if(ah&&dh){defCancels++;rmsg=`<span class="cancel">Both fire HEADS — cannonballs collide, no damage.</span>`;}
     else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(att.idx)} lands a hit! +1</span>`;}
     else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(def.idx)} lands a hit! +1</span>`;}
     else{rmsg=`<span class="cancel">Both miss — TAILS all round, no damage.</span>`;}
     renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
     await sleep(hold);
+    // ---- defender's flee: after holding the line twice (2 head-to-head cancels), pay 1🌕 to bail ----
+    if(defCancels>=2&&def.coins>=1){
+      const cells=reachable(def,3);
+      if(cells.length){
+        let flee;
+        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: you've held the line twice! Pay 1🌕 to flee the battle?`,
+          [{label:"🏃 Flee! (−1🌕)",value:true},{label:"Keep fighting",value:false}]);}
+        else flee=d<a; // bots flee a losing fight, press on if ahead or even
+        if(flee){
+          def.coins--;
+          const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
+          if(dest){def.pos=dest;game.tradewind(def);}
+          for(const bet of bets)game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
+          fled=true;
+          game.ev({t:"battleflee",a:att.idx,d:def.idx,rounds});
+          liveRender();
+          break;
+        }
+      }
+    }
   }
   panel("");
+  if(fled)return;
   const win=a>=need?att:def,lose=a>=need?def:att;
   if(win===att)game.attWins++;
   let spoil;
@@ -2297,7 +2416,6 @@ async function humanTrade(p){
 async function wheelFish(p){
   // the captain who just handed off the ship's wheel casts a line while the new leader takes over
   setActor(p.idx);
-  turnStartPos=[...p.pos];
   await flash(`🧭 ${pn(p.idx)} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
   await fishCast(p,"wheelfish",`🎣 ${pn(p.idx)}, fish as you pass the wheel — flip!`);
   stopShotClock();
@@ -2334,10 +2452,9 @@ async function humanAct(p){
 }
 async function humanTurn(p){
   setActor(p.idx);
-  turnStartPos=[...p.pos];
   game.ev({t:"turn",p:p.idx});
   liveRender();
-  await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?" — ⛈️ STORM! It pushes everyone 2 squares":""}.`,1500);
+  await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
@@ -2367,6 +2484,7 @@ async function botTurn(p){
   await botBeat();
   const before=[...p.pos];
   g.windPush(p,DIRS[g.windNow],g.stormNow?2:1);
+  if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2);
   p.justDocked=false;
   // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
   // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
@@ -2532,7 +2650,8 @@ async function runLiveNet(){
     }
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=game.r()<game.cfg.storm;
-    game.ev({t:"newround",dir:game.windNow});liveRender();
+    game.windNow2=game.stormNow?"NSEW"[Math.floor(game.r()*4)]:null;
+    game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
     await flash(describe(game.events[game.events.length-1]).txt,900);
@@ -2787,8 +2906,7 @@ function showStep(id){
 }
 function requireName(){
   const v=($("pname").value||"").trim();
-  if(!v){alert("Enter your captain name first.");return null;}
-  return v.slice(0,18);
+  return v?v.slice(0,40):"Davy Scones";
 }
 function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;showStep("stepSolo");};
@@ -2798,7 +2916,7 @@ function wireWelcome(){
   $("btnSolo").onclick=startSinglePlayer;
 }
 function startSinglePlayer(){
-  const name=requireName()||"Captain";
+  const name=requireName();
   const opp=+$("soloOpp").value;
   const strategies=["human"];
   for(let i=0;i<opp;i++)strategies.push(BOT_STRATS[i%BOT_STRATS.length]);
@@ -2839,10 +2957,11 @@ function showRoom(){
 function showGameView(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="none";
   $("game").style.display="";$("game").classList.remove("bg-blurred");
+  syncBoardSizing();
 }
 
 async function createRoom(){
-  const name=($("pname").value||"Captain").trim().slice(0,18);
+  const name=($("pname").value||"").trim().slice(0,40)||"Davy Scones";
   numSeats=+$("numSeats").value;
   const code=genCode();
   const seats={0:{name,id:myId,bot:false}};
@@ -2852,7 +2971,7 @@ async function createRoom(){
   saveSession();showRoom();watchRoom();
 }
 async function joinRoom(){
-  const name=($("pname").value||"Captain").trim().slice(0,18);
+  const name=($("pname").value||"").trim().slice(0,40)||"Davy Scones";
   const code=($("joinCode").value||"").toUpperCase().trim();
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   const snap=await db.ref("rooms/"+code).get();
@@ -2957,14 +3076,18 @@ function leaveGame(){clearSession();location.reload();}
 
 /* ================= boot ================= */
 function wireLobby(){
-  $("btnCreate").onclick=()=>{if(!($("pname").value||"").trim()){alert("Enter your captain name first.");return;}createRoom();};
-  $("btnJoin").onclick=()=>{if(!($("pname").value||"").trim()){alert("Enter your captain name first.");return;}joinRoom();};
+  $("btnCreate").onclick=()=>{createRoom();};
+  $("btnJoin").onclick=()=>{joinRoom();};
   $("btnStart").onclick=()=>{$("startConfirmModal").style.display="flex";};
   $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
   $("btnLeave").onclick=leaveGame;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
   $("btnCloseLog").onclick=()=>{$("logModal").style.display="none";};
+  $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
+  $("btnCloseHow").onclick=()=>{$("howToPlayModal").style.display="none";};
+  $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
+  $("btnCloseCredits").onclick=()=>{$("creditsModal").style.display="none";};
   $("btnShowFeedback").onclick=()=>{$("feedbackModal").style.display="flex";};
   $("btnCloseFeedback").onclick=()=>{$("feedbackModal").style.display="none";};
   $("btnSendFeedback").onclick=()=>{
@@ -2995,11 +3118,30 @@ async function resumeHostGame(r){
   replaying=true;
   beginGame(r.cfg,r.seed);
 }
+// Wide-screen sizing: the board+captains/narration block is square-board-driven (sidebar pegged
+// at half the board's width) and fit to WHICHEVER of the page's width or height is tighter, so a
+// wide-short screen doesn't leave the board stranded small with huge unused side margins, and a
+// tall-narrow screen doesn't push the footer below the fold. Board+footer are floored at 600px.
+function syncBoardSizing(){
+  const root=document.documentElement;
+  if(window.innerWidth<900){root.style.removeProperty("--boardW");root.style.removeProperty("--sideW");return;}
+  const footerH=($("footerRow")||{}).offsetHeight||0;
+  const chromeH=28+14+footerH; // #game top/bottom padding + layout gap + footer height
+  const heightBudget=window.innerHeight-chromeH;
+  const widthBudget=(window.innerWidth-28-14)/1.5; // #game side padding + board/sidebar gap, sidebar=0.5*board
+  const boardH=Math.max(600,Math.min(heightBudget,widthBudget));
+  root.style.setProperty("--boardW",boardH+"px");
+  root.style.setProperty("--sideW",Math.round(boardH/2)+"px");
+}
+let syncBoardRAF=null;
+window.addEventListener("resize",()=>{if(syncBoardRAF)return;syncBoardRAF=requestAnimationFrame(()=>{syncBoardRAF=null;syncBoardSizing();});});
+window.addEventListener("orientationchange",syncBoardSizing);
 function boot(){
   myId=getMyId();
   renderDecorativeBoard();
   wireWelcome();
   showHome();
+  syncBoardSizing();
   const fbOk=fbInit();
   if(!fbOk){
     $("choiceHost").classList.add("disabled");
