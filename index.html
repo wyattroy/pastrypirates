@@ -86,7 +86,8 @@
   .rulegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; font-size: 13.5px; }
   .rulegrid label { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 0; }
   .rulegrid label span { flex: 1; }
-  .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; }
+  .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; border: 2px solid transparent; box-sizing: border-box; transition: border-color .25s ease, box-shadow .25s ease; }
+  .player-row.activeTurn { border-color: var(--rowcol, var(--accent)); box-shadow: 0 0 0 2px var(--rowcol, var(--accent)) inset, 0 0 6px rgba(0,0,0,.12); }
   /* fixed dot/name/coins columns (same template on every row's own grid) keep money and hold
      aligned across all captains regardless of name length or how many ingredients they're holding */
   .prowTop, .prowRecipeRow { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px; align-items: start; }
@@ -167,11 +168,14 @@
   #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
   #shotClockPanel.urgent #scLabel { color: #ff9b93; }
   #scRow { display: flex; align-items: baseline; gap: 4px; line-height: 1; margin: 1px 0; }
-  #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8; }
+  #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8;
+    display: inline-block; min-width: 2ch; }
   #shotClockPanel.urgent #shotClockNum { color: #ff8f86; }
-  #scUnit { font-size: clamp(7px,2.2cqw,12px); color: #e0c58f; }
+  /* reserve room for the widest label ("seconds"/"or lose your turn") so the panel doesn't
+     narrow when the idle state clears these to shorter placeholder text */
+  #scUnit { font-size: clamp(7px,2.2cqw,12px); color: #e0c58f; display: inline-block; min-width: 7ch; }
   #shotClockPanel.urgent #scUnit { color: #ff9b93; }
-  #shotClockSub { font-size: clamp(7px,2.2cqw,11px); color: #e0c58f; line-height: 1.2; }
+  #shotClockSub { font-size: clamp(7px,2.2cqw,11px); color: #e0c58f; line-height: 1.2; min-width: 18ch; }
   #shotClockPanel.urgent #shotClockSub { color: #ff9b93; }
   @keyframes clockurgent { 0%, 100% { box-shadow: 0 0 0 0 rgba(226,75,74,.65); } 50% { box-shadow: 0 0 0 9px rgba(226,75,74,0); } }
   .pips { display: flex; justify-content: center; gap: 6px; }
@@ -1031,8 +1035,8 @@ function buildPlayerRows(){
     const s=(roster&&roster[i])||{};
     const who=s.id ? (i===mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||game.cfg.strategies[i]})`;
-    const displayName=s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
-    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18" title="${who}">
+    const displayName=pname(i);
+    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
       <div class="prowTop">
         <span class="dot" style="background:${HEXCOL[i]}"></span>
         <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
@@ -1231,7 +1235,13 @@ function shipXY(pos,i,state){
 }
 
 /* ---------- event text ---------- */
-function pn(i){return `<b style="color:${HEXCOL[i]}">${NAMES[i].replace("Capt. ","")}</b>`;}
+// a claimed seat (roster[i].id truthy) always speaks under the name its captain typed in;
+// the default Capt. NAMES are only ever shown for unclaimed bot seats
+function pname(i){
+  const s=(roster&&roster[i])||{};
+  return s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
+}
+function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
 function fl(h){return h?"⚪H":"⚫T";}
 function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+iname(x);}
 function describe(e){
@@ -1319,21 +1329,25 @@ function render(){
     const lastEv=game.events[game.events.length-1];
     $("crown"+i).textContent=(lastEv.t==="end"&&lastEv.winner===i&&evIdx===game.events.length-1)?"👑":"";
   });
-  // active-player ring: whose turn is it as of this event?
+  // active-player ring + captain's-box highlight: whose turn is it as of this event?
+  let active=null;
+  for(let i=evIdx;i>=0&&i>evIdx-80;i--){
+    const t=game.events[i].t;
+    if(t==="turn"){active=game.events[i].p;break;}
+    if(t==="newround")break;
+  }
+  if(active!=null&&st[active].done)active=null;
   if(activeRing){
-    let active=null;
-    for(let i=evIdx;i>=0&&i>evIdx-80;i--){
-      const t=game.events[i].t;
-      if(t==="turn"){active=game.events[i].p;break;}
-      if(t==="newround")break;
-    }
-    if(active!=null&&!st[active].done){
+    if(active!=null){
       const [ax,ay]=shipXY(st[active].pos,active,st);
       activeRing.setAttribute("stroke",HEXCOL[active]);
       activeRing.style.transform=`translate(${ax}px,${ay}px)`;
       activeRing.setAttribute("opacity",1);
     }else activeRing.setAttribute("opacity",0);
   }
+  game.players.forEach((p,i)=>{
+    const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
+  });
   if(game.cfg.crates<1e9)for(const ing of game.ings){
     const remaining=e.tokens[ing];
     for(let idx=0;idx<game.cfg.crates;idx++){
@@ -1538,7 +1552,7 @@ function showStats(){
   const awards=game.players.map((p,i)=>`<div class="awardCard" style="border-color:${HEXCOL[i]}">
       <div class="awardIcon">${supers[i].icon}</div>
       <div class="awardLabel">${supers[i].label}</div>
-      <div class="awardWinner" style="color:${HEXCOL[i]}">${NAMES[i].replace("Capt. ","")}</div>
+      <div class="awardWinner" style="color:${HEXCOL[i]}">${pname(i)}</div>
       ${supers[i].value!=null?`<div class="awardValue">${supers[i].value}${supers[i].unit||""}</div>`:""}
     </div>`).join("");
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
@@ -1548,7 +1562,7 @@ function showStats(){
     <tr><td>Battles</td><td>${game.battles} (attacker won ${game.battles?Math.round(100*game.attWins/game.battles):0}%)</td></tr>
     <tr><td>Trades</td><td>${game.trades}</td></tr>
     <tr><td>Bakeoff</td><td>${game.finishOrder.length>1?"yes — "+game.finishOrder.length+" finishers":"no"}</td></tr>
-    ${game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${NAMES[i]} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
+    ${game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
     </table>`;
 }
 /* ================= LIVE (human) MODE — networked ================= */
@@ -1825,11 +1839,24 @@ async function flash(msg,ms){netNarrate(msg);await sleep(Math.max(ms||900,3000))
 // the opening backstory/context message — stays up until the player actually reads it and
 // clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
-  const msg="⚓ Ahoy! Round up every ingredient on yer map, sail home, and bake yerself a win! <br>The wind moves first, then ye sail (1🌕), then ye act. That's the pirate's code!<br>Watch this panel — she'll never steer ye wrong!";
+  const msg="⚓ Ahoy! Plunder every ingredient on yer map, sail home, and bake yerself a win! <br><br>Each turn, the wind moves ye, then ye sail (1🌕), then ye act.<br><br>Watch this panel — she'll steer ye straight!";
   if(replaying)return;
   netNarrate(msg);
   panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnAhoyStart">⚓ Ahoy! Let's start</button></div>`,true);
   await new Promise(res=>{$("btnAhoyStart").onclick=()=>{res();};});
+}
+// right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
+// everyone sailing later by pointing out the coin they get in exchange for waiting. Stays up
+// until dismissed (like showAhoyIntro) since it's easy to blink and miss a flashed message.
+async function showTurnOrderIntro(order){
+  if(replaying)return;
+  const lead=pn(order[0]);
+  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
+  const msg=`🎲 The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+
+    `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`;
+  netNarrate(msg);
+  panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnOrderStart">🦜 Aye, set sail!</button></div>`,true);
+  await new Promise(res=>{$("btnOrderStart").onclick=()=>{res();};});
 }
 async function humanFlip(p,label){
   setActor(p.idx);
@@ -2014,7 +2041,7 @@ function pipsHTML(n,col,total){
 // flippenator; this just displays whatever it last landed on for each fighter.
 function renderBattle(o){
   if(replaying)return;          // silent during reload-replay, like liveRender
-  const nm=i=>NAMES[i].replace("Capt. ",""),col=i=>HEXCOL[i];
+  const nm=i=>pname(i),col=i=>HEXCOL[i];
   const A=o.att,D=o.def,need=o.need||3,title=o.title||"⚔️ Broadside Battle";
   panel(`<div class="btl">
     <div class="btl-hd"><span>${title}</span><span class="rnd">Round ${o.round} · first to ${need}</span></div>
@@ -2651,7 +2678,6 @@ async function recipeDraftNet(){
 }
 async function runLiveNet(){
   await showAhoyIntro();
-  await recipeDraftNet();
   // turn order is randomized once here and never rotates — a one-time first-player advantage,
   // not something that cycles away round to round
   let order=game.players.map((_,i)=>i);
@@ -2660,6 +2686,8 @@ async function runLiveNet(){
   // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
   // whoever goes last
   order.forEach((i,pos)=>{game.players[i].coins=game.cfg.startCoins+pos;});
+  await showTurnOrderIntro(order);
+  await recipeDraftNet();
   let ended=false;
   while(game.round<150&&!ended){
     game.round++;
