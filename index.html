@@ -1784,13 +1784,23 @@ function armClock(seat){
 }
 // If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
 // force a default answer once 30s run out, instead of the answer waiting forever. A no-op for
-// every other decision in the game (recipe drafts, side bets, battle/trade sub-flows, etc).
+// every other decision in the game (recipe drafts, battle/trade sub-flows, etc).
+// Critically: once the wrapped decision is answered for real (not forced), the clock stops
+// immediately rather than continuing to tick toward that seat — otherwise a spectator who
+// answers a side-bet prompt right away keeps getting timed against for the rest of the battle,
+// long after they have nothing left to decide.
 function withShotClock(seat,base,defaultVal){
   if(!isHost||seat!==shotClockSeat)return base;
   return new Promise(res=>{
     let done=false;
     shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
-    base.then(v=>{if(!done){done=true;shotClockForce=null;res(v);}});
+    base.then(v=>{
+      if(!done){
+        done=true;shotClockForce=null;
+        if(shotClockSeat===seat)stopShotClock();
+        res(v);
+      }
+    });
   });
 }
 function localAsk(msg,opts,colors){
