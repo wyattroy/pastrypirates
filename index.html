@@ -383,6 +383,8 @@
       <button class="backLink" type="button" data-back>← back</button>
       <h3>🔑 Join a Crew</h3>
       <div class="fieldRow"><input type="text" id="joinCode" maxlength="6" placeholder="CODE"></div>
+      <label class="nameLabel">Your captain name
+        <input type="text" id="joinName" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <button class="primary big" id="btnJoin" type="button">Join the voyage</button>
     </div>
   </div>
@@ -749,13 +751,16 @@ class Game{
   moored(p){ // ships that DOCKED last turn (or sit at a berth / Isle of Tortuga) can't be wind-forced into land
     return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
   }
-  windPush(p,d,dist){
+  windPush(p,d,dist,finalLeg=true){
     for(let s=0;s<dist;s++){
       const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
       if(this.blocked(nx))return;
       if(this.isHome(nx)){this.ev({t:"moored",p:p.idx});return;} // safe harbor
       if(this.isIsland(nx)){
         if(this.moored(p)){this.ev({t:"moored",p:p.idx});return;}
+        // a storm's first gust can't run you aground with zero movement — the second gust
+        // gets a chance to actually push you before you're asked to pay or flip for it
+        if(!finalLeg&&s===0)return;
         if(p.coins>=3){p.coins--;this.ev({t:"dodge",p:p.idx});}
         else if(this.flip(p)){this.ev({t:"anchor",p:p.idx});}
         else{p.coins-=Math.floor(p.coins/2);this.ev({t:"aground",p:p.idx});}
@@ -1578,6 +1583,8 @@ function pname(i){
   return s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
 }
 function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
+// possessive form for narration addressed to spectators of someone else's turn, e.g. "Davy Scones' turn"
+function poss(i){const nm=pname(i);return `<b style="color:${HEXCOL[i]}">${nm}${nm.endsWith("s")?"'":"'s"}</b>`;}
 function fl(h){return h?"⚪H":"⚫T";}
 function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+iname(x);}
 function describe(e){
@@ -1609,7 +1616,7 @@ function describe(e){
     case "fish":return {txt:`${pn(e.p)} ${e.heads?"catches a sugarfish! (2🌕)":(game.cfg.sardine?"nets a sardine (1🌕)":"comes up empty-handed")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`};
     case "shotclock":return {cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`};
-    case "shotclockskip":return {cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} took too long — loses ${ilabel(e.ing)} and misses the turn!`:`⏰ ${pn(e.p)} took too long — loses ${e.coins}🌕 and misses the turn!`};
+    case "shotclockskip":return {cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} loses their turn, and some ${ilabel(e.ing)} overboard, which floats back to the island.`:`⏰ ${pn(e.p)} loses their turn, and ${e.coins}🌕 overboard!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
     case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${recipeTitle(game.players[e.winner].recipe)} and is the Best Baker in the Caribbean!`};
     case "turn":return null;
@@ -2054,12 +2061,12 @@ function expireShotClock(){
       lost=p.ing.splice(idx,1)[0];
       game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
       game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      netNarrate(`⏰ ${pn(p.idx)} took too long — loses ${ilabel(lost)} and misses the turn!`);
+      netNarrate(`⏰ ${pn(p.idx)} loses their turn, and some ${ilabel(lost)} overboard, which floats back to the island.`);
     }else{
       const take=Math.min(5,p.coins);
       p.coins-=take;
       game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      netNarrate(`⏰ ${pn(p.idx)} took too long — loses ${take}🌕 and misses the turn!`);
+      netNarrate(`⏰ ${pn(p.idx)} loses their turn, and ${take}🌕 overboard!`);
     }
     liveRender();
     if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove();
@@ -2351,7 +2358,7 @@ function remotePickHighlights(cells,promptId){
 }
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
-async function windLeg(p,dirKey,dist){
+async function windLeg(p,dirKey,dist,finalLeg=true){
   const d=DIRS[dirKey];
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
@@ -2362,6 +2369,9 @@ async function windLeg(p,dirKey,dist){
     }
     if(game.islands[nx]!==undefined){
       if(game.moored(p)){game.ev({t:"moored",p:p.idx});liveRender();return;}
+      // a storm's first gust can't run you aground with zero movement — the second gust
+      // gets a chance to actually push you before you're asked to pay or flip for it
+      if(!finalLeg&&s===0)return;
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
       opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
@@ -2380,7 +2390,7 @@ async function windLeg(p,dirKey,dist){
     p.pos=nx;
     if(game.onRim(nx)){ // swept into the trade winds
       game.ev({t:"windmove",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash("🌀 The trade winds sweep you around the rim!",1300);}
+      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1300);}
       return;
     }
   }
@@ -2388,12 +2398,12 @@ async function windLeg(p,dirKey,dist){
 }
 async function humanWind(p){
   setActor(p.idx);
-  await windLeg(p,game.windNow,game.stormNow?2:1);
+  await windLeg(p,game.windNow,game.stormNow?2:1,!game.stormNow);
   if(turnExpired)return;
   if(game.stormNow){
     await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
     if(turnExpired)return;
-    await windLeg(p,game.windNow2,2);
+    await windLeg(p,game.windNow2,2,true);
   }
 }
 async function humanDock(p,port){
@@ -2896,7 +2906,7 @@ async function humanTurn(p){
   turnExpired=false;
   game.ev({t:"turn",p:p.idx});
   liveRender();
-  await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
+  await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
@@ -2905,7 +2915,7 @@ async function humanTurn(p){
   await humanWind(p);
   if(turnExpired)return;
   if(p.pos[0]!==before[0]||p.pos[1]!==before[1])
-    await flash(`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`,1000);
+    await flash(seatLocal(p.idx)?`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`:`🌬️ The wind carries ${pn(p.idx)} ${DIRNAME[game.windNow]}.`,1000);
   if(turnExpired)return;
   p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
@@ -2913,8 +2923,8 @@ async function humanTurn(p){
     const dest=await pickCell(p,reachable(p,3));
     if(turnExpired)return;
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash("🌀 The trade winds sweep you around the rim!",1200);}}
-  }else await flash(`${pn(p.idx)}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`,1600);
+      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
+  }else await flash(seatLocal(p.idx)?`${pn(p.idx)}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`:`${pn(p.idx)}: no coins — drifts with the wind.`,1600);
   if(turnExpired)return;
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
@@ -2925,8 +2935,8 @@ async function botTurn(p){
   g.ev({t:"turn",p:p.idx});
   await botBeat();
   const before=[...p.pos];
-  g.windPush(p,DIRS[g.windNow],g.stormNow?2:1);
-  if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2);
+  g.windPush(p,DIRS[g.windNow],g.stormNow?2:1,!g.stormNow);
+  if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2,true);
   p.justDocked=false;
   // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
   // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
@@ -3403,7 +3413,7 @@ function requireName(){
 function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
   $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
-  $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;if(!requireName())return;showStep("stepJoin");};
+  $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
   document.querySelectorAll("#lobby [data-back]").forEach(b=>{b.onclick=()=>showStep("stepChoose");});
 }
 function startSinglePlayer(){
@@ -3469,7 +3479,7 @@ async function createRoom(){
   saveSession();showRoom();watchRoom();
 }
 async function joinRoom(){
-  const name=($("pname").value||"").trim().slice(0,40)||"Davy Scones";
+  const name=($("joinName").value||"").trim().slice(0,40)||"Davy Scones";
   const code=($("joinCode").value||"").toUpperCase().trim();
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   let snap;
