@@ -29,6 +29,8 @@ class Rules:
     merchant_cargo: bool = False          # M: players pick up non-recipe ingredients as trade goods
     global_trade: bool = False            # T: trade allowed at any distance (parley), battles still adjacent
     rotate_order: bool = False            # R: first player rotates each round
+    random_start_order: bool = False      # randomize turn order once at game start, then hold it fixed
+    staggered_start_coins: bool = False   # Nth-to-act starts with start_coins+N-1 (levels the first-turn edge)
     paid_broadside: bool = False          # P: attacker reflip costs 1 coin (once per battle); overrides free reflip
     loser_protects: bool = False          # L: loser pays 5 coins FIRST if able, keeping ingredients
     n_ingredients: int = 5                # number of islands/ingredient types
@@ -531,6 +533,12 @@ class Game:
     def play(self):
         r = self.rng
         order = list(range(len(self.players)))
+        if self.rules.random_start_order:
+            r.shuffle(order)
+        self.turn_order = list(order)
+        if self.rules.staggered_start_coins:
+            for pos, i in enumerate(order):
+                self.players[i].coins = self.rules.start_coins + pos
         while self.round < self.rules.max_rounds:
             self.round += 1
             if self.rules.rotate_order and self.round > 1:
@@ -589,6 +597,7 @@ def tournament(strategy_sets, rules, n_games=1500, seed=42):
         "wins_by_strategy": defaultdict(int),
         "games_by_strategy": defaultdict(int),
         "wins_by_seat": defaultdict(int),
+        "wins_by_turnpos": defaultdict(int),
         "rounds": [], "battles": [], "trades": [], "unfinished": 0,
         "attacker_winrate": [0, 0], "bankrupt_spoils": 0,
         "fish": [0, 0], "dodge": 0, "anchor": 0, "aground": 0, "broke": [0, 0],
@@ -622,6 +631,7 @@ def tournament(strategy_sets, rules, n_games=1500, seed=42):
         else:
             stats["wins_by_strategy"][strategies[w]] += 1
             stats["wins_by_seat"][w] += 1
+            stats["wins_by_turnpos"][game.turn_order.index(w)] += 1
             # luck metric: did the winner have the highest heads rate?
             rates = [(p.heads_count / p.flip_count) if p.flip_count else 0 for p in game.players]
             if game.players[w].flip_count and rates[w] == max(rates):
@@ -639,6 +649,10 @@ def report(name, stats):
         lines.append(f"  {s:<10} win rate: {w / (g or 1) * 100:5.1f}%  ({w}/{g})")
     lines.append(f"  seat wins: " + " ".join(
         f"P{i}:{stats['wins_by_seat'][i]}" for i in sorted(stats['wins_by_seat'])))
+    if stats["wins_by_turnpos"]:
+        ordinal = ["1st", "2nd", "3rd", "4th"]
+        lines.append(f"  turn-order wins: " + " ".join(
+            f"{ordinal[i]}:{stats['wins_by_turnpos'][i]}" for i in sorted(stats['wins_by_turnpos'])))
     avg = lambda x: sum(x) / len(x) if x else 0
     lines.append(f"  avg rounds: {avg(stats['rounds']):.1f}   unfinished: {stats['unfinished']}")
     lines.append(f"  battles/game: {avg(stats['battles']):.2f}   trades/game: {avg(stats['trades']):.2f}   bakeoffs: {stats['bakeoffs']}")
@@ -786,4 +800,40 @@ if __name__ == "__main__":
         for g, ni, rs in ((13, 6, 4), (13, 6, 5), (13, 7, 5), (15, 7, 5)):
             print(report(f"grid {g}, {ni} ing, recipe {rs}",
                          tournament(mix, Rules(grid=g, n_ingredients=ni, recipe_size=rs, **REC), 1200)))
+            print()
+    elif mode == "turnorder":
+        # matches the live app's shipped config (index.html roundCfg): 15x15, 7 ingredients,
+        # recipe of 5, 2x2 islands, single dock, powder 2, paid broadside, dock-buy, merchant,
+        # trade bonus, global trade (parley), no asym spoils, 10% storm.
+        LIVE = dict(grid=15, n_ingredients=7, recipe_size=5, island_w=2, island_h=2,
+                    single_dock=True, scarcity_tokens=3, attack_cost=2, paid_broadside=True,
+                    dock_buy=True, merchant_cargo=True, trade_bonus=True, global_trade=True,
+                    storm_prob=0.10)
+        print(report("CURRENT (rotate every round, fixed seat-0 start)",
+                     tournament(mix, Rules(rotate_order=True, **LIVE), 3000)))
+        print()
+        print(report("NO-ROTATE, no randomization (seat 0 always leads all game — the naive removal)",
+                     tournament(mix, Rules(**LIVE), 3000)))
+        print()
+        print(report("PROPOSED (no rotation, random start seat, fixed all game)",
+                     tournament(mix, Rules(random_start_order=True, **LIVE), 3000)))
+        print()
+    elif mode == "staggeredcoins":
+        # does giving the Nth-to-act player N-1 bonus starting coins (3/4/5/6) overcorrect and
+        # make going LAST the better seat, instead of just leveling the first-turn edge?
+        LIVE = dict(grid=15, n_ingredients=7, recipe_size=5, island_w=2, island_h=2,
+                    single_dock=True, scarcity_tokens=3, attack_cost=2, paid_broadside=True,
+                    dock_buy=True, merchant_cargo=True, trade_bonus=True, global_trade=True,
+                    storm_prob=0.10, random_start_order=True)
+        print(report("NO STAGGER (random start order, everyone starts with 3 coins)",
+                     tournament(mix, Rules(**LIVE), 4000)))
+        print()
+        print(report("STAGGERED COINS (1st:3 2nd:4 3rd:5 4th:6)",
+                     tournament(mix, Rules(staggered_start_coins=True, **LIVE), 4000)))
+        print()
+        # mirror check: same strategy in every seat isolates the turn-order/coin effect from
+        # any strategy-vs-strategy interaction
+        for s in ["balanced", "pirate", "rusher", "trader"]:
+            print(report(f"STAGGERED mirror all-{s}",
+                         tournament([s] * 4, Rules(staggered_start_coins=True, **LIVE), 1500)))
             print()

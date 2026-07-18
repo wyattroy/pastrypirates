@@ -1,7 +1,7 @@
 # 🏴‍☠️ Pastry Pirates *on the Sugar Seas*
 ### The Complete Tabletop Rulebook — *Round World Edition*
 
-This is the full "everything a human at the table needs to know" version of the rules. It describes the game exactly as it plays in the app's default **Round World** setup, and it spells out all the little bookkeeping jobs a computer does for you automatically — spinning the wind wheel each round, turning the ship's wheel to show who leads, tracking who's moored, and so on. If a situation ever isn't covered here, the app's engine is the tie-breaker.
+This is the full "everything a human at the table needs to know" version of the rules. It describes the game exactly as it plays in the app's default **Round World** setup, and it spells out all the little bookkeeping jobs a computer does for you automatically — spinning the wind wheel each round, tracking who's moored, and so on. If a situation ever isn't covered here, the app's engine is the tie-breaker.
 
 For the short version, see `RULES.md`. This document is the long, complete one.
 
@@ -34,7 +34,7 @@ A full set of Pastry Pirates contains:
 - **Ingredient crates** — small tokens for each ingredient. Each island is stocked with only a few crates (see §3). These are what you're sailing out to collect, and they ride visibly in your ship's hold.
 - **Recipe map cards** — one dealt secretly to each captain, listing the **5 ingredients** that captain must collect.
 - **The Wind Wheel** 🌬️ — a spinner you turn **once at the start of every round** to set the wind for that round (§5).
-- **The Ship's Wheel** ⛑️ — a marker/dial that points at whichever captain leads the round. It turns one seat each round (§4).
+- **The Ship's Wheel** ⛑️ — a marker/dial that points at whichever captain leads. Set once during setup and never turned again (§4).
 
 ---
 
@@ -58,25 +58,23 @@ A full set of Pastry Pirates contains:
 2. **Set one dock marker beside each island** — a single water square adjacent to that island is its berth.
 3. **Stock the crates.** Put **(number of players − 1)** crates of the matching ingredient on each island. With 4 captains that's **3 crates per island**; with 3 players, 2 crates; with 2 players, 1 crate.
 4. **Deal recipe maps.** Shuffle and deal one secret recipe card to each captain — **5 ingredients** each (out of the 7). Look at yours; don't reveal it.
-5. **Starting coins.** Each captain takes **3 gold coins** from the bank.
-6. **Place ships.** All ships start docked at **Barbados**, one on each of the four home docks (the squares directly north, south, east, and west of the center).
-7. **Choose the first captain.** The player who **looks most like a pirate** goes first. Point the **Ship's Wheel** at them. *(After the first round the wheel turns — see §4.)*
+5. **Choose the first captain.** The player who **most recently ate a pastry** goes first. Point the **Ship's Wheel** at them, then seat order from there sets the rest of the turn order. *(This order is set once here and holds for the whole game — see §4.)*
+6. **Starting coins — staggered by turn order.** Going first is a real, lasting edge (§4), so coins make up for it: the 1st captain to act takes **3 gold coins**, the 2nd takes **4**, the 3rd takes **5**, and the 4th takes **6**. *(2 or 3 players: same ladder, just stop at that many captains — e.g. 3 players take 3/4/5.)*
+7. **Place ships.** All ships start docked at **Barbados**, one on each of the four home docks (the squares directly north, south, east, and west of the center).
 8. **Ready the Wind Wheel and the bullion** where everyone can reach them.
 
 ---
 
 ## 4. The Ship's Wheel — Turn Order
 
-Play proceeds in **seating order** around the table, starting from whichever captain the **Ship's Wheel** points to.
+Play proceeds in **seating order** around the table, starting from whichever captain the **Ship's Wheel** points to (set once during setup, §3 step 7).
 
-At the **start of each new round (from round 2 on), turn the Ship's Wheel one seat** so that the *next* captain in order becomes the new leader. In other words, the honor of going first passes around the table, one player per round. Everyone still takes exactly one turn per round; only the starting point moves.
+**Turn order is fixed for the whole game** — the wheel isn't turned again after setup. Everyone takes exactly one turn per round, always in the same order.
 
 > **Example (4 players seated A–B–C–D):**
-> Round 1 order: A, B, C, D.
-> Round 2 order: B, C, D, A.
-> Round 3 order: C, D, A, B. …and so on.
+> Every round's order: A, B, C, D.
 
-This keeps any one seat from hogging the advantage of always acting first (or always acting last, right after rivals have loaded fresh cargo).
+Going first every round is a real, lasting edge — unlike the old rotating wheel, nothing levels it out round to round. That's why starting coins are staggered by turn order instead (§3 step 6): simulation testing showed it flattens the first-mover advantage without swinging it the other way to favor whoever goes last.
 
 ---
 
@@ -235,7 +233,7 @@ The situations most likely to come up mid-game, gathered in one place:
 
 ## 11. Turn Summary Card
 
-> **Start of round:** turn the **Ship's Wheel** one seat (round 2+); **spin the Wind Wheel** (direction for all; 1-in-8 storm = 2-square drift).
+> **Start of round:** **spin the Wind Wheel** (direction for all; 1-in-8 storm = 2-square drift).
 >
 > **On your turn:**
 > 1. **🌬️ Wind** — drift 1 (or 2) with the wind. Moored? Safe. Toward rocks? Pay 1 to dodge or flip (heads anchor / tails lose half your coins). Into the rim? Sweep to the clockwise corner.

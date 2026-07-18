@@ -31,9 +31,18 @@
   #boardTitle { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 6px;
     font-size: 17px; font-weight: bold; letter-spacing: .5px; color: var(--teal); pointer-events: none; z-index: 3; }
   #boardTitle .flag { font-size: 17px; }
+  /* on a small rendered board the single-line title overlaps the top row of tiles — stack it
+     into three short lines instead, keyed off the board's own rendered size via container query */
+  @container (max-width: 420px) {
+    #boardTitle { flex-direction: column; align-items: flex-start; gap: 0; font-size: 10px; line-height: 1.15; }
+    #boardTitle .flag { order: 3; font-size: 12px; margin-top: 1px; }
+    #boardTitle .titleWords { display: flex; flex-direction: column; }
+  }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "narration" "stats" "captains"; }
+    grid-template-areas: "board" "controls" "narration" "stats" "captains"; }
   #left { grid-area: board; min-width: 0; }
+  #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
+    container-type: inline-size; }
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
@@ -41,13 +50,13 @@
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
      5 ingredient chips, which is a function of the computed board size, not raw viewport width. */
   #game.layoutWide #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
-      grid-template-areas: "board captains" "board narration" "board stats";
+      grid-template-areas: "board captains" "board controls" "board narration" "board stats";
       width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto;
       align-items: start; }
   #game.layoutWide #boardwrap { max-width: none !important; width: 100%; }
   #game.layoutWide #footerRow { width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto; }
-  #flipPanel { position: absolute; bottom: 8px; right: 8px; z-index: 3; }
-  #shotClockPanel { position: absolute; bottom: 8px; left: 8px; z-index: 3; }
+  #flipPanel { flex: 0 0 auto; }
+  #shotClockPanel { flex: 1; }
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; width: 100%; height: auto; }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
@@ -81,7 +90,7 @@
   /* fixed dot/name/coins columns (same template on every row's own grid) keep money and hold
      aligned across all captains regardless of name length or how many ingredients they're holding */
   .prowTop, .prowRecipeRow { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px; align-items: start; }
-  .player-row .dot, .player-row .pname, .player-row .coinsWrap { padding-top: 2px; }
+  .prowTop { align-items: center; }
   .prowRecipeRow { margin-bottom: 2px; }
   .prowRecipeRow:has(.prowRecipe:empty) { display: none; }
   .player-row .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35); }
@@ -95,7 +104,7 @@
   .chip { font-size: 16px; padding: 1px 4px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
-  .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; grid-column: 4; }
+  .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; grid-column: 2; }
   .crown { font-size: 15px; }
   .pulse { animation: rowpulse .5s ease; }
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
@@ -108,6 +117,8 @@
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
+  .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
+  @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */
   .btl { text-align: center; }
   .btl-hd { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
@@ -144,8 +155,12 @@
   /* ---- shot clock: a brass ship's gauge, left-aligned like a real instrument readout ---- */
   #shotClockPanel { background: linear-gradient(160deg, #8a5f2f, #5c3d1c); border: 2px solid #d9a84e;
     border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(8px,3cqw,14px);
-    min-width: clamp(70px,26cqw,118px); }
+    min-width: clamp(70px,26cqw,118px); position: relative; }
   #shotClockPanel.idle { opacity: .55; }
+  #scPause { position: absolute; top: 3px; right: 4px; width: 16px; height: 16px; padding: 0;
+    line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
+    background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
+  #scPause:hover { background: rgba(0,0,0,.4); }
   #shotClockPanel.urgent { background: linear-gradient(160deg, #5a5f66, #25282c); border-color: #e2564c;
     animation: clockurgent 0.9s ease-in-out infinite; }
   #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
@@ -170,14 +185,8 @@
   .btl-prompt .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .btlBtn { font-size: 14px; }
   .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
-  .bubble { position: absolute; background: #fff; border: 2px solid var(--teal); border-radius: 9px;
-    padding: 3px 9px; font-size: 12px; font-weight: 500; max-width: 280px; line-height: 1.35;
-    transform: translate(-50%, -108%); box-shadow: 0 2px 6px rgba(31,66,73,.18);
-    pointer-events: none; z-index: 5; transition: opacity .35s; }
   .activering { animation: ringpulse .8s ease-in-out infinite alternate; }
   @keyframes ringpulse { from { opacity: .35; } to { opacity: 1; } }
-  .bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -5px;
-    border: 5px solid transparent; border-top-color: inherit; border-bottom: none; }
   .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
@@ -296,9 +305,9 @@
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
     <div class="modalTitle">🏴‍☠️ Pastry Pirates <span class="modalTitleSub">on the Sugar Seas</span></div>
-    <div class="modalByline">You left London's fog for the sunny shores of Tortuga to start a bakery -- but you have no ingredients! Out here, it's plunder or be plundered: so sail the Sugar Seas to gather rare ingredients from the archipelago, out-bargain and out-battle rival captains, and race home to be crowned Best Baker in the Caribbean.</div>
 
     <div id="stepChoose" class="modalStep">
+      <div class="modalByline">You left London's fog for the sunny shores of Tortuga to start a bakery -- but you have no ingredients! Out here, it's plunder or be plundered: so sail the Sugar Seas to gather rare ingredients from the archipelago, out-bargain and out-battle rival captains, and race home to be crowned Best Baker in the Caribbean.</div>
       <label class="nameLabel">Your captain name
         <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <div class="muted" style="font-size:12px;margin-top:-6px;margin-bottom:8px">🔍 Playtesting this build? Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
@@ -314,15 +323,6 @@
         </button>
       </div>
       <div id="fbnote" class="fbnote" style="display:none">⚙️ Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
-    </div>
-
-    <div id="stepSolo" class="modalStep" style="display:none">
-      <button class="backLink" type="button" data-back>← back</button>
-      <h3>⚓ Play Solo</h3>
-      <div class="fieldRow">How many rival captains?
-        <select id="soloOpp"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option></select>
-      </div>
-      <button class="primary big" id="btnSolo" type="button">⛵ Set Sail!</button>
     </div>
 
     <div id="stepHost" class="modalStep" style="display:none">
@@ -403,7 +403,8 @@
         Robin Roy</p>
       <p><b>Inspiration:</b><br>
         <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a><br>
-        <a href="https://nuvux.nuvustudio.com/" target="_blank" rel="noopener">NuVu summer program board game class 2026</a></p>
+        <a href="https://nuvux.nuvustudio.com/" target="_blank" rel="noopener">NuVu summer program board game class 2026</a><br>
+        Luca and Amelia for their game Seafarers</p>
     </div>
     <button class="primary big" id="btnCloseCredits" type="button">Close</button>
   </div>
@@ -444,16 +445,19 @@
   <div id="layout">
     <div id="left">
       <div id="boardwrap">
-        <div id="boardTitle"><span class="flag">🏴‍☠️</span> Pastry Pirates</div>
+        <div id="boardTitle"><span class="flag">🏴‍☠️</span> <span class="titleWords"><span class="word">Pastry</span> <span class="word">Pirates</span></span></div>
         <svg id="board" viewBox="0 0 640 640"></svg>
-        <div id="flipPanel">
-          <div class="flipPlank"><div id="flipCoinWrap" class="coin wait">?</div></div>
-        </div>
-        <div id="shotClockPanel" class="idle">
-          <div id="scLabel">not your turn</div>
-          <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
-          <div id="shotClockSub">&nbsp;</div>
-        </div>
+      </div>
+    </div>
+    <div id="controlsRow">
+      <div id="flipPanel">
+        <div class="flipPlank"><div id="flipCoinWrap" class="coin wait">?</div></div>
+      </div>
+      <div id="shotClockPanel" class="idle">
+        <button id="scPause" type="button" style="display:none">⏸</button>
+        <div id="scLabel">not your turn</div>
+        <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
+        <div id="shotClockSub">&nbsp;</div>
       </div>
     </div>
     <div id="actionPanel" style="display:none"></div>
@@ -903,9 +907,9 @@ class Game{
   }
   play(){
     let order=this.players.map((_,i)=>i);
+    this.shuffle(order);
     while(this.round<150){
       this.round++;
-      if(this.cfg.rotate&&this.round>1)order=order.slice(1).concat(order.slice(0,1));
       const wind="NSEW"[Math.floor(this.r()*4)];
       const storm=this.r()<this.cfg.storm;
       this.windNow=wind;this.stormNow=storm;
@@ -951,7 +955,7 @@ function roundCfg(strategies){
   const np=strategies.length;
   return {grid:15,nIslands:7,recipeSize:5,crates:Math.max(1,np-1),startCoins:3,
     powder:2,broadside:"paid",dockBuy:true,merchant:true,parley:true,tradeBonus:true,
-    asym:false,rotate:true,storm:0.10,islandW:2,islandH:2,tetris:true,singleDock:true,
+    asym:false,storm:0.10,islandW:2,islandH:2,tetris:true,singleDock:true,
     sardine:true,roundBoard:true,unlimitedDock:true,strategies};
 }
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -1028,13 +1032,13 @@ function buildPlayerRows(){
                    : `🤖 bot (${s.strat||game.cfg.strategies[i]})`;
     const displayName=s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18" title="${who}">
-      <div class="prowRecipeRow"><span class="prowRecipe" id="prowRecipe${i}"></span></div>
       <div class="prowTop">
         <span class="dot" style="background:${HEXCOL[i]}"></span>
         <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
         <span class="coinsWrap"><span class="coins" id="coins${i}">🌕 –</span><span class="crown" id="crown${i}"></span></span>
         <span class="chips" id="chips${i}"></span>
-      </div></div>`;
+      </div>
+      <div class="prowRecipeRow"><span class="prowRecipe" id="prowRecipe${i}"></span></div></div>`;
   }
   $("players").innerHTML=html;
   // names have a fixed column width to keep coins/hold aligned across every row — a name that
@@ -1256,7 +1260,6 @@ function describe(e){
       return {cls:"battle",txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`};}
     case "battleflee":return {cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.d)} holds the line twice, pays 1🌕 and flees!`};
     case "fish":return {txt:`${pn(e.p)} goes fishing — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
-    case "wheelfish":return {txt:`🧭 ${pn(e.p)} passes the ship's wheel and fishes — ${e.heads?"⚪H, catches 2🌕":(game.cfg.sardine?"⚫T, just a sardine (1🌕)":"⚫T, nothing biting")}`};
     case "finish":return {cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`};
     case "shotclock":return {cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`};
     case "shotclockskip":return {cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} took too long — loses ${ilabel(e.ing)} and misses the turn!`:`⏰ ${pn(e.p)} took too long — loses ${e.coins}🌕 and misses the turn!`};
@@ -1399,7 +1402,7 @@ function spawnPops(e){
       popEmoji(...at(e.winner),sp||"💰");
       break;}
     case "battleflee":popEmoji(...at(e.d),"🏃");break;
-    case "fish":case "wheelfish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
+    case "fish":popEmoji(...at(e.p),e.heads?"🎣":(game.cfg.sardine?"🐟":"🎣"));break;
     case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
@@ -1413,8 +1416,6 @@ function spawnPops(e){
   }
 }
 
-/* ---------- action bubbles above ships ---------- */
-const bubbles={};
 function captions(e){
   const F=h=>h?"⚪H":"⚫T";
   switch(e.t){
@@ -1430,43 +1431,13 @@ function captions(e){
     case "battle":{const loser=e.winner===e.a?e.d:e.a;
       return [[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]];}
     case "battleflee":return [[e.d,"🏃 flees! −1🌕"]];
-    case "fish":case "wheelfish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
+    case "fish":return [[e.p,`🎣 ${F(e.heads)} ${e.heads?"+2🌕":(game.cfg.sardine?"🐟 +1🌕":"nothing")}`]];
     case "finish":return [[e.p,"🏁 recipe done!"]];
     case "bakeoff":return [[e.winner,"🧁 wins the bakeoff!"]];
     case "end":return e.winner===null?[]:[[e.winner,"👑 BEST BAKER!"]];
     default:return [];
   }
 }
-function anchorFor(e){
-  switch(e.t){
-    case "trade":case "battle":case "battleflee":case "parley":return e.a;
-    case "bakeoff":case "end":return e.winner;
-    case "newround":case "turn":return null;
-    default:return typeof e.p==="number"?e.p:null;
-  }
-}
-function showEventBubble(e){
-  const anc=anchorFor(e);
-  const L=logLines[evIdx];
-  if(anc==null||anc===undefined||!L)return;
-  showBubble(anc,L.txt);
-}
-function showBubble(i,txt){
-  if(bubbles[i])bubbles[i].remove();
-  const st=game.events[evIdx].state;
-  let [x,y]=shipXY(st[i].pos,i,st);
-  x=Math.max(145,Math.min(640-145,x)); // keep wide bubbles on the board
-  const d=document.createElement("div");
-  d.className="bubble";d.style.borderColor=HEXCOL[i];d.innerHTML=txt;
-  d.style.left=x+"px";d.style.top=(y-cell*.32)+"px";
-  $("boardwrap").appendChild(d);bubbles[i]=d;
-  const mine=d;
-  const life=10000; // on-board narration bubbles fade after 10s so they don't linger over the board
-  setTimeout(()=>{if(bubbles[i]===mine){mine.style.opacity="0";
-    setTimeout(()=>{mine.remove();if(bubbles[i]===mine)delete bubbles[i];},400);}},life);
-}
-function clearBubbles(){for(const k in bubbles){bubbles[k].remove();delete bubbles[k];}}
-
 // Derived entirely from the event log (including each event's captured position snapshot),
 // so it works identically for live play, a host-reload replay, or scrubbing a finished game —
 // no separate live-only counters to keep in sync.
@@ -1494,7 +1465,7 @@ function computeAwards(){
       if(len>longestBattle[e.d])longestBattle[e.d]=len;
       for(const r of e.rounds){bump(e.a,!!r[0]);bump(e.d,!!r[1]);}
     }
-    if(e.t==="fish"||e.t==="wheelfish"){if(e.heads)fishCount[e.p]++;bump(e.p,!!e.heads);}
+    if(e.t==="fish"){if(e.heads)fishCount[e.p]++;bump(e.p,!!e.heads);}
     if(e.t==="dock")bump(e.p,!!e.heads);
     if(e.t==="anchor")bump(e.p,true);
     if(e.t==="aground")bump(e.p,false);
@@ -1591,6 +1562,7 @@ let inBattlePrompt=false;      // this client owns the active battle decision �
 // ask() at all (it uses its own concurrent multi-seat prompt path), so it stays untimed
 // without needing a special case here.
 let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
+let shotClockPaused=false, shotClockPauseElapsed=0;
 let shotClockFired={}, turnExpired=false, clockState=null;
 // localPickCell() registers its own highlight-cleanup here; a forced shot-clock timeout
 // resolves pickCell()'s outer wrapped promise but never touches this inner one, so without
@@ -1653,15 +1625,31 @@ function startShotClock(p){
   shotClockDeadline=Date.now()+30000;
   shotClockFired={};
   turnExpired=false;
+  shotClockPaused=false;
   broadcastClock();
   if(shotClockTimer)clearInterval(shotClockTimer);
   shotClockTimer=setInterval(shotClockTick,500);
 }
 function stopShotClock(){
   if(!isHost)return;
-  shotClockSeat=null;shotClockForce=null;
+  shotClockSeat=null;shotClockForce=null;shotClockPaused=false;
   if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
   broadcastClock();
+}
+// solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
+function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strategy==="human").length<=1;}
+function toggleShotClockPause(){
+  if(!isHost||shotClockSeat==null||!soloBotGame())return;
+  if(shotClockPaused){
+    shotClockPaused=false;
+    shotClockDeadline=Date.now()+30000-shotClockPauseElapsed;
+    shotClockTimer=setInterval(shotClockTick,500);
+  }else{
+    shotClockPaused=true;
+    shotClockPauseElapsed=Date.now()-(shotClockDeadline-30000);
+    if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
+  }
+  setClockUI();
 }
 function broadcastClock(){
   setClockUI();
@@ -1712,18 +1700,30 @@ function watchClock(){
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
   const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
-  const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub");
+  const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
+  pauseEl.style.display=(state&&isHost&&soloBotGame())?"":"none";
+  pauseEl.textContent=shotClockPaused?"▶":"⏸";
   if(!state){
     wrap.classList.add("idle");wrap.classList.remove("urgent");
     labelEl.textContent="not your turn";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
   }
   wrap.classList.remove("idle");
+  if(isHost&&shotClockPaused){
+    const elapsed=shotClockPauseElapsed/1000;
+    const urgent=elapsed>=20;
+    wrap.classList.toggle("urgent",urgent);
+    labelEl.textContent="paused";
+    numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
+    unitEl.textContent="seconds";
+    subEl.textContent="tap ▶ to resume";
+    return;
+  }
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
   const elapsed=30-remain;
   const urgent=elapsed>=20;
   wrap.classList.toggle("urgent",urgent);
-  labelEl.textContent=urgent?"walk the plank in":"play in";
+  labelEl.textContent="play in";
   numEl.textContent=urgent?30-elapsed:20-elapsed;
   unitEl.textContent="seconds";
   subEl.textContent=urgent?"or lose your turn":"or pay 1🌕";
@@ -1739,7 +1739,6 @@ function liveRender(){
   render();
   const e=game.events[evIdx];
   spawnPops(e);
-  showEventBubble(e);
   if(isHost)pushEvents();       // broadcast the growing event feed to every other browser
 }
 // needsAction=true turns the panel yellow (this seat must decide something);
@@ -1821,7 +1820,16 @@ function localAsk(msg,opts,colors){
     });
   });
 }
-async function flash(msg,ms){netNarrate(msg);await sleep(ms||900);}
+async function flash(msg,ms){netNarrate(msg);await sleep(Math.max(ms||900,3000));}
+// the opening backstory/context message — stays up until the player actually reads it and
+// clicks through, rather than auto-advancing on a timer like every other narration
+async function showAhoyIntro(){
+  const msg="⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!";
+  if(replaying)return;
+  netNarrate(msg);
+  panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnAhoyStart">⚓ Ahoy! Let's start</button></div>`,true);
+  await new Promise(res=>{$("btnAhoyStart").onclick=()=>{res();};});
+}
 async function humanFlip(p,label){
   setActor(p.idx);
   await ask(label||"Flip the dubloon!",[{label:"🌕 FLIP!",value:1,flip:true}]);
@@ -1830,13 +1838,13 @@ async function humanFlip(p,label){
   const h=game.flip(p);
   broadcastFlip(h?"H":"T");
   netNarrate(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-  await sleep(650);
+  await sleep(3000);
   broadcastFlip("wait");
   return h;
 }
 // A fishing cast, flipped on the flippenator like every other coin in the game.
-// Humans tap CAST; bots auto-cast. Awards the catch and logs the event (evt is "fish" or "wheelfish").
-async function fishCast(p,evt,label){
+// Humans tap CAST; bots auto-cast. Awards the catch and logs the event.
+async function fishCast(p,label){
   const bd=(typeof stepDelay==="function")?stepDelay():500;
   const spin=Math.max(260,Math.min(650,bd*0.7));
   const hold=Math.max(500,Math.min(1200,bd*1.0));
@@ -1851,10 +1859,10 @@ async function fishCast(p,evt,label){
   broadcastFlip(h?"H":"T");
   const note=h?"a fine catch! +2🌕":(game.cfg.sardine?"just a sardine +1🌕":"nothin' biting");
   netNarrate(`🎣 ${pn(p.idx)} flips ${h?"⚪ HEADS":"⚫ TAILS"} — ${note}`);
-  await sleep(hold);
+  await sleep(Math.max(hold,3000));
   broadcastFlip("wait");
   if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
-  game.ev({t:evt,p:p.idx,heads:h?1:0});
+  game.ev({t:"fish",p:p.idx,heads:h?1:0});
   liveRender();
   return h;
 }
@@ -2153,7 +2161,6 @@ async function settleSideBets(bets,winSide){
 }
 async function asyncBattle(att,def){
   const c=game.cfg,need=2;
-  showBubble(att.idx,`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}!`);
   await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()));
   if(c.powder)att.coins-=c.powder;
   game.battles++;
@@ -2425,13 +2432,6 @@ async function humanTrade(p){
   liveRender();
   return true;
 }
-async function wheelFish(p){
-  // the captain who just handed off the ship's wheel casts a line while the new leader takes over
-  setActor(p.idx);
-  await flash(`🧭 ${pn(p.idx)} passes the ship's wheel — and casts a line while the crew comes about…`,Math.max(900,stepDelay()));
-  await fishCast(p,"wheelfish",`🎣 ${pn(p.idx)}, fish as you pass the wheel — flip!`);
-  stopShotClock();
-}
 async function humanAct(p){
   setActor(p.idx);
   const port=game.adjPort(p);
@@ -2459,7 +2459,7 @@ async function humanAct(p){
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
   else if(v==="fish"){
-    await fishCast(p,"fish","🎣 Cast your line — flip!");
+    await fishCast(p,"🎣 Cast your line — flip!");
   }
 }
 async function humanTurn(p){
@@ -2559,7 +2559,7 @@ async function botTurn(p){
       if(g.doDock(p,port)){await botBeat();return;}}}
   if(port&&(g.cfg.unlimitedDock||!p.firstFlip.has(port))){if(g.doDock(p,port)){await botBeat();return;}}
   // fallback: fish regardless of purse size — see the matching comment on the sim's takeTurn()
-  await fishCast(p,"fish");
+  await fishCast(p);
   await botBeat();
 }
 // The bakeoff gets the same scoreboard + flippenator treatment as a regular battle, just
@@ -2649,17 +2649,19 @@ async function recipeDraftNet(){
   liveRender();
 }
 async function runLiveNet(){
-  await flash("⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!",3200);
+  await showAhoyIntro();
   await recipeDraftNet();
+  // turn order is randomized once here and never rotates — a one-time first-player advantage,
+  // not something that cycles away round to round
   let order=game.players.map((_,i)=>i);
+  game.shuffle(order);
+  // staggered starting coins level that one-time edge: sim-tested (see cocoa_pirates_sim.py
+  // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
+  // whoever goes last
+  order.forEach((i,pos)=>{game.players[i].coins=game.cfg.startCoins+pos;});
   let ended=false;
   while(game.round<150&&!ended){
     game.round++;
-    let wheelPasser=null;
-    if(game.cfg.rotate&&game.round>1){
-      order=order.slice(1).concat(order.slice(0,1));
-      wheelPasser=game.players[order[order.length-1]]; // last round's leader, now rotated to the back
-    }
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=game.r()<game.cfg.storm;
     game.windNow2=game.stormNow?"NSEW"[Math.floor(game.r()*4)]:null;
@@ -2667,7 +2669,6 @@ async function runLiveNet(){
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
     await flash(describe(game.events[game.events.length-1]).txt,900);
-    if(wheelPasser&&!wheelPasser.done)await wheelFish(wheelPasser);
     for(const i of order){
       const p=game.players[i];
       if(p.done)continue;
@@ -2853,7 +2854,7 @@ function watchEvents(){
     $("scrub").max=Math.max(0,game.events.length-1);
     render();
     const e=game.events[evIdx];
-    spawnPops(e);showEventBubble(e);
+    spawnPops(e);
     if(e.t==="end")applyEndMeta();
   });
 }
@@ -2914,22 +2915,21 @@ async function applyEndMeta(){
 
 /* ================= welcome modal ================= */
 function showStep(id){
-  ["stepChoose","stepSolo","stepHost","stepJoin"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
+  ["stepChoose","stepHost","stepJoin"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
 }
 function requireName(){
   const v=($("pname").value||"").trim();
   return v?v.slice(0,40):"Davy Scones";
 }
 function wireWelcome(){
-  $("choiceSolo").onclick=()=>{if(!requireName())return;showStep("stepSolo");};
+  $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
   $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
   $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;if(!requireName())return;showStep("stepJoin");};
   document.querySelectorAll("#lobby [data-back]").forEach(b=>{b.onclick=()=>showStep("stepChoose");});
-  $("btnSolo").onclick=startSinglePlayer;
 }
 function startSinglePlayer(){
   const name=requireName();
-  const opp=+$("soloOpp").value;
+  const opp=3; // 4-player table is the standard game; no longer prompting for opponent count
   const strategies=["human"];
   for(let i=0;i<opp;i++)strategies.push(BOT_STRATS[i%BOT_STRATS.length]);
   numSeats=strategies.length;room=null;isHost=true;mySeat=0;
@@ -3062,7 +3062,7 @@ function beginGame(cfg,seed){
   live=true;liveDone=false;evIdx=0;evPushed=0;appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!replaying){dlog=[];dlogIdx=0;dlogN=0;}
-  logLines=[];clearBubbles();logRenderedTo=-2;$("log").innerHTML="";
+  logLines=[];logRenderedTo=-2;$("log").innerHTML="";
   drawBoard();buildPlayerRows();
   updateRecipeBanner();
   watchRecipes();
@@ -3094,6 +3094,7 @@ function wireLobby(){
   $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
   $("btnLeave").onclick=leaveGame;
+  $("scPause").onclick=toggleShotClockPause;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
   $("btnCloseLog").onclick=()=>{$("logModal").style.display="none";};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
