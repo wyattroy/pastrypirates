@@ -178,6 +178,8 @@
   #shotClockSub { font-size: clamp(7px,2.2cqw,11px); color: #e0c58f; line-height: 1.2; min-width: 18ch; }
   #shotClockPanel.urgent #shotClockSub { color: #ff9b93; }
   @keyframes clockurgent { 0%, 100% { box-shadow: 0 0 0 0 rgba(226,75,74,.65); } 50% { box-shadow: 0 0 0 9px rgba(226,75,74,0); } }
+  #btnPlayAgain { width: 100%; font-size: clamp(10px,3cqw,13px); padding: clamp(5px,2cqw,8px) 4px;
+    white-space: nowrap; }
   .pips { display: flex; justify-content: center; gap: 6px; }
   .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
   .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
@@ -195,13 +197,13 @@
   .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
-    18% { opacity: 1; transform: translate(calc(var(--dx, 0px) * .25), 0) scale(1); }
-    100% { opacity: 0; transform: translate(var(--dx, 0px), -32px) scale(1.3); }
+    18% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(0, -32px) scale(1.3); }
   }
-  .dancingPastry { animation: pastrydance 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .dancingPastry { animation: pastrydance 1s ease-in-out infinite; }
   @keyframes pastrydance {
-    0%, 100% { transform: translateY(0) rotate(-10deg); }
-    50% { transform: translateY(-5px) rotate(10deg); }
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
   }
   #log .line { padding: 1.5px 4px; border-radius: 4px; }
   #log .line.cur { background: var(--lemon); }
@@ -233,11 +235,17 @@
   .modalCard { background: linear-gradient(175deg, #ffffff, var(--parch2) 250%); border: 3px solid var(--teal);
     border-radius: 20px; padding: 26px 28px 22px; max-width: 440px; width: 100%; text-align: center;
     box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18); }
+  /* small screens: a centering flexbox clips the top of tall content with no way to scroll
+     up to it, so switch to top-aligned with generous margin instead of vertical centering */
+  @media (max-width: 600px) {
+    .modalOverlay { align-items: flex-start; padding: 40px 16px; }
+    .modalCard { margin: 0 auto; }
+  }
   .modalTitle { font-size: 23px; font-weight: 800; color: var(--teal); letter-spacing: .5px; line-height: 1.25; }
   .modalTitleSub { display:block; font-size: 13.5px; font-weight: 500; font-style: italic; opacity: .75; margin-top: 2px; }
   .modalByline { font-size: 13.5px; line-height: 1.5; color: var(--ink); opacity: .85; margin: 10px 2px 20px; }
   .nameLabel { display:block; text-align:left; font-size:13px; font-weight:700; color:var(--teal); margin-bottom:18px; }
-  .nameLabel input { width:100%; margin-top:5px; font-size:15px; padding:9px 11px; border:1.5px solid var(--line);
+  .nameLabel input { width:100%; margin-top:5px; font-size:16px; padding:9px 11px; border:1.5px solid var(--line);
     border-radius:9px; font-family:inherit; box-sizing:border-box; }
   .choiceRow { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .choiceCard { flex: 1 1 120px; min-width: 118px; display:flex; flex-direction:column; align-items:center; gap:4px;
@@ -255,7 +263,7 @@
   .backLink { display:block; text-align:left; background:none; border:none; color: var(--teal); font-weight:700;
     font-size:12.5px; cursor:pointer; padding:0 0 12px; font-family:inherit; }
   .fieldRow { margin: 6px 0 18px; font-size: 14px; }
-  .fieldRow select, .fieldRow input[type=text] { font-size:14px; padding:6px 9px; border:1.5px solid var(--line);
+  .fieldRow select, .fieldRow input[type=text] { font-size:16px; padding:6px 9px; border:1.5px solid var(--line);
     border-radius:8px; font-family:inherit; margin-left:4px; }
   #joinCode { text-transform: uppercase; letter-spacing: 3px; width: 130px; text-align:center; }
   .fbnote { margin-top: 14px; font-size: 12px; text-align:left; color: #8a5a00; background:#fff6d8;
@@ -315,7 +323,6 @@
       <div class="modalByline">You left London's fog for the sunny shores of Tortuga to start a bakery -- but you have no ingredients! Out here, it's plunder or be plundered: so sail the Sugar Seas to gather rare ingredients from the archipelago, out-bargain and out-battle rival captains, and race home to be crowned Best Baker in the Caribbean.</div>
       <label class="nameLabel">Your captain name
         <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
-      <div class="muted" style="font-size:12px;margin-top:-6px;margin-bottom:8px">🔍 Playtesting this build? Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
           <div class="ccIcon">⚓</div><div class="ccTitle">Play Solo</div><div class="ccSub">vs. bot captains</div>
@@ -327,6 +334,7 @@
           <div class="ccIcon">🔑</div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
         </button>
       </div>
+      <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px">🔍 Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
       <div id="fbnote" class="fbnote" style="display:none">⚙️ Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
     </div>
 
@@ -1275,7 +1283,7 @@ function describe(e){
     case "shotclock":return {cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`};
     case "shotclockskip":return {cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} took too long — loses ${ilabel(e.ing)} and misses the turn!`:`⏰ ${pn(e.p)} took too long — loses ${e.coins}🌕 and misses the turn!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
-    case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} is the Best Baker in the Caribbean!`};
+    case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${recipeTitle(game.players[e.winner].recipe)} and is the Best Baker in the Caribbean!`};
     case "turn":return null;
     default:return null;
   }
@@ -1395,11 +1403,7 @@ function renderLog(){
 
 /* ---------- action popups on the map ---------- */
 function popEmoji(x,y,emo,big){
-  // a little horizontal drift (instead of a rigid straight-up rise) so the reward doesn't
-  // look like it's launching from a fixed vertical rail above the ship
-  const dx=(Math.random()*2-1)*cell*.35;
-  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop",
-    style:`--dx:${dx}px`},$("board"));
+  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop"},$("board"));
   t.textContent=emo;
   setTimeout(()=>t.remove(),1300);
 }
@@ -1537,7 +1541,9 @@ function celebrateHomeDocks(){
     const x=+rect.getAttribute("x")+(+rect.getAttribute("width"))/2;
     const y=+rect.getAttribute("y")+(+rect.getAttribute("height"))/2;
     rect.remove();
-    const t=el("text",{x,y:y+cell*.14,"text-anchor":"middle","font-size":cell*.4,class:"dancingPastry"},$("board"));
+    const ty=y+cell*.14;
+    const t=el("text",{x,y:ty,"text-anchor":"middle","font-size":cell*.4,class:"dancingPastry",
+      style:`transform-origin:${x}px ${ty}px`},$("board"));
     t.textContent=pastries[i%pastries.length];
   }
 }
@@ -1545,7 +1551,7 @@ function showStats(){
   $("statsWrap").style.display="";
   celebrateHomeDocks();
   const w=game.winner;
-  const banner=w===null?"⏳ Nobody finished!":`👑 ${pn(w)} (${game.cfg.strategies[w]}) wins!`;
+  const banner=w===null?"⏳ Nobody finished!":`👑 ${pn(w)} wins!`;
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
   // one superlative per player — everyone gets a shoutout, not just the top 3 stats
   const supers=assignSuperlatives();
@@ -1591,7 +1597,15 @@ let dlog=[];                   // recorded decisions to replay (indices for ask,
 let dlogIdx=0;                 // next log entry to consume during replay
 let dlogN=0;                   // total decisions resolved so far (replayed + live) = next log slot
 let resumeEvLen=0;             // # events already broadcast before the reload (so we don't re-push)
-const sleep=ms=>replaying?Promise.resolve():new Promise(r=>setTimeout(r,ms));
+// solo pause (see toggleShotClockPause) freezes the whole game by making every await-ed
+// sleep() stall first — bots pace their turns entirely through sleep(), so this alone halts
+// bot play without threading a paused-check through every call site.
+function waitWhilePaused(){
+  return shotClockPaused?new Promise(res=>{
+    const iv=setInterval(()=>{if(!shotClockPaused){clearInterval(iv);res();}},150);
+  }):Promise.resolve();
+}
+const sleep=ms=>replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
 // Bots play at the Lab's slowest pace (3s per action) so players can follow every move.
 function stepDelay(){return 3000;}
 async function botBeat(){liveRender();narrateCurrent();await sleep(stepDelay());}
@@ -1653,16 +1667,23 @@ function stopShotClock(){
 }
 // solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
 function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strategy==="human").length<=1;}
+// works any time in solo play, not just on your own turn — shotClockPaused doubles as the
+// whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
+// actually freezes the bots instead of just a countdown that isn't running yet.
 function toggleShotClockPause(){
-  if(!isHost||shotClockSeat==null||!soloBotGame())return;
+  if(!isHost||!soloBotGame())return;
   if(shotClockPaused){
     shotClockPaused=false;
-    shotClockDeadline=Date.now()+30000-shotClockPauseElapsed;
-    shotClockTimer=setInterval(shotClockTick,500);
+    if(shotClockSeat!=null){
+      shotClockDeadline=Date.now()+30000-shotClockPauseElapsed;
+      shotClockTimer=setInterval(shotClockTick,500);
+    }
   }else{
     shotClockPaused=true;
-    shotClockPauseElapsed=Date.now()-(shotClockDeadline-30000);
-    if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
+    if(shotClockSeat!=null){
+      shotClockPauseElapsed=Date.now()-(shotClockDeadline-30000);
+      if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
+    }
   }
   setClockUI();
 }
@@ -1683,6 +1704,7 @@ function applyShotClockPenalty(){
   const take=Math.min(1,p.coins);
   p.coins-=take;others.forEach(q=>q.coins++);
   game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
+  narrateLastEvent();
   liveRender();
 }
 function expireShotClock(){
@@ -1714,11 +1736,24 @@ function watchClock(){
 }
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
+  if(liveDone){
+    if(!$("btnPlayAgain")){
+      wrap.classList.remove("idle","urgent");
+      wrap.innerHTML=`<button id="btnPlayAgain" class="primary" type="button">🔁 Play again</button>`;
+      $("btnPlayAgain").onclick=leaveGame;
+    }
+    return;
+  }
   const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
-  pauseEl.style.display=(state&&isHost&&soloBotGame())?"":"none";
+  pauseEl.style.display=(isHost&&soloBotGame()&&!liveDone)?"":"none";
   pauseEl.textContent=shotClockPaused?"▶":"⏸";
   if(!state){
+    if(isHost&&shotClockPaused){
+      wrap.classList.remove("idle","urgent");
+      labelEl.textContent="paused";numEl.textContent="⏸";unitEl.textContent="";subEl.textContent="tap ▶ to resume";
+      return;
+    }
     wrap.classList.add("idle");wrap.classList.remove("urgent");
     labelEl.textContent="turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
@@ -1771,6 +1806,19 @@ function netNarrate(html){if(replaying)return;showNarration(html);if(isHost&&db&
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
 function netBroadcast(html){if(replaying)return;if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
+// narrates the outcome of the event just pushed via game.ev() — bot turns already get this
+// for free via narrateCurrent(), but human actions (dock, anchor flip, trade) need it explicitly
+// since they don't route through botBeat(). Skips (rather than clobbers) a still-pending
+// decision's buttons — e.g. the 20s shot-clock penalty fires while the player hasn't answered
+// yet, so overwriting the panel would wipe out the very buttons they need to click. Awaits a
+// beat after narrating so the outcome is actually readable before the next thing overwrites it.
+async function narrateLastEvent(){
+  const e=game.events[game.events.length-1];if(!e)return;
+  if($("actionPanel").classList.contains("needsAction"))return;
+  const L=describe(e);if(!L)return;
+  netNarrate(L.txt);
+  await sleep(3000);
+}
 
 // ---- ask(): route the decision to whichever browser owns this seat ----
 function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${col}22;font-weight:700"`:"";}
@@ -1839,7 +1887,7 @@ async function flash(msg,ms){netNarrate(msg);await sleep(Math.max(ms||900,3000))
 // the opening backstory/context message — stays up until the player actually reads it and
 // clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
-  const msg="⚓ Ahoy! Plunder every ingredient on yer map, sail home, and bake yerself a win! <br><br>Each turn, the wind moves ye, then ye sail (1🌕), then ye act.<br><br>Watch this panel — she'll steer ye straight!";
+  const msg="⚓ Ahoy! Plunder every ingredient in yer recipe, sail home, and bake yerself a win! <br><br>⛵️ Each turn, the wind moves ye, then ye sail, then ye act.<br><br>👀 Watch this panel — she'll steer ye straight!";
   if(replaying)return;
   netNarrate(msg);
   panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnAhoyStart">⚓ Ahoy! Let's start</button></div>`,true);
@@ -1974,12 +2022,13 @@ async function windLeg(p,dirKey,dist){
       opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
       const v=await ask(`${pn(p.idx)}: the wind blows you toward an island!`,opts);
       if(turnExpired)return;
-      if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});}
+      if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
         const h=await humanFlip(p,"Flip to drop anchor!");
         if(turnExpired)return;
         if(h)game.ev({t:"anchor",p:p.idx});
         else{p.coins-=Math.floor(p.coins/2);game.ev({t:"aground",p:p.idx});}
+        await narrateLastEvent();
       }
       liveRender();return;
     }
@@ -2019,6 +2068,7 @@ async function humanDock(p,port){
     }else p.coins+=3;
     game.ev({t:"dock",p:p.idx,ing,heads:0,got});
   }
+  await narrateLastEvent();
   p.firstFlip.add(ing);p.dockedNow.add(ing);
   liveRender();
 }
@@ -2435,6 +2485,7 @@ async function humanTrade(p){
           game.trades++;
           if(game.cfg.tradeBonus){p.coins++;q.coins++;}
           game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel+(shortfall?` + ${shortfall} coins`:""),got:want,kind:"counter"});
+          await narrateLastEvent();
           liveRender();
           return true;
         }
@@ -2457,6 +2508,7 @@ async function humanTrade(p){
   game.trades++;
   if(game.cfg.tradeBonus){p.coins++;q.coins++;}
   game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel||"nothing",got:want,kind:"human"});
+  await narrateLastEvent();
   liveRender();
   return true;
 }
@@ -2732,7 +2784,7 @@ async function liveResolveEndNet(){
   await writeMeta();
   await writeGameLog();
   liveRender();
-  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} is the Best Baker in the Caribbean!`);
+  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} made a ${recipeTitle(game.players[game.winner].recipe)} and is the Best Baker in the Caribbean!`);
   if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"});
 }
 function writeMeta(){
