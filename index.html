@@ -1402,8 +1402,13 @@ function renderLog(){
 }
 
 /* ---------- action popups on the map ---------- */
+// SVG's default transform-box is the whole viewport, so the popfloat keyframe's scale()
+// would otherwise be anchored at the board's (0,0) corner instead of the emoji's own spot —
+// every pop would rocket toward/away from that corner instead of rising in place. Pinning
+// transform-origin to the emoji's own x,y (same fix as celebrateHomeDocks' dancingPastry).
 function popEmoji(x,y,emo,big){
-  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop"},$("board"));
+  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop",
+    style:`transform-origin:${x}px ${y}px`},$("board"));
   t.textContent=emo;
   setTimeout(()=>t.remove(),1300);
 }
