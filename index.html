@@ -37,14 +37,15 @@
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
-  @media (min-width: 900px) {
-    #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
+  /* "wide" layout is toggled by JS (syncBoardSizing), not a viewport media query — whether the
+     board+sidebar sit side by side depends on the sidebar actually having room for a full row of
+     5 ingredient chips, which is a function of the computed board size, not raw viewport width. */
+  #game.layoutWide #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
       grid-template-areas: "board captains" "board narration" "board stats";
       width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto;
       align-items: start; }
-    #boardwrap { max-width: none !important; width: 100%; }
-    #footerRow { width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto; }
-  }
+  #game.layoutWide #boardwrap { max-width: none !important; width: 100%; }
+  #game.layoutWide #footerRow { width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto; }
   #flipPanel { position: absolute; bottom: 8px; right: 8px; z-index: 3; }
   #shotClockPanel { position: absolute; bottom: 8px; left: 8px; z-index: 3; }
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; width: 100%; height: auto; }
@@ -79,7 +80,8 @@
   .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; }
   /* fixed dot/name/coins columns (same template on every row's own grid) keep money and hold
      aligned across all captains regardless of name length or how many ingredients they're holding */
-  .prowTop, .prowRecipeRow { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px; align-items: center; }
+  .prowTop, .prowRecipeRow { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px; align-items: start; }
+  .player-row .dot, .player-row .pname, .player-row .coinsWrap { padding-top: 2px; }
   .prowRecipeRow { margin-bottom: 2px; }
   .prowRecipeRow:has(.prowRecipe:empty) { display: none; }
   .player-row .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35); }
@@ -98,7 +100,7 @@
   .pulse { animation: rowpulse .5s ease; }
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
-  #boardwrap { position: relative; width: 100%; max-width: min(820px, calc(100vh - 210px)); margin: 0 auto; container-type: inline-size; }
+  #boardwrap { position: relative; width: 100%; max-width: var(--boardW, min(820px, calc(100vh - 210px))); margin: 0 auto; container-type: inline-size; }
   #actionPanel { margin: 8px 0; width: auto; background: var(--paleblue); border: 2px solid var(--teal);
     border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: var(--lemon); }
@@ -3128,20 +3130,25 @@ async function resumeHostGame(r){
   replaying=true;
   beginGame(r.cfg,r.seed);
 }
-// Wide-screen sizing: the board+captains/narration block is square-board-driven (sidebar pegged
-// at half the board's width) and fit to WHICHEVER of the page's width or height is tighter, so a
-// wide-short screen doesn't leave the board stranded small with huge unused side margins, and a
-// tall-narrow screen doesn't push the footer below the fold. Board+footer are floored at 600px.
+// Board size is driven purely by available HEIGHT (board+footer always fit the viewport, floored
+// at 600px) — width never shrinks it. The sidebar then just takes whatever width is left over
+// next to that board, up to a sane cap so it doesn't stretch absurdly on ultrawide monitors. Once
+// that leftover width can no longer fit a full row of 5 ingredient chips, we drop to the stacked
+// (narrow) layout — board full-width on its own row, sidebar full-width below it — instead of
+// squeezing the sidebar further and wrapping ingredients onto a second line.
+const MIN_SIDEBAR_W=380,MAX_SIDEBAR_W=560;
 function syncBoardSizing(){
   const root=document.documentElement;
-  if(window.innerWidth<900){root.style.removeProperty("--boardW");root.style.removeProperty("--sideW");return;}
   const footerH=($("footerRow")||{}).offsetHeight||0;
   const chromeH=28+14+footerH; // #game top/bottom padding + layout gap + footer height
-  const heightBudget=window.innerHeight-chromeH;
-  const widthBudget=(window.innerWidth-28-14)/1.5; // #game side padding + board/sidebar gap, sidebar=0.5*board
-  const boardH=Math.max(600,Math.min(heightBudget,widthBudget));
-  root.style.setProperty("--boardW",boardH+"px");
-  root.style.setProperty("--sideW",Math.round(boardH/2)+"px");
+  const boardSize=Math.max(600,window.innerHeight-chromeH);
+  const availW=window.innerWidth-28; // #game's own left+right padding
+  const remaining=availW-boardSize-14; // width left for the sidebar after the board + the column gap
+  const wide=remaining>=MIN_SIDEBAR_W;
+  $("game").classList.toggle("layoutWide",wide);
+  root.style.setProperty("--boardW",(wide?boardSize:Math.min(boardSize,availW))+"px");
+  if(wide)root.style.setProperty("--sideW",Math.min(remaining,MAX_SIDEBAR_W)+"px");
+  else root.style.removeProperty("--sideW");
 }
 let syncBoardRAF=null;
 window.addEventListener("resize",()=>{if(syncBoardRAF)return;syncBoardRAF=requestAnimationFrame(()=>{syncBoardRAF=null;syncBoardSizing();});});
