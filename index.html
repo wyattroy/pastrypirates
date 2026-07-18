@@ -2549,6 +2549,11 @@ async function humanAct(p){
 }
 async function humanTurn(p){
   setActor(p.idx);
+  // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
+  // flag only ever gets cleared by armClock() deep inside a decision, which is too late to
+  // save this turn's own early "did the previous turn just die?" guards below, so clear it
+  // fresh the moment a new human turn actually begins
+  turnExpired=false;
   game.ev({t:"turn",p:p.idx});
   liveRender();
   await flash(`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
