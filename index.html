@@ -56,7 +56,7 @@
   #game.layoutWide #boardwrap { max-width: none !important; width: 100%; }
   #game.layoutWide #footerRow { width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto; }
   #flipPanel { flex: 0 0 auto; }
-  #shotClockPanel { flex: 1; }
+  #shotClockPanel { flex: 0 0 auto; }
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; width: 100%; height: auto; }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
@@ -117,6 +117,7 @@
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
+  .apBtn.primary:hover { background: var(--accent); filter: brightness(1.1); }
   .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
   @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */
@@ -455,7 +456,7 @@
       </div>
       <div id="shotClockPanel" class="idle">
         <button id="scPause" type="button" style="display:none">⏸</button>
-        <div id="scLabel">not your turn</div>
+        <div id="scLabel">turn clock</div>
         <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
         <div id="shotClockSub">&nbsp;</div>
       </div>
@@ -1705,7 +1706,7 @@ function setClockUI(){
   pauseEl.textContent=shotClockPaused?"▶":"⏸";
   if(!state){
     wrap.classList.add("idle");wrap.classList.remove("urgent");
-    labelEl.textContent="not your turn";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
+    labelEl.textContent="turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
   }
   wrap.classList.remove("idle");
@@ -1824,7 +1825,7 @@ async function flash(msg,ms){netNarrate(msg);await sleep(Math.max(ms||900,3000))
 // the opening backstory/context message — stays up until the player actually reads it and
 // clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
-  const msg="⚓ Ahoy! Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga to win. Each turn the wind moves you, then you may sail (1🌕), then act. Watch the yellow panel for your prompts!";
+  const msg="⚓ Ahoy! Round up every ingredient on yer map, sail home, and bake yerself a win! <br>The wind moves first, then ye sail (1🌕), then ye act. That's the pirate's code!<br>Watch this panel — she'll never steer ye wrong!";
   if(replaying)return;
   netNarrate(msg);
   panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnAhoyStart">⚓ Ahoy! Let's start</button></div>`,true);
