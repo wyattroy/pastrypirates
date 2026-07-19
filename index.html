@@ -11,7 +11,7 @@
 <meta property="og:url" content="https://playpastrypirates.com/">
 <meta property="og:image" content="https://playpastrypirates.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="814">
+<meta property="og:image:height" content="663">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Pastry Pirates on the Sugar Seas">
 <meta name="twitter:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 2-4 players.">
@@ -33,14 +33,12 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif; background: #fff; color: var(--ink); }
-  #boardTitle { position: absolute; top: 6px; left: 6px; display: flex; flex-direction: column; align-items: flex-start; gap: 0;
-    font-size: 17px; font-weight: bold; letter-spacing: .5px; line-height: 1.1; color: var(--teal); pointer-events: none; z-index: 3; }
-  #boardTitle .flag { font-size: .8em; margin-left: 4px; }
-  /* title is always two stacked lines ("Pastry" / "Pirates <flag>"); on a small rendered board
-     shrink it further so it doesn't overlap the top row of tiles, keyed off the board's own
-     rendered size via container query */
+  #boardTitle { position: absolute; top: 6px; left: 6px; pointer-events: none; z-index: 3; }
+  #boardTitle img { width: 130px; height: auto; display: block; }
+  /* shrink on a small rendered board so it doesn't overlap the top row of tiles, keyed off the
+     board's own rendered size via container query */
   @container (max-width: 420px) {
-    #boardTitle { font-size: 10px; }
+    #boardTitle img { width: 80px; }
   }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
     grid-template-areas: "board" "controls" "narration" "stats" "captains"; }
@@ -110,7 +108,8 @@
   .coinsWrap { display: flex; align-items: center; gap: 3px; }
   .player-row .coins { font-variant-numeric: tabular-nums; }
   .chips { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; grid-column: 4; }
-  .chip { font-size: 16px; padding: 1px 4px; border-radius: 6px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
+  .chip { width: 34px; height: 34px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; padding: 1px; border-radius: 8px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
+  .chip img { width: 95%; height: 95%; object-fit: contain; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
   .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; grid-column: 2; }
@@ -293,8 +292,9 @@
     #btnPlayAgain { min-width: clamp(105px,39cqw,177px); border-radius: clamp(12px,4.5cqw,21px);
       padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px); font-size: clamp(16.5px,5.25cqw,24px); }
   }
-  .modalTitle { font-size: 23px; font-weight: 800; color: var(--teal); letter-spacing: .5px; line-height: 1.25; }
-  .modalTitleSub { display:block; font-size: 13.5px; font-weight: 500; font-style: italic; opacity: .75; margin-top: 2px; }
+  .modalTitle { line-height: 1.25; }
+  .modalLogo { width: 260px; max-width: 100%; height: auto; }
+  .modalTitleSub { display:block; font-size: 13.5px; font-weight: 500; font-style: italic; color: var(--teal); opacity: .75; margin-top: 2px; }
   .modalByline { font-size: 13.5px; line-height: 1.5; color: var(--ink); opacity: .85; margin: 10px 2px 20px; }
   .nameLabel { display:block; text-align:left; font-size:13px; font-weight:700; color:var(--teal); margin-bottom:18px; }
   .nameLabel input { width:100%; margin-top:5px; font-size:16px; padding:9px 11px; border:1.5px solid var(--line);
@@ -371,6 +371,7 @@
     font-weight: 600; color: #4a3223; border-bottom: 1px dashed rgba(120,80,40,.35); }
   .recipeList li:last-child { border-bottom: none; }
   .recipeList .ri { font-size: 19px; width: 24px; text-align: center; flex: 0 0 auto; }
+  .recipeList .ri img { width: 22px; height: 22px; vertical-align: middle; object-fit: contain; }
   .recipeList .rn { flex: 1; }
   .recipeList .rc { font-size: 12px; font-weight: 500; font-style: italic; color: #9a6f3e;
     flex: 0 0 auto; padding-left: 8px; }
@@ -381,7 +382,7 @@
 <!-- ===================== WELCOME MODAL ===================== -->
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
-    <div class="modalTitle">🏴‍☠️ Pastry Pirates <span class="modalTitleSub">on the Sugar Seas</span></div>
+    <div class="modalTitle"><img src="assets/logo.png" alt="Pastry Pirates" class="modalLogo"><span class="modalTitleSub">on the Sugar Seas</span></div>
 
     <div id="stepChoose" class="modalStep">
       <div class="modalByline">You left London's fog for the sunny shores of Tortuga to start a bakery -- but you have no ingredients! Out here, it's plunder or be plundered: so sail the Sugar Seas to gather rare ingredients from the archipelago, out-bargain and out-battle rival captains, and race home to be crowned Best Baker in the Caribbean.</div>
@@ -559,7 +560,7 @@
   <div id="layout">
     <div id="left">
       <div id="boardwrap">
-        <div id="boardTitle"><span class="word">Pastry</span><span class="word">Pirates <span class="flag">🏴‍☠️</span></span></div>
+        <div id="boardTitle"><img src="assets/logo.png" alt="Pastry Pirates"></div>
         <svg id="board" viewBox="0 0 640 640"></svg>
       </div>
     </div>
@@ -605,6 +606,29 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 // first `nIslands` (7) of these are the ingredients in play — kept in the requested order
 const ING_ALL=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla","salt","honey"];
 const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️",honey:"🍯",salt:"🧂"};
+// custom-art pipeline: drop matching files in assets/ and they render in place of the emoji/
+// vector fallback automatically (iconAt() below removes the <image> on load failure, leaving
+// the original emoji/shape visible) — nothing else in the code needs to change.
+const ASSET_BASE="assets/";
+const ING_IMG={};ING_ALL.forEach(i=>ING_IMG[i]=`${ASSET_BASE}ingredients/${i}.png`);
+// blackened silhouette of each ingredient, same alpha shape as ING_IMG — rendered at 30%
+// opacity to leave a "hole" where a crate used to sit once it's taken
+const ING_HOLE_IMG={};ING_ALL.forEach(i=>ING_HOLE_IMG[i]=`${ASSET_BASE}ingredients/holes/${i}.png`);
+const BOARD_IMG=`${ASSET_BASE}board.png`;
+const DOCK_IMG=`${ASSET_BASE}dock.png`;
+const WIND_ARROW_IMG=`${ASSET_BASE}wind-arrow.png`;
+const TRADE_SWIRL_IMG=`${ASSET_BASE}trade-swirl.png`;
+const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);
+// 7 base island footprints (see TET below); art is authored once per shape in its canonical
+// orientation — the game applies the same rotate/mirror it used to place the shape on the board.
+const ISLAND_SHAPE_IMG=[1,2,3,4,5,6,7].map(i=>`${ASSET_BASE}islands/${i}.png`);
+// 3–4 block island shapes: lines, Ls, corner, square, S, T. Shared by board generation
+// (Game constructor, below) and by island art placement (renderBoard) — index into this array
+// is the canonical shape id baked into each islands/N.png filename (1-based) via ISLAND_SHAPE_IMG.
+const TET=[
+  [[0,0],[1,0],[2,0]],[[0,0],[1,0],[0,1]],
+  [[0,0],[1,0],[2,0],[3,0]],[[0,0],[1,0],[0,1],[1,1]],
+  [[0,0],[1,0],[2,0],[0,1]],[[0,0],[1,0],[1,1],[2,1]],[[0,0],[1,0],[2,0],[1,1]]];
 const ING_NAME={wheat:"Toasty Wheat",dairy:"Fresh Milk",sugar:"Crystal Sugar",eggs:"Speckled Eggs",
   cocoa:"Cacao Pods",salt:"Sea Salt",vanilla:"Vanilla Beans",spice:"Hot Cinnamon",honey:"Golden Honey"};
 // the plain baker's term each pirate ingredient stands in for — shown as a gloss on recipe cards
@@ -612,6 +636,7 @@ const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
   cocoa:"chocolate",salt:"salt",vanilla:"vanilla",spice:"cinnamon",honey:"honey"};
 const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
+const ingImg=x=>`<img src="${ING_IMG[x]}" alt="${iname(x)}">`;
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
 // a storm's 2nd gust always veers 90° off the 1st (never the same direction, never reversing)
@@ -692,30 +717,29 @@ class Game{
     this.ings=ING_ALL.slice(0,cfg.nIslands);
     // island placement (rectangles of islandW x islandH)
     const iw=cfg.islandW||1, ih=cfg.islandH||1;
-    const TET=[ // 3–4 block shapes: lines, Ls, corner, square, S, T
-      [[0,0],[1,0],[2,0]],[[0,0],[1,0],[0,1]],
-      [[0,0],[1,0],[2,0],[3,0]],[[0,0],[1,0],[0,1],[1,1]],
-      [[0,0],[1,0],[2,0],[0,1]],[[0,0],[1,0],[1,1],[2,1]],[[0,0],[1,0],[2,0],[1,1]]];
     const shapeFor=()=>{
       if(!cfg.tetris){
         const flip=this.r()<.5, w=flip?ih:iw, h=flip?iw:ih;
-        const s=[];for(let a=0;a<w;a++)for(let b=0;b<h;b++)s.push([a,b]);return s;
+        const s=[];for(let a=0;a<w;a++)for(let b=0;b<h;b++)s.push([a,b]);
+        return {cells:s,shapeIdx:-1,rot:0,flip:false}; // no TET art mapping in rectangle mode
       }
-      let s=TET[Math.floor(this.r()*TET.length)].map(c=>[...c]);
+      const shapeIdx=Math.floor(this.r()*TET.length);
+      let s=TET[shapeIdx].map(c=>[...c]);
       const rot=Math.floor(this.r()*4);
       for(let t=0;t<rot;t++)s=s.map(([x,y])=>[y,-x]);
-      if(this.r()<.5)s=s.map(([x,y])=>[-x,y]);
+      const flip=this.r()<.5;
+      if(flip)s=s.map(([x,y])=>[-x,y]);
       const mx=Math.min(...s.map(c=>c[0])),my=Math.min(...s.map(c=>c[1]));
-      return s.map(([x,y])=>[x-mx,y-my]);
+      return {cells:s.map(([x,y])=>[x-mx,y-my]),shapeIdx,rot,flip};
     };
-    const rects=[];
+    const rects=[],rectsMeta=[];
     for(let k=0;k<this.ings.length;k++){
       let done=false;
       for(const spacing of [3,2,1]){
         const tops=[]; for(let x=0;x<n;x++)for(let y=0;y<n;y++)tops.push([x,y]);
         this.shuffle(tops);
         for(const [x,y] of tops){
-          const shape=shapeFor();
+          const{cells:shape,shapeIdx,rot,flip}=shapeFor();
           const cellsR=shape.map(([a,b])=>[x+a,y+b]);
           if(cellsR.some(c=>c[0]>=n||c[1]>=n))continue;
           if(cellsR.some(c=>man(c,this.home)<2))continue;
@@ -726,15 +750,16 @@ class Game{
             return Object.values(DIRS).some(d=>this.rim.has((c[0]+d[0])+","+(c[1]+d[1])));
           }))continue;
           if(cellsR.some(c=>rects.some(r2=>r2.some(d=>man(c,d)<spacing))))continue;
-          rects.push(cellsR);done=true;break;
+          rects.push(cellsR);rectsMeta.push({shapeIdx,rot,flip});done=true;break;
         }
         if(done)break;
       }
     }
-    this.islands={}; this.islandRect={}; this.dockOf={}; this.islandOf={};
+    this.islands={}; this.islandRect={}; this.islandShapeMeta={}; this.dockOf={}; this.islandOf={};
     this.ings.forEach((ing,i)=>{
       const cellsR=rects[i]||[[0,0]];
       this.islandRect[ing]=cellsR;
+      this.islandShapeMeta[ing]=rectsMeta[i]||{shapeIdx:-1,rot:0,flip:false};
       for(const c of cellsR)this.islands[c]=ing;
     });
     if(cfg.singleDock){
@@ -1494,7 +1519,7 @@ function winRecipeSpan(idx){
 }
 function recipeCardHTML(recipe){
   const info=recipeInfo(recipe);
-  const items=recipe.map(i=>`<li><span class="ri">${ING_EMOJI[i]}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
+  const items=recipe.map(i=>`<li><span class="ri">${ingImg(i)}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
   const desc=info?`<div class="recipeDesc">${info.desc}</div>`:"";
   return `<div class="recipeTitle">📜 ${recipeTitle(recipe)}</div>`+desc+
     `<ul class="recipeList">${items}</ul>`;
@@ -1599,6 +1624,45 @@ function buildPlayerRows(){
 const SVGNS="http://www.w3.org/2000/svg";
 function el(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag);
   for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+// custom-art icon: a single centered <image>. (cx,cy) is its center in board px; size is its
+// width/height in board px.
+function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
+  const g=el("g",{transform:`translate(${cx},${cy})${flip?" scale(-1,1)":""}${rotateDeg?` rotate(${rotateDeg})`:""}`},svg);
+  el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
+  return g;
+}
+// dock.png is authored facing right (+x, East) in a slightly perspective/isometric style —
+// rotating it 180° to face West flips it upside down and puts the anchor on the wrong side,
+// so West is a horizontal mirror instead (stays right-side-up, just points the other way);
+// North/South still rotate a quarter turn, which doesn't have that problem.
+function dockOrient(dir){
+  if(dir[0]>0)return{rot:0,flip:false};
+  if(dir[0]<0)return{rot:0,flip:true};
+  return{rot:dir[1]>0?90:-90,flip:false};
+}
+// maps a canonical (unrotated) island shape image onto the actual rotated/mirrored cells a
+// given island was placed with (see shapeFor() in the Game constructor, and TET/ISLAND_SHAPE_IMG
+// above) — returns the <image> transform + size needed so shape art lands exactly on the cells.
+function islandArtPlacement(meta,cellsR){
+  const{shapeIdx,rot,flip}=meta;
+  if(shapeIdx<0)return null; // rectangle-mode island (not used by the live game); no art mapping
+  const canon=TET[shapeIdx];
+  const canonW=Math.max(...canon.map(c=>c[0]))+1, canonH=Math.max(...canon.map(c=>c[1]))+1;
+  let s=canon.map(c=>[...c]);
+  for(let t=0;t<rot;t++)s=s.map(([x,y])=>[y,-x]);
+  if(flip)s=s.map(([x,y])=>[-x,y]);
+  const mx=Math.min(...s.map(c=>c[0])),my=Math.min(...s.map(c=>c[1]));
+  const anchorX=Math.min(...cellsR.map(c=>c[0])),anchorY=Math.min(...cellsR.map(c=>c[1]));
+  const tx=(anchorX-mx)*cell, ty=(anchorY-my)*cell;
+  // shapeFor() rotates/mirrors CELL INDICES (not raw pixel coordinates) — index (x,y) is a unit
+  // cell's own corner label, so rotating indices by (x,y)=>(y,-x) actually pivots the geometry
+  // about the CENTER of the reference cell (0.5,0.5), and mirroring pivots about x=0.5, not the
+  // origin. The image transform below has to rotate/mirror about those same pivots (scaled to
+  // pixels) or the art lands exactly one cell off from the true clipped outline.
+  const pivot=cell/2;
+  const transform=`translate(${tx},${ty})${flip?` translate(${cell},0) scale(-1,1)`:""} rotate(${-90*rot},${pivot},${pivot})`;
+  return{transform,w:canonW*cell,h:canonH*cell,href:ISLAND_SHAPE_IMG[shapeIdx]};
+}
 // trace the outer boundary loop(s) of a polyomino (array of [x,y] grid cells) in grid units
 function tracePolygonLoops(cells){
   const setK=new Set(cells.map(c=>c[0]+","+c[1]));
@@ -1643,66 +1707,101 @@ let cell=0,shipEls=[],activeRing=null,spinNeedle=null,stormText=null,stormDial=n
 function drawBoard(){
   const svg=$("board");svg.innerHTML="";
   const n=game.cfg.grid,W=640;cell=W/n;
+  // custom board art (ocean + Isle of Tortuga + its docks baked in) sits behind everything.
+  // `grid` draws the functional cell boundaries on top of it: open water is outline-only
+  // (fully transparent fill) and the trade-wind channel gets a light 10%-black tint so its
+  // squares still read as distinct from open water. `home` (the plain Tortuga tile + anchor +
+  // berths) fully hides once art loads, since that's baked into the art itself.
+  const boardImg=el("image",{x:0,y:0,width:W,height:W,href:BOARD_IMG},svg);
+  boardImg.addEventListener("error",()=>boardImg.remove());
+  const grid=el("g",{},svg);
+  const home=el("g",{},svg);
+  boardImg.addEventListener("load",()=>{home.style.display="none";});
   if(game.isRound){
     svg.style.background="transparent";
     for(const k of game.valid){
       const [x,y]=k.split(",").map(Number);
       const rimC=game.rim.has(k);
       el("rect",{x:x*cell,y:y*cell,width:cell,height:cell,
-        fill:rimC?"#ccd4f5":"#cdeef3",stroke:"#a6dee8","stroke-width":1},svg);
+        fill:rimC?"#000000":"none","fill-opacity":rimC?.1:0,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
     }
-    // flow arrows on every channel square (clockwise), 🌀 at each quadrant's drop-off
+    // flow arrows on every channel square (clockwise), a swirl icon at each quadrant's drop-off
     const headKeys=new Set(Object.values(game.rimHead).map(h=>h[0]+","+h[1]));
     for(const c of game.rimCellInfo||[]){
       const cx=(c.x+.5)*cell,cy=(c.y+.5)*cell;
       if(headKeys.has(c.k)){
-        const t=el("text",{x:cx,y:cy+cell*.13,"text-anchor":"middle","font-size":cell*.4},svg);
-        t.textContent="🌀";
+        iconAt(svg,cx,cy,cell,TRADE_SWIRL_IMG);
       }else{
         const rot=c.deg+90; // tangent of clockwise flow
-        const t=el("text",{x:cx,y:cy+cell*.11,"text-anchor":"middle","font-size":cell*.32,
-          fill:"#5b6bd6",transform:`rotate(${rot} ${cx} ${cy})`},svg);
-        t.textContent="➤";
+        iconAt(svg,cx,cy,cell,WIND_ARROW_IMG,rot);
       }
     }
   }else{
     svg.style.background="";
     for(let i=0;i<=n;i++){
-      el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1},svg);
-      el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1},svg);
+      el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
+      el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
     }
   }
-  // home: Isle of Tortuga is a 1-square island with 4 docks (N/S/E/W)
+  // home: Isle of Tortuga is a 1-square island with 4 docks (N/S/E/W). The island tile itself
+  // is baked into board.png, but the 4 berths around it aren't — those always render for real.
   const [hx,hy]=game.home;
   el("rect",{x:hx*cell+2,y:hy*cell+2,width:cell-4,height:cell-4,rx:cell*.3,
-    fill:"#fef48b",stroke:"#f5a623","stroke-width":2},svg);
-  const ht=el("text",{x:(hx+.5)*cell,y:(hy+.5)*cell+cell*.16,"text-anchor":"middle","font-size":cell*.5},svg);
+    fill:"#fef48b",stroke:"#f5a623","stroke-width":2},home);
+  const ht=el("text",{x:(hx+.5)*cell,y:(hy+.5)*cell+cell*.16,"text-anchor":"middle","font-size":cell*.5},home);
   ht.textContent="⚓";
   let homeDockI=0;
   for(const d of Object.values(DIRS)){
     const dx=hx+d[0],dy=hy+d[1];
     if(dx<0||dy<0||dx>=n||dy>=n)continue;
-    // given a stable id so a finished game can swap these berths for dancing pastry emoji —
-    // see celebrateHomeDocks()
-    el("rect",{id:`homeDock${homeDockI++}`,x:dx*cell+cell*.3,y:dy*cell+cell*.3,width:cell*.4,height:cell*.4,
-      rx:3,fill:"#fdd97a",stroke:"#f5a623","stroke-width":1.5,opacity:.75},svg);
+    // invisible — kept only so celebrateHomeDocks() can find each berth's id and geometry
+    // (x/y/width/height) once the voyage ends; the dock.png below it is the visible layer
+    el("rect",{id:`homeDock${homeDockI++}`,x:dx*cell,y:dy*cell,width:cell,height:cell,
+      fill:"none",stroke:"none"},svg);
+    // faces back toward Tortuga
+    const{rot:rotDeg,flip}=dockOrient([-d[0],-d[1]]);
+    iconAt(svg,(dx+.5)*cell,(dy+.5)*cell,cell,DOCK_IMG,rotDeg,flip);
   }
   // islands (arbitrary polyomino shapes): fused cell fills + a single union outline
+  const defs=el("defs",{},svg);
   for(const ing of game.ings){
     const cells=game.islandRect[ing];
     const loops=tracePolygonLoops(cells);
+    const clipId=`islandClip_${ing}`;
+    const clipPath=el("clipPath",{id:clipId},defs);
     for(const loop of loops){
       const pxLoop=loop.map(([x,y])=>[x*cell,y*cell]);
       const d=roundedPathFromLoop(pxLoop,cell*.32);
-      el("path",{d,fill:"#7bc47f",stroke:"#3d8b40","stroke-width":2.5,"stroke-linejoin":"round"},svg);
+      el("path",{d},clipPath);
+    }
+    // custom island art: authored once per canonical shape (see ISLAND_SHAPE_IMG/TET above) and
+    // placed with the same rotate/mirror the board used, then clipped to the island's own rounded
+    // outline — so hand-drawn art doesn't need rounded corners or to know its own orientation.
+    const placement=islandArtPlacement(game.islandShapeMeta[ing],cells);
+    if(placement){
+      const clipG=el("g",{"clip-path":`url(#${clipId})`},svg);
+      const artG=el("g",{transform:placement.transform},clipG);
+      el("image",{x:0,y:0,width:placement.w,height:placement.h,"preserveAspectRatio":"none",href:placement.href},artG);
+    }
+    // dock is drawn before the crate icons below so it always sits underneath them — it
+    // stretches to the shared edge with the island and would otherwise occlude a crate there
+    if(game.cfg.singleDock){
+      const d=game.dockOf[ing];
+      const adj=Object.values(DIRS).find(dd=>game.islands[[d[0]+dd[0],d[1]+dd[1]]]===ing);
+      // faces the island, and centered on the shared edge between the dock cell and the island
+      // so it visually stretches to meet it rather than sitting centered in open water
+      const{rot:dockRotDeg,flip:dockFlip}=adj?dockOrient(adj):{rot:0,flip:false};
+      const px=adj?(d[0]+.5+adj[0]*.5)*cell:(d[0]+.5)*cell;
+      const py=adj?(d[1]+.5+adj[1]*.5)*cell:(d[1]+.5)*cell;
+      iconAt(svg,px,py,cell,DOCK_IMG,dockRotDeg,dockFlip);
     }
     // one big icon per remaining crate, one per island square — a taken crate turns fully
     // grey in place rather than shrinking to a count badge, so the whole island reads at a glance
     if(game.cfg.crates<1e9){
       cells.slice(0,game.cfg.crates).forEach((c,idx)=>{
         const scx=(c[0]+.5)*cell,scy=(c[1]+.5)*cell;
-        el("text",{x:scx,y:scy+cell*.27,"text-anchor":"middle","font-size":cell*.8,
-          id:`crate_${ing}_${idx}`},svg).textContent=ING_EMOJI[ing];
+        const g=iconAt(svg,scx,scy,cell*.8,ING_IMG[ing]);
+        g.id=`crate_${ing}_${idx}`;
       });
     }else{
       // unlimited-crate config (not used by the live game, kept for the lab): one plain icon
@@ -1710,22 +1809,7 @@ function drawBoard(){
       let best=cells[0],bd=1e9;
       for(const c of cells){const dd=(c[0]-mx)**2+(c[1]-my)**2;if(dd<bd){bd=dd;best=c;}}
       const cx=(best[0]+.5)*cell,cy=(best[1]+.5)*cell;
-      el("text",{x:cx,y:cy+cell*.15,"text-anchor":"middle","font-size":cell*.45},svg).textContent=ING_EMOJI[ing];
-    }
-    if(game.cfg.singleDock){
-      const d=game.dockOf[ing];
-      // plank connecting the berth to its island
-      const adj=Object.values(DIRS).find(dd=>game.islands[[d[0]+dd[0],d[1]+dd[1]]]===ing);
-      if(adj){
-        const px=(d[0]+.5+adj[0]*.5)*cell, py=(d[1]+.5+adj[1]*.5)*cell;
-        el("rect",{x:px-(adj[0]?cell*.20:cell*.13),y:py-(adj[1]?cell*.20:cell*.13),
-          width:adj[0]?cell*.40:cell*.26,height:adj[1]?cell*.40:cell*.26,
-          rx:2,fill:"#c98a2e"},svg);
-      }
-      el("rect",{x:d[0]*cell+cell*.25,y:d[1]*cell+cell*.25,width:cell*.5,height:cell*.5,
-        rx:3,fill:"#f5a623",stroke:"#c77f16","stroke-width":1.5,opacity:.95},svg);
-      const dt=el("text",{x:(d[0]+.5)*cell,y:(d[1]+.5)*cell+cell*.12,"text-anchor":"middle","font-size":cell*.3,fill:"#fff"},svg);
-      dt.textContent="⚓";
+      iconAt(svg,cx,cy,cell*.8,ING_IMG[ing]);
     }
   }
   // wind spinner HUD (bottom-right corner) — sized off `cell` rather than fixed pixels, so it
@@ -1754,9 +1838,8 @@ function drawBoard(){
   shipEls=[];
   game.players.forEach((p,i)=>{
     const g=el("g",{style:"transition: transform .35s cubic-bezier(.42,0,.58,1)"},svg);
-    el("circle",{cx:0,cy:0,r:cell*.3,fill:HEXCOL[i],stroke:"#fff","stroke-width":2,opacity:.92},g);
-    const t=el("text",{x:0,y:cell*.11,"text-anchor":"middle","font-size":cell*.34},g);
-    t.textContent="⛵";
+    const boatSize=cell;
+    el("image",{x:-boatSize/2,y:-boatSize/2,width:boatSize,height:boatSize,href:BOAT_IMG[i]},g);
     shipEls.push(g);
   });
   // seat the ships on their Isle of Tortuga docks right away, before the first event renders
@@ -1863,9 +1946,9 @@ function render(){
         const k=hold.indexOf(ing);
         const have=k>=0;
         if(have)hold.splice(k,1);
-        return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ING_EMOJI[ing]}</span>`;
+        return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ingImg(ing)}</span>`;
       });
-      const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ING_EMOJI[x2]}</span>`);
+      const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ingImg(x2)}</span>`);
       newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else if(offerCheckBtn){
       $("prowRecipeRow"+i).classList.remove("hasRecipe");
@@ -1874,7 +1957,7 @@ function render(){
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
       // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
       $("prowRecipeRow"+i).classList.remove("hasRecipe");
-      const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ING_EMOJI[x2]}</span>`);
+      const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ingImg(x2)}</span>`);
       newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
     if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
@@ -1907,8 +1990,9 @@ function render(){
     for(let idx=0;idx<game.cfg.crates;idx++){
       const ic=document.getElementById(`crate_${ing}_${idx}`);if(!ic)continue;
       const taken=idx>=remaining;
-      ic.style.opacity=taken?.3:1;
-      ic.style.filter=taken?"grayscale(1)":"";
+      const img=ic.querySelector("image");
+      if(img)img.setAttribute("href",taken?ING_HOLE_IMG[ing]:ING_IMG[ing]);
+      ic.style.opacity=taken?.45:1;
     }
   }
   if(spinNeedle&&e.wind){
@@ -1953,11 +2037,15 @@ function renderLog(){
 // would otherwise be anchored at the board's (0,0) corner instead of the emoji's own spot —
 // every pop would rocket toward/away from that corner instead of rising in place. Pinning
 // transform-origin to the emoji's own x,y (same fix as celebrateHomeDocks' dancingPastry).
-function popEmoji(x,y,emo,big){
-  const t=el("text",{x,y,"text-anchor":"middle","font-size":cell*(big?.72:.55),"class":"pop",
-    style:`transform-origin:${x}px ${y}px`},$("board"));
-  t.textContent=emo;
-  setTimeout(()=>t.remove(),1300);
+function popEmoji(x,y,emo,big,imgHref){
+  const g=el("g",{class:"pop",style:`transform-origin:${x}px ${y}px`},$("board"));
+  const size=cell*(big?.72:.55);
+  if(imgHref){
+    el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
+  }else{
+    el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;
+  }
+  setTimeout(()=>g.remove(),1300);
 }
 function spawnPops(e){
   if(!e)return;
@@ -1978,7 +2066,7 @@ function spawnPops(e){
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
     case "anchor":case "moored":case "blocked":case "anchorHold":popEmoji(...at(e.p),"⚓");break;
-    case "tradewind":popEmoji(...at(e.p),"🌀",true);break;
+    case "tradewind":popEmoji(...at(e.p),"🌀",true,TRADE_SWIRL_IMG);break;
     case "parley":popEmoji(...at(e.a),e.ok?"🤝":"🙅");break;
     case "dodge":popEmoji(...at(e.p),"💨");break;
     case "finish":popEmoji(...at(e.p),"🏁",true);break;
