@@ -3005,6 +3005,11 @@ async function asyncBattle(att,def){
   game.recordSkirmish(att,def,lose,spoilIng);
   game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
   liveRender();
+  // narrate the battle's outcome (who took what from whom) right now — side-bet settlement
+  // and a winner's auto-dock both push further events right after this, and every caller only
+  // narrates the *last* event once asyncBattle returns, so without this the battle's own
+  // narration gets silently buried under whatever happens next.
+  await narrateLastEvent();
   await settleSideBets(bets,a>=need?"a":"d");
   if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
     const port=game.adjPort(pl);
