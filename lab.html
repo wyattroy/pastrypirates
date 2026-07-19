@@ -1843,7 +1843,7 @@ async function humanTrade(p){
     const bonus=game.cfg.tradeBonus?1:0;
     accept=val+bonus>=cost;
     if(!accept){
-      const shortfall=Math.max(0,cost-bonus-ingVal);
+      const shortfall=Math.max(0,cost-bonus-ingVal-give.coins);
       if(!humanFinishes&&p.coins>=shortfall){
         // counteroffer: name their price instead of flat refusal
         setActor(p.idx);
