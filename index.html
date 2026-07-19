@@ -286,6 +286,7 @@
   .choiceCard.solo { background: linear-gradient(160deg, var(--mint), #1fb37f); }
   .choiceCard.host { background: linear-gradient(160deg, var(--orange), #e0791a); }
   .choiceCard.join { background: linear-gradient(160deg, var(--pink), #e0568f); }
+  .choiceCard.passplay { background: linear-gradient(160deg, var(--teal), #1c7480); }
   .choiceCard.disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.5); transform:none !important; box-shadow:none !important; }
   .ccIcon { font-size: 29px; }
   .ccTitle { font-size: 14.5px; }
@@ -297,6 +298,17 @@
   .fieldRow select, .fieldRow input[type=text] { font-size:16px; padding:6px 9px; border:1.5px solid var(--line);
     border-radius:8px; font-family:inherit; margin-left:4px; }
   #joinCode { text-transform: uppercase; letter-spacing: 3px; width: 130px; text-align:center; }
+  .ppNameRow { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .ppNameRow .ppSeatDot { width:11px; height:11px; border-radius:50%; flex:0 0 auto; }
+  .ppNameRow input { flex:1; font-size:15px; padding:8px 10px; border:1.5px solid var(--line);
+    border-radius:9px; font-family:inherit; box-sizing:border-box; }
+  .ppHint { font-size:11px; opacity:.6; margin:-6px 0 16px 19px; text-align:left; }
+  /* ---- pass & play hand-off overlay: same look as the lobby modal, blurs the board behind it ---- */
+  #passOverlay .modalCard { max-width: 380px; }
+  #passHelmBtn { font-size:19px; padding:16px 22px; width:100%; margin-top:6px; border-radius:14px;
+    font-weight:800; letter-spacing:.3px; box-shadow: 0 8px 18px rgba(0,0,0,.25); }
+  /* ---- pass & play in-box recipe lock ---- */
+  .checkRecipeBtn { font-size:11.5px; padding:4px 9px; border-radius:7px; font-weight:700; }
   .fbnote { margin-top: 14px; font-size: 12px; text-align:left; color: #8a5a00; background:#fff6d8;
     border:1.5px solid var(--orange); border-radius:9px; padding:8px 10px; }
   .fbnote code { background:#fff0c4; padding:1px 4px; border-radius:4px; }
@@ -364,6 +376,9 @@
         <button class="choiceCard join" id="choiceJoin" type="button">
           <div class="ccIcon">🔑</div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
         </button>
+        <button class="choiceCard passplay" id="choicePassPlay" type="button">
+          <div class="ccIcon">🪑</div><div class="ccTitle">Pass & Play</div><div class="ccSub">share one device</div>
+        </button>
       </div>
       <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px">🔍 Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
       <div id="fbnote" class="fbnote" style="display:none">⚙️ Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
@@ -387,6 +402,25 @@
         <input type="text" id="joinName" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <button class="primary big" id="btnJoin" type="button">Join the voyage</button>
     </div>
+
+    <div id="stepPassPlay" class="modalStep" style="display:none">
+      <button class="backLink" type="button" data-back>← back</button>
+      <h3>🪑 Pass & Play</h3>
+      <div class="modalByline" style="margin-top:0">Everyone sitting at the table types their name below, then passes the device around when it's their turn. Leave a box blank to fill that seat with a bot captain instead.</div>
+      <div class="ppNameRow"><div class="ppSeatDot" style="background:#f2679e"></div><input type="text" id="ppName0" maxlength="40" placeholder="Player 1 (you)"></div>
+      <div class="ppNameRow"><div class="ppSeatDot" style="background:#1d96a6"></div><input type="text" id="ppName1" maxlength="40" placeholder="Player 2"></div>
+      <div class="ppNameRow"><div class="ppSeatDot" style="background:#27c78d"></div><input type="text" id="ppName2" maxlength="40" placeholder="Player 3 (or leave blank for a bot)"></div>
+      <div class="ppNameRow"><div class="ppSeatDot" style="background:#f5a623"></div><input type="text" id="ppName3" maxlength="40" placeholder="Player 4 (or leave blank for a bot)"></div>
+      <button class="primary big" id="btnStartPassPlay" type="button">⚓ Start the voyage</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PASS-THE-DEVICE HAND-OFF ===================== -->
+<div id="passOverlay" class="modalOverlay" style="display:none">
+  <div class="modalCard">
+    <div class="modalTitle" id="passOverlayMsg">📱 Pass the device</div>
+    <button class="primary big" id="passHelmBtn" type="button">⚓ At the helm!</button>
   </div>
 </div>
 
@@ -1759,7 +1793,12 @@ function render(){
     const hold=[...st[i].ing];
     const chipsEl=$("chips"+i);
     let newChipsHtml;
-    if(spectator||i===mySeat){
+    // pass & play: your own recipe never auto-reveals — it only shows once you've tapped
+    // "check my recipe" during your own live turn (see humanTurn/passGate), so a device
+    // changing hands mid-battle or mid-trade can never carry someone else's recipe on screen.
+    const canReveal=spectator||(i===mySeat&&(!passAndPlay||recipeRevealed));
+    const offerCheckBtn=passAndPlay&&i===mySeat&&i===activeTurnSeat&&!recipeRevealed;
+    if(canReveal){
       $("prowRecipe"+i).textContent=`📜 ${recipeTitle(game.players[i].recipe)}`;
       $("prowRecipeRow"+i).classList.add("hasRecipe");
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
@@ -1771,9 +1810,13 @@ function render(){
       });
       const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ING_EMOJI[x2]}</span>`);
       newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
+    }else if(offerCheckBtn){
+      $("prowRecipeRow"+i).classList.remove("hasRecipe");
+      newChipsHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">🔍 Check my recipe</button>`;
     }else{
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
       // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
+      $("prowRecipeRow"+i).classList.remove("hasRecipe");
       const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ING_EMOJI[x2]}</span>`);
       newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
@@ -2069,6 +2112,10 @@ function narrateCurrent(){
 }
 function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
+// pass & play: every human seat shares this one browser, so any human seat resolves locally
+// regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
+// remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).
+function decisionIsLocal(s){return (passAndPlay&&game.players[s].strategy==="human")||seatLocal(s);}
 
 // ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
 // The flippenator coin doubles as its own button — no separate FLIP button — so this sets
@@ -2294,7 +2341,7 @@ function ask(msg,opts,colors){
   netNarrate(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
-  const base=seatLocal(seat)?localAsk(msg,opts,colors)
+  const base=decisionIsLocal(seat)?localAsk(msg,opts,colors)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip});
   const idxP=withShotClock(seat,base,0);
@@ -2353,6 +2400,12 @@ async function netIntroBarrier(msg,btnLabel){
   netBroadcast(msg);
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
   const humans=game.players.filter(p=>p.strategy==="human");
+  if(passAndPlay){
+    // one device, several humans: nobody is "remote", so read-and-click-through happens in
+    // turn, each gated by the same pass-the-device screen every turn hand-off uses
+    for(const p of humans){await passGate(p.idx);await localAsk(msg,opts);}
+    return;
+  }
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
   // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
   const waitMsg=humans.length>1?"⚓ Waiting for yer pirate mateys to continue…":null;
@@ -2440,7 +2493,7 @@ function pickCell(p,cells){
   setActor(p.idx);
   netNarrate(p.idx===mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
   armClock(p.idx);
-  const base=seatLocal(p.idx)?localPickCell(p,cells)
+  const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
     :remotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
   const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{logDecision(c);return c;});
@@ -2635,7 +2688,7 @@ function battleAsk(p,o,msg,opts,colors){
   armClock(seat);
   netBroadcast(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   let idxP;
-  if(seatLocal(seat)){
+  if(decisionIsLocal(seat)){
     idxP=new Promise(res=>{
       if(isFlip){
         // the scoreboard just shows state — the flippenator is the actual control
@@ -3019,37 +3072,48 @@ async function humanAct(p){
   }
 }
 async function humanTurn(p){
+  await passGate(p.idx);
   setActor(p.idx);
   // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
   // flag only ever gets cleared by armClock() deep inside a decision, which is too late to
   // save this turn's own early "did the previous turn just die?" guards below, so clear it
   // fresh the moment a new human turn actually begins
   turnExpired=false;
+  // pass & play: this seat's own "check my recipe" button is only ever offered while its
+  // turn is genuinely live (see render()) — any reveal from a prior turn is already gone.
+  activeTurnSeat=p.idx;recipeRevealed=false;
   game.ev({t:"turn",p:p.idx});
   liveRender();
   await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
-  if(turnExpired)return;
+  if(turnExpired){activeTurnSeat=null;recipeRevealed=false;return;}
   const before=[...p.pos];
   await humanWind(p);
-  if(turnExpired)return;
+  recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
+  if(turnExpired){activeTurnSeat=null;return;}
   if(p.pos[0]!==before[0]||p.pos[1]!==before[1])
     await flash(seatLocal(p.idx)?`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`:`🌬️ The wind carries ${pn(p.idx)} ${DIRNAME[game.windNow]}.`,1000);
-  if(turnExpired)return;
+  if(turnExpired){activeTurnSeat=null;return;}
   p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
   if(p.coins>0){
     const dest=await pickCell(p,reachable(p,3));
-    if(turnExpired)return;
+    recipeRevealed=false; // sail destination chosen — re-lock
+    if(turnExpired){activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
   }else await flash(seatLocal(p.idx)?`${pn(p.idx)}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`:`${pn(p.idx)}: no coins — drifts with the wind.`,1600);
-  if(turnExpired)return;
+  if(turnExpired){activeTurnSeat=null;return;}
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p);
+  recipeRevealed=false; // the turn's dock/attack/trade/fish action just resolved — re-lock
   stopShotClock();
+  activeTurnSeat=null;
+  // refresh now, not at the next turn's render — otherwise this seat's "check my recipe"
+  // button sits frozen (blurred but visible) behind the next pass-the-device screen
+  if(passAndPlay)liveRender();
 }
 async function botTurn(p){
   const g=game;
@@ -3187,18 +3251,29 @@ async function recipeDraftNet(){
     const msgFor=p=>`${pn(p.idx)}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
-    netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`);
-    const results={};
-    const jobs=pending.map(p=>{
-      setActor(p.idx);
-      if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
-        results[p.idx]=i;
-        if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…");
+    if(passAndPlay){
+      // one device, secret options: draft in turn, each gated by the pass-the-device screen
+      // so nobody's two recipe choices are ever on screen for the seat that comes next
+      for(const p of pending){
+        await passGate(p.idx);
+        setActor(p.idx);
+        const i=await localAsk(msgFor(p),optsFor(p));
+        picks[p.idx]=i;logDecision(i);
+      }
+    }else{
+      netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`);
+      const results={};
+      const jobs=pending.map(p=>{
+        setActor(p.idx);
+        if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
+          results[p.idx]=i;
+          if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…");
+        });
+        return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
       });
-      return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
-    });
-    await Promise.all(jobs);
-    for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
+      await Promise.all(jobs);
+      for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
+    }
   }
   game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
   if(db&&room&&!replaying)await db.ref("rooms/"+room+"/recipes").set(picks);
@@ -3307,6 +3382,9 @@ let db=null, myId=null, room=null, mySeat=null, isHost=false, roster=null;
 // seats in sailing order, human always first, instead of raw seat index
 let turnOrder=null;
 let numSeats=4, evPushed=0, promptCounter=0, gameStarted=false, appliedMeta=false;
+// Pass & Play: several human seats share this one browser, taking turns handing the device
+// around. activeTurnSeat/recipeRevealed drive the "check my recipe" lock (see render()/humanTurn).
+let passAndPlay=false, activeTurnSeat=null, recipeRevealed=false;
 const BOT_STRATS=["pirate","trader","balanced","rusher","monopolist"];
 
 function cfgReady(){return firebaseConfig&&firebaseConfig.databaseURL&&!/PASTE_YOUR/.test(firebaseConfig.databaseURL);}
@@ -3372,8 +3450,11 @@ function saveSoloState(){
 function clearSoloState(){soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
 function resumeSoloGame(saved){
   numSeats=saved.strategies.length;room=null;isHost=true;mySeat=0;
-  roster=saved.strategies.map((s,i)=>i===0?{name:saved.name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
-  soloMeta={name:saved.name,strategies:saved.strategies,seed:saved.seed};
+  passAndPlay=!!saved.passAndPlay;
+  const names=saved.names||[saved.name]; // old solo saves only ever had one human, at seat 0
+  roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  soloMeta=passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true}
+                      :{name:saved.name,strategies:saved.strategies,seed:saved.seed};
   dlog=(saved.dlog||[]).slice();dlogIdx=0;dlogN=0;
   replaying=true;
   beginGame(roundCfg(saved.strategies),saved.seed);
@@ -3521,7 +3602,7 @@ async function applyEndMeta(){
 
 /* ================= welcome modal ================= */
 function showStep(id){
-  ["stepChoose","stepHost","stepJoin"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
+  ["stepChoose","stepHost","stepJoin","stepPassPlay"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
 }
 function requireName(){
   const v=($("pname").value||"").trim();
@@ -3531,6 +3612,14 @@ function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
   $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
   $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
+  $("choicePassPlay").onclick=()=>{$("ppName0").value=($("pname").value||"").trim();showStep("stepPassPlay");};
+  $("btnStartPassPlay").onclick=()=>{
+    const names=[0,1,2,3].map(i=>($("ppName"+i).value||"").trim().slice(0,40)).filter(n=>n);
+    // pass & play always needs at least two humans sharing the device — nobody typing
+    // anything shouldn't block starting, it just means the default captain names are used
+    while(names.length<2)names.push(NAMES[names.length].replace("Capt. ",""));
+    startPassAndPlay(names);
+  };
   document.querySelectorAll("#lobby [data-back]").forEach(b=>{b.onclick=()=>showStep("stepChoose");});
 }
 function startSinglePlayer(){
@@ -3542,6 +3631,17 @@ function startSinglePlayer(){
   roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
   soloMeta={name,strategies,seed};dlog=[];saveSoloState();
+  beginGame(roundCfg(strategies),seed);
+}
+// Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
+// seats up to the standard 4-player table are filled with bots, same pool solo/host use.
+function startPassAndPlay(names){
+  const strategies=names.map(()=>"human");
+  for(let i=names.length;i<4;i++)strategies.push(BOT_STRATS[(i-names.length)%BOT_STRATS.length]);
+  numSeats=strategies.length;room=null;isHost=true;mySeat=0;passAndPlay=true;
+  roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  const seed=Math.floor(Math.random()*1e9);
+  soloMeta={names,strategies,seed,passAndPlay:true};dlog=[];saveSoloState();
   beginGame(roundCfg(strategies),seed);
 }
 // a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
@@ -3577,6 +3677,35 @@ function showGameView(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="none";
   $("game").style.display="";$("game").classList.remove("bg-blurred");
   syncBoardSizing();
+}
+
+// pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
+// canReveal/offerCheckBtn logic and the recipeRevealed re-lock points inside humanTurn.
+function revealMyRecipe(){recipeRevealed=true;liveRender();}
+
+/* ================= pass & play: hand the device to the next seat ================= */
+// Blocks until whoever is about to act taps through, blurring the board underneath so nothing
+// from the outgoing seat's turn lingers on screen while the device changes hands. A no-op
+// outside Pass & Play, for the seat that already has the device, and during replay (a reload
+// should replay straight through with no hand-off prompts, same as every other decision).
+function passGate(seatIdx){
+  if(!passAndPlay||seatIdx===mySeat)return Promise.resolve();
+  if(replaying){mySeat=seatIdx;return Promise.resolve();} // silently keep mySeat in sync so it's
+  // already correct the moment replay catches up to the live edge — no UI shown mid-replay
+  return new Promise(res=>{
+    $("game").classList.add("bg-blurred");
+    $("passOverlayMsg").innerHTML=`📱 Pass the device to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
+    const btn=$("passHelmBtn");
+    btn.textContent=`⚓ ${pname(seatIdx)} at the helm!`;
+    btn.style.background=HEXCOL[seatIdx];btn.style.borderColor=HEXCOL[seatIdx];
+    $("passOverlay").style.display="flex";
+    btn.onclick=()=>{
+      $("passOverlay").style.display="none";
+      $("game").classList.remove("bg-blurred");
+      mySeat=seatIdx;
+      res();
+    };
+  });
 }
 
 async function createRoom(){
