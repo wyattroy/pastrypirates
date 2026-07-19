@@ -140,10 +140,6 @@
   #boardwrap { position: relative; width: 100%; max-width: var(--boardW, min(820px, calc(100vh - 210px))); margin: 0 auto; container-type: inline-size; }
   #actionPanel { margin: 8px 0; width: auto; background: var(--paleblue); border: 2px solid var(--teal);
     border-radius: 10px; padding: 8px 12px; transition: background .25s; }
-  /* on narrow screens the board, flippenator, and narration box stack in one column and must all
-     fit above the fold (see syncBoardSizing) — a long narration message could otherwise grow this
-     panel without bound and push the fold past it, so cap its height and let it scroll instead */
-  #game:not(.layoutWide) #actionPanel { max-height: 180px; overflow-y: auto; }
   #actionPanel.needsAction { background: var(--lemon); }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -209,8 +205,15 @@
   #shotClockSub { font-size: clamp(7px,2.2cqw,11px); color: #e0c58f; line-height: 1.2; min-width: 18ch; }
   #shotClockPanel.urgent #shotClockSub { color: #ff9b93; }
   @keyframes clockurgent { 0%, 100% { box-shadow: 0 0 0 0 rgba(226,75,74,.65); } 50% { box-shadow: 0 0 0 9px rgba(226,75,74,0); } }
-  #btnPlayAgain { width: 100%; font-size: clamp(10px,3cqw,13px); padding: clamp(5px,2cqw,8px) 4px;
-    white-space: nowrap; }
+  /* standalone, matches #shotClockPanel's footprint (min-width/padding/border-radius) so it
+     drops into the same #controlsRow slot without the layout jumping */
+  #btnPlayAgain { flex: 0 0 auto; min-width: clamp(70px,26cqw,118px);
+    padding: clamp(5px,2cqw,9px) clamp(8px,3cqw,14px); border-radius: clamp(8px,3cqw,14px);
+    border: 2px solid #d98e00; font-size: clamp(11px,3.5cqw,16px); font-weight: 800;
+    white-space: nowrap; color: #5c3d1c;
+    background: linear-gradient(160deg, #ffe9a8, #f5c451);
+    box-shadow: 0 3px 8px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.4); }
+  #btnPlayAgain:hover { filter: brightness(1.08); }
   .pips { display: flex; justify-content: center; gap: 6px; }
   .pip { width: 15px; height: 15px; border-radius: 50%; background: #ececec; border: 2px solid #d2d2d2; transition: transform .2s, box-shadow .2s; }
   .pip.on { box-shadow: 0 0 7px rgba(0,0,0,.28); transform: scale(1.14); }
@@ -271,6 +274,24 @@
   @media (max-width: 600px) {
     .modalOverlay { align-items: flex-start; padding: 40px 16px; }
     .modalCard { margin: 0 auto; }
+  }
+  /* super-narrow phones: the flippenator + shot clock read as too small to tap accurately —
+     bump every dimension here ~1.5x over their normal clamp() ranges */
+  @media (max-width: 480px) {
+    .flipPlank { padding: clamp(9px,3.6cqw,16.5px); }
+    #flipCoinWrap.coin { width: clamp(54px,19.5cqw,96px); height: clamp(54px,19.5cqw,96px);
+      font-size: clamp(9px,2.85cqw,16.5px); }
+    #flipCoinWrap.coin.spin { font-size: clamp(16.5px,5.25cqw,33px); }
+    #shotClockPanel { border-radius: clamp(12px,4.5cqw,21px);
+      padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px);
+      min-width: clamp(105px,39cqw,177px); }
+    #scPause { width: 24px; height: 24px; line-height: 20px; font-size: 13.5px; }
+    #scLabel { font-size: clamp(10.5px,3cqw,15px); }
+    #shotClockNum { font-size: clamp(24px,9cqw,45px); }
+    #scUnit { font-size: clamp(10.5px,3.3cqw,18px); }
+    #shotClockSub { font-size: clamp(10.5px,3.3cqw,16.5px); }
+    #btnPlayAgain { min-width: clamp(105px,39cqw,177px); border-radius: clamp(12px,4.5cqw,21px);
+      padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px); font-size: clamp(16.5px,5.25cqw,24px); }
   }
   .modalTitle { font-size: 23px; font-weight: 800; color: var(--teal); letter-spacing: .5px; line-height: 1.25; }
   .modalTitleSub { display:block; font-size: 13.5px; font-weight: 500; font-style: italic; opacity: .75; margin-top: 2px; }
@@ -552,6 +573,7 @@
         <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
         <div id="shotClockSub">&nbsp;</div>
       </div>
+      <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
     <div id="actionPanel" style="display:none"></div>
     <div class="panel" id="captainsPanel">
@@ -592,6 +614,10 @@ const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
+// a storm's 2nd gust always veers 90° off the 1st (never the same direction, never reversing)
+const PERP={N:["E","W"],S:["E","W"],E:["N","S"],W:["N","S"]};
+// the combined diagonal a storm actually carries you toward — used to aim the single wind needle
+const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}};
 const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
 const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
@@ -729,8 +755,15 @@ class Game{
       }
       // claimed cells are excluded from later ingredients' candidate pools so two docks can
       // never land on the same tile (each ingredient used to pick independently, so two
-      // adjacent islands could both roll the one open-water cell they share)
+      // adjacent islands could both roll the one open-water cell they share). Seeded with the
+      // 4 Tortuga home-berth cells (same DIRS iteration the renderer uses) so an island's dock
+      // can never overlap a home berth either.
       const claimed=new Set();
+      for(const d of Object.values(DIRS)){
+        const hx=this.home[0]+d[0],hy=this.home[1]+d[1];
+        if(hx<0||hy<0||hx>=n||hy>=n)continue;
+        claimed.add(hx+","+hy);
+      }
       for(const ing of this.ings){
         const waters=[];
         for(const c of this.islandRect[ing]){
@@ -787,7 +820,7 @@ class Game{
   flip(p){p.flips++;const h=this.r()<.5;if(h)p.heads++;return h;}
   key(c){return c[0]+","+c[1];}
   isIsland(c){return this.islands[c]!==undefined;}
-  ev(o){if(!this.record)return;o.round=this.round;o.wind=this.windNow;o.storm=this.stormNow;
+  ev(o){if(!this.record)return;o.round=this.round;o.wind=this.windNow;o.storm=this.stormNow;o.wind2=this.windNow2;
     o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done}));
     o.tokens={...this.tokens};this.events.push(o);}
   // during a reload-replay, fast-forwarding has no real delays between turns, and a bot's turn
@@ -809,24 +842,25 @@ class Game{
   moored(p){ // ships that DOCKED last turn (or sit at a berth / Isle of Tortuga) can't be wind-forced into land
     return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
   }
-  windPush(p,d,dist,finalLeg=true){
+  windPush(p,d,dist,dodgedOnce){
+    dodgedOnce=dodgedOnce||{v:false};
     for(let s=0;s<dist;s++){
       const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
       if(this.blocked(nx))return;
       if(this.isHome(nx)){this.ev({t:"moored",p:p.idx});return;} // safe harbor
       if(this.isIsland(nx)){
         if(this.moored(p)){this.ev({t:"moored",p:p.idx});return;}
-        // a storm's first gust can't run you aground with zero movement — the second gust
-        // gets a chance to actually push you before you're asked to pay or flip for it
-        if(!finalLeg&&s===0)return;
+        // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
+        // also hits an island is a free pass, already-paid anchor holding fast
+        if(dodgedOnce.v){this.ev({t:"anchorHold",p:p.idx});return;}
         if(p.coins>=3){p.coins--;this.ev({t:"dodge",p:p.idx});}
         else if(this.flip(p)){this.ev({t:"anchor",p:p.idx});}
         else{p.coins-=Math.floor(p.coins/2);this.ev({t:"aground",p:p.idx});}
+        dodgedOnce.v=true;
         return;
       }
-      if(this.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
-        this.ev({t:"moored",p:p.idx});return; // another ship holds that square — wind stops short
-      }
+      const blocker=this.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
+      if(blocker){this.ev({t:"blocked",p:p.idx,other:blocker.idx});return;} // another ship holds that square — wind stops short
       p.pos=nx;
       if(this.onRim(nx)){this.tradewind(p);return;} // swept into the trade winds
     }
@@ -1119,7 +1153,11 @@ class Game{
   }
   checkFinish(p){
     if(!this.needs(p).length&&man(p.pos,this.home)<=1){
-      p.done=true;this.finishOrder.push(p.idx);this.ev({t:"finish",p:p.idx});return true;}
+      p.done=true;this.finishOrder.push(p.idx);this.ev({t:"finish",p:p.idx});
+      if(this.finishOrder.length===1){
+        netNarrate(`🏁 ${pn(p.idx)} returns to Tortuga with a full hold — all ye others, this is your last turn!`);
+      }
+      return true;}
     return false;
   }
   play(){
@@ -1446,6 +1484,14 @@ function recipeTitle(recipe){
   const lead=recipe.filter(i=>ING_NAME[i]).slice(0,2).map(i=>iname(i).split(" ").pop());
   return `Captain's ${lead.join(" & ")} Bake`.replace(/\s+/g," ").trim();
 }
+// clickable recipe name for narration/log text (win banner) — opens the same recipe modal as
+// the .prowRecipe row click, via a document-level delegated handler (see wireRecipeModal) since
+// narration/log HTML isn't confined to the #players container .prowRecipe's listener covers
+function winRecipeSpan(idx){
+  const p=game&&game.players&&game.players[idx];
+  if(!p||!p.recipe)return "";
+  return `<span class="narrRecipeLink" data-idx="${idx}" style="cursor:pointer;text-decoration:underline dotted">${escHtml(recipeTitle(p.recipe))}</span>`;
+}
 function recipeCardHTML(recipe){
   const info=recipeInfo(recipe);
   const items=recipe.map(i=>`<li><span class="ri">${ING_EMOJI[i]}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
@@ -1490,6 +1536,15 @@ function wireRecipeModal(){
     const el=e.target.closest(".prowRecipe");
     if(!el||!el.textContent)return;
     const idx=+el.id.replace("prowRecipe","");
+    const p=game&&game.players&&game.players[idx];
+    if(p&&p.recipe)openRecipeModal(p.recipe);
+  });
+  // win-narration recipe link: not confined to #players (it renders in the narration panel and
+  // captain's log), so this is delegated off the document instead
+  document.addEventListener("click",e=>{
+    const el=e.target.closest(".narrRecipeLink");
+    if(!el)return;
+    const idx=+el.dataset.idx;
     const p=game&&game.players&&game.players[idx];
     if(p&&p.recipe)openRecipeModal(p.recipe);
   });
@@ -1738,6 +1793,8 @@ function describe(e){
     case "dodge":return {txt:`${pn(e.p)} pays 1🌕 to dodge an island`};
     case "anchor":return {txt:`${pn(e.p)} flips ⚪HEADS — drops anchor safely!`};
     case "moored":return {txt:`${pn(e.p)} is safely moored — the wind can't budge them ⚓`};
+    case "blocked":return {txt:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`};
+    case "anchorHold":return {txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`};
     case "tradewind":return {txt:`🌀 ${pn(e.p)} is swept along the trade winds around the rim!`};
     case "parley":return {cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`};
     case "aground":return {txt:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`};
@@ -1761,7 +1818,7 @@ function describe(e){
     case "shotclock":return {cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`};
     case "shotclockskip":return {cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} loses their turn, and some ${ilabel(e.ing)} overboard, which floats back to the island.`:`⏰ ${pn(e.p)} loses their turn, and ${e.coins}🌕 overboard!`};
     case "bakeoff":return {cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`};
-    case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${recipeTitle(game.players[e.winner].recipe)} and is the Best Baker in the Caribbean!`};
+    case "end":return {cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${winRecipeSpan(e.winner)} and is the Best Baker in the Caribbean!`};
     case "turn":return null;
     default:return null;
   }
@@ -1855,8 +1912,9 @@ function render(){
     }
   }
   if(spinNeedle&&e.wind){
-    spinNeedle.style.transform=`rotate(${({N:0,E:90,S:180,W:270})[e.wind]}deg)`;
     const storming=!!e.storm;
+    const angle=storming&&e.wind2?STORM_DIAG[e.wind][e.wind2]:({N:0,E:90,S:180,W:270})[e.wind];
+    spinNeedle.style.transform=`rotate(${angle}deg)`;
     stormText.textContent=storming?"⛈️ STORM":"";
     stormText.setAttribute("fill",storming?"#e63946":"#1f4249");
     if(stormDial){
@@ -1919,7 +1977,7 @@ function spawnPops(e){
     case "trade":popEmoji(...at(e.a),"🤝");popEmoji(...at(e.b),"🤝");break;
     case "dock":popEmoji(...at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕");break;
     case "aground":popEmoji(...at(e.p),"💥");break;
-    case "anchor":case "moored":popEmoji(...at(e.p),"⚓");break;
+    case "anchor":case "moored":case "blocked":case "anchorHold":popEmoji(...at(e.p),"⚓");break;
     case "tradewind":popEmoji(...at(e.p),"🌀",true);break;
     case "parley":popEmoji(...at(e.a),e.ok?"🤝":"🙅");break;
     case "dodge":popEmoji(...at(e.p),"💨");break;
@@ -2236,13 +2294,13 @@ function watchClock(){
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
   if(liveDone){
-    if(!$("btnPlayAgain")){
-      wrap.classList.remove("idle","urgent");
-      wrap.innerHTML=`<button id="btnPlayAgain" class="primary" type="button">🔁 Play again</button>`;
-      $("btnPlayAgain").onclick=leaveGame;
-    }
+    wrap.classList.remove("idle","urgent");
+    wrap.style.display="none";
+    $("btnPlayAgain").style.display="";
     return;
   }
+  wrap.style.display="";
+  $("btnPlayAgain").style.display="none";
   const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
   pauseEl.style.display=(isHost&&soloBotGame()&&!liveDone)?"":"none";
@@ -2530,20 +2588,20 @@ function remotePickHighlights(cells,promptId){
 }
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
-async function windLeg(p,dirKey,dist,finalLeg=true){
+async function windLeg(p,dirKey,dist,dodgedOnce){
+  dodgedOnce=dodgedOnce||{v:false};
   const d=DIRS[dirKey];
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     if(game.blocked(nx))return;
     if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});liveRender();return;}
-    if(game.players.some(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1])){
-      game.ev({t:"moored",p:p.idx});liveRender();return; // another ship holds that square — wind stops short
-    }
+    const blocker=game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
+    if(blocker){game.ev({t:"blocked",p:p.idx,other:blocker.idx});liveRender();return;} // another ship holds that square — wind stops short
     if(game.islands[nx]!==undefined){
       if(game.moored(p)){game.ev({t:"moored",p:p.idx});liveRender();return;}
-      // a storm's first gust can't run you aground with zero movement — the second gust
-      // gets a chance to actually push you before you're asked to pay or flip for it
-      if(!finalLeg&&s===0)return;
+      // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
+      // also hits an island is a free pass, already-paid anchor holding fast
+      if(dodgedOnce.v){game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
       opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
@@ -2557,6 +2615,7 @@ async function windLeg(p,dirKey,dist,finalLeg=true){
         else{p.coins-=Math.floor(p.coins/2);game.ev({t:"aground",p:p.idx});}
         await narrateLastEvent();
       }
+      dodgedOnce.v=true;
       liveRender();return;
     }
     p.pos=nx;
@@ -2570,12 +2629,13 @@ async function windLeg(p,dirKey,dist,finalLeg=true){
 }
 async function humanWind(p){
   setActor(p.idx);
-  await windLeg(p,game.windNow,game.stormNow?2:1,!game.stormNow);
+  const dodgedOnce={v:false};
+  await windLeg(p,game.windNow,game.stormNow?2:1,dodgedOnce);
   if(turnExpired)return;
   if(game.stormNow){
     await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
     if(turnExpired)return;
-    await windLeg(p,game.windNow2,2,true);
+    await windLeg(p,game.windNow2,2,dodgedOnce);
   }
 }
 async function humanDock(p,port){
@@ -3065,6 +3125,7 @@ async function humanAct(p){
     const t=targets.length===1?targets[0]:
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})),targets.map(o=>HEXCOL[o.idx]));
     await asyncBattle(p,t);
+    await narrateLastEvent();
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
   else if(v==="fish"){
@@ -3120,8 +3181,9 @@ async function botTurn(p){
   g.ev({t:"turn",p:p.idx});
   await botBeat();
   const before=[...p.pos];
-  g.windPush(p,DIRS[g.windNow],g.stormNow?2:1,!g.stormNow);
-  if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2,true);
+  const dodgedOnce={v:false};
+  g.windPush(p,DIRS[g.windNow],g.stormNow?2:1,dodgedOnce);
+  if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2,dodgedOnce);
   p.justDocked=false;
   // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
   // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
@@ -3299,7 +3361,7 @@ async function runLiveNet(){
     game.round++;
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=game.r()<game.cfg.storm;
-    game.windNow2=game.stormNow?"NSEW"[Math.floor(game.r()*4)]:null;
+    game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
     game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
@@ -3338,7 +3400,7 @@ async function liveResolveEndNet(){
   await writeMeta();
   await writeGameLog();
   liveRender();
-  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} made a ${recipeTitle(game.players[game.winner].recipe)} and is the Best Baker in the Caribbean!`);
+  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} made a ${winRecipeSpan(game.winner)} and is the Best Baker in the Caribbean!`);
   if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"});
 }
 function writeMeta(){
@@ -3848,6 +3910,7 @@ function wireLobby(){
   $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
   $("btnLeave").onclick=leaveGame;
+  $("btnPlayAgain").onclick=leaveGame;
   $("scPause").onclick=toggleShotClockPause;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
   $("btnCloseLog").onclick=()=>{$("logModal").style.display="none";};
@@ -3910,8 +3973,9 @@ function syncBoardSizing(){
     // otherwise it claims nearly the full viewport height on its own and pushes the narration
     // box (sometimes even the flippenator) below the fold. This runs at the moment the game view
     // first appears, before #actionPanel has any narration in it (offsetHeight would read 0), so
-    // budget off the panel's own CSS max-height cap (kept in sync with #game:not(.layoutWide)
-    // #actionPanel below) rather than measuring current content.
+    // budget off an assumed typical height for the common (short-message) case — #actionPanel
+    // has no CSS height cap, so a long narration/battle/recipe-draft message can still grow past
+    // this budget; the page itself simply scrolls at that point instead of the panel internally.
     const gap=14; // matches #layout's grid gap, repeated between every stacked row
     const actionMaxH=180;
     const controlsH=($("controlsRow")||{}).offsetHeight||0;
@@ -3929,6 +3993,10 @@ function boot(){
   renderDecorativeBoard();
   wireWelcome();
   wireRecipeModal(); // wired unconditionally (not inside wireLobby) so it works in solo/offline play too
+  wireLobby(); // wired unconditionally, before any early-return resume path (solo or offline), so
+  // footer/pause buttons are never left unwired — previously this ran after the Firebase-init
+  // check below, which the solo-resume branch's early `return` skipped entirely, leaving every
+  // footer button and the pause button dead for the rest of a resumed solo game
   showHome();
   syncBoardSizing();
   let sess=null;try{sess=JSON.parse(localStorage.getItem("pp_sess"));}catch(e){}
@@ -3945,7 +4013,6 @@ function boot(){
     $("fbnote").style.display="";
     return; // solo play still works fully offline
   }
-  wireLobby();
   if(sess&&sess.room){
     room=sess.room;mySeat=sess.mySeat;isHost=!!sess.isHost;
     db.ref("rooms/"+room).get().then(snap=>{
