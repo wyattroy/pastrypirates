@@ -32,7 +32,9 @@
     --p0: #f2679e; --p1: #1d96a6; --p2: #27c78d; --p3: #f5a623;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif; background: #fff; color: var(--ink); }
+  body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%); background-attachment: fixed;
+    color: var(--ink); }
   #boardTitle { position: absolute; top: 6px; left: 6px; pointer-events: none; z-index: 3; }
   #boardTitle img { width: 130px; height: auto; display: block; }
   /* shrink on a small rendered board so it doesn't overlap the top row of tiles, keyed off the
@@ -48,6 +50,14 @@
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
+  /* below-the-board panels track the board's own rendered width and stay centered — matters most
+     in the stacked/narrow layout, where these would otherwise stretch to the full grid column
+     (wider than the board itself). A no-op in the wide layout: there they live in the sidebar
+     column (var(--sideW)), already narrower than --boardW, except #footerRow, whose more specific
+     .layoutWide override below wins and spans the full board+sidebar width as intended. */
+  #controlsRow, #actionPanel, #captainsPanel, #statsWrap, #footerRow {
+    width: 100%; max-width: var(--boardW, 100%); margin-left: auto; margin-right: auto;
+  }
   /* "wide" layout is toggled by JS (syncBoardSizing), not a viewport media query — whether the
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
      5 ingredient chips, which is a function of the computed board size, not raw viewport width. */
@@ -137,9 +147,9 @@
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
   #boardwrap { position: relative; width: 100%; max-width: var(--boardW, min(820px, calc(100vh - 210px))); margin: 0 auto; container-type: inline-size; }
-  #actionPanel { margin: 8px 0; width: auto; background: var(--paleblue); border: 2px solid var(--teal);
-    border-radius: 10px; padding: 8px 12px; transition: background .25s; }
-  #actionPanel.needsAction { background: var(--lemon); }
+  #actionPanel { margin: 8px 0; width: auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
+    border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
+  #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
@@ -225,8 +235,8 @@
   .btl-prompt .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .btlBtn { font-size: 14px; }
   .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
-  .activering { animation: ringpulse .8s ease-in-out infinite alternate; }
-  @keyframes ringpulse { from { opacity: .35; } to { opacity: 1; } }
+  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 1.8s ease-out infinite; }
+  @keyframes rippleOut { 0% { transform: scale(.6); opacity: .85; } 100% { transform: scale(2.4); opacity: 0; } }
   .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
@@ -1149,9 +1159,10 @@ class Game{
   takeTurn(p,windDir,storm){
     this.ev({t:"turn",p:p.idx});
     const before=[...p.pos];
+    const wasDocked=this.adjPort(p)!==null;
     this.windPush(p,DIRS[windDir],storm?2:1);
     p.justDocked=false;
-    if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:"windmove",p:p.idx});
+    if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
     const port0=this.adjPort(p);
     if(!port0)p.dockedNow.clear();
     let target=this.chooseTarget(p);
@@ -1758,9 +1769,11 @@ function drawBoard(){
     // (x/y/width/height) once the voyage ends; the dock.png below it is the visible layer
     el("rect",{id:`homeDock${homeDockI++}`,x:dx*cell,y:dy*cell,width:cell,height:cell,
       fill:"none",stroke:"none"},svg);
-    // faces back toward Tortuga
+    // faces back toward Tortuga, and centered on the shared edge between the dock cell and the
+    // island (half a cell toward home) so it visually touches Tortuga like the other docks do
     const{rot:rotDeg,flip}=dockOrient([-d[0],-d[1]]);
-    iconAt(svg,(dx+.5)*cell,(dy+.5)*cell,cell,DOCK_IMG,rotDeg,flip);
+    const px=(dx+.5-d[0]*.5)*cell, py=(dy+.5-d[1]*.5)*cell;
+    iconAt(svg,px,py,cell,DOCK_IMG,rotDeg,flip);
   }
   // islands (arbitrary polyomino shapes): fused cell fills + a single union outline
   const defs=el("defs",{},svg);
@@ -1831,9 +1844,12 @@ function drawBoard(){
   spinNeedle.style.transformOrigin="0px 0px";
   el("circle",{cx:0,cy:0,r:4.5,fill:"#1f4249"},hud);
   stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
-  // active-player highlight ring (positioned in render)
-  activeRing=el("circle",{r:cell*.44,fill:"none",stroke:"#f5a623","stroke-width":4,
-    "stroke-dasharray":"7 5",opacity:0},svg);
+  // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
+  // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
+  activeRing=el("g",{opacity:0},svg);
+  for(let i=0;i<3;i++)
+    el("circle",{class:"ripple",r:cell*.4,fill:"none",stroke:"#fff","stroke-width":2,
+      style:`animation-delay:${i*.6}s`},activeRing);
   // ships
   shipEls=[];
   game.players.forEach((p,i)=>{
@@ -1872,6 +1888,7 @@ function describe(e){
   switch(e.t){
     case "newround":return {cls:"roundhdr",txt:e.storm?`— Round ${e.round}: ⛈️ STORM! Wind blows ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]} —`:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]} —`};
     case "windmove":return {txt:`${pn(e.p)} drifts with the wind`};
+    case "blownOut":return {txt:`⛵ A gale blows ${pn(e.p)} out of the harbor!`};
     case "sail":return {txt:`${pn(e.p)} pays 1🌕 and sails`};
     case "dodge":return {txt:`${pn(e.p)} pays 1🌕 to dodge an island`};
     case "anchor":return {txt:`${pn(e.p)} flips ⚪HEADS — drops anchor safely!`};
@@ -1882,10 +1899,10 @@ function describe(e){
     case "parley":return {cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`};
     case "aground":return {txt:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`};
     case "dock":{
-      const g={ing:`gets the crate!`,
+      const g={ing:`gets ${ilabel(e.ing)}!`,
         empty:`finds the island empty, takes 3🌕`,
-        bought:`buys the crate for 3🌕`,
-        coins:`takes 3🌕`};
+        bought:`flips tails, buys ${ilabel(e.ing)} anyway for 3🌕`,
+        coins:`flips tails, takes 3🌕`};
       return {txt:`${pn(e.p)} ${g[e.got]}`};}
     case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
     case "sidebet":
@@ -1974,10 +1991,8 @@ function render(){
   }
   if(active!=null&&st[active].done)active=null;
   if(activeRing){
-    activeRing.classList.toggle("activering",active!=null);
     if(active!=null){
       const [ax,ay]=shipXY(st[active].pos,active,st);
-      activeRing.setAttribute("stroke",HEXCOL[active]);
       activeRing.style.transform=`translate(${ax}px,${ay}px)`;
       activeRing.setAttribute("opacity",1);
     }else activeRing.setAttribute("opacity",0);
@@ -2612,8 +2627,6 @@ async function fishCast(p,label){
   await sleep(spin);
   const h=game.flip(p);
   broadcastFlip(h?"H":"T");
-  const note=h?"catches a sugarfish! (2🌕)":(game.cfg.sardine?"nets a sardine (1🌕)":"comes up empty-handed");
-  netNarrate(`🎣 ${pn(p.idx)} ${note}`);
   await sleep(Math.max(hold,3000));
   broadcastFlip("wait");
   if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
@@ -2685,17 +2698,17 @@ function remotePickHighlights(cells,promptId){
 }
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
-async function windLeg(p,dirKey,dist,dodgedOnce){
+async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   dodgedOnce=dodgedOnce||{v:false};
   const d=DIRS[dirKey];
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     if(game.blocked(nx))return;
-    if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});liveRender();return;}
+    if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
     const blocker=game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
     if(blocker){game.ev({t:"blocked",p:p.idx,other:blocker.idx});liveRender();return;} // another ship holds that square — wind stops short
     if(game.islands[nx]!==undefined){
-      if(game.moored(p)){game.ev({t:"moored",p:p.idx});liveRender();return;}
+      if(game.moored(p)){game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
       // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
       // also hits an island is a free pass, already-paid anchor holding fast
       if(dodgedOnce.v){game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
@@ -2717,22 +2730,23 @@ async function windLeg(p,dirKey,dist,dodgedOnce){
     }
     p.pos=nx;
     if(game.onRim(nx)){ // swept into the trade winds
-      game.ev({t:"windmove",p:p.idx});liveRender();
+      game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1300);}
       return;
     }
   }
-  game.ev({t:"windmove",p:p.idx});liveRender();
+  game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
 }
 async function humanWind(p){
   setActor(p.idx);
+  const wasDocked=game.adjPort(p)!==null;
   const dodgedOnce={v:false};
-  await windLeg(p,game.windNow,game.stormNow?2:1,dodgedOnce);
+  await windLeg(p,game.windNow,game.stormNow?2:1,dodgedOnce,wasDocked);
   if(turnExpired)return;
   if(game.stormNow){
     await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
     if(turnExpired)return;
-    await windLeg(p,game.windNow2,2,dodgedOnce);
+    await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
   }
 }
 async function humanDock(p,port){
@@ -2745,7 +2759,7 @@ async function humanDock(p,port){
   }else{
     let got="coins";
     if(game.cfg.dockBuy&&p.coins>=3&&game.tokens[ing]>0){
-      const buy=await ask("Tails! Take 3🌕 — or buy the crate anyway for 3🌕?",[
+      const buy=await ask(`Tails! Take 3🌕 — or buy ${ilabel(ing)} anyway for 3🌕?`,[
         {label:`Buy ${ilabel(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
       if(buy){p.coins-=3;game.tokens[ing]--;p.ing.push(ing);got="bought";}
       else p.coins+=3;
@@ -3123,7 +3137,7 @@ async function humanTrade(p){
   const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabel(i),value:i}));
   ingOpts.push({label:"— coins only —",value:null});
   ingOpts.push({label:"Cancel",value:"__cancel__"});
-  const baseIng=await ask("Offer which crate (or coins only)?",ingOpts);
+  const baseIng=await ask("Offer which ingredient (or coins only)?",ingOpts);
   if(baseIng==="__cancel__")return false;
   const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
   if(!baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
@@ -3232,6 +3246,7 @@ async function humanAct(p){
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p);}return;}
   else if(v==="fish"){
     await fishCast(p,"🎣 Cast your line — flip!");
+    await narrateLastEvent();
   }
 }
 async function humanTurn(p){
@@ -3253,11 +3268,14 @@ async function humanTurn(p){
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
   if(turnExpired){activeTurnSeat=null;recipeRevealed=false;return;}
   const before=[...p.pos];
+  const wasDockedForWind=game.adjPort(p)!==null;
   await humanWind(p);
   recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
   if(turnExpired){activeTurnSeat=null;return;}
-  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])
-    await flash(seatLocal(p.idx)?`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`:`🌬️ The wind carries ${pn(p.idx)} ${DIRNAME[game.windNow]}.`,1000);
+  if(p.pos[0]!==before[0]||p.pos[1]!==before[1]){
+    if(wasDockedForWind)await flash(seatLocal(p.idx)?"⛵ A gale blows you out of the harbor!":`⛵ A gale blows ${pn(p.idx)} out of the harbor!`,1000);
+    else await flash(seatLocal(p.idx)?`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`:`🌬️ The wind carries ${pn(p.idx)} ${DIRNAME[game.windNow]}.`,1000);
+  }
   if(turnExpired){activeTurnSeat=null;return;}
   p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
@@ -3283,6 +3301,7 @@ async function botTurn(p){
   g.ev({t:"turn",p:p.idx});
   await botBeat();
   const before=[...p.pos];
+  const wasDocked=g.adjPort(p)!==null;
   const dodgedOnce={v:false};
   g.windPush(p,DIRS[g.windNow],g.stormNow?2:1,dodgedOnce);
   if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2,dodgedOnce);
@@ -3290,7 +3309,7 @@ async function botTurn(p){
   // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
   // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
   // stale while those outcomes silently happen off-screen
-  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:"windmove",p:p.idx});
+  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
   await botBeat();
   if(!g.adjPort(p))p.dockedNow.clear();
   let target=g.chooseTarget(p);
