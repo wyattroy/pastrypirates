@@ -2236,27 +2236,37 @@ function localAsk(msg,opts,colors){
   });
 }
 async function flash(msg,ms){netNarrate(msg);await sleep(Math.max(ms||900,3000));}
-// the opening backstory/context message — stays up until the player actually reads it and
-// clicks through, rather than auto-advancing on a timer like every other narration
+// blocks until every human seat (not just the host) has read msg and clicked through — same
+// per-seat localAsk/remoteDraftPrompt barrier recipeDraftNet() uses, so remote players get a
+// real button instead of read-only narration text they can't dismiss
+async function netIntroBarrier(msg,btnLabel){
+  if(replaying)return;
+  netBroadcast(msg);
+  const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
+  const humans=game.players.filter(p=>p.strategy==="human");
+  // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
+  // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
+  const waitMsg=humans.length>1?"⚓ Waiting for yer pirate mateys to continue…":null;
+  await Promise.all(humans.map(p=>seatLocal(p.idx)
+    ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg);return i;})
+    :remoteDraftPrompt(p.idx,msg,opts,waitMsg)));
+}
+// the opening backstory/context message — stays up until every human player actually reads it
+// and clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
   const msg="⚓ Ahoy! Plunder every ingredient in yer recipe, sail home, and bake yerself a win! <br><br>⛵️ Each turn, the wind moves ye, then ye sail, then ye act.<br><br>👀 Watch this panel — she'll steer ye straight!";
-  if(replaying)return;
-  netNarrate(msg);
-  panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnAhoyStart">⚓ Ahoy! Let's start</button></div>`,true);
-  await new Promise(res=>{$("btnAhoyStart").onclick=()=>{res();};});
+  await netIntroBarrier(msg,"⚓ Ahoy! Let's start");
 }
 // right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
 // everyone sailing later by pointing out the coin they get in exchange for waiting. Stays up
-// until dismissed (like showAhoyIntro) since it's easy to blink and miss a flashed message.
+// until every human player dismisses it (like showAhoyIntro) since it's easy to blink and miss
+// a flashed message.
 async function showTurnOrderIntro(order){
-  if(replaying)return;
   const lead=pn(order[0]);
   const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
   const msg=`🎲 The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+
     `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`;
-  netNarrate(msg);
-  panel(`<div class="apMsg">${msg}</div><div class="apBtns"><button class="apBtn primary ahoyGlow" type="button" id="btnOrderStart">🦜 Aye, set sail!</button></div>`,true);
-  await new Promise(res=>{$("btnOrderStart").onclick=()=>{res();};});
+  await netIntroBarrier(msg,"🦜 Aye, set sail!");
 }
 async function humanFlip(p,label){
   setActor(p.idx);
@@ -3301,9 +3311,9 @@ function sendResponse(id,choice){
 // Parallel prompt/response path used only for concurrent recipe drafting — a per-seat node
 // so several remote seats can each have an outstanding question at once, unlike the singular
 // rooms/{room}/prompt above which only ever holds one.
-function remoteDraftPrompt(seat,msg,opts){
+function remoteDraftPrompt(seat,msg,opts,waitMsg){
   const id="d"+(promptCounter++)+"_"+Date.now();
-  db.ref("rooms/"+room+"/draftPrompts/"+seat).set({id,seat,msg,
+  db.ref("rooms/"+room+"/draftPrompts/"+seat).set({id,seat,msg,waitMsg:waitMsg||null,
     labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")});
   return new Promise(res=>{
     const rr=db.ref("rooms/"+room+"/draftResponses/"+seat);
@@ -3324,7 +3334,7 @@ function watchDraftPrompt(){
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       b.onclick=()=>{
         db.ref("rooms/"+room+"/draftResponses/"+mySeat).set({id:p.id,choice:+b.dataset.i});
-        panel("");
+        if(p.waitMsg)showNarration(p.waitMsg);else panel("");
       };
     });
   });
