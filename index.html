@@ -2352,11 +2352,20 @@ function pastelize(hex,alpha=.16){
   return `#${mix(r)}${mix(g)}${mix(b)}`;
 }
 function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${pastelize(col)};font-weight:700"`:"";}
+// opts[i] can come back missing — a remote seat's answer can resolve to null (remotePrompt
+// resolves null when Firebase gives back a response with no `choice` field, e.g. a dropped
+// connection), or a replay log can be stale/corrupt. Left unguarded that throws mid-decision
+// and silently stalls whatever awaited it; falling back to a safe index keeps play moving.
+function resolveOpt(opts,i,fallback){
+  if(opts[i])return{i,opt:opts[i]};
+  console.warn("resolveOpt(): invalid choice index",i,"of",opts.length,"options — defaulting to",fallback);
+  return{i:fallback,opt:opts[fallback]};
+}
 function ask(msg,opts,colors){
   // during reload-replay, return the recorded choice (an index) mapped through the freshly
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
   if(replaying){
-    if(dlogIdx<dlog.length){dlogN++;return Promise.resolve(opts[dlog[dlogIdx++]].value);}
+    if(dlogIdx<dlog.length){dlogN++;return Promise.resolve(resolveOpt(opts,dlog[dlogIdx++],0).opt.value);}
     endReplay();
   }
   const seat=curSeat;
@@ -2367,7 +2376,7 @@ function ask(msg,opts,colors){
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip});
   const idxP=withShotClock(seat,base,0);
-  return idxP.then(i=>{logDecision(i);return opts[i].value;});
+  return idxP.then(i=>{const r=resolveOpt(opts,i,0);logDecision(r.i);return r.opt.value;});
 }
 // re-arms the shot clock with a fresh 30s window right before a new decision is shown to
 // whichever seat is being asked — every ask()/pickCell()/non-flip battleAsk() call in the
@@ -2693,7 +2702,7 @@ function battleFooter(o){
 function battleAsk(p,o,msg,opts,colors){
   // same record/replay contract as ask(): log the chosen index, replay it through fresh opts
   if(replaying){
-    if(dlogIdx<dlog.length){dlogN++;return Promise.resolve(opts[dlog[dlogIdx++]].value);}
+    if(dlogIdx<dlog.length){dlogN++;return Promise.resolve(resolveOpt(opts,dlog[dlogIdx++],opts.length-1).opt.value);}
     endReplay();
   }
   setActor(p.idx);
@@ -2725,7 +2734,7 @@ function battleAsk(p,o,msg,opts,colors){
       flip:isFlip,battle:battleSnapshot(o)});
   }
   const wrapped=withShotClock(seat,idxP,opts.length-1);
-  return wrapped.then(i=>{logDecision(i);return opts[i].value;});
+  return wrapped.then(i=>{const r=resolveOpt(opts,i,opts.length-1);logDecision(r.i);return r.opt.value;});
 }
 // The Lookout's Call: every spectator MUST call a winner from the crow's nest —
 // it's free, and a correct call earns a Spotter's Bounty (+1🌕) from the ship's
