@@ -483,9 +483,9 @@
       <p>Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga. First baker home wins!</p>
       <h4>⚓ Setting sail</h4>
       <p>Each captain gets a recipe map (5 ingredients), 3 gold coins, and a ship docked at the Isle of Tortuga. Each island holds only a few crates — when they're gone, they're gone.</p>
-      <h4>Your turn: wind → sail → act</h4>
-      <p><b>🌬️ Wind.</b> Every ship drifts 1 square with the wind (2 in a storm!). Moored ships are safe — if you docked last turn, sit at a berth, or are at the Isle of Tortuga, the wind can't push you into land. Otherwise, blown at an island you must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground and lose half your coins! The wind never blows you onto a full dock.</p>
-      <p><b>⛵ Sail.</b> Pay 1🌕 to move up to 3 squares (N/S/E/W). Sail past other ships, but don't end on one. No coins? You drift — better go fishing!</p>
+      <h4>Your turn: sail → act</h4>
+      <p><b>🌬️ Wind.</b> Each round the wind picks a direction and holds it. It doesn't move you — it sets your sailing budget: cheap with the wind, dear against it, in between across it.</p>
+      <p><b>⛵ Sail.</b> Pay 1🌕 to move using a 9-point budget: 2 pts/square with the wind (up to 4 squares), 3 pts/square across it (up to 3), 4 pts/square against it (up to 2) — mix directions freely as long as you can afford the total. An island upwind of you cuts your budget to 7. Sail past other ships, but don't end on one. No coins? You can't sail this turn — better go fishing!</p>
       <p><b>⚓ Act</b> — choose one:</p>
       <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as you like and keep flipping. Ship's hold: you may take crates that aren't on your recipe — they make excellent trade bait...</p>
       <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point), both heads cancel. Fire the broadside! Once per battle the attacker may pay 1🌕 to reflip one tails. Whoever's shooting downwind also gets one free reflip. Defend two heads in a row and you may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Win as the attacker and you seize the loser's square (ships swap places); if the attack is repelled, no one moves. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
@@ -495,7 +495,7 @@
       <h4>🌀 The trade winds</h4>
       <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and you're instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
       <h4>⛈️ Storms</h4>
-      <p>Roughly 1 in 10 rounds brews a storm: the wind spins and pushes everyone 2 squares, then spins again and pushes 2 more — you can still pay to dodge an island on either leg.</p>
+      <p>Roughly 3 in 20 rounds brews a storm — the only time the wind moves you without your say-so: it forcibly pushes everyone 2 squares, then spins and pushes 2 more. Moored ships are safe — if you docked last turn, sit at a berth, or are at the Isle of Tortuga, the storm can't push you into land. Otherwise, blown at an island you must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground — lose half your coins, or a crate if you're broke, or the whole turn to repairs if your hold's empty too! The wind never blows you onto a full dock.</p>
       <h4>⏰ The shot clock</h4>
       <p>Take too long on your turn and you'll lose a random ingredient from your hold (or 5🌕 if you're out of ingredients) and miss the turn.</p>
       <h4>👑 Winning</h4>
@@ -656,6 +656,13 @@ const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
 const PERP={N:["E","W"],S:["E","W"],E:["N","S"],W:["N","S"]};
 // the combined diagonal a storm actually carries you toward — used to aim the single wind needle
 const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}};
+// New wind mechanic (see notes/edits for pastry pirates.pdf #7): wind no longer force-moves
+// anyone each turn — it only prices voluntary movement. Sailing draws from a per-turn point
+// budget; moving with the wind is cheap, against it is expensive, crossing it is in between.
+// Storms are the only thing left that still shoves ships around (see Game.windPush/windLeg).
+const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
+const SAIL_BUDGET=9,SAIL_BUDGET_LEEWARD=7;
+const windStepCost=(windDir,dirKey)=>dirKey===windDir?2:(dirKey===OPPOSITE[windDir]?4:3);
 const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
 const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
@@ -880,6 +887,11 @@ class Game{
   moored(p){ // ships that DOCKED last turn (or sit at a berth / Isle of Tortuga) can't be wind-forced into land
     return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
   }
+  leeward(p){ // an island upwind of you blocks the wind — cuts your sail budget (see #7c)
+    const d=DIRS[OPPOSITE[this.windNow]];
+    return this.isIsland([p.pos[0]+d[0],p.pos[1]+d[1]]);
+  }
+  sailBudget(p){return this.leeward(p)?SAIL_BUDGET_LEEWARD:SAIL_BUDGET;}
   windPush(p,d,dist,dodgedOnce){
     dodgedOnce=dodgedOnce||{v:false};
     for(let s=0;s<dist;s++){
@@ -911,8 +923,9 @@ class Game{
       if(this.onRim(nx)){this.tradewind(p);return;} // swept into the trade winds
     }
   }
-  stepToward(p,target,steps){
-    // BFS pathfinding: routes cleanly around concave islands (greedy movement gets trapped)
+  stepToward(p,target,budget){
+    // Dijkstra pathfinding (routes cleanly around concave islands; greedy movement gets
+    // trapped), weighted by wind direction — moving with the wind is cheap, against it dear.
     const pass=o=>{
       if(this.blocked(o)||this.isIsland(o)||this.isHome(o))return false;
       if(this.onRim(o))return false; // bots stay out of the trade-wind channel
@@ -921,27 +934,34 @@ class Game{
     const key=c=>c[0]+","+c[1];
     const start=key(p.pos);
     const prev={},dist={[start]:0};
-    const queue=[p.pos];
+    const frontier=[[p.pos,0]];
     let best=null,bestScore=man(p.pos,target)*1000;
-    while(queue.length){
-      const c=queue.shift(),dc=dist[key(c)];
+    while(frontier.length){
+      let mi=0;
+      for(let i=1;i<frontier.length;i++)if(frontier[i][1]<frontier[mi][1])mi=i;
+      const [c,dc]=frontier.splice(mi,1)[0];
+      if(dc>dist[key(c)])continue; // stale entry, already beaten by a cheaper path
       const score=man(c,target)*1000+dc;
       if(score<bestScore){bestScore=score;best=c;}
-      if(dc>=steps+7)continue; // search past move range to find routes around obstacles
-      for(const d of Object.values(DIRS)){
+      if(dc>=budget+20)continue; // search past move range to find routes around obstacles
+      for(const dk of Object.keys(DIRS)){
+        const d=DIRS[dk];
         const o=[c[0]+d[0],c[1]+d[1]],k=key(o);
-        if(dist[k]!==undefined||!pass(o))continue;
-        dist[k]=dc+1;prev[k]=c;queue.push(o);
+        if(!pass(o))continue;
+        const nc=dc+windStepCost(this.windNow,dk);
+        if(dist[k]!==undefined&&dist[k]<=nc)continue;
+        dist[k]=nc;prev[k]=c;frontier.push([o,nc]);
       }
     }
     if(!best||key(best)===start)return;
     const path=[];let c=best;
     while(key(c)!==start){path.push(c);c=prev[key(c)];}
     path.reverse();
-    // may sail PAST other ships, but must not END on one: back off to the last free square in range
+    // may sail PAST other ships, but must not END on one: back off to the last affordable,
+    // unoccupied square along the path
     const occ=o=>this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
-    let idx=Math.min(steps,path.length)-1;
-    while(idx>=0&&occ(path[idx]))idx--;
+    let idx=path.length-1;
+    while(idx>=0&&(dist[key(path[idx])]>budget||occ(path[idx])))idx--;
     if(idx>=0)p.pos=[...path[idx]];
   }
   adjPort(p){
@@ -1169,12 +1189,16 @@ class Game{
   }
   takeTurn(p,windDir,storm){
     this.ev({t:"turn",p:p.idx});
-    const before=[...p.pos];
-    const wasDocked=this.adjPort(p)!==null;
-    this.windPush(p,DIRS[windDir],storm?2:1);
-    p.justDocked=false;
-    if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
-    if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
+    // wind no longer force-moves anyone on a normal turn (see #7) — only storms still shove
+    // ships around; a normal turn's wind only shapes this player's own sail budget below
+    if(storm){
+      const before=[...p.pos];
+      const wasDocked=this.adjPort(p)!==null;
+      this.windPush(p,DIRS[windDir],2);
+      p.justDocked=false;
+      if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
+      if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
+    }
     const port0=this.adjPort(p);
     if(!port0)p.dockedNow.clear();
     let target=this.chooseTarget(p);
@@ -1185,7 +1209,7 @@ class Game{
     }
     const dist=man(p.pos,target);
     const exact=this.dockCells.has(target[0]+","+target[1]);
-    if((dist>1||(dist===1&&exact))&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,3);
+    if((dist>1||(dist===1&&exact))&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,this.sailBudget(p));
       if(p.pos[0]!==b[0]||p.pos[1]!==b[1])this.ev({t:"sail",p:p.idx});else p.coins++;}
     if(!this.adjPort(p))p.dockedNow.clear(); // leaving a port re-arms its dock flip
     const action=this.chooseAction(p);
@@ -1258,7 +1282,7 @@ function roundCfg(strategies){
   const np=strategies.length;
   return {grid:15,nIslands:7,recipeSize:5,crates:Math.max(1,np-1),startCoins:3,
     powder:2,broadside:"paid",dockBuy:true,merchant:true,parley:true,tradeBonus:true,
-    asym:false,storm:0.10,islandW:2,islandH:2,tetris:true,singleDock:true,
+    asym:false,storm:0.15,islandW:2,islandH:2,tetris:true,singleDock:true,
     sardine:true,roundBoard:true,unlimitedDock:true,strategies};
 }
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -2609,7 +2633,7 @@ async function netIntroBarrier(msg,btnLabel){
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
-  const msg="⚓ Ahoy! Plunder every ingredient in yer recipe, sail home, and bake yerself a win! <br><br>⛵️ Each turn, the wind moves ye, then ye sail, then ye act.<br><br>👀 Watch this panel — she'll steer ye straight!";
+  const msg="⚓ Ahoy! Plunder every ingredient in yer recipe, sail home, and bake yerself a win! <br><br>⛵️ Each turn, the wind sets yer sailing price, then ye sail, then ye act.<br><br>👀 Watch this panel — she'll steer ye straight!";
   await netIntroBarrier(msg,"⚓ Ahoy! Let's start");
 }
 // right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
@@ -2663,21 +2687,33 @@ async function fishCast(p,label,allowBack){
   liveRender();
   return h;
 }
-function reachable(p,steps){
-  const n=game.cfg.grid,seen={[p.pos[0]+","+p.pos[1]]:true},q=[[p.pos,0]],out=[];
-  while(q.length){
-    const [c,d]=q.shift();
-    if(d>=steps)continue;
-    for(const dd of Object.values(DIRS)){
-      const o=[c[0]+dd[0],c[1]+dd[1]],k=o[0]+","+o[1];
+// Dijkstra over the wind-weighted grid: with-the-wind steps cost 2, across cost 3, against
+// cost 4 (see windStepCost/#7) — returns every cell reachable within this turn's sail budget.
+function reachable(p){
+  const budget=game.sailBudget(p);
+  const best={[p.pos[0]+","+p.pos[1]]:0},frontier=[[p.pos,0]],out=[];
+  while(frontier.length){
+    let mi=0;
+    for(let i=1;i<frontier.length;i++)if(frontier[i][1]<frontier[mi][1])mi=i;
+    const [c,cost]=frontier.splice(mi,1)[0],k=c[0]+","+c[1];
+    if(cost>best[k])continue; // stale entry, already beaten by a cheaper path
+    const isStart=c[0]===p.pos[0]&&c[1]===p.pos[1];
+    if(!isStart){
+      // you may sail PAST other ships, but not end your move on one
+      const occupied=game.players.some(q=>q!==p&&!q.done&&q.pos[0]===c[0]&&q.pos[1]===c[1]);
+      if(!occupied)out.push(c);
+    }
+    if(game.onRim(c)&&!isStart)continue; // entering the trade winds ends your move
+    for(const dk of Object.keys(DIRS)){
+      const dd=DIRS[dk];
+      const o=[c[0]+dd[0],c[1]+dd[1]],ok=o[0]+","+o[1];
       if(game.blocked(o))continue;
       if(game.islands[o]!==undefined||game.isHome(o))continue;
-      if(seen[k])continue;
-      seen[k]=true;
-      // you may sail PAST other ships, but not end your move on one
-      const occupied=game.players.some(q2=>q2!==p&&!q2.done&&q2.pos[0]===o[0]&&q2.pos[1]===o[1]);
-      if(!occupied)out.push(o);
-      if(!game.onRim(o))q.push([o,d+1]); // entering the trade winds ends your move
+      const nc=cost+windStepCost(game.windNow,dk);
+      if(nc>budget)continue;
+      if(best[ok]!==undefined&&best[ok]<=nc)continue;
+      best[ok]=nc;
+      frontier.push([o,nc]);
     }
   }
   return out;
@@ -2743,8 +2779,8 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       if(dodgedOnce.v){game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
-      opts.push({label:"Flip! (H: anchor · T: lose half 🌕)",value:"flip"});
-      const v=await ask(`${pn(p.idx)}: the wind blows you toward an island!`,opts);
+      opts.push({label:"Flip! Heads: dodge. Tails: lose half 🌕",value:"flip"});
+      const v=await ask(`${pn(p.idx)}: the storm blows you toward an island! (Flipping is a gamble — tails costs you.)`,opts);
       if(turnExpired)return;
       if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
@@ -2774,17 +2810,16 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   }
   game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
 }
+// only ever called during a storm now (see humanTurn) — normal turns don't force-move anyone
 async function humanWind(p){
   setActor(p.idx);
   const wasDocked=game.adjPort(p)!==null;
   const dodgedOnce={v:false};
-  await windLeg(p,game.windNow,game.stormNow?2:1,dodgedOnce,wasDocked);
+  await windLeg(p,game.windNow,2,dodgedOnce,wasDocked);
   if(turnExpired)return;
-  if(game.stormNow){
-    await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
-    if(turnExpired)return;
-    await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
-  }
+  await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
+  if(turnExpired)return;
+  await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
 }
 async function humanDock(p,port){
   setActor(p.idx);
@@ -3279,7 +3314,7 @@ async function humanAct(p,sailCtx){
   // the clock keeps running (and re-arms fresh) through dock/attack/trade/fish now, instead of
   // stopping here — each ask() inside those sub-flows re-arms it for its own decision
   if(v==="moveInstead"){
-    const dest=await pickCell(p,reachable(p,3));
+    const dest=await pickCell(p,reachable(p));
     if(turnExpired)return;
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
@@ -3318,40 +3353,38 @@ async function humanTurn(p){
   activeTurnSeat=p.idx;recipeRevealed=false;
   game.ev({t:"turn",p:p.idx});
   liveRender();
-  await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[game.windNow]}</b>${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
+  await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[game.windNow]}</b> this round${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
   if(turnExpired){activeTurnSeat=null;recipeRevealed=false;return;}
-  const before=[...p.pos];
-  const wasDockedForWind=game.adjPort(p)!==null;
-  await humanWind(p);
-  recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
-  if(turnExpired){activeTurnSeat=null;return;}
-  // storms already narrate their own direction per leg ("spins again — blows X"); repeating
-  // just the first leg's direction here after both legs have resolved reads as stale/wrong
-  if(!game.stormNow&&(p.pos[0]!==before[0]||p.pos[1]!==before[1])){
-    if(wasDockedForWind)await flash(seatLocal(p.idx)?"⛵ A gale blows you out of the harbor!":`⛵ A gale blows ${pn(p.idx)} out of the harbor!`,1000);
-    else await flash(seatLocal(p.idx)?`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`:`🌬️ The wind carries ${pn(p.idx)} ${DIRNAME[game.windNow]}.`,1000);
-  }
-  if(turnExpired){activeTurnSeat=null;return;}
-  if(p.shipwrecked){ // no coins, no crates, no move — repairs eat the rest of this turn
-    p.shipwrecked=false;
-    stopShotClock();
-    activeTurnSeat=null;
-    if(passAndPlay)liveRender();
-    return;
+  // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
+  // ships around; otherwise the wind only shapes this player's own sail budget below
+  if(game.stormNow){
+    await humanWind(p);
+    recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
+    if(turnExpired){activeTurnSeat=null;return;}
+    // storms already narrate each leg's direction as they happen ("spins again — blows X"),
+    // so there's no separate "wind carries you" summary to show here — it would always be
+    // stale (mentioning only the first leg) by the time both legs have resolved
+    if(p.shipwrecked){ // no coins, no crates, no move — repairs eat the rest of this turn
+      p.shipwrecked=false;
+      stopShotClock();
+      activeTurnSeat=null;
+      if(passAndPlay)liveRender();
+      return;
+    }
   }
   p.justDocked=false;
   if(!game.adjPort(p))p.dockedNow.clear();
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   if(p.coins>0){
-    const dest=await pickCell(p,reachable(p,3));
+    const dest=await pickCell(p,reachable(p));
     recipeRevealed=false; // sail destination chosen — re-lock
     if(turnExpired){activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
-  }else await flash(seatLocal(p.idx)?`${pn(p.idx)}: no coins — sailing costs 1🌕, so you drift with the wind. (Fish to refill your purse!)`:`${pn(p.idx)}: no coins — drifts with the wind.`,1600);
+  }else await flash(seatLocal(p.idx)?`${pn(p.idx)}: no coins — sailing costs 1🌕. (Fish to refill your purse!)`:`${pn(p.idx)}: no coins — can't sail this turn.`,1600);
   if(turnExpired){activeTurnSeat=null;return;}
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
@@ -3366,18 +3399,22 @@ async function botTurn(p){
   const g=game;
   g.ev({t:"turn",p:p.idx});
   await botBeat();
-  const before=[...p.pos];
-  const wasDocked=g.adjPort(p)!==null;
-  const dodgedOnce={v:false};
-  g.windPush(p,DIRS[g.windNow],g.stormNow?2:1,dodgedOnce);
-  if(g.stormNow)g.windPush(p,DIRS[g.windNow2],2,dodgedOnce);
-  p.justDocked=false;
-  // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
-  // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
-  // stale while those outcomes silently happen off-screen
-  if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
-  await botBeat();
-  if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
+  // wind no longer force-moves anyone on a normal turn (see #7) — only storms still shove
+  // ships around; a normal turn's wind only shapes this player's own sail budget below
+  if(g.stormNow){
+    const before=[...p.pos];
+    const wasDocked=g.adjPort(p)!==null;
+    const dodgedOnce={v:false};
+    g.windPush(p,DIRS[g.windNow],2,dodgedOnce);
+    g.windPush(p,DIRS[g.windNow2],2,dodgedOnce);
+    p.justDocked=false;
+    // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
+    // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
+    // stale while those outcomes silently happen off-screen
+    if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
+    await botBeat();
+    if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
+  }
   if(!g.adjPort(p))p.dockedNow.clear();
   let target=g.chooseTarget(p);
   if(p.strategy==="pirate"&&g.needs(p).length){
@@ -3388,7 +3425,7 @@ async function botTurn(p){
   const dist=man(p.pos,target);
   const exact=g.dockCells.has(target[0]+","+target[1]);
   if((dist>1||(dist===1&&exact))&&p.coins>0){
-    p.coins--;const b=[...p.pos];g.stepToward(p,target,3);
+    p.coins--;const b=[...p.pos];g.stepToward(p,target,g.sailBudget(p));
     if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}else p.coins++;
   }
   if(!g.adjPort(p))p.dockedNow.clear();
