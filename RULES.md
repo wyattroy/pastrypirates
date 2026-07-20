@@ -50,7 +50,7 @@ Pay **1 coin** to sail up to **3 squares** (north, south, east, or west). You ma
 
 **Parley** — Hail *any* captain, anywhere on the sea, and make a deal: crates, coins, promises — anything you can negotiate. When a trade is struck, **both** captains collect 1 bonus coin from the bank (the harbor tax refund).
 
-**Fish** — Flip the bullion: **heads** nets 2 coins, **tails**... just a sardine (worth 1 coin).
+**Fish** — Flip the bullion: **heads** nets 2 coins, **tails**... just a candycrab (worth 1 coin).
 
 **Start your bakery!** — At Barbados with your whole recipe? Declare victory and fire up the ovens!
 

@@ -158,7 +158,7 @@ Pick a fight with a ship that is **orthogonally adjacent** to you. First, **pay 
 Hail **any captain, anywhere on the sea** — adjacency is **not** required for talk (only for battle). Negotiate any deal you like: crates for crates, coins for crates, promises, alliances, favors — whatever the two of you agree to. When a **trade actually completes**, **both captains collect 1 bonus coin** from the bank (the harbor tax refund), so trading is never a pure loss of tempo. Promises and threats are free; only an actual exchange triggers the refund.
 
 #### 🎣 Fish
-Cast a line and flip the bullion: ⚪ **Heads nets 2 coins**; ⚫ **Tails lands a sardine — 1 coin.** Either way you pull in something. Fishing is how broke captains rebuild a purse.
+Cast a line and flip the bullion: ⚪ **Heads nets 2 coins**; ⚫ **Tails lands a candycrab — 1 coin.** Either way you pull in something. Fishing is how broke captains rebuild a purse.
 
 #### 🧁 Start Your Bakery! (the winning move)
 If you are **at Barbados** (on or beside your home port) and your hold holds **every ingredient on your recipe map**, declare victory and fire up the ovens! See §9.
@@ -225,7 +225,7 @@ The situations most likely to come up mid-game, gathered in one place:
 - **Attacking is orthogonal-only** and always costs the **2-coin powder up front** (lost win or lose). The broadside reflip costs **1 more coin** and is the **attacker's** privilege, **once per battle.**
 - **Losing a battle with empty pockets** is fine: you hand over whatever you have (a crate, or your last coins), and owe no debt.
 - **Parley reaches anyone, anywhere;** battle needs adjacency. A completed trade pays **both** parties **+1 coin.**
-- **Fishing always pays** — 2 coins on heads, 1 (a sardine) on tails.
+- **Fishing always pays** — 2 coins on heads, 1 (a candycrab) on tails.
 - **Barbados is home base, not a shop.** You don't collect ingredients there; you start there, shelter there from the wind, and win there.
 - **Trade winds end your movement.** Entering the rim by sail *or* by wind sweeps you to that arc's clockwise corner and stops you for the turn.
 
