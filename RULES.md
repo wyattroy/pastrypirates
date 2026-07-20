@@ -20,21 +20,21 @@ Each captain gets a **recipe map** (5 ingredients), **3 gold coins**, and a ship
 
 ## Your Turn
 
-Every turn has three parts: **Wind → Sail → Act.**
+Every turn has two parts: **Sail → Act.**
 
-### 1. 🌬️ Wind
+### 1. 🌬️ Wind & Sail
 
-Spin for the wind at the start of each round — every ship drifts **1 square** that direction (**2 squares** in a storm!).
+The wind spins at the start of each round and holds that direction all round. It doesn't push you — it prices your sailing: moving *with* the wind is cheap, *against* it is dear, *across* it is in between.
 
-- **Moored ships are safe.** If you docked last turn, are tied up at a berth, or are at Barbados, the wind can't push you into land.
-- Otherwise, if the wind would smash you into an island: **pay 1 coin to dodge**, or flip the bullion — **heads** you drop anchor safely, **tails** you run aground and lose *half your coins* in repairs!
+Pay **1 coin** to sail using a **9-point budget**: **2 points** per square with the wind (up to 4 squares), **3 points** per square across it (up to 3), **4 points** per square against it (up to 2) — mix directions freely as long as you can afford the total. An island upwind of you cuts your budget to **7**. You may sail *past* other ships, but you can't end your move on top of one. No coins? You can't sail this turn — better go fishing!
+
+Storms are the exception — the only time the wind moves you without asking. Roughly 3 in 20 rounds brews a storm: it forcibly pushes every ship **2 squares**, then spins and pushes **2 more**.
+
+- **Moored ships are safe** from a storm's push. If you docked last turn, are tied up at a berth, or are at Barbados, it can't push you into land.
+- Otherwise, if a storm would smash you into an island: **pay 1 coin to dodge**, or flip the bullion — **heads** you drop anchor safely, **tails** you run aground and lose *half your coins* in repairs (or a crate if you're broke, or the whole turn to repairs if your hold's empty too)!
 - The wind can never blow you onto a dock that's already full.
 
-### 2. ⛵ Sail
-
-Pay **1 coin** to sail up to **3 squares** (north, south, east, or west). You may sail *past* other ships, but you can't end your move on top of one. No coins? You drift with the wind — better go fishing!
-
-### 3. ⚓ Act (choose one)
+### 2. ⚓ Act (choose one)
 
 **Dock** — Tie up at an island's dock (one ship at a time!) and flip the bullion:
 - **Heads:** take a crate of that island's ingredient!

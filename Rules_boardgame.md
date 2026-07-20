@@ -84,47 +84,53 @@ At the **start of every round**, before anyone takes a turn, **spin the Wind Whe
 
 **Direction.** The wheel gives one of four equally likely directions: **North, South, East, or West.** Leave the wheel showing that direction for the whole round so nobody forgets.
 
-**Storms.** Independently, there's a **1-in-8 chance the round is stormy.** In a storm the wind is doubled: ships drift **2 squares** instead of 1. A simple way to check at the table: after setting the direction, **flip the bullion three times — three heads in a row (1 in 8) means ⛈️ STORM this round.** Mark the wheel with a storm token if so.
+**The wind doesn't push you — it prices your sailing.** Unlike a normal breeze, the wind this round doesn't move any ship on its own. Instead it sets how far your coin stretches when you sail (see §6, Step 1): cheap with the wind, dear against it, in between across it.
 
-**Important — when each ship actually drifts.** The wind *direction* is fixed for the round, but a ship doesn't move the instant the wheel is spun. Instead, **each captain resolves the wind at the very start of their own turn** (see §6), in turn order. So the wind is a standing condition for the round; you feel it when your turn comes up.
+**Storms.** Independently, there's roughly a **3-in-20 chance the round is stormy** (about 15%) — the *one* case where the wind does move ships on its own, whether they like it or not. Mark the wheel with a storm token if so.
 
 ---
 
-## 6. Your Turn: Wind → Sail → Act
+## 6. Your Turn: Sail → Act
 
-On your turn you do three things in this order: first the **Wind** moves you, then you may **Sail**, then you take one **Action**.
+On your turn you do two things in this order: first you may **Sail**, then you take one **Action**. (In a storm round, the wind also forcibly shoves every ship at the start of their turn — see the storm callout below.)
 
-### Step 1 — 🌬️ Wind (drift)
+### Step 1 — ⛵ Sail (optional)
 
-Move your ship **1 square** in the round's wind direction (**2 squares** in a storm — resolve them one square at a time). This is not optional; the wind pushes you. Resolve it square by square:
+Pay **1 coin** to the bank to sail using a **9-point movement budget** for the turn:
 
-- **Open water:** you simply drift into the square. If the drift is 2 (storm), continue to the next square.
-- **Into Barbados (the center):** you can't be blown onto your home island — you **stop safely** in place. Home is always a safe harbor.
-- **Toward an occupied berth:** the wind **can never shove you onto a dock that already has a ship.** You **stop** one square short and your drift ends.
-- **Toward an island (a crash risk):** if the wind would push you into island rocks, first check whether you're **Moored** (see below).
-  - **If you're moored, you're safe** — you stop in place, no harm done.
-  - **If you're not moored,** you must resolve the danger. You may **pay 1 coin to dodge** (steer clear and stop safely) *if you have a coin to spend*. Otherwise — or by choice — **flip the bullion:**
-    - ⚪ **Heads → you drop anchor** just in time and stop safely.
-    - ⚫ **Tails → you run aground!** You lose **half your coins** (rounded down) to repairs. *(You still stop in your square; you never actually move onto the island.)*
-- **Into the trade-wind ring:** if the wind carries you onto an outer current square, the trade winds seize you — see §8. This ends your drift immediately.
+- **2 points per square moving *with* the wind** (so 9 points buys up to **4 squares** in a straight line with the wind).
+- **3 points per square moving *across* the wind** (up to **3 squares** across).
+- **4 points per square moving *against* the wind** (up to **2 squares** against).
+- **Mix directions freely** as long as the total points spent don't exceed your budget — e.g. 2 squares with the wind (4 points) plus 1 square across (3 points) = 7 points, well within budget.
+- **An island immediately upwind of you** (the square the wind is blowing *from*) blocks some of the wind — your budget for the turn drops from 9 to **7**.
+- One payment of 1 coin covers the whole move, however many squares your budget buys.
+- You may **sail *past* other ships**, but you **may not end your move on a square occupied by another ship.**
+- You **cannot sail onto or through an island, or onto Barbados.** Plot your route around them.
+- If sailing carries you into the **trade-wind ring**, your move **ends there** and the current sweeps you (see §8).
+- **No coins? You can't sail** this turn. (Time to go fishing.) You may also simply **choose to stay put** and not pay even if you have coins.
 
-> **Moored — the safety condition.** Your ship counts as *moored* (and so is immune to being wrecked by the wind this turn) if **any** of these is true:
+> **Storms — the exception.** Roughly 3 in 20 rounds brews a storm, and in a storm round every ship is forcibly moved **2 squares** in the wind's direction at the start of their turn, then the wind spins and pushes **2 more** — this happens *before* that captain's own optional Sail step, and it isn't optional.
+>
+> Resolve a storm push square by square, same as the old wind-drift rule:
+> - **Open water:** you simply drift into the square, then continue to the next.
+> - **Into Barbados (the center):** you can't be blown onto your home island — you **stop safely** in place.
+> - **Toward an occupied berth:** the wind **can never shove you onto a dock that already has a ship.** You **stop** one square short and your push ends.
+> - **Toward an island (a crash risk):** if the storm would push you into island rocks, first check whether you're **Moored** (see below).
+>   - **If you're moored, you're safe** — you stop in place, no harm done.
+>   - **If you're not moored,** you must resolve the danger. You may **pay 1 coin to dodge** (steer clear and stop safely) *if you have a coin to spend*. Otherwise — or by choice — **flip the bullion:**
+>     - ⚪ **Heads → you drop anchor** just in time and stop safely.
+>     - ⚫ **Tails → you run aground!** You lose **half your coins** (rounded down, minimum 1 if you have any) to repairs — or, if you're already out of coins, you lose **one crate** from your hold instead — or, if your hold is empty too, you're **shipwrecked**: you skip the rest of this turn making repairs. *(You still stop in your square; you never actually move onto the island.)*
+> - **Into the trade-wind ring:** if the storm carries you onto an outer current square, the trade winds seize you — see §8. This ends your push immediately.
+> - A storm only ever charges you once (coins, a crate, or a flip) even though it pushes twice — a second leg that also threatens an island is a free pass.
+
+> **Moored — the safety condition.** Your ship counts as *moored* (and so is immune to being wrecked by a storm) if **any** of these is true:
 > - You **docked at an island on your previous turn** (you're still tied up), **or**
 > - You are **sitting in an island's berth** right now, **or**
 > - You are **at Barbados** (on or beside your home port).
 >
-> Being moored only protects you from *wind crashes*; you still drift the normal way in open water. After the wind step resolves, your "docked last turn" protection wears off for the rest of this turn.
+> After a storm resolves, your "docked last turn" protection wears off for the rest of this turn.
 
-### Step 2 — ⛵ Sail (optional)
-
-Pay **1 coin** to the bank to **sail up to 3 squares**, moving north/south/east/west (you may turn corners; count each square). One payment covers the whole 1–3-square move.
-
-- You may **sail *past* other ships**, but you **may not end your move on a square occupied by another ship.**
-- You **cannot sail onto or through an island, or onto Barbados.** Plot your route around them.
-- If sailing carries you into the **trade-wind ring**, your move **ends there** and the current sweeps you (see §8).
-- **No coins? You can't sail** — you only drifted with the wind this turn. (Time to go fishing.) You may also simply **choose to stay put** and not pay.
-
-### Step 3 — ⚓ Act (choose exactly one)
+### Step 2 — ⚓ Act (choose exactly one)
 
 After sailing, take **one** of the following actions (or Pass):
 
@@ -212,12 +218,12 @@ The instant the **first captain declares their bakery** at Barbados with a full 
 
 The situations most likely to come up mid-game, gathered in one place:
 
-- **Wind timing.** The Wind Wheel is spun **once per round** and sets a single direction for everyone, but each ship **drifts at the start of its own turn**, not all at once. Keep the wheel visible so late-turn captains remember which way it's blowing.
-- **Storms** double the drift to 2 squares and are a **1-in-8** chance, rolled fresh each round, independent of direction.
-- **You never move *onto* an island.** The wind only shoves you *toward* rocks; you dodge, anchor, or run aground while **staying in your current square.** You can never sail onto an island either — only into its berth.
-- **Running aground** costs **half your coins, rounded down** (so 5 coins → lose 2, keep 3; 1 coin → lose 0).
-- **Moored = safe from wind crashes.** You're moored if you docked last turn, are sitting in a berth, or are at Barbados. This protects you *only* from wind crashes, and the "docked last turn" part expires once your wind step is done.
-- **Wind and full berths.** The wind will never push you onto a berth occupied by another ship — you stop short. (You *can* still be blown into an empty berth, or into open water.)
+- **Wind timing.** The Wind Wheel is spun **once per round** and sets a single direction for everyone — it doesn't move ships itself, it just sets that round's sail-budget costs. Keep the wheel visible so late-turn captains remember which way it's blowing.
+- **Storms** are the only time the wind moves you on its own: it force-pushes 2 squares, then spins and pushes 2 more. Roughly a **3-in-20** chance, rolled fresh each round, independent of direction.
+- **You never move *onto* an island.** A storm only ever shoves you *toward* rocks; you dodge, anchor, or run aground while **staying in your current square.** You can never sail onto an island either — only into its berth.
+- **Running aground** costs **half your coins, rounded down, minimum 1** if you have any (so 5 coins → lose 2, keep 3; 1 coin → lose that last coin). Already broke? You lose a crate instead — or, if your hold's empty too, you're shipwrecked and lose the rest of your turn.
+- **Moored = safe from storm crashes.** You're moored if you docked last turn, are sitting in a berth, or are at Barbados. This protects you *only* from a storm's push, and the "docked last turn" part expires once that push resolves.
+- **Storms and full berths.** A storm's push will never shove you onto a berth occupied by another ship — you stop short. (You *can* still be pushed into an empty berth, or into open water.)
 - **One dock flip per visit.** After you flip at a berth you can't flip there again until you've **left the berth and returned.** There's no limit on how many times total you may re-dock across the game.
 - **Docking requires the berth.** Only the ship actually **in** an island's single berth may dock. To evict a ship from a berth, **beat it in battle** — the post-battle swap drops you into the dock (and you may get a free flip there if you've never flipped at it).
 - **Post-battle free dock.** If the after-battle swap leaves you in a berth you have **never** flipped at, you get one free dock flip immediately.
@@ -233,12 +239,11 @@ The situations most likely to come up mid-game, gathered in one place:
 
 ## 11. Turn Summary Card
 
-> **Start of round:** **spin the Wind Wheel** (direction for all; 1-in-8 storm = 2-square drift).
+> **Start of round:** **spin the Wind Wheel** (direction for all; ~3-in-20 storm = forced 2+2 square push for everyone).
 >
 > **On your turn:**
-> 1. **🌬️ Wind** — drift 1 (or 2) with the wind. Moored? Safe. Toward rocks? Pay 1 to dodge or flip (heads anchor / tails lose half your coins). Into the rim? Sweep to the clockwise corner.
-> 2. **⛵ Sail** — pay 1 coin, move up to 3 (past ships, not onto them; around islands). No coin, no sail.
-> 3. **⚓ Act (one):** **Dock** (flip: heads crate / tails 3 coins or buy) · **Attack** (pay 2, race to 3, broadside costs 1, swap after) · **Parley** (deal with anyone, +1 each) · **Fish** (heads 2 / tails 1) · **Start Bakery** (home + full recipe = win) · **Pass.**
+> 1. **⛵ Sail** — pay 1 coin, move using a 9-point budget (2/sq with wind, 3/sq across, 4/sq against; upwind island = 7-point budget). Past ships okay, not onto them; around islands. No coin, no sail. *(Storm round? The wind force-pushes you first: 2 squares, then 2 more. Moored? Safe. Toward rocks? Pay 1 to dodge or flip — heads anchor, tails lose half your coins (min 1), a crate if broke, or the turn if empty-handed too. Into the rim? Sweep to the clockwise corner.)*
+> 2. **⚓ Act (one):** **Dock** (flip: heads crate / tails 3 coins or buy) · **Attack** (pay 2, race to 3, broadside costs 1, swap after) · **Parley** (deal with anyone, +1 each) · **Fish** (heads 2 / tails 1) · **Start Bakery** (home + full recipe = win) · **Pass.**
 >
 > **Someone declares a bakery?** Everyone else gets **one last turn**, then the game ends — one winner, or a **first-to-5 Bakeoff.** 👑
 
