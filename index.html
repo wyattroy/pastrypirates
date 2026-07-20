@@ -3307,7 +3307,7 @@ async function humanAct(p,sailCtx){
   // could still afford to sail — covers the reported "hit Stay put by accident" complaint
   const canMoveInstead=sailCtx&&p.coins>0&&p.coins===sailCtx.preSailCoins&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
-  if(canMoveInstead)opts.push({label:"↩ Actually, move instead",value:"moveInstead"});
+  if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
   const v=await ask(`${pn(p.idx)}, choose your action:`,opts);
   if(turnExpired)return;
   // the clock keeps running (and re-arms fresh) through dock/attack/trade/fish now, instead of
