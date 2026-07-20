@@ -1070,7 +1070,7 @@ class Game{
       this.tradewind(att);this.tradewind(def);
     }
     this.recordSkirmish(att,def,lose,spoilIng);
-    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
+    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
     if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
       const port=this.adjPort(pl);
       if(port&&(this.cfg.unlimitedDock||!pl.firstFlip.has(port)))this.doDock(pl,port);
@@ -1797,10 +1797,10 @@ function drawBoard(){
     // (x/y/width/height) once the voyage ends; the dock.png below it is the visible layer
     el("rect",{id:`homeDock${homeDockI++}`,x:dx*cell,y:dy*cell,width:cell,height:cell,
       fill:"none",stroke:"none"},svg);
-    // faces back toward Tortuga, and centered on the shared edge between the dock cell and the
-    // island (half a cell toward home) so it visually touches Tortuga like the other docks do
+    // faces back toward Tortuga, centered in its own dock cell so its edge touches the island
+    // boundary without crossing into the home tile
     const{rot:rotDeg,flip}=dockOrient([-d[0],-d[1]]);
-    const px=(dx+.5-d[0]*.5)*cell, py=(dy+.5-d[1]*.5)*cell;
+    const px=(dx+.5)*cell, py=(dy+.5)*cell;
     iconAt(svg,px,py,cell,DOCK_IMG,rotDeg,flip);
   }
   // islands (arbitrary polyomino shapes): fused cell fills + a single union outline
@@ -1952,7 +1952,7 @@ const EVENT_NARRATION={
     const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
     const loser=e.winner===e.a?e.d:e.a;
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
-    const sp=(e.spoil||"").includes("coin")?"💰":(e.spoil||"💰").split(" ")[0];
+    const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
     return {cls:"battle",
       txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
@@ -3174,7 +3174,7 @@ async function asyncBattle(att,def){
     game.tradewind(att);game.tradewind(def);
   }
   game.recordSkirmish(att,def,lose,spoilIng);
-  game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil});
+  game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
   liveRender();
   // narrate the battle's outcome (who took what from whom) right now — side-bet settlement
   // and a winner's auto-dock both push further events right after this, and every caller only
@@ -3357,16 +3357,12 @@ async function humanTurn(p){
   // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
   // ships around; otherwise the wind only shapes this player's own sail budget below
   if(game.stormNow){
-    const before=[...p.pos];
-    const wasDockedForWind=game.adjPort(p)!==null;
     await humanWind(p);
     recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
     if(turnExpired){activeTurnSeat=null;return;}
-    if(p.pos[0]!==before[0]||p.pos[1]!==before[1]){
-      if(wasDockedForWind)await flash(seatLocal(p.idx)?"⛵ A gale blows you out of the harbor!":`⛵ A gale blows ${pn(p.idx)} out of the harbor!`,1000);
-      else await flash(seatLocal(p.idx)?`🌬️ The wind carries you ${DIRNAME[game.windNow]}.`:`🌬️ The wind carries ${pn(p.idx)} ${DIRNAME[game.windNow]}.`,1000);
-    }
-    if(turnExpired){activeTurnSeat=null;return;}
+    // storms already narrate each leg's direction as they happen ("spins again — blows X"),
+    // so there's no separate "wind carries you" summary to show here — it would always be
+    // stale (mentioning only the first leg) by the time both legs have resolved
     if(p.shipwrecked){ // no coins, no crates, no move — repairs eat the rest of this turn
       p.shipwrecked=false;
       stopShotClock();
