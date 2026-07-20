@@ -43,13 +43,14 @@
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
-  /* below-the-board panels track the board's own rendered width and stay centered — matters most
-     in the stacked/narrow layout, where these would otherwise stretch to the full grid column
-     (wider than the board itself). A no-op in the wide layout: there they live in the sidebar
-     column (var(--sideW)), already narrower than --boardW, except #footerRow, whose more specific
-     .layoutWide override below wins and spans the full board+sidebar width as intended. */
+  /* below-the-board panels track the board's own rendered width and stay flush with its left
+     edge (not centered — every one of these, plus the board itself, shares the same left edge)
+     — matters most in the stacked/narrow layout, where these would otherwise stretch to the full
+     grid column (wider than the board itself). A no-op in the wide layout: there they live in the
+     sidebar column (var(--sideW)), already narrower than --boardW, except #footerRow, whose more
+     specific .layoutWide override below wins and spans the full board+sidebar width as intended. */
   #controlsRow, #actionPanel, #captainsPanel, #statsWrap, #footerRow {
-    width: 100%; max-width: var(--boardW, 100%); margin-left: auto; margin-right: auto;
+    width: 100%; max-width: var(--boardW, 100%); margin-left: 0; margin-right: 0;
   }
   /* "wide" layout is toggled by JS (syncBoardSizing), not a viewport media query — whether the
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
