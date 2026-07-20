@@ -149,6 +149,13 @@
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
   .apBtn.primary:hover { background: var(--accent); filter: brightness(1.1); }
+  /* small, consistent "back" affordance for every back-able decision — deliberately lower-key
+     than the real choices below it (a chevron-in-a-circle, iOS-nav-bar style), not another
+     button competing for attention in the main row */
+  .apBack { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+    padding: 0; margin-bottom: 6px; border-radius: 50%; background: #fff; font-size: 17px;
+    font-weight: 800; line-height: 1; }
+  .apBack:hover { background: #eafbf4; }
   .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
   @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */
@@ -2579,28 +2586,24 @@ function localAsk(msg,opts,colors){
       setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});
       return;
     }
-    // a flip mixed with extra (non-flip) choices — e.g. a "← Back" escape hatch offered
-    // alongside the flippenator coin — arms the coin as usual, and also renders the other
-    // choices as ordinary buttons in the same panel
+    // an option flagged `back` renders as a small circular "‹" button of its own, above the
+    // message — a consistent, low-emphasis escape hatch instead of competing with the real
+    // choices in the main button row (see notes/edits — every back-able decision gets this).
+    // Can coexist with a `flip` option (arms the flippenator coin as usual) and/or ordinary
+    // choices, which still render as the normal button row.
+    const backIdx=opts.findIndex(o=>o.back);
     const flipIdx=opts.findIndex(o=>o.flip);
-    if(flipIdx!==-1){
-      setNeedsAction(true);
-      const done=v=>{setFlipActive(null);setNeedsAction(false);panel("");res(v);};
-      setFlipActive(()=>done(flipIdx));
-      const others=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx);
-      panel(`<div class="apMsg">${msg}</div><div class="apBtns">`+
-        others.map(x=>`<button class="apBtn ${x.o.cls||""}" data-i="${x.i}"${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>`,true);
-      $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
-        b.onclick=()=>done(+b.dataset.i);
-      });
-      return;
-    }
-    setFlipActive(null);
-    const grid=opts.some(o=>o.cls)?" recipes":"";
-    panel(`<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
-      opts.map((o,i)=>`<button class="apBtn ${o.cls||""}" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${o.label}</button>`).join("")+`</div>`,true);
-    $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
-      b.onclick=()=>{panel("");res(+b.dataset.i);};
+    const done=v=>{setFlipActive(null);setNeedsAction(false);panel("");res(v);};
+    if(flipIdx!==-1){setNeedsAction(true);setFlipActive(()=>done(flipIdx));}
+    else setFlipActive(null);
+    const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
+    const grid=rest.some(x=>x.o.cls)?" recipes":"";
+    const backHtml=backIdx!==-1?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
+    panel(`${backHtml}<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
+      rest.map(x=>`<button class="apBtn ${x.o.cls||""}" data-i="${x.i}"${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>`,
+      true);
+    $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+      b.onclick=()=>done(+b.dataset.i);
     });
   });
 }
@@ -2646,7 +2649,7 @@ async function showTurnOrderIntro(order){
 async function humanFlip(p,label,allowBack){
   setActor(p.idx);
   const opts=[{label:"🌕 FLIP!",value:1,flip:true}];
-  if(allowBack)opts.push({label:"← Back",value:"back"});
+  if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
   const v=await ask(label||"Flip the dubloon!",opts);
   if(v==="back")return "back";
   broadcastFlip("spin");
@@ -2667,7 +2670,7 @@ async function fishCast(p,label,allowBack){
   if(p.strategy==="human"){
     setActor(p.idx);
     const opts=[{label:"🎣 CAST!",value:1,flip:true}];
-    if(allowBack)opts.push({label:"← Back",value:"back"});
+    if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
     const v=await ask(label||`${pn(p.idx)}: cast your line — flip!`,opts);
     if(v==="back")return "back";
   }
@@ -3196,22 +3199,22 @@ async function humanTrade(p){
   const opps=game.tradeOpp(p).filter(q=>q.ing.length>0);
   if(!opps.length){await flash("No one has cargo to trade for.");return false;}
   const q=opps.length===1?opps[0]:
-    await ask("Parley with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",value:null}]),
+    await ask("Parley with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
       opps.map(o=>HEXCOL[o.idx]).concat([null]));
   if(!q)return false;
   const want=await ask(`What do you want from ${pn(q.idx)}?`,
-    [...new Set(q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:"← Back",value:null}]));
+    [...new Set(q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:"← Back",back:true,value:null}]));
   if(!want)return false;
   // An offer is an ingredient, coins, or both together — sweeten a crate with a few coins on top.
   const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}));
   ingOpts.push({label:"— coins only —",value:null});
-  ingOpts.push({label:"← Back",value:"__cancel__"});
+  ingOpts.push({label:"← Back",back:true,value:"__cancel__"});
   const baseIng=await ask("Offer which ingredient (or coins only)?",ingOpts);
   if(baseIng==="__cancel__")return false;
   const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
   if(!baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
   const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
-  coinOpts.push({label:"← Back",value:-1});
+  coinOpts.push({label:"← Back",back:true,value:-1});
   const extraCoins=await ask(baseIng?`Sweeten with coin? (offering ${ilabelImg(baseIng)})`:"How many coins?",coinOpts);
   if(extraCoins===-1)return false;
   const give={ing:baseIng,coins:extraCoins};
@@ -3323,7 +3326,7 @@ async function humanAct(p,sailCtx){
   }
   else if(v==="attack"){
     const t=targets.length===1?targets[0]:
-      await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",value:null}]),
+      await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
     if(t===null){await humanAct(p,sailCtx);return;}
     await asyncBattle(p,t);
