@@ -35,6 +35,20 @@
   body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
     background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%); background-attachment: fixed;
     color: var(--ink); }
+  /* #6: first-paint loader (no image dependencies of its own so it shows instantly) */
+  #bootLoader { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    background: linear-gradient(160deg, var(--sea) 0%, var(--sea2) 100%);
+    transition: opacity .5s ease; }
+  #bootLoader.hidden { opacity: 0; pointer-events: none; }
+  #bootLoader .bootShip { font-size: 54px; animation: bootBob 1.6s ease-in-out infinite; }
+  #bootLoader .bootMsg { font-weight: 800; font-size: 16px; color: var(--teal); letter-spacing: .5px; }
+  #bootLoader .bootBar { width: 180px; height: 8px; border-radius: 999px; background: rgba(31,66,73,.12); overflow: hidden; }
+  #bootLoader .bootBarFill { width: 40%; height: 100%; border-radius: 999px; background: var(--teal);
+    animation: bootSlide 1.1s ease-in-out infinite; }
+  @keyframes bootBob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
+  @keyframes bootSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+  @media (prefers-reduced-motion: reduce) { #bootLoader .bootShip, #bootLoader .bootBarFill { animation: none; } }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
     grid-template-areas: "board" "controls" "narration" "stats" "captains"; }
   #left { grid-area: board; min-width: 0; }
@@ -64,6 +78,32 @@
   #flipPanel { flex: 0 0 auto; }
   #shotClockPanel { flex: 0 0 auto; }
   #board { background: linear-gradient(160deg, var(--sea), var(--sea2)); display: block; width: 100%; height: auto; border-radius: 10px; border: 1.5px solid var(--line); overflow: hidden; }
+  /* #1b: storm overlay — a light dark tint + two rain layers that fall in the wind's direction.
+     The rain angle/travel is driven by CSS vars set per-storm from the wind (see render()).
+     Fades in/out rather than snapping on/off. Purely decorative. */
+  #stormOverlay { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; overflow: hidden;
+    opacity: 0; transition: opacity .8s ease; z-index: 5; background: rgba(18, 24, 45, 0.5);
+    /* rain look tuned in notes/rain.html; --slant is set per-storm (render) to the wind direction */
+    --slant: 0deg; --spacing: 60px; --thick: 2.5px; --dash: 61px; --gap: 52px; --blur: 0.6px;
+    --streak: rgba(210, 228, 255, 0.19); --speed: 0.75s; }
+  #boardwrap.storming #stormOverlay { opacity: 1; }
+  /* soft (gaussian-ish) streaks: triangular ramps in both axes + a small blur. Each .rlayer is
+     generated once (buildStormLayers) with its own jittered spacing/speed/phase so the layers
+     never fall in lockstep. The mask scrolls to make the streaks fall; rotate(--slant) aims them. */
+  #stormOverlay .rlayer { position: absolute; left: -60%; top: -60%; width: 220%; height: 220%;
+    background-image: repeating-linear-gradient(90deg,
+      transparent 0,
+      transparent calc(var(--spacing)/2 - var(--thick)/2),
+      var(--streak) calc(var(--spacing)/2),
+      transparent calc(var(--spacing)/2 + var(--thick)/2),
+      transparent var(--spacing));
+    -webkit-mask-image: repeating-linear-gradient(0deg, transparent 0, #000 calc(var(--dash)/2), transparent var(--dash), transparent calc(var(--dash) + var(--gap)));
+    mask-image: repeating-linear-gradient(0deg, transparent 0, #000 calc(var(--dash)/2), transparent var(--dash), transparent calc(var(--dash) + var(--gap)));
+    transform: rotate(var(--slant)); filter: blur(var(--blur));
+    animation: rainFall var(--speed) linear infinite; animation-play-state: paused; will-change: mask-position; }
+  #boardwrap.storming #stormOverlay .rlayer { animation-play-state: running; } /* only spin the animation while it's visible */
+  @keyframes rainFall { to { -webkit-mask-position: 0 calc(var(--dash) + var(--gap)); mask-position: 0 calc(var(--dash) + var(--gap)); } }
+  @media (prefers-reduced-motion: reduce) { #boardwrap.storming #stormOverlay .rlayer { animation-play-state: paused; } }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
   details.panel summary { cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px;
@@ -157,6 +197,11 @@
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
   .apBtn.primary:hover { background: var(--accent); filter: brightness(1.1); }
+  /* #5d: a too-poor Attack shows greyed and non-clickable rather than vanishing */
+  .apBtn.apDisabled, .apBtn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
+  .apBtn.apDisabled:hover, .apBtn:disabled:hover { background: #fff; }
+  /* #5c: helper line under the action buttons */
+  .apSub { margin-top: 8px; font-size: 12.5px; opacity: .8; font-style: italic; }
   /* small, consistent "back" affordance for every back-able decision — deliberately lower-key
      than the real choices below it (a chevron-in-a-circle, iOS-nav-bar style), not another
      button competing for attention in the main row */
@@ -421,6 +466,15 @@
 </head>
 <body>
 
+<!-- #6: first-paint loader — covers the screen while the core art preloads so the board doesn't
+     pop in piecemeal on slow connections. Removes itself once assets are ready (or after a hard
+     timeout, so it can never hang the game). -->
+<div id="bootLoader">
+  <div class="bootShip">⛵</div>
+  <div class="bootMsg">Hoisting the sails…</div>
+  <div class="bootBar"><div class="bootBarFill"></div></div>
+</div>
+
 <!-- ===================== WELCOME MODAL ===================== -->
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
@@ -540,15 +594,7 @@
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">🎗️ Credits</div>
     <div class="modalByline" style="text-align:left">
-      <p>Pastry Pirates is made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a> — thanks for playtesting!</p>
-      <p><b>Collaborators:</b><br>
-        <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a><br>
-        <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar Quaranto</a><br>
-        Robin Roy</p>
-      <p><b>Inspiration:</b><br>
-        <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a><br>
-        <a href="https://nuvux.nuvustudio.com/" target="_blank" rel="noopener">NuVu summer program board game class 2026</a><br>
-        Luca and Amelia for their game Seafarers</p>
+      <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
     </div>
   </div>
 </div>
@@ -608,6 +654,8 @@
     <div id="left">
       <div id="boardwrap">
         <svg id="board" viewBox="0 0 640 640"></svg>
+        <!-- #1b: storm overlay — darkens the board + animated rain/wind, fades in/out via CSS -->
+        <div id="stormOverlay" aria-hidden="true"></div>
       </div>
     </div>
     <div id="controlsRow">
@@ -681,6 +729,16 @@ const ING_NAME={wheat:"Toasty Wheat",dairy:"Fresh Milk",sugar:"Crystal Sugar",eg
 // the plain baker's term each pirate ingredient stands in for — shown as a gloss on recipe cards
 const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
   cocoa:"chocolate",salt:"salt",vanilla:"vanilla",spice:"cinnamon",honey:"honey"};
+// worldbuilding (notes/edits #2): every ingredient island has a place-name + a flavorful haul,
+// announced when a pirate docks there. Only the 7 in-play ingredients need entries (nIslands:7).
+const DOCK_PLACE={sugar:"Glitter Bay",vanilla:"Custard Key",spice:"the Spice Isle",
+  wheat:"the Flour Patch",dairy:"Full Cream Folly",eggs:"Clucker's Cove",cocoa:"Cocoa Cabana",
+  salt:"Brineholt",honey:"Honeycomb Hollow"};
+const DOCK_FLAVOR={sugar:"a sack of crystal sugar",vanilla:"rich vanilla beans",
+  spice:"sprigs of red hot cinnamon",wheat:"a sack of toasty wheat",dairy:"some jugs of cool milk",
+  eggs:"sand-speckled eggs",cocoa:"bursting cacao pods",salt:"a scoop of sea salt",honey:"a pot of golden honey"};
+const dockPlace=x=>DOCK_PLACE[x]||"the island";
+const dockFlavor=x=>DOCK_FLAVOR[x]||iname(x);
 const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const ingImg=x=>`<img src="${ING_IMG[x]}" alt="${iname(x)}">`;
@@ -699,6 +757,14 @@ const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}}
 const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
 const SAIL_BUDGET=9,SAIL_BUDGET_LEEWARD=7;
 const windStepCost=(windDir,dirKey)=>dirKey===windDir?2:(dirKey===OPPOSITE[windDir]?4:3);
+// notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
+// exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
+function rollStorm(g){
+  const roll=g.r()<g.cfg.storm;
+  const storm=(g.stormStreak||0)>=2?false:roll;
+  g.stormStreak=storm?(g.stormStreak||0)+1:0;
+  return storm;
+}
 const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
 // default captain names in seat order (no "Capt. " prefix) — the pool a player who leaves the
 // name box blank draws from, mirroring the defaults pname() shows for un-claimed seats.
@@ -741,7 +807,7 @@ const PERSONALITY={
 // prevent (confirmed by simulation before this was turned down from 3).
 const AW={steal:6,stealStack:0.3,rich:0.9,richCap:8,blockBonus:4,cornerBonus:5,riskPenalty:3,grudgeBonus:1};
 const TW={base:5,swapBonus:2,rusherRecipeGuard:0.2};
-const DW={fallback:2,neededBonus:5,monopolistCornerBonus:6,surplusBonus:2};
+const DW={fallback:2,neededBonus:5,monopolistCornerBonus:6,surplusBonus:2,finisherBonus:8};
 const FISH_BASE=1.5;
 
 class Game{
@@ -910,6 +976,7 @@ class Game{
       }
     }
     this.round=0;this.battles=0;this.attWins=0;this.trades=0;this.finishOrder=[];this.events=[];this.winner=null;
+    this.stormStreak=0; // notes/edits #1a: consecutive-storm counter — caps storms at 2 back-to-back
   }
   r(){this.randCalls++;return this.rng();}
   isHome(c){return c[0]===this.home[0]&&c[1]===this.home[1];}
@@ -1106,13 +1173,24 @@ class Game{
     if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}
     this.battles++;
     let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
+    // notes/edits #3: keep the headless sim's scoring in step with asyncBattle — two HEADS award
+    // the downwind fighter (else cancel). `downwind` is purely geometric, never consumed.
+    let downwind=null;
+    {
+      const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
+      const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
+      const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
+      if(this.windNow===dirAtoD)downwind="a";
+      else if(this.windNow===dirDtoA)downwind="d";
+    }
     const rounds=[];
     while(a<need&&d<need){
       let bs=false,ah=this.flip(att),dh=this.flip(def);
       if(free&&!ah){ah=this.flip(att);free=false;bs=true;}
       else if(paid&&!ah&&att.coins>=1){att.coins--;ah=this.flip(att);paid=false;bs=true;}
       rounds.push([ah?1:0,dh?1:0,bs?1:0]);
-      if(ah&&dh){} else if(ah)a++; else if(dh)d++;
+      if(ah&&dh){if(downwind==="a")a++;else if(downwind==="d")d++;}
+      else if(ah)a++; else if(dh)d++;
     }
     const win=a>=need?att:def,lose=a>=need?def:att;
     if(win===att)this.attWins++;
@@ -1206,7 +1284,12 @@ class Game{
     const stocked=this.tokens[port]>0;
     let s=DW.fallback; // legal dock nets ~3 coins even empty — same tier as fishing, never a dead end
     if(p.strategy==="monopolist"&&port===p.corner&&stocked)s+=DW.monopolistCornerBonus;
-    else if(this.needs(p).includes(port)&&stocked)s+=DW.neededBonus;
+    else if(this.needs(p).includes(port)&&stocked){
+      s+=DW.neededBonus;
+      // #7: this crate is one of the last 1–2 you need — grabbing it (racing toward the win) should
+      // beat picking a fight, so bump it hard when the recipe is nearly done.
+      if(this.needs(p).length<=1)s+=DW.finisherBonus;
+    }
     else if(this.cfg.merchant&&stocked&&!p.ing.includes(port)&&
       this.players.some(q=>q!==p&&!q.done&&this.needs(q).includes(port)))s+=DW.surplusBonus;
     return s*PERSONALITY[p.strategy].dockMult;
@@ -1220,7 +1303,12 @@ class Game{
     // turn over turn the way the old unthrottled "rich" trigger did
     const activeGrudge=p.grudge;p.grudge=null;
     const opts=[];
-    if(p.strategy!=="rusher"&&p.coins>=this.cfg.powder)
+    // notes/edits #7: never pick a fight once the recipe is already complete. A winning attacker
+    // SWAPS squares with the loser, which can drag a finished bot away from Tortuga and throw away
+    // a win it already had in hand (the "Flaky Jack was too aggressive" bug). With a full hold the
+    // only job left is to sail home and bake, so drop attack from consideration entirely.
+    const winReady=!this.needs(p).length;
+    if(p.strategy!=="rusher"&&p.coins>=this.cfg.powder&&!winReady)
       for(const q of this.adjOpp(p))
         opts.push({type:"attack",target:q,score:this.scoreAttack(p,q,activeGrudge)});
     opts.push({type:"trade",score:this.scoreTrade(p)});
@@ -1290,7 +1378,7 @@ class Game{
     while(this.round<150){
       this.round++;
       const wind="NSEW"[Math.floor(this.r()*4)];
-      const storm=this.r()<this.cfg.storm;
+      const storm=rollStorm(this); // #1a
       this.windNow=wind;this.stormNow=storm;
       this.ev({t:"newround",dir:wind});
       for(const i of order){
@@ -1340,7 +1428,7 @@ function roundCfg(strategies){
   const crates=np===2?1e9:Math.max(1,np-1);
   return {grid:15,nIslands:7,recipeSize:5,crates,startCoins:3,
     powder:2,broadside:"paid",dockBuy:true,merchant:true,parley:true,tradeBonus:true,
-    asym:false,storm:0.15,islandW:2,islandH:2,tetris:true,singleDock:true,
+    asym:false,storm:0.125,islandW:2,islandH:2,tetris:true,singleDock:true,
     sardine:true,roundBoard:true,unlimitedDock:true,strategies};
 }
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -1972,6 +2060,13 @@ function pname(i){
   const s=(roster&&roster[i])||{};
   return s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
 }
+// plain (unescaped) display name for a seat — the same source pname() renders, minus the HTML
+// escaping. Used by writeGameLog so every finished game records who was playing, including
+// solo/local games (which have no rooms/{code}/seats node to cross-reference names from).
+function rawName(i){
+  const s=(roster&&roster[i])||{};
+  return (s.id?(s.name||"").trim():"")||NAMES[i].replace("Capt. ","");
+}
 function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
 // possessive form for narration addressed to spectators of someone else's turn, e.g. "Davy Scones' turn"
 function poss(i){const nm=pname(i);return `<b style="color:${HEXCOL[i]}">${nm}${nm.endsWith("s")?"'":"'s"}</b>`;}
@@ -2000,8 +2095,11 @@ const EVENT_NARRATION={
     pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
   shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
   dock:(e,at)=>{
-    const g={ing:`gets ${ilabelImg(e.ing)}!`,empty:`finds the island empty, takes 3🌕`,
-      bought:`flips tails, buys ${ilabelImg(e.ing)} anyway for 3🌕`,coins:`flips tails, takes 3🌕`};
+    const place=dockPlace(e.ing);
+    const g={ing:`docks at ${place} for ${dockFlavor(e.ing)} — hauls aboard ${ilabelImg(e.ing)}!`,
+      empty:`docks at ${place}, but finds it empty — takes 3🌕`,
+      bought:`docks at ${place}, flips tails, and buys ${ilabelImg(e.ing)} anyway for 3🌕`,
+      coins:`docks at ${place}, flips tails, takes 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     const F=e.heads?"⚪H":"⚫T";
     const gotIng=(e.got==="ing"||e.got==="bought");
@@ -2027,7 +2125,7 @@ const EVENT_NARRATION={
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
-  battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.d)} holds the line twice, pays 1🌕 and flees!`,
+  battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! (pays 1🌕)`,
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
   fish:(e,at)=>({txt:`${pn(e.p)} ${e.heads?"catches a 🐠 sugarfish! (2🌕)":(game.cfg.sardine?"nets a 🦀 candycrab (1🌕)":"comes up empty-handed")}`,
     caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
@@ -2058,6 +2156,25 @@ function pulseEl(el){
   el.classList.remove("pulse");
   void el.offsetWidth;
   el.classList.add("pulse");
+}
+// #1b: build the storm's rain layers once, on the first storm. Values tuned in notes/rain.html
+// (4 layers, jitter 0.86); each layer gets its own randomised spacing/speed/phase/offset so they
+// never fall in lockstep. Look constants (spacing/length/gap/blur/opacity/speed) live in the CSS.
+function buildStormLayers(ov){
+  if(ov.childElementCount)return; // already built
+  const LAYERS=4, JIT=0.86, baseSpacing=60, baseSpeed=0.75;
+  for(let i=0;i<LAYERS;i++){
+    const ox=Math.random(), sp=Math.random()*2-1, spd=Math.random()*2-1, ph=Math.random(), op=Math.random()*2-1;
+    const spacing=baseSpacing*(1+sp*0.4*JIT), dur=baseSpeed*(1+spd*0.5*JIT);
+    const d=document.createElement("div");
+    d.className="rlayer";
+    d.style.setProperty("--spacing",spacing.toFixed(2)+"px");
+    d.style.animationDuration=dur.toFixed(3)+"s";
+    d.style.animationDelay=(-(ph)*dur).toFixed(3)+"s";
+    d.style.backgroundPositionX=(ox*baseSpacing).toFixed(1)+"px";
+    d.style.opacity=Math.max(0,Math.min(1,1+op*0.35*JIT)).toFixed(3);
+    ov.appendChild(d);
+  }
 }
 function render(){
   const e=game.events[evIdx];if(!e)return;
@@ -2149,6 +2266,16 @@ function render(){
     }
     spinNeedle.setAttribute("fill",storming?"#ffd23f":"#d6337f");
     windLabels.forEach(t=>t.setAttribute("fill",storming?"#f4f6ff":"#1f4249"));
+    // #1b: darken the whole board + run the rain overlay during a storm. The CSS handles the fade
+    // in/out; here we toggle the class and, while storming, aim the rain to fall WITH the wind.
+    // `angle` is the compass heading the wind blows toward (0=N/up, clockwise). Each rain layer's
+    // local fall is straight down; rotating by angle+180 turns that into the true wind direction.
+    const bw=$("boardwrap");if(bw)bw.classList.toggle("storming",storming);
+    const ov=$("stormOverlay");
+    if(ov&&storming){
+      buildStormLayers(ov); // lazily create the jittered rain layers (once)
+      ov.style.setProperty("--slant",(angle+180)+"deg");
+    }
   }
   $("scrub").value=evIdx;
   renderLog();
@@ -2660,7 +2787,7 @@ function resolveOpt(opts,i,fallback){
   console.warn("resolveOpt(): invalid choice index",i,"of",opts.length,"options — defaulting to",fallback);
   return{i:fallback,opt:opts[fallback]};
 }
-function ask(msg,opts,colors){
+function ask(msg,opts,colors,sub){
   // during reload-replay, return the recorded choice (an index) mapped through the freshly
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
   if(replaying){
@@ -2671,9 +2798,12 @@ function ask(msg,opts,colors){
   netNarrate(seat===mySeat?msg:`${pn(seat)} is deciding…`);
   armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
-  const base=decisionIsLocal(seat)?localAsk(msg,opts,colors)
+  // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
+  // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
+  const base=decisionIsLocal(seat)?localAsk(msg,opts,colors,sub)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
-       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip,
+       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
+       disabled:opts.map(o=>!!o.disabled),sub:sub||null,flip:isFlip,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   const idxP=withShotClock(seat,base,0);
   return idxP.then(i=>{const r=resolveOpt(opts,i,0);logDecision(r.i);return r.opt.value;});
@@ -2706,7 +2836,7 @@ function withShotClock(seat,base,defaultVal){
     });
   });
 }
-function localAsk(msg,opts,colors){
+function localAsk(msg,opts,colors,sub){
   return new Promise(res=>{
     if(opts.length===1&&opts[0].flip){
       setNeedsAction(true);
@@ -2726,10 +2856,12 @@ function localAsk(msg,opts,colors){
     const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
     const grid=rest.some(x=>x.o.cls)?" recipes":"";
     const backHtml=backIdx!==-1?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
+    const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
     panel(`${backHtml}<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
-      rest.map(x=>`<button class="apBtn ${x.o.cls||""}" data-i="${x.i}"${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>`,
+      rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?" disabled":""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
       true);
     $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+      if(b.disabled)return; // disabled options are display-only (notes/edits #5d)
       b.onclick=()=>done(+b.dataset.i);
     });
   });
@@ -3156,16 +3288,18 @@ async function asyncBattle(att,def){
   game.battles++;
   const bets=await collectSideBets(att,def);
   let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
-  // wind advantage: whoever's shooting downwind gets one free reflip, independent of the paid one above
-  let freeA=false,freeD=false;
+  // wind advantage: whoever's shooting downwind gets one free reflip, independent of the paid one above.
+  // `downwind` is the PERSISTENT fact of who's firing with the wind (positions don't change mid-battle) —
+  // unlike freeA/freeD it is never consumed, because it also decides the both-heads point (notes/edits #3).
+  let freeA=false,freeD=false,downwind=null;
   {
     const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
     const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
     const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
-    if(game.windNow===dirAtoD)freeA=true;
-    else if(game.windNow===dirDtoA)freeD=true;
+    if(game.windNow===dirAtoD){freeA=true;downwind="a";}
+    else if(game.windNow===dirDtoA){freeD=true;downwind="d";}
   }
-  let defCancels=0,fled=false;
+  let fled=false;
   const rounds=[];
   const hA=att.strategy==="human",hD=def.strategy==="human";
   let round=0;
@@ -3260,18 +3394,27 @@ async function asyncBattle(att,def){
     // ---- resolve the round ----
     rounds.push([ah?1:0,dh?1:0,bs?1:0]);
     let scorer=null,rmsg;
-    if(ah&&dh){defCancels++;rmsg=`<span class="cancel">Both fire HEADS — cannonballs collide, no damage.</span>`;}
+    // notes/edits #3: two HEADS no longer just cancel — the shot carries downwind. Whoever's
+    // firing with the wind lands the hit; if neither is downwind (crosswind), they still cancel.
+    if(ah&&dh){
+      if(downwind==="a"){a++;scorer="a";rmsg=`<span class="score">Both fire HEADS — but ${nm(att.idx)}'s downwind and the shot carries! +1</span>`;}
+      else if(downwind==="d"){d++;scorer="d";rmsg=`<span class="score">Both fire HEADS — but ${nm(def.idx)}'s downwind and the shot carries! +1</span>`;}
+      else rmsg=`<span class="cancel">Both fire HEADS — crosswind, cannonballs collide, no damage.</span>`;
+    }
     else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(att.idx)} lands a hit! +1</span>`;}
     else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(def.idx)} lands a hit! +1</span>`;}
-    else{rmsg=`<span class="cancel">Both miss — TAILS all round, no damage.</span>`;}
+    else{rmsg=`<span class="cancel">Both miss — TAILS all round.</span>`;}
     renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
     await sleep(hold);
-    // ---- defender's flee: after holding the line twice (2 head-to-head cancels), pay 1🌕 to bail ----
-    if(defCancels>=2&&def.coins>=1){
+    // ---- defender's flee: on a double-TAILS round (both shots miss wildly) the defender can pay
+    // 1🌕 to slip away (notes/edits #3). Because a double-tails round scores no one, the battle is
+    // still undecided here (a<need && d<need both hold) — so flee can never fire post-decision (#9). ----
+    const bothTails=!ah&&!dh;
+    if(bothTails&&a<need&&d<need&&def.coins>=1){
       const cells=reachable(def,3);
       if(cells.length){
         let flee;
-        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: you've held the line twice! Pay 1🌕 to flee the battle?`,
+        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Pay 1🌕 to slip away and flee the battle?`,
           [{label:"🏃 Flee! (−1🌕)",value:true},{label:"Keep fighting",value:false}]);}
         else flee=d<a; // bots flee a losing fight, press on if ahead or even
         if(flee){
@@ -3358,6 +3501,12 @@ async function humanTrade(p){
   if(baseIng==="__cancel__")return false;
   const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
   if(!baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
+  if(!coinChoices.length){
+    // #4: a coins-only offer with an empty purse leaves nothing to put on the table. Don't show a
+    // blank coin box — say so plainly and bounce back to the action menu (Back also returns).
+    await ask("Ye don't have any to offer!",[{label:"← Back",back:true,value:-1}]);
+    return false;
+  }
   const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
   coinOpts.push({label:"← Back",back:true,value:-1});
   const extraCoins=await ask(baseIng?`Sweeten with coin? (offering ${ilabelImg(baseIng)})`:"How many coins?",coinOpts);
@@ -3440,10 +3589,13 @@ async function humanAct(p,sailCtx){
   const canDock=port&&(game.cfg.unlimitedDock||!(p.firstFlip.has(port)&&p.dockedNow.has(port)))
     &&!(game.cfg.singleDock&&game.dockOccupiedBy(port,p));
   const targets=game.adjOpp(p);
+  const canAfford=p.coins>=game.cfg.powder;
   const opts=[];
   if(canDock)opts.push({label:`⚓ Dock at ${ilabelImg(port)}`,value:"dock"});
-  if(targets.length&&p.coins>=game.cfg.powder)
-    opts.push({label:`⚔️ Attack${game.cfg.powder?` (−${game.cfg.powder}🌕 powder)`:""}`,value:"attack"});
+  // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
+  // (disabled) rather than hidden when you can't afford powder.
+  if(targets.length)
+    opts.push({label:`⚔️ Attack${game.cfg.powder?` (-${game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
   if(game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
   if(!game.needs(p).length&&man(p.pos,game.home)<=1)
     opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
@@ -3453,7 +3605,11 @@ async function humanAct(p,sailCtx){
   const canMoveInstead=sailCtx&&p.coins>0&&p.coins===sailCtx.preSailCoins&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  const v=await ask(`${pn(p.idx)}, choose your action:`,opts);
+  // #5c: helper text under the buttons explains the powder cost; #5d swaps in the too-poor nudge.
+  const sub=targets.length?(canAfford?`Attacking costs ye ${game.cfg.powder}🌕 for powder. 1🌕 more lets ye reflip once`:`Yer too poor to afford powder! Go fishin'`):null;
+  // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
+  const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, choose your action:`;
+  const v=await ask(prompt,opts,null,sub);
   if(turnExpired)return;
   // the clock keeps running (and re-arms fresh) through dock/attack/trade/fish now, instead of
   // stopping here — each ask() inside those sub-flows re-arms it for its own decision
@@ -3470,6 +3626,9 @@ async function humanAct(p,sailCtx){
     if(r==="back"){await humanAct(p,sailCtx);return;}
   }
   else if(v==="attack"){
+    // #5d: safety net — the button is disabled when you can't afford powder, but guard the action
+    // too (e.g. a forced/edge selection) so we never enter a battle you can't pay for.
+    if(p.coins<game.cfg.powder){await flash(seatLocal(p.idx)?`Yer too poor to afford powder! Go fishin'`:`${pn(p.idx)} can't afford powder.`,1400);await humanAct(p,sailCtx);return;}
     const t=targets.length===1?targets[0]:
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
@@ -3523,6 +3682,8 @@ async function humanTurn(p){
   if(!game.adjPort(p))p.dockedNow.clear();
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   if(p.coins>0){
+    // notes/edits #10: an island upwind steals your wind — warn before the move pick
+    if(game.leeward(p))await flash(seatLocal(p.idx)?`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`:`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500);
     const dest=await pickCell(p,reachable(p));
     recipeRevealed=false; // sail destination chosen — re-lock
     if(turnExpired){activeTurnSeat=null;return;}
@@ -3729,7 +3890,7 @@ async function runLiveNet(){
   while(game.round<150&&!ended){
     game.round++;
     game.windNow="NSEW"[Math.floor(game.r()*4)];
-    game.stormNow=game.r()<game.cfg.storm;
+    game.stormNow=rollStorm(game); // #1a: no more than 2 storms back-to-back
     game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
     game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
     // wind direction (and any storm) used to be visible only in the captain's log — call it
@@ -3752,7 +3913,7 @@ async function runLiveNet(){
           await netIntroBarrier(`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`,"🦜 Final round — set sail!");
           game.round++;
           game.windNow="NSEW"[Math.floor(game.r()*4)];
-          game.stormNow=game.r()<game.cfg.storm;
+          game.stormNow=rollStorm(game); // #1a
           game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
           game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
           await flash(describe(game.events[game.events.length-1]).txt,900);
@@ -3805,6 +3966,11 @@ function writeGameLog(){
   return db.ref("gamelogs/"+ts).set({
     ts,room:room||null,winner:game.winner,round:game.round,
     battles:game.battles,trades:game.trades,strategies:game.cfg.strategies,
+    // names/bots are recorded per seat so solo & local games (no rooms/{code}/seats node) are still
+    // attributable — events reference players by seat index, so this is the key to reading them back.
+    // Consistent with the lobby's data-collection notice ("nothing beyond the name you type").
+    names:game.players.map((_,i)=>rawName(i)),
+    bots:game.players.map(p=>p.strategy!=="human"),
     events:JSON.parse(JSON.stringify(game.events))
   }).catch(e=>console.error("game log write failed",e));
 }
@@ -4033,11 +4199,13 @@ function watchPrompt(){
         return;
       }
       setFlipActive(null);
+      const dis=p.disabled||[];
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
+      const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
       panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
-        rest.map(x=>`<button class="apBtn ${cls[x.i]||""}" data-i="${x.i}"${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>`,true);
-      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
+        rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?" disabled":""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
+      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{if(b.disabled)return;b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
       inBattlePrompt=false;
       setFlipActive(null);
@@ -4415,8 +4583,28 @@ function syncBoardSizing(){
 let syncBoardRAF=null;
 window.addEventListener("resize",()=>{if(syncBoardRAF)return;syncBoardRAF=requestAnimationFrame(()=>{syncBoardRAF=null;syncBoardSizing();});});
 window.addEventListener("orientationchange",syncBoardSizing);
+// #6: preload the core board art up front so a slow connection doesn't render the board with
+// missing/fallback tiles that pop in one by one. Each image resolves on load OR error (never
+// rejects), and boot() caps the whole wait with a timeout, so the loader can never hang the game.
+function preloadAssets(){
+  const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.png`,
+    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
+  return Promise.all(urls.map(u=>new Promise(res=>{
+    const img=new Image();
+    img.onload=img.onerror=()=>res();
+    img.src=u;
+  })));
+}
+function hideBootLoader(){
+  const b=$("bootLoader");if(!b||b.classList.contains("hidden"))return;
+  b.classList.add("hidden");
+  setTimeout(()=>{if(b.parentNode)b.remove();},600);
+}
 function boot(){
   myId=getMyId();
+  // reveal the game as soon as the art is ready, but never wait more than 6s (offline/failed CDN,
+  // dead image host, etc.) — a hung loader would be worse than the pop-in it prevents.
+  Promise.race([preloadAssets(),new Promise(r=>setTimeout(r,6000))]).then(hideBootLoader);
   renderDecorativeBoard();
   wireWelcome();
   wireRecipeModal(); // wired unconditionally (not inside wireLobby) so it works in solo/offline play too
