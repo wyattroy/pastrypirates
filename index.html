@@ -208,8 +208,9 @@
     line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
     background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
   #scPause:hover { background: rgba(0,0,0,.4); }
-  /* #7: timer off/on toggle — mirrors #scPause but sits in the opposite corner so both can show */
-  #scTimerToggle { position: absolute; top: 3px; left: 4px; width: 16px; height: 16px; padding: 0;
+  /* #7: timer off/on toggle — sits in the bottom-right corner, clear of the "turn clock" label
+     text in the top-left (which it used to overlap) and of #scPause in the top-right */
+  #scTimerToggle { position: absolute; bottom: 3px; right: 4px; width: 16px; height: 16px; padding: 0;
     line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
     background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
   #scTimerToggle:hover { background: rgba(0,0,0,.4); }
@@ -699,9 +700,23 @@ const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
 const SAIL_BUDGET=9,SAIL_BUDGET_LEEWARD=7;
 const windStepCost=(windDir,dirKey)=>dirKey===windDir?2:(dirKey===OPPOSITE[windDir]?4:3);
 const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
-// #15: a player who leaves the name box blank gets a random pirate captain name (not always
-// "Davy Scones"), so a table of un-named players still ends up with distinct captains.
-function randomCaptainName(){const n=["Davy Scones","Crustbeard","Dough Hook","Flaky Jack"];return n[Math.floor(Math.random()*n.length)];}
+// default captain names in seat order (no "Capt. " prefix) — the pool a player who leaves the
+// name box blank draws from, mirroring the defaults pname() shows for un-claimed seats.
+const DEFAULT_NAMES=NAMES.map(n=>n.replace("Capt. ",""));
+// #15/#2: a blank name box no longer gets a *random* captain name (which could collide with a
+// bot's or another captain's default — the "two Crustbeards" bug). Instead pick a name no seat
+// in `seats` is already using, preferring the one that belongs to `preferIdx`'s own seat so the
+// solo/host player at seat 0 reliably becomes "Davy Scones".
+function unusedDefaultName(seats,preferIdx){
+  const taken=new Set();
+  Object.keys(seats||{}).forEach(k=>{
+    const s=seats[k]||{};
+    const nm=s.id?(s.name||"").trim():DEFAULT_NAMES[+k];
+    if(nm)taken.add(nm);
+  });
+  if(preferIdx!=null&&!taken.has(DEFAULT_NAMES[preferIdx]))return DEFAULT_NAMES[preferIdx];
+  return DEFAULT_NAMES.find(nm=>!taken.has(nm))||DEFAULT_NAMES[preferIdx||0];
+}
 const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
@@ -1982,15 +1997,18 @@ const EVENT_NARRATION={
   parley:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`,pops:[[at(e.a),e.ok?"🤝":"🙅"]]}),
   aground:(e,at)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
     caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
-    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,null,"splash"]]:[]):[[at(e.p),"💥"]]}),
+    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
   shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
   dock:(e,at)=>{
     const g={ing:`gets ${ilabelImg(e.ing)}!`,empty:`finds the island empty, takes 3🌕`,
       bought:`flips tails, buys ${ilabelImg(e.ing)} anyway for 3🌕`,coins:`flips tails, takes 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     const F=e.heads?"⚪H":"⚫T";
+    const gotIng=(e.got==="ing"||e.got==="bought");
+    // #3: the crate rising out of the boat renders the ingredient art (ING_IMG), not the old
+    // emoji — the emoji stays as the fallback popEmoji() shows if the image can't load.
     return {txt:`${pn(e.p)} ${g[e.got]}`,caps:[[e.p,`docks ${F} ${capM[e.got]}`]],
-      pops:[[at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕"]]};
+      pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
   trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`,
     caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
@@ -2003,10 +2021,11 @@ const EVENT_NARRATION={
     const loser=e.winner===e.a?e.d:e.a;
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
     const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
+    const spImg=e.spoilIng?ING_IMG[e.spoilIng]:null; // #3: won ingredient rises from the boat as art, not emoji
     return {cls:"battle",
       txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}. ${pn(e.winner)} takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
-      pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰"]]};
+      pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
   battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.d)} holds the line twice, pays 1🌕 and flees!`,
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
@@ -2017,7 +2036,7 @@ const EVENT_NARRATION={
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
   shotclock:e=>({cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
   shotclockskip:(e,at)=>({cls:"roundhdr",txt:e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — ${e.coins}🌕 tumbles overboard!`,
-    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,null,"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
+    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
   bakeoff:(e,at)=>({cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`,
     caps:[[e.winner,"🧁 wins the bakeoff!"]],pops:[[at(e.winner),"🧁",true]]}),
   end:(e,at)=>({cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${winRecipeSpan(e.winner)} and is the Best Baker in the Caribbean!`,
@@ -2170,7 +2189,9 @@ function popEmoji(x,y,emo,big,imgHref,cls){
   const g=el("g",{class:"pop"+(cls?" "+cls:""),style:`transform-origin:${x}px ${y}px`},$("board"));
   const size=cell*(big?.72:.55);
   if(imgHref){
-    el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
+    const im=el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
+    // same fallback as iconAt(): if the art can't load, drop the <image> and show the emoji
+    if(emo)im.addEventListener("error",()=>{im.remove();el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;});
   }else{
     el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;
   }
@@ -4048,7 +4069,9 @@ function showStep(id){
 }
 function requireName(){
   const v=($("pname").value||"").trim();
-  return v?v.slice(0,40):randomCaptainName();
+  // solo/host player always sits at seat 0, so a blank name defaults to seat 0's captain ("Davy
+  // Scones") — deterministic, and can't clash with the bots that fill seats 1-3.
+  return v?v.slice(0,40):DEFAULT_NAMES[0];
 }
 function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
@@ -4151,7 +4174,7 @@ function passGate(seatIdx){
 }
 
 async function createRoom(){
-  const name=($("pname").value||"").trim().slice(0,40)||randomCaptainName();
+  const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
   numSeats=+$("numSeats").value;
   const code=genCode();
   const seats={0:{name,id:myId,bot:false}};
@@ -4167,7 +4190,7 @@ async function createRoom(){
   saveSession();showRoom();watchRoom();
 }
 async function joinRoom(){
-  const name=($("joinName").value||"").trim().slice(0,40)||randomCaptainName();
+  const typedName=($("joinName").value||"").trim().slice(0,40);
   const code=($("joinCode").value||"").toUpperCase().trim();
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   let snap;
@@ -4183,7 +4206,10 @@ async function joinRoom(){
   let claimed=null;
   await db.ref("rooms/"+code+"/seats").transaction(s=>{
     if(!s)return s;
-    for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){s[i]={name,id:myId,bot:false};claimed=i;return s;}}
+    for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){
+      // #2: blank name → an unused default captain name computed against the live seat map, so a
+      // late joiner never duplicates a name already in the room.
+      s[i]={name:typedName||unusedDefaultName(s,i),id:myId,bot:false};claimed=i;return s;}}
     return s;
   });
   if(claimed==null){alert("That game is full.");return;}
