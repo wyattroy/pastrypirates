@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="favicon.png">
 <title>Pastry Pirates on the Sugar Seas — Online</title>
 <meta name="description" content="A free browser pirate board game. Sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker in the Caribbean. Play online with friends — 2-4 players, bots fill empty seats.">
 <link rel="canonical" href="https://playpastrypirates.com/">
@@ -19,8 +22,6 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"VideoGame","name":"Pastry Pirates on the Sugar Seas","url":"https://playpastrypirates.com/","description":"A free browser pirate board game — sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker.","genre":"Board Game","gamePlatform":"Web Browser","numberOfPlayers":"2-4","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -417,7 +418,7 @@
       padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px); font-size: clamp(16.5px,5.25cqw,24px); }
   }
   .modalTitle { line-height: 1.25; }
-  .modalLogo { width: 260px; max-width: 100%; height: auto; }
+  .modalLogo { width: 100%; height: auto; border-radius: 14px; }
   .modalTitleSub { display:block; font-size: 13.5px; font-weight: 500; font-style: italic; color: var(--teal); opacity: .75; margin-top: 2px; }
   .modalByline { font-size: 13.5px; line-height: 1.5; color: var(--ink); opacity: .85; margin: 10px 2px 20px; }
   .nameLabel { display:block; text-align:left; font-size:13px; font-weight:700; color:var(--teal); margin-bottom:18px; }
@@ -515,7 +516,7 @@
 <!-- ===================== WELCOME MODAL ===================== -->
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
-    <div class="modalTitle"><img src="assets/logo.png" alt="Pastry Pirates" class="modalLogo"></div>
+    <div class="modalTitle"><img src="assets/logo.jpg" alt="Pastry Pirates" class="modalLogo"></div>
 
     <div id="stepChoose" class="modalStep">
       <div class="modalByline">You came to the sunny shores of Tortuga to start a bakery -- but your pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
@@ -4733,7 +4734,7 @@ window.addEventListener("orientationchange",syncBoardSizing);
 // missing/fallback tiles that pop in one by one. Each image resolves on load OR error (never
 // rejects), and boot() caps the whole wait with a timeout, so the loader can never hang the game.
 function preloadAssets(){
-  const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.png`,
+  const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
     ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
   return Promise.all(urls.map(u=>new Promise(res=>{
     const img=new Image();
