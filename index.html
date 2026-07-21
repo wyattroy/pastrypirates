@@ -43,14 +43,14 @@
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
-  /* below-the-board panels track the board's own rendered width and stay flush with its left
-     edge (not centered — every one of these, plus the board itself, shares the same left edge)
-     — matters most in the stacked/narrow layout, where these would otherwise stretch to the full
-     grid column (wider than the board itself). A no-op in the wide layout: there they live in the
-     sidebar column (var(--sideW)), already narrower than --boardW, except #footerRow, whose more
-     specific .layoutWide override below wins and spans the full board+sidebar width as intended. */
+  /* below-the-board panels track the board's own rendered width; in the stacked/narrow layout they
+     (and the board) are centered on the page together via margin auto — so the whole game column
+     sits centered while every element still shares the same edges as before (#21). A no-op in the
+     wide layout: there they live in the sidebar column (var(--sideW)), already narrower than
+     --boardW and filled at width:100%, except #footerRow, whose more specific .layoutWide override
+     below wins and spans the full board+sidebar width as intended. */
   #controlsRow, #actionPanel, #captainsPanel, #statsWrap, #footerRow {
-    width: 100%; max-width: var(--boardW, 100%); margin-left: 0; margin-right: 0;
+    width: 100%; max-width: var(--boardW, 100%); margin-left: auto; margin-right: auto;
   }
   /* "wide" layout is toggled by JS (syncBoardSizing), not a viewport media query — whether the
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
@@ -118,8 +118,15 @@
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
   .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; grid-column: 2; }
-  .prowRecipe:not(:empty) { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; }
-  .prowRecipe:not(:empty):hover { opacity: 1; }
+  .prowRecipe:not(:empty) { cursor: pointer; color: var(--teal); opacity: .9;
+    text-decoration: underline; text-decoration-color: var(--teal); text-underline-offset: 2px; }
+  .prowRecipe:not(:empty):hover { opacity: 1; text-decoration-thickness: 2px; }
+  /* #22: recipe links inside narration (esp. the victory message) must read as obviously tappable
+     — a bold teal link with a solid underline and a 📜 cue, not the near-invisible dotted style. */
+  .narrRecipeLink { cursor: pointer; color: var(--teal); font-weight: 800;
+    text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px;
+    white-space: nowrap; }
+  .narrRecipeLink:hover { filter: brightness(1.12); text-decoration-color: var(--accent); }
   #recipeModalBody h2 { font-size: 20px; color: var(--teal); margin: 0 0 4px; }
   #recipeModalBody .recipeModalDesc { font-size: 13.5px; opacity: .8; margin-bottom: 10px; }
   #recipeModalBody .recipeModalYield { font-size: 12.5px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: .5px; margin: 14px 0 4px; }
@@ -141,8 +148,8 @@
   .pulse { animation: rowpulse .5s ease; }
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
-  #boardwrap { position: relative; width: 100%; max-width: var(--boardW, min(820px, calc(100vh - 210px))); margin: 0; container-type: inline-size; }
-  #actionPanel { margin: 8px 0; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
+  #boardwrap { position: relative; width: 100%; max-width: var(--boardW, min(820px, calc(100vh - 210px))); margin: 0 auto; container-type: inline-size; }
+  #actionPanel { margin: 8px auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
@@ -201,6 +208,12 @@
     line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
     background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
   #scPause:hover { background: rgba(0,0,0,.4); }
+  /* #7: timer off/on toggle — sits in the bottom-right corner, clear of the "turn clock" label
+     text in the top-left (which it used to overlap) and of #scPause in the top-right */
+  #scTimerToggle { position: absolute; bottom: 3px; right: 4px; width: 16px; height: 16px; padding: 0;
+    line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
+    background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
+  #scTimerToggle:hover { background: rgba(0,0,0,.4); }
   #shotClockPanel.urgent { background: linear-gradient(160deg, #5a5f66, #25282c); border-color: #e2564c;
     animation: clockurgent 0.9s ease-in-out infinite; }
   #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
@@ -245,6 +258,17 @@
     18% { opacity: 1; transform: translate(0, 0) scale(1); }
     100% { opacity: 0; transform: translate(0, -32px) scale(1.3); }
   }
+  /* a bigger, bouncier pop for "you just lost treasure" moments (#5/#6 — a slow or aground
+     captain's crate tumbling overboard and splashing back onto its island), so the cause and
+     effect are impossible to miss. */
+  .pop.splash { animation: popsplash 1.9s cubic-bezier(.25,1.5,.45,1) forwards; }
+  @keyframes popsplash {
+    0%   { opacity: 0; transform: translate(0, 10px) scale(.4) rotate(-12deg); }
+    14%  { opacity: 1; transform: translate(0, -6px) scale(1.9) rotate(8deg); }
+    30%  { opacity: 1; transform: translate(0, 0) scale(1.5) rotate(-5deg); }
+    55%  { opacity: 1; transform: translate(0, -8px) scale(1.7) rotate(3deg); }
+    100% { opacity: 0; transform: translate(0, -40px) scale(1.4) rotate(0deg); }
+  }
   .dancingPastry { animation: pastrydance 1s ease-in-out infinite; }
   @keyframes pastrydance {
     0%, 100% { transform: rotate(-15deg); }
@@ -280,6 +304,11 @@
   .modalCard { background: linear-gradient(175deg, #ffffff, var(--parch2) 250%); border: 3px solid var(--teal);
     border-radius: 20px; padding: 26px 28px 22px; max-width: 440px; width: 100%; text-align: center;
     box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18); }
+  /* #2: top-right close affordance on in-game modals (added in JS). Sits above the card content. */
+  .modalX { position: absolute; top: 10px; right: 12px; width: 30px; height: 30px; padding: 0;
+    border: none; background: transparent; color: var(--ink); font-size: 19px; line-height: 1;
+    cursor: pointer; opacity: .45; border-radius: 50%; z-index: 2; }
+  .modalX:hover { opacity: 1; background: rgba(0,0,0,.08); }
   /* small screens: a centering flexbox clips the top of tall content with no way to scroll
      up to it, so switch to top-aligned with generous margin instead of vertical centering */
   @media (max-width: 600px) {
@@ -297,6 +326,7 @@
       padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px);
       min-width: clamp(105px,39cqw,177px); }
     #scPause { width: 24px; height: 24px; line-height: 20px; font-size: 13.5px; }
+    #scTimerToggle { width: 24px; height: 24px; line-height: 20px; font-size: 13.5px; }
     #scLabel { font-size: clamp(10.5px,3cqw,15px); }
     #shotClockNum { font-size: clamp(24px,9cqw,45px); }
     #scUnit { font-size: clamp(10.5px,3.3cqw,18px); }
@@ -502,7 +532,6 @@
       <p>When the first baker docks home, everyone else gets one last turn. If more than one makes it: BAKEOFF! Flip head-to-head, first to 3 points takes the crown.</p>
       <p><i>May your flips be heads and your rivals be broke.</i></p>
     </div>
-    <button class="primary big" id="btnCloseHow" type="button">Close</button>
   </div>
 </div>
 
@@ -521,7 +550,6 @@
         <a href="https://nuvux.nuvustudio.com/" target="_blank" rel="noopener">NuVu summer program board game class 2026</a><br>
         Luca and Amelia for their game Seafarers</p>
     </div>
-    <button class="primary big" id="btnCloseCredits" type="button">Close</button>
   </div>
 </div>
 
@@ -530,7 +558,6 @@
   <div class="modalCard" style="max-width:480px;text-align:left">
     <div class="modalTitle" style="text-align:center">📜 Captain's log</div>
     <div id="log" style="margin-top:14px;max-height:60vh"></div>
-    <button class="primary big" id="btnCloseLog" type="button">Close</button>
   </div>
 </div>
 
@@ -541,7 +568,6 @@
     <div class="modalByline">What's working, what's confusing, what broke — this goes straight to the devs.</div>
     <textarea id="feedbackText" rows="5" maxlength="2000" placeholder="Type your thoughts here..." style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;resize:vertical;margin-bottom:10px"></textarea>
     <button class="primary big" id="btnSendFeedback" type="button">Send feedback</button>
-    <button class="big" id="btnCloseFeedback" type="button">Close</button>
   </div>
 </div>
 
@@ -552,7 +578,6 @@
     <div id="recipeModalBtns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
       <button class="primary big" id="btnRecipePdf" type="button">🖨️ Download PDF</button>
       <button class="big" id="btnRecipeEmail" type="button">✉️ Email to myself</button>
-      <button class="big" id="btnCloseRecipe" type="button">Close</button>
     </div>
   </div>
 </div>
@@ -564,6 +589,16 @@
     <div class="modalByline">Is everyone at the table? Once the voyage starts, no one else can join — empty seats sail with bots.</div>
     <button class="primary big" id="btnConfirmStart" type="button">⛵ Everyone's aboard?</button>
     <button class="big" id="btnCancelStart" type="button">Wait, not yet</button>
+  </div>
+</div>
+
+<!-- #8: confirm before abandoning ship, in every mode -->
+<div id="leaveConfirmModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:380px">
+    <div class="modalTitle">🚪 Abandon ship?</div>
+    <div class="modalByline">Are ye sure ye want to leave this game? Ye can't rejoin the same voyage once ye go.</div>
+    <button class="big" id="btnConfirmLeave" type="button" style="border-color:#b56464;background:#f8eaea;color:#7e3535">🚪 Aye, leave the game</button>
+    <button class="primary big" id="btnCancelLeave" type="button">Stay aboard</button>
   </div>
 </div>
 
@@ -581,6 +616,7 @@
       </div>
       <div id="shotClockPanel" class="idle">
         <button id="scPause" type="button" style="display:none">⏸</button>
+        <button id="scTimerToggle" type="button" title="Turn the timer off/on" style="display:none">⏱️</button>
         <div id="scLabel">turn clock</div>
         <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
         <div id="shotClockSub">&nbsp;</div>
@@ -664,6 +700,23 @@ const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
 const SAIL_BUDGET=9,SAIL_BUDGET_LEEWARD=7;
 const windStepCost=(windDir,dirKey)=>dirKey===windDir?2:(dirKey===OPPOSITE[windDir]?4:3);
 const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
+// default captain names in seat order (no "Capt. " prefix) — the pool a player who leaves the
+// name box blank draws from, mirroring the defaults pname() shows for un-claimed seats.
+const DEFAULT_NAMES=NAMES.map(n=>n.replace("Capt. ",""));
+// #15/#2: a blank name box no longer gets a *random* captain name (which could collide with a
+// bot's or another captain's default — the "two Crustbeards" bug). Instead pick a name no seat
+// in `seats` is already using, preferring the one that belongs to `preferIdx`'s own seat so the
+// solo/host player at seat 0 reliably becomes "Davy Scones".
+function unusedDefaultName(seats,preferIdx){
+  const taken=new Set();
+  Object.keys(seats||{}).forEach(k=>{
+    const s=seats[k]||{};
+    const nm=s.id?(s.name||"").trim():DEFAULT_NAMES[+k];
+    if(nm)taken.add(nm);
+  });
+  if(preferIdx!=null&&!taken.has(DEFAULT_NAMES[preferIdx]))return DEFAULT_NAMES[preferIdx];
+  return DEFAULT_NAMES.find(nm=>!taken.has(nm))||DEFAULT_NAMES[preferIdx||0];
+}
 const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
@@ -1226,9 +1279,8 @@ class Game{
   checkFinish(p){
     if(!this.needs(p).length&&man(p.pos,this.home)<=1){
       p.done=true;this.finishOrder.push(p.idx);this.ev({t:"finish",p:p.idx});
-      if(this.finishOrder.length===1){
-        netNarrate(`🏁 ${pn(p.idx)} returns to Tortuga with a full hold — all ye others, this is your last turn!`);
-      }
+      // the "final round!" announcement + wind re-spin are handled by the caller (runLiveNet),
+      // which alone knows the live turn order and can pause the whole crew for it (see #19).
       return true;}
     return false;
   }
@@ -1247,8 +1299,10 @@ class Game{
         this.takeTurn(p,wind,storm);
         if(this.checkFinish(p)){
           if(this.finishOrder.length===1){
-            for(const j of order){const q=this.players[j];
-              if(q.done||j===i)continue;
+            // final round continues the SAME rotation from the seat after the finisher (#19)
+            const sp=order.indexOf(i),lastLap=order.slice(sp+1).concat(order.slice(0,sp));
+            for(const j of lastLap){const q=this.players[j];
+              if(q.done)continue;
               this.takeTurn(q,wind,storm);this.checkFinish(q);}
             return this.resolveEnd();
           }
@@ -1280,7 +1334,11 @@ let game=null,evIdx=0,timer=null,logLines=[];
 // Fixed "Round World" ruleset (the recommended big-game preset), sized to the player count.
 function roundCfg(strategies){
   const np=strategies.length;
-  return {grid:15,nIslands:7,recipeSize:5,crates:Math.max(1,np-1),startCoins:3,
+  // 2-player games with only 1 crate per island just deadlock — the two ships battle forever over
+  // the single crate (#10). Give 2p unlimited, never-drying islands (1e9 is the existing "endless
+  // supply" sentinel — guarded as crates<1e9 everywhere, and islands then render as always-full).
+  const crates=np===2?1e9:Math.max(1,np-1);
+  return {grid:15,nIslands:7,recipeSize:5,crates,startCoins:3,
     powder:2,broadside:"paid",dockBuy:true,merchant:true,parley:true,tradeBonus:true,
     asym:false,storm:0.15,islandW:2,islandH:2,tetris:true,singleDock:true,
     sardine:true,roundBoard:true,unlimitedDock:true,strategies};
@@ -1562,7 +1620,7 @@ function recipeTitle(recipe){
 function winRecipeSpan(idx){
   const p=game&&game.players&&game.players[idx];
   if(!p||!p.recipe)return "";
-  return `<span class="narrRecipeLink" data-idx="${idx}" style="cursor:pointer;text-decoration:underline dotted">${escHtml(recipeTitle(p.recipe))}</span>`;
+  return `<span class="narrRecipeLink" data-idx="${idx}">📜 ${escHtml(recipeTitle(p.recipe))}</span>`;
 }
 function recipeCardHTML(recipe){
   const info=recipeInfo(recipe);
@@ -1620,7 +1678,6 @@ function wireRecipeModal(){
     const p=game&&game.players&&game.players[idx];
     if(p&&p.recipe)openRecipeModal(p.recipe);
   });
-  $("btnCloseRecipe").onclick=()=>{$("recipeModal").style.display="none";};
   $("btnRecipePdf").onclick=()=>{window.print();};
   $("btnRecipeEmail").onclick=()=>{
     if(!recipeModalCurrent)return;
@@ -1938,17 +1995,20 @@ const EVENT_NARRATION={
   anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
   tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is swept along the trade winds around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
   parley:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`,pops:[[at(e.a),e.ok?"🤝":"🙅"]]}),
-  aground:(e,at)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! Loses ${ilabelImg(e.ing)} overboard ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
-    caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} lost overboard`:"⚫T aground! 💥 −half 🌕"]],
-    pops:[[at(e.p),e.ing?ING_EMOJI[e.ing]:"💥"]]}),
+  aground:(e,at)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
+    caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
+    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
   shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
   dock:(e,at)=>{
     const g={ing:`gets ${ilabelImg(e.ing)}!`,empty:`finds the island empty, takes 3🌕`,
       bought:`flips tails, buys ${ilabelImg(e.ing)} anyway for 3🌕`,coins:`flips tails, takes 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     const F=e.heads?"⚪H":"⚫T";
+    const gotIng=(e.got==="ing"||e.got==="bought");
+    // #3: the crate rising out of the boat renders the ingredient art (ING_IMG), not the old
+    // emoji — the emoji stays as the fallback popEmoji() shows if the image can't load.
     return {txt:`${pn(e.p)} ${g[e.got]}`,caps:[[e.p,`docks ${F} ${capM[e.got]}`]],
-      pops:[[at(e.p),(e.got==="ing"||e.got==="bought")?ING_EMOJI[e.ing]:"🌕"]]};
+      pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
   trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`,
     caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
@@ -1961,10 +2021,11 @@ const EVENT_NARRATION={
     const loser=e.winner===e.a?e.d:e.a;
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
     const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
+    const spImg=e.spoilIng?ING_IMG[e.spoilIng]:null; // #3: won ingredient rises from the boat as art, not emoji
     return {cls:"battle",
-      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.winner)} wins ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}, takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
+      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}. ${pn(e.winner)} takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
-      pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰"]]};
+      pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
   battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.d)} holds the line twice, pays 1🌕 and flees!`,
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
@@ -1974,7 +2035,8 @@ const EVENT_NARRATION={
   finish:(e,at)=>({cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
   shotclock:e=>({cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
-  shotclockskip:e=>({cls:"roundhdr",txt:e.ing?`⏰ ${pn(e.p)} loses their turn, and some ${ilabelImg(e.ing)} overboard, which floats back to the island.`:`⏰ ${pn(e.p)} loses their turn, and ${e.coins}🌕 overboard!`}),
+  shotclockskip:(e,at)=>({cls:"roundhdr",txt:e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — ${e.coins}🌕 tumbles overboard!`,
+    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
   bakeoff:(e,at)=>({cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`,
     caps:[[e.winner,"🧁 wins the bakeoff!"]],pops:[[at(e.winner),"🧁",true]]}),
   end:(e,at)=>({cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${winRecipeSpan(e.winner)} and is the Best Baker in the Caribbean!`,
@@ -2117,15 +2179,23 @@ function renderLog(){
 // would otherwise be anchored at the board's (0,0) corner instead of the emoji's own spot —
 // every pop would rocket toward/away from that corner instead of rising in place. Pinning
 // transform-origin to the emoji's own x,y (same fix as celebrateHomeDocks' dancingPastry).
-function popEmoji(x,y,emo,big,imgHref){
-  const g=el("g",{class:"pop",style:`transform-origin:${x}px ${y}px`},$("board"));
+// screen-center of the crate for ingredient `ing` on its home island, so a lost crate can
+// visibly splash back where it came from (see #5/#6). Null-safe before the board is built.
+function islandXY(ing){
+  const isl=(typeof game!=="undefined"&&game&&game.islandOf)?game.islandOf[ing]:null;
+  return isl?[(isl[0]+.5)*cell,(isl[1]+.5)*cell]:null;
+}
+function popEmoji(x,y,emo,big,imgHref,cls){
+  const g=el("g",{class:"pop"+(cls?" "+cls:""),style:`transform-origin:${x}px ${y}px`},$("board"));
   const size=cell*(big?.72:.55);
   if(imgHref){
-    el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
+    const im=el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
+    // same fallback as iconAt(): if the art can't load, drop the <image> and show the emoji
+    if(emo)im.addEventListener("error",()=>{im.remove();el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;});
   }else{
     el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;
   }
-  setTimeout(()=>g.remove(),1300);
+  setTimeout(()=>g.remove(),cls==="splash"?1950:1300);
 }
 function spawnPops(e){
   if(!e)return;
@@ -2133,7 +2203,7 @@ function spawnPops(e){
   const at=i=>{const [x,y]=shipXY(st[i].pos,i,st);return [x,y-cell*.42];};
   const fn=EVENT_NARRATION[e.t];if(!fn)return;
   const r=fn(e,at);
-  (r&&r.pops||[]).forEach(([xy,emo,big,img])=>popEmoji(xy[0],xy[1],emo,big,img));
+  (r&&r.pops||[]).forEach(([xy,emo,big,img,cls])=>popEmoji(xy[0],xy[1],emo,big,img,cls));
 }
 
 function captions(e){
@@ -2160,13 +2230,16 @@ function computeAwards(){
   };
   let prevPos=game.players.map(()=>null);
   for(const e of game.events){
-    if(e.t==="battle"){
-      if(e.winner!=null){battlesWon[e.winner]++;battlesLost[e.winner===e.a?e.d:e.a]++;}
+    if(e.t==="battle"||e.t==="battleflee"){
+      // #5: a fought-then-fled battle still counts toward game.battles, so it must count in the
+      // per-player battle stats too (it was a real attack with real rounds) — only the clean
+      // win/loss tally is skipped for a flee, since nobody won.
+      if(e.t==="battle"&&e.winner!=null){battlesWon[e.winner]++;battlesLost[e.winner===e.a?e.d:e.a]++;}
       timesAttacked[e.d]++;
-      const len=e.rounds.length;
+      const rounds=e.rounds||[],len=rounds.length;
       if(len>longestBattle[e.a])longestBattle[e.a]=len;
       if(len>longestBattle[e.d])longestBattle[e.d]=len;
-      for(const r of e.rounds){bump(e.a,!!r[0]);bump(e.d,!!r[1]);}
+      for(const r of rounds){bump(e.a,!!r[0]);bump(e.d,!!r[1]);}
     }
     if(e.t==="fish"){if(e.heads)fishCount[e.p]++;bump(e.p,!!e.heads);}
     if(e.t==="dock")bump(e.p,!!e.heads);
@@ -2259,6 +2332,8 @@ function showStats(){
 let live=false, liveDone=false, liveGen=0;
 let curSeat=0;                 // seat currently being prompted (host drives the engine)
 let inBattlePrompt=false;      // this client owns the active battle decision — watchBattle defers to it
+let spectatingBattle=false;    // a battle scoreboard is up on this client — watchNarr must not overwrite it
+                               // with the per-flip play-by-play (see #9: the box vanished between flips)
 // ---- shot clock: 30s to finish a decision — a single 1-coin penalty at 20s, then sent back
 // to port at 30s. Host-authoritative; every client ticks its own display off the shared
 // deadline. Every ask()/pickCell()/non-flip battleAsk() decision re-arms it fresh for whoever
@@ -2268,6 +2343,10 @@ let inBattlePrompt=false;      // this client owns the active battle decision �
 // without needing a special case here.
 let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
 let shotClockPaused=false, shotClockPauseElapsed=0;
+// #7: the whole-table turn timer can be switched off (stressful for learners). Synced through
+// Firebase so every client agrees; ANY player may toggle it. When off, the host never arms the
+// shot clock, so decisions simply wait for the player with no penalty.
+let timerOff=false;
 let shotClockFired={}, turnExpired=false, clockState=null;
 // localPickCell() registers its own highlight-cleanup here; a forced shot-clock timeout
 // resolves pickCell()'s outer wrapped promise but never touches this inner one, so without
@@ -2337,7 +2416,7 @@ function watchFlip(){
 
 // ---- shot clock ----
 function startShotClock(p){
-  if(!isHost)return;
+  if(!isHost||timerOff)return;   // #7: timer switched off — decisions wait, never time out
   shotClockSeat=p.idx;
   shotClockDeadline=Date.now()+30000;
   shotClockFired={};
@@ -2385,6 +2464,23 @@ function broadcastClock(){
   setClockUI();
   if(db&&room)db.ref("rooms/"+room+"/clock").set(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline});
 }
+// #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
+// table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
+// any running clock at once (so the current player is un-timed the moment anyone flips it off).
+function toggleTimer(){
+  if(!db||!room)return;
+  const next=!timerOff;
+  try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
+  db.ref("rooms/"+room+"/timerOff").set(next);
+}
+function watchTimer(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/timerOff").on("value",s=>{
+    timerOff=!!s.val();
+    if(isHost&&timerOff)stopShotClock();
+    setClockUI();
+  });
+}
 function shotClockTick(){
   if(shotClockSeat==null)return;
   const elapsed=Date.now()-(shotClockDeadline-30000);
@@ -2413,12 +2509,12 @@ function expireShotClock(){
       lost=p.ing.splice(idx,1)[0];
       game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
       game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      netNarrate(`⏰ ${pn(p.idx)} loses their turn, and some ${ilabelImg(lost)} overboard, which floats back to the island.`);
+      netNarrate(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — a crate of ${ilabelImg(lost)} tumbles overboard and floats back to its island.`);
     }else{
       const take=Math.min(5,p.coins);
       p.coins-=take;
       game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      netNarrate(`⏰ ${pn(p.idx)} loses their turn, and ${take}🌕 overboard!`);
+      netNarrate(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
     }
     liveRender();
     if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove();
@@ -2443,6 +2539,21 @@ function setClockUI(){
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
   pauseEl.style.display=(isHost&&soloBotGame()&&!liveDone)?"":"none";
   pauseEl.textContent=shotClockPaused?"▶":"⏸";
+  // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
+  // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
+  const toggleEl=$("scTimerToggle");
+  if(toggleEl){
+    toggleEl.style.display=(!soloBotGame()&&!liveDone)?"":"none";
+    toggleEl.textContent=timerOff?"🚫":"⏱️";
+    toggleEl.title=timerOff?"Turn the timer back on":"Turn the timer off";
+  }
+  if(timerOff){
+    // synced to all clients — everyone sees the clock is disabled
+    wrap.classList.add("idle");wrap.classList.remove("urgent");
+    labelEl.textContent="timer off";numEl.textContent="∞";unitEl.textContent="";
+    subEl.textContent="no rush — tap ⏱️";
+    return;
+  }
   if(!state){
     if(isHost&&shotClockPaused){
       wrap.classList.remove("idle","urgent");
@@ -2467,11 +2578,25 @@ function setClockUI(){
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
   const elapsed=30-remain;
   const urgent=elapsed>=20;
-  wrap.classList.toggle("urgent",urgent);
-  labelEl.textContent="play in";
-  numEl.textContent=urgent?30-elapsed:20-elapsed;
-  unitEl.textContent="seconds";
-  subEl.textContent=urgent?"or lose your turn":"or pay 1🌕";
+  // whose turn is being timed vs. who's looking: the active player sees a live "play in / or pay"
+  // countdown; everyone else sees a greyed "WAITING" clock with spectator-appropriate copy — a
+  // slow player hands the rest of the crew a coin, then (final 10s) forfeits their turn entirely.
+  const active=(state.seat===mySeat);
+  if(active){
+    wrap.classList.remove("idle");
+    wrap.classList.toggle("urgent",urgent);
+    labelEl.textContent="play in";
+    numEl.textContent=urgent?30-elapsed:20-elapsed;
+    unitEl.textContent="seconds";
+    subEl.textContent=urgent?"or lose your turn":"or pay 1🌕";
+  }else{
+    wrap.classList.remove("urgent");
+    wrap.classList.add("idle");
+    labelEl.textContent="waiting";
+    numEl.textContent=urgent?30-elapsed:20-elapsed;
+    unitEl.textContent="seconds";
+    subEl.textContent=urgent?"or their turn is skipped":"or gain 1🌕";
+  }
 }
 setInterval(setClockUI,500);
 
@@ -2548,7 +2673,8 @@ function ask(msg,opts,colors){
   const isFlip=opts.length===1&&!!opts[0].flip;
   const base=decisionIsLocal(seat)?localAsk(msg,opts,colors)
     :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
-       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip});
+       colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),flip:isFlip,
+       flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   const idxP=withShotClock(seat,base,0);
   return idxP.then(i=>{const r=resolveOpt(opts,i,0);logDecision(r.i);return r.opt.value;});
 }
@@ -2633,8 +2759,8 @@ async function netIntroBarrier(msg,btnLabel){
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
-  const msg="⚓ Ahoy! Plunder every ingredient in yer recipe, sail home, and bake yerself a win! <br><br>⛵️ Each turn, the wind sets yer sailing price, then ye sail, then ye act.<br><br>👀 Watch this panel — she'll steer ye straight!";
-  await netIntroBarrier(msg,"⚓ Ahoy! Let's start");
+  const msg="⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>👀 Watch this panel — she'll steer ye straight!";
+  await netIntroBarrier(msg,"⚓ Arrgh! Let's start");
 }
 // right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
 // everyone sailing later by pointing out the coin they get in exchange for waiting. Stays up
@@ -2771,7 +2897,7 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     if(game.blocked(nx))return;
     if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
     const blocker=game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
-    if(blocker){game.ev({t:"blocked",p:p.idx,other:blocker.idx});liveRender();return;} // another ship holds that square — wind stops short
+    if(blocker){game.ev({t:"blocked",p:p.idx,other:blocker.idx});await narrateLastEvent();liveRender();return;} // another ship holds that square — wind stops short (see #20: surface the "strikes sail" narration)
     if(game.islands[nx]!==undefined){
       if(game.moored(p)){game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
       // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
@@ -2817,7 +2943,7 @@ async function humanWind(p){
   const dodgedOnce={v:false};
   await windLeg(p,game.windNow,2,dodgedOnce,wasDocked);
   if(turnExpired)return;
-  await flash(`⛈️ The wind spins again — blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
+  await flash(`⛈️ Now the wind blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
   if(turnExpired)return;
   await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
 }
@@ -2902,7 +3028,8 @@ function watchBattle(){
   if(!db||!room)return;
   db.ref("rooms/"+room+"/battle").on("value",s=>{
     const v=s.val();
-    if(v&&!inBattlePrompt)renderBattleFromSnap(v);
+    if(v){spectatingBattle=true;if(!inBattlePrompt)renderBattleFromSnap(v);}
+    else spectatingBattle=false; // battle node cleared at battle end — narration may take over again
   });
 }
 // the footer beneath the coins: a decision (buttons), a "waiting…" note, or the round result
@@ -2930,7 +3057,14 @@ function battleAsk(p,o,msg,opts,colors){
   // every battle decision — flip or yes/no — re-arms the clock to whoever's actually
   // being asked, same as ask(); a forced timeout just resolves to the flip itself
   armClock(seat);
-  netBroadcast(seat===mySeat?msg:`${pn(seat)} is deciding…`);
+  // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
+  // attacking whom instead of a bare "…is deciding" — so when a bot attacks a human on the bot's
+  // turn, the table can see it's the human's defend flip and nudge them (see #11).
+  const spectMsg=(o&&o.att&&o.def)
+    ?(seat===o.def.idx?`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)}! Waiting for ${pname(o.def.idx)} to defend…`
+      :`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)} — waiting for ${pname(seat)}…`)
+    :`${pn(seat)} is deciding…`;
+  netBroadcast(seat===mySeat?msg:spectMsg);
   let idxP;
   if(decisionIsLocal(seat)){
     idxP=new Promise(res=>{
@@ -2963,20 +3097,27 @@ async function collectSideBets(att,def){
   const spectators=game.players.filter(p=>p!==att&&p!==def&&!p.done);
   for(const s of spectators){
     if(s.strategy==="human"){
-      setActor(s.idx);
-      // The call itself is free and mandatory — no coin of your own at risk.
-      const who=await ask(`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`,
-        [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
-        [HEXCOL[att.idx],HEXCOL[def.idx]]);
-      let amt=0;
-      let amounts=[1,2,3,5].filter(n=>s.coins>=n);
-      if(s.coins>5)amounts.push(s.coins); // all-in
-      if(amounts.length){
+      // The call itself is free and mandatory — no coin of your own at risk. The coin-backing
+      // step is back-able: "← Back" there returns to re-pick the winner (see notes/edits 4b).
+      let who,amt=0;
+      for(;;){
         setActor(s.idx);
-        // Optional: sweeten the call with real coin.
-        amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)} with coin? Win and you keep the free dubloon AND double your stake — lose and your stake is gone. (purse: ${s.coins}🌕)`,
-          [{label:"Just the free call",value:0}].concat(
-            amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n}))));
+        who=await ask(`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`,
+          [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
+          [HEXCOL[att.idx],HEXCOL[def.idx]]);
+        amt=0;
+        let amounts=[1,2,3,5].filter(n=>s.coins>=n);
+        if(s.coins>5)amounts.push(s.coins); // all-in
+        if(amounts.length){
+          setActor(s.idx);
+          // Optional: sweeten the call with real coin.
+          amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)} with coin? Win and you keep the free dubloon AND double your stake — lose and your stake is gone. (purse: ${s.coins}🌕)`,
+            [{label:"Just the free call",value:0}].concat(
+              amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n})))
+              .concat([{label:"← Back",back:true,value:"back"}]));
+          if(amt==="back")continue; // re-pick the winner
+        }
+        break;
       }
       bets.push({idx:s.idx,on:who,amt});
       if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} and backs it with ${amt}🌕!`,1100);
@@ -3099,7 +3240,7 @@ async function asyncBattle(att,def){
     await sleep(beat);
     // ---- DEFENDER flips ----
     if(hD){
-      dh=await hFlip("d",def,`🛡️ ${nm(def.idx)} (defender) — answer!`,{atState:ah?"H":"T",atBs:bs});
+      dh=await hFlip("d",def,`⚔️ ${nm(att.idx)} attacks you — defend! FLIP`,{atState:ah?"H":"T",atBs:bs});
     }else{
       dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
@@ -3148,6 +3289,9 @@ async function asyncBattle(att,def){
     }
   }
   panel("");
+  // battle's over — clear the broadcast scoreboard so every client's watchNarr can take the panel
+  // back for the result narration (and so spectatingBattle resets). (#9)
+  if(isHost&&db&&room&&!replaying)db.ref("rooms/"+room+"/battle").remove();
   if(fled)return;
   const win=a>=need?att:def,lose=a>=need?def:att;
   if(win===att)game.attWins++;
@@ -3598,9 +3742,25 @@ async function runLiveNet(){
       if(game.checkFinish(p)){
         liveRender();
         if(game.finishOrder.length===1){
-          for(const j of order){
+          // FINAL ROUND (#19): the first ship reached Tortuga and fired up the bakery. Alert the
+          // whole crew with a blocking barrier, spin the wind ANEW for the last lap, then give
+          // every other captain exactly ONE more turn — continuing the SAME rotation from the seat
+          // right after the finisher (not restarting `order` from the top, which scrambled the
+          // apparent turn order). netIntroBarrier self-skips during host-refresh replay, and the
+          // wind re-spin's game.r() calls run identically live and on replay, so state stays
+          // deterministic.
+          await netIntroBarrier(`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`,"🦜 Final round — set sail!");
+          game.round++;
+          game.windNow="NSEW"[Math.floor(game.r()*4)];
+          game.stormNow=game.r()<game.cfg.storm;
+          game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
+          game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
+          await flash(describe(game.events[game.events.length-1]).txt,900);
+          const startPos=order.indexOf(i);
+          const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
+          for(const j of lastLap){
             const q=game.players[j];
-            if(q.done||j===i)continue;
+            if(q.done)continue;
             await (q.strategy==="human"?humanTurn(q):botTurn(q));
             if(game.checkFinish(q))liveRender();
           }
@@ -3854,18 +4014,30 @@ function watchPrompt(){
         return;
       }
       inBattlePrompt=false;
-      if(p.flip){
-        showNarration(p.msg);
+      // mirror localAsk: a flip option arms the flippenator coin, a `back` option renders the
+      // small circular apBack escape hatch, and any remaining options are the normal button row.
+      // (These used to be host-only — remote players got a stray "FLIP!" button in the panel and
+      // never saw the back affordance.)
+      const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[];
+      const flipIdx=(p.flipIdx!=null&&p.flipIdx>=0)?p.flipIdx:(p.flip?0:-1);
+      const backIdx=(p.back!=null&&p.back>=0)?p.back:-1;
+      const backHtml=backIdx>=0?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
+      if(flipIdx>=0){
         setNeedsAction(true);
-        setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,0);});
+        setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,flipIdx);});
+        if(backIdx>=0){
+          panel(`${backHtml}<div class="apMsg">${p.msg}</div>`,true);
+          $("actionPanel").querySelectorAll(".apBack").forEach(b=>{
+            b.onclick=()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,+b.dataset.i);};});
+        }else showNarration(p.msg);
         return;
       }
       setFlipActive(null);
-      const cols=p.colors||[],cls=p.classes||[];
+      const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
-      panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
-        (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}"${apBtnStyle(cols[i])}>${l}</button>`).join("")+`</div>`,true);
-      $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
+      panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
+        rest.map(x=>`<button class="apBtn ${cls[x.i]||""}" data-i="${x.i}"${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>`,true);
+      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
       inBattlePrompt=false;
       setFlipActive(null);
@@ -3874,7 +4046,11 @@ function watchPrompt(){
   });
 }
 function watchNarr(){
-  db.ref("rooms/"+room+"/narr").on("value",s=>{const v=s.val();if(v)showNarration(v.html);});
+  db.ref("rooms/"+room+"/narr").on("value",s=>{const v=s.val();
+    // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
+    // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
+    // letting them overwrite the panel made the battle box flicker away between flips (#9)
+    if(v&&!spectatingBattle&&!inBattlePrompt)showNarration(v.html);});
 }
 async function applyEndMeta(){
   if(isHost||appliedMeta)return;
@@ -3893,7 +4069,9 @@ function showStep(id){
 }
 function requireName(){
   const v=($("pname").value||"").trim();
-  return v?v.slice(0,40):"Davy Scones";
+  // solo/host player always sits at seat 0, so a blank name defaults to seat 0's captain ("Davy
+  // Scones") — deterministic, and can't clash with the bots that fill seats 1-3.
+  return v?v.slice(0,40):DEFAULT_NAMES[0];
 }
 function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
@@ -3996,7 +4174,7 @@ function passGate(seatIdx){
 }
 
 async function createRoom(){
-  const name=($("pname").value||"").trim().slice(0,40)||"Davy Scones";
+  const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
   numSeats=+$("numSeats").value;
   const code=genCode();
   const seats={0:{name,id:myId,bot:false}};
@@ -4012,7 +4190,7 @@ async function createRoom(){
   saveSession();showRoom();watchRoom();
 }
 async function joinRoom(){
-  const name=($("joinName").value||"").trim().slice(0,40)||"Davy Scones";
+  const typedName=($("joinName").value||"").trim().slice(0,40);
   const code=($("joinCode").value||"").toUpperCase().trim();
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   let snap;
@@ -4028,7 +4206,10 @@ async function joinRoom(){
   let claimed=null;
   await db.ref("rooms/"+code+"/seats").transaction(s=>{
     if(!s)return s;
-    for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){s[i]={name,id:myId,bot:false};claimed=i;return s;}}
+    for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){
+      // #2: blank name → an unused default captain name computed against the live seat map, so a
+      // late joiner never duplicates a name already in the room.
+      s[i]={name:typedName||unusedDefaultName(s,i),id:myId,bot:false};claimed=i;return s;}}
     return s;
   });
   if(claimed==null){alert("That game is full.");return;}
@@ -4100,6 +4281,13 @@ function beginGame(cfg,seed){
   watchRecipes();
   if(isHost){runLiveNet();}
   else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();}
+  watchTimer(); // #7: every client tracks the shared timer-off flag
+  // host seeds the shared flag from its own last choice so the preference carries across games
+  // (but not on a reload-replay, which must keep whatever the live game already had)
+  if(isHost&&db&&room&&!replaying){
+    let off=false;try{off=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
+    db.ref("rooms/"+room+"/timerOff").set(off);
+  }
 }
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
 // the host's synced copy instead, and reorder the captains panel once it arrives
@@ -4134,17 +4322,31 @@ function wireLobby(){
   $("btnStart").onclick=()=>{$("startConfirmModal").style.display="flex";};
   $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
-  $("btnLeave").onclick=leaveGame;
+  $("btnLeave").onclick=()=>{$("leaveConfirmModal").style.display="flex";};
+  $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
+  $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};
   $("btnPlayAgain").onclick=leaveGame;
   $("scPause").onclick=toggleShotClockPause;
+  $("scTimerToggle").onclick=toggleTimer;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
-  $("btnCloseLog").onclick=()=>{$("logModal").style.display="none";};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
-  $("btnCloseHow").onclick=()=>{$("howToPlayModal").style.display="none";};
   $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
-  $("btnCloseCredits").onclick=()=>{$("creditsModal").style.display="none";};
   $("btnShowFeedback").onclick=()=>{$("feedbackModal").style.display="flex";};
-  $("btnCloseFeedback").onclick=()=>{$("feedbackModal").style.display="none";};
+  // #2: in-game modals get a top-right ✕ and close on outside-click (the bottom "Close" buttons
+  // were removed). Pre-game/blocking modals (lobby, pass-device, room, start/leave confirms) are
+  // deliberately NOT dismissible this way — they gate the game and must be answered.
+  ["howToPlayModal","creditsModal","logModal","feedbackModal","recipeModal"].forEach(id=>{
+    const ov=$(id);if(!ov)return;
+    const card=ov.querySelector(".modalCard");
+    if(card&&!card.querySelector(".modalX")){
+      card.style.position="relative";
+      const x=document.createElement("button");
+      x.className="modalX";x.type="button";x.textContent="✕";x.setAttribute("aria-label","Close");
+      x.onclick=()=>{ov.style.display="none";};
+      card.insertBefore(x,card.firstChild);
+    }
+    ov.addEventListener("click",e=>{if(e.target===ov)ov.style.display="none";});
+  });
   $("btnSendFeedback").onclick=()=>{
     const text=($("feedbackText").value||"").trim();
     if(!text)return;
