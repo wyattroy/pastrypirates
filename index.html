@@ -134,16 +134,28 @@
   .rulegrid label span { flex: 1; }
   .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; border: 2px solid transparent; box-sizing: border-box; transition: border-color .25s ease, box-shadow .25s ease; }
   .player-row.activeTurn { border-color: var(--rowcol, var(--accent)); box-shadow: 0 0 0 2px var(--rowcol, var(--accent)) inset, 0 0 6px rgba(0,0,0,.12); }
-  /* fixed dot/name/coins columns (same template on every row's own grid) keep money and hold
-     aligned across all captains regardless of name length or how many ingredients they're holding */
-  .prowTop, .prowRecipeRow { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px; align-items: start; }
-  .prowTop { align-items: center; }
-  .prowRecipeRow { margin-bottom: 2px; }
+  /* fixed dot/name/coins columns keep money and hold aligned across all captains regardless of
+     name length or how many ingredients they're holding. The recipe name is a second grid row
+     inside the same .prowTop grid (not a separate row/div) so its placement — above the chips
+     on wide/medium screens, tucked under the name on narrow ones — is a pure CSS/media-query
+     concern with zero extra DOM height beyond the one text line it actually needs. */
+  .prowTop { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px 6px;
+    grid-template-areas: ".   .    .     recipe" "dot name coins chips"; align-items: center; }
+  @media (max-width: 480px) {
+    /* PDF item 3c: on very narrow screens the recipe sits left-aligned with the name text (not
+       the dot), spanning the name/coins/chips columns so a long title doesn't wrap and cost
+       extra vertical space — just not starting under the dot */
+    .prowTop { grid-template-areas: ".   recipe recipe recipe" "dot name coins chips"; }
+  }
+  .prowTop .dot { grid-area: dot; }
+  .prowTop .pname { grid-area: name; }
+  .prowTop .coinsWrap { grid-area: coins; }
+  .prowTop .chips { grid-area: chips; }
   /* visibility is driven directly from JS (see render(), the .hasRecipe toggle) rather than a
      :has(:empty) relational selector — Safari has had reactivity gaps where :has() doesn't
-     re-evaluate after a purely textContent-driven mutation, leaving the row stuck hidden even
+     re-evaluate after a purely textContent-driven mutation, leaving the recipe stuck hidden even
      once the text is set (only reproduces via file:// in Safari, not over http/in Chrome) */
-  .prowRecipeRow:not(.hasRecipe) { display: none; }
+  .prowRecipe:not(.hasRecipe) { display: none; }
   .player-row .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35); }
   .player-row .pname { font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
   .pnameInner { display: inline-block; }
@@ -151,13 +163,14 @@
   @keyframes pnamescroll { 0%, 11% { transform: translateX(0); } 44%, 66% { transform: translateX(calc(-1 * var(--scrollDist, 0px))); } 100% { transform: translateX(0); } }
   .coinsWrap { display: flex; align-items: center; gap: 3px; }
   .player-row .coins { font-variant-numeric: tabular-nums; }
-  .chips { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; grid-column: 4; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
   .chip { width: 34px; height: 34px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; padding: 1px; border-radius: 8px; background: #fbe1e0; border: 1px solid #e8a6a3; opacity: .7; }
   .chip img { width: 95%; height: 95%; object-fit: contain; }
   .narrIcon { width: 18px; height: 18px; vertical-align: -4px; object-fit: contain; margin: 0 1px; }
   .chip.have { opacity: 1; background: #dcfaee; border-color: #27c78d; }
   .chip.extra { opacity: 1; background: #fff6c0; border-color: #f0d060; }
-  .prowRecipe { font-size: 11px; font-weight: bold; color: var(--ink); opacity: .65; grid-column: 2; }
+  .prowTop .prowRecipe { grid-area: recipe; }
+  .prowRecipe { font-size: 11px; line-height: 1.15; font-weight: bold; color: var(--ink); opacity: .65; align-self: start; }
   .prowRecipe:not(:empty) { cursor: pointer; color: var(--teal); opacity: .9;
     text-decoration: underline; text-decoration-color: var(--teal); text-underline-offset: 2px; }
   .prowRecipe:not(:empty):hover { opacity: 1; text-decoration-thickness: 2px; }
@@ -193,6 +206,12 @@
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  /* notes/edits #1: every narration/prompt message types in one character at a time (real DOM
+     text-node reveal via typewriterReveal() in panel() — see there for why). Only flash()'s
+     passive narration (no buttons to click through) ever gets the .fadeOut treatment — action
+     prompts stay until the player dismisses them. */
+  .apMsg.fadeOut { animation: apMsgFadeOut .5s ease both; }
+  @keyframes apMsgFadeOut { to { opacity: 0; } }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
@@ -250,9 +269,11 @@
     min-width: clamp(70px,26cqw,118px); position: relative; }
   #shotClockPanel.idle { opacity: .55; }
   #scPause { position: absolute; top: 3px; right: 4px; width: 16px; height: 16px; padding: 0;
-    line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
-    background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #d9a84e; border-radius: 50%;
+    background: rgba(0,0,0,.25); cursor: pointer; }
   #scPause:hover { background: rgba(0,0,0,.4); }
+  #scPause img { width: 60%; height: 60%; object-fit: contain; }
   /* #7: timer off/on toggle — sits in the bottom-right corner, clear of the "turn clock" label
      text in the top-left (which it used to overlap) and of #scPause in the top-right */
   #scTimerToggle { position: absolute; bottom: 3px; right: 4px; width: 16px; height: 16px; padding: 0;
@@ -261,6 +282,12 @@
   #scTimerToggle:hover { background: rgba(0,0,0,.4); }
   #shotClockPanel.urgent { background: linear-gradient(160deg, #5a5f66, #25282c); border-color: #e2564c;
     animation: clockurgent 0.9s ease-in-out infinite; }
+  /* notes/edits #11: paused always reads as silver/inert, regardless of whose turn it was paused
+     on or whether it was already urgent — distinct from both the normal brass panel and .urgent */
+  #shotClockPanel.paused { background: linear-gradient(160deg, #9aa1a8, #6b7278); border-color: #c7ccd1;
+    animation: none; opacity: 1; }
+  #shotClockPanel.paused #scLabel, #shotClockPanel.paused #shotClockSub { color: #e8ebee; }
+  #shotClockPanel.paused #shotClockNum, #shotClockPanel.paused #scUnit { color: #fff; }
   #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
   #shotClockPanel.urgent #scLabel { color: #ff9b93; }
   #scRow { display: flex; align-items: baseline; gap: 4px; line-height: 1; margin: 1px 0; }
@@ -327,7 +354,17 @@
   #statsPanel table, #batchPanel table { border-collapse: collapse; width: 100%; font-size: 13px; }
   #statsPanel td, #batchPanel td, #batchPanel th { padding: 2.5px 6px; border-bottom: 1px solid #e3f2f5; text-align: left; }
   #batchPanel th { border-bottom: 1.5px solid var(--line); }
-  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; background: var(--lemon); border: 1.5px solid var(--orange); border-radius: 8px; margin-bottom: 8px; }
+  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
+    position: relative; overflow: hidden; border: 1.5px solid #c9971f; border-radius: 8px;
+    background: linear-gradient(120deg, #fff6d0 0%, #ffd76a 25%, #fff2c0 50%, #ffd76a 75%, #fff6d0 100%);
+    background-size: 220% 100%; animation: goldShimmer 3s linear infinite; }
+  .winner-banner::before, .winner-banner::after {
+    content: "✨"; position: absolute; font-size: 13px; opacity: 0;
+    animation: winnerSparkle 1.8s ease-in-out infinite; }
+  .winner-banner::before { top: 3px; left: 14%; animation-delay: .2s; }
+  .winner-banner::after { bottom: 2px; right: 16%; animation-delay: .95s; }
+  @keyframes goldShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
+  @keyframes winnerSparkle { 0%, 100% { opacity: 0; transform: scale(.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(20deg); } }
   .awardsRow { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; }
   .awardCard { flex: 1 1 100px; text-align: center; border: 2px solid; border-radius: 12px; padding: 8px 6px; background: #fff; }
   .awardIcon { font-size: 22px; line-height: 1; }
@@ -370,7 +407,7 @@
     #shotClockPanel { border-radius: clamp(12px,4.5cqw,21px);
       padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px);
       min-width: clamp(105px,39cqw,177px); }
-    #scPause { width: 24px; height: 24px; line-height: 20px; font-size: 13.5px; }
+    #scPause { width: 24px; height: 24px; }
     #scTimerToggle { width: 24px; height: 24px; line-height: 20px; font-size: 13.5px; }
     #scLabel { font-size: clamp(10.5px,3cqw,15px); }
     #shotClockNum { font-size: clamp(24px,9cqw,45px); }
@@ -663,7 +700,7 @@
         <div class="flipPlank"><div id="flipCoinWrap" class="coin wait">?</div></div>
       </div>
       <div id="shotClockPanel" class="idle">
-        <button id="scPause" type="button" style="display:none">⏸</button>
+        <button id="scPause" type="button" style="display:none"><img id="scPauseImg" alt="pause/resume"></button>
         <button id="scTimerToggle" type="button" title="Turn the timer off/on" style="display:none">⏱️</button>
         <div id="scLabel">turn clock</div>
         <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
@@ -713,6 +750,7 @@ const BOARD_IMG=`${ASSET_BASE}board.png`;
 const DOCK_IMG=`${ASSET_BASE}dock.png`;
 const WIND_ARROW_IMG=`${ASSET_BASE}wind-arrow.png`;
 const TRADE_SWIRL_IMG=`${ASSET_BASE}trade-swirl.png`;
+const PLAY_IMG=`${ASSET_BASE}icons/play.png`,PAUSE_IMG=`${ASSET_BASE}icons/pause.png`;
 const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);
 // 7 base island footprints (see TET below); art is authored once per shape in its canonical
 // orientation — the game applies the same rotate/mirror it used to place the shape on the board.
@@ -1798,8 +1836,8 @@ function buildPlayerRows(){
         <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
         <span class="coinsWrap"><span class="coins" id="coins${i}">🌕 –</span><span class="crown" id="crown${i}"></span></span>
         <span class="chips" id="chips${i}"></span>
-      </div>
-      <div class="prowRecipeRow" id="prowRecipeRow${i}"><span class="prowRecipe" id="prowRecipe${i}"></span></div></div>`;
+        <span class="prowRecipe" id="prowRecipe${i}"></span>
+      </div></div>`;
   }
   $("players").innerHTML=html;
   // names have a fixed column width to keep coins/hold aligned across every row — a name that
@@ -2079,7 +2117,7 @@ function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("co
 // lookup — real when called from spawnPops (which needs coordinates), a harmless no-op stub
 // when called from describe()/captions() (which only ever read .txt/.caps, never the pop math).
 const EVENT_NARRATION={
-  newround:e=>({cls:"roundhdr",txt:e.storm?`— Round ${e.round}: ⛈️ STORM! Wind blows ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]} —`:`— Round ${e.round}: wind blows ${DIRNAME[e.dir]} —`}),
+  newround:e=>({cls:"roundhdr",txt:e.storm?(e.streak>=2?`— Round ${e.round}: ⛈️ The storm's baked in and refuses to cool down! Now it's aiming ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]}. Batten down the hatches, ye scurvy lot! —`:`— Round ${e.round}: ⛈️ STORM! Wind blows ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]} —`):`— Round ${e.round}: wind blows ${DIRNAME[e.dir]} —`}),
   windmove:e=>({txt:`${pn(e.p)} drifts with the wind`,caps:[[e.p,"🌬️ drifts"]]}),
   blownOut:e=>({txt:`⛵ A gale blows ${pn(e.p)} out of the harbor!`}),
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
@@ -2095,11 +2133,11 @@ const EVENT_NARRATION={
     pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
   shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
   dock:(e,at)=>{
-    const place=dockPlace(e.ing);
-    const g={ing:`docks at ${place} for ${dockFlavor(e.ing)} — hauls aboard ${ilabelImg(e.ing)}!`,
-      empty:`docks at ${place}, but finds it empty — takes 3🌕`,
-      bought:`docks at ${place}, flips tails, and buys ${ilabelImg(e.ing)} anyway for 3🌕`,
-      coins:`docks at ${place}, flips tails, takes 3🌕`};
+    const place=dockPlace(e.ing),flavor=dockFlavor(e.ing);
+    const g={ing:`docks at ${place} — hauls aboard ${ilabelImg(e.ing)}!`,
+      empty:`docks at ${place} for ${flavor}, but finds it empty — takes 3🌕`,
+      bought:`docks at ${place} for ${flavor} and flips tails, but buys it anyway for 3🌕`,
+      coins:`docks at ${place} for ${flavor}, but flips tails and takes 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     const F=e.heads?"⚪H":"⚫T";
     const gotIng=(e.got==="ing"||e.got==="bought");
@@ -2201,7 +2239,7 @@ function render(){
     const offerCheckBtn=passAndPlay&&i===mySeat&&i===activeTurnSeat&&!recipeRevealed;
     if(canReveal){
       $("prowRecipe"+i).textContent=`📜 ${recipeTitle(game.players[i].recipe)}`;
-      $("prowRecipeRow"+i).classList.add("hasRecipe");
+      $("prowRecipe"+i).classList.add("hasRecipe");
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
       const chips=game.players[i].recipe.map(ing=>{
         const k=hold.indexOf(ing);
@@ -2212,12 +2250,12 @@ function render(){
       const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ingImg(x2)}</span>`);
       newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else if(offerCheckBtn){
-      $("prowRecipeRow"+i).classList.remove("hasRecipe");
+      $("prowRecipe"+i).classList.remove("hasRecipe");
       newChipsHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">🔍 Check my recipe</button>`;
     }else{
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
       // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
-      $("prowRecipeRow"+i).classList.remove("hasRecipe");
+      $("prowRecipe"+i).classList.remove("hasRecipe");
       const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ingImg(x2)}</span>`);
       newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
@@ -2496,15 +2534,21 @@ function waitWhilePaused(){
   }):Promise.resolve();
 }
 const sleep=ms=>replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
-// Bots play at the Lab's slowest pace (3s per action) so players can follow every move.
+// used only to derive flip/spin animation-pacing constants (asyncBattle, asyncBakeoff, fishCast)
+// — unrelated to text legibility, which is governed by flash()'s own reveal/hold/fade formula.
 function stepDelay(){return 3000;}
-async function botBeat(){liveRender();narrateCurrent();await sleep(stepDelay());}
+// notes/edits #1 audit: this used to fire-and-forget narrateCurrent() (raw netNarrate(), no
+// hold/fade at all) then separately sleep a flat stepDelay()=3000ms regardless of the event
+// text's length — the same "one size fits all" bug as narrateLastEvent()/humanFlip() had, just
+// hitting the most common narration path in the game (every bot action goes through botBeat()).
+// Now narrateCurrent() itself is the thing that paces this beat, via flash()'s length-aware timing.
+async function botBeat(){liveRender();await narrateCurrent();}
 // keep the yellow action panel in step with the bot's latest move — liveRender only
 // updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
-function narrateCurrent(){
+async function narrateCurrent(){
   const e=game.events[evIdx];if(!e)return;
-  if(e.t==="turn"){netNarrate(`🧭 ${pn(e.p)} takes the wheel…`);return;}
-  const L=logLines[evIdx];if(L)netNarrate(L.txt);
+  if(e.t==="turn"){await flash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
+  const L=logLines[evIdx];if(L)await flash(L.txt);
 }
 function setActor(s){curSeat=s;}
 function seatLocal(s){return s===mySeat;}
@@ -2624,7 +2668,12 @@ function applyShotClockPenalty(){
   narrateLastEvent();
   liveRender();
 }
-function expireShotClock(){
+// notes/edits #1 audit: this was a bare netNarrate() with no hold/fade at all — the shot-clock
+// penalty text could get clobbered the instant the next event fires, with no guaranteed read
+// time whatsoever. async + flash() now gives it the same length-aware timing as every other
+// narration. Called from a setInterval tick (shotClockTick) that doesn't await it — fine, since
+// this is a one-shot side effect with nothing downstream depending on its completion order.
+async function expireShotClock(){
   const p=game.players[shotClockSeat];
   turnExpired=true;
   if(shotClockForce){shotClockForce();shotClockForce=null;}
@@ -2636,12 +2685,12 @@ function expireShotClock(){
       lost=p.ing.splice(idx,1)[0];
       game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
       game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      netNarrate(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — a crate of ${ilabelImg(lost)} tumbles overboard and floats back to its island.`);
+      await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — a crate of ${ilabelImg(lost)} tumbles overboard and floats back to its island.`);
     }else{
       const take=Math.min(5,p.coins);
       p.coins-=take;
       game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      netNarrate(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
+      await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
     }
     liveRender();
     if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove();
@@ -2655,7 +2704,7 @@ function watchClock(){
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
   if(liveDone){
-    wrap.classList.remove("idle","urgent");
+    wrap.classList.remove("idle","urgent","paused");
     wrap.style.display="none";
     $("btnPlayAgain").style.display="";
     return;
@@ -2665,7 +2714,7 @@ function setClockUI(){
   const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
   pauseEl.style.display=(isHost&&soloBotGame()&&!liveDone)?"":"none";
-  pauseEl.textContent=shotClockPaused?"▶":"⏸";
+  $("scPauseImg").src=shotClockPaused?PLAY_IMG:PAUSE_IMG;
   // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
   // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
   const toggleEl=$("scTimerToggle");
@@ -2676,18 +2725,18 @@ function setClockUI(){
   }
   if(timerOff){
     // synced to all clients — everyone sees the clock is disabled
-    wrap.classList.add("idle");wrap.classList.remove("urgent");
+    wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
     labelEl.textContent="timer off";numEl.textContent="∞";unitEl.textContent="";
     subEl.textContent="no rush — tap ⏱️";
     return;
   }
   if(!state){
     if(isHost&&shotClockPaused){
-      wrap.classList.remove("idle","urgent");
+      wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.textContent="⏸";unitEl.textContent="";subEl.textContent="tap ▶ to resume";
       return;
     }
-    wrap.classList.add("idle");wrap.classList.remove("urgent");
+    wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
     labelEl.textContent="turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
   }
@@ -2695,7 +2744,7 @@ function setClockUI(){
   if(isHost&&shotClockPaused){
     const elapsed=shotClockPauseElapsed/1000;
     const urgent=elapsed>=20;
-    wrap.classList.toggle("urgent",urgent);
+    wrap.classList.remove("urgent");wrap.classList.add("paused");
     labelEl.textContent="paused";
     numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
     unitEl.textContent="seconds";
@@ -2709,6 +2758,7 @@ function setClockUI(){
   // countdown; everyone else sees a greyed "WAITING" clock with spectator-appropriate copy — a
   // slow player hands the rest of the crew a coin, then (final 10s) forfeits their turn entirely.
   const active=(state.seat===mySeat);
+  wrap.classList.remove("paused");
   if(active){
     wrap.classList.remove("idle");
     wrap.classList.toggle("urgent",urgent);
@@ -2744,7 +2794,70 @@ function panel(html,needsAction=false){
   $("actionPanel").innerHTML=html;
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
+  // notes/edits #1: every message text types in one character at a time, whether it's passive
+  // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
+  // promise (stashed on the element) resolves only once every character is actually on screen,
+  // so callers like flash() can wait for real completion instead of a guessed duration.
+  const msgEl=$("actionPanel").querySelector(".apMsg");
+  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);
 }
+// Walks msgEl's real DOM in document order and reveals it character-by-character (text nodes)
+// and unit-by-unit (atomic elements like <img>), instead of faking a type-in with a CSS wipe — a
+// wipe reveals every line at the same horizontal position simultaneously, which looks like
+// parallel typing instead of one narrator reading in order once a message wraps past a single
+// line. Walking real text nodes keeps nested formatting (<b>, colored <span>s) intact: the tags
+// themselves are never touched, only the text inside them fills in over time.
+//
+// Paced by real elapsed time (performance.now()) on every tick, not a chained
+// setTimeout(tick, msPerChar) that just counts ticks — a chain like that has no way to catch up
+// once it falls behind: each tick only schedules the NEXT one after the current callback's own
+// overhead (DOM mutation, style recalc) finishes, so if any single callback runs even a little
+// over budget, that delay permanently compounds into every remaining character. Deriving the
+// target reveal count from actual elapsed time every tick means a late tick just reveals several
+// characters at once to catch back up to schedule, instead of drifting later forever.
+// Deliberately setTimeout-driven rather than requestAnimationFrame: rAF callbacks are fully
+// suspended (not just throttled) in a backgrounded/hidden tab, which would let flash() — which
+// awaits this reveal before it can hold/fade/return — hang forever and freeze the whole bot-turn
+// game loop the moment a player switches tabs. setTimeout keeps firing (just throttled) even when
+// hidden, so the reveal still completes — slower while backgrounded, but never stuck.
+function typewriterReveal(msgEl,msPerChar){
+  if(msgEl._revealTimer)clearTimeout(msgEl._revealTimer);
+  const units=[];
+  const walker=document.createTreeWalker(msgEl,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
+  let n;
+  while(n=walker.nextNode()){
+    if(n.nodeType===Node.TEXT_NODE){
+      if(!n.nodeValue)continue;
+      const full=n.nodeValue;n.nodeValue="";
+      for(const ch of full)units.push({node:n,ch});
+    }else if(n.tagName==="IMG"){
+      n.style.opacity="0";n.style.transition="opacity .1s";
+      units.push({img:n});
+    }
+  }
+  return new Promise(resolve=>{
+    const total=units.length;
+    if(!total){resolve();return;}
+    let revealed=0;
+    const start=performance.now();
+    const pollMs=Math.max(16,Math.min(msPerChar,32));
+    const step=()=>{
+      const target=Math.min(total,Math.floor((performance.now()-start)/msPerChar));
+      while(revealed<target){
+        const u=units[revealed++];
+        if(u.img)u.img.style.opacity="1";
+        else u.node.nodeValue+=u.ch;
+      }
+      if(revealed<total)msgEl._revealTimer=setTimeout(step,pollMs);
+      else resolve();
+    };
+    step();
+  });
+}
+// notes/edits #1: .1s per letter to type in (see typewriterReveal), then held fully visible for
+// another .08s/letter before flash() fades it out.
+const REVEAL_MS_PER_CHAR=20;
+function msgHoldMs(text){return (text||"").length*80;}
 function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
@@ -2763,8 +2876,13 @@ async function narrateLastEvent(){
   const e=game.events[game.events.length-1];if(!e)return;
   if($("actionPanel").classList.contains("needsAction"))return;
   const L=describe(e);if(!L)return;
-  netNarrate(L.txt);
-  await sleep(3000);
+  // notes/edits #1 follow-up: this used to be netNarrate()+a flat 3000ms sleep, a leftover from
+  // before the typewriter/hold/fade system existed. That fixed window never accounted for reveal
+  // time at all, so a long multi-sentence line (battle results especially — often 120-160+ chars)
+  // could burn the ENTIRE 3s just typing itself in, leaving no time to actually read it before the
+  // next event overwrote it. flash() awaits real reveal completion, then holds for length*80ms —
+  // scaling with the text instead of a one-size-fits-all timer.
+  await flash(L.txt);
 }
 
 // ---- ask(): route the decision to whichever browser owns this seat ----
@@ -2866,7 +2984,25 @@ function localAsk(msg,opts,colors,sub){
     });
   });
 }
-async function flash(msg,ms){netNarrate(msg);await sleep(Math.max(ms||900,3000));}
+// notes/edits #1: ms is no longer used to size the hold — the hold duration is derived purely
+// from the message's own length (see msgHoldMs). flash() only ever runs on the host (spectating
+// clients mirror narration via a lightweight direct showNarration() echo in watchNarr(), never
+// through flash()), so awaiting the real on-screen completion below doesn't need to match across
+// browsers/clients — it only paces the host's own gameplay flow.
+// Awaits the actual typewriterReveal() completion (never a guessed duration) before the hold
+// timer even starts, so a message can never be held or faded before every character is genuinely
+// on screen — regardless of how fast or slow reveals run in a given browser. Held on screen
+// fully-visible for the hold period, then fades out over .5s before flash() resolves, so the next
+// narration/prompt never clobbers this one mid-transition.
+async function flash(msg,ms){
+  netNarrate(msg);
+  const el=$("actionPanel").querySelector(".apMsg");
+  if(el&&el._revealDone)await el._revealDone;
+  const text=el?el.textContent:msg;
+  await sleep(msgHoldMs(text));
+  if(el&&el.isConnected)el.classList.add("fadeOut");
+  await sleep(500);
+}
 // blocks until every human seat (not just the host) has read msg and clicked through — same
 // per-seat localAsk/remoteDraftPrompt barrier recipeDraftNet() uses, so remote players get a
 // real button instead of read-only narration text they can't dismiss
@@ -2915,8 +3051,9 @@ async function humanFlip(p,label,allowBack){
   await sleep(340);
   const h=game.flip(p);
   broadcastFlip(h?"H":"T");
-  netNarrate(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-  await sleep(3000);
+  // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
+  // (short) message's own length instead of a flat timer unrelated to how long it takes to read
+  await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
   broadcastFlip("wait");
   return h;
 }
@@ -3271,7 +3408,7 @@ async function settleSideBets(bets,winSide){
     const p=game.players[bet.idx],won=bet.on===winSide;
     // Correct call: Spotter's Bounty (+1) plus doubled stake. Wrong: only a
     // wagered stake sinks — a free call costs nothing.
-    const delta=won?1+bet.amt:-bet.amt;
+    const delta=won?1+2*bet.amt:-bet.amt;
     p.coins+=delta;
     game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
     if(delta>0)parts.push(`${pn(bet.idx)} +${delta}🌕`);
@@ -3342,12 +3479,14 @@ async function asyncBattle(att,def){
   while(a<need&&d<need){
     round++;
     let bs=false,ah,dh;
-    // fresh round — both coins face-down, attacker on deck
-    renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`${nm(att.idx)} loads the cannon…`}));
+    // fresh round — both coins face-down, attacker on deck. Round 1 spells out who's who; later
+    // rounds trim the repeated framing since the flippenator/scoreboard already shows it visually
+    // (notes/edits #8b: cut the boilerplate that re-stated the same roles every single flip).
+    renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:round===1?`${nm(att.idx)} loads the cannon…`:"Reload…"}));
     await sleep(beat*0.5);
     // ---- ATTACKER flips ----
     if(hA){
-      ah=await hFlip("a",att,`⚔️ ${nm(att.idx)} (attacker) — fire!`,{dfState:"wait"});
+      ah=await hFlip("a",att,round===1?`⚔️ ${nm(att.idx)} (attacker) — fire!`:"⚔️ Fire!",{dfState:"wait"});
     }else{
       ah=await bFlip("a",att,{dfState:"wait"});
     }
@@ -3370,11 +3509,11 @@ async function asyncBattle(att,def){
     // ---- suspense: hand it to the defender ----
     await sleep(beat*0.6);
     renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:"wait",live:"d",
-      result:`${nm(att.idx)} shows ${ah?"HEADS":"TAILS"} — ${nm(def.idx)} must answer…`}));
+      result:round===1?`${nm(att.idx)} shows ${ah?"HEADS":"TAILS"} — ${nm(def.idx)} must answer…`:`${ah?"HEADS":"TAILS"} — ${nm(def.idx)}'s answer…`}));
     await sleep(beat);
     // ---- DEFENDER flips ----
     if(hD){
-      dh=await hFlip("d",def,`⚔️ ${nm(att.idx)} attacks you — defend! FLIP`,{atState:ah?"H":"T",atBs:bs});
+      dh=await hFlip("d",def,round===1?`⚔️ ${nm(att.idx)} attacks you — defend! FLIP`:"⚔️ Defend! FLIP",{atState:ah?"H":"T",atBs:bs});
     }else{
       dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
@@ -3533,7 +3672,10 @@ async function humanTrade(p){
     // fight for it instead
     const humanNeeds=game.needs(p);
     const humanFinishes=humanNeeds.length===1&&humanNeeds[0]===want;
-    let cost=trulyEssential?7:2;
+    // an ordinary crate is still worth more than the 1🌕 a bad fishing flip guarantees, and gets
+    // pricier as its home island's remaining supply runs low (notes/edits #6)
+    const scarcityBonus=game.tokens[want]<=1?2:(game.tokens[want]<=2?1:0);
+    let cost=trulyEssential?7:(3+scarcityBonus);
     const ingVal=give.ing?(game.needs(q).includes(give.ing)?7:2):0;
     const val=ingVal+give.coins;
     const bonus=game.cfg.tradeBonus?1:0;
@@ -3543,19 +3685,21 @@ async function humanTrade(p){
     accept=!humanFinishes&&(mustAcquire||val+bonus>=cost);
     if(!accept){
       const shortfall=Math.max(0,cost-bonus-ingVal-give.coins);
-      if(!humanFinishes&&p.coins>=shortfall){
-        // counteroffer: name their price instead of flat refusal
+      // bots always counter a lowball rather than flatly refuse — if the human can't cover the
+      // full shortfall, name the smaller amount they *can* afford instead of walking away outright
+      const askFor=Math.min(shortfall,p.coins);
+      if(!humanFinishes&&askFor>0){
         setActor(p.idx);
-        const deal=await ask(`${pn(q.idx)} scoffs — but counters: "${shortfall}🌕 more for my ${ilabelImg(want)}, take it or leave it."`,
-          [{label:`Pay ${shortfall}🌕 more`,value:true},{label:"Walk away",value:false}]);
+        const deal=await ask(`${pn(q.idx)} scoffs — but counters: "${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it."`,
+          [{label:`Pay ${askFor}🌕 more`,value:true},{label:"Walk away",value:false}]);
         if(deal){
           q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
           if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
-          const totalCoins=give.coins+shortfall;
+          const totalCoins=give.coins+askFor;
           p.coins-=totalCoins;q.coins+=totalCoins;
           game.trades++;
           if(game.cfg.tradeBonus){p.coins++;q.coins++;}
-          game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel+(shortfall?` + ${shortfall} coins`:""),got:want,kind:"counter"});
+          game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel+(askFor?` + ${askFor} coins`:""),got:want,kind:"counter"});
           await narrateLastEvent();
           liveRender();
           return true;
@@ -3892,7 +4036,7 @@ async function runLiveNet(){
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=rollStorm(game); // #1a: no more than 2 storms back-to-back
     game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
-    game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
+    game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0});liveRender();
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
     await flash(describe(game.events[game.events.length-1]).txt,900);
@@ -3915,7 +4059,7 @@ async function runLiveNet(){
           game.windNow="NSEW"[Math.floor(game.r()*4)];
           game.stormNow=rollStorm(game); // #1a
           game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
-          game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2});liveRender();
+          game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0});liveRender();
           await flash(describe(game.events[game.events.length-1]).txt,900);
           const startPos=order.indexOf(i);
           const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
@@ -3946,7 +4090,9 @@ async function liveResolveEndNet(){
   await writeMeta();
   await writeGameLog();
   liveRender();
-  netNarrate(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} made a ${winRecipeSpan(game.winner)} and is the Best Baker in the Caribbean!`);
+  // notes/edits #1 audit: final announcement gets the same reveal/hold/fade treatment as every
+  // other event narration, for consistency — even though nothing overwrites it afterward here.
+  await flash(game.winner==null?"⏳ Nobody finished the voyage.":`👑 ${pn(game.winner)} made a ${winRecipeSpan(game.winner)} and is the Best Baker in the Caribbean!`);
   if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"});
 }
 function writeMeta(){
@@ -4496,7 +4642,7 @@ function wireLobby(){
   $("btnPlayAgain").onclick=leaveGame;
   $("scPause").onclick=toggleShotClockPause;
   $("scTimerToggle").onclick=toggleTimer;
-  $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";};
+  $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
   $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
   $("btnShowFeedback").onclick=()=>{$("feedbackModal").style.display="flex";};

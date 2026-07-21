@@ -287,6 +287,16 @@ const ING_NAME={wheat:"Toasty Wheat",dairy:"Fresh Milk",sugar:"Crystal Sugar",eg
 // the plain baker's term each pirate ingredient stands in for — shown as a gloss on recipe cards
 const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
   cocoa:"chocolate",salt:"salt",vanilla:"vanilla",spice:"cinnamon",honey:"honey"};
+// worldbuilding (notes/edits #2): every ingredient island has a place-name + a flavorful haul,
+// announced when a pirate docks there. Only the 7 in-play ingredients need entries (nIslands:7).
+const DOCK_PLACE={sugar:"Glitter Bay",vanilla:"Custard Key",spice:"the Spice Isle",
+  wheat:"the Flour Patch",dairy:"Full Cream Folly",eggs:"Clucker's Cove",cocoa:"Cocoa Cabana",
+  salt:"Brineholt",honey:"Honeycomb Hollow"};
+const DOCK_FLAVOR={sugar:"a sack of crystal sugar",vanilla:"rich vanilla beans",
+  spice:"sprigs of red hot cinnamon",wheat:"a sack of toasty wheat",dairy:"some jugs of cool milk",
+  eggs:"sand-speckled eggs",cocoa:"bursting cacao pods",salt:"a scoop of sea salt",honey:"a pot of golden honey"};
+const dockPlace=x=>DOCK_PLACE[x]||"the island";
+const dockFlavor=x=>DOCK_FLAVOR[x]||iname(x);
 const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
@@ -1016,10 +1026,11 @@ function describe(e){
     case "parley":return {cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`};
     case "aground":return {txt:`${pn(e.p)} flips ⚫T — runs aground! Loses half their coins ⚠️`};
     case "dock":{
-      const g={ing:`docks at ${ilabel(e.ing)} — flips ⚪H, gets the crate!`,
-        empty:`docks at ${ilabel(e.ing)} — ⚪H but the island is empty; takes 3🌕`,
-        bought:`docks at ${ilabel(e.ing)} — flips ⚫T, buys the crate for 3🌕`,
-        coins:`docks at ${ilabel(e.ing)} — flips ⚫T, takes 3🌕`};
+      const place=dockPlace(e.ing),flavor=dockFlavor(e.ing);
+      const g={ing:`docks at ${place} — flips ⚪H, hauls aboard ${ilabel(e.ing)}!`,
+        empty:`docks at ${place} for ${flavor} — ⚪H but the island is empty; takes 3🌕`,
+        bought:`docks at ${place} for ${flavor} and flips ⚫T, but buys it anyway for 3🌕`,
+        coins:`docks at ${place} for ${flavor}, but flips ⚫T and takes 3🌕`};
       return {txt:`${pn(e.p)} ${g[e.got]}`};}
     case "trade":return {cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`};
     case "sidebet":
@@ -1646,7 +1657,7 @@ async function settleSideBets(bets,winSide){
     const p=game.players[bet.idx],won=bet.on===winSide;
     // Correct call: Spotter's Bounty (+1) plus doubled stake. Wrong: only a
     // wagered stake sinks — a free call costs nothing.
-    const delta=won?1+bet.amt:-bet.amt;
+    const delta=won?1+2*bet.amt:-bet.amt;
     p.coins+=delta;
     game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
     if(delta>0)parts.push(`${pn(bet.idx)} +${delta}🌕`);
