@@ -275,8 +275,8 @@
   /* ---- flippenator: the one physical spot every coin flip happens — the coin IS the
      button, so the whole thing is a single circle on the wood plank, not two elements ---- */
   .flipPlank { display: flex; align-items: center; justify-content: center; width: fit-content;
-    border-radius: 12px; background: linear-gradient(160deg, #b3814a, #8a5f2f);
-    padding: clamp(6px,2.4cqw,11px); box-shadow: inset 0 2px 5px rgba(0,0,0,.28); }
+    border-radius: 14%; background: var(--flip-socket-img) center/cover; background-color: #8a5f2f;
+    padding: clamp(6px,2.4cqw,11px); box-shadow: 0 2px 5px rgba(0,0,0,.28); overflow: hidden; }
   .flipPlank:has(#flipCoinWrap.active) { animation: plankglow 1s ease-in-out infinite; }
   #flipCoinWrap.coin { width: clamp(36px,13cqw,64px); height: clamp(36px,13cqw,64px);
     font-size: clamp(6px,1.9cqw,11px); margin: 0; }
@@ -835,6 +835,8 @@ const SCROLL_IMG=`${ASSET_BASE}icons/scroll.png`,DOOR_IMG=`${ASSET_BASE}icons/do
   PIRATE_FLAG_IMG=`${ASSET_BASE}icons/pirate-flag.png`;
 const CLOCK_IMG=`${ASSET_BASE}clock/clock.png`;
 document.documentElement.style.setProperty("--clock-img",`url(${CLOCK_IMG})`);
+const FLIP_SOCKET_IMG=`${ASSET_BASE}icons/flip-socket.png`;
+document.documentElement.style.setProperty("--flip-socket-img",`url(${FLIP_SOCKET_IMG})`);
 const COMPASS_DIAL_IMG=`${ASSET_BASE}compass/compass-dial.png`,COMPASS_NEEDLE_IMG=`${ASSET_BASE}compass/compass-needle.png`;
 // every emoji in the game that has dedicated custom art — the single source of truth emojify()
 // (below) and popEmoji() both draw from, so a new icon only needs adding here once. Keys are the
