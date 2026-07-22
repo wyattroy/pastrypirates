@@ -51,27 +51,28 @@
   @keyframes bootSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
   @media (prefers-reduced-motion: reduce) { #bootLoader .bootShip, #bootLoader .bootBarFill { animation: none; } }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "controls" "narration" "stats" "captains"; }
+    grid-template-areas: "board" "controls" "narration" "stats" "captains" "chat"; }
   #left { grid-area: board; min-width: 0; }
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
     container-type: inline-size; }
   #actionPanel { grid-area: narration; }
   #captainsPanel { grid-area: captains; }
   #statsWrap { grid-area: stats; }
+  #chatPanel { grid-area: chat; }
   /* below-the-board panels track the board's own rendered width; in the stacked/narrow layout they
      (and the board) are centered on the page together via margin auto — so the whole game column
      sits centered while every element still shares the same edges as before (#21). A no-op in the
      wide layout: there they live in the sidebar column (var(--sideW)), already narrower than
      --boardW and filled at width:100%, except #footerRow, whose more specific .layoutWide override
      below wins and spans the full board+sidebar width as intended. */
-  #controlsRow, #actionPanel, #captainsPanel, #statsWrap, #footerRow {
+  #controlsRow, #actionPanel, #captainsPanel, #statsWrap, #chatPanel, #footerRow {
     width: 100%; max-width: var(--boardW, 100%); margin-left: auto; margin-right: auto;
   }
   /* "wide" layout is toggled by JS (syncBoardSizing), not a viewport media query — whether the
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
      5 ingredient chips, which is a function of the computed board size, not raw viewport width. */
   #game.layoutWide #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
-      grid-template-areas: "board captains" "board controls" "board narration" "board stats";
+      grid-template-areas: "board captains" "board controls" "board narration" "board chat" "board stats";
       width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto;
       align-items: start; }
   #game.layoutWide #boardwrap { max-width: none !important; width: 100%; }
@@ -203,6 +204,24 @@
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
   #boardwrap { position: relative; width: 100%; max-width: var(--boardW, min(820px, calc(100vh - 210px))); margin: 0 auto; container-type: inline-size; }
+  /* ---- chatbox: text chat between human players, plus on-board speech bubbles ---- */
+  #chatLog { max-height: 160px; overflow-y: auto; font-size: 13px; line-height: 1.4; margin-bottom: 8px; }
+  #chatLog > div { margin-bottom: 3px; word-wrap: break-word; }
+  #chatForm { display: flex; gap: 6px; }
+  #chatInput { flex: 1 1 auto; min-width: 0; font-family: inherit; font-size: 13px; padding: 6px 9px;
+    border: 1.5px solid var(--line); border-radius: 7px; }
+  #chatForm button { flex: 0 0 auto; }
+  /* one absolutely-positioned overlay spanning the board; individual bubbles opt back into
+     pointer-events so they stay clickable-to-dismiss without the (empty) overlay itself ever
+     intercepting clicks meant for the board underneath */
+  #chatBubbles { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+  .bubble { position: absolute; transform: translate(-50%, -112%); pointer-events: auto; cursor: pointer;
+    background: #fff; border: 2px solid var(--teal); border-radius: 9px; padding: 3px 9px;
+    font-size: 12px; font-weight: 500; line-height: 1.35; max-width: 42%;
+    box-shadow: 0 2px 6px rgba(31,66,73,.18); transition: opacity .35s; }
+  .bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -5px;
+    border: 5px solid transparent; border-top-color: inherit; border-bottom: none; }
+  .bubble.fadeOut { opacity: 0; }
   #actionPanel { margin: 8px auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
@@ -694,6 +713,8 @@
         <svg id="board" viewBox="0 0 640 640"></svg>
         <!-- #1b: storm overlay — darkens the board + animated rain/wind, fades in/out via CSS -->
         <div id="stormOverlay" aria-hidden="true"></div>
+        <!-- chat speech bubbles, one per seat, positioned over that seat's boat -->
+        <div id="chatBubbles"></div>
       </div>
     </div>
     <div id="controlsRow">
@@ -717,6 +738,14 @@
     <div class="panel" id="statsWrap" style="display:none">
       <h3>End of voyage</h3>
       <div id="statsPanel"></div>
+    </div>
+    <div class="panel" id="chatPanel" style="display:none">
+      <h3>Scuttlebutt</h3>
+      <div id="chatLog"></div>
+      <form id="chatForm">
+        <input id="chatInput" maxlength="140" placeholder="Say something…" autocomplete="off">
+        <button type="submit">Send</button>
+      </form>
     </div>
   </div>
   <div id="footerRow">
@@ -2227,6 +2256,7 @@ function render(){
     const [x,y]=shipXY(st[i].pos,i,st);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     shipEls[i].style.opacity=st[i].done?.45:1;
+    if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
     const coinsEl=$("coins"+i),newCoinsTxt="🌕 "+st[i].coins;
     if(coinsEl.textContent&&coinsEl.textContent!==newCoinsTxt)pulseEl(coinsEl);
     coinsEl.textContent=newCoinsTxt;
@@ -2856,9 +2886,10 @@ function typewriterReveal(msgEl,msPerChar){
   });
 }
 // notes/edits #1: .1s per letter to type in (see typewriterReveal), then held fully visible for
-// another .08s/letter before flash() fades it out.
+// another .08s/letter before flash() fades it out — floored at 1000ms so a short message/word
+// (narration or chat bubble alike) doesn't flash past before anyone can actually read it.
 const REVEAL_MS_PER_CHAR=20;
-function msgHoldMs(text){return (text||"").length*80;}
+function msgHoldMs(text){return Math.max(1000,(text||"").length*80);}
 function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
@@ -2867,6 +2898,94 @@ function netNarrate(html){if(replaying)return;showNarration(html);if(isHost&&db&
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
 function netBroadcast(html){if(replaying)return;if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()});}
+
+// ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
+// every client sends and listens directly — there's no single "who computes this" owner. Nothing
+// is persisted: messages are pushed to a per-room list that's wiped by startGame()'s reset (like
+// narr/ev/dlog) and never written to gamelogs.
+const MAX_CHAT_LEN=140;
+let lastChatSendAt=0;
+function sendChat(raw){
+  if(!db||!room)return;
+  const text=(raw||"").trim().slice(0,MAX_CHAT_LEN);
+  if(!text)return;
+  const now=Date.now();
+  if(now-lastChatSendAt<1000)return; // basic client-side spam guard (RTDB rules can't rate-limit without auth)
+  lastChatSendAt=now;
+  db.ref("rooms/"+room+"/chat").push({seat:mySeat,text,t:now}).catch(e=>console.error("chat write failed",e));
+}
+function appendChatLine(seat,text){
+  const log=$("chatLog");if(!log)return;
+  const line=document.createElement("div");
+  line.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
+  log.appendChild(line);
+  log.scrollTop=log.scrollHeight;
+}
+function watchChat(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/chat").on("child_added",snap=>{
+    const v=snap.val();if(!v)return;
+    appendChatLine(v.seat,v.text);
+    showChatBubble(v.seat,v.text);
+  });
+}
+// one bubble div per seat; a new message replaces whatever that seat was already showing
+const chatBubbles={};
+// reads a boat's current on-screen position straight off its own <g>, rather than deriving it
+// from game.events[evIdx] — that array is still empty during the pre-round intro narration (boats
+// are already docked and drawn by drawBoard() at that point, just not yet driven by real events),
+// so a chat bubble sent before "Let's start" would otherwise have nowhere valid to anchor to.
+function boatXY(i){
+  const el=shipEls[i];if(!el)return null;
+  const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(el.style.transform);
+  return m?[parseFloat(m[1]),parseFloat(m[2])]:null;
+}
+function positionChatBubble(i,x,y){
+  const b=chatBubbles[i];if(!b)return;
+  // x,y come from shipXY(), in the SVG's fixed 0..640 viewBox space — clamp X only (like the
+  // lab.html bubble prototype this is adapted from) so a boat hugging the left/right edge
+  // doesn't push its bubble half off the board; Y is left alone, same as popEmoji().
+  b.style.left=Math.max(15,Math.min(85,x/640*100))+"%";
+  b.style.top=(y/640*100)+"%";
+}
+// removes a bubble immediately regardless of whether it's mid-typewriter-reveal, holding fully
+// visible, or already fading — a click must dismiss it instantly at any stage (so one player
+// can't wall off the board by spamming chat and leaving bubbles up to expire on their own clock)
+function removeChatBubble(i){
+  const b=chatBubbles[i];if(!b)return;
+  if(b._msgEl&&b._msgEl._revealTimer)clearTimeout(b._msgEl._revealTimer);
+  if(b._timer)clearTimeout(b._timer);
+  b.remove();
+  delete chatBubbles[i];
+}
+function clearChatBubbles(){Object.keys(chatBubbles).map(Number).forEach(removeChatBubble);}
+function showChatBubble(i,text){
+  const holder=$("chatBubbles");if(!holder)return;
+  removeChatBubble(i);
+  const b=document.createElement("div");
+  b.className="bubble";
+  b.style.borderColor=HEXCOL[i];
+  b.onclick=()=>removeChatBubble(i);
+  const msgEl=document.createElement("span");
+  b.appendChild(msgEl);
+  holder.appendChild(b);
+  chatBubbles[i]=b;
+  b._msgEl=msgEl;
+  const xy=boatXY(i);
+  if(xy)positionChatBubble(i,xy[0],xy[1]);
+  msgEl.textContent=text; // real text node for typewriterReveal to walk+blank — never innerHTML,
+                          // so there's no HTML-injection surface here even without escHtml
+  (async()=>{
+    await typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);
+    if(chatBubbles[i]!==b)return; // dismissed (click) or replaced by a newer message meanwhile
+    b._timer=setTimeout(()=>{
+      if(chatBubbles[i]!==b)return;
+      b.classList.add("fadeOut");
+      b._timer=setTimeout(()=>{if(chatBubbles[i]===b)removeChatBubble(i);},500);
+    },msgHoldMs(text));
+  })();
+}
+
 // narrates the outcome of the event just pushed via game.ev() — bot turns already get this
 // for free via narrateCurrent(), but human actions (dock, anchor flip, trade) need it explicitly
 // since they don't route through botBeat(). Skips (rather than clobbers) a still-pending
@@ -4580,7 +4699,7 @@ async function startGame(){
   const cfg=roundCfg(strategies);
   const seed=Math.floor(Math.random()*1e9);
   await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
-    recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null});
+    recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
 }
 function beginGame(cfg,seed){
   if(gameStarted)return;gameStarted=true;
@@ -4591,11 +4710,14 @@ function beginGame(cfg,seed){
   if(!replaying){dlog=[];dlogIdx=0;dlogN=0;}
   turnOrder=null;
   logLines=[];logRenderedTo=-2;$("log").innerHTML="";
+  $("chatLog").innerHTML="";clearChatBubbles();
+  $("chatPanel").style.display=(db&&room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
   drawBoard();buildPlayerRows();
   updateRecipeBanner();
   watchRecipes();
   if(isHost){runLiveNet();}
   else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();}
+  watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
@@ -4669,6 +4791,7 @@ function wireLobby(){
     $("feedbackText").value="";
     $("feedbackModal").style.display="none";
   };
+  $("chatForm").addEventListener("submit",e=>{e.preventDefault();sendChat($("chatInput").value);$("chatInput").value="";});
 }
 // The host reloaded mid-game. Rebuild the crew, load the recorded decision log, then let
 // beginGame → runLiveNet fast-forward the deterministic engine through the log (replaying=true).
