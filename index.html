@@ -199,6 +199,7 @@
     #recipeModalBtns { display: none !important; }
   }
   .crown { font-size: 15px; }
+  .crown img { width: 15px; height: 15px; vertical-align: -3px; object-fit: contain; }
   .pulse { animation: rowpulse .5s ease; }
   @keyframes rowpulse { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
   #log { max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.45; }
@@ -245,8 +246,8 @@
     font-weight: 800; font-size: 13px; letter-spacing: .5px; border: 3px solid; position: relative; }
   .coin.wait { background: #f4f4f4; border-color: #dcdcdc; color: #c2c2c2; font-size: 24px; }
   .coin.spin { background: radial-gradient(#ffe9a8, #f5c451); border-color: #e0a500; color: transparent; animation: coinspin .34s linear infinite; }
-  .coin.heads { background: radial-gradient(#fff2c4, #f5b942); border-color: #d98e00; color: #7a4a00; }
-  .coin.tails { background: radial-gradient(#5b6b7a, #2f3b47); border-color: #1c2530; color: #e6edf4; }
+  .coin.heads { border-color: #d98e00; color: transparent; background-size: cover; background-position: center; }
+  .coin.tails { border-color: #1c2530; color: transparent; background-size: cover; background-position: center; }
   .coin.win { box-shadow: 0 0 0 4px rgba(39,199,141,.55); }
   @keyframes coinspin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
   .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
@@ -369,6 +370,7 @@
   .awardsRow { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; }
   .awardCard { flex: 1 1 100px; text-align: center; border: 2px solid; border-radius: 12px; padding: 8px 6px; background: #fff; }
   .awardIcon { font-size: 22px; line-height: 1; }
+  .awardIcon img { width: 22px; height: 22px; object-fit: contain; }
   .awardLabel { font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; opacity: .6; margin: 3px 0 1px; }
   .awardWinner { font-weight: 800; font-size: 13.5px; }
   .awardValue { font-size: 11.5px; opacity: .7; }
@@ -613,14 +615,14 @@
       <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point), both heads cancel. Fire the broadside! Once per battle the attacker may pay 1🌕 to reflip one tails. Whoever's shooting downwind also gets one free reflip. Defend two heads in a row and you may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Win as the attacker and you seize the loser's square (ships swap places); if the attack is repelled, no one moves. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
       <p><b>Parley</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
       <p><b>Fish</b> — flip: heads nets 2🌕, tails... just a candycrab (1🌕).</p>
-      <p><b>Start your bakery!</b> — at the Isle of Tortuga with your whole recipe? Declare victory! 🧁</p>
-      <h4>🌀 The trade winds</h4>
+      <p><b>Start your bakery!</b> — at the Isle of Tortuga with your whole recipe? Declare victory! <img class="narrIcon" src="assets/icons/cupcake.png" alt=""></p>
+      <h4><img class="narrIcon" src="assets/icons/current-swirl.png" alt=""> The trade winds</h4>
       <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and you're instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
       <h4>⛈️ Storms</h4>
       <p>Roughly 3 in 20 rounds brews a storm — the only time the wind moves you without your say-so: it forcibly pushes everyone 2 squares, then spins and pushes 2 more. Moored ships are safe — if you docked last turn, sit at a berth, or are at the Isle of Tortuga, the storm can't push you into land. Otherwise, blown at an island you must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground — lose half your coins, or a crate if you're broke, or the whole turn to repairs if your hold's empty too! The wind never blows you onto a full dock.</p>
       <h4>⏰ The shot clock</h4>
       <p>Take too long on your turn and you'll lose a random ingredient from your hold (or 5🌕 if you're out of ingredients) and miss the turn.</p>
-      <h4>👑 Winning</h4>
+      <h4><img class="narrIcon" src="assets/icons/crown.png" alt=""> Winning</h4>
       <p>When the first baker docks home, everyone else gets one last turn. If more than one makes it: BAKEOFF! Flip head-to-head, first to 3 points takes the crown.</p>
       <p><i>May your flips be heads and your rivals be broke.</i></p>
     </div>
@@ -752,6 +754,14 @@ const DOCK_IMG=`${ASSET_BASE}dock.png`;
 const WIND_ARROW_IMG=`${ASSET_BASE}wind-arrow.png`;
 const TRADE_SWIRL_IMG=`${ASSET_BASE}trade-swirl.png`;
 const PLAY_IMG=`${ASSET_BASE}icons/play.png`,PAUSE_IMG=`${ASSET_BASE}icons/pause.png`;
+const FLIP_HEADS_IMG=`${ASSET_BASE}icons/flip-heads.png`,FLIP_TAILS_IMG=`${ASSET_BASE}icons/flip-tails.png`;
+const CROWN_IMG=`${ASSET_BASE}icons/crown.png`,CRATE_OVERBOARD_IMG=`${ASSET_BASE}icons/crate-overboard.png`,
+  CURRENT_SWIRL_ICON_IMG=`${ASSET_BASE}icons/current-swirl.png`,CUPCAKE_IMG=`${ASSET_BASE}icons/cupcake.png`,
+  WAVE_IMG=`${ASSET_BASE}icons/wave.png`,CHECKMARK_IMG=`${ASSET_BASE}icons/checkmark.png`,
+  DICE_IMG=`${ASSET_BASE}icons/dice.png`,EYES_IMG=`${ASSET_BASE}icons/eyes.png`,
+  CANCEL_X_IMG=`${ASSET_BASE}icons/cancel-x.png`;
+// superlative/award emoji that have custom art — showStats() swaps these in for the plain emoji
+const AWARD_ICON_IMG={"🌊":WAVE_IMG};
 const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);
 // 7 base island footprints (see TET below); art is authored once per shape in its canonical
 // orientation — the game applies the same rotate/mirror it used to place the shape on the board.
@@ -783,6 +793,10 @@ const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const ingImg=x=>`<img src="${ING_IMG[x]}" alt="${iname(x)}">`;
 // narration uses the custom ingredient art (not the raw emoji) so wording matches the rest of the UI
 const ilabelImg=x=>`<img class="narrIcon" src="${ING_IMG[x]}" alt="${iname(x)}"> ${iname(x)}`;
+// same idea as ilabelImg but for the one-off custom icons (crown, dice, etc.) that stand in for a
+// single emoji rather than an ingredient — drop-in replacement for that emoji character in any
+// narration/label string that already renders as HTML
+const iconImg=src=>`<img class="narrIcon" src="${src}" alt="">`;
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
 // a storm's 2nd gust always veers 90° off the 1st (never the same direction, never reversing)
@@ -2131,7 +2145,7 @@ const EVENT_NARRATION={
   parley:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`,pops:[[at(e.a),e.ok?"🤝":"🙅"]]}),
   aground:(e,at)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
     caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
-    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
+    pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
   shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
   dock:(e,at)=>{
     const place=dockPlace(e.ing),flavor=dockFlavor(e.ing);
@@ -2173,11 +2187,11 @@ const EVENT_NARRATION={
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
   shotclock:e=>({cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
   shotclockskip:(e,at)=>({cls:"roundhdr",txt:e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — ${e.coins}🌕 tumbles overboard!`,
-    pops:e.ing?[[at(e.p),"📦",true,null,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
-  bakeoff:(e,at)=>({cls:"battle",txt:`🧁 BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`,
-    caps:[[e.winner,"🧁 wins the bakeoff!"]],pops:[[at(e.winner),"🧁",true]]}),
-  end:(e,at)=>({cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`👑 ${pn(e.winner)} made a ${winRecipeSpan(e.winner)} and is the Best Baker in the Caribbean!`,
-    caps:e.winner===null?[]:[[e.winner,"👑 BEST BAKER!"]],pops:e.winner===null?[]:[[at(e.winner),"👑",true]]}),
+    pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing)?[[islandXY(e.ing),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
+  bakeoff:(e,at)=>({cls:"battle",txt:`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`,
+    caps:[[e.winner,`${iconImg(CUPCAKE_IMG)} wins the bakeoff!`]],pops:[[at(e.winner),"🧁",true,CUPCAKE_IMG]]}),
+  end:(e,at)=>({cls:"roundhdr",txt:e.winner===null?"⏳ No one finished (round cap).":`${iconImg(CROWN_IMG)} ${pn(e.winner)} made a ${winRecipeSpan(e.winner)} and is the Best Baker in the Caribbean!`,
+    caps:e.winner===null?[]:[[e.winner,`${iconImg(CROWN_IMG)} BEST BAKER!`]],pops:e.winner===null?[]:[[at(e.winner),"👑",true,CROWN_IMG]]}),
   turn:()=>null,
 };
 const NO_AT=()=>[0,0]; // describe()/captions() never need real board coordinates
@@ -2263,7 +2277,7 @@ function render(){
     if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
     chipsEl.innerHTML=newChipsHtml;
     const lastEv=game.events[game.events.length-1];
-    $("crown"+i).textContent=(lastEv.t==="end"&&lastEv.winner===i&&evIdx===game.events.length-1)?"👑":"";
+    $("crown"+i).innerHTML=(lastEv.t==="end"&&lastEv.winner===i&&evIdx===game.events.length-1)?iconImg(CROWN_IMG):"";
   });
   // active-player ring + captain's-box highlight: whose turn is it as of this event?
   let active=null;
@@ -2474,12 +2488,12 @@ function showStats(){
   $("statsWrap").style.display="";
   celebrateHomeDocks();
   const w=game.winner;
-  const banner=w===null?"⏳ Nobody finished!":`👑 ${pn(w)} wins!`;
+  const banner=w===null?"⏳ Nobody finished!":`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
   // one superlative per player — everyone gets a shoutout, not just the top 3 stats
   const supers=assignSuperlatives();
   const awards=game.players.map((p,i)=>`<div class="awardCard" style="border-color:${HEXCOL[i]}">
-      <div class="awardIcon">${supers[i].icon}</div>
+      <div class="awardIcon">${AWARD_ICON_IMG[supers[i].icon]?iconImg(AWARD_ICON_IMG[supers[i].icon]):supers[i].icon}</div>
       <div class="awardLabel">${supers[i].label}</div>
       <div class="awardWinner" style="color:${HEXCOL[i]}">${pname(i)}</div>
       ${supers[i].value!=null?`<div class="awardValue">${supers[i].value}${supers[i].unit||""}</div>`:""}
@@ -2564,15 +2578,15 @@ function decisionIsLocal(s){return (passAndPlay&&game.players[s].strategy==="hum
 // battle scoreboard's per-fighter result circles, a separate use of the same .coin styles).
 function setFlipCoin(state){
   const el=$("flipCoinWrap");if(!el)return;
-  el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;
-  if(state==="H"){el.classList.add("heads");el.textContent="HEADS";}
-  else if(state==="T"){el.classList.add("tails");el.textContent="TAILS";}
+  el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;el.style.backgroundImage="";
+  if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
+  else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
   else if(state==="spin"){el.classList.add("spin");el.textContent="🪙";}
   else{el.classList.add("wait");el.textContent="?";}
 }
 function setFlipActive(onClick){
   const el=$("flipCoinWrap");if(!el)return;
-  if(onClick){el.classList.add("active");el.textContent="FLIP";el.onclick=onClick;}
+  if(onClick){el.classList.add("active");el.style.backgroundImage="";el.textContent="FLIP";el.onclick=onClick;}
   else{el.classList.remove("active");el.onclick=null;}
 }
 // host: play the spin/land locally AND broadcast it so every connected browser's flippenator
@@ -3028,7 +3042,7 @@ async function netIntroBarrier(msg,btnLabel){
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
 async function showAhoyIntro(){
-  const msg="⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>👀 Watch this panel — she'll steer ye straight!";
+  const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`;
   await netIntroBarrier(msg,"⚓ Arrgh! Let's start");
 }
 // right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
@@ -3038,7 +3052,7 @@ async function showAhoyIntro(){
 async function showTurnOrderIntro(order){
   const lead=pn(order[0]);
   const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
-  const msg=`🎲 The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+
+  const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+
     `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`;
   await netIntroBarrier(msg,"🦜 Aye, set sail!");
 }
@@ -3242,8 +3256,8 @@ async function humanDock(p,port){
 function coinHTML(state,bs,win){
   const b=bs?`<span class="bs">🔥</span>`:"";
   const w=win?" win":"";
-  if(state==="H")return `<div class="coin heads${w}">HEADS${b}</div>`;
-  if(state==="T")return `<div class="coin tails${w}">TAILS${b}</div>`;
+  if(state==="H")return `<div class="coin heads${w}" style="background-image:url(${FLIP_HEADS_IMG})">${b}</div>`;
+  if(state==="T")return `<div class="coin tails${w}" style="background-image:url(${FLIP_TAILS_IMG})">${b}</div>`;
   if(state==="spin")return `<div class="coin spin">🪙${b}</div>`;
   return `<div class="coin wait">?</div>`;
 }
@@ -3660,7 +3674,7 @@ async function humanTrade(p){
   if(q.strategy==="human"){
     setActor(q.idx);
     accept=await ask(`${pn(q.idx)}: accept ${offerDisplay} for your ${ilabelImg(want)}?`,
-      [{label:"✅ Accept",value:true},{label:"❌ Decline",value:false}]);
+      [{label:`${iconImg(CHECKMARK_IMG)} Accept`,value:true},{label:`${iconImg(CANCEL_X_IMG)} Decline`,value:false}]);
   }else{
     // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare — unless
     // they're within one turn's sail of that crate's own dock and could just go re-flip for
@@ -3743,7 +3757,7 @@ async function humanAct(p,sailCtx){
     opts.push({label:`⚔️ Attack${game.cfg.powder?` (-${game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
   if(game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
   if(!game.needs(p).length&&man(p.pos,game.home)<=1)
-    opts.unshift({label:"🧁 Start your bakery!",value:"bakery"});
+    opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start your bakery!`,value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
   // offered only if this player's sail step ended in "Stay put" (nothing spent/moved) and they
   // could still afford to sail — covers the reported "hit Stay put by accident" complaint
