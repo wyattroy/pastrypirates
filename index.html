@@ -1986,7 +1986,7 @@ function buildPlayerRows(){
         <span class="prowRecipe" id="prowRecipe${i}"></span>
       </div></div>`;
   }
-  $("players").innerHTML=html;
+  $("players").innerHTML=emojify(html);
   // names have a fixed column width to keep coins/hold aligned across every row — a name that
   // overflows it scrolls instead of blowing out the layout or truncating unreadably
   for(const i of order){
@@ -2375,9 +2375,10 @@ function render(){
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     shipEls[i].style.opacity=st[i].done?.45:1;
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
-    const coinsEl=$("coins"+i),newCoinsTxt="🌕 "+st[i].coins;
-    if(coinsEl.textContent&&coinsEl.textContent!==newCoinsTxt)pulseEl(coinsEl);
-    coinsEl.textContent=newCoinsTxt;
+    const coinsEl=$("coins"+i),newCoins=st[i].coins;
+    if(coinsEl.dataset.coins!==undefined&&+coinsEl.dataset.coins!==newCoins)pulseEl(coinsEl);
+    coinsEl.dataset.coins=newCoins;
+    coinsEl.innerHTML=`${iconImg(COIN_IMG)} ${newCoins}`;
     const hold=[...st[i].ing];
     const chipsEl=$("chips"+i);
     let newChipsHtml;
@@ -2610,24 +2611,27 @@ function assignSuperlatives(){
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
 // a little celebration flourish, purely cosmetic (doesn't touch game state)
 function celebrateHomeDocks(){
-  const pastries=["🥐","🍰","🍩","🧁"];
+  const pastryImgs=[CROISSANT_IMG,CAKE_SLICE_IMG,DONUT_IMG,CUPCAKE_IMG];
   for(let i=0;i<4;i++){
     const rect=$("homeDock"+i);
     if(!rect)continue;
     const x=+rect.getAttribute("x")+(+rect.getAttribute("width"))/2;
     const y=+rect.getAttribute("y")+(+rect.getAttribute("height"))/2;
     rect.remove();
-    const ty=y+cell*.14;
-    const t=el("text",{x,y:ty,"text-anchor":"middle","font-size":cell*.45,class:"dancingPastry",
-      style:`transform-origin:${x}px ${ty}px`},$("board"));
-    t.textContent=pastries[i%pastries.length];
+    const ty=y+cell*.14,size=cell*.7;
+    // the dancing rotation is a CSS animation, which takes over the whole `transform` and would
+    // clobber a plain SVG translate attribute on the same element — position via an outer group's
+    // attribute (untouched by CSS) and rotate an inner group around its own fill-box center instead
+    const outer=el("g",{transform:`translate(${x},${ty})`},$("board"));
+    const inner=el("g",{class:"dancingPastry",style:"transform-box:fill-box;transform-origin:center"},outer);
+    el("image",{x:-size/2,y:-size/2,width:size,height:size,href:pastryImgs[i%pastryImgs.length]},inner);
   }
 }
 function showStats(){
   $("statsWrap").style.display="";
   celebrateHomeDocks();
   const w=game.winner;
-  const banner=w===null?"⏳ Nobody finished!":`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
+  const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
   const winInfo=w!==null&&recipeInfo(game.players[w].recipe);
   const winThumb=winInfo&&winInfo.img?`<img class="winnerThumb" src="${winInfo.img}" alt="">`:"";
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
@@ -4806,7 +4810,7 @@ function renderSeatList(seats){
     html+=`<div class="seat ${me?"me":""}"><span class="dot" style="background:${HEXCOL[i]}"></span>
       <span class="nm">${pn(i)} — ${label}</span></div>`;
   }
-  $("seatList").innerHTML=html;
+  $("seatList").innerHTML=emojify(html);
   if(isHost){
     $("seatList").querySelectorAll(".botsel").forEach(sel=>{
       sel.onchange=()=>db.ref("rooms/"+room+"/seats/"+sel.dataset.seat).set({bot:true,strat:sel.value,name:"",id:""});
