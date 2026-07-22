@@ -127,6 +127,8 @@
   .footerHow:hover, .footerCredits:hover, .footerLog:hover { background: #dcebf5; }
   .footerFeedback { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .footerFeedback:hover { background: #d9f1e5; }
+  .recipeModalBtn { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
+  .recipeModalBtn:hover { background: #d9f1e5; }
   .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
   .footerLeave:hover { background: #f2dada; }
   input[type=range] { accent-color: var(--accent); }
@@ -183,17 +185,29 @@
     text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px;
     white-space: nowrap; }
   .narrRecipeLink:hover { filter: brightness(1.12); text-decoration-color: var(--accent); }
-  #recipeModalBody .recipeModalThumb { display: block; width: 100%; max-height: 220px; object-fit: cover;
-    border-radius: 8px; margin: 0 0 10px; }
-  #recipeModalBody h2 { font-size: 20px; color: var(--teal); margin: 0 0 4px; }
-  #recipeModalBody .recipeModalDesc { font-size: 13.5px; opacity: .8; margin-bottom: 10px; }
-  #recipeModalBody .recipeModalYield { font-size: 12.5px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: .5px; margin: 14px 0 4px; }
-  #recipeModalBody .recipeModalSub { font-size: 13px; font-weight: 700; color: var(--ink); margin: 10px 0 2px; }
-  #recipeModalBody ul, #recipeModalBody ol { margin: 4px 0 0; padding-left: 22px; font-size: 13.5px; line-height: 1.5; }
-  #recipeModalBody li { margin-bottom: 3px; }
+  #recipeModalBody .recipeModalThumb { display: block; width: 100%; height: 220px; object-fit: contain;
+    margin: 15px 0 10px; }
+  #recipeModalBody h2 { font-size: 20px; font-weight: 800; letter-spacing: .3px; color: #5b3a1f;
+    font-family: Georgia, "Times New Roman", serif; margin: 0 0 9px; padding-bottom: 9px;
+    border-bottom: 3px double #b48a52; text-shadow: 0 1px 0 rgba(255,250,235,.5); }
+  #recipeModalBody .recipeModalDesc { font-size: 13px; line-height: 1.45; margin-bottom: 10px;
+    font-family: Georgia, "Times New Roman", serif; font-style: italic; color: #6b4a2c; opacity: 1; }
+  #recipeModalBody .recipeModalYield { font-size: 12.5px; font-weight: 700; color: #8a6535; text-transform: uppercase; letter-spacing: .5px; margin: 14px 0 4px; }
+  #recipeModalBody .recipeModalSub { font-size: 13px; font-weight: 700; color: #4a3223; margin: 10px 0 2px; }
+  #recipeModalBody ul, #recipeModalBody ol { margin: 4px 0 0; padding-left: 22px; font-size: 13.5px; line-height: 1.5; color: #4a3223; }
+  #recipeModalBody li { margin-bottom: 3px; padding-bottom: 4px; border-bottom: 1px dashed rgba(120,80,40,.3); }
+  #recipeModalBody li:last-child { border-bottom: none; }
   /* long recipes (multi-part ingredients + many steps) can be taller than the viewport — scroll
      the body internally instead of the whole page, so the action buttons stay put right below it */
-  #recipeModal .modalCard { display: flex; flex-direction: column; max-height: 85vh; }
+  #recipeModal .modalCard { display: flex; flex-direction: column; max-height: 85vh;
+    border-color: #a07a45; border-radius: 12px;
+    /* same mottled, tea-stained parchment as the draft-pick recipe cards (§ recipeCard) */
+    background:
+      radial-gradient(ellipse at 18% 12%, rgba(150,105,50,.20), transparent 55%),
+      radial-gradient(ellipse at 88% 82%, rgba(120,80,40,.18), transparent 52%),
+      radial-gradient(ellipse at 65% 30%, rgba(200,165,105,.16), transparent 60%),
+      linear-gradient(160deg, #f7edd2, #ecd9ac);
+    box-shadow: inset 0 0 30px rgba(120,80,35,.30), 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18); }
   #recipeModalBody { overflow-y: auto; padding-right: 6px; }
   @media print {
     body > *:not(#recipeModal) { display: none !important; }
@@ -522,8 +536,7 @@
       radial-gradient(ellipse at 65% 30%, rgba(200,165,105,.16), transparent 60%),
       linear-gradient(160deg, #fbf0d4, #f0dcac);
     box-shadow: inset 0 0 24px rgba(120,80,35,.30), 0 7px 18px rgba(90,55,20,.34); }
-  .recipeThumb { display: block; width: 100%; height: 130px; object-fit: contain;
-    background: rgba(160,122,69,.12); }
+  .recipeThumb { display: block; width: 100%; height: 130px; object-fit: contain; margin-top: 15px; }
   .recipeTitle { color: #5b3a1f; font-weight: 800; font-size: 16px; letter-spacing: .3px;
     font-family: Georgia, "Times New Roman", serif; padding: 12px 12px 9px; margin: 0 10px;
     display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center;
@@ -699,8 +712,8 @@
   <div class="modalCard" style="max-width:480px;text-align:left">
     <div id="recipeModalBody"></div>
     <div id="recipeModalBtns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-      <button class="primary big" id="btnRecipePdf" type="button">🖨️ Download PDF</button>
-      <button class="big" id="btnRecipeEmail" type="button">✉️ Email to myself</button>
+      <button class="big recipeModalBtn" id="btnRecipePdf" type="button">🖨️ Download PDF</button>
+      <button class="big recipeModalBtn" id="btnRecipeEmail" type="button">✉️ Email to myself</button>
     </div>
   </div>
 </div>
@@ -1902,7 +1915,7 @@ function recipeCardHTML(recipe){
   const items=recipe.map(i=>`<li><span class="ri">${ingImg(i)}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
   const desc=info?`<div class="recipeDesc">${info.desc}</div>`:"";
   const thumb=info&&info.img?`<img class="recipeThumb" src="${info.img}" alt="">`:"";
-  return thumb+`<div class="recipeTitle">${iconImg(SCROLL_IMG)} ${recipeTitle(recipe)}</div>`+desc+
+  return thumb+`<div class="recipeTitle">${recipeTitle(recipe)}</div>`+desc+
     `<ul class="recipeList">${items}</ul>`;
 }
 // ---- recipe modal: click a player's recipe name (in the captain's row, once one is chosen) to
@@ -1913,13 +1926,13 @@ function recipeModalHTML(recipe){
   const info=recipeInfo(recipe);
   const title=recipeTitle(recipe);
   const thumb=info&&info.img?`<img class="recipeModalThumb" src="${info.img}" alt="">`:"";
-  if(!info||!info.real)return thumb+`<h2>${iconImg(SCROLL_IMG)} ${escHtml(title)}</h2><div class="recipeModalDesc">${info?escHtml(info.desc):""}</div>`;
+  if(!info||!info.real)return thumb+`<h2>${escHtml(title)}</h2><div class="recipeModalDesc">${info?escHtml(info.desc):""}</div>`;
   const r=info.real;
   const ingredientsHTML=r.ingredients.map(line=>line.startsWith("## ")
     ?`</ul><div class="recipeModalSub">${escHtml(line.slice(3))}</div><ul>`
     :`<li>${escHtml(line)}</li>`).join("");
   const stepsHTML=r.steps.map(s=>`<li>${escHtml(s)}</li>`).join("");
-  return thumb+`<h2>${iconImg(SCROLL_IMG)} ${escHtml(title)}</h2>`+
+  return thumb+`<h2>${escHtml(title)}</h2>`+
     `<div class="recipeModalDesc">${escHtml(info.desc)}</div>`+
     `<div class="recipeModalYield">Yield: ${escHtml(r.yield)}</div>`+
     `<ul>${ingredientsHTML}</ul>`+
