@@ -43,6 +43,7 @@
     transition: opacity .5s ease; }
   #bootLoader.hidden { opacity: 0; pointer-events: none; }
   #bootLoader .bootShip { font-size: 54px; animation: bootBob 1.6s ease-in-out infinite; }
+  #bootLoader .bootShip img { width: 54px; height: 54px; object-fit: contain; }
   #bootLoader .bootMsg { font-weight: 800; font-size: 16px; color: var(--teal); letter-spacing: .5px; }
   #bootLoader .bootBar { width: 180px; height: 8px; border-radius: 999px; background: rgba(31,66,73,.12); overflow: hidden; }
   #bootLoader .bootBarFill { width: 40%; height: 100%; border-radius: 999px; background: var(--teal);
@@ -466,6 +467,7 @@
   .choiceCard.passplay { background: linear-gradient(160deg, var(--teal), #1c7480); }
   .choiceCard.disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.5); transform:none !important; box-shadow:none !important; }
   .ccIcon { font-size: 29px; }
+  .ccIcon img { width: 29px; height: 29px; object-fit: contain; }
   .ccTitle { font-size: 14.5px; }
   .ccSub { font-size: 10.5px; font-weight:500; opacity:.9; }
   .modalStep h3 { margin: 2px 0 14px; color: var(--teal); font-size: 17px; }
@@ -541,7 +543,7 @@
      pop in piecemeal on slow connections. Removes itself once assets are ready (or after a hard
      timeout, so it can never hang the game). -->
 <div id="bootLoader">
-  <div class="bootShip">⛵</div>
+  <div class="bootShip"><img src="assets/icons/sailboat.png" alt=""></div>
   <div class="bootMsg">Hoisting the sails…</div>
   <div class="bootBar"><div class="bootBarFill"></div></div>
 </div>
@@ -557,35 +559,35 @@
         <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
-          <div class="ccIcon">⚓</div><div class="ccTitle">Play Solo</div><div class="ccSub">vs. bot captains</div>
+          <div class="ccIcon"><img src="assets/icons/anchor.png" alt=""></div><div class="ccTitle">Play Solo</div><div class="ccSub">vs. bot captains</div>
         </button>
         <button class="choiceCard passplay" id="choicePassPlay" type="button">
-          <div class="ccIcon">🪑</div><div class="ccTitle">Pass & Play</div><div class="ccSub">share one device</div>
+          <div class="ccIcon"><img src="assets/icons/stool.png" alt=""></div><div class="ccTitle">Pass & Play</div><div class="ccSub">share one device</div>
         </button>
         <button class="choiceCard host" id="choiceHost" type="button">
-          <div class="ccIcon">🗺️</div><div class="ccTitle">Host a Crew</div><div class="ccSub">start a multiplayer game</div>
+          <div class="ccIcon"><img src="assets/icons/map.png" alt=""></div><div class="ccTitle">Host a Crew</div><div class="ccSub">start a multiplayer game</div>
         </button>
         <button class="choiceCard join" id="choiceJoin" type="button">
-          <div class="ccIcon">🔑</div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
+          <div class="ccIcon"><img src="assets/icons/key.png" alt=""></div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
         </button>
       </div>
-      <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px">🔍 Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
-      <div id="fbnote" class="fbnote" style="display:none">⚙️ Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
-      <div id="busynote" class="fbnote" style="display:none">⛵ Lots of crews out sailing right now — multiplayer may be slow to sync. <b>Play Solo</b> works instantly and never waits on the crowd!</div>
+      <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px"><img class="narrIcon" src="assets/icons/magnifying-glass.png" alt=""> Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
+      <div id="fbnote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/gear.png" alt=""> Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
+      <div id="busynote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Lots of crews out sailing right now — multiplayer may be slow to sync. <b>Play Solo</b> works instantly and never waits on the crowd!</div>
     </div>
 
     <div id="stepHost" class="modalStep" style="display:none">
       <button class="backLink" type="button" data-back>← back</button>
-      <h3>🗺️ Host a Crew</h3>
+      <h3><img class="narrIcon" src="assets/icons/map.png" alt=""> Host a Crew</h3>
       <div class="fieldRow">Table size:
         <select id="numSeats"><option>2</option><option>3</option><option selected>4</option></select> captains
       </div>
-      <button class="primary big" id="btnCreate" type="button">⚓ Create the game</button>
+      <button class="primary big" id="btnCreate" type="button"><img class="narrIcon" src="assets/icons/anchor.png" alt=""> Create the game</button>
     </div>
 
     <div id="stepJoin" class="modalStep" style="display:none">
       <button class="backLink" type="button" data-back>← back</button>
-      <h3>🔑 Join a Crew</h3>
+      <h3><img class="narrIcon" src="assets/icons/key.png" alt=""> Join a Crew</h3>
       <div class="fieldRow"><input type="text" id="joinCode" maxlength="6" placeholder="CODE"></div>
       <label class="nameLabel">Your captain name
         <input type="text" id="joinName" maxlength="40" placeholder="e.g. Davy Scones"></label>
@@ -594,13 +596,13 @@
 
     <div id="stepPassPlay" class="modalStep" style="display:none">
       <button class="backLink" type="button" data-back>← back</button>
-      <h3>🪑 Pass & Play</h3>
+      <h3><img class="narrIcon" src="assets/icons/stool.png" alt=""> Pass & Play</h3>
       <div class="modalByline" style="margin-top:0">Everyone sitting at the table types their name below, then passes the device around when it's their turn. Leave a box blank to fill that seat with a bot captain instead.</div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#f2679e"></div><input type="text" id="ppName0" maxlength="40" placeholder="Player 1 (you)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#1d96a6"></div><input type="text" id="ppName1" maxlength="40" placeholder="Player 2"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#27c78d"></div><input type="text" id="ppName2" maxlength="40" placeholder="Player 3 (or leave blank for a bot)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#f5a623"></div><input type="text" id="ppName3" maxlength="40" placeholder="Player 4 (or leave blank for a bot)"></div>
-      <button class="primary big" id="btnStartPassPlay" type="button">⚓ Start the voyage</button>
+      <button class="primary big" id="btnStartPassPlay" type="button"><img class="narrIcon" src="assets/icons/anchor.png" alt=""> Start the voyage</button>
     </div>
   </div>
 </div>
@@ -608,8 +610,8 @@
 <!-- ===================== PASS-THE-DEVICE HAND-OFF ===================== -->
 <div id="passOverlay" class="modalOverlay" style="display:none">
   <div class="modalCard">
-    <div class="modalTitle" id="passOverlayMsg">📱 Pass the device</div>
-    <button class="primary big" id="passHelmBtn" type="button">⚓ At the helm!</button>
+    <div class="modalTitle" id="passOverlayMsg"><img class="narrIcon" src="assets/icons/device.png" alt=""> Pass the device</div>
+    <button class="primary big" id="passHelmBtn" type="button"><img class="narrIcon" src="assets/icons/anchor.png" alt=""> At the helm!</button>
   </div>
 </div>
 
@@ -624,7 +626,7 @@
       <h3 style="margin-top:0;color:var(--teal)">Captains at the table</h3>
       <div id="seatList"></div>
       <div id="waitMsg" class="muted" style="margin-top:10px"></div>
-      <button class="primary big" id="btnStart" style="display:none" type="button">⛵ Start the voyage!</button>
+      <button class="primary big" id="btnStart" style="display:none" type="button"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Start the voyage!</button>
     </div>
   </div>
 </div>
@@ -910,6 +912,13 @@ const ilabelImg=x=>`<img class="narrIcon" src="${ING_IMG[x]}" alt="${iname(x)}">
 // single emoji rather than an ingredient — drop-in replacement for that emoji character in any
 // narration/label string that already renders as HTML
 const iconImg=src=>`<img class="narrIcon" src="${src}" alt="">`;
+// One-time sweep of the static page markup (lobby, modals, footer buttons) — that HTML is
+// authored with plain emoji same as every narration string, but it never passes through
+// describe()/panel() since it's just sitting in the DOM from page load, not built at runtime.
+// Rewriting document.body here, before any element-lookup/event-wiring below runs, catches every
+// static occurrence in one pass (ids and structure survive — only text content changes) instead
+// of hunting down and hand-editing each one individually.
+document.body.innerHTML = emojify(document.body.innerHTML);
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
 // a storm's 2nd gust always veers 90° off the 1st (never the same direction, never reversing)
