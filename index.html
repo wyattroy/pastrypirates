@@ -182,6 +182,8 @@
     text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px;
     white-space: nowrap; }
   .narrRecipeLink:hover { filter: brightness(1.12); text-decoration-color: var(--accent); }
+  #recipeModalBody .recipeModalThumb { display: block; width: 100%; max-height: 220px; object-fit: cover;
+    border-radius: 8px; margin: 0 0 10px; }
   #recipeModalBody h2 { font-size: 20px; color: var(--teal); margin: 0 0 4px; }
   #recipeModalBody .recipeModalDesc { font-size: 13.5px; opacity: .8; margin-bottom: 10px; }
   #recipeModalBody .recipeModalYield { font-size: 12.5px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: .5px; margin: 14px 0 4px; }
@@ -264,7 +266,7 @@
   .coin { width: 74px; height: 74px; margin: 0 auto 9px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 13px; letter-spacing: .5px; border: 3px solid; position: relative; }
   .coin.wait { background: #f4f4f4; border-color: #dcdcdc; color: #c2c2c2; font-size: 24px; }
-  .coin.spin { background: radial-gradient(#ffe9a8, #f5c451); border-color: #e0a500; color: transparent; animation: coinspin .34s linear infinite; }
+  .coin.spin { border-color: #e0a500; color: transparent; background-size: cover; background-position: center; animation: coinspin .34s linear infinite; }
   .coin.heads { border-color: #d98e00; color: transparent; background-size: cover; background-position: center; }
   .coin.tails { border-color: #1c2530; color: transparent; background-size: cover; background-position: center; }
   .coin.win { box-shadow: 0 0 0 4px rgba(39,199,141,.55); }
@@ -285,7 +287,8 @@
   @keyframes plankglow { 0%, 100% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 0 rgba(245,159,45,.65); }
     50% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 14px rgba(245,159,45,0); } }
   /* ---- shot clock: a brass ship's gauge, left-aligned like a real instrument readout ---- */
-  #shotClockPanel { background: linear-gradient(160deg, #8a5f2f, #5c3d1c); border: 2px solid #d9a84e;
+  #shotClockPanel { background: linear-gradient(160deg, rgba(138,95,47,.6), rgba(92,61,28,.6)), var(--clock-img) center/cover;
+    border: 2px solid #d9a84e;
     border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(8px,3cqw,14px);
     min-width: clamp(70px,26cqw,118px); position: relative; }
   #shotClockPanel.idle { opacity: .55; }
@@ -295,23 +298,27 @@
     background: rgba(0,0,0,.25); cursor: pointer; }
   #scPause:hover { background: rgba(0,0,0,.4); }
   #scPause img { width: 60%; height: 60%; object-fit: contain; }
+  #scTimerToggle img { width: 60%; height: 60%; object-fit: contain; vertical-align: middle; }
   /* #7: timer off/on toggle — sits in the bottom-right corner, clear of the "turn clock" label
      text in the top-left (which it used to overlap) and of #scPause in the top-right */
   #scTimerToggle { position: absolute; bottom: 3px; right: 4px; width: 16px; height: 16px; padding: 0;
     line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
     background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
   #scTimerToggle:hover { background: rgba(0,0,0,.4); }
-  #shotClockPanel.urgent { background: linear-gradient(160deg, #5a5f66, #25282c); border-color: #e2564c;
+  #shotClockPanel.urgent { background: linear-gradient(160deg, rgba(90,95,102,.72), rgba(37,40,44,.72)), var(--clock-img) center/cover;
+    border-color: #e2564c;
     animation: clockurgent 0.9s ease-in-out infinite; }
   /* notes/edits #11: paused always reads as silver/inert, regardless of whose turn it was paused
      on or whether it was already urgent — distinct from both the normal brass panel and .urgent */
-  #shotClockPanel.paused { background: linear-gradient(160deg, #9aa1a8, #6b7278); border-color: #c7ccd1;
+  #shotClockPanel.paused { background: linear-gradient(160deg, rgba(154,161,168,.72), rgba(107,114,120,.72)), var(--clock-img) center/cover;
+    border-color: #c7ccd1;
     animation: none; opacity: 1; }
   #shotClockPanel.paused #scLabel, #shotClockPanel.paused #shotClockSub { color: #e8ebee; }
   #shotClockPanel.paused #shotClockNum, #shotClockPanel.paused #scUnit { color: #fff; }
   #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
   #shotClockPanel.urgent #scLabel { color: #ff9b93; }
   #scRow { display: flex; align-items: baseline; gap: 4px; line-height: 1; margin: 1px 0; }
+  #shotClockNum img { width: 1em; height: 1em; object-fit: contain; vertical-align: middle; }
   #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8;
     display: inline-block; min-width: 2ch; }
   #shotClockPanel.urgent #shotClockNum { color: #ff8f86; }
@@ -375,6 +382,8 @@
   #statsPanel table, #batchPanel table { border-collapse: collapse; width: 100%; font-size: 13px; }
   #statsPanel td, #batchPanel td, #batchPanel th { padding: 2.5px 6px; border-bottom: 1px solid #e3f2f5; text-align: left; }
   #batchPanel th { border-bottom: 1.5px solid var(--line); }
+  .winnerThumb { display: block; max-width: 220px; max-height: 180px; object-fit: contain;
+    margin: 0 auto 8px; }
   .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
     position: relative; overflow: hidden; border: 1.5px solid #c9971f; border-radius: 8px;
     background: linear-gradient(120deg, #fff6d0 0%, #ffd76a 25%, #fff2c0 50%, #ffd76a 75%, #fff6d0 100%);
@@ -413,6 +422,7 @@
     border: none; background: transparent; color: var(--ink); font-size: 19px; line-height: 1;
     cursor: pointer; opacity: .45; border-radius: 50%; z-index: 2; }
   .modalX:hover { opacity: 1; background: rgba(0,0,0,.08); }
+  .modalX img { width: 60%; height: 60%; object-fit: contain; vertical-align: middle; }
   /* small screens: a centering flexbox clips the top of tall content with no way to scroll
      up to it, so switch to top-aligned with generous margin instead of vertical centering */
   @media (max-width: 600px) {
@@ -506,6 +516,8 @@
       radial-gradient(ellipse at 65% 30%, rgba(200,165,105,.16), transparent 60%),
       linear-gradient(160deg, #fbf0d4, #f0dcac);
     box-shadow: inset 0 0 24px rgba(120,80,35,.30), 0 7px 18px rgba(90,55,20,.34); }
+  .recipeThumb { display: block; width: 100%; height: 130px; object-fit: cover;
+    border-bottom: 2px solid #a07a45; background: rgba(160,122,69,.12); }
   .recipeTitle { color: #5b3a1f; font-weight: 800; font-size: 16px; letter-spacing: .3px;
     font-family: Georgia, "Times New Roman", serif; padding: 12px 12px 9px; margin: 0 10px;
     display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center;
@@ -789,8 +801,78 @@ const CROWN_IMG=`${ASSET_BASE}icons/crown.png`,CRATE_OVERBOARD_IMG=`${ASSET_BASE
   WAVE_IMG=`${ASSET_BASE}icons/wave.png`,CHECKMARK_IMG=`${ASSET_BASE}icons/checkmark.png`,
   DICE_IMG=`${ASSET_BASE}icons/dice.png`,EYES_IMG=`${ASSET_BASE}icons/eyes.png`,
   CANCEL_X_IMG=`${ASSET_BASE}icons/cancel-x.png`;
-// superlative/award emoji that have custom art — showStats() swaps these in for the plain emoji
-const AWARD_ICON_IMG={"🌊":WAVE_IMG};
+const COIN_IMG=`${ASSET_BASE}icons/coin-emoji.png`,FLAME_IMG=`${ASSET_BASE}icons/flame.png`,
+  COIN_SPIN_IMG=`${ASSET_BASE}icons/coin-spin.png`;
+const ANCHOR_IMG=`${ASSET_BASE}icons/anchor.png`,BATTLE_IMG=`${ASSET_BASE}icons/battle.png`,
+  SAILBOAT_IMG=`${ASSET_BASE}icons/sailboat.png`,FISHING_ROD_IMG=`${ASSET_BASE}icons/fishing-rod.png`,
+  HANDSHAKE_IMG=`${ASSET_BASE}icons/handshake.png`,SPOILS_POUCH_IMG=`${ASSET_BASE}icons/spoils-pouch.png`,
+  STORM_CLOUD_IMG=`${ASSET_BASE}icons/storm-cloud.png`,SPYGLASS_IMG=`${ASSET_BASE}icons/spyglass.png`,
+  FINISH_FLAG_IMG=`${ASSET_BASE}icons/finish-flag.png`,POCKET_COMPASS_IMG=`${ASSET_BASE}icons/pocket-compass.png`,
+  FLEE_BOOT_IMG=`${ASSET_BASE}icons/flee-boot.png`,WIND_GUST_IMG=`${ASSET_BASE}icons/wind-gust.png`,
+  DODGE_SWOOSH_IMG=`${ASSET_BASE}icons/dodge-swoosh.png`,IMPACT_BURST_IMG=`${ASSET_BASE}icons/impact-burst.png`,
+  COINS_FLYING_IMG=`${ASSET_BASE}icons/coins-flying.png`,CANDY_CRAB_IMG=`${ASSET_BASE}icons/candy-crab.png`,
+  ISLAND_SILHOUETTE_IMG=`${ASSET_BASE}icons/island-silhouette.png`,REPAIR_TOOLS_IMG=`${ASSET_BASE}icons/repair-tools.png`,
+  TARGET_IMG=`${ASSET_BASE}icons/target.png`,SUGARFISH_IMG=`${ASSET_BASE}icons/sugarfish.png`,
+  FISH_IMG=`${ASSET_BASE}icons/fish.png`,BLOCKED_SLASH_IMG=`${ASSET_BASE}icons/blocked-slash.png`;
+const HOURGLASS_IMG=`${ASSET_BASE}icons/hourglass.png`,ALARM_IMG=`${ASSET_BASE}icons/alarm.png`,
+  STOPWATCH_IMG=`${ASSET_BASE}icons/stopwatch.png`,PAUSE_SYMBOL_IMG=`${ASSET_BASE}icons/pause-symbol.png`;
+const DAGGER_IMG=`${ASSET_BASE}icons/dagger.png`,SKULL_IMG=`${ASSET_BASE}icons/skull.png`,
+  SNAIL_IMG=`${ASSET_BASE}icons/snail.png`,SALUTE_CAPTAIN_IMG=`${ASSET_BASE}icons/salute-captain.png`,
+  SHIELD_IMG=`${ASSET_BASE}icons/shield.png`,CROISSANT_IMG=`${ASSET_BASE}icons/croissant.png`,
+  CAKE_SLICE_IMG=`${ASSET_BASE}icons/cake-slice.png`,DONUT_IMG=`${ASSET_BASE}icons/donut.png`;
+const SCROLL_IMG=`${ASSET_BASE}icons/scroll.png`,DOOR_IMG=`${ASSET_BASE}icons/door.png`,
+  ROBOT_IMG=`${ASSET_BASE}icons/robot.png`,WARNING_IMG=`${ASSET_BASE}icons/warning.png`,
+  STORYBOOK_IMG=`${ASSET_BASE}icons/storybook.png`,RIBBON_IMG=`${ASSET_BASE}icons/ribbon.png`,
+  SPEECH_BUBBLE_IMG=`${ASSET_BASE}icons/speech-bubble.png`,KEY_IMG=`${ASSET_BASE}icons/key.png`,
+  MAP_IMG=`${ASSET_BASE}icons/map.png`,STOOL_IMG=`${ASSET_BASE}icons/stool.png`,
+  DEVICE_IMG=`${ASSET_BASE}icons/device.png`,PARROT_IMG=`${ASSET_BASE}icons/parrot.png`,
+  MAGNIFYING_GLASS_IMG=`${ASSET_BASE}icons/magnifying-glass.png`,CLOSE_X_IMG=`${ASSET_BASE}icons/close-x.png`,
+  HORN_IMG=`${ASSET_BASE}icons/horn.png`,REFUSED_IMG=`${ASSET_BASE}icons/refused.png`,
+  GEAR_IMG=`${ASSET_BASE}icons/gear.png`,REPLAY_IMG=`${ASSET_BASE}icons/replay.png`,
+  PRINTER_IMG=`${ASSET_BASE}icons/printer.png`,ENVELOPE_IMG=`${ASSET_BASE}icons/envelope.png`,
+  PLAY_ARROW_IMG=`${ASSET_BASE}icons/play-arrow.png`,SPARKLES_IMG=`${ASSET_BASE}icons/sparkles.png`,
+  GLOBE_IMG=`${ASSET_BASE}icons/globe.png`,PIRATE_CHEF_IMG=`${ASSET_BASE}icons/pirate-chef.png`,
+  PIRATE_FLAG_IMG=`${ASSET_BASE}icons/pirate-flag.png`;
+const CLOCK_IMG=`${ASSET_BASE}clock/clock.png`;
+document.documentElement.style.setProperty("--clock-img",`url(${CLOCK_IMG})`);
+const COMPASS_DIAL_IMG=`${ASSET_BASE}compass/compass-dial.png`,COMPASS_NEEDLE_IMG=`${ASSET_BASE}compass/compass-needle.png`;
+// every emoji in the game that has dedicated custom art — the single source of truth emojify()
+// (below) and popEmoji() both draw from, so a new icon only needs adding here once. Keys are the
+// bare emoji; emojify() also matches an optional trailing variation selector (️) so it
+// doesn't matter whether a given call site typed e.g. "⚔" or "⚔️".
+const EMOJI_IMG={
+  "🌕":COIN_IMG,"⚫":FLIP_TAILS_IMG,"⚪":FLIP_HEADS_IMG,"🔥":FLAME_IMG,"🪙":COIN_SPIN_IMG,
+  "⚓":ANCHOR_IMG,"⚔":BATTLE_IMG,"⛵":SAILBOAT_IMG,"🎣":FISHING_ROD_IMG,"🌀":CURRENT_SWIRL_ICON_IMG,
+  "🤝":HANDSHAKE_IMG,"👑":CROWN_IMG,"💰":SPOILS_POUCH_IMG,"⛈":STORM_CLOUD_IMG,"🔭":SPYGLASS_IMG,
+  "🏁":FINISH_FLAG_IMG,"🧭":POCKET_COMPASS_IMG,"🏃":FLEE_BOOT_IMG,"🌬":WIND_GUST_IMG,"💨":DODGE_SWOOSH_IMG,
+  "💥":IMPACT_BURST_IMG,"💸":COINS_FLYING_IMG,"🦀":CANDY_CRAB_IMG,"🏝":ISLAND_SILHOUETTE_IMG,
+  "📦":CRATE_OVERBOARD_IMG,"🛠":REPAIR_TOOLS_IMG,"🎯":TARGET_IMG,"🐠":SUGARFISH_IMG,"🐟":FISH_IMG,
+  "🚫":BLOCKED_SLASH_IMG,
+  "⏳":HOURGLASS_IMG,"⏰":ALARM_IMG,"⏱":STOPWATCH_IMG,"⏸":PAUSE_SYMBOL_IMG,
+  "🧁":CUPCAKE_IMG,"🗡":DAGGER_IMG,"💀":SKULL_IMG,"🐌":SNAIL_IMG,"🫡":SALUTE_CAPTAIN_IMG,
+  "🛡":SHIELD_IMG,"🌊":WAVE_IMG,"🥐":CROISSANT_IMG,"🍰":CAKE_SLICE_IMG,"🍩":DONUT_IMG,
+  "📜":SCROLL_IMG,"🚪":DOOR_IMG,"🤖":ROBOT_IMG,"⚠":WARNING_IMG,"📖":STORYBOOK_IMG,"🎗":RIBBON_IMG,
+  "💬":SPEECH_BUBBLE_IMG,"🔑":KEY_IMG,"🗺":MAP_IMG,"🪑":STOOL_IMG,"📱":DEVICE_IMG,"🦜":PARROT_IMG,
+  "🔍":MAGNIFYING_GLASS_IMG,"✕":CLOSE_X_IMG,"✅":CHECKMARK_IMG,"❌":CANCEL_X_IMG,"📯":HORN_IMG,
+  "🙅":REFUSED_IMG,"🎲":DICE_IMG,"👀":EYES_IMG,"⚙":GEAR_IMG,"🔁":REPLAY_IMG,"🖨":PRINTER_IMG,
+  "✉":ENVELOPE_IMG,"➤":PLAY_ARROW_IMG,"✨":SPARKLES_IMG,"🌍":GLOBE_IMG,"🧑‍🍳":PIRATE_CHEF_IMG,
+  "🏴‍☠":PIRATE_FLAG_IMG,"▶":PLAY_IMG,
+};
+// sorted longest-first so multi-codepoint sequences (e.g. the ZWJ chef/flag emoji) match whole,
+// not as a stray prefix character followed by leftover combining codepoints. The optional ️
+// is inside the group so it applies to every alternative, not just the last one.
+const EMOJIFY_RE=new RegExp(
+  "(?:"+Object.keys(EMOJI_IMG).sort((a,b)=>b.length-a.length)
+    .map(e=>e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")\\uFE0F?","gu");
+// drop-in replacement for any narration/label/log HTML string: swaps every emoji that has custom
+// art for its <img>, leaving anything without dedicated art untouched. Safe to run more than once
+// on the same string (already-swapped text has no emoji left to match) — deliberately applied at
+// more than one chokepoint (describe(), panel()) rather than tracked precisely, since re-scanning
+// a short string is free and missing a spot silently isn't.
+function emojify(html){
+  if(!html)return html;
+  return html.replace(EMOJIFY_RE,m=>iconImg(EMOJI_IMG[m.replace(/️$/,"")]));
+}
 const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);
 // 7 base island footprints (see TET below); art is authored once per shape in its canonical
 // orientation — the game applies the same rotate/mirror it used to place the shape on the board.
@@ -1774,6 +1856,14 @@ const RECIPE_BOOK=[
         "Pour into the prepared pan and bake 30–35 minutes, until the top is set with a slight jiggle in the center.",
         "Cool completely in the pan (the torte will sink and become dense as it cools — this is expected). Dust with cocoa powder or powdered sugar before serving."]}},
 ];
+// one finished-pastry illustration per recipe, in the same order as RECIPE_BOOK above
+const PASTRY_FILES=["01-spiced-cocoa-shortbread","02-molten-chocolate-lava-cake","03-mayan-cocoa-souffle",
+  "04-cinnamon-sugar-churros","05-mexican-chocolate-torte","06-spiced-fudge-brownies","07-caramel-slice",
+  "08-cinnamon-snaps","09-snickerdoodle-bites","10-cinnamon-chocolate-fudge","11-crispy-cocoa-snaps",
+  "12-dark-chocolate-cream-puffs","13-pound-cake","14-french-pots-de-creme","15-chocolate-genoise-sponge-cake",
+  "16-cinnamon-dutch-baby","17-mexican-chocolate-pots","18-cocoa-cloud-souffle","19-vanilla-bean-creme-brulee",
+  "20-cinnamon-sponge-cake","21-chocolate-fudge-torte"];
+RECIPE_BOOK.forEach((r,i)=>r.img=`${ASSET_BASE}pastries/${PASTRY_FILES[i]}.png`);
 const RECIPE_LOOKUP={};
 for(const r of RECIPE_BOOK)RECIPE_LOOKUP[r.ings.slice().sort().join("|")]=r;
 function recipeInfo(recipe){return RECIPE_LOOKUP[recipe.slice().sort().join("|")];}
@@ -1796,7 +1886,8 @@ function recipeCardHTML(recipe){
   const info=recipeInfo(recipe);
   const items=recipe.map(i=>`<li><span class="ri">${ingImg(i)}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
   const desc=info?`<div class="recipeDesc">${info.desc}</div>`:"";
-  return `<div class="recipeTitle">📜 ${recipeTitle(recipe)}</div>`+desc+
+  const thumb=info&&info.img?`<img class="recipeThumb" src="${info.img}" alt="">`:"";
+  return thumb+`<div class="recipeTitle">${iconImg(SCROLL_IMG)} ${recipeTitle(recipe)}</div>`+desc+
     `<ul class="recipeList">${items}</ul>`;
 }
 // ---- recipe modal: click a player's recipe name (in the captain's row, once one is chosen) to
@@ -1806,13 +1897,14 @@ function recipeCardHTML(recipe){
 function recipeModalHTML(recipe){
   const info=recipeInfo(recipe);
   const title=recipeTitle(recipe);
-  if(!info||!info.real)return `<h2>📜 ${escHtml(title)}</h2><div class="recipeModalDesc">${info?escHtml(info.desc):""}</div>`;
+  const thumb=info&&info.img?`<img class="recipeModalThumb" src="${info.img}" alt="">`:"";
+  if(!info||!info.real)return thumb+`<h2>${iconImg(SCROLL_IMG)} ${escHtml(title)}</h2><div class="recipeModalDesc">${info?escHtml(info.desc):""}</div>`;
   const r=info.real;
   const ingredientsHTML=r.ingredients.map(line=>line.startsWith("## ")
     ?`</ul><div class="recipeModalSub">${escHtml(line.slice(3))}</div><ul>`
     :`<li>${escHtml(line)}</li>`).join("");
   const stepsHTML=r.steps.map(s=>`<li>${escHtml(s)}</li>`).join("");
-  return `<h2>📜 ${escHtml(title)}</h2>`+
+  return thumb+`<h2>${iconImg(SCROLL_IMG)} ${escHtml(title)}</h2>`+
     `<div class="recipeModalDesc">${escHtml(info.desc)}</div>`+
     `<div class="recipeModalYield">Yield: ${escHtml(r.yield)}</div>`+
     `<ul>${ingredientsHTML}</ul>`+
@@ -2022,8 +2114,7 @@ function drawBoard(){
   const [hx,hy]=game.home;
   el("rect",{x:hx*cell+2,y:hy*cell+2,width:cell-4,height:cell-4,rx:cell*.3,
     fill:"#fef48b",stroke:"#f5a623","stroke-width":2},home);
-  const ht=el("text",{x:(hx+.5)*cell,y:(hy+.5)*cell+cell*.16,"text-anchor":"middle","font-size":cell*.5},home);
-  ht.textContent="⚓";
+  iconAt(home,(hx+.5)*cell,(hy+.5)*cell,cell*.7,ANCHOR_IMG);
   let homeDockI=0;
   for(const d of Object.values(DIRS)){
     const dx=hx+d[0],dy=hy+d[1];
@@ -2095,17 +2186,19 @@ function drawBoard(){
   // at any browser zoom level (an absolute px transform-origin drifted from the dial at non-100% zoom).
   const sr=cell*.95,scx=W-sr-14,scy=sr+32;
   const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`},svg);
+  // colored ring stays underneath as the storm-state indicator (still toggled by fill/stroke
+  // below) — the dial art sits on top slightly smaller, so a thin halo of that color peeks out
+  // around the rim instead of being fully hidden by the now-opaque dial image.
   stormDial=el("circle",{cx:0,cy:0,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
+  iconAt(hud,0,0,sr*1.86,COMPASS_DIAL_IMG);
+  // compass-dial.png has N/E/S/W baked into the art itself (rather than the plain circle this
+  // used to be), so the separately-drawn text labels are gone — windLabels stays around (now
+  // always empty) purely so the storm-color-toggle loop below still has something safe to iterate.
   windLabels=[];
-  for(const [lab,lx,ly] of [["N",0,-sr+13],["E",sr-11,4],["S",0,sr-6],["W",-sr+11,4]]){
-    const tx=el("text",{x:lx,y:ly,"text-anchor":"middle","font-size":12,fill:"#1f4249","font-weight":"bold"},hud);
-    tx.textContent=lab;windLabels.push(tx);
-  }
-  spinNeedle=el("g",{fill:"#d6337f"},hud);
-  el("polygon",{points:`0,${-sr+17} -6,9 6,9`,stroke:"#fff","stroke-width":1},spinNeedle);
+  spinNeedle=el("g",{},hud);
+  const needleImg=el("image",{x:-sr*.42,y:-sr*.95,width:sr*.84,height:sr*1.7,href:COMPASS_NEEDLE_IMG},spinNeedle);
   spinNeedle.style.transition="transform .7s ease";
   spinNeedle.style.transformOrigin="0px 0px";
-  el("circle",{cx:0,cy:0,r:4.5,fill:"#1f4249"},hud);
   stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
   // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
   // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
@@ -2228,7 +2321,7 @@ function describe(e){
   if(!e)return null;
   const fn=EVENT_NARRATION[e.t];if(!fn)return null;
   const r=fn(e,NO_AT);
-  return r&&{cls:r.cls,txt:r.txt};
+  return r&&{cls:r.cls,txt:emojify(r.txt)};
 }
 
 /* ---------- playback ---------- */
@@ -2283,7 +2376,7 @@ function render(){
     const canReveal=spectator||(i===mySeat&&(!passAndPlay||recipeRevealed));
     const offerCheckBtn=passAndPlay&&i===mySeat&&i===activeTurnSeat&&!recipeRevealed;
     if(canReveal){
-      $("prowRecipe"+i).textContent=`📜 ${recipeTitle(game.players[i].recipe)}`;
+      $("prowRecipe"+i).innerHTML=`${iconImg(SCROLL_IMG)} ${recipeTitle(game.players[i].recipe)}`;
       $("prowRecipe"+i).classList.add("hasRecipe");
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
       const chips=game.players[i].recipe.map(ing=>{
@@ -2347,7 +2440,8 @@ function render(){
       stormDial.setAttribute("fill",storming?"#2a2f4a":"#fffdf0");
       stormDial.setAttribute("stroke",storming?"#141824":"#f5a623");
     }
-    spinNeedle.setAttribute("fill",storming?"#ffd23f":"#d6337f");
+    const needleImg=spinNeedle.querySelector("image");
+    if(needleImg)needleImg.style.filter=storming?"drop-shadow(0 0 5px #ffd23f) saturate(1.4)":"none";
     windLabels.forEach(t=>t.setAttribute("fill",storming?"#f4f6ff":"#1f4249"));
     // #1b: darken the whole board + run the rain overlay during a storm. The CSS handles the fade
     // in/out; here we toggle the class and, while storming, aim the rain to fall WITH the wind.
@@ -2396,6 +2490,10 @@ function islandXY(ing){
   return isl?[(isl[0]+.5)*cell,(isl[1]+.5)*cell]:null;
 }
 function popEmoji(x,y,emo,big,imgHref,cls){
+  // callers only need to pass imgHref explicitly when they want art OTHER than the emoji's own
+  // default (e.g. the tradewind pop's big board swirl, distinct from 🌀's usual pocket icon) —
+  // otherwise this falls back to whatever's in EMOJI_IMG automatically.
+  imgHref=imgHref||EMOJI_IMG[emo];
   const g=el("g",{class:"pop"+(cls?" "+cls:""),style:`transform-origin:${x}px ${y}px`},$("board"));
   const size=cell*(big?.72:.55);
   if(imgHref){
@@ -2519,16 +2617,18 @@ function showStats(){
   celebrateHomeDocks();
   const w=game.winner;
   const banner=w===null?"⏳ Nobody finished!":`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
+  const winInfo=w!==null&&recipeInfo(game.players[w].recipe);
+  const winThumb=winInfo&&winInfo.img?`<img class="winnerThumb" src="${winInfo.img}" alt="">`:"";
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
   // one superlative per player — everyone gets a shoutout, not just the top 3 stats
   const supers=assignSuperlatives();
   const awards=game.players.map((p,i)=>`<div class="awardCard" style="border-color:${HEXCOL[i]}">
-      <div class="awardIcon">${AWARD_ICON_IMG[supers[i].icon]?iconImg(AWARD_ICON_IMG[supers[i].icon]):supers[i].icon}</div>
+      <div class="awardIcon">${EMOJI_IMG[supers[i].icon]?iconImg(EMOJI_IMG[supers[i].icon]):supers[i].icon}</div>
       <div class="awardLabel">${supers[i].label}</div>
       <div class="awardWinner" style="color:${HEXCOL[i]}">${pname(i)}</div>
       ${supers[i].value!=null?`<div class="awardValue">${supers[i].value}${supers[i].unit||""}</div>`:""}
     </div>`).join("");
-  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
+  $("statsPanel").innerHTML=`${winThumb}<div class="winner-banner">${banner}</div>
     <div class="awardsRow">${awards}</div>
     <table>
     <tr><td>Rounds</td><td>${game.round}</td></tr>
@@ -2611,7 +2711,7 @@ function setFlipCoin(state){
   el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;el.style.backgroundImage="";
   if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
   else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
-  else if(state==="spin"){el.classList.add("spin");el.textContent="🪙";}
+  else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";}
   else{el.classList.add("wait");el.textContent="?";}
 }
 function setFlipActive(onClick){
@@ -2765,20 +2865,20 @@ function setClockUI(){
   const toggleEl=$("scTimerToggle");
   if(toggleEl){
     toggleEl.style.display=(!soloBotGame()&&!liveDone)?"":"none";
-    toggleEl.textContent=timerOff?"🚫":"⏱️";
+    toggleEl.innerHTML=timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
     toggleEl.title=timerOff?"Turn the timer back on":"Turn the timer off";
   }
   if(timerOff){
     // synced to all clients — everyone sees the clock is disabled
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
     labelEl.textContent="timer off";numEl.textContent="∞";unitEl.textContent="";
-    subEl.textContent="no rush — tap ⏱️";
+    subEl.innerHTML=`no rush — tap ${iconImg(STOPWATCH_IMG)}`;
     return;
   }
   if(!state){
     if(isHost&&shotClockPaused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
-      labelEl.textContent="paused";numEl.textContent="⏸";unitEl.textContent="";subEl.textContent="tap ▶ to resume";
+      labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
       return;
     }
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
@@ -2793,7 +2893,7 @@ function setClockUI(){
     labelEl.textContent="paused";
     numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
     unitEl.textContent="seconds";
-    subEl.textContent="tap ▶ to resume";
+    subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
     return;
   }
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
@@ -2810,14 +2910,14 @@ function setClockUI(){
     labelEl.textContent="play in";
     numEl.textContent=urgent?30-elapsed:20-elapsed;
     unitEl.textContent="seconds";
-    subEl.textContent=urgent?"or lose your turn":"or pay 1🌕";
+    subEl.innerHTML=urgent?"or lose your turn":`or pay 1${iconImg(COIN_IMG)}`;
   }else{
     wrap.classList.remove("urgent");
     wrap.classList.add("idle");
     labelEl.textContent="waiting";
     numEl.textContent=urgent?30-elapsed:20-elapsed;
     unitEl.textContent="seconds";
-    subEl.textContent=urgent?"or their turn is skipped":"or gain 1🌕";
+    subEl.innerHTML=urgent?"or their turn is skipped":`or gain 1${iconImg(COIN_IMG)}`;
   }
 }
 setInterval(setClockUI,500);
@@ -2836,6 +2936,7 @@ function liveRender(){
 // needsAction=true turns the panel yellow (this seat must decide something);
 // false (the default) is pale blue — informational only, nothing to click.
 function panel(html,needsAction=false){
+  html=emojify(html);
   $("actionPanel").innerHTML=html;
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
@@ -4607,9 +4708,9 @@ function passGate(seatIdx){
   // already correct the moment replay catches up to the live edge — no UI shown mid-replay
   return new Promise(res=>{
     $("game").classList.add("bg-blurred");
-    $("passOverlayMsg").innerHTML=`📱 Pass the device to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
+    $("passOverlayMsg").innerHTML=`${iconImg(DEVICE_IMG)} Pass the device to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
     const btn=$("passHelmBtn");
-    btn.textContent=`⚓ ${pname(seatIdx)} at the helm!`;
+    btn.innerHTML=`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`;
     btn.style.background=HEXCOL[seatIdx];btn.style.borderColor=HEXCOL[seatIdx];
     $("passOverlay").style.display="flex";
     btn.onclick=()=>{
@@ -4792,7 +4893,7 @@ function wireLobby(){
     if(card&&!card.querySelector(".modalX")){
       card.style.position="relative";
       const x=document.createElement("button");
-      x.className="modalX";x.type="button";x.textContent="✕";x.setAttribute("aria-label","Close");
+      x.className="modalX";x.type="button";x.innerHTML=iconImg(CLOSE_X_IMG);x.setAttribute("aria-label","Close");
       x.onclick=()=>{ov.style.display="none";};
       card.insertBefore(x,card.firstChild);
     }
