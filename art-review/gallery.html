@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pastry Pirates — Art Review: Batch 1 (Pastries)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #14181c;
+    --card-bg: #1e2328;
+    --border: #2c3238;
+    --text: #eef2f5;
+    --muted: #9aa4ad;
+    --accent: #f5a623;
+    --warn: #f2679e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 32px 24px 80px;
+  }
+  header { max-width: 1100px; margin: 0 auto 32px; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  header p { color: var(--muted); line-height: 1.5; max-width: 70ch; }
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-img {
+    background: #000;
+    aspect-ratio: 1 / 1;
+  }
+  .card-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .card-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .card-body h3 { margin: 0; font-size: 1.05rem; }
+  .fname { font-size: 0.75rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .flag {
+    background: rgba(242,103,158,0.12);
+    border: 1px solid rgba(242,103,158,0.4);
+    color: var(--warn);
+    font-size: 0.82rem;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+  details { font-size: 0.85rem; }
+  summary { cursor: pointer; color: var(--accent); }
+  .prompt { color: var(--muted); line-height: 1.4; margin: 8px 0 0; }
+  .fb-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  textarea {
+    width: 100%;
+    min-height: 64px;
+    resize: vertical;
+    background: #10141a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+  textarea:focus { outline: 1px solid var(--accent); }
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(20,24,28,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: -32px -24px 32px;
+  }
+  .toolbar button {
+    background: var(--accent);
+    color: #1f1400;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .toolbar button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .toolbar .status { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button id="exportBtn">Export feedback (JSON)</button>
+  <button id="copyBtn" class="secondary">Copy feedback to clipboard</button>
+  <button id="clearBtn" class="secondary">Clear all feedback</button>
+  <span class="status" id="fbStatus"></span>
+</div>
+<header>
+  <h1>Art Review — Batch 1: Recipe Pastries (21 of 21, round 6)</h1>
+  <p>All 21 pastries. Cinnamon snaps are now a proper pile (five or six cookies) shot from the same front 3/4
+  angle as everything else, instead of a single cookie from directly above. Raw, unedited output straight from
+  Gemini — nothing has been cropped, keyed, or wired into the game yet. Backgrounds are a solid near-black
+  (#000001) so they're easy to review; that flat color (or white, on the one remaining flagged image) gets
+  keyed out programmatically once you approve an image. Write feedback under each one (approve / redo / tweak).
+  Feedback autosaves to this browser as you type (survives reload) and nothing moves to <code>assets/</code>
+  until you sign off per image. Click <b>Clear all feedback</b> to wipe old notes and start fresh, or
+  <b>Export feedback (JSON)</b> when you're done.</p>
+</header>
+<div class="grid">
+
+    <div class="card">
+      <div class="card-img"><img src="pastries/01-spiced-cocoa-shortbread.png" alt="Spiced Cocoa Shortbread" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Spiced Cocoa Shortbread</h3>
+        <div class="fname">01-spiced-cocoa-shortbread.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Spiced Cocoa Shortbread: rectangular shortbread finger/bar cookies (NOT round), like classic Scottish shortbread fingers, each bar with two neat rows of small round docking holes pricked along its length in a grid pattern, straight clean rectangular edges, dark rich cocoa-brown color, a light cinnamon dusting, two or three bars stacked and overlapping, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-01-spiced-cocoa-shortbread.png">Your feedback</label>
+        <textarea id="fb-01-spiced-cocoa-shortbread.png" class="fb" data-key="01-spiced-cocoa-shortbread.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/02-molten-chocolate-lava-cake.png" alt="Molten Chocolate Lava Cake" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Molten Chocolate Lava Cake</h3>
+        <div class="fname">02-molten-chocolate-lava-cake.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Molten Chocolate Lava Cake, shaped like a cute little volcano: a small dark chocolate cake with a cone-like mound shape and a crater dip on top, thick liquid fudge lava oozing and flowing down the outside like lava down a volcano, dusted with powdered sugar &#x27;snow&#x27; near the base, playful and cute, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-02-molten-chocolate-lava-cake.png">Your feedback</label>
+        <textarea id="fb-02-molten-chocolate-lava-cake.png" class="fb" data-key="02-molten-chocolate-lava-cake.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/03-mayan-cocoa-souffle.png" alt="Mayan Cocoa Soufflé" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Mayan Cocoa Soufflé</h3>
+        <div class="fname">03-mayan-cocoa-souffle.png</div>
+        <div class="flag">⚠ possible issue: Garnish (mint leaf) added, but background rendered white instead of near-black. Should still key out cleanly.</div>
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Mayan Cocoa Soufflé: a tall proudly risen dark-chocolate soufflé standing straight up well above the rim of its ramekin, NOT collapsed or sunken, smooth luscious rich dark chocolate-brown color throughout, a light cinnamon dust accent on top, garnished with a small fresh mint leaf, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-03-mayan-cocoa-souffle.png">Your feedback</label>
+        <textarea id="fb-03-mayan-cocoa-souffle.png" class="fb" data-key="03-mayan-cocoa-souffle.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/04-cinnamon-sugar-churros.png" alt="Cinnamon-Sugar Churros" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Cinnamon-Sugar Churros</h3>
+        <div class="fname">04-cinnamon-sugar-churros.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Cinnamon-Sugar Churros: golden ridged churro sticks tossed in cinnamon-sugar, crossed on a plate, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-04-cinnamon-sugar-churros.png">Your feedback</label>
+        <textarea id="fb-04-cinnamon-sugar-churros.png" class="fb" data-key="04-cinnamon-sugar-churros.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/05-mexican-chocolate-torte.png" alt="Mexican Chocolate Torte" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Mexican Chocolate Torte</h3>
+        <div class="fname">05-mexican-chocolate-torte.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Mexican Chocolate Torte: a dense fudgy round chocolate cake slice, glossy, with cinnamon dust, topped with a generous swirled dollop of whipped cream, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-05-mexican-chocolate-torte.png">Your feedback</label>
+        <textarea id="fb-05-mexican-chocolate-torte.png" class="fb" data-key="05-mexican-chocolate-torte.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/06-spiced-fudge-brownies.png" alt="Spiced Fudge Brownies" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Spiced Fudge Brownies</h3>
+        <div class="fname">06-spiced-fudge-brownies.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Spiced Fudge Brownies: dark brownies with a shiny crackly crust, stacked squares, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-06-spiced-fudge-brownies.png">Your feedback</label>
+        <textarea id="fb-06-spiced-fudge-brownies.png" class="fb" data-key="06-spiced-fudge-brownies.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/07-caramel-slice.png" alt="Caramel Slice" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Caramel Slice</h3>
+        <div class="fname">07-caramel-slice.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Caramel Slice: a three-layer bar with a coconut shortbread base, chewy caramel middle, and chocolate top, one square shown with the side visible, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-07-caramel-slice.png">Your feedback</label>
+        <textarea id="fb-07-caramel-slice.png" class="fb" data-key="07-caramel-slice.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/08-cinnamon-snaps.png" alt="Cinnamon Snaps" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Cinnamon Snaps</h3>
+        <div class="fname">08-cinnamon-snaps.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Cinnamon Snaps: a small PILE of several crisp flat round cookies (not just one or two, a proper stacked pile of five or six), warm deep orange-brown color, glossy sheen, heavily crinkled and crackled tops like classic crinkle cookies, shown on a plate from the SAME gentle front 3/4 angle view as a normal dessert photo (looking slightly down and across at the pile from the front-left, NOT a flat top-down overhead shot), appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-08-cinnamon-snaps.png">Your feedback</label>
+        <textarea id="fb-08-cinnamon-snaps.png" class="fb" data-key="08-cinnamon-snaps.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/09-snickerdoodle-bites.png" alt="Snickerdoodle Bites" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Snickerdoodle Bites</h3>
+        <div class="fname">09-snickerdoodle-bites.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Snickerdoodle Bites: pillowy soft round cookies rolled in cinnamon-sugar with crackled tops, a small pile, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-09-snickerdoodle-bites.png">Your feedback</label>
+        <textarea id="fb-09-snickerdoodle-bites.png" class="fb" data-key="09-snickerdoodle-bites.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/10-cinnamon-chocolate-fudge.png" alt="Cinnamon-Chocolate Fudge" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Cinnamon-Chocolate Fudge</h3>
+        <div class="fname">10-cinnamon-chocolate-fudge.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Cinnamon-Chocolate Fudge: glossy chocolate fudge squares with a marbled cinnamon-vanilla swirl, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-10-cinnamon-chocolate-fudge.png">Your feedback</label>
+        <textarea id="fb-10-cinnamon-chocolate-fudge.png" class="fb" data-key="10-cinnamon-chocolate-fudge.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/11-crispy-cocoa-snaps.png" alt="Crispy Cocoa Snaps" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Crispy Cocoa Snaps</h3>
+        <div class="fname">11-crispy-cocoa-snaps.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Crispy Cocoa Snaps: thin dark snappy cocoa cookies, a couple leaning in a stack, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-11-crispy-cocoa-snaps.png">Your feedback</label>
+        <textarea id="fb-11-crispy-cocoa-snaps.png" class="fb" data-key="11-crispy-cocoa-snaps.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/12-dark-chocolate-cream-puffs.png" alt="Dark Chocolate Cream Puffs" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Dark Chocolate Cream Puffs</h3>
+        <div class="fname">12-dark-chocolate-cream-puffs.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Dark Chocolate Cream Puffs: golden choux puffs filled with dark cream, lightly dusted, a small pile, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-12-dark-chocolate-cream-puffs.png">Your feedback</label>
+        <textarea id="fb-12-dark-chocolate-cream-puffs.png" class="fb" data-key="12-dark-chocolate-cream-puffs.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/13-pound-cake.png" alt="Pound Cake" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Pound Cake</h3>
+        <div class="fname">13-pound-cake.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Pound Cake: a dense golden loaf slice with a fine crumb and a thin vanilla-milk glaze drip, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-13-pound-cake.png">Your feedback</label>
+        <textarea id="fb-13-pound-cake.png" class="fb" data-key="13-pound-cake.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/14-french-pots-de-creme.png" alt="French Pots de Crème" loading="lazy"></div>
+      <div class="card-body">
+        <h3>French Pots de Crème</h3>
+        <div class="fname">14-french-pots-de-creme.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished French Pots de Crème: a small ramekin of spoonable dark chocolate custard with a dollop of cream, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-14-french-pots-de-creme.png">Your feedback</label>
+        <textarea id="fb-14-french-pots-de-creme.png" class="fb" data-key="14-french-pots-de-creme.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/15-chocolate-genoise-sponge-cake.png" alt="Chocolate Genoise Sponge Cake" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Chocolate Genoise Sponge Cake</h3>
+        <div class="fname">15-chocolate-genoise-sponge-cake.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Chocolate Genoise Sponge Cake: a light airy round chocolate sponge slice, delicate, topped with a fun swirled chocolate ganache frosting (chocolate-brown colored, NOT teal), decorative chocolate swirl piping on top, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-15-chocolate-genoise-sponge-cake.png">Your feedback</label>
+        <textarea id="fb-15-chocolate-genoise-sponge-cake.png" class="fb" data-key="15-chocolate-genoise-sponge-cake.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/16-cinnamon-dutch-baby.png" alt="Cinnamon Dutch Baby" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Cinnamon Dutch Baby</h3>
+        <div class="fname">16-cinnamon-dutch-baby.png</div>
+        <div class="flag">⚠ possible issue: Cinnamon and cream fixed, but background rendered white instead of near-black, and there&#x27;s an odd teal handle shape sticking out of the skillet. White background should still key out cleanly.</div>
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Cinnamon Dutch Baby: a puffed skillet pancake with dramatic risen edges, a custardy center, heavily and visibly dusted with cinnamon so the cinnamon is bold and noticeable, topped with a generous dollop of whipped cream right in the middle, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-16-cinnamon-dutch-baby.png">Your feedback</label>
+        <textarea id="fb-16-cinnamon-dutch-baby.png" class="fb" data-key="16-cinnamon-dutch-baby.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/17-mexican-chocolate-pots.png" alt="Mexican Chocolate Pots" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Mexican Chocolate Pots</h3>
+        <div class="fname">17-mexican-chocolate-pots.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Mexican Chocolate Pots: a silky dark chocolate custard in a small round cup or ramekin with NO handle at all (a plain handleless cup, not a mug or teacup), vanilla-cinnamon flavor, the smooth surface swirled with a decorative cinnamon pattern (no whipped cream, no cream topping at all), appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-17-mexican-chocolate-pots.png">Your feedback</label>
+        <textarea id="fb-17-mexican-chocolate-pots.png" class="fb" data-key="17-mexican-chocolate-pots.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/18-cocoa-cloud-souffle.png" alt="Cocoa Cloud Soufflé" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Cocoa Cloud Soufflé</h3>
+        <div class="fname">18-cocoa-cloud-souffle.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Cocoa Cloud Soufflé: an airy whipped dark-chocolate soufflé, light and risen over a ramekin, garnished with a small fresh mint leaf and a light dusting of cocoa powder on top. The ramekin itself has a cute painted white fluffy cloud illustration decorating its front side, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-18-cocoa-cloud-souffle.png">Your feedback</label>
+        <textarea id="fb-18-cocoa-cloud-souffle.png" class="fb" data-key="18-cocoa-cloud-souffle.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/19-vanilla-bean-creme-brulee.png" alt="Vanilla Bean Crème Brûlée" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Vanilla Bean Crème Brûlée</h3>
+        <div class="fname">19-vanilla-bean-creme-brulee.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Vanilla Bean Crème Brûlée: a ramekin of custard with a glassy blowtorched caramelized sugar top and visible vanilla-bean flecks, garnished with a small fresh mint leaf and a couple of fresh red berries on the side, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-19-vanilla-bean-creme-brulee.png">Your feedback</label>
+        <textarea id="fb-19-vanilla-bean-creme-brulee.png" class="fb" data-key="19-vanilla-bean-creme-brulee.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/20-cinnamon-sponge-cake.png" alt="Cinnamon Sponge Cake" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Cinnamon Sponge Cake</h3>
+        <div class="fname">20-cinnamon-sponge-cake.png</div>
+        <div class="flag">⚠ possible issue: Garnish request didn&#x27;t visibly come through — may need another pass if you want it.</div>
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Cinnamon Sponge Cake: a fluffy golden cake slice with a crisp cinnamon-sugar crust, garnished with a small fresh mint leaf and a light dusting of cinnamon on the plate, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-20-cinnamon-sponge-cake.png">Your feedback</label>
+        <textarea id="fb-20-cinnamon-sponge-cake.png" class="fb" data-key="20-cinnamon-sponge-cake.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="pastries/21-chocolate-fudge-torte.png" alt="Chocolate Fudge Torte" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Chocolate Fudge Torte</h3>
+        <div class="fname">21-chocolate-fudge-torte.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A single finished Chocolate Fudge Torte: a premium dense velvety chocolate cake slice with a glossy ganache sheen, appetizing storybook illustration, on a simple plate, 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+        </details>
+        <label class="fb-label" for="fb-21-chocolate-fudge-torte.png">Your feedback</label>
+        <textarea id="fb-21-chocolate-fudge-torte.png" class="fb" data-key="21-chocolate-fudge-torte.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+</div>
+<script>
+(function() {
+  var STORAGE_KEY = "pastrypirates_art_review_batch1_round3_feedback";
+  var areas = Array.from(document.querySelectorAll("textarea.fb"));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { saved = {}; }
+  areas.forEach(function(ta) {
+    var key = ta.dataset.key;
+    if (saved[key]) ta.value = saved[key];
+    ta.addEventListener("input", function() {
+      var data = {};
+      areas.forEach(function(t) { if (t.value.trim()) data[t.dataset.key] = t.value; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      document.getElementById("fbStatus").textContent = "saved " + new Date().toLocaleTimeString();
+    });
+  });
+  function collect() {
+    var data = {};
+    areas.forEach(function(t) { if (t.value.trim()) data[t.dataset.key] = t.value.trim(); });
+    return data;
+  }
+  document.getElementById("exportBtn").addEventListener("click", function() {
+    var data = collect();
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "art-review-feedback.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    document.getElementById("fbStatus").textContent = "exported " + Object.keys(data).length + " notes";
+  });
+  document.getElementById("copyBtn").addEventListener("click", function() {
+    var data = collect();
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() {
+      document.getElementById("fbStatus").textContent = "copied " + Object.keys(data).length + " notes to clipboard";
+    });
+  });
+  document.getElementById("clearBtn").addEventListener("click", function() {
+    if (!confirm("Clear all feedback on this page? This can't be undone.")) return;
+    areas.forEach(function(t) { t.value = ""; });
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById("fbStatus").textContent = "cleared";
+  });
+})();
+</script>
+</body>
+</html>

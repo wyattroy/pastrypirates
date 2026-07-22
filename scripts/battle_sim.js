@@ -1,88 +1,131 @@
 #!/usr/bin/env node
-// notes/edits #5: headless battle-mechanics simulator, faithfully ported from the LIVE battle
-// loop in index.html's asyncBattle() (not the older/simplified Game.battle() used by pure
-// bot-vs-bot Game.play() runs, which is missing the flee mechanic entirely). Dev-only analysis
-// tool — not loaded by the game itself.
+// notes/edits #5 (rewritten 2026-07-22): headless battle-mechanics simulator for the
+// "current best guess" ruleset from the battle-balance design thread, replacing the old
+// broadside-reflip mechanic ported from asyncBattle(). Dev-only analysis tool — not loaded
+// by the game itself.
 //
-// Mechanics ported 1:1 from asyncBattle() as of this writing:
-//   - First to 2 points wins a battle.
-//   - Wind gives one fighter (attacker, defender, or neither on crosswind) a persistent
-//     "downwind" advantage for the whole battle: both HEADS lands a hit for the downwind
-//     fighter instead of cancelling; a downwind fighter also gets one free reflip on their
-//     own tails.
-//   - The attacker additionally gets one broadside reflip on tails (cfg.broadside:"paid" in
-//     roundCfg(), so it costs 1 coin) independent of/stackable with their wind reflip.
-//   - Bots (this simulator only ever plays bot vs bot) always take a reflip when one is
-//     available — asyncBattle only routes the "reflip?" prompt through a confirmation dialog
-//     for human fighters (`if(hA) use=await battleAsk(...)`); a non-human's `use` stays `true`.
-//   - On a double-tails round the battle is still undecided (no one scored), so the defender
-//     may pay 1 coin to flee; a bot defender flees iff currently behind on points (`flee=d<a`),
-//     otherwise presses on.
+// The rules being tested (revised 2026-07-22, second pass — dropped the downwind reflip
+// entirely to cut flip count and let the HH point carry the wind advantage on its own; gated
+// the flee option so early escapes aren't free):
+//   1. No downwind reflip. Wind's only effect is rule 3 below (HH scoring) — fewer flips per
+//      battle, and the HH point alone is already a big force, so stacking a reflip on top of it
+//      was double-dipping the same advantage.
+//   2. Defender flee: after a double-tails round (nobody scored), the defender may pay 2
+//      dubloons to immediately flee/end the battle — but ONLY once the attacker has scored at
+//      least 1 point. Before the attacker's first point, there's nothing to flee from yet.
+//      2 dubloons mirrors the attacker's 2-dubloon cost to start a fight.
+//   3. Heads-Heads scores for the downwind fighter (does nothing crosswind, i.e. still cancels
+//      when neither fighter is downwind).
+//   First to 2 points wins, same as before (NEED = 2).
 //
-// Simplifying assumptions for this standalone simulator (game economy isn't modeled):
-//   - Both fighters are given a fixed coin pool per battle (COIN_POOL below) to spend on the
-//     attacker's paid broadside reflip and the defender's flee fee — roughly the early/mid-game
-//     coin level (roundCfg() starts everyone at 3).
-//   - The defender's flee always has somewhere to flee TO (asyncBattle checks `reachable(def,3)
-//     .length`, which needs the actual board/ship positions this script doesn't simulate).
-//   - Downwind is modeled directly from the same geometry asyncBattle derives it from: attacker
-//     and defender are always adjacent (Manhattan distance 1) on the board, and the storm wind is
-//     one of 4 directions drawn uniformly, independent of their relative position. That gives a
-//     25% chance the attacker is downwind, 25% the defender is, 50% crosswind (cancels) — see
-//     asyncBattle()'s dirAtoD/dirDtoA derivation.
-
+// Wind engagement policy — the key real-game dynamic this rewrite adds: wind is set BEFORE a
+// player starts their turn. They can see it and choose whether/how to engage, so a player would
+// never knowingly attack upwind. The raw wind roll (pAttDownwind/pDefDownwind, default 25%/25%,
+// remainder crosswind) models the board geometry; the policy below models what the attacker does
+// with that information before picking a fight:
+//   - "naive"          — attacker fights regardless of wind (old assumption, kept as a baseline).
+//   - "avoidUpwind"     — attacker never attacks while upwind of the target; if the roll comes up
+//                          defender-downwind, they wait for a better position (reroll wind).
+//   - "preferDownwind"  — attacker only ever attacks while downwind (reroll until attacker-downwind).
+//                          A ceiling case — assumes free repositioning, not usually true in-game.
+//
+// "live" mechanic is kept as a reference point: the mechanic as it actually shipped before this
+// redesign (one-time-per-battle downwind reflip, one paid attacker broadside reflip, defender
+// flee only when behind, 1-dubloon flee cost).
+//
+// Simplifying assumptions (game economy isn't modeled):
+//   - Both fighters are given a fixed coin pool per battle (COIN_POOL) to spend on flee fees.
+//   - The defender's flee always has somewhere to flee TO (the real game checks reachable tiles;
+//     this script doesn't simulate the board).
+//   - Downwind is drawn from the same geometry the real game uses: attacker/defender are adjacent,
+//     storm wind is one of 4 directions drawn uniformly => 25%/25%/50% split by default.
+//
+// ---- knobs ----
 const COIN_POOL = 3;
+const P_ATTACKER_DOWNWIND = 0.25;
+const P_DEFENDER_DOWNWIND = 0.25;
+const MECHANIC_VERSION = "proposed"; // "proposed" | "live"
+const WIND_POLICY = "avoidUpwind";   // "naive" | "avoidUpwind" | "preferDownwind"
+
 const N_BATTLES = process.argv[2] ? parseInt(process.argv[2], 10) : 20000;
 const NEED = 2;
+const REROLL_CAP = 1000; // safety valve for policies that can't be satisfied by the given wind %s
 
 function coinFlip(rng) { return rng() < 0.5; } // true = heads
 
-function pickDownwind(rng) {
-  const r = rng();
-  if (r < 0.25) return "a";
-  if (r < 0.50) return "d";
-  return null; // crosswind
+function pickDownwind(rng, pAttDownwind, pDefDownwind, policy) {
+  for (let i = 0; i < REROLL_CAP; i++) {
+    const r = rng();
+    let dir;
+    if (r < pAttDownwind) dir = "a";
+    else if (r < pAttDownwind + pDefDownwind) dir = "d";
+    else dir = null;
+    if (policy === "avoidUpwind" && dir === "d") continue;
+    if (policy === "preferDownwind" && dir !== "a") continue;
+    return dir;
+  }
+  return null; // gave up waiting for acceptable wind (only reachable with degenerate % configs)
 }
 
-function simBattle(rng) {
-  const downwind = pickDownwind(rng);
-  let freeA = downwind === "a", freeD = downwind === "d";
-  let free = false, paid = true; // roundCfg(): broadside:"paid"
-  let attCoins = COIN_POOL, defCoins = COIN_POOL;
-  let a = 0, d = 0, round = 0, fled = false;
+function simBattle(rng, cfg) {
+  const { coinPool, pAttDownwind, pDefDownwind, windPolicy, mechanic } = cfg;
+  const downwind = pickDownwind(rng, pAttDownwind, pDefDownwind, windPolicy);
+
+  const isProposed = mechanic === "proposed";
+  // downwind free reflip and the paid broadside reflip only exist in the "live" reference
+  // mechanic — "proposed" has no reflips at all, wind acts purely through HH scoring.
+  let freeAAvailable = !isProposed && downwind === "a";
+  let freeDAvailable = !isProposed && downwind === "d";
+  let broadsideLeft = isProposed ? 0 : 1;
+  const broadsideCost = 1;
+  const fleeCost = isProposed ? 2 : 1;
+
+  let attCoins = coinPool, defCoins = coinPool;
+  let a = 0, d = 0, round = 0, fled = false, flips = 0;
   const roundOutcomes = []; // "HH" | "HT" | "TH" | "TT" per round
+
+  const flip = () => { flips++; return coinFlip(rng); };
 
   while (a < NEED && d < NEED) {
     round++;
-    let ah = coinFlip(rng);
-    // ---- attacker's reflips: wind free reflip + one broadside (free or paid) reflip ----
-    while (!ah && (freeA || free || (paid && attCoins >= 1))) {
-      if (freeA) { freeA = false; }
-      else { if (paid) attCoins--; free = false; paid = false; }
-      ah = coinFlip(rng);
+    let ah = flip();
+    if (!ah && freeAAvailable) {
+      ah = flip();
+      freeAAvailable = false;
     }
-    let dh = coinFlip(rng);
-    // ---- defender's single wind free reflip ----
-    if (!dh && freeD) { freeD = false; dh = coinFlip(rng); }
+    while (!ah && broadsideLeft > 0 && attCoins >= broadsideCost) {
+      attCoins -= broadsideCost;
+      broadsideLeft--;
+      ah = flip();
+    }
+
+    let dh = flip();
+    if (!dh && freeDAvailable) {
+      dh = flip();
+      freeDAvailable = false;
+    }
 
     roundOutcomes.push((ah ? "H" : "T") + (dh ? "H" : "T"));
 
     if (ah && dh) {
+      // double-heads scores for whichever side is downwind, else cancels (crosswind)
       if (downwind === "a") a++;
       else if (downwind === "d") d++;
-      // else crosswind: cancels, no score
     } else if (ah) { a++; }
     else if (dh) { d++; }
     // else both tails: no score this round
 
     const bothTails = !ah && !dh;
-    if (bothTails && a < NEED && d < NEED && defCoins >= 1) {
-      const flee = d < a; // bot rule: flee iff currently losing
-      if (flee) { defCoins--; fled = true; break; }
+    // "proposed": flee unlocks only once the attacker has scored — nothing to flee from before
+    // that. "live": flee only when currently behind (legacy heuristic, implies a>=1 anyway).
+    const fleeEligible = isProposed ? a >= 1 : true;
+    if (bothTails && a < NEED && d < NEED && defCoins >= fleeCost && fleeEligible) {
+      const flee = isProposed ? true : (d < a);
+      if (flee) { defCoins -= fleeCost; fled = true; break; }
     }
   }
 
-  return { downwind, a, d, round, fled, roundOutcomes, winner: fled ? null : (a >= NEED ? "a" : "d") };
+  return { downwind, a, d, round, flips, fled, roundOutcomes, winner: fled ? null : (a >= NEED ? "a" : "d") };
 }
 
 // xorshift32 for a fast, seedable RNG independent of Math.random
@@ -96,11 +139,12 @@ function xorshift32(seed) {
   };
 }
 
-function run(n, seed) {
+function run(n, seed, cfg) {
   const rng = xorshift32(seed);
   const stats = {
     total: n,
     fled: 0,
+    overall: { aWins: 0, dWins: 0, decided: 0 },
     byDownwind: {
       a: { battles: 0, aWins: 0, dWins: 0, fled: 0, rounds: 0 },
       d: { battles: 0, aWins: 0, dWins: 0, fled: 0, rounds: 0 },
@@ -108,17 +152,23 @@ function run(n, seed) {
     },
     roundOutcomeCounts: { HH: 0, HT: 0, TH: 0, TT: 0 },
     totalRounds: 0,
+    totalFlips: 0,
+    maxFlips: 0,
+    over10Flips: 0,
   };
   for (let i = 0; i < n; i++) {
-    const r = simBattle(rng);
+    const r = simBattle(rng, cfg);
     const key = r.downwind || "none";
     const bucket = stats.byDownwind[key];
     bucket.battles++;
     bucket.rounds += r.round;
     if (r.fled) { bucket.fled++; stats.fled++; }
-    else if (r.winner === "a") bucket.aWins++;
-    else bucket.dWins++;
+    else if (r.winner === "a") { bucket.aWins++; stats.overall.aWins++; stats.overall.decided++; }
+    else { bucket.dWins++; stats.overall.dWins++; stats.overall.decided++; }
     stats.totalRounds += r.round;
+    stats.totalFlips += r.flips;
+    if (r.flips > stats.maxFlips) stats.maxFlips = r.flips;
+    if (r.flips > 10) stats.over10Flips++;
     for (const o of r.roundOutcomes) stats.roundOutcomeCounts[o]++;
   }
   return stats;
@@ -126,9 +176,17 @@ function run(n, seed) {
 
 function pct(n, d) { return d === 0 ? "n/a" : (100 * n / d).toFixed(1) + "%"; }
 
-const stats = run(N_BATTLES, 42);
+const cfg = {
+  coinPool: COIN_POOL,
+  pAttDownwind: P_ATTACKER_DOWNWIND,
+  pDefDownwind: P_DEFENDER_DOWNWIND,
+  windPolicy: WIND_POLICY,
+  mechanic: MECHANIC_VERSION,
+};
+const stats = run(N_BATTLES, 42, cfg);
 
-console.log(`Battle simulation — ${N_BATTLES} battles (seed 42, COIN_POOL=${COIN_POOL})\n`);
+console.log(`Battle simulation — ${N_BATTLES} battles (seed 42, COIN_POOL=${COIN_POOL}, mechanic=${MECHANIC_VERSION}, windPolicy=${WIND_POLICY})`);
+console.log(`Base wind roll: pAttDownwind=${P_ATTACKER_DOWNWIND} pDefDownwind=${P_DEFENDER_DOWNWIND}\n`);
 
 console.log("Win rate by wind position (excludes fled battles from the win-rate denominator):");
 for (const [key, label] of [["a", "Attacker downwind"], ["d", "Defender downwind"], ["none", "Crosswind (no advantage)"]]) {
@@ -137,7 +195,11 @@ for (const [key, label] of [["a", "Attacker downwind"], ["d", "Defender downwind
   console.log(`  ${label.padEnd(28)} battles=${b.battles.toString().padEnd(6)} attacker-wins=${pct(b.aWins, decided).padEnd(7)} defender-wins=${pct(b.dWins, decided).padEnd(7)} flee-rate=${pct(b.fled, b.battles)}`);
 }
 
-console.log(`\nOverall flee rate: ${pct(stats.fled, stats.total)}`);
+console.log(`\nAverage coin flips per battle (headline pacing metric): ${(stats.totalFlips / stats.total).toFixed(2)}`);
+console.log(`Max flips seen in a single battle: ${stats.maxFlips}`);
+console.log(`Battles exceeding 10 flips: ${pct(stats.over10Flips, stats.total)}`);
+console.log(`Overall attacker win rate (excl. fled): ${pct(stats.overall.aWins, stats.overall.decided)}`);
+console.log(`Overall flee rate: ${pct(stats.fled, stats.total)}`);
 console.log(`Average battle length: ${(stats.totalRounds / stats.total).toFixed(2)} rounds`);
 
 console.log("\nPer-round flip-outcome distribution (attacker/defender heads-tails):");

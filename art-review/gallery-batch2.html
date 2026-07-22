@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pastry Pirates — Art Review: Batch 2 (Coin, Clock, Compass)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #14181c;
+    --card-bg: #1e2328;
+    --border: #2c3238;
+    --text: #eef2f5;
+    --muted: #9aa4ad;
+    --accent: #f5a623;
+    --warn: #f2679e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 32px 24px 80px;
+  }
+  header { max-width: 1100px; margin: 0 auto 32px; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  header p { color: var(--muted); line-height: 1.5; max-width: 70ch; }
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-img {
+    background: #000;
+    aspect-ratio: 1 / 1;
+  }
+  .card-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .card-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .card-body h3 { margin: 0; font-size: 1.05rem; }
+  .fname { font-size: 0.75rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .flag {
+    background: rgba(242,103,158,0.12);
+    border: 1px solid rgba(242,103,158,0.4);
+    color: var(--warn);
+    font-size: 0.82rem;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+  details { font-size: 0.85rem; }
+  summary { cursor: pointer; color: var(--accent); }
+  .prompt { color: var(--muted); line-height: 1.4; margin: 8px 0 0; }
+  .fb-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  textarea {
+    width: 100%;
+    min-height: 64px;
+    resize: vertical;
+    background: #10141a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+  textarea:focus { outline: 1px solid var(--accent); }
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(20,24,28,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: -32px -24px 32px;
+  }
+  .toolbar button {
+    background: var(--accent);
+    color: #1f1400;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .toolbar button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .toolbar .status { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button id="exportBtn">Export feedback (JSON)</button>
+  <button id="copyBtn" class="secondary">Copy feedback to clipboard</button>
+  <button id="clearBtn" class="secondary">Clear all feedback</button>
+  <span class="status" id="fbStatus"></span>
+</div>
+<header>
+  <h1>Art Review — Batch 2: Coin, Clock, Compass</h1>
+  <p>The Flippenator coin (heads/tails), the turn clock, and the compass rose dial + needle. Raw, unedited
+  output straight from Gemini on a near-black background (#000001) — gets keyed out programmatically once you
+  approve. Feedback autosaves to this browser as you type and nothing moves to <code>assets/</code> until you
+  sign off per image. Click <b>Export feedback (JSON)</b> when done.</p>
+</header>
+<div class="grid">
+
+    <div class="card">
+      <div class="card-img"><img src="coin/coin-heads.png" alt="Flippenator Coin — Heads (cupcake)" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Flippenator Coin — Heads (cupcake)</h3>
+        <div class="fname">coin/coin-heads.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A large round pirate gold doubloon coin, top-down view, with a simple embossed emblem of a cute cupcake in the center of the face, ornate engraved rim detailing, glossy metallic gold, 1:1 square, centered, on a solid flat near-black (#000001) background, no lettering, no numbers, no text anywhere.</p>
+        </details>
+        <label class="fb-label" for="fb-coin-heads.png">Your feedback</label>
+        <textarea id="fb-coin-heads.png" class="fb" data-key="coin/coin-heads.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="coin/coin-tails.png" alt="Flippenator Coin — Tails (skull)" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Flippenator Coin — Tails (skull)</h3>
+        <div class="fname">coin/coin-tails.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A large round pirate coin, top-down view, made of BLACK metal (glossy black obsidian/dark metal coin, not gold), with a simple embossed emblem of a friendly cartoon skull with two rolling pins crossed behind it (like crossed bones) in the center of the face, the emblem and rim detailing picked out in gold so it reads clearly against the black coin, ornate engraved rim, 1:1 square, centered, on a solid flat near-black (#000001) background, no lettering, no numbers, no text anywhere.</p>
+        </details>
+        <label class="fb-label" for="fb-coin-tails.png">Your feedback</label>
+        <textarea id="fb-coin-tails.png" class="fb" data-key="coin/coin-tails.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="clock/clock.png" alt="Turn Clock" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Turn Clock</h3>
+        <div class="fname">clock/clock.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. A wide horizontal rounded-rectangle UI panel background for a game timer widget, WIDESCREEN LANDSCAPE ORIENTATION, aspect ratio 16:9 (much wider than tall, like a small horizontal card), the panel fills the entire frame edge to edge with no border margin around it. Warm brown wood-grain / leather plaque texture with a gentle gradient, framed by an ornate brass rope-and-rivet border along the rounded edges. The panel surface is otherwise completely plain and uncluttered with NO circle, NO grommet, NO badge, NO icon anywhere on it, just the plain textured panel and its border, so text can be overlaid on top of it later. On a solid flat near-black (#000001) background behind the panel, no gradient, no shadow. No text, no numbers, no lettering anywhere in the image.</p>
+        </details>
+        <label class="fb-label" for="fb-clock.png">Your feedback</label>
+        <textarea id="fb-clock.png" class="fb" data-key="clock/clock.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="compass/compass-dial.png" alt="Compass Rose Dial" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Compass Rose Dial</h3>
+        <div class="fname">compass/compass-dial.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. An elegant ornate round nautical compass FACE, top-down view, warm gold and teal coloring, with a richly decorated engraved outer rim (filigree, small nautical motifs like anchors and shells). Inside that rim is a plain flat parchment-colored circle that is COMPLETELY EMPTY and smooth all the way to its edge — no triangle tick marks, no small points, no arrow shapes touching or poking into this inner circle from any direction, totally blank and clean (a separate needle piece will be placed on top of it later). Around the OUTER rim only, mark the four cardinal directions with a single clear bold letter each in a small badge: N at the top, S at the bottom, E at the right, W at the left, in the correct positions. 1:1 square, centered, on a solid flat near-black (#000001) background, no other text.</p>
+        </details>
+        <label class="fb-label" for="fb-compass-dial.png">Your feedback</label>
+        <textarea id="fb-compass-dial.png" class="fb" data-key="compass/compass-dial.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img"><img src="compass/compass-needle.png" alt="Compass Needle (user-finalized)" loading="lazy"></div>
+      <div class="card-body">
+        <h3>Compass Needle (user-finalized)</h3>
+        <div class="fname">compass/compass-needle.png</div>
+        
+        <details>
+          <summary>Prompt used</summary>
+          <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Centered subject, on a solid flat near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image. User-supplied final version — a fleur-de-lis arrowhead at one end and a feathered arrow-fletching at the other, joined by a thin double-line gold shaft with an ornate engraved collar at the center. Approved as-is, no further prompt iteration needed. (Previous Gemini-generated version kept at compass/compass-needle-prev.png for reference.)</p>
+        </details>
+        <label class="fb-label" for="fb-compass-needle.png">Your feedback</label>
+        <textarea id="fb-compass-needle.png" class="fb" data-key="compass/compass-needle.png" placeholder="approve / redo / tweak..."></textarea>
+      </div>
+    </div>
+</div>
+<script>
+(function() {
+  var STORAGE_KEY = "pastrypirates_art_review_batch2_feedback";
+  var areas = Array.from(document.querySelectorAll("textarea.fb"));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { saved = {}; }
+  areas.forEach(function(ta) {
+    var key = ta.dataset.key;
+    if (saved[key]) ta.value = saved[key];
+    ta.addEventListener("input", function() {
+      var data = {};
+      areas.forEach(function(t) { if (t.value.trim()) data[t.dataset.key] = t.value; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      document.getElementById("fbStatus").textContent = "saved " + new Date().toLocaleTimeString();
+    });
+  });
+  function collect() {
+    var data = {};
+    areas.forEach(function(t) { if (t.value.trim()) data[t.dataset.key] = t.value.trim(); });
+    return data;
+  }
+  document.getElementById("exportBtn").addEventListener("click", function() {
+    var data = collect();
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "art-review-feedback-batch2.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    document.getElementById("fbStatus").textContent = "exported " + Object.keys(data).length + " notes";
+  });
+  document.getElementById("copyBtn").addEventListener("click", function() {
+    var data = collect();
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() {
+      document.getElementById("fbStatus").textContent = "copied " + Object.keys(data).length + " notes to clipboard";
+    });
+  });
+  document.getElementById("clearBtn").addEventListener("click", function() {
+    if (!confirm("Clear all feedback on this page? This can't be undone.")) return;
+    areas.forEach(function(t) { t.value = ""; });
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById("fbStatus").textContent = "cleared";
+  });
+})();
+</script>
+</body>
+</html>

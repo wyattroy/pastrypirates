@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pastry Pirates — Art Review: Icon Batches (all 81)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #14181c;
+    --card-bg: #1e2328;
+    --border: #2c3238;
+    --text: #eef2f5;
+    --muted: #9aa4ad;
+    --accent: #f5a623;
+    --warn: #f2679e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 32px 24px 80px;
+  }
+  header { max-width: 1400px; margin: 0 auto 32px; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  header p { color: var(--muted); line-height: 1.5; max-width: 90ch; }
+  .section-title {
+    max-width: 1400px;
+    margin: 48px auto 16px;
+    font-size: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  .section-title .count { color: var(--muted); font-weight: 400; font-size: 0.9rem; margin-left: 8px; }
+  .grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-img {
+    background: #000;
+    aspect-ratio: 1 / 1;
+  }
+  .card-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .card-body { padding: 12px 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .card-body h3 { margin: 0; font-size: 0.95rem; }
+  .fname { font-size: 0.72rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .flag {
+    background: rgba(242,103,158,0.12);
+    border: 1px solid rgba(242,103,158,0.4);
+    color: var(--warn);
+    font-size: 0.78rem;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+  details { font-size: 0.8rem; }
+  summary { cursor: pointer; color: var(--accent); }
+  .prompt { color: var(--muted); line-height: 1.4; margin: 8px 0 0; }
+  .fb-label { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  textarea {
+    width: 100%;
+    min-height: 56px;
+    resize: vertical;
+    background: #10141a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+  }
+  textarea:focus { outline: 1px solid var(--accent); }
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(20,24,28,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: -32px -24px 32px;
+  }
+  .toolbar button {
+    background: var(--accent);
+    color: #1f1400;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .toolbar button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .toolbar .status { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button id="exportBtn">Export feedback (JSON)</button>
+  <button id="copyBtn" class="secondary">Copy feedback to clipboard</button>
+  <button id="clearBtn" class="secondary">Clear all feedback</button>
+  <span class="status" id="fbStatus"></span>
+</div>
+<header>
+  <h1>Art Review — All Icon Batches (81 icons)</h1>
+  <p>All emoji-replacement icons generated overnight: economy/flip, actions &amp; outcomes, timer, awards &amp; flavor,
+  UI chrome, and ingredient inline glyphs (honey/salt skipped — unused ingredients per the audit doc, same as the board
+  tokens). Raw, unedited output straight from Gemini. Several icons landed on a white background instead of the
+  requested near-black (#000001) — flagged below in pink; they still key out fine, just inconsistent with the review
+  convention, your call whether to redo. Feedback autosaves to this browser as you type. Click
+  <b>Export feedback (JSON)</b> when done reviewing.</p>
+</header>
+
+<section>
+  <h2 class="section-title">Economy / Flip (5) <span class="count">5 icons</span></h2>
+  <div class="grid">
+    
+        <div class="card">
+          <div class="card-img"><img src="icons-economy/coin.png" alt="Doubloon (currency icon)" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Doubloon (currency icon)</h3>
+            <div class="fname">icons-economy/coin.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a gold pirate doubloon coin, top-down view, ornate engraved rim, glossy metallic gold. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-economy-coin.png">Your feedback</label>
+            <textarea id="fb-icons-economy-coin.png" class="fb" data-key="icons-economy/coin.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-economy/flip-heads.png" alt="Coin Flip — Heads" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Coin Flip — Heads</h3>
+            <div class="fname">icons-economy/flip-heads.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a gold coin showing its light/obverse &#x27;heads&#x27; face, top-down view. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-economy-flip-heads.png">Your feedback</label>
+            <textarea id="fb-icons-economy-flip-heads.png" class="fb" data-key="icons-economy/flip-heads.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-economy/flip-tails.png" alt="Coin Flip — Tails" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Coin Flip — Tails</h3>
+            <div class="fname">icons-economy/flip-tails.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a coin showing its dark/reverse &#x27;tails&#x27; face, top-down view. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-economy-flip-tails.png">Your feedback</label>
+            <textarea id="fb-icons-economy-flip-tails.png" class="fb" data-key="icons-economy/flip-tails.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-economy/flame.png" alt="Win-streak Flame" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Win-streak Flame</h3>
+            <div class="fname">icons-economy/flame.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small cheerful flame, simple, bold shape. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-economy-flame.png">Your feedback</label>
+            <textarea id="fb-icons-economy-flame.png" class="fb" data-key="icons-economy/flame.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-economy/coin-spin.png" alt="Coin Mid-spin" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Coin Mid-spin</h3>
+            <div class="fname">icons-economy/coin-spin.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a gold coin captured mid-spin/flip, motion blur suggestion. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-economy-coin-spin.png">Your feedback</label>
+            <textarea id="fb-icons-economy-coin-spin.png" class="fb" data-key="icons-economy/coin-spin.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">Actions &amp; Outcomes (25) <span class="count">25 icons</span></h2>
+  <div class="grid">
+    
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/anchor.png" alt="Anchor" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Anchor</h3>
+            <div class="fname">icons-actions/anchor.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a ship&#x27;s anchor. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-anchor.png">Your feedback</label>
+            <textarea id="fb-icons-actions-anchor.png" class="fb" data-key="icons-actions/anchor.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/battle.png" alt="Battle / Cutlass Clash" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Battle / Cutlass Clash</h3>
+            <div class="fname">icons-actions/battle.png</div>
+            <div class="flag">&#9888; possible issue: crossed cutlass hilts read a bit abstract/leaf-like, may want a redo</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of two crossed cutlasses clashing. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-battle.png">Your feedback</label>
+            <textarea id="fb-icons-actions-battle.png" class="fb" data-key="icons-actions/battle.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/sailboat.png" alt="Sailboat" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Sailboat</h3>
+            <div class="fname">icons-actions/sailboat.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small sailboat with a full sail. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-sailboat.png">Your feedback</label>
+            <textarea id="fb-icons-actions-sailboat.png" class="fb" data-key="icons-actions/sailboat.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/fishing-rod.png" alt="Fishing Rod" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Fishing Rod</h3>
+            <div class="fname">icons-actions/fishing-rod.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a fishing rod with a line and hook. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-fishing-rod.png">Your feedback</label>
+            <textarea id="fb-icons-actions-fishing-rod.png" class="fb" data-key="icons-actions/fishing-rod.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/current-swirl.png" alt="Ocean Current" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Ocean Current</h3>
+            <div class="fname">icons-actions/current-swirl.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a swirling ocean current/whirlpool shape. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-current-swirl.png">Your feedback</label>
+            <textarea id="fb-icons-actions-current-swirl.png" class="fb" data-key="icons-actions/current-swirl.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/handshake.png" alt="Handshake / Parley" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Handshake / Parley</h3>
+            <div class="fname">icons-actions/handshake.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of two hands shaking in a friendly handshake. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-handshake.png">Your feedback</label>
+            <textarea id="fb-icons-actions-handshake.png" class="fb" data-key="icons-actions/handshake.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/crown.png" alt="Round Winner Crown" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Round Winner Crown</h3>
+            <div class="fname">icons-actions/crown.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small gold pirate king&#x27;s crown with a few gems. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-crown.png">Your feedback</label>
+            <textarea id="fb-icons-actions-crown.png" class="fb" data-key="icons-actions/crown.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/spoils-pouch.png" alt="Spoils Pouch" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Spoils Pouch</h3>
+            <div class="fname">icons-actions/spoils-pouch.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a bulging brown leather pouch/sack tied with rope, overflowing with gold coins. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-spoils-pouch.png">Your feedback</label>
+            <textarea id="fb-icons-actions-spoils-pouch.png" class="fb" data-key="icons-actions/spoils-pouch.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/storm-cloud.png" alt="Storm Cloud" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Storm Cloud</h3>
+            <div class="fname">icons-actions/storm-cloud.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute dark storm cloud with a lightning bolt and raindrops. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-storm-cloud.png">Your feedback</label>
+            <textarea id="fb-icons-actions-storm-cloud.png" class="fb" data-key="icons-actions/storm-cloud.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/spyglass.png" alt="Spyglass" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Spyglass</h3>
+            <div class="fname">icons-actions/spyglass.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a brass pirate spyglass/telescope, extended, diagonal angle. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-spyglass.png">Your feedback</label>
+            <textarea id="fb-icons-actions-spyglass.png" class="fb" data-key="icons-actions/spyglass.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/finish-flag.png" alt="Finish Flag" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Finish Flag</h3>
+            <div class="fname">icons-actions/finish-flag.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a checkered black-and-white finish-line flag on a wooden pole. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-finish-flag.png">Your feedback</label>
+            <textarea id="fb-icons-actions-finish-flag.png" class="fb" data-key="icons-actions/finish-flag.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/pocket-compass.png" alt="Pocket Compass" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pocket Compass</h3>
+            <div class="fname">icons-actions/pocket-compass.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small open brass pocket compass with a visible needle. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-pocket-compass.png">Your feedback</label>
+            <textarea id="fb-icons-actions-pocket-compass.png" class="fb" data-key="icons-actions/pocket-compass.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/flee-boot.png" alt="Flee Boot" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Flee Boot</h3>
+            <div class="fname">icons-actions/flee-boot.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a brown leather pirate boot running with speed lines/dust puff behind it. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-flee-boot.png">Your feedback</label>
+            <textarea id="fb-icons-actions-flee-boot.png" class="fb" data-key="icons-actions/flee-boot.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/wind-gust.png" alt="Wind Gust" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Wind Gust</h3>
+            <div class="fname">icons-actions/wind-gust.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon gust of wind, swirling curved lines with a puffed-cheek cloud face blowing. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-wind-gust.png">Your feedback</label>
+            <textarea id="fb-icons-actions-wind-gust.png" class="fb" data-key="icons-actions/wind-gust.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/dodge-swoosh.png" alt="Dodge Swoosh" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Dodge Swoosh</h3>
+            <div class="fname">icons-actions/dodge-swoosh.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of three curved motion-swoosh lines suggesting a quick dodge/dash. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-dodge-swoosh.png">Your feedback</label>
+            <textarea id="fb-icons-actions-dodge-swoosh.png" class="fb" data-key="icons-actions/dodge-swoosh.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/impact-burst.png" alt="Impact Burst" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Impact Burst</h3>
+            <div class="fname">icons-actions/impact-burst.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cartoon comic-book style impact burst / starburst explosion shape. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-impact-burst.png">Your feedback</label>
+            <textarea id="fb-icons-actions-impact-burst.png" class="fb" data-key="icons-actions/impact-burst.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/coins-flying.png" alt="Coins Flying" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Coins Flying</h3>
+            <div class="fname">icons-actions/coins-flying.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cluster of gold coins flying/scattering through the air with motion lines. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-coins-flying.png">Your feedback</label>
+            <textarea id="fb-icons-actions-coins-flying.png" class="fb" data-key="icons-actions/coins-flying.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/candy-crab.png" alt="Candy Crab" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Candy Crab</h3>
+            <div class="fname">icons-actions/candy-crab.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon coral-pink crab with candy-striped claws. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-candy-crab.png">Your feedback</label>
+            <textarea id="fb-icons-actions-candy-crab.png" class="fb" data-key="icons-actions/candy-crab.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/island-silhouette.png" alt="Island Silhouette" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Island Silhouette</h3>
+            <div class="fname">icons-actions/island-silhouette.png</div>
+            <div class="flag">&#9888; possible issue: only rendered the palm tree — missing island base and X mark from the prompt</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small tropical island silhouette with a palm tree and a single X mark. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-island-silhouette.png">Your feedback</label>
+            <textarea id="fb-icons-actions-island-silhouette.png" class="fb" data-key="icons-actions/island-silhouette.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/crate-overboard.png" alt="Crate Overboard" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Crate Overboard</h3>
+            <div class="fname">icons-actions/crate-overboard.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a wooden shipping crate splashing into water with droplets and ripple. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-crate-overboard.png">Your feedback</label>
+            <textarea id="fb-icons-actions-crate-overboard.png" class="fb" data-key="icons-actions/crate-overboard.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/repair-tools.png" alt="Repair Tools" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Repair Tools</h3>
+            <div class="fname">icons-actions/repair-tools.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a crossed wrench and hammer, simple tool icon. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-repair-tools.png">Your feedback</label>
+            <textarea id="fb-icons-actions-repair-tools.png" class="fb" data-key="icons-actions/repair-tools.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/target.png" alt="Target" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Target</h3>
+            <div class="fname">icons-actions/target.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a round archery-style target with concentric rings and an arrow in the bullseye. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-target.png">Your feedback</label>
+            <textarea id="fb-icons-actions-target.png" class="fb" data-key="icons-actions/target.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/sugarfish.png" alt="Sugarfish" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Sugarfish</h3>
+            <div class="fname">icons-actions/sugarfish.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute tropical fish made of candy, striped in coral pink and gold with sugar-crystal sparkle. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-sugarfish.png">Your feedback</label>
+            <textarea id="fb-icons-actions-sugarfish.png" class="fb" data-key="icons-actions/sugarfish.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/fish.png" alt="Fish" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Fish</h3>
+            <div class="fname">icons-actions/fish.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a plain cute cartoon ocean fish, sea-teal and mint colored. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-fish.png">Your feedback</label>
+            <textarea id="fb-icons-actions-fish.png" class="fb" data-key="icons-actions/fish.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-actions/blocked-slash.png" alt="Blocked / Not Allowed" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Blocked / Not Allowed</h3>
+            <div class="fname">icons-actions/blocked-slash.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a coral-pink circle with a diagonal slash through it. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-actions-blocked-slash.png">Your feedback</label>
+            <textarea id="fb-icons-actions-blocked-slash.png" class="fb" data-key="icons-actions/blocked-slash.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">Timer (5) <span class="count">5 icons</span></h2>
+  <div class="grid">
+    
+        <div class="card">
+          <div class="card-img"><img src="icons-timer/hourglass.png" alt="Hourglass" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Hourglass</h3>
+            <div class="fname">icons-timer/hourglass.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of an hourglass with rounded brass caps, sand falling. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-timer-hourglass.png">Your feedback</label>
+            <textarea id="fb-icons-timer-hourglass.png" class="fb" data-key="icons-timer/hourglass.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-timer/alarm.png" alt="Alarm Clock" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Alarm Clock</h3>
+            <div class="fname">icons-timer/alarm.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a classic round brass alarm clock with bells on top. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-timer-alarm.png">Your feedback</label>
+            <textarea id="fb-icons-timer-alarm.png" class="fb" data-key="icons-timer/alarm.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-timer/stopwatch.png" alt="Stopwatch" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Stopwatch</h3>
+            <div class="fname">icons-timer/stopwatch.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a brass stopwatch with a top button and side dial. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-timer-stopwatch.png">Your feedback</label>
+            <textarea id="fb-icons-timer-stopwatch.png" class="fb" data-key="icons-timer/stopwatch.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-timer/pause.png" alt="Pause" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pause</h3>
+            <div class="fname">icons-timer/pause.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a bold pause symbol, two rounded vertical bars. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-timer-pause.png">Your feedback</label>
+            <textarea id="fb-icons-timer-pause.png" class="fb" data-key="icons-timer/pause.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">Awards &amp; Flavor (10) <span class="count">10 icons</span></h2>
+  <div class="grid">
+    
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/cupcake.png" alt="Cupcake — Bakery/Victory" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Cupcake — Bakery/Victory</h3>
+            <div class="fname">icons-awards/cupcake.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute frosted cupcake with a cherry on top. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-cupcake.png">Your feedback</label>
+            <textarea id="fb-icons-awards-cupcake.png" class="fb" data-key="icons-awards/cupcake.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/dagger.png" alt="Longest-Battle Dagger" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Longest-Battle Dagger</h3>
+            <div class="fname">icons-awards/dagger.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a single ornate pirate dagger, pointing upward, gold hilt and gem pommel. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-dagger.png">Your feedback</label>
+            <textarea id="fb-icons-awards-dagger.png" class="fb" data-key="icons-awards/dagger.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/skull.png" alt="Defeated/Loser Skull" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Defeated/Loser Skull</h3>
+            <div class="fname">icons-awards/skull.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a friendly cartoon skull, warm parchment color, big round eye sockets. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-skull.png">Your feedback</label>
+            <textarea id="fb-icons-awards-skull.png" class="fb" data-key="icons-awards/skull.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/snail.png" alt="Slowest-Sailor Snail" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Slowest-Sailor Snail</h3>
+            <div class="fname">icons-awards/snail.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon snail with a spiral gold shell, side view. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-snail.png">Your feedback</label>
+            <textarea id="fb-icons-awards-snail.png" class="fb" data-key="icons-awards/snail.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/salute-captain.png" alt="Respect Award — Saluting Captain" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Respect Award — Saluting Captain</h3>
+            <div class="fname">icons-awards/salute-captain.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon pirate captain&#x27;s face saluting with one hand, tricorn hat. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-salute-captain.png">Your feedback</label>
+            <textarea id="fb-icons-awards-salute-captain.png" class="fb" data-key="icons-awards/salute-captain.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/shield.png" alt="Best-Defender Shield" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Best-Defender Shield</h3>
+            <div class="fname">icons-awards/shield.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of an ornate rounded heraldic shield with a nautical emblem, gold trim. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-shield.png">Your feedback</label>
+            <textarea id="fb-icons-awards-shield.png" class="fb" data-key="icons-awards/shield.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/wave.png" alt="Ocean-Flavor Wave" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Ocean-Flavor Wave</h3>
+            <div class="fname">icons-awards/wave.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cresting ocean wave curling over, sea-teal and mint colored with white foam crest. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-wave.png">Your feedback</label>
+            <textarea id="fb-icons-awards-wave.png" class="fb" data-key="icons-awards/wave.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/croissant.png" alt="Pastry-Flavor Croissant" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pastry-Flavor Croissant</h3>
+            <div class="fname">icons-awards/croissant.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a golden flaky croissant, crescent shape. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-croissant.png">Your feedback</label>
+            <textarea id="fb-icons-awards-croissant.png" class="fb" data-key="icons-awards/croissant.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/cake-slice.png" alt="Pastry-Flavor Cake Slice" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pastry-Flavor Cake Slice</h3>
+            <div class="fname">icons-awards/cake-slice.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a triangular slice of layered frosted cake, coral-pink frosting. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-cake-slice.png">Your feedback</label>
+            <textarea id="fb-icons-awards-cake-slice.png" class="fb" data-key="icons-awards/cake-slice.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-awards/donut.png" alt="Pastry-Flavor Donut" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pastry-Flavor Donut</h3>
+            <div class="fname">icons-awards/donut.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a glazed donut with pink frosting and colorful sprinkles, top-down view. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-awards-donut.png">Your feedback</label>
+            <textarea id="fb-icons-awards-donut.png" class="fb" data-key="icons-awards/donut.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">UI Chrome / Menu (29) <span class="count">29 icons</span></h2>
+  <div class="grid">
+    
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/scroll.png" alt="Recipe/Log Scroll" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Recipe/Log Scroll</h3>
+            <div class="fname">icons-ui/scroll.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a rolled parchment scroll tied with a red ribbon. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-scroll.png">Your feedback</label>
+            <textarea id="fb-icons-ui-scroll.png" class="fb" data-key="icons-ui/scroll.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/door.png" alt="Leave Game — Hatch Door" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Leave Game — Hatch Door</h3>
+            <div class="fname">icons-ui/door.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a round wooden ship&#x27;s hatch door with brass rivets and a porthole window. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-door.png">Your feedback</label>
+            <textarea id="fb-icons-ui-door.png" class="fb" data-key="icons-ui/door.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/robot.png" alt="Bot Player" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Bot Player</h3>
+            <div class="fname">icons-ui/robot.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute toy robot wearing a tiny pirate tricorn hat and eyepatch. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-robot.png">Your feedback</label>
+            <textarea id="fb-icons-ui-robot.png" class="fb" data-key="icons-ui/robot.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/warning.png" alt="Warning Triangle" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Warning Triangle</h3>
+            <div class="fname">icons-ui/warning.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a rounded gold warning triangle with a bold exclamation mark inside. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-warning.png">Your feedback</label>
+            <textarea id="fb-icons-ui-warning.png" class="fb" data-key="icons-ui/warning.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/storybook.png" alt="How-to-Play Storybook" loading="lazy"></div>
+          <div class="card-body">
+            <h3>How-to-Play Storybook</h3>
+            <div class="fname">icons-ui/storybook.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of an open storybook with visible blank pages, gold-edged cover. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-storybook.png">Your feedback</label>
+            <textarea id="fb-icons-ui-storybook.png" class="fb" data-key="icons-ui/storybook.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/ribbon.png" alt="Credits Ribbon" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Credits Ribbon</h3>
+            <div class="fname">icons-ui/ribbon.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small coral-pink award ribbon with two tails. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-ribbon.png">Your feedback</label>
+            <textarea id="fb-icons-ui-ribbon.png" class="fb" data-key="icons-ui/ribbon.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/speech-bubble.png" alt="Feedback Speech Bubble" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Feedback Speech Bubble</h3>
+            <div class="fname">icons-ui/speech-bubble.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a rounded speech bubble with a small tail, plain and empty inside. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-speech-bubble.png">Your feedback</label>
+            <textarea id="fb-icons-ui-speech-bubble.png" class="fb" data-key="icons-ui/speech-bubble.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/key.png" alt="Join Game — Brass Key" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Join Game — Brass Key</h3>
+            <div class="fname">icons-ui/key.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of an old-fashioned brass door key, classic skeleton-key silhouette, diagonal angle. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-key.png">Your feedback</label>
+            <textarea id="fb-icons-ui-key.png" class="fb" data-key="icons-ui/key.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/map.png" alt="Host Game — Treasure Map" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Host Game — Treasure Map</h3>
+            <div class="fname">icons-ui/map.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a folded parchment treasure map with a dotted path and a red X marking the spot. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-map.png">Your feedback</label>
+            <textarea id="fb-icons-ui-map.png" class="fb" data-key="icons-ui/map.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/stool.png" alt="Pass-and-Play Stool" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pass-and-Play Stool</h3>
+            <div class="fname">icons-ui/stool.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small round wooden three-legged stool. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-stool.png">Your feedback</label>
+            <textarea id="fb-icons-ui-stool.png" class="fb" data-key="icons-ui/stool.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/device.png" alt="Pass Device" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pass Device</h3>
+            <div class="fname">icons-ui/device.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cartoon hand holding up a small tablet/phone device. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-device.png">Your feedback</label>
+            <textarea id="fb-icons-ui-device.png" class="fb" data-key="icons-ui/device.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/parrot.png" alt="Mascot/Companion Parrot" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Mascot/Companion Parrot</h3>
+            <div class="fname">icons-ui/parrot.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon parrot mascot, coral pink and mint feathers, perched. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-parrot.png">Your feedback</label>
+            <textarea id="fb-icons-ui-parrot.png" class="fb" data-key="icons-ui/parrot.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/magnifying-glass.png" alt="Search" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Search</h3>
+            <div class="fname">icons-ui/magnifying-glass.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a brass-handled magnifying glass, diagonal angle. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-magnifying-glass.png">Your feedback</label>
+            <textarea id="fb-icons-ui-magnifying-glass.png" class="fb" data-key="icons-ui/magnifying-glass.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/close-x.png" alt="Close Button" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Close Button</h3>
+            <div class="fname">icons-ui/close-x.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon: a bold thick coral-pink X mark made of two rounded crossing bars. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-close-x.png">Your feedback</label>
+            <textarea id="fb-icons-ui-close-x.png" class="fb" data-key="icons-ui/close-x.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/checkmark.png" alt="Confirm/Yes" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Confirm/Yes</h3>
+            <div class="fname">icons-ui/checkmark.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon: a bold thick mint-green checkmark. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-checkmark.png">Your feedback</label>
+            <textarea id="fb-icons-ui-checkmark.png" class="fb" data-key="icons-ui/checkmark.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/cancel-x.png" alt="Cancel/No" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Cancel/No</h3>
+            <div class="fname">icons-ui/cancel-x.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon: a bold coral-red circle badge with a white X mark inside. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-cancel-x.png">Your feedback</label>
+            <textarea id="fb-icons-ui-cancel-x.png" class="fb" data-key="icons-ui/cancel-x.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/horn.png" alt="Announcement Horn" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Announcement Horn</h3>
+            <div class="fname">icons-ui/horn.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a curled brass herald&#x27;s horn/bugle with a small flag banner hanging off it. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-horn.png">Your feedback</label>
+            <textarea id="fb-icons-ui-horn.png" class="fb" data-key="icons-ui/horn.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/refused.png" alt="Refused" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Refused</h3>
+            <div class="fname">icons-ui/refused.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon pirate character crossing both arms in an X shape over their chest. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-refused.png">Your feedback</label>
+            <textarea id="fb-icons-ui-refused.png" class="fb" data-key="icons-ui/refused.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/dice.png" alt="Randomizer Die" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Randomizer Die</h3>
+            <div class="fname">icons-ui/dice.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a single die/dice cube with rounded corners showing pips, gold pips. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-dice.png">Your feedback</label>
+            <textarea id="fb-icons-ui-dice.png" class="fb" data-key="icons-ui/dice.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/eyes.png" alt="Watch/Spectate" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Watch/Spectate</h3>
+            <div class="fname">icons-ui/eyes.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a pair of cute round cartoon eyes looking to the side. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-eyes.png">Your feedback</label>
+            <textarea id="fb-icons-ui-eyes.png" class="fb" data-key="icons-ui/eyes.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/gear.png" alt="Settings Gear" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Settings Gear</h3>
+            <div class="fname">icons-ui/gear.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a brass gear/cog wheel with a small circle hole in the center. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-gear.png">Your feedback</label>
+            <textarea id="fb-icons-ui-gear.png" class="fb" data-key="icons-ui/gear.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/replay.png" alt="Replay" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Replay</h3>
+            <div class="fname">icons-ui/replay.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon: two curved arrows forming a circular replay/refresh loop, mint green. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-replay.png">Your feedback</label>
+            <textarea id="fb-icons-ui-replay.png" class="fb" data-key="icons-ui/replay.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/printer.png" alt="Print" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Print</h3>
+            <div class="fname">icons-ui/printer.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small chunky cartoon printer with a sheet of parchment paper coming out the top. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-printer.png">Your feedback</label>
+            <textarea id="fb-icons-ui-printer.png" class="fb" data-key="icons-ui/printer.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/envelope.png" alt="Invite/Mail" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Invite/Mail</h3>
+            <div class="fname">icons-ui/envelope.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a warm parchment-colored envelope with a wax seal. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-envelope.png">Your feedback</label>
+            <textarea id="fb-icons-ui-envelope.png" class="fb" data-key="icons-ui/envelope.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/play-arrow.png" alt="Nav Arrow" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Nav Arrow</h3>
+            <div class="fname">icons-ui/play-arrow.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon: a bold gold triangular play/forward arrow pointing right. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-play-arrow.png">Your feedback</label>
+            <textarea id="fb-icons-ui-play-arrow.png" class="fb" data-key="icons-ui/play-arrow.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/sparkles.png" alt="Highlight/New" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Highlight/New</h3>
+            <div class="fname">icons-ui/sparkles.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cluster of gold sparkle/star twinkle shapes of varying sizes. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-sparkles.png">Your feedback</label>
+            <textarea id="fb-icons-ui-sparkles.png" class="fb" data-key="icons-ui/sparkles.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/globe.png" alt="Region/World" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Region/World</h3>
+            <div class="fname">icons-ui/globe.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small stylized globe of the world with visible continent shapes. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-globe.png">Your feedback</label>
+            <textarea id="fb-icons-ui-globe.png" class="fb" data-key="icons-ui/globe.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/pirate-chef.png" alt="Baking Flavor — Pirate Chef" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Baking Flavor — Pirate Chef</h3>
+            <div class="fname">icons-ui/pirate-chef.png</div>
+            
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a cute cartoon pirate captain wearing a chef&#x27;s toque hat instead of a pirate hat, with an eyepatch. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-pirate-chef.png">Your feedback</label>
+            <textarea id="fb-icons-ui-pirate-chef.png" class="fb" data-key="icons-ui/pirate-chef.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-img"><img src="icons-ui/pirate-flag.png" alt="Pirate Flag Icon" loading="lazy"></div>
+          <div class="card-body">
+            <h3>Pirate Flag Icon</h3>
+            <div class="fname">icons-ui/pirate-flag.png</div>
+            <div class="flag">&#9888; possible issue: landed on white background instead of near-black</div>
+            <details>
+              <summary>Prompt used</summary>
+              <p class="prompt">Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate. A single game icon of a small black pirate flag on a pole with a friendly cartoon skull-and-crossbones emblem. 1:1 square, centered, on a solid flat near-black (#000001) background, no text.</p>
+            </details>
+            <label class="fb-label" for="fb-icons-ui-pirate-flag.png">Your feedback</label>
+            <textarea id="fb-icons-ui-pirate-flag.png" class="fb" data-key="icons-ui/pirate-flag.png" placeholder="approve / redo / tweak..."></textarea>
+          </div>
+        </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  var STORAGE_KEY = "pastrypirates_art_review_icons_feedback";
+  var areas = Array.from(document.querySelectorAll("textarea.fb"));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { saved = {}; }
+  areas.forEach(function(ta) {
+    var key = ta.dataset.key;
+    if (saved[key]) ta.value = saved[key];
+    ta.addEventListener("input", function() {
+      var data = {};
+      areas.forEach(function(t) { if (t.value.trim()) data[t.dataset.key] = t.value; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      document.getElementById("fbStatus").textContent = "saved " + new Date().toLocaleTimeString();
+    });
+  });
+  function collect() {
+    var data = {};
+    areas.forEach(function(t) { if (t.value.trim()) data[t.dataset.key] = t.value.trim(); });
+    return data;
+  }
+  document.getElementById("exportBtn").addEventListener("click", function() {
+    var data = collect();
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "art-review-feedback-icons.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    document.getElementById("fbStatus").textContent = "exported " + Object.keys(data).length + " notes";
+  });
+  document.getElementById("copyBtn").addEventListener("click", function() {
+    var data = collect();
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(function() {
+      document.getElementById("fbStatus").textContent = "copied " + Object.keys(data).length + " notes to clipboard";
+    });
+  });
+  document.getElementById("clearBtn").addEventListener("click", function() {
+    if (!confirm("Clear all feedback on this page? This can't be undone.")) return;
+    areas.forEach(function(t) { t.value = ""; });
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById("fbStatus").textContent = "cleared";
+  });
+})();
+</script>
+</body>
+</html>
