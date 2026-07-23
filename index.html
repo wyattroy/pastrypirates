@@ -1043,7 +1043,16 @@ const PERSONALITY={
 // battle re-arms a fresh grudge on whoever just lost, so a bigger bonus here would let two ships
 // trade wins forever purely on narrative flavor, recreating the exact loop this system exists to
 // prevent (confirmed by simulation before this was turned down from 3).
-const AW={steal:6,stealStack:0.3,rich:0.9,richCap:8,blockBonus:4,cornerBonus:5,riskPenalty:3,grudgeBonus:1};
+// notes/edits AI-02: windAdv/windDis weight the new wind advantage — firing downwind now wins a
+// both-HEADS round, so a downwind attack is a real edge and an upwind one a real handicap.
+// notes/edits AI-06: rematchEscalate breaks the fight-loop stalemates BATL-03 exposed. Pre-swap a
+// winner moved away and broke adjacency for free; with no swap, two ships contesting each other's
+// crates re-fought every ~4 rounds forever (games that ran the full 150-round cap with nobody ever
+// finishing). A flat cooldown-scoped penalty didn't help — the cooldown lapsed and the duel resumed.
+// So the penalty ESCALATES with how many times this exact pair has fought recently (see fightLog /
+// recentFights): the first fight is free (still devious), each rematch hurts more, so a genuine
+// one-off steal still wins but an endless grudge-duel prices itself out.
+const AW={steal:6,stealStack:0.3,rich:0.9,richCap:8,blockBonus:4,cornerBonus:5,riskPenalty:3,grudgeBonus:1,windAdv:3,windDis:2.5,rematchEscalate:5.5};
 const TW={base:5,swapBonus:2,rusherRecipeGuard:0.2};
 const DW={fallback:2,neededBonus:5,monopolistCornerBonus:6,surplusBonus:2,finisherBonus:8};
 const FISH_BASE=1.5;
@@ -1198,7 +1207,7 @@ class Game{
       return {idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
         ing:[],recipe:a,recipeChoices:[a,b],firstFlip:new Set(),dockedNow:new Set(),
         done:false,heads:0,flips:0,corner:null,justDocked:false,shipwrecked:false,
-        coolUntil:{},grudge:null,justLost:null};
+        coolUntil:{},grudge:null,justLost:null,fightLog:{}};
     });
     // ships start at Isle of Tortuga's four docks (N/S/E/W of the island)
     const dirsArr=Object.values(DIRS);
@@ -1326,6 +1335,32 @@ class Game{
     while(idx>=0&&(dist[key(path[idx])]>budget||occ(path[idx])))idx--;
     if(idx>=0)p.pos=[...path[idx]];
   }
+  // AI-05: is this bot walled in — every orthogonal neighbour blocked, an island, home, occupied,
+  // or the rim? (The rim counts as "not an ordinary move" because stepToward refuses it.) When
+  // this is true a bot has no normal way out and used to just sit there turn after turn.
+  boxedIn(p){
+    return Object.values(DIRS).every(d=>{
+      const o=[p.pos[0]+d[0],p.pos[1]+d[1]];
+      return this.blocked(o)||this.isIsland(o)||this.isHome(o)||this.onRim(o)||
+        this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
+    });
+  }
+  // notes/edits AI-04/AI-05: a boxed-in bot may duck INTO the trade-wind channel to escape — the
+  // rim sweeps it to that quadrant's head, unsticking it. Only ever used as a last resort (see
+  // takeTurn), so normal play still keeps bots out of the current; this is the one time a bot
+  // deliberately uses the trade winds the way a human can.
+  rimEscape(p){
+    if(!this.isRound)return false;
+    for(const d of Object.values(DIRS)){
+      const o=[p.pos[0]+d[0],p.pos[1]+d[1]];
+      if(this.onRim(o)&&!this.blocked(o)&&!this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1])){
+        p.pos=o;this.ev({t:"windmove",p:p.idx});
+        this.tradewind(p);
+        return true;
+      }
+    }
+    return false;
+  }
   adjPort(p){
     if(this.cfg.singleDock){
       for(const ing of this.ings){const d=this.dockOf[ing];
@@ -1375,18 +1410,25 @@ class Game{
   // non-mutating lookup shared by tryTrade (which executes it) and scoreTrade (which just needs
   // to know whether a trade is on the table this turn, and how good it is)
   tradeCandidate(p){
+    // notes/edits AI-03: don't just grab the first willing captain in seat order. Rank them —
+    // prefer a mutual swap over a cash buy, and within each prefer the partner who holds the MOST
+    // of the resource we need (a bot sitting on 2 spare beats one with a single crate). That fixes
+    // "I had one resource and another bot had two of it, and the bot traded with the wrong one".
+    let bestSwap=null,bestBuy=null;
     for(const q of this.tradeOpp(p)){
       if(q.strategy==="human")continue; // bots never auto-trade with humans; humans initiate via Parley
       const give=p.ing.filter(i=>this.needs(q).includes(i)&&this.cnt(p.ing,i)>(p.recipe.includes(i)?1:0));
       const get=q.ing.filter(i=>this.needs(p).includes(i)&&this.cnt(q.ing,i)>(q.recipe.includes(i)?1:0));
-      if(give.length&&get.length)return{q,kind:"swap",gi:give[0],ge:get[0]};
-      if(get.length){
-        const ge=get[0];
+      if(give.length&&get.length){
+        const ge=get[0],held=this.cnt(q.ing,ge);
+        if(!bestSwap||held>bestSwap.held)bestSwap={q,kind:"swap",gi:give[0],ge,held};
+      }else if(get.length){
+        const ge=get[0],held=this.cnt(q.ing,ge);
         const price=(q.strategy==="monopolist"&&ge===q.corner)?5:4; // monopolists gouge
-        if(p.coins>=price)return{q,kind:"buy",ge,price};
+        if(p.coins>=price&&(!bestBuy||held>bestBuy.held))bestBuy={q,kind:"buy",ge,price,held};
       }
     }
-    return null;
+    return bestSwap||bestBuy||null;
   }
   tryTrade(p){
     const c=this.tradeCandidate(p);
@@ -1416,11 +1458,27 @@ class Game{
     const cool=this.round+3;
     att.coolUntil[def.idx]=cool;
     def.coolUntil[att.idx]=cool;
+    // AI-06: bump the recent-fight tally for this pair (decays over ~10 rounds — see recentFights).
+    // A tally that keeps climbing is exactly the endless-duel signature scoreAttack prices out.
+    this.bumpFight(att,def);
+    this.bumpFight(def,att);
     if(lose){
       const win=lose===att?def:att;
       lose.grudge={against:win.idx,expires:this.round+2};
       if(spoilIng)lose.justLost={ing:spoilIng,by:win.idx,until:this.round+3};
     }
+  }
+  bumpFight(p,q){
+    const f=p.fightLog[q.idx];
+    // if the last fight with q was recent, keep climbing; if it lapsed, start over
+    const n=(f&&f.until>=this.round)?f.n+1:1;
+    p.fightLog[q.idx]={n,until:this.round+10};
+  }
+  // AI-06: how many times p has recently fought q (0 if none or the tally has decayed away). Drives
+  // the escalating rematch penalty in scoreAttack — first fight free, each rematch costlier.
+  recentFights(p,q){
+    const f=p.fightLog[q.idx];
+    return (f&&f.until>=this.round)?f.n:0;
   }
   // unweighted-cost port of the free reachable() UI helper, using this.* instead of the global
   // game singleton, so headless battle() can find a legal flee square with the same fidelity.
@@ -1559,6 +1617,13 @@ class Game{
     const urgency=p.recipe.length?1-need.length/p.recipe.length:0;
     const onCooldown=(p.coolUntil[q.idx]||0)>=this.round;
     const grudge=activeGrudge&&activeGrudge.against===q.idx&&activeGrudge.expires>=this.round;
+    // AI-02: is this bot firing downwind (edge) or upwind (handicap) on this adjacent target? Only
+    // meaningful for an adjacent q, which is all scoreAttack is ever handed. Positions don't change
+    // mid-battle, so this reading holds for the whole fight (matches battle()'s downwind logic).
+    const dx=q.pos[0]-p.pos[0],dy=q.pos[1]-p.pos[1];
+    const dirPtoQ=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
+    const firesDownwind=dirPtoQ&&this.windNow===dirPtoQ;
+    const firesUpwind=dirPtoQ&&this.windNow===OPPOSITE[dirPtoQ];
     let s=0;
     s+=stealCount?AW.steal*(1+AW.stealStack*(stealCount-1)):0;
     s+=onCooldown?0:AW.rich*Math.min(q.coins,AW.richCap);
@@ -1566,6 +1631,11 @@ class Game{
     s+=cornering?AW.cornerBonus:0;
     s-=iHoldSomethingTheyWant?AW.riskPenalty*(1+urgency):0;
     s+=grudge?AW.grudgeBonus:0;
+    s+=firesDownwind?AW.windAdv:0;
+    s-=firesUpwind?AW.windDis:0;
+    // AI-06: escalating rematch brake — 0 for the first fight with this ship, growing with each
+    // recent rematch, so a persistent grudge-duel prices itself below fishing/docking and breaks.
+    s-=AW.rematchEscalate*this.recentFights(p,q);
     return s*PERSONALITY[p.strategy].attackMult;
   }
   scoreTrade(p){
@@ -1601,10 +1671,10 @@ class Game{
     // turn over turn the way the old unthrottled "rich" trigger did
     const activeGrudge=p.grudge;p.grudge=null;
     const opts=[];
-    // notes/edits #7: never pick a fight once the recipe is already complete. A winning attacker
-    // SWAPS squares with the loser, which can drag a finished bot away from Tortuga and throw away
-    // a win it already had in hand (the "Flaky Jack was too aggressive" bug). With a full hold the
-    // only job left is to sail home and bake, so drop attack from consideration entirely.
+    // notes/edits AI-01: never pick a fight once the recipe is already complete — with a full hold
+    // the only job left is to sail home and bake, and a battle only risks losing a crate you need.
+    // (Pre-BATL-03 this also avoided the winner-swap dragging a finished bot off Tortuga; that swap
+    // is gone now, but dropping attack when win-ready is still the right call.)
     const winReady=!this.needs(p).length;
     if(p.strategy!=="rusher"&&p.coins>=this.cfg.powder&&!winReady)
       for(const q of this.adjOpp(p))
@@ -1648,8 +1718,15 @@ class Game{
     }
     const dist=man(p.pos,target);
     const exact=this.dockCells.has(target[0]+","+target[1]);
-    if((dist>1||(dist===1&&exact))&&p.coins>0){p.coins--;const b=[...p.pos];this.stepToward(p,target,this.sailBudget(p));
-      if(p.pos[0]!==b[0]||p.pos[1]!==b[1])this.ev({t:"sail",p:p.idx});else p.coins++;}
+    if((dist>1||(dist===1&&exact))&&p.coins>0){
+      p.coins--;const b=[...p.pos];this.stepToward(p,target,this.sailBudget(p));
+      const moved=(p.pos[0]!==b[0]||p.pos[1]!==b[1]);
+      // AI-05: stepToward found no ordinary move. If we're genuinely walled in, spend the coin on a
+      // trade-wind escape instead of sitting still; otherwise refund it (we were already in place).
+      if(moved)this.ev({t:"sail",p:p.idx});
+      else if(this.boxedIn(p)&&this.rimEscape(p)){/* rim sweep already recorded its own event */}
+      else p.coins++;
+    }
     if(!this.adjPort(p))p.dockedNow.clear(); // leaving a port re-arms its dock flip
     const action=this.chooseAction(p);
     if(action.type==="attack"){if(!this.tryTrade(p))this.battle(p,action.target);return;}
