@@ -691,7 +691,7 @@
       <p><b>⛵ Sail.</b> Pay 1🌕 to move using a 9-point budget: 2 pts/square with the wind (up to 4 squares), 3 pts/square across it (up to 3), 4 pts/square against it (up to 2) — mix directions freely as long as you can afford the total. An island upwind of you cuts your budget to 7. Sail past other ships, but don't end on one. No coins? You can't sail this turn — better go fishing!</p>
       <p><b>⚓ Act</b> — choose one:</p>
       <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as you like and keep flipping. Ship's hold: you may take crates that aren't on your recipe — they make excellent trade bait...</p>
-      <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point), both heads cancel. Fire the broadside! Once per battle the attacker may pay 1🌕 to reflip one tails. Whoever's shooting downwind also gets one free reflip. Defend two heads in a row and you may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Win as the attacker and you seize the loser's square (ships swap places); if the attack is repelled, no one moves. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
+      <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point). Both heads? The captain firing <b>downwind</b> lands the shot — that's the wind advantage; a crosswind clash cancels. On a double-miss (both tails) the defender may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Nobody changes squares — win or lose, every ship holds its position. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
       <p><b>Parley</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
       <p><b>Fish</b> — flip: heads nets 2🌕, tails... just a candycrab (1🌕).</p>
       <p><b>Start your bakery!</b> — at the Isle of Tortuga with your whole recipe? Declare victory! <img class="narrIcon" src="assets/icons/cupcake.png" alt=""></p>
@@ -1456,36 +1456,27 @@ class Game{
     const c=this.cfg,need=2;
     if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}
     this.battles++;
-    let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
-    // notes/edits #3/#12: kept in step with asyncBattle — two HEADS award the downwind fighter
-    // (else cancel); the downwind fighter also gets one free reflip on tails, independent of
-    // (and chainable before) the broadside free/paid reflip. `downwind` is purely geometric,
-    // never consumed — only freeA/freeD (the reflip token) gets spent.
-    let downwind=null,freeA=false,freeD=false;
+    let a=0,d=0;
+    // notes/edits BATL-01/02: reflips are gone — no attacker broadside reflip, no downwind free
+    // reflip. The wind still matters, but only through the both-HEADS tiebreak: the downwind fighter
+    // wins a round where both land heads (crosswind cancels). `downwind` is purely geometric and
+    // never consumed. Kept in step with asyncBattle.
+    let downwind=null;
     {
       const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
       const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
       const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
-      if(this.windNow===dirAtoD){downwind="a";freeA=true;}
-      else if(this.windNow===dirDtoA){downwind="d";freeD=true;}
+      if(this.windNow===dirAtoD)downwind="a";
+      else if(this.windNow===dirDtoA)downwind="d";
     }
     const rounds=[];
     let fled=false,flips=0;
     while(a<need&&d<need){
-      let bs=false,ah=this.flip(att),dh=this.flip(def);flips+=2;
-      // attacker: wind free reflip chains straight into the broadside free/paid reflip on tails —
-      // a bot always takes an available reflip (asyncBattle only routes the "reflip?" confirmation
-      // through a prompt for human fighters; a bot's `use` stays true).
-      while(!ah&&(freeA||free||(paid&&att.coins>=1))){
-        if(freeA)freeA=false;else{if(paid)att.coins--;free=false;paid=false;}
-        ah=this.flip(att);flips++;bs=true;
-      }
-      // defender: one downwind free reflip
-      if(!dh&&freeD){freeD=false;dh=this.flip(def);flips++;}
+      let ah=this.flip(att),dh=this.flip(def);flips+=2;
       let scorer=null;
       if(ah&&dh){if(downwind==="a"){a++;scorer="a";}else if(downwind==="d"){d++;scorer="d";}}
       else if(ah){a++;scorer="a";} else if(dh){d++;scorer="d";}
-      rounds.push([ah?1:0,dh?1:0,bs?1:0,scorer]);
+      rounds.push([ah?1:0,dh?1:0,0,scorer]);
       // double-tails: the battle is still undecided here, so the defender may pay 1 coin to flee
       // — a bot flees iff currently behind on points, same rule as asyncBattle's bot branch.
       const bothTails=!ah&&!dh;
@@ -1515,16 +1506,12 @@ class Game{
       else if(lose.ing.length){const i=lose.ing[0];lose.ing.splice(lose.ing.indexOf(i),1);win.ing.push(i);spoil=ilabelImg(i);spoilIng=i;}
       else{const take=Math.min(5,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+" coins (all they had)";}
     }
-    if(win===att){ // only a winning attacker takes the loser's square; a repelled attack moves no one
-      [att.pos,def.pos]=[def.pos,att.pos];
-      this.tradewind(att);this.tradewind(def);
-    }
+    // notes/edits BATL-03: the winning attacker no longer seizes the loser's square. Nobody moves.
+    // The old swap dropped the just-beaten defender right in front of the winner — the prime spot to
+    // get re-attacked next turn. With no swap there's also no new berth to re-dock into, so the old
+    // post-battle auto-dock is gone too.
     this.recordSkirmish(att,def,lose,spoilIng);
     this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,flips,downwind});
-    if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
-      const port=this.adjPort(pl);
-      if(port&&(this.cfg.unlimitedDock||!pl.firstFlip.has(port)))this.doDock(pl,port);
-    }
     return win;
   }
   chooseTarget(p){
@@ -1738,7 +1725,7 @@ function roundCfg(strategies){
   // supply" sentinel — guarded as crates<1e9 everywhere, and islands then render as always-full).
   const crates=np===2?1e9:Math.max(1,np-1);
   return {grid:15,nIslands:7,recipeSize:5,crates,startCoins:3,
-    powder:2,broadside:"paid",dockBuy:true,merchant:true,parley:true,tradeBonus:true,
+    powder:2,dockBuy:true,merchant:true,parley:true,tradeBonus:true,
     asym:false,storm:0.125,islandW:2,islandH:2,tetris:true,singleDock:true,
     sardine:true,roundBoard:true,unlimitedDock:true,strategies};
 }
@@ -2473,7 +2460,7 @@ const EVENT_NARRATION={
     // downwind round scores a point but isn't "a XOR d landed heads", so filtering on the flips
     // alone silently drops it and undercounts the displayed score.
     const aP=e.rounds.filter(r=>r[3]==="a").length,dP=e.rounds.filter(r=>r[3]==="d").length;
-    const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
+    const rn=e.rounds.length; // BATL-01/02: broadside-round count dropped from the narration (always 0 now)
     const loser=e.winner===e.a?e.d:e.a;
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
     const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
@@ -2482,7 +2469,7 @@ const EVENT_NARRATION={
     // bribing their way out of giving one up — no ingredient actually changes hands there.
     const spoilClause=e.spoilIng?`${pn(e.winner)} takes ${e.spoil}.`:`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`;
     return {cls:"battle",
-      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` <span class="nobrk">(${bsN} broadside${bsN>1?"s":""})</span>`:""}. ${spoilClause} ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
+      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}. ${spoilClause}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
@@ -4018,17 +4005,17 @@ async function asyncBattle(att,def){
   if(c.powder)att.coins-=c.powder;
   game.battles++;
   const bets=await collectSideBets(att,def);
-  let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
-  // wind advantage: whoever's shooting downwind gets one free reflip, independent of the paid one above.
-  // `downwind` is the PERSISTENT fact of who's firing with the wind (positions don't change mid-battle) —
-  // unlike freeA/freeD it is never consumed, because it also decides the both-heads point (notes/edits #3).
-  let freeA=false,freeD=false,downwind=null;
+  let a=0,d=0;
+  // notes/edits BATL-01/02: reflips removed (attacker broadside + downwind free reflip both gone).
+  // Wind still decides a both-HEADS round via `downwind` — the geometric fact of who fires with the
+  // wind, never consumed. Crosswind both-heads still cancels. Kept in step with Game.battle.
+  let downwind=null;
   {
     const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
     const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
     const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
-    if(game.windNow===dirAtoD){freeA=true;downwind="a";}
-    else if(game.windNow===dirDtoA){freeD=true;downwind="d";}
+    if(game.windNow===dirAtoD)downwind="a";
+    else if(game.windNow===dirDtoA)downwind="d";
   }
   let fled=false;
   const rounds=[];
@@ -4072,7 +4059,8 @@ async function asyncBattle(att,def){
   };
   while(a<need&&d<need){
     round++;
-    let bs=false,ah,dh;
+    const bs=false;   // BATL-01/02: no reflips, so a round is never a "broadside" round anymore
+    let ah,dh;
     // fresh round — both coins face-down, attacker on deck. Round 1 spells out who's who; later
     // rounds trim the repeated framing since the flippenator/scoreboard already shows it visually
     // (notes/edits #8b: cut the boilerplate that re-stated the same roles every single flip).
@@ -4085,21 +4073,7 @@ async function asyncBattle(att,def){
       ah=await bFlip("a",att,{dfState:"wait"});
     }
     renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
-    // ---- broadside reflip(s) on a tails — a downwind attacker's free wind reflip can chain
-    // straight into the paid one if it's still tails ----
-    while(!ah&&(freeA||free||(paid&&att.coins>=1))){
-      const useFree=freeA;
-      let use=true;
-      if(hA)use=await battleAsk(att,base({atState:"T",dfState:"wait",live:"a"}),
-        useFree?"Tails! The wind's at your back — free reflip?":(paid?"Tails! Fire the broadside — pay 1🌕 to reflip?":"Tails! Fire the broadside — free reflip?"),
-        [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
-      if(!use)break;
-      if(useFree)freeA=false;else{if(paid)att.coins--;free=false;paid=false;}
-      if(hA){ah=await hFlip("a",att,"🔥 Broadside — reflip!",{atBs:true,dfState:"wait"});}
-      else{ah=await bFlip("a",att,{atBs:true,dfState:"wait",result:"🔥 Broadside — reflip!"});}
-      bs=true;
-      renderBattle(base({atState:ah?"H":"T",atBs:true,dfState:"wait",live:"a"}));
-    }
+    // BATL-01: the attacker's broadside reflip is gone — a tails just stands.
     // ---- suspense: hand it to the defender ----
     await sleep(beat*0.6);
     renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:"wait",live:"d",
@@ -4111,19 +4085,8 @@ async function asyncBattle(att,def){
     }else{
       dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
-    // ---- a downwind defender's free reflip ----
-    if(!dh&&freeD){
-      let use=true;
-      if(hD)use=await battleAsk(def,base({atState:ah?"H":"T",atBs:bs,dfState:"T",live:"d"}),
-        "Tails! The wind's at your back — free reflip?",
-        [{label:"🔥 Reflip!",value:true},{label:"Keep tails",value:false}]);
-      if(use){
-        freeD=false;
-        if(hD){dh=await hFlip("d",def,"🔥 Free reflip!",{atState:ah?"H":"T",atBs:bs});}
-        else{dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs,result:"🔥 Free reflip!"});}
-        renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:dh?"H":"T",live:"d"}));
-      }
-    }
+    // BATL-02: the downwind defender's free reflip is gone — the wind's only effect now is the
+    // both-HEADS tiebreak resolved just below.
     // ---- resolve the round ----
     let scorer=null,rmsg;
     // notes/edits #3: two HEADS no longer just cancel — the shot carries downwind. Whoever's
@@ -4196,26 +4159,17 @@ async function asyncBattle(att,def){
       lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabelImg(pick);spoilIng=pick;
     }
   }
-  if(win===att){ // only a winning attacker takes the loser's square; a repelled attack moves no one
-    [att.pos,def.pos]=[def.pos,att.pos];
-    game.tradewind(att);game.tradewind(def);
-  }
+  // notes/edits BATL-03: no post-battle swap — the winning attacker stays put and the beaten
+  // defender is no longer dumped into the prime re-attack square in front of them. With nobody
+  // changing berth there's also no post-battle re-dock. Kept in step with Game.battle.
   game.recordSkirmish(att,def,lose,spoilIng);
   game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
   liveRender();
-  // narrate the battle's outcome (who took what from whom) right now — side-bet settlement
-  // and a winner's auto-dock both push further events right after this, and every caller only
-  // narrates the *last* event once asyncBattle returns, so without this the battle's own
-  // narration gets silently buried under whatever happens next.
+  // narrate the battle's outcome (who took what from whom) right now — side-bet settlement pushes
+  // further events right after this, and every caller only narrates the *last* event once
+  // asyncBattle returns, so without this the battle's own narration gets buried under what follows.
   await narrateLastEvent();
   await settleSideBets(bets,a>=need?"a":"d");
-  if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
-    const port=game.adjPort(pl);
-    if(port&&(game.cfg.unlimitedDock||!pl.firstFlip.has(port))){
-      if(pl.strategy==="human")await humanDock(pl,port);
-      else{game.doDock(pl,port);liveRender();}
-    }
-  }
   return win;
 }
 async function humanTrade(p){
@@ -4368,7 +4322,7 @@ async function humanAct(p,sailCtx){
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
   // #5c: helper text under the buttons explains the powder cost; #5d swaps in the too-poor nudge.
-  const sub=targets.length?(canAfford?`Attacking costs ye ${game.cfg.powder}🌕 for powder. 1🌕 more lets ye reflip once`:`Yer too poor to afford powder! Go fishin'`):null;
+  const sub=targets.length?(canAfford?`Attacking costs ye ${game.cfg.powder}🌕 for powder. Fire downwind for the edge!`:`Yer too poor to afford powder! Go fishin'`):null;
   // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
   const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, choose your action:`;
   const v=await ask(prompt,opts,null,sub);
