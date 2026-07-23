@@ -1,0 +1,112 @@
+#!/usr/bin/env node
+// notes/edits #12: unlike scripts/battle_sim.js (a hand-written reimplementation of the battle
+// mechanic, not trusted for this — see its own header comment), this harness runs the REAL
+// `Game` class straight out of index.html, unmodified, with real bots playing full real games —
+// no reimplementation, no simplifying assumptions about board state or coin economy.
+//
+// How it works: index.html is a single file mixing DOM/UI code with the game engine. Everything
+// the `Game` class needs (constants, helper functions, the class itself) is fully self-contained
+// in the region from the start of the main <script> block through the end of the class — the UI
+// section begins immediately after (marked by the "================= UI ================="
+// comment) and nothing before that marker touches the DOM except one harmless
+// `document.documentElement.style.setProperty(...)` line, which is stubbed out below. That whole
+// region is extracted verbatim and run in a Node `vm` context, so this test is exercising the
+// exact same source the browser runs — not a port, not a rewrite.
+
+const fs = require("fs");
+const path = require("path");
+const vm = require("vm");
+
+const N_GAMES = process.argv[2] ? parseInt(process.argv[2], 10) : 2000;
+const SEED_BASE = 12345;
+
+const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+const scriptStart = html.indexOf("<script>") + "<script>".length;
+// roundCfg() sits just past the "UI" marker (before any real UI/DOM code) — extend the cut to
+// its end so both Game and roundCfg (a hoisted function declaration, so order doesn't matter to
+// JS, but the slice still has to physically include its source) are in the extracted region.
+const scriptEnd = html.indexOf("function escHtml");
+if (scriptStart < 8 || scriptEnd === -1) {
+  throw new Error("Could not locate the Game-class/roundCfg region in index.html — has the file structure changed?");
+}
+// `class`/`const` top-level declarations don't attach to the vm context object the way `var`/
+// `function` do — export the two we need explicitly so they're retrievable after execution.
+const engineSrc = html.slice(scriptStart, scriptEnd) + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
+
+const sandbox = {
+  document: { documentElement: { style: { setProperty() {} } } },
+  console,
+  Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
+};
+vm.createContext(sandbox);
+vm.runInContext(engineSrc, sandbox, { filename: "index.html (engine region)" });
+
+const { Game, roundCfg } = sandbox;
+if (typeof Game !== "function" || typeof roundCfg !== "function") {
+  throw new Error("Game/roundCfg didn't come out of the extracted region — extraction boundaries may be wrong.");
+}
+
+// same personality roster the live game's BOT_STRATS uses (index.html, welcome-flow bot fill-in)
+const BOT_STRATS = ["pirate", "trader", "balanced", "rusher", "monopolist"];
+
+function pct(n, d) { return d === 0 ? "n/a" : (100 * n / d).toFixed(1) + "%"; }
+function avg(arr) { return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0; }
+
+const stats = {
+  games: 0,
+  battlesPerGame: [],
+  roundsPerGame: [],
+  flipsPerBattle: [],
+  roundsPerBattle: [],
+  attWins: 0, defWins: 0, fled: 0, totalBattles: 0,
+  byDownwind: {
+    a: { battles: 0, attWins: 0, defWins: 0, fled: 0 },
+    d: { battles: 0, attWins: 0, defWins: 0, fled: 0 },
+    none: { battles: 0, attWins: 0, defWins: 0, fled: 0 },
+  },
+};
+
+for (let i = 0; i < N_GAMES; i++) {
+  // rotate the 4 seats through all 5 personalities across the run for broad coverage, not just
+  // one fixed matchup repeated N times
+  const strategies = [0, 1, 2, 3].map(s => BOT_STRATS[(i + s) % BOT_STRATS.length]);
+  const cfg = roundCfg(strategies);
+  const g = new Game(cfg, SEED_BASE + i, true); // record=true — Game.ev() is a no-op otherwise
+  g.play();
+
+  stats.games++;
+  stats.battlesPerGame.push(g.battles);
+  stats.roundsPerGame.push(g.round);
+
+  for (const e of g.events) {
+    if (e.t !== "battle" && e.t !== "battleflee") continue;
+    stats.totalBattles++;
+    stats.flipsPerBattle.push(e.flips || 0);
+    stats.roundsPerBattle.push((e.rounds || []).length);
+    const key = e.downwind || "none";
+    const bucket = stats.byDownwind[key];
+    bucket.battles++;
+    if (e.t === "battleflee") { stats.fled++; bucket.fled++; }
+    else if (e.winner === e.a) { stats.attWins++; bucket.attWins++; }
+    else { stats.defWins++; bucket.defWins++; }
+  }
+}
+
+console.log(`Real-game battle-mechanic test — ${N_GAMES} full games, real bots, real Game.play()/Game.battle() (seed base ${SEED_BASE})\n`);
+
+console.log(`Battles per game: avg=${avg(stats.battlesPerGame).toFixed(2)}  min=${Math.min(...stats.battlesPerGame)}  max=${Math.max(...stats.battlesPerGame)}`);
+console.log(`Rounds (turns) per game: avg=${avg(stats.roundsPerGame).toFixed(1)}`);
+console.log(`Total battles across all games: ${stats.totalBattles}\n`);
+
+console.log(`Average flips per battle: ${avg(stats.flipsPerBattle).toFixed(2)}`);
+console.log(`Average rounds per battle: ${avg(stats.roundsPerBattle).toFixed(2)}\n`);
+
+console.log("Win/loss/flee — attacker vs defender (overall):");
+console.log(`  attacker wins=${pct(stats.attWins, stats.totalBattles)}  defender wins=${pct(stats.defWins, stats.totalBattles)}  flee=${pct(stats.fled, stats.totalBattles)}\n`);
+
+console.log("Wind-direction effect (win rate by who's downwind, flee excluded from the win-rate split):");
+for (const [key, label] of [["a", "Attacker downwind"], ["d", "Defender downwind"], ["none", "Crosswind (no advantage)"]]) {
+  const b = stats.byDownwind[key];
+  const decided = b.battles - b.fled;
+  console.log(`  ${label.padEnd(28)} battles=${String(b.battles).padEnd(6)} attacker-wins=${pct(b.attWins, decided).padEnd(7)} defender-wins=${pct(b.defWins, decided).padEnd(7)} flee-rate=${pct(b.fled, b.battles)}`);
+}
