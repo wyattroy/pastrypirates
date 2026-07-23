@@ -2786,6 +2786,10 @@ let spectatingBattle=false;    // a battle scoreboard is up on this client — w
 // ask() at all (it uses its own concurrent multi-seat prompt path), so it stays untimed
 // without needing a special case here.
 let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
+// BUG-02: {seat,force} preserved across a timer-off so a re-arm can restore the 30s auto-skip.
+// withShotClock() assigns shotClockForce exactly once, when a decision is created, and never runs
+// again for that same decision — so without this a timer-off permanently disarms the safety net.
+let shotClockStash=null;
 let shotClockPaused=false, shotClockPauseElapsed=0;
 // #7: the whole-table turn timer can be switched off (stressful for learners). Synced through
 // Firebase so every client agrees; ANY player may toggle it. When off, the host never arms the
@@ -2886,9 +2890,32 @@ function startShotClock(p){
 }
 function stopShotClock(){
   if(!isHost)return;
+  // BUG-02: stash the in-flight decision's force-resolver before dropping the live reference, so
+  // rearmShotClock() can hand it back. Keyed by seat — restoring a resolver that belongs to an
+  // older decision would force-resolve the wrong promise, which is worse than having no auto-skip.
+  if(shotClockForce&&shotClockSeat!=null)shotClockStash={seat:shotClockSeat,force:shotClockForce};
   shotClockSeat=null;shotClockForce=null;shotClockPaused=false;
   if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
   broadcastClock();
+}
+// notes/edits BUG-02: re-arm the CURRENT turn's clock after the timer is switched back on. This is
+// deliberately not startShotClock(): that clears shotClockFired, which would let the same turn be
+// charged the 20s penalty twice. D-06 says an already-fired penalty is neither refunded nor
+// replayed — switching the timer off only prevents FUTURE penalties. Also restores the stashed
+// force-resolver so the 30s auto-skip survives the toggle (see stopShotClock).
+// Not a pause button: D-04 keeps multiplayer on the ⏱ toggle only, and this adds no new UI.
+function rearmShotClock(p){
+  if(!isHost||timerOff)return;
+  shotClockSeat=p.idx;
+  shotClockDeadline=Date.now()+30000;   // D-05: a full fresh 30s, not the remainder
+  shotClockPaused=false;
+  // shotClockFired is deliberately NOT reset here (D-06) — see above.
+  // turnExpired is deliberately NOT cleared: if the turn already expired, the flow is unwinding
+  // and watchTimer's guard below refuses to re-arm it at all.
+  if(shotClockStash&&shotClockStash.seat===p.idx){shotClockForce=shotClockStash.force;shotClockStash=null;}
+  broadcastClock();
+  if(shotClockTimer)clearInterval(shotClockTimer);
+  shotClockTimer=setInterval(shotClockTick,500);
 }
 // solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
 function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strategy==="human").length<=1;}
@@ -2934,8 +2961,20 @@ function toggleTimer(){
 function watchTimer(){
   if(!db||!room)return;
   db.ref("rooms/"+room+"/timerOff").on("value",s=>{
+    // notes/edits BUG-02: this callback only ever handled the on→off direction. Switching the
+    // timer back on left the in-flight turn with no armed clock at all — startShotClock() is
+    // only called at the START of a turn (armClock), so nothing re-armed the turn already in
+    // progress. That is the "I paused the timer and then the game wouldn't continue" report.
+    const was=timerOff;
     timerOff=!!s.val();
     if(isHost&&timerOff)stopShotClock();
+    else if(isHost&&was&&!timerOff&&shotClockSeat==null&&!turnExpired){
+      // shotClockSeat==null is what prevents double-arming: this callback fires on EVERY client
+      // for every write, so the host also runs it for a write a guest originated.
+      const seat=currentTurnSeat();
+      const p=seat!=null?game.players[seat]:null;
+      if(p&&!p.done)rearmShotClock(p);
+    }
     setClockUI();
   });
 }
@@ -2970,7 +3009,12 @@ async function expireShotClock(){
   const p=game.players[shotClockSeat];
   shotClockSeat=null;
   turnExpired=true;
+  // BUG-02: a null resolver here is a real, distinguishable state, not an ordinary no-op — it
+  // means the decision in flight was created before a timer-off and its resolver was never
+  // handed back (see stopShotClock/rearmShotClock). Degrade loudly rather than silently letting
+  // the countdown expire while nothing actually resolves the promise.
   if(shotClockForce){shotClockForce();shotClockForce=null;}
+  else if(shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",shotClockStash.seat,"— auto-skip degraded");
   if(activePickCleanup){activePickCleanup();activePickCleanup=null;}
   if(p){
     let lost;
@@ -3365,6 +3409,9 @@ function withShotClock(seat,base,defaultVal){
     base.then(v=>{
       if(!done){
         done=true;shotClockForce=null;
+        // BUG-02: the decision resolved for real, so any resolver stashed for THIS seat across a
+        // timer-off is dead — drop it so a later re-arm can't force-resolve a settled promise.
+        if(shotClockStash&&shotClockStash.seat===seat)shotClockStash=null;
         if(shotClockSeat===seat)stopShotClock();
         res(v);
       }
