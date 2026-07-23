@@ -749,9 +749,23 @@
   </div>
 </div>
 
+<!-- notes/edits BUG-03: host-refresh replay came up short. Never silently hand back a board that
+     has reset to turn 1 — say so and let the player choose. Mirrors #leaveConfirmModal's shape. -->
+<div id="restoreFailModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalTitle">🧭 Couldn't fully restore this voyage</div>
+    <div class="modalByline" id="restoreFailWhy">Some of this game's history didn't make it back. Carrying on may put ye out of step with the rest of the crew.</div>
+    <button class="big" id="btnRestoreAnyway" type="button">⚓ Resume anyway</button>
+    <button class="primary big" id="btnRestoreRestart" type="button">🔄 Start a fresh voyage</button>
+  </div>
+</div>
+
 <!-- ===================== GAME ===================== -->
 <div id="game" style="display:none">
   <div id="syncnote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/gear.png" alt=""> Trouble syncing with the crew — a move may not have gone through. Refresh to reconnect if this doesn't clear up on its own.</div>
+  <!-- notes/edits BUG-03/D-08: guests are render-only, so a host whose restore failed would just
+       leave them staring at a frozen board with no explanation. Same treatment as #syncnote. -->
+  <div id="recoverynote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/gear.png" alt=""> Yer captain is repairing the voyage log — the board may be a few moves behind until they're done.</div>
   <div id="layout">
     <div id="left">
       <div id="boardwrap">
@@ -2783,13 +2797,16 @@ let shotClockFired={}, turnExpired=false, clockState=null;
 // this the highlighted sail-destination squares are left stuck on the board forever
 let activePickCleanup=null;
 // --- host-refresh recovery: the host records every human decision, so after an accidental
-//     reload it can silently REPLAY the deterministic engine to rebuild the exact game
-//     state and keep driving, instead of the game dying with the host's tab. ---
+//     reload it can REPLAY the deterministic engine to rebuild the exact game state and keep
+//     driving, instead of the game dying with the host's tab. The rebuild is then VALIDATED
+//     (see replayShortfall/endReplay) — a replay that came up short asks rather than pretending. ---
 let replaying=false;           // true while fast-forwarding the recorded log after a reload
 let dlog=[];                   // recorded decisions to replay (indices for ask, cells for pickCell)
 let dlogIdx=0;                 // next log entry to consume during replay
 let dlogN=0;                   // total decisions resolved so far (replayed + live) = next log slot
 let resumeEvLen=0;             // # events already broadcast before the reload (so we don't re-push)
+let resumeReadFailed=false;    // BUG-03: a resume read THREW (vs. legitimately returned nothing) —
+                               // the counts can't be trusted, so replayShortfall treats it as incomplete
 // solo pause (see toggleShotClockPause) freezes the whole game by making every await-ed
 // sleep() stall first — bots pace their turns entirely through sleep(), so this alone halts
 // bot play without threading a paused-check through every call site.
@@ -4669,10 +4686,12 @@ function endReplay(){
   // future event was suppressed and guests saw a permanently frozen board. Only advance the
   // frontier when the replay is trustworthy. (readFailed is hard-coded false here; plan 01-02
   // owns resumeHostGame and will thread the real read-failure flag through this parameter.)
-  const sf=replayShortfall(game.events.length,resumeEvLen,false);
+  const sf=replayShortfall(game.events.length,resumeEvLen,resumeReadFailed);
   if(sf.incomplete){
     console.error("replay incomplete",sf);
     const note=$("syncnote");if(note)note.style.display="";
+    showRestoreFail(sf);    // D-07: ask, don't pretend
+    setRecoveryState(sf.reason);  // D-08: and don't leave the crew staring at a frozen board
     return;                 // leave evPushed where it was — pushEvents() resumes from the real
                             // frontier instead of skipping everything the replay failed to rebuild
   }
@@ -4680,6 +4699,50 @@ function endReplay(){
   liveRender();           // flush any freshly-rebuilt events + paint the current board
 }
 
+// notes/edits BUG-03/D-07: the replay didn't rebuild the voyage. Explain which way it failed and
+// offer the two honest choices — carry on from a knowingly-incomplete state, or scuttle it and
+// start fresh. "Resume anyway" deliberately advances evPushed to the REBUILT length, not to
+// resumeEvLen: the frontier must reflect what actually exists locally, or pushEvents() goes right
+// back to suppressing everything the replay missed (the BUG-04 freeze).
+function showRestoreFail(sf){
+  const why=$("restoreFailWhy");
+  if(why)why.textContent = sf.reason==="read-failed"
+    ? "We couldn't reach the crew's log for this voyage, so we can't tell how much of it is missing. Carrying on may put ye out of step with the rest of the crew."
+    : `We rebuilt this voyage but came up ${sf.shortfall} event${sf.shortfall===1?"":"s"} short. Carrying on may put ye out of step with the rest of the crew.`;
+  const m=$("restoreFailModal");if(m)m.style.display="flex";
+}
+function wireRestoreFail(){
+  const anyway=$("btnRestoreAnyway"),restart=$("btnRestoreRestart");
+  if(anyway)anyway.onclick=()=>{
+    $("restoreFailModal").style.display="none";
+    evPushed=game.events.length;   // frontier = what we actually have, not what Firebase claimed
+    setRecoveryState(null);
+    liveRender();
+  };
+  if(restart)restart.onclick=()=>{
+    $("restoreFailModal").style.display="none";
+    setRecoveryState(null);
+    leaveGame();                   // same teardown path as abandoning ship — clears session + room
+  };
+}
+// D-08: tell the crew their captain is mid-repair. Guests watch only ev/prompt/narr/flip/battle/
+// clock/timerOff/draftPrompts/response/chat — none of which can carry this — so it gets its own
+// small node rather than overloading prompt's payload shape. Host-only, guarded like broadcastClock.
+function setRecoveryState(state){
+  if(!isHost||!db||!room)return;
+  if(state)db.ref("rooms/"+room+"/recovery").set({state,at:Date.now()}).catch(netFail("recovery"));
+  else db.ref("rooms/"+room+"/recovery").remove().catch(netFail("recovery"));
+}
+// guest side: purely presentational. A guest is render-only in this architecture, so this may only
+// show/hide the strip — never reconcile or re-fetch game state.
+function watchRecoveryState(){
+  if(!db||!room)return;
+  db.ref("rooms/"+room+"/recovery").on("value",s=>{
+    const v=s.val();
+    const note=$("recoverynote");
+    if(note)note.style.display=(v&&v.state)?"":"none";
+  });
+}
 // host: broadcast new events to the shared feed
 function pushEvents(){
   if(!db||!room)return;
@@ -5054,7 +5117,7 @@ function beginGame(cfg,seed){
   updateRecipeBanner();
   watchRecipes();
   if(isHost){runLiveNet();}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
   // host seeds the shared flag from its own last choice so the preference carries across games
@@ -5097,6 +5160,7 @@ function wireLobby(){
   $("btnStart").onclick=()=>{$("startConfirmModal").style.display="flex";};
   $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
+  wireRestoreFail();
   $("btnLeave").onclick=()=>{$("leaveConfirmModal").style.display="flex";};
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};
@@ -5134,17 +5198,27 @@ function wireLobby(){
 // The host reloaded mid-game. Rebuild the crew, load the recorded decision log, then let
 // beginGame → runLiveNet fast-forward the deterministic engine through the log (replaying=true).
 // Rendering, delays, and broadcasts are suppressed until the log runs out (endReplay), at which
-// point control seamlessly returns to live play from the exact spot the reload interrupted.
+// point control returns to live play from the exact spot the reload interrupted — but only after
+// endReplay validates that the rebuild actually got there. A replay that fell far short (a failed
+// or empty log read) surfaces the restore-failed dialog instead of quietly handing back a board
+// that has silently reset to turn 1.
 async function resumeHostGame(r){
   numSeats=r.numSeats;
   roster=[];for(let i=0;i<numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:BOT_STRATS[i%BOT_STRATS.length]};
   if(!r.cfg){ // never actually started (reloaded on the "playing" flag before cfg was written)
     clearSession();showHome();return;
   }
-  let draw={};try{draw=(await db.ref("rooms/"+room+"/dlog").get()).val()||{};}catch(e){}
+  // notes/edits BUG-03: these two reads used to swallow their errors entirely (`catch(e){}`), which
+  // conflated three very different outcomes — the read THREW, the read succeeded and returned
+  // nothing, and the read succeeded with data. A thrown read then looked identical to a brand-new
+  // game, so the engine rebuilt a fresh board from the seed and the player saw their whole voyage
+  // reset. Record the failure and surface it through netFail (same helper every other failure site
+  // in this file uses); replayShortfall treats a failed read as untrustworthy regardless of counts.
+  resumeReadFailed=false;
+  let draw={};try{draw=(await db.ref("rooms/"+room+"/dlog").get()).val()||{};}catch(e){resumeReadFailed=true;netFail("resume dlog")(e);}
   dlog=Object.keys(draw).map(Number).sort((a,b)=>a-b).map(k=>decodeDec(draw[k]));
   dlogIdx=0;dlogN=0;
-  let evval={};try{evval=(await db.ref("rooms/"+room+"/ev").get()).val()||{};}catch(e){}
+  let evval={};try{evval=(await db.ref("rooms/"+room+"/ev").get()).val()||{};}catch(e){resumeReadFailed=true;netFail("resume events")(e);}
   resumeEvLen=evval?Object.keys(evval).length:0;
   showGameView();
   panel('<div class="apMsg">⚓ Reconnecting to your voyage…</div>');
@@ -5243,8 +5317,10 @@ function boot(){
       const r=snap.val();
       isHost=(r.host===myId);
       if(isHost&&(r.status==="playing"||r.status==="ended")){
-        // The host's browser drives the game. On an accidental reload, silently replay the
-        // recorded decision log to rebuild the exact game state and keep driving it.
+        // The host's browser drives the game. On an accidental reload, replay the recorded
+        // decision log to rebuild the exact game state and keep driving it — then check the
+        // rebuild actually landed (see endReplay). If it came up short, the player is asked
+        // what to do rather than handed a silently-reset board.
         resumeHostGame(r);return;
       }
       watchRoom();
