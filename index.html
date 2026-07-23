@@ -3178,16 +3178,32 @@ function panel(html,needsAction=false){
 // awaits this reveal before it can hold/fade/return — hang forever and freeze the whole bot-turn
 // game loop the moment a player switches tabs. setTimeout keeps firing (just throttled) even when
 // hidden, so the reveal still completes — slower while backgrounded, but never stuck.
+// notes/edits BUG-01: this used to do one DOM write PER CHARACTER (`node.nodeValue+=ch`) inside the
+// catch-up loop, so a tick that had fallen 12 characters behind performed 12 separate text-node
+// mutations. Each one dirties layout on a page that, during a storm, is also compositing two
+// 220%-sized animated rain layers — which is why the hitch is storm-only (with no storm those
+// layers are paused and absent, and the same writes cost almost nothing).
+// The fix is to reduce WRITE VOLUME, not to touch the storm overlay (D-02) and not to special-case
+// storms (D-03): accumulate how far each text node should be revealed, then write each dirty node
+// exactly once per tick. Identical characters appear at identical moments — a catch-up tick that
+// reveals twelve characters now performs one write instead of twelve.
+// Characters are counted as CODE POINTS (`[...str]`, matching the original's `for...of`), not code
+// units — this text is full of emoji and slicing mid-surrogate-pair would render broken glyphs.
+// The setTimeout pacing above is unchanged and must stay setTimeout — see the rAF note.
 function typewriterReveal(msgEl,msPerChar){
   if(msgEl._revealTimer)clearTimeout(msgEl._revealTimer);
-  const units=[];
+  const units=[],recs=[];
   const walker=document.createTreeWalker(msgEl,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
   let n;
   while(n=walker.nextNode()){
     if(n.nodeType===Node.TEXT_NODE){
       if(!n.nodeValue)continue;
-      const full=n.nodeValue;n.nodeValue="";
-      for(const ch of full)units.push({node:n,ch});
+      const rec={node:n,chars:[...n.nodeValue],shown:0,dirty:false};
+      n.nodeValue="";
+      recs.push(rec);
+      // still one pacing unit per code point, so the timing arithmetic below is untouched — but
+      // the unit now points at its owning node record instead of carrying a character to write
+      for(let i=0;i<rec.chars.length;i++)units.push({rec});
     }else if(n.tagName==="IMG"){
       n.style.opacity="0";n.style.transition="opacity .1s";
       units.push({img:n});
@@ -3204,7 +3220,12 @@ function typewriterReveal(msgEl,msPerChar){
       while(revealed<target){
         const u=units[revealed++];
         if(u.img)u.img.style.opacity="1";
-        else u.node.nodeValue+=u.ch;
+        else{u.rec.shown++;u.rec.dirty=true;}   // book-keeping only — no DOM write in here
+      }
+      // one write per touched node per tick, instead of one per character
+      for(let i=0;i<recs.length;i++){
+        const r=recs[i];
+        if(r.dirty){r.node.nodeValue=r.chars.slice(0,r.shown).join("");r.dirty=false;}
       }
       if(revealed<total)msgEl._revealTimer=setTimeout(step,pollMs);
       else resolve();
@@ -5374,6 +5395,45 @@ function boot(){
     }).catch(()=>{clearSession();showHome();});
   }
 }
+/* ===== BUG-01 DEV INSTRUMENTATION — remove before phase close (D-09) ===== */
+// Temporary measuring tape for the Safari storm-perf work. Off unless the page is loaded with
+// ?perf=1 — absent that parameter nothing here registers a listener, creates an element, or
+// starts a loop. Everything the block needs lives inside the block, so the strip is one delete.
+//
+// Drive from the Safari console once loaded with ?perf=1 :
+//   ppForceStorm(true)   — force the storm overlay on (pure CSS state, no engine call)
+//   ppForceStorm(false)  — back off
+//   ppPerf()             — current {fps, avgFrameMs}
+//
+// rAF is correct HERE because this counter is display-only and nothing awaits it. That is NOT
+// true of typewriterReveal()'s pacing loop — see its comment; a hidden tab suspends rAF and would
+// hang the awaited promise. Do not "unify" the two.
+(function(){
+  if(!/[?&]perf=1\b/.test(location.search))return;
+  let last=performance.now(),frames=0,acc=0,fps=0,avg=0;
+  const box=document.createElement("div");
+  box.style.cssText="position:fixed;top:6px;right:6px;z-index:99999;pointer-events:none;"+
+    "font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.72);color:#0f0;"+
+    "padding:4px 7px;border-radius:4px;white-space:pre";
+  document.body.appendChild(box);
+  (function tick(now){
+    const dt=now-last;last=now;frames++;acc+=dt;
+    if(acc>=500){fps=Math.round(frames*1000/acc);avg=+(acc/frames).toFixed(2);frames=0;acc=0;
+      box.textContent=fps+" fps\n"+avg+" ms/frame";}
+    requestAnimationFrame(tick);
+  })(performance.now());
+  window.ppPerf=()=>({fps,avgFrameMs:avg});
+  // Mirrors exactly what render()'s storm block does — class flip, lazy layer build, --slant.
+  // Deliberately does NOT touch the Game instance and consumes no randomness: this.r() is the only
+  // sanctioned RNG in this codebase and replay determinism depends on its sequence.
+  window.ppForceStorm=on=>{
+    const bw=document.getElementById("boardwrap"),ov=document.getElementById("stormOverlay");
+    if(bw)bw.classList.toggle("storming",!!on);
+    if(ov&&on){buildStormLayers(ov);ov.style.setProperty("--slant","225deg");}
+  };
+  console.log("[perf] instrumentation on — ppForceStorm(true|false), ppPerf()");
+})();
+/* ===== end BUG-01 DEV INSTRUMENTATION ===== */
 boot();
 </script>
 </body>
