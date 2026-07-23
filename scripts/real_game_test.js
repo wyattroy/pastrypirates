@@ -34,7 +34,9 @@ if (scriptStart < 8 || scriptEnd === -1) {
 const engineSrc = html.slice(scriptStart, scriptEnd) + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
 
 const sandbox = {
-  document: { documentElement: { style: { setProperty() {} } } },
+  // `document.body.innerHTML = emojify(...)` runs at boot inside the extracted region (the emoji→
+  // <img> swap), so the stub needs a writable body as well as the documentElement style setter.
+  document: { documentElement: { style: { setProperty() {} } }, body: { innerHTML: "" } },
   console,
   Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
 };

@@ -4641,11 +4641,41 @@ function resumeSoloGame(saved){
   replaying=true;
   beginGame(roundCfg(saved.strategies),saved.seed);
 }
+// notes/edits BUG-03/BUG-04: decide whether a host-refresh replay actually rebuilt the voyage.
+// The yardstick is resumeEvLen — the Firebase event count captured BEFORE the reload (see
+// resumeHostGame) — not dlog.length, because one logged decision can emit several events, so the
+// two counts are not comparable. A SMALL shortfall is expected, not an error: ask()/pickCell()/
+// battleAsk() each fall through from replay to live play the instant dlogIdx >= dlog.length, so
+// the decision that was in flight when the tab reloaded — and the narration events it would have
+// produced — are legitimately missing. A LARGE shortfall means the log never loaded (the empty-
+// dlog case that rebuilds a fresh board from the seed and reads to players as "reset to start").
+/* ===== replayShortfall — extractable region, see scripts/dlog_replay_test.js ===== */
+const REPLAY_SHORTFALL_TOLERANCE = 4;
+function replayShortfall(rebuiltEvLen, resumeEvLen, readFailed){
+  const shortfall = Math.max(0, resumeEvLen - rebuiltEvLen); // clamped: replaying past the old
+                                                             // frontier is fine, never negative
+  if(readFailed) return {shortfall, incomplete:true, reason:"read-failed"};
+  if(shortfall > REPLAY_SHORTFALL_TOLERANCE) return {shortfall, incomplete:true, reason:"short-replay"};
+  return {shortfall, incomplete:false, reason:"ok"};
+}
+/* ===== end replayShortfall ===== */
 // leave replay mode: the recorded log is exhausted (or the game replayed to its end). Reconcile
 // the broadcast frontier so we push only events the crew hasn't already seen, then render live.
 function endReplay(){
   if(!replaying)return;
   replaying=false;
+  // BUG-04: this used to set evPushed=resumeEvLen unconditionally. When a replay came up short,
+  // that silently moved the broadcast frontier PAST events that were never rebuilt, so every
+  // future event was suppressed and guests saw a permanently frozen board. Only advance the
+  // frontier when the replay is trustworthy. (readFailed is hard-coded false here; plan 01-02
+  // owns resumeHostGame and will thread the real read-failure flag through this parameter.)
+  const sf=replayShortfall(game.events.length,resumeEvLen,false);
+  if(sf.incomplete){
+    console.error("replay incomplete",sf);
+    const note=$("syncnote");if(note)note.style.display="";
+    return;                 // leave evPushed where it was — pushEvents() resumes from the real
+                            // frontier instead of skipping everything the replay failed to rebuild
+  }
   evPushed=resumeEvLen;   // events 0..resumeEvLen-1 are already in Firebase; push only what's new
   liveRender();           // flush any freshly-rebuilt events + paint the current board
 }
