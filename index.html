@@ -2293,7 +2293,10 @@ function drawBoard(){
   // always empty) purely so the storm-color-toggle loop below still has something safe to iterate.
   windLabels=[];
   spinNeedle=el("g",{},hud);
-  const needleImg=el("image",{x:-sr*.42,y:-sr*.95,width:sr*.84,height:sr*1.7,href:COMPASS_NEEDLE_IMG},spinNeedle);
+  // needle art's collar (rotation pivot) sits at the vertical center of the image, so the
+  // box is centered on (0,0) rather than offset — an offset box put the pivot ~6% of the
+  // needle's height away from the collar, a visible wobble when it spins
+  const needleImg=el("image",{x:-sr*.336,y:-sr*.68,width:sr*.672,height:sr*1.36,href:COMPASS_NEEDLE_IMG},spinNeedle);
   spinNeedle.style.transition="transform .7s ease";
   spinNeedle.style.transformOrigin="0px 0px";
   stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
