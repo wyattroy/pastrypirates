@@ -84,7 +84,7 @@
      The rain angle/travel is driven by CSS vars set per-storm from the wind (see render()).
      Fades in/out rather than snapping on/off. Purely decorative. */
   #stormOverlay { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; overflow: hidden;
-    opacity: 0; transition: opacity .8s ease; z-index: 5; background: rgba(18, 24, 45, 0.5);
+    opacity: 0; transition: opacity .8s ease; z-index: 5; background: rgba(18, 24, 45, 0.4);
     /* rain look tuned in notes/rain.html; --slant is set per-storm (render) to the wind direction */
     --slant: 0deg; --spacing: 60px; --thick: 2.5px; --dash: 61px; --gap: 52px; --blur: 0.6px;
     --streak: rgba(210, 228, 255, 0.19); --speed: 0.75s; }
@@ -144,10 +144,12 @@
   .prowTop { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px 6px;
     grid-template-areas: ".   .    .     recipe" "dot name coins chips"; align-items: center; }
   @media (max-width: 480px) {
-    /* PDF item 3c: on very narrow screens the recipe sits left-aligned with the name text (not
-       the dot), spanning the name/coins/chips columns so a long title doesn't wrap and cost
-       extra vertical space — just not starting under the dot */
-    .prowTop { grid-template-areas: ".   recipe recipe recipe" "dot name coins chips"; }
+    /* PDF item 3c / notes/edits #11: on very narrow screens the recipe sits underneath the
+       captain's name, left-aligned with the name text (not the dot), spanning the
+       name/coins/chips columns so a long title doesn't wrap and cost extra vertical space —
+       just not starting under the dot. Row order matters here: recipe must come SECOND in
+       grid-template-areas so it renders below the dot/name/coins/chips row, not above it. */
+    .prowTop { grid-template-areas: "dot name coins chips" ".   recipe recipe recipe"; }
   }
   .prowTop .dot { grid-area: dot; }
   .prowTop .pname { grid-area: name; }
@@ -228,7 +230,17 @@
   #actionPanel { margin: 8px auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
+  /* notes/edits #4: the box used to snap instantly to the new message's height. #apGrid is a
+     single-row grid whose row track is toggled between 1fr (natural content height) and 0fr
+     (collapsed) — grid-template-rows, unlike height:auto, is directly transitionable. flash()
+     collapses it in step with the old message's fadeOut; panel() resets it to 1fr whenever fresh
+     content lands, growing smoothly into the new content's natural height instead of jumping. */
+  #apGrid { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .1s ease; }
+  #apGridInner { overflow: hidden; min-height: 0; }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  /* notes/edits #4b: a parenthetical aside like "(1 broadside)" must never split across a line
+     break — wrap it in this class at the string-building level wherever it appears. */
+  .nobrk { white-space: nowrap; }
   /* notes/edits #1: every narration/prompt message types in one character at a time (real DOM
      text-node reveal via typewriterReveal() in panel() — see there for why). Only flash()'s
      passive narration (no buttons to click through) ever gets the .fadeOut treatment — action
@@ -281,8 +293,10 @@
   #flipCoinWrap.coin { width: clamp(36px,13cqw,64px); height: clamp(36px,13cqw,64px);
     font-size: clamp(6px,1.9cqw,11px); margin: 0; }
   #flipCoinWrap.coin.spin { font-size: clamp(11px,3.5cqw,22px); }
-  #flipCoinWrap.active { border-color: var(--accent); background: radial-gradient(#ffe1a0, #f5a623);
-    color: #7a4a00; font-weight: 800; cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
+  #flipCoinWrap.active { border-color: var(--accent); background-color: #f5a623;
+    background-size: cover; background-position: center;
+    color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.4);
+    font-weight: 800; cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
   @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
   @keyframes plankglow { 0%, 100% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 0 rgba(245,159,45,.65); }
     50% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 14px rgba(245,159,45,0); } }
@@ -577,9 +591,6 @@
     <div id="stepHost" class="modalStep" style="display:none">
       <button class="backLink" type="button" data-back>← back</button>
       <h3>🗺️ Host a Crew</h3>
-      <div class="fieldRow">Table size:
-        <select id="numSeats"><option>2</option><option>3</option><option selected>4</option></select> captains
-      </div>
       <button class="primary big" id="btnCreate" type="button">⚓ Create the game</button>
     </div>
 
@@ -744,7 +755,7 @@
       </div>
       <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
-    <div id="actionPanel" style="display:none"></div>
+    <div id="actionPanel" style="display:none"><div id="apGrid"><div id="apGridInner"></div></div></div>
     <div class="panel" id="captainsPanel">
       <h3>Captains</h3>
       <div id="players"></div>
@@ -1332,30 +1343,87 @@ class Game{
       if(spoilIng)lose.justLost={ing:spoilIng,by:win.idx,until:this.round+3};
     }
   }
+  // unweighted-cost port of the free reachable() UI helper, using this.* instead of the global
+  // game singleton, so headless battle() can find a legal flee square with the same fidelity.
+  reachableFrom(p){
+    const budget=this.sailBudget(p);
+    const best={[p.pos[0]+","+p.pos[1]]:0},frontier=[[p.pos,0]],out=[];
+    while(frontier.length){
+      let mi=0;
+      for(let i=1;i<frontier.length;i++)if(frontier[i][1]<frontier[mi][1])mi=i;
+      const [c,cost]=frontier.splice(mi,1)[0],k=c[0]+","+c[1];
+      if(cost>best[k])continue;
+      const isStart=c[0]===p.pos[0]&&c[1]===p.pos[1];
+      if(!isStart){
+        const occupied=this.players.some(q=>q!==p&&!q.done&&q.pos[0]===c[0]&&q.pos[1]===c[1]);
+        if(!occupied)out.push(c);
+      }
+      if(this.onRim(c)&&!isStart)continue;
+      for(const dk of Object.keys(DIRS)){
+        const dd=DIRS[dk];
+        const o=[c[0]+dd[0],c[1]+dd[1]],ok=o[0]+","+o[1];
+        if(this.blocked(o))continue;
+        if(this.islands[o]!==undefined||this.isHome(o))continue;
+        const nc=cost+windStepCost(this.windNow,dk);
+        if(nc>budget)continue;
+        if(best[ok]!==undefined&&best[ok]<=nc)continue;
+        best[ok]=nc;
+        frontier.push([o,nc]);
+      }
+    }
+    return out;
+  }
   battle(att,def){
     const c=this.cfg,need=2;
     if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}
     this.battles++;
     let a=0,d=0,free=c.broadside==="free",paid=c.broadside==="paid";
-    // notes/edits #3: keep the headless sim's scoring in step with asyncBattle — two HEADS award
-    // the downwind fighter (else cancel). `downwind` is purely geometric, never consumed.
-    let downwind=null;
+    // notes/edits #3/#12: kept in step with asyncBattle — two HEADS award the downwind fighter
+    // (else cancel); the downwind fighter also gets one free reflip on tails, independent of
+    // (and chainable before) the broadside free/paid reflip. `downwind` is purely geometric,
+    // never consumed — only freeA/freeD (the reflip token) gets spent.
+    let downwind=null,freeA=false,freeD=false;
     {
       const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
       const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
       const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
-      if(this.windNow===dirAtoD)downwind="a";
-      else if(this.windNow===dirDtoA)downwind="d";
+      if(this.windNow===dirAtoD){downwind="a";freeA=true;}
+      else if(this.windNow===dirDtoA){downwind="d";freeD=true;}
     }
     const rounds=[];
+    let fled=false,flips=0;
     while(a<need&&d<need){
-      let bs=false,ah=this.flip(att),dh=this.flip(def);
-      if(free&&!ah){ah=this.flip(att);free=false;bs=true;}
-      else if(paid&&!ah&&att.coins>=1){att.coins--;ah=this.flip(att);paid=false;bs=true;}
-      rounds.push([ah?1:0,dh?1:0,bs?1:0]);
-      if(ah&&dh){if(downwind==="a")a++;else if(downwind==="d")d++;}
-      else if(ah)a++; else if(dh)d++;
+      let bs=false,ah=this.flip(att),dh=this.flip(def);flips+=2;
+      // attacker: wind free reflip chains straight into the broadside free/paid reflip on tails —
+      // a bot always takes an available reflip (asyncBattle only routes the "reflip?" confirmation
+      // through a prompt for human fighters; a bot's `use` stays true).
+      while(!ah&&(freeA||free||(paid&&att.coins>=1))){
+        if(freeA)freeA=false;else{if(paid)att.coins--;free=false;paid=false;}
+        ah=this.flip(att);flips++;bs=true;
+      }
+      // defender: one downwind free reflip
+      if(!dh&&freeD){freeD=false;dh=this.flip(def);flips++;}
+      let scorer=null;
+      if(ah&&dh){if(downwind==="a"){a++;scorer="a";}else if(downwind==="d"){d++;scorer="d";}}
+      else if(ah){a++;scorer="a";} else if(dh){d++;scorer="d";}
+      rounds.push([ah?1:0,dh?1:0,bs?1:0,scorer]);
+      // double-tails: the battle is still undecided here, so the defender may pay 1 coin to flee
+      // — a bot flees iff currently behind on points, same rule as asyncBattle's bot branch.
+      const bothTails=!ah&&!dh;
+      if(bothTails&&a<need&&d<need&&def.coins>=1&&d<a){
+        const cells=this.reachableFrom(def);
+        if(cells.length){
+          def.coins--;
+          def.pos=cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
+          this.tradewind(def);
+          fled=true;
+          this.recordSkirmish(att,def,null);
+          this.ev({t:"battleflee",a:att.idx,d:def.idx,rounds,flips,downwind});
+          break;
+        }
+      }
     }
+    if(fled)return null;
     const win=a>=need?att:def,lose=a>=need?def:att;
     if(win===att)this.attWins++;
     let spoil,spoilIng=null;
@@ -1373,7 +1441,7 @@ class Game{
       this.tradewind(att);this.tradewind(def);
     }
     this.recordSkirmish(att,def,lose,spoilIng);
-    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
+    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,flips,downwind});
     if(win===att)for(const pl of [att,def]){ // only ships that swapped into a new berth may dock — a ship that never left doesn't re-dock
       const port=this.adjPort(pl);
       if(port&&(this.cfg.unlimitedDock||!pl.firstFlip.has(port)))this.doDock(pl,port);
@@ -2260,7 +2328,7 @@ const EVENT_NARRATION={
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
   dodge:(e,at)=>({txt:`${pn(e.p)} pays 1🌕 to dodge an island`,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]}),
   anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — drops anchor safely!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
-  moored:(e,at)=>({txt:`${pn(e.p)} is safely moored — the wind can't budge them ⚓`,pops:[[at(e.p),"⚓"]]}),
+  moored:(e,at)=>({txt:`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]}),
   blocked:(e,at)=>({txt:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
   anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
   tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is swept along the trade winds around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
@@ -2273,7 +2341,7 @@ const EVENT_NARRATION={
     const place=dockPlace(e.ing),flavor=dockFlavor(e.ing);
     const g={ing:`docks at ${place} — hauls aboard ${ilabelImg(e.ing)}!`,
       empty:`docks at ${place} for ${flavor}, but finds it empty — takes 3🌕`,
-      bought:`docks at ${place} for ${flavor} and flips tails, but buys it anyway for 3🌕`,
+      bought:`docks at ${place} for ${iconImg(ING_IMG[e.ing])}${flavor} and flips tails, but buys it anyway for 3🌕`,
       coins:`docks at ${place} for ${flavor}, but flips tails and takes 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     const F=e.heads?"⚪H":"⚫T";
@@ -2283,26 +2351,32 @@ const EVENT_NARRATION={
     return {txt:`${pn(e.p)} ${g[e.got]}`,caps:[[e.p,`docks ${F} ${capM[e.got]}`]],
       pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
-  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?" (+1🌕 each)":""}`,
+  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?' <span class="nobrk">(+1🌕 each)</span>':""}`,
     caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
     pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]}),
   sidebet:e=>e.won?{cls:"trade",txt:`🔭 ${pn(e.p)} called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`}
     :{cls:"trade",txt:e.amt?`💰 ${pn(e.p)} backed the wrong ship — loses ${e.amt}🌕`:`🔭 ${pn(e.p)} missed the call — no bounty`},
   battle:(e,at)=>{
-    const aP=e.rounds.filter(r=>r[0]&&!r[1]).length,dP=e.rounds.filter(r=>r[1]&&!r[0]).length;
+    // count by who actually scored (r[3]) rather than the raw flip pattern — a both-heads
+    // downwind round scores a point but isn't "a XOR d landed heads", so filtering on the flips
+    // alone silently drops it and undercounts the displayed score.
+    const aP=e.rounds.filter(r=>r[3]==="a").length,dP=e.rounds.filter(r=>r[3]==="d").length;
     const bsN=e.rounds.filter(r=>r[2]).length,rn=e.rounds.length;
     const loser=e.winner===e.a?e.d:e.a;
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
     const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
     const spImg=e.spoilIng?ING_IMG[e.spoilIng]:null; // #3: won ingredient rises from the boat as art, not emoji
+    // ingredient spoils read as the winner taking a crate; coin spoils read as the loser
+    // bribing their way out of giving one up — no ingredient actually changes hands there.
+    const spoilClause=e.spoilIng?`${pn(e.winner)} takes ${e.spoil}.`:`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`;
     return {cls:"battle",
-      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` (${bsN} broadside${bsN>1?"s":""})`:""}. ${pn(e.winner)} takes ${e.spoil}. ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
+      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}${bsN?` <span class="nobrk">(${bsN} broadside${bsN>1?"s":""})</span>`:""}. ${spoilClause} ${e.winner===e.a?"Seizes the square — ships swap places.":"Attack repelled — no one moves."}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cell*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
-  battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! (pays 1🌕)`,
+  battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(pays 1🌕)</span>`,
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
-  fish:(e,at)=>({txt:`${pn(e.p)} ${e.heads?"catches a 🐠 sugarfish! (2🌕)":(game.cfg.sardine?"nets a 🦀 candycrab (1🌕)":"comes up empty-handed")}`,
+  fish:(e,at)=>({txt:`${pn(e.p)} casts a line, ${e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"comes up empty-handed")}`,
     caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
     pops:[[at(e.p),e.heads?"🎣":(game.cfg.sardine?"🦀":"🎣")]]}),
   finish:(e,at)=>({cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
@@ -2693,6 +2767,9 @@ async function botBeat(){liveRender();await narrateCurrent();}
 async function narrateCurrent(){
   const e=game.events[evIdx];if(!e)return;
   if(e.t==="turn"){await flash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
+  // settleSideBets() already flashed one aggregate message covering every bettor — skip the
+  // duplicate individual re-narration (same reasoning as narrateLastEvent()).
+  if(e.t==="sidebet")return;
   const L=logLines[evIdx];if(L)await flash(L.txt);
 }
 function setActor(s){curSeat=s;}
@@ -2716,8 +2793,10 @@ function setFlipCoin(state){
 }
 function setFlipActive(onClick){
   const el=$("flipCoinWrap");if(!el)return;
-  if(onClick){el.classList.add("active");el.style.backgroundImage="";el.textContent="FLIP";el.onclick=onClick;}
-  else{el.classList.remove("active");el.onclick=null;}
+  // notes/edits #6: show the heads face behind "FLIP" (was a flat gradient, no coin art) — a
+  // tint layer on top keeps the text legible over the image.
+  if(onClick){el.classList.add("active");el.style.backgroundImage=`linear-gradient(rgba(245,159,45,.62),rgba(245,159,45,.62)), url(${FLIP_HEADS_IMG})`;el.textContent="FLIP";el.onclick=onClick;}
+  else{el.classList.remove("active");el.style.backgroundImage="";el.onclick=null;}
 }
 // host: play the spin/land locally AND broadcast it so every connected browser's flippenator
 // animates in sync, whether or not that browser is the one actually flipping
@@ -2819,7 +2898,14 @@ function applyShotClockPenalty(){
 // narration. Called from a setInterval tick (shotClockTick) that doesn't await it — fine, since
 // this is a one-shot side effect with nothing downstream depending on its completion order.
 async function expireShotClock(){
+  // notes/edits #9: shotClockTick() is a setInterval that keeps ticking every 500ms while this
+  // async function is mid-flight (its awaits below routinely run well past 500ms) — without
+  // clearing the interval and blocking re-entry synchronously, right here, before any await, the
+  // still-running tick fires this function again on top of itself and strips a second resource
+  // for the same expiry ("snoozing pirates lose their treasure" firing more than once).
+  if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
   const p=game.players[shotClockSeat];
+  shotClockSeat=null;
   turnExpired=true;
   if(shotClockForce){shotClockForce();shotClockForce=null;}
   if(activePickCleanup){activePickCleanup();activePickCleanup=null;}
@@ -2845,6 +2931,18 @@ async function expireShotClock(){
 function watchClock(){
   if(!db||!room)return;
   db.ref("rooms/"+room+"/clock").on("value",s=>{clockState=s.val();setClockUI();});
+}
+// mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
+// idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
+// armed for a human decision (ask()), never for a bot's turn.
+function currentTurnSeat(){
+  if(!game||!game.events)return null;
+  for(let i=evIdx;i>=0&&i>evIdx-80;i--){
+    const t=game.events[i]&&game.events[i].t;
+    if(t==="turn")return game.events[i].p;
+    if(t==="newround")return null;
+  }
+  return null;
 }
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
@@ -2881,8 +2979,14 @@ function setClockUI(){
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
       return;
     }
+    // notes/edits #5a: a bot's turn in solo mode never arms the shot clock, so `state` stays
+    // null the whole time it's playing — that used to fall through to the idle "turn clock"
+    // label even while a bot is actively moving. Show the same "waiting" copy multiplayer
+    // spectators see for a non-active seat instead, so it reads as "something's happening", not idle.
+    const activeSeat=currentTurnSeat();
+    const botPlaying=activeSeat!=null&&activeSeat!==mySeat&&!(game.players[activeSeat]&&game.players[activeSeat].done);
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
-    labelEl.textContent="turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
+    labelEl.textContent=botPlaying?"waiting":"turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
   }
   wrap.classList.remove("idle");
@@ -2937,9 +3041,10 @@ function liveRender(){
 // false (the default) is pale blue — informational only, nothing to click.
 function panel(html,needsAction=false){
   html=emojify(html);
-  $("actionPanel").innerHTML=html;
+  $("apGridInner").innerHTML=html;
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
+  $("apGrid").style.gridTemplateRows="1fr"; // grow into the new content's height (see #apGrid CSS)
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
@@ -3004,7 +3109,18 @@ function typewriterReveal(msgEl,msPerChar){
 // another .08s/letter before flash() fades it out — floored at 1000ms so a short message/word
 // (narration or chat bubble alike) doesn't flash past before anyone can actually read it.
 const REVEAL_MS_PER_CHAR=20;
-function msgHoldMs(text){return Math.max(1000,(text||"").length*80);}
+// standard subtitle-timing formula: a floor so short messages don't flash away, a per-char
+// reading-speed term (~16-17 CPS), a bump for each mid-string pause (,!?.), and a cap so a very
+// long message doesn't hold forever — players will click through it.
+function msgHoldMs(text){
+  text=text||"";
+  const base=1000,charTime=50;
+  let raw=base+text.length*charTime;
+  const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
+  const pauses=(body.match(/[,!?.]/g)||[]).length;
+  raw+=pauses*300;
+  return Math.min(Math.max(raw,1200),7000);
+}
 function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
@@ -3109,6 +3225,9 @@ function showChatBubble(i,text){
 // beat after narrating so the outcome is actually readable before the next thing overwrites it.
 async function narrateLastEvent(){
   const e=game.events[game.events.length-1];if(!e)return;
+  // settleSideBets() already flashes one aggregate "Lookout's Call settles" message covering
+  // every bettor — re-narrating the last individual sidebet event here would just duplicate it.
+  if(e.t==="sidebet")return;
   if($("actionPanel").classList.contains("needsAction"))return;
   const L=describe(e);if(!L)return;
   // notes/edits #1 follow-up: this used to be netNarrate()+a flat 3000ms sleep, a leftover from
@@ -3235,7 +3354,10 @@ async function flash(msg,ms){
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;
   await sleep(msgHoldMs(text));
-  if(el&&el.isConnected)el.classList.add("fadeOut");
+  if(el&&el.isConnected){
+    el.classList.add("fadeOut");
+    const grid=$("apGrid");if(grid)grid.style.gridTemplateRows="0fr"; // collapse in step with the fade (see #apGrid CSS)
+  }
   await sleep(500);
 }
 // blocks until every human seat (not just the host) has read msg and clicked through — same
@@ -3305,7 +3427,6 @@ async function fishCast(p,label,allowBack){
     const v=await ask(label||`${pn(p.idx)}: cast your line — flip!`,opts);
     if(v==="back")return "back";
   }
-  netNarrate(`🎣 ${pn(p.idx)} casts a line…`);
   broadcastFlip("spin");
   await sleep(spin);
   const h=game.flip(p);
@@ -3409,8 +3530,19 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       if(dodgedOnce.v){game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
-      opts.push({label:"Flip! Heads: dodge. Tails: lose half 🌕",value:"flip"});
-      const v=await ask(`${pn(p.idx)}: the storm blows you toward an island! (Flipping is a gamble — tails costs you.)`,opts);
+      // notes/edits #10b: the real tails consequence depends on what this player actually has to
+      // lose (mirrors the branches below) — a broke player with crates loses one of those, not
+      // "half their coins" (they have none), and only a truly broke, empty-holds player risks
+      // losing the whole turn to repairs.
+      const broke=p.coins===0,trueShipwreck=broke&&!p.ing.length;
+      const flipLabel=trueShipwreck?"Flip! Heads: dodge. Tails: ye'll lose yer turn!"
+        :broke?"Flip! Heads: dodge. Tails: lose a crate!"
+        :"Flip! Heads: dodge. Tails: lose half 🌕";
+      opts.push({label:flipLabel,value:"flip"});
+      const promptMsg=trueShipwreck
+        ?`${pn(p.idx)}: the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
+        :`${pn(p.idx)}: the storm blows you toward an island! (Flipping is a gamble — tails costs you.)`;
+      const v=await ask(promptMsg,opts);
       if(turnExpired)return;
       if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
@@ -3615,7 +3747,7 @@ async function collectSideBets(att,def){
         if(amounts.length){
           setActor(s.idx);
           // Optional: sweeten the call with real coin.
-          amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)} with coin? Win and you keep the free dubloon AND double your stake — lose and your stake is gone. (purse: ${s.coins}🌕)`,
+          amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)}? Win, you double your stake + 1🌕. Lose, you get nothing.`,
             [{label:"Just the free call",value:0}].concat(
               amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n})))
               .concat([{label:"← Back",back:true,value:"back"}]));
@@ -3766,7 +3898,6 @@ async function asyncBattle(att,def){
       }
     }
     // ---- resolve the round ----
-    rounds.push([ah?1:0,dh?1:0,bs?1:0]);
     let scorer=null,rmsg;
     // notes/edits #3: two HEADS no longer just cancel — the shot carries downwind. Whoever's
     // firing with the wind lands the hit; if neither is downwind (crosswind), they still cancel.
@@ -3778,6 +3909,10 @@ async function asyncBattle(att,def){
     else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(att.idx)} lands a hit! +1</span>`;}
     else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(def.idx)} lands a hit! +1</span>`;}
     else{rmsg=`<span class="cancel">Both miss — TAILS all round.</span>`;}
+    // notes/edits #23: record who actually scored the round (not just the raw flip pattern) —
+    // a both-heads downwind round scores a real point but doesn't fit the "a XOR d landed heads"
+    // shape, so anything deriving the displayed score from raw flips alone undercounts it.
+    rounds.push([ah?1:0,dh?1:0,bs?1:0,scorer]);
     renderBattle(base({atState:ah?"H":"T",atBs:bs,dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
     await sleep(hold);
     // ---- defender's flee: on a double-TAILS round (both shots miss wildly) the defender can pay
@@ -4068,7 +4203,7 @@ async function humanTurn(p){
     if(turnExpired){activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
-  }else await flash(seatLocal(p.idx)?`${pn(p.idx)}: no coins — sailing costs 1🌕. (Fish to refill your purse!)`:`${pn(p.idx)}: no coins — can't sail this turn.`,1600);
+  } // no coins to sail — the action prompt right after already explains it, no need for a second box
   if(turnExpired){activeTurnSeat=null;return;}
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
@@ -4523,7 +4658,7 @@ function watchDraftPrompt(){
 }
 function fixEv(e){
   if(e.state)e.state.forEach(s=>{if(!s.ing)s.ing=[];if(!s.pos)s.pos=[0,0];});
-  if(e.rounds)e.rounds=e.rounds.map(r=>[r&&r[0]?1:0,r&&r[1]?1:0,r&&r[2]?1:0]);
+  if(e.rounds)e.rounds=e.rounds.map(r=>[r&&r[0]?1:0,r&&r[1]?1:0,r&&r[2]?1:0,r&&r[3]||null]);
   return e;
 }
 // remote: render the game purely from the broadcast event feed
@@ -4724,7 +4859,7 @@ function passGate(seatIdx){
 
 async function createRoom(){
   const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
-  numSeats=+$("numSeats").value;
+  numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
   const code=genCode();
   const seats={0:{name,id:myId,bot:false}};
   for(let i=1;i<numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:BOT_STRATS[(i-1)%BOT_STRATS.length]};
