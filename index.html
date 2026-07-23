@@ -2429,6 +2429,16 @@ function describe(e){
   const r=fn(e,NO_AT);
   return r&&{cls:r.cls,txt:emojify(r.txt)};
 }
+// #: describe() only the events added since logLines was last synced, instead of remapping the
+// whole (append-only) game.events history on every single new event. A long-running game racks up
+// thousands of events, and re-describing all of them on every tick made each new event O(n) —
+// O(n²) over a multi-hour session — which is exactly the kind of session that gets visibly
+// laggier the longer it runs. Safe because events are only ever pushed, never spliced/reordered;
+// any real reset reassigns logLines directly (see the two `logLines=[...]` resets) rather than
+// going through this path.
+function syncLogLines(){
+  for(let i=logLines.length;i<game.events.length;i++)logLines.push(describe(game.events[i]));
+}
 
 /* ---------- playback ---------- */
 // re-triggers the .pulse animation (removing then re-adding forces a reflow so repeat
@@ -3066,7 +3076,7 @@ function liveRender(){
   if(replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
   evIdx=Math.max(0,game.events.length-1);
   if(!game.events.length)return;
-  logLines=game.events.map(describe);
+  syncLogLines();
   $("scrub").max=Math.max(0,game.events.length-1);
   render();
   const e=game.events[evIdx];
@@ -4709,7 +4719,7 @@ function watchEvents(){
   db.ref("rooms/"+room+"/ev").on("child_added",snap=>{
     game.events.push(fixEv(snap.val()));
     evIdx=game.events.length-1;
-    logLines=game.events.map(describe);
+    syncLogLines();
     $("scrub").max=Math.max(0,game.events.length-1);
     render();
     const e=game.events[evIdx];
