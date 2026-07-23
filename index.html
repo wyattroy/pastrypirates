@@ -312,15 +312,19 @@
   #flipCoinWrap.coin { width: clamp(36px,13cqw,64px); height: clamp(36px,13cqw,64px);
     font-size: clamp(6px,1.9cqw,11px); margin: 0; }
   #flipCoinWrap.coin.spin { font-size: clamp(11px,3.5cqw,22px); }
+  /* UI-09: the coin shows its plain heads art now (no orange wash). Only the word FLIP is orange,
+     with a dark outline so it stays legible over the gold coin. */
   #flipCoinWrap.active { border-color: var(--accent); background-color: #f5a623;
     background-size: cover; background-position: center;
-    color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.4);
+    color: #f5a623; text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 3px rgba(0,0,0,.7), 0 0 1px #000;
     font-weight: 800; cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
   @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
   @keyframes plankglow { 0%, 100% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 0 rgba(245,159,45,.65); }
     50% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 14px rgba(245,159,45,0); } }
   /* ---- shot clock: a brass ship's gauge, left-aligned like a real instrument readout ---- */
-  #shotClockPanel { background: linear-gradient(160deg, rgba(138,95,47,.6), rgba(92,61,28,.6)), var(--clock-img) center/cover;
+  /* UI-01: the gauge art fills the panel exactly (100% 100%) rather than `cover`, which was
+     scaling it up and cropping the left/right edges of the frame off. */
+  #shotClockPanel { background: linear-gradient(160deg, rgba(138,95,47,.6), rgba(92,61,28,.6)), var(--clock-img) center/100% 100% no-repeat;
     border: 2px solid #d9a84e;
     border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(8px,3cqw,14px);
     min-width: clamp(70px,26cqw,118px); position: relative; }
@@ -338,18 +342,20 @@
     line-height: 13px; font-size: 9px; border: 1px solid #d9a84e; border-radius: 50%;
     background: rgba(0,0,0,.25); color: #ffe9b8; cursor: pointer; }
   #scTimerToggle:hover { background: rgba(0,0,0,.4); }
-  #shotClockPanel.urgent { background: linear-gradient(160deg, rgba(90,95,102,.72), rgba(37,40,44,.72)), var(--clock-img) center/cover;
+  #shotClockPanel.urgent { background: linear-gradient(160deg, rgba(90,95,102,.72), rgba(37,40,44,.72)), var(--clock-img) center/100% 100% no-repeat;
     border-color: #e2564c;
     animation: clockurgent 0.9s ease-in-out infinite; }
   /* notes/edits #11: paused always reads as silver/inert, regardless of whose turn it was paused
      on or whether it was already urgent — distinct from both the normal brass panel and .urgent */
-  #shotClockPanel.paused { background: linear-gradient(160deg, rgba(154,161,168,.72), rgba(107,114,120,.72)), var(--clock-img) center/cover;
+  #shotClockPanel.paused { background: linear-gradient(160deg, rgba(154,161,168,.72), rgba(107,114,120,.72)), var(--clock-img) center/100% 100% no-repeat;
     border-color: #c7ccd1;
     animation: none; opacity: 1; }
   #shotClockPanel.paused #scLabel, #shotClockPanel.paused #shotClockSub { color: #e8ebee; }
   #shotClockPanel.paused #shotClockNum, #shotClockPanel.paused #scUnit { color: #fff; }
   #scLabel { font-size: clamp(7px,2cqw,10px); color: #e0c58f; letter-spacing: .5px; text-transform: uppercase; line-height: 1.2; }
   #shotClockPanel.urgent #scLabel { color: #ff9b93; }
+  /* UI-02: outer edge radiates orange as the 20s window counts to 0 (--heat 0→1, set in setClockUI) */
+  #shotClockPanel.warming { box-shadow: 0 0 calc(4px + var(--heat,0) * 22px) calc(var(--heat,0) * 6px) rgba(245,159,45,calc(.15 + var(--heat,0) * .6)); }
   #scRow { display: flex; align-items: baseline; gap: 4px; line-height: 1; margin: 1px 0; }
   #shotClockNum img { width: 1em; height: 1em; object-fit: contain; vertical-align: middle; }
   #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8;
@@ -385,7 +391,19 @@
   .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
   .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 1.8s ease-out infinite; }
   @keyframes rippleOut { 0% { transform: scale(.6); opacity: .85; } 100% { transform: scale(2.4); opacity: 0; } }
-  .pop { animation: popfloat 1.25s ease-out forwards; pointer-events: none; }
+  /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
+     and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
+  /* UI-06: sail-destination squares — juicy, bouncing, clearly clickable */
+  .sailCell { opacity: .5; animation: sailBounce 1.15s ease-in-out infinite;
+    transform-box: fill-box; transform-origin: center;
+    transition: opacity .12s ease, filter .12s ease; }
+  .sailCell:hover { opacity: .85; filter: brightness(1.12) drop-shadow(0 0 4px rgba(255,178,40,.9));
+    animation-play-state: paused; }
+  @keyframes sailBounce {
+    0%, 100% { transform: scale(1); opacity: .5; }
+    50%      { transform: scale(1.11); opacity: .72; } }
+  @media (prefers-reduced-motion: reduce) { .sailCell { animation: none; } }
+  .pop { animation: popfloat 2.5s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
     18% { opacity: 1; transform: translate(0, 0) scale(1); }
@@ -394,7 +412,7 @@
   /* a bigger, bouncier pop for "you just lost treasure" moments (#5/#6 — a slow or aground
      captain's crate tumbling overboard and splashing back onto its island), so the cause and
      effect are impossible to miss. */
-  .pop.splash { animation: popsplash 1.9s cubic-bezier(.25,1.5,.45,1) forwards; }
+  .pop.splash { animation: popsplash 3.8s cubic-bezier(.25,1.5,.45,1) forwards; }
   @keyframes popsplash {
     0%   { opacity: 0; transform: translate(0, 10px) scale(.4) rotate(-12deg); }
     14%  { opacity: 1; transform: translate(0, -6px) scale(1.9) rotate(8deg); }
@@ -712,7 +730,7 @@
 <div id="feedbackModal" class="modalOverlay" style="display:none">
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">💬 Feedback</div>
-    <div class="modalByline">What's working, what's confusing, what broke — this goes straight to the devs.</div>
+    <div class="modalByline">What's working, what's confusing, what broke — this goes straight to Wyatt, the pirate-slash-dev who built this. Want to give him a cookie?</div>
     <textarea id="feedbackText" rows="5" maxlength="2000" placeholder="Type your thoughts here..." style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;resize:vertical;margin-bottom:10px"></textarea>
     <button class="primary big" id="btnSendFeedback" type="button">Send feedback</button>
   </div>
@@ -744,8 +762,10 @@
   <div class="modalCard" style="max-width:380px">
     <div class="modalTitle">🚪 Abandon ship?</div>
     <div class="modalByline">Are ye sure ye want to leave this game? Ye can't rejoin the same voyage once ye go.</div>
-    <button class="big" id="btnConfirmLeave" type="button" style="border-color:#b56464;background:#f8eaea;color:#7e3535">🚪 Aye, leave the game</button>
-    <button class="primary big" id="btnCancelLeave" type="button">Stay aboard</button>
+    <!-- notes/edits UI-10(list #10): the safe choice reads first and quietly (faded blue), the
+         irreversible one sits below styled like the old "Stay aboard" primary so it's a deliberate tap. -->
+    <button class="big" id="btnCancelLeave" type="button" style="border-color:#8fb3d9;background:#eef4fb;color:#3f6690">Nope, stay aboard</button>
+    <button class="primary big" id="btnConfirmLeave" type="button">🚪 Aye, leave the game</button>
   </div>
 </div>
 
@@ -2468,9 +2488,11 @@ const EVENT_NARRATION={
   },
   battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(pays 1🌕)</span>`,
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
+  // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
+  // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
   fish:(e,at)=>({txt:`${pn(e.p)} casts a line, ${e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"comes up empty-handed")}`,
     caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
-    pops:[[at(e.p),e.heads?"🎣":(game.cfg.sardine?"🦀":"🎣")]]}),
+    pops:[[at(e.p),e.heads?"🐠":(game.cfg.sardine?"🦀":"🎣")]]}),
   finish:(e,at)=>({cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
   shotclock:e=>({cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
@@ -2611,8 +2633,11 @@ function render(){
     const storming=!!e.storm;
     const angle=storming&&e.wind2?STORM_DIAG[e.wind][e.wind2]:({N:0,E:90,S:180,W:270})[e.wind];
     spinNeedle.style.transform=`rotate(${angle}deg)`;
-    stormText.textContent=storming?"⛈️ STORM":"";
-    stormText.setAttribute("fill",storming?"#e63946":"#1f4249");
+    // notes/edits UI-05: the "⛈️ STORM" word + emoji under the compass are gone — the darkened
+    // board, the coloured dial, the glowing needle and the rain already read as "storm" without a
+    // caption. Kept the (now always-empty) node so the storm-colour toggle below still has a safe
+    // target and nothing else has to change.
+    stormText.textContent="";
     if(stormDial){
       stormDial.setAttribute("fill",storming?"#2a2f4a":"#fffdf0");
       stormDial.setAttribute("stroke",storming?"#141824":"#f5a623");
@@ -2680,7 +2705,7 @@ function popEmoji(x,y,emo,big,imgHref,cls){
   }else{
     el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;
   }
-  setTimeout(()=>g.remove(),cls==="splash"?1950:1300);
+  setTimeout(()=>g.remove(),cls==="splash"?3900:2600); // UI-03: 2x the old 1950/1300, matching the doubled CSS
 }
 function spawnPops(e){
   if(!e)return;
@@ -2908,7 +2933,9 @@ function setFlipActive(onClick){
   const el=$("flipCoinWrap");if(!el)return;
   // notes/edits #6: show the heads face behind "FLIP" (was a flat gradient, no coin art) — a
   // tint layer on top keeps the text legible over the image.
-  if(onClick){el.classList.add("active");el.style.backgroundImage=`linear-gradient(rgba(245,159,45,.62),rgba(245,159,45,.62)), url(${FLIP_HEADS_IMG})`;el.textContent="FLIP";el.onclick=onClick;}
+  // notes/edits UI-09: drop the heavy orange tint over the whole coin — show the clean heads face
+  // and make just the word "FLIP" orange instead (see #flipCoinWrap.active CSS).
+  if(onClick){el.classList.add("active");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="FLIP";el.onclick=onClick;}
   else{el.classList.remove("active");el.style.backgroundImage="";el.onclick=null;}
 }
 // host: play the spin/land locally AND broadcast it so every connected browser's flippenator
@@ -3099,6 +3126,7 @@ function currentTurnSeat(){
 }
 function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
+  wrap.classList.remove("warming"); // UI-02: only the active countdown branch below re-adds it
   if(liveDone){
     wrap.classList.remove("idle","urgent","paused");
     wrap.style.display="none";
@@ -3161,9 +3189,14 @@ function setClockUI(){
   // slow player hands the rest of the crew a coin, then (final 10s) forfeits their turn entirely.
   const active=(state.seat===mySeat);
   wrap.classList.remove("paused");
+  // notes/edits UI-02: the clock's outer edge warms up as the 20s window burns down — 0 at a full
+  // 20s left, 1 at zero. The CSS reads --heat to size an orange glow (see #shotClockPanel.warming).
+  const heat=Math.max(0,Math.min(1,elapsed/20));
   if(active){
     wrap.classList.remove("idle");
     wrap.classList.toggle("urgent",urgent);
+    wrap.classList.toggle("warming",!urgent&&heat>0);
+    wrap.style.setProperty("--heat",heat.toFixed(3));
     labelEl.textContent="play in";
     numEl.textContent=urgent?30-elapsed:20-elapsed;
     unitEl.textContent="seconds";
@@ -3669,12 +3702,16 @@ function localPickCell(p,cells){
     const svg=$("board"),hs=[];
     const done=v=>{hs.forEach(h=>h.remove());panel("");activePickCleanup=null;res(v);};
     activePickCleanup=()=>{hs.forEach(h=>h.remove());panel("");};
-    for(const c of cells){
-      const r=el("rect",{x:c[0]*cell+2,y:c[1]*cell+2,width:cell-4,height:cell-4,rx:5,
-        fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
+    // notes/edits UI-06: the sail squares now read as obviously tappable — brighter fill, a soft
+    // bounce so they draw the eye, and a hover state that pops the square and deepens the colour.
+    // Each square's bounce is phase-offset a touch by its board position so they shimmer rather
+    // than pulse in dead unison. transform-box:fill-box + centered origin keeps the scale centered.
+    cells.forEach((c,ci)=>{
+      const r=el("rect",{x:c[0]*cell+2,y:c[1]*cell+2,width:cell-4,height:cell-4,rx:6,
+        fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
       r.addEventListener("click",()=>done(c));
       hs.push(r);
-    }
+    });
     panel(`<div class="apMsg">${pn(p.idx)}: click a highlighted square to sail (−1🌕)</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
     $("apStay").onclick=()=>done(null);
@@ -4185,32 +4222,53 @@ async function humanTrade(p){
   setActor(p.idx);
   const opps=game.tradeOpp(p).filter(q=>q.ing.length>0);
   if(!opps.length){await flash("No one has cargo to trade for.");return false;}
-  const q=opps.length===1?opps[0]:
-    await ask("Parley with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
-      opps.map(o=>HEXCOL[o.idx]).concat([null]));
-  if(!q)return false;
-  const want=await ask(`What do you want from ${pn(q.idx)}?`,
-    [...new Set(q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:"← Back",back:true,value:null}]));
-  if(!want)return false;
-  // An offer is an ingredient, coins, or both together — sweeten a crate with a few coins on top.
-  const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}));
-  ingOpts.push({label:"— coins only —",value:null});
-  ingOpts.push({label:"← Back",back:true,value:"__cancel__"});
-  const baseIng=await ask("Offer which ingredient (or coins only)?",ingOpts);
-  if(baseIng==="__cancel__")return false;
-  const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
-  if(!baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
-  if(!coinChoices.length){
-    // #4: a coins-only offer with an empty purse leaves nothing to put on the table. Don't show a
-    // blank coin box — say so plainly and bounce back to the action menu (Back also returns).
-    await ask("Ye don't have any to offer!",[{label:"← Back",back:true,value:-1}]);
-    return false;
+  // notes/edits UI-08: the parley used to be a straight chain of prompts where hitting Back at ANY
+  // step returned false all the way out to the action menu — so Back felt like it jumped two (or
+  // more) steps. It's now a little step machine: Back moves to the PREVIOUS prompt, and only Back
+  // out of the first shown prompt returns to the action menu (which is itself exactly one step
+  // back). Inputs accumulate in `st` so revisiting a step keeps what you already picked.
+  const st={q:null,want:null,baseIng:undefined,extraCoins:undefined};
+  const single=opps.length===1;
+  if(single)st.q=opps[0];
+  const firstStep=single?1:0; // step 0 partner · 1 want · 2 offer-ing · 3 sweeten-coins
+  let step=firstStep;
+  while(step<4){
+    if(step===0){
+      const q=await ask("Parley with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:"__back__"}]),
+        opps.map(o=>HEXCOL[o.idx]).concat([null]));
+      if(q==="__back__"||q==null)return false; // Back from the first step → action menu (one step)
+      st.q=q;step=1;
+    }else if(step===1){
+      const want=await ask(`What do you want from ${pn(st.q.idx)}?`,
+        [...new Set(st.q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:"← Back",back:true,value:"__back__"}]));
+      if(want==="__back__"||want==null){if(step===firstStep)return false;step--;continue;}
+      st.want=want;step=2;
+    }else if(step===2){
+      // An offer is an ingredient, coins, or both together — sweeten a crate with a few coins on top.
+      const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}));
+      ingOpts.push({label:"— coins only —",value:"__coinsonly__"});
+      ingOpts.push({label:"← Back",back:true,value:"__back__"});
+      const baseIng=await ask("Offer which ingredient (or coins only)?",ingOpts);
+      if(baseIng==="__back__"){if(step===firstStep)return false;step--;continue;}
+      st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=3;
+    }else{ // step 3
+      const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
+      if(!st.baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
+      if(!coinChoices.length){
+        // #4: a coins-only offer with an empty purse leaves nothing to put on the table. Say so and
+        // step back to the offer choice (UI-08: one step back, not out to the action menu).
+        await ask("Ye don't have any to offer!",[{label:"← Back",back:true,value:-1}]);
+        step=2;continue;
+      }
+      const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
+      coinOpts.push({label:"← Back",back:true,value:-1});
+      const extraCoins=await ask(st.baseIng?`Sweeten with coin? (offering ${ilabelImg(st.baseIng)})`:"How many coins?",coinOpts);
+      if(extraCoins===-1){step=2;continue;}
+      st.extraCoins=extraCoins;step=4;
+    }
   }
-  const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
-  coinOpts.push({label:"← Back",back:true,value:-1});
-  const extraCoins=await ask(baseIng?`Sweeten with coin? (offering ${ilabelImg(baseIng)})`:"How many coins?",coinOpts);
-  if(extraCoins===-1)return false;
-  const give={ing:baseIng,coins:extraCoins};
+  const q=st.q,want=st.want;
+  const give={ing:st.baseIng,coins:st.extraCoins};
   // plain-text form (stored on events, later run through fmtItem for the log); emoji form for
   // direct UI prompts below
   const offerLabel=(give.ing?iname(give.ing):"")+(give.ing&&give.coins?" + ":"")+(give.coins?`${give.coins} coins`:"");
