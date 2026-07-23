@@ -1195,6 +1195,10 @@ class Game{
     }
     this.round=0;this.battles=0;this.attWins=0;this.trades=0;this.finishOrder=[];this.events=[];this.winner=null;
     this.stormStreak=0; // notes/edits #1a: consecutive-storm counter — caps storms at 2 back-to-back
+    // notes/edits NARR-04: how many rounds running the wind has held one direction (1 = first round
+    // of it). Separate from stormStreak, which exists to CAP repeat storms — this one is purely
+    // narration and counts calm rounds too.
+    this.windStreak=0;this.windPrev=null;
   }
   r(){this.randCalls++;return this.rng();}
   isHome(c){return c[0]===this.home[0]&&c[1]===this.home[1];}
@@ -1325,15 +1329,27 @@ class Game{
     if(this.cfg.singleDock&&this.dockOccupiedBy(ing,p))return false;
     if(!this.cfg.unlimitedDock&&p.firstFlip.has(k)&&p.dockedNow.has(k))return false;
     p.firstFlip.add(k);p.dockedNow.add(k);p.justDocked=true;
+    // notes/edits NARR-07: an empty island has nothing to flip FOR — heads can't win a crate that
+    // isn't there and tails can't buy one either, so both outcomes were already just "+3🌕". Skip
+    // the flip entirely and take the 3. NOTE: this consumes one fewer RNG call than before, so the
+    // same seed no longer produces the same game as it did pre-change (an intended rules change,
+    // but it does mean pre-existing saved seeds/replays won't reproduce their old outcomes).
+    if(this.tokens[ing]<=0){p.coins+=3;this.ev({t:"dock",p:p.idx,ing,got:"empty"});return true;}
     if(this.flip(p)){
-      if(this.tokens[ing]>0){this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
-      else{p.coins+=3;this.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
+      this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});
     }else{
-      if(this.cfg.dockBuy&&p.coins>=3&&this.needs(p).includes(ing)&&this.tokens[ing]>0){
+      if(this.cfg.dockBuy&&p.coins>=3&&this.needs(p).includes(ing)){
         p.coins-=3;this.tokens[ing]--;p.ing.push(ing);this.ev({t:"dock",p:p.idx,ing,heads:0,got:"bought"});}
       else{p.coins+=3;this.ev({t:"dock",p:p.idx,ing,heads:0,got:"coins"});}
     }
     return true;
+  }
+  // NARR-04: record this round's wind and return how many rounds running it has held that
+  // direction. Called once per round, right after the direction is rolled.
+  noteWind(dir){
+    this.windStreak=(this.windPrev===dir)?(this.windStreak||1)+1:1;
+    this.windPrev=dir;
+    return this.windStreak;
   }
   cnt(arr,x){return arr.filter(v=>v===x).length;}
   // non-mutating lookup shared by tryTrade (which executes it) and scoreTrade (which just needs
@@ -1655,7 +1671,7 @@ class Game{
       const wind="NSEW"[Math.floor(this.r()*4)];
       const storm=rollStorm(this); // #1a
       this.windNow=wind;this.stormNow=storm;
-      this.ev({t:"newround",dir:wind});
+      this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind)}); // NARR-04
       for(const i of order){
         const p=this.players[i];
         if(p.done)continue;
@@ -2367,8 +2383,33 @@ function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("co
 // spawnPops()/captions() below, all now thin wrappers over this table). `at` is a board-position
 // lookup — real when called from spawnPops (which needs coordinates), a harmless no-op stub
 // when called from describe()/captions() (which only ever read .txt/.caps, never the pop math).
+// notes/edits NARR-04: named for the direction the wind blows TOWARD, matching how DIRNAME and the
+// rest of the game already talk about wind.
+const WIND_ADJ={N:"northerly",S:"southerly",E:"easterly",W:"westerly"};
+function windHoldPhrase(dir,streak){
+  const a=WIND_ADJ[dir]||"wind";
+  return (streak||2)>=3?`this ${a} won't quit`:`this ${a} is gusting`;
+}
 const EVENT_NARRATION={
-  newround:e=>({cls:"roundhdr",txt:e.storm?(e.streak>=2?`— Round ${e.round}: ⛈️ The storm's baked in and refuses to cool down! Now it's aiming ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]}. Batten down the hatches, ye scurvy lot! —`:`— Round ${e.round}: ⛈️ STORM! Wind blows ${DIRNAME[e.dir]}, then ${DIRNAME[e.dir2]} —`):`— Round ${e.round}: wind blows ${DIRNAME[e.dir]} —`}),
+  // notes/edits NARR-03: a wind that hasn't changed direction is "still" blowing that way — it
+  // doesn't newly go anywhere, so it never says "now".
+  // notes/edits NARR-04: any wind, storm or not, that holds one direction two rounds running gets
+  // called out; three or more and it's openly refusing to quit.
+  newround:e=>{
+    const D=DIRNAME[e.dir],D2=DIRNAME[e.dir2];
+    const held=(e.windStreak||1)>=2;
+    // comma, not an em-dash: the round header is already wrapped in "— … —" and a third dash
+    // inside it reads as a run of stray punctuation
+    const gust=held?`, ${windHoldPhrase(e.dir,e.windStreak)}`:"";
+    if(e.storm){
+      // the gust clause goes BEFORE "Batten down the hatches" — appending it after an exclamation
+      // reads as a run-on ("...ye scurvy lot!, this easterly is gusting")
+      if(e.streak>=2)return {cls:"roundhdr",
+        txt:`— Round ${e.round}: ⛈️ The storm's baked in and refuses to cool down! ${held?`It's still aiming ${D}`:`Now it's aiming ${D}`}, then ${D2}${gust}. Batten down the hatches, ye scurvy lot! —`};
+      return {cls:"roundhdr",txt:`— Round ${e.round}: ⛈️ STORM! Wind ${held?"still blows":"blows"} ${D}, then ${D2}${gust} —`};
+    }
+    return {cls:"roundhdr",txt:`— Round ${e.round}: wind ${held?"still blows":"blows"} ${D}${gust} —`};
+  },
   windmove:e=>({txt:`${pn(e.p)} drifts with the wind`,caps:[[e.p,"🌬️ drifts"]]}),
   blownOut:e=>({txt:`⛵ A gale blows ${pn(e.p)} out of the harbor!`}),
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
@@ -2385,19 +2426,24 @@ const EVENT_NARRATION={
   shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
   dock:(e,at)=>{
     const place=dockPlace(e.ing),flavor=dockFlavor(e.ing);
+    // notes/edits NARR-01: every tails-flip report shows the ingredient's art before naming it, so
+    // the wording matches the rest of the UI (the `bought` line already did; `coins` now does too).
+    // notes/edits NARR-07: an empty island no longer involves a flip at all — its own line says so.
     const g={ing:`docks at ${place} — hauls aboard ${ilabelImg(e.ing)}!`,
-      empty:`docks at ${place} for ${flavor}, but finds it empty — takes 3🌕`,
-      bought:`docks at ${place} for ${iconImg(ING_IMG[e.ing])}${flavor} and flips tails, but buys it anyway for 3🌕`,
-      coins:`docks at ${place} for ${flavor}, but flips tails and takes 3🌕`};
+      empty:`docks at ${place} and finds no ${ilabelImg(e.ing)}, so grabs 3🌕`,
+      bought:`docks at ${place} for ${iconImg(ING_IMG[e.ing])} ${flavor} and flips tails, but buys it anyway for 3🌕`,
+      coins:`docks at ${place} for ${iconImg(ING_IMG[e.ing])} ${flavor}, but flips tails and takes 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
-    const F=e.heads?"⚪H":"⚫T";
+    // no flip happened on an empty island, so don't caption one
+    const F=e.got==="empty"?"":(e.heads?"⚪H":"⚫T");
     const gotIng=(e.got==="ing"||e.got==="bought");
     // #3: the crate rising out of the boat renders the ingredient art (ING_IMG), not the old
     // emoji — the emoji stays as the fallback popEmoji() shows if the image can't load.
-    return {txt:`${pn(e.p)} ${g[e.got]}`,caps:[[e.p,`docks ${F} ${capM[e.got]}`]],
+    return {txt:`${pn(e.p)} ${g[e.got]}`,caps:[[e.p,F?`docks ${F} ${capM[e.got]}`:`docks — ${capM[e.got]}`]],
       pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
-  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?' <span class="nobrk">(+1🌕 each)</span>':""}`,
+  // notes/edits NARR-02: name the cooperation bonus rather than leaving a bare "(+1🌕 each)"
+  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':""}`,
     caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
     pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]}),
   sidebet:e=>e.won?{cls:"trade",txt:`🔭 ${pn(e.p)} called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`}
@@ -3240,6 +3286,11 @@ const REVEAL_MS_PER_CHAR=20;
 // standard subtitle-timing formula: a floor so short messages don't flash away, a per-char
 // reading-speed term (~16-17 CPS), a bump for each mid-string pause (,!?.), and a cap so a very
 // long message doesn't hold forever — players will click through it.
+// notes/edits NARR-05: finished sentences were lingering too long — hold every message for 20%
+// less time. Applied to the clamped result so the floor and cap scale with it and the whole curve
+// shortens uniformly, rather than short messages sticking at an unchanged floor. This is the HOLD
+// duration only; REVEAL_MS_PER_CHAR (the typing rate) is deliberately untouched.
+const MSG_HOLD_MULTIPLIER=0.8;
 function msgHoldMs(text){
   text=text||"";
   const base=1000,charTime=50;
@@ -3247,7 +3298,7 @@ function msgHoldMs(text){
   const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
   const pauses=(body.match(/[,!?.]/g)||[]).length;
   raw+=pauses*300;
-  return Math.min(Math.max(raw,1200),7000);
+  return Math.round(Math.min(Math.max(raw,1200),7000)*MSG_HOLD_MULTIPLIER);
 }
 function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
@@ -3717,11 +3768,19 @@ async function humanWind(p){
 async function humanDock(p,port){
   setActor(p.idx);
   const ing=port;
+  // notes/edits NARR-07: empty island — nothing to flip for, so don't make the player flip. Mirrors
+  // the same early-out in Game.doDock; keep the two in step or bots and humans diverge.
+  if(game.tokens[ing]<=0){
+    p.coins+=3;game.ev({t:"dock",p:p.idx,ing,got:"empty"});
+    await narrateLastEvent();
+    p.firstFlip.add(ing);p.dockedNow.add(ing);
+    liveRender();
+    return;
+  }
   const h=await humanFlip(p,`Docking at ${ilabelImg(ing)} — flip!`,true);
   if(h==="back")return "back";
   if(h){
-    if(game.tokens[ing]>0){game.tokens[ing]--;p.ing.push(ing);game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});}
-    else{p.coins+=3;game.ev({t:"dock",p:p.idx,ing,heads:1,got:"empty"});}
+    game.tokens[ing]--;p.ing.push(ing);game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});
   }else{
     let got="coins";
     if(game.cfg.dockBuy&&p.coins>=3&&game.tokens[ing]>0){
@@ -4537,7 +4596,7 @@ async function runLiveNet(){
     game.windNow="NSEW"[Math.floor(game.r()*4)];
     game.stormNow=rollStorm(game); // #1a: no more than 2 storms back-to-back
     game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
-    game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0});liveRender();
+    game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0,windStreak:game.noteWind(game.windNow)});liveRender(); // NARR-04
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
     await flash(describe(game.events[game.events.length-1]).txt,900);
@@ -4560,7 +4619,7 @@ async function runLiveNet(){
           game.windNow="NSEW"[Math.floor(game.r()*4)];
           game.stormNow=rollStorm(game); // #1a
           game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
-          game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0});liveRender();
+          game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0,windStreak:game.noteWind(game.windNow)});liveRender(); // NARR-04
           await flash(describe(game.events[game.events.length-1]).txt,900);
           const startPos=order.indexOf(i);
           const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
