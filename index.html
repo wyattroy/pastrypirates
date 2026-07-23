@@ -4645,7 +4645,16 @@ let numSeats=4, evPushed=0, promptCounter=0, gameStarted=false, appliedMeta=fals
 // Pass & Play: several human seats share this one browser, taking turns handing the device
 // around. activeTurnSeat/recipeRevealed drive the "check my recipe" lock (see render()/humanTurn).
 let passAndPlay=false, activeTurnSeat=null, recipeRevealed=false;
+// the full personality catalogue the engine implements. No longer used for seat assignment (see
+// SEAT_BOT_STRAT) — kept as the canonical list. NOTE: with four captains and four assignments,
+// "monopolist" is currently unassigned and will not appear in play.
 const BOT_STRATS=["pirate","trader","balanced","rusher","monopolist"];
+// notes/edits BOT-01/BOT-02: bot personality is no longer anyone's choice — it belongs to the
+// captain. Indexed to match NAMES: Davy Scones, Crustbeard, Dough Hook, Flaky Jack. Every seat
+// that fills with a bot takes its captain's temperament, so "Crustbeard" always plays like
+// Crustbeard whether you meet him in solo or multiplayer.
+const SEAT_BOT_STRAT=["balanced","pirate","trader","rusher"];
+function seatStrat(i){return SEAT_BOT_STRAT[i%SEAT_BOT_STRAT.length];}
 
 function cfgReady(){return firebaseConfig&&firebaseConfig.databaseURL&&!/PASTE_YOUR/.test(firebaseConfig.databaseURL);}
 // Firebase Spark's free tier caps at 100 simultaneous connections (see ONLINE_SETUP.md) — once
@@ -4989,7 +4998,7 @@ function startSinglePlayer(){
   const name=requireName();
   const opp=3; // 4-player table is the standard game; no longer prompting for opponent count
   const strategies=["human"];
-  for(let i=0;i<opp;i++)strategies.push(BOT_STRATS[i%BOT_STRATS.length]);
+  for(let i=1;i<=opp;i++)strategies.push(seatStrat(i)); // BOT-02: temperament follows the captain
   numSeats=strategies.length;room=null;isHost=true;mySeat=0;
   roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
@@ -5000,7 +5009,7 @@ function startSinglePlayer(){
 // seats up to the standard 4-player table are filled with bots, same pool solo/host use.
 function startPassAndPlay(names){
   const strategies=names.map(()=>"human");
-  for(let i=names.length;i<4;i++)strategies.push(BOT_STRATS[(i-names.length)%BOT_STRATS.length]);
+  for(let i=names.length;i<4;i++)strategies.push(seatStrat(i)); // BOT-02
   numSeats=strategies.length;room=null;isHost=true;mySeat=0;passAndPlay=true;
   roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
@@ -5076,7 +5085,7 @@ async function createRoom(){
   numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
   const code=genCode();
   const seats={0:{name,id:myId,bot:false}};
-  for(let i=1;i<numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:BOT_STRATS[(i-1)%BOT_STRATS.length]};
+  for(let i=1;i<numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:seatStrat(i)}; // BOT-02
   room=code;mySeat=0;isHost=true;
   try{
     await db.ref("rooms/"+code).set({host:myId,status:"lobby",numSeats,seats,createdAt:Date.now()});
@@ -5120,14 +5129,14 @@ async function watchRoom(){
   if(r0.status==="lobby")showRoom();
   db.ref("rooms/"+room+"/seats").on("value",snap=>{
     const seats=snap.val()||{};
-    roster=[];for(let i=0;i<numSeats;i++)roster[i]=seats[i]||{bot:true,strat:BOT_STRATS[i%BOT_STRATS.length]};
+    roster=[];for(let i=0;i<numSeats;i++)roster[i]=seats[i]||{bot:true,strat:seatStrat(i)};
     if(!gameStarted)renderSeatList(seats);
   });
   db.ref("rooms/"+room+"/status").on("value",async snap=>{
     const st=snap.val();
     if((st==="playing"||st==="ended")&&!gameStarted){
       const r=(await db.ref("rooms/"+room).get()).val();
-      roster=[];for(let i=0;i<r.numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:BOT_STRATS[i%BOT_STRATS.length]};
+      roster=[];for(let i=0;i<r.numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
       beginGame(r.cfg,r.seed);
     }
   });
@@ -5138,19 +5147,16 @@ function renderSeatList(seats){
     const s=seats[i]||{bot:true};
     const me=(s.id===myId);
     let label;
+    // BOT-01: no personality picker — every captain's temperament is fixed (see SEAT_BOT_STRAT)
     if(s.id)label=escHtml(s.name)+(me?" — you":"");
-    else if(isHost)label=`🤖 bot: <select data-seat="${i}" class="botsel">${BOT_STRATS.map(b=>`<option ${b===(s.strat||"pirate")?"selected":""}>${b}</option>`).join("")}</select>`;
-    else label=`🤖 bot (${s.strat||"pirate"})`;
+    else label="🤖 bot";
     html+=`<div class="seat ${me?"me":""}"><span class="dot" style="background:${HEXCOL[i]}"></span>
       <span class="nm">${pn(i)} — ${label}</span></div>`;
   }
   $("seatList").innerHTML=emojify(html);
   if(isHost){
-    $("seatList").querySelectorAll(".botsel").forEach(sel=>{
-      sel.onchange=()=>db.ref("rooms/"+room+"/seats/"+sel.dataset.seat).set({bot:true,strat:sel.value,name:"",id:""}).catch(netFail("bot pick"));
-    });
     $("btnStart").style.display="";
-    $("waitMsg").innerHTML="Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots (pick their style above).";
+    $("waitMsg").innerHTML="Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots.";
   }else{
     $("btnStart").style.display="none";
     $("waitMsg").textContent="Waiting for the host to start the voyage…";
@@ -5272,7 +5278,7 @@ function wireLobby(){
 // that has silently reset to turn 1.
 async function resumeHostGame(r){
   numSeats=r.numSeats;
-  roster=[];for(let i=0;i<numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:BOT_STRATS[i%BOT_STRATS.length]};
+  roster=[];for(let i=0;i<numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
   if(!r.cfg){ // never actually started (reloaded on the "playing" flag before cfg was written)
     clearSession();showHome();return;
   }
