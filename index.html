@@ -245,12 +245,13 @@
   #actionPanel { margin: 8px auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
-  /* notes/edits #4: the box used to snap instantly to the new message's height. #apGrid is a
-     single-row grid whose row track is toggled between 1fr (natural content height) and 0fr
-     (collapsed) — grid-template-rows, unlike height:auto, is directly transitionable. flash()
-     collapses it in step with the old message's fadeOut; panel() resets it to 1fr whenever fresh
-     content lands, growing smoothly into the new content's natural height instead of jumping. */
-  #apGrid { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .1s ease; }
+  /* notes/edits BUG-01: the narration box height SNAPS to its content — no smooth resize. Edit #4
+     had added `transition: grid-template-rows .1s ease` to grow/shrink the box smoothly, but every
+     character the typewriter reveals grows the content, re-firing that 0.1s height animation; the
+     overlapping animations continuously re-composite the storm's rain layers and drag Safari to
+     ~5fps. Snapping the height (one reflow per reveal tick, no animation) leaves the storm layers
+     on their own GPU timeline. The typewriter reveal itself is unchanged — only the box resize is. */
+  #apGrid { display: grid; grid-template-rows: 1fr; }
   #apGridInner { overflow: hidden; min-height: 0; }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   /* notes/edits #4b: a parenthetical aside like "(1 broadside)" must never split across a line
@@ -3331,7 +3332,7 @@ function panel(html,needsAction=false){
   $("apGridInner").innerHTML=html;
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
-  $("apGrid").style.gridTemplateRows="1fr"; // grow into the new content's height (see #apGrid CSS)
+  $("apGrid").style.gridTemplateRows="1fr"; // snap to the new content's height (see #apGrid CSS)
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
@@ -3358,18 +3359,13 @@ function panel(html,needsAction=false){
 // awaits this reveal before it can hold/fade/return — hang forever and freeze the whole bot-turn
 // game loop the moment a player switches tabs. setTimeout keeps firing (just throttled) even when
 // hidden, so the reveal still completes — slower while backgrounded, but never stuck.
-// notes/edits BUG-01: this used to do one DOM write PER CHARACTER (`node.nodeValue+=ch`) inside the
-// catch-up loop, so a tick that had fallen 12 characters behind performed 12 separate text-node
-// mutations. Each one dirties layout on a page that, during a storm, is also compositing two
-// 220%-sized animated rain layers — which is why the hitch is storm-only (with no storm those
-// layers are paused and absent, and the same writes cost almost nothing).
-// The fix is to reduce WRITE VOLUME, not to touch the storm overlay (D-02) and not to special-case
-// storms (D-03): accumulate how far each text node should be revealed, then write each dirty node
-// exactly once per tick. Identical characters appear at identical moments — a catch-up tick that
-// reveals twelve characters now performs one write instead of twelve.
+// Batches each tick's reveal into ONE nodeValue write per text node instead of one per character
+// (a catch-up tick that reveals twelve characters does one write, not twelve). This is a minor
+// efficiency tidy — NOT the Safari storm fix. The storm hitch was the narration box's smooth
+// height animation re-firing every reveal tick; that lives in #apGrid's CSS and is fixed there by
+// snapping the height. The typewriter reveal (this) is deliberately kept exactly as-is.
 // Characters are counted as CODE POINTS (`[...str]`, matching the original's `for...of`), not code
 // units — this text is full of emoji and slicing mid-surrogate-pair would render broken glyphs.
-// The setTimeout pacing above is unchanged and must stay setTimeout — see the rAF note.
 function typewriterReveal(msgEl,msPerChar){
   if(msgEl._revealTimer)clearTimeout(msgEl._revealTimer);
   const units=[],recs=[];
@@ -3671,8 +3667,9 @@ async function flash(msg,ms){
   const text=el?el.textContent:msg;
   await sleep(msgHoldMs(text));
   if(el&&el.isConnected){
-    el.classList.add("fadeOut");
-    const grid=$("apGrid");if(grid)grid.style.gridTemplateRows="0fr"; // collapse in step with the fade (see #apGrid CSS)
+    el.classList.add("fadeOut"); // BUG-01: text fades via opacity only — no grid-row collapse, so
+                                 // nothing animates the box height (see #apGrid CSS). The box snaps
+                                 // to the next message's height when panel() replaces the content.
   }
   await sleep(500);
 }
