@@ -41,6 +41,22 @@ if (typeof window !== "undefined") {
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
 
+  // 08-02: the relocated D-06 impurities and the ASSET_BASE top-level hazard
+  // must run before boot()'s element-lookup/event-wiring (wireWelcome,
+  // wireLobby, wireRecipeModal) does — the relocated comment inside
+  // applyEngineBootstrapEffects() states exactly that invariant, and boot()
+  // is where that wiring happens, so this ordering preserves it.
+  window.applyEngineBootstrapEffects();
+  window.attachPastryArt();
+
+  // Standing tripwire (mirrors window.__pp_module_ok's convention): the
+  // document.body.innerHTML rewrite above now runs at module time instead
+  // of mid-parse, so it re-serialises and re-parses the whole body —
+  // including the classic <script> elements, which the HTML parser marks
+  // non-executable on innerHTML insertion and will not re-run. This counter
+  // proves src/main.js itself still only runs once, rather than assuming it.
+  window.__pp_boot_count = (window.__pp_boot_count || 0) + 1;
+
   // Inversion of control (D-14): the classic script no longer self-invokes
   // `boot()` — it is a classic-script `function` declaration, so it is
   // already an own property of `window` with no bridge entry needed. The

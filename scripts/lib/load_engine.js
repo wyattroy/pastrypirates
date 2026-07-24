@@ -38,14 +38,18 @@ export async function loadEngine() {
   // `function` do — export the two we need explicitly so they're retrievable after execution.
   const engineSrc = region + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
 
-  // Transitional hybrid (08-01): the sliced region no longer contains `mulberry32`/`rollStorm`
-  // text — they moved to src/shared/ and src/engine/ respectively — so the sandbox is seeded
-  // from the real module exports instead. 08-03 replaces this whole function body with a native
-  // import and this hybrid goes away.
+  // Transitional hybrid (08-01, extended 08-02): the sliced region no longer contains
+  // `mulberry32`/`rollStorm`, nor (as of 08-02) the whole shared leaf tier (ING_ALL, DIRS,
+  // image maps, etc.) — all of it moved to src/shared/ and src/engine/, so the sandbox is
+  // seeded from the real module exports instead. 08-03 replaces this whole function body with
+  // a native import and this hybrid goes away.
   const sandbox = {
-    // `document.body.innerHTML = emojify(...)` runs at boot inside the extracted region (the
-    // emoji→<img> swap), so the stub needs a writable body as well as the documentElement style
-    // setter.
+    // Retained defensively: prior to 08-02, `document.body.innerHTML = emojify(...)` and the
+    // two `documentElement.style.setProperty` calls ran inside this extracted region. As of
+    // 08-02 those three D-06 impurities live in `applyEngineBootstrapEffects()`, which sits
+    // past the `escHtml` boundary this slice stops at — so this stub is currently unused by
+    // the extracted Game/roundCfg region, but harmless to keep in case a future edit inside
+    // the slice ever touches `document` again.
     document: { documentElement: { style: { setProperty() {} } }, body: { innerHTML: "" } },
     console,
     Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
