@@ -113,3 +113,40 @@ export function netWatchNarr(db, room, handler) {
   const ref = db.ref("rooms/" + room + "/narr");
   return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "narr" });
 }
+
+// ---------------------------------------------------------------------
+// Phase 9 Plan 2, Task 2. The last four plain watchers: seats, status,
+// turn order, recipe picks. The seats/status pair used to attach from a
+// single caller function — each gets its own wrapper and its own label
+// here so the registry lists (and can tear down) each independently.
+// No guard at either of those two call sites; none added here.
+// ---------------------------------------------------------------------
+
+export function netWatchSeats(db, room, handler) {
+  const ref = db.ref("rooms/" + room + "/seats");
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "seats" });
+}
+
+// The handler this wrapper carries awaits a follow-up read in its own
+// declaration, one file over — that stays true here too. A function is a
+// single stable reference regardless of how its body is declared, so
+// passing it through unwrapped, exactly like every other handler in this
+// file, changes nothing about identity; only the caller's own declaration
+// site decides whether its body awaits anything, and this file is not
+// that site.
+export function netWatchStatus(db, room, handler) {
+  const ref = db.ref("rooms/" + room + "/status");
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "status" });
+}
+
+export function netWatchTurnOrder(db, room, handler) {
+  if (!db || !room) return null;
+  const ref = db.ref("rooms/" + room + "/turnOrder");
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "turnOrder" });
+}
+
+export function netWatchRecipes(db, room, handler) {
+  if (!db || !room) return null;
+  const ref = db.ref("rooms/" + room + "/recipes");
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "recipes" });
+}

@@ -21,6 +21,7 @@ import {
   netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
+  netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
 } from "./watchers.js";
 
 export {
@@ -28,6 +29,7 @@ export {
   netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
+  netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
 };
 
 /* ================= Firebase config ================= */

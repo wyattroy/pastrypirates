@@ -4382,12 +4382,12 @@ async function watchRoom(){
   if(!r0){alert("That game no longer exists.");clearSession();showHome();return;}
   numSeats=r0.numSeats;isHost=(r0.host===myId);
   if(r0.status==="lobby")showRoom();
-  db.ref("rooms/"+room+"/seats").on("value",snap=>{
+  netWatchSeats(db,room,snap=>{
     const seats=snap.val()||{};
     roster=[];for(let i=0;i<numSeats;i++)roster[i]=seats[i]||{bot:true,strat:seatStrat(i)};
     if(!gameStarted)renderSeatList(seats);
   });
-  db.ref("rooms/"+room+"/status").on("value",async snap=>{
+  netWatchStatus(db,room,async snap=>{
     const st=snap.val();
     if((st==="playing"||st==="ended")&&!gameStarted){
       const r=(await db.ref("rooms/"+room).get()).val();
@@ -4459,8 +4459,7 @@ function beginGame(cfg,seed){
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
 // the host's synced copy instead, and reorder the captains panel once it arrives
 function watchTurnOrder(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/turnOrder").on("value",snap=>{
+  netWatchTurnOrder(db,room,snap=>{
     const v=snap.val();
     if(v){turnOrder=v;buildPlayerRows();}
   });
@@ -4471,8 +4470,7 @@ function updateRecipeBanner(){
   if(game&&game.events&&game.events.length)render();
 }
 function watchRecipes(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/recipes").on("value",snap=>{
+  netWatchRecipes(db,room,snap=>{
     const picks=snap.val();
     if(!picks)return;
     picks.forEach((pk,i)=>{if(game.players[i]&&game.players[i].recipeChoices)game.players[i].recipe=game.players[i].recipeChoices[pk];});
