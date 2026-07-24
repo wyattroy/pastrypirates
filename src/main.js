@@ -8,6 +8,7 @@
 import { MODULE_OK_FLAG } from "./module-contract.js";
 import * as shared from "./shared/index.js";
 import * as engine from "./engine/index.js";
+import * as net from "./net/index.js";
 
 // D-15 (amended): the marker assignment must be guarded — `window` is
 // undeclared under plain Node and a bare reference throws ReferenceError,
@@ -33,13 +34,25 @@ if (typeof window !== "undefined") {
 
   // The bridge (D-14/D-15): named, documented, temporary — removed in
   // Phase 11 (ROADMAP Phase 11 criterion 3 greps for the token on each of
-  // the two lines below). Publishes every shared/engine export as a
+  // the two lines below). Publishes every shared/engine/net export as a
   // global-object property so the ~150+ pre-existing bare-identifier call
   // sites in the classic region resolve with zero edits (D-15's
   // minimal-blast-radius mandate).
-  const PP = { ...shared, ...engine };
+  const PP = { ...shared, ...engine, ...net };
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
+
+  // Phase 9's debug hook (NET-03 observation point, GLOBAL-03's seed for a
+  // future single documented debug mechanism). Deliberately carries no
+  // bridge-removal tag: the two lines above are deleted in a later phase,
+  // but this hook is meant to outlive them as a permanent, named
+  // observation surface for the registry's own bookkeeping.
+  window.__pp_net_debug = {
+    size: net.netRegistrySize,
+    list: net.netRegistryList,
+    detachRoom: net.netDetachRoom,
+    detachAll: net.netDetachAll,
+  };
 
   // 08-02: the relocated D-06 impurities and the ASSET_BASE top-level hazard
   // must run before boot()'s element-lookup/event-wiring (wireWelcome,

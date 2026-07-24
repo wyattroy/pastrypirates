@@ -2113,8 +2113,7 @@ function broadcastFlip(state){
   if(isHost&&db&&room)db.ref("rooms/"+room+"/flip").set({state,t:Date.now()}).catch(netFail("flip"));
 }
 function watchFlip(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/flip").on("value",s=>{const v=s.val();if(v)setFlipCoin(v.state);});
+  netWatchFlip(db,room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
 }
 
 // ---- shot clock ----
@@ -3895,21 +3894,9 @@ function writeGameLog(){
   }).catch(netFail("game log"));
 }
 
-/* ================= Firebase config ================= */
-/*  ▼▼▼  PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see ONLINE_SETUP.md)  ▼▼▼  */
-const firebaseConfig = {
-  apiKey: "AIzaSyAA8FbPiKYc82MpCkQD2ABYirnnCl09OuA",
-  authDomain: "pastry-pirates.firebaseapp.com",
-  databaseURL: "https://pastry-pirates-default-rtdb.firebaseio.com",
-  projectId: "pastry-pirates",
-  storageBucket: "pastry-pirates.firebasestorage.app",
-  messagingSenderId: "546790679465",
-  appId: "1:546790679465:web:cdb72aa39660fca844dab8",
-  measurementId: "G-2KK6EZDZSP"
-};
-/*  ▲▲▲  ---------------------------------------------------------------  ▲▲▲  */
-
 /* ================= networking plumbing ================= */
+/* Firebase config and cfgReady() moved to src/net/index.js (Phase 9, SPLIT-04) — values copied
+   byte-for-byte, see ONLINE_SETUP.md for how to point this at your own Firebase project. */
 let db=null, myId=null, room=null, mySeat=null, isHost=false, roster=null;
 // randomized once per game and never rotates (see runLiveNet) — lets the captains panel list
 // seats in sailing order, human always first, instead of raw seat index
@@ -3929,7 +3916,6 @@ const BOT_STRATS=["pirate","trader","balanced","rusher","monopolist"];
 const SEAT_BOT_STRAT=["balanced","pirate","trader","rusher"];
 function seatStrat(i){return SEAT_BOT_STRAT[i%SEAT_BOT_STRAT.length];}
 
-function cfgReady(){return firebaseConfig&&firebaseConfig.databaseURL&&!/PASTE_YOUR/.test(firebaseConfig.databaseURL);}
 // Firebase Spark's free tier caps at 100 simultaneous connections (see ONLINE_SETUP.md) — once
 // we're seeing a meaningful fraction of that, warn on the home screen and point at solo play,
 // which never touches Firebase at all. This is a soft warning, not a hard block: the real ceiling
@@ -3944,21 +3930,22 @@ function watchPresence(){
   // yet — see ONLINE_SETUP.md) will permission-deny these; fail silently rather than spam the
   // console or block anything, since this is a nice-to-have busy indicator, not core gameplay.
   const myRef=db.ref("presence/"+myId);
-  db.ref(".info/connected").on("value",snap=>{
+  netWatchConnected(db,snap=>{
     if(snap.val()===true){
       myRef.onDisconnect().remove().catch(()=>{});myRef.set(true).catch(()=>{});
       const note=$("syncnote");if(note)note.style.display="none";
     }
   },()=>{});
-  db.ref("presence").on("value",snap=>{
+  netWatchPresence(db,snap=>{
     const busy=snap.numChildren()>=PRESENCE_WARN_THRESHOLD;
     const note=$("busynote");if(note)note.style.display=busy?"":"none";
   },()=>{});
 }
 function fbInit(){
-  if(!cfgReady())return false;
-  try{firebase.initializeApp(firebaseConfig);db=firebase.database();watchPresence();return true;}
-  catch(e){console.error("Firebase init failed",e);return false;}
+  db=netInit();
+  if(!db)return false;
+  watchPresence();
+  return true;
 }
 function getMyId(){
   let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
@@ -4498,7 +4485,7 @@ function watchRecipes(){
     if(game.events.length)render();
   });
 }
-function leaveGame(){clearSession();clearSoloState();location.reload();}
+function leaveGame(){netLeaveRoom();clearSession();clearSoloState();location.reload();}
 
 /* ================= boot ================= */
 function wireLobby(){
