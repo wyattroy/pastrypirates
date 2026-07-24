@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: Monolith Refactor
 current_phase: 8
 current_phase_name: Engine Extraction & Node Harness Migration
-status: executing
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-07-24T16:00:18.469Z"
+status: verifying
+stopped_at: Completed 08-05-PLAN.md
+last_updated: "2026-07-24T16:12:42.316Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 8 execution started
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 17
+  completed_plans: 8
+  percent: 33
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-24 — Phase 8 execution started
 
-Progress: [█████████░] 88%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [█████████░] 88%
 | Phase 08 P02 | 20 | 2 tasks | 4 files |
 | Phase 08 P03 | 35min | 2 tasks | 5 files |
 | Phase 08 P04 | ~40min | 2 tasks | 3 files |
+| Phase 08 P05 | 45min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase ?]: scripts/lib/load_engine.js header comment scrubbed of the literal string 'index.html' entirely (not just node:vm), per acceptance criterion 14's whole-file grep and invariant #7
 - [Phase ?]: engine_contract_check.js's annotation check walks the whole contiguous comment block above each anchor (not just the immediately-preceding line) — the engine tier's 3-line [3,2,1] annotation put the token 2 lines above the single-line-lookup a literal reading of the plan's acceptance criteria would produce.
 - [Phase ?]: MOVED_SYMBOLS (128 names) is hardcoded from prior SUMMARYs' export-list records, not derived from the barrels' own export statements at check time — deriving it from the barrels would make the completeness assertion tautological.
+- [Phase ?]: 08-05: engineSourceHash re-based via a dedicated gated tool (scripts/rebase_source_hash.js), never --capture; landed as its own commit per D-02
+- [Phase ?]: 08-05: minimally factored determinism_baseline.js's comparison-2 helpers (export, no logic change) so the re-base tool reuses the oracle's own comparison rather than reimplementing it; disclosed as a separate refactor commit
+- [Phase ?]: 08-05: Chrome-verified the classic live turn loop's corpus-blind storm/second-gust path (game.r(), rollStorm, PERP, DIRS) still works with the engine outside index.html, closing the coverage gap 08-03 recorded
 
 ### Pending Todos
 
@@ -111,8 +115,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T16:00:18.451Z
-Stopped at: Completed 08-04-PLAN.md
+Last session: 2026-07-24T16:12:42.305Z
+Stopped at: Completed 08-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
