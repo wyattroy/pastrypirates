@@ -301,5 +301,33 @@ function createIsolatedFakeRef(path) {
   check("list() exposes no function or Reference values", !leaksFunctionOrRef);
 }
 
+/* ---------- case 10: leak vector (a) — a room-scoped one-shot that never received a matching ---- */
+/* ---------- reply is still removed by detachRoom(), not just left dangling forever -------------- */
+// This is 09-03's Task 1 case: remotePrompt()/remoteDraftPrompt()'s response listeners already
+// self-cancel correctly the instant a matching reply arrives (that's proven by case 2's shape, not
+// this one) — the real gap D-02 names is a room that dies (or a target seat that never answers)
+// while one of these is still pending. Room scope alone isn't enough to prove that gap is closed;
+// the vacuity guard below fires the listener once BEFORE teardown to prove it was genuinely
+// attached and live, not a case that only "passes" because nothing was ever really listening.
+{
+  const ref = fake.makeRef("rooms/t/case10-response");
+  let firedBeforeTeardown = 0;
+  const handler = () => {
+    firedBeforeTeardown++;
+  };
+  attach({ scope: "room", ref, event: "value", callback: handler, label: "response:abandoned-q1" });
+  // simulate a reply that does NOT match this decision's id — the callback bodies in index.html
+  // only detach on a matching id, so a non-matching emit is exactly what "still pending" looks like
+  ref.emit("value", { id: "not-mine" });
+  check("vacuity guard: the abandoned one-shot is genuinely attached and firing before teardown", firedBeforeTeardown === 1, `firedBeforeTeardown=${firedBeforeTeardown}`);
+
+  const removed = detachRoom();
+  check("detachRoom() removes the still-pending one-shot (leak vector a)", removed > 0, `removed=${removed}`);
+  check("the fake's listener list for the abandoned one-shot's path is empty after teardown", ref.listenerCount("value") === 0, `count=${ref.listenerCount("value")}`);
+
+  ref.emit("value", { id: "still-not-mine" });
+  check("emitting on the abandoned path after teardown never invokes the handler again", firedBeforeTeardown === 1, `firedBeforeTeardown=${firedBeforeTeardown}`);
+}
+
 console.log(`\n${failures === 0 ? "All cases passed." : failures + " case(s) FAILED."}`);
 process.exit(failures === 0 ? 0 : 1);

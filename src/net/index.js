@@ -15,13 +15,14 @@
 // Firebase global present, which the Task 1 Node-import acceptance check
 // depends on directly.
 
-import { detachRoom, detachAll, size, list } from "./registry.js";
+import { detach, detachRoom, detachAll, size, list } from "./registry.js";
 import {
   netWatchFlip, netWatchConnected, netWatchPresence,
   netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
   netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
+  netWatchResponse, netWatchDraftResponse,
 } from "./watchers.js";
 
 export {
@@ -30,6 +31,7 @@ export {
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
   netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
+  netWatchResponse, netWatchDraftResponse,
 };
 
 /* ================= Firebase config ================= */
@@ -74,6 +76,15 @@ export function netInit() {
 // entries.
 export function netLeaveRoom() {
   return detachRoom();
+}
+
+// Single-entry detach, exposed net-prefixed for the two self-cancelling
+// one-shots (remotePrompt()/remoteDraftPrompt() in index.html): their own
+// callback calls this the instant a matching reply arrives, instead of
+// calling the Firebase removal API directly, so the registry's bookkeeping
+// never goes stale on the normal self-cancel path (D-02, D-04).
+export function netDetach(id) {
+  return detach(id);
 }
 
 // The registry's generic surface, exposed under net-prefixed names for

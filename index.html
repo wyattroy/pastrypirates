@@ -4089,11 +4089,11 @@ function remotePrompt(seat,payload){
   const id="q"+(promptCounter++)+"_"+Date.now();
   db.ref("rooms/"+room+"/prompt").set(Object.assign({id,seat},payload)).catch(netFail("prompt"));
   return new Promise(res=>{
-    const rr=db.ref("rooms/"+room+"/response");
+    let wid;
     const cb=snap=>{const v=snap.val();
-      if(v&&v.id===id){rr.off("value",cb);db.ref("rooms/"+room+"/prompt").remove().catch(netFail("prompt clear"));
+      if(v&&v.id===id){netDetach(wid);db.ref("rooms/"+room+"/prompt").remove().catch(netFail("prompt clear"));
         res(v.choice===undefined?null:v.choice);}};
-    rr.on("value",cb);
+    wid=netWatchResponse(db,room,cb,"response:"+id);
   });
 }
 // remote: post my answer back to the host
@@ -4111,11 +4111,11 @@ function remoteDraftPrompt(seat,msg,opts,waitMsg){
   db.ref("rooms/"+room+"/draftPrompts/"+seat).set({id,seat,msg,waitMsg:waitMsg||null,
     labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")}).catch(netFail("recipe prompt"));
   return new Promise(res=>{
-    const rr=db.ref("rooms/"+room+"/draftResponses/"+seat);
+    let wid;
     const cb=snap=>{const v=snap.val();
-      if(v&&v.id===id){rr.off("value",cb);db.ref("rooms/"+room+"/draftPrompts/"+seat).remove().catch(netFail("recipe prompt clear"));
+      if(v&&v.id===id){netDetach(wid);db.ref("rooms/"+room+"/draftPrompts/"+seat).remove().catch(netFail("recipe prompt clear"));
         res(v.choice);}};
-    rr.on("value",cb);
+    wid=netWatchDraftResponse(db,room,seat,cb,"draftResponse:"+id);
   });
 }
 function watchDraftPrompt(){

@@ -150,3 +150,29 @@ export function netWatchRecipes(db, room, handler) {
   const ref = db.ref("rooms/" + room + "/recipes");
   return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "recipes" });
 }
+
+// ---------------------------------------------------------------------
+// Phase 9 Plan 3, Task 1 (D-02). The last two watchers: the self-cancelling
+// one-shot response listeners behind remotePrompt()/remoteDraftPrompt(). The
+// caller supplies a label that carries the prompt's own unique id (not just
+// a static string like the sixteen wrappers above) — the registry's
+// duplicate-attach key includes the label, so two prompts issued
+// sequentially against the same response path never collide with the
+// registry's duplicate-attach refusal once the first has detached. Both
+// return the registry id: the caller needs it to detach itself the instant
+// a matching reply arrives, which is what preserves the self-cancelling
+// semantics D-02 requires untouched. Room-scoped like every other watcher
+// here, so a room teardown also removes one that never received a reply —
+// that room-death case is the actual gap D-02 names; the normal
+// self-cancel path is unchanged.
+// ---------------------------------------------------------------------
+
+export function netWatchResponse(db, room, handler, label) {
+  const ref = db.ref("rooms/" + room + "/response");
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label });
+}
+
+export function netWatchDraftResponse(db, room, seat, handler, label) {
+  const ref = db.ref("rooms/" + room + "/draftResponses/" + seat);
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label });
+}
