@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 8
 current_phase_name: Engine Extraction & Node Harness Migration
 status: executing
-stopped_at: Completed 08-02-PLAN.md (Task 1 code motion + commit); Task 2 automated checks pass, Chrome browser check outstanding — needs Chrome MCP/Wyatt
-last_updated: "2026-07-24T15:33:12.355Z"
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-07-24T15:47:47.522Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 8 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 8 execution started
 
-Progress: [██████░░░░] 63%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [██████░░░░] 63%
 | Phase 07 P02 | 15 | 3 tasks | 5 files |
 | Phase 08 P01 | 25 | 2 tasks | 5 files |
 | Phase 08 P02 | 20 | 2 tasks | 4 files |
+| Phase 08 P03 | 35min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 8 Plan 1: Assumption A1 (Object.assign(globalThis, PP) bare-identifier resolution) confirmed by execution in Chrome — mulberry32 and rollStorm moved verbatim through the window.PP bridge, both an early call site (Game constructor) and a corpus-blind one (live turn loop's rollStorm/PERP second-gust mechanic) resolve correctly with a clean console. Plans 08-02 through 08-05 may proceed on the bridge mechanism.
 - [Phase ?]: Phase 8 Plan 2: mechanical (Node-script) extraction over manual retyping for the ~950-line Unicode-dense shared tier, byte-verified via diff before writing to disk
 - [Phase ?]: Phase 8 Plan 2: six ORDER IS LOAD-BEARING annotations added (DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, TET) with construct-specific mechanism reasons, not a repeated generic sentence
+- [Phase ?]: Engine tier's shared-import list (mulberry32, ING_ALL, TET, DIRS, OPPOSITE, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, man, ilabelImg) derived mechanically from the moved source, not from RESEARCH.md's illustrative guess — NAMES/dockPlace/iname/ilabel are classic-UI-only dependencies, not Game-class dependencies
+- [Phase ?]: scripts/lib/load_engine.js header comment scrubbed of the literal string 'index.html' entirely (not just node:vm), per acceptance criterion 14's whole-file grep and invariant #7
 
 ### Pending Todos
 
@@ -105,8 +108,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T15:33:12.344Z
-Stopped at: Completed 08-02-PLAN.md — both tasks done, Chrome verification confirmed by coordinator (__pp_boot_count===1, 121 window.PP keys, clean console)
+Last session: 2026-07-24T15:47:47.510Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
