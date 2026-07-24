@@ -76,9 +76,12 @@ coverage:
   - id: D5
     description: "The page still boots exactly once in a real browser after the document.body.innerHTML rewrite moved from parse time to module time — window.__pp_module_ok===true, window.__pp_boot_count===1, both CSS custom properties set, emoji art swapped in static markup, recipe modal art present, clean console"
     requirement: null
-    verification: []
+    verification:
+      - kind: manual_procedural
+        ref: "Chrome console transcript (server port 8777, cwd confirmed as this worktree, fresh page load) — see 'Task 2: Chrome verification transcript' below"
+        status: pass
     human_judgment: true
-    rationale: "Requires an actual Chrome session with browser-automation tooling (Chrome MCP / Playwright / Puppeteer) that this executor's toolset (Read/Write/Edit/Bash/Skill only, confirmed via `command -v chrome/chromium/google-chrome` and `npx playwright` — none present) does not provide, the same gap 08-01's Task 2 hit. The dev server on port 8777 was independently confirmed to be serving this exact worktree (`lsof` cwd match) and to be returning the just-committed src/main.js (`curl` diff match), so the environment is ready for whoever runs this check next — see 'Task 2: Outstanding' below."
+    rationale: "Required an actual Chrome session with browser-automation tooling this executor's own toolset (Read/Write/Edit/Bash/Skill only) does not provide — the coordinator ran it directly and supplied the transcript verbatim, the same handoff pattern 08-01's Task 2 used."
 
 # Metrics
 duration: ~20min
@@ -92,10 +95,10 @@ status: complete
 
 ## Performance
 
-- **Duration:** ~20 min active execution (Task 1 code motion + full automated verification)
+- **Duration:** ~20 min active execution (Task 1 code motion + full automated verification), plus a coordinator-driven Chrome verification pass for Task 2
 - **Started:** 2026-07-24T15:10:00Z (approx.)
-- **Completed:** 2026-07-24T15:32:00Z (approx.)
-- **Tasks:** 2 (Task 1 code motion, Task 2 browser smoke check)
+- **Completed:** 2026-07-24T15:35:00Z (approx.)
+- **Tasks:** 2 (Task 1 code motion, Task 2 browser smoke check — both complete)
 - **Files modified:** 4 (`index.html`, `src/shared/index.js`, `src/main.js`, `scripts/lib/load_engine.js`)
 
 ## Accomplishments
@@ -107,15 +110,16 @@ status: complete
 - Six `// ORDER IS LOAD-BEARING` annotations added, one each on `DIRS`, `DIRNAME`, `PERP`, `STORM_DIAG`, `OPPOSITE`, `TET`, each with a construct-specific mechanism explanation (not a repeated generic sentence) — verified by exact-count grep (=6) and per-construct `grep -B1` (all six found immediately above their declaration).
 - All 24 of Task 1's acceptance criteria pass, individually re-verified after writing this summary: determinism `--verify` (30/30, exit 0), `npm test` (exit 0), `real_game_test.js 25` (exit 0), the annotation-count and per-construct checks, three literal byte-order greps (DIRS/DIRNAME/OPPOSITE), the comment-stripped purity grep (zero hits), the four negative greps confirming `ING_ALL`/`DIRS`/`ASSET_BASE`/top-level `RECIPE_BOOK.forEach` no longer exist in `index.html`, the single-`<script>`-tag count, and the corpus-fixture untouched checks (one commit deep, clean working tree).
 - `index.html` shrank from 5,629 to 5,469 lines (−160 net: −174 for the deleted shared tier, +14 for the two new bootstrap-function wrappers).
+- Task 2's Chrome verification (coordinator-driven) confirms the page boots exactly once with the shared tier living outside `index.html`: `__pp_boot_count===1`, `window.PP` carries 121 keys, both relocated CSS custom properties are set with the expected filenames, the emoji→art swap and recipe-modal art are both present, and the console is clean — full transcript below.
 
 ## Task Commits
 
 Each task was committed atomically:
 
 1. **Task 1: Move the shared leaf tier out verbatim, relocate the three impurities, defuse the ASSET_BASE parse hazard** - `240abf6` (feat)
-2. **Task 2: Browser load smoke check** - no commit (verification-only task per its own `<files>` declaration; automated portion run and passing, browser portion outstanding — see below)
+2. **Task 2: Browser load smoke check** - no commit (verification-only task per its own `<files>` declaration; both automated and browser portions complete — see 'Task 2: Chrome verification transcript' below)
 
-_Task 1 was verified with `node scripts/determinism_baseline.js --verify` both immediately before and immediately after its commit, per this plan's critical invariant #2._
+_Task 1 was verified with `node scripts/determinism_baseline.js --verify` both immediately before and immediately after its commit, per this plan's critical invariant #2. The coordinator independently re-ran `--verify` and `npm test` again after the Chrome pass — both still green — confirming the browser session made no code changes._
 
 **Plan metadata:** committed alongside this summary (see final commit below).
 
@@ -139,27 +143,48 @@ None — plan executed exactly as written. Task 1's code motion, annotation plac
 
 ## Issues Encountered
 
-- **This executor lacks browser-automation tooling**, the same gap 08-01's Task 2 hit: no Chrome MCP tools, and `command -v chrome/chromium/google-chrome` plus `npx playwright --version` all confirm nothing is available in this execution context. Task 1's automated verification (determinism, `npm test`, `real_game_test.js`, all 24 acceptance-criteria greps) required no browser and ran cleanly. Task 2's *automated* half — confirming the dev server's cwd matches this worktree and that `git status`/`determinism_baseline.js --verify` are clean — was completed and passes (server on port 8777, `lsof` cwd match, `curl` content match against the just-committed `src/main.js`). Task 2's *browser* half (loading the page, reading `window.__pp_boot_count`/`window.PP`, screenshotting the lobby, opening the recipe modal) could not be performed by this executor and is handed back — see below.
+- **This executor lacks browser-automation tooling**, the same gap 08-01's Task 2 hit: no Chrome MCP tools, and `command -v chrome/chromium/google-chrome` plus `npx playwright --version` all confirm nothing is available in this execution context. Task 1's automated verification (determinism, `npm test`, `real_game_test.js`, all 24 acceptance-criteria greps) required no browser and ran cleanly. Task 2's *automated* half — confirming the dev server's cwd matches this worktree and that `git status`/`determinism_baseline.js --verify` are clean — was completed and passed directly (server on port 8777, `lsof` cwd match, `curl` content match against the just-committed `src/main.js`). Task 2's *browser* half required an actual Chrome session; the coordinator ran it directly and supplied the transcript recorded below, the same handoff pattern 08-01 used.
 
-## Task 2: Outstanding
+## Task 2: Chrome verification transcript
 
-**Automated portion — done and passing:**
-- Dev server confirmed serving this exact worktree: `lsof -p <pid> | grep cwd` → `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/new-session-d6e9d7`, port `8777`.
-- `curl http://localhost:8777/src/main.js` byte-matches the just-committed file (`diff` clean) — the server is not a stale sibling-worktree instance.
-- `git status --porcelain` — empty (Task 1 committed cleanly).
-- `node scripts/determinism_baseline.js --verify` — 30/30 PASS, run again post-commit.
+**Server:** port `8777`, cwd confirmed as this worktree — independently confirmed by this executor before handing Task 2 back (`lsof -p <pid> | grep cwd` → this worktree's path; `curl http://localhost:8777/src/main.js` byte-matched the just-committed file). Coordinator's Chrome session used the same server, fresh page load.
 
-**Browser portion — NOT performed, requires Chrome MCP or equivalent tooling this executor does not have:**
-- Load `http://localhost:8777/` in Chrome and confirm: `window.__pp_module_ok === true`, `typeof firebase === "object"`, `window.__pp_boot_count === 1` (not `2`, not `undefined`), `document.querySelectorAll('script[src="src/main.js"]').length === 1`, `typeof window.PP === "object"` with `Object.keys(window.PP).length >= 50`.
-- Confirm `getComputedStyle(document.documentElement).getPropertyValue('--clock-img')` contains `clock.png` and `--flip-socket-img` contains `flip-socket.png`.
-- Confirm the lobby renders with custom `<img>` art swapped in for static emoji (proving `applyEngineBootstrapEffects()` ran at its new module-time position).
-- Open the recipe modal and confirm pastry artwork is present (proving `attachPastryArt()` ran).
-- Confirm a single lobby-control click produces exactly one response (no double-wiring from a double boot).
-- Confirm a clean console (zero `ReferenceError`/`is not defined`/`Failed to load module`) from page load through the recipe-modal check.
+**Bridge symbol resolution and boot tripwires:**
+```
+window.__pp_module_ok                → true
+window.__pp_boot_count               → 1          // inversion did not double-boot
+typeof firebase                      → "object"
 
-**Why this matters and can't be skipped:** Task 1's 30-seed corpus runs `Game.play()` headlessly in Node and would stay green even if the page never rendered a pixel — the corpus structurally cannot catch a page-load regression. The one behavior-adjacent change in this plan (the `document.body.innerHTML` rewrite moving from parse time to module time, meaning it now re-serialises and re-parses the whole body including the classic `<script>` elements, which the HTML parser marks non-executable on `innerHTML` insertion) is exactly the class of regression this browser check exists to catch, per D-17's own rationale. This executor completed everything within reach and is handing back only the piece that genuinely requires interactive browser tooling — the same pattern 08-01 established for its own Task 2.
+bare-identifier resolution through the bridge:
+  typeof mulberry32  → "function"
+  typeof rollStorm   → "function"
+  typeof ING_ALL     → "object"
+  typeof DIRS        → "object"
+  typeof man         → "function"
+Object.keys(window.PP).length        → 121        // 120 from src/shared/index.js + 1 (rollStorm) from src/engine/index.js
+```
 
-**Next step:** run this check with Chrome MCP (or ask Wyatt to run it manually) before treating Phase 8's D-17 requirement as fully satisfied for this plan; record the transcript in this file or a follow-up note once done.
+**The relocated D-06 impurities and the ASSET_BASE hazard, all confirmed applied at their new module-time position:**
+```
+--clock-img                          → url(assets/clock/clock.png)        // D-06 impurity 1 relocated, still applied
+--flip-socket-img                    → url(assets/icons/flip-socket.png)  // D-06 impurity 2 relocated, still applied
+body img swap present                → true                              // D-06 impurity 3 (emojify) ran
+RECIPE_BOOK art attached             → 21/21                             // ASSET_BASE parse-time hazard defused
+```
+
+**Console:** clean, zero errors on load.
+
+**Measurement note (recorded accurately, not glossed over):** an `img.emoji`-class selector returned `emojiImgCount → 0`, but the broader `<img>`-swap regex returned `true`. This is not a defect — the `emojify()` swap inserts `<img class="narrIcon" ...>` (see `iconImg()`/`ilabelImg()` in `src/shared/index.js`), not a `.emoji`-classed element, so a class-based count using `.emoji` was checking for a class name the code never uses. The broader regex check is the correct signal and it passed.
+
+**Independent re-confirmation after the Chrome pass** (coordinator, no code changed by the browser session):
+```
+node scripts/determinism_baseline.js --verify   → 30/30 PASS
+npm test                                        → exit 0
+git log --oneline -- 'scripts/fixtures/determinism/*.jsonl' | wc -l → 1
+```
+`index.html` stands at +15/−186 across the phase so far (08-01 + 08-02 combined).
+
+All of Task 2's acceptance criteria (1–13) are satisfied: server cwd/port recorded, `__pp_module_ok===true`, `firebase` typeof `"object"`, `__pp_boot_count===1`, exactly one `script[src="src/main.js"]`, `window.PP` present with 121 keys (well above the ≥50 floor), both CSS custom properties set and containing the expected filenames, emoji-art swap confirmed present in static markup, recipe art attached for all 21 `RECIPE_BOOK` entries, a clean console, and `git status --porcelain` empty throughout (no file modified by this verification-only task).
 
 ## User Setup Required
 
@@ -170,7 +195,7 @@ None - no external service configuration required. Zero dependencies, zero packa
 - `src/shared/index.js` is now the complete Phase 8 shared leaf tier (120 exports) — 08-03 can proceed with the `class Game`/`roundCfg` extraction into `src/engine/index.js`, importing from this same barrel.
 - `scripts/lib/load_engine.js`'s hybrid `vm` sandbox already spreads the full `...shared` namespace via its existing `import * as shared from "../../src/shared/index.js"` — no change was needed there for this plan's symbol additions to take effect; 08-03 replaces the whole function body with a native import once the engine region is fully evacuated.
 - The corpus fixtures remain untouched (one commit deep each for the `.jsonl` files and `manifest.json`) — the D-01/D-02 tripwires held before, during, and after this plan.
-- **Blocker for full sign-off (not for 08-03 proceeding):** Task 2's Chrome browser check is outstanding, as detailed above. 08-03 can start regardless (it depends on the shared tier existing, which it does, not on the browser check), but Phase 8's D-17 requirement is not yet fully satisfied until it runs.
+- Task 2's Chrome browser check is complete (see transcript above) — D-17's browser-boots-correctly requirement is satisfied for this plan boundary. No blockers remain for this plan.
 
 ## Self-Check: PASSED
 
@@ -179,6 +204,7 @@ None - no external service configuration required. Zero dependencies, zero packa
 - `src/main.js` (bootstrap call order present) — FOUND, confirmed via grep
 - `scripts/lib/load_engine.js` (comment corrected) — FOUND, confirmed via Read
 - Commit `240abf6` — FOUND in `git log --oneline --all`
+- Task 2 Chrome verification — CONFIRMED via coordinator's transcript (`__pp_boot_count===1`, 121 `window.PP` keys, both CSS custom properties set, emoji/recipe art present, clean console); independently re-verified `--verify` (30/30) and `npm test` (exit 0) post-Chrome-pass
 
 ---
 *Phase: 08-engine-extraction-node-harness-migration*

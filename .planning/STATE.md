@@ -92,7 +92,6 @@ None yet.
 - `<script type="module">` is always deferred — Firebase compat CDN tags must stay classic scripts loaded before the module entry (Phase 7, FOUND-03) to avoid an init race.
 - De-globalization (Phase 10) can silently break the 41 inline `onclick` handlers — needs an upfront handler audit and a click-through checklist.
 - Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
-- Phase 8 Plan 2 Task 2: Chrome browser smoke check (window.__pp_boot_count===1, __pp_module_ok, clean console, emoji-art swap, recipe modal art) not yet run — this executor lacks browser-automation tooling. Automated portion (server cwd/port confirmed on 8777, determinism --verify, git status clean) already passes. Needs Chrome MCP or Wyatt to complete before Phase 8's D-17 requirement is fully satisfied.
 
 ## Deferred Items
 
@@ -107,7 +106,7 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-07-24T15:33:12.344Z
-Stopped at: Completed 08-02-PLAN.md (Task 1 code motion + commit); Task 2 automated checks pass, Chrome browser check outstanding — needs Chrome MCP/Wyatt
+Stopped at: Completed 08-02-PLAN.md — both tasks done, Chrome verification confirmed by coordinator (__pp_boot_count===1, 121 window.PP keys, clean console)
 Resume file: None
 
 ## Operator Next Steps
