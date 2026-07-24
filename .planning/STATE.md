@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 9
 current_phase_name: Networking Layer & Watcher Cleanup
 status: executing
-stopped_at: Completed 09-01-PLAN.md all tasks
-last_updated: "2026-07-24T17:54:09.363Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-07-24T18:09:02.924Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 9 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 33
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 9 (Networking Layer & Watcher Cleanup) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 9 execution started
 
-Progress: [███████░░░] 69%
+Progress: [████████░░] 77%
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [███████░░░] 69%
 | Phase 08 P04 | ~40min | 2 tasks | 3 files |
 | Phase 08 P05 | 45min | 2 tasks | 3 files |
 | Phase 09 P01 | ~70min | 2 tasks | 7 files |
+| Phase 09 P02 | ~20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 09-01: added a registry-routed cross-instance test (isolated-backing fake) beyond the plan's literal case list, because the original shared-backing-fake case cannot be made to fail by any registry.js change and AC 8 requires it to be
 - [Phase ?]: 09-01: deliberately did not mark SPLIT-04/NET-01/NET-02/NET-03 complete in REQUIREMENTS.md — only 3 of 18 watchers migrated and NET-03's live-browser proof (Task 3) is unperformed
 - [Phase ?]: 09-01: Task 3's live-browser NET-03 probe was performed by the coordinator (this executor has no browser tool) against a real Firebase connection — same-tab, no-reload attach/detach/re-attach verified: session watchers (2) survived detachRoom(), the torn-down handler went silent on a real write, re-attach returned to the pre-teardown count. Transcript recorded verbatim in 09-01-SUMMARY.md, attributed to the coordinator, not this execution session.
+- [Phase ?]: watchers.js switched to import * as registry from './registry.js' / registry.attach() namespaced call style (applied to all 16 wrappers) so the plan's literal registry.attach grep ledger is true
+- [Phase ?]: src/net/index.js re-exports the 13 new watcher names (not in plan's files_modified list) so they reach the window.PP/globalThis bridge and don't ReferenceError at runtime
 
 ### Pending Todos
 
@@ -119,8 +122,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T17:54:09.356Z
-Stopped at: Completed 09-01-PLAN.md all tasks
+Last session: 2026-07-24T18:09:02.918Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
