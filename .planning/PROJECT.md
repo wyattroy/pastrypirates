@@ -2,7 +2,18 @@
 
 ## What This Is
 
-Pastry Pirates is a browser-based, pirate-themed pastry board game playable solo (against AI captains) or in real-time multiplayer via Firebase sync. Players sail a grid of islands gathering ingredients, trading, battling, fishing, and racing to bake a winning recipe. The v1.0 edit-pass milestone (shipped 2026-07-24) cleared a 15-item playtesting punch list — two urgent playability bugs plus battle, AI, narration, UI/UX, bot, and end-of-voyage improvements.
+Pastry Pirates is a browser-based, pirate-themed pastry board game playable solo (against AI captains) or in real-time multiplayer via Firebase sync. Players sail a grid of islands gathering ingredients, trading, battling, fishing, and racing to bake a winning recipe. The v1.0 edit-pass milestone (shipped 2026-07-24) cleared a 15-item playtesting punch list — two urgent playability bugs plus battle, AI, narration, UI/UX, bot, and end-of-voyage improvements. The v1.1 milestone (in progress) tackles the long-deferred monolith refactor: splitting the ~5,200-line `index.html` into native ES modules with no build step, while folding in the debt cleanups that ride along with the split.
+
+## Current Milestone: v1.1 Monolith Refactor
+
+**Goal:** Split the ~5,200-line `index.html` monolith into native ES modules with no build step, preserving gameplay, Safari support, and deterministic multiplayer — while folding in the debt cleanups that ride along with the split.
+
+**Target features:**
+- Structural split — extract engine, UI rendering, and Firebase networking into separate `.js` modules loaded via `<script type="module">`; boundaries locked during planning after mapping real coupling
+- Cleanup: Firebase `.off()` teardown for `.on()` watchers (fix memory leaks / stale handlers)
+- Cleanup: tame the 40+ globals behind module exports / an app-state object instead of `window` globals
+- Cleanup: harden the deterministic engine/replay seams with clean module boundaries + regression tests (no change to the algorithm)
+- Verification: expanded headless replay/test harness, Claude-driven Chrome MCP end-to-end gameplay testing (solo + multiplayer), and manual Safari/multiplayer playtests
 
 ## Core Value
 
@@ -37,14 +48,19 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 
 ### Active
 
-<!-- Next milestone's scope. Define via /gsd-new-milestone. -->
+<!-- v1.1 Monolith Refactor scope. Requirements defined in .planning/REQUIREMENTS.md. -->
 
-(None yet — v1.0 shipped. Run `/gsd-new-milestone` to scope the next version.)
+- Split `index.html` into native ES modules (zero build step) — v1.1
+- Firebase `.off()` watcher teardown cleanup — v1.1
+- Tame 40+ globals behind module exports / app-state object — v1.1
+- Harden deterministic engine/replay module seams + regression tests — v1.1
+- Verification: expanded harness + Claude-driven Chrome MCP end-to-end tests + Safari/MP playtests — v1.1
 
 ### Out of Scope
 
-- Full modular refactor of the 5,000+ line `index.html` monolith — real debt, but out of scope for this edit pass; fix bugs in place
-- New game modes or mechanics beyond the punch list — this milestone is polish + bug fixing, not expansion
+- New game modes or mechanics — still expansion, not this refactor milestone
+- A bundler/minifier toolchain (Vite/esbuild) — native ES modules preserve the "no build step" principle; a bundler is a separate decision
+- TypeScript migration — out of scope for this structural pass
 
 ## Context
 
@@ -90,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-24 after v1.0 milestone*
+*Last updated: 2026-07-24 — started v1.1 Monolith Refactor milestone*
