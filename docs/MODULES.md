@@ -113,12 +113,164 @@ filled in the first two tiers of this shape:
   is a leaf by construction, and `scripts/engine_contract_check.js` (see
   below) fails the build if that direction is ever violated.
 - `src/ui/` — extracted rendering/UI code, plus the bridge's removal (Phase 11)
-- `src/net/` — extracted Firebase networking code (Phase 9)
+- `src/net/` — extracted Firebase networking code (Phase 9). Five files:
+  - `src/net/registry.js` — the `WatcherRegistry`. **The only file in the
+    whole repository permitted to call `ref.on()` or `ref.off()`.** This is
+    mechanically enforced, not conventional — see "The net contract check"
+    below. No import of UI code, the engine tier, or any state belonging to
+    a caller.
+  - `src/net/watchers.js` — the eighteen `netWatch*` transport wrappers. Each
+    builds the Firebase `Reference`, chooses a scope and a label, and hands
+    the caller's own handler straight to `registry.attach()` as the callback
+    itself. Contains no `.on()`/`.off()` call of its own.
+  - `src/net/writers.js` — one function per Firebase write: a `set`, `push`,
+    `update`, or `remove` on a path built the same way the pre-extraction
+    call site built it, plus an optional caller-supplied error reporter.
+  - `src/net/readers.js` — one-shot reads (`.get()`/`.transaction()`)
+    returning the raw promise, so every caller's own `.val()` extraction,
+    existence check, and error handling stays exactly where it was.
+  - `src/net/index.js` — barrel plus Firebase app construction: the
+    `firebaseConfig` object (copied byte for byte from the pre-extraction
+    declaration), `cfgReady()`, `netInit()`, `netLeaveRoom()`, and re-exports
+    of every watcher/writer/reader/registry-surface name, all `net`-prefixed.
 
 **Import specifiers must carry an explicit `.js` extension** — browser ESM
 performs no extension resolution, unlike Node's CommonJS `require()`. An
 extensionless specifier resolves under Node but 404s in the browser, which is
 exactly the kind of silent-skip failure this contract exists to prevent.
+
+## The networking handler-injection seam
+
+This is the design decision a future reader is most likely to undo by
+accident, so it is stated here as a rule with a reason.
+
+`src/net/` owns transport only: building `Reference`s, attaching and
+detaching listeners, reading, and writing. Every watcher callback's *body* —
+every UI call (`setFlipCoin`, `showNarration`, `renderBattleFromSnap`, and
+friends), every read of `game`/`mySeat`/`isHost`/`replaying` — stays exactly
+where it was, in the classic script, and is handed into `src/net/`'s
+`netWatchX(db, room, handler)` functions as a plain function argument.
+`src/net/` therefore executes UI and app-state logic indirectly, once
+removed, through a caller-supplied function — never through an import.
+
+**The direction is explicit and one-way: the UI may import `src/net/`;
+`src/net/` may never import the UI.** `scripts/net_contract_check.js` (below)
+makes that direction a standing build failure, not a review comment.
+
+**Dispatch is synchronous, and that is load-bearing, not incidental.** The
+wrapped callback calls the caller's `handler` directly, in the same tick as
+the raw Firebase callback fires — no emitter, no `Promise`, no microtask
+between them anywhere in `src/net/`. This matters because a guard flag
+(`replaying`, for instance) checked inside a handler could otherwise change
+value between the Firebase callback firing and the handler actually running,
+which would corrupt a replay rebuild with no visible symptom at the moment
+it happens. An event emitter was considered and rejected for the same
+reason `src/net/` avoids one everywhere else: it would be technically
+synchronous too, but it adds an indirection layer with no benefit here,
+since every watcher has exactly one consumer, and it makes an accidental
+deferral easy to introduce later without anyone noticing at the call site.
+
+## The two listener scopes
+
+Exactly two scopes exist, and the distinction is the single most likely
+well-intentioned mistake a later phase could make here.
+
+- **`"room"`** — every watcher tied to a specific room's lifetime. Torn down
+  together, all at once, when a room is left (`netLeaveRoom()` /
+  `registry.detachRoom()`).
+- **`"session"`** — the connection and presence watchers
+  (`netWatchConnected`, `netWatchPresence`). Attached once per page life and
+  **must survive a room leave**, because they track the browser's connection
+  to Firebase itself, not any particular room. Tearing them down alongside
+  room-scoped listeners would be a regression dressed as a fix —
+  `registry.detachRoom()` only ever touches `"room"`-scoped entries by
+  construction, precisely to prevent that.
+
+## The eighteen-watcher count, and why it isn't fourteen
+
+`src/net/watchers.js` exports eighteen `netWatch*` transport wrappers,
+attaching through the registry with exactly eighteen `registry.attach()`
+calls. This figure was corrected from a stale "fourteen watchers, one torn
+down" in the roadmap and requirements docs after a direct grep of
+`index.html` on 2026-07-24 turned up eighteen live `.on()` call sites and two
+`.off()` call sites. Both planning documents were corrected at that time.
+`scripts/net_contract_check.js` now pins the figure mechanically: if a
+document elsewhere in this repository is ever found to still say fourteen,
+this section — and the check's own hardcoded inventory list, sourced from
+the corrected count — is the current number.
+
+## `window.__pp_net_debug`
+
+A third standing browser tripwire, alongside `window.__pp_module_ok` and
+`window.__pp_boot_count` (see "Standing browser tripwires" below). Set in
+`src/main.js` inside the same `typeof window` guard as the other two. Shape:
+
+```
+{ size(scope) -> number, list() -> array, detachRoom() -> number, detachAll() -> number }
+```
+
+It exposes the registry's own bookkeeping directly. Because the registry is
+mechanically the only file permitted to attach or detach a Firebase
+listener (enforced by `scripts/net_contract_check.js`'s sole-listener-site
+assertion), that bookkeeping *is* the listener ground truth — there is no
+other source of truth for "how many listeners are actually live right now"
+to disagree with it.
+
+**It carries no `PP-BRIDGE` token, deliberately.** Phase 11 removes the
+temporary bridge by grepping for that token on every line that carries it;
+this hook is meant to outlive that removal. It is the named, documented seed
+for GLOBAL-03's "single documented debug mechanism" requirement in Phase 10,
+so that phase does not need to invent or rename one.
+
+## The net contract check
+
+`scripts/net_contract_check.js` is the standing, `npm test`-wired gate for
+SPLIT-04, NET-01, and NET-02 — mirroring `scripts/engine_contract_check.js`'s
+structure (multiple named assertions, one run reports every failure, fixed
+scope excluding `scripts/` itself) with one deliberate difference from that
+predecessor: **it performs no comment stripping, anywhere.**
+`engine_contract_check.js` strips from the first `//` to end of line before
+matching, and its own header asks for that assumption to be reconfirmed if a
+URL-bearing string is ever added to the files it scans. `src/net/index.js`
+now contains the Firebase `databaseURL`, which makes that exact false
+negative live rather than theoretical — a real violation appearing after a
+`://`-bearing literal on the same physical line would be silently truncated
+away by that stripping approach before the match pattern ever reached it.
+`scripts/net_contract_check.js` matches raw, unstripped lines instead and
+accepts the occasional false positive inside a comment on purpose.
+
+Five assertions, all run before the script exits so one run reports every
+problem: the registry is the sole file in the repository permitted to touch
+the Firebase listener API; `src/net/` references no UI name; `src/net/`
+references no app-state global; `src/net/` imports neither `src/ui/` nor
+`src/engine/`; and `src/net/watchers.js` exports all eighteen watchers with
+exactly eighteen `registry.attach()` calls.
+
+**The consequence for contributors:** a comment inside `src/net/` that
+happens to name a UI function or an app-state global will fail the build.
+The fix is to reword the comment — describe the boundary in terms of roles
+("the caller's handler", "the classic script's own state") rather than by
+naming the identifiers on the check's denylists — not to weaken the check.
+
+## What deliberately did not move into `src/net/`
+
+- **The error-surfacing helper that drives the visible "sync trouble"
+  banner.** It toggles a DOM element, which makes it UI. It stays in
+  `index.html` and is passed into every `src/net/writers.js` function that
+  needs it as a plain function argument, exactly as it was passed to
+  `.catch(...)` before the extraction.
+- **The database handle itself.** `let db=null, ...` remains a classic-script
+  global in `index.html`. De-globalizing it is Phase 10's job under
+  GLOBAL-01 — doing it here would blur this phase's boundary. Every
+  `src/net/` function receives `db` as a plain argument at every call site
+  and never reads a module-level or window-level handle.
+- **Room and lobby orchestration.** `createRoom()`, `joinRoom()`,
+  `watchRoom()`, `startGame()`, and `resumeHostGame()` keep their
+  orchestration logic in `index.html`; only their Firebase transport calls
+  route through `src/net/`.
+
+A reader finding any of these three still in `index.html` should read this
+list as confirmation, not as an oversight.
 
 ## The `window.PP` bridge (temporary — removed in Phase 11)
 
