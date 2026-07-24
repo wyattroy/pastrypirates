@@ -24,7 +24,12 @@ import { loadEngine } from "./lib/load_engine.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, "fixtures", "determinism");
-const MANIFEST_PATH = path.join(FIXTURES_DIR, "manifest.json");
+// Exported (08-05) — scripts/rebase_source_hash.js imports MANIFEST_PATH, playSeed, serializeSeed
+// and hashBytes below to reuse verify()'s exact comparison-2 logic (fresh replay hashed and
+// compared to manifest.perSeed[].sha256) rather than reimplementing a second, subtly-different
+// copy of it. Adding `export` to existing declarations is the only change; behavior when this file
+// runs standalone as `node determinism_baseline.js [--capture]` is unchanged (see file bottom).
+export const MANIFEST_PATH = path.join(FIXTURES_DIR, "manifest.json");
 
 // same personality roster / seeding convention real_game_test.js established
 const SEED_BASE = 12345;
@@ -53,7 +58,7 @@ function strategiesFor(i) {
   return [0, 1, 2, 3].map((s) => BOT_STRATS[(i + s) % BOT_STRATS.length]);
 }
 
-function playSeed(Game, roundCfg, i, seed) {
+export function playSeed(Game, roundCfg, i, seed) {
   const strategies = strategiesFor(i);
   const cfg = roundCfg(strategies);
   const g = new Game(cfg, seed, true); // record=true — Game.ev() is a no-op otherwise
@@ -80,13 +85,13 @@ function finalStateLine(g) {
 // Serialize one event per line, JSON.stringify with no replacer/indentation (D-06/D-07), plus the
 // final-state line last. Key order comes from Game.ev()'s insertion order and is stable across
 // runs of identical code.
-function serializeSeed(g) {
+export function serializeSeed(g) {
   const lines = g.events.map((e) => JSON.stringify(e));
   lines.push(JSON.stringify(finalStateLine(g)));
   return lines.join("\n") + "\n";
 }
 
-function hashBytes(bytes) {
+export function hashBytes(bytes) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
 }
 
@@ -235,8 +240,15 @@ async function verify() {
   process.exit(failures === 0 ? 0 : 1);
 }
 
-if (mode === "capture") {
-  await capture();
-} else {
-  await verify();
+// Guarded (08-05) so `import { playSeed, serializeSeed, hashBytes, MANIFEST_PATH } from
+// "./determinism_baseline.js"` (scripts/rebase_source_hash.js does exactly this) does not also
+// trigger a full verify() run as a side effect of the import — only run capture()/verify() when
+// this file is the actual entry point, exactly as before for every existing caller
+// (`node scripts/determinism_baseline.js [--capture]`).
+if (import.meta.url === `file://${process.argv[1]}`) {
+  if (mode === "capture") {
+    await capture();
+  } else {
+    await verify();
+  }
 }
