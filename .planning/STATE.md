@@ -105,7 +105,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Built scripts/net_contract_check.js with five mechanically-enforced assertions (sole listener site, no UI dependency, no app-state dependency, directional imports, eighteen-watcher inventory) and zero comment stripping — the deliberate deviation from the Phase 8 precedent, needed because src/net/index.js carries the Firebase databaseURL, empirically confirmed by simulating the Phase-8 stripper against the same fault line
 - [Phase ?]: Marked SPLIT-04 and NET-02 Complete in REQUIREMENTS.md; left NET-01/NET-03 Pending for 09-05's behavioral reconnect/leave-rejoin proof
 - [Phase ?]: 09-05: NET-01/NET-03 marked Complete only after independently re-confirming all 18 watchers route through the registry (grep + net_contract_check + npm test), not on the coordinator's live transcripts alone
-- [Phase ?]: 09-05: ROADMAP criterion 4 recorded as partially demonstrated — two-tab lobby/seats sync proven, full in-game turn-propagation not cleanly observed after a coordinator test-driving misclick; filed in WINDOWS.md for Phase 12 VERIFY-03 to close
+- [Phase 9]: ROADMAP criterion 4 (two-tab multiplayer sync) CLOSED 2026-07-24 — clean in-game re-run in Chrome proved live host↔guest turn propagation through src/net/ (same-moment captain-state match); WINDOWS.md item 2 fixed, 09-VERIFICATION.md now 4/4 passed
 
 ### Pending Todos
 
