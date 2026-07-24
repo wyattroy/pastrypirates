@@ -2013,7 +2013,7 @@ function showStats(){
 }
 /* ================= LIVE (human) MODE — networked ================= */
 let live=false, liveDone=false, liveGen=0;
-let curSeat=0;                 // seat currently being prompted (host drives the engine)
+                 // seat currently being prompted (host drives the engine)
 let inBattlePrompt=false;      // this client owns the active battle decision — watchBattle defers to it
 let spectatingBattle=false;    // a battle scoreboard is up on this client — watchNarr must not overwrite it
                                // with the per-flip play-by-play (see #9: the box vanished between flips)
@@ -2024,21 +2024,21 @@ let spectatingBattle=false;    // a battle scoreboard is up on this client — w
 // reflips, all of it — with one structural exception: the recipe draft never goes through
 // ask() at all (it uses its own concurrent multi-seat prompt path), so it stays untimed
 // without needing a special case here.
-let shotClockSeat=null, shotClockDeadline=0, shotClockTimer=null, shotClockForce=null;
+
 // BUG-02: {seat,force} preserved across a timer-off so a re-arm can restore the 30s auto-skip.
 // withShotClock() assigns shotClockForce exactly once, when a decision is created, and never runs
 // again for that same decision — so without this a timer-off permanently disarms the safety net.
-let shotClockStash=null;
-let shotClockPaused=false, shotClockPauseElapsed=0;
+
+
 // #7: the whole-table turn timer can be switched off (stressful for learners). Synced through
 // Firebase so every client agrees; ANY player may toggle it. When off, the host never arms the
 // shot clock, so decisions simply wait for the player with no penalty.
-let timerOff=false;
-let shotClockFired={}, turnExpired=false, clockState=null;
+
+
 // localPickCell() registers its own highlight-cleanup here; a forced shot-clock timeout
 // resolves pickCell()'s outer wrapped promise but never touches this inner one, so without
 // this the highlighted sail-destination squares are left stuck on the board forever
-let activePickCleanup=null;
+
 // --- host-refresh recovery: the host records every human decision, so after an accidental
 //     reload it can REPLAY the deterministic engine to rebuild the exact game state and keep
 //     driving, instead of the game dying with the host's tab. The rebuild is then VALIDATED
@@ -2054,8 +2054,8 @@ let activePickCleanup=null;
 // sleep() stall first — bots pace their turns entirely through sleep(), so this alone halts
 // bot play without threading a paused-check through every call site.
 function waitWhilePaused(){
-  return shotClockPaused?new Promise(res=>{
-    const iv=setInterval(()=>{if(!shotClockPaused){clearInterval(iv);res();}},150);
+  return appState.shotClockPaused?new Promise(res=>{
+    const iv=setInterval(()=>{if(!appState.shotClockPaused){clearInterval(iv);res();}},150);
   }):Promise.resolve();
 }
 const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
@@ -2078,7 +2078,7 @@ async function narrateCurrent(){
   if(e.t==="sidebet")return;
   const L=logLines[appState.evIdx];if(L)await flash(L.txt);
 }
-function setActor(s){curSeat=s;}
+function setActor(s){appState.curSeat=s;}
 function seatLocal(s){return s===appState.mySeat;}
 // pass & play: every human seat shares this one browser, so any human seat resolves locally
 // regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
@@ -2118,24 +2118,24 @@ function watchFlip(){
 
 // ---- shot clock ----
 function startShotClock(p){
-  if(!appState.isHost||timerOff)return;   // #7: timer switched off — decisions wait, never time out
-  shotClockSeat=p.idx;
-  shotClockDeadline=Date.now()+30000;
-  shotClockFired={};
-  turnExpired=false;
-  shotClockPaused=false;
+  if(!appState.isHost||appState.timerOff)return;   // #7: timer switched off — decisions wait, never time out
+  appState.shotClockSeat=p.idx;
+  appState.shotClockDeadline=Date.now()+30000;
+  appState.shotClockFired={};
+  appState.turnExpired=false;
+  appState.shotClockPaused=false;
   broadcastClock();
-  if(shotClockTimer)clearInterval(shotClockTimer);
-  shotClockTimer=setInterval(shotClockTick,500);
+  if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
+  appState.shotClockTimer=setInterval(shotClockTick,500);
 }
 function stopShotClock(){
   if(!appState.isHost)return;
   // BUG-02: stash the in-flight decision's force-resolver before dropping the live reference, so
   // rearmShotClock() can hand it back. Keyed by seat — restoring a resolver that belongs to an
   // older decision would force-resolve the wrong promise, which is worse than having no auto-skip.
-  if(shotClockForce&&shotClockSeat!=null)shotClockStash={seat:shotClockSeat,force:shotClockForce};
-  shotClockSeat=null;shotClockForce=null;shotClockPaused=false;
-  if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
+  if(appState.shotClockForce&&appState.shotClockSeat!=null)appState.shotClockStash={seat:appState.shotClockSeat,force:appState.shotClockForce};
+  appState.shotClockSeat=null;appState.shotClockForce=null;appState.shotClockPaused=false;
+  if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
   broadcastClock();
 }
 // notes/edits BUG-02: re-arm the CURRENT turn's clock after the timer is switched back on. This is
@@ -2145,17 +2145,17 @@ function stopShotClock(){
 // force-resolver so the 30s auto-skip survives the toggle (see stopShotClock).
 // Not a pause button: D-04 keeps multiplayer on the ⏱ toggle only, and this adds no new UI.
 function rearmShotClock(p){
-  if(!appState.isHost||timerOff)return;
-  shotClockSeat=p.idx;
-  shotClockDeadline=Date.now()+30000;   // D-05: a full fresh 30s, not the remainder
-  shotClockPaused=false;
+  if(!appState.isHost||appState.timerOff)return;
+  appState.shotClockSeat=p.idx;
+  appState.shotClockDeadline=Date.now()+30000;   // D-05: a full fresh 30s, not the remainder
+  appState.shotClockPaused=false;
   // shotClockFired is deliberately NOT reset here (D-06) — see above.
   // turnExpired is deliberately NOT cleared: if the turn already expired, the flow is unwinding
   // and watchTimer's guard below refuses to re-arm it at all.
-  if(shotClockStash&&shotClockStash.seat===p.idx){shotClockForce=shotClockStash.force;shotClockStash=null;}
+  if(appState.shotClockStash&&appState.shotClockStash.seat===p.idx){appState.shotClockForce=appState.shotClockStash.force;appState.shotClockStash=null;}
   broadcastClock();
-  if(shotClockTimer)clearInterval(shotClockTimer);
-  shotClockTimer=setInterval(shotClockTick,500);
+  if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
+  appState.shotClockTimer=setInterval(shotClockTick,500);
 }
 // solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
 function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strategy==="human").length<=1;}
@@ -2164,17 +2164,17 @@ function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strat
 // actually freezes the bots instead of just a countdown that isn't running yet.
 function toggleShotClockPause(){
   if(!appState.isHost||!soloBotGame())return;
-  if(shotClockPaused){
-    shotClockPaused=false;
-    if(shotClockSeat!=null){
-      shotClockDeadline=Date.now()+30000-shotClockPauseElapsed;
-      shotClockTimer=setInterval(shotClockTick,500);
+  if(appState.shotClockPaused){
+    appState.shotClockPaused=false;
+    if(appState.shotClockSeat!=null){
+      appState.shotClockDeadline=Date.now()+30000-appState.shotClockPauseElapsed;
+      appState.shotClockTimer=setInterval(shotClockTick,500);
     }
   }else{
-    shotClockPaused=true;
-    if(shotClockSeat!=null){
-      shotClockPauseElapsed=Date.now()-(shotClockDeadline-30000);
-      if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
+    appState.shotClockPaused=true;
+    if(appState.shotClockSeat!=null){
+      appState.shotClockPauseElapsed=Date.now()-(appState.shotClockDeadline-30000);
+      if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
     }
   }
   setClockUI();
@@ -2183,18 +2183,18 @@ function toggleShotClockPause(){
 // sleeps) — mobile especially can't rely on a second tab catching up later, so we pause rather
 // than let bots keep playing unattended. Never auto-resumes; player taps ▶ same as manual pause.
 document.addEventListener("visibilitychange",()=>{
-  if(document.hidden&&appState.isHost&&soloBotGame()&&!shotClockPaused)toggleShotClockPause();
+  if(document.hidden&&appState.isHost&&soloBotGame()&&!appState.shotClockPaused)toggleShotClockPause();
 });
 function broadcastClock(){
   setClockUI();
-  if(appState.db&&appState.room)netSetClock(appState.db,appState.room,shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline},netFail("clock"));
+  if(appState.db&&appState.room)netSetClock(appState.db,appState.room,appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline},netFail("clock"));
 }
 // #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
 // table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
 // any running clock at once (so the current player is un-timed the moment anyone flips it off).
 function toggleTimer(){
   if(!appState.db||!appState.room)return;
-  const next=!timerOff;
+  const next=!appState.timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
   netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
 }
@@ -2204,10 +2204,10 @@ function watchTimer(){
     // timer back on left the in-flight turn with no armed clock at all — startShotClock() is
     // only called at the START of a turn (armClock), so nothing re-armed the turn already in
     // progress. That is the "I paused the timer and then the game wouldn't continue" report.
-    const was=timerOff;
-    timerOff=!!s.val();
-    if(appState.isHost&&timerOff)stopShotClock();
-    else if(appState.isHost&&was&&!timerOff&&shotClockSeat==null&&!turnExpired){
+    const was=appState.timerOff;
+    appState.timerOff=!!s.val();
+    if(appState.isHost&&appState.timerOff)stopShotClock();
+    else if(appState.isHost&&was&&!appState.timerOff&&appState.shotClockSeat==null&&!appState.turnExpired){
       // shotClockSeat==null is what prevents double-arming: this callback fires on EVERY client
       // for every write, so the host also runs it for a write a guest originated.
       const seat=currentTurnSeat();
@@ -2218,14 +2218,14 @@ function watchTimer(){
   });
 }
 function shotClockTick(){
-  if(shotClockSeat==null)return;
-  const elapsed=Date.now()-(shotClockDeadline-30000);
-  if(!shotClockFired.t20&&elapsed>=20000){shotClockFired.t20=true;applyShotClockPenalty();}
+  if(appState.shotClockSeat==null)return;
+  const elapsed=Date.now()-(appState.shotClockDeadline-30000);
+  if(!appState.shotClockFired.t20&&elapsed>=20000){appState.shotClockFired.t20=true;applyShotClockPenalty();}
   if(elapsed>=30000){expireShotClock();return;}
   setClockUI();
 }
 function applyShotClockPenalty(){
-  const p=game.players[shotClockSeat];if(!p)return;
+  const p=game.players[appState.shotClockSeat];if(!p)return;
   const others=game.players.filter(q=>q!==p&&!q.done);
   const take=Math.min(1,p.coins);
   p.coins-=take;others.forEach(q=>q.coins++);
@@ -2244,17 +2244,17 @@ async function expireShotClock(){
   // clearing the interval and blocking re-entry synchronously, right here, before any await, the
   // still-running tick fires this function again on top of itself and strips a second resource
   // for the same expiry ("snoozing pirates lose their treasure" firing more than once).
-  if(shotClockTimer){clearInterval(shotClockTimer);shotClockTimer=null;}
-  const p=game.players[shotClockSeat];
-  shotClockSeat=null;
-  turnExpired=true;
+  if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
+  const p=game.players[appState.shotClockSeat];
+  appState.shotClockSeat=null;
+  appState.turnExpired=true;
   // BUG-02: a null resolver here is a real, distinguishable state, not an ordinary no-op — it
   // means the decision in flight was created before a timer-off and its resolver was never
   // handed back (see stopShotClock/rearmShotClock). Degrade loudly rather than silently letting
   // the countdown expire while nothing actually resolves the promise.
-  if(shotClockForce){shotClockForce();shotClockForce=null;}
-  else if(shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",shotClockStash.seat,"— auto-skip degraded");
-  if(activePickCleanup){activePickCleanup();activePickCleanup=null;}
+  if(appState.shotClockForce){appState.shotClockForce();appState.shotClockForce=null;}
+  else if(appState.shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",appState.shotClockStash.seat,"— auto-skip degraded");
+  if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
   if(p){
     let lost;
     if(p.ing.length){
@@ -2275,7 +2275,7 @@ async function expireShotClock(){
   stopShotClock();
 }
 function watchClock(){
-  netWatchClock(appState.db,appState.room,s=>{clockState=s.val();setClockUI();});
+  netWatchClock(appState.db,appState.room,s=>{appState.clockState=s.val();setClockUI();});
 }
 // mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
 // idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
@@ -2300,19 +2300,19 @@ function setClockUI(){
   }
   wrap.style.display="";
   $("btnPlayAgain").style.display="none";
-  const state=appState.isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
+  const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline}):appState.clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
   pauseEl.style.display=(appState.isHost&&soloBotGame()&&!liveDone)?"":"none";
-  $("scPauseImg").src=shotClockPaused?PLAY_IMG:PAUSE_IMG;
+  $("scPauseImg").src=appState.shotClockPaused?PLAY_IMG:PAUSE_IMG;
   // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
   // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
   const toggleEl=$("scTimerToggle");
   if(toggleEl){
     toggleEl.style.display=(!soloBotGame()&&!liveDone)?"":"none";
-    toggleEl.innerHTML=timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
-    toggleEl.title=timerOff?"Turn the timer back on":"Turn the timer off";
+    toggleEl.innerHTML=appState.timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
+    toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
   }
-  if(timerOff){
+  if(appState.timerOff){
     // synced to all clients — everyone sees the clock is disabled
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
     labelEl.textContent="timer off";numEl.textContent="∞";unitEl.textContent="";
@@ -2320,7 +2320,7 @@ function setClockUI(){
     return;
   }
   if(!state){
-    if(appState.isHost&&shotClockPaused){
+    if(appState.isHost&&appState.shotClockPaused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
       return;
@@ -2336,8 +2336,8 @@ function setClockUI(){
     return;
   }
   wrap.classList.remove("idle");
-  if(appState.isHost&&shotClockPaused){
-    const elapsed=shotClockPauseElapsed/1000;
+  if(appState.isHost&&appState.shotClockPaused){
+    const elapsed=appState.shotClockPauseElapsed/1000;
     const urgent=elapsed>=20;
     wrap.classList.remove("urgent");wrap.classList.add("paused");
     labelEl.textContent="paused";
@@ -2654,7 +2654,7 @@ function ask(msg,opts,colors,sub){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(resolveOpt(opts,appState.dlog[appState.dlogIdx++],0).opt.value);}
     endReplay();
   }
-  const seat=curSeat;
+  const seat=appState.curSeat;
   netNarrate(seat===appState.mySeat?msg:`${pn(seat)} is deciding…`);
   armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
@@ -2683,17 +2683,17 @@ function armClock(seat){
 // answers a side-bet prompt right away keeps getting timed against for the rest of the battle,
 // long after they have nothing left to decide.
 function withShotClock(seat,base,defaultVal){
-  if(!appState.isHost||seat!==shotClockSeat)return base;
+  if(!appState.isHost||seat!==appState.shotClockSeat)return base;
   return new Promise(res=>{
     let done=false;
-    shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
+    appState.shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
     base.then(v=>{
       if(!done){
-        done=true;shotClockForce=null;
+        done=true;appState.shotClockForce=null;
         // BUG-02: the decision resolved for real, so any resolver stashed for THIS seat across a
         // timer-off is dead — drop it so a later re-arm can't force-resolve a settled promise.
-        if(shotClockStash&&shotClockStash.seat===seat)shotClockStash=null;
-        if(shotClockSeat===seat)stopShotClock();
+        if(appState.shotClockStash&&appState.shotClockStash.seat===seat)appState.shotClockStash=null;
+        if(appState.shotClockSeat===seat)stopShotClock();
         res(v);
       }
     });
@@ -2877,8 +2877,8 @@ function pickCell(p,cells){
 function localPickCell(p,cells){
   return new Promise(res=>{
     const svg=$("board"),hs=[];
-    const done=v=>{hs.forEach(h=>h.remove());panel("");activePickCleanup=null;res(v);};
-    activePickCleanup=()=>{hs.forEach(h=>h.remove());panel("");};
+    const done=v=>{hs.forEach(h=>h.remove());panel("");appState.activePickCleanup=null;res(v);};
+    appState.activePickCleanup=()=>{hs.forEach(h=>h.remove());panel("");};
     // notes/edits UI-06: the sail squares now read as obviously tappable — brighter fill, a soft
     // bounce so they draw the eye, and a hover state that pops the square and deepens the colour.
     // Each square's bounce is phase-offset a touch by its board position so they shimmer rather
@@ -2939,11 +2939,11 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         ?`${pn(p.idx)}: the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
         :`${pn(p.idx)}: the storm blows you toward an island! Anchor safely, or flip to take yer chances.`;
       const v=await ask(promptMsg,opts);
-      if(turnExpired)return;
+      if(appState.turnExpired)return;
       if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
         const h=await humanFlip(p,"Flip to dodge!");
-        if(turnExpired)return;
+        if(appState.turnExpired)return;
         if(h)game.ev({t:"anchor",p:p.idx});
         // tails with no coins can't "lose half" of nothing — take a crate instead, or if the
         // hold is empty too, the ship is stuck and repairs eat the rest of this turn
@@ -2974,9 +2974,9 @@ async function humanWind(p){
   const wasDocked=game.adjPort(p)!==null;
   const dodgedOnce={v:false};
   await windLeg(p,game.windNow,2,dodgedOnce,wasDocked);
-  if(turnExpired)return;
+  if(appState.turnExpired)return;
   await flash(`⛈️ Now the storm moves you <b>${DIRNAME[game.windNow2]}</b>!`,900);
-  if(turnExpired)return;
+  if(appState.turnExpired)return;
   await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
 }
 async function humanDock(p,port){
@@ -3515,12 +3515,12 @@ async function humanAct(p,sailCtx){
   // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
   const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, choose your action:`;
   const v=await ask(prompt,opts,null,sub);
-  if(turnExpired)return;
+  if(appState.turnExpired)return;
   // the clock keeps running (and re-arms fresh) through dock/attack/trade/fish now, instead of
   // stopping here — each ask() inside those sub-flows re-arms it for its own decision
   if(v==="moveInstead"){
     const dest=await pickCell(p,reachable(p));
-    if(turnExpired)return;
+    if(appState.turnExpired)return;
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
     await humanAct(p,sailCtx);return;
@@ -3555,7 +3555,7 @@ async function humanTurn(p){
   // flag only ever gets cleared by armClock() deep inside a decision, which is too late to
   // save this turn's own early "did the previous turn just die?" guards below, so clear it
   // fresh the moment a new human turn actually begins
-  turnExpired=false;
+  appState.turnExpired=false;
   // pass & play: this seat's own "check my recipe" button is only ever offered while its
   // turn is genuinely live (see render()) — any reveal from a prior turn is already gone.
   activeTurnSeat=p.idx;recipeRevealed=false;
@@ -3565,13 +3565,13 @@ async function humanTurn(p){
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
-  if(turnExpired){activeTurnSeat=null;recipeRevealed=false;return;}
+  if(appState.turnExpired){activeTurnSeat=null;recipeRevealed=false;return;}
   // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
   // ships around; otherwise the wind only shapes this player's own sail budget below
   if(game.stormNow){
     await humanWind(p);
     recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
-    if(turnExpired){activeTurnSeat=null;return;}
+    if(appState.turnExpired){activeTurnSeat=null;return;}
     // storms already narrate each leg's direction as they happen ("spins again — blows X"),
     // so there's no separate "wind carries you" summary to show here — it would always be
     // stale (mentioning only the first leg) by the time both legs have resolved
@@ -3591,11 +3591,11 @@ async function humanTurn(p){
     if(game.leeward(p))await flash(seatLocal(p.idx)?`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`:`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500);
     const dest=await pickCell(p,reachable(p));
     recipeRevealed=false; // sail destination chosen — re-lock
-    if(turnExpired){activeTurnSeat=null;return;}
+    if(appState.turnExpired){activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
       if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
   } // no coins to sail — the action prompt right after already explains it, no need for a second box
-  if(turnExpired){activeTurnSeat=null;return;}
+  if(appState.turnExpired){activeTurnSeat=null;return;}
   if(!game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
   recipeRevealed=false; // the turn's dock/attack/trade/fish action just resolved — re-lock
