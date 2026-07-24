@@ -126,7 +126,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. The 40+ implicit globals (`game`, `myId`, `room`, `db`, …) are encapsulated behind module exports / an app-state module instead of bare `window` globals.
-  2. All 41 inline `onclick` handlers still work after de-globalization (migrated to `addEventListener` or an explicit, documented `window.PP` bridge), verified by a click-through of every handler.
+  2. Every `onclick` handler still works after de-globalization (count corrected 2026-07-24 by direct grep: **1** inline HTML `onclick="…"` attribute — the template-generated `revealMyRecipe()` at `index.html:1731` — plus **40** JS `.onclick=` closure assignments that already capture scope and are not threatened by de-globalization; the original "41 inline" figure conflated the two). Verified by a click-through of the real handler surface.
   3. Any retained `window` bridge for test/debug state access (e.g. `window.__pp_debug` for the Chrome-MCP harness) is intentional, single, and named/documented.
   4. A full solo game and a multiplayer game both remain playable with no new console `no-undef`/`ReferenceError` regressions.
 
