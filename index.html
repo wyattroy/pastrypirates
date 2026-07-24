@@ -5601,48 +5601,6 @@ function boot(){
     }).catch(()=>{clearSession();showHome();});
   }
 }
-/* ===== BUG-01 DEV INSTRUMENTATION — remove before phase close (D-09) ===== */
-// Temporary measuring tape for the Safari storm-perf work. Off unless the page is loaded with
-// ?perf=1 — absent that parameter nothing here registers a listener, creates an element, or
-// starts a loop. Everything the block needs lives inside the block, so the strip is one delete.
-//
-// Drive from the Safari console once loaded with ?perf=1 :
-//   ppForceStorm(true)   — force the storm overlay on (pure CSS state, no engine call)
-//   ppForceStorm(false)  — back off
-//   ppPerf()             — current {fps, avgFrameMs}
-//
-// rAF is correct HERE because this counter is display-only and nothing awaits it. That is NOT
-// true of typewriterReveal()'s pacing loop — see its comment; a hidden tab suspends rAF and would
-// hang the awaited promise. Do not "unify" the two.
-(function(){
-  if(!/[?&]perf=1\b/.test(location.search))return;
-  let last=performance.now(),frames=0,acc=0,fps=0,avg=0;
-  const box=document.createElement("div");
-  box.style.cssText="position:fixed;top:6px;right:6px;z-index:99999;pointer-events:none;"+
-    "font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.72);color:#0f0;"+
-    "padding:4px 7px;border-radius:4px;white-space:pre";
-  document.body.appendChild(box);
-  (function tick(now){
-    const dt=now-last;last=now;frames++;acc+=dt;
-    if(acc>=500){fps=Math.round(frames*1000/acc);avg=+(acc/frames).toFixed(2);frames=0;acc=0;
-      box.textContent=fps+" fps\n"+avg+" ms/frame";}
-    requestAnimationFrame(tick);
-  })(performance.now());
-  window.ppPerf=()=>({fps,avgFrameMs:avg});
-  // Mirrors exactly what render()'s storm block does — class flip, lazy layer build, --slant.
-  // Deliberately does NOT touch the Game instance and consumes no randomness: this.r() is the only
-  // sanctioned RNG in this codebase and replay determinism depends on its sequence.
-  window.ppForceStorm=on=>{
-    const bw=document.getElementById("boardwrap"),ov=document.getElementById("stormOverlay");
-    if(bw)bw.classList.toggle("storming",!!on);
-    if(ov&&on){buildStormLayers(ov);ov.style.setProperty("--slant","225deg");}
-  };
-  // ppRainLayers(n): thin the rain to n layers, in case even the tiled-PNG layers want trimming on
-  // older hardware. (The old ppRainBlur lever is gone — there's no filter to toggle anymore.)
-  window.ppRainLayers=n=>{document.querySelectorAll("#stormOverlay .rlayer").forEach((l,i)=>l.style.display=i<n?"":"none");};
-  console.log("[perf] instrumentation on — ppForceStorm(true|false), ppPerf(), ppRainLayers(2)");
-})();
-/* ===== end BUG-01 DEV INSTRUMENTATION ===== */
 boot();
 </script>
 </body>
