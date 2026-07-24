@@ -9,6 +9,7 @@ import { MODULE_OK_FLAG } from "./module-contract.js";
 import * as shared from "./shared/index.js";
 import * as engine from "./engine/index.js";
 import * as net from "./net/index.js";
+import * as stateNs from "./state/index.js";
 
 // D-15 (amended): the marker assignment must be guarded — `window` is
 // undeclared under plain Node and a bare reference throws ReferenceError,
@@ -34,11 +35,31 @@ if (typeof window !== "undefined") {
 
   // The bridge (D-14/D-15): named, documented, temporary — removed in
   // Phase 11 (ROADMAP Phase 11 criterion 3 greps for the token on each of
-  // the two lines below). Publishes every shared/engine/net export as a
+  // the three lines below). Publishes every shared/engine/net export as a
   // global-object property so the ~150+ pre-existing bare-identifier call
   // sites in the classic region resolve with zero edits (D-15's
   // minimal-blast-radius mandate).
-  const PP = { ...shared, ...engine, ...net };
+  //
+  // Phase 10 (GLOBAL-01/D-05) adds ONE more key: `appState`. Unlike every
+  // other key here, `appState` is not a namespace of independent read-only
+  // exports — it is the SAME single mutable object stateNs.appState holds,
+  // published by REFERENCE (not copied field-by-field). That distinction is
+  // load-bearing: `Object.assign(globalThis, PP)` below copies `PP.appState`
+  // (an object reference) onto `globalThis.appState` as a plain assignment —
+  // the value copied is the reference itself, so both `globalThis.appState`
+  // and every module's own `stateNs.appState` keep pointing at the identical
+  // object afterward. A later classic-script write like
+  // `appState.room=code` mutates that one shared object; nothing here ever
+  // holds a stale copy of its fields the way Phase 8's snapshot bridge would
+  // if `appState` here meant "the current field values" rather than "the
+  // object itself". See src/state/index.js's own header and
+  // 10-RESEARCH.md's "Why a snapshot bridge cannot work" for the full
+  // mechanism. NAMED `appState`, not the RESEARCH/CONTEXT-illustrative
+  // `state` — `state` already collides with unrelated local
+  // parameter/variable names inside the classic script (see
+  // src/state/index.js's header for the full account); `appState` was
+  // confirmed to have zero pre-existing occurrences before being chosen.
+  const PP = { ...shared, ...engine, ...net, appState: stateNs.appState }; // PP-BRIDGE
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
 
