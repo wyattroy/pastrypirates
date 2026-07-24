@@ -1224,16 +1224,16 @@ function wireRecipeModal(){
 // before turnOrder is known yet (briefly, at the very start of a game)
 function seatDisplayOrder(){
   const n=game.players.length;
-  if(!turnOrder||turnOrder.length!==n)return game.players.map((_,i)=>i);
-  const startPos=Math.max(0,turnOrder.indexOf(mySeat));
-  return turnOrder.slice(startPos).concat(turnOrder.slice(0,startPos));
+  if(!appState.turnOrder||appState.turnOrder.length!==n)return game.players.map((_,i)=>i);
+  const startPos=Math.max(0,appState.turnOrder.indexOf(appState.mySeat));
+  return appState.turnOrder.slice(startPos).concat(appState.turnOrder.slice(0,startPos));
 }
 function buildPlayerRows(){
   let html="";
   const order=seatDisplayOrder();
   for(const i of order){
-    const s=(roster&&roster[i])||{};
-    const who=s.id ? (i===mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
+    const s=(appState.roster&&appState.roster[i])||{};
+    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||game.cfg.strategies[i]})`;
     const displayName=pname(i);
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
@@ -1505,14 +1505,14 @@ function shipXY(pos,i,state){
 // a claimed seat (roster[i].id truthy) always speaks under the name its captain typed in;
 // the default Capt. NAMES are only ever shown for unclaimed bot seats
 function pname(i){
-  const s=(roster&&roster[i])||{};
+  const s=(appState.roster&&appState.roster[i])||{};
   return s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
 }
 // plain (unescaped) display name for a seat — the same source pname() renders, minus the HTML
 // escaping. Used by writeGameLog so every finished game records who was playing, including
 // solo/local games (which have no rooms/{code}/seats node to cross-reference names from).
 function rawName(i){
-  const s=(roster&&roster[i])||{};
+  const s=(appState.roster&&appState.roster[i])||{};
   return (s.id?(s.name||"").trim():"")||NAMES[i].replace("Capt. ","");
 }
 function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
@@ -1712,8 +1712,8 @@ function render(){
     // pass & play: your own recipe never auto-reveals — it only shows once you've tapped
     // "check my recipe" during your own live turn (see humanTurn/passGate), so a device
     // changing hands mid-battle or mid-trade can never carry someone else's recipe on screen.
-    const canReveal=spectator||(i===mySeat&&(!passAndPlay||recipeRevealed));
-    const offerCheckBtn=passAndPlay&&i===mySeat&&i===activeTurnSeat&&!recipeRevealed;
+    const canReveal=spectator||(i===appState.mySeat&&(!appState.passAndPlay||recipeRevealed));
+    const offerCheckBtn=appState.passAndPlay&&i===appState.mySeat&&i===activeTurnSeat&&!recipeRevealed;
     if(canReveal){
       $("prowRecipe"+i).innerHTML=`${iconImg(SCROLL_IMG)} ${recipeTitle(game.players[i].recipe)}`;
       $("prowRecipe"+i).classList.add("hasRecipe");
@@ -2079,11 +2079,11 @@ async function narrateCurrent(){
   const L=logLines[appState.evIdx];if(L)await flash(L.txt);
 }
 function setActor(s){curSeat=s;}
-function seatLocal(s){return s===mySeat;}
+function seatLocal(s){return s===appState.mySeat;}
 // pass & play: every human seat shares this one browser, so any human seat resolves locally
 // regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
 // remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).
-function decisionIsLocal(s){return (passAndPlay&&game.players[s].strategy==="human")||seatLocal(s);}
+function decisionIsLocal(s){return (appState.passAndPlay&&game.players[s].strategy==="human")||seatLocal(s);}
 
 // ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
 // The flippenator coin doubles as its own button — no separate FLIP button — so this sets
@@ -2110,15 +2110,15 @@ function setFlipActive(onClick){
 // animates in sync, whether or not that browser is the one actually flipping
 function broadcastFlip(state){
   setFlipCoin(state);
-  if(isHost&&db&&appState.room)netSetFlip(db,appState.room,state,netFail("flip"));
+  if(appState.isHost&&appState.db&&appState.room)netSetFlip(appState.db,appState.room,state,netFail("flip"));
 }
 function watchFlip(){
-  netWatchFlip(db,appState.room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
+  netWatchFlip(appState.db,appState.room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
 }
 
 // ---- shot clock ----
 function startShotClock(p){
-  if(!isHost||timerOff)return;   // #7: timer switched off — decisions wait, never time out
+  if(!appState.isHost||timerOff)return;   // #7: timer switched off — decisions wait, never time out
   shotClockSeat=p.idx;
   shotClockDeadline=Date.now()+30000;
   shotClockFired={};
@@ -2129,7 +2129,7 @@ function startShotClock(p){
   shotClockTimer=setInterval(shotClockTick,500);
 }
 function stopShotClock(){
-  if(!isHost)return;
+  if(!appState.isHost)return;
   // BUG-02: stash the in-flight decision's force-resolver before dropping the live reference, so
   // rearmShotClock() can hand it back. Keyed by seat — restoring a resolver that belongs to an
   // older decision would force-resolve the wrong promise, which is worse than having no auto-skip.
@@ -2145,7 +2145,7 @@ function stopShotClock(){
 // force-resolver so the 30s auto-skip survives the toggle (see stopShotClock).
 // Not a pause button: D-04 keeps multiplayer on the ⏱ toggle only, and this adds no new UI.
 function rearmShotClock(p){
-  if(!isHost||timerOff)return;
+  if(!appState.isHost||timerOff)return;
   shotClockSeat=p.idx;
   shotClockDeadline=Date.now()+30000;   // D-05: a full fresh 30s, not the remainder
   shotClockPaused=false;
@@ -2163,7 +2163,7 @@ function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strat
 // whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
 // actually freezes the bots instead of just a countdown that isn't running yet.
 function toggleShotClockPause(){
-  if(!isHost||!soloBotGame())return;
+  if(!appState.isHost||!soloBotGame())return;
   if(shotClockPaused){
     shotClockPaused=false;
     if(shotClockSeat!=null){
@@ -2183,31 +2183,31 @@ function toggleShotClockPause(){
 // sleeps) — mobile especially can't rely on a second tab catching up later, so we pause rather
 // than let bots keep playing unattended. Never auto-resumes; player taps ▶ same as manual pause.
 document.addEventListener("visibilitychange",()=>{
-  if(document.hidden&&isHost&&soloBotGame()&&!shotClockPaused)toggleShotClockPause();
+  if(document.hidden&&appState.isHost&&soloBotGame()&&!shotClockPaused)toggleShotClockPause();
 });
 function broadcastClock(){
   setClockUI();
-  if(db&&appState.room)netSetClock(db,appState.room,shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline},netFail("clock"));
+  if(appState.db&&appState.room)netSetClock(appState.db,appState.room,shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline},netFail("clock"));
 }
 // #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
 // table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
 // any running clock at once (so the current player is un-timed the moment anyone flips it off).
 function toggleTimer(){
-  if(!db||!appState.room)return;
+  if(!appState.db||!appState.room)return;
   const next=!timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
-  netSetTimerOff(db,appState.room,next,netFail("timerOff"));
+  netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
 }
 function watchTimer(){
-  netWatchTimerOff(db,appState.room,s=>{
+  netWatchTimerOff(appState.db,appState.room,s=>{
     // notes/edits BUG-02: this callback only ever handled the on→off direction. Switching the
     // timer back on left the in-flight turn with no armed clock at all — startShotClock() is
     // only called at the START of a turn (armClock), so nothing re-armed the turn already in
     // progress. That is the "I paused the timer and then the game wouldn't continue" report.
     const was=timerOff;
     timerOff=!!s.val();
-    if(isHost&&timerOff)stopShotClock();
-    else if(isHost&&was&&!timerOff&&shotClockSeat==null&&!turnExpired){
+    if(appState.isHost&&timerOff)stopShotClock();
+    else if(appState.isHost&&was&&!timerOff&&shotClockSeat==null&&!turnExpired){
       // shotClockSeat==null is what prevents double-arming: this callback fires on EVERY client
       // for every write, so the host also runs it for a write a guest originated.
       const seat=currentTurnSeat();
@@ -2270,12 +2270,12 @@ async function expireShotClock(){
       await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
     }
     liveRender();
-    if(!seatLocal(p.idx)&&db&&appState.room)netRemovePrompt(db,appState.room,netFail("prompt clear"));
+    if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
   }
   stopShotClock();
 }
 function watchClock(){
-  netWatchClock(db,appState.room,s=>{clockState=s.val();setClockUI();});
+  netWatchClock(appState.db,appState.room,s=>{clockState=s.val();setClockUI();});
 }
 // mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
 // idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
@@ -2300,9 +2300,9 @@ function setClockUI(){
   }
   wrap.style.display="";
   $("btnPlayAgain").style.display="none";
-  const state=isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
+  const state=appState.isHost?(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}):clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
-  pauseEl.style.display=(isHost&&soloBotGame()&&!liveDone)?"":"none";
+  pauseEl.style.display=(appState.isHost&&soloBotGame()&&!liveDone)?"":"none";
   $("scPauseImg").src=shotClockPaused?PLAY_IMG:PAUSE_IMG;
   // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
   // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
@@ -2320,7 +2320,7 @@ function setClockUI(){
     return;
   }
   if(!state){
-    if(isHost&&shotClockPaused){
+    if(appState.isHost&&shotClockPaused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
       return;
@@ -2330,13 +2330,13 @@ function setClockUI(){
     // label even while a bot is actively moving. Show the same "waiting" copy multiplayer
     // spectators see for a non-active seat instead, so it reads as "something's happening", not idle.
     const activeSeat=currentTurnSeat();
-    const botPlaying=activeSeat!=null&&activeSeat!==mySeat&&!(game.players[activeSeat]&&game.players[activeSeat].done);
+    const botPlaying=activeSeat!=null&&activeSeat!==appState.mySeat&&!(game.players[activeSeat]&&game.players[activeSeat].done);
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
     labelEl.textContent=botPlaying?"waiting":"turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
   }
   wrap.classList.remove("idle");
-  if(isHost&&shotClockPaused){
+  if(appState.isHost&&shotClockPaused){
     const elapsed=shotClockPauseElapsed/1000;
     const urgent=elapsed>=20;
     wrap.classList.remove("urgent");wrap.classList.add("paused");
@@ -2352,7 +2352,7 @@ function setClockUI(){
   // whose turn is being timed vs. who's looking: the active player sees a live "play in / or pay"
   // countdown; everyone else sees a greyed "WAITING" clock with spectator-appropriate copy — a
   // slow player hands the rest of the crew a coin, then (final 10s) forfeits their turn entirely.
-  const active=(state.seat===mySeat);
+  const active=(state.seat===appState.mySeat);
   wrap.classList.remove("paused");
   // notes/edits UI-02: the clock's outer edge warms up as the 20s window burns down — 0 at a full
   // 20s left, 1 at zero. The CSS reads --heat to size an orange glow (see #shotClockPanel.warming).
@@ -2386,7 +2386,7 @@ function liveRender(){
   render();
   const e=game.events[appState.evIdx];
   spawnPops(e);
-  if(isHost)pushEvents();       // broadcast the growing event feed to every other browser
+  if(appState.isHost)pushEvents();       // broadcast the growing event feed to every other browser
 }
 // needsAction=true turns the panel yellow (this seat must decide something);
 // false (the default) is pale blue — informational only, nothing to click.
@@ -2514,10 +2514,10 @@ function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
 function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
-function netNarrate(html){if(appState.replaying)return;showNarration(html);if(isHost&&db&&appState.room)netSetNarr(db,appState.room,html,netFail("narration"));}
+function netNarrate(html){if(appState.replaying)return;showNarration(html);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"));}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-function netBroadcast(html){if(appState.replaying)return;if(isHost&&db&&appState.room)netSetNarr(db,appState.room,html,netFail("narration"));}
+function netBroadcast(html){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"));}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -2526,13 +2526,13 @@ function netBroadcast(html){if(appState.replaying)return;if(isHost&&db&&appState
 const MAX_CHAT_LEN=140;
 let lastChatSendAt=0;
 function sendChat(raw){
-  if(!db||!appState.room)return;
+  if(!appState.db||!appState.room)return;
   const text=(raw||"").trim().slice(0,MAX_CHAT_LEN);
   if(!text)return;
   const now=Date.now();
   if(now-lastChatSendAt<1000)return; // basic client-side spam guard (RTDB rules can't rate-limit without auth)
   lastChatSendAt=now;
-  netPushChat(db,appState.room,{seat:mySeat,text,t:now},e=>console.error("chat write failed",e));
+  netPushChat(appState.db,appState.room,{seat:appState.mySeat,text,t:now},e=>console.error("chat write failed",e));
 }
 function appendChatLine(seat,text){
   const log=$("chatLog");if(!log)return;
@@ -2542,7 +2542,7 @@ function appendChatLine(seat,text){
   log.scrollTop=log.scrollHeight;
 }
 function watchChat(){
-  netWatchChat(db,appState.room,snap=>{
+  netWatchChat(appState.db,appState.room,snap=>{
     const v=snap.val();if(!v)return;
     appendChatLine(v.seat,v.text);
     showChatBubble(v.seat,v.text);
@@ -2655,7 +2655,7 @@ function ask(msg,opts,colors,sub){
     endReplay();
   }
   const seat=curSeat;
-  netNarrate(seat===mySeat?msg:`${pn(seat)} is deciding…`);
+  netNarrate(seat===appState.mySeat?msg:`${pn(seat)} is deciding…`);
   armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
@@ -2672,7 +2672,7 @@ function ask(msg,opts,colors,sub){
 // whichever seat is being asked — every ask()/pickCell()/non-flip battleAsk() call in the
 // game goes through this, so every decision anyone makes is timed the same way.
 function armClock(seat){
-  if(!isHost)return;
+  if(!appState.isHost)return;
   const p=game.players[seat];if(p)startShotClock(p);
 }
 // If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
@@ -2683,7 +2683,7 @@ function armClock(seat){
 // answers a side-bet prompt right away keeps getting timed against for the rest of the battle,
 // long after they have nothing left to decide.
 function withShotClock(seat,base,defaultVal){
-  if(!isHost||seat!==shotClockSeat)return base;
+  if(!appState.isHost||seat!==shotClockSeat)return base;
   return new Promise(res=>{
     let done=false;
     shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
@@ -2760,7 +2760,7 @@ async function netIntroBarrier(msg,btnLabel){
   netBroadcast(msg);
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
   const humans=game.players.filter(p=>p.strategy==="human");
-  if(passAndPlay){
+  if(appState.passAndPlay){
     // one device, several humans: nobody is "remote", so read-and-click-through happens in
     // turn, each gated by the same pass-the-device screen every turn hand-off uses
     for(const p of humans){await passGate(p.idx);await localAsk(msg,opts);}
@@ -2867,7 +2867,7 @@ function pickCell(p,cells){
     endReplay();
   }
   setActor(p.idx);
-  netNarrate(p.idx===mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
+  netNarrate(p.idx===appState.mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
   armClock(p.idx);
   const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
     :remotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
@@ -3051,7 +3051,7 @@ function renderBattle(o){
   </div>`,!!o.prompt);
   // broadcast the read-only scoreboard (never buttons) so every connected client — not just
   // whoever's deciding — sees the same battle unfold in real time
-  if(isHost&&db&&appState.room&&!appState.replaying)netSetBattle(db,appState.room,battleSnapshot(o),netFail("battle"));
+  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
 }
 function battleSnapshot(o){
   const snap={};
@@ -3065,7 +3065,7 @@ function renderBattleFromSnap(snap,extra){
   renderBattle(Object.assign({att:game.players[snap.attIdx],def:game.players[snap.defIdx]},snap,extra||{}));
 }
 function watchBattle(){
-  netWatchBattle(db,appState.room,s=>{
+  netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
     if(v){spectatingBattle=true;if(!inBattlePrompt)renderBattleFromSnap(v);}
     else spectatingBattle=false; // battle node cleared at battle end — narration may take over again
@@ -3103,7 +3103,7 @@ function battleAsk(p,o,msg,opts,colors){
     ?(seat===o.def.idx?`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)}! Waiting for ${pname(o.def.idx)} to defend…`
       :`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)} — waiting for ${pname(seat)}…`)
     :`${pn(seat)} is deciding…`;
-  netBroadcast(seat===mySeat?msg:spectMsg);
+  netBroadcast(seat===appState.mySeat?msg:spectMsg);
   let idxP;
   if(decisionIsLocal(seat)){
     idxP=new Promise(res=>{
@@ -3322,7 +3322,7 @@ async function asyncBattle(att,def){
   panel("");
   // battle's over — clear the broadcast scoreboard so every client's watchNarr can take the panel
   // back for the result narration (and so spectatingBattle resets). (#9)
-  if(isHost&&db&&appState.room&&!appState.replaying)netRemoveBattle(db,appState.room,netFail("battle clear"));
+  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netRemoveBattle(appState.db,appState.room,netFail("battle clear"));
   if(fled)return;
   const win=a>=need?att:def,lose=a>=need?def:att;
   if(win===att)game.attWins++;
@@ -3579,7 +3579,7 @@ async function humanTurn(p){
       p.shipwrecked=false;
       stopShotClock();
       activeTurnSeat=null;
-      if(passAndPlay)liveRender();
+      if(appState.passAndPlay)liveRender();
       return;
     }
   }
@@ -3603,7 +3603,7 @@ async function humanTurn(p){
   activeTurnSeat=null;
   // refresh now, not at the next turn's render — otherwise this seat's "check my recipe"
   // button sits frozen (blurred but visible) behind the next pass-the-device screen
-  if(passAndPlay)liveRender();
+  if(appState.passAndPlay)liveRender();
 }
 async function botTurn(p){
   const g=game;
@@ -3748,7 +3748,7 @@ async function recipeDraftNet(){
     const msgFor=p=>`${pn(p.idx)}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
-    if(passAndPlay){
+    if(appState.passAndPlay){
       // one device, secret options: draft in turn, each gated by the pass-the-device screen
       // so nobody's two recipe choices are ever on screen for the seat that comes next
       for(const p of pending){
@@ -3773,7 +3773,7 @@ async function recipeDraftNet(){
     }
   }
   game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
-  if(db&&appState.room&&!appState.replaying)await netSetRecipes(db,appState.room,picks,netFail("recipe picks"));
+  if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));
   if(!appState.replaying)updateRecipeBanner();
   liveRender();
 }
@@ -3787,8 +3787,8 @@ async function runLiveNet(){
   // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
   // whoever goes last
   order.forEach((i,pos)=>{game.players[i].coins=game.cfg.startCoins+pos;});
-  turnOrder=order.slice();buildPlayerRows();
-  if(!appState.replaying&&db&&appState.room)netSetTurnOrder(db,appState.room,order,netFail("turn order"));
+  appState.turnOrder=order.slice();buildPlayerRows();
+  if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
   await showTurnOrderIntro(order);
   await recipeDraftNet();
   let ended=false;
@@ -3862,11 +3862,11 @@ async function liveResolveEndNet(){
     await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(game.winner)} baked a ${winRecipeSpan(game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
     victoryConfetti(game.winner); // EOV-05: a burst of celebration over the board
   }
-  if(db&&appState.room&&!appState.replaying)netUpdateRoom(db,appState.room,{status:"ended"},netFail("game end"));
+  if(appState.db&&appState.room&&!appState.replaying)netUpdateRoom(appState.db,appState.room,{status:"ended"},netFail("game end"));
 }
 function writeMeta(){
-  if(!db||!appState.room||appState.replaying)return Promise.resolve();
-  return netSetMeta(db,appState.room,{
+  if(!appState.db||!appState.room||appState.replaying)return Promise.resolve();
+  return netSetMeta(appState.db,appState.room,{
     round:game.round,battles:game.battles,trades:game.trades,attWins:game.attWins,
     finishOrder:game.finishOrder,winner:game.winner,
     flips:game.players.map(p=>p.flips),heads:game.players.map(p=>p.heads)},netFail("game meta"));
@@ -3876,9 +3876,9 @@ function writeMeta(){
 // so this is the only durable copy for later analysis. Only the host writes it (this function
 // only ever runs from the host's own turn loop), so there's no risk of duplicate writes.
 function writeGameLog(){
-  if(!db||appState.replaying)return Promise.resolve();
+  if(!appState.db||appState.replaying)return Promise.resolve();
   const ts=Date.now();
-  return netWriteGameLog(db,ts,{
+  return netWriteGameLog(appState.db,ts,{
     ts,room:appState.room||null,winner:game.winner,round:game.round,
     battles:game.battles,trades:game.trades,strategies:game.cfg.strategies,
     // names/bots are recorded per seat so solo & local games (no rooms/{code}/seats node) are still
@@ -3893,14 +3893,14 @@ function writeGameLog(){
 /* ================= networking plumbing ================= */
 /* Firebase config and cfgReady() moved to src/net/index.js (Phase 9, SPLIT-04) — values copied
    byte-for-byte, see ONLINE_SETUP.md for how to point this at your own Firebase project. */
-let db=null, myId=null, mySeat=null, isHost=false, roster=null;
+
 // randomized once per game and never rotates (see runLiveNet) — lets the captains panel list
 // seats in sailing order, human always first, instead of raw seat index
-let turnOrder=null;
-let numSeats=4, evPushed=0, promptCounter=0, gameStarted=false, appliedMeta=false;
+
+let evPushed=0, promptCounter=0, gameStarted=false, appliedMeta=false;
 // Pass & Play: several human seats share this one browser, taking turns handing the device
 // around. activeTurnSeat/recipeRevealed drive the "check my recipe" lock (see render()/humanTurn).
-let passAndPlay=false, activeTurnSeat=null, recipeRevealed=false;
+let activeTurnSeat=null, recipeRevealed=false;
 // the full personality catalogue the engine implements. No longer used for seat assignment (see
 // SEAT_BOT_STRAT) — kept as the canonical list. NOTE: with four captains and four assignments,
 // "monopolist" is currently unassigned and will not appear in play.
@@ -3925,20 +3925,20 @@ function watchPresence(){
   // best-effort: an older Firebase project whose rules predate this feature (no "presence" node
   // yet — see ONLINE_SETUP.md) will permission-deny these; fail silently rather than spam the
   // console or block anything, since this is a nice-to-have busy indicator, not core gameplay.
-  netWatchConnected(db,snap=>{
+  netWatchConnected(appState.db,snap=>{
     if(snap.val()===true){
-      netMarkPresence(db,myId);
+      netMarkPresence(appState.db,appState.myId);
       const note=$("syncnote");if(note)note.style.display="none";
     }
   },()=>{});
-  netWatchPresence(db,snap=>{
+  netWatchPresence(appState.db,snap=>{
     const busy=snap.numChildren()>=PRESENCE_WARN_THRESHOLD;
     const note=$("busynote");if(note)note.style.display=busy?"":"none";
   },()=>{});
 }
 function fbInit(){
-  db=netInit();
-  if(!db)return false;
+  appState.db=netInit();
+  if(!appState.db)return false;
   watchPresence();
   return true;
 }
@@ -3948,7 +3948,7 @@ function getMyId(){
   return id;
 }
 function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
-function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({room:appState.room,mySeat,isHost}));}catch(e){}}
+function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
 function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
 
 // --- host-refresh recovery: record & replay the decision log ---
@@ -3967,24 +3967,24 @@ function logDecision(v){
     // the encoded {v:...}/{n:1} wrapper, which is a Firebase-only transport detail.
     appState.dlog.push(v);                  // kept locally too (harmless in multiplayer — resumeHostGame
                                     // overwrites it from Firebase — but it's the only copy solo has)
-    if(appState.room)netSetDlog(db,appState.room,n,encodeDec(v),netFail("decision log"));
+    if(appState.room)netSetDlog(appState.db,appState.room,n,encodeDec(v),netFail("decision log"));
     else saveSoloState();
   }
 }
 // ---- singleplayer persistence: reuse the same replay mechanism multiplayer host-refresh uses,
 // but keep the log in localStorage instead of Firebase, since there's no server for solo games ----
-let soloMeta=null; // {name,strategies,seed} for the solo game currently being persisted
+ // {name,strategies,seed} for the solo game currently being persisted
 function saveSoloState(){
-  if(!soloMeta)return;
+  if(!appState.soloMeta)return;
   try{localStorage.setItem("pp_solo",JSON.stringify({...soloMeta,dlog:appState.dlog}));}catch(e){}
 }
-function clearSoloState(){soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
+function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
 function resumeSoloGame(saved){
-  numSeats=saved.strategies.length;appState.room=null;isHost=true;mySeat=0;
-  passAndPlay=!!saved.passAndPlay;
+  appState.numSeats=saved.strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
+  appState.passAndPlay=!!saved.passAndPlay;
   const names=saved.names||[saved.name]; // old solo saves only ever had one human, at seat 0
-  roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
-  soloMeta=passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true}
+  appState.roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true}
                       :{name:saved.name,strategies:saved.strategies,seed:saved.seed};
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;
@@ -4061,14 +4061,14 @@ function wireRestoreFail(){
 // clock/timerOff/draftPrompts/response/chat — none of which can carry this — so it gets its own
 // small node rather than overloading prompt's payload shape. Host-only, guarded like broadcastClock.
 function setRecoveryState(state){
-  if(!isHost||!db||!appState.room)return;
-  if(state)netSetRecovery(db,appState.room,{state,at:Date.now()},netFail("recovery"));
-  else netRemoveRecovery(db,appState.room,netFail("recovery"));
+  if(!appState.isHost||!appState.db||!appState.room)return;
+  if(state)netSetRecovery(appState.db,appState.room,{state,at:Date.now()},netFail("recovery"));
+  else netRemoveRecovery(appState.db,appState.room,netFail("recovery"));
 }
 // guest side: purely presentational. A guest is render-only in this architecture, so this may only
 // show/hide the strip — never reconcile or re-fetch game state.
 function watchRecoveryState(){
-  netWatchRecovery(db,appState.room,s=>{
+  netWatchRecovery(appState.db,appState.room,s=>{
     const v=s.val();
     const note=$("recoverynote");
     if(note)note.style.display=(v&&v.state)?"":"none";
@@ -4076,29 +4076,29 @@ function watchRecoveryState(){
 }
 // host: broadcast new events to the shared feed
 function pushEvents(){
-  if(!db||!appState.room)return;
+  if(!appState.db||!appState.room)return;
   while(evPushed<game.events.length){
-    netPushEvent(db,appState.room,JSON.parse(JSON.stringify(game.events[evPushed])),netFail("event feed"));
+    netPushEvent(appState.db,appState.room,JSON.parse(JSON.stringify(game.events[evPushed])),netFail("event feed"));
     evPushed++;
   }
 }
 // host: ask a remote seat's owner to decide, wait for their answer
 function remotePrompt(seat,payload){
   const id="q"+(promptCounter++)+"_"+Date.now();
-  netSetPrompt(db,appState.room,Object.assign({id,seat},payload),netFail("prompt"));
+  netSetPrompt(appState.db,appState.room,Object.assign({id,seat},payload),netFail("prompt"));
   return new Promise(res=>{
     let wid;
     const cb=snap=>{const v=snap.val();
-      if(v&&v.id===id){netDetach(wid);netRemovePrompt(db,appState.room,netFail("prompt clear"));
+      if(v&&v.id===id){netDetach(wid);netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
         res(v.choice===undefined?null:v.choice);}};
-    wid=netWatchResponse(db,appState.room,cb,"response:"+id);
+    wid=netWatchResponse(appState.db,appState.room,cb,"response:"+id);
   });
 }
 // remote: post my answer back to the host
 function sendResponse(id,choice){
   const o={id};
   if(choice!==null&&choice!==undefined)o.choice=choice;
-  netSetResponse(db,appState.room,o,netFail("response"));
+  netSetResponse(appState.db,appState.room,o,netFail("response"));
   panel("");
 }
 // Parallel prompt/response path used only for concurrent recipe drafting — a per-seat node
@@ -4106,18 +4106,18 @@ function sendResponse(id,choice){
 // rooms/{room}/prompt above which only ever holds one.
 function remoteDraftPrompt(seat,msg,opts,waitMsg){
   const id="d"+(promptCounter++)+"_"+Date.now();
-  netSetDraftPrompt(db,appState.room,seat,{id,seat,msg,waitMsg:waitMsg||null,
+  netSetDraftPrompt(appState.db,appState.room,seat,{id,seat,msg,waitMsg:waitMsg||null,
     labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")},netFail("recipe prompt"));
   return new Promise(res=>{
     let wid;
     const cb=snap=>{const v=snap.val();
-      if(v&&v.id===id){netDetach(wid);netRemoveDraftPrompt(db,appState.room,seat,netFail("recipe prompt clear"));
+      if(v&&v.id===id){netDetach(wid);netRemoveDraftPrompt(appState.db,appState.room,seat,netFail("recipe prompt clear"));
         res(v.choice);}};
-    wid=netWatchDraftResponse(db,appState.room,seat,cb,"draftResponse:"+id);
+    wid=netWatchDraftResponse(appState.db,appState.room,seat,cb,"draftResponse:"+id);
   });
 }
 function watchDraftPrompt(){
-  netWatchDraftPrompt(db,appState.room,mySeat,snap=>{
+  netWatchDraftPrompt(appState.db,appState.room,appState.mySeat,snap=>{
     const p=snap.val();
     if(!p){return;}
     const cls=p.classes||[];
@@ -4126,7 +4126,7 @@ function watchDraftPrompt(){
       (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       b.onclick=()=>{
-        netSetDraftResponse(db,appState.room,mySeat,{id:p.id,choice:+b.dataset.i},netFail("recipe response"));
+        netSetDraftResponse(appState.db,appState.room,appState.mySeat,{id:p.id,choice:+b.dataset.i},netFail("recipe response"));
         if(p.waitMsg)showNarration(p.waitMsg);else panel("");
       };
     });
@@ -4139,7 +4139,7 @@ function fixEv(e){
 }
 // remote: render the game purely from the broadcast event feed
 function watchEvents(){
-  netWatchEvents(db,appState.room,snap=>{
+  netWatchEvents(appState.db,appState.room,snap=>{
     game.events.push(fixEv(snap.val()));
     appState.evIdx=game.events.length-1;
     syncLogLines();
@@ -4151,9 +4151,9 @@ function watchEvents(){
   });
 }
 function watchPrompt(){
-  netWatchPrompt(db,appState.room,snap=>{
+  netWatchPrompt(appState.db,appState.room,snap=>{
     const p=snap.val();
-    if(!p||p.seat!==mySeat){panel("");setFlipActive(null);inBattlePrompt=false;return;}
+    if(!p||p.seat!==appState.mySeat){panel("");setFlipActive(null);inBattlePrompt=false;return;}
     if(p.kind==="ask"){
       if(p.battle){
         // this seat owns the live battle decision — render the same scoreboard everyone else
@@ -4206,16 +4206,16 @@ function watchPrompt(){
   });
 }
 function watchNarr(){
-  netWatchNarr(db,appState.room,s=>{const v=s.val();
+  netWatchNarr(appState.db,appState.room,s=>{const v=s.val();
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
     // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
     // letting them overwrite the panel made the battle box flicker away between flips (#9)
     if(v&&!spectatingBattle&&!inBattlePrompt)showNarration(v.html);});
 }
 async function applyEndMeta(){
-  if(isHost||appliedMeta)return;
+  if(appState.isHost||appliedMeta)return;
   appliedMeta=true;
-  const m=(await netReadMeta(db,appState.room)).val();
+  const m=(await netReadMeta(appState.db,appState.room)).val();
   if(!m)return;
   game.round=m.round;game.battles=m.battles;game.trades=m.trades;game.attWins=m.attWins;
   game.finishOrder=m.finishOrder||[];game.winner=m.winner;
@@ -4252,10 +4252,10 @@ function startSinglePlayer(){
   const opp=3; // 4-player table is the standard game; no longer prompting for opponent count
   const strategies=["human"];
   for(let i=1;i<=opp;i++)strategies.push(seatStrat(i)); // BOT-02: temperament follows the captain
-  numSeats=strategies.length;appState.room=null;isHost=true;mySeat=0;
-  roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
+  appState.roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
-  soloMeta={name,strategies,seed};appState.dlog=[];saveSoloState();
+  appState.soloMeta={name,strategies,seed};appState.dlog=[];saveSoloState();
   beginGame(roundCfg(strategies),seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
@@ -4263,10 +4263,10 @@ function startSinglePlayer(){
 function startPassAndPlay(names){
   const strategies=names.map(()=>"human");
   for(let i=names.length;i<4;i++)strategies.push(seatStrat(i)); // BOT-02
-  numSeats=strategies.length;appState.room=null;isHost=true;mySeat=0;passAndPlay=true;
-  roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;appState.passAndPlay=true;
+  appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
-  soloMeta={names,strategies,seed,passAndPlay:true};appState.dlog=[];saveSoloState();
+  appState.soloMeta={names,strategies,seed,passAndPlay:true};appState.dlog=[];saveSoloState();
   beginGame(roundCfg(strategies),seed);
 }
 // a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
@@ -4275,8 +4275,8 @@ function renderDecorativeBoard(){
   try{
     const strategies=["pirate","trader","balanced","rusher"];
     game=new Game(roundCfg(strategies),Math.floor(Math.random()*1e9),true);
-    roster=strategies.map(s=>({bot:true,strat:s}));
-    mySeat=null;
+    appState.roster=strategies.map(s=>({bot:true,strat:s}));
+    appState.mySeat=null;
     drawBoard();buildPlayerRows();
     game.round=1;game.windNow="NSEW"[Math.floor(Math.random()*4)];game.stormNow=false;
     game.ev({t:"newround",dir:game.windNow});
@@ -4314,8 +4314,8 @@ function revealMyRecipe(){recipeRevealed=true;liveRender();}
 // outside Pass & Play, for the seat that already has the device, and during replay (a reload
 // should replay straight through with no hand-off prompts, same as every other decision).
 function passGate(seatIdx){
-  if(!passAndPlay||seatIdx===mySeat)return Promise.resolve();
-  if(appState.replaying){mySeat=seatIdx;return Promise.resolve();} // silently keep mySeat in sync so it's
+  if(!appState.passAndPlay||seatIdx===appState.mySeat)return Promise.resolve();
+  if(appState.replaying){appState.mySeat=seatIdx;return Promise.resolve();} // silently keep mySeat in sync so it's
   // already correct the moment replay catches up to the live edge — no UI shown mid-replay
   return new Promise(res=>{
     $("game").classList.add("bg-blurred");
@@ -4327,7 +4327,7 @@ function passGate(seatIdx){
     btn.onclick=()=>{
       $("passOverlay").style.display="none";
       $("game").classList.remove("bg-blurred");
-      mySeat=seatIdx;
+      appState.mySeat=seatIdx;
       res();
     };
   });
@@ -4335,15 +4335,15 @@ function passGate(seatIdx){
 
 async function createRoom(){
   const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
-  numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
+  appState.numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
   const code=genCode();
-  const seats={0:{name,id:myId,bot:false}};
-  for(let i=1;i<numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:seatStrat(i)}; // BOT-02
-  appState.room=code;mySeat=0;isHost=true;
+  const seats={0:{name,id:appState.myId,bot:false}};
+  for(let i=1;i<appState.numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:seatStrat(i)}; // BOT-02
+  appState.room=code;appState.mySeat=0;appState.isHost=true;
   try{
-    await netCreateRoom(db,code,{host:myId,status:"lobby",numSeats,seats,createdAt:Date.now()});
+    await netCreateRoom(appState.db,code,{host:appState.myId,status:"lobby",numSeats:appState.numSeats,seats,createdAt:Date.now()});
   }catch(e){
-    console.error("createRoom failed",e);appState.room=null;isHost=false;
+    console.error("createRoom failed",e);appState.room=null;appState.isHost=false;
     alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");
     return;
   }
@@ -4354,51 +4354,51 @@ async function joinRoom(){
   const code=($("joinCode").value||"").toUpperCase().trim();
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   let snap;
-  try{snap=await netReadRoom(db,code);}
+  try{snap=await netReadRoom(appState.db,code);}
   catch(e){console.error("joinRoom failed",e);alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");return;}
   if(!snap.exists()){alert("No game found with code "+code+".");return;}
   const r=snap.val();
   const seats=r.seats||{};
   let mine=null;
-  for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===myId)mine=i;
-  if(mine!=null){appState.room=code;mySeat=mine;isHost=(r.host===myId);saveSession();watchRoom();return;}
+  for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===appState.myId)mine=i;
+  if(mine!=null){appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;}
   if(r.status!=="lobby"){alert("That game has already set sail.");return;}
   let claimed=null;
-  await netClaimSeat(db,code,s=>{
+  await netClaimSeat(appState.db,code,s=>{
     if(!s)return s;
     for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){
       // #2: blank name → an unused default captain name computed against the live seat map, so a
       // late joiner never duplicates a name already in the room.
-      s[i]={name:typedName||unusedDefaultName(s,i),id:myId,bot:false};claimed=i;return s;}}
+      s[i]={name:typedName||unusedDefaultName(s,i),id:appState.myId,bot:false};claimed=i;return s;}}
     return s;
   });
   if(claimed==null){alert("That game is full.");return;}
-  appState.room=code;mySeat=claimed;isHost=(r.host===myId);saveSession();watchRoom();
+  appState.room=code;appState.mySeat=claimed;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();
 }
 async function watchRoom(){
-  const r0=(await netReadRoom(db,appState.room)).val();
+  const r0=(await netReadRoom(appState.db,appState.room)).val();
   if(!r0){alert("That game no longer exists.");clearSession();showHome();return;}
-  numSeats=r0.numSeats;isHost=(r0.host===myId);
+  appState.numSeats=r0.numSeats;appState.isHost=(r0.host===appState.myId);
   if(r0.status==="lobby")showRoom();
-  netWatchSeats(db,appState.room,snap=>{
+  netWatchSeats(appState.db,appState.room,snap=>{
     const seats=snap.val()||{};
-    roster=[];for(let i=0;i<numSeats;i++)roster[i]=seats[i]||{bot:true,strat:seatStrat(i)};
+    appState.roster=[];for(let i=0;i<appState.numSeats;i++)appState.roster[i]=seats[i]||{bot:true,strat:seatStrat(i)};
     if(!gameStarted)renderSeatList(seats);
   });
-  netWatchStatus(db,appState.room,async snap=>{
+  netWatchStatus(appState.db,appState.room,async snap=>{
     const st=snap.val();
     if((st==="playing"||st==="ended")&&!gameStarted){
-      const r=(await netReadRoom(db,appState.room)).val();
-      roster=[];for(let i=0;i<r.numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
+      const r=(await netReadRoom(appState.db,appState.room)).val();
+      appState.roster=[];for(let i=0;i<r.numSeats;i++)appState.roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
       beginGame(r.cfg,r.seed);
     }
   });
 }
 function renderSeatList(seats){
   let html="";
-  for(let i=0;i<numSeats;i++){
+  for(let i=0;i<appState.numSeats;i++){
     const s=seats[i]||{bot:true};
-    const me=(s.id===myId);
+    const me=(s.id===appState.myId);
     let label;
     // BOT-01: no personality picker — every captain's temperament is fixed (see SEAT_BOT_STRAT)
     if(s.id)label=escHtml(s.name)+(me?" — you":"");
@@ -4407,7 +4407,7 @@ function renderSeatList(seats){
       <span class="nm">${pn(i)} — ${label}</span></div>`;
   }
   $("seatList").innerHTML=emojify(html);
-  if(isHost){
+  if(appState.isHost){
     $("btnStart").style.display="";
     $("waitMsg").innerHTML="Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots.";
   }else{
@@ -4417,12 +4417,12 @@ function renderSeatList(seats){
 }
 async function startGame(){
   try{
-    const r=(await netReadRoom(db,appState.room)).val();
+    const r=(await netReadRoom(appState.db,appState.room)).val();
     const strategies=[];
     for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
     const cfg=roundCfg(strategies);
     const seed=Math.floor(Math.random()*1e9);
-    await netUpdateRoom(db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
+    await netUpdateRoom(appState.db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
       recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
   }catch(e){
     console.error("startGame failed",e);
@@ -4436,30 +4436,30 @@ function beginGame(cfg,seed){
   live=true;liveDone=false;appState.evIdx=0;evPushed=0;appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
-  turnOrder=null;
+  appState.turnOrder=null;
   logLines=[];logRenderedTo=-2;$("log").innerHTML="";
   $("chatLog").innerHTML="";clearChatBubbles();
-  $("chatPanel").style.display=(db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
+  $("chatPanel").style.display=(appState.db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
   drawBoard();buildPlayerRows();
   updateRecipeBanner();
   watchRecipes();
-  if(isHost){runLiveNet();}
+  if(appState.isHost){runLiveNet();}
   else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
-  if(isHost&&db&&appState.room&&!appState.replaying){
+  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
     let off=false;try{off=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
-    netSetTimerOff(db,appState.room,off,netFail("timerOff"));
+    netSetTimerOff(appState.db,appState.room,off,netFail("timerOff"));
   }
 }
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
 // the host's synced copy instead, and reorder the captains panel once it arrives
 function watchTurnOrder(){
-  netWatchTurnOrder(db,appState.room,snap=>{
+  netWatchTurnOrder(appState.db,appState.room,snap=>{
     const v=snap.val();
-    if(v){turnOrder=v;buildPlayerRows();}
+    if(v){appState.turnOrder=v;buildPlayerRows();}
   });
 }
 function updateRecipeBanner(){
@@ -4468,7 +4468,7 @@ function updateRecipeBanner(){
   if(game&&game.events&&game.events.length)render();
 }
 function watchRecipes(){
-  netWatchRecipes(db,appState.room,snap=>{
+  netWatchRecipes(appState.db,appState.room,snap=>{
     const picks=snap.val();
     if(!picks)return;
     picks.forEach((pk,i)=>{if(game.players[i]&&game.players[i].recipeChoices)game.players[i].recipe=game.players[i].recipeChoices[pk];});
@@ -4514,7 +4514,7 @@ function wireLobby(){
   $("btnSendFeedback").onclick=()=>{
     const text=($("feedbackText").value||"").trim();
     if(!text)return;
-    if(db)netSetFeedback(db,Date.now(),{text,room:appState.room||null,name:($("pname").value||"").trim()||null,t:Date.now()},e=>console.error("feedback write failed",e));
+    if(appState.db)netSetFeedback(appState.db,Date.now(),{text,room:appState.room||null,name:($("pname").value||"").trim()||null,t:Date.now()},e=>console.error("feedback write failed",e));
     $("feedbackText").value="";
     $("feedbackModal").style.display="none";
   };
@@ -4528,8 +4528,8 @@ function wireLobby(){
 // or empty log read) surfaces the restore-failed dialog instead of quietly handing back a board
 // that has silently reset to turn 1.
 async function resumeHostGame(r){
-  numSeats=r.numSeats;
-  roster=[];for(let i=0;i<numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
+  appState.numSeats=r.numSeats;
+  appState.roster=[];for(let i=0;i<appState.numSeats;i++)appState.roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
   if(!r.cfg){ // never actually started (reloaded on the "playing" flag before cfg was written)
     clearSession();showHome();return;
   }
@@ -4540,10 +4540,10 @@ async function resumeHostGame(r){
   // reset. Record the failure and surface it through netFail (same helper every other failure site
   // in this file uses); replayShortfall treats a failed read as untrustworthy regardless of counts.
   appState.resumeReadFailed=false;
-  let draw={};try{draw=(await netReadDlog(db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume dlog")(e);}
+  let draw={};try{draw=(await netReadDlog(appState.db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume dlog")(e);}
   appState.dlog=Object.keys(draw).map(Number).sort((a,b)=>a-b).map(k=>decodeDec(draw[k]));
   appState.dlogIdx=0;appState.dlogN=0;
-  let evval={};try{evval=(await netReadEv(db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume events")(e);}
+  let evval={};try{evval=(await netReadEv(appState.db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume events")(e);}
   appState.resumeEvLen=evval?Object.keys(evval).length:0;
   showGameView();
   panel('<div class="apMsg">⚓ Reconnecting to your voyage…</div>');
@@ -4620,7 +4620,7 @@ function applyEngineBootstrapEffects(){
 }
 
 function boot(){
-  myId=getMyId();
+  appState.myId=getMyId();
   // reveal the game as soon as the art is ready, but never wait more than 6s (offline/failed CDN,
   // dead image host, etc.) — a hung loader would be worse than the pop-in it prevents.
   Promise.race([preloadAssets(),new Promise(r=>setTimeout(r,6000))]).then(hideBootLoader);
@@ -4648,12 +4648,12 @@ function boot(){
     return; // solo play still works fully offline
   }
   if(sess&&sess.room){
-    appState.room=sess.room;mySeat=sess.mySeat;isHost=!!sess.isHost;
-    netReadRoom(db,appState.room).then(snap=>{
+    appState.room=sess.room;appState.mySeat=sess.mySeat;appState.isHost=!!sess.isHost;
+    netReadRoom(appState.db,appState.room).then(snap=>{
       if(!snap.exists()){clearSession();showHome();return;}
       const r=snap.val();
-      isHost=(r.host===myId);
-      if(isHost&&(r.status==="playing"||r.status==="ended")){
+      appState.isHost=(r.host===appState.myId);
+      if(appState.isHost&&(r.status==="playing"||r.status==="ended")){
         // The host's browser drives the game. On an accidental reload, replay the recorded
         // decision log to rebuild the exact game state and keep driving it — then check the
         // rebuild actually landed (see endReplay). If it came up short, the player is asked
