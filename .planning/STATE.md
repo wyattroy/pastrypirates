@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monolith Refactor
-current_phase: 9
-current_phase_name: Networking Layer & Watcher Cleanup
+current_phase: 10
+current_phase_name: App State & De-globalization
 status: executing
-stopped_at: Completed 09-05-PLAN.md
-last_updated: "2026-07-24T21:14:39.985Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-07-24T21:51:36.666Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 9 execution started
+last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 13
+  completed_plans: 14
   percent: 50
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 9 — Networking Layer & Watcher Cleanup
+**Current focus:** Phase 10 — App State & De-globalization
 
 ## Current Position
 
-Phase: 9 (Networking Layer & Watcher Cleanup) — EXECUTING
-Plan: 5 of 5
+Phase: 10 (App State & De-globalization) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-07-24 — Phase 9 execution started
+Last activity: 2026-07-24 — Phase 10 execution started
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [██████████] 100%
 | Phase 09 P03 | 90min | 3 tasks | 6 files |
 | Phase 09 P04 | 35min | 2 tasks | 3 files |
 | Phase 09 P05 | ~25min | 2 tasks | 4 files |
+| Phase 10 P01 | ~35min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Marked SPLIT-04 and NET-02 Complete in REQUIREMENTS.md; left NET-01/NET-03 Pending for 09-05's behavioral reconnect/leave-rejoin proof
 - [Phase ?]: 09-05: NET-01/NET-03 marked Complete only after independently re-confirming all 18 watchers route through the registry (grep + net_contract_check + npm test), not on the coordinator's live transcripts alone
 - [Phase 9]: ROADMAP criterion 4 (two-tab multiplayer sync) CLOSED 2026-07-24 — clean in-game re-run in Chrome proved live host↔guest turn propagation through src/net/ (same-moment captain-state match); WINDOWS.md item 2 fixed, 09-VERIFICATION.md now 4/4 passed
+- [Phase ?]: 10-01: Bridge identifier is appState, not state -- state already collides with local variable/parameter names in the classic script (broadcastFlip(state), setRecoveryState(state), a local const in setClockUI()); appState confirmed zero prior occurrences. All subsequent 10-xx plans migrate to appState.NAME, not state.NAME.
+- [Phase ?]: 10-01: js_region_tokenizer.js gained a regex-literal lexer mode mid-task -- escHtml's /[&<>"]/g regex (a literal quote inside a character class) corrupted downstream string/comment classification until regex literals were recognized as their own token kind. Fixed and verified before committing.
 
 ### Pending Todos
 
@@ -131,8 +134,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T18:55:36.012Z
-Stopped at: Completed 09-05-PLAN.md
+Last session: 2026-07-24T21:51:36.653Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
