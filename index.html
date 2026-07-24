@@ -247,14 +247,15 @@
   #actionPanel { margin: 8px auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
-  /* notes/edits BUG-01: the narration box height SNAPS to its content — no smooth resize. Edit #4
-     had added `transition: grid-template-rows .1s ease` to grow/shrink the box smoothly, but every
-     character the typewriter reveals grows the content, re-firing that 0.1s height animation; the
-     overlapping animations continuously re-composite the storm's rain layers and drag Safari to
-     ~5fps. Snapping the height (one reflow per reveal tick, no animation) leaves the storm layers
-     on their own GPU timeline. The typewriter reveal itself is unchanged — only the box resize is. */
-  #apGrid { display: grid; grid-template-rows: 1fr; }
+  /* notes/edits BUG-01: the narration box smoothly resizes to each message's height — but ONCE per
+     message, not per character. panel() measures the finished message's full height and animates the
+     grid row straight to that fixed px, so the typewriter then fills a pre-sized box with zero
+     per-character reflow. (The earlier per-character 1fr grow was briefly blamed for the Safari storm
+     hitch; the real cause was the rain overlay, now fixed — so the smooth resize is back, done the
+     frame-safe way.) */
+  #apGrid { display: grid; grid-template-rows: 0px; transition: grid-template-rows .18s ease; }
   #apGridInner { overflow: hidden; min-height: 0; }
+  @media (prefers-reduced-motion: reduce) { #apGrid { transition: none; } }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   /* notes/edits #4b: a parenthetical aside like "(1 broadside)" must never split across a line
      break — wrap it in this class at the string-building level wherever it appears. */
@@ -455,13 +456,21 @@
   .winner-banner::after { bottom: 2px; right: 16%; animation-delay: .95s; }
   @keyframes goldShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
   @keyframes winnerSparkle { 0%, 100% { opacity: 0; transform: scale(.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(20deg); } }
-  .awardsRow { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; }
-  .awardCard { flex: 1 1 100px; text-align: center; border: 2px solid; border-radius: 12px; padding: 8px 6px; background: #fff; }
-  .awardIcon { font-size: 22px; line-height: 1; }
-  .awardIcon img { width: 22px; height: 22px; object-fit: contain; }
-  .awardLabel { font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; opacity: .6; margin: 3px 0 1px; }
-  .awardWinner { font-weight: 800; font-size: 13.5px; }
-  .awardValue { font-size: 11.5px; opacity: .7; }
+  /* notes/edits EOV-04: the redesigned end-of-voyage honours — bigger emblem, pirate name, byline,
+     then the winning captain's name (big, colored, no seat dot) filling the card above a rule, with
+     the plain stat beneath it. Best 4 of the whole badge pool are shown (see pickBadges). */
+  .awardsRow { display: flex; gap: 9px; flex-wrap: wrap; margin: 0 0 12px; }
+  .awardCard { flex: 1 1 120px; display: flex; flex-direction: column; align-items: center; text-align: center;
+    border: 2px solid; border-radius: 13px; padding: 11px 9px 9px; background: #fff; gap: 4px; }
+  .awardEmblem { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.18)); }
+  .awardName { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 13px; line-height: 1.15;
+    color: #3a2a17; text-wrap: balance; }
+  .awardByline { font-size: 10.5px; line-height: 1.3; opacity: .68; }
+  .awardCaptain { font-weight: 800; font-size: 19px; line-height: 1.05; width: 100%; padding: 1px 0 5px;
+    letter-spacing: -.2px; text-wrap: balance; }
+  .awardRule { width: 100%; height: 0; border: 0; border-top: 1px solid rgba(0,0,0,.14); margin: 0; }
+  .awardStat { font-size: 11px; opacity: .72; padding-top: 4px; }
+  .awardStat b { font-weight: 700; opacity: .95; }
   .windbox { font-size: 14px; display: flex; align-items: center; gap: 6px; }
   .muted { opacity: .6; font-size: 12px; }
   .rules { font-size: 13.5px; line-height: 1.55; }
@@ -2851,48 +2860,48 @@ function computeAwards(){
   }
   return {battlesWon,battlesLost,timesAttacked,fishCount,dist,trades,shotClockCount,longestBattle,hottestStreak};
 }
-// Assigns every player exactly one superlative — walk the pool in "best stuff first" order,
-// each category claims its current top-scoring unclaimed player, so genuine standouts get the
-// flashy categories before anyone falls back to a flavor-only shoutout. Guarantees everyone
-// gets a card, including a not-so-flattering one if that's all that's left.
-function assignSuperlatives(){
-  const n=game.players.length,s=computeAwards();
-  // notes/edits EOV-03: "Unluckiest pirate" — whoever flipped the most tails across the whole
-  // voyage (every coin flip is tracked on the player as flips/heads). tails = flips − heads.
-  const tails=game.players.map(p=>(p.flips||0)-(p.heads||0));
-  // notes/edits EOV-03: "Unluckiest pirate" leads the list on purpose — it's a booby prize Wyatt
-  // wants reliably handed out, and the fixed 5-badge redesign (EOV-04) keeps it as a permanent slot.
-  // Whoever flipped the most tails claims it first; the other captains still get a positive
-  // superlative from the categories below. Guarded so a flip-free game (0 tails all round) skips it.
-  const anyTails=tails.some(t=>t>0);
-  const categories=[
-    ...(anyTails?[{label:"Unluckiest pirate",icon:"🎲",arr:tails,unit:" tails"}]:[]),
-    {label:"Most battles won",icon:"⚔️",arr:s.battlesWon,unit:""},
-    {label:"Most fish caught",icon:"🎣",arr:s.fishCount,unit:""},
-    {label:"Farthest traveled",icon:"⛵",arr:s.dist,unit:" sq"},
-    {label:"Longest battle",icon:"🗡️",arr:s.longestBattle,unit:" rounds"},
-    {label:"Hottest streak",icon:"🔥",arr:s.hottestStreak,unit:" heads"},
-    {label:"Most attacked",icon:"🎯",arr:s.timesAttacked,unit:""},
-    {label:"Most trades struck",icon:"🤝",arr:s.trades,unit:""},
-    {label:"Most battles lost",icon:"💀",arr:s.battlesLost,unit:""},
-    {label:"Slowest to decide",icon:"🐌",arr:s.shotClockCount,unit:""},
-  ];
-  const claimedPlayer=new Set();
-  const result=new Array(n).fill(null);
-  for(const cat of categories){
-    if(claimedPlayer.size>=n)break;
-    let best=-1,bestScore=0;
-    for(let i=0;i<n;i++){
-      if(claimedPlayer.has(i))continue;
-      if(cat.arr[i]>bestScore){bestScore=cat.arr[i];best=i;}
-    }
-    if(best>=0){result[best]={label:cat.label,icon:cat.icon,value:bestScore,unit:cat.unit};claimedPlayer.add(best);}
+// notes/edits EOV-04: the end-of-voyage honours. The full pool of ~10 keepsakes, each with a
+// pirate-y name, a byline, its 1:1 emblem art (assets/badges/*.png — placeholders Wyatt will
+// repaint), and the underlying plain stat. `scale` is roughly "how big a value is impressive" for
+// that category, so pickBadges() can compare across categories with different units. `key` selects
+// the per-player stat array (computeAwards() output, plus a synthesised `tails`).
+const BADGE_POOL=[
+  {key:"battlesWon",   img:"cutlass",  name:"The Cutlass of a Thousand Notches", byline:"One notch per fallen foe, carved into the hilt.",                 stat:"Most battles won",   unit:"",         scale:3},
+  {key:"fishCount",    img:"herring",  name:"The Golden Herring",                byline:"A shining tin fish on a ribbon, awarded with mock solemnity.",     stat:"Most fish caught",   unit:"",         scale:4},
+  {key:"dist",         img:"compass",  name:"The Horizon-Chaser's Compass",      byline:"For the salt-crusted soul who sailed further than sense allowed.", stat:"Farthest traveled",  unit:" sq",      scale:45},
+  {key:"longestBattle",img:"medal",    name:"The Iron Gut Medal",                byline:"For the crew that refused to sink or strike their colors.",        stat:"Longest battle",     unit:" rounds",  scale:4},
+  {key:"tails",        img:"blackspot",name:"The Black Spot of Bad Tides",       byline:"The curse-token flipped to a badge of honor — they survived the worst luck at the table.", stat:"Most tails flipped", unit:" tails", scale:16},
+  {key:"hottestStreak",img:"doubloon", name:"The Lucky Doubloon",                byline:"Heads, then heads, then heads again — Lady Luck rode on their shoulder.", stat:"Hottest streak", unit:" heads", scale:4},
+  {key:"trades",       img:"ledger",   name:"The Silver-Tongued Ledger",         byline:"Struck more deals than a Tortuga fishmonger on market day.",       stat:"Most trades struck", unit:"",         scale:3},
+  {key:"timesAttacked",img:"target",   name:"The Painted Target",                byline:"Somehow every cannon in the Caribbean swung their way.",           stat:"Most set upon",      unit:"",         scale:3},
+  {key:"battlesLost",  img:"timbers",  name:"The Splintered Timbers",            byline:"Took a right drubbing and lived to grumble about it.",             stat:"Most battles lost",  unit:"",         scale:3},
+  {key:"shotClockCount",img:"barnacle",name:"The Barnacle Brain",                byline:"Pondered each move till the barnacles grew — no rush in these waters.", stat:"Slowest to decide", unit:"",      scale:3},
+];
+// Guaranteed fallback for a captain who earned no standout stat (rare — everyone at least sails, so
+// "Farthest traveled" is nearly always claimable — but this ensures EVERY captain gets one award).
+// It still carries a real number: how many ingredients they finished the voyage holding.
+const FALLBACK_BADGE={img:"anchor",name:"Good Mate",byline:"Pirated for the love of the game.",stat:"Number of ingredients plundered",unit:""};
+// notes/edits EOV-04: every captain gets exactly ONE award, and no two share a category. Build all
+// (captain, category) claims with a positive stat, rank them by value/scale (so a 57-square voyage
+// and a 4-win rampage compare fairly), then greedily hand each captain their single most impressive
+// still-available badge. A captain who can't claim any stat (all zero) gets a flavor fallback.
+function assignBadges(){
+  const s=computeAwards();
+  const arrs=Object.assign({},s,{tails:game.players.map(p=>(p.flips||0)-(p.heads||0))});
+  const n=game.players.length;
+  const cands=[];
+  for(const def of BADGE_POOL){
+    const arr=arrs[def.key];if(!arr)continue;
+    for(let i=0;i<n;i++)if(arr[i]>0)cands.push({seat:i,def,value:arr[i],score:arr[i]/def.scale});
   }
-  const fallbacks=[{label:"Steady hand",icon:"🫡"},{label:"True to the crew",icon:"🧭"},
-    {label:"Kept the ship afloat",icon:"⚓"},{label:"Salt of the sea",icon:"🌊"}];
-  let fi=0;
-  for(let i=0;i<n;i++)if(!result[i])result[i]=fallbacks[fi++%fallbacks.length];
-  return result;
+  cands.sort((a,b)=>b.score-a.score);
+  const bySeat={},usedCat=new Set();
+  for(const c of cands){
+    if(bySeat[c.seat]!==undefined||usedCat.has(c.def.key))continue;
+    bySeat[c.seat]=c;usedCat.add(c.def.key);
+  }
+  for(let i=0;i<n;i++)if(bySeat[i]===undefined)bySeat[i]={seat:i,def:FALLBACK_BADGE,value:game.players[i].ing.length};
+  return game.players.map((p,i)=>bySeat[i]); // one per captain, in seat order
 }
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
 // a little celebration flourish, purely cosmetic (doesn't touch game state)
@@ -2937,13 +2946,16 @@ function showStats(){
   // notes/edits EOV-02: the winner's recipe image is NOT shown here anymore — it lives in the one-off
   // victory box (see endLive), so the End of Voyage summary isn't doubling it up.
   const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
-  // one superlative per player — everyone gets a shoutout, not just the top 3 stats
-  const supers=assignSuperlatives();
-  const awards=game.players.map((p,i)=>`<div class="awardCard" style="border-color:${HEXCOL[i]}">
-      <div class="awardIcon">${EMOJI_IMG[supers[i].icon]?iconImg(EMOJI_IMG[supers[i].icon]):supers[i].icon}</div>
-      <div class="awardLabel">${supers[i].label}</div>
-      <div class="awardWinner" style="color:${HEXCOL[i]}">${pname(i)}</div>
-      ${supers[i].value!=null?`<div class="awardValue">${supers[i].value}${supers[i].unit||""}</div>`:""}
+  // notes/edits EOV-04: one keepsake per captain (see assignBadges) — emblem, pirate name + byline,
+  // the captain (big, colored, no seat dot) filling the card above a rule, and the stat beneath it.
+  const badges=assignBadges();
+  const awards=badges.map(b=>`<div class="awardCard" style="border-color:${HEXCOL[b.seat]}">
+      <img class="awardEmblem" src="${ASSET_BASE}badges/${b.def.img}.png" alt="">
+      <div class="awardName">${b.def.name}</div>
+      <div class="awardByline">${b.def.byline}</div>
+      <div class="awardCaptain" style="color:${HEXCOL[b.seat]}">${pname(b.seat)}</div>
+      <hr class="awardRule">
+      <div class="awardStat">${b.def.stat}${b.value!=null?` — <b>${b.value}${b.def.unit||""}</b>`:""}</div>
     </div>`).join("");
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
     <div class="awardsRow">${awards}</div>
@@ -3342,13 +3354,30 @@ function panel(html,needsAction=false){
   $("apGridInner").innerHTML=html;
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
-  $("apGrid").style.gridTemplateRows="1fr"; // snap to the new content's height (see #apGrid CSS)
+  resizePanel(!!html);
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
   // so callers like flash() can wait for real completion instead of a guessed duration.
   const msgEl=$("actionPanel").querySelector(".apMsg");
   if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);
+}
+// notes/edits BUG-01: smoothly resize the box to the CURRENT message's finished height, exactly
+// ONCE. Measure the natural content height (with the row briefly unconstrained and the transition
+// suppressed so the measurement itself never animates), snap the row back to where it was, then let
+// the transition animate to the measured height. The typewriter then fills a box that's already the
+// right size — so the height animates a single time per message instead of on every character.
+function resizePanel(hasContent){
+  const grid=$("apGrid"),inner=$("apGridInner");if(!grid)return;
+  if(!hasContent){grid.style.gridTemplateRows="0px";return;}
+  const from=getComputedStyle(grid).gridTemplateRows; // resolved px of the current height
+  grid.style.transition="none";
+  grid.style.gridTemplateRows="max-content";
+  const h=inner.offsetHeight;                          // natural height of the finished message
+  grid.style.gridTemplateRows=from;                    // back to the start value…
+  void grid.offsetHeight;                              // …committed as the transition's from
+  grid.style.transition="";
+  grid.style.gridTemplateRows=h+"px";                  // one smooth animation to the real height
 }
 // Walks msgEl's real DOM in document order and reveals it character-by-character (text nodes)
 // and unit-by-unit (atomic elements like <img>), instead of faking a type-in with a CSS wipe — a
