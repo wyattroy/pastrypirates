@@ -9,10 +9,10 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 
 ### Foundation & Zero-Build (FOUND)
 
-- [ ] **FOUND-01**: Repo has a root `package.json` with `"type": "module"` so engine modules import identically in the browser and in Node
+- [x] **FOUND-01**: Repo has a root `package.json` with `"type": "module"` so engine modules import identically in the browser and in Node
 - [ ] **FOUND-02**: The game loads and plays from a static HTTP server via `<script type="module">` with no bundler/build step
 - [ ] **FOUND-03**: Firebase compat SDK v12.15.0 stays as classic (non-module) script tags loaded before the module entry point (no init race)
-- [ ] **FOUND-04**: A golden-fixture determinism baseline (seeded replay corpus) is captured from the pre-refactor monolith to serve as the regression oracle
+- [x] **FOUND-04**: A golden-fixture determinism baseline (seeded replay corpus) is captured from the pre-refactor monolith to serve as the regression oracle
 - [ ] **FOUND-05**: The module-loading + local-dev contract is documented (HTTP server required, `file://` unsupported, `.js` MIME expectations for production)
 
 ### Module Split (SPLIT)
@@ -82,10 +82,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 7 | Pending |
+| FOUND-01 | Phase 7 | Complete |
 | FOUND-02 | Phase 7 | Pending |
 | FOUND-03 | Phase 7 | Pending |
-| FOUND-04 | Phase 7 | Pending |
+| FOUND-04 | Phase 7 | Complete |
 | FOUND-05 | Phase 7 | Pending |
 | SPLIT-01 | Phase 8 | Pending |
 | SPLIT-02 | Phase 8 | Pending |
@@ -109,6 +109,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | VERIFY-04 | Phase 12 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 25 total
 - Mapped to phases: 25 ✓
 - Unmapped: 0

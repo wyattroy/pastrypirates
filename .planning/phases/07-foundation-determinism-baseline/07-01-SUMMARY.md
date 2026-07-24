@@ -215,6 +215,10 @@ None - no external service configuration required. Zero dependencies, zero packa
 - `index.html` remains byte-identical to `main` — confirmed via `git diff --stat main -- index.html` (empty) after both task commits. Plan 07-02 (which edits `index.html` to add the module `<script>` tag) can proceed against this exact, unmodified baseline.
 - No blockers. The `--verify` failure path has been demonstrated twice (pre- and post-widening), not merely assumed — later phases inherit a genuinely tested oracle.
 
+## Self-Check: PASSED
+
+All created files verified present on disk (`package.json`, `scripts/lib/load_engine.js`, `scripts/determinism_baseline.js`, `scripts/fixtures/determinism/manifest.json`, `scripts/fixtures/determinism/seed-12345.jsonl`, `scripts/fixtures/determinism/seed-12374.jsonl`, this SUMMARY.md). All claimed commits verified present in `git log --oneline --all` (`79b8e8b`, `fc7e7b7`, `b40c884`).
+
 ---
 *Phase: 07-foundation-determinism-baseline*
 *Completed: 2026-07-24*
