@@ -86,26 +86,28 @@
      Fades in/out rather than snapping on/off. Purely decorative. */
   #stormOverlay { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; overflow: hidden;
     opacity: 0; transition: opacity .8s ease; z-index: 5; background: rgba(18, 24, 45, 0.4);
-    /* rain look tuned in notes/rain.html; --slant is set per-storm (render) to the wind direction */
-    --slant: 0deg; --spacing: 60px; --thick: 2.5px; --dash: 61px; --gap: 52px; --blur: 0.6px;
-    --streak: rgba(210, 228, 255, 0.19); --speed: 0.75s; }
+    /* --slant is set per-storm (render) to the wind direction; --drop is one dash period of the tile */
+    --slant: 0deg; --speed: 0.75s; --drop: 113px; }
   #boardwrap.storming #stormOverlay { opacity: 1; }
-  /* soft (gaussian-ish) streaks: triangular ramps in both axes + a small blur. Each .rlayer is
-     generated once (buildStormLayers) with its own jittered spacing/speed/phase so the layers
-     never fall in lockstep. The mask scrolls to make the streaks fall; rotate(--slant) aims them. */
+  /* notes/edits BUG-01: the rain used to be a live CSS build — a huge repeating-linear-gradient
+     masked by another gradient with an animated mask-position and a blur filter. Safari re-rasterizes
+     AND re-blurs that whole 220%-sized masked layer on the CPU every single frame (Chrome
+     GPU-accelerates it; Safari doesn't), so any active storm dragged the board to ~2fps — with the
+     game paused and nothing else happening. The rain is now a pre-rendered, seamlessly-tiling PNG
+     (assets/rain-streaks.png, soft edges baked in) that we simply TILE and slide with a
+     compositor-only transform:translateY. No mask, no filter, no live gradient — the GPU tiles one
+     small cached texture and moves it. Each .rlayer varies only cheap, compositor-friendly things
+     (scale, speed, offset, opacity) for depth; rotate(--slant) aims them at the wind. */
   #stormOverlay .rlayer { position: absolute; left: -60%; top: -60%; width: 220%; height: 220%;
-    background-image: repeating-linear-gradient(90deg,
-      transparent 0,
-      transparent calc(var(--spacing)/2 - var(--thick)/2),
-      var(--streak) calc(var(--spacing)/2),
-      transparent calc(var(--spacing)/2 + var(--thick)/2),
-      transparent var(--spacing));
-    -webkit-mask-image: repeating-linear-gradient(0deg, transparent 0, #000 calc(var(--dash)/2), transparent var(--dash), transparent calc(var(--dash) + var(--gap)));
-    mask-image: repeating-linear-gradient(0deg, transparent 0, #000 calc(var(--dash)/2), transparent var(--dash), transparent calc(var(--dash) + var(--gap)));
-    transform: rotate(var(--slant)); filter: blur(var(--blur));
-    animation: rainFall var(--speed) linear infinite; animation-play-state: paused; will-change: mask-position; }
+    background: url(assets/rain-streaks.png) repeat; background-size: 240px 226px;
+    transform: rotate(var(--slant)) translate3d(0,0,0);
+    animation: rainFall var(--speed) linear infinite; animation-play-state: paused; will-change: transform; }
   #boardwrap.storming #stormOverlay .rlayer { animation-play-state: running; } /* only spin the animation while it's visible */
-  @keyframes rainFall { to { -webkit-mask-position: 0 calc(var(--dash) + var(--gap)); mask-position: 0 calc(var(--dash) + var(--gap)); } }
+  /* slide by one dash period (--drop): the streaks are vertical so a vertical shift is invisible to
+     them, and the drop dashes repeat every --drop, so the loop is seamless */
+  @keyframes rainFall {
+    from { transform: rotate(var(--slant)) translate3d(0,0,0); }
+    to   { transform: rotate(var(--slant)) translate3d(0, var(--drop), 0); } }
   @media (prefers-reduced-motion: reduce) { #boardwrap.storming #stormOverlay .rlayer { animation-play-state: paused; } }
   .panel { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(41,163,178,.08); }
   .panel h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--mint); padding-bottom: 5px; color: var(--teal); }
@@ -2607,22 +2609,30 @@ function pulseEl(el){
   void el.offsetWidth;
   el.classList.add("pulse");
 }
-// #1b: build the storm's rain layers once, on the first storm. Values tuned in notes/rain.html
-// (4 layers, jitter 0.86); each layer gets its own randomised spacing/speed/phase/offset so they
-// never fall in lockstep. Look constants (spacing/length/gap/blur/opacity/speed) live in the CSS.
+// notes/edits BUG-01: build the storm's rain layers once, on the first storm. The rain is now a
+// pre-rendered tiling PNG (see #stormOverlay .rlayer CSS), so each layer only varies things that
+// are free to composite — tile scale (depth), fall speed, start offset/phase, and opacity — never
+// a live gradient/mask. rotate + translate do the rest on the GPU. 3 layers give depth without
+// stacking the texture so heavily it reads as fog.
 function buildStormLayers(ov){
   if(ov.childElementCount)return; // already built
-  const LAYERS=4, JIT=0.86, baseSpacing=60, baseSpeed=0.75;
+  // Same 4 layers / 0.86 jitter / 0.75s base speed as the original CSS rain. Per-layer spacing (which
+  // the old build set via a --spacing gradient var) is now reproduced by SCALING the tiled PNG — the
+  // tile bakes spacing 60 / period 113, so scale factor = jittered-spacing / 60. --drop (the fall
+  // distance) scales with it so every layer still loops seamlessly.
+  const LAYERS=4, JIT=0.86, baseSpeed=0.75, TILE_W=240, TILE_H=226, PERIOD=113;
   for(let i=0;i<LAYERS;i++){
     const ox=Math.random(), sp=Math.random()*2-1, spd=Math.random()*2-1, ph=Math.random(), op=Math.random()*2-1;
-    const spacing=baseSpacing*(1+sp*0.4*JIT), dur=baseSpeed*(1+spd*0.5*JIT);
+    const scale=1+sp*0.4*JIT;                       // matches old spacing jitter (60 → ~39..81px)
+    const dur=baseSpeed*(1+spd*0.5*JIT);
     const d=document.createElement("div");
     d.className="rlayer";
-    d.style.setProperty("--spacing",spacing.toFixed(2)+"px");
+    d.style.backgroundSize=(TILE_W*scale).toFixed(1)+"px "+(TILE_H*scale).toFixed(1)+"px";
+    d.style.setProperty("--drop",(PERIOD*scale).toFixed(2)+"px"); // one dash period at this scale → seamless
     d.style.animationDuration=dur.toFixed(3)+"s";
-    d.style.animationDelay=(-(ph)*dur).toFixed(3)+"s";
-    d.style.backgroundPositionX=(ox*baseSpacing).toFixed(1)+"px";
-    d.style.opacity=Math.max(0,Math.min(1,1+op*0.35*JIT)).toFixed(3);
+    d.style.animationDelay=(-ph*dur).toFixed(3)+"s";              // desync so layers don't fall in lockstep
+    d.style.backgroundPositionX=(ox*TILE_W).toFixed(1)+"px";
+    d.style.opacity=Math.max(0,Math.min(1,1+op*0.35*JIT)).toFixed(3); // same opacity jitter as before
     ov.appendChild(d);
   }
 }
@@ -5627,7 +5637,10 @@ function boot(){
     if(bw)bw.classList.toggle("storming",!!on);
     if(ov&&on){buildStormLayers(ov);ov.style.setProperty("--slant","225deg");}
   };
-  console.log("[perf] instrumentation on — ppForceStorm(true|false), ppPerf()");
+  // ppRainLayers(n): thin the rain to n layers, in case even the tiled-PNG layers want trimming on
+  // older hardware. (The old ppRainBlur lever is gone — there's no filter to toggle anymore.)
+  window.ppRainLayers=n=>{document.querySelectorAll("#stormOverlay .rlayer").forEach((l,i)=>l.style.display=i<n?"":"none");};
+  console.log("[perf] instrumentation on — ppForceStorm(true|false), ppPerf(), ppRainLayers(2)");
 })();
 /* ===== end BUG-01 DEV INSTRUMENTATION ===== */
 boot();
