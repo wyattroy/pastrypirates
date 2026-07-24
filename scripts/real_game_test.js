@@ -1,17 +1,13 @@
 #!/usr/bin/env node
 // notes/edits #12: unlike scripts/battle_sim.js (a hand-written reimplementation of the battle
 // mechanic, not trusted for this — see its own header comment), this harness runs the REAL
-// `Game` class straight out of index.html, unmodified, with real bots playing full real games —
-// no reimplementation, no simplifying assumptions about board state or coin economy.
+// `Game` class, unmodified, with real bots playing full real games — no reimplementation, no
+// simplifying assumptions about board state or coin economy.
 //
-// How it works: index.html is a single file mixing DOM/UI code with the game engine. Everything
-// the `Game` class needs (constants, helper functions, the class itself) is fully self-contained
-// in the region from the start of the main <script> block through the end of the class — the UI
-// section begins immediately after (marked by the "================= UI ================="
-// comment) and nothing before that marker touches the DOM except one harmless
-// `document.documentElement.style.setProperty(...)` line, which is stubbed out below. That whole
-// region is extracted verbatim and run in a Node `vm` context, so this test is exercising the
-// exact same source the browser runs — not a port, not a rewrite.
+// How it works: the deterministic engine (constants, helper functions, the `Game` class itself)
+// lives in its own DOM-free ES module (src/engine/index.js, importing shared leaf constants from
+// src/shared/index.js). scripts/lib/load_engine.js obtains it via a native `import`, so this test
+// is exercising the exact same source the browser runs — not a port, not a rewrite.
 
 import { loadEngine } from "./lib/load_engine.js";
 

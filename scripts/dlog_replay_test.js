@@ -3,19 +3,20 @@
 // replay-shortfall detector had no automated coverage at all, and the reported failure ("refresh
 // reset the ENTIRE game") is exactly what an undetected short replay looks like.
 //
-// Like scripts/real_game_test.js, this runs the REAL code out of index.html rather than a
-// reimplementation — but it needs two separate extractions, because the two things it exercises
-// live in different parts of the file:
-//   1. The `Game`/`roundCfg` engine region, so a realistic event count comes from an actually
-//      played game instead of a magic number invented by this test.
-//   2. The `replayShortfall` sentinel region, which sits far down in the multiplayer/Firebase
-//      section that the engine extraction deliberately stops short of. It is written as a pure
-//      function inside matched sentinel comments precisely so it can be lifted out and run
-//      headlessly — the surrounding recovery logic (resumeHostGame/endReplay) is welded to
-//      Firebase and the DOM and is not testable this way.
+// Like scripts/real_game_test.js, this runs the REAL code rather than a reimplementation — but
+// it needs two separate sources, because the two things it exercises live in different places:
+//   1. The `Game`/`roundCfg` engine, obtained the same way real_game_test.js gets it — a native
+//      `import` via scripts/lib/load_engine.js — so a realistic event count comes from an
+//      actually played game instead of a magic number invented by this test.
+//   2. The `replayShortfall` sentinel region, which still lives in the classic-script
+//      multiplayer/Firebase section of the application markup that this phase's engine
+//      extraction deliberately stops short of moving. It is written as a pure function inside
+//      matched sentinel comments precisely so it can be lifted out and run headlessly — the
+//      surrounding recovery logic (resumeHostGame/endReplay) is welded to Firebase and the DOM
+//      and is not testable this way.
 //
-// If either extraction drifts, this throws loudly. A harness that silently passes because its
-// slice boundaries moved is worse than no harness.
+// If either source drifts, this throws loudly. A harness that silently passes because its
+// extraction boundaries moved is worse than no harness.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -28,7 +29,7 @@ const __dirname = path.dirname(__filename);
 
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
-/* ---------- extraction 1: the Game engine region (same boundaries as real_game_test.js) ------- */
+/* ---------- source 1: the Game engine (same seam real_game_test.js uses) ---------------------- */
 // Routed through scripts/lib/load_engine.js (D-12) — the shared seam both harnesses now use.
 const { Game, roundCfg } = await loadEngine();
 

@@ -1,67 +1,63 @@
 // scripts/lib/load_engine.js
 //
-// Single indirection seam for obtaining the real `Game`/`roundCfg` engine out of index.html.
-// Phase 7: performs the same vm + string-slice extraction the two existing harnesses
-// (real_game_test.js, dlog_replay_test.js) each did independently. Phase 8 replaces the body of
-// loadEngine() with a native `import` of the relocated engine module — every caller keeps
-// calling this the same (already-async) way, so Phase 8's diff stays contained to this one file
-// (D-12).
+// Single indirection seam for obtaining the real `Game`/`roundCfg` engine. `loadEngine()`
+// obtains `Game`/`roundCfg` (and every other engine export) by a plain, native `import` of the
+// engine barrel module (src/engine/index.js) — no sandboxed evaluation, no file-slicing, no
+// dependency on any application markup at all. Every caller (real_game_test.js,
+// dlog_replay_test.js, determinism_baseline.js) keeps calling this the same (already-async) way,
+// so a future change to how the engine is obtained stays contained to this one file (D-12).
 //
 // Loud-failure-on-drift convention preserved verbatim from the harnesses this consolidates: a
-// harness that silently passes because its slice boundaries moved is worse than no harness.
+// harness that silently passes because the engine module failed to export what's expected is
+// worse than no harness.
 
 import fs from "node:fs";
 import path from "node:path";
-import vm from "node:vm";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import * as shared from "../../src/shared/index.js";
 import * as engine from "../../src/engine/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.join(__dirname, "..", "..");
+
+// D-13/RESEARCH Q3: sourceHash derives from the module sources the engine actually depends on
+// (src/engine/**/*.js + src/shared/**/*.js) — enumerated and sorted lexicographically by
+// relative path (deterministic across platforms, unlike fs.readdir order), each file's content
+// fed in as `relative/path.js\n` + content + `\n` so two different file-boundary splits can
+// never accidentally hash to the same byte stream.
+function collectJsFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...collectJsFiles(full));
+    else if (entry.isFile() && entry.name.endsWith(".js")) out.push(full);
+  }
+  return out;
+}
+
+function computeSourceHash() {
+  const files = [
+    ...collectJsFiles(path.join(ROOT, "src", "engine")),
+    ...collectJsFiles(path.join(ROOT, "src", "shared")),
+  ]
+    .map((f) => path.relative(ROOT, f).split(path.sep).join("/"))
+    .sort();
+
+  const hash = crypto.createHash("sha256");
+  for (const rel of files) {
+    hash.update(rel + "\n");
+    hash.update(fs.readFileSync(path.join(ROOT, rel), "utf8"));
+    hash.update("\n");
+  }
+  return hash.digest("hex");
+}
 
 export async function loadEngine() {
-  const html = fs.readFileSync(path.join(__dirname, "..", "..", "index.html"), "utf8");
-  const scriptStart = html.indexOf("<script>") + "<script>".length;
-  // roundCfg() sits just past the "UI" marker (before any real UI/DOM code) — extend the cut to
-  // its end so both Game and roundCfg (a hoisted function declaration, so order doesn't matter to
-  // JS, but the slice still has to physically include its source) are in the extracted region.
-  const scriptEnd = html.indexOf("function escHtml");
-  if (scriptStart < 8 || scriptEnd === -1) {
-    throw new Error("Could not locate the Game-class/roundCfg region in index.html — has the file structure changed?");
-  }
-  const region = html.slice(scriptStart, scriptEnd);
-  // D-11: hash the raw extracted region BEFORE the export suffix is concatenated, so the hash
-  // describes index.html's own content, not this file's own scaffolding.
-  const sourceHash = crypto.createHash("sha256").update(region).digest("hex");
-  // `class`/`const` top-level declarations don't attach to the vm context object the way `var`/
-  // `function` do — export the two we need explicitly so they're retrievable after execution.
-  const engineSrc = region + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
+  const sourceHash = computeSourceHash();
 
-  // Transitional hybrid (08-01, extended 08-02): the sliced region no longer contains
-  // `mulberry32`/`rollStorm`, nor (as of 08-02) the whole shared leaf tier (ING_ALL, DIRS,
-  // image maps, etc.) — all of it moved to src/shared/ and src/engine/, so the sandbox is
-  // seeded from the real module exports instead. 08-03 replaces this whole function body with
-  // a native import and this hybrid goes away.
-  const sandbox = {
-    // Retained defensively: prior to 08-02, `document.body.innerHTML = emojify(...)` and the
-    // two `documentElement.style.setProperty` calls ran inside this extracted region. As of
-    // 08-02 those three D-06 impurities live in `applyEngineBootstrapEffects()`, which sits
-    // past the `escHtml` boundary this slice stops at — so this stub is currently unused by
-    // the extracted Game/roundCfg region, but harmless to keep in case a future edit inside
-    // the slice ever touches `document` again.
-    document: { documentElement: { style: { setProperty() {} } }, body: { innerHTML: "" } },
-    console,
-    Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
-    ...shared,
-    ...engine,
-  };
-  vm.createContext(sandbox);
-  vm.runInContext(engineSrc, sandbox, { filename: "index.html (engine region)" });
-
-  const { Game, roundCfg } = sandbox;
+  const { Game, roundCfg } = engine;
   if (typeof Game !== "function" || typeof roundCfg !== "function") {
-    throw new Error("Game/roundCfg didn't come out of the extracted region — extraction boundaries may be wrong.");
+    throw new Error("src/engine/index.js didn't export Game/roundCfg as functions — has the module's export list drifted?");
   }
 
   return { Game, roundCfg, sourceHash };
