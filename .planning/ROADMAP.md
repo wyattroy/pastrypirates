@@ -47,7 +47,7 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
   4. The module-loading + local-dev contract is documented (HTTP server required, `file://` unsupported, `.js` MIME expectations for production).
   5. A solo game played after the foundation changes is behaviorally identical to `main` (no gameplay change — code has not moved yet).
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 **Wave 1**
@@ -60,7 +60,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 07-03-PLAN.md — Browser verification: Chrome + Safari page load, module marker, solo playthrough (wave 3, blocking checkpoint)
+- [x] 07-03-PLAN.md — Browser verification: Chrome + Safari page load, module marker, solo playthrough (wave 3, blocking checkpoint)
 
 ### Phase 8: Engine Extraction & Node Harness Migration
 
@@ -148,7 +148,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 4. UI/UX Polish | v1.0 | — | Complete | 2026-07-24 |
 | 5. Bot Personalities | v1.0 | — | Complete | 2026-07-24 |
 | 6. End of Voyage Celebration | v1.0 | — | Complete | 2026-07-24 |
-| 7. Foundation & Determinism Baseline | v1.1 | 2/3 | In Progress|  |
+| 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 0/TBD | Not started | - |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 0/TBD | Not started | - |
 | 10. App State & De-globalization | v1.1 | 0/TBD | Not started | - |
