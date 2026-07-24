@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 9
 current_phase_name: Networking Layer & Watcher Cleanup
 status: executing
-stopped_at: Completed 09-03-PLAN.md
-last_updated: "2026-07-24T18:29:45.432Z"
+stopped_at: Completed 09-04-PLAN.md
+last_updated: "2026-07-24T18:40:39.228Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 9 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 33
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 9 (Networking Layer & Watcher Cleanup) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 9 execution started
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [█████████░] 85%
 | Phase 09 P01 | ~70min | 2 tasks | 7 files |
 | Phase 09 P02 | ~20min | 2 tasks | 3 files |
 | Phase 09 P03 | 90min | 3 tasks | 6 files |
+| Phase 09 P04 | 35min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase ?]: watchers.js switched to import * as registry from './registry.js' / registry.attach() namespaced call style (applied to all 16 wrappers) so the plan's literal registry.attach grep ledger is true
 - [Phase ?]: src/net/index.js re-exports the 13 new watcher names (not in plan's files_modified list) so they reach the window.PP/globalThis bridge and don't ReferenceError at runtime
 - [Phase ?]: 09-03: extracted all remaining Firebase writes/reads into src/net/writers.js and readers.js; all 18 watchers now registry-mediated; SPLIT-04/NET-01/NET-02 left Pending pending 09-04's mechanical contract check and 09-05's behavioral proof
+- [Phase ?]: Built scripts/net_contract_check.js with five mechanically-enforced assertions (sole listener site, no UI dependency, no app-state dependency, directional imports, eighteen-watcher inventory) and zero comment stripping — the deliberate deviation from the Phase 8 precedent, needed because src/net/index.js carries the Firebase databaseURL, empirically confirmed by simulating the Phase-8 stripper against the same fault line
+- [Phase ?]: Marked SPLIT-04 and NET-02 Complete in REQUIREMENTS.md; left NET-01/NET-03 Pending for 09-05's behavioral reconnect/leave-rejoin proof
 
 ### Pending Todos
 
@@ -125,8 +128,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T18:29:45.426Z
-Stopped at: Completed 09-03-PLAN.md
+Last session: 2026-07-24T18:40:39.222Z
+Stopped at: Completed 09-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

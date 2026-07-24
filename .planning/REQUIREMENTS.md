@@ -20,7 +20,7 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 - [x] **SPLIT-01**: The deterministic engine (Game class, roundCfg, bot strategies, RNG, replay) lives in its own DOM-free, Firebase-free ES module(s)
 - [x] **SPLIT-02**: Shared constants and pure helpers (ING_ALL, DIRS, `man`, `shuffle`, `mulberry32`, image maps) live in leaf modules importable by engine, UI, net, and Node harnesses
 - [ ] **SPLIT-03**: UI rendering (render/board/DOM/modals/narration) lives in its own module(s) that read game state and never import the networking layer
-- [ ] **SPLIT-04**: Firebase multiplayer sync lives in its own networking module(s) that never import the UI layer
+- [x] **SPLIT-04**: Firebase multiplayer sync lives in its own networking module(s) that never import the UI layer
 - [ ] **SPLIT-05**: A `main` entry module orchestrates engine + UI + networking; `index.html` is reduced to markup + a single module entry point
 - [ ] **SPLIT-06**: The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent)
 
@@ -34,7 +34,7 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 ### Networking Cleanup (NET)
 
 - [ ] **NET-01**: Every Firebase `.on()` watcher has a matching `.off()` teardown — no leaked or stale listeners across the game/room lifecycle (verified baseline 2026-07-24: **18** watchers, of which only **2** are torn down, and both of those are the same self-cancelling one-shot response pattern — so **16 have no teardown at all**. The original "14 / 1" figure was stale.)
-- [ ] **NET-02**: Watchers are registered and torn down through a single registry so cleanup is consistent and callback references match exactly
+- [x] **NET-02**: Watchers are registered and torn down through a single registry so cleanup is consistent and callback references match exactly
 - [ ] **NET-03**: A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally (reconnect-and-count), not just by code review
 
 ### De-globalization (GLOBAL)
@@ -90,7 +90,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SPLIT-01 | Phase 8 | Complete |
 | SPLIT-02 | Phase 8 | Complete |
 | SPLIT-03 | Phase 11 | Pending |
-| SPLIT-04 | Phase 9 | Pending |
+| SPLIT-04 | Phase 9 | Complete |
 | SPLIT-05 | Phase 11 | Pending |
 | SPLIT-06 | Phase 11 | Pending |
 | ENGINE-01 | Phase 8 | Complete |
@@ -98,7 +98,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ENGINE-03 | Phase 8 | Complete |
 | ENGINE-04 | Phase 8 | Complete |
 | NET-01 | Phase 9 | Pending |
-| NET-02 | Phase 9 | Pending |
+| NET-02 | Phase 9 | Complete |
 | NET-03 | Phase 9 | Pending |
 | GLOBAL-01 | Phase 10 | Pending |
 | GLOBAL-02 | Phase 10 | Pending |
