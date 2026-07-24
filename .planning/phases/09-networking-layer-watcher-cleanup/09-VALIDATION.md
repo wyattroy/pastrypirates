@@ -1,8 +1,8 @@
 ---
 phase: 9
 slug: networking-layer-watcher-cleanup
-status: draft
-nyquist_compliant: false
+status: validated
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-24
 ---
@@ -87,4 +87,4 @@ Research found the real exposure is narrower and different from the roadmap's fr
 - [ ] Determinism corpus still 30/30 and still 1 commit deep
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-24 (NET-03 code-level + behavioral; criterion-4 in-game leg deferred to Phase 12 VERIFY-03)
