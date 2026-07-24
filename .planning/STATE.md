@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 10
 current_phase_name: App State & De-globalization
 status: executing
-stopped_at: Completed 10-04-PLAN.md
-last_updated: "2026-07-24T22:27:45.299Z"
+stopped_at: Completed 10-05-PLAN.md
+last_updated: "2026-07-24T22:35:44.378Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 50
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 10 (App State & De-globalization) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 10 execution started
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [█████████░] 85%
 | Phase 10 P02 | ~15min | 1 tasks | 1 files |
 | Phase 10 P03 | 10min | 1 tasks | 1 files |
 | Phase 10 P04 | ~15min | 2 tasks | 1 files |
+| Phase 10 P05 | 15min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 10-02: replayShortfall()'s local parameter resumeEvLen shadowed the app-state global; migration tool blindly rewrote the parameter declaration into invalid JS. Renamed the local param to priorEvLen (same fix class as 10-01's state->appState collision, applied to a local shadow instead).
 - [Phase ?]: 10-03: migrated the 9 net-consumed identity/session names (db, myId, mySeat, isHost, roster, turnOrder, numSeats, passAndPlay, soloMeta) to appState.NAME; all ~27 src/net/ call sites now resolve live state at call time (D-07)
 - [Phase ?]: [Phase 10] 10-04: migrated the 26-name shot-clock/timer-control + live/prompt/turn bookkeeping cluster to appState.NAME; setActor(s){curSeat=s} and revealMyRecipe both confirmed to migrate cleanly with no local-parameter collisions; the shotClockTimer setInterval handle proven correct at all 3 clear + 3 arm sites; 43 of 46 app-state names now migrated, only game/timer/logLines remain.
+- [Phase ?]: Migrated game (418 sites), timer, and logLines to appState.NAME — all 46 app-state names now migrated; manually blanked a fully-emptied declaration line the migration tool corrupted into a silent comma-expression bug.
 
 ### Pending Todos
 
@@ -140,8 +142,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T22:27:45.287Z
-Stopped at: Completed 10-04-PLAN.md
+Last session: 2026-07-24T22:35:44.362Z
+Stopped at: Completed 10-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
