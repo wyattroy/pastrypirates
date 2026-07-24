@@ -16,9 +16,19 @@
 // depends on directly.
 
 import { detachRoom, detachAll, size, list } from "./registry.js";
-import { netWatchFlip, netWatchConnected, netWatchPresence } from "./watchers.js";
+import {
+  netWatchFlip, netWatchConnected, netWatchPresence,
+  netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
+  netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
+  netWatchNarr,
+} from "./watchers.js";
 
-export { netWatchFlip, netWatchConnected, netWatchPresence };
+export {
+  netWatchFlip, netWatchConnected, netWatchPresence,
+  netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
+  netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
+  netWatchNarr,
+};
 
 /* ================= Firebase config ================= */
 /*  ▼▼▼  PASTE YOUR OWN FIREBASE PROJECT CONFIG HERE (see ONLINE_SETUP.md)  ▼▼▼  */

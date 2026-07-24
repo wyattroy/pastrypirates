@@ -2199,8 +2199,7 @@ function toggleTimer(){
   db.ref("rooms/"+room+"/timerOff").set(next).catch(netFail("timerOff"));
 }
 function watchTimer(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/timerOff").on("value",s=>{
+  netWatchTimerOff(db,room,s=>{
     // notes/edits BUG-02: this callback only ever handled the on→off direction. Switching the
     // timer back on left the in-flight turn with no armed clock at all — startShotClock() is
     // only called at the START of a turn (armClock), so nothing re-armed the turn already in
@@ -2276,8 +2275,7 @@ async function expireShotClock(){
   stopShotClock();
 }
 function watchClock(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/clock").on("value",s=>{clockState=s.val();setClockUI();});
+  netWatchClock(db,room,s=>{clockState=s.val();setClockUI();});
 }
 // mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
 // idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
@@ -2544,8 +2542,7 @@ function appendChatLine(seat,text){
   log.scrollTop=log.scrollHeight;
 }
 function watchChat(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/chat").on("child_added",snap=>{
+  netWatchChat(db,room,snap=>{
     const v=snap.val();if(!v)return;
     appendChatLine(v.seat,v.text);
     showChatBubble(v.seat,v.text);
@@ -3068,8 +3065,7 @@ function renderBattleFromSnap(snap,extra){
   renderBattle(Object.assign({att:game.players[snap.attIdx],def:game.players[snap.defIdx]},snap,extra||{}));
 }
 function watchBattle(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/battle").on("value",s=>{
+  netWatchBattle(db,room,s=>{
     const v=s.val();
     if(v){spectatingBattle=true;if(!inBattlePrompt)renderBattleFromSnap(v);}
     else spectatingBattle=false; // battle node cleared at battle end — narration may take over again
@@ -4073,8 +4069,7 @@ function setRecoveryState(state){
 // guest side: purely presentational. A guest is render-only in this architecture, so this may only
 // show/hide the strip — never reconcile or re-fetch game state.
 function watchRecoveryState(){
-  if(!db||!room)return;
-  db.ref("rooms/"+room+"/recovery").on("value",s=>{
+  netWatchRecovery(db,room,s=>{
     const v=s.val();
     const note=$("recoverynote");
     if(note)note.style.display=(v&&v.state)?"":"none";
@@ -4124,7 +4119,7 @@ function remoteDraftPrompt(seat,msg,opts,waitMsg){
   });
 }
 function watchDraftPrompt(){
-  db.ref("rooms/"+room+"/draftPrompts/"+mySeat).on("value",snap=>{
+  netWatchDraftPrompt(db,room,mySeat,snap=>{
     const p=snap.val();
     if(!p){return;}
     const cls=p.classes||[];
@@ -4146,7 +4141,7 @@ function fixEv(e){
 }
 // remote: render the game purely from the broadcast event feed
 function watchEvents(){
-  db.ref("rooms/"+room+"/ev").on("child_added",snap=>{
+  netWatchEvents(db,room,snap=>{
     game.events.push(fixEv(snap.val()));
     evIdx=game.events.length-1;
     syncLogLines();
@@ -4158,7 +4153,7 @@ function watchEvents(){
   });
 }
 function watchPrompt(){
-  db.ref("rooms/"+room+"/prompt").on("value",snap=>{
+  netWatchPrompt(db,room,snap=>{
     const p=snap.val();
     if(!p||p.seat!==mySeat){panel("");setFlipActive(null);inBattlePrompt=false;return;}
     if(p.kind==="ask"){
@@ -4213,7 +4208,7 @@ function watchPrompt(){
   });
 }
 function watchNarr(){
-  db.ref("rooms/"+room+"/narr").on("value",s=>{const v=s.val();
+  netWatchNarr(db,room,s=>{const v=s.val();
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
     // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
     // letting them overwrite the panel made the battle box flicker away between flips (#9)
