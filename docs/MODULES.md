@@ -133,6 +133,9 @@ filled in the first two tiers of this shape:
     `firebaseConfig` object (copied byte for byte from the pre-extraction
     declaration), `cfgReady()`, `netInit()`, `netLeaveRoom()`, and re-exports
     of every watcher/writer/reader/registry-surface name, all `net`-prefixed.
+- `src/state/index.js` — the app-state module (Phase 10). One file, one
+  export: the single mutable `appState` object holding all 46 de-globalized
+  app-state names. See "The `src/state/` module" below for the full account.
 
 **Import specifiers must carry an explicit `.js` extension** — browser ESM
 performs no extension resolution, unlike Node's CommonJS `require()`. An
@@ -252,6 +255,146 @@ The fix is to reword the comment — describe the boundary in terms of roles
 ("the caller's handler", "the classic script's own state") rather than by
 naming the identifiers on the check's denylists — not to weaken the check.
 
+## The `src/state/` module
+
+Phase 10 (App State & De-globalization) replaces ~40 bare, reassigned
+classic-script globals (`game`, `room`, `db`, `myId`, `mySeat`, …) with one
+plain, exported object: `src/state/index.js`'s `appState`. GLOBAL-01's
+correctness requirement — every read and write site resolves through one
+documented mechanism, with no silent shadow — sits on top of the same
+bridge Phase 8 built, extended in a load-bearing way for this phase's
+specific problem.
+
+**Why a snapshot bridge (Phase 8's `Object.assign(globalThis, PP)`) is
+insufficient here.** Phase 8's bridge is correct for read-only constants —
+values that never change after `boot()` runs. Phase 10's globals are
+mutable and reassigned throughout a game (`room = code`, `game = new
+Game(...)`, `mySeat = seat`, …). A snapshot copies field VALUES once; it
+cannot observe a later reassignment, because nothing holds a live reference
+back to the classic script's own binding. `src/main.js` sidesteps the copy
+step entirely: `appState` is published onto the bridge BY REFERENCE
+(`{ ...shared, ...engine, ...net, appState: stateNs.appState }`), so a
+classic-script write like `appState.room = code` mutates the one object
+every holder — this module, the bridge, the debug hook below, any future
+Phase 11 consumer — shares a reference to. See the module's own file header
+for the full mechanism.
+
+**The `appState` binding itself is never reassigned — only its properties
+mutate.** `appState = {...}` anywhere (including inside
+`src/state/index.js`) would reintroduce the snapshot bug one level deeper:
+every other holder's reference would keep pointing at the OLD object,
+silently desyncing from whatever replaced it. `scripts/state_contract_check.js`
+enforces this mechanically (assertion 5) — see "The state contract check"
+below.
+
+**Named `appState`, not `state`.** RESEARCH.md and CONTEXT.md illustrate the
+container as `state`, but the classic script already uses `state` as a local
+parameter/variable name in five unrelated places (`broadcastFlip(state)`,
+`setFlipCoin(state)`, `coinHTML(state, ...)`, `setRecoveryState(state)`, and
+a local `const state=...` inside `setClockUI()`). The migration tool has no
+scope analysis, so publishing the bridge as `state` would have made every
+rewritten `state.room` inside those functions silently read `.room` off the
+wrong local variable — no syntax error, just a wrong value at runtime.
+`appState` was grepped and confirmed to have zero prior occurrences before
+being adopted (10-01-SUMMARY.md's Deviations section has the full account).
+
+**The tokenizer-based migration and the string-collision hazard it guards.**
+`scripts/lib/js_region_tokenizer.js` is a zero-dependency,
+character-by-character tokenizer for the classic-script region, built
+because a blind regex pass over ~3800 lines of pre-existing code risks
+silently rewriting an app-state name's LOOKALIKE inside a string or comment
+(e.g. the word "room" appearing in narration text) instead of only real
+identifier-position occurrences. It distinguishes code from strings,
+comments, AND regex literals (a regex mode was added mid-migration after
+`escHtml`'s `/[&<>"]/g` — a literal `"` inside a character class — corrupted
+an earlier, regex-naive version's string/comment classification), and
+treats template-literal interpolations (`${...}`) as code, since real
+app-state reads occur inside them in this file (e.g. `${game.round}`).
+`scripts/migrate_app_state.js` builds its own
+`--migrate`/`--extract-strings`/`--check-names` modes on top of this shared
+tokenizer, rather than each caller (including
+`scripts/state_contract_check.js`) rolling its own classifier.
+
+**Purity bar matches `src/engine/` and `src/shared/`.** No
+`document`/`window`/`firebase`/`localStorage`/`Date.now`/`Math.random`/
+`globalThis`/`new Function` reference inside `src/state/index.js` itself —
+mechanically enforced by `scripts/state_contract_check.js`'s assertion 4.
+"Purity" here means the module doesn't reach out to the DOM/network on its
+own, not that the state is immutable — the state is emphatically mutable,
+by every consumer, through property writes.
+
+**No getter/setter/Proxy on `appState` itself** — plain data properties
+only. An accessor with a side effect, or a getter that allocates, could
+change the timing of a determinism-critical read/write; a plain object's
+property access is synchronous and order-preserving by the JS spec with
+zero indirection, which is exactly what the replay/determinism guarantee
+requires.
+
+**The Phase-11-greppable seam.** Like the rest of the `window.PP` bridge,
+`appState`'s bridge entry is Phase 11's eventual removal target once the UI
+extraction gives every consumer its own import. Unlike the read-only
+`shared`/`engine`/`net` namespaces, `appState`'s bridge line carries a
+longer explanatory comment (not just the bare `PP-BRIDGE` token) precisely
+because the reference-vs-copy distinction is easy to break by
+well-intentioned refactoring — a future reader turning
+`appState: stateNs.appState` into a spread or a rebuilt object would
+silently reintroduce the exact bug this phase exists to fix.
+
+## The state contract check
+
+`scripts/state_contract_check.js` is the standing, `npm test`-wired gate for
+GLOBAL-01 and GLOBAL-03 — mirroring `scripts/engine_contract_check.js` and
+`scripts/net_contract_check.js`'s structure (multiple named assertions, one
+run reports every failure, fixed scope, no comment-stripping anywhere —
+index.html's classic-script region contains
+`SVGNS="http://www.w3.org/2000/svg"`, a `://`-bearing string literal that a
+naive stripper would truncate before a real match on the same line could be
+seen). Five assertions, all run before the script exits so one run reports
+every problem:
+
+1. **No leftover top-level declaration** — none of the 46 app-state names
+   has a remaining `let`/`const`/`var` declarator anywhere in index.html's
+   classic-script region.
+2. **No leftover bare usage** — zero remaining un-migrated
+   identifier-position occurrences of any of the 46 names.
+3. **Debug-hook naming convention (GLOBAL-03)** — every `window.__pp_*`
+   assignment in `src/main.js` (direct or the indirect
+   `window[MODULE_OK_FLAG]` form) is one of exactly the four allowlisted
+   names in "Standing browser debug hooks" below, AND all four are actually
+   present — an accidentally deleted hook is as much a violation as an
+   ad-hoc extra one.
+4. **`src/state/index.js` purity** — see above.
+5. **`appState` binding never reassigned** — see above.
+
+Wired into `npm test` immediately after `scripts/net_contract_check.js` as
+of Phase 10 Plan 06, once all 46 names were migrated (10-02 through 10-05)
+and all five assertions could legitimately go green together. Its red-proof
+capability was demonstrated for all five assertions during that plan: each
+was independently faulted, confirmed to fail with a correctly named
+violation and `exit 1`, then reverted.
+
+## Standing browser debug hooks (GLOBAL-03)
+
+D-09's "single documented mechanism for test/debug state access" is these
+four names — the entire `window.__pp_*` surface in this codebase, and
+nothing else. `scripts/state_contract_check.js`'s assertion 3 mechanically
+enforces both halves of that promise: a fifth ad-hoc `window.__pp_*` global
+fails the build, and so does one of the four going missing.
+
+| Hook | Shape | Purpose |
+|---|---|---|
+| `window.__pp_module_ok` | `true` | Confirms `src/main.js` actually executed — the load-order tripwire (see "Standing browser tripwires" below). |
+| `window.__pp_boot_count` | number | Counts `src/main.js` executions; proves the module runs exactly once per page load. |
+| `window.__pp_net_debug` | `{ size, list, detachRoom, detachAll }` | Exposes `src/net/registry.js`'s own listener bookkeeping — the ground truth for how many Firebase listeners are live right now (see "`window.__pp_net_debug`" below). |
+| `window.__pp_app_state_debug` | function, `() -> object` | **Read-only.** Call it to get a fresh `{...appState}` shallow copy — never the live `appState` object — so a console/MCP session can inspect state without any risk of writing back into authoritative game state. |
+
+`__pp_module_ok` and `__pp_boot_count` are set as direct `window.*`
+assignments in `src/main.js`; `__pp_module_ok` specifically goes through the
+one indirect `window[MODULE_OK_FLAG] = true` form (`MODULE_OK_FLAG` is
+imported from `src/module-contract.js` and resolves to the string
+`"__pp_module_ok"`), which is why the contract check has to resolve that
+identifier rather than pattern-match on it directly.
+
 ## What deliberately did not move into `src/net/`
 
 - **The error-surfacing helper that drives the visible "sync trouble"
@@ -259,11 +402,16 @@ naming the identifiers on the check's denylists — not to weaken the check.
   `index.html` and is passed into every `src/net/writers.js` function that
   needs it as a plain function argument, exactly as it was passed to
   `.catch(...)` before the extraction.
-- **The database handle itself.** `let db=null, ...` remains a classic-script
-  global in `index.html`. De-globalizing it is Phase 10's job under
-  GLOBAL-01 — doing it here would blur this phase's boundary. Every
-  `src/net/` function receives `db` as a plain argument at every call site
-  and never reads a module-level or window-level handle.
+- **The database handle itself.** Was `let db=null, ...`, a classic-script
+  global in `index.html`, when this section was first written for Phase 9.
+  Phase 10 de-globalized it under GLOBAL-01, along with the other ~45
+  app-state names — `db` is now `appState.db`, read and written through
+  `src/state/index.js`'s module (see "The `src/state/` module" above).
+  Every `src/net/` function still receives `db` as a plain argument at
+  every call site and never reads a module-level or window-level handle
+  itself — only the CALLER's own binding changed shape, from a bare
+  identifier to `appState.db`, not `src/net/`'s own argument-passing
+  contract.
 - **Room and lobby orchestration.** `createRoom()`, `joinRoom()`,
   `watchRoom()`, `startGame()`, and `resumeHostGame()` keep their
   orchestration logic in `index.html`; only their Firebase transport calls
