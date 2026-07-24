@@ -4215,7 +4215,7 @@ function watchNarr(){
 async function applyEndMeta(){
   if(isHost||appliedMeta)return;
   appliedMeta=true;
-  const m=(await db.ref("rooms/"+room+"/meta").get()).val();
+  const m=(await netReadMeta(db,room)).val();
   if(!m)return;
   game.round=m.round;game.battles=m.battles;game.trades=m.trades;game.attWins=m.attWins;
   game.finishOrder=m.finishOrder||[];game.winner=m.winner;
@@ -4354,7 +4354,7 @@ async function joinRoom(){
   const code=($("joinCode").value||"").toUpperCase().trim();
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   let snap;
-  try{snap=await db.ref("rooms/"+code).get();}
+  try{snap=await netReadRoom(db,code);}
   catch(e){console.error("joinRoom failed",e);alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");return;}
   if(!snap.exists()){alert("No game found with code "+code+".");return;}
   const r=snap.val();
@@ -4364,7 +4364,7 @@ async function joinRoom(){
   if(mine!=null){room=code;mySeat=mine;isHost=(r.host===myId);saveSession();watchRoom();return;}
   if(r.status!=="lobby"){alert("That game has already set sail.");return;}
   let claimed=null;
-  await db.ref("rooms/"+code+"/seats").transaction(s=>{
+  await netClaimSeat(db,code,s=>{
     if(!s)return s;
     for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){
       // #2: blank name → an unused default captain name computed against the live seat map, so a
@@ -4376,7 +4376,7 @@ async function joinRoom(){
   room=code;mySeat=claimed;isHost=(r.host===myId);saveSession();watchRoom();
 }
 async function watchRoom(){
-  const r0=(await db.ref("rooms/"+room).get()).val();
+  const r0=(await netReadRoom(db,room)).val();
   if(!r0){alert("That game no longer exists.");clearSession();showHome();return;}
   numSeats=r0.numSeats;isHost=(r0.host===myId);
   if(r0.status==="lobby")showRoom();
@@ -4388,7 +4388,7 @@ async function watchRoom(){
   netWatchStatus(db,room,async snap=>{
     const st=snap.val();
     if((st==="playing"||st==="ended")&&!gameStarted){
-      const r=(await db.ref("rooms/"+room).get()).val();
+      const r=(await netReadRoom(db,room)).val();
       roster=[];for(let i=0;i<r.numSeats;i++)roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
       beginGame(r.cfg,r.seed);
     }
@@ -4417,7 +4417,7 @@ function renderSeatList(seats){
 }
 async function startGame(){
   try{
-    const r=(await db.ref("rooms/"+room).get()).val();
+    const r=(await netReadRoom(db,room)).val();
     const strategies=[];
     for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
     const cfg=roundCfg(strategies);
@@ -4540,10 +4540,10 @@ async function resumeHostGame(r){
   // reset. Record the failure and surface it through netFail (same helper every other failure site
   // in this file uses); replayShortfall treats a failed read as untrustworthy regardless of counts.
   resumeReadFailed=false;
-  let draw={};try{draw=(await db.ref("rooms/"+room+"/dlog").get()).val()||{};}catch(e){resumeReadFailed=true;netFail("resume dlog")(e);}
+  let draw={};try{draw=(await netReadDlog(db,room)).val()||{};}catch(e){resumeReadFailed=true;netFail("resume dlog")(e);}
   dlog=Object.keys(draw).map(Number).sort((a,b)=>a-b).map(k=>decodeDec(draw[k]));
   dlogIdx=0;dlogN=0;
-  let evval={};try{evval=(await db.ref("rooms/"+room+"/ev").get()).val()||{};}catch(e){resumeReadFailed=true;netFail("resume events")(e);}
+  let evval={};try{evval=(await netReadEv(db,room)).val()||{};}catch(e){resumeReadFailed=true;netFail("resume events")(e);}
   resumeEvLen=evval?Object.keys(evval).length:0;
   showGameView();
   panel('<div class="apMsg">⚓ Reconnecting to your voyage…</div>');
@@ -4649,7 +4649,7 @@ function boot(){
   }
   if(sess&&sess.room){
     room=sess.room;mySeat=sess.mySeat;isHost=!!sess.isHost;
-    db.ref("rooms/"+room).get().then(snap=>{
+    netReadRoom(db,room).then(snap=>{
       if(!snap.exists()){clearSession();showHome();return;}
       const r=snap.val();
       isHost=(r.host===myId);

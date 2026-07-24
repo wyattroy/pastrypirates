@@ -24,10 +24,10 @@
 //     this module read app state, and would move a host-authority decision
 //     out of the layer that owns it (D-08).
 //   - Every payload object is constructed by the caller and passed in
-//     whole; no writer below re-derives a value from the live player roster,
-//     the local seat, the shot-clock timing, or any other application
-//     state. This module never reads a value it wasn't handed as an
-//     argument.
+//     whole; no writer below re-derives a value from who's currently
+//     seated, the local seat, the shot-clock timing, or any other
+//     application state. This module never reads a value it wasn't handed
+//     as an argument.
 //
 // A writer attaches `.catch(onError)` only when `onError` is truthy. Some
 // call sites already wrap their write in a `try`/`await` (createRoom,

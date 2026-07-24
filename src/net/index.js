@@ -37,6 +37,9 @@ import {
   netSetRecovery, netRemoveRecovery,
   netCreateRoom, netSetFeedback,
 } from "./writers.js";
+import {
+  netReadMeta, netReadRoom, netReadDlog, netReadEv, netClaimSeat,
+} from "./readers.js";
 
 export {
   netWatchFlip, netWatchConnected, netWatchPresence,
@@ -58,6 +61,9 @@ export {
   netSetDlog, netPushEvent,
   netSetRecovery, netRemoveRecovery,
   netCreateRoom, netSetFeedback,
+};
+export {
+  netReadMeta, netReadRoom, netReadDlog, netReadEv, netClaimSeat,
 };
 
 /* ================= Firebase config ================= */
