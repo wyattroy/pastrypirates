@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 9
 current_phase_name: Networking Layer & Watcher Cleanup
 status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-07-24T18:09:02.924Z"
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-07-24T18:29:45.432Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 9 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 33
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 9 (Networking Layer & Watcher Cleanup) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 9 execution started
 
-Progress: [████████░░] 77%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [████████░░] 77%
 | Phase 08 P05 | 45min | 2 tasks | 3 files |
 | Phase 09 P01 | ~70min | 2 tasks | 7 files |
 | Phase 09 P02 | ~20min | 2 tasks | 3 files |
+| Phase 09 P03 | 90min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 09-01: Task 3's live-browser NET-03 probe was performed by the coordinator (this executor has no browser tool) against a real Firebase connection — same-tab, no-reload attach/detach/re-attach verified: session watchers (2) survived detachRoom(), the torn-down handler went silent on a real write, re-attach returned to the pre-teardown count. Transcript recorded verbatim in 09-01-SUMMARY.md, attributed to the coordinator, not this execution session.
 - [Phase ?]: watchers.js switched to import * as registry from './registry.js' / registry.attach() namespaced call style (applied to all 16 wrappers) so the plan's literal registry.attach grep ledger is true
 - [Phase ?]: src/net/index.js re-exports the 13 new watcher names (not in plan's files_modified list) so they reach the window.PP/globalThis bridge and don't ReferenceError at runtime
+- [Phase ?]: 09-03: extracted all remaining Firebase writes/reads into src/net/writers.js and readers.js; all 18 watchers now registry-mediated; SPLIT-04/NET-01/NET-02 left Pending pending 09-04's mechanical contract check and 09-05's behavioral proof
 
 ### Pending Todos
 
@@ -109,6 +111,7 @@ None yet.
 - `<script type="module">` is always deferred — Firebase compat CDN tags must stay classic scripts loaded before the module entry (Phase 7, FOUND-03) to avoid an init race.
 - De-globalization (Phase 10) can silently break the 41 inline `onclick` handlers — needs an upfront handler audit and a click-through checklist.
 - Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
+- 09-03 Task 3 browser tripwire (window.__pp_module_ok/__pp_boot_count) unverified this session — no browser-automation tool available; recorded in WINDOWS.md, needs a Chrome session before phase gate
 
 ## Deferred Items
 
@@ -122,8 +125,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T18:09:02.918Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-07-24T18:29:45.426Z
+Stopped at: Completed 09-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
