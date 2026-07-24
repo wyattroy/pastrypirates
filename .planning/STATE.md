@@ -1,38 +1,36 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-current_phase: 1
-current_phase_name: Critical Bug Fixes
-status: planning
-stopped_at: "All 15 punch-list items done + BUG-01 Safari-verified + instrumentation stripped. Pending Wyatt: EOV-04 badge approval, NARR-06 storm rewrite."
-last_updated: "2026-07-24T01:52:44.341Z"
-last_activity: 2026-07-22
-last_activity_desc: Project initialized (PROJECT.md, config, requirements, roadmap)
+milestone_name: Edit Pass
+status: Awaiting next milestone
+stopped_at: "v1.0 Edit Pass shipped and archived (override close-out — code git-verified on main, GSD execution artifacts absent). All 15 punch-list items merged."
+last_updated: "2026-07-24T05:07:23.484Z"
+last_activity: 2026-07-24
+last_activity_desc: Milestone v1.0 completed and archived
 progress:
-  total_phases: 2
-  completed_phases: 0
-  total_plans: 5
-  completed_plans: 0
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 6
+  completed_plans: 6
+current_phase: null
+current_phase_name: null
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-22)
+See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 1 — Critical Bug Fixes
+**Current focus:** Planning next milestone (v1.0 shipped)
 
 ## Current Position
 
-Phase: 1 of 6 (Critical Bug Fixes)
-Plan: 0 of 0 in current phase
-Status: Ready to plan
-Last activity: 2026-07-22 — Project initialized (PROJECT.md, config, requirements, roadmap)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-24 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -87,3 +85,7 @@ Items acknowledged and carried forward from previous milestone close:
 Last session: 2026-07-24T01:52:44.325Z
 Stopped at: All 15 punch-list items done + BUG-01 Safari-verified + instrumentation stripped. Pending Wyatt: EOV-04 badge approval, NARR-06 storm rewrite.
 Resume file: .planning/HANDOFF.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
