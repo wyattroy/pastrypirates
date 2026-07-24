@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 8
 current_phase_name: Engine Extraction & Node Harness Migration
 status: executing
-stopped_at: "Phase 7 waves 1-2 complete and verified; wave 3 (07-03) awaiting Wyatt's Safari sign-off. Chrome half verified by Claude: __pp_module_ok===true, typeof firebase==='object', console clean through load + play. Dev server left running on port 8777 (ports 8000/8001 held by stale servers from other worktrees)."
-last_updated: "2026-07-24T15:06:22.418Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-07-24T15:22:33.028Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 8 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 3
+  completed_plans: 4
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 8
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-07-24 — Phase 8 execution started
 
-Progress: [███████░░░] 67%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [███████░░░] 67%
 |------|----------|-------|-------|
 | Phase 07 P01 | 15 | 2 tasks | 36 files |
 | Phase 07 P02 | 15 | 3 tasks | 5 files |
+| Phase 08 P01 | 25 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Determinism oracle --verify always runs both stored-hash and fresh-replay comparisons (rather than short-circuiting) so the D-10 divergence report locates and names a seed even when only the manifest's recorded hash is stale, not the fixture content.
 - [Phase ?]: engineSourceHash baseline recorded: 15ad68996befca5130ba11b0cf79d59b0d871956cc11ab961fe32add384d874a — Phase 8 should expect SOURCE classification 'moved, behavior identical' post-extraction, not 'unchanged'.
 - [Phase ?]: Phase 7 Plan 2: no deviations — module-loading contract landed exactly as CONTEXT.md's D-13..D-22 specified; all six critical invariants (attribute-less script count, Firebase ordering, engine-region hash, MIME serving, doc content) held on first pass.
+- [Phase ?]: Phase 8 Plan 1: Assumption A1 (Object.assign(globalThis, PP) bare-identifier resolution) confirmed by execution in Chrome — mulberry32 and rollStorm moved verbatim through the window.PP bridge, both an early call site (Game constructor) and a corpus-blind one (live turn loop's rollStorm/PERP second-gust mechanic) resolve correctly with a clean console. Plans 08-02 through 08-05 may proceed on the bridge mechanism.
 
 ### Pending Todos
 
@@ -100,9 +102,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T06:59:13.833Z
-Stopped at: Phase 7 waves 1-2 complete and verified; wave 3 (07-03) awaiting Wyatt's Safari sign-off. Chrome half verified by Claude: __pp_module_ok===true, typeof firebase==='object', console clean through load + play. Dev server left running on port 8777 (ports 8000/8001 held by stale servers from other worktrees).
-Resume file: .planning/phases/07-foundation-determinism-baseline/07-03-PLAN.md
+Last session: 2026-07-24T15:22:33.008Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
