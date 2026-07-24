@@ -458,7 +458,7 @@
   @keyframes winnerSparkle { 0%, 100% { opacity: 0; transform: scale(.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(20deg); } }
   /* notes/edits EOV-04: the redesigned end-of-voyage honours — bigger emblem, pirate name, byline,
      then the winning captain's name (big, colored, no seat dot) filling the card above a rule, with
-     the plain stat beneath it. Best 4 of the whole badge pool are shown (see pickBadges). */
+     the plain stat beneath it. One award per captain (see assignBadges). */
   .awardsRow { display: flex; gap: 9px; flex-wrap: wrap; margin: 0 0 12px; }
   .awardCard { flex: 1 1 120px; display: flex; flex-direction: column; align-items: center; text-align: center;
     border: 2px solid; border-radius: 13px; padding: 11px 9px 9px; background: #fff; gap: 4px; }
@@ -2863,7 +2863,7 @@ function computeAwards(){
 // notes/edits EOV-04: the end-of-voyage honours. The full pool of ~10 keepsakes, each with a
 // pirate-y name, a byline, its 1:1 emblem art (assets/badges/*.png — placeholders Wyatt will
 // repaint), and the underlying plain stat. `scale` is roughly "how big a value is impressive" for
-// that category, so pickBadges() can compare across categories with different units. `key` selects
+// that category, so assignBadges() can compare across categories with different units. `key` selects
 // the per-player stat array (computeAwards() output, plus a synthesised `tails`).
 const BADGE_POOL=[
   {key:"battlesWon",   img:"cutlass",  name:"The Cutlass of a Thousand Notches", byline:"One notch per fallen foe, carved into the hilt.",                 stat:"Most battles won",   unit:"",         scale:3},
