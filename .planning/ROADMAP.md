@@ -130,7 +130,36 @@ Plans:
   3. Any retained `window` bridge for test/debug state access (e.g. `window.__pp_debug` for the Chrome-MCP harness) is intentional, single, and named/documented.
   4. A full solo game and a multiplayer game both remain playable with no new console `no-undef`/`ReferenceError` regressions.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 10-01-PLAN.md — Foundation + tracer: confirm 46-name inventory, build the shared tokenizer + migration tool + `src/state/index.js` + `state_contract_check.js`, wire the `state` bridge, migrate `room` end-to-end, browser mechanism gate (wave 1, blocking checkpoint)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 10-02-PLAN.md — Migrate replay/resume control-flow names (`replaying, dlog, dlogIdx, dlogN, evIdx, resumeEvLen, resumeReadFailed`); corpus + `dlog_replay_test` gate ordering (wave 2)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 10-03-PLAN.md — Migrate net-consumed identity/session names (`db, myId, mySeat, isHost, roster, turnOrder, numSeats, passAndPlay, soloMeta`) + prove net call-site freshness (wave 3)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 10-04-PLAN.md — Migrate shot-clock/timer-control + live/prompt/turn bookkeeping (26 names); preserve `revealMyRecipe` function-declaration reachability (wave 4)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 10-05-PLAN.md — Migrate `game`/`timer`/`logLines` with the `$("game")` DOM-id string collision proven byte-safe; all 46 names now migrated (wave 5)
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 10-06-PLAN.md — GLOBAL-03: read-only `window.__pp_app_state_debug` hook, finalize + wire `state_contract_check.js` into `npm test`, document `src/state/` + the four debug hooks (wave 6)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 10-07-PLAN.md — Chrome click-through: inline `revealMyRecipe` attr, closure surface, full solo game, two-tab multiplayer, host-refresh replay (wave 7, blocking checkpoint)
 
 ### Phase 11: UI Extraction, Orchestration & Bridge Removal
 
@@ -178,7 +207,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
-| 10. App State & De-globalization | v1.1 | 0/TBD | Not started | - |
+| 10. App State & De-globalization | v1.1 | 0/7 | Not started | - |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/TBD | Not started | - |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
