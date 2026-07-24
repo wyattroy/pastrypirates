@@ -41,7 +41,7 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 
 - [x] **GLOBAL-01**: The 40+ implicit globals (`game`, `myId`, `room`, `db`, …) are encapsulated behind module exports / an app-state module instead of `window` globals (10-05: all 46 of 46 names now migrated — `state_contract_check.js` 5/5 PASS; 10-06 remains to wire the contract check into `npm test`'s chain, D-11)
 - [ ] **GLOBAL-02**: Every `onclick` handler continues to work after de-globalization (verified count 2026-07-24: **1** inline HTML `onclick="…"` attribute — `revealMyRecipe()` at `index.html:1731`, template-generated, resolves globally — and **40** JS `.onclick=` closure assignments that capture scope and are inherently safe. The "41 inline" figure was a conflation. The real GLOBAL-02 risk is the 1 global-resolving inline attribute plus any bare app-state identifiers the closures read. 10-04 confirmed `revealMyRecipe` stays a reachable `function` declaration with a byte-identical inline attribute — the inline-handler risk is closed; not marked complete until the remaining 3 app-state names are migrated so no closure can read a stale bare identifier.)
-- [ ] **GLOBAL-03**: A single documented mechanism exists for test/debug state access — if any `window` bridge is retained (e.g. `window.__pp_debug` for the Chrome MCP harness), it is intentional and named
+- [x] **GLOBAL-03**: A single documented mechanism exists for test/debug state access — if any `window` bridge is retained (e.g. `window.__pp_debug` for the Chrome MCP harness), it is intentional and named
 
 ### Verification (VERIFY)
 
@@ -102,7 +102,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | NET-03 | Phase 9 | Complete |
 | GLOBAL-01 | Phase 10 | Complete |
 | GLOBAL-02 | Phase 10 | Pending |
-| GLOBAL-03 | Phase 10 | Pending |
+| GLOBAL-03 | Phase 10 | Complete |
 | VERIFY-01 | Phase 12 | Pending |
 | VERIFY-02 | Phase 12 | Pending |
 | VERIFY-03 | Phase 12 | Pending |
