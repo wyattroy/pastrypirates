@@ -17,30 +17,20 @@
 // If either extraction drifts, this throws loudly. A harness that silently passes because its
 // slice boundaries moved is worse than no harness.
 
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { fileURLToPath } from "node:url";
+import { loadEngine } from "./lib/load_engine.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
 /* ---------- extraction 1: the Game engine region (same boundaries as real_game_test.js) ------- */
-const scriptStart = html.indexOf("<script>") + "<script>".length;
-const scriptEnd = html.indexOf("function escHtml");
-if (scriptStart < 8 || scriptEnd === -1) {
-  throw new Error("Could not locate the Game-class/roundCfg region in index.html — has the file structure changed?");
-}
-const engineSrc = html.slice(scriptStart, scriptEnd) + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
-const engineSandbox = {
-  document: { documentElement: { style: { setProperty() {} } }, body: { innerHTML: "" } },
-  console,
-  Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
-};
-vm.createContext(engineSandbox);
-vm.runInContext(engineSrc, engineSandbox, { filename: "index.html (engine region)" });
-const { Game, roundCfg } = engineSandbox;
-if (typeof Game !== "function" || typeof roundCfg !== "function") {
-  throw new Error("Game/roundCfg didn't come out of the extracted region — extraction boundaries may be wrong.");
-}
+// Routed through scripts/lib/load_engine.js (D-12) — the shared seam both harnesses now use.
+const { Game, roundCfg } = await loadEngine();
 
 /* ---------- extraction 2: the replayShortfall sentinel region --------------------------------- */
 const OPEN = "/* ===== replayShortfall — extractable region, see scripts/dlog_replay_test.js ===== */";

@@ -1,0 +1,10 @@
+{
+  "name": "pastry-pirates",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "node scripts/determinism_baseline.js --verify && node scripts/dlog_replay_test.js",
+    "test:determinism": "node scripts/determinism_baseline.js --verify"
+  }
+}
