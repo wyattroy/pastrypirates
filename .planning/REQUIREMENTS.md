@@ -33,7 +33,7 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 
 ### Networking Cleanup (NET)
 
-- [ ] **NET-01**: Every Firebase `.on()` watcher has a matching `.off()` teardown — no leaked or stale listeners across the game/room lifecycle (baseline: 14 watchers, only 1 currently torn down)
+- [ ] **NET-01**: Every Firebase `.on()` watcher has a matching `.off()` teardown — no leaked or stale listeners across the game/room lifecycle (verified baseline 2026-07-24: **18** watchers, of which only **2** are torn down, and both of those are the same self-cancelling one-shot response pattern — so **16 have no teardown at all**. The original "14 / 1" figure was stale.)
 - [ ] **NET-02**: Watchers are registered and torn down through a single registry so cleanup is consistent and callback references match exactly
 - [ ] **NET-03**: A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally (reconnect-and-count), not just by code review
 

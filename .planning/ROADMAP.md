@@ -106,7 +106,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Firebase multiplayer sync lives in its own networking module(s) that never import the UI layer.
-  2. Every Firebase `.on()` watcher (all 14, up from 1 torn down today) has a matching `.off()` teardown registered and removed through a single watcher registry with exact callback-reference matching.
+  2. Every Firebase `.on()` watcher (all 18, up from 2 torn down today — count corrected 2026-07-24 from a stale "14 / 1" by direct grep of `index.html`) has a matching `.off()` teardown registered and removed through a single watcher registry with exact callback-reference matching.
   3. A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally by a reconnect-and-count check — not code review alone.
   4. A multiplayer game across two browser tabs still syncs deterministically after the extraction (host + guest smoke test passes).
 
