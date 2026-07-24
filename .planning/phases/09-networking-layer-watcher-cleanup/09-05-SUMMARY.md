@@ -242,3 +242,35 @@ None — no external service configuration required.
 ---
 *Phase: 09-networking-layer-watcher-cleanup*
 *Completed: 2026-07-24*
+
+---
+
+## Addendum (2026-07-24): clean two-tab in-game re-run — criterion 4 fully satisfied
+
+The 09-05 in-game leg that was left partial (coordinator UI misclick, WINDOWS.md item 2) was re-run cleanly and closed. Driven by the coordinator in Chrome via `.dispatchEvent(new MouseEvent(...))` on the real handler elements (avoids the pixel-misclick that caused the original artifact).
+
+**Setup:** server on :8777 (cwd confirmed this worktree), two tabs with distinct `pp_id` set sequentially per the shared-localStorage gotcha — HOST `myId=HOST-pp-…`, GUEST `myId=GUEST-pp-…`.
+
+**Proven live host↔guest through the extracted `src/net/` module:**
+- Room create → code `JETJ`; join round-trips (seats watcher)
+- Bidirectional lobby sync — host sees GuestMate replace a bot; guest sees the room
+- Game start broadcasts host→guest — guest transitions to game, board renders (386 elements) (status/turnOrder watchers)
+- Sailing-order narration broadcast — guest sees "GuestMate catches the wind first" (narr watcher)
+- Chat host→guest with unique marker `PROP2-1784924290878` — guest chatLog shows `HostCap: PROP2-…` (chat child_added watcher)
+- Acknowledgement + recipe prompt/response gating synced both directions (prompt/response watchers)
+- Full turn loop cycles host→bots→guest; guest event stream climbs 16→29 (ev watcher)
+- Guest submits a move → host turn advances to HostCap (response→host)
+- Host sails `[7,6]→[8,6]` → guest CAPTAINS panel reflects host-processed state
+
+**Same-moment authoritative-state match (host panel vs guest panel):**
+
+| Captain | Host | Guest |
+|---|---|---|
+| HostCap | 1 | 1 |
+| Dough Hook | 7 | 7 |
+| Flaky Jack | 13 | 13 |
+| GuestMate | 0 | 0 |
+
+Ordering differs only because each client renders itself first. Watcher counts scaled 4 (lobby) → 8 (host in-game) → 16 (guest in-game) via `window.__pp_net_debug.size()`; API exposes `size/list/detachRoom/detachAll`.
+
+**Methodology note for Phase 12 VERIFY-03:** reading `game.players[].pos` on the GUEST is the wrong probe — guests are render-only under the host-authority model, so their local `game` object is intentionally stale (`guestRound` stayed 0 while the panel updated). The rendered CAPTAINS panel is the sync source of truth on a remote.
