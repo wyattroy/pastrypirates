@@ -11,7 +11,7 @@
     "monopolist"
   ],
   "seatRotation": "BOT_STRATS[(seedIndex + seat) % BOT_STRATS.length] for seat in 0..3",
-  "engineSourceHash": "15ad68996befca5130ba11b0cf79d59b0d871956cc11ab961fe32add384d874a",
+  "engineSourceHash": "bdc641620a4d28261bdef57cde4ded24174864c1584c78f0eeb16e988508e42e",
   "requiredEventTypes": [
     "battle",
     "battleflee",
