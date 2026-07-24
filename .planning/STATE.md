@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: Monolith Refactor
 current_phase: 9
 current_phase_name: Networking Layer & Watcher Cleanup
-status: executing
-stopped_at: Completed 09-04-PLAN.md
-last_updated: "2026-07-24T18:40:39.228Z"
+status: verifying
+stopped_at: Completed 09-05-PLAN.md
+last_updated: "2026-07-24T18:55:36.018Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 9 execution started
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 12
-  percent: 33
+  completed_plans: 13
+  percent: 50
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 Phase: 9 (Networking Layer & Watcher Cleanup) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-24 — Phase 9 execution started
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [█████████░] 92%
 | Phase 09 P02 | ~20min | 2 tasks | 3 files |
 | Phase 09 P03 | 90min | 3 tasks | 6 files |
 | Phase 09 P04 | 35min | 2 tasks | 3 files |
+| Phase 09 P05 | ~25min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 09-03: extracted all remaining Firebase writes/reads into src/net/writers.js and readers.js; all 18 watchers now registry-mediated; SPLIT-04/NET-01/NET-02 left Pending pending 09-04's mechanical contract check and 09-05's behavioral proof
 - [Phase ?]: Built scripts/net_contract_check.js with five mechanically-enforced assertions (sole listener site, no UI dependency, no app-state dependency, directional imports, eighteen-watcher inventory) and zero comment stripping — the deliberate deviation from the Phase 8 precedent, needed because src/net/index.js carries the Firebase databaseURL, empirically confirmed by simulating the Phase-8 stripper against the same fault line
 - [Phase ?]: Marked SPLIT-04 and NET-02 Complete in REQUIREMENTS.md; left NET-01/NET-03 Pending for 09-05's behavioral reconnect/leave-rejoin proof
+- [Phase ?]: 09-05: NET-01/NET-03 marked Complete only after independently re-confirming all 18 watchers route through the registry (grep + net_contract_check + npm test), not on the coordinator's live transcripts alone
+- [Phase ?]: 09-05: ROADMAP criterion 4 recorded as partially demonstrated — two-tab lobby/seats sync proven, full in-game turn-propagation not cleanly observed after a coordinator test-driving misclick; filed in WINDOWS.md for Phase 12 VERIFY-03 to close
 
 ### Pending Todos
 
@@ -128,8 +131,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T18:40:39.222Z
-Stopped at: Completed 09-04-PLAN.md
+Last session: 2026-07-24T18:55:36.012Z
+Stopped at: Completed 09-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -33,9 +33,9 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 
 ### Networking Cleanup (NET)
 
-- [ ] **NET-01**: Every Firebase `.on()` watcher has a matching `.off()` teardown — no leaked or stale listeners across the game/room lifecycle (verified baseline 2026-07-24: **18** watchers, of which only **2** are torn down, and both of those are the same self-cancelling one-shot response pattern — so **16 have no teardown at all**. The original "14 / 1" figure was stale.)
+- [x] **NET-01**: Every Firebase `.on()` watcher has a matching `.off()` teardown — no leaked or stale listeners across the game/room lifecycle (all 18 watchers now route through the single registry in `src/net/`; verified 2026-07-24 by `scripts/net_contract_check.js`'s watcher-inventory-completeness assertion and independent grep confirmation, plus 09-05's behavioral NET-03 probe)
 - [x] **NET-02**: Watchers are registered and torn down through a single registry so cleanup is consistent and callback references match exactly
-- [ ] **NET-03**: A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally (reconnect-and-count), not just by code review
+- [x] **NET-03**: A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally (reconnect-and-count), not just by code review (09-05's full 18-watcher same-tab attach/detach/re-attach probe against live Firebase — see `09-05-SUMMARY.md` Transcript A)
 
 ### De-globalization (GLOBAL)
 
@@ -97,9 +97,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ENGINE-02 | Phase 8 | Complete |
 | ENGINE-03 | Phase 8 | Complete |
 | ENGINE-04 | Phase 8 | Complete |
-| NET-01 | Phase 9 | Pending |
+| NET-01 | Phase 9 | Complete |
 | NET-02 | Phase 9 | Complete |
-| NET-03 | Phase 9 | Pending |
+| NET-03 | Phase 9 | Complete |
 | GLOBAL-01 | Phase 10 | Pending |
 | GLOBAL-02 | Phase 10 | Pending |
 | GLOBAL-03 | Phase 10 | Pending |
