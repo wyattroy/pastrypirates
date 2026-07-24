@@ -130,7 +130,7 @@ Plans:
   3. Any retained `window` bridge for test/debug state access (e.g. `window.__pp_debug` for the Chrome-MCP harness) is intentional, single, and named/documented.
   4. A full solo game and a multiplayer game both remain playable with no new console `no-undef`/`ReferenceError` regressions.
 
-**Plans**: 6/7 plans executed
+**Plans**: 7/7 plans executed
 
 Plans:
 **Wave 1**
@@ -159,7 +159,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6)*
 
-- [ ] 10-07-PLAN.md — Chrome click-through: inline `revealMyRecipe` attr, closure surface, full solo game, two-tab multiplayer, host-refresh replay (wave 7, blocking checkpoint)
+- [x] 10-07-PLAN.md — Chrome click-through: inline `revealMyRecipe` attr, closure surface, full solo game, two-tab multiplayer, host-refresh replay (wave 7, blocking checkpoint)
 
 ### Phase 11: UI Extraction, Orchestration & Bridge Removal
 
@@ -207,7 +207,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
-| 10. App State & De-globalization | v1.1 | 6/7 | In Progress|  |
+| 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/TBD | Not started | - |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
