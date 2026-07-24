@@ -15,6 +15,8 @@ import path from "node:path";
 import vm from "node:vm";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import * as shared from "../../src/shared/index.js";
+import * as engine from "../../src/engine/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -36,6 +38,10 @@ export async function loadEngine() {
   // `function` do — export the two we need explicitly so they're retrievable after execution.
   const engineSrc = region + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
 
+  // Transitional hybrid (08-01): the sliced region no longer contains `mulberry32`/`rollStorm`
+  // text — they moved to src/shared/ and src/engine/ respectively — so the sandbox is seeded
+  // from the real module exports instead. 08-03 replaces this whole function body with a native
+  // import and this hybrid goes away.
   const sandbox = {
     // `document.body.innerHTML = emojify(...)` runs at boot inside the extracted region (the
     // emoji→<img> swap), so the stub needs a writable body as well as the documentElement style
@@ -43,6 +49,8 @@ export async function loadEngine() {
     document: { documentElement: { style: { setProperty() {} } }, body: { innerHTML: "" } },
     console,
     Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
+    ...shared,
+    ...engine,
   };
   vm.createContext(sandbox);
   vm.runInContext(engineSrc, sandbox, { filename: "index.html (engine region)" });

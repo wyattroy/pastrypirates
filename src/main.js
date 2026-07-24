@@ -1,14 +1,13 @@
 // src/main.js
 //
-// Module entry point (D-13, D-14). Proves the zero-build module-loading
-// contract: this exact file imports cleanly under plain Node (no DOM, no
-// Firebase present) and executes in the browser with no bundler.
-//
-// It does nothing beyond proving the contract — it does not read or write
-// game state, does not touch initialization, and adds nothing to the
-// existing startup sequence (D-18).
+// Module entry point (D-13, D-14). Phase 7 proved the zero-build
+// module-loading contract here; Phase 8 extends this same file to populate
+// the window.PP bridge (D-14/D-15) and invert control so this module — not
+// the classic script — triggers window.boot() after the bridge is ready.
 
 import { MODULE_OK_FLAG } from "./module-contract.js";
+import * as shared from "./shared/index.js";
+import * as engine from "./engine/index.js";
 
 // D-15 (amended): the marker assignment must be guarded — `window` is
 // undeclared under plain Node and a bare reference throws ReferenceError,
@@ -31,4 +30,20 @@ if (typeof window !== "undefined") {
       "[src/main.js] firebase global not found — classic script load order may be broken."
     );
   }
+
+  // The bridge (D-14/D-15): named, documented, temporary — removed in
+  // Phase 11 (ROADMAP Phase 11 criterion 3 greps for the token on each of
+  // the two lines below). Publishes every shared/engine export as a
+  // global-object property so the ~150+ pre-existing bare-identifier call
+  // sites in the classic region resolve with zero edits (D-15's
+  // minimal-blast-radius mandate).
+  const PP = { ...shared, ...engine };
+  window.PP = PP; // PP-BRIDGE
+  Object.assign(globalThis, PP); // PP-BRIDGE
+
+  // Inversion of control (D-14): the classic script no longer self-invokes
+  // `boot()` — it is a classic-script `function` declaration, so it is
+  // already an own property of `window` with no bridge entry needed. The
+  // module drives startup only after the bridge above is populated.
+  window.boot();
 }
