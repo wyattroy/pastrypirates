@@ -25,11 +25,11 @@ last_updated: 2026-07-24T18:29:31.107Z
     "phase": "09",
     "file": "index.html",
     "line": null,
-    "description": "09-03 Task 3 human-check (window.__pp_module_ok / window.__pp_boot_count on a loaded page) not run — no browser-automation tool available in the executor session",
-    "status": "open",
-    "reason": "",
+    "description": "09-03 Task 3 human-check (window.__pp_module_ok / window.__pp_boot_count on a loaded page) not run \u2014 no browser-automation tool available in the executor session",
+    "status": "resolved",
+    "reason": "Coordinator ran the load-time tripwire check in Chrome (cache-busted): window.__pp_module_ok=true, window.__pp_boot_count=1, typeof firebase='object', 55 net fns on the bridge, netInit/netWatchFlip resolve as bare identifiers, lobby renders, console clean. index.html boots correctly with its entire Firebase surface relocated to src/net/.",
     "recorded_at": "2026-07-24T18:29:31.107Z",
-    "resolved_at": null
+    "resolved_at": "2026-07-24T18:45:00.000Z"
   }
 ]
 ````
