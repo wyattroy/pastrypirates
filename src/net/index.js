@@ -24,6 +24,19 @@ import {
   netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
   netWatchResponse, netWatchDraftResponse,
 } from "./watchers.js";
+import {
+  netSetFlip, netSetClock, netSetTimerOff,
+  netSetPrompt, netRemovePrompt, netSetResponse,
+  netSetNarr, netPushChat,
+  netSetBattle, netRemoveBattle,
+  netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse,
+  netSetTurnOrder, netUpdateRoom,
+  netSetMeta, netWriteGameLog,
+  netMarkPresence,
+  netSetDlog, netPushEvent,
+  netSetRecovery, netRemoveRecovery,
+  netCreateRoom, netSetFeedback,
+} from "./writers.js";
 
 export {
   netWatchFlip, netWatchConnected, netWatchPresence,
@@ -32,6 +45,19 @@ export {
   netWatchNarr,
   netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
   netWatchResponse, netWatchDraftResponse,
+};
+export {
+  netSetFlip, netSetClock, netSetTimerOff,
+  netSetPrompt, netRemovePrompt, netSetResponse,
+  netSetNarr, netPushChat,
+  netSetBattle, netRemoveBattle,
+  netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse,
+  netSetTurnOrder, netUpdateRoom,
+  netSetMeta, netWriteGameLog,
+  netMarkPresence,
+  netSetDlog, netPushEvent,
+  netSetRecovery, netRemoveRecovery,
+  netCreateRoom, netSetFeedback,
 };
 
 /* ================= Firebase config ================= */

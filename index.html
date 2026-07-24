@@ -2110,7 +2110,7 @@ function setFlipActive(onClick){
 // animates in sync, whether or not that browser is the one actually flipping
 function broadcastFlip(state){
   setFlipCoin(state);
-  if(isHost&&db&&room)db.ref("rooms/"+room+"/flip").set({state,t:Date.now()}).catch(netFail("flip"));
+  if(isHost&&db&&room)netSetFlip(db,room,state,netFail("flip"));
 }
 function watchFlip(){
   netWatchFlip(db,room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
@@ -2187,7 +2187,7 @@ document.addEventListener("visibilitychange",()=>{
 });
 function broadcastClock(){
   setClockUI();
-  if(db&&room)db.ref("rooms/"+room+"/clock").set(shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline}).catch(netFail("clock"));
+  if(db&&room)netSetClock(db,room,shotClockSeat==null?null:{seat:shotClockSeat,deadline:shotClockDeadline},netFail("clock"));
 }
 // #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
 // table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
@@ -2196,7 +2196,7 @@ function toggleTimer(){
   if(!db||!room)return;
   const next=!timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
-  db.ref("rooms/"+room+"/timerOff").set(next).catch(netFail("timerOff"));
+  netSetTimerOff(db,room,next,netFail("timerOff"));
 }
 function watchTimer(){
   netWatchTimerOff(db,room,s=>{
@@ -2270,7 +2270,7 @@ async function expireShotClock(){
       await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
     }
     liveRender();
-    if(!seatLocal(p.idx)&&db&&room)db.ref("rooms/"+room+"/prompt").remove().catch(netFail("prompt clear"));
+    if(!seatLocal(p.idx)&&db&&room)netRemovePrompt(db,room,netFail("prompt clear"));
   }
   stopShotClock();
 }
@@ -2514,10 +2514,10 @@ function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
 function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
-function netNarrate(html){if(replaying)return;showNarration(html);if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()}).catch(netFail("narration"));}
+function netNarrate(html){if(replaying)return;showNarration(html);if(isHost&&db&&room)netSetNarr(db,room,html,netFail("narration"));}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-function netBroadcast(html){if(replaying)return;if(isHost&&db&&room)db.ref("rooms/"+room+"/narr").set({html,t:Date.now()}).catch(netFail("narration"));}
+function netBroadcast(html){if(replaying)return;if(isHost&&db&&room)netSetNarr(db,room,html,netFail("narration"));}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -2532,7 +2532,7 @@ function sendChat(raw){
   const now=Date.now();
   if(now-lastChatSendAt<1000)return; // basic client-side spam guard (RTDB rules can't rate-limit without auth)
   lastChatSendAt=now;
-  db.ref("rooms/"+room+"/chat").push({seat:mySeat,text,t:now}).catch(e=>console.error("chat write failed",e));
+  netPushChat(db,room,{seat:mySeat,text,t:now},e=>console.error("chat write failed",e));
 }
 function appendChatLine(seat,text){
   const log=$("chatLog");if(!log)return;
@@ -3051,7 +3051,7 @@ function renderBattle(o){
   </div>`,!!o.prompt);
   // broadcast the read-only scoreboard (never buttons) so every connected client — not just
   // whoever's deciding — sees the same battle unfold in real time
-  if(isHost&&db&&room&&!replaying)db.ref("rooms/"+room+"/battle").set(battleSnapshot(o)).catch(netFail("battle"));
+  if(isHost&&db&&room&&!replaying)netSetBattle(db,room,battleSnapshot(o),netFail("battle"));
 }
 function battleSnapshot(o){
   const snap={};
@@ -3322,7 +3322,7 @@ async function asyncBattle(att,def){
   panel("");
   // battle's over — clear the broadcast scoreboard so every client's watchNarr can take the panel
   // back for the result narration (and so spectatingBattle resets). (#9)
-  if(isHost&&db&&room&&!replaying)db.ref("rooms/"+room+"/battle").remove().catch(netFail("battle clear"));
+  if(isHost&&db&&room&&!replaying)netRemoveBattle(db,room,netFail("battle clear"));
   if(fled)return;
   const win=a>=need?att:def,lose=a>=need?def:att;
   if(win===att)game.attWins++;
@@ -3773,7 +3773,7 @@ async function recipeDraftNet(){
     }
   }
   game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
-  if(db&&room&&!replaying)await db.ref("rooms/"+room+"/recipes").set(picks).catch(netFail("recipe picks"));
+  if(db&&room&&!replaying)await netSetRecipes(db,room,picks,netFail("recipe picks"));
   if(!replaying)updateRecipeBanner();
   liveRender();
 }
@@ -3788,7 +3788,7 @@ async function runLiveNet(){
   // whoever goes last
   order.forEach((i,pos)=>{game.players[i].coins=game.cfg.startCoins+pos;});
   turnOrder=order.slice();buildPlayerRows();
-  if(!replaying&&db&&room)db.ref("rooms/"+room+"/turnOrder").set(order).catch(netFail("turn order"));
+  if(!replaying&&db&&room)netSetTurnOrder(db,room,order,netFail("turn order"));
   await showTurnOrderIntro(order);
   await recipeDraftNet();
   let ended=false;
@@ -3862,14 +3862,14 @@ async function liveResolveEndNet(){
     await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(game.winner)} baked a ${winRecipeSpan(game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
     victoryConfetti(game.winner); // EOV-05: a burst of celebration over the board
   }
-  if(db&&room&&!replaying)db.ref("rooms/"+room).update({status:"ended"}).catch(netFail("game end"));
+  if(db&&room&&!replaying)netUpdateRoom(db,room,{status:"ended"},netFail("game end"));
 }
 function writeMeta(){
   if(!db||!room||replaying)return Promise.resolve();
-  return db.ref("rooms/"+room+"/meta").set({
+  return netSetMeta(db,room,{
     round:game.round,battles:game.battles,trades:game.trades,attWins:game.attWins,
     finishOrder:game.finishOrder,winner:game.winner,
-    flips:game.players.map(p=>p.flips),heads:game.players.map(p=>p.heads)}).catch(netFail("game meta"));
+    flips:game.players.map(p=>p.flips),heads:game.players.map(p=>p.heads)},netFail("game meta"));
 }
 // Every finished game (solo or multiplayer) writes its full move-by-move transcript to a
 // permanent, room-independent path — rooms/{room}/ev is cleared on the next game in that room,
@@ -3878,7 +3878,7 @@ function writeMeta(){
 function writeGameLog(){
   if(!db||replaying)return Promise.resolve();
   const ts=Date.now();
-  return db.ref("gamelogs/"+ts).set({
+  return netWriteGameLog(db,ts,{
     ts,room:room||null,winner:game.winner,round:game.round,
     battles:game.battles,trades:game.trades,strategies:game.cfg.strategies,
     // names/bots are recorded per seat so solo & local games (no rooms/{code}/seats node) are still
@@ -3887,7 +3887,7 @@ function writeGameLog(){
     names:game.players.map((_,i)=>rawName(i)),
     bots:game.players.map(p=>p.strategy!=="human"),
     events:JSON.parse(JSON.stringify(game.events))
-  }).catch(netFail("game log"));
+  },netFail("game log"));
 }
 
 /* ================= networking plumbing ================= */
@@ -3925,10 +3925,9 @@ function watchPresence(){
   // best-effort: an older Firebase project whose rules predate this feature (no "presence" node
   // yet — see ONLINE_SETUP.md) will permission-deny these; fail silently rather than spam the
   // console or block anything, since this is a nice-to-have busy indicator, not core gameplay.
-  const myRef=db.ref("presence/"+myId);
   netWatchConnected(db,snap=>{
     if(snap.val()===true){
-      myRef.onDisconnect().remove().catch(()=>{});myRef.set(true).catch(()=>{});
+      netMarkPresence(db,myId);
       const note=$("syncnote");if(note)note.style.display="none";
     }
   },()=>{});
@@ -3968,7 +3967,7 @@ function logDecision(v){
     // the encoded {v:...}/{n:1} wrapper, which is a Firebase-only transport detail.
     dlog.push(v);                  // kept locally too (harmless in multiplayer — resumeHostGame
                                     // overwrites it from Firebase — but it's the only copy solo has)
-    if(room)db.ref("rooms/"+room+"/dlog/"+n).set(encodeDec(v)).catch(netFail("decision log"));
+    if(room)netSetDlog(db,room,n,encodeDec(v),netFail("decision log"));
     else saveSoloState();
   }
 }
@@ -4063,8 +4062,8 @@ function wireRestoreFail(){
 // small node rather than overloading prompt's payload shape. Host-only, guarded like broadcastClock.
 function setRecoveryState(state){
   if(!isHost||!db||!room)return;
-  if(state)db.ref("rooms/"+room+"/recovery").set({state,at:Date.now()}).catch(netFail("recovery"));
-  else db.ref("rooms/"+room+"/recovery").remove().catch(netFail("recovery"));
+  if(state)netSetRecovery(db,room,{state,at:Date.now()},netFail("recovery"));
+  else netRemoveRecovery(db,room,netFail("recovery"));
 }
 // guest side: purely presentational. A guest is render-only in this architecture, so this may only
 // show/hide the strip — never reconcile or re-fetch game state.
@@ -4078,20 +4077,19 @@ function watchRecoveryState(){
 // host: broadcast new events to the shared feed
 function pushEvents(){
   if(!db||!room)return;
-  const evr=db.ref("rooms/"+room+"/ev");
   while(evPushed<game.events.length){
-    evr.push(JSON.parse(JSON.stringify(game.events[evPushed]))).catch(netFail("event feed"));
+    netPushEvent(db,room,JSON.parse(JSON.stringify(game.events[evPushed])),netFail("event feed"));
     evPushed++;
   }
 }
 // host: ask a remote seat's owner to decide, wait for their answer
 function remotePrompt(seat,payload){
   const id="q"+(promptCounter++)+"_"+Date.now();
-  db.ref("rooms/"+room+"/prompt").set(Object.assign({id,seat},payload)).catch(netFail("prompt"));
+  netSetPrompt(db,room,Object.assign({id,seat},payload),netFail("prompt"));
   return new Promise(res=>{
     let wid;
     const cb=snap=>{const v=snap.val();
-      if(v&&v.id===id){netDetach(wid);db.ref("rooms/"+room+"/prompt").remove().catch(netFail("prompt clear"));
+      if(v&&v.id===id){netDetach(wid);netRemovePrompt(db,room,netFail("prompt clear"));
         res(v.choice===undefined?null:v.choice);}};
     wid=netWatchResponse(db,room,cb,"response:"+id);
   });
@@ -4100,7 +4098,7 @@ function remotePrompt(seat,payload){
 function sendResponse(id,choice){
   const o={id};
   if(choice!==null&&choice!==undefined)o.choice=choice;
-  db.ref("rooms/"+room+"/response").set(o).catch(netFail("response"));
+  netSetResponse(db,room,o,netFail("response"));
   panel("");
 }
 // Parallel prompt/response path used only for concurrent recipe drafting — a per-seat node
@@ -4108,12 +4106,12 @@ function sendResponse(id,choice){
 // rooms/{room}/prompt above which only ever holds one.
 function remoteDraftPrompt(seat,msg,opts,waitMsg){
   const id="d"+(promptCounter++)+"_"+Date.now();
-  db.ref("rooms/"+room+"/draftPrompts/"+seat).set({id,seat,msg,waitMsg:waitMsg||null,
-    labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")}).catch(netFail("recipe prompt"));
+  netSetDraftPrompt(db,room,seat,{id,seat,msg,waitMsg:waitMsg||null,
+    labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")},netFail("recipe prompt"));
   return new Promise(res=>{
     let wid;
     const cb=snap=>{const v=snap.val();
-      if(v&&v.id===id){netDetach(wid);db.ref("rooms/"+room+"/draftPrompts/"+seat).remove().catch(netFail("recipe prompt clear"));
+      if(v&&v.id===id){netDetach(wid);netRemoveDraftPrompt(db,room,seat,netFail("recipe prompt clear"));
         res(v.choice);}};
     wid=netWatchDraftResponse(db,room,seat,cb,"draftResponse:"+id);
   });
@@ -4128,7 +4126,7 @@ function watchDraftPrompt(){
       (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       b.onclick=()=>{
-        db.ref("rooms/"+room+"/draftResponses/"+mySeat).set({id:p.id,choice:+b.dataset.i}).catch(netFail("recipe response"));
+        netSetDraftResponse(db,room,mySeat,{id:p.id,choice:+b.dataset.i},netFail("recipe response"));
         if(p.waitMsg)showNarration(p.waitMsg);else panel("");
       };
     });
@@ -4343,7 +4341,7 @@ async function createRoom(){
   for(let i=1;i<numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:seatStrat(i)}; // BOT-02
   room=code;mySeat=0;isHost=true;
   try{
-    await db.ref("rooms/"+code).set({host:myId,status:"lobby",numSeats,seats,createdAt:Date.now()});
+    await netCreateRoom(db,code,{host:myId,status:"lobby",numSeats,seats,createdAt:Date.now()});
   }catch(e){
     console.error("createRoom failed",e);room=null;isHost=false;
     alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");
@@ -4424,7 +4422,7 @@ async function startGame(){
     for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
     const cfg=roundCfg(strategies);
     const seed=Math.floor(Math.random()*1e9);
-    await db.ref("rooms/"+room).update({status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
+    await netUpdateRoom(db,room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
       recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
   }catch(e){
     console.error("startGame failed",e);
@@ -4453,7 +4451,7 @@ function beginGame(cfg,seed){
   // (but not on a reload-replay, which must keep whatever the live game already had)
   if(isHost&&db&&room&&!replaying){
     let off=false;try{off=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
-    db.ref("rooms/"+room+"/timerOff").set(off).catch(netFail("timerOff"));
+    netSetTimerOff(db,room,off,netFail("timerOff"));
   }
 }
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
@@ -4516,7 +4514,7 @@ function wireLobby(){
   $("btnSendFeedback").onclick=()=>{
     const text=($("feedbackText").value||"").trim();
     if(!text)return;
-    if(db)db.ref("feedback/"+Date.now()).set({text,room:room||null,name:($("pname").value||"").trim()||null,t:Date.now()}).catch(e=>console.error("feedback write failed",e));
+    if(db)netSetFeedback(db,Date.now(),{text,room:room||null,name:($("pname").value||"").trim()||null,t:Date.now()},e=>console.error("feedback write failed",e));
     $("feedbackText").value="";
     $("feedbackModal").style.display="none";
   };
