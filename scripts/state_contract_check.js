@@ -32,7 +32,8 @@
 //    name the migration tool has fully processed is guaranteed to report zero here.
 // 3. Debug-hook naming convention — every `window.__pp_*` assignment in src/main.js (including the
 //    indirect `window[MODULE_OK_FLAG]` form) matches a hardcoded allowlist of the four expected
-//    names (GLOBAL-03).
+//    names (GLOBAL-03), AND all four of those names are actually present — an absent hook is as
+//    much a violation as an ad-hoc extra one.
 // 4. src/state/index.js purity — no document/window/firebase/localStorage/Date.now/Math.random/
 //    globalThis/new Function reference inside the module itself (same purity bar
 //    engine_contract_check.js already enforces for src/engine/ and src/shared/).
@@ -43,12 +44,11 @@
 //    names inside the classic script (`broadcastFlip(state)`, `setFlipCoin(state)`, …); see
 //    src/state/index.js's header and 10-01-SUMMARY.md's Deviations section for the full account.
 //
-// Assertions 1 and 2 are EXPECTED TO FAIL right now — only `room` has been migrated as of this
-// task (10-01, the tracer). This script is run standalone during 10-02 through 10-05 as each
-// batch of names migrates; it is wired into `npm test` only in 10-06, once all 46 are done and
-// assertions 1/2 can legitimately go green. Do not "fix" this by weakening the assertions or by
-// wiring this script into npm test before 10-06 — a red standing gate mid-phase is correct here,
-// not a bug.
+// Wired into `npm test` as of 10-06, immediately after `scripts/net_contract_check.js` in the
+// `&&` chain, now that all 46 names are migrated (10-02 through 10-05) and all five assertions
+// are expected to pass. During 10-02 through 10-05 this script was run standalone, and
+// assertions 1/2 were expected-red by design as each batch migrated — that period is over; a red
+// result here now is a real regression, not a phase-in-progress artifact.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -113,6 +113,7 @@ function checkDebugHookNames() {
   let ok = true;
   const content = fs.readFileSync(MAIN_JS, "utf8");
   const lines = content.split("\n");
+  const found = new Set();
 
   // Direct `window.__pp_xxx = ...` assignments.
   const directRe = /window\.(__pp_[A-Za-z0-9_]+)\s*=/g;
@@ -120,6 +121,7 @@ function checkDebugHookNames() {
     let m;
     directRe.lastIndex = 0;
     while ((m = directRe.exec(line))) {
+      found.add(m[1]);
       if (!ALLOWED_DEBUG_HOOKS.has(m[1])) {
         ok = false;
         failures.push(`DEBUG-HOOK: src/main.js:${i + 1} assigns "window.${m[1]}", not on the allowlist {${[...ALLOWED_DEBUG_HOOKS].join(", ")}}`);
@@ -143,9 +145,21 @@ function checkDebugHookNames() {
       failures.push(`DEBUG-HOOK: src/main.js uses an indirect "window[${varName}] = ..." assignment this check doesn't know how to resolve — extend checkDebugHookNames()`);
       continue;
     }
+    found.add(resolved);
     if (!ALLOWED_DEBUG_HOOKS.has(resolved)) {
       ok = false;
       failures.push(`DEBUG-HOOK: src/main.js's "window[${varName}]" resolves to "${resolved}", not on the allowlist {${[...ALLOWED_DEBUG_HOOKS].join(", ")}}`);
+    }
+  }
+
+  // Presence, not just allowlist membership — a hook silently never assigned (e.g. a future
+  // refactor accidentally deletes the __pp_app_state_debug block) is as much a GLOBAL-03
+  // violation as an ad-hoc extra one; only checking additions would let that regression through
+  // green.
+  for (const name of ALLOWED_DEBUG_HOOKS) {
+    if (!found.has(name)) {
+      ok = false;
+      failures.push(`DEBUG-HOOK: expected hook "window.${name}" is not assigned anywhere in src/main.js`);
     }
   }
 

@@ -75,6 +75,22 @@ if (typeof window !== "undefined") {
     detachAll: net.netDetachAll,
   };
 
+  // GLOBAL-03/D-09: the fourth named debug hook, landed under the same "single documented
+  // mechanism" umbrella as the three above rather than a new ad-hoc window.* global. Unlike
+  // __pp_net_debug (a namespace of live function references, safe to call at any time),
+  // exposing appState directly would hand a console/MCP session the SAME mutable object every
+  // classic-script write mutates — see src/state/index.js's header on why the appState BINDING
+  // must never be reassigned; exposing the live object as a debug hook has the identical hazard
+  // one level down, since calling this and writing back into the result would silently corrupt
+  // authoritative game state with no error. So this is a helper FUNCTION, not a plain property
+  // assignment of the object itself: each call returns a fresh `{...appState}` shallow copy,
+  // safe to inspect and safe to mutate without touching the real state. Deliberately carries no
+  // PP-BRIDGE tag, matching __pp_net_debug: it is meant to outlive the Phase 11 bridge-removal
+  // grep, as a permanent, named, read-only observation surface.
+  window.__pp_app_state_debug = function () {
+    return { ...stateNs.appState };
+  };
+
   // 08-02: the relocated D-06 impurities and the ASSET_BASE top-level hazard
   // must run before boot()'s element-lookup/event-wiring (wireWelcome,
   // wireLobby, wireRecipeModal) does — the relocated comment inside
@@ -83,7 +99,7 @@ if (typeof window !== "undefined") {
   window.applyEngineBootstrapEffects();
   window.attachPastryArt();
 
-  // Standing tripwire (mirrors window.__pp_module_ok's convention): the
+  // Standing tripwire (mirrors the module-ok marker's convention): the
   // document.body.innerHTML rewrite above now runs at module time instead
   // of mid-parse, so it re-serialises and re-parses the whole body —
   // including the classic <script> elements, which the HTML parser marks
