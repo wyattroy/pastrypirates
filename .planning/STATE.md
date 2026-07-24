@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 8
 current_phase_name: Engine Extraction & Node Harness Migration
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-07-24T15:47:47.522Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-07-24T16:00:18.469Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 8 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 8 execution started
 
-Progress: [████████░░] 75%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [████████░░] 75%
 | Phase 08 P01 | 25 | 2 tasks | 5 files |
 | Phase 08 P02 | 20 | 2 tasks | 4 files |
 | Phase 08 P03 | 35min | 2 tasks | 5 files |
+| Phase 08 P04 | ~40min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 8 Plan 2: six ORDER IS LOAD-BEARING annotations added (DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, TET) with construct-specific mechanism reasons, not a repeated generic sentence
 - [Phase ?]: Engine tier's shared-import list (mulberry32, ING_ALL, TET, DIRS, OPPOSITE, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, man, ilabelImg) derived mechanically from the moved source, not from RESEARCH.md's illustrative guess — NAMES/dockPlace/iname/ilabel are classic-UI-only dependencies, not Game-class dependencies
 - [Phase ?]: scripts/lib/load_engine.js header comment scrubbed of the literal string 'index.html' entirely (not just node:vm), per acceptance criterion 14's whole-file grep and invariant #7
+- [Phase ?]: engine_contract_check.js's annotation check walks the whole contiguous comment block above each anchor (not just the immediately-preceding line) — the engine tier's 3-line [3,2,1] annotation put the token 2 lines above the single-line-lookup a literal reading of the plan's acceptance criteria would produce.
+- [Phase ?]: MOVED_SYMBOLS (128 names) is hardcoded from prior SUMMARYs' export-list records, not derived from the barrels' own export statements at check time — deriving it from the barrels would make the completeness assertion tautological.
 
 ### Pending Todos
 
@@ -108,8 +111,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T15:47:47.510Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-07-24T16:00:18.451Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
