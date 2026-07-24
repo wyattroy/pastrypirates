@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 10
 current_phase_name: App State & De-globalization
 status: executing
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-07-24T22:15:27.865Z"
+stopped_at: Completed 10-03-PLAN.md
+last_updated: "2026-07-24T22:20:06.228Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 15
+  completed_plans: 16
   percent: 50
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 10 (App State & De-globalization) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 10 execution started
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [████████░░] 75%
 | Phase 09 P05 | ~25min | 2 tasks | 4 files |
 | Phase 10 P01 | ~35min | 3 tasks | 6 files |
 | Phase 10 P02 | ~15min | 1 tasks | 1 files |
+| Phase 10 P03 | 10min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 10-01: Bridge identifier is appState, not state -- state already collides with local variable/parameter names in the classic script (broadcastFlip(state), setRecoveryState(state), a local const in setClockUI()); appState confirmed zero prior occurrences. All subsequent 10-xx plans migrate to appState.NAME, not state.NAME.
 - [Phase ?]: 10-01: js_region_tokenizer.js gained a regex-literal lexer mode mid-task -- escHtml's /[&<>"]/g regex (a literal quote inside a character class) corrupted downstream string/comment classification until regex literals were recognized as their own token kind. Fixed and verified before committing.
 - [Phase ?]: 10-02: replayShortfall()'s local parameter resumeEvLen shadowed the app-state global; migration tool blindly rewrote the parameter declaration into invalid JS. Renamed the local param to priorEvLen (same fix class as 10-01's state->appState collision, applied to a local shadow instead).
+- [Phase ?]: 10-03: migrated the 9 net-consumed identity/session names (db, myId, mySeat, isHost, roster, turnOrder, numSeats, passAndPlay, soloMeta) to appState.NAME; all ~27 src/net/ call sites now resolve live state at call time (D-07)
 
 ### Pending Todos
 
@@ -136,8 +138,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T22:15:27.851Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-07-24T22:20:06.215Z
+Stopped at: Completed 10-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

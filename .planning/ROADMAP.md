@@ -130,7 +130,7 @@ Plans:
   3. Any retained `window` bridge for test/debug state access (e.g. `window.__pp_debug` for the Chrome-MCP harness) is intentional, single, and named/documented.
   4. A full solo game and a multiplayer game both remain playable with no new console `no-undef`/`ReferenceError` regressions.
 
-**Plans**: 2/7 plans executed
+**Plans**: 3/7 plans executed
 
 Plans:
 **Wave 1**
@@ -143,7 +143,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 10-03-PLAN.md — Migrate net-consumed identity/session names (`db, myId, mySeat, isHost, roster, turnOrder, numSeats, passAndPlay, soloMeta`) + prove net call-site freshness (wave 3)
+- [x] 10-03-PLAN.md — Migrate net-consumed identity/session names (`db, myId, mySeat, isHost, roster, turnOrder, numSeats, passAndPlay, soloMeta`) + prove net call-site freshness (wave 3)
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -207,7 +207,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
-| 10. App State & De-globalization | v1.1 | 2/7 | In Progress|  |
+| 10. App State & De-globalization | v1.1 | 3/7 | In Progress|  |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/TBD | Not started | - |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
