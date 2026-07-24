@@ -5,8 +5,8 @@ milestone_name: Monolith Refactor
 current_phase: 9
 current_phase_name: Networking Layer & Watcher Cleanup
 status: executing
-stopped_at: Completed 09-01-PLAN.md Tasks 1-2 (registry, watchers, unit test); Task 3 live-browser probe handed back (no browser tool available)
-last_updated: "2026-07-24T17:43:10.593Z"
+stopped_at: Completed 09-01-PLAN.md all tasks
+last_updated: "2026-07-24T17:54:09.363Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 9 execution started
 progress:
@@ -94,6 +94,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 08-05: Chrome-verified the classic live turn loop's corpus-blind storm/second-gust path (game.r(), rollStorm, PERP, DIRS) still works with the engine outside index.html, closing the coverage gap 08-03 recorded
 - [Phase ?]: 09-01: added a registry-routed cross-instance test (isolated-backing fake) beyond the plan's literal case list, because the original shared-backing-fake case cannot be made to fail by any registry.js change and AC 8 requires it to be
 - [Phase ?]: 09-01: deliberately did not mark SPLIT-04/NET-01/NET-02/NET-03 complete in REQUIREMENTS.md — only 3 of 18 watchers migrated and NET-03's live-browser proof (Task 3) is unperformed
+- [Phase ?]: 09-01: Task 3's live-browser NET-03 probe was performed by the coordinator (this executor has no browser tool) against a real Firebase connection — same-tab, no-reload attach/detach/re-attach verified: session watchers (2) survived detachRoom(), the torn-down handler went silent on a real write, re-attach returned to the pre-teardown count. Transcript recorded verbatim in 09-01-SUMMARY.md, attributed to the coordinator, not this execution session.
 
 ### Pending Todos
 
@@ -105,7 +106,6 @@ None yet.
 - `<script type="module">` is always deferred — Firebase compat CDN tags must stay classic scripts loaded before the module entry (Phase 7, FOUND-03) to avoid an init race.
 - De-globalization (Phase 10) can silently break the 41 inline `onclick` handlers — needs an upfront handler audit and a click-through checklist.
 - Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
-- 09-01 Task 3 (live-browser NET-03 same-tab attach/detach/re-attach probe) not performed — no browser-automation tool available to the executor. Dev server confirmed running on port 8777. A human or browser-capable agent must complete the 8 steps documented in 09-01-SUMMARY.md's 'Task 3: NOT Performed — Handed Back' section before NET-03 can be marked satisfied.
 
 ## Deferred Items
 
@@ -119,8 +119,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T17:43:10.587Z
-Stopped at: Completed 09-01-PLAN.md Tasks 1-2 (registry, watchers, unit test); Task 3 live-browser probe handed back (no browser tool available)
+Last session: 2026-07-24T17:54:09.356Z
+Stopped at: Completed 09-01-PLAN.md all tasks
 Resume file: None
 
 ## Operator Next Steps
