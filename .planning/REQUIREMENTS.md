@@ -82,37 +82,40 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | TBD | Pending |
-| FOUND-02 | TBD | Pending |
-| FOUND-03 | TBD | Pending |
-| FOUND-04 | TBD | Pending |
-| FOUND-05 | TBD | Pending |
-| SPLIT-01 | TBD | Pending |
-| SPLIT-02 | TBD | Pending |
-| SPLIT-03 | TBD | Pending |
-| SPLIT-04 | TBD | Pending |
-| SPLIT-05 | TBD | Pending |
-| SPLIT-06 | TBD | Pending |
-| ENGINE-01 | TBD | Pending |
-| ENGINE-02 | TBD | Pending |
-| ENGINE-03 | TBD | Pending |
-| ENGINE-04 | TBD | Pending |
-| NET-01 | TBD | Pending |
-| NET-02 | TBD | Pending |
-| NET-03 | TBD | Pending |
-| GLOBAL-01 | TBD | Pending |
-| GLOBAL-02 | TBD | Pending |
-| GLOBAL-03 | TBD | Pending |
-| VERIFY-01 | TBD | Pending |
-| VERIFY-02 | TBD | Pending |
-| VERIFY-03 | TBD | Pending |
-| VERIFY-04 | TBD | Pending |
+| FOUND-01 | Phase 7 | Pending |
+| FOUND-02 | Phase 7 | Pending |
+| FOUND-03 | Phase 7 | Pending |
+| FOUND-04 | Phase 7 | Pending |
+| FOUND-05 | Phase 7 | Pending |
+| SPLIT-01 | Phase 8 | Pending |
+| SPLIT-02 | Phase 8 | Pending |
+| SPLIT-03 | Phase 11 | Pending |
+| SPLIT-04 | Phase 9 | Pending |
+| SPLIT-05 | Phase 11 | Pending |
+| SPLIT-06 | Phase 11 | Pending |
+| ENGINE-01 | Phase 8 | Pending |
+| ENGINE-02 | Phase 8 | Pending |
+| ENGINE-03 | Phase 8 | Pending |
+| ENGINE-04 | Phase 8 | Pending |
+| NET-01 | Phase 9 | Pending |
+| NET-02 | Phase 9 | Pending |
+| NET-03 | Phase 9 | Pending |
+| GLOBAL-01 | Phase 10 | Pending |
+| GLOBAL-02 | Phase 10 | Pending |
+| GLOBAL-03 | Phase 10 | Pending |
+| VERIFY-01 | Phase 12 | Pending |
+| VERIFY-02 | Phase 12 | Pending |
+| VERIFY-03 | Phase 12 | Pending |
+| VERIFY-04 | Phase 12 | Pending |
 
 **Coverage:**
 - v1 requirements: 25 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25 ✓
+- Unmapped: 0
+
+**Per-phase counts:** Phase 7 (5) · Phase 8 (6) · Phase 9 (4) · Phase 10 (3) · Phase 11 (3) · Phase 12 (4) = 25
 
 ---
 *Requirements defined: 2026-07-24*
-*Last updated: 2026-07-24 after initial definition*
+*Last updated: 2026-07-24 — traceability populated during v1.1 roadmap creation*
+</content>

@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-24T05:22:43.872Z"
 last_activity: 2026-07-24
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Planning next milestone (v1.0 shipped)
+**Current focus:** Phase 7 — Foundation & Determinism Baseline (roadmap approved, ready to plan)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-24 — Milestone v1.1 started
+Phase: 7 of 12 (Foundation & Determinism Baseline) — first phase of v1.1
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-07-24 — v1.1 roadmap created (6 phases, 7–12), 25/25 requirements mapped
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -57,9 +59,10 @@ Last activity: 2026-07-24 — Milestone v1.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Init: Sequence critical bugs (Safari storm perf + MP timer pause) first as Phase 1
-- Init: Fix in place rather than refactor the `index.html` monolith
-- Init: Mockup-then-approve gate for end-of-voyage badges (EOV-04) and storm-text rewrite (NARR-06)
+- Roadmap: Strangler-fig extraction order — game stays runnable + determinism-verifiable at every phase boundary; a temporary window bridge is acceptable mid-refactor and removed in Phase 11.
+- Roadmap: Engine extraction (SPLIT-01/ENGINE-01) and Node-harness native import (ENGINE-02) land in the same phase (Phase 8) — the harnesses string-slice `index.html` today and break the instant engine code moves.
+- Roadmap: Byte-for-byte replay parity (ENGINE-03) is gated against a golden baseline captured FIRST in Phase 7 (FOUND-04).
+- Roadmap: No bundler/framework/TypeScript — native ES modules preserve the zero-build principle (explicit anti-features).
 
 ### Pending Todos
 
@@ -67,7 +70,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 touches fragile machinery: the deterministic engine + replay and Firebase watchers registered without `.off()` cleanup (see .planning/codebase/CONCERNS.md). Timer/pause/refresh fixes must not break lockstep determinism.
+- RNG/iteration-order desync is the top risk: object-key reordering during code motion silently changes the RNG sequence. Byte-for-byte regression testing against the Phase 7 golden baseline is non-negotiable; mark order-load-bearing constants `// ORDER IS LOAD-BEARING`.
+- `<script type="module">` is always deferred — Firebase compat CDN tags must stay classic scripts loaded before the module entry (Phase 7, FOUND-03) to avoid an init race.
+- De-globalization (Phase 10) can silently break the 41 inline `onclick` handlers — needs an upfront handler audit and a click-through checklist.
+- Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
 
 ## Deferred Items
 
@@ -75,14 +81,17 @@ Items acknowledged and carried forward from previous milestone close:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| Networking | NETMOD-01 — modular Firebase v9+ SDK migration | Deferred to v2 | v1.1 requirements |
+| DX | DX-01 — JSDoc typedefs for event objects | Deferred to v2 | v1.1 requirements |
+| DX | DX-02 — isolated pure replay-runner extraction | Deferred to v2 (pursue only if seam surfaces bugs) | v1.1 requirements |
 
 ## Session Continuity
 
-Last session: 2026-07-24T01:52:44.325Z
-Stopped at: All 15 punch-list items done + BUG-01 Safari-verified + instrumentation stripped. Pending Wyatt: EOV-04 badge approval, NARR-06 storm rewrite.
-Resume file: .planning/HANDOFF.md
+Last session: 2026-07-24 — v1.1 roadmap created
+Stopped at: ROADMAP.md written (Phases 7–12), REQUIREMENTS.md traceability populated (25/25 mapped), STATE.md refreshed for v1.1.
+Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review the v1.1 roadmap, then plan the first phase with `/gsd-plan-phase 7`
+</content>
