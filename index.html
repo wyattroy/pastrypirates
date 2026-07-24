@@ -2508,19 +2508,22 @@ const EVENT_NARRATION={
       // reads as a run-on ("...ye scurvy lot!, this easterly is gusting")
       if(e.streak>=2)return {cls:"roundhdr",
         txt:`— Round ${e.round}: ⛈️ The storm's baked in and refuses to cool down! ${held?`It's still aiming ${D}`:`Now it's aiming ${D}`}, then ${D2}${gust}. Batten down the hatches, ye scurvy lot! —`};
-      return {cls:"roundhdr",txt:`— Round ${e.round}: ⛈️ STORM! Wind ${held?"still blows":"blows"} ${D}, then ${D2}${gust} —`};
+      // notes/edits NARR-06 (Wyatt rewrite): the plain held-storm line gets its own wording rather
+      // than the shared gust clause; the fresh-storm and streak lines are unchanged.
+      if(held)return {cls:"roundhdr",txt:`— Round ${e.round}: ⛈️ STORM! Wind still blows ${D}, then it turns ${D2}, and she's a fierce one —`};
+      return {cls:"roundhdr",txt:`— Round ${e.round}: ⛈️ STORM! Wind blows ${D}, then ${D2} —`};
     }
     return {cls:"roundhdr",txt:`— Round ${e.round}: wind ${held?"still blows":"blows"} ${D}${gust} —`};
   },
-  windmove:e=>({txt:`${pn(e.p)} drifts with the wind`,caps:[[e.p,"🌬️ drifts"]]}),
-  blownOut:e=>({txt:`⛵ A gale blows ${pn(e.p)} out of the harbor!`}),
+  windmove:e=>({txt:`${pn(e.p)} is carried by the storm`,caps:[[e.p,"🌬️ drifts"]]}),
+  blownOut:e=>({txt:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
-  dodge:(e,at)=>({txt:`${pn(e.p)} pays 1🌕 to dodge an island`,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]}),
-  anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — drops anchor safely!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
+  dodge:(e,at)=>({txt:`${pn(e.p)} pays 1🌕 to anchor safely`,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]}),
+  anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
   moored:(e,at)=>({txt:`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]}),
   blocked:(e,at)=>({txt:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
   anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
-  tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is swept along the trade winds around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
+  tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
   parley:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`,pops:[[at(e.a),e.ok?"🤝":"🙅"]]}),
   aground:(e,at)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
     caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
@@ -3885,24 +3888,24 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // also hits an island is a free pass, already-paid anchor holding fast
       if(dodgedOnce.v){game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
       const opts=[];
-      if(p.coins>=1)opts.push({label:"Pay 1🌕 to dodge",value:"pay"});
+      if(p.coins>=1)opts.push({label:"Pay 1🌕 to anchor",value:"pay"});
       // notes/edits #10b: the real tails consequence depends on what this player actually has to
       // lose (mirrors the branches below) — a broke player with crates loses one of those, not
       // "half their coins" (they have none), and only a truly broke, empty-holds player risks
       // losing the whole turn to repairs.
       const broke=p.coins===0,trueShipwreck=broke&&!p.ing.length;
-      const flipLabel=trueShipwreck?"Flip! Heads: dodge. Tails: ye'll lose yer turn!"
+      const flipLabel=trueShipwreck?"Flip! Heads: dodge. Tails: lose yer turn!"
         :broke?"Flip! Heads: dodge. Tails: lose a crate!"
         :"Flip! Heads: dodge. Tails: lose half 🌕";
       opts.push({label:flipLabel,value:"flip"});
       const promptMsg=trueShipwreck
         ?`${pn(p.idx)}: the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
-        :`${pn(p.idx)}: the storm blows you toward an island! (Flipping is a gamble — tails costs you.)`;
+        :`${pn(p.idx)}: the storm blows you toward an island! Anchor safely, or flip to take yer chances.`;
       const v=await ask(promptMsg,opts);
       if(turnExpired)return;
       if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
-        const h=await humanFlip(p,"Flip to drop anchor!");
+        const h=await humanFlip(p,"Flip to dodge!");
         if(turnExpired)return;
         if(h)game.ev({t:"anchor",p:p.idx});
         // tails with no coins can't "lose half" of nothing — take a crate instead, or if the
@@ -3922,7 +3925,7 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     p.pos=nx;
     if(game.onRim(nx)){ // swept into the trade winds
       game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1300);}
+      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300);}
       return;
     }
   }
@@ -3935,7 +3938,7 @@ async function humanWind(p){
   const dodgedOnce={v:false};
   await windLeg(p,game.windNow,2,dodgedOnce,wasDocked);
   if(turnExpired)return;
-  await flash(`⛈️ Now the wind blows <b>${DIRNAME[game.windNow2]}</b>!`,900);
+  await flash(`⛈️ Now the storm moves you <b>${DIRNAME[game.windNow2]}</b>!`,900);
   if(turnExpired)return;
   await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
 }
@@ -4483,7 +4486,7 @@ async function humanAct(p,sailCtx){
     const dest=await pickCell(p,reachable(p));
     if(turnExpired)return;
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
+      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
     await humanAct(p,sailCtx);return;
   }
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
@@ -4554,7 +4557,7 @@ async function humanTurn(p){
     recipeRevealed=false; // sail destination chosen — re-lock
     if(turnExpired){activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 The trade winds sweep you around the rim!":`🌀 The trade winds sweep ${pn(p.idx)} around the rim!`,1200);}}
+      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
   } // no coins to sail — the action prompt right after already explains it, no need for a second box
   if(turnExpired){activeTurnSeat=null;return;}
   if(!game.adjPort(p))p.dockedNow.clear();
