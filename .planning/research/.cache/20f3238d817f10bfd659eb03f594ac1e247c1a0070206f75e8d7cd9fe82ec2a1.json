@@ -1,0 +1,1 @@
+{"content":"MDN: script type=module is always deferred by default; deferred/module scripts execute in document order after HTML parsing completes; classic non-deferred scripts execute synchronously and block parsing immediately as encountered.","source":"web","provider":"websearch","confidence":"MEDIUM","fetched_at":"2026-07-24T06:09:39.066Z","ttl":86400000,"kind":"web"}

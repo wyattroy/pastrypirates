@@ -1,0 +1,1 @@
+{"content":"python3 -m http.server (Python 3.9.6, macOS) sends Content-type: text/javascript for .js files by default -- verified directly against this project's scripts/real_game_test.js, no config needed.","source":"web","provider":"websearch","confidence":"HIGH","fetched_at":"2026-07-24T06:09:39.248Z","ttl":86400000,"kind":"web"}
