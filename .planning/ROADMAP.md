@@ -75,7 +75,7 @@ Plans:
   4. Seeded gameplay + replay output is byte-for-byte identical to the Phase 7 golden baseline across the full regression corpus.
   5. Order-load-bearing constants (`DIRS`/`PERP`/`OPPOSITE` and any object literal feeding `this.r()`) are preserved and annotated so iteration order cannot silently change.
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
@@ -84,7 +84,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 08-02-PLAN.md — Shared leaf tier out verbatim (SPLIT-02), three D-06 impurities relocated, `ASSET_BASE` parse hazard defused, 6 order-load-bearing annotations (wave 2)
+- [x] 08-02-PLAN.md — Shared leaf tier out verbatim (SPLIT-02), three D-06 impurities relocated, `ASSET_BASE` parse hazard defused, 6 order-load-bearing annotations (wave 2)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -170,7 +170,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 5. Bot Personalities | v1.0 | — | Complete | 2026-07-24 |
 | 6. End of Voyage Celebration | v1.0 | — | Complete | 2026-07-24 |
 | 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
-| 8. Engine Extraction & Node Harness Migration | v1.1 | 1/5 | In Progress|  |
+| 8. Engine Extraction & Node Harness Migration | v1.1 | 2/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 0/TBD | Not started | - |
 | 10. App State & De-globalization | v1.1 | 0/TBD | Not started | - |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/TBD | Not started | - |

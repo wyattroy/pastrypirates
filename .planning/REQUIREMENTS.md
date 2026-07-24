@@ -26,10 +26,10 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 
 ### Engine & Replay Hardening (ENGINE)
 
-- [ ] **ENGINE-01**: The engine module is pure — no DOM, `window`, Firebase, or wall-clock/unseeded-random access; the 3 asset/DOM bootstrapping touches currently inside the engine region are relocated out
+- [x] **ENGINE-01**: The engine module is pure — no DOM, `window`, Firebase, or wall-clock/unseeded-random access; the 3 asset/DOM bootstrapping touches currently inside the engine region are relocated out
 - [x] **ENGINE-02**: Node test harnesses import the engine module natively (retiring the current `vm`/string-slice extraction of `index.html`), landing in the same commit as engine extraction
 - [x] **ENGINE-03**: Seeded gameplay + replay output is byte-for-byte identical to the pre-refactor baseline across the regression corpus
-- [ ] **ENGINE-04**: Order-load-bearing constants (DIRS/PERP/OPPOSITE and any object literal feeding `this.r()`) are preserved and annotated so iteration order cannot silently change
+- [x] **ENGINE-04**: Order-load-bearing constants (DIRS/PERP/OPPOSITE and any object literal feeding `this.r()`) are preserved and annotated so iteration order cannot silently change
 
 ### Networking Cleanup (NET)
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SPLIT-04 | Phase 9 | Pending |
 | SPLIT-05 | Phase 11 | Pending |
 | SPLIT-06 | Phase 11 | Pending |
-| ENGINE-01 | Phase 8 | Pending |
+| ENGINE-01 | Phase 8 | Complete |
 | ENGINE-02 | Phase 8 | Complete |
 | ENGINE-03 | Phase 8 | Complete |
-| ENGINE-04 | Phase 8 | Pending |
+| ENGINE-04 | Phase 8 | Complete |
 | NET-01 | Phase 9 | Pending |
 | NET-02 | Phase 9 | Pending |
 | NET-03 | Phase 9 | Pending |

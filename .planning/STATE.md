@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 8
 current_phase_name: Engine Extraction & Node Harness Migration
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-07-24T15:22:33.028Z"
+stopped_at: Completed 08-02-PLAN.md (Task 1 code motion + commit); Task 2 automated checks pass, Chrome browser check outstanding — needs Chrome MCP/Wyatt
+last_updated: "2026-07-24T15:33:12.355Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 8 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 8 execution started
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [█████░░░░░] 50%
 | Phase 07 P01 | 15 | 2 tasks | 36 files |
 | Phase 07 P02 | 15 | 3 tasks | 5 files |
 | Phase 08 P01 | 25 | 2 tasks | 5 files |
+| Phase 08 P02 | 20 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase ?]: engineSourceHash baseline recorded: 15ad68996befca5130ba11b0cf79d59b0d871956cc11ab961fe32add384d874a — Phase 8 should expect SOURCE classification 'moved, behavior identical' post-extraction, not 'unchanged'.
 - [Phase ?]: Phase 7 Plan 2: no deviations — module-loading contract landed exactly as CONTEXT.md's D-13..D-22 specified; all six critical invariants (attribute-less script count, Firebase ordering, engine-region hash, MIME serving, doc content) held on first pass.
 - [Phase ?]: Phase 8 Plan 1: Assumption A1 (Object.assign(globalThis, PP) bare-identifier resolution) confirmed by execution in Chrome — mulberry32 and rollStorm moved verbatim through the window.PP bridge, both an early call site (Game constructor) and a corpus-blind one (live turn loop's rollStorm/PERP second-gust mechanic) resolve correctly with a clean console. Plans 08-02 through 08-05 may proceed on the bridge mechanism.
+- [Phase ?]: Phase 8 Plan 2: mechanical (Node-script) extraction over manual retyping for the ~950-line Unicode-dense shared tier, byte-verified via diff before writing to disk
+- [Phase ?]: Phase 8 Plan 2: six ORDER IS LOAD-BEARING annotations added (DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, TET) with construct-specific mechanism reasons, not a repeated generic sentence
 
 ### Pending Todos
 
@@ -89,6 +92,7 @@ None yet.
 - `<script type="module">` is always deferred — Firebase compat CDN tags must stay classic scripts loaded before the module entry (Phase 7, FOUND-03) to avoid an init race.
 - De-globalization (Phase 10) can silently break the 41 inline `onclick` handlers — needs an upfront handler audit and a click-through checklist.
 - Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
+- Phase 8 Plan 2 Task 2: Chrome browser smoke check (window.__pp_boot_count===1, __pp_module_ok, clean console, emoji-art swap, recipe modal art) not yet run — this executor lacks browser-automation tooling. Automated portion (server cwd/port confirmed on 8777, determinism --verify, git status clean) already passes. Needs Chrome MCP or Wyatt to complete before Phase 8's D-17 requirement is fully satisfied.
 
 ## Deferred Items
 
@@ -102,8 +106,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T15:22:33.008Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-07-24T15:33:12.344Z
+Stopped at: Completed 08-02-PLAN.md (Task 1 code motion + commit); Task 2 automated checks pass, Chrome browser check outstanding — needs Chrome MCP/Wyatt
 Resume file: None
 
 ## Operator Next Steps
