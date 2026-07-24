@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monolith Refactor
-current_phase: 8
-current_phase_name: Engine Extraction & Node Harness Migration
+current_phase: 9
+current_phase_name: Networking Layer & Watcher Cleanup
 status: executing
-stopped_at: Completed 08-05-PLAN.md
-last_updated: "2026-07-24T17:17:15.340Z"
+stopped_at: Completed 09-01-PLAN.md Tasks 1-2 (registry, watchers, unit test); Task 3 live-browser probe handed back (no browser tool available)
+last_updated: "2026-07-24T17:43:10.593Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 8 execution started
+last_activity_desc: Phase 9 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 8 — Engine Extraction & Node Harness Migration
+**Current focus:** Phase 9 — Networking Layer & Watcher Cleanup
 
 ## Current Position
 
-Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
-Plan: 5 of 5
+Phase: 9 (Networking Layer & Watcher Cleanup) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-07-24 — Phase 8 execution started
+Last activity: 2026-07-24 — Phase 9 execution started
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 69%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [██████████] 100%
 | Phase 08 P03 | 35min | 2 tasks | 5 files |
 | Phase 08 P04 | ~40min | 2 tasks | 3 files |
 | Phase 08 P05 | 45min | 2 tasks | 3 files |
+| Phase 09 P01 | ~70min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 08-05: engineSourceHash re-based via a dedicated gated tool (scripts/rebase_source_hash.js), never --capture; landed as its own commit per D-02
 - [Phase ?]: 08-05: minimally factored determinism_baseline.js's comparison-2 helpers (export, no logic change) so the re-base tool reuses the oracle's own comparison rather than reimplementing it; disclosed as a separate refactor commit
 - [Phase ?]: 08-05: Chrome-verified the classic live turn loop's corpus-blind storm/second-gust path (game.r(), rollStorm, PERP, DIRS) still works with the engine outside index.html, closing the coverage gap 08-03 recorded
+- [Phase ?]: 09-01: added a registry-routed cross-instance test (isolated-backing fake) beyond the plan's literal case list, because the original shared-backing-fake case cannot be made to fail by any registry.js change and AC 8 requires it to be
+- [Phase ?]: 09-01: deliberately did not mark SPLIT-04/NET-01/NET-02/NET-03 complete in REQUIREMENTS.md — only 3 of 18 watchers migrated and NET-03's live-browser proof (Task 3) is unperformed
 
 ### Pending Todos
 
@@ -102,6 +105,7 @@ None yet.
 - `<script type="module">` is always deferred — Firebase compat CDN tags must stay classic scripts loaded before the module entry (Phase 7, FOUND-03) to avoid an init race.
 - De-globalization (Phase 10) can silently break the 41 inline `onclick` handlers — needs an upfront handler audit and a click-through checklist.
 - Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
+- 09-01 Task 3 (live-browser NET-03 same-tab attach/detach/re-attach probe) not performed — no browser-automation tool available to the executor. Dev server confirmed running on port 8777. A human or browser-capable agent must complete the 8 steps documented in 09-01-SUMMARY.md's 'Task 3: NOT Performed — Handed Back' section before NET-03 can be marked satisfied.
 
 ## Deferred Items
 
@@ -115,8 +119,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T16:12:42.305Z
-Stopped at: Completed 08-05-PLAN.md
+Last session: 2026-07-24T17:43:10.587Z
+Stopped at: Completed 09-01-PLAN.md Tasks 1-2 (registry, watchers, unit test); Task 3 live-browser probe handed back (no browser tool available)
 Resume file: None
 
 ## Operator Next Steps

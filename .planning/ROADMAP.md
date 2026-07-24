@@ -110,7 +110,13 @@ Plans:
   3. A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally by a reconnect-and-count check — not code review alone.
   4. A multiplayer game across two browser tabs still syncs deterministically after the extraction (host + guest smoke test passes).
 
-**Plans**: TBD
+**Plans**: 1/5 plans executed
+
+- [x] 09-01-PLAN.md
+- [ ] 09-02-PLAN.md
+- [ ] 09-03-PLAN.md
+- [ ] 09-04-PLAN.md
+- [ ] 09-05-PLAN.md
 
 ### Phase 10: App State & De-globalization
 
@@ -171,7 +177,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 6. End of Voyage Celebration | v1.0 | — | Complete | 2026-07-24 |
 | 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
-| 9. Networking Layer & Watcher Cleanup | v1.1 | 0/TBD | Not started | - |
+| 9. Networking Layer & Watcher Cleanup | v1.1 | 1/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 0/TBD | Not started | - |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/TBD | Not started | - |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
