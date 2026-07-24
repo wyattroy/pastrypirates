@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monolith Refactor
-current_phase: 7
-current_phase_name: Foundation & Determinism Baseline
+current_phase: 8
+current_phase_name: Engine Extraction & Node Harness Migration
 status: executing
 stopped_at: "Phase 7 waves 1-2 complete and verified; wave 3 (07-03) awaiting Wyatt's Safari sign-off. Chrome half verified by Claude: __pp_module_ok===true, typeof firebase==='object', console clean through load + play. Dev server left running on port 8777 (ports 8000/8001 held by stale servers from other worktrees)."
-last_updated: "2026-07-24T06:59:13.840Z"
+last_updated: "2026-07-24T15:06:22.418Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 7 execution started
+last_activity_desc: Phase 8 execution started
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 3
+  percent: 17
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 7 — Foundation & Determinism Baseline
+**Current focus:** Phase 8 — Engine Extraction & Node Harness Migration
 
 ## Current Position
 
-Phase: 7 (Foundation & Determinism Baseline) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-07-24 — Phase 7 execution started
+Phase: 8 (Engine Extraction & Node Harness Migration) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 8
+Last activity: 2026-07-24 — Phase 8 execution started
 
 Progress: [███████░░░] 67%
 
