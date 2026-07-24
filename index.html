@@ -861,7 +861,7 @@
 
 /* ================= UI ================= */
 const $=id=>document.getElementById(id);
-let game=null,timer=null,logLines=[];
+
 
 function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 // ---- the recipe book: 21 signature pastries, one per 5-of-7 ingredient combination ----
@@ -1148,7 +1148,7 @@ function recipeTitle(recipe){
 // the .prowRecipe row click, via a document-level delegated handler (see wireRecipeModal) since
 // narration/log HTML isn't confined to the #players container .prowRecipe's listener covers
 function winRecipeSpan(idx){
-  const p=game&&game.players&&game.players[idx];
+  const p=appState.game&&appState.game.players&&appState.game.players[idx];
   if(!p||!p.recipe)return "";
   return `<span class="narrRecipeLink" data-idx="${idx}">📜 ${escHtml(recipeTitle(p.recipe))}</span>`;
 }
@@ -1198,7 +1198,7 @@ function wireRecipeModal(){
     const el=e.target.closest(".prowRecipe");
     if(!el||!el.textContent)return;
     const idx=+el.id.replace("prowRecipe","");
-    const p=game&&game.players&&game.players[idx];
+    const p=appState.game&&appState.game.players&&appState.game.players[idx];
     if(p&&p.recipe)openRecipeModal(p.recipe);
   });
   // win-narration recipe link: not confined to #players (it renders in the narration panel and
@@ -1207,7 +1207,7 @@ function wireRecipeModal(){
     const el=e.target.closest(".narrRecipeLink");
     if(!el)return;
     const idx=+el.dataset.idx;
-    const p=game&&game.players&&game.players[idx];
+    const p=appState.game&&appState.game.players&&appState.game.players[idx];
     if(p&&p.recipe)openRecipeModal(p.recipe);
   });
   $("btnRecipePdf").onclick=()=>{window.print();};
@@ -1223,8 +1223,8 @@ function wireRecipeModal(){
 // (the human, from its own point of view) always sits at the top — falls back to raw seat index
 // before turnOrder is known yet (briefly, at the very start of a game)
 function seatDisplayOrder(){
-  const n=game.players.length;
-  if(!appState.turnOrder||appState.turnOrder.length!==n)return game.players.map((_,i)=>i);
+  const n=appState.game.players.length;
+  if(!appState.turnOrder||appState.turnOrder.length!==n)return appState.game.players.map((_,i)=>i);
   const startPos=Math.max(0,appState.turnOrder.indexOf(appState.mySeat));
   return appState.turnOrder.slice(startPos).concat(appState.turnOrder.slice(0,startPos));
 }
@@ -1234,7 +1234,7 @@ function buildPlayerRows(){
   for(const i of order){
     const s=(appState.roster&&appState.roster[i])||{};
     const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
-                   : `🤖 bot (${s.strat||game.cfg.strategies[i]})`;
+                   : `🤖 bot (${s.strat||appState.game.cfg.strategies[i]})`;
     const displayName=pname(i);
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
       <div class="prowTop">
@@ -1342,7 +1342,7 @@ function roundedPathFromLoop(loop,r){
 let cell=0,shipEls=[],activeRing=null,spinNeedle=null,stormText=null,stormDial=null,windLabels=[];
 function drawBoard(){
   const svg=$("board");svg.innerHTML="";
-  const n=game.cfg.grid,W=640;cell=W/n;
+  const n=appState.game.cfg.grid,W=640;cell=W/n;
   // custom board art (ocean + Isle of Tortuga + its docks baked in) sits behind everything.
   // `grid` draws the functional cell boundaries on top of it: open water is outline-only
   // (fully transparent fill) and the trade-wind channel gets a light 10%-black tint so its
@@ -1353,17 +1353,17 @@ function drawBoard(){
   const grid=el("g",{},svg);
   const home=el("g",{},svg);
   boardImg.addEventListener("load",()=>{home.style.display="none";});
-  if(game.isRound){
+  if(appState.game.isRound){
     svg.style.background="transparent";
-    for(const k of game.valid){
+    for(const k of appState.game.valid){
       const [x,y]=k.split(",").map(Number);
-      const rimC=game.rim.has(k);
+      const rimC=appState.game.rim.has(k);
       el("rect",{x:x*cell,y:y*cell,width:cell,height:cell,
         fill:rimC?"#000000":"none","fill-opacity":rimC?.1:0,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
     }
     // flow arrows on every channel square (clockwise), a swirl icon at each quadrant's drop-off
-    const headKeys=new Set(Object.values(game.rimHead).map(h=>h[0]+","+h[1]));
-    for(const c of game.rimCellInfo||[]){
+    const headKeys=new Set(Object.values(appState.game.rimHead).map(h=>h[0]+","+h[1]));
+    for(const c of appState.game.rimCellInfo||[]){
       const cx=(c.x+.5)*cell,cy=(c.y+.5)*cell;
       if(headKeys.has(c.k)){
         iconAt(svg,cx,cy,cell,TRADE_SWIRL_IMG);
@@ -1381,7 +1381,7 @@ function drawBoard(){
   }
   // home: Isle of Tortuga is a 1-square island with 4 docks (N/S/E/W). The island tile itself
   // is baked into board.png, but the 4 berths around it aren't — those always render for real.
-  const [hx,hy]=game.home;
+  const [hx,hy]=appState.game.home;
   el("rect",{x:hx*cell+2,y:hy*cell+2,width:cell-4,height:cell-4,rx:cell*.3,
     fill:"#fef48b",stroke:"#f5a623","stroke-width":2},home);
   iconAt(home,(hx+.5)*cell,(hy+.5)*cell,cell*.7,ANCHOR_IMG);
@@ -1401,8 +1401,8 @@ function drawBoard(){
   }
   // islands (arbitrary polyomino shapes): fused cell fills + a single union outline
   const defs=el("defs",{},svg);
-  for(const ing of game.ings){
-    const cells=game.islandRect[ing];
+  for(const ing of appState.game.ings){
+    const cells=appState.game.islandRect[ing];
     const loops=tracePolygonLoops(cells);
     const clipId=`islandClip_${ing}`;
     const clipPath=el("clipPath",{id:clipId},defs);
@@ -1414,7 +1414,7 @@ function drawBoard(){
     // custom island art: authored once per canonical shape (see ISLAND_SHAPE_IMG/TET above) and
     // placed with the same rotate/mirror the board used, then clipped to the island's own rounded
     // outline — so hand-drawn art doesn't need rounded corners or to know its own orientation.
-    const placement=islandArtPlacement(game.islandShapeMeta[ing],cells);
+    const placement=islandArtPlacement(appState.game.islandShapeMeta[ing],cells);
     if(placement){
       const clipG=el("g",{"clip-path":`url(#${clipId})`},svg);
       const artG=el("g",{transform:placement.transform},clipG);
@@ -1422,9 +1422,9 @@ function drawBoard(){
     }
     // dock is drawn before the crate icons below so it always sits underneath them — it
     // stretches to the shared edge with the island and would otherwise occlude a crate there
-    if(game.cfg.singleDock){
-      const d=game.dockOf[ing];
-      const adj=Object.values(DIRS).find(dd=>game.islands[[d[0]+dd[0],d[1]+dd[1]]]===ing);
+    if(appState.game.cfg.singleDock){
+      const d=appState.game.dockOf[ing];
+      const adj=Object.values(DIRS).find(dd=>appState.game.islands[[d[0]+dd[0],d[1]+dd[1]]]===ing);
       // faces the island, and centered on the shared edge between the dock cell and the island
       // so it visually stretches to meet it rather than sitting centered in open water
       const{rot:dockRotDeg,flip:dockFlip}=adj?dockOrient(adj):{rot:0,flip:false};
@@ -1434,8 +1434,8 @@ function drawBoard(){
     }
     // one big icon per remaining crate, one per island square — a taken crate turns fully
     // grey in place rather than shrinking to a count badge, so the whole island reads at a glance
-    if(game.cfg.crates<1e9){
-      cells.slice(0,game.cfg.crates).forEach((c,idx)=>{
+    if(appState.game.cfg.crates<1e9){
+      cells.slice(0,appState.game.cfg.crates).forEach((c,idx)=>{
         const scx=(c[0]+.5)*cell,scy=(c[1]+.5)*cell;
         const g=iconAt(svg,scx,scy,cell*.8,ING_IMG[ing]);
         g.id=`crate_${ing}_${idx}`;
@@ -1481,15 +1481,15 @@ function drawBoard(){
       style:`animation-delay:${i*.6}s`},activeRing);
   // ships
   shipEls=[];
-  game.players.forEach((p,i)=>{
+  appState.game.players.forEach((p,i)=>{
     const g=el("g",{style:"transition: transform .35s cubic-bezier(.42,0,.58,1)"},svg);
     const boatSize=cell;
     el("image",{x:-boatSize/2,y:-boatSize/2,width:boatSize,height:boatSize,href:BOAT_IMG[i]},g);
     shipEls.push(g);
   });
   // seat the ships on their Isle of Tortuga docks right away, before the first event renders
-  game.players.forEach((p,i)=>{
-    const [x,y]=shipXY(p.pos,i,game.players);
+  appState.game.players.forEach((p,i)=>{
+    const [x,y]=shipXY(p.pos,i,appState.game.players);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
   });
 }
@@ -1589,7 +1589,7 @@ const EVENT_NARRATION={
       pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
   // notes/edits NARR-02: name the cooperation bonus rather than leaving a bare "(+1🌕 each)"
-  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':""}`,
+  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${appState.game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':""}`,
     caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
     pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]}),
   sidebet:e=>e.won?{cls:"trade",txt:`🔭 ${pn(e.p)} called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`}
@@ -1616,9 +1616,9 @@ const EVENT_NARRATION={
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
-  fish:(e,at)=>({txt:`${pn(e.p)} casts a line, ${e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"comes up empty-handed")}`,
-    caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
-    pops:[[at(e.p),e.heads?"🐠":(game.cfg.sardine?"🦀":"🎣")]]}),
+  fish:(e,at)=>({txt:`${pn(e.p)} casts a line, ${e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(appState.game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"comes up empty-handed")}`,
+    caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(appState.game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
+    pops:[[at(e.p),e.heads?"🐠":(appState.game.cfg.sardine?"🦀":"🎣")]]}),
   finish:(e,at)=>({cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
   shotclock:e=>({cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
@@ -1651,7 +1651,7 @@ function describe(e){
 // any real reset reassigns logLines directly (see the two `logLines=[...]` resets) rather than
 // going through this path.
 function syncLogLines(){
-  for(let i=logLines.length;i<game.events.length;i++)logLines.push(describe(game.events[i]));
+  for(let i=appState.logLines.length;i<appState.game.events.length;i++)appState.logLines.push(describe(appState.game.events[i]));
 }
 
 /* ---------- playback ---------- */
@@ -1690,14 +1690,14 @@ function buildStormLayers(ov){
   }
 }
 function render(){
-  const e=game.events[appState.evIdx];if(!e)return;
+  const e=appState.game.events[appState.evIdx];if(!e)return;
   const st=e.state;
   // recipes are secret: only the local human's own recipe target is revealed.
   // in a spectator-only game (no human seat, e.g. a bot-vs-bot design test) everything stays visible.
-  const humanIdxs=game.players.map((p,i)=>p.strategy==="human"?i:-1).filter(i=>i>=0);
+  const humanIdxs=appState.game.players.map((p,i)=>p.strategy==="human"?i:-1).filter(i=>i>=0);
   const youIdx=humanIdxs.length===1?humanIdxs[0]:-1;
   const spectator=humanIdxs.length===0;
-  game.players.forEach((p,i)=>{
+  appState.game.players.forEach((p,i)=>{
     const [x,y]=shipXY(st[i].pos,i,st);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     shipEls[i].style.opacity=st[i].done?.45:1;
@@ -1715,10 +1715,10 @@ function render(){
     const canReveal=spectator||(i===appState.mySeat&&(!appState.passAndPlay||appState.recipeRevealed));
     const offerCheckBtn=appState.passAndPlay&&i===appState.mySeat&&i===appState.activeTurnSeat&&!appState.recipeRevealed;
     if(canReveal){
-      $("prowRecipe"+i).innerHTML=`${iconImg(SCROLL_IMG)} ${recipeTitle(game.players[i].recipe)}`;
+      $("prowRecipe"+i).innerHTML=`${iconImg(SCROLL_IMG)} ${recipeTitle(appState.game.players[i].recipe)}`;
       $("prowRecipe"+i).classList.add("hasRecipe");
       // recipe chips consume one matching crate each; every leftover crate is surplus cargo
-      const chips=game.players[i].recipe.map(ing=>{
+      const chips=appState.game.players[i].recipe.map(ing=>{
         const k=hold.indexOf(ing);
         const have=k>=0;
         if(have)hold.splice(k,1);
@@ -1738,14 +1738,14 @@ function render(){
     }
     if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
     chipsEl.innerHTML=newChipsHtml;
-    const lastEv=game.events[game.events.length-1];
-    $("crown"+i).innerHTML=(lastEv.t==="end"&&lastEv.winner===i&&appState.evIdx===game.events.length-1)?iconImg(CROWN_IMG):"";
+    const lastEv=appState.game.events[appState.game.events.length-1];
+    $("crown"+i).innerHTML=(lastEv.t==="end"&&lastEv.winner===i&&appState.evIdx===appState.game.events.length-1)?iconImg(CROWN_IMG):"";
   });
   // active-player ring + captain's-box highlight: whose turn is it as of this event?
   let active=null;
   for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=game.events[i].t;
-    if(t==="turn"){active=game.events[i].p;break;}
+    const t=appState.game.events[i].t;
+    if(t==="turn"){active=appState.game.events[i].p;break;}
     if(t==="newround")break;
   }
   if(active!=null&&st[active].done)active=null;
@@ -1756,12 +1756,12 @@ function render(){
       activeRing.setAttribute("opacity",1);
     }else activeRing.setAttribute("opacity",0);
   }
-  game.players.forEach((p,i)=>{
+  appState.game.players.forEach((p,i)=>{
     const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
   });
-  if(game.cfg.crates<1e9)for(const ing of game.ings){
+  if(appState.game.cfg.crates<1e9)for(const ing of appState.game.ings){
     const remaining=e.tokens[ing];
-    for(let idx=0;idx<game.cfg.crates;idx++){
+    for(let idx=0;idx<appState.game.cfg.crates;idx++){
       const ic=document.getElementById(`crate_${ing}_${idx}`);if(!ic)continue;
       const taken=idx>=remaining;
       const img=ic.querySelector("image");
@@ -1799,7 +1799,7 @@ function render(){
   $("scrub").value=appState.evIdx;
   renderLog();
   // end stats
-  if(appState.evIdx===game.events.length-1&&(!appState.live||appState.liveDone))showStats();
+  if(appState.evIdx===appState.game.events.length-1&&(!appState.live||appState.liveDone))showStats();
   else $("statsWrap").style.display="none";
 }
 let logRenderedTo=-1;
@@ -1808,11 +1808,11 @@ function renderLog(){
   const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<50;
   if(appState.evIdx===logRenderedTo+1){
     const prev=box.querySelector(".line.cur");if(prev)prev.classList.remove("cur");
-    const L=logLines[appState.evIdx];
+    const L=appState.logLines[appState.evIdx];
     if(L){const d=document.createElement("div");d.className="line "+(L.cls||"")+" cur";d.innerHTML=L.txt;box.appendChild(d);}
   }else if(appState.evIdx!==logRenderedTo){
     let html="";
-    for(let i=0;i<=appState.evIdx;i++){const L=logLines[i];if(!L)continue;
+    for(let i=0;i<=appState.evIdx;i++){const L=appState.logLines[i];if(!L)continue;
       html+=`<div class="line ${L.cls||""} ${i===appState.evIdx?"cur":""}">${L.txt}</div>`;}
     box.innerHTML=html;
   }
@@ -1828,7 +1828,7 @@ function renderLog(){
 // screen-center of the crate for ingredient `ing` on its home island, so a lost crate can
 // visibly splash back where it came from (see #5/#6). Null-safe before the board is built.
 function islandXY(ing){
-  const isl=(typeof game!=="undefined"&&game&&game.islandOf)?game.islandOf[ing]:null;
+  const isl=(typeof appState.game!=="undefined"&&appState.game&&appState.game.islandOf)?appState.game.islandOf[ing]:null;
   return isl?[(isl[0]+.5)*cell,(isl[1]+.5)*cell]:null;
 }
 function popEmoji(x,y,emo,big,imgHref,cls){
@@ -1869,7 +1869,7 @@ function captions(e){
 // is reconstructed here from every individual coin flip embedded in dock/fish/anchor/aground/
 // battle-round events, in chronological order.
 function computeAwards(){
-  const n=game.players.length;
+  const n=appState.game.players.length;
   const mk=()=>Array(n).fill(0);
   const battlesWon=mk(),battlesLost=mk(),timesAttacked=mk(),fishCount=mk(),dist=mk(),
     trades=mk(),shotClockCount=mk(),longestBattle=mk(),hottestStreak=mk(),streak=mk();
@@ -1878,8 +1878,8 @@ function computeAwards(){
     if(heads){streak[i]++;if(streak[i]>hottestStreak[i])hottestStreak[i]=streak[i];}
     else streak[i]=0;
   };
-  let prevPos=game.players.map(()=>null);
-  for(const e of game.events){
+  let prevPos=appState.game.players.map(()=>null);
+  for(const e of appState.game.events){
     if(e.t==="battle"||e.t==="battleflee"){
       // #5: a fought-then-fled battle still counts toward game.battles, so it must count in the
       // per-player battle stats too (it was a real attack with real rounds) — only the clean
@@ -1931,8 +1931,8 @@ const FALLBACK_BADGE={img:"anchor",name:"Good Mate",byline:"Pirated for the love
 // still-available badge. A captain who can't claim any stat (all zero) gets a flavor fallback.
 function assignBadges(){
   const s=computeAwards();
-  const arrs=Object.assign({},s,{tails:game.players.map(p=>(p.flips||0)-(p.heads||0))});
-  const n=game.players.length;
+  const arrs=Object.assign({},s,{tails:appState.game.players.map(p=>(p.flips||0)-(p.heads||0))});
+  const n=appState.game.players.length;
   const cands=[];
   for(const def of BADGE_POOL){
     const arr=arrs[def.key];if(!arr)continue;
@@ -1944,8 +1944,8 @@ function assignBadges(){
     if(bySeat[c.seat]!==undefined||usedCat.has(c.def.key))continue;
     bySeat[c.seat]=c;usedCat.add(c.def.key);
   }
-  for(let i=0;i<n;i++)if(bySeat[i]===undefined)bySeat[i]={seat:i,def:FALLBACK_BADGE,value:game.players[i].ing.length};
-  return game.players.map((p,i)=>bySeat[i]); // one per captain, in seat order
+  for(let i=0;i<n;i++)if(bySeat[i]===undefined)bySeat[i]={seat:i,def:FALLBACK_BADGE,value:appState.game.players[i].ing.length};
+  return appState.game.players.map((p,i)=>bySeat[i]); // one per captain, in seat order
 }
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
 // a little celebration flourish, purely cosmetic (doesn't touch game state)
@@ -1970,7 +1970,7 @@ function celebrateHomeDocks(){
 // the victory land as a real moment. Purely cosmetic (uses popEmoji, the same board-pop system
 // every event already uses), so it touches no game state and is safe during replay/spectate.
 function victoryConfetti(winner){
-  const st=game.events[game.events.length-1]&&game.events[game.events.length-1].state;
+  const st=appState.game.events[appState.game.events.length-1]&&appState.game.events[appState.game.events.length-1].state;
   const treats=[["🥐",CROISSANT_IMG],["🍰",CAKE_SLICE_IMG],["🍩",DONUT_IMG],["🧁",CUPCAKE_IMG],["🌕",COIN_IMG],["👑",CROWN_IMG]];
   let cx=null,cy=null;
   if(st&&st[winner]){const [x,y]=shipXY(st[winner].pos,winner,st);cx=x;cy=y-cell*.42;}
@@ -1985,11 +1985,11 @@ function victoryConfetti(winner){
 function showStats(){
   $("statsWrap").style.display="";
   celebrateHomeDocks();
-  const w=game.winner;
+  const w=appState.game.winner;
   const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
   // notes/edits EOV-02: the winner's recipe image is NOT shown here anymore — it lives in the one-off
   // victory box (see endLive), so the End of Voyage summary isn't doubling it up.
-  const luck=game.players.map(p=>p.flips?(p.heads/p.flips):0);
+  const luck=appState.game.players.map(p=>p.flips?(p.heads/p.flips):0);
   // notes/edits EOV-04: one keepsake per captain (see assignBadges) — emblem, pirate name + byline,
   // the captain (big, colored, no seat dot) filling the card above a rule, and the stat beneath it.
   const badges=assignBadges();
@@ -2004,11 +2004,11 @@ function showStats(){
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
     <div class="awardsRow">${awards}</div>
     <table>
-    <tr><td>Rounds</td><td>${game.round}</td></tr>
-    <tr><td>Battles</td><td>${game.battles} (attacker won ${game.battles?Math.round(100*game.attWins/game.battles):0}%)</td></tr>
-    <tr><td>Trades</td><td>${game.trades}</td></tr>
-    <tr><td>Bakeoff</td><td>${game.finishOrder.length>1?"yes — "+game.finishOrder.length+" finishers":"no"}</td></tr>
-    ${game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
+    <tr><td>Rounds</td><td>${appState.game.round}</td></tr>
+    <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
+    <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
+    <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?"yes — "+appState.game.finishOrder.length+" finishers":"no"}</td></tr>
+    ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
     </table>`;
 }
 /* ================= LIVE (human) MODE — networked ================= */
@@ -2071,19 +2071,19 @@ async function botBeat(){liveRender();await narrateCurrent();}
 // keep the yellow action panel in step with the bot's latest move — liveRender only
 // updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
 async function narrateCurrent(){
-  const e=game.events[appState.evIdx];if(!e)return;
+  const e=appState.game.events[appState.evIdx];if(!e)return;
   if(e.t==="turn"){await flash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
   // settleSideBets() already flashed one aggregate message covering every bettor — skip the
   // duplicate individual re-narration (same reasoning as narrateLastEvent()).
   if(e.t==="sidebet")return;
-  const L=logLines[appState.evIdx];if(L)await flash(L.txt);
+  const L=appState.logLines[appState.evIdx];if(L)await flash(L.txt);
 }
 function setActor(s){appState.curSeat=s;}
 function seatLocal(s){return s===appState.mySeat;}
 // pass & play: every human seat shares this one browser, so any human seat resolves locally
 // regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
 // remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).
-function decisionIsLocal(s){return (appState.passAndPlay&&game.players[s].strategy==="human")||seatLocal(s);}
+function decisionIsLocal(s){return (appState.passAndPlay&&appState.game.players[s].strategy==="human")||seatLocal(s);}
 
 // ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
 // The flippenator coin doubles as its own button — no separate FLIP button — so this sets
@@ -2158,7 +2158,7 @@ function rearmShotClock(p){
   appState.shotClockTimer=setInterval(shotClockTick,500);
 }
 // solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
-function soloBotGame(){return game&&game.players&&game.players.filter(p=>p.strategy==="human").length<=1;}
+function soloBotGame(){return appState.game&&appState.game.players&&appState.game.players.filter(p=>p.strategy==="human").length<=1;}
 // works any time in solo play, not just on your own turn — shotClockPaused doubles as the
 // whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
 // actually freezes the bots instead of just a countdown that isn't running yet.
@@ -2211,7 +2211,7 @@ function watchTimer(){
       // shotClockSeat==null is what prevents double-arming: this callback fires on EVERY client
       // for every write, so the host also runs it for a write a guest originated.
       const seat=currentTurnSeat();
-      const p=seat!=null?game.players[seat]:null;
+      const p=seat!=null?appState.game.players[seat]:null;
       if(p&&!p.done)rearmShotClock(p);
     }
     setClockUI();
@@ -2225,11 +2225,11 @@ function shotClockTick(){
   setClockUI();
 }
 function applyShotClockPenalty(){
-  const p=game.players[appState.shotClockSeat];if(!p)return;
-  const others=game.players.filter(q=>q!==p&&!q.done);
+  const p=appState.game.players[appState.shotClockSeat];if(!p)return;
+  const others=appState.game.players.filter(q=>q!==p&&!q.done);
   const take=Math.min(1,p.coins);
   p.coins-=take;others.forEach(q=>q.coins++);
-  game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
+  appState.game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
   narrateLastEvent();
   liveRender();
 }
@@ -2245,7 +2245,7 @@ async function expireShotClock(){
   // still-running tick fires this function again on top of itself and strips a second resource
   // for the same expiry ("snoozing pirates lose their treasure" firing more than once).
   if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
-  const p=game.players[appState.shotClockSeat];
+  const p=appState.game.players[appState.shotClockSeat];
   appState.shotClockSeat=null;
   appState.turnExpired=true;
   // BUG-02: a null resolver here is a real, distinguishable state, not an ordinary no-op — it
@@ -2258,15 +2258,15 @@ async function expireShotClock(){
   if(p){
     let lost;
     if(p.ing.length){
-      const idx=Math.floor(game.r()*p.ing.length);
+      const idx=Math.floor(appState.game.r()*p.ing.length);
       lost=p.ing.splice(idx,1)[0];
-      game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
-      game.ev({t:"shotclockskip",p:p.idx,ing:lost});
+      appState.game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
+      appState.game.ev({t:"shotclockskip",p:p.idx,ing:lost});
       await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — a crate of ${ilabelImg(lost)} tumbles overboard and floats back to its island.`);
     }else{
       const take=Math.min(5,p.coins);
       p.coins-=take;
-      game.ev({t:"shotclockskip",p:p.idx,coins:take});
+      appState.game.ev({t:"shotclockskip",p:p.idx,coins:take});
       await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
     }
     liveRender();
@@ -2281,10 +2281,10 @@ function watchClock(){
 // idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
 // armed for a human decision (ask()), never for a bot's turn.
 function currentTurnSeat(){
-  if(!game||!game.events)return null;
+  if(!appState.game||!appState.game.events)return null;
   for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=game.events[i]&&game.events[i].t;
-    if(t==="turn")return game.events[i].p;
+    const t=appState.game.events[i]&&appState.game.events[i].t;
+    if(t==="turn")return appState.game.events[i].p;
     if(t==="newround")return null;
   }
   return null;
@@ -2330,7 +2330,7 @@ function setClockUI(){
     // label even while a bot is actively moving. Show the same "waiting" copy multiplayer
     // spectators see for a non-active seat instead, so it reads as "something's happening", not idle.
     const activeSeat=currentTurnSeat();
-    const botPlaying=activeSeat!=null&&activeSeat!==appState.mySeat&&!(game.players[activeSeat]&&game.players[activeSeat].done);
+    const botPlaying=activeSeat!=null&&activeSeat!==appState.mySeat&&!(appState.game.players[activeSeat]&&appState.game.players[activeSeat].done);
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
     labelEl.textContent=botPlaying?"waiting":"turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
     return;
@@ -2379,12 +2379,12 @@ setInterval(setClockUI,500);
 
 function liveRender(){
   if(appState.replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
-  appState.evIdx=Math.max(0,game.events.length-1);
-  if(!game.events.length)return;
+  appState.evIdx=Math.max(0,appState.game.events.length-1);
+  if(!appState.game.events.length)return;
   syncLogLines();
-  $("scrub").max=Math.max(0,game.events.length-1);
+  $("scrub").max=Math.max(0,appState.game.events.length-1);
   render();
-  const e=game.events[appState.evIdx];
+  const e=appState.game.events[appState.evIdx];
   spawnPops(e);
   if(appState.isHost)pushEvents();       // broadcast the growing event feed to every other browser
 }
@@ -2612,7 +2612,7 @@ function showChatBubble(i,text){
 // yet, so overwriting the panel would wipe out the very buttons they need to click. Awaits a
 // beat after narrating so the outcome is actually readable before the next thing overwrites it.
 async function narrateLastEvent(){
-  const e=game.events[game.events.length-1];if(!e)return;
+  const e=appState.game.events[appState.game.events.length-1];if(!e)return;
   // settleSideBets() already flashes one aggregate "Lookout's Call settles" message covering
   // every bettor — re-narrating the last individual sidebet event here would just duplicate it.
   if(e.t==="sidebet")return;
@@ -2673,7 +2673,7 @@ function ask(msg,opts,colors,sub){
 // game goes through this, so every decision anyone makes is timed the same way.
 function armClock(seat){
   if(!appState.isHost)return;
-  const p=game.players[seat];if(p)startShotClock(p);
+  const p=appState.game.players[seat];if(p)startShotClock(p);
 }
 // If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
 // force a default answer once 30s run out, instead of the answer waiting forever. A no-op for
@@ -2759,7 +2759,7 @@ async function netIntroBarrier(msg,btnLabel){
   if(appState.replaying)return;
   netBroadcast(msg);
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
-  const humans=game.players.filter(p=>p.strategy==="human");
+  const humans=appState.game.players.filter(p=>p.strategy==="human");
   if(appState.passAndPlay){
     // one device, several humans: nobody is "remote", so read-and-click-through happens in
     // turn, each gated by the same pass-the-device screen every turn hand-off uses
@@ -2798,7 +2798,7 @@ async function humanFlip(p,label,allowBack){
   if(v==="back")return "back";
   broadcastFlip("spin");
   await sleep(340);
-  const h=game.flip(p);
+  const h=appState.game.flip(p);
   broadcastFlip(h?"H":"T");
   // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
   // (short) message's own length instead of a flat timer unrelated to how long it takes to read
@@ -2821,19 +2821,19 @@ async function fishCast(p,label,allowBack){
   }
   broadcastFlip("spin");
   await sleep(spin);
-  const h=game.flip(p);
+  const h=appState.game.flip(p);
   broadcastFlip(h?"H":"T");
   await sleep(Math.max(hold,3000));
   broadcastFlip("wait");
-  if(h)p.coins+=2;else if(game.cfg.sardine)p.coins+=1;
-  game.ev({t:"fish",p:p.idx,heads:h?1:0});
+  if(h)p.coins+=2;else if(appState.game.cfg.sardine)p.coins+=1;
+  appState.game.ev({t:"fish",p:p.idx,heads:h?1:0});
   liveRender();
   return h;
 }
 // Dijkstra over the wind-weighted grid: with-the-wind steps cost 2, across cost 3, against
 // cost 4 (see windStepCost/#7) — returns every cell reachable within this turn's sail budget.
 function reachable(p){
-  const budget=game.sailBudget(p);
+  const budget=appState.game.sailBudget(p);
   const best={[p.pos[0]+","+p.pos[1]]:0},frontier=[[p.pos,0]],out=[];
   while(frontier.length){
     let mi=0;
@@ -2843,16 +2843,16 @@ function reachable(p){
     const isStart=c[0]===p.pos[0]&&c[1]===p.pos[1];
     if(!isStart){
       // you may sail PAST other ships, but not end your move on one
-      const occupied=game.players.some(q=>q!==p&&!q.done&&q.pos[0]===c[0]&&q.pos[1]===c[1]);
+      const occupied=appState.game.players.some(q=>q!==p&&!q.done&&q.pos[0]===c[0]&&q.pos[1]===c[1]);
       if(!occupied)out.push(c);
     }
-    if(game.onRim(c)&&!isStart)continue; // entering the trade winds ends your move
+    if(appState.game.onRim(c)&&!isStart)continue; // entering the trade winds ends your move
     for(const dk of Object.keys(DIRS)){
       const dd=DIRS[dk];
       const o=[c[0]+dd[0],c[1]+dd[1]],ok=o[0]+","+o[1];
-      if(game.blocked(o))continue;
-      if(game.islands[o]!==undefined||game.isHome(o))continue;
-      const nc=cost+windStepCost(game.windNow,dk);
+      if(appState.game.blocked(o))continue;
+      if(appState.game.islands[o]!==undefined||appState.game.isHome(o))continue;
+      const nc=cost+windStepCost(appState.game.windNow,dk);
       if(nc>budget)continue;
       if(best[ok]!==undefined&&best[ok]<=nc)continue;
       best[ok]=nc;
@@ -2915,15 +2915,15 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   const d=DIRS[dirKey];
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
-    if(game.blocked(nx))return;
-    if(game.isHome(nx)){game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
-    const blocker=game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
-    if(blocker){game.ev({t:"blocked",p:p.idx,other:blocker.idx});await narrateLastEvent();liveRender();return;} // another ship holds that square — wind stops short (see #20: surface the "strikes sail" narration)
-    if(game.islands[nx]!==undefined){
-      if(game.moored(p)){game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
+    if(appState.game.blocked(nx))return;
+    if(appState.game.isHome(nx)){appState.game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
+    const blocker=appState.game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
+    if(blocker){appState.game.ev({t:"blocked",p:p.idx,other:blocker.idx});await narrateLastEvent();liveRender();return;} // another ship holds that square — wind stops short (see #20: surface the "strikes sail" narration)
+    if(appState.game.islands[nx]!==undefined){
+      if(appState.game.moored(p)){appState.game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
       // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
       // also hits an island is a free pass, already-paid anchor holding fast
-      if(dodgedOnce.v){game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
+      if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to anchor",value:"pay"});
       // notes/edits #10b: the real tails consequence depends on what this player actually has to
@@ -2940,52 +2940,52 @@ async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         :`${pn(p.idx)}: the storm blows you toward an island! Anchor safely, or flip to take yer chances.`;
       const v=await ask(promptMsg,opts);
       if(appState.turnExpired)return;
-      if(v==="pay"){p.coins--;game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
+      if(v==="pay"){p.coins--;appState.game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
         const h=await humanFlip(p,"Flip to dodge!");
         if(appState.turnExpired)return;
-        if(h)game.ev({t:"anchor",p:p.idx});
+        if(h)appState.game.ev({t:"anchor",p:p.idx});
         // tails with no coins can't "lose half" of nothing — take a crate instead, or if the
         // hold is empty too, the ship is stuck and repairs eat the rest of this turn
-        else if(p.coins>0){p.coins-=Math.max(1,Math.floor(p.coins/2));game.ev({t:"aground",p:p.idx});}
+        else if(p.coins>0){p.coins-=Math.max(1,Math.floor(p.coins/2));appState.game.ev({t:"aground",p:p.idx});}
         else if(p.ing.length){
-          const idx=Math.floor(game.r()*p.ing.length);
+          const idx=Math.floor(appState.game.r()*p.ing.length);
           const lost=p.ing.splice(idx,1)[0];
-          game.tokens[lost]++;
-          game.ev({t:"aground",p:p.idx,ing:lost});
-        }else{p.shipwrecked=true;game.ev({t:"shipwrecked",p:p.idx});}
+          appState.game.tokens[lost]++;
+          appState.game.ev({t:"aground",p:p.idx,ing:lost});
+        }else{p.shipwrecked=true;appState.game.ev({t:"shipwrecked",p:p.idx});}
         await narrateLastEvent();
       }
       dodgedOnce.v=true;
       liveRender();return;
     }
     p.pos=nx;
-    if(game.onRim(nx)){ // swept into the trade winds
-      game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300);}
+    if(appState.game.onRim(nx)){ // swept into the trade winds
+      appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
+      if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300);}
       return;
     }
   }
-  game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
+  appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
 }
 // only ever called during a storm now (see humanTurn) — normal turns don't force-move anyone
 async function humanWind(p){
   setActor(p.idx);
-  const wasDocked=game.adjPort(p)!==null;
+  const wasDocked=appState.game.adjPort(p)!==null;
   const dodgedOnce={v:false};
-  await windLeg(p,game.windNow,2,dodgedOnce,wasDocked);
+  await windLeg(p,appState.game.windNow,2,dodgedOnce,wasDocked);
   if(appState.turnExpired)return;
-  await flash(`⛈️ Now the storm moves you <b>${DIRNAME[game.windNow2]}</b>!`,900);
+  await flash(`⛈️ Now the storm moves you <b>${DIRNAME[appState.game.windNow2]}</b>!`,900);
   if(appState.turnExpired)return;
-  await windLeg(p,game.windNow2,2,dodgedOnce,wasDocked);
+  await windLeg(p,appState.game.windNow2,2,dodgedOnce,wasDocked);
 }
 async function humanDock(p,port){
   setActor(p.idx);
   const ing=port;
   // notes/edits NARR-07: empty island — nothing to flip for, so don't make the player flip. Mirrors
   // the same early-out in Game.doDock; keep the two in step or bots and humans diverge.
-  if(game.tokens[ing]<=0){
-    p.coins+=3;game.ev({t:"dock",p:p.idx,ing,got:"empty"});
+  if(appState.game.tokens[ing]<=0){
+    p.coins+=3;appState.game.ev({t:"dock",p:p.idx,ing,got:"empty"});
     await narrateLastEvent();
     p.firstFlip.add(ing);p.dockedNow.add(ing);
     liveRender();
@@ -2994,16 +2994,16 @@ async function humanDock(p,port){
   const h=await humanFlip(p,`Docking at ${ilabelImg(ing)} — flip!`,true);
   if(h==="back")return "back";
   if(h){
-    game.tokens[ing]--;p.ing.push(ing);game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});
+    appState.game.tokens[ing]--;p.ing.push(ing);appState.game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});
   }else{
     let got="coins";
-    if(game.cfg.dockBuy&&p.coins>=3&&game.tokens[ing]>0){
+    if(appState.game.cfg.dockBuy&&p.coins>=3&&appState.game.tokens[ing]>0){
       const buy=await ask(`Tails! Take 3🌕 — or buy ${ilabelImg(ing)} anyway for 3🌕?`,[
         {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
-      if(buy){p.coins-=3;game.tokens[ing]--;p.ing.push(ing);got="bought";}
+      if(buy){p.coins-=3;appState.game.tokens[ing]--;p.ing.push(ing);got="bought";}
       else p.coins+=3;
     }else p.coins+=3;
-    game.ev({t:"dock",p:p.idx,ing,heads:0,got});
+    appState.game.ev({t:"dock",p:p.idx,ing,heads:0,got});
   }
   await narrateLastEvent();
   p.firstFlip.add(ing);p.dockedNow.add(ing);
@@ -3061,8 +3061,8 @@ function battleSnapshot(o){
   return snap;
 }
 function renderBattleFromSnap(snap,extra){
-  if(!game||!game.players[snap.attIdx]||!game.players[snap.defIdx])return;
-  renderBattle(Object.assign({att:game.players[snap.attIdx],def:game.players[snap.defIdx]},snap,extra||{}));
+  if(!appState.game||!appState.game.players[snap.attIdx]||!appState.game.players[snap.defIdx])return;
+  renderBattle(Object.assign({att:appState.game.players[snap.attIdx],def:appState.game.players[snap.defIdx]},snap,extra||{}));
 }
 function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
@@ -3133,7 +3133,7 @@ function battleAsk(p,o,msg,opts,colors){
 // bank. Players MAY back their call with their own coin for a bigger prize.
 async function collectSideBets(att,def){
   const bets=[],ns=pn;
-  const spectators=game.players.filter(p=>p!==att&&p!==def&&!p.done);
+  const spectators=appState.game.players.filter(p=>p!==att&&p!==def&&!p.done);
   for(const s of spectators){
     if(s.strategy==="human"){
       // The call itself is free and mandatory — no coin of your own at risk. The coin-backing
@@ -3164,8 +3164,8 @@ async function collectSideBets(att,def){
     }else{
       // Bots always call (favoring the fuller purse), and sometimes back it with coin.
       const fav=att.coins>=def.coins?"a":"d";
-      const on=game.r()<.72?fav:(fav==="a"?"d":"a");
-      const amt=(s.coins>=4&&game.r()<.5)?Math.min(2,s.coins):0;
+      const on=appState.game.r()<.72?fav:(fav==="a"?"d":"a");
+      const amt=(s.coins>=4&&appState.game.r()<.5)?Math.min(2,s.coins):0;
       bets.push({idx:s.idx,on,amt});
     }
   }
@@ -3175,12 +3175,12 @@ async function settleSideBets(bets,winSide){
   if(!bets.length)return;
   const parts=[];
   for(const bet of bets){
-    const p=game.players[bet.idx],won=bet.on===winSide;
+    const p=appState.game.players[bet.idx],won=bet.on===winSide;
     // Correct call: Spotter's Bounty (+1) plus doubled stake. Wrong: only a
     // wagered stake sinks — a free call costs nothing.
     const delta=won?1+2*bet.amt:-bet.amt;
     p.coins+=delta;
-    game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
+    appState.game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
     if(delta>0)parts.push(`${pn(bet.idx)} +${delta}🌕`);
     else if(delta<0)parts.push(`${pn(bet.idx)} −${bet.amt}🌕`);
     else parts.push(`${pn(bet.idx)} no bounty`);
@@ -3189,10 +3189,10 @@ async function settleSideBets(bets,winSide){
   await flash("🔭 The Lookout's Call settles — "+parts.join(" · "),1600);
 }
 async function asyncBattle(att,def){
-  const c=game.cfg,need=2;
+  const c=appState.game.cfg,need=2;
   await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()));
   if(c.powder)att.coins-=c.powder;
-  game.battles++;
+  appState.game.battles++;
   const bets=await collectSideBets(att,def);
   let a=0,d=0;
   // notes/edits BATL-01/02: reflips removed (attacker broadside + downwind free reflip both gone).
@@ -3203,8 +3203,8 @@ async function asyncBattle(att,def){
     const dx=def.pos[0]-att.pos[0],dy=def.pos[1]-att.pos[1];
     const dirAtoD=Object.keys(DIRS).find(k=>DIRS[k][0]===dx&&DIRS[k][1]===dy);
     const dirDtoA=Object.keys(DIRS).find(k=>DIRS[k][0]===-dx&&DIRS[k][1]===-dy);
-    if(game.windNow===dirAtoD)downwind="a";
-    else if(game.windNow===dirDtoA)downwind="d";
+    if(appState.game.windNow===dirAtoD)downwind="a";
+    else if(appState.game.windNow===dirDtoA)downwind="d";
   }
   let fled=false;
   const rounds=[];
@@ -3225,7 +3225,7 @@ async function asyncBattle(att,def){
       label,[{label:"🌕 FLIP!",value:1,flip:true}]);
     broadcastFlip("spin");
     await sleep(spin);
-    const h=game.flip(p);
+    const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
@@ -3240,7 +3240,7 @@ async function asyncBattle(att,def){
     renderBattle(base(Object.assign({live:side,[key]:"wait"},extra)));
     broadcastFlip("spin");
     await sleep(spin);
-    const h=game.flip(p);
+    const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     await sleep(300);
     broadcastFlip("wait");
@@ -3308,11 +3308,11 @@ async function asyncBattle(att,def){
         if(flee){
           def.coins--;
           const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
-          if(dest){def.pos=dest;game.tradewind(def);}
-          for(const bet of bets)game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
+          if(dest){def.pos=dest;appState.game.tradewind(def);}
+          for(const bet of bets)appState.game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
           fled=true;
-          game.recordSkirmish(att,def,null); // fleeing settles nothing, but cools "rich" re-triggers
-          game.ev({t:"battleflee",a:att.idx,d:def.idx,rounds});
+          appState.game.recordSkirmish(att,def,null); // fleeing settles nothing, but cools "rich" re-triggers
+          appState.game.ev({t:"battleflee",a:att.idx,d:def.idx,rounds});
           liveRender();
           break;
         }
@@ -3325,7 +3325,7 @@ async function asyncBattle(att,def){
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netRemoveBattle(appState.db,appState.room,netFail("battle clear"));
   if(fled)return;
   const win=a>=need?att:def,lose=a>=need?def:att;
-  if(win===att)game.attWins++;
+  if(win===att)appState.game.attWins++;
   let spoil,spoilIng=null;
   if(c.asym&&lose===att){
     const take=Math.min(2,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+"c (raider)";
@@ -3336,7 +3336,7 @@ async function asyncBattle(att,def){
       if(lose.strategy==="human"){setActor(lose.idx);
         mode=await ask(`${pn(lose.idx)}, you lost! Pay with…`,
           [{label:"5🌕",value:"coins"},{label:"a crate (winner picks)",value:"ing"}]);}
-      else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
+      else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
     }else if(hasIng)mode="ing";else mode="coins";
     if(mode==="coins"){const take=Math.min(5,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+" coins";}
     else{
@@ -3344,15 +3344,15 @@ async function asyncBattle(att,def){
       const uniq=[...new Set(lose.ing)];
       if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
         pick=await ask(`${pn(win.idx)}, choose your plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
-      else{const w2=lose.ing.filter(i=>game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
+      else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
       lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabelImg(pick);spoilIng=pick;
     }
   }
   // notes/edits BATL-03: no post-battle swap — the winning attacker stays put and the beaten
   // defender is no longer dumped into the prime re-attack square in front of them. With nobody
   // changing berth there's also no post-battle re-dock. Kept in step with Game.battle.
-  game.recordSkirmish(att,def,lose,spoilIng);
-  game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
+  appState.game.recordSkirmish(att,def,lose,spoilIng);
+  appState.game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
   liveRender();
   // narrate the battle's outcome (who took what from whom) right now — side-bet settlement pushes
   // further events right after this, and every caller only narrates the *last* event once
@@ -3363,7 +3363,7 @@ async function asyncBattle(att,def){
 }
 async function humanTrade(p){
   setActor(p.idx);
-  const opps=game.tradeOpp(p).filter(q=>q.ing.length>0);
+  const opps=appState.game.tradeOpp(p).filter(q=>q.ing.length>0);
   if(!opps.length){await flash("No one has cargo to trade for.");return false;}
   // notes/edits UI-08: the parley used to be a straight chain of prompts where hitting Back at ANY
   // step returned false all the way out to the action menu — so Back felt like it jumped two (or
@@ -3426,23 +3426,23 @@ async function humanTrade(p){
     // they're within one turn's sail of that crate's own dock and could just go re-flip for
     // another, in which case trading it away is the efficient path (players trading with each
     // other instead of everyone physically re-visiting every island).
-    const essential=q.recipe.includes(want)&&game.cnt(q.ing,want)<=1;
-    const nearResupply=essential&&game.tokens[want]>0&&man(q.pos,game.islandOf[want])<=3;
+    const essential=q.recipe.includes(want)&&appState.game.cnt(q.ing,want)<=1;
+    const nearResupply=essential&&appState.game.tokens[want]>0&&man(q.pos,appState.game.islandOf[want])<=3;
     const trulyEssential=essential&&!nearResupply;
     // bots never hand a human their final needed ingredient — no price buys it, they have to
     // fight for it instead
-    const humanNeeds=game.needs(p);
+    const humanNeeds=appState.game.needs(p);
     const humanFinishes=humanNeeds.length===1&&humanNeeds[0]===want;
     // an ordinary crate is still worth more than the 1🌕 a bad fishing flip guarantees, and gets
     // pricier as its home island's remaining supply runs low (notes/edits #6)
-    const scarcityBonus=game.tokens[want]<=1?2:(game.tokens[want]<=2?1:0);
+    const scarcityBonus=appState.game.tokens[want]<=1?2:(appState.game.tokens[want]<=2?1:0);
     let cost=trulyEssential?7:(3+scarcityBonus);
-    const ingVal=give.ing?(game.needs(q).includes(give.ing)?7:2):0;
+    const ingVal=give.ing?(appState.game.needs(q).includes(give.ing)?7:2):0;
     const val=ingVal+give.coins;
-    const bonus=game.cfg.tradeBonus?1:0;
+    const bonus=appState.game.cfg.tradeBonus?1:0;
     // if what's on offer is something the bot needs and every island's stock of it is gone,
     // this trade is the bot's only remaining way to ever get it — take the deal outright
-    const mustAcquire=give.ing&&game.needs(q).includes(give.ing)&&game.tokens[give.ing]===0;
+    const mustAcquire=give.ing&&appState.game.needs(q).includes(give.ing)&&appState.game.tokens[give.ing]===0;
     accept=!humanFinishes&&(mustAcquire||val+bonus>=cost);
     if(!accept){
       const shortfall=Math.max(0,cost-bonus-ingVal-give.coins);
@@ -3458,22 +3458,22 @@ async function humanTrade(p){
           if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
           const totalCoins=give.coins+askFor;
           p.coins-=totalCoins;q.coins+=totalCoins;
-          game.trades++;
-          if(game.cfg.tradeBonus){p.coins++;q.coins++;}
-          game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel+(askFor?` + ${askFor} coins`:""),got:want,kind:"counter"});
+          appState.game.trades++;
+          if(appState.game.cfg.tradeBonus){p.coins++;q.coins++;}
+          appState.game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel+(askFor?` + ${askFor} coins`:""),got:want,kind:"counter"});
           await narrateLastEvent();
           liveRender();
           return true;
         }
       }
-      game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
+      appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
       liveRender();
       await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines!`);
       return true;
     }
   }
   if(!accept){
-    game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
+    appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
     liveRender();
     await flash(`${pn(q.idx)} declines!`);
     return true;
@@ -3481,28 +3481,28 @@ async function humanTrade(p){
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
   if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
   if(give.coins){p.coins-=give.coins;q.coins+=give.coins;}
-  game.trades++;
-  if(game.cfg.tradeBonus){p.coins++;q.coins++;}
-  game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel||"nothing",got:want,kind:"human"});
+  appState.game.trades++;
+  if(appState.game.cfg.tradeBonus){p.coins++;q.coins++;}
+  appState.game.ev({t:"trade",a:p.idx,b:q.idx,gave:offerLabel||"nothing",got:want,kind:"human"});
   await narrateLastEvent();
   liveRender();
   return true;
 }
 async function humanAct(p,sailCtx){
   setActor(p.idx);
-  const port=game.adjPort(p);
-  const canDock=port&&(game.cfg.unlimitedDock||!(p.firstFlip.has(port)&&p.dockedNow.has(port)))
-    &&!(game.cfg.singleDock&&game.dockOccupiedBy(port,p));
-  const targets=game.adjOpp(p);
-  const canAfford=p.coins>=game.cfg.powder;
+  const port=appState.game.adjPort(p);
+  const canDock=port&&(appState.game.cfg.unlimitedDock||!(p.firstFlip.has(port)&&p.dockedNow.has(port)))
+    &&!(appState.game.cfg.singleDock&&appState.game.dockOccupiedBy(port,p));
+  const targets=appState.game.adjOpp(p);
+  const canAfford=p.coins>=appState.game.cfg.powder;
   const opts=[];
   if(canDock)opts.push({label:`⚓ Dock at ${ilabelImg(port)}`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   if(targets.length)
-    opts.push({label:`⚔️ Attack${game.cfg.powder?` (-${game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
-  if(game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
-  if(!game.needs(p).length&&man(p.pos,game.home)<=1)
+    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` (-${appState.game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
+  if(appState.game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
+  if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start your bakery!`,value:"bakery"});
   opts.push({label:"🎣 Fish",value:"fish"});
   // offered only if this player's sail step ended in "Stay put" (nothing spent/moved) and they
@@ -3511,7 +3511,7 @@ async function humanAct(p,sailCtx){
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
   // #5c: helper text under the buttons explains the powder cost; #5d swaps in the too-poor nudge.
-  const sub=targets.length?(canAfford?`Attacking costs ye ${game.cfg.powder}🌕 for powder. Fire downwind for the edge!`:`Yer too poor to afford powder! Go fishin'`):null;
+  const sub=targets.length?(canAfford?`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Fire downwind for the edge!`:`Yer too poor to afford powder! Go fishin'`):null;
   // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
   const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, choose your action:`;
   const v=await ask(prompt,opts,null,sub);
@@ -3521,8 +3521,8 @@ async function humanAct(p,sailCtx){
   if(v==="moveInstead"){
     const dest=await pickCell(p,reachable(p));
     if(appState.turnExpired)return;
-    if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
+    if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
+      if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
     await humanAct(p,sailCtx);return;
   }
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
@@ -3533,7 +3533,7 @@ async function humanAct(p,sailCtx){
   else if(v==="attack"){
     // #5d: safety net — the button is disabled when you can't afford powder, but guard the action
     // too (e.g. a forced/edge selection) so we never enter a battle you can't pay for.
-    if(p.coins<game.cfg.powder){await flash(seatLocal(p.idx)?`Yer too poor to afford powder! Go fishin'`:`${pn(p.idx)} can't afford powder.`,1400);await humanAct(p,sailCtx);return;}
+    if(p.coins<appState.game.cfg.powder){await flash(seatLocal(p.idx)?`Yer too poor to afford powder! Go fishin'`:`${pn(p.idx)} can't afford powder.`,1400);await humanAct(p,sailCtx);return;}
     const t=targets.length===1?targets[0]:
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
@@ -3559,16 +3559,16 @@ async function humanTurn(p){
   // pass & play: this seat's own "check my recipe" button is only ever offered while its
   // turn is genuinely live (see render()) — any reveal from a prior turn is already gone.
   appState.activeTurnSeat=p.idx;appState.recipeRevealed=false;
-  game.ev({t:"turn",p:p.idx});
+  appState.game.ev({t:"turn",p:p.idx});
   liveRender();
-  await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[game.windNow]}</b> this round${game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[game.windNow2]}</b>`:""}.`,1500);
+  await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[appState.game.windNow2]}</b>`:""}.`,1500);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
   if(appState.turnExpired){appState.activeTurnSeat=null;appState.recipeRevealed=false;return;}
   // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
   // ships around; otherwise the wind only shapes this player's own sail budget below
-  if(game.stormNow){
+  if(appState.game.stormNow){
     await humanWind(p);
     appState.recipeRevealed=false; // a real decision (dodge/pay/flip) may just have resolved — re-lock
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
@@ -3584,19 +3584,19 @@ async function humanTurn(p){
     }
   }
   p.justDocked=false;
-  if(!game.adjPort(p))p.dockedNow.clear();
+  if(!appState.game.adjPort(p))p.dockedNow.clear();
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   if(p.coins>0){
     // notes/edits #10: an island upwind steals your wind — warn before the move pick
-    if(game.leeward(p))await flash(seatLocal(p.idx)?`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`:`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500);
+    if(appState.game.leeward(p))await flash(seatLocal(p.idx)?`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`:`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500);
     const dest=await pickCell(p,reachable(p));
     appState.recipeRevealed=false; // sail destination chosen — re-lock
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
-    if(dest){p.coins--;p.pos=dest;game.ev({t:"sail",p:p.idx});liveRender();
-      if(game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
+    if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
+      if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
   } // no coins to sail — the action prompt right after already explains it, no need for a second box
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
-  if(!game.adjPort(p))p.dockedNow.clear();
+  if(!appState.game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
   appState.recipeRevealed=false; // the turn's dock/attack/trade/fish action just resolved — re-lock
   stopShotClock();
@@ -3606,7 +3606,7 @@ async function humanTurn(p){
   if(appState.passAndPlay)liveRender();
 }
 async function botTurn(p){
-  const g=game;
+  const g=appState.game;
   g.ev({t:"turn",p:p.idx});
   await botBeat();
   // wind no longer force-moves anyone on a normal turn (see #7) — only storms still shove
@@ -3641,12 +3641,12 @@ async function botTurn(p){
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
   // hail humans: locked-out bots offer coins for a crate they can't get any other way
-  if(g.cfg.parley&&(game.round-(p.lastOffer||-9))>=3){
+  if(g.cfg.parley&&(appState.game.round-(p.lastOffer||-9))>=3){
     for(const ing of g.needs(p)){
       if(g.tokens[ing]>0)continue; // island still has crates — no need to beg
       const human=g.players.find(q=>q.strategy==="human"&&!q.done&&q.ing.includes(ing));
       if(human&&p.coins>=5){
-        p.lastOffer=game.round;
+        p.lastOffer=appState.game.round;
         setActor(human.idx);
         const choice=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! 5🌕 for your ${ilabelImg(ing)} — what say ye?"`,
           [{label:"Sell for 5🌕",value:"sell"},{label:"Counter",value:"counter"},{label:"Refuse",value:"refuse"}]);
@@ -3700,7 +3700,7 @@ async function asyncBakeoff(A,B){
     }
     broadcastFlip("spin");
     await sleep(spin);
-    const h=game.flip(p);
+    const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
     renderBattle(base({live:side,[key]:h?"H":"T"}));
@@ -3724,7 +3724,7 @@ async function asyncBakeoff(A,B){
   }
   panel("");
   const w=a>=need?A:B;
-  game.ev({t:"bakeoff",a:A.idx,b:B.idx,winner:w.idx});liveRender();
+  appState.game.ev({t:"bakeoff",a:A.idx,b:B.idx,winner:w.idx});liveRender();
   return w;
 }
 /* ================= host game loop (networked) ================= */
@@ -3733,9 +3733,9 @@ async function asyncBakeoff(A,B){
 // finishes first, so a host-reload replay can deterministically reconstruct the same picks.
 async function recipeDraftNet(){
   const picks=[];
-  const humans=game.players.filter(p=>p.recipeChoices&&p.strategy==="human");
-  const bots=game.players.filter(p=>p.recipeChoices&&p.strategy!=="human");
-  for(const p of bots)picks[p.idx]=game.r()<.5?0:1;
+  const humans=appState.game.players.filter(p=>p.recipeChoices&&p.strategy==="human");
+  const bots=appState.game.players.filter(p=>p.recipeChoices&&p.strategy!=="human");
+  for(const p of bots)picks[p.idx]=appState.game.r()<.5?0:1;
   const pending=[];
   for(const p of humans){
     if(appState.replaying){
@@ -3772,7 +3772,7 @@ async function recipeDraftNet(){
       for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
     }
   }
-  game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
+  appState.game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
   if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));
   if(!appState.replaying)updateRecipeBanner();
   liveRender();
@@ -3781,33 +3781,33 @@ async function runLiveNet(){
   await showAhoyIntro();
   // turn order is randomized once here and never rotates — a one-time first-player advantage,
   // not something that cycles away round to round
-  let order=game.players.map((_,i)=>i);
-  game.shuffle(order);
+  let order=appState.game.players.map((_,i)=>i);
+  appState.game.shuffle(order);
   // staggered starting coins level that one-time edge: sim-tested (see cocoa_pirates_sim.py
   // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
   // whoever goes last
-  order.forEach((i,pos)=>{game.players[i].coins=game.cfg.startCoins+pos;});
+  order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
   appState.turnOrder=order.slice();buildPlayerRows();
   if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
   await showTurnOrderIntro(order);
   await recipeDraftNet();
   let ended=false;
-  while(game.round<150&&!ended){
-    game.round++;
-    game.windNow="NSEW"[Math.floor(game.r()*4)];
-    game.stormNow=rollStorm(game); // #1a: no more than 2 storms back-to-back
-    game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
-    game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0,windStreak:game.noteWind(game.windNow)});liveRender(); // NARR-04
+  while(appState.game.round<150&&!ended){
+    appState.game.round++;
+    appState.game.windNow="NSEW"[Math.floor(appState.game.r()*4)];
+    appState.game.stormNow=rollStorm(appState.game); // #1a: no more than 2 storms back-to-back
+    appState.game.windNow2=appState.game.stormNow?PERP[appState.game.windNow][Math.floor(appState.game.r()*2)]:null;
+    appState.game.ev({t:"newround",dir:appState.game.windNow,dir2:appState.game.windNow2,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow)});liveRender(); // NARR-04
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
-    await flash(describe(game.events[game.events.length-1]).txt,900);
+    await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
     for(const i of order){
-      const p=game.players[i];
+      const p=appState.game.players[i];
       if(p.done)continue;
       await (p.strategy==="human"?humanTurn(p):botTurn(p));
-      if(game.checkFinish(p)){
+      if(appState.game.checkFinish(p)){
         liveRender();
-        if(game.finishOrder.length===1){
+        if(appState.game.finishOrder.length===1){
           // FINAL ROUND (#19): the first ship reached Tortuga and fired up the bakery. Alert the
           // whole crew with a blocking barrier, spin the wind ANEW for the last lap, then give
           // every other captain exactly ONE more turn — continuing the SAME rotation from the seat
@@ -3816,19 +3816,19 @@ async function runLiveNet(){
           // wind re-spin's game.r() calls run identically live and on replay, so state stays
           // deterministic.
           await netIntroBarrier(`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`,"🦜 Final round — set sail!");
-          game.round++;
-          game.windNow="NSEW"[Math.floor(game.r()*4)];
-          game.stormNow=rollStorm(game); // #1a
-          game.windNow2=game.stormNow?PERP[game.windNow][Math.floor(game.r()*2)]:null;
-          game.ev({t:"newround",dir:game.windNow,dir2:game.windNow2,streak:game.stormNow?game.stormStreak:0,windStreak:game.noteWind(game.windNow)});liveRender(); // NARR-04
-          await flash(describe(game.events[game.events.length-1]).txt,900);
+          appState.game.round++;
+          appState.game.windNow="NSEW"[Math.floor(appState.game.r()*4)];
+          appState.game.stormNow=rollStorm(appState.game); // #1a
+          appState.game.windNow2=appState.game.stormNow?PERP[appState.game.windNow][Math.floor(appState.game.r()*2)]:null;
+          appState.game.ev({t:"newround",dir:appState.game.windNow,dir2:appState.game.windNow2,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow)});liveRender(); // NARR-04
+          await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
           const startPos=order.indexOf(i);
           const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
           for(const j of lastLap){
-            const q=game.players[j];
+            const q=appState.game.players[j];
             if(q.done)continue;
             await (q.strategy==="human"?humanTurn(q):botTurn(q));
-            if(game.checkFinish(q))liveRender();
+            if(appState.game.checkFinish(q))liveRender();
           }
           ended=true;break;
         }
@@ -3839,37 +3839,37 @@ async function runLiveNet(){
   if(appState.replaying)endReplay();   // whole game was in the log: leave replay mode & paint the result
 }
 async function liveResolveEndNet(){
-  if(!game.finishOrder.length)game.winner=null;
-  else if(game.finishOrder.length===1)game.winner=game.finishOrder[0];
+  if(!appState.game.finishOrder.length)appState.game.winner=null;
+  else if(appState.game.finishOrder.length===1)appState.game.winner=appState.game.finishOrder[0];
   else{
-    let champ=game.players[game.finishOrder[0]];
-    for(const idx of game.finishOrder.slice(1))champ=await asyncBakeoff(champ,game.players[idx]);
-    game.winner=champ.idx;
+    let champ=appState.game.players[appState.game.finishOrder[0]];
+    for(const idx of appState.game.finishOrder.slice(1))champ=await asyncBakeoff(champ,appState.game.players[idx]);
+    appState.game.winner=champ.idx;
   }
   appState.liveDone=true;
-  game.ev({t:"end",winner:game.winner});
+  appState.game.ev({t:"end",winner:appState.game.winner});
   await writeMeta();
   await writeGameLog();
   liveRender();
   // notes/edits EOV-02/EOV-05: the win gets its OWN one-off celebratory box, with the winner's
   // finished recipe pictured right in it (the recipe image lives here now, not in the End of Voyage
   // summary — see showStats). EOV-01 already stripped the duplicate blue-box announcement.
-  if(game.winner==null){
+  if(appState.game.winner==null){
     await flash("⏳ Nobody finished the voyage.");
   }else{
-    const wi=recipeInfo(game.players[game.winner].recipe);
+    const wi=recipeInfo(appState.game.players[appState.game.winner].recipe);
     const pic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:"";
-    await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(game.winner)} baked a ${winRecipeSpan(game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
-    victoryConfetti(game.winner); // EOV-05: a burst of celebration over the board
+    await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
+    victoryConfetti(appState.game.winner); // EOV-05: a burst of celebration over the board
   }
   if(appState.db&&appState.room&&!appState.replaying)netUpdateRoom(appState.db,appState.room,{status:"ended"},netFail("game end"));
 }
 function writeMeta(){
   if(!appState.db||!appState.room||appState.replaying)return Promise.resolve();
   return netSetMeta(appState.db,appState.room,{
-    round:game.round,battles:game.battles,trades:game.trades,attWins:game.attWins,
-    finishOrder:game.finishOrder,winner:game.winner,
-    flips:game.players.map(p=>p.flips),heads:game.players.map(p=>p.heads)},netFail("game meta"));
+    round:appState.game.round,battles:appState.game.battles,trades:appState.game.trades,attWins:appState.game.attWins,
+    finishOrder:appState.game.finishOrder,winner:appState.game.winner,
+    flips:appState.game.players.map(p=>p.flips),heads:appState.game.players.map(p=>p.heads)},netFail("game meta"));
 }
 // Every finished game (solo or multiplayer) writes its full move-by-move transcript to a
 // permanent, room-independent path — rooms/{room}/ev is cleared on the next game in that room,
@@ -3879,14 +3879,14 @@ function writeGameLog(){
   if(!appState.db||appState.replaying)return Promise.resolve();
   const ts=Date.now();
   return netWriteGameLog(appState.db,ts,{
-    ts,room:appState.room||null,winner:game.winner,round:game.round,
-    battles:game.battles,trades:game.trades,strategies:game.cfg.strategies,
+    ts,room:appState.room||null,winner:appState.game.winner,round:appState.game.round,
+    battles:appState.game.battles,trades:appState.game.trades,strategies:appState.game.cfg.strategies,
     // names/bots are recorded per seat so solo & local games (no rooms/{code}/seats node) are still
     // attributable — events reference players by seat index, so this is the key to reading them back.
     // Consistent with the lobby's data-collection notice ("nothing beyond the name you type").
-    names:game.players.map((_,i)=>rawName(i)),
-    bots:game.players.map(p=>p.strategy!=="human"),
-    events:JSON.parse(JSON.stringify(game.events))
+    names:appState.game.players.map((_,i)=>rawName(i)),
+    bots:appState.game.players.map(p=>p.strategy!=="human"),
+    events:JSON.parse(JSON.stringify(appState.game.events))
   },netFail("game log"));
 }
 
@@ -4018,7 +4018,7 @@ function endReplay(){
   // future event was suppressed and guests saw a permanently frozen board. Only advance the
   // frontier when the replay is trustworthy. (readFailed is hard-coded false here; plan 01-02
   // owns resumeHostGame and will thread the real read-failure flag through this parameter.)
-  const sf=replayShortfall(game.events.length,appState.resumeEvLen,appState.resumeReadFailed);
+  const sf=replayShortfall(appState.game.events.length,appState.resumeEvLen,appState.resumeReadFailed);
   if(sf.incomplete){
     console.error("replay incomplete",sf);
     const note=$("syncnote");if(note)note.style.display="";
@@ -4047,7 +4047,7 @@ function wireRestoreFail(){
   const anyway=$("btnRestoreAnyway"),restart=$("btnRestoreRestart");
   if(anyway)anyway.onclick=()=>{
     $("restoreFailModal").style.display="none";
-    appState.evPushed=game.events.length;   // frontier = what we actually have, not what Firebase claimed
+    appState.evPushed=appState.game.events.length;   // frontier = what we actually have, not what Firebase claimed
     setRecoveryState(null);
     liveRender();
   };
@@ -4077,8 +4077,8 @@ function watchRecoveryState(){
 // host: broadcast new events to the shared feed
 function pushEvents(){
   if(!appState.db||!appState.room)return;
-  while(appState.evPushed<game.events.length){
-    netPushEvent(appState.db,appState.room,JSON.parse(JSON.stringify(game.events[appState.evPushed])),netFail("event feed"));
+  while(appState.evPushed<appState.game.events.length){
+    netPushEvent(appState.db,appState.room,JSON.parse(JSON.stringify(appState.game.events[appState.evPushed])),netFail("event feed"));
     appState.evPushed++;
   }
 }
@@ -4140,12 +4140,12 @@ function fixEv(e){
 // remote: render the game purely from the broadcast event feed
 function watchEvents(){
   netWatchEvents(appState.db,appState.room,snap=>{
-    game.events.push(fixEv(snap.val()));
-    appState.evIdx=game.events.length-1;
+    appState.game.events.push(fixEv(snap.val()));
+    appState.evIdx=appState.game.events.length-1;
     syncLogLines();
-    $("scrub").max=Math.max(0,game.events.length-1);
+    $("scrub").max=Math.max(0,appState.game.events.length-1);
     render();
-    const e=game.events[appState.evIdx];
+    const e=appState.game.events[appState.evIdx];
     spawnPops(e);
     if(e.t==="end")applyEndMeta();
   });
@@ -4217,9 +4217,9 @@ async function applyEndMeta(){
   appState.appliedMeta=true;
   const m=(await netReadMeta(appState.db,appState.room)).val();
   if(!m)return;
-  game.round=m.round;game.battles=m.battles;game.trades=m.trades;game.attWins=m.attWins;
-  game.finishOrder=m.finishOrder||[];game.winner=m.winner;
-  (m.flips||[]).forEach((f,i)=>{if(game.players[i]){game.players[i].flips=f;game.players[i].heads=(m.heads||[])[i]||0;}});
+  appState.game.round=m.round;appState.game.battles=m.battles;appState.game.trades=m.trades;appState.game.attWins=m.attWins;
+  appState.game.finishOrder=m.finishOrder||[];appState.game.winner=m.winner;
+  (m.flips||[]).forEach((f,i)=>{if(appState.game.players[i]){appState.game.players[i].flips=f;appState.game.players[i].heads=(m.heads||[])[i]||0;}});
   appState.liveDone=true;render();
 }
 
@@ -4274,13 +4274,13 @@ function startPassAndPlay(names){
 function renderDecorativeBoard(){
   try{
     const strategies=["pirate","trader","balanced","rusher"];
-    game=new Game(roundCfg(strategies),Math.floor(Math.random()*1e9),true);
+    appState.game=new Game(roundCfg(strategies),Math.floor(Math.random()*1e9),true);
     appState.roster=strategies.map(s=>({bot:true,strat:s}));
     appState.mySeat=null;
     drawBoard();buildPlayerRows();
-    game.round=1;game.windNow="NSEW"[Math.floor(Math.random()*4)];game.stormNow=false;
-    game.ev({t:"newround",dir:game.windNow});
-    appState.evIdx=0;logLines=[describe(game.events[0])];
+    appState.game.round=1;appState.game.windNow="NSEW"[Math.floor(Math.random()*4)];appState.game.stormNow=false;
+    appState.game.ev({t:"newround",dir:appState.game.windNow});
+    appState.evIdx=0;appState.logLines=[describe(appState.game.events[0])];
     render();
     $("statsWrap").style.display="none";
     $("actionPanel").style.display="none";
@@ -4432,12 +4432,12 @@ async function startGame(){
 function beginGame(cfg,seed){
   if(appState.gameStarted)return;appState.gameStarted=true;
   showGameView();
-  game=new Game(cfg,seed,true);
+  appState.game=new Game(cfg,seed,true);
   appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
   appState.turnOrder=null;
-  logLines=[];logRenderedTo=-2;$("log").innerHTML="";
+  appState.logLines=[];logRenderedTo=-2;$("log").innerHTML="";
   $("chatLog").innerHTML="";clearChatBubbles();
   $("chatPanel").style.display=(appState.db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
   drawBoard();buildPlayerRows();
@@ -4465,15 +4465,15 @@ function watchTurnOrder(){
 function updateRecipeBanner(){
   // recipe is now shown as semi-transparent chips in your own captain row (see render());
   // refresh the board so those chips appear as soon as recipes are drafted
-  if(game&&game.events&&game.events.length)render();
+  if(appState.game&&appState.game.events&&appState.game.events.length)render();
 }
 function watchRecipes(){
   netWatchRecipes(appState.db,appState.room,snap=>{
     const picks=snap.val();
     if(!picks)return;
-    picks.forEach((pk,i)=>{if(game.players[i]&&game.players[i].recipeChoices)game.players[i].recipe=game.players[i].recipeChoices[pk];});
+    picks.forEach((pk,i)=>{if(appState.game.players[i]&&appState.game.players[i].recipeChoices)appState.game.players[i].recipe=appState.game.players[i].recipeChoices[pk];});
     updateRecipeBanner();
-    if(game.events.length)render();
+    if(appState.game.events.length)render();
   });
 }
 function leaveGame(){netLeaveRoom();clearSession();clearSoloState();location.reload();}
