@@ -174,12 +174,12 @@ Plans:
   4. The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent).
   5. Storm rendering re-verifies cleanly on Safari after UI extraction (no perf/compat regression at this phase boundary).
 
-**Plans**: 8 plans
+**Plans**: 1/8 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 11-01-PLAN.md — Safety net (commit analyzer + `module_graph_check.js` + `ui_contract_check.js`, red-proof) + tracer: extract the recipe/pastry cluster into `src/ui/`; Chrome mechanism gate (wave 1, blocking checkpoint)
+- [x] 11-01-PLAN.md — Safety net (commit analyzer + `module_graph_check.js` + `ui_contract_check.js`, red-proof) + tracer: extract the recipe/pastry cluster into `src/ui/`; Chrome mechanism gate (wave 1, blocking checkpoint)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -242,7 +242,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
-| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/8 | Planned | - |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 1/8 | In Progress|  |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
 </invoke>

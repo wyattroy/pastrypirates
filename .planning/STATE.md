@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monolith Refactor
-current_phase: 10
-current_phase_name: App State & De-globalization
+current_phase: 11
+current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 10-06-PLAN.md
-last_updated: "2026-07-24T22:48:07.121Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-07-25T03:05:18.663Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 10 execution started
+last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 20
-  completed_plans: 19
-  percent: 50
+  completed_phases: 4
+  total_plans: 28
+  completed_plans: 21
+  percent: 67
 ---
 
 # Project State
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 10 — App State & De-globalization
+**Current focus:** Phase 11 — ui-extraction-orchestration-bridge-removal
 
 ## Current Position
 
-Phase: 10 (App State & De-globalization) — EXECUTING
-Plan: 6 of 7
+Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
-Last activity: 2026-07-24 — Phase 10 execution started
+Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [██████████] 95%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Progress: [██████████] 95%
 | Phase 10 P04 | ~15min | 2 tasks | 1 files |
 | Phase 10 P05 | 15min | 1 tasks | 1 files |
 | Phase 10 P06 | 20min | 2 tasks | 4 files |
+| Phase 11 P01 | ~35min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Migrated game (418 sites), timer, and logLines to appState.NAME — all 46 app-state names now migrated; manually blanked a fully-emptied declaration line the migration tool corrupted into a silent comma-expression bug.
 - [Phase ?]: GLOBAL-03 debug hook window.__pp_app_state_debug is a callable helper returning {...appState} (never the live object), and the state-contract-check debug-hook allowlist now fails on a missing hook, not just an extra one
 - [Phase ?]: scripts/state_contract_check.js wired into npm test after net_contract_check.js — GLOBAL-01/GLOBAL-03 standing gate is now enforced on every test run, red-proof drilled for all 5 assertions
+- [Phase ?]: Phase 11 Plan 1 (tracer): net-function surface for analyze_classic.mjs derived at runtime from src/net/index.js's exports, never a scratchpad file; module_graph_check.js gives 'ui does NOT import net' (D-07) its own dedicated PASS/FAIL line
+- [Phase ?]: Phase 11 Plan 1: RECIPE_BOOK/PASTRY_FILES/RECIPE_LOOKUP/recipeModalCurrent (classic-script const/let, invisible to ES modules) moved alongside the 9 named recipe functions -- a classic script's const/let never becomes a window property the way function declarations do, so the plan's literal 9-function list was dependency-incomplete without them; grep-confirmed exclusive to this cluster before moving
+- [Phase ?]: Phase 11 Plan 1: SPLIT-03/05/06 deliberately left Pending in REQUIREMENTS.md -- only 1 of 8 phase plans done, bridge still present by design (strangler-fig mechanism remaining waves rely on), mirrors the 09-01 precedent of not marking multi-plan requirements complete early
 
 ### Pending Todos
 
@@ -145,8 +149,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-24T22:48:07.109Z
-Stopped at: Completed 10-06-PLAN.md
+Last session: 2026-07-25T03:05:18.654Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
