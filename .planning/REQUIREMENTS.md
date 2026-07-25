@@ -19,10 +19,10 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 
 - [x] **SPLIT-01**: The deterministic engine (Game class, roundCfg, bot strategies, RNG, replay) lives in its own DOM-free, Firebase-free ES module(s)
 - [x] **SPLIT-02**: Shared constants and pure helpers (ING_ALL, DIRS, `man`, `shuffle`, `mulberry32`, image maps) live in leaf modules importable by engine, UI, net, and Node harnesses
-- [ ] **SPLIT-03**: UI rendering (render/board/DOM/modals/narration) lives in its own module(s) that read game state and never import the networking layer
+- [x] **SPLIT-03**: UI rendering (render/board/DOM/modals/narration) lives in its own module(s) that read game state and never import the networking layer
 - [x] **SPLIT-04**: Firebase multiplayer sync lives in its own networking module(s) that never import the UI layer
-- [ ] **SPLIT-05**: A `main` entry module orchestrates engine + UI + networking; `index.html` is reduced to markup + a single module entry point
-- [ ] **SPLIT-06**: The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent)
+- [x] **SPLIT-05**: A `main` entry module orchestrates engine + UI + networking; `index.html` is reduced to markup + a single module entry point
+- [x] **SPLIT-06**: The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent)
 
 ### Engine & Replay Hardening (ENGINE)
 
@@ -89,10 +89,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FOUND-05 | Phase 7 | Complete |
 | SPLIT-01 | Phase 8 | Complete |
 | SPLIT-02 | Phase 8 | Complete |
-| SPLIT-03 | Phase 11 | Pending |
+| SPLIT-03 | Phase 11 | Complete |
 | SPLIT-04 | Phase 9 | Complete |
-| SPLIT-05 | Phase 11 | Pending |
-| SPLIT-06 | Phase 11 | Pending |
+| SPLIT-05 | Phase 11 | Complete |
+| SPLIT-06 | Phase 11 | Complete |
 | ENGINE-01 | Phase 8 | Complete |
 | ENGINE-02 | Phase 8 | Complete |
 | ENGINE-03 | Phase 8 | Complete |

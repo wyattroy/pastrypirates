@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 11
 current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 11-06-PLAN.md
-last_updated: "2026-07-25T05:14:46.162Z"
+stopped_at: Completed 11-07-PLAN.md
+last_updated: "2026-07-25T06:16:24.151Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 28
-  completed_plans: 26
+  completed_plans: 27
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [█████████░] 93%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ Progress: [█████████░] 93%
 | Phase 11 P04 | ~35min | 2 tasks | 6 files |
 | Phase 11 P05 | ~50min | 3 tasks | 4 files |
 | Phase 11 P06 | ~30min | 3 tasks | 5 files |
+| Phase 11 P07 | ~50min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 6: moved all 44 remaining orchestration functions into src/orchestrator.js (tier 'main', imports both net and ui); positionChatBubble/removeChatBubble/clearChatBubbles homed in src/ui/board.js instead (zero net calls, avoids a ui->main import edge); classic <script> region now holds zero top-level function declarations
 - [Phase ?]: Phase 11 Plan 6: src/main.js's PP object literal left untouched; orchestrator's exports published via a separate Object.assign(globalThis, orchestrator) statement (Rule 2 addition) so already-moved src/ui/ bare calls into orchestration functions keep resolving; ui.setNetHandlers() now binds real orchestrator.* references, no globalThis indirection left; boot() called directly
 - [Phase ?]: Phase 11 Plan 6: watchRoom() made idempotent (D-13) via a module-scope guard, independently verified with a Node harness; deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 6 of 8 phase plans done, bridge (now including the orchestrator-publish line) still present by design until 11-07
+- [Phase ?]: Phase 11 Plan 7: Bridge deleted (window.PP + both Object.assign(globalThis,...) spreads removed); index.html reduced to markup + one module entry (SPLIT-05); locateClassicScriptRegion() now treats a fully-deleted classic <script> tag as the expected empty-region terminal state instead of throwing
+- [Phase ?]: Phase 11 Plan 7: First Chrome verification failed post-bridge-deletion (buildPlayerRows/startSinglePlayer ReferenceError) despite all mechanical gates green -- built scripts/no_undef_check.js (new standing npm-test gate, call-site-scoped no-undef check over all src/**/*.js) to find every remaining bare cross-module read mechanically; found 20 (a superset of the coordinator's own 9-edge Chrome-session list, including 2 the coordinator incorrectly flagged as already-imported); fixed all 20 via seam extension (19 new src/ui/handlers.js keys)/direct import(2)/relocation(2); second Chrome verification (solo + two-tab multiplayer) passed cleanly
+- [Phase ?]: Phase 11 Plan 7: SPLIT-03/05/06 marked Complete in REQUIREMENTS.md -- coordinator-authorized after Chrome-verifying the bridge-deleted-and-fixed build; none depend on 11-08's Safari re-verification (D-12), which is scoped narrowly to storm rendering
 
 ### Pending Todos
 
@@ -172,8 +176,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T05:14:46.154Z
-Stopped at: Completed 11-06-PLAN.md
+Last session: 2026-07-25T06:16:24.144Z
+Stopped at: Completed 11-07-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
