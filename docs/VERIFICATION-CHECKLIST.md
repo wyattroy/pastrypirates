@@ -58,15 +58,44 @@ The verification apparatus (local-serve → Chrome-MCP → debug-hook assertion 
 
 ## Criterion 2 — Solo gameplay-loop E2E (VERIFY-02)
 
+Context: Phase 11 already exercised **sail, dock, battle, and coin-flip** live in Chrome with zero
+console errors (see `.planning/phases/11-ui-extraction-orchestration-bridge-removal/11-VERIFICATION.md`).
+This criterion formalizes those into the committed record AND closes the three gaps Phase 11 never
+formally verified: **trade/parley, fish, and end-of-voyage.** Storm is optional this pass (12.5%/round,
+naturally-triggered; already verified in Phase 11 — force it only if convenient, and revert any
+temporary `cfg.storm=1` edit immediately per D-04).
+
+### Scenario steps (drive against a fresh local `127.0.0.1` server for this worktree — never `playpastrypirates.com`)
+
+1. **Boot** — load the page, confirm `window.__pp_module_ok === true`, `document.readyState === "complete"`, `read_console_messages` (`onlyErrors`) empty on load.
+2. **Start solo** — click "Play Solo", enter a captain name, confirm the CAPTAINS panel renders with 3 AI bots.
+3. **Pick recipe** — advance the intro/sailing-order draw, confirm a recipe is assigned/visible for the human captain.
+4. **Sail** — move the ship at least one tile; confirm position updates on the board and in `window.__pp_app_state_debug()`.
+5. **Dock + coin-flip** — dock at an island, trigger the ingredient coin-flip.
+6. **Ingredient award** — confirm a won ingredient is added to the human captain's inventory (or a clear miss is shown on tails).
+7. **Trade/parley (GAP)** — trigger a trade: either use the "🤝 Parley" option in the human action menu (requires another captain with a tradeable ingredient in range/tradeOpp), or let a bot hail the human captain with a parley offer (sell/counter/refuse). Confirm the trade event resolves and inventories/coins update on both sides.
+8. **Fish (GAP)** — use the "🎣 Fish" action, confirm the "cast your line" flip resolves (heads = catch, tails = miss) and state updates accordingly.
+9. **Battle** — trigger/resolve at least one battle against an AI captain (attack action or a forced encounter); confirm flips resolve and a winner is recorded.
+10. **Storm (optional)** — if a storm round occurs naturally (12.5%/round), confirm it renders via the pre-baked PNG tile (`buildStormLayers`) without freeze/crash/beachball and the game continues. If forced via a temporary `cfg.storm=1` in `src/engine/index.js`, REVERT immediately after observing it and re-verify determinism (`node scripts/determinism_baseline.js --verify` + `git diff --quiet HEAD -- src/engine/index.js`).
+11. **End-of-voyage/win (GAP)** — play through to the end of the voyage; confirm the win box, redesigned end-of-voyage badges, and confetti render, and the end screen appears correctly.
+
+Throughout all steps: poll `read_console_messages` (`onlyErrors`) — must stay empty — and sanity-check
+`window.__pp_app_state_debug()` returns a coherent fresh snapshot (players/recipe/positions look right).
+
+### Results
+
 - [ ] Sail
 - [ ] Dock
-- [ ] Trade
-- [ ] Battle
+- [ ] Trade / parley
 - [ ] Fish
-- [ ] Storm
+- [ ] Battle
+- [ ] Storm (optional)
 - [ ] End-of-voyage
+- [ ] `localStorage['pp_solo']` persistence confirmed (the 11-02 saveSoloState fix)
+- [ ] VERIFY-02 satisfied
 
-*(Filled by a later plan in this phase — 12-02.)*
+*(Scenario skeleton authored in 12-02 Task 0 (non-browser prep); results to be recorded by the
+orchestrator's live Chrome-MCP drive, then completed by the 12-02 executor.)*
 
 ---
 
