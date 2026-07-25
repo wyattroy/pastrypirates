@@ -146,12 +146,50 @@ orchestrator's live Chrome-MCP drive and completed by the 12-02 executor.)*
 
 ## Criterion 3 — Two-tab multiplayer + pause/refresh recovery (VERIFY-03)
 
-- [ ] Two-tab host + guest: seat/status propagation, narration broadcast
-- [ ] Pause the shot-clock mid-game — game state stays intact (no reset)
-- [ ] Refresh the GUEST tab mid-game — the voyage restores
-- [ ] Refresh the HOST tab mid-game — restores AND deterministic lockstep/sync survives the cycle
+Context: Phase 11 already exercised **host/join, seat+status propagation, and host→guest narration
+broadcast** live in Chrome with zero console errors (see
+`.planning/phases/11-ui-extraction-orchestration-bridge-removal/11-VERIFICATION.md` /
+`11-07-SUMMARY.md`). This criterion formalizes that AND closes the gap Phase 11 never formally
+verified: the **D-02 pause/refresh recovery matrix** — the v1.0 core guarantee "pausing the
+multiplayer timer must never destroy game state," plus refresh-restores-the-voyage for both guest
+and host.
 
-*(Filled by a later plan in this phase — 12-03.)*
+Per D-01/D-02 this is orchestrator-driven Chrome-MCP verification (browser tool required — this
+executor has none). Two-tab same-machine is the accepted surface (a real two-device game is
+deferred, see 12-CONTEXT.md § Deferred).
+
+### Scenario steps (drive against a fresh local `127.0.0.1` server for this worktree — never `playpastrypirates.com`; do not reuse port 8020, Wyatt's live desktop-Safari session, or port 8000, a different worktree)
+
+1. **Boot** — load the page in a new Chrome tab (tab A), confirm `window.__pp_module_ok === true`, `document.readyState === "complete"`, `read_console_messages` (`onlyErrors`) empty on load.
+2. **Unique `pp_id` per tab (the shared-localStorage gotcha)** — because both tabs share `localStorage`, set tab A's `pp_id` and reload, THEN open tab B, set its `pp_id`, and reload — sequentially, set-then-reload, so the two tabs are distinct players. Never set both before reloading either.
+3. **Host (tab A)** — click the v1.1 lobby card button "Host a Crew"; confirm a room code is issued.
+4. **Join (tab B)** — click "Join a Crew" and enter tab A's room code; confirm tab B's seat/status appears in tab A's lobby and vice versa (seat/status propagation).
+5. **Begin the game** — start the game from the host; confirm both tabs transition from lobby to the in-game board with zero console errors in either tab.
+6. **Play >= 3 synced turns** — advance turns across both tabs (sail/dock/any resolvable action); after each turn, compare `window.__pp_app_state_debug()` in tab A vs. tab B at the same moment — captain-state (positions, recipes, ingredients, current turn/seat) must match (deterministic lockstep).
+7. **Narration broadcast** — confirm narration events from actions in tab A appear in tab B's log (and/or vice versa).
+8. **Watcher registry populated** — confirm `window.__pp_net_debug.size() > 0` and inspect `window.__pp_net_debug.list()` in at least one tab.
+9. **D-02(a) — pause the shot-clock** — the timer surface is `setClockUI`/`broadcastClock`/`expireShotClock` in `src/orchestrator.js`. Trigger a pause (e.g. background the active player's tab, or use the existing pause affordance) and confirm the game state — captain positions, ingredients, turn order, recipe — stays fully intact with no reset. This is the v1.0 core guarantee.
+10. **D-02(b) — refresh the GUEST tab mid-game** — reload tab B (the guest) while the voyage is in progress. Confirm the recovery seams (`netWatchRecovery` in `src/net/watchers.js`, `setRecoveryState`/`wireRestoreFail`/`endReplay` in `src/orchestrator.js`, plus localStorage room recovery) restore the voyage to the same turn and board. Zero console errors during the reload/restore cycle.
+11. **D-02(c) — refresh the HOST tab mid-game** — reload tab A (the host) while the voyage is in progress. Confirm it restores AND, after replay settles (`endReplay`/`wireRestoreFail`), the host's `window.__pp_app_state_debug()` still matches the guest's — deterministic lockstep survives the refresh cycle, not just a visual restore.
+
+Throughout all steps: poll `read_console_messages` (`onlyErrors`) in both tabs — must stay empty.
+
+### Results
+
+*(To be filled from the orchestrator's live Chrome-MCP two-tab session.)*
+
+- [ ] **Two-tab host + guest join** — unique `pp_id` per tab, seat/status propagation confirmed
+- [ ] **>= 3 synced turns, matching captain-state** — deterministic lockstep across tabs
+- [ ] **Narration broadcast** — observed in both tabs
+- [ ] **`window.__pp_net_debug.size() > 0`** — watcher registry populated
+- [ ] **D-02(a) pause the shot-clock** — game state stays intact, no reset
+- [ ] **D-02(b) refresh the GUEST tab** — voyage restores to the same turn/board
+- [ ] **D-02(c) refresh the HOST tab** — voyage restores AND post-refresh captain-state still matches the guest (lockstep survives)
+- [ ] Zero console errors across the entire session (both tabs, including the two refresh cycles)
+
+- [ ] VERIFY-03 satisfied (sync + all three D-02 recovery sub-steps PASS)
+
+*(Scenario skeleton authored in 12-03 Task 1 non-browser prep; results to be recorded from the orchestrator's live Chrome-MCP two-tab drive.)*
 
 ---
 
