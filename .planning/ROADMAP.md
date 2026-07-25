@@ -223,7 +223,7 @@ Plans:
   3. Claude-driven Chrome-MCP E2E tests exercise a full multiplayer game across two browser tabs (host + guest) with deterministic sync intact.
   4. Manual Safari + Chrome playtests confirm no perf/compat regressions — including storm rendering and multiplayer pause/refresh state.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -236,7 +236,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 12-03-PLAN.md — Two-tab multiplayer E2E + pause/refresh recovery matrix in Chrome (VERIFY-03, D-02)
+- [x] 12-03-PLAN.md — Two-tab multiplayer E2E + pause/refresh recovery matrix in Chrome (VERIFY-03, D-02)
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -260,6 +260,6 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
-| 12. Verification & Validation | v1.1 | 2/4 | In Progress|  |
+| 12. Verification & Validation | v1.1 | 3/4 | In Progress|  |
 </content>
 </invoke>
