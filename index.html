@@ -1081,48 +1081,7 @@ function clearChatBubbles(){Object.keys(chatBubbles).map(Number).forEach(removeC
 
 // flash moved verbatim to src/ui/panel.js (11-04) — its netNarrate() call is now routed through
 // src/ui/handlers.js's injected onBroadcast handler (D-07/criterion 1 seam; see src/main.js).
-// blocks until every human seat (not just the host) has read msg and clicked through — same
-// per-seat localAsk/remoteDraftPrompt barrier recipeDraftNet() uses, so remote players get a
-// real button instead of read-only narration text they can't dismiss
-async function netIntroBarrier(msg,btnLabel){
-  if(appState.replaying)return;
-  netBroadcast(msg);
-  const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
-  const humans=appState.game.players.filter(p=>p.strategy==="human");
-  if(appState.passAndPlay){
-    // one device, several humans: nobody is "remote", so read-and-click-through happens in
-    // turn, each gated by the same pass-the-device screen every turn hand-off uses
-    for(const p of humans){await passGate(p.idx);await localAsk(msg,opts);}
-    return;
-  }
-  // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
-  // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
-  const waitMsg=humans.length>1?"⚓ Waiting for yer pirate mateys to continue…":null;
-  await Promise.all(humans.map(p=>seatLocal(p.idx)
-    ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg);return i;})
-    :remoteDraftPrompt(p.idx,msg,opts,waitMsg)));
-}
-// the opening backstory/context message — stays up until every human player actually reads it
-// and clicks through, rather than auto-advancing on a timer like every other narration
-async function showAhoyIntro(){
-  const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`;
-  await netIntroBarrier(msg,"⚓ Arrgh! Let's start");
-}
-// right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
-// everyone sailing later by pointing out the coin they get in exchange for waiting. Stays up
-// until every human player dismisses it (like showAhoyIntro) since it's easy to blink and miss
-// a flashed message.
-async function showTurnOrderIntro(order){
-  const lead=pn(order[0]);
-  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
-  const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+
-    `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`;
-  await netIntroBarrier(msg,"🦜 Aye, set sail!");
-}
-// A fishing cast, flipped on the flippenator like every other coin in the game.
-// Humans tap CAST; bots auto-cast. Awards the catch and logs the event.
-// Dijkstra over the wind-weighted grid: with-the-wind steps cost 2, across cost 3, against
-// cost 4 (see windStepCost/#7) — returns every cell reachable within this turn's sail budget.
+// netIntroBarrier/showAhoyIntro/showTurnOrderIntro moved verbatim to src/ui/flow.js (11-05).
 // draw the same highlighted cells on a REMOTE player's board and post their choice back
 function remotePickHighlights(cells,promptId){
   const svg=$("board"),hs=[];
@@ -1138,23 +1097,7 @@ function remotePickHighlights(cells,promptId){
     <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
   $("apStay").onclick=()=>done(null);
 }
-// one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
-// storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
-// only ever called during a storm now (see humanTurn) — normal turns don't force-move anyone
-function coinHTML(state,bs,win){
-  const b=bs?`<span class="bs">🔥</span>`:"";
-  const w=win?" win":"";
-  if(state==="H")return `<div class="coin heads${w}" style="background-image:url(${FLIP_HEADS_IMG})">${b}</div>`;
-  if(state==="T")return `<div class="coin tails${w}" style="background-image:url(${FLIP_TAILS_IMG})">${b}</div>`;
-  if(state==="spin")return `<div class="coin spin">🪙${b}</div>`;
-  return `<div class="coin wait">?</div>`;
-}
-function pipsHTML(n,col,total){
-  total=total||3;
-  let s="";
-  for(let i=0;i<total;i++)s+=`<span class="pip${i<n?" on":""}"${i<n?` style="background:${col};border-color:${col}"`:""}></span>`;
-  return `<div class="pips">${s}</div>`;
-}
+// coinHTML/pipsHTML moved verbatim to src/ui/flow.js (11-05).
 // The battle scoreboard: names, a static result circle per fighter, and pips. The coin never
 // spins here — every flip in the game (battles included) physically happens on the shared
 // flippenator; this just displays whatever it last landed on for each fighter.
@@ -1185,17 +1128,7 @@ function renderBattle(o){
   // whoever's deciding — sees the same battle unfold in real time
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
 }
-function battleSnapshot(o){
-  const snap={};
-  for(const k of ["round","a","d","atState","dfState","atBs","dfBs","live","winCoin","result","waiting","need","title","roleA","roleD"])
-    if(o[k]!==undefined)snap[k]=o[k];
-  snap.attIdx=o.att.idx;snap.defIdx=o.def.idx;
-  return snap;
-}
-function renderBattleFromSnap(snap,extra){
-  if(!appState.game||!appState.game.players[snap.attIdx]||!appState.game.players[snap.defIdx])return;
-  renderBattle(Object.assign({att:appState.game.players[snap.attIdx],def:appState.game.players[snap.defIdx]},snap,extra||{}));
-}
+// battleSnapshot/renderBattleFromSnap moved verbatim to src/ui/flow.js (11-05).
 function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
@@ -1203,17 +1136,7 @@ function watchBattle(){
     else appState.spectatingBattle=false; // battle node cleared at battle end — narration may take over again
   });
 }
-// the footer beneath the coins: a decision (buttons), a "waiting…" note, or the round result
-function battleFooter(o){
-  if(o.prompt){
-    const {msg,opts,colors}=o.prompt;
-    return `<div class="btl-prompt">${msg?`<div class="msg">${msg}</div>`:""}<div class="btns">`+
-      opts.map((op,i)=>`<button class="apBtn btlBtn" data-i="${i}"${apBtnStyle(colors&&colors[i])}>${op.label}</button>`).join("")+
-      `</div></div>`;
-  }
-  if(o.waiting)return `<div class="btl-wait">⏳ Waiting for ${o.waiting}…</div>`;
-  return `<div class="btl-result">${o.result||"&nbsp;"}</div>`;
-}
+// battleFooter moved verbatim to src/ui/flow.js (11-05).
 // A battle decision that keeps the coins on screen: the scoreboard (o) renders with the
 // prompt buttons tucked beneath it, so nothing about the layout jumps when it's your turn.
 function battleAsk(p,o,msg,opts,colors){
@@ -1260,66 +1183,7 @@ function battleAsk(p,o,msg,opts,colors){
   const wrapped=withShotClock(seat,idxP,opts.length-1);
   return wrapped.then(i=>{const r=resolveOpt(opts,i,opts.length-1);logDecision(r.i);return r.opt.value;});
 }
-// The Lookout's Call: every spectator MUST call a winner from the crow's nest —
-// it's free, and a correct call earns a Spotter's Bounty (+1🌕) from the ship's
-// bank. Players MAY back their call with their own coin for a bigger prize.
-async function collectSideBets(att,def){
-  const bets=[],ns=pn;
-  const spectators=appState.game.players.filter(p=>p!==att&&p!==def&&!p.done);
-  for(const s of spectators){
-    if(s.strategy==="human"){
-      // The call itself is free and mandatory — no coin of your own at risk. The coin-backing
-      // step is back-able: "← Back" there returns to re-pick the winner (see notes/edits 4b).
-      let who,amt=0;
-      for(;;){
-        setActor(s.idx);
-        who=await ask(`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`,
-          [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
-          [HEXCOL[att.idx],HEXCOL[def.idx]]);
-        amt=0;
-        let amounts=[1,2,3,5].filter(n=>s.coins>=n);
-        if(s.coins>5)amounts.push(s.coins); // all-in
-        if(amounts.length){
-          setActor(s.idx);
-          // Optional: sweeten the call with real coin.
-          amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)}? Win, you double your stake + 1🌕. Lose, you get nothing.`,
-            [{label:"Just the free call",value:0}].concat(
-              amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n})))
-              .concat([{label:"← Back",back:true,value:"back"}]));
-          if(amt==="back")continue; // re-pick the winner
-        }
-        break;
-      }
-      bets.push({idx:s.idx,on:who,amt});
-      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} and backs it with ${amt}🌕!`,1100);
-      else await flash(`🔭 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} from the crow's nest.`,900);
-    }else{
-      // Bots always call (favoring the fuller purse), and sometimes back it with coin.
-      const fav=att.coins>=def.coins?"a":"d";
-      const on=appState.game.r()<.72?fav:(fav==="a"?"d":"a");
-      const amt=(s.coins>=4&&appState.game.r()<.5)?Math.min(2,s.coins):0;
-      bets.push({idx:s.idx,on,amt});
-    }
-  }
-  return bets;
-}
-async function settleSideBets(bets,winSide){
-  if(!bets.length)return;
-  const parts=[];
-  for(const bet of bets){
-    const p=appState.game.players[bet.idx],won=bet.on===winSide;
-    // Correct call: Spotter's Bounty (+1) plus doubled stake. Wrong: only a
-    // wagered stake sinks — a free call costs nothing.
-    const delta=won?1+2*bet.amt:-bet.amt;
-    p.coins+=delta;
-    appState.game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
-    if(delta>0)parts.push(`${pn(bet.idx)} +${delta}🌕`);
-    else if(delta<0)parts.push(`${pn(bet.idx)} −${bet.amt}🌕`);
-    else parts.push(`${pn(bet.idx)} no bounty`);
-  }
-  liveRender();
-  await flash("🔭 The Lookout's Call settles — "+parts.join(" · "),1600);
-}
+// collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 async function asyncBattle(att,def){
   const c=appState.game.cfg,need=2;
   await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()));
@@ -1493,53 +1357,7 @@ async function asyncBattle(att,def){
   await settleSideBets(bets,a>=need?"a":"d");
   return win;
 }
-// The bakeoff gets the same scoreboard + flippenator treatment as a regular battle, just
-// without attacker/defender roles, broadsides, or spoils — just two finalists racing to `need`.
-async function asyncBakeoff(A,B){
-  const need=3;
-  let a=0,d=0,round=0;
-  const nm=pn;
-  const bd=(typeof stepDelay==="function")?stepDelay():500;
-  const spin=Math.max(260,Math.min(650,bd*0.7));
-  const hold=Math.max(500,Math.min(1500,bd*1.1));
-  const base=o=>Object.assign({att:A,def:B,a,d,round,need,title:"🧁 The Bakeoff!",roleA:"Finalist",roleD:"Finalist"},o);
-  const flipSide=async(side,p)=>{
-    const key=side==="a"?"atState":"dfState";
-    if(p.strategy==="human"){
-      await battleAsk(p,base({live:side,[key]:"wait"}),
-        `🧁 ${nm(p.idx)} — flip!`,[{label:"🌕 FLIP!",value:1,flip:true}]);
-    }else{
-      renderBattle(base({live:side,[key]:"wait"}));
-    }
-    broadcastFlip("spin");
-    await sleep(spin);
-    const h=appState.game.flip(p);
-    broadcastFlip(h?"H":"T");
-    netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-    renderBattle(base({live:side,[key]:h?"H":"T"}));
-    await sleep(Math.min(hold*0.5,500));
-    broadcastFlip("wait");
-    return h;
-  };
-  while(a<need&&d<need){
-    round++;
-    renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`🧁 Bakeoff — round ${round}!`}));
-    await sleep(300);
-    const ah=await flipSide("a",A);
-    const dh=await flipSide("d",B);
-    let scorer=null,rmsg;
-    if(ah&&dh){rmsg=`<span class="cancel">Both HEADS — no score this round.</span>`;}
-    else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(A.idx)} scores! +1</span>`;}
-    else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(B.idx)} scores! +1</span>`;}
-    else{rmsg=`<span class="cancel">Both TAILS — no score this round.</span>`;}
-    renderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
-    await sleep(hold);
-  }
-  panel("");
-  const w=a>=need?A:B;
-  appState.game.ev({t:"bakeoff",a:A.idx,b:B.idx,winner:w.idx});liveRender();
-  return w;
-}
+// asyncBakeoff moved verbatim to src/ui/flow.js (11-05).
 /* ================= host game loop (networked) ================= */
 // Every human seat drafts at the same time instead of taking turns. Bots resolve instantly.
 // Decisions are still logged in a fixed (seat-index) order regardless of who actually
@@ -1976,36 +1794,14 @@ async function applyEndMeta(){
 
 /* ================= welcome modal ================= */
 // showStep/requireName/wireWelcome moved verbatim to src/ui/lobby.js (11-04).
-function startSinglePlayer(){
-  const name=requireName();
-  const opp=3; // 4-player table is the standard game; no longer prompting for opponent count
-  const strategies=["human"];
-  for(let i=1;i<=opp;i++)strategies.push(seatStrat(i)); // BOT-02: temperament follows the captain
-  appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
-  appState.roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
-  const seed=Math.floor(Math.random()*1e9);
-  appState.soloMeta={name,strategies,seed};appState.dlog=[];saveSoloState();
-  beginGame(roundCfg(strategies),seed);
-}
-// Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
-// seats up to the standard 4-player table are filled with bots, same pool solo/host use.
-function startPassAndPlay(names){
-  const strategies=names.map(()=>"human");
-  for(let i=names.length;i<4;i++)strategies.push(seatStrat(i)); // BOT-02
-  appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;appState.passAndPlay=true;
-  appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
-  const seed=Math.floor(Math.random()*1e9);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true};appState.dlog=[];saveSoloState();
-  beginGame(roundCfg(strategies),seed);
-}
+// startSinglePlayer moved verbatim to src/ui/flow.js (11-05).
+// startPassAndPlay moved verbatim to src/ui/flow.js (11-05).
 // renderDecorativeBoard moved verbatim to src/ui/board.js (11-03).
 
 /* ================= lobby / room ================= */
 // showHome/showRoom/showGameView moved verbatim to src/ui/lobby.js (11-04).
 
-// pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
-// canReveal/offerCheckBtn logic and the recipeRevealed re-lock points inside humanTurn.
-function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
+// revealMyRecipe moved verbatim to src/ui/flow.js (11-05).
 
 /* ================= pass & play: hand the device to the next seat ================= */
 // passGate moved verbatim to src/ui/lobby.js (11-04).
