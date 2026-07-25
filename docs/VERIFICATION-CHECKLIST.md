@@ -28,7 +28,7 @@ A committed, repeatable procedure a human or the orchestrator can re-run on dema
 
 - **Observed result (2026-07-25T19:39Z, this worktree, branch `claude/new-session-d6e9d7`):** `npm test` exit code 0. All 30 determinism seeds PASS with `SOURCE: unchanged`. All 8 remaining scripts PASS with zero failures reported. VERIFY-01's automated baseline is green post-refactor.
 
-- [ ] Chrome boot smoke (blocked — awaiting orchestrator; see below)
+- [x] Chrome boot smoke — PASS (see below)
 
 ### Standing re-run procedure (D-04)
 
@@ -43,13 +43,16 @@ To reproduce VERIFY-01's automated evidence at any later commit:
 
 VERIFY-01's automated baseline is pinned and reproducible from this checklist alone: `npm test` green + frozen-corpus count of 1 + zero dependencies/devDependencies.
 
-**Boot smoke — PENDING.** This executor has no browser-driving tool. Serve this worktree locally on a port not already owned by another session (8000 and 8020 are both in use by other worktrees/sessions — use a different port, e.g. 8021, bound to `127.0.0.1`), then in Chrome via the browser-MCP:
-- Navigate to the local URL with a cache-buster.
-- Assert `window.__pp_module_ok === true`.
-- Assert `window.__pp_boot_count === 1`.
-- Call `read_console_messages` with `onlyErrors` and confirm it returns empty.
-- Start a solo game and take exactly one live action (a single coin-flip or one sail step) to prove the game is interactive end-to-end.
-- Record the observed values back into this section as a "boot smoke: PASS" line (or FAIL with the discrepancy) once run.
+**Boot smoke — PASS.** Verified via orchestrator browser automation (Chrome-MCP), not by a human, against a fresh local server serving this worktree at `http://127.0.0.1:8021/` (a port not already owned by another worktree/session — 8000 and 8020, the latter Wyatt's live desktop-Safari session, were both left untouched).
+
+Observed values:
+- `window.__pp_module_ok === true` — PASS
+- `window.__pp_boot_count === 1` — PASS
+- `read_console_messages` (`onlyErrors`) — PASS, zero console errors, confirmed on a clean reload with console tracking active from load
+- Live interactivity: started a solo game (captain "Boot Smoke" + 3 bots rendered in the CAPTAINS panel), then advanced the intro, which produced the deterministic sailing-order draw ("crew draws lots for sailing order") — proves the engine + render path are live end-to-end
+- `document.readyState === "complete"`; both the landing view and the in-game view rendered correctly
+
+The verification apparatus (local-serve → Chrome-MCP → debug-hook assertion → committed checklist) is proven end-to-end on this one thin path.
 
 ---
 
