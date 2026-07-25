@@ -46,11 +46,14 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 - ✓ Bot personalities hardcoded per captain; lobby picker removed (BOT-01/02) — v1.0
 - ✓ End of voyage — win no longer announced in the blue box, gets its own recipe-image box, Unluckiest-pirate badge, redesigned 5-badge set (approved), confetti celebration (EOV-01…05) — v1.0
 
+**v1.1 Monolith Refactor — in progress**
+
+- ✓ `index.html` split into native ES modules (zero build step): UI in `src/ui/*`, orchestration in `src/orchestrator.js`, `src/main.js` composition root; `index.html` reduced to markup + one module entry; strangler-fig bridge removed; dependency graph acyclic; determinism 30/30 and Safari storm both re-verified (SPLIT-03/05/06) — Validated in Phase 11
+
 ### Active
 
 <!-- v1.1 Monolith Refactor scope. Requirements defined in .planning/REQUIREMENTS.md. -->
 
-- Split `index.html` into native ES modules (zero build step) — v1.1
 - Firebase `.off()` watcher teardown cleanup — v1.1
 - Tame 40+ globals behind module exports / app-state object — v1.1
 - Harden deterministic engine/replay module seams + regression tests — v1.1
@@ -106,4 +109,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-24 — started v1.1 Monolith Refactor milestone*
+*Last updated: 2026-07-25 — Phase 11 complete (index.html split into native ES modules; strangler-fig bridge removed; Chrome + Safari re-verified)*
