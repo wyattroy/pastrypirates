@@ -64,6 +64,19 @@ if (typeof window !== "undefined") {
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
 
+  // 11-04: the injected-handler seam (D-07/criterion 1). src/ui/panel.js's flash()/liveRender()
+  // no longer call netNarrate()/pushEvents() directly (that would be a UI->net import) — they
+  // call through src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root
+  // wires the actual net-adjacent operations in. netNarrate/pushEvents are themselves still
+  // classic-script globals this wave (not yet modularized into src/net/), so this reaches them
+  // via the still-present PP bridge (globalThis) rather than a real src/net/ import — a
+  // deliberate, temporary, composition-root-only use, formalized to real src/net/ imports once
+  // the room-lifecycle/orchestration functions themselves modularize (11-06).
+  ui.setNetHandlers({
+    onBroadcast: (...a) => globalThis.netNarrate(...a),
+    onEvents: (...a) => globalThis.pushEvents(...a),
+  });
+
   // Phase 9's debug hook (NET-03 observation point, GLOBAL-03's seed for a
   // future single documented debug mechanism). Deliberately carries no
   // bridge-removal tag: the two lines above are deleted in a later phase,

@@ -9,3 +9,5 @@
 export * from "./recipe.js";
 export * from "./util.js";
 export * from "./board.js";
+export * from "./panel.js";
+export * from "./handlers.js";
