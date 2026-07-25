@@ -30,6 +30,19 @@ A committed, repeatable procedure a human or the orchestrator can re-run on dema
 
 - [ ] Chrome boot smoke (blocked — awaiting orchestrator; see below)
 
+### Standing re-run procedure (D-04)
+
+To reproduce VERIFY-01's automated evidence at any later commit:
+
+1. Run `npm test` from repo root. Expect exit code 0 and `SOURCE: unchanged` in the determinism output (30/30 seeds).
+2. Check the frozen-corpus invariant: `git log --oneline -- 'scripts/fixtures/determinism/*.jsonl' | wc -l` must equal exactly `1`. The 30-seed determinism corpus is captured once (Phase 7) and never re-captured — **never pass `--capture`** to `determinism_baseline.js`. A count other than `1` means the corpus was regenerated and the "unchanged regression baseline" guarantee no longer holds.
+   - **Observed (2026-07-25):** count = `1`. Invariant holds.
+3. Check the zero-dependency guarantee (D-01 — no browser-test-framework or other package was introduced this phase): `package.json` must declare zero `dependencies` and zero `devDependencies`.
+   - **Observed (2026-07-25):** `dependencies: {}`, `devDependencies: {}`. Zero of either. No package was added to satisfy Phase 12.
+4. Per D-04, the current 30-seed baseline is accepted as sufficient for v1.1 — it is green and covers seeded engine output byte-for-byte. Expanding it with fixtures specifically targeting storms/battles/recovery is optional future hardening, not a blocker for this milestone (see 12-CONTEXT.md § Deferred).
+
+VERIFY-01's automated baseline is pinned and reproducible from this checklist alone: `npm test` green + frozen-corpus count of 1 + zero dependencies/devDependencies.
+
 **Boot smoke — PENDING.** This executor has no browser-driving tool. Serve this worktree locally on a port not already owned by another session (8000 and 8020 are both in use by other worktrees/sessions — use a different port, e.g. 8021, bound to `127.0.0.1`), then in Chrome via the browser-MCP:
 - Navigate to the local URL with a cache-buster.
 - Assert `window.__pp_module_ok === true`.
