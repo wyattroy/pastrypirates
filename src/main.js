@@ -10,6 +10,7 @@ import * as shared from "./shared/index.js";
 import * as engine from "./engine/index.js";
 import * as net from "./net/index.js";
 import * as stateNs from "./state/index.js";
+import * as ui from "./ui/index.js";
 
 // D-15 (amended): the marker assignment must be guarded — `window` is
 // undeclared under plain Node and a bare reference throws ReferenceError,
@@ -59,7 +60,7 @@ if (typeof window !== "undefined") {
   // parameter/variable names inside the classic script (see
   // src/state/index.js's header for the full account); `appState` was
   // confirmed to have zero pre-existing occurrences before being chosen.
-  const PP = { ...shared, ...engine, ...net, appState: stateNs.appState }; // PP-BRIDGE
+  const PP = { ...shared, ...engine, ...net, ...ui, appState: stateNs.appState }; // PP-BRIDGE
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
 
