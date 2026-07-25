@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 11
 current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-07-25T03:37:01.090Z"
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-07-25T04:02:01.530Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 28
-  completed_plans: 22
+  completed_plans: 23
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [████████░░] 79%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -79,6 +79,7 @@ Progress: [████████░░] 79%
 | Phase 10 P06 | 20min | 2 tasks | 4 files |
 | Phase 11 P01 | ~35min | 3 tasks | 8 files |
 | Phase 11 P02 | ~45min | 2 tasks | 5 files |
+| Phase 11 P03 | ~40min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,10 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 2: fixed a live Rule-1 bug found while moving saveSoloState() -- it read a bare undefined soloMeta instead of appState.soloMeta, silently swallowed by its own try/catch, so pp_solo localStorage has never actually persisted since the Phase 10 migration
 - [Phase ?]: Phase 11 Plan 2: retired scripts/dlog_replay_test.js's node:vm sentinel-comment slicing of index.html in favor of a native import of the now-real replayShortfall/REPLAY_SHORTFALL_TOLERANCE exports from src/ui/util.js
 - [Phase ?]: Phase 11 Plan 2: deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 2 of 8 phase plans done, 67 of 183 functions extracted, PP bridge still present by design
+- [Phase ?]: Phase 11 Plan 3: cell/shipEls/activeRing/spinNeedle/stormText/stormDial/windLabels/logRenderedTo moved into src/ui/board.js as module-scope let/const since drawBoard/render/renderLog are their sole mutators; exported boardCell()/boardShipEls()/resetBoardLog() accessors bridge the 6 still-classic call sites reading them until those callers move in a later wave
+- [Phase ?]: Phase 11 Plan 3: chatBubbles (a classic const object, invisible to analyze_classic.mjs like 11-01's RECIPE_BOOK/11-02's EVENT_NARRATION) moved as an EXPORTED object alongside render(), needing zero code changes at its 4 still-classic consumer sites since it survives the PP bridge snapshot (mutated in place, never reassigned wholesale)
+- [Phase ?]: Phase 11 Plan 3: all 14 moved functions (el/iconAt/drawBoard/buildStormLayers/render/renderLog/popEmoji/celebrateHomeDocks/victoryConfetti/showStats/setFlipCoin/setFlipActive/renderDecorativeBoard/syncBoardSizing) verified byte-identical to the pristine pre-Phase-11 index.html via git-history diff, carrying the v1.0 BUG-01 storm-crash fix through untouched
+- [Phase ?]: Phase 11 Plan 3: deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 3 of 8 phase plans done, 81 of ~183 functions extracted, PP bridge still present by design
 
 ### Pending Todos
 
@@ -155,8 +160,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T03:37:01.082Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-07-25T04:02:01.522Z
+Stopped at: Completed 11-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
