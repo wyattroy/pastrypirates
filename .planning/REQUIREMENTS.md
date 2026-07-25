@@ -46,7 +46,7 @@ Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may 
 ### Verification (VERIFY)
 
 - [x] **VERIFY-01**: The headless replay/determinism harness is expanded to cover the regression corpus and runs green post-refactor
-- [ ] **VERIFY-02**: Claude-driven Chrome MCP end-to-end tests exercise the full solo gameplay loop (sail, dock, trade, battle, fish, storm, end-of-voyage)
+- [x] **VERIFY-02**: Claude-driven Chrome MCP end-to-end tests exercise the full solo gameplay loop (sail, dock, trade, battle, fish, storm, end-of-voyage)
 - [ ] **VERIFY-03**: Claude-driven Chrome MCP end-to-end tests exercise a full multiplayer game across two browser tabs (host + guest) with deterministic sync intact
 - [ ] **VERIFY-04**: Manual Safari + Chrome playtests confirm no perf/compat regressions — including storm rendering and multiplayer pause/refresh state
 
@@ -104,7 +104,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | GLOBAL-02 | Phase 10 | Complete |
 | GLOBAL-03 | Phase 10 | Complete |
 | VERIFY-01 | Phase 12 | Complete |
-| VERIFY-02 | Phase 12 | Pending |
+| VERIFY-02 | Phase 12 | Complete |
 | VERIFY-03 | Phase 12 | Pending |
 | VERIFY-04 | Phase 12 | Pending |
 
