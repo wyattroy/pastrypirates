@@ -3,7 +3,8 @@
 // Module entry point (D-13, D-14). Phase 7 proved the zero-build
 // module-loading contract here; Phase 8 extends this same file to populate
 // the window.PP bridge (D-14/D-15) and invert control so this module — not
-// the classic script — triggers window.boot() after the bridge is ready.
+// the classic script — triggers startup (calling `boot()` directly, 11-06)
+// after the bridge is ready.
 
 import { MODULE_OK_FLAG } from "./module-contract.js";
 import * as shared from "./shared/index.js";
@@ -11,6 +12,12 @@ import * as engine from "./engine/index.js";
 import * as net from "./net/index.js";
 import * as stateNs from "./state/index.js";
 import * as ui from "./ui/index.js";
+// 11-06: src/orchestrator.js is the last tier this composition root wires in — the 44
+// orchestration (net-caller) functions that used to be the classic <script> region's own
+// top-level declarations. `boot` is also imported by name so this file can call it directly
+// (D-14's inversion of control, formalized this wave — see the `boot()` call at the bottom).
+import * as orchestrator from "./orchestrator.js";
+import { boot } from "./orchestrator.js";
 
 // D-15 (amended): the marker assignment must be guarded — `window` is
 // undeclared under plain Node and a bare reference throws ReferenceError,
@@ -64,24 +71,39 @@ if (typeof window !== "undefined") {
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
 
-  // 11-04/11-05: the injected-handler seam (D-07/criterion 1). src/ui/panel.js's
-  // flash()/liveRender() and src/ui/flow.js's remotePickHighlights()/endReplay()/
-  // wireRestoreFail() no longer call netNarrate()/pushEvents()/sendResponse()/
-  // setRecoveryState()/leaveGame() directly (that would be a UI->net import) — they call through
-  // src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root wires the
-  // actual net-adjacent operations in. All five targets are themselves still classic-script
-  // globals this wave (not yet modularized into src/net/), so this reaches them via the
-  // still-present PP bridge (globalThis) rather than a real src/net/ import — a deliberate,
-  // temporary, composition-root-only use, formalized to real src/net/ imports once the
-  // room-lifecycle/orchestration functions themselves modularize (11-06). This is all 5 of the
+  // 11-06: src/orchestrator.js's exports are published as globals through this SEPARATE
+  // statement, not folded into the PP object literal above (that line, and the two PP-BRIDGE
+  // lines around it, are left untouched this wave — only this new line is added). Same
+  // motivation as `...ui`/`...net`/`...shared`/`...engine` above: dozens of already-moved
+  // src/ui/flow.js and src/ui/util.js function bodies (11-04/11-05) call these 44
+  // orchestration functions by bare identifier — broadcastFlip, netNarrate, netBroadcast,
+  // renderBattle, battleAsk, asyncBattle, remotePrompt, remoteDraftPrompt, logDecision,
+  // beginGame, broadcastClock, expireShotClock, watchTimer, and more — and src/ui/ can never
+  // `import` src/orchestrator.js directly (module_graph_check.js's "ui -> shared/engine/state"
+  // shape assertion would fail exactly the way a ui->net import would, since orchestrator.js's
+  // own tier is "main", not one of those three). Publishing these as globals is what lets every
+  // one of those already-moved call sites keep resolving with zero edits, mirroring D-15's
+  // original minimal-blast-radius mandate for the PP bridge itself. Removed alongside the rest
+  // of the bridge in 11-07 (the same grep to delete these can target this line too).
+  Object.assign(globalThis, orchestrator); // PP-BRIDGE (orchestrator, 11-06)
+
+  // 11-04/11-05/11-06: the injected-handler seam (D-07/criterion 1), now fully formalized.
+  // src/ui/panel.js's flash()/liveRender() and src/ui/flow.js's remotePickHighlights()/
+  // endReplay()/wireRestoreFail() never call netNarrate()/pushEvents()/sendResponse()/
+  // setRecoveryState()/leaveGame() directly (that would be a UI->net import) — they call
+  // through src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root
+  // wires the actual net-adjacent operations in. 11-04/11-05 wired these five targets to
+  // still-classic globals via the PP bridge as a deliberate, temporary, composition-root-only
+  // measure; now that all five are real src/orchestrator.js exports, they are bound directly by
+  // reference — no bridge/globalThis indirection remains in this wiring. This is all 5 of the
   // milestone's UI-side seam edges (RESEARCH.md Q1b) — the 6th (battleAsk) is orchestration,
-  // homed in 11-06, not a UI-side injected-handler edge.
+  // homed in src/orchestrator.js, not a UI-side injected-handler edge.
   ui.setNetHandlers({
-    onBroadcast: (...a) => globalThis.netNarrate(...a),
-    onEvents: (...a) => globalThis.pushEvents(...a),
-    onRespond: (...a) => globalThis.sendResponse(...a),
-    onRecovery: (...a) => globalThis.setRecoveryState(...a),
-    onLeave: (...a) => globalThis.leaveGame(...a),
+    onBroadcast: orchestrator.netNarrate,
+    onEvents: orchestrator.pushEvents,
+    onRespond: orchestrator.sendResponse,
+    onRecovery: orchestrator.setRecoveryState,
+    onLeave: orchestrator.leaveGame,
   });
 
   // Phase 9's debug hook (NET-03 observation point, GLOBAL-03's seed for a
@@ -128,9 +150,11 @@ if (typeof window !== "undefined") {
   // proves src/main.js itself still only runs once, rather than assuming it.
   window.__pp_boot_count = (window.__pp_boot_count || 0) + 1;
 
-  // Inversion of control (D-14): the classic script no longer self-invokes
-  // `boot()` — it is a classic-script `function` declaration, so it is
-  // already an own property of `window` with no bridge entry needed. The
-  // module drives startup only after the bridge above is populated.
-  window.boot();
+  // Inversion of control (D-14), formalized (11-06): `boot()` is now a real
+  // src/orchestrator.js export, imported by name at the top of this file — this module calls
+  // it directly rather than through the `window`-property indirection 08-02 introduced (boot
+  // was, until this wave, a classic-script `function` declaration, hence a bare `window`
+  // property with no import available). The module still drives startup only after the bridge
+  // above is populated, same ordering as before.
+  boot();
 }
