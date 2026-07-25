@@ -1,0 +1,72 @@
+# Phase 12 Verification Checklist — v1.1 Monolith Refactor
+
+A committed, repeatable procedure a human or the orchestrator can re-run on demand (D-01). This is NOT a Playwright/Puppeteer suite — no browser-test-framework dependency is introduced. It formalizes the four ROADMAP success criteria for Phase 12 into a checkbox procedure.
+
+## How to re-run
+
+1. Serve the refactor branch locally from THIS worktree's root: `python3 -m http.server <port>` bound to `127.0.0.1` (loopback only — never `0.0.0.0`). Do not reuse a port another worktree or session already owns; confirm before starting.
+2. Before trusting any browser check, confirm the server's working directory equals this worktree's root (the stale-server-port gotcha — a server started earlier from a different worktree/branch will silently serve the wrong code on the same port).
+3. NEVER verify against `playpastrypirates.com` — that origin is still serving v1.0 and cannot prove anything about this refactor. All browser verification in this checklist targets the local `127.0.0.1` server only.
+4. Run `npm test` for the automated section (Criterion 1). No install step, no dependencies to fetch — the project intentionally declares zero `dependencies` and zero `devDependencies` (D-01).
+5. Drive Chrome via the browser-MCP for Criteria 2 and 3; assert the debug hooks (`window.__pp_module_ok`, `window.__pp_boot_count`, `window.__pp_net_debug`, `window.__pp_app_state_debug`) and `read_console_messages` (`onlyErrors`) rather than eyeballing the page.
+6. Criterion 4 (desktop Safari) has no automation path — it is a manual playthrough owned by Wyatt (D-03).
+
+---
+
+## Criterion 1 — Automated determinism/regression harness (VERIFY-01)
+
+- [x] `npm test` run from repo root, full 9-script chain, all green (exit 0):
+  1. `node scripts/determinism_baseline.js --verify` — 30/30 seeds PASS, `SOURCE: unchanged` (hashes match and engine source hash matches the recorded baseline)
+  2. `node scripts/engine_contract_check.js` — purity (ENGINE-01), annotations (ENGINE-04, 7/7 ORDER IS LOAD-BEARING), DAG direction (SPLIT-01/02), moved-symbol completeness — all PASS
+  3. `node scripts/dlog_replay_test.js` — replay-shortfall synthetic cases + real-game case — all PASS
+  4. `node scripts/net_registry_test.js` — registry attach/detach/detachRoom/detachAll/cross-instance cases — all PASS
+  5. `node scripts/net_contract_check.js` — sole listener site (NET-02/D-04), no UI dependency (SPLIT-04), no app-state dependency, directional imports (D-06), 18/18 watcher inventory (NET-01/D-01) — all PASS
+  6. `node scripts/state_contract_check.js` — no leftover top-level declarations, no leftover bare usage of the 46 app-state names, debug-hook naming (GLOBAL-03, 4-name allowlist), appState binding never reassigned — all PASS
+  7. `node scripts/module_graph_check.js` — no import cycle, shared is a leaf tier, engine/net/ui/main layering correct, `ui` does NOT import `net` (D-07) — all PASS
+  8. `node scripts/ui_contract_check.js` — no `src/ui/**` import resolves into `src/net/` (D-07), PP bridge gone, classic `<script>` region empty, retained-globals allowlist (`window.revealMyRecipe` + the 4 debug hooks only) — all PASS
+  9. `node scripts/no_undef_check.js` — 19 files scanned under `src/**/*.js`, zero unresolved call-position identifiers — PASS
+
+- **Observed result (2026-07-25T19:39Z, this worktree, branch `claude/new-session-d6e9d7`):** `npm test` exit code 0. All 30 determinism seeds PASS with `SOURCE: unchanged`. All 8 remaining scripts PASS with zero failures reported. VERIFY-01's automated baseline is green post-refactor.
+
+- [ ] Chrome boot smoke (blocked — awaiting orchestrator; see below)
+
+**Boot smoke — PENDING.** This executor has no browser-driving tool. Serve this worktree locally on a port not already owned by another session (8000 and 8020 are both in use by other worktrees/sessions — use a different port, e.g. 8021, bound to `127.0.0.1`), then in Chrome via the browser-MCP:
+- Navigate to the local URL with a cache-buster.
+- Assert `window.__pp_module_ok === true`.
+- Assert `window.__pp_boot_count === 1`.
+- Call `read_console_messages` with `onlyErrors` and confirm it returns empty.
+- Start a solo game and take exactly one live action (a single coin-flip or one sail step) to prove the game is interactive end-to-end.
+- Record the observed values back into this section as a "boot smoke: PASS" line (or FAIL with the discrepancy) once run.
+
+---
+
+## Criterion 2 — Solo gameplay-loop E2E (VERIFY-02)
+
+- [ ] Sail
+- [ ] Dock
+- [ ] Trade
+- [ ] Battle
+- [ ] Fish
+- [ ] Storm
+- [ ] End-of-voyage
+
+*(Filled by a later plan in this phase — 12-02.)*
+
+---
+
+## Criterion 3 — Two-tab multiplayer + pause/refresh recovery (VERIFY-03)
+
+- [ ] Two-tab host + guest: seat/status propagation, narration broadcast
+- [ ] Pause the shot-clock mid-game — game state stays intact (no reset)
+- [ ] Refresh the GUEST tab mid-game — the voyage restores
+- [ ] Refresh the HOST tab mid-game — restores AND deterministic lockstep/sync survives the cycle
+
+*(Filled by a later plan in this phase — 12-03.)*
+
+---
+
+## Criterion 4 — Manual desktop-Safari playthrough (VERIFY-04)
+
+- [ ] One full desktop-Safari solo playthrough start-to-finish (sail, dock, trade, battle, fish, end-of-voyage) — Wyatt's personal sign-off (D-03)
+
+*(Filled by a later plan in this phase — 12-04.)*
