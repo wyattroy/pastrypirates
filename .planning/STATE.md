@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 11
 current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-07-25T03:05:18.663Z"
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-07-25T03:37:01.090Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 28
-  completed_plans: 21
+  completed_plans: 22
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -78,6 +78,7 @@ Progress: [████████░░] 75%
 | Phase 10 P05 | 15min | 1 tasks | 1 files |
 | Phase 10 P06 | 20min | 2 tasks | 4 files |
 | Phase 11 P01 | ~35min | 3 tasks | 8 files |
+| Phase 11 P02 | ~45min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,11 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 1 (tracer): net-function surface for analyze_classic.mjs derived at runtime from src/net/index.js's exports, never a scratchpad file; module_graph_check.js gives 'ui does NOT import net' (D-07) its own dedicated PASS/FAIL line
 - [Phase ?]: Phase 11 Plan 1: RECIPE_BOOK/PASTRY_FILES/RECIPE_LOOKUP/recipeModalCurrent (classic-script const/let, invisible to ES modules) moved alongside the 9 named recipe functions -- a classic script's const/let never becomes a window property the way function declarations do, so the plan's literal 9-function list was dependency-incomplete without them; grep-confirmed exclusive to this cluster before moving
 - [Phase ?]: Phase 11 Plan 1: SPLIT-03/05/06 deliberately left Pending in REQUIREMENTS.md -- only 1 of 8 phase plans done, bridge still present by design (strangler-fig mechanism remaining waves rely on), mirrors the 09-01 precedent of not marking multi-plan requirements complete early
+- [Phase ?]: Phase 11 Plan 2: islandArtPlacement/shipXY/islandXY/spawnPops/boatXY gained explicit cellPx/shipEls parameters (classic-script render-only let's not migrated by Phase 10, not exclusive to this cluster) rather than bare reads or a globalThis workaround; still-classic call sites updated to pass the values explicitly
+- [Phase ?]: Phase 11 Plan 2: EVENT_NARRATION (a const, invisible to analyze_classic.mjs's function-only inventory, same class of gap as 11-01's RECIPE_BOOK) moved as an EXPORTED symbol alongside describe/captions/spawnPops, since still-classic callers still need it as a bare global
+- [Phase ?]: Phase 11 Plan 2: fixed a live Rule-1 bug found while moving saveSoloState() -- it read a bare undefined soloMeta instead of appState.soloMeta, silently swallowed by its own try/catch, so pp_solo localStorage has never actually persisted since the Phase 10 migration
+- [Phase ?]: Phase 11 Plan 2: retired scripts/dlog_replay_test.js's node:vm sentinel-comment slicing of index.html in favor of a native import of the now-real replayShortfall/REPLAY_SHORTFALL_TOLERANCE exports from src/ui/util.js
+- [Phase ?]: Phase 11 Plan 2: deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 2 of 8 phase plans done, 67 of 183 functions extracted, PP bridge still present by design
 
 ### Pending Todos
 
@@ -149,8 +155,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T03:05:18.654Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-07-25T03:37:01.082Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
