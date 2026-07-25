@@ -55,14 +55,16 @@
 import { appState } from "../state/index.js";
 import { Game, roundCfg } from "../engine/index.js";
 import {
-  DIRS, STORM_DIAG, HEXCOL, EMOJI_IMG,
+  DIRS, STORM_DIAG, HEXCOL, ASSET_BASE, EMOJI_IMG,
   BOARD_IMG, DOCK_IMG, BOAT_IMG, ING_IMG, ING_HOLE_IMG, ANCHOR_IMG, TRADE_SWIRL_IMG,
   WIND_ARROW_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, COIN_IMG, SCROLL_IMG, CROWN_IMG,
+  HOURGLASS_IMG, CROISSANT_IMG, CAKE_SLICE_IMG, DONUT_IMG, CUPCAKE_IMG,
+  FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG,
   iconImg, iname, ingImg,
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describe,
+  describe, assignBadges, pname, pn,
 } from "./util.js";
 import { recipeTitle } from "./recipe.js";
 
@@ -435,6 +437,71 @@ export function popEmoji(x,y,emo,big,imgHref,cls){
   setTimeout(()=>g.remove(),cls==="splash"?3900:2600); // UI-03: 2x the old 1950/1300, matching the doubled CSS
 }
 
+// once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
+// a little celebration flourish, purely cosmetic (doesn't touch game state)
+export function celebrateHomeDocks(){
+  const pastryImgs=[CROISSANT_IMG,CAKE_SLICE_IMG,DONUT_IMG,CUPCAKE_IMG];
+  for(let i=0;i<4;i++){
+    const rect=$("homeDock"+i);
+    if(!rect)continue;
+    const x=+rect.getAttribute("x")+(+rect.getAttribute("width"))/2;
+    const y=+rect.getAttribute("y")+(+rect.getAttribute("height"))/2;
+    rect.remove();
+    const ty=y+cell*.14,size=cell*.7;
+    // the dancing rotation is a CSS animation, which takes over the whole `transform` and would
+    // clobber a plain SVG translate attribute on the same element — position via an outer group's
+    // attribute (untouched by CSS) and rotate an inner group around its own fill-box center instead
+    const outer=el("g",{transform:`translate(${x},${ty})`},$("board"));
+    const inner=el("g",{class:"dancingPastry",style:"transform-box:fill-box;transform-origin:center"},outer);
+    el("image",{x:-size/2,y:-size/2,width:size,height:size,href:pastryImgs[i%pastryImgs.length]},inner);
+  }
+}
+// notes/edits EOV-05: a one-off burst of pastries + coins arcing up over the winner's ship to make
+// the victory land as a real moment. Purely cosmetic (uses popEmoji, the same board-pop system
+// every event already uses), so it touches no game state and is safe during replay/spectate.
+export function victoryConfetti(winner){
+  const st=appState.game.events[appState.game.events.length-1]&&appState.game.events[appState.game.events.length-1].state;
+  const treats=[["🥐",CROISSANT_IMG],["🍰",CAKE_SLICE_IMG],["🍩",DONUT_IMG],["🧁",CUPCAKE_IMG],["🌕",COIN_IMG],["👑",CROWN_IMG]];
+  let cx=null,cy=null;
+  if(st&&st[winner]){const [x,y]=shipXY(st[winner].pos,winner,st,cell);cx=x;cy=y-cell*.42;}
+  for(let k=0;k<18;k++){
+    const [emo,img]=treats[k%treats.length];
+    // scatter across the board (fall back to the winner's ship if we can't read a board width)
+    const bx=cx!=null?cx+(Math.random()-0.5)*cell*7:cell*(1+Math.random()*8);
+    const by=cy!=null?cy+(Math.random()-0.5)*cell*3:cell*(1+Math.random()*6);
+    setTimeout(()=>popEmoji(bx,by,emo,Math.random()<0.5,img),k*70);
+  }
+}
+export function showStats(){
+  $("statsWrap").style.display="";
+  celebrateHomeDocks();
+  const w=appState.game.winner;
+  const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
+  // notes/edits EOV-02: the winner's recipe image is NOT shown here anymore — it lives in the one-off
+  // victory box (see endLive), so the End of Voyage summary isn't doubling it up.
+  const luck=appState.game.players.map(p=>p.flips?(p.heads/p.flips):0);
+  // notes/edits EOV-04: one keepsake per captain (see assignBadges) — emblem, pirate name + byline,
+  // the captain (big, colored, no seat dot) filling the card above a rule, and the stat beneath it.
+  const badges=assignBadges();
+  const awards=badges.map(b=>`<div class="awardCard" style="border-color:${HEXCOL[b.seat]}">
+      <img class="awardEmblem" src="${ASSET_BASE}badges/${b.def.img}.png" alt="">
+      <div class="awardName">${b.def.name}</div>
+      <div class="awardByline">${b.def.byline}</div>
+      <div class="awardCaptain" style="color:${HEXCOL[b.seat]}">${pname(b.seat)}</div>
+      <hr class="awardRule">
+      <div class="awardStat">${b.def.stat}${b.value!=null?` — <b>${b.value}${b.def.unit||""}</b>`:""}</div>
+    </div>`).join("");
+  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
+    <div class="awardsRow">${awards}</div>
+    <table>
+    <tr><td>Rounds</td><td>${appState.game.round}</td></tr>
+    <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
+    <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
+    <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?"yes — "+appState.game.finishOrder.length+" finishers":"no"}</td></tr>
+    ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
+    </table>`;
+}
+
 // a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
 // get a glimpse of the game before they've made a choice. Never interactive.
 export function renderDecorativeBoard(){
@@ -489,4 +556,26 @@ export function syncBoardSizing(){
     root.style.setProperty("--boardW",narrowBoardSize+"px");
     root.style.removeProperty("--sideW");
   }
+}
+
+// ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
+// The flippenator coin doubles as its own button — no separate FLIP button — so this sets
+// the coin's own class/text directly instead of using coinHTML() (which stays for the
+// battle scoreboard's per-fighter result circles, a separate use of the same .coin styles).
+export function setFlipCoin(state){
+  const el=$("flipCoinWrap");if(!el)return;
+  el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;el.style.backgroundImage="";
+  if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
+  else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
+  else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";}
+  else{el.classList.add("wait");el.textContent="";}
+}
+export function setFlipActive(onClick){
+  const el=$("flipCoinWrap");if(!el)return;
+  // notes/edits #6: show the heads face behind "FLIP" (was a flat gradient, no coin art) — a
+  // tint layer on top keeps the text legible over the image.
+  // notes/edits UI-09: drop the heavy orange tint over the whole coin — show the clean heads face
+  // and make just the word "FLIP" orange instead (see #flipCoinWrap.active CSS).
+  if(onClick){el.classList.add("active");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="FLIP";el.onclick=onClick;}
+  else{el.classList.remove("active");el.style.backgroundImage="";el.onclick=null;}
 }
