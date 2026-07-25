@@ -223,12 +223,12 @@ Plans:
   3. Claude-driven Chrome-MCP E2E tests exercise a full multiplayer game across two browser tabs (host + guest) with deterministic sync intact.
   4. Manual Safari + Chrome playtests confirm no perf/compat regressions — including storm rendering and multiplayer pause/refresh state.
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 12-01-PLAN.md — Verification apparatus tracer + Criterion-1 determinism/regression gate (VERIFY-01); creates the committed `docs/VERIFICATION-CHECKLIST.md`
+- [x] 12-01-PLAN.md — Verification apparatus tracer + Criterion-1 determinism/regression gate (VERIFY-01); creates the committed `docs/VERIFICATION-CHECKLIST.md`
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -260,6 +260,6 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
-| 12. Verification & Validation | v1.1 | 0/4 | Planned | - |
+| 12. Verification & Validation | v1.1 | 1/4 | In Progress|  |
 </content>
 </invoke>

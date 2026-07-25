@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monolith Refactor
 current_phase: 12
-current_phase_name: Verification & Validation
+current_phase_name: verification-validation
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-07-25T19:30:27.289Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-07-25T19:46:13.687Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 11 complete, transitioned to Phase 12
+last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 6
   completed_phases: 5
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 11 — ui-extraction-orchestration-bridge-removal
+**Current focus:** Phase 12 — verification-validation
 
 ## Current Position
 
-Phase: 12 — Verification & Validation
-Plan: Not started
+Phase: 12 (verification-validation) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-07-25 — Phase 11 complete, transitioned to Phase 12
+Last activity: 2026-07-25 — Phase 12 execution started
 
-Progress: [██████████] 100%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -85,6 +85,7 @@ Progress: [██████████] 100%
 | Phase 11 P06 | ~30min | 3 tasks | 5 files |
 | Phase 11 P07 | ~50min | 3 tasks | 11 files |
 | Phase 11 P08 | ~20min | 2 tasks | 1 files |
+| Phase 12 P01 | ~15min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 7: First Chrome verification failed post-bridge-deletion (buildPlayerRows/startSinglePlayer ReferenceError) despite all mechanical gates green -- built scripts/no_undef_check.js (new standing npm-test gate, call-site-scoped no-undef check over all src/**/*.js) to find every remaining bare cross-module read mechanically; found 20 (a superset of the coordinator's own 9-edge Chrome-session list, including 2 the coordinator incorrectly flagged as already-imported); fixed all 20 via seam extension (19 new src/ui/handlers.js keys)/direct import(2)/relocation(2); second Chrome verification (solo + two-tab multiplayer) passed cleanly
 - [Phase ?]: Phase 11 Plan 7: SPLIT-03/05/06 marked Complete in REQUIREMENTS.md -- coordinator-authorized after Chrome-verifying the bridge-deleted-and-fixed build; none depend on 11-08's Safari re-verification (D-12), which is scoped narrowly to storm rendering
 - [Phase ?]: Phase 11 Plan 8: consolidated automated gate all-green with zero code changes needed; Safari storm re-verification (D-12) PASSED per Wyatt, independently re-confirmed clean after the coordinator's temporary storm-forcing/revert on a throwaway port. Phase 11 (UI Extraction, Orchestration & Bridge Removal) complete.
+- [Phase ?]: 12-01: docs/VERIFICATION-CHECKLIST.md created as the committed, repeatable D-01 verification procedure (markdown checklist, not Playwright); four-criterion skeleton with Criterion 1 (VERIFY-01) fully pinned this plan, Criteria 2-4 left for 12-02/03/04
+- [Phase ?]: 12-01: VERIFY-01 satisfied by running the existing 30-seed determinism baseline green post-refactor (npm test exit 0, SOURCE: unchanged) plus the frozen-corpus (count=1, never --capture) and zero-dependency/devDependency invariants -- no new fixtures added, per D-04
+- [Phase ?]: 12-01: Chrome boot-smoke check (window.__pp_module_ok, __pp_boot_count, zero console errors, live solo-game interactivity) was performed by the orchestrator via browser-MCP, not this executor (no browser tool available) or a human -- recorded in the checklist with explicit attribution, closing the tracer task end-to-end
 
 ### Pending Todos
 
@@ -178,9 +182,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T19:09:39.392Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-verification-validation/12-CONTEXT.md
+Last session: 2026-07-25T19:46:02.620Z
+Stopped at: Completed 12-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
