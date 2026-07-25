@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 11
 current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-07-25T04:02:01.530Z"
+stopped_at: Completed 11-04-PLAN.md
+last_updated: "2026-07-25T04:19:53.918Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 28
-  completed_plans: 23
+  completed_plans: 24
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -80,6 +80,7 @@ Progress: [████████░░] 82%
 | Phase 11 P01 | ~35min | 3 tasks | 8 files |
 | Phase 11 P02 | ~45min | 2 tasks | 5 files |
 | Phase 11 P03 | ~40min | 2 tasks | 3 files |
+| Phase 11 P04 | ~35min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -135,6 +136,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 3: chatBubbles (a classic const object, invisible to analyze_classic.mjs like 11-01's RECIPE_BOOK/11-02's EVENT_NARRATION) moved as an EXPORTED object alongside render(), needing zero code changes at its 4 still-classic consumer sites since it survives the PP bridge snapshot (mutated in place, never reassigned wholesale)
 - [Phase ?]: Phase 11 Plan 3: all 14 moved functions (el/iconAt/drawBoard/buildStormLayers/render/renderLog/popEmoji/celebrateHomeDocks/victoryConfetti/showStats/setFlipCoin/setFlipActive/renderDecorativeBoard/syncBoardSizing) verified byte-identical to the pristine pre-Phase-11 index.html via git-history diff, carrying the v1.0 BUG-01 storm-crash fix through untouched
 - [Phase ?]: Phase 11 Plan 3: deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 3 of 8 phase plans done, 81 of ~183 functions extracted, PP bridge still present by design
+- [Phase ?]: Phase 11 Plan 4: stood up src/ui/handlers.js's injected-handler seam (setNetHandlers/netHandlers) resolving 2 of the 6 UI->orchestration edges (flash->onBroadcast, liveRender->onEvents) without src/ui/ importing src/net/ (D-07); both handlers wired in src/main.js to still-classic netNarrate/pushEvents globals via the PP bridge, formalized to real src/net/ imports in 11-06
+- [Phase ?]: Phase 11 Plan 4: moved 22 functions (panel/clock/narration/chat cluster into src/ui/panel.js, lobby/room/welcome cluster into src/ui/lobby.js) byte-identical; room-lifecycle net-callers (createRoom/joinRoom/watchRoom/startGame/beginGame/wireLobby) deliberately deferred to 11-06; classic-script function count dropped from 102 to 80
+- [Phase ?]: Phase 11 Plan 4: deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 4 of 8 phase plans done, 103 of ~183 functions extracted, PP bridge still present by design
 
 ### Pending Todos
 
@@ -160,8 +164,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T04:02:01.522Z
-Stopped at: Completed 11-03-PLAN.md
+Last session: 2026-07-25T04:19:53.910Z
+Stopped at: Completed 11-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
