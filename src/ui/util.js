@@ -40,12 +40,27 @@
 import {
   appState,
 } from "../state/index.js";
+import { roundCfg } from "../engine/index.js";
 import {
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavor, iconImg, ING_IMG,
   CUPCAKE_IMG, CROWN_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
-  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL,
+  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
+// 11-07 (bridge deletion fix): util.js is a common dependency of src/ui/board.js, panel.js,
+// lobby.js, and flow.js — it can never import any of THEM back without closing an import cycle
+// module_graph_check.js's "no import cycle" assertion forbids. A handful of functions here
+// (ask/botBeat/narrateCurrent/applyShotClockPenalty/toggleShotClockPause/shotClockTick/
+// spawnPops/updateRecipeBanner/resumeSoloGame) genuinely need to CALL a rendering function that
+// lives in one of those sibling modules (liveRender/flash/setClockUI/narrateLastEvent from
+// panel.js; popEmoji/render from board.js), or a net-adjacent orchestration function that lives
+// in src/orchestrator.js (main tier, which src/ui/ can never import either). Both cases route
+// through the SAME injected-handler seam src/ui/handlers.js already provides for the 5 original
+// net edges — see that file's own header for the full account. `buildPlayerRows` itself is
+// relocated INTO this file from src/ui/lobby.js this same wave, for the opposite reason: it has
+// zero net/sibling-rendering dependencies of its own, and src/ui/board.js (which calls it) already
+// imports this file directly, so a plain import is strictly simpler than a seam entry here.
+import { netHandlers } from "./handlers.js";
 
 /* ---------- board geometry ---------- */
 
@@ -58,6 +73,42 @@ export function seatDisplayOrder(){
   if(!appState.turnOrder||appState.turnOrder.length!==n)return appState.game.players.map((_,i)=>i);
   const startPos=Math.max(0,appState.turnOrder.indexOf(appState.mySeat));
   return appState.turnOrder.slice(startPos).concat(appState.turnOrder.slice(0,startPos));
+}
+// 11-07 (bridge deletion fix): relocated here verbatim from src/ui/lobby.js. lobby.js already
+// imports src/ui/board.js's syncBoardSizing(), so board.js importing buildPlayerRows() BACK from
+// lobby.js (its only other caller besides this module's own orchestrator-driven call sites) would
+// close an import cycle module_graph_check.js's "no import cycle" assertion forbids. This function
+// has no dependency of its own on anything lobby-specific — it only needs seatDisplayOrder/pname
+// (both already local to this file) plus escHtml/HEXCOL/COIN_IMG/iconImg (already imported here) —
+// so moving it into src/ui/util.js (which src/ui/board.js already imports directly) resolves the
+// bare read with a plain import, no seam needed.
+export function buildPlayerRows(){
+  const $=id=>document.getElementById(id); // this file's first DOM read — see the header note above
+  let html="";
+  const order=seatDisplayOrder();
+  for(const i of order){
+    const s=(appState.roster&&appState.roster[i])||{};
+    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
+                   : `🤖 bot (${s.strat||appState.game.cfg.strategies[i]})`;
+    const displayName=pname(i);
+    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
+      <div class="prowTop">
+        <span class="dot" style="background:${HEXCOL[i]}"></span>
+        <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
+        <span class="coinsWrap"><span class="coins" id="coins${i}">${iconImg(COIN_IMG)} –</span><span class="crown" id="crown${i}"></span></span>
+        <span class="chips" id="chips${i}"></span>
+        <span class="prowRecipe" id="prowRecipe${i}"></span>
+      </div></div>`;
+  }
+  $("players").innerHTML=html;
+  // names have a fixed column width to keep coins/hold aligned across every row — a name that
+  // overflows it scrolls instead of blowing out the layout or truncating unreadably
+  for(const i of order){
+    const wrap=$("pname"+i),inner=wrap&&wrap.firstElementChild;
+    if(!wrap||!inner)continue;
+    const overflow=inner.scrollWidth-wrap.clientWidth;
+    if(overflow>0){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
+  }
 }
 // dock.png is authored facing right (+x, East) in a slightly perspective/isometric style —
 // rotating it 180° to face West flips it upside down and puts the anchor on the wrong side,
@@ -453,21 +504,21 @@ export function ask(msg,opts,colors,sub){
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(resolveOpt(opts,appState.dlog[appState.dlogIdx++],0).opt.value);}
-    endReplay();
+    netHandlers().onEndReplay();
   }
   const seat=appState.curSeat;
-  netNarrate(seat===appState.mySeat?msg:`${pn(seat)} is deciding…`);
+  netHandlers().onBroadcast(seat===appState.mySeat?msg:`${pn(seat)} is deciding…`);
   armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
-  const base=decisionIsLocal(seat)?localAsk(msg,opts,colors,sub)
-    :remotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
+  const base=decisionIsLocal(seat)?netHandlers().onLocalAsk(msg,opts,colors,sub)
+    :netHandlers().onRemotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
        disabled:opts.map(o=>!!o.disabled),sub:sub||null,flip:isFlip,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   const idxP=withShotClock(seat,base,0);
-  return idxP.then(i=>{const r=resolveOpt(opts,i,0);logDecision(r.i);return r.opt.value;});
+  return idxP.then(i=>{const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
 }
 // re-arms the shot clock with a fresh 30s window right before a new decision is shown to
 // whichever seat is being asked — every ask()/pickCell()/non-flip battleAsk() call in the
@@ -494,16 +545,16 @@ export function stepDelay(){return 3000;}
 // text's length — the same "one size fits all" bug as narrateLastEvent()/humanFlip() had, just
 // hitting the most common narration path in the game (every bot action goes through botBeat()).
 // Now narrateCurrent() itself is the thing that paces this beat, via flash()'s length-aware timing.
-export async function botBeat(){liveRender();await narrateCurrent();}
+export async function botBeat(){netHandlers().onLiveRender();await narrateCurrent();}
 // keep the yellow action panel in step with the bot's latest move — liveRender only
 // updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
 export async function narrateCurrent(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
-  if(e.t==="turn"){await flash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
+  if(e.t==="turn"){await netHandlers().onFlash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
   // settleSideBets() already flashed one aggregate message covering every bettor — skip the
   // duplicate individual re-narration (same reasoning as narrateLastEvent()).
   if(e.t==="sidebet")return;
-  const L=appState.logLines[appState.evIdx];if(L)await flash(L.txt);
+  const L=appState.logLines[appState.evIdx];if(L)await netHandlers().onFlash(L.txt);
 }
 export function setActor(s){appState.curSeat=s;}
 export function seatLocal(s){return s===appState.mySeat;}
@@ -520,7 +571,7 @@ export function startShotClock(p){
   appState.shotClockFired={};
   appState.turnExpired=false;
   appState.shotClockPaused=false;
-  broadcastClock();
+  netHandlers().onBroadcastClock();
   if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
   appState.shotClockTimer=setInterval(shotClockTick,500);
 }
@@ -532,7 +583,7 @@ export function stopShotClock(){
   if(appState.shotClockForce&&appState.shotClockSeat!=null)appState.shotClockStash={seat:appState.shotClockSeat,force:appState.shotClockForce};
   appState.shotClockSeat=null;appState.shotClockForce=null;appState.shotClockPaused=false;
   if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
-  broadcastClock();
+  netHandlers().onBroadcastClock();
 }
 // notes/edits BUG-02: re-arm the CURRENT turn's clock after the timer is switched back on. This is
 // deliberately not startShotClock(): that clears shotClockFired, which would let the same turn be
@@ -549,7 +600,7 @@ export function rearmShotClock(p){
   // turnExpired is deliberately NOT cleared: if the turn already expired, the flow is unwinding
   // and watchTimer's guard below refuses to re-arm it at all.
   if(appState.shotClockStash&&appState.shotClockStash.seat===p.idx){appState.shotClockForce=appState.shotClockStash.force;appState.shotClockStash=null;}
-  broadcastClock();
+  netHandlers().onBroadcastClock();
   if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
   appState.shotClockTimer=setInterval(shotClockTick,500);
 }
@@ -573,14 +624,14 @@ export function toggleShotClockPause(){
       if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
     }
   }
-  setClockUI();
+  netHandlers().onSetClockUI();
 }
 export function shotClockTick(){
   if(appState.shotClockSeat==null)return;
   const elapsed=Date.now()-(appState.shotClockDeadline-30000);
   if(!appState.shotClockFired.t20&&elapsed>=20000){appState.shotClockFired.t20=true;applyShotClockPenalty();}
-  if(elapsed>=30000){expireShotClock();return;}
-  setClockUI();
+  if(elapsed>=30000){netHandlers().onExpireShotClock();return;}
+  netHandlers().onSetClockUI();
 }
 export function applyShotClockPenalty(){
   const p=appState.game.players[appState.shotClockSeat];if(!p)return;
@@ -588,8 +639,8 @@ export function applyShotClockPenalty(){
   const take=Math.min(1,p.coins);
   p.coins-=take;others.forEach(q=>q.coins++);
   appState.game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
-  narrateLastEvent();
-  liveRender();
+  netHandlers().onNarrateLastEvent();
+  netHandlers().onLiveRender();
 }
 // mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
 // idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
@@ -635,7 +686,7 @@ export function spawnPops(e,cellPx){
   const at=i=>{const [x,y]=shipXY(st[i].pos,i,st,cellPx);return [x,y-cellPx*.42];};
   const fn=EVENT_NARRATION[e.t];if(!fn)return;
   const r=fn(e,at,cellPx);
-  (r&&r.pops||[]).forEach(([xy,emo,big,img,cls])=>popEmoji(xy[0],xy[1],emo,big,img,cls));
+  (r&&r.pops||[]).forEach(([xy,emo,big,img,cls])=>netHandlers().onPopEmoji(xy[0],xy[1],emo,big,img,cls));
 }
 
 /* ---------- misc UI refresh / bot seat strategy ---------- */
@@ -648,7 +699,7 @@ export function seatStrat(i){return SEAT_BOT_STRAT[i%SEAT_BOT_STRAT.length];}
 export function updateRecipeBanner(){
   // recipe is now shown as semi-transparent chips in your own captain row (see render());
   // refresh the board so those chips appear as soon as recipes are drafted
-  if(appState.game&&appState.game.events&&appState.game.events.length)render();
+  if(appState.game&&appState.game.events&&appState.game.events.length)netHandlers().onRender();
 }
 // #6: preload the core board art up front so a slow connection doesn't render the board with
 // missing/fallback tiles that pop in one by one. Each image resolves on load OR error (never
@@ -694,7 +745,7 @@ export function resumeSoloGame(saved){
                       :{name:saved.name,strategies:saved.strategies,seed:saved.seed};
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;
-  beginGame(roundCfg(saved.strategies),saved.seed);
+  netHandlers().onBeginGame(roundCfg(saved.strategies),saved.seed);
 }
 // notes/edits BUG-03/BUG-04: decide whether a host-refresh replay actually rebuilt the voyage.
 // The yardstick is resumeEvLen — the Firebase event count captured BEFORE the reload (see

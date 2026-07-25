@@ -45,7 +45,7 @@
 import { appState } from "../state/index.js";
 import { roundCfg } from "../engine/index.js";
 import {
-  DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg,
+  DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, EYES_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive } from "./board.js";
@@ -57,7 +57,7 @@ import {
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
   replayShortfall,
 } from "./util.js";
-import { passGate, requireName } from "./lobby.js";
+import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
 
 const $=id=>document.getElementById(id);
@@ -101,14 +101,14 @@ export async function humanFlip(p,label,allowBack){
   if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
   const v=await ask(label||"Flip the dubloon!",opts);
   if(v==="back")return "back";
-  broadcastFlip("spin");
+  netHandlers().onBroadcastFlip("spin");
   await sleep(340);
   const h=appState.game.flip(p);
-  broadcastFlip(h?"H":"T");
+  netHandlers().onBroadcastFlip(h?"H":"T");
   // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
   // (short) message's own length instead of a flat timer unrelated to how long it takes to read
   await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-  broadcastFlip("wait");
+  netHandlers().onBroadcastFlip("wait");
   return h;
 }
 // A fishing cast, flipped on the flippenator like every other coin in the game.
@@ -124,12 +124,12 @@ export async function fishCast(p,label,allowBack){
     const v=await ask(label||`${pn(p.idx)}: cast your line — flip!`,opts);
     if(v==="back")return "back";
   }
-  broadcastFlip("spin");
+  netHandlers().onBroadcastFlip("spin");
   await sleep(spin);
   const h=appState.game.flip(p);
-  broadcastFlip(h?"H":"T");
+  netHandlers().onBroadcastFlip(h?"H":"T");
   await sleep(Math.max(hold,3000));
-  broadcastFlip("wait");
+  netHandlers().onBroadcastFlip("wait");
   if(h)p.coins+=2;else if(appState.game.cfg.sardine)p.coins+=1;
   appState.game.ev({t:"fish",p:p.idx,heads:h?1:0});
   liveRender();
@@ -172,12 +172,12 @@ export function pickCell(p,cells){
     endReplay();
   }
   setActor(p.idx);
-  netNarrate(p.idx===appState.mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
+  netHandlers().onBroadcast(p.idx===appState.mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
   armClock(p.idx);
   const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
-    :remotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
+    :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
   const cellP=withShotClock(p.idx,base,null);
-  return cellP.then(c=>{logDecision(c);return c;});
+  return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
 export function localPickCell(p,cells){
   return new Promise(res=>{
@@ -479,7 +479,7 @@ export async function humanAct(p,sailCtx){
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
     if(t===null){await humanAct(p,sailCtx);return;}
-    await asyncBattle(p,t);
+    await netHandlers().onAsyncBattle(p,t);
     await narrateLastEvent();
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;}
@@ -612,7 +612,7 @@ export async function botTurn(p){
   }
   const action=g.chooseAction(p);
   if(action.type==="attack"){
-    if(!g.tryTrade(p))await asyncBattle(p,action.target);
+    if(!g.tryTrade(p))await netHandlers().onAsyncBattle(p,action.target);
     await botBeat();return;
   }
   if(action.type==="trade"){g.tryTrade(p);await botBeat();return;}
@@ -635,7 +635,7 @@ export async function botTurn(p){
 // real button instead of read-only narration text they can't dismiss
 export async function netIntroBarrier(msg,btnLabel){
   if(appState.replaying)return;
-  netBroadcast(msg);
+  netHandlers().onNetBroadcast(msg);
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
   const humans=appState.game.players.filter(p=>p.strategy==="human");
   if(appState.passAndPlay){
@@ -649,7 +649,7 @@ export async function netIntroBarrier(msg,btnLabel){
   const waitMsg=humans.length>1?"⚓ Waiting for yer pirate mateys to continue…":null;
   await Promise.all(humans.map(p=>seatLocal(p.idx)
     ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg);return i;})
-    :remoteDraftPrompt(p.idx,msg,opts,waitMsg)));
+    :netHandlers().onRemoteDraftPrompt(p.idx,msg,opts,waitMsg)));
 }
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
@@ -691,7 +691,7 @@ export function battleSnapshot(o){
 }
 export function renderBattleFromSnap(snap,extra){
   if(!appState.game||!appState.game.players[snap.attIdx]||!appState.game.players[snap.defIdx])return;
-  renderBattle(Object.assign({att:appState.game.players[snap.attIdx],def:appState.game.players[snap.defIdx]},snap,extra||{}));
+  netHandlers().onRenderBattle(Object.assign({att:appState.game.players[snap.attIdx],def:appState.game.players[snap.defIdx]},snap,extra||{}));
 }
 // the footer beneath the coins: a decision (buttons), a "waiting…" note, or the round result
 export function battleFooter(o){
@@ -777,24 +777,24 @@ export async function asyncBakeoff(A,B){
   const flipSide=async(side,p)=>{
     const key=side==="a"?"atState":"dfState";
     if(p.strategy==="human"){
-      await battleAsk(p,base({live:side,[key]:"wait"}),
+      await netHandlers().onBattleAsk(p,base({live:side,[key]:"wait"}),
         `🧁 ${nm(p.idx)} — flip!`,[{label:"🌕 FLIP!",value:1,flip:true}]);
     }else{
-      renderBattle(base({live:side,[key]:"wait"}));
+      netHandlers().onRenderBattle(base({live:side,[key]:"wait"}));
     }
-    broadcastFlip("spin");
+    netHandlers().onBroadcastFlip("spin");
     await sleep(spin);
     const h=appState.game.flip(p);
-    broadcastFlip(h?"H":"T");
-    netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-    renderBattle(base({live:side,[key]:h?"H":"T"}));
+    netHandlers().onBroadcastFlip(h?"H":"T");
+    netHandlers().onNetBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
+    netHandlers().onRenderBattle(base({live:side,[key]:h?"H":"T"}));
     await sleep(Math.min(hold*0.5,500));
-    broadcastFlip("wait");
+    netHandlers().onBroadcastFlip("wait");
     return h;
   };
   while(a<need&&d<need){
     round++;
-    renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`🧁 Bakeoff — round ${round}!`}));
+    netHandlers().onRenderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`🧁 Bakeoff — round ${round}!`}));
     await sleep(300);
     const ah=await flipSide("a",A);
     const dh=await flipSide("d",B);
@@ -803,13 +803,33 @@ export async function asyncBakeoff(A,B){
     else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(A.idx)} scores! +1</span>`;}
     else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(B.idx)} scores! +1</span>`;}
     else{rmsg=`<span class="cancel">Both TAILS — no score this round.</span>`;}
-    renderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
+    netHandlers().onRenderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
     await sleep(hold);
   }
   panel("");
   const w=a>=need?A:B;
   appState.game.ev({t:"bakeoff",a:A.idx,b:B.idx,winner:w.idx});liveRender();
   return w;
+}
+// 11-07 (bridge deletion fix): relocated here verbatim from src/ui/lobby.js. wireWelcome calls
+// startSinglePlayer()/startPassAndPlay() (below, same file — already local, no import needed);
+// src/ui/lobby.js (its former home) cannot reach either without importing this file, which would
+// close an import cycle (this file already imports `passGate`/`requireName` FROM lobby.js) —
+// module_graph_check.js's "no import cycle" assertion forbids that. `showStep` stays in
+// lobby.js and is imported alongside the two names already pulled from there.
+export function wireWelcome(){
+  $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
+  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
+  $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
+  $("choicePassPlay").onclick=()=>{$("ppName0").value=($("pname").value||"").trim();showStep("stepPassPlay");};
+  $("btnStartPassPlay").onclick=()=>{
+    const names=[0,1,2,3].map(i=>($("ppName"+i).value||"").trim().slice(0,40)).filter(n=>n);
+    // pass & play always needs at least two humans sharing the device — nobody typing
+    // anything shouldn't block starting, it just means the default captain names are used
+    while(names.length<2)names.push(NAMES[names.length].replace("Capt. ",""));
+    startPassAndPlay(names);
+  };
+  document.querySelectorAll("#lobby [data-back]").forEach(b=>{b.onclick=()=>showStep("stepChoose");});
 }
 export function startSinglePlayer(){
   const name=requireName();
@@ -820,7 +840,7 @@ export function startSinglePlayer(){
   appState.roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
   appState.soloMeta={name,strategies,seed};appState.dlog=[];saveSoloState();
-  beginGame(roundCfg(strategies),seed);
+  netHandlers().onBeginGame(roundCfg(strategies),seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
 // seats up to the standard 4-player table are filled with bots, same pool solo/host use.
@@ -831,7 +851,7 @@ export function startPassAndPlay(names){
   appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
   appState.soloMeta={names,strategies,seed,passAndPlay:true};appState.dlog=[];saveSoloState();
-  beginGame(roundCfg(strategies),seed);
+  netHandlers().onBeginGame(roundCfg(strategies),seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
 // canReveal/offerCheckBtn logic and the recipeRevealed re-lock points inside humanTurn.

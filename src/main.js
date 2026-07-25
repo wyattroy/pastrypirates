@@ -51,15 +51,50 @@ if (typeof window !== "undefined") {
   // through src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root
   // wires the actual net-adjacent operations in, bound directly by reference to
   // src/orchestrator.js's exports. No bridge/globalThis indirection remains anywhere in this
-  // wiring. This is all 5 of the milestone's UI-side seam edges (RESEARCH.md Q1b) — the 6th
-  // (battleAsk) is orchestration, homed in src/orchestrator.js, not a UI-side injected-handler
-  // edge.
+  // wiring. This is the ORIGINAL 5 of the milestone's UI-side seam edges (RESEARCH.md Q1b) — the
+  // 6th (battleAsk) is orchestration, homed in src/orchestrator.js, not a UI-side
+  // injected-handler edge in the ORIGINAL table.
+  //
+  // 11-07 (bridge deletion, post-hoc fix): deleting the bridge exposed a much larger set of bare
+  // cross-module CALLS the bridge had been silently satisfying beyond those original 5 edges —
+  // caught by a dedicated no-undef gate (scripts/no_undef_check.js) added this same wave, and
+  // confirmed independently in a live Chrome session (renderDecorativeBoard/startSinglePlayer
+  // threw ReferenceError on the bridge-deleted build). Every one of the keys below is either (a)
+  // a src/orchestrator.js (main-tier) function a ui-tier module needs to CALL — src/ui/ can never
+  // import a main-tier file, so there is no direct-import alternative regardless of which ui file
+  // needs it — or (b) a ui-tier SIBLING function that would otherwise close an import cycle (e.g.
+  // src/ui/util.js is imported BY board.js/panel.js/flow.js, so it can never import any of them
+  // back). See src/ui/handlers.js's own header and src/ui/util.js's header for the full account
+  // of which case each edge is and why. Naming: the original 5 keys name the semantic EVENT; the
+  // additions below name the TARGET FUNCTION directly, since each maps 1:1 to exactly one
+  // function with no other consumer.
   ui.setNetHandlers({
     onBroadcast: orchestrator.netNarrate,
     onEvents: orchestrator.pushEvents,
     onRespond: orchestrator.sendResponse,
     onRecovery: orchestrator.setRecoveryState,
     onLeave: orchestrator.leaveGame,
+    // 11-07 additions — src/orchestrator.js (main-tier) targets:
+    onRemotePrompt: orchestrator.remotePrompt,
+    onRemoteDraftPrompt: orchestrator.remoteDraftPrompt,
+    onLogDecision: orchestrator.logDecision,
+    onBeginGame: orchestrator.beginGame,
+    onBroadcastFlip: orchestrator.broadcastFlip,
+    onBroadcastClock: orchestrator.broadcastClock,
+    onExpireShotClock: orchestrator.expireShotClock,
+    onNetBroadcast: orchestrator.netBroadcast,
+    onRenderBattle: orchestrator.renderBattle,
+    onBattleAsk: orchestrator.battleAsk,
+    onAsyncBattle: orchestrator.asyncBattle,
+    // 11-07 additions — ui-tier sibling targets (cycle-avoidance, not net-adjacency):
+    onEndReplay: ui.endReplay,
+    onLocalAsk: ui.localAsk,
+    onLiveRender: ui.liveRender,
+    onFlash: ui.flash,
+    onSetClockUI: ui.setClockUI,
+    onNarrateLastEvent: ui.narrateLastEvent,
+    onPopEmoji: ui.popEmoji,
+    onRender: ui.render,
   });
 
   // Phase 9's debug hook (NET-03 observation point, GLOBAL-03's seed for a

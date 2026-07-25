@@ -28,6 +28,27 @@
 // setNetHandlers() merges onto the existing handler set (Object.assign, never a full replace)
 // so a later wave can register additional handlers without every earlier caller needing to know
 // about them, or without clobbering handlers a different wave already registered.
+//
+// 11-07 (bridge deletion, post-hoc fix): deleting the bridge exposed a class of bare cross-module
+// CALLS the bridge had been silently satisfying, beyond the 5 net-adjacent edges 11-04/11-05
+// resolved through this same mechanism. Two distinct sub-cases, both routed through this SAME
+// seam rather than two different mechanisms:
+//   (a) ui -> src/orchestrator.js (main-tier) edges — src/ui/ can never import a main-tier file
+//       (module_graph_check.js's directional rule), so any orchestrator function a ui-tier module
+//       needs to CALL (not just have injected as a one-off callback) has no direct-import option
+//       at all, regardless of which ui file needs it.
+//   (b) ui -> ui SIBLING edges that would otherwise form an import cycle — e.g. src/ui/util.js is
+//       imported BY src/ui/board.js/panel.js/flow.js, so util.js importing any of THEM back
+//       (to reach a rendering function it needs) would close a cycle module_graph_check.js's
+//       "no import cycle" assertion forbids. Routing the call through this seam instead of a
+//       direct import adds no import edge at all — it's a runtime property lookup on a plain
+//       object populated by src/main.js, which can import every tier unrestricted.
+// The naming convention shifts slightly for this larger batch: the original 5 keys name the
+// SEMANTIC EVENT (onBroadcast, onEvents, onRespond, onRecovery, onLeave); the 11-07 additions
+// name the TARGET FUNCTION directly (onRemotePrompt, onBeginGame, onLiveRender, ...) since each
+// new key maps 1:1 to exactly one function with no other consumer, and inventing a distinct
+// event-style name for each would add naming work with no disambiguation benefit. See
+// src/main.js's own setNetHandlers({...}) call for the full, current key -> function mapping.
 
 let _h = {};
 

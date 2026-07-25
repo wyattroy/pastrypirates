@@ -200,6 +200,33 @@ synchronous too, but it adds an indirection layer with no benefit here,
 since every watcher has exactly one consumer, and it makes an accidental
 deferral easy to introduce later without anyone noticing at the call site.
 
+## The ui -> orchestration injected-handler seam (src/ui/handlers.js)
+
+Distinct from the net -> UI handler injection described above (that's `src/net/`'s watchers
+calling a caller-supplied handler; this is the reverse direction). `src/ui/handlers.js` exports a
+tiny `setNetHandlers(h)` / `netHandlers()` pair — a plain object, populated once by
+`src/main.js`, read via a function (never the object directly) so every caller always sees the
+live handler set regardless of module-load order.
+
+**Why it exists at all:** `src/ui/` may never import `src/net/` (D-07) or `src/orchestrator.js`
+(main tier — the composition root that itself imports `src/net/`) — `scripts/module_graph_check.js`
+makes both directions a standing build failure. But UI code legitimately needs to TRIGGER several
+`src/orchestrator.js` operations (broadcast a narration, log a decision, begin a game, broadcast a
+coin flip, render a battle, …). `src/main.js` — which imports every tier — wires each of these as
+a named key on the shared handler object; the UI function calls `netHandlers().onXxx(...)` instead
+of importing `orchestrator.xxx` directly.
+
+**11-07 (bridge deletion) also uses this SAME mechanism for a second, non-net-adjacent case:** a
+few `src/ui/util.js` functions need to call a rendering function that lives in a SIBLING ui module
+(`src/ui/panel.js`'s `liveRender`/`flash`/`setClockUI`/`narrateLastEvent`, `src/ui/board.js`'s
+`popEmoji`/`render`) — but `util.js` is itself imported BY those sibling modules, so importing them
+back would close a cycle `module_graph_check.js`'s "no import cycle" assertion forbids. Routing
+through this same seam adds no import edge at all (it's a runtime property lookup on a plain
+object), so it resolves the cycle risk identically to the ui->orchestration case, even though
+nothing net-adjacent is involved. See `src/main.js`'s own `setNetHandlers({...})` call for the
+full, current key -> function mapping, and `src/ui/handlers.js`'s/`src/ui/util.js`'s own header
+comments for the reasoning behind each addition.
+
 ## The two listener scopes
 
 Exactly two scopes exist, and the distinction is the single most likely
@@ -582,6 +609,40 @@ exported by exactly one of the two barrels with no leftover top-level
 declaration shadowing it in `index.html`. A one-time grep pasted into a plan
 summary proves nothing about Phase 9 onward; this script is what makes that
 protection standing rather than aspirational.
+
+## The no-undef check (module-internal D-04)
+
+`scripts/no_undef_check.js` is the standing, `npm test`-wired gate added in 11-07, directly in
+response to a gap the bridge deletion exposed: `ui_contract_check.js`'s four assertions,
+`module_graph_check.js`, and every other contract check in this codebase verify things ABOUT
+imports/exports/tags — none of them do undeclared-identifier analysis INSIDE a module, and none
+of them execute a runtime code path. A missed bare-global read (one the deleted bridge used to
+silently satisfy) can pass every one of those checks green and still throw a `ReferenceError` the
+moment a real browser executes that exact line — which is exactly what happened: `npm test` was
+fully green, and a live Chrome session still hit two of them (`renderDecorativeBoard` ->
+`buildPlayerRows`, `wireWelcome`'s Play Solo button -> `startSinglePlayer`).
+
+This script closes that gap mechanically, for every `.js` file under `src/`, independent of a
+browser session: for each file, it masks out string/comment bodies (reusing
+`scripts/lib/js_region_tokenizer.js`'s tokenizer — that tokenizer has never been HTML-specific),
+collects a file-wide set of every locally bound name (imports, function/class declarations,
+every `const`/`let`/`var` declarator's binding pattern including nested destructuring, every
+function/arrow/method parameter, `catch`/`for...of` bindings), and flags any `NAME(` call-position
+identifier that is neither in that set nor on a fixed browser/language-global allowlist.
+
+**Deliberately scoped to CALL expressions, not full scope-correct analysis.** This codebase has no
+build step and no AST-parser dependency (the zero-dependency stance every prior phase has kept);
+a regex-based, file-wide-flat binding collection can only ever be over-permissive (never flags
+legitimate code) in the shadowing direction, which is the right tradeoff for a merge gate — a
+false positive here would train contributors to stop trusting it, while a false negative still
+leaves the Chrome click-through as the backstop this exact risk class has always required (see
+"The strangler-fig global bridge" above).
+
+Wired into `npm test` immediately after `scripts/ui_contract_check.js`. Reports zero findings as
+of 11-07's fix (which extended `src/ui/handlers.js`'s injected-handler seam — see "The ui ->
+orchestration injected-handler seam" above — to cover every edge this check found, plus two
+direct-import fixes and two function relocations for the cases that needed neither a seam nor an
+import).
 
 ## Minimum Node version
 

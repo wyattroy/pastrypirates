@@ -65,7 +65,7 @@ import {
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describe, assignBadges, pname, pn,
+  describe, assignBadges, pname, pn, buildPlayerRows,
 } from "./util.js";
 import { recipeTitle } from "./recipe.js";
 

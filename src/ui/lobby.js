@@ -1,26 +1,33 @@
 // src/ui/lobby.js
 //
-// Phase 11 (SPLIT-03/06), wave 11-04. The lobby / room / welcome view cluster — buildPlayerRows,
-// showStep, requireName, wireWelcome, renderSeatList, showHome, showRoom, showGameView,
+// Phase 11 (SPLIT-03/06), wave 11-04. The lobby / room / welcome view cluster —
+// showStep, requireName, renderSeatList, showHome, showRoom, showGameView,
 // passGate, hideBootLoader, applyEngineBootstrapEffects. Extends 11-01/02/03's proven "move
 // verbatim + rewire bare reads into imports + bridge grows + gates green" pattern.
 //
 // Deliberately NOT moved (11-analysis.json's `ui (DOM)` tier, net:[] classification): the
 // room-lifecycle NET-CALLING functions — createRoom, joinRoom, watchRoom, startGame, beginGame,
-// wireLobby — stay in the classic <script> region. Those are orchestration (they call
-// src/net/-backed functions directly), not pure views, and belong to 11-06 alongside the rest of
-// the net-adjacent orchestration layer, not this UI-rendering wave. This file's functions call a
-// few of those still-classic functions as bare identifiers (startSinglePlayer/startPassAndPlay
-// from wireWelcome) — they resolve fine via the still-present PP bridge, same as every other
-// still-classic cross-reference in this codebase this phase.
+// wireLobby — stay in the classic <script> region (as of 11-04; homed in src/orchestrator.js
+// since 11-06). Those are orchestration (they call src/net/-backed functions directly), not pure
+// views, and belong to the net-adjacent orchestration layer, not this UI-rendering cluster.
+//
+// 11-07 (bridge deletion fix): `buildPlayerRows` relocated OUT of this file into src/ui/util.js —
+// see that file's own header note for why (a board.js<->lobby.js cycle risk this function's
+// former home would have created). `wireWelcome` relocated OUT of this file into src/ui/flow.js —
+// wireWelcome calls startSinglePlayer()/startPassAndPlay(), which live in flow.js (11-05); since
+// flow.js already imports `passGate`/`requireName` FROM this file, this file importing
+// startSinglePlayer/startPassAndPlay BACK from flow.js would close an import cycle
+// module_graph_check.js's "no import cycle" assertion forbids. Relocating the one function that
+// needs both directions resolves it with no seam and no cycle. `showStep`/`requireName` stay
+// here (flow.js's wireWelcome imports both from this file, extending its existing import).
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
 // scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
 //
 // Deviation ($ duplicate, mirrors 11-01/11-03/11-04's precedent): `$` is a classic-script-local
-// `const $=id=>document.getElementById(id)` (index.html:863), used ~120+ times across the still-
-// classic region far beyond this cluster's own consumers — reproduced verbatim as a private
-// module-local helper instead of "moved".
+// `const $=id=>document.getElementById(id)` (index.html:863, pre-11-07), used ~120+ times across
+// the ~183-function classic region far beyond this cluster's own consumers — reproduced verbatim
+// as a private module-local helper instead of "moved".
 //
 // showGameView() calls syncBoardSizing() — already moved to src/ui/board.js in 11-03 — imported
 // directly here (same ui/ tier, already-moved sibling) rather than left as a bare bridge read,
@@ -28,42 +35,14 @@
 
 import { appState } from "../state/index.js";
 import {
-  HEXCOL, NAMES, DEFAULT_NAMES, COIN_IMG, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG,
+  HEXCOL, DEFAULT_NAMES, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG,
   iconImg, emojify,
 } from "../shared/index.js";
-import { seatDisplayOrder, pname, pn } from "./util.js";
+import { pname, pn } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { syncBoardSizing } from "./board.js";
 
 const $=id=>document.getElementById(id);
-
-export function buildPlayerRows(){
-  let html="";
-  const order=seatDisplayOrder();
-  for(const i of order){
-    const s=(appState.roster&&appState.roster[i])||{};
-    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
-                   : `🤖 bot (${s.strat||appState.game.cfg.strategies[i]})`;
-    const displayName=pname(i);
-    html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
-      <div class="prowTop">
-        <span class="dot" style="background:${HEXCOL[i]}"></span>
-        <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
-        <span class="coinsWrap"><span class="coins" id="coins${i}">${iconImg(COIN_IMG)} –</span><span class="crown" id="crown${i}"></span></span>
-        <span class="chips" id="chips${i}"></span>
-        <span class="prowRecipe" id="prowRecipe${i}"></span>
-      </div></div>`;
-  }
-  $("players").innerHTML=html;
-  // names have a fixed column width to keep coins/hold aligned across every row — a name that
-  // overflows it scrolls instead of blowing out the layout or truncating unreadably
-  for(const i of order){
-    const wrap=$("pname"+i),inner=wrap&&wrap.firstElementChild;
-    if(!wrap||!inner)continue;
-    const overflow=inner.scrollWidth-wrap.clientWidth;
-    if(overflow>0){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
-  }
-}
 
 /* ================= welcome modal ================= */
 export function showStep(id){
@@ -74,20 +53,6 @@ export function requireName(){
   // solo/host player always sits at seat 0, so a blank name defaults to seat 0's captain ("Davy
   // Scones") — deterministic, and can't clash with the bots that fill seats 1-3.
   return v?v.slice(0,40):DEFAULT_NAMES[0];
-}
-export function wireWelcome(){
-  $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
-  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
-  $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
-  $("choicePassPlay").onclick=()=>{$("ppName0").value=($("pname").value||"").trim();showStep("stepPassPlay");};
-  $("btnStartPassPlay").onclick=()=>{
-    const names=[0,1,2,3].map(i=>($("ppName"+i).value||"").trim().slice(0,40)).filter(n=>n);
-    // pass & play always needs at least two humans sharing the device — nobody typing
-    // anything shouldn't block starting, it just means the default captain names are used
-    while(names.length<2)names.push(NAMES[names.length].replace("Capt. ",""));
-    startPassAndPlay(names);
-  };
-  document.querySelectorAll("#lobby [data-back]").forEach(b=>{b.onclick=()=>showStep("stepChoose");});
 }
 
 /* ================= lobby / room ================= */

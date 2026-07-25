@@ -82,7 +82,7 @@ import {
   netSetRecovery, netRemoveRecovery, netWatchRecovery,
   netPushEvent,
   netSetPrompt, netRemovePrompt, netWatchResponse, netDetach, netSetResponse,
-  netSetDraftPrompt, netWatchDraftResponse, netRemoveDraftPrompt, netWatchDraftPrompt,
+  netSetDraftPrompt, netWatchDraftResponse, netRemoveDraftPrompt, netWatchDraftPrompt, netSetDraftResponse,
   netWatchEvents, netWatchPrompt, netWatchNarr,
   netSetDlog,
   netCreateRoom, netClaimSeat, netReadRoom, netWatchSeats, netWatchStatus,
