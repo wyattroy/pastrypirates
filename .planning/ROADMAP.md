@@ -30,7 +30,7 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 - [ ] **Phase 9: Networking Layer & Watcher Cleanup** - Firebase sync in its own module with a registry and `.off()` teardown, zero leaked listeners
 - [ ] **Phase 10: App State & De-globalization** - 40+ globals encapsulated behind an app-state module, all inline handlers still work
 - [x] **Phase 11: UI Extraction, Orchestration & Bridge Removal** - UI module + `main` composition root, `index.html` reduced to markup, acyclic graph, bridge gone (completed 2026-07-25)
-- [ ] **Phase 12: Verification & Validation** - Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests
+- [x] **Phase 12: Verification & Validation** - Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests (completed 2026-07-25)
 
 ## Phase Details
 
@@ -260,6 +260,6 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
-| 12. Verification & Validation | v1.1 | 4/4 | In Progress|  |
+| 12. Verification & Validation | v1.1 | 4/4 | Complete    | 2026-07-25 |
 </content>
 </invoke>
