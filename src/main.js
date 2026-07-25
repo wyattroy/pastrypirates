@@ -64,17 +64,24 @@ if (typeof window !== "undefined") {
   window.PP = PP; // PP-BRIDGE
   Object.assign(globalThis, PP); // PP-BRIDGE
 
-  // 11-04: the injected-handler seam (D-07/criterion 1). src/ui/panel.js's flash()/liveRender()
-  // no longer call netNarrate()/pushEvents() directly (that would be a UI->net import) — they
-  // call through src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root
-  // wires the actual net-adjacent operations in. netNarrate/pushEvents are themselves still
-  // classic-script globals this wave (not yet modularized into src/net/), so this reaches them
-  // via the still-present PP bridge (globalThis) rather than a real src/net/ import — a
-  // deliberate, temporary, composition-root-only use, formalized to real src/net/ imports once
-  // the room-lifecycle/orchestration functions themselves modularize (11-06).
+  // 11-04/11-05: the injected-handler seam (D-07/criterion 1). src/ui/panel.js's
+  // flash()/liveRender() and src/ui/flow.js's remotePickHighlights()/endReplay()/
+  // wireRestoreFail() no longer call netNarrate()/pushEvents()/sendResponse()/
+  // setRecoveryState()/leaveGame() directly (that would be a UI->net import) — they call through
+  // src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root wires the
+  // actual net-adjacent operations in. All five targets are themselves still classic-script
+  // globals this wave (not yet modularized into src/net/), so this reaches them via the
+  // still-present PP bridge (globalThis) rather than a real src/net/ import — a deliberate,
+  // temporary, composition-root-only use, formalized to real src/net/ imports once the
+  // room-lifecycle/orchestration functions themselves modularize (11-06). This is all 5 of the
+  // milestone's UI-side seam edges (RESEARCH.md Q1b) — the 6th (battleAsk) is orchestration,
+  // homed in 11-06, not a UI-side injected-handler edge.
   ui.setNetHandlers({
     onBroadcast: (...a) => globalThis.netNarrate(...a),
     onEvents: (...a) => globalThis.pushEvents(...a),
+    onRespond: (...a) => globalThis.sendResponse(...a),
+    onRecovery: (...a) => globalThis.setRecoveryState(...a),
+    onLeave: (...a) => globalThis.leaveGame(...a),
   });
 
   // Phase 9's debug hook (NET-03 observation point, GLOBAL-03's seed for a

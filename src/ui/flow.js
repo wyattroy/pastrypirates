@@ -55,8 +55,10 @@ import {
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
+  replayShortfall,
 } from "./util.js";
 import { passGate, requireName } from "./lobby.js";
+import { netHandlers } from "./handlers.js";
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
@@ -834,3 +836,78 @@ export function startPassAndPlay(names){
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
 // canReveal/offerCheckBtn logic and the recipeRevealed re-lock points inside humanTurn.
 export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
+
+/* ================= recovery/replay seam trio + remotePickHighlights ================= */
+// This section resolves the final 3 of the milestone's 6 UI->orchestration edges (RESEARCH.md
+// Q1b) through src/ui/handlers.js's injected-handler seam — 11-04 resolved the first 2
+// (flash->onBroadcast, liveRender->onEvents). Each function below replaces a direct call to a
+// still-classic net-adjacent function (sendResponse/setRecoveryState/leaveGame) with a call
+// through netHandlers(), so this module never needs its own import of src/net/ (D-07).
+// src/main.js's composition root wires onRespond/onRecovery/onLeave alongside the existing
+// onBroadcast/onEvents, still pointing at the classic globals via the PP bridge this wave —
+// formalized to real src/net/ imports in 11-06.
+
+// draw the same highlighted cells on a REMOTE player's board and post their choice back
+export function remotePickHighlights(cells,promptId){
+  const svg=$("board"),hs=[];
+  const done=v=>{hs.forEach(h=>h.remove());panel("");netHandlers().onRespond?.(promptId,v);};
+  const cellPx=boardCell(); // notes/edits 11-03: cell now lives in src/ui/board.js
+  for(const c of cells){
+    const r=el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:5,
+      fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
+    r.addEventListener("click",()=>done(c));
+    hs.push(r);
+  }
+  panel(`<div class="apMsg">Your move — click a highlighted square to sail (−1🌕)</div>
+    <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
+  $("apStay").onclick=()=>done(null);
+}
+// leave replay mode: the recorded log is exhausted (or the game replayed to its end). Reconcile
+// the broadcast frontier so we push only events the crew hasn't already seen, then render live.
+export function endReplay(){
+  if(!appState.replaying)return;
+  appState.replaying=false;
+  // BUG-04: this used to set evPushed=resumeEvLen unconditionally. When a replay came up short,
+  // that silently moved the broadcast frontier PAST events that were never rebuilt, so every
+  // future event was suppressed and guests saw a permanently frozen board. Only advance the
+  // frontier when the replay is trustworthy. (readFailed is hard-coded false here; plan 01-02
+  // owns resumeHostGame and will thread the real read-failure flag through this parameter.)
+  const sf=replayShortfall(appState.game.events.length,appState.resumeEvLen,appState.resumeReadFailed);
+  if(sf.incomplete){
+    console.error("replay incomplete",sf);
+    const note=$("syncnote");if(note)note.style.display="";
+    showRestoreFail(sf);    // D-07: ask, don't pretend
+    netHandlers().onRecovery?.(sf.reason);  // D-08: and don't leave the crew staring at a frozen board
+    return;                 // leave evPushed where it was — pushEvents() resumes from the real
+                            // frontier instead of skipping everything the replay failed to rebuild
+  }
+  appState.evPushed=appState.resumeEvLen;   // events 0..resumeEvLen-1 are already in Firebase; push only what's new
+  liveRender();           // flush any freshly-rebuilt events + paint the current board
+}
+
+// notes/edits BUG-03/D-07: the replay didn't rebuild the voyage. Explain which way it failed and
+// offer the two honest choices — carry on from a knowingly-incomplete state, or scuttle it and
+// start fresh. "Resume anyway" deliberately advances evPushed to the REBUILT length, not to
+// resumeEvLen: the frontier must reflect what actually exists locally, or pushEvents() goes right
+// back to suppressing everything the replay missed (the BUG-04 freeze).
+export function showRestoreFail(sf){
+  const why=$("restoreFailWhy");
+  if(why)why.textContent = sf.reason==="read-failed"
+    ? "We couldn't reach the crew's log for this voyage, so we can't tell how much of it is missing. Carrying on may put ye out of step with the rest of the crew."
+    : `We rebuilt this voyage but came up ${sf.shortfall} event${sf.shortfall===1?"":"s"} short. Carrying on may put ye out of step with the rest of the crew.`;
+  const m=$("restoreFailModal");if(m)m.style.display="flex";
+}
+export function wireRestoreFail(){
+  const anyway=$("btnRestoreAnyway"),restart=$("btnRestoreRestart");
+  if(anyway)anyway.onclick=()=>{
+    $("restoreFailModal").style.display="none";
+    appState.evPushed=appState.game.events.length;   // frontier = what we actually have, not what Firebase claimed
+    netHandlers().onRecovery?.(null);
+    liveRender();
+  };
+  if(restart)restart.onclick=()=>{
+    $("restoreFailModal").style.display="none";
+    netHandlers().onRecovery?.(null);
+    netHandlers().onLeave?.();                   // same teardown path as abandoning ship — clears session + room
+  };
+}

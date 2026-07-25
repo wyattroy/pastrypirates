@@ -10,15 +10,20 @@
 // operations the UI needs to trigger as a result — so src/ui/ never needs its own `from
 // "../net"` import to reach them.
 //
-// Two of the six UI->orchestration edges RESEARCH.md's Q1b table identified are resolved
-// through this seam this wave: src/ui/panel.js's flash() calls the injected `onBroadcast`
-// (was a direct netNarrate(...) call) and liveRender() calls the injected `onEvents` (was a
-// direct pushEvents() call). netNarrate/pushEvents are themselves still classic-script globals
-// this wave — not yet modularized into src/net/ — so src/main.js wires them in through the
-// still-present PP bridge as a deliberate, temporary, explicitly-commented composition-root-only
-// use of globalThis. This is formalized to real src/net/ imports once the room-lifecycle /
-// orchestration functions themselves modularize (11-06). The remaining 4 of 6 edges are resolved
-// in 11-05/11-06 as more of the classic script moves.
+// 11-04 resolved the first 2 of the six UI->orchestration edges RESEARCH.md's Q1b table
+// identified through this seam: src/ui/panel.js's flash() calls the injected `onBroadcast` (was
+// a direct netNarrate(...) call) and liveRender() calls the injected `onEvents` (was a direct
+// pushEvents() call). 11-05 resolves the remaining 3 UI-side edges the same way, in
+// src/ui/flow.js: remotePickHighlights() calls `onRespond` (was sendResponse(...)),
+// endReplay() calls `onRecovery` (was setRecoveryState(...)), and wireRestoreFail() calls both
+// `onRecovery` and `onLeave` (was setRecoveryState(...) + leaveGame()). That is all 5 of the
+// milestone's UI-side seam edges — the 6th (battleAsk) is orchestration (calls net-adjacent
+// functions directly), not a UI-side injected-handler edge, and is homed in 11-06. All five
+// targets (netNarrate/pushEvents/sendResponse/setRecoveryState/leaveGame) are themselves still
+// classic-script globals this wave — not yet modularized into src/net/ — so src/main.js wires
+// them in through the still-present PP bridge as a deliberate, temporary, explicitly-commented
+// composition-root-only use of globalThis. This is formalized to real src/net/ imports once the
+// room-lifecycle/orchestration functions themselves modularize (11-06).
 //
 // setNetHandlers() merges onto the existing handler set (Object.assign, never a full replace)
 // so a later wave can register additional handlers without every earlier caller needing to know
