@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Monolith Refactor
-current_phase: 7
-current_phase_name: Foundation & Determinism Baseline
+milestone: v1.2
+milestone_name: Playtest Fixes & Polish
 status: planning
-stopped_at: Completed 12-04-PLAN.md (Phase 12 closed — all VERIFY-01..04 satisfied)
-last_updated: "2026-07-25T21:01:11.863Z"
+last_updated: "2026-07-25T21:32:38.575Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 12 complete, transitioned to Phase 7
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 32
-  completed_plans: 32
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 7 — Foundation & Determinism Baseline
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-25 — Phase 12 complete, transitioned to Phase 7
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-25 — Milestone v1.2 started
 
 ## Performance Metrics
 
