@@ -891,355 +891,23 @@ function buildPlayerRows(){
   }
 }
 
-/* ---------- board rendering ---------- */
-const SVGNS="http://www.w3.org/2000/svg";
-function el(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag);
-  for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
-// custom-art icon: a single centered <image>. (cx,cy) is its center in board px; size is its
-// width/height in board px.
-function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
-  const g=el("g",{transform:`translate(${cx},${cy})${flip?" scale(-1,1)":""}${rotateDeg?` rotate(${rotateDeg})`:""}`},svg);
-  el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
-  return g;
-}
-let cell=0,shipEls=[],activeRing=null,spinNeedle=null,stormText=null,stormDial=null,windLabels=[];
-function drawBoard(){
-  const svg=$("board");svg.innerHTML="";
-  const n=appState.game.cfg.grid,W=640;cell=W/n;
-  // custom board art (ocean + Isle of Tortuga + its docks baked in) sits behind everything.
-  // `grid` draws the functional cell boundaries on top of it: open water is outline-only
-  // (fully transparent fill) and the trade-wind channel gets a light 10%-black tint so its
-  // squares still read as distinct from open water. `home` (the plain Tortuga tile + anchor +
-  // berths) fully hides once art loads, since that's baked into the art itself.
-  const boardImg=el("image",{x:0,y:0,width:W,height:W,href:BOARD_IMG},svg);
-  boardImg.addEventListener("error",()=>boardImg.remove());
-  const grid=el("g",{},svg);
-  const home=el("g",{},svg);
-  boardImg.addEventListener("load",()=>{home.style.display="none";});
-  if(appState.game.isRound){
-    svg.style.background="transparent";
-    for(const k of appState.game.valid){
-      const [x,y]=k.split(",").map(Number);
-      const rimC=appState.game.rim.has(k);
-      el("rect",{x:x*cell,y:y*cell,width:cell,height:cell,
-        fill:rimC?"#000000":"none","fill-opacity":rimC?.1:0,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
-    }
-    // flow arrows on every channel square (clockwise), a swirl icon at each quadrant's drop-off
-    const headKeys=new Set(Object.values(appState.game.rimHead).map(h=>h[0]+","+h[1]));
-    for(const c of appState.game.rimCellInfo||[]){
-      const cx=(c.x+.5)*cell,cy=(c.y+.5)*cell;
-      if(headKeys.has(c.k)){
-        iconAt(svg,cx,cy,cell,TRADE_SWIRL_IMG);
-      }else{
-        const rot=c.deg+90; // tangent of clockwise flow
-        iconAt(svg,cx,cy,cell,WIND_ARROW_IMG,rot);
-      }
-    }
-  }else{
-    svg.style.background="";
-    for(let i=0;i<=n;i++){
-      el("line",{x1:i*cell,y1:0,x2:i*cell,y2:W,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
-      el("line",{x1:0,y1:i*cell,x2:W,y2:i*cell,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
-    }
-  }
-  // home: Isle of Tortuga is a 1-square island with 4 docks (N/S/E/W). The island tile itself
-  // is baked into board.png, but the 4 berths around it aren't — those always render for real.
-  const [hx,hy]=appState.game.home;
-  el("rect",{x:hx*cell+2,y:hy*cell+2,width:cell-4,height:cell-4,rx:cell*.3,
-    fill:"#fef48b",stroke:"#f5a623","stroke-width":2},home);
-  iconAt(home,(hx+.5)*cell,(hy+.5)*cell,cell*.7,ANCHOR_IMG);
-  let homeDockI=0;
-  for(const d of Object.values(DIRS)){
-    const dx=hx+d[0],dy=hy+d[1];
-    if(dx<0||dy<0||dx>=n||dy>=n)continue;
-    // invisible — kept only so celebrateHomeDocks() can find each berth's id and geometry
-    // (x/y/width/height) once the voyage ends; the dock.png below it is the visible layer
-    el("rect",{id:`homeDock${homeDockI++}`,x:dx*cell,y:dy*cell,width:cell,height:cell,
-      fill:"none",stroke:"none"},svg);
-    // faces back toward Tortuga, centered in its own dock cell so its edge touches the island
-    // boundary without crossing into the home tile
-    const{rot:rotDeg,flip}=dockOrient([-d[0],-d[1]]);
-    const px=(dx+.5-d[0]*.2)*cell, py=(dy+.5-d[1]*.2)*cell;
-    iconAt(svg,px,py,cell,DOCK_IMG,rotDeg,flip);
-  }
-  // islands (arbitrary polyomino shapes): fused cell fills + a single union outline
-  const defs=el("defs",{},svg);
-  for(const ing of appState.game.ings){
-    const cells=appState.game.islandRect[ing];
-    const loops=tracePolygonLoops(cells);
-    const clipId=`islandClip_${ing}`;
-    const clipPath=el("clipPath",{id:clipId},defs);
-    for(const loop of loops){
-      const pxLoop=loop.map(([x,y])=>[x*cell,y*cell]);
-      const d=roundedPathFromLoop(pxLoop,cell*.32);
-      el("path",{d},clipPath);
-    }
-    // custom island art: authored once per canonical shape (see ISLAND_SHAPE_IMG/TET above) and
-    // placed with the same rotate/mirror the board used, then clipped to the island's own rounded
-    // outline — so hand-drawn art doesn't need rounded corners or to know its own orientation.
-    const placement=islandArtPlacement(appState.game.islandShapeMeta[ing],cells,cell);
-    if(placement){
-      const clipG=el("g",{"clip-path":`url(#${clipId})`},svg);
-      const artG=el("g",{transform:placement.transform},clipG);
-      el("image",{x:0,y:0,width:placement.w,height:placement.h,"preserveAspectRatio":"none",href:placement.href},artG);
-    }
-    // dock is drawn before the crate icons below so it always sits underneath them — it
-    // stretches to the shared edge with the island and would otherwise occlude a crate there
-    if(appState.game.cfg.singleDock){
-      const d=appState.game.dockOf[ing];
-      const adj=Object.values(DIRS).find(dd=>appState.game.islands[[d[0]+dd[0],d[1]+dd[1]]]===ing);
-      // faces the island, and centered on the shared edge between the dock cell and the island
-      // so it visually stretches to meet it rather than sitting centered in open water
-      const{rot:dockRotDeg,flip:dockFlip}=adj?dockOrient(adj):{rot:0,flip:false};
-      const px=adj?(d[0]+.5+adj[0]*.5)*cell:(d[0]+.5)*cell;
-      const py=adj?(d[1]+.5+adj[1]*.5)*cell:(d[1]+.5)*cell;
-      iconAt(svg,px,py,cell,DOCK_IMG,dockRotDeg,dockFlip);
-    }
-    // one big icon per remaining crate, one per island square — a taken crate turns fully
-    // grey in place rather than shrinking to a count badge, so the whole island reads at a glance
-    if(appState.game.cfg.crates<1e9){
-      cells.slice(0,appState.game.cfg.crates).forEach((c,idx)=>{
-        const scx=(c[0]+.5)*cell,scy=(c[1]+.5)*cell;
-        const g=iconAt(svg,scx,scy,cell*.8,ING_IMG[ing]);
-        g.id=`crate_${ing}_${idx}`;
-      });
-    }else{
-      // unlimited-crate config (not used by the live game, kept for the lab): one plain icon
-      const mx=cells.reduce((s,c)=>s+c[0],0)/cells.length, my=cells.reduce((s,c)=>s+c[1],0)/cells.length;
-      let best=cells[0],bd=1e9;
-      for(const c of cells){const dd=(c[0]-mx)**2+(c[1]-my)**2;if(dd<bd){bd=dd;best=c;}}
-      const cx=(best[0]+.5)*cell,cy=(best[1]+.5)*cell;
-      iconAt(svg,cx,cy,cell*.8,ING_IMG[ing]);
-    }
-  }
-  // wind spinner HUD (bottom-right corner) — sized off `cell` rather than fixed pixels, so it
-  // scales with the board's actual cell density instead of a magic number tuned for one grid size.
-  // Everything is drawn in a <g> translated to the dial's center, so all local coordinates are
-  // relative to (0,0) — the needle's rotation pivot is then exactly "0px 0px", which stays correct
-  // at any browser zoom level (an absolute px transform-origin drifted from the dial at non-100% zoom).
-  const sr=cell*.95,scx=W-sr-14,scy=sr+32;
-  const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`},svg);
-  // colored ring stays underneath as the storm-state indicator (still toggled by fill/stroke
-  // below) — the dial art sits on top slightly smaller, so a thin halo of that color peeks out
-  // around the rim instead of being fully hidden by the now-opaque dial image.
-  stormDial=el("circle",{cx:0,cy:0,r:sr,fill:"#fffdf0",stroke:"#f5a623","stroke-width":2.5},hud);
-  iconAt(hud,0,0,sr*1.86,COMPASS_DIAL_IMG);
-  // compass-dial.png has N/E/S/W baked into the art itself (rather than the plain circle this
-  // used to be), so the separately-drawn text labels are gone — windLabels stays around (now
-  // always empty) purely so the storm-color-toggle loop below still has something safe to iterate.
-  windLabels=[];
-  spinNeedle=el("g",{},hud);
-  // needle art's collar (rotation pivot) sits at the vertical center of the image, so the
-  // box is centered on (0,0) rather than offset — an offset box put the pivot ~6% of the
-  // needle's height away from the collar, a visible wobble when it spins
-  const needleImg=el("image",{x:-sr*.336,y:-sr*.68,width:sr*.672,height:sr*1.36,href:COMPASS_NEEDLE_IMG},spinNeedle);
-  spinNeedle.style.transition="transform .7s ease";
-  spinNeedle.style.transformOrigin="0px 0px";
-  stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
-  // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
-  // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
-  activeRing=el("g",{opacity:0},svg);
-  for(let i=0;i<3;i++)
-    el("circle",{class:"ripple",r:cell*.4,fill:"none",stroke:"#fff","stroke-width":2,
-      style:`animation-delay:${i*.6}s`},activeRing);
-  // ships
-  shipEls=[];
-  appState.game.players.forEach((p,i)=>{
-    const g=el("g",{style:"transition: transform .35s cubic-bezier(.42,0,.58,1)"},svg);
-    const boatSize=cell;
-    el("image",{x:-boatSize/2,y:-boatSize/2,width:boatSize,height:boatSize,href:BOAT_IMG[i]},g);
-    shipEls.push(g);
-  });
-  // seat the ships on their Isle of Tortuga docks right away, before the first event renders
-  appState.game.players.forEach((p,i)=>{
-    const [x,y]=shipXY(p.pos,i,appState.game.players,cell);
-    shipEls[i].style.transform=`translate(${x}px,${y}px)`;
-  });
-}
+/* ---------- board rendering ----------
+   el/iconAt/drawBoard/buildStormLayers/render/renderLog/popEmoji/renderDecorativeBoard/
+   syncBoardSizing moved verbatim to src/ui/board.js (Phase 11, 11-03). cell/shipEls/
+   activeRing/spinNeedle/stormText/stormDial/windLabels/logRenderedTo/chatBubbles moved with
+   them; boardCell()/boardShipEls()/resetBoardLog() are exported accessors for this script's
+   remaining bare reads (see src/ui/board.js's header). */
 /* ---------- playback ---------- */
-// notes/edits BUG-01: build the storm's rain layers once, on the first storm. The rain is now a
-// pre-rendered tiling PNG (see #stormOverlay .rlayer CSS), so each layer only varies things that
-// are free to composite — tile scale (depth), fall speed, start offset/phase, and opacity — never
-// a live gradient/mask. rotate + translate do the rest on the GPU. 3 layers give depth without
-// stacking the texture so heavily it reads as fog.
-function buildStormLayers(ov){
-  if(ov.childElementCount)return; // already built
-  // Same 4 layers / 0.86 jitter / 0.75s base speed as the original CSS rain. Per-layer spacing (which
-  // the old build set via a --spacing gradient var) is now reproduced by SCALING the tiled PNG — the
-  // tile bakes spacing 60 / period 113, so scale factor = jittered-spacing / 60. --drop (the fall
-  // distance) scales with it so every layer still loops seamlessly.
-  const LAYERS=4, JIT=0.86, baseSpeed=0.75, TILE_W=240, TILE_H=226, PERIOD=113;
-  for(let i=0;i<LAYERS;i++){
-    const ox=Math.random(), sp=Math.random()*2-1, spd=Math.random()*2-1, ph=Math.random(), op=Math.random()*2-1;
-    const scale=1+sp*0.4*JIT;                       // matches old spacing jitter (60 → ~39..81px)
-    const dur=baseSpeed*(1+spd*0.5*JIT);
-    const d=document.createElement("div");
-    d.className="rlayer";
-    d.style.backgroundSize=(TILE_W*scale).toFixed(1)+"px "+(TILE_H*scale).toFixed(1)+"px";
-    d.style.setProperty("--drop",(PERIOD*scale).toFixed(2)+"px"); // one dash period at this scale → seamless
-    d.style.animationDuration=dur.toFixed(3)+"s";
-    d.style.animationDelay=(-ph*dur).toFixed(3)+"s";              // desync so layers don't fall in lockstep
-    d.style.backgroundPositionX=(ox*TILE_W).toFixed(1)+"px";
-    d.style.opacity=Math.max(0,Math.min(1,1+op*0.35*JIT)).toFixed(3); // same opacity jitter as before
-    ov.appendChild(d);
-  }
-}
-function render(){
-  const e=appState.game.events[appState.evIdx];if(!e)return;
-  const st=e.state;
-  // recipes are secret: only the local human's own recipe target is revealed.
-  // in a spectator-only game (no human seat, e.g. a bot-vs-bot design test) everything stays visible.
-  const humanIdxs=appState.game.players.map((p,i)=>p.strategy==="human"?i:-1).filter(i=>i>=0);
-  const youIdx=humanIdxs.length===1?humanIdxs[0]:-1;
-  const spectator=humanIdxs.length===0;
-  appState.game.players.forEach((p,i)=>{
-    const [x,y]=shipXY(st[i].pos,i,st,cell);
-    shipEls[i].style.transform=`translate(${x}px,${y}px)`;
-    shipEls[i].style.opacity=st[i].done?.45:1;
-    if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
-    const coinsEl=$("coins"+i),newCoins=st[i].coins;
-    if(coinsEl.dataset.coins!==undefined&&+coinsEl.dataset.coins!==newCoins)pulseEl(coinsEl);
-    coinsEl.dataset.coins=newCoins;
-    coinsEl.innerHTML=`${iconImg(COIN_IMG)} ${newCoins}`;
-    const hold=[...st[i].ing];
-    const chipsEl=$("chips"+i);
-    let newChipsHtml;
-    // pass & play: your own recipe never auto-reveals — it only shows once you've tapped
-    // "check my recipe" during your own live turn (see humanTurn/passGate), so a device
-    // changing hands mid-battle or mid-trade can never carry someone else's recipe on screen.
-    const canReveal=spectator||(i===appState.mySeat&&(!appState.passAndPlay||appState.recipeRevealed));
-    const offerCheckBtn=appState.passAndPlay&&i===appState.mySeat&&i===appState.activeTurnSeat&&!appState.recipeRevealed;
-    if(canReveal){
-      $("prowRecipe"+i).innerHTML=`${iconImg(SCROLL_IMG)} ${recipeTitle(appState.game.players[i].recipe)}`;
-      $("prowRecipe"+i).classList.add("hasRecipe");
-      // recipe chips consume one matching crate each; every leftover crate is surplus cargo
-      const chips=appState.game.players[i].recipe.map(ing=>{
-        const k=hold.indexOf(ing);
-        const have=k>=0;
-        if(have)hold.splice(k,1);
-        return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ingImg(ing)}</span>`;
-      });
-      const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ingImg(x2)}</span>`);
-      newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
-    }else if(offerCheckBtn){
-      $("prowRecipe"+i).classList.remove("hasRecipe");
-      newChipsHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">🔍 Check my recipe</button>`;
-    }else{
-      // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
-      // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
-      $("prowRecipe"+i).classList.remove("hasRecipe");
-      const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ingImg(x2)}</span>`);
-      newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
-    }
-    if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
-    chipsEl.innerHTML=newChipsHtml;
-    const lastEv=appState.game.events[appState.game.events.length-1];
-    $("crown"+i).innerHTML=(lastEv.t==="end"&&lastEv.winner===i&&appState.evIdx===appState.game.events.length-1)?iconImg(CROWN_IMG):"";
-  });
-  // active-player ring + captain's-box highlight: whose turn is it as of this event?
-  let active=null;
-  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=appState.game.events[i].t;
-    if(t==="turn"){active=appState.game.events[i].p;break;}
-    if(t==="newround")break;
-  }
-  if(active!=null&&st[active].done)active=null;
-  if(activeRing){
-    if(active!=null){
-      const [ax,ay]=shipXY(st[active].pos,active,st,cell);
-      activeRing.style.transform=`translate(${ax}px,${ay}px)`;
-      activeRing.setAttribute("opacity",1);
-    }else activeRing.setAttribute("opacity",0);
-  }
-  appState.game.players.forEach((p,i)=>{
-    const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
-  });
-  if(appState.game.cfg.crates<1e9)for(const ing of appState.game.ings){
-    const remaining=e.tokens[ing];
-    for(let idx=0;idx<appState.game.cfg.crates;idx++){
-      const ic=document.getElementById(`crate_${ing}_${idx}`);if(!ic)continue;
-      const taken=idx>=remaining;
-      const img=ic.querySelector("image");
-      if(img)img.setAttribute("href",taken?ING_HOLE_IMG[ing]:ING_IMG[ing]);
-      ic.style.opacity=taken?.45:1;
-    }
-  }
-  if(spinNeedle&&e.wind){
-    const storming=!!e.storm;
-    const angle=storming&&e.wind2?STORM_DIAG[e.wind][e.wind2]:({N:0,E:90,S:180,W:270})[e.wind];
-    spinNeedle.style.transform=`rotate(${angle}deg)`;
-    // notes/edits UI-05: the "⛈️ STORM" word + emoji under the compass are gone — the darkened
-    // board, the coloured dial, the glowing needle and the rain already read as "storm" without a
-    // caption. Kept the (now always-empty) node so the storm-colour toggle below still has a safe
-    // target and nothing else has to change.
-    stormText.textContent="";
-    if(stormDial){
-      stormDial.setAttribute("fill",storming?"#2a2f4a":"#fffdf0");
-      stormDial.setAttribute("stroke",storming?"#141824":"#f5a623");
-    }
-    const needleImg=spinNeedle.querySelector("image");
-    if(needleImg)needleImg.style.filter=storming?"drop-shadow(0 0 5px #ffd23f) saturate(1.4)":"none";
-    windLabels.forEach(t=>t.setAttribute("fill",storming?"#f4f6ff":"#1f4249"));
-    // #1b: darken the whole board + run the rain overlay during a storm. The CSS handles the fade
-    // in/out; here we toggle the class and, while storming, aim the rain to fall WITH the wind.
-    // `angle` is the compass heading the wind blows toward (0=N/up, clockwise). Each rain layer's
-    // local fall is straight down; rotating by angle+180 turns that into the true wind direction.
-    const bw=$("boardwrap");if(bw)bw.classList.toggle("storming",storming);
-    const ov=$("stormOverlay");
-    if(ov&&storming){
-      buildStormLayers(ov); // lazily create the jittered rain layers (once)
-      ov.style.setProperty("--slant",(angle+180)+"deg");
-    }
-  }
-  $("scrub").value=appState.evIdx;
-  renderLog();
-  // end stats
-  if(appState.evIdx===appState.game.events.length-1&&(!appState.live||appState.liveDone))showStats();
-  else $("statsWrap").style.display="none";
-}
-let logRenderedTo=-1;
-function renderLog(){
-  const box=$("log");
-  const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<50;
-  if(appState.evIdx===logRenderedTo+1){
-    const prev=box.querySelector(".line.cur");if(prev)prev.classList.remove("cur");
-    const L=appState.logLines[appState.evIdx];
-    if(L){const d=document.createElement("div");d.className="line "+(L.cls||"")+" cur";d.innerHTML=L.txt;box.appendChild(d);}
-  }else if(appState.evIdx!==logRenderedTo){
-    let html="";
-    for(let i=0;i<=appState.evIdx;i++){const L=appState.logLines[i];if(!L)continue;
-      html+=`<div class="line ${L.cls||""} ${i===appState.evIdx?"cur":""}">${L.txt}</div>`;}
-    box.innerHTML=html;
-  }
-  logRenderedTo=appState.evIdx;
-  if(atBottom)box.scrollTop=box.scrollHeight;
-}
-
-/* ---------- action popups on the map ---------- */
-// SVG's default transform-box is the whole viewport, so the popfloat keyframe's scale()
-// would otherwise be anchored at the board's (0,0) corner instead of the emoji's own spot —
-// every pop would rocket toward/away from that corner instead of rising in place. Pinning
-// transform-origin to the emoji's own x,y (same fix as celebrateHomeDocks' dancingPastry).
-function popEmoji(x,y,emo,big,imgHref,cls){
-  // callers only need to pass imgHref explicitly when they want art OTHER than the emoji's own
-  // default (e.g. the tradewind pop's big board swirl, distinct from 🌀's usual pocket icon) —
-  // otherwise this falls back to whatever's in EMOJI_IMG automatically.
-  imgHref=imgHref||EMOJI_IMG[emo];
-  const g=el("g",{class:"pop"+(cls?" "+cls:""),style:`transform-origin:${x}px ${y}px`},$("board"));
-  const size=cell*(big?.72:.55);
-  if(imgHref){
-    const im=el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
-    // same fallback as iconAt(): if the art can't load, drop the <image> and show the emoji
-    if(emo)im.addEventListener("error",()=>{im.remove();el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;});
-  }else{
-    el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;
-  }
-  setTimeout(()=>g.remove(),cls==="splash"?3900:2600); // UI-03: 2x the old 1950/1300, matching the doubled CSS
-}
+// buildStormLayers/render/renderLog/popEmoji moved verbatim to src/ui/board.js (11-03).
 
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
 // a little celebration flourish, purely cosmetic (doesn't touch game state)
 function celebrateHomeDocks(){
+  // notes/edits 11-03: `cell` (the board's current px-per-grid-cell) now lives in
+  // src/ui/board.js — this function still reads it, but hasn't moved there itself yet (task 2 of
+  // this plan), so it reads it through the exported boardCell() accessor rather than a bare
+  // identifier. See src/ui/board.js's header for the full account.
+  const cell=boardCell();
   const pastryImgs=[CROISSANT_IMG,CAKE_SLICE_IMG,DONUT_IMG,CUPCAKE_IMG];
   for(let i=0;i<4;i++){
     const rect=$("homeDock"+i);
@@ -1260,6 +928,8 @@ function celebrateHomeDocks(){
 // the victory land as a real moment. Purely cosmetic (uses popEmoji, the same board-pop system
 // every event already uses), so it touches no game state and is safe during replay/spectate.
 function victoryConfetti(winner){
+  // notes/edits 11-03: same boardCell() note as celebrateHomeDocks above.
+  const cell=boardCell();
   const st=appState.game.events[appState.game.events.length-1]&&appState.game.events[appState.game.events.length-1].state;
   const treats=[["🥐",CROISSANT_IMG],["🍰",CAKE_SLICE_IMG],["🍩",DONUT_IMG],["🧁",CUPCAKE_IMG],["🌕",COIN_IMG],["👑",CROWN_IMG]];
   let cx=null,cy=null;
@@ -1552,7 +1222,7 @@ function liveRender(){
   $("scrub").max=Math.max(0,appState.game.events.length-1);
   render();
   const e=appState.game.events[appState.evIdx];
-  spawnPops(e,cell);
+  spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
   if(appState.isHost)pushEvents();       // broadcast the growing event feed to every other browser
 }
 // needsAction=true turns the panel yellow (this seat must decide something);
@@ -1698,8 +1368,10 @@ function watchChat(){
     showChatBubble(v.seat,v.text);
   });
 }
-// one bubble div per seat; a new message replaces whatever that seat was already showing
-const chatBubbles={};
+// one bubble div per seat; a new message replaces whatever that seat was already showing.
+// chatBubbles itself moved to src/ui/board.js (11-03, render()'s only reader of it) — still
+// resolved here as a bare global via the PP bridge; it's a plain object, mutated in place
+// (never reassigned wholesale), so it survives the bridge's snapshot exactly like appState does.
 function positionChatBubble(i,x,y){
   const b=chatBubbles[i];if(!b)return;
   // x,y come from shipXY(), in the SVG's fixed 0..640 viewBox space — clamp X only (like the
@@ -1731,7 +1403,7 @@ function showChatBubble(i,text){
   holder.appendChild(b);
   chatBubbles[i]=b;
   b._msgEl=msgEl;
-  const xy=boatXY(i,shipEls);
+  const xy=boatXY(i,boardShipEls()); // notes/edits 11-03: shipEls now lives in src/ui/board.js
   if(xy)positionChatBubble(i,xy[0],xy[1]);
   msgEl.textContent=text; // real text node for typewriterReveal to walk+blank — never innerHTML,
                           // so there's no HTML-injection surface here even without escHtml
@@ -1952,8 +1624,10 @@ function localPickCell(p,cells){
     // bounce so they draw the eye, and a hover state that pops the square and deepens the colour.
     // Each square's bounce is phase-offset a touch by its board position so they shimmer rather
     // than pulse in dead unison. transform-box:fill-box + centered origin keeps the scale centered.
+    // notes/edits 11-03: cellPx now read via boardCell() — cell itself lives in src/ui/board.js.
+    const cellPx=boardCell();
     cells.forEach((c,ci)=>{
-      const r=el("rect",{x:c[0]*cell+2,y:c[1]*cell+2,width:cell-4,height:cell-4,rx:6,
+      const r=el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:6,
         fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
       r.addEventListener("click",()=>done(c));
       hs.push(r);
@@ -1967,8 +1641,9 @@ function localPickCell(p,cells){
 function remotePickHighlights(cells,promptId){
   const svg=$("board"),hs=[];
   const done=v=>{hs.forEach(h=>h.remove());panel("");sendResponse(promptId,v);};
+  const cellPx=boardCell(); // notes/edits 11-03: cell now lives in src/ui/board.js
   for(const c of cells){
-    const r=el("rect",{x:c[0]*cell+2,y:c[1]*cell+2,width:cell-4,height:cell-4,rx:5,
+    const r=el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:5,
       fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
     r.addEventListener("click",()=>done(c));
     hs.push(r);
@@ -3153,7 +2828,7 @@ function watchEvents(){
     $("scrub").max=Math.max(0,appState.game.events.length-1);
     render();
     const e=appState.game.events[appState.evIdx];
-    spawnPops(e,cell);
+    spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
     if(e.t==="end")applyEndMeta();
   });
 }
@@ -3276,23 +2951,7 @@ function startPassAndPlay(names){
   appState.soloMeta={names,strategies,seed,passAndPlay:true};appState.dlog=[];saveSoloState();
   beginGame(roundCfg(strategies),seed);
 }
-// a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
-// get a glimpse of the game before they've made a choice. Never interactive.
-function renderDecorativeBoard(){
-  try{
-    const strategies=["pirate","trader","balanced","rusher"];
-    appState.game=new Game(roundCfg(strategies),Math.floor(Math.random()*1e9),true);
-    appState.roster=strategies.map(s=>({bot:true,strat:s}));
-    appState.mySeat=null;
-    drawBoard();buildPlayerRows();
-    appState.game.round=1;appState.game.windNow="NSEW"[Math.floor(Math.random()*4)];appState.game.stormNow=false;
-    appState.game.ev({t:"newround",dir:appState.game.windNow});
-    appState.evIdx=0;appState.logLines=[describe(appState.game.events[0])];
-    render();
-    $("statsWrap").style.display="none";
-    $("actionPanel").style.display="none";
-  }catch(err){console.error("decorative board failed",err);}
-}
+// renderDecorativeBoard moved verbatim to src/ui/board.js (11-03).
 
 /* ================= lobby / room ================= */
 function showHome(){
@@ -3444,7 +3103,7 @@ function beginGame(cfg,seed){
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
   appState.turnOrder=null;
-  appState.logLines=[];logRenderedTo=-2;$("log").innerHTML="";
+  appState.logLines=[];resetBoardLog(-2);$("log").innerHTML=""; // notes/edits 11-03: logRenderedTo now lives in src/ui/board.js
   $("chatLog").innerHTML="";clearChatBubbles();
   $("chatPanel").style.display=(appState.db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
   drawBoard();buildPlayerRows();
@@ -3552,44 +3211,8 @@ async function resumeHostGame(r){
   appState.replaying=true;
   beginGame(r.cfg,r.seed);
 }
-// Board size is driven purely by available HEIGHT (board+footer always fit the viewport, floored
-// at 600px) — width never shrinks it. The sidebar then just takes whatever width is left over
-// next to that board, up to a sane cap so it doesn't stretch absurdly on ultrawide monitors. Once
-// that leftover width can no longer fit a full row of 5 ingredient chips, we drop to the stacked
-// (narrow) layout — board full-width on its own row, sidebar full-width below it — instead of
-// squeezing the sidebar further and wrapping ingredients onto a second line.
-const MIN_SIDEBAR_W=380,MAX_SIDEBAR_W=560;
-function syncBoardSizing(){
-  const root=document.documentElement;
-  const footerH=($("footerRow")||{}).offsetHeight||0;
-  const chromeH=28+14+footerH; // #game top/bottom padding + layout gap + footer height
-  const boardSize=Math.max(600,window.innerHeight-chromeH);
-  const availW=window.innerWidth-28; // #game's own left+right padding
-  const remaining=availW-boardSize-14; // width left for the sidebar after the board + the column gap
-  const wide=remaining>=MIN_SIDEBAR_W;
-  $("game").classList.toggle("layoutWide",wide);
-  if(wide){
-    root.style.setProperty("--boardW",boardSize+"px");
-    root.style.setProperty("--sideW",Math.min(remaining,MAX_SIDEBAR_W)+"px");
-  }else{
-    // stacked layout: the flippenator/timer row and the narration box also sit below the board
-    // in this single column, so the board must leave room for THEM too, not just the footer —
-    // otherwise it claims nearly the full viewport height on its own and pushes the narration
-    // box (sometimes even the flippenator) below the fold. This runs at the moment the game view
-    // first appears, before #actionPanel has any narration in it (offsetHeight would read 0), so
-    // budget off an assumed typical height for the common (short-message) case — #actionPanel
-    // has no CSS height cap, so a long narration/battle/recipe-draft message can still grow past
-    // this budget; the page itself simply scrolls at that point instead of the panel internally.
-    const gap=14; // matches #layout's grid gap, repeated between every stacked row
-    const actionMaxH=180;
-    const controlsH=($("controlsRow")||{}).offsetHeight||0;
-    const narrowBudget=window.innerHeight-28-gap*2-controlsH-actionMaxH;
-    const narrowBoardSize=Math.max(280,Math.min(narrowBudget,availW));
-    root.style.setProperty("--boardW",narrowBoardSize+"px");
-    root.style.removeProperty("--sideW");
-  }
-}
-
+// syncBoardSizing (+ its MIN_SIDEBAR_W/MAX_SIDEBAR_W consts) moved verbatim to
+// src/ui/board.js (11-03); still called bare below via the PP bridge.
 window.addEventListener("resize",()=>{if(appState.syncBoardRAF)return;appState.syncBoardRAF=requestAnimationFrame(()=>{appState.syncBoardRAF=null;syncBoardSizing();});});
 window.addEventListener("orientationchange",syncBoardSizing);
 function hideBootLoader(){

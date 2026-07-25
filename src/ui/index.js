@@ -8,3 +8,4 @@
 
 export * from "./recipe.js";
 export * from "./util.js";
+export * from "./board.js";
