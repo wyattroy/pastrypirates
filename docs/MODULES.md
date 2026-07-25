@@ -85,15 +85,27 @@ tag. That guarantees `firebase` is a defined global before any module code runs
 ## The extraction hazard — script tags must carry attributes
 
 Any new `<script>` tag added to `index.html` **must carry attributes**
-(`type="module"`, `src="..."`, etc.). The Node test harnesses
-(`scripts/lib/load_engine.js` and everything that calls it) locate the engine
-region by searching for a bare, attribute-less `<script>` open tag, which today
-matches **exactly once** in the whole file (the inline engine block opening at
-`index.html:859`). Writing a second attribute-less `<script>` anywhere in the
-file does not throw an error — it silently becomes the *first* match and every
-harness starts extracting the wrong region. This is a standing rule for Phases
-8–11, since that is when new script tags are most likely to appear as the
-monolith splits.
+(`type="module"`, `src="..."`, etc.). This rule protected the classic
+`<script>` region throughout Phases 8–11: several Node harnesses and standing
+gates (`scripts/lib/js_region_tokenizer.js` and everything built on it —
+`scripts/migrate_app_state.js`, `scripts/state_contract_check.js`,
+`scripts/ui_contract_check.js`) located that region by searching for a bare,
+attribute-less `<script>` open tag. Writing a second attribute-less `<script>`
+anywhere in the file did not throw an error — it would silently become the
+*first* match and every consumer would start extracting the wrong region.
+
+**Phase 11 (11-07) deleted the bare `<script>` tag pair entirely** — the last
+classic function moved out, the strangler-fig bridge came down with it, and
+`index.html` now holds only markup, the Firebase compat classic scripts, the
+JSON-LD block, and the one `<script type="module" src="src/main.js">` entry
+(D-08). `locateClassicScriptRegion()` treats "no bare `<script>` tag found at
+all" as the expected terminal state — an empty region, not an error — so
+`ui_contract_check.js`'s classic-region-empty assertion and
+`state_contract_check.js`'s per-name scans all degrade gracefully rather than
+throwing. **The rule itself still stands going forward:** a bare, unattributed
+`<script>` tag added to `index.html` today would be picked up by that same
+"first bare tag" search and treated as a (spuriously non-empty) classic
+region, so any future `<script>` tag must still carry attributes.
 
 ## The `src/` layout
 
@@ -101,8 +113,12 @@ Phase 7 shipped only `src/main.js` (the module entry) and
 `src/module-contract.js` (a trivial proof-of-contract leaf import). Phase 8
 filled in the first two tiers of this shape:
 
-- `src/main.js` — the module entry point (exists since Phase 7; Phase 8 extends
-  it to populate the bridge and drive startup — see below)
+- `src/main.js` — the module entry point (exists since Phase 7) and, since
+  Phase 11 (11-07), the sole composition root: imports every tier, wires the
+  UI's injected-handler seam to real `src/orchestrator.js` functions, sets the
+  one deliberate retained global (`window.revealMyRecipe`, D-05) and the
+  standing debug hooks, and calls `boot()` directly — see "Startup order"
+  below
 - `src/shared/index.js` — the **leaf tier** (Phase 8): pure constants and pure
   helpers with no engine dependency — `ING_ALL`, every `*_IMG` image-path map,
   `EMOJI_IMG`/`emojify`, the `DIRS` family, `TET`, ingredient-label helpers,
@@ -112,7 +128,18 @@ filled in the first two tiers of this shape:
   exports. Imports from `src/shared/index.js`; **never** the reverse — shared
   is a leaf by construction, and `scripts/engine_contract_check.js` (see
   below) fails the build if that direction is ever violated.
-- `src/ui/` — extracted rendering/UI code, plus the bridge's removal (Phase 11)
+- `src/ui/` — extracted rendering/UI code (Phase 11, 11-01 through 11-06):
+  `recipe.js`, `util.js`, `board.js`, `panel.js`, `lobby.js`, `handlers.js`,
+  `flow.js`, barreled through `src/ui/index.js`. Never imports `src/net/`
+  (D-07), enforced by `scripts/module_graph_check.js` and
+  `scripts/ui_contract_check.js`.
+- `src/orchestrator.js` — the 44 net-caller/orchestration functions (sync,
+  broadcast, battle, room-lifecycle, prompt/recovery/turn-flow, `boot`)
+  extracted in Phase 11 (11-06). Its own tier is `main`, the same tier
+  `src/main.js` occupies — the one place in the graph allowed to import both
+  `src/net/` (to drive sync) and `src/ui/` (to render results) without
+  tripping the `ui` tier's "never import `net`" rule, since `src/ui/` itself
+  can never import a `main`-tier file.
 - `src/net/` — extracted Firebase networking code (Phase 9). Five files:
   - `src/net/registry.js` — the `WatcherRegistry`. **The only file in the
     whole repository permitted to call `ref.on()` or `ref.off()`.** This is
@@ -219,11 +246,11 @@ assertion), that bookkeeping *is* the listener ground truth — there is no
 other source of truth for "how many listeners are actually live right now"
 to disagree with it.
 
-**It carries no `PP-BRIDGE` token, deliberately.** Phase 11 removes the
-temporary bridge by grepping for that token on every line that carries it;
-this hook is meant to outlive that removal. It is the named, documented seed
-for GLOBAL-03's "single documented debug mechanism" requirement in Phase 10,
-so that phase does not need to invent or rename one.
+**It carried no bridge-removal token, deliberately.** Phase 11 (11-07)
+removed the temporary bridge by grepping for that token on every line that
+carried it; this hook was built to outlive that removal, and did. It is the
+named, documented seed for GLOBAL-03's "single documented debug mechanism"
+requirement in Phase 10, so that phase did not need to invent or rename one.
 
 ## The net contract check
 
@@ -265,19 +292,18 @@ documented mechanism, with no silent shadow — sits on top of the same
 bridge Phase 8 built, extended in a load-bearing way for this phase's
 specific problem.
 
-**Why a snapshot bridge (Phase 8's `Object.assign(globalThis, PP)`) is
-insufficient here.** Phase 8's bridge is correct for read-only constants —
-values that never change after `boot()` runs. Phase 10's globals are
-mutable and reassigned throughout a game (`room = code`, `game = new
-Game(...)`, `mySeat = seat`, …). A snapshot copies field VALUES once; it
-cannot observe a later reassignment, because nothing holds a live reference
-back to the classic script's own binding. `src/main.js` sidesteps the copy
-step entirely: `appState` is published onto the bridge BY REFERENCE
-(`{ ...shared, ...engine, ...net, appState: stateNs.appState }`), so a
-classic-script write like `appState.room = code` mutates the one object
-every holder — this module, the bridge, the debug hook below, any future
-Phase 11 consumer — shares a reference to. See the module's own file header
-for the full mechanism.
+**Why a snapshot bridge (Phase 8's global-object spread) was insufficient
+here.** Phase 8's bridge was correct for read-only constants — values that
+never change after `boot()` runs. Phase 10's globals are mutable and
+reassigned throughout a game (`room = code`, `game = new Game(...)`, `mySeat
+= seat`, …). A snapshot copies field VALUES once; it cannot observe a later
+reassignment, because nothing holds a live reference back to the classic
+script's own binding. `src/main.js` sidestepped the copy step entirely by
+publishing `appState` onto that same historical bridge mechanism BY
+REFERENCE, so a classic-script write like `appState.room = code` mutated the
+one object every holder — this module, the (now-deleted, Phase 11) bridge,
+the debug hook below, any Phase 11 consumer — shared a reference to. See the
+module's own file header for the full mechanism.
 
 **The `appState` binding itself is never reassigned — only its properties
 mutate.** `appState = {...}` anywhere (including inside
@@ -330,15 +356,14 @@ property access is synchronous and order-preserving by the JS spec with
 zero indirection, which is exactly what the replay/determinism guarantee
 requires.
 
-**The Phase-11-greppable seam.** Like the rest of the `window.PP` bridge,
-`appState`'s bridge entry is Phase 11's eventual removal target once the UI
-extraction gives every consumer its own import. Unlike the read-only
-`shared`/`engine`/`net` namespaces, `appState`'s bridge line carries a
-longer explanatory comment (not just the bare `PP-BRIDGE` token) precisely
-because the reference-vs-copy distinction is easy to break by
-well-intentioned refactoring — a future reader turning
-`appState: stateNs.appState` into a spread or a rebuilt object would
-silently reintroduce the exact bug this phase exists to fix.
+**The Phase-11-greppable seam (historical).** Like the rest of the bridge,
+`appState`'s bridge entry was a removal target once the UI extraction gave
+every consumer its own import — and Phase 11 (11-07) removed it. Every
+`src/ui/`/`src/orchestrator.js` consumer now imports `{ appState }` directly
+from `src/state/index.js` (a live ES-module binding, not a bridge-published
+copy), which is a strictly stronger guarantee than the bridge ever provided:
+no reference-vs-copy distinction to break, because there is no intermediate
+publish step left at all.
 
 ## The state contract check
 
@@ -395,6 +420,22 @@ imported from `src/module-contract.js` and resolves to the string
 `"__pp_module_ok"`), which is why the contract check has to resolve that
 identifier rather than pattern-match on it directly.
 
+### `window.revealMyRecipe` — the one retained non-debug global (D-05)
+
+Not a debug hook — a real, permanent, production-facing global, and the
+**only** one `scripts/ui_contract_check.js`'s retained-globals-allowlist
+assertion permits under `src/` (the four hooks above are the other four
+entries on that same allowlist). `src/ui/board.js`'s rendered
+`checkRecipeBtn` markup carries a literal `onclick="revealMyRecipe()"`
+attribute, built into an `innerHTML` string at render time — inline
+HTML-attribute event handlers always evaluate their body in the *global*
+scope, and an ES-module export is never automatically reachable there. Set
+once in `src/main.js` as `window.revealMyRecipe = ui.revealMyRecipe;`, named
+and documented the same way as the four debug hooks, honoring GLOBAL-02/03's
+"single documented mechanism" principle rather than adding an ad-hoc
+undocumented global. The function itself is defined in `src/ui/flow.js` and
+re-exported through `src/ui/index.js`.
+
 ## What deliberately did not move into `src/net/`
 
 - **The error-surfacing helper that drives the visible "sync trouble"
@@ -420,55 +461,75 @@ identifier rather than pattern-match on it directly.
 A reader finding any of these three still in `index.html` should read this
 list as confirmation, not as an oversight.
 
-## The `window.PP` bridge (temporary — removed in Phase 11)
+## The strangler-fig global bridge (Phase 8 — deleted in Phase 11, 11-07)
+
+**This section is now a historical record. The bridge described below no
+longer exists anywhere in this codebase.**
 
 Module scripts are always deferred (see "classic-before-module" above), but
-the classic UI/networking code still in `index.html` references `Game`,
-`roundCfg`, `DIRS`, and ~150 other bare identifiers that, before Phase 8,
-were declared directly in that same classic script. Once the engine and
-shared tiers moved into real modules, those bare identifiers would otherwise
-be undefined by the time the classic script runs.
+from Phase 8 through Phase 11 the still-classic UI/networking code in
+`index.html` referenced `Game`, `roundCfg`, `DIRS`, and (eventually) ~150+
+other bare identifiers that, before Phase 8, were declared directly in that
+same classic script. Once the engine and shared tiers moved into real
+modules, those bare identifiers would otherwise have been undefined by the
+time the classic script ran.
 
-`src/main.js` bridges the gap by publishing every `src/shared/` and
-`src/engine/` export onto **two** places:
+`src/main.js` bridged the gap by publishing every moved tier's exports onto
+**two** places: a single namespaced `window.PP` object, and `globalThis`
+itself (via a spread of that object onto the global object), so every
+pre-existing bare-identifier call site in the classic script kept resolving
+with zero edits to that code as each wave moved more functions into modules.
 
-- `window.PP` — a single namespaced object (`{ ...shared, ...engine }`), the
-  documented, intentional surface for any code that wants to reference the
-  bridge explicitly.
-- `globalThis` (via `Object.assign(globalThis, PP)`) — so the ~150+
-  pre-existing bare-identifier call sites in the classic script (`Game`,
-  `DIRS`, `man`, …) keep resolving with zero edits to that code.
+Both mechanisms existed because the classic script was never rewritten to
+reference the bridge object's properties explicitly (D-15: introduce the
+minimum bridge surface needed to keep the game running at every phase
+boundary, don't pre-emptively migrate call sites) — each wave's job was to
+extract functions into modules with real imports, not to touch code that
+hadn't moved yet.
 
-Both mechanisms exist because the classic script was never rewritten to
-reference `window.PP.Game` etc. — that rewrite is explicitly out of scope for
-Phase 8 (D-15: introduce the minimum bridge surface needed to keep the game
-running, don't pre-emptively migrate call sites) and is Phase 10's
-de-globalization job instead.
+**The bridge was temporary and named for exactly that reason.** Every line
+that populated it carried a literal removal-marker token in a trailing
+comment, so its eventual deletion was a grep, not an archaeology project —
+`scripts/ui_contract_check.js`'s "bridge is gone" assertion still checks for
+that token's absence today, as a standing gate against reintroduction.
 
-**This bridge is temporary and named for exactly that reason.** Every line
-that populates it carries the literal token `PP-BRIDGE` in a trailing
-comment, so Phase 11's removal is a grep, not an archaeology project:
-
-```js
-window.PP = PP; // PP-BRIDGE
-Object.assign(globalThis, PP); // PP-BRIDGE
-```
+**Phase 11 (11-07) deleted it.** Once the last classic function moved into
+`src/orchestrator.js` (11-06) and the classic `<script>` region held zero
+top-level function declarations, this wave removed the bridge-assembly
+object, its two publish statements, and the classic `<script>` region itself
+in a single gated, one-way commit — verified by `ui_contract_check.js`'s four
+mechanical assertions (no leftover bridge tag, no leftover
+`globalThis`-spread call, the classic region is empty, and only the single
+retained global below survives) plus a full Chrome solo + two-tab
+click-through, since a missed bare-global read fails silently as a runtime
+`ReferenceError` on a code path the determinism corpus never exercises.
 
 ## Startup order (why it's load-bearing)
 
-`src/main.js` drives the following sequence, in this order, every page load:
+`src/main.js` drives the following sequence, in this order, every page load
+(post-11-07, bridge-free):
 
-1. Populate the bridge (`window.PP` + `globalThis`, both `PP-BRIDGE`-tagged).
-2. Call `window.applyEngineBootstrapEffects()` — the three relocated D-06
+1. Wire `src/ui/`'s injected-handler seam (`ui.setNetHandlers(...)`) to real
+   `src/orchestrator.js` function references — no `globalThis` indirection.
+2. Set the standing debug hooks (`window.__pp_net_debug`,
+   `window.__pp_app_state_debug`) and the single deliberate retained global,
+   `window.revealMyRecipe` (D-05) — see "Standing browser debug hooks" below.
+3. Register the top-level browser-lifecycle listeners that used to live as
+   bare statements in the classic script (auto-pause on `visibilitychange`,
+   the 500ms `setClockUI` tick, `resize`/`orientationchange` re-sizing) —
+   moved here in 11-07 since they were never function declarations and so
+   had no other extraction destination.
+4. Call `ui.applyEngineBootstrapEffects()` — the three relocated D-06
    impurities (the two `--clock-img`/`--flip-socket-img` CSS custom-property
    writes and the `document.body.innerHTML = emojify(...)` rewrite).
-3. Call `window.attachPastryArt()` — the `RECIPE_BOOK` art-attachment
-   parse-time hazard, deferred to run after the bridge exists.
-4. Call `window.boot()` — inversion of control (D-14): the classic script no
-   longer self-invokes `boot()`; the module triggers it once the bridge is
-   ready.
+5. Call `ui.attachPastryArt()` — the `RECIPE_BOOK` art-attachment parse-time
+   hazard.
+6. Call `boot()` directly — inversion of control (D-14), formalized in 11-06:
+   the classic script no longer self-invokes `boot()` (there is no classic
+   script left to do so); the module triggers it once every step above has
+   run.
 
-The order matters because step 2's `document.body.innerHTML` rewrite must run
+The order matters because step 4's `document.body.innerHTML` rewrite must run
 **before** `boot()`'s element-lookup and event-wiring (`wireWelcome`,
 `wireLobby`, `wireRecipeModal`, …) — rewriting `body.innerHTML` after those
 listeners are attached would silently detach them, since the HTML parser
@@ -540,3 +601,4 @@ v25.9.0; Node 18+ is the documented floor.
 | Why does Firebase load before the module entry? | Classic scripts execute synchronously in document order; module scripts always defer. See "classic-before-module" above. |
 | How do I know the module entry actually ran? | `window.__pp_module_ok === true` in the browser console. |
 | Can I add a bare `<script>` tag? | No — see "The extraction hazard" above. Always add attributes. |
+| Is there still a global bridge? | No — Phase 11 (11-07) deleted it. Every symbol resolves through a real ES-module import; `window.revealMyRecipe` plus the 4 `window.__pp_*` debug hooks are the only intentional globals left. See "Standing browser debug hooks" above. |

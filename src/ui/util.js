@@ -4,8 +4,8 @@
 // awards/narration-string/session/shot-clock helpers that touch neither the DOM nor `src/net/`
 // (tier `helper/logic`, dom:false, net:[] in 11-analysis.json). Extending src/ui/recipe.js's
 // established pattern (11-01): move verbatim, replace bare shared/engine/state reads with
-// explicit imports, keep bare-identifier calls to still-classic functions (they resolve through
-// the PP bridge's `...ui`/`Object.assign(globalThis, PP)` until 11-07 deletes it).
+// explicit imports, keep bare-identifier calls to still-classic functions (they resolved through
+// the bridge's global-object spread until Phase 11 (11-07) deleted it).
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
 // scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.

@@ -31,14 +31,28 @@ const SCRIPT_CLOSE = "</script>";
  * whole file -- NOT a hardcoded line number. Line numbers drift as index.html is edited across
  * this phase's seven plans; the marker does not.
  *
+ * 11-07 (bridge removal): the bare `<script>` tag pair itself is deleted once the classic region
+ * is fully extracted (D-08 — index.html reduces to markup + Firebase compat classics + the one
+ * module entry). A missing bare-tag is therefore now a legitimate TERMINAL state, not an error —
+ * every consumer (scripts/ui_contract_check.js's classic-region-empty assertion,
+ * scripts/state_contract_check.js's per-name declaration/bare-usage/reassignment scans,
+ * scripts/migrate_app_state.js) must keep degrading to "region is empty" rather than throwing,
+ * since this codebase's own end-state deletes the tag they used to locate. Only a genuine
+ * SECOND bare `<script>` tag (an accidental reintroduction) is still treated as an error below.
+ *
  * @param {string} html - the full index.html source text
- * @returns {{start:number, end:number, source:string}} start/end are character offsets into
- *   `html` bounding the region EXCLUSIVE of the `<script>`/`</script>` tags themselves.
+ * @returns {{start:number, end:number, source:string, removed:boolean}} start/end are character
+ *   offsets into `html` bounding the region EXCLUSIVE of the `<script>`/`</script>` tags
+ *   themselves. When the bare tag no longer exists at all, `removed` is `true` and
+ *   `start`/`end`/`source` describe an empty region at the end of the file.
  */
 export function locateClassicScriptRegion(html) {
   const openIdx = html.indexOf(BARE_SCRIPT_OPEN);
   if (openIdx === -1) {
-    throw new Error("js_region_tokenizer: no bare `<script>` open tag found in index.html — has docs/MODULES.md's 'extraction hazard' invariant been violated?");
+    // The classic region has been fully extracted and its bare <script> tag deleted (11-07,
+    // D-08) — an empty region, not a violation. Every caller treats "nothing found" identically
+    // to "region scanned and found empty".
+    return { start: html.length, end: html.length, source: "", removed: true };
   }
   const secondOpenIdx = html.indexOf(BARE_SCRIPT_OPEN, openIdx + BARE_SCRIPT_OPEN.length);
   if (secondOpenIdx !== -1) {
@@ -49,7 +63,7 @@ export function locateClassicScriptRegion(html) {
   if (end === -1) {
     throw new Error("js_region_tokenizer: no matching `</script>` close tag found after the bare <script> open tag");
   }
-  return { start, end, source: html.slice(start, end) };
+  return { start, end, source: html.slice(start, end), removed: false };
 }
 
 /**

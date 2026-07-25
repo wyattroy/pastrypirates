@@ -11,17 +11,23 @@
 // `https://...` string literals).
 //
 // ============================================================================
-// Why this script is NOT wired into `npm test` yet
+// Wired into `npm test` as of 11-07
 // ============================================================================
 // Assertions 2 and 3 below assert the PP bridge is GONE and the classic <script> region is
-// EMPTY — both are false by construction until every one of the ~183 classic functions has been
-// extracted and the bridge deleted, which does not happen until Wave 7 (11-07-PLAN.md). Wiring
-// this into `npm test` here would make every intervening plan's test run permanently red for a
-// reason that has nothing to do with that plan's own changes — exactly the "weaken the check
-// until it stops catching anything real" trap net_contract_check.js's own header warns against.
-// Instead, this script is red-proof drilled now (each of the 4 assertions demonstrably fails
-// against a SYNTHETIC violation, run with `--drill`, before the real tree is ever checked) and
-// wired into `npm test` in 11-07 once the bridge is actually gone.
+// EMPTY — both were false by construction until every one of the ~183 classic functions was
+// extracted and the bridge deleted, which did not happen until Wave 7 (11-07-PLAN.md). Wiring
+// this into `npm test` any earlier would have made every intervening plan's test run
+// permanently red for a reason that had nothing to do with that plan's own changes — exactly the
+// "weaken the check until it stops catching anything real" trap net_contract_check.js's own
+// header warns against. This script was red-proof drilled first (each of the 4 assertions
+// demonstrably fails against a SYNTHETIC violation, run with `--drill`, before the real tree was
+// ever checked) and is now wired into `npm test`, immediately after `module_graph_check.js`, now
+// that the bridge is actually gone and all 4 assertions are expected to PASS.
+//
+// Note: `checkClassicRegionEmpty` (assertion 3) relies on
+// scripts/lib/js_region_tokenizer.js's `locateClassicScriptRegion` treating "no bare <script>
+// tag found at all" as the empty-region terminal state (11-07 also deletes the tag pair itself,
+// per D-08) rather than throwing — see that function's own header for the full account.
 //
 // ============================================================================
 // The four assertions (RESEARCH.md Q4)

@@ -2,14 +2,15 @@
 //
 // Phase 10 (App State & De-globalization), Plan 01, Task 2. The single mutable app-state
 // container (GLOBAL-01, D-05). ONE plain object, exported ONCE, and NEVER REASSIGNED — only its
-// properties mutate. This is the entire mechanism: Phase 8's `Object.assign(globalThis, PP)`
-// bridge is a value-copy snapshot, correct for read-only constants but insufficient for state
-// that gets reassigned after init (`room=code`, `game=new Game(...)`, …) — a snapshot cannot
-// observe a later reassignment because nothing holds a live reference back to the classic
-// script's own binding. Publishing this object itself (by reference, once, through the same
-// bridge convention) sidesteps the copy step entirely: every property WRITE the classic script
-// performs (`appState.room=code`) mutates the one object every holder — this module,
-// src/main.js's bridge, any future debug hook or Phase 11 consumer — shares a reference to. See
+// properties mutate. This is the entire mechanism: the temporary Phase 8 global-object bridge
+// (deleted in Phase 11, 11-07) published a value-copy snapshot — correct for read-only constants
+// but insufficient for state that gets reassigned after init (`room=code`, `game=new Game(...)`,
+// …) — a snapshot cannot observe a later reassignment because nothing holds a live reference back
+// to the classic script's own binding. Publishing this object itself (by reference, once, through
+// that same historical bridge mechanism) sidesteps the copy step entirely: every property WRITE
+// the classic script performed (`appState.room=code`) mutated the one object every holder — this
+// module, the (now-deleted) bridge, any future debug hook or Phase 11 consumer — shared a
+// reference to. See
 // 10-RESEARCH.md's "Why a snapshot bridge cannot work" for the underlying language facts
 // (top-level `let`/`const` in a classic script never becomes a `window`/`globalThis` property;
 // ES-module live bindings are only live module-to-module, never classic-script-to-module).

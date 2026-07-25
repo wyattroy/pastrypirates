@@ -1,21 +1,24 @@
 // src/main.js
 //
-// Module entry point (D-13, D-14). Phase 7 proved the zero-build
-// module-loading contract here; Phase 8 extends this same file to populate
-// the window.PP bridge (D-14/D-15) and invert control so this module — not
-// the classic script — triggers startup (calling `boot()` directly, 11-06)
-// after the bridge is ready.
+// Module entry point (D-13, D-14). Phase 7 proved the zero-build module-loading contract here.
+// Phase 8 introduced a temporary global-object bridge (a `window.PP` namespace plus a spread of
+// every tier's exports onto the global object) so the still-classic <script> region could keep
+// resolving engine/shared/net/state/ui/orchestrator symbols as bare identifiers while extraction
+// was still in progress. Phase 11
+// (11-07) completes that extraction and DELETES the bridge: the classic <script> region itself
+// is now gone from index.html, every one of the ~183 moved functions resolves through a normal
+// ES-module import, and this file is the sole composition root — it imports every tier, wires
+// the UI's injected-handler seam to real orchestrator functions, owns the single deliberate
+// retained global (`window.revealMyRecipe`, D-05), calls `boot()` directly, and hosts the small
+// handful of top-level browser-lifecycle statements (auto-pause, clock tick, resize/orientation)
+// that used to live in the classic script as bare top-level statements (never function
+// declarations, so they never showed up in analyze_classic.mjs's function-only inventory, but
+// still needed a real home once that region was deleted).
 
 import { MODULE_OK_FLAG } from "./module-contract.js";
-import * as shared from "./shared/index.js";
-import * as engine from "./engine/index.js";
 import * as net from "./net/index.js";
 import * as stateNs from "./state/index.js";
 import * as ui from "./ui/index.js";
-// 11-06: src/orchestrator.js is the last tier this composition root wires in — the 44
-// orchestration (net-caller) functions that used to be the classic <script> region's own
-// top-level declarations. `boot` is also imported by name so this file can call it directly
-// (D-14's inversion of control, formalized this wave — see the `boot()` call at the bottom).
 import * as orchestrator from "./orchestrator.js";
 import { boot } from "./orchestrator.js";
 
@@ -41,63 +44,16 @@ if (typeof window !== "undefined") {
     );
   }
 
-  // The bridge (D-14/D-15): named, documented, temporary — removed in
-  // Phase 11 (ROADMAP Phase 11 criterion 3 greps for the token on each of
-  // the three lines below). Publishes every shared/engine/net export as a
-  // global-object property so the ~150+ pre-existing bare-identifier call
-  // sites in the classic region resolve with zero edits (D-15's
-  // minimal-blast-radius mandate).
-  //
-  // Phase 10 (GLOBAL-01/D-05) adds ONE more key: `appState`. Unlike every
-  // other key here, `appState` is not a namespace of independent read-only
-  // exports — it is the SAME single mutable object stateNs.appState holds,
-  // published by REFERENCE (not copied field-by-field). That distinction is
-  // load-bearing: `Object.assign(globalThis, PP)` below copies `PP.appState`
-  // (an object reference) onto `globalThis.appState` as a plain assignment —
-  // the value copied is the reference itself, so both `globalThis.appState`
-  // and every module's own `stateNs.appState` keep pointing at the identical
-  // object afterward. A later classic-script write like
-  // `appState.room=code` mutates that one shared object; nothing here ever
-  // holds a stale copy of its fields the way Phase 8's snapshot bridge would
-  // if `appState` here meant "the current field values" rather than "the
-  // object itself". See src/state/index.js's own header and
-  // 10-RESEARCH.md's "Why a snapshot bridge cannot work" for the full
-  // mechanism. NAMED `appState`, not the RESEARCH/CONTEXT-illustrative
-  // `state` — `state` already collides with unrelated local
-  // parameter/variable names inside the classic script (see
-  // src/state/index.js's header for the full account); `appState` was
-  // confirmed to have zero pre-existing occurrences before being chosen.
-  const PP = { ...shared, ...engine, ...net, ...ui, appState: stateNs.appState }; // PP-BRIDGE
-  window.PP = PP; // PP-BRIDGE
-  Object.assign(globalThis, PP); // PP-BRIDGE
-
-  // 11-06: src/orchestrator.js's exports are published as globals through this SEPARATE
-  // statement, not folded into the PP object literal above (that line, and the two PP-BRIDGE
-  // lines around it, are left untouched this wave — only this new line is added). Same
-  // motivation as `...ui`/`...net`/`...shared`/`...engine` above: dozens of already-moved
-  // src/ui/flow.js and src/ui/util.js function bodies (11-04/11-05) call these 44
-  // orchestration functions by bare identifier — broadcastFlip, netNarrate, netBroadcast,
-  // renderBattle, battleAsk, asyncBattle, remotePrompt, remoteDraftPrompt, logDecision,
-  // beginGame, broadcastClock, expireShotClock, watchTimer, and more — and src/ui/ can never
-  // `import` src/orchestrator.js directly (module_graph_check.js's "ui -> shared/engine/state"
-  // shape assertion would fail exactly the way a ui->net import would, since orchestrator.js's
-  // own tier is "main", not one of those three). Publishing these as globals is what lets every
-  // one of those already-moved call sites keep resolving with zero edits, mirroring D-15's
-  // original minimal-blast-radius mandate for the PP bridge itself. Removed alongside the rest
-  // of the bridge in 11-07 (the same grep to delete these can target this line too).
-  Object.assign(globalThis, orchestrator); // PP-BRIDGE (orchestrator, 11-06)
-
-  // 11-04/11-05/11-06: the injected-handler seam (D-07/criterion 1), now fully formalized.
+  // 11-04/11-05/11-06/11-07: the injected-handler seam (D-07/criterion 1), fully formalized.
   // src/ui/panel.js's flash()/liveRender() and src/ui/flow.js's remotePickHighlights()/
   // endReplay()/wireRestoreFail() never call netNarrate()/pushEvents()/sendResponse()/
   // setRecoveryState()/leaveGame() directly (that would be a UI->net import) — they call
   // through src/ui/handlers.js's netHandlers() accessor instead, and THIS composition root
-  // wires the actual net-adjacent operations in. 11-04/11-05 wired these five targets to
-  // still-classic globals via the PP bridge as a deliberate, temporary, composition-root-only
-  // measure; now that all five are real src/orchestrator.js exports, they are bound directly by
-  // reference — no bridge/globalThis indirection remains in this wiring. This is all 5 of the
-  // milestone's UI-side seam edges (RESEARCH.md Q1b) — the 6th (battleAsk) is orchestration,
-  // homed in src/orchestrator.js, not a UI-side injected-handler edge.
+  // wires the actual net-adjacent operations in, bound directly by reference to
+  // src/orchestrator.js's exports. No bridge/globalThis indirection remains anywhere in this
+  // wiring. This is all 5 of the milestone's UI-side seam edges (RESEARCH.md Q1b) — the 6th
+  // (battleAsk) is orchestration, homed in src/orchestrator.js, not a UI-side injected-handler
+  // edge.
   ui.setNetHandlers({
     onBroadcast: orchestrator.netNarrate,
     onEvents: orchestrator.pushEvents,
@@ -108,8 +64,7 @@ if (typeof window !== "undefined") {
 
   // Phase 9's debug hook (NET-03 observation point, GLOBAL-03's seed for a
   // future single documented debug mechanism). Deliberately carries no
-  // bridge-removal tag: the two lines above are deleted in a later phase,
-  // but this hook is meant to outlive them as a permanent, named
+  // bridge-removal tag: it is meant to outlive the bridge, as a permanent, named
   // observation surface for the registry's own bookkeeping.
   window.__pp_net_debug = {
     size: net.netRegistrySize,
@@ -128,19 +83,62 @@ if (typeof window !== "undefined") {
   // authoritative game state with no error. So this is a helper FUNCTION, not a plain property
   // assignment of the object itself: each call returns a fresh `{...appState}` shallow copy,
   // safe to inspect and safe to mutate without touching the real state. Deliberately carries no
-  // PP-BRIDGE tag, matching __pp_net_debug: it is meant to outlive the Phase 11 bridge-removal
-  // grep, as a permanent, named, read-only observation surface.
+  // bridge-removal tag, matching __pp_net_debug: it is meant to outlive the bridge, as a
+  // permanent, named, read-only observation surface.
   window.__pp_app_state_debug = function () {
     return { ...stateNs.appState };
   };
+
+  // D-05: the ONE deliberate retained non-debug global. src/ui/board.js's rendered
+  // `checkRecipeBtn` markup carries a literal `onclick="revealMyRecipe()"` attribute, built into
+  // an innerHTML string at render time (not static index.html markup) — inline HTML event-handler
+  // attributes always evaluate their body in the GLOBAL scope, and an ES-module export is never
+  // automatically reachable there. Since converting that one button to addEventListener would
+  // mean board.js reaching back into a DOM-attach step outside its own render pass, GLOBAL-02/03's
+  // "single documented mechanism" principle is honored the other way: one explicit, named,
+  // commented `window.` assignment, exactly like the debug hooks above. ui_contract_check.js's
+  // retained-globals-allowlist assertion enforces that this is the ONLY new non-debug window.*
+  // assignment anywhere under src/.
+  window.revealMyRecipe = ui.revealMyRecipe;
+
+  // 11-07: moved verbatim from the (now-deleted) classic <script> region. These are top-level
+  // statements, not function declarations, so they never appeared in analyze_classic.mjs's
+  // function-only inventory across 11-01..11-06 — but they still execute every page load and
+  // needed a real module home once the classic region itself was removed.
+
+  // auto-pause solo/bot games when the tab/screen goes hidden (backgrounded, locked, computer
+  // sleeps) — mobile especially can't rely on a second tab catching up later, so we pause rather
+  // than let bots keep playing unattended. Never auto-resumes; player taps ▶ same as manual pause.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && stateNs.appState.isHost && ui.soloBotGame() && !stateNs.appState.shotClockPaused) {
+      ui.toggleShotClockPause();
+    }
+  });
+
+  // the whole-table clock display is self-driving on a 500ms tick (mirrors src/ui/board.js's
+  // resize-listener precedent for a standing top-level interval/listener living beside its own
+  // module's function, rather than here — setClockUI's own module is src/ui/panel.js, so this
+  // interval is the one exception, kept here since it is not itself a DOM-resize concern).
+  setInterval(ui.setClockUI, 500);
+
+  window.addEventListener("resize", () => {
+    if (stateNs.appState.syncBoardRAF) return;
+    stateNs.appState.syncBoardRAF = requestAnimationFrame(() => {
+      stateNs.appState.syncBoardRAF = null;
+      ui.syncBoardSizing();
+    });
+  });
+  window.addEventListener("orientationchange", ui.syncBoardSizing);
 
   // 08-02: the relocated D-06 impurities and the ASSET_BASE top-level hazard
   // must run before boot()'s element-lookup/event-wiring (wireWelcome,
   // wireLobby, wireRecipeModal) does — the relocated comment inside
   // applyEngineBootstrapEffects() states exactly that invariant, and boot()
-  // is where that wiring happens, so this ordering preserves it.
-  window.applyEngineBootstrapEffects();
-  window.attachPastryArt();
+  // is where that wiring happens, so this ordering preserves it. 11-07: both
+  // are now real src/ui/ exports, called directly rather than through the
+  // `window`-property indirection the bridge provided.
+  ui.applyEngineBootstrapEffects();
+  ui.attachPastryArt();
 
   // Standing tripwire (mirrors the module-ok marker's convention): the
   // document.body.innerHTML rewrite above now runs at module time instead
@@ -150,11 +148,9 @@ if (typeof window !== "undefined") {
   // proves src/main.js itself still only runs once, rather than assuming it.
   window.__pp_boot_count = (window.__pp_boot_count || 0) + 1;
 
-  // Inversion of control (D-14), formalized (11-06): `boot()` is now a real
-  // src/orchestrator.js export, imported by name at the top of this file — this module calls
-  // it directly rather than through the `window`-property indirection 08-02 introduced (boot
-  // was, until this wave, a classic-script `function` declaration, hence a bare `window`
-  // property with no import available). The module still drives startup only after the bridge
-  // above is populated, same ordering as before.
+  // Inversion of control (D-14), formalized (11-06), bridge-free (11-07): `boot()` is a real
+  // src/orchestrator.js export, imported by name at the top of this file — this module calls it
+  // directly. The module still drives startup only after the UI wiring and retained global above
+  // are in place, same ordering as before.
   boot();
 }

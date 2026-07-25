@@ -31,8 +31,9 @@
 // wave (localPickCell/remotePickHighlights read `cell`; showChatBubble reads `shipEls`; beginGame
 // resets `logRenderedTo` before a fresh game — all panel/flow/lobby functions slated for later
 // waves). A classic script's bare read of a module-local `let` can't resolve at all (no
-// `import`), and the PP bridge's one-time `Object.assign(globalThis, PP)` snapshot can't help
-// either — it copies primitive/reassigned-array VALUES once at boot, not a live binding, so a
+// `import`), and the (now-deleted, Phase 11) bridge's one-time global-object-spread snapshot
+// couldn't have helped either — it copied primitive/reassigned-array VALUES once at boot, not a
+// live binding, so a
 // later `cell=W/n` inside this module would never reach a stale global copy. Exported three
 // narrow accessor functions (boardCell/boardShipEls/resetBoardLog) for exactly those external
 // call sites instead; index.html's 6 call sites were updated to use them (see this plan's
