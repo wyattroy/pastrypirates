@@ -174,7 +174,7 @@ Plans:
   4. The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent).
   5. Storm rendering re-verifies cleanly on Safari after UI extraction (no perf/compat regression at this phase boundary).
 
-**Plans**: 4/8 plans executed
+**Plans**: 5/8 plans executed
 
 Plans:
 **Wave 1**
@@ -195,7 +195,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4)*
 
-- [ ] 11-05-PLAN.md — Extract turn-flow + battle-UI + recovery into `src/ui/flow.js`; resolve all 5 UI-side criterion-1 seam edges (wave 5)
+- [x] 11-05-PLAN.md — Extract turn-flow + battle-UI + recovery into `src/ui/flow.js`; resolve all 5 UI-side criterion-1 seam edges (wave 5)
 
 **Wave 6** *(blocked on Wave 5)*
 
@@ -242,7 +242,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
-| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 4/8 | In Progress|  |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 5/8 | In Progress|  |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
 </invoke>

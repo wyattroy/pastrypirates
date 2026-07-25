@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 11
 current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 11-04-PLAN.md
-last_updated: "2026-07-25T04:19:53.918Z"
+stopped_at: Completed 11-05-PLAN.md
+last_updated: "2026-07-25T04:44:15.399Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 28
-  completed_plans: 24
+  completed_plans: 25
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Progress: [█████████░] 86%
 | Phase 11 P02 | ~45min | 2 tasks | 5 files |
 | Phase 11 P03 | ~40min | 2 tasks | 3 files |
 | Phase 11 P04 | ~35min | 2 tasks | 6 files |
+| Phase 11 P05 | ~50min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 4: stood up src/ui/handlers.js's injected-handler seam (setNetHandlers/netHandlers) resolving 2 of the 6 UI->orchestration edges (flash->onBroadcast, liveRender->onEvents) without src/ui/ importing src/net/ (D-07); both handlers wired in src/main.js to still-classic netNarrate/pushEvents globals via the PP bridge, formalized to real src/net/ imports in 11-06
 - [Phase ?]: Phase 11 Plan 4: moved 22 functions (panel/clock/narration/chat cluster into src/ui/panel.js, lobby/room/welcome cluster into src/ui/lobby.js) byte-identical; room-lifecycle net-callers (createRoom/joinRoom/watchRoom/startGame/beginGame/wireLobby) deliberately deferred to 11-06; classic-script function count dropped from 102 to 80
 - [Phase ?]: Phase 11 Plan 4: deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 4 of 8 phase plans done, 103 of ~183 functions extracted, PP bridge still present by design
+- [Phase ?]: Phase 11 Plan 5: moved 31 functions (turn-flow/interaction, battle-UI/side-bets/intro/game-start, recovery/replay) into src/ui/flow.js; battleAsk/renderBattle/watchBattle/asyncBattle deliberately stay classic (orchestration, deferred to 11-06)
+- [Phase ?]: Phase 11 Plan 5: resolved the final 3 of 6 UI->orchestration seam edges via src/ui/handlers.js's injected-handler seam (remotePickHighlights->onRespond, endReplay->onRecovery, wireRestoreFail->onRecovery+onLeave) -- all 5 UI-side edges now resolved without src/ui/ ever importing src/net/ (D-07)
+- [Phase ?]: Phase 11 Plan 5: classic-script function count dropped from 80 to 49 (44 orchestration net-callers + top-level wiring); deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 5 of 8 phase plans done, PP bridge still present by design
 
 ### Pending Todos
 
@@ -164,8 +168,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T04:19:53.910Z
-Stopped at: Completed 11-04-PLAN.md
+Last session: 2026-07-25T04:44:15.391Z
+Stopped at: Completed 11-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
