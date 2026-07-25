@@ -1,52 +1,20 @@
 #!/usr/bin/env node
 // notes/edits #12: unlike scripts/battle_sim.js (a hand-written reimplementation of the battle
 // mechanic, not trusted for this — see its own header comment), this harness runs the REAL
-// `Game` class straight out of index.html, unmodified, with real bots playing full real games —
-// no reimplementation, no simplifying assumptions about board state or coin economy.
+// `Game` class, unmodified, with real bots playing full real games — no reimplementation, no
+// simplifying assumptions about board state or coin economy.
 //
-// How it works: index.html is a single file mixing DOM/UI code with the game engine. Everything
-// the `Game` class needs (constants, helper functions, the class itself) is fully self-contained
-// in the region from the start of the main <script> block through the end of the class — the UI
-// section begins immediately after (marked by the "================= UI ================="
-// comment) and nothing before that marker touches the DOM except one harmless
-// `document.documentElement.style.setProperty(...)` line, which is stubbed out below. That whole
-// region is extracted verbatim and run in a Node `vm` context, so this test is exercising the
-// exact same source the browser runs — not a port, not a rewrite.
+// How it works: the deterministic engine (constants, helper functions, the `Game` class itself)
+// lives in its own DOM-free ES module (src/engine/index.js, importing shared leaf constants from
+// src/shared/index.js). scripts/lib/load_engine.js obtains it via a native `import`, so this test
+// is exercising the exact same source the browser runs — not a port, not a rewrite.
 
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
+import { loadEngine } from "./lib/load_engine.js";
 
 const N_GAMES = process.argv[2] ? parseInt(process.argv[2], 10) : 2000;
 const SEED_BASE = 12345;
 
-const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-const scriptStart = html.indexOf("<script>") + "<script>".length;
-// roundCfg() sits just past the "UI" marker (before any real UI/DOM code) — extend the cut to
-// its end so both Game and roundCfg (a hoisted function declaration, so order doesn't matter to
-// JS, but the slice still has to physically include its source) are in the extracted region.
-const scriptEnd = html.indexOf("function escHtml");
-if (scriptStart < 8 || scriptEnd === -1) {
-  throw new Error("Could not locate the Game-class/roundCfg region in index.html — has the file structure changed?");
-}
-// `class`/`const` top-level declarations don't attach to the vm context object the way `var`/
-// `function` do — export the two we need explicitly so they're retrievable after execution.
-const engineSrc = html.slice(scriptStart, scriptEnd) + "\nthis.Game=Game;this.roundCfg=roundCfg;\n";
-
-const sandbox = {
-  // `document.body.innerHTML = emojify(...)` runs at boot inside the extracted region (the emoji→
-  // <img> swap), so the stub needs a writable body as well as the documentElement style setter.
-  document: { documentElement: { style: { setProperty() {} } }, body: { innerHTML: "" } },
-  console,
-  Math, Array, Object, Set, Map, JSON, Date, String, Number, Boolean,
-};
-vm.createContext(sandbox);
-vm.runInContext(engineSrc, sandbox, { filename: "index.html (engine region)" });
-
-const { Game, roundCfg } = sandbox;
-if (typeof Game !== "function" || typeof roundCfg !== "function") {
-  throw new Error("Game/roundCfg didn't come out of the extracted region — extraction boundaries may be wrong.");
-}
+const { Game, roundCfg } = await loadEngine();
 
 // same personality roster the live game's BOT_STRATS uses (index.html, welcome-flow bot fill-in)
 const BOT_STRATS = ["pirate", "trader", "balanced", "rusher", "monopolist"];

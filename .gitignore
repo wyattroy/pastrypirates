@@ -3,3 +3,4 @@ __pycache__/
 ONLINE_SETUP.md
 DESIGN_REPORT.md
 notes/
+node_modules/

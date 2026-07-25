@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 Edit Pass** — Phases 1–6 (shipped 2026-07-24)
+- 🚧 **v1.1 Monolith Refactor** — Phases 7–12 (in progress)
 
 ## Phases
 
@@ -20,13 +21,245 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 
 </details>
 
+### 🚧 v1.1 Monolith Refactor (In Progress)
+
+**Milestone Goal:** Split the ~5,200-line `index.html` monolith into native ES modules with no build step, preserving gameplay, Safari support, and deterministic multiplayer — while folding in the three approved debt cleanups (Firebase `.off()` teardown, de-globalization, engine/replay hardening). A strangler-fig sequence keeps the game runnable and determinism-verifiable at every phase boundary.
+
+- [ ] **Phase 7: Foundation & Determinism Baseline** - Zero-build module-loading contract + golden-fixture regression oracle, game unchanged
+- [ ] **Phase 8: Engine Extraction & Node Harness Migration** - Pure DOM-free engine module Node imports natively, byte-for-byte identical (critical path)
+- [ ] **Phase 9: Networking Layer & Watcher Cleanup** - Firebase sync in its own module with a registry and `.off()` teardown, zero leaked listeners
+- [ ] **Phase 10: App State & De-globalization** - 40+ globals encapsulated behind an app-state module, all inline handlers still work
+- [x] **Phase 11: UI Extraction, Orchestration & Bridge Removal** - UI module + `main` composition root, `index.html` reduced to markup, acyclic graph, bridge gone (completed 2026-07-25)
+- [x] **Phase 12: Verification & Validation** - Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests (completed 2026-07-25)
+
+## Phase Details
+
+### Phase 7: Foundation & Determinism Baseline
+
+**Goal**: Establish the zero-build module-loading contract and capture the determinism regression oracle before any code moves — with the game still fully playable and behaviorally unchanged.
+**Depends on**: Nothing (first phase of v1.1)
+**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-04, FOUND-05
+**Success Criteria** (what must be TRUE):
+
+  1. A root `package.json` declares `"type": "module"`, so the same engine `.js` file imports identically in Node and the browser (proven by a trivial import in both).
+  2. The game loads and plays from a static HTTP server via a `<script type="module">` entry point, with the Firebase compat SDK v12.15.0 loaded as classic (non-module) scripts before it and no init race.
+  3. A seeded golden-fixture replay corpus is captured from the pre-refactor monolith and stored as the byte-for-byte regression oracle for all later phases.
+  4. The module-loading + local-dev contract is documented (HTTP server required, `file://` unsupported, `.js` MIME expectations for production).
+  5. A solo game played after the foundation changes is behaviorally identical to `main` (no gameplay change — code has not moved yet).
+
+**Plans**: 3/3 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 07-01-PLAN.md — Determinism oracle: `package.json` + ESM harness conversion + `load_engine.js` seam + committed 30-seed golden corpus (wave 1, `index.html` untouched)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 07-02-PLAN.md — Module-loading contract: `src/main.js` entry, one module script tag in `index.html`, `docs/MODULES.md` (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 07-03-PLAN.md — Browser verification: Chrome + Safari page load, module marker, solo playthrough (wave 3, blocking checkpoint)
+
+### Phase 8: Engine Extraction & Node Harness Migration
+
+**Goal**: Extract the deterministic engine into pure, DOM-free/Firebase-free ES modules that the Node harnesses import natively, producing byte-for-byte identical seeded output against the baseline. This is the critical path.
+**Depends on**: Phase 7
+**Requirements**: SPLIT-01, SPLIT-02, ENGINE-01, ENGINE-02, ENGINE-03, ENGINE-04
+**Success Criteria** (what must be TRUE):
+
+  1. Shared constants and pure helpers (`ING_ALL`, `DIRS`, `man`, `shuffle`, `mulberry32`, image maps) live in leaf modules importable by engine, UI, net, and the Node harnesses.
+  2. The Game class, `roundCfg`, bot strategies, RNG, and replay live in their own ES module(s) with zero DOM, `window`, Firebase, or wall-clock/unseeded-random access — the 3 asset/DOM bootstrapping touches are relocated out.
+  3. The Node test harnesses (`real_game_test.js`, `dlog_replay_test.js`) import the engine module natively — the `vm`/string-slice extraction of `index.html` is retired — landing in the same commit as engine extraction.
+  4. Seeded gameplay + replay output is byte-for-byte identical to the Phase 7 golden baseline across the full regression corpus.
+  5. Order-load-bearing constants (`DIRS`/`PERP`/`OPPOSITE` and any object literal feeding `this.r()`) are preserved and annotated so iteration order cannot silently change.
+
+**Plans**: 5/5 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 08-01-PLAN.md — Tracer: prove the `Object.assign(globalThis, PP)` bridge in a real browser by moving two real symbols end-to-end, invert `boot()` startup (wave 1)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 08-02-PLAN.md — Shared leaf tier out verbatim (SPLIT-02), three D-06 impurities relocated, `ASSET_BASE` parse hazard defused, 6 order-load-bearing annotations (wave 2)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 08-03-PLAN.md — `class Game`/`roundCfg` extraction + `load_engine.js` native-import migration in ONE commit (SPLIT-01, ENGINE-02), 7th annotation (wave 3)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 08-04-PLAN.md — `engine_contract_check.js` standing gate for purity + annotations + DAG + export completeness, pure-motion audit, `docs/MODULES.md` (wave 4)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [x] 08-05-PLAN.md — Chrome verification of the corpus-blind live turn loop (forced storm), then `engineSourceHash` re-base in its own commit without `--capture` (wave 5)
+
+### Phase 9: Networking Layer & Watcher Cleanup
+
+**Goal**: Move Firebase multiplayer sync into its own networking module and fix the `.off()` leak class through a single watcher registry, leaving zero dangling listeners across the room lifecycle.
+**Depends on**: Phase 8
+**Requirements**: SPLIT-04, NET-01, NET-02, NET-03
+**Success Criteria** (what must be TRUE):
+
+  1. Firebase multiplayer sync lives in its own networking module(s) that never import the UI layer.
+  2. Every Firebase `.on()` watcher (all 18, up from 2 torn down today — count corrected 2026-07-24 from a stale "14 / 1" by direct grep of `index.html`) has a matching `.off()` teardown registered and removed through a single watcher registry with exact callback-reference matching.
+  3. A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally by a reconnect-and-count check — not code review alone.
+  4. A multiplayer game across two browser tabs still syncs deterministically after the extraction (host + guest smoke test passes).
+
+**Plans**: 5/5 plans executed
+
+- [x] 09-01-PLAN.md
+- [x] 09-02-PLAN.md
+- [x] 09-03-PLAN.md
+- [x] 09-04-PLAN.md
+- [x] 09-05-PLAN.md
+
+### Phase 10: App State & De-globalization
+
+**Goal**: Encapsulate the 40+ implicit globals behind an app-state module while keeping every inline handler working through a single documented mechanism.
+**Depends on**: Phase 9
+**Requirements**: GLOBAL-01, GLOBAL-02, GLOBAL-03
+**Success Criteria** (what must be TRUE):
+
+  1. The 40+ implicit globals (`game`, `myId`, `room`, `db`, …) are encapsulated behind module exports / an app-state module instead of bare `window` globals.
+  2. Every `onclick` handler still works after de-globalization (count corrected 2026-07-24 by direct grep: **1** inline HTML `onclick="…"` attribute — the template-generated `revealMyRecipe()` at `index.html:1731` — plus **40** JS `.onclick=` closure assignments that already capture scope and are not threatened by de-globalization; the original "41 inline" figure conflated the two). Verified by a click-through of the real handler surface.
+  3. Any retained `window` bridge for test/debug state access (e.g. `window.__pp_debug` for the Chrome-MCP harness) is intentional, single, and named/documented.
+  4. A full solo game and a multiplayer game both remain playable with no new console `no-undef`/`ReferenceError` regressions.
+
+**Plans**: 7/7 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 10-01-PLAN.md — Foundation + tracer: confirm 46-name inventory, build the shared tokenizer + migration tool + `src/state/index.js` + `state_contract_check.js`, wire the `state` bridge, migrate `room` end-to-end, browser mechanism gate (wave 1, blocking checkpoint)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 10-02-PLAN.md — Migrate replay/resume control-flow names (`replaying, dlog, dlogIdx, dlogN, evIdx, resumeEvLen, resumeReadFailed`); corpus + `dlog_replay_test` gate ordering (wave 2)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 10-03-PLAN.md — Migrate net-consumed identity/session names (`db, myId, mySeat, isHost, roster, turnOrder, numSeats, passAndPlay, soloMeta`) + prove net call-site freshness (wave 3)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 10-04-PLAN.md — Migrate shot-clock/timer-control + live/prompt/turn bookkeeping (26 names); preserve `revealMyRecipe` function-declaration reachability (wave 4)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [x] 10-05-PLAN.md — Migrate `game`/`timer`/`logLines` with the `$("game")` DOM-id string collision proven byte-safe; all 46 names now migrated (wave 5)
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [x] 10-06-PLAN.md — GLOBAL-03: read-only `window.__pp_app_state_debug` hook, finalize + wire `state_contract_check.js` into `npm test`, document `src/state/` + the four debug hooks (wave 6)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [x] 10-07-PLAN.md — Chrome click-through: inline `revealMyRecipe` attr, closure surface, full solo game, two-tab multiplayer, host-refresh replay (wave 7, blocking checkpoint)
+
+### Phase 11: UI Extraction, Orchestration & Bridge Removal
+
+**Goal**: Complete the split — UI rendering becomes its own module, a `main` entry orchestrates all layers, `index.html` is reduced to markup, the dependency graph is proven acyclic, and the temporary strangler-fig bridges are removed.
+**Depends on**: Phase 10
+**Requirements**: SPLIT-03, SPLIT-05, SPLIT-06
+**Success Criteria** (what must be TRUE):
+
+  1. UI rendering (render/board/DOM/modals/narration) lives in its own module(s) that read game state and never import the networking layer.
+  2. A `main` entry module orchestrates engine + UI + networking, and `index.html` is reduced to markup plus a single module entry point.
+  3. The temporary window bridge introduced in earlier phases is deleted, with a grep confirming no leftover bare-global reads remain.
+  4. The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent).
+  5. Storm rendering re-verifies cleanly on Safari after UI extraction (no perf/compat regression at this phase boundary).
+
+**Plans**: 8/8 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 11-01-PLAN.md — Safety net (commit analyzer + `module_graph_check.js` + `ui_contract_check.js`, red-proof) + tracer: extract the recipe/pastry cluster into `src/ui/`; Chrome mechanism gate (wave 1, blocking checkpoint)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 11-02-PLAN.md — Extract the pure leaf helpers (formatting/name/geometry/session/shot-clock) into `src/ui/util.js` (wave 2)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 11-03-PLAN.md — Extract the board + storm render cluster (drawBoard/render/buildStormLayers) into `src/ui/board.js`, storm surface verbatim (wave 3)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 11-04-PLAN.md — Extract panel/clock/narration/chat/modals + lobby views; stand up the handler-injection seam (`src/ui/panel.js`, `lobby.js`, `handlers.js`) (wave 4)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [x] 11-05-PLAN.md — Extract turn-flow + battle-UI + recovery into `src/ui/flow.js`; resolve all 5 UI-side criterion-1 seam edges (wave 5)
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [x] 11-06-PLAN.md — Move the 44 orchestration net-callers into `src/orchestrator.js`; make `src/main.js` the real orchestrator; formalize the seam; watchRoom idempotent (D-13) (wave 6)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [x] 11-07-PLAN.md — Gated bridge deletion + `index.html`→markup + `window.revealMyRecipe` retained global + wire `ui_contract_check` into `npm test` + docs; decision gate + solo/two-tab Chrome click-through (wave 7, blocking checkpoints)
+
+**Wave 8** *(blocked on Wave 7)*
+
+- [x] 11-08-PLAN.md — Consolidated automated phase gate + human Safari storm re-verification (D-12, criterion 5) (wave 8, blocking checkpoint)
+
+**UI hint**: yes
+
+### Phase 12: Verification & Validation
+
+**Goal**: Prove the refactor correct end-to-end — determinism harness green, automated solo + multiplayer E2E passing, and manual Safari/Chrome playtests confirming no perf or compat regressions.
+**Depends on**: Phase 11
+**Requirements**: VERIFY-01, VERIFY-02, VERIFY-03, VERIFY-04
+**Success Criteria** (what must be TRUE):
+
+  1. The headless replay/determinism harness, expanded to cover the full regression corpus, runs green post-refactor.
+  2. Claude-driven Chrome-MCP E2E tests exercise the full solo gameplay loop (sail, dock, trade, battle, fish, storm, end-of-voyage) and pass.
+  3. Claude-driven Chrome-MCP E2E tests exercise a full multiplayer game across two browser tabs (host + guest) with deterministic sync intact.
+  4. Manual Safari + Chrome playtests confirm no perf/compat regressions — including storm rendering and multiplayer pause/refresh state.
+
+**Plans**: 4/4 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 12-01-PLAN.md — Verification apparatus tracer + Criterion-1 determinism/regression gate (VERIFY-01); creates the committed `docs/VERIFICATION-CHECKLIST.md`
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 12-02-PLAN.md — Full solo gameplay-loop E2E in Chrome — sail/dock/trade/fish/battle/storm/end-of-voyage (VERIFY-02)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 12-03-PLAN.md — Two-tab multiplayer E2E + pause/refresh recovery matrix in Chrome (VERIFY-03, D-02)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 12-04-PLAN.md — Wyatt's desktop-Safari solo playthrough (VERIFY-04, D-03) + `12-VALIDATION.md` closeout marking VERIFY-01..04 satisfied (blocking human checkpoint)
+
 ## Progress
 
-| Phase | Milestone | Status | Completed |
-| ----- | --------- | ------ | --------- |
-| 1. Critical Bug Fixes | v1.0 | Complete | 2026-07-24 |
-| 2. Battle & AI Overhaul | v1.0 | Complete | 2026-07-24 |
-| 3. Narration System | v1.0 | Complete | 2026-07-24 |
-| 4. UI/UX Polish | v1.0 | Complete | 2026-07-24 |
-| 5. Bot Personalities | v1.0 | Complete | 2026-07-24 |
-| 6. End of Voyage Celebration | v1.0 | Complete | 2026-07-24 |
+**Execution Order:**
+Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+| ----- | --------- | -------------- | ------ | --------- |
+| 1. Critical Bug Fixes | v1.0 | — | Complete | 2026-07-24 |
+| 2. Battle & AI Overhaul | v1.0 | — | Complete | 2026-07-24 |
+| 3. Narration System | v1.0 | — | Complete | 2026-07-24 |
+| 4. UI/UX Polish | v1.0 | — | Complete | 2026-07-24 |
+| 5. Bot Personalities | v1.0 | — | Complete | 2026-07-24 |
+| 6. End of Voyage Celebration | v1.0 | — | Complete | 2026-07-24 |
+| 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
+| 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
+| 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
+| 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
+| 12. Verification & Validation | v1.1 | 4/4 | Complete    | 2026-07-25 |
+</content>
+</invoke>

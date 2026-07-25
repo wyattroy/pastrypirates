@@ -13,6 +13,7 @@ A board game in development — plunder the Caribbean for baking ingredients, fl
 - `ONLINE_SETUP.md` — step-by-step guide to wire up the free Firebase backend and start a game
 - `cocoa_pirates_sim.py` — the Python simulation engine used for balance research (~50,000 games)
 - `DESIGN_REPORT.md` — full findings: strategy win rates, coin-flip math, and the recommended ruleset
+- `docs/MODULES.md` — the module-loading and local-dev contract (HTTP server required, no bundler)
 
 ## Running the Python sim
 

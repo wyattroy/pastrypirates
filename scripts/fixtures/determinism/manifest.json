@@ -1,0 +1,233 @@
+{
+  "formatVersion": 1,
+  "capturedAt": "2026-07-24T06:45:59.125Z",
+  "seedBase": 12345,
+  "seedCount": 30,
+  "botStrategies": [
+    "pirate",
+    "trader",
+    "balanced",
+    "rusher",
+    "monopolist"
+  ],
+  "seatRotation": "BOT_STRATS[(seedIndex + seat) % BOT_STRATS.length] for seat in 0..3",
+  "engineSourceHash": "bdc641620a4d28261bdef57cde4ded24174864c1584c78f0eeb16e988508e42e",
+  "requiredEventTypes": [
+    "battle",
+    "battleflee",
+    "trade",
+    "dock",
+    "fish",
+    "windmove",
+    "tradewind",
+    "shipwrecked",
+    "aground",
+    "end",
+    "bakeoff",
+    "finish"
+  ],
+  "coverage": {
+    "newround": 560,
+    "turn": 2284,
+    "sail": 1634,
+    "fish": 1288,
+    "battle": 131,
+    "dock": 766,
+    "anchor": 3,
+    "windmove": 145,
+    "blocked": 25,
+    "blownOut": 68,
+    "battleflee": 23,
+    "trade": 75,
+    "moored": 77,
+    "finish": 34,
+    "end": 30,
+    "dodge": 20,
+    "bakeoff": 4,
+    "tradewind": 43,
+    "aground": 3,
+    "shipwrecked": 1
+  },
+  "perSeed": [
+    {
+      "seed": 12345,
+      "file": "seed-12345.jsonl",
+      "events": 232,
+      "sha256": "db28d60a56dd9cf2b2ff805941dd3b4bc85ecd6b04d63c3ca0ecc31e31880927"
+    },
+    {
+      "seed": 12346,
+      "file": "seed-12346.jsonl",
+      "events": 281,
+      "sha256": "1d0f7f73ec93cba86aac073845ff9b8cfd17687e038a08b7c4096d9ac9bb3b3e"
+    },
+    {
+      "seed": 12347,
+      "file": "seed-12347.jsonl",
+      "events": 176,
+      "sha256": "20f571abe9e4d1e05a069c09584668e2dbeb6d6f4f9258720f03469ec3c46e06"
+    },
+    {
+      "seed": 12348,
+      "file": "seed-12348.jsonl",
+      "events": 341,
+      "sha256": "a3e6bc2b30532d4b28d6b1fcad84d4ab2e73f87acc8a5e6d7dd405bc71fa7995"
+    },
+    {
+      "seed": 12349,
+      "file": "seed-12349.jsonl",
+      "events": 221,
+      "sha256": "4c219967d3b8775d657a5c8a959272922094104f849b23b739d8083694f03725"
+    },
+    {
+      "seed": 12350,
+      "file": "seed-12350.jsonl",
+      "events": 378,
+      "sha256": "7b5a83394c7f83b68d545b11970a5fcdcbffafbf9ffa8889adb37417b987a9f9"
+    },
+    {
+      "seed": 12351,
+      "file": "seed-12351.jsonl",
+      "events": 235,
+      "sha256": "076d9bf03eb9a0b32915a2dac410111e79e00e239c52992e78a3da3f0a1a1d49"
+    },
+    {
+      "seed": 12352,
+      "file": "seed-12352.jsonl",
+      "events": 216,
+      "sha256": "a9d9830a15774ad3fbbe6e6cbbc9166b488c5a41e25deb15a04a568008531070"
+    },
+    {
+      "seed": 12353,
+      "file": "seed-12353.jsonl",
+      "events": 169,
+      "sha256": "61916c26131415947f33320415ce9e5c9f2920f697730c87438e9c7b672784ac"
+    },
+    {
+      "seed": 12354,
+      "file": "seed-12354.jsonl",
+      "events": 185,
+      "sha256": "8f44bfca41fb44fa6c77c50c84b5604bf14234fee48488b6f6dfa2a5d155ccb6"
+    },
+    {
+      "seed": 12355,
+      "file": "seed-12355.jsonl",
+      "events": 253,
+      "sha256": "dbf2e7a2caa551637214ab6175b93fa91561d2eda6b642fc30d89e054b0363e1"
+    },
+    {
+      "seed": 12356,
+      "file": "seed-12356.jsonl",
+      "events": 202,
+      "sha256": "b5eaccf187e523699a9f82b3c1d600ba9afb942d09682b175f07b3ebead25d23"
+    },
+    {
+      "seed": 12357,
+      "file": "seed-12357.jsonl",
+      "events": 186,
+      "sha256": "b9ff0562d84d37ee770e3ca6385078c74f260f52973e28ee0065736a0c143c22"
+    },
+    {
+      "seed": 12358,
+      "file": "seed-12358.jsonl",
+      "events": 207,
+      "sha256": "c4cab97cb1969fae5f22b7761fddaed6f17139cb75dccdb0da65efcefb8b1e51"
+    },
+    {
+      "seed": 12359,
+      "file": "seed-12359.jsonl",
+      "events": 183,
+      "sha256": "4db0a5d3ce655844c026555e9548a8d1acf7d0a13d51e2ea5f33a2ed1835fc19"
+    },
+    {
+      "seed": 12360,
+      "file": "seed-12360.jsonl",
+      "events": 233,
+      "sha256": "01ef5cbe8da786dba3db5bfd7034968cbffc31b4d33ee9a60a8f7a7ec5ea92be"
+    },
+    {
+      "seed": 12361,
+      "file": "seed-12361.jsonl",
+      "events": 224,
+      "sha256": "17d20f5366a0ac77cc6e9144a50655dccc733e6bceeffb3f1f0c9cda5c9b7261"
+    },
+    {
+      "seed": 12362,
+      "file": "seed-12362.jsonl",
+      "events": 213,
+      "sha256": "3915a653d6a7a5c04e803b3569a2d92d360460ab9976ece2891076f0d34cdb19"
+    },
+    {
+      "seed": 12363,
+      "file": "seed-12363.jsonl",
+      "events": 277,
+      "sha256": "5fd6e313a2a113d77915a961e274a9a141ffe272b14bd9844f3c89ed64dfa7c4"
+    },
+    {
+      "seed": 12364,
+      "file": "seed-12364.jsonl",
+      "events": 254,
+      "sha256": "a339a233359b77b643a4ccbeac2b1c0591f1ceaf1928d8f0628d9869cce3b926"
+    },
+    {
+      "seed": 12365,
+      "file": "seed-12365.jsonl",
+      "events": 179,
+      "sha256": "7067d631a5af0cda2d7a3074c1ef92a2c0cf65fd046503ac9ed9c4a99e30c41c"
+    },
+    {
+      "seed": 12366,
+      "file": "seed-12366.jsonl",
+      "events": 203,
+      "sha256": "f2d415d8efce45681bf2f9079a9f17ef6e85fa458f84fada296fb5f329b10852"
+    },
+    {
+      "seed": 12367,
+      "file": "seed-12367.jsonl",
+      "events": 290,
+      "sha256": "ec6c7f68d0fd4ae724c2b3cdc3e69d4ee3e3c445c8ac7ee095c8375b3ac6f0a8"
+    },
+    {
+      "seed": 12368,
+      "file": "seed-12368.jsonl",
+      "events": 248,
+      "sha256": "514c580556458a31b18ec35db7099810b763297cf40b8eff7effe3785046f75f"
+    },
+    {
+      "seed": 12369,
+      "file": "seed-12369.jsonl",
+      "events": 160,
+      "sha256": "e5679d47282f3fd5f307f5a5f5e32ea4509fd1e0277cf266bd48711920234a84"
+    },
+    {
+      "seed": 12370,
+      "file": "seed-12370.jsonl",
+      "events": 485,
+      "sha256": "37e164ba7ab683cc1daab7e296d03f9aa33040eda5d800ee28f58d8c02631312"
+    },
+    {
+      "seed": 12371,
+      "file": "seed-12371.jsonl",
+      "events": 251,
+      "sha256": "5a22a193bc4c629aef5d9f2710f09e15648349c45e504d15739c7b367beed04e"
+    },
+    {
+      "seed": 12372,
+      "file": "seed-12372.jsonl",
+      "events": 217,
+      "sha256": "12fb878d6294e1c78406f1a37e1d52423bb4c758922f578ce8a488859714e9ee"
+    },
+    {
+      "seed": 12373,
+      "file": "seed-12373.jsonl",
+      "events": 231,
+      "sha256": "bbacad74b2a7b6b6ea7ccefa76d8c088e8d502a633a05e6c01516ab4bffe1cc5"
+    },
+    {
+      "seed": 12374,
+      "file": "seed-12374.jsonl",
+      "events": 284,
+      "sha256": "679f777696cbb9f081ce9724f38f9082b8f08f56904b5534a0fb2a93fd428c16"
+    }
+  ]
+}

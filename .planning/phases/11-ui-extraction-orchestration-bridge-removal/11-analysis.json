@@ -1,0 +1,3818 @@
+{
+  "region": {
+    "startLineAbs": 0,
+    "functionCount": 183
+  },
+  "counts": {
+    "total": 183,
+    "netCallers_criterion1_risk": 44,
+    "domTouching": 54,
+    "pureHelpers": 95,
+    "appStateReaders": 109
+  },
+  "netCallers": [
+    {
+      "name": "broadcastFlip",
+      "line": 1252,
+      "netCalls": [
+        "netSetFlip"
+      ]
+    },
+    {
+      "name": "watchFlip",
+      "line": 1256,
+      "netCalls": [
+        "netWatchFlip"
+      ]
+    },
+    {
+      "name": "broadcastClock",
+      "line": 1329,
+      "netCalls": [
+        "netSetClock"
+      ]
+    },
+    {
+      "name": "toggleTimer",
+      "line": 1336,
+      "netCalls": [
+        "netSetTimerOff"
+      ]
+    },
+    {
+      "name": "watchTimer",
+      "line": 1342,
+      "netCalls": [
+        "netWatchTimerOff"
+      ]
+    },
+    {
+      "name": "expireShotClock",
+      "line": 1382,
+      "netCalls": [
+        "netRemovePrompt"
+      ]
+    },
+    {
+      "name": "watchClock",
+      "line": 1418,
+      "netCalls": [
+        "netWatchClock"
+      ]
+    },
+    {
+      "name": "netNarrate",
+      "line": 1658,
+      "netCalls": [
+        "netSetNarr"
+      ]
+    },
+    {
+      "name": "netBroadcast",
+      "line": 1661,
+      "netCalls": [
+        "netSetNarr"
+      ]
+    },
+    {
+      "name": "sendChat",
+      "line": 1669,
+      "netCalls": [
+        "netPushChat"
+      ]
+    },
+    {
+      "name": "watchChat",
+      "line": 1685,
+      "netCalls": [
+        "netWatchChat"
+      ]
+    },
+    {
+      "name": "renderBattle",
+      "line": 2170,
+      "netCalls": [
+        "netSetBattle"
+      ]
+    },
+    {
+      "name": "watchBattle",
+      "line": 2208,
+      "netCalls": [
+        "netWatchBattle"
+      ]
+    },
+    {
+      "name": "asyncBattle",
+      "line": 2332,
+      "netCalls": [
+        "netRemoveBattle"
+      ]
+    },
+    {
+      "name": "recipeDraftNet",
+      "line": 2875,
+      "netCalls": [
+        "netSetRecipes"
+      ]
+    },
+    {
+      "name": "runLiveNet",
+      "line": 2921,
+      "netCalls": [
+        "netSetTurnOrder"
+      ]
+    },
+    {
+      "name": "liveResolveEndNet",
+      "line": 2982,
+      "netCalls": [
+        "netUpdateRoom"
+      ]
+    },
+    {
+      "name": "writeMeta",
+      "line": 3008,
+      "netCalls": [
+        "netSetMeta"
+      ]
+    },
+    {
+      "name": "writeGameLog",
+      "line": 3019,
+      "netCalls": [
+        "netWriteGameLog"
+      ]
+    },
+    {
+      "name": "watchPresence",
+      "line": 3065,
+      "netCalls": [
+        "netWatchConnected",
+        "netMarkPresence",
+        "netWatchPresence"
+      ]
+    },
+    {
+      "name": "fbInit",
+      "line": 3080,
+      "netCalls": [
+        "netInit"
+      ]
+    },
+    {
+      "name": "logDecision",
+      "line": 3102,
+      "netCalls": [
+        "netSetDlog"
+      ]
+    },
+    {
+      "name": "setRecoveryState",
+      "line": 3204,
+      "netCalls": [
+        "netSetRecovery",
+        "netRemoveRecovery"
+      ]
+    },
+    {
+      "name": "watchRecoveryState",
+      "line": 3211,
+      "netCalls": [
+        "netWatchRecovery"
+      ]
+    },
+    {
+      "name": "pushEvents",
+      "line": 3219,
+      "netCalls": [
+        "netPushEvent"
+      ]
+    },
+    {
+      "name": "remotePrompt",
+      "line": 3227,
+      "netCalls": [
+        "netSetPrompt",
+        "netDetach",
+        "netRemovePrompt",
+        "netWatchResponse"
+      ]
+    },
+    {
+      "name": "sendResponse",
+      "line": 3239,
+      "netCalls": [
+        "netSetResponse"
+      ]
+    },
+    {
+      "name": "remoteDraftPrompt",
+      "line": 3248,
+      "netCalls": [
+        "netSetDraftPrompt",
+        "netDetach",
+        "netRemoveDraftPrompt",
+        "netWatchDraftResponse"
+      ]
+    },
+    {
+      "name": "watchDraftPrompt",
+      "line": 3260,
+      "netCalls": [
+        "netWatchDraftPrompt",
+        "netSetDraftResponse"
+      ]
+    },
+    {
+      "name": "watchEvents",
+      "line": 3282,
+      "netCalls": [
+        "netWatchEvents"
+      ]
+    },
+    {
+      "name": "watchPrompt",
+      "line": 3294,
+      "netCalls": [
+        "netWatchPrompt"
+      ]
+    },
+    {
+      "name": "watchNarr",
+      "line": 3349,
+      "netCalls": [
+        "netWatchNarr"
+      ]
+    },
+    {
+      "name": "applyEndMeta",
+      "line": 3356,
+      "netCalls": [
+        "netReadMeta"
+      ]
+    },
+    {
+      "name": "createRoom",
+      "line": 3477,
+      "netCalls": [
+        "netCreateRoom"
+      ]
+    },
+    {
+      "name": "joinRoom",
+      "line": 3493,
+      "netCalls": [
+        "netReadRoom",
+        "netClaimSeat"
+      ]
+    },
+    {
+      "name": "watchRoom",
+      "line": 3519,
+      "netCalls": [
+        "netReadRoom",
+        "netWatchSeats",
+        "netWatchStatus"
+      ]
+    },
+    {
+      "name": "startGame",
+      "line": 3559,
+      "netCalls": [
+        "netReadRoom",
+        "netUpdateRoom"
+      ]
+    },
+    {
+      "name": "beginGame",
+      "line": 3573,
+      "netCalls": [
+        "netSetTimerOff"
+      ]
+    },
+    {
+      "name": "watchTurnOrder",
+      "line": 3600,
+      "netCalls": [
+        "netWatchTurnOrder"
+      ]
+    },
+    {
+      "name": "watchRecipes",
+      "line": 3611,
+      "netCalls": [
+        "netWatchRecipes"
+      ]
+    },
+    {
+      "name": "leaveGame",
+      "line": 3620,
+      "netCalls": [
+        "netLeaveRoom"
+      ]
+    },
+    {
+      "name": "wireLobby",
+      "line": 3623,
+      "netCalls": [
+        "netSetFeedback"
+      ]
+    },
+    {
+      "name": "resumeHostGame",
+      "line": 3671,
+      "netCalls": [
+        "netReadDlog",
+        "netReadEv"
+      ]
+    },
+    {
+      "name": "boot",
+      "line": 3763,
+      "netCalls": [
+        "netReadRoom"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "escHtml",
+      "line": 7,
+      "endLine": 7,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "winRecipeSpan",
+        "recipeModalHTML",
+        "buildPlayerRows",
+        "pname",
+        "appendChatLine",
+        "renderSeatList"
+      ]
+    },
+    {
+      "name": "attachPastryArt",
+      "line": 275,
+      "endLine": 277,
+      "lines": 3,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "recipeInfo",
+      "line": 280,
+      "endLine": 280,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "recipeTitle",
+        "recipeCardHTML",
+        "recipeModalHTML",
+        "openRecipeModal",
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "recipeTitle",
+      "line": 281,
+      "endLine": 287,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "recipeInfo"
+      ],
+      "calledBy": [
+        "winRecipeSpan",
+        "recipeCardHTML",
+        "recipeModalHTML",
+        "openRecipeModal",
+        "render"
+      ]
+    },
+    {
+      "name": "winRecipeSpan",
+      "line": 291,
+      "endLine": 295,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "escHtml",
+        "recipeTitle"
+      ],
+      "calledBy": [
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "recipeCardHTML",
+      "line": 296,
+      "endLine": 303,
+      "lines": 8,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "recipeInfo",
+        "recipeTitle"
+      ],
+      "calledBy": [
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "recipeModalHTML",
+      "line": 308,
+      "endLine": 324,
+      "lines": 17,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "recipeInfo",
+        "recipeTitle",
+        "escHtml"
+      ],
+      "calledBy": [
+        "openRecipeModal"
+      ]
+    },
+    {
+      "name": "openRecipeModal",
+      "line": 326,
+      "endLine": 336,
+      "lines": 11,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "recipeModalHTML",
+        "recipeInfo",
+        "recipeTitle"
+      ],
+      "calledBy": [
+        "wireRecipeModal"
+      ]
+    },
+    {
+      "name": "wireRecipeModal",
+      "line": 337,
+      "endLine": 361,
+      "lines": 25,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el",
+        "openRecipeModal"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "seatDisplayOrder",
+      "line": 366,
+      "endLine": 371,
+      "lines": 6,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "buildPlayerRows"
+      ]
+    },
+    {
+      "name": "buildPlayerRows",
+      "line": 372,
+      "endLine": 398,
+      "lines": 27,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "seatDisplayOrder",
+        "escHtml",
+        "pname"
+      ],
+      "calledBy": [
+        "runLiveNet",
+        "renderDecorativeBoard",
+        "beginGame",
+        "watchTurnOrder"
+      ]
+    },
+    {
+      "name": "el",
+      "line": 402,
+      "endLine": 403,
+      "lines": 2,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "wireRecipeModal",
+        "iconAt",
+        "drawBoard",
+        "pulseEl",
+        "popEmoji",
+        "celebrateHomeDocks",
+        "setFlipCoin",
+        "setFlipActive",
+        "setNeedsAction",
+        "boatXY",
+        "flash",
+        "localPickCell",
+        "remotePickHighlights"
+      ]
+    },
+    {
+      "name": "iconAt",
+      "line": 406,
+      "endLine": 410,
+      "lines": 5,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "drawBoard"
+      ]
+    },
+    {
+      "name": "dockOrient",
+      "line": 415,
+      "endLine": 419,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "drawBoard"
+      ]
+    },
+    {
+      "name": "islandArtPlacement",
+      "line": 423,
+      "endLine": 442,
+      "lines": 20,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "drawBoard"
+      ]
+    },
+    {
+      "name": "tracePolygonLoops",
+      "line": 444,
+      "endLine": 467,
+      "lines": 24,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "drawBoard"
+      ]
+    },
+    {
+      "name": "roundedPathFromLoop",
+      "line": 469,
+      "endLine": 482,
+      "lines": 14,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "drawBoard"
+      ]
+    },
+    {
+      "name": "drawBoard",
+      "line": 484,
+      "endLine": 636,
+      "lines": 153,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el",
+        "iconAt",
+        "dockOrient",
+        "tracePolygonLoops",
+        "roundedPathFromLoop",
+        "islandArtPlacement",
+        "shipXY"
+      ],
+      "calledBy": [
+        "renderDecorativeBoard",
+        "beginGame"
+      ]
+    },
+    {
+      "name": "shipXY",
+      "line": 637,
+      "endLine": 643,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "drawBoard",
+        "render",
+        "spawnPops",
+        "victoryConfetti"
+      ]
+    },
+    {
+      "name": "pname",
+      "line": 648,
+      "endLine": 651,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "escHtml"
+      ],
+      "calledBy": [
+        "buildPlayerRows",
+        "pn",
+        "poss",
+        "showStats",
+        "renderBattle",
+        "battleAsk",
+        "passGate"
+      ]
+    },
+    {
+      "name": "rawName",
+      "line": 655,
+      "endLine": 658,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "writeGameLog"
+      ]
+    },
+    {
+      "name": "pn",
+      "line": 659,
+      "endLine": 659,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pname"
+      ],
+      "calledBy": [
+        "showStats",
+        "narrateCurrent",
+        "expireShotClock",
+        "appendChatLine",
+        "ask",
+        "showTurnOrderIntro",
+        "humanFlip",
+        "fishCast",
+        "pickCell",
+        "localPickCell",
+        "windLeg",
+        "battleAsk",
+        "collectSideBets",
+        "settleSideBets",
+        "asyncBattle",
+        "humanTrade",
+        "humanAct",
+        "humanTurn",
+        "botTurn",
+        "asyncBakeoff",
+        "recipeDraftNet",
+        "runLiveNet",
+        "liveResolveEndNet",
+        "renderSeatList"
+      ]
+    },
+    {
+      "name": "poss",
+      "line": 661,
+      "endLine": 661,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pname"
+      ],
+      "calledBy": [
+        "humanTurn"
+      ]
+    },
+    {
+      "name": "fl",
+      "line": 662,
+      "endLine": 662,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "fmtItem",
+      "line": 663,
+      "endLine": 663,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "windHoldPhrase",
+      "line": 673,
+      "endLine": 676,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "describe",
+      "line": 777,
+      "endLine": 786,
+      "lines": 10,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "syncLogLines",
+        "narrateLastEvent",
+        "runLiveNet",
+        "renderDecorativeBoard"
+      ]
+    },
+    {
+      "name": "syncLogLines",
+      "line": 794,
+      "endLine": 796,
+      "lines": 3,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "describe"
+      ],
+      "calledBy": [
+        "liveRender",
+        "watchEvents"
+      ]
+    },
+    {
+      "name": "pulseEl",
+      "line": 801,
+      "endLine": 805,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "render"
+      ]
+    },
+    {
+      "name": "buildStormLayers",
+      "line": 811,
+      "endLine": 832,
+      "lines": 22,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "render"
+      ]
+    },
+    {
+      "name": "render",
+      "line": 833,
+      "endLine": 945,
+      "lines": 113,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "shipXY",
+        "positionChatBubble",
+        "pulseEl",
+        "recipeTitle",
+        "buildStormLayers",
+        "renderLog",
+        "showStats"
+      ],
+      "calledBy": [
+        "liveRender",
+        "watchEvents",
+        "applyEndMeta",
+        "renderDecorativeBoard",
+        "updateRecipeBanner",
+        "watchRecipes"
+      ]
+    },
+    {
+      "name": "renderLog",
+      "line": 947,
+      "endLine": 962,
+      "lines": 16,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "render"
+      ]
+    },
+    {
+      "name": "islandXY",
+      "line": 971,
+      "endLine": 974,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "popEmoji",
+      "line": 975,
+      "endLine": 990,
+      "lines": 16,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "spawnPops",
+        "victoryConfetti"
+      ]
+    },
+    {
+      "name": "spawnPops",
+      "line": 991,
+      "endLine": 998,
+      "lines": 8,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "shipXY",
+        "popEmoji"
+      ],
+      "calledBy": [
+        "liveRender",
+        "watchEvents"
+      ]
+    },
+    {
+      "name": "captions",
+      "line": 1000,
+      "endLine": 1004,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "computeAwards",
+      "line": 1012,
+      "endLine": 1047,
+      "lines": 36,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "assignBadges"
+      ]
+    },
+    {
+      "name": "assignBadges",
+      "line": 1073,
+      "endLine": 1090,
+      "lines": 18,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "computeAwards"
+      ],
+      "calledBy": [
+        "showStats"
+      ]
+    },
+    {
+      "name": "celebrateHomeDocks",
+      "line": 1093,
+      "endLine": 1109,
+      "lines": 17,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "showStats"
+      ]
+    },
+    {
+      "name": "victoryConfetti",
+      "line": 1113,
+      "endLine": 1125,
+      "lines": 13,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "shipXY",
+        "popEmoji"
+      ],
+      "calledBy": [
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "showStats",
+      "line": 1126,
+      "endLine": 1154,
+      "lines": 29,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "celebrateHomeDocks",
+        "pn",
+        "assignBadges",
+        "pname"
+      ],
+      "calledBy": [
+        "render"
+      ]
+    },
+    {
+      "name": "waitWhilePaused",
+      "line": 1197,
+      "endLine": 1201,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "stepDelay",
+      "line": 1205,
+      "endLine": 1205,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "fishCast",
+        "asyncBattle",
+        "asyncBakeoff"
+      ]
+    },
+    {
+      "name": "botBeat",
+      "line": 1211,
+      "endLine": 1211,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "liveRender",
+        "narrateCurrent"
+      ],
+      "calledBy": [
+        "botTurn"
+      ]
+    },
+    {
+      "name": "narrateCurrent",
+      "line": 1214,
+      "endLine": 1221,
+      "lines": 8,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "flash",
+        "pn"
+      ],
+      "calledBy": [
+        "botBeat"
+      ]
+    },
+    {
+      "name": "setActor",
+      "line": 1222,
+      "endLine": 1222,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "humanFlip",
+        "fishCast",
+        "pickCell",
+        "humanWind",
+        "humanDock",
+        "battleAsk",
+        "collectSideBets",
+        "asyncBattle",
+        "humanTrade",
+        "humanAct",
+        "humanTurn",
+        "botTurn",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "seatLocal",
+      "line": 1223,
+      "endLine": 1223,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "decisionIsLocal",
+        "expireShotClock",
+        "netIntroBarrier",
+        "windLeg",
+        "humanAct",
+        "humanTurn",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "decisionIsLocal",
+      "line": 1227,
+      "endLine": 1227,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "seatLocal"
+      ],
+      "calledBy": [
+        "ask",
+        "pickCell",
+        "battleAsk"
+      ]
+    },
+    {
+      "name": "setFlipCoin",
+      "line": 1233,
+      "endLine": 1240,
+      "lines": 8,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "broadcastFlip",
+        "watchFlip"
+      ]
+    },
+    {
+      "name": "setFlipActive",
+      "line": 1241,
+      "endLine": 1249,
+      "lines": 9,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "localAsk",
+        "battleAsk",
+        "watchPrompt"
+      ]
+    },
+    {
+      "name": "broadcastFlip",
+      "line": 1252,
+      "endLine": 1255,
+      "lines": 4,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetFlip"
+      ],
+      "calls": [
+        "setFlipCoin",
+        "netFail"
+      ],
+      "calledBy": [
+        "humanFlip",
+        "fishCast",
+        "asyncBattle",
+        "asyncBakeoff"
+      ]
+    },
+    {
+      "name": "watchFlip",
+      "line": 1256,
+      "endLine": 1258,
+      "lines": 3,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchFlip"
+      ],
+      "calls": [
+        "setFlipCoin"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "startShotClock",
+      "line": 1261,
+      "endLine": 1271,
+      "lines": 11,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "broadcastClock",
+        "shotClockTick"
+      ],
+      "calledBy": [
+        "armClock"
+      ]
+    },
+    {
+      "name": "stopShotClock",
+      "line": 1272,
+      "endLine": 1281,
+      "lines": 10,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "broadcastClock"
+      ],
+      "calledBy": [
+        "watchTimer",
+        "expireShotClock",
+        "withShotClock",
+        "humanTurn"
+      ]
+    },
+    {
+      "name": "rearmShotClock",
+      "line": 1288,
+      "endLine": 1300,
+      "lines": 13,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "broadcastClock",
+        "shotClockTick"
+      ],
+      "calledBy": [
+        "watchTimer"
+      ]
+    },
+    {
+      "name": "soloBotGame",
+      "line": 1302,
+      "endLine": 1302,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "toggleShotClockPause",
+        "setClockUI"
+      ]
+    },
+    {
+      "name": "toggleShotClockPause",
+      "line": 1306,
+      "endLine": 1322,
+      "lines": 17,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "soloBotGame",
+        "shotClockTick",
+        "setClockUI"
+      ],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "broadcastClock",
+      "line": 1329,
+      "endLine": 1332,
+      "lines": 4,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetClock"
+      ],
+      "calls": [
+        "setClockUI",
+        "netFail"
+      ],
+      "calledBy": [
+        "startShotClock",
+        "stopShotClock",
+        "rearmShotClock"
+      ]
+    },
+    {
+      "name": "toggleTimer",
+      "line": 1336,
+      "endLine": 1341,
+      "lines": 6,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetTimerOff"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "watchTimer",
+      "line": 1342,
+      "endLine": 1360,
+      "lines": 19,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchTimerOff"
+      ],
+      "calls": [
+        "stopShotClock",
+        "currentTurnSeat",
+        "rearmShotClock",
+        "setClockUI"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "shotClockTick",
+      "line": 1361,
+      "endLine": 1367,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "applyShotClockPenalty",
+        "expireShotClock",
+        "setClockUI"
+      ],
+      "calledBy": [
+        "startShotClock",
+        "rearmShotClock",
+        "toggleShotClockPause"
+      ]
+    },
+    {
+      "name": "applyShotClockPenalty",
+      "line": 1368,
+      "endLine": 1376,
+      "lines": 9,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "narrateLastEvent",
+        "liveRender"
+      ],
+      "calledBy": [
+        "shotClockTick"
+      ]
+    },
+    {
+      "name": "expireShotClock",
+      "line": 1382,
+      "endLine": 1417,
+      "lines": 36,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netRemovePrompt"
+      ],
+      "calls": [
+        "flash",
+        "pn",
+        "liveRender",
+        "seatLocal",
+        "netFail",
+        "stopShotClock"
+      ],
+      "calledBy": [
+        "shotClockTick"
+      ]
+    },
+    {
+      "name": "watchClock",
+      "line": 1418,
+      "endLine": 1420,
+      "lines": 3,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchClock"
+      ],
+      "calls": [
+        "setClockUI"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "currentTurnSeat",
+      "line": 1424,
+      "endLine": 1432,
+      "lines": 9,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "watchTimer",
+        "setClockUI"
+      ]
+    },
+    {
+      "name": "setClockUI",
+      "line": 1433,
+      "endLine": 1518,
+      "lines": 86,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "soloBotGame",
+        "currentTurnSeat"
+      ],
+      "calledBy": [
+        "toggleShotClockPause",
+        "broadcastClock",
+        "watchTimer",
+        "shotClockTick",
+        "watchClock"
+      ]
+    },
+    {
+      "name": "liveRender",
+      "line": 1521,
+      "endLine": 1531,
+      "lines": 11,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "syncLogLines",
+        "render",
+        "spawnPops",
+        "pushEvents"
+      ],
+      "calledBy": [
+        "botBeat",
+        "applyShotClockPenalty",
+        "expireShotClock",
+        "fishCast",
+        "windLeg",
+        "humanDock",
+        "settleSideBets",
+        "asyncBattle",
+        "humanTrade",
+        "humanAct",
+        "humanTurn",
+        "botTurn",
+        "asyncBakeoff",
+        "recipeDraftNet",
+        "runLiveNet",
+        "liveResolveEndNet",
+        "endReplay",
+        "wireRestoreFail",
+        "revealMyRecipe"
+      ]
+    },
+    {
+      "name": "panel",
+      "line": 1534,
+      "endLine": 1546,
+      "lines": 13,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "resizePanel",
+        "typewriterReveal"
+      ],
+      "calledBy": [
+        "showNarration",
+        "localAsk",
+        "localPickCell",
+        "remotePickHighlights",
+        "renderBattle",
+        "asyncBattle",
+        "asyncBakeoff",
+        "sendResponse",
+        "watchDraftPrompt",
+        "watchPrompt",
+        "resumeHostGame"
+      ]
+    },
+    {
+      "name": "resizePanel",
+      "line": 1552,
+      "endLine": 1563,
+      "lines": 12,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "panel"
+      ]
+    },
+    {
+      "name": "typewriterReveal",
+      "line": 1590,
+      "endLine": 1632,
+      "lines": 43,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "panel",
+        "showChatBubble"
+      ]
+    },
+    {
+      "name": "msgHoldMs",
+      "line": 1645,
+      "endLine": 1653,
+      "lines": 9,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "showChatBubble",
+        "flash"
+      ]
+    },
+    {
+      "name": "setNeedsAction",
+      "line": 1654,
+      "endLine": 1654,
+      "lines": 1,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "localAsk",
+        "battleAsk",
+        "watchPrompt"
+      ]
+    },
+    {
+      "name": "showNarration",
+      "line": 1657,
+      "endLine": 1657,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "panel"
+      ],
+      "calledBy": [
+        "netNarrate",
+        "netIntroBarrier",
+        "recipeDraftNet",
+        "watchDraftPrompt",
+        "watchPrompt",
+        "watchNarr"
+      ]
+    },
+    {
+      "name": "netNarrate",
+      "line": 1658,
+      "endLine": 1658,
+      "lines": 1,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetNarr"
+      ],
+      "calls": [
+        "showNarration",
+        "netFail"
+      ],
+      "calledBy": [
+        "ask",
+        "flash",
+        "pickCell"
+      ]
+    },
+    {
+      "name": "netBroadcast",
+      "line": 1661,
+      "endLine": 1661,
+      "lines": 1,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetNarr"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "netIntroBarrier",
+        "battleAsk",
+        "asyncBattle",
+        "asyncBakeoff",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "sendChat",
+      "line": 1669,
+      "endLine": 1677,
+      "lines": 9,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netPushChat"
+      ],
+      "calls": [],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "appendChatLine",
+      "line": 1678,
+      "endLine": 1684,
+      "lines": 7,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "pn",
+        "escHtml"
+      ],
+      "calledBy": [
+        "watchChat"
+      ]
+    },
+    {
+      "name": "watchChat",
+      "line": 1685,
+      "endLine": 1691,
+      "lines": 7,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchChat"
+      ],
+      "calls": [
+        "appendChatLine",
+        "showChatBubble"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "boatXY",
+      "line": 1698,
+      "endLine": 1702,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "el"
+      ],
+      "calledBy": [
+        "showChatBubble"
+      ]
+    },
+    {
+      "name": "positionChatBubble",
+      "line": 1703,
+      "endLine": 1710,
+      "lines": 8,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "render",
+        "showChatBubble"
+      ]
+    },
+    {
+      "name": "removeChatBubble",
+      "line": 1714,
+      "endLine": 1720,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "clearChatBubbles",
+        "showChatBubble"
+      ]
+    },
+    {
+      "name": "clearChatBubbles",
+      "line": 1721,
+      "endLine": 1721,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "removeChatBubble"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "showChatBubble",
+      "line": 1722,
+      "endLine": 1747,
+      "lines": 26,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "removeChatBubble",
+        "boatXY",
+        "positionChatBubble",
+        "typewriterReveal",
+        "msgHoldMs"
+      ],
+      "calledBy": [
+        "watchChat"
+      ]
+    },
+    {
+      "name": "narrateLastEvent",
+      "line": 1755,
+      "endLine": 1769,
+      "lines": 15,
+      "tier": "ui (DOM)",
+      "async": true,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "describe",
+        "flash"
+      ],
+      "calledBy": [
+        "applyShotClockPenalty",
+        "windLeg",
+        "humanDock",
+        "asyncBattle",
+        "humanTrade",
+        "humanAct"
+      ]
+    },
+    {
+      "name": "pastelize",
+      "line": 1776,
+      "endLine": 1780,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "apBtnStyle"
+      ]
+    },
+    {
+      "name": "apBtnStyle",
+      "line": 1781,
+      "endLine": 1781,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pastelize"
+      ],
+      "calledBy": [
+        "localAsk",
+        "battleFooter",
+        "watchPrompt"
+      ]
+    },
+    {
+      "name": "resolveOpt",
+      "line": 1786,
+      "endLine": 1790,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "ask",
+        "battleAsk"
+      ]
+    },
+    {
+      "name": "ask",
+      "line": 1791,
+      "endLine": 1811,
+      "lines": 21,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "resolveOpt",
+        "endReplay",
+        "netNarrate",
+        "pn",
+        "armClock",
+        "decisionIsLocal",
+        "localAsk",
+        "remotePrompt",
+        "withShotClock",
+        "logDecision"
+      ],
+      "calledBy": [
+        "humanFlip",
+        "fishCast",
+        "windLeg",
+        "humanDock",
+        "collectSideBets",
+        "asyncBattle",
+        "humanTrade",
+        "humanAct",
+        "botTurn"
+      ]
+    },
+    {
+      "name": "armClock",
+      "line": 1815,
+      "endLine": 1818,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "startShotClock"
+      ],
+      "calledBy": [
+        "ask",
+        "pickCell",
+        "battleAsk"
+      ]
+    },
+    {
+      "name": "withShotClock",
+      "line": 1826,
+      "endLine": 1842,
+      "lines": 17,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "stopShotClock"
+      ],
+      "calledBy": [
+        "ask",
+        "pickCell",
+        "battleAsk"
+      ]
+    },
+    {
+      "name": "localAsk",
+      "line": 1843,
+      "endLine": 1872,
+      "lines": 30,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "setNeedsAction",
+        "setFlipActive",
+        "panel",
+        "apBtnStyle"
+      ],
+      "calledBy": [
+        "ask",
+        "netIntroBarrier",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "flash",
+      "line": 1883,
+      "endLine": 1895,
+      "lines": 13,
+      "tier": "ui (DOM)",
+      "async": true,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "netNarrate",
+        "el",
+        "msgHoldMs"
+      ],
+      "calledBy": [
+        "narrateCurrent",
+        "expireShotClock",
+        "narrateLastEvent",
+        "humanFlip",
+        "windLeg",
+        "humanWind",
+        "collectSideBets",
+        "settleSideBets",
+        "asyncBattle",
+        "humanTrade",
+        "humanAct",
+        "humanTurn",
+        "runLiveNet",
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "netIntroBarrier",
+      "line": 1899,
+      "endLine": 1916,
+      "lines": 18,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "netBroadcast",
+        "passGate",
+        "localAsk",
+        "seatLocal",
+        "showNarration",
+        "remoteDraftPrompt"
+      ],
+      "calledBy": [
+        "showAhoyIntro",
+        "showTurnOrderIntro",
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "showAhoyIntro",
+      "line": 1919,
+      "endLine": 1922,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "netIntroBarrier"
+      ],
+      "calledBy": [
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "showTurnOrderIntro",
+      "line": 1927,
+      "endLine": 1933,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pn",
+        "netIntroBarrier"
+      ],
+      "calledBy": [
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "humanFlip",
+      "line": 1934,
+      "endLine": 1949,
+      "lines": 16,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "setActor",
+        "ask",
+        "broadcastFlip",
+        "flash",
+        "pn"
+      ],
+      "calledBy": [
+        "windLeg",
+        "humanDock"
+      ]
+    },
+    {
+      "name": "fishCast",
+      "line": 1952,
+      "endLine": 1973,
+      "lines": 22,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "stepDelay",
+        "setActor",
+        "ask",
+        "pn",
+        "broadcastFlip",
+        "liveRender"
+      ],
+      "calledBy": [
+        "humanAct",
+        "botTurn"
+      ]
+    },
+    {
+      "name": "reachable",
+      "line": 1976,
+      "endLine": 2004,
+      "lines": 29,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "asyncBattle",
+        "humanAct",
+        "humanTurn"
+      ]
+    },
+    {
+      "name": "pickCell",
+      "line": 2005,
+      "endLine": 2017,
+      "lines": 13,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "endReplay",
+        "setActor",
+        "netNarrate",
+        "pn",
+        "armClock",
+        "decisionIsLocal",
+        "localPickCell",
+        "remotePrompt",
+        "withShotClock",
+        "logDecision"
+      ],
+      "calledBy": [
+        "asyncBattle",
+        "humanAct",
+        "humanTurn"
+      ]
+    },
+    {
+      "name": "localPickCell",
+      "line": 2018,
+      "endLine": 2037,
+      "lines": 20,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "panel",
+        "el",
+        "pn"
+      ],
+      "calledBy": [
+        "pickCell"
+      ]
+    },
+    {
+      "name": "remotePickHighlights",
+      "line": 2039,
+      "endLine": 2051,
+      "lines": 13,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "panel",
+        "sendResponse",
+        "el"
+      ],
+      "calledBy": [
+        "watchPrompt"
+      ]
+    },
+    {
+      "name": "windLeg",
+      "line": 2054,
+      "endLine": 2111,
+      "lines": 58,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "narrateLastEvent",
+        "liveRender",
+        "pn",
+        "ask",
+        "humanFlip",
+        "flash",
+        "seatLocal"
+      ],
+      "calledBy": [
+        "humanWind"
+      ]
+    },
+    {
+      "name": "humanWind",
+      "line": 2113,
+      "endLine": 2122,
+      "lines": 10,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "setActor",
+        "windLeg",
+        "flash"
+      ],
+      "calledBy": [
+        "humanTurn"
+      ]
+    },
+    {
+      "name": "humanDock",
+      "line": 2123,
+      "endLine": 2152,
+      "lines": 30,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "setActor",
+        "narrateLastEvent",
+        "liveRender",
+        "humanFlip",
+        "ask"
+      ],
+      "calledBy": [
+        "humanAct"
+      ]
+    },
+    {
+      "name": "coinHTML",
+      "line": 2153,
+      "endLine": 2160,
+      "lines": 8,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "renderBattle"
+      ]
+    },
+    {
+      "name": "pipsHTML",
+      "line": 2161,
+      "endLine": 2166,
+      "lines": 6,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "renderBattle"
+      ]
+    },
+    {
+      "name": "renderBattle",
+      "line": 2170,
+      "endLine": 2196,
+      "lines": 27,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetBattle"
+      ],
+      "calls": [
+        "pname",
+        "panel",
+        "coinHTML",
+        "pipsHTML",
+        "battleFooter",
+        "battleSnapshot",
+        "netFail"
+      ],
+      "calledBy": [
+        "renderBattleFromSnap",
+        "battleAsk",
+        "asyncBattle",
+        "asyncBakeoff"
+      ]
+    },
+    {
+      "name": "battleSnapshot",
+      "line": 2197,
+      "endLine": 2203,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "renderBattle",
+        "battleAsk"
+      ]
+    },
+    {
+      "name": "renderBattleFromSnap",
+      "line": 2204,
+      "endLine": 2207,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "renderBattle"
+      ],
+      "calledBy": [
+        "watchBattle",
+        "watchPrompt"
+      ]
+    },
+    {
+      "name": "watchBattle",
+      "line": 2208,
+      "endLine": 2214,
+      "lines": 7,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchBattle"
+      ],
+      "calls": [
+        "renderBattleFromSnap"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "battleFooter",
+      "line": 2216,
+      "endLine": 2225,
+      "lines": 10,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "apBtnStyle"
+      ],
+      "calledBy": [
+        "renderBattle"
+      ]
+    },
+    {
+      "name": "battleAsk",
+      "line": 2228,
+      "endLine": 2271,
+      "lines": 44,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "resolveOpt",
+        "endReplay",
+        "setActor",
+        "armClock",
+        "pn",
+        "pname",
+        "netBroadcast",
+        "decisionIsLocal",
+        "renderBattle",
+        "setNeedsAction",
+        "setFlipActive",
+        "remotePrompt",
+        "battleSnapshot",
+        "withShotClock",
+        "logDecision"
+      ],
+      "calledBy": [
+        "asyncBattle",
+        "asyncBakeoff"
+      ]
+    },
+    {
+      "name": "collectSideBets",
+      "line": 2275,
+      "endLine": 2314,
+      "lines": 40,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pn",
+        "setActor",
+        "ask",
+        "flash"
+      ],
+      "calledBy": [
+        "asyncBattle"
+      ]
+    },
+    {
+      "name": "settleSideBets",
+      "line": 2315,
+      "endLine": 2331,
+      "lines": 17,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pn",
+        "liveRender",
+        "flash"
+      ],
+      "calledBy": [
+        "asyncBattle"
+      ]
+    },
+    {
+      "name": "asyncBattle",
+      "line": 2332,
+      "endLine": 2504,
+      "lines": 173,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netRemoveBattle"
+      ],
+      "calls": [
+        "flash",
+        "pn",
+        "stepDelay",
+        "collectSideBets",
+        "battleAsk",
+        "broadcastFlip",
+        "netBroadcast",
+        "renderBattle",
+        "reachable",
+        "setActor",
+        "ask",
+        "pickCell",
+        "liveRender",
+        "panel",
+        "netFail",
+        "narrateLastEvent",
+        "settleSideBets"
+      ],
+      "calledBy": [
+        "humanAct",
+        "botTurn"
+      ]
+    },
+    {
+      "name": "humanTrade",
+      "line": 2505,
+      "endLine": 2631,
+      "lines": 127,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "setActor",
+        "flash",
+        "ask",
+        "pn",
+        "narrateLastEvent",
+        "liveRender"
+      ],
+      "calledBy": [
+        "humanAct"
+      ]
+    },
+    {
+      "name": "humanAct",
+      "line": 2632,
+      "endLine": 2691,
+      "lines": 60,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "setActor",
+        "pn",
+        "ask",
+        "pickCell",
+        "reachable",
+        "liveRender",
+        "flash",
+        "seatLocal",
+        "humanDock",
+        "asyncBattle",
+        "narrateLastEvent",
+        "humanTrade",
+        "fishCast"
+      ],
+      "calledBy": [
+        "humanTurn"
+      ]
+    },
+    {
+      "name": "humanTurn",
+      "line": 2692,
+      "endLine": 2748,
+      "lines": 57,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "passGate",
+        "setActor",
+        "liveRender",
+        "flash",
+        "seatLocal",
+        "pn",
+        "poss",
+        "humanWind",
+        "stopShotClock",
+        "pickCell",
+        "reachable",
+        "humanAct"
+      ],
+      "calledBy": [
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "botTurn",
+      "line": 2749,
+      "endLine": 2823,
+      "lines": 75,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "botBeat",
+        "liveRender",
+        "setActor",
+        "ask",
+        "pn",
+        "asyncBattle",
+        "fishCast"
+      ],
+      "calledBy": [
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "asyncBakeoff",
+      "line": 2826,
+      "endLine": 2870,
+      "lines": 45,
+      "tier": "helper/logic",
+      "async": true,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "pn",
+        "stepDelay",
+        "battleAsk",
+        "renderBattle",
+        "broadcastFlip",
+        "netBroadcast",
+        "panel",
+        "liveRender"
+      ],
+      "calledBy": [
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "recipeDraftNet",
+      "line": 2875,
+      "endLine": 2920,
+      "lines": 46,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netSetRecipes"
+      ],
+      "calls": [
+        "endReplay",
+        "pn",
+        "recipeCardHTML",
+        "passGate",
+        "setActor",
+        "localAsk",
+        "logDecision",
+        "netBroadcast",
+        "seatLocal",
+        "showNarration",
+        "remoteDraftPrompt",
+        "netFail",
+        "updateRecipeBanner",
+        "liveRender"
+      ],
+      "calledBy": [
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "runLiveNet",
+      "line": 2921,
+      "endLine": 2981,
+      "lines": 61,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netSetTurnOrder"
+      ],
+      "calls": [
+        "showAhoyIntro",
+        "buildPlayerRows",
+        "netFail",
+        "showTurnOrderIntro",
+        "recipeDraftNet",
+        "liveRender",
+        "flash",
+        "describe",
+        "humanTurn",
+        "botTurn",
+        "netIntroBarrier",
+        "pn",
+        "liveResolveEndNet",
+        "endReplay"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "liveResolveEndNet",
+      "line": 2982,
+      "endLine": 3007,
+      "lines": 26,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netUpdateRoom"
+      ],
+      "calls": [
+        "asyncBakeoff",
+        "writeMeta",
+        "writeGameLog",
+        "liveRender",
+        "flash",
+        "recipeInfo",
+        "pn",
+        "winRecipeSpan",
+        "victoryConfetti",
+        "netFail"
+      ],
+      "calledBy": [
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "writeMeta",
+      "line": 3008,
+      "endLine": 3014,
+      "lines": 7,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetMeta"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "writeGameLog",
+      "line": 3019,
+      "endLine": 3032,
+      "lines": 14,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWriteGameLog"
+      ],
+      "calls": [
+        "rawName",
+        "netFail"
+      ],
+      "calledBy": [
+        "liveResolveEndNet"
+      ]
+    },
+    {
+      "name": "seatStrat",
+      "line": 3054,
+      "endLine": 3054,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "startSinglePlayer",
+        "startPassAndPlay",
+        "createRoom",
+        "watchRoom",
+        "resumeHostGame"
+      ]
+    },
+    {
+      "name": "netFail",
+      "line": 3064,
+      "endLine": 3064,
+      "lines": 1,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "broadcastFlip",
+        "broadcastClock",
+        "toggleTimer",
+        "expireShotClock",
+        "netNarrate",
+        "netBroadcast",
+        "renderBattle",
+        "asyncBattle",
+        "recipeDraftNet",
+        "runLiveNet",
+        "liveResolveEndNet",
+        "writeMeta",
+        "writeGameLog",
+        "logDecision",
+        "setRecoveryState",
+        "pushEvents",
+        "remotePrompt",
+        "sendResponse",
+        "remoteDraftPrompt",
+        "watchDraftPrompt",
+        "beginGame",
+        "resumeHostGame"
+      ]
+    },
+    {
+      "name": "watchPresence",
+      "line": 3065,
+      "endLine": 3079,
+      "lines": 15,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netWatchConnected",
+        "netMarkPresence",
+        "netWatchPresence"
+      ],
+      "calls": [],
+      "calledBy": [
+        "fbInit"
+      ]
+    },
+    {
+      "name": "fbInit",
+      "line": 3080,
+      "endLine": 3085,
+      "lines": 6,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netInit"
+      ],
+      "calls": [
+        "watchPresence"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "getMyId",
+      "line": 3086,
+      "endLine": 3090,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "genCode",
+      "line": 3091,
+      "endLine": 3091,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "createRoom"
+      ]
+    },
+    {
+      "name": "saveSession",
+      "line": 3092,
+      "endLine": 3092,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "createRoom",
+        "joinRoom"
+      ]
+    },
+    {
+      "name": "clearSession",
+      "line": 3093,
+      "endLine": 3093,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "watchRoom",
+        "leaveGame",
+        "resumeHostGame",
+        "boot"
+      ]
+    },
+    {
+      "name": "encodeDec",
+      "line": 3098,
+      "endLine": 3098,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "logDecision"
+      ]
+    },
+    {
+      "name": "decodeDec",
+      "line": 3099,
+      "endLine": 3099,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "resumeHostGame"
+      ]
+    },
+    {
+      "name": "logDecision",
+      "line": 3102,
+      "endLine": 3114,
+      "lines": 13,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetDlog"
+      ],
+      "calls": [
+        "encodeDec",
+        "netFail",
+        "saveSoloState"
+      ],
+      "calledBy": [
+        "ask",
+        "pickCell",
+        "battleAsk",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "saveSoloState",
+      "line": 3118,
+      "endLine": 3121,
+      "lines": 4,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "logDecision",
+        "startSinglePlayer",
+        "startPassAndPlay"
+      ]
+    },
+    {
+      "name": "clearSoloState",
+      "line": 3122,
+      "endLine": 3122,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "leaveGame"
+      ]
+    },
+    {
+      "name": "resumeSoloGame",
+      "line": 3123,
+      "endLine": 3133,
+      "lines": 11,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "beginGame"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "replayShortfall",
+      "line": 3144,
+      "endLine": 3150,
+      "lines": 7,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "endReplay"
+      ]
+    },
+    {
+      "name": "endReplay",
+      "line": 3154,
+      "endLine": 3173,
+      "lines": 20,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "replayShortfall",
+        "showRestoreFail",
+        "setRecoveryState",
+        "liveRender"
+      ],
+      "calledBy": [
+        "ask",
+        "pickCell",
+        "battleAsk",
+        "recipeDraftNet",
+        "runLiveNet"
+      ]
+    },
+    {
+      "name": "showRestoreFail",
+      "line": 3180,
+      "endLine": 3186,
+      "lines": 7,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "endReplay"
+      ]
+    },
+    {
+      "name": "wireRestoreFail",
+      "line": 3187,
+      "endLine": 3200,
+      "lines": 14,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "setRecoveryState",
+        "liveRender",
+        "leaveGame"
+      ],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "setRecoveryState",
+      "line": 3204,
+      "endLine": 3208,
+      "lines": 5,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetRecovery",
+        "netRemoveRecovery"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "endReplay",
+        "wireRestoreFail"
+      ]
+    },
+    {
+      "name": "watchRecoveryState",
+      "line": 3211,
+      "endLine": 3217,
+      "lines": 7,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netWatchRecovery"
+      ],
+      "calls": [],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "pushEvents",
+      "line": 3219,
+      "endLine": 3225,
+      "lines": 7,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netPushEvent"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "liveRender"
+      ]
+    },
+    {
+      "name": "remotePrompt",
+      "line": 3227,
+      "endLine": 3237,
+      "lines": 11,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetPrompt",
+        "netDetach",
+        "netRemovePrompt",
+        "netWatchResponse"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "ask",
+        "pickCell",
+        "battleAsk"
+      ]
+    },
+    {
+      "name": "sendResponse",
+      "line": 3239,
+      "endLine": 3244,
+      "lines": 6,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetResponse"
+      ],
+      "calls": [
+        "netFail",
+        "panel"
+      ],
+      "calledBy": [
+        "remotePickHighlights",
+        "watchPrompt"
+      ]
+    },
+    {
+      "name": "remoteDraftPrompt",
+      "line": 3248,
+      "endLine": 3259,
+      "lines": 12,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netSetDraftPrompt",
+        "netDetach",
+        "netRemoveDraftPrompt",
+        "netWatchDraftResponse"
+      ],
+      "calls": [
+        "netFail"
+      ],
+      "calledBy": [
+        "netIntroBarrier",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "watchDraftPrompt",
+      "line": 3260,
+      "endLine": 3275,
+      "lines": 16,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netWatchDraftPrompt",
+        "netSetDraftResponse"
+      ],
+      "calls": [
+        "panel",
+        "netFail",
+        "showNarration"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "fixEv",
+      "line": 3276,
+      "endLine": 3280,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "watchEvents"
+      ]
+    },
+    {
+      "name": "watchEvents",
+      "line": 3282,
+      "endLine": 3293,
+      "lines": 12,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netWatchEvents"
+      ],
+      "calls": [
+        "fixEv",
+        "syncLogLines",
+        "render",
+        "spawnPops",
+        "applyEndMeta"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "watchPrompt",
+      "line": 3294,
+      "endLine": 3348,
+      "lines": 55,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netWatchPrompt"
+      ],
+      "calls": [
+        "panel",
+        "setFlipActive",
+        "renderBattleFromSnap",
+        "setNeedsAction",
+        "sendResponse",
+        "showNarration",
+        "apBtnStyle",
+        "remotePickHighlights"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "watchNarr",
+      "line": 3349,
+      "endLine": 3355,
+      "lines": 7,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchNarr"
+      ],
+      "calls": [
+        "showNarration"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "applyEndMeta",
+      "line": 3356,
+      "endLine": 3365,
+      "lines": 10,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netReadMeta"
+      ],
+      "calls": [
+        "render"
+      ],
+      "calledBy": [
+        "watchEvents"
+      ]
+    },
+    {
+      "name": "showStep",
+      "line": 3368,
+      "endLine": 3370,
+      "lines": 3,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "wireWelcome",
+        "showHome"
+      ]
+    },
+    {
+      "name": "requireName",
+      "line": 3371,
+      "endLine": 3376,
+      "lines": 6,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "wireWelcome",
+        "startSinglePlayer"
+      ]
+    },
+    {
+      "name": "wireWelcome",
+      "line": 3377,
+      "endLine": 3390,
+      "lines": 14,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "requireName",
+        "startSinglePlayer",
+        "showStep",
+        "startPassAndPlay"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "startSinglePlayer",
+      "line": 3391,
+      "endLine": 3401,
+      "lines": 11,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "requireName",
+        "seatStrat",
+        "saveSoloState",
+        "beginGame"
+      ],
+      "calledBy": [
+        "wireWelcome"
+      ]
+    },
+    {
+      "name": "startPassAndPlay",
+      "line": 3404,
+      "endLine": 3412,
+      "lines": 9,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "seatStrat",
+        "saveSoloState",
+        "beginGame"
+      ],
+      "calledBy": [
+        "wireWelcome"
+      ]
+    },
+    {
+      "name": "renderDecorativeBoard",
+      "line": 3415,
+      "endLine": 3429,
+      "lines": 15,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "drawBoard",
+        "buildPlayerRows",
+        "describe",
+        "render"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "showHome",
+      "line": 3432,
+      "endLine": 3436,
+      "lines": 5,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "showStep"
+      ],
+      "calledBy": [
+        "watchRoom",
+        "resumeHostGame",
+        "boot"
+      ]
+    },
+    {
+      "name": "showRoom",
+      "line": 3437,
+      "endLine": 3441,
+      "lines": 5,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "createRoom",
+        "watchRoom"
+      ]
+    },
+    {
+      "name": "showGameView",
+      "line": 3442,
+      "endLine": 3446,
+      "lines": 5,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "syncBoardSizing"
+      ],
+      "calledBy": [
+        "beginGame",
+        "resumeHostGame"
+      ]
+    },
+    {
+      "name": "revealMyRecipe",
+      "line": 3450,
+      "endLine": 3450,
+      "lines": 1,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "liveRender"
+      ],
+      "calledBy": []
+    },
+    {
+      "name": "passGate",
+      "line": 3457,
+      "endLine": 3475,
+      "lines": 19,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "pname"
+      ],
+      "calledBy": [
+        "netIntroBarrier",
+        "humanTurn",
+        "recipeDraftNet"
+      ]
+    },
+    {
+      "name": "createRoom",
+      "line": 3477,
+      "endLine": 3492,
+      "lines": 16,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": true,
+      "net": [
+        "netCreateRoom"
+      ],
+      "calls": [
+        "genCode",
+        "seatStrat",
+        "saveSession",
+        "showRoom",
+        "watchRoom"
+      ],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "joinRoom",
+      "line": 3493,
+      "endLine": 3518,
+      "lines": 26,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": true,
+      "net": [
+        "netReadRoom",
+        "netClaimSeat"
+      ],
+      "calls": [
+        "saveSession",
+        "watchRoom"
+      ],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "watchRoom",
+      "line": 3519,
+      "endLine": 3537,
+      "lines": 19,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netReadRoom",
+        "netWatchSeats",
+        "netWatchStatus"
+      ],
+      "calls": [
+        "clearSession",
+        "showHome",
+        "showRoom",
+        "seatStrat",
+        "renderSeatList",
+        "beginGame"
+      ],
+      "calledBy": [
+        "createRoom",
+        "joinRoom",
+        "boot"
+      ]
+    },
+    {
+      "name": "renderSeatList",
+      "line": 3538,
+      "endLine": 3558,
+      "lines": 21,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [
+        "escHtml",
+        "pn"
+      ],
+      "calledBy": [
+        "watchRoom"
+      ]
+    },
+    {
+      "name": "startGame",
+      "line": 3559,
+      "endLine": 3572,
+      "lines": 14,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netReadRoom",
+        "netUpdateRoom"
+      ],
+      "calls": [],
+      "calledBy": [
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "beginGame",
+      "line": 3573,
+      "endLine": 3597,
+      "lines": 25,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netSetTimerOff"
+      ],
+      "calls": [
+        "showGameView",
+        "clearChatBubbles",
+        "drawBoard",
+        "buildPlayerRows",
+        "updateRecipeBanner",
+        "watchRecipes",
+        "runLiveNet",
+        "watchEvents",
+        "watchPrompt",
+        "watchNarr",
+        "watchFlip",
+        "watchBattle",
+        "watchDraftPrompt",
+        "watchClock",
+        "watchTurnOrder",
+        "watchRecoveryState",
+        "watchChat",
+        "watchTimer",
+        "netFail"
+      ],
+      "calledBy": [
+        "resumeSoloGame",
+        "startSinglePlayer",
+        "startPassAndPlay",
+        "watchRoom",
+        "resumeHostGame"
+      ]
+    },
+    {
+      "name": "watchTurnOrder",
+      "line": 3600,
+      "endLine": 3605,
+      "lines": 6,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchTurnOrder"
+      ],
+      "calls": [
+        "buildPlayerRows"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "updateRecipeBanner",
+      "line": 3606,
+      "endLine": 3610,
+      "lines": 5,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [
+        "render"
+      ],
+      "calledBy": [
+        "recipeDraftNet",
+        "beginGame",
+        "watchRecipes"
+      ]
+    },
+    {
+      "name": "watchRecipes",
+      "line": 3611,
+      "endLine": 3619,
+      "lines": 9,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netWatchRecipes"
+      ],
+      "calls": [
+        "updateRecipeBanner",
+        "render"
+      ],
+      "calledBy": [
+        "beginGame"
+      ]
+    },
+    {
+      "name": "leaveGame",
+      "line": 3620,
+      "endLine": 3620,
+      "lines": 1,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": false,
+      "net": [
+        "netLeaveRoom"
+      ],
+      "calls": [
+        "clearSession",
+        "clearSoloState"
+      ],
+      "calledBy": [
+        "wireRestoreFail",
+        "wireLobby"
+      ]
+    },
+    {
+      "name": "wireLobby",
+      "line": 3623,
+      "endLine": 3663,
+      "lines": 41,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netSetFeedback"
+      ],
+      "calls": [
+        "createRoom",
+        "joinRoom",
+        "startGame",
+        "wireRestoreFail",
+        "leaveGame",
+        "toggleShotClockPause",
+        "toggleTimer",
+        "sendChat"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "resumeHostGame",
+      "line": 3671,
+      "endLine": 3693,
+      "lines": 23,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": true,
+      "dom": false,
+      "net": [
+        "netReadDlog",
+        "netReadEv"
+      ],
+      "calls": [
+        "seatStrat",
+        "clearSession",
+        "showHome",
+        "netFail",
+        "decodeDec",
+        "showGameView",
+        "panel",
+        "beginGame"
+      ],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "syncBoardSizing",
+      "line": 3701,
+      "endLine": 3730,
+      "lines": 30,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "showGameView",
+        "boot"
+      ]
+    },
+    {
+      "name": "preloadAssets",
+      "line": 3737,
+      "endLine": 3745,
+      "lines": 9,
+      "tier": "helper/logic",
+      "async": false,
+      "dom": false,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "hideBootLoader",
+      "line": 3746,
+      "endLine": 3750,
+      "lines": 5,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": [
+        "boot"
+      ]
+    },
+    {
+      "name": "applyEngineBootstrapEffects",
+      "line": 3751,
+      "endLine": 3761,
+      "lines": 11,
+      "tier": "ui (DOM)",
+      "async": false,
+      "dom": true,
+      "net": [],
+      "calls": [],
+      "calledBy": []
+    },
+    {
+      "name": "boot",
+      "line": 3763,
+      "endLine": 3807,
+      "lines": 45,
+      "tier": "orchestration (calls net directly — belongs in main OR invert)",
+      "async": false,
+      "dom": true,
+      "net": [
+        "netReadRoom"
+      ],
+      "calls": [
+        "getMyId",
+        "preloadAssets",
+        "hideBootLoader",
+        "renderDecorativeBoard",
+        "wireWelcome",
+        "wireRecipeModal",
+        "wireLobby",
+        "showHome",
+        "syncBoardSizing",
+        "resumeSoloGame",
+        "fbInit",
+        "clearSession",
+        "resumeHostGame",
+        "watchRoom"
+      ],
+      "calledBy": []
+    }
+  ]
+}
