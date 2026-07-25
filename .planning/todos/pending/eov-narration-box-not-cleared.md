@@ -7,7 +7,7 @@ severity: low
 area: ui
 created: 2026-07-25
 source: Phase 12 UAT (Wyatt's Safari playthrough)
-resolves_phase:
+resolves_phase: 16
 regression: false
 ---
 

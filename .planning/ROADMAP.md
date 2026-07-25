@@ -41,9 +41,9 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 **Milestone Goal:** Clear a second live-playtest punch list without regressing the core value (playable and fair in Safari and multiplayer). Front-load the critical multiplayer turn-clock stall so a multiplayer game is playable immediately, correct storm movement behind the determinism harness, complete a narration audit + fixes gated on Wyatt's review, and land low-risk UI/UX polish plus social-preview metadata and a Ko-Fi support button — closed out by a manual Safari + Chrome two-window playtest. The tutorial, sound effects, and island redesign from the same punch list are deferred to a later milestone.
 
 - [ ] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03)
-- [ ] **Phase 14: Storm Movement & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the determinism harness stays green (STORM-01, VERIFY-02)
+- [ ] **Phase 14: Engine-Adjacent Gameplay Fixes & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the bot hail/action turn follows a decided rule; the determinism harness stays green (STORM-01, AI-01, VERIFY-02)
 - [ ] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06)
-- [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, Open Graph preview + favicon, Ko-Fi button (UI-01…06, META-01/02, KOFI-01)
+- [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01)
 - [ ] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01)
 
 ## Phase Details
@@ -269,16 +269,17 @@ Plans:
 
 **Plans**: TBD
 
-### Phase 14: Storm Movement & Determinism
+### Phase 14: Engine-Adjacent Gameplay Fixes & Determinism
 
-**Goal**: Storm pushes move the boat correctly, one square at a time, with docking/aground checks at the right square — without breaking deterministic multiplayer replay.
-**Depends on**: Nothing (independent of Phase 13 — this is the one engine-adjacent change; VERIFY-02's determinism harness gates it internally so the re-verification is deliberate)
-**Requirements**: STORM-01, VERIFY-02
+**Goal**: Storm pushes move the boat correctly one square at a time (with docking/aground checks at the right square), and the bot "hail humans" turn follows a decided rule — both without breaking deterministic multiplayer replay.
+**Depends on**: Nothing (independent of Phase 13 — these are the engine-adjacent gameplay changes; VERIFY-02's determinism harness gates them internally so the re-verification is deliberate)
+**Requirements**: STORM-01, AI-01, VERIFY-02
 **Success Criteria** (what must be TRUE):
 
   1. During a storm the boat visibly moves one square at a time across the full dir1+dir2 push (up to 4 squares). *(STORM-01)*
   2. Docking/aground checks evaluate at the correct square — the false "the dock held fast" message no longer appears when the boat is still a square away from the dock. *(STORM-01)*
-  3. The determinism regression harness stays green (30/30) after the storm-movement change — lockstep replay is unaffected. *(VERIFY-02)*
+  3. The bot hail/parley turn follows the rule Wyatt decides during this phase — a hailing bot no longer *appears* to take two actions in one turn unless that is the deliberately chosen behavior; if the rule applies to bot-vs-bot it is mirrored in the engine's `takeTurn`. *(AI-01)*
+  4. The determinism regression harness stays green (30/30) after the storm-movement and bot-rule changes — lockstep replay is unaffected. *(VERIFY-02)*
 
 **Plans**: TBD
 
@@ -301,14 +302,15 @@ Plans:
 
 **Goal**: The interface feels consistent and polished, shared links preview well with a favicon, and players can support the game via Ko-Fi.
 **Depends on**: Nothing (independent low-risk polish and additions; can proceed in parallel with Phases 13–15). Explicitly does NOT gate on Wyatt's narration feedback in Phase 15 — start this work concurrently.
-**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, META-01, META-02, KOFI-01
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, META-01, META-02, KOFI-01
 **Success Criteria** (what must be TRUE):
 
   1. Padding between the flippenator row, gameboard, narrator, captains box, and footer is consistent. *(UI-01)*
   2. Icons rising out of boats stay fully opaque for 1 second before fading; the moveable-square orange highlight is 10% smaller and has a more distinct mouse-hover effect. *(UI-02, UI-03, UI-04)*
   3. Clicking "Host a Crew" goes straight to the lobby/seat screen (skipping the "Create the game" screen), and the lobby shows each name once — your seat reads "{name} – you" (or "{captain} – you"), with no "Crustbeard – Crustbeard" doubling. *(UI-05, UI-06)*
-  4. Shared links and search results show a preview image (Open Graph / Twitter card), and the site serves a favicon. *(META-01, META-02)*
-  5. A Ko-Fi "Buy me a cookie" button appears in the footer (right of Feedback, styled the same) and in the Credits modal (after the credits text). *(KOFI-01)*
+  4. At end-of-voyage the empty narration/action box is hidden/collapsed once the End-of-Voyage summary appears (no large empty box left on screen). *(UI-07)*
+  5. Shared links and search results show a preview image (Open Graph / Twitter card), and the site serves a favicon. *(META-01, META-02)*
+  6. A Ko-Fi "Buy me a cookie" button appears in the footer (right of Feedback, styled the same) and in the Credits modal (after the credits text). *(KOFI-01)*
 
 **Plans**: TBD
 **UI hint**: yes
@@ -346,7 +348,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 0/TBD | Not started | - |
-| 14. Storm Movement & Determinism | v1.2 | 0/TBD | Not started | - |
+| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 0/TBD | Not started | - |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |

@@ -19,6 +19,10 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 - [ ] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
 
+### Bot Behavior (AI)
+
+- [ ] **AI-01**: The bot "hail humans" turn structure follows an intended, decided rule — a bot that hails/parleys the human no longer appears to take two actions in one turn (hail *and* fish/dock/etc.) unless that is the deliberately chosen behavior. The rule (does a hail consume the bot's turn action, or is it a free pre-action negotiation?) is decided with Wyatt during Phase 14, then implemented; if the rule must also apply to bot-vs-bot it is mirrored in the deterministic engine's `takeTurn` so replay/determinism stays consistent *(design decision — pre-existing since v1.0; src/ui/flow.js:584-612)*
+
 ### Narration (NARR)
 
 - [ ] **NARR-01**: A full audit of every narration branch (storm, docking, battle, trade, bribe, etc.) is delivered to Wyatt, cataloguing thematic repetitions/inconsistencies with a pruning recommendation *(audit deliverable — pruning applied after Wyatt reviews)*
@@ -36,6 +40,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 - [ ] **UI-04**: Moveable squares have a more distinct mouse-hover effect
 - [ ] **UI-05**: Clicking "Host a Crew" goes straight to the lobby/seat screen, skipping the redundant intermediate "Create the game" screen
 - [ ] **UI-06**: The lobby shows each name once — your seat reads "{name} – you" (or "{captain} – you" when no name is typed), and joined players show their name once (no "Crustbeard – Crustbeard" doubling)
+- [ ] **UI-07**: At end-of-voyage the empty narration/action box (`#actionPanel`) is hidden/collapsed once the End-of-Voyage summary appears, instead of staying on screen large and empty *(pre-existing since v1.0; src/ui/panel.js `liveDone` branch)*
 
 ### Link & Social Preview (META)
 
@@ -102,6 +107,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CLOCK-02 | Phase 13 | Pending |
 | CLOCK-03 | Phase 13 | Pending |
 | STORM-01 | Phase 14 | Pending |
+| AI-01 | Phase 14 | Pending |
 | NARR-01 | Phase 15 | Pending |
 | NARR-02 | Phase 15 | Pending |
 | NARR-03 | Phase 15 | Pending |
@@ -114,6 +120,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | UI-04 | Phase 16 | Pending |
 | UI-05 | Phase 16 | Pending |
 | UI-06 | Phase 16 | Pending |
+| UI-07 | Phase 16 | Pending |
 | META-01 | Phase 16 | Pending |
 | META-02 | Phase 16 | Pending |
 | KOFI-01 | Phase 16 | Pending |
@@ -122,10 +129,13 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21 (Phases 13–17)
+- v1 requirements: 23 total
+- Mapped to phases: 23 (Phases 13–17)
 - Unmapped: 0
+
+**Per-phase counts:** Phase 13 (3) · Phase 14 (3) · Phase 15 (6) · Phase 16 (10) · Phase 17 (1) = 23
 
 ---
 *Requirements defined: 2026-07-25*
 *Traceability populated: 2026-07-25 (roadmap created — Phases 13–17)*
+*Updated 2026-07-25 — folded two backlog bugs into scope: AI-01 (bot hail/action rule → Phase 14) and UI-07 (EOV empty narration box → Phase 16)*

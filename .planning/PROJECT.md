@@ -61,9 +61,10 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 
 - Critical: multiplayer turn-clock stall / starts-paused bug + play/pause available in MP — v1.2
 - Storm one-square-at-a-time movement across the full dir1+dir2 push — v1.2
+- Bot hail/action turn rule decided + fixed (folded-in backlog bug AI-01) — v1.2
 - Narration audit + fixes (prune repetition, restore missing line, storm intro, bribe/anchored context, timing) — v1.2
 - Turn clock: clickable PAUSED resume button — v1.2
-- UI/UX polish (padding, moveable squares, welcome flow, name-doubling, boat-image opacity, Google preview + favicon) — v1.2
+- UI/UX polish (padding, moveable squares, welcome flow, name-doubling, boat-image opacity, empty EOV box, Google preview + favicon) — v1.2
 - Ko-Fi support button (footer + credits) — v1.2
 
 ### Deferred to a later milestone (captured as Future in REQUIREMENTS.md)
