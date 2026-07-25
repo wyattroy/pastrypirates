@@ -8,50 +8,30 @@
 //   1. The `Game`/`roundCfg` engine, obtained the same way real_game_test.js gets it — a native
 //      `import` via scripts/lib/load_engine.js — so a realistic event count comes from an
 //      actually played game instead of a magic number invented by this test.
-//   2. The `replayShortfall` sentinel region, which still lives in the classic-script
-//      multiplayer/Firebase section of the application markup that this phase's engine
-//      extraction deliberately stops short of moving. It is written as a pure function inside
-//      matched sentinel comments precisely so it can be lifted out and run headlessly — the
-//      surrounding recovery logic (resumeHostGame/endReplay) is welded to Firebase and the DOM
-//      and is not testable this way.
+//   2. `replayShortfall`/`REPLAY_SHORTFALL_TOLERANCE`, which used to live inside a sentinel-comment
+//      region in the classic-script multiplayer/Firebase section of index.html, sliced out via
+//      `node:vm` at test time because nothing could `import` a plain classic-script global.
+//      Phase 11 (11-02) moved both into src/ui/util.js as real named exports, so this now does a
+//      native `import` of that module instead — the sentinel-slicing hack is retired. The
+//      surrounding recovery logic (resumeHostGame/endReplay) is still welded to Firebase and the
+//      DOM and stays untestable this way; only the pure shortfall-classification function moved.
 //
 // If either source drifts, this throws loudly. A harness that silently passes because its
 // extraction boundaries moved is worse than no harness.
 
-import fs from "node:fs";
-import path from "node:path";
-import vm from "node:vm";
-import { fileURLToPath } from "node:url";
 import { loadEngine } from "./lib/load_engine.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+import { replayShortfall, REPLAY_SHORTFALL_TOLERANCE } from "../src/ui/util.js";
 
 /* ---------- source 1: the Game engine (same seam real_game_test.js uses) ---------------------- */
 // Routed through scripts/lib/load_engine.js (D-12) — the shared seam both harnesses now use.
 const { Game, roundCfg } = await loadEngine();
 
-/* ---------- extraction 2: the replayShortfall sentinel region --------------------------------- */
-const OPEN = "/* ===== replayShortfall — extractable region, see scripts/dlog_replay_test.js ===== */";
-const CLOSE = "/* ===== end replayShortfall ===== */";
-const openAt = html.indexOf(OPEN);
-const closeAt = html.indexOf(CLOSE);
-if (openAt === -1 || closeAt === -1 || closeAt < openAt) {
-  throw new Error("Could not locate the replayShortfall sentinel region in index.html — were the sentinel comments reworded?");
-}
-const shortfallSrc = html.slice(openAt + OPEN.length, closeAt) +
-  "\nthis.replayShortfall=replayShortfall;this.REPLAY_SHORTFALL_TOLERANCE=REPLAY_SHORTFALL_TOLERANCE;\n";
-const sfSandbox = { Math };   // deliberately bare: if the helper ever reaches for a global, this throws
-vm.createContext(sfSandbox);
-vm.runInContext(shortfallSrc, sfSandbox, { filename: "index.html (replayShortfall region)" });
-const { replayShortfall, REPLAY_SHORTFALL_TOLERANCE } = sfSandbox;
+/* ---------- source 2: the real, moved replayShortfall (src/ui/util.js, 11-02) ------------------ */
 if (typeof replayShortfall !== "function") {
-  throw new Error("replayShortfall didn't come out of the sentinel region — extraction boundaries may be wrong.");
+  throw new Error("replayShortfall did not come from src/ui/util.js — has it moved or been renamed?");
 }
 if (typeof REPLAY_SHORTFALL_TOLERANCE !== "number") {
-  throw new Error("REPLAY_SHORTFALL_TOLERANCE didn't come out of the sentinel region, or is not a number.");
+  throw new Error("REPLAY_SHORTFALL_TOLERANCE did not come from src/ui/util.js, or is not a number.");
 }
 
 /* ---------- cases ----------------------------------------------------------------------------- */

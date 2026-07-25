@@ -17,14 +17,25 @@
 // drawBoard()/render()). A classic script's `let` is invisible to an ES module (same class of
 // bug 11-01 hit with RECIPE_BOOK), and neither variable is exclusive to this cluster — dozens of
 // still-classic rendering call sites also read them — so, unlike RECIPE_BOOK, they cannot simply
-// move here too. Fix: `islandArtPlacement`, `shipXY`, `islandXY` gained an explicit `cellPx`
-// parameter (default-free — every call site is still-classic and has `cell` in scope, so each is
-// updated in index.html to pass it explicitly) and `boatXY` gained a `shipEls` parameter the same
-// way. The EVENT_NARRATION `battle`/`aground`/`shotclockskip` entries gained an optional
+// move here too. Fix: `islandArtPlacement`, `shipXY`, `islandXY`, `spawnPops` gained an explicit
+// `cellPx` parameter (default-free — every call site is still-classic and has `cell` in scope, so
+// each is updated in index.html to pass it explicitly) and `boatXY` gained a `shipEls` parameter
+// the same way. The EVENT_NARRATION `battle`/`aground`/`shotclockskip` entries gained an optional
 // `cellPx=0` third parameter for the same reason; describe()/captions() (which only ever read
 // `.txt`/`.cls`/`.caps`, never `.pops`) call with the 2-arg form and let the harmless default
-// apply, while spawnPops() (still classic; the only real consumer of `.pops`) is updated to pass
-// the live `cell` value as a third argument. See 11-02-SUMMARY.md for the full account.
+// apply, while spawnPops() (the only real consumer of `.pops`) passes its own `cellPx` through.
+// See 11-02-SUMMARY.md for the full account.
+//
+// Deviation (Rule 1 — bug): `saveSoloState()` read a bare `soloMeta` identifier instead of
+// `appState.soloMeta` — a leftover from the Phase 10 appState migration that this migration's own
+// tooling missed. Caught (and silently swallowed) by the surrounding try/catch, so `pp_solo`
+// localStorage has never actually persisted; fixed while moving (Rule 1).
+//
+// Deviation (Rule 3 — blocking): `replayShortfall`/`REPLAY_SHORTFALL_TOLERANCE` used to live inside
+// a sentinel-comment region in index.html that scripts/dlog_replay_test.js sliced out via
+// `node:vm` at test time (see that script's original header). Moving them here retires that
+// slicing hack entirely — dlog_replay_test.js now does a native `import` of this module instead;
+// see its updated header comment for the full account.
 
 import {
   appState,
@@ -32,6 +43,7 @@ import {
 import {
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavor, iconImg, ING_IMG,
   CUPCAKE_IMG, CROWN_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
+  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
 
@@ -463,4 +475,245 @@ export function ask(msg,opts,colors,sub){
 export function armClock(seat){
   if(!appState.isHost)return;
   const p=appState.game.players[seat];if(p)startShotClock(p);
+}
+
+/* ---------- pause / pacing ---------- */
+// solo pause (see toggleShotClockPause) freezes the whole game by making every await-ed
+// sleep() stall first — bots pace their turns entirely through sleep(), so this alone halts
+// bot play without threading a paused-check through every call site.
+export function waitWhilePaused(){
+  return appState.shotClockPaused?new Promise(res=>{
+    const iv=setInterval(()=>{if(!appState.shotClockPaused){clearInterval(iv);res();}},150);
+  }):Promise.resolve();
+}
+// used only to derive flip/spin animation-pacing constants (asyncBattle, asyncBakeoff, fishCast)
+// — unrelated to text legibility, which is governed by flash()'s own reveal/hold/fade formula.
+export function stepDelay(){return 3000;}
+// notes/edits #1 audit: this used to fire-and-forget narrateCurrent() (raw netNarrate(), no
+// hold/fade at all) then separately sleep a flat stepDelay()=3000ms regardless of the event
+// text's length — the same "one size fits all" bug as narrateLastEvent()/humanFlip() had, just
+// hitting the most common narration path in the game (every bot action goes through botBeat()).
+// Now narrateCurrent() itself is the thing that paces this beat, via flash()'s length-aware timing.
+export async function botBeat(){liveRender();await narrateCurrent();}
+// keep the yellow action panel in step with the bot's latest move — liveRender only
+// updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
+export async function narrateCurrent(){
+  const e=appState.game.events[appState.evIdx];if(!e)return;
+  if(e.t==="turn"){await flash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
+  // settleSideBets() already flashed one aggregate message covering every bettor — skip the
+  // duplicate individual re-narration (same reasoning as narrateLastEvent()).
+  if(e.t==="sidebet")return;
+  const L=appState.logLines[appState.evIdx];if(L)await flash(L.txt);
+}
+export function setActor(s){appState.curSeat=s;}
+export function seatLocal(s){return s===appState.mySeat;}
+// pass & play: every human seat shares this one browser, so any human seat resolves locally
+// regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
+// remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).
+export function decisionIsLocal(s){return (appState.passAndPlay&&appState.game.players[s].strategy==="human")||seatLocal(s);}
+
+/* ---------- shot clock ---------- */
+export function startShotClock(p){
+  if(!appState.isHost||appState.timerOff)return;   // #7: timer switched off — decisions wait, never time out
+  appState.shotClockSeat=p.idx;
+  appState.shotClockDeadline=Date.now()+30000;
+  appState.shotClockFired={};
+  appState.turnExpired=false;
+  appState.shotClockPaused=false;
+  broadcastClock();
+  if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
+  appState.shotClockTimer=setInterval(shotClockTick,500);
+}
+export function stopShotClock(){
+  if(!appState.isHost)return;
+  // BUG-02: stash the in-flight decision's force-resolver before dropping the live reference, so
+  // rearmShotClock() can hand it back. Keyed by seat — restoring a resolver that belongs to an
+  // older decision would force-resolve the wrong promise, which is worse than having no auto-skip.
+  if(appState.shotClockForce&&appState.shotClockSeat!=null)appState.shotClockStash={seat:appState.shotClockSeat,force:appState.shotClockForce};
+  appState.shotClockSeat=null;appState.shotClockForce=null;appState.shotClockPaused=false;
+  if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
+  broadcastClock();
+}
+// notes/edits BUG-02: re-arm the CURRENT turn's clock after the timer is switched back on. This is
+// deliberately not startShotClock(): that clears shotClockFired, which would let the same turn be
+// charged the 20s penalty twice. D-06 says an already-fired penalty is neither refunded nor
+// replayed — switching the timer off only prevents FUTURE penalties. Also restores the stashed
+// force-resolver so the 30s auto-skip survives the toggle (see stopShotClock).
+// Not a pause button: D-04 keeps multiplayer on the ⏱ toggle only, and this adds no new UI.
+export function rearmShotClock(p){
+  if(!appState.isHost||appState.timerOff)return;
+  appState.shotClockSeat=p.idx;
+  appState.shotClockDeadline=Date.now()+30000;   // D-05: a full fresh 30s, not the remainder
+  appState.shotClockPaused=false;
+  // shotClockFired is deliberately NOT reset here (D-06) — see above.
+  // turnExpired is deliberately NOT cleared: if the turn already expired, the flow is unwinding
+  // and watchTimer's guard below refuses to re-arm it at all.
+  if(appState.shotClockStash&&appState.shotClockStash.seat===p.idx){appState.shotClockForce=appState.shotClockStash.force;appState.shotClockStash=null;}
+  broadcastClock();
+  if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
+  appState.shotClockTimer=setInterval(shotClockTick,500);
+}
+// solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
+export function soloBotGame(){return appState.game&&appState.game.players&&appState.game.players.filter(p=>p.strategy==="human").length<=1;}
+// works any time in solo play, not just on your own turn — shotClockPaused doubles as the
+// whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
+// actually freezes the bots instead of just a countdown that isn't running yet.
+export function toggleShotClockPause(){
+  if(!appState.isHost||!soloBotGame())return;
+  if(appState.shotClockPaused){
+    appState.shotClockPaused=false;
+    if(appState.shotClockSeat!=null){
+      appState.shotClockDeadline=Date.now()+30000-appState.shotClockPauseElapsed;
+      appState.shotClockTimer=setInterval(shotClockTick,500);
+    }
+  }else{
+    appState.shotClockPaused=true;
+    if(appState.shotClockSeat!=null){
+      appState.shotClockPauseElapsed=Date.now()-(appState.shotClockDeadline-30000);
+      if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
+    }
+  }
+  setClockUI();
+}
+export function shotClockTick(){
+  if(appState.shotClockSeat==null)return;
+  const elapsed=Date.now()-(appState.shotClockDeadline-30000);
+  if(!appState.shotClockFired.t20&&elapsed>=20000){appState.shotClockFired.t20=true;applyShotClockPenalty();}
+  if(elapsed>=30000){expireShotClock();return;}
+  setClockUI();
+}
+export function applyShotClockPenalty(){
+  const p=appState.game.players[appState.shotClockSeat];if(!p)return;
+  const others=appState.game.players.filter(q=>q!==p&&!q.done);
+  const take=Math.min(1,p.coins);
+  p.coins-=take;others.forEach(q=>q.coins++);
+  appState.game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
+  narrateLastEvent();
+  liveRender();
+}
+// mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
+// idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
+// armed for a human decision (ask()), never for a bot's turn.
+export function currentTurnSeat(){
+  if(!appState.game||!appState.game.events)return null;
+  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
+    const t=appState.game.events[i]&&appState.game.events[i].t;
+    if(t==="turn")return appState.game.events[i].p;
+    if(t==="newround")return null;
+  }
+  return null;
+}
+// If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
+// force a default answer once 30s run out, instead of the answer waiting forever. A no-op for
+// every other decision in the game (recipe drafts, battle/trade sub-flows, etc).
+// Critically: once the wrapped decision is answered for real (not forced), the clock stops
+// immediately rather than continuing to tick toward that seat — otherwise a spectator who
+// answers a side-bet prompt right away keeps getting timed against for the rest of the battle,
+// long after they have nothing left to decide.
+export function withShotClock(seat,base,defaultVal){
+  if(!appState.isHost||seat!==appState.shotClockSeat)return base;
+  return new Promise(res=>{
+    let done=false;
+    appState.shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
+    base.then(v=>{
+      if(!done){
+        done=true;appState.shotClockForce=null;
+        // BUG-02: the decision resolved for real, so any resolver stashed for THIS seat across a
+        // timer-off is dead — drop it so a later re-arm can't force-resolve a settled promise.
+        if(appState.shotClockStash&&appState.shotClockStash.seat===seat)appState.shotClockStash=null;
+        if(appState.shotClockSeat===seat)stopShotClock();
+        res(v);
+      }
+    });
+  });
+}
+
+/* ---------- board pops (event -> emoji animation) ---------- */
+export function spawnPops(e,cellPx){
+  if(!e)return;
+  const st=e.state;
+  const at=i=>{const [x,y]=shipXY(st[i].pos,i,st,cellPx);return [x,y-cellPx*.42];};
+  const fn=EVENT_NARRATION[e.t];if(!fn)return;
+  const r=fn(e,at,cellPx);
+  (r&&r.pops||[]).forEach(([xy,emo,big,img,cls])=>popEmoji(xy[0],xy[1],emo,big,img,cls));
+}
+
+/* ---------- misc UI refresh / bot seat strategy ---------- */
+// notes/edits BOT-01/BOT-02: bot personality is no longer anyone's choice — it belongs to the
+// captain. Indexed to match NAMES: Davy Scones, Crustbeard, Dough Hook, Flaky Jack. Every seat
+// that fills with a bot takes its captain's temperament, so "Crustbeard" always plays like
+// Crustbeard whether you meet him in solo or multiplayer.
+const SEAT_BOT_STRAT=["balanced","pirate","trader","rusher"];
+export function seatStrat(i){return SEAT_BOT_STRAT[i%SEAT_BOT_STRAT.length];}
+export function updateRecipeBanner(){
+  // recipe is now shown as semi-transparent chips in your own captain row (see render());
+  // refresh the board so those chips appear as soon as recipes are drafted
+  if(appState.game&&appState.game.events&&appState.game.events.length)render();
+}
+// #6: preload the core board art up front so a slow connection doesn't render the board with
+// missing/fallback tiles that pop in one by one. Each image resolves on load OR error (never
+// rejects), and boot() caps the whole wait with a timeout, so the loader can never hang the game.
+export function preloadAssets(){
+  const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
+    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
+  return Promise.all(urls.map(u=>new Promise(res=>{
+    const img=new Image();
+    img.onload=img.onerror=()=>res();
+    img.src=u;
+  })));
+}
+
+/* ---------- session persistence / host-refresh recovery ---------- */
+export function getMyId(){
+  let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
+  if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}
+  return id;
+}
+export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
+export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
+export function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
+
+// --- host-refresh recovery: record & replay the decision log ---
+// Encode so a "stay put" (null) still persists as a non-empty object (Firebase drops nulls,
+// and setting a node to {} deletes it — which would leave a gap in the ordered log).
+export function encodeDec(v){return (v===null||v===undefined)?{n:1}:{v:v};}
+export function decodeDec(e){return (e&&Object.prototype.hasOwnProperty.call(e,"v"))?e.v:null;}
+// ---- singleplayer persistence: reuse the same replay mechanism multiplayer host-refresh uses,
+// but keep the log in localStorage instead of Firebase, since there's no server for solo games ----
+export function saveSoloState(){
+  if(!appState.soloMeta)return;
+  try{localStorage.setItem("pp_solo",JSON.stringify({...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
+}
+export function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
+export function resumeSoloGame(saved){
+  appState.numSeats=saved.strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
+  appState.passAndPlay=!!saved.passAndPlay;
+  const names=saved.names||[saved.name]; // old solo saves only ever had one human, at seat 0
+  appState.roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true}
+                      :{name:saved.name,strategies:saved.strategies,seed:saved.seed};
+  appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
+  appState.replaying=true;
+  beginGame(roundCfg(saved.strategies),saved.seed);
+}
+// notes/edits BUG-03/BUG-04: decide whether a host-refresh replay actually rebuilt the voyage.
+// The yardstick is resumeEvLen — the Firebase event count captured BEFORE the reload (see
+// resumeHostGame) — not dlog.length, because one logged decision can emit several events, so the
+// two counts are not comparable. A SMALL shortfall is expected, not an error: ask()/pickCell()/
+// battleAsk() each fall through from replay to live play the instant dlogIdx >= dlog.length, so
+// the decision that was in flight when the tab reloaded — and the narration events it would have
+// produced — are legitimately missing. A LARGE shortfall means the log never loaded (the empty-
+// dlog case that rebuilds a fresh board from the seed and reads to players as "reset to start").
+export const REPLAY_SHORTFALL_TOLERANCE = 4;
+export function replayShortfall(rebuiltEvLen, priorEvLen, readFailed){
+  const shortfall = Math.max(0, priorEvLen - rebuiltEvLen); // clamped: replaying past the old
+                                                             // frontier is fine, never negative
+  if(readFailed) return {shortfall, incomplete:true, reason:"read-failed"};
+  if(shortfall > REPLAY_SHORTFALL_TOLERANCE) return {shortfall, incomplete:true, reason:"short-replay"};
+  return {shortfall, incomplete:false, reason:"ok"};
+}
+export function fixEv(e){
+  if(e.state)e.state.forEach(s=>{if(!s.ing)s.ing=[];if(!s.pos)s.pos=[0,0];});
+  if(e.rounds)e.rounds=e.rounds.map(r=>[r&&r[0]?1:0,r&&r[1]?1:0,r&&r[2]?1:0,r&&r[3]||null]);
+  return e;
 }
