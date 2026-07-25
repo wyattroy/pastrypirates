@@ -3,7 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 Edit Pass** — Phases 1–6 (shipped 2026-07-24)
-- 🚧 **v1.1 Monolith Refactor** — Phases 7–12 (in progress)
+- ✅ **v1.1 Monolith Refactor** — Phases 7–12 (shipped 2026-07-25)
+- 🚧 **v1.2 Playtest Fixes & Polish** — Phases 13–17 (in progress)
 
 ## Phases
 
@@ -21,16 +22,29 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 
 </details>
 
-### 🚧 v1.1 Monolith Refactor (In Progress)
+<details>
+<summary>✅ v1.1 Monolith Refactor (Phases 7–12) — SHIPPED 2026-07-25</summary>
 
-**Milestone Goal:** Split the ~5,200-line `index.html` monolith into native ES modules with no build step, preserving gameplay, Safari support, and deterministic multiplayer — while folding in the three approved debt cleanups (Firebase `.off()` teardown, de-globalization, engine/replay hardening). A strangler-fig sequence keeps the game runnable and determinism-verifiable at every phase boundary.
+**Milestone Goal:** Split the ~5,200-line `index.html` monolith into native ES modules with no build step, preserving gameplay, Safari support, and deterministic multiplayer — while folding in the three approved debt cleanups (Firebase `.off()` teardown, de-globalization, engine/replay hardening). A strangler-fig sequence kept the game runnable and determinism-verifiable at every phase boundary. Full phase detail retained below under **Phase Details**.
 
-- [ ] **Phase 7: Foundation & Determinism Baseline** - Zero-build module-loading contract + golden-fixture regression oracle, game unchanged
-- [ ] **Phase 8: Engine Extraction & Node Harness Migration** - Pure DOM-free engine module Node imports natively, byte-for-byte identical (critical path)
-- [ ] **Phase 9: Networking Layer & Watcher Cleanup** - Firebase sync in its own module with a registry and `.off()` teardown, zero leaked listeners
-- [ ] **Phase 10: App State & De-globalization** - 40+ globals encapsulated behind an app-state module, all inline handlers still work
-- [x] **Phase 11: UI Extraction, Orchestration & Bridge Removal** - UI module + `main` composition root, `index.html` reduced to markup, acyclic graph, bridge gone (completed 2026-07-25)
-- [x] **Phase 12: Verification & Validation** - Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests (completed 2026-07-25)
+- [x] **Phase 7: Foundation & Determinism Baseline** — Zero-build module-loading contract + golden-fixture regression oracle, game unchanged
+- [x] **Phase 8: Engine Extraction & Node Harness Migration** — Pure DOM-free engine module Node imports natively, byte-for-byte identical (critical path)
+- [x] **Phase 9: Networking Layer & Watcher Cleanup** — Firebase sync in its own module with a registry and `.off()` teardown, zero leaked listeners
+- [x] **Phase 10: App State & De-globalization** — 40+ globals encapsulated behind an app-state module, all inline handlers still work
+- [x] **Phase 11: UI Extraction, Orchestration & Bridge Removal** — UI module + `main` composition root, `index.html` reduced to markup, acyclic graph, bridge gone
+- [x] **Phase 12: Verification & Validation** — Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests
+
+</details>
+
+### 🚧 v1.2 Playtest Fixes & Polish (In Progress)
+
+**Milestone Goal:** Clear a second live-playtest punch list without regressing the core value (playable and fair in Safari and multiplayer). Front-load the critical multiplayer turn-clock stall so a multiplayer game is playable immediately, correct storm movement behind the determinism harness, complete a narration audit + fixes gated on Wyatt's review, and land low-risk UI/UX polish plus social-preview metadata and a Ko-Fi support button — closed out by a manual Safari + Chrome two-window playtest. The tutorial, sound effects, and island redesign from the same punch list are deferred to a later milestone.
+
+- [ ] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03)
+- [ ] **Phase 14: Storm Movement & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the determinism harness stays green (STORM-01, VERIFY-02)
+- [ ] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06)
+- [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, Open Graph preview + favicon, Ko-Fi button (UI-01…06, META-01/02, KOFI-01)
+- [ ] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01)
 
 ## Phase Details
 
@@ -242,10 +256,80 @@ Plans:
 
 - [x] 12-04-PLAN.md — Wyatt's desktop-Safari solo playthrough (VERIFY-04, D-03) + `12-VALIDATION.md` closeout marking VERIFY-01..04 satisfied (blocking human checkpoint)
 
+### Phase 13: Multiplayer Turn Clock
+
+**Goal**: A multiplayer game starts cleanly on its own and the turn clock is fully controllable — closing the critical stall that blocks the game from beginning.
+**Depends on**: Nothing (first phase of v1.2; the critical fix, front-loaded so multiplayer is playable as early as possible)
+**Requirements**: CLOCK-01, CLOCK-02, CLOCK-03
+**Success Criteria** (what must be TRUE):
+
+  1. In a 2+ window multiplayer game, the turn clock starts running on its own and the first turn begins — the game no longer stalls "paused" before it starts and no timer off/on toggle workaround is needed. *(CLOCK-01, critical)*
+  2. Any player can pause and then resume the clock during a multiplayer game without missing bot actions. *(CLOCK-02)*
+  3. Clicking the large "PAUSED" image resumes the clock. *(CLOCK-03)*
+
+**Plans**: TBD
+
+### Phase 14: Storm Movement & Determinism
+
+**Goal**: Storm pushes move the boat correctly, one square at a time, with docking/aground checks at the right square — without breaking deterministic multiplayer replay.
+**Depends on**: Nothing (independent of Phase 13 — this is the one engine-adjacent change; VERIFY-02's determinism harness gates it internally so the re-verification is deliberate)
+**Requirements**: STORM-01, VERIFY-02
+**Success Criteria** (what must be TRUE):
+
+  1. During a storm the boat visibly moves one square at a time across the full dir1+dir2 push (up to 4 squares). *(STORM-01)*
+  2. Docking/aground checks evaluate at the correct square — the false "the dock held fast" message no longer appears when the boat is still a square away from the dock. *(STORM-01)*
+  3. The determinism regression harness stays green (30/30) after the storm-movement change — lockstep replay is unaffected. *(VERIFY-02)*
+
+**Plans**: TBD
+
+### Phase 15: Narration Audit & Fixes
+
+**Goal**: Narration reads naturally and consistently — repetitions are pruned per Wyatt's review, the local player is addressed directly, and the specific broken/missing lines are corrected.
+**Depends on**: Nothing (independent of Phases 13–14 — the NARR-01 audit is an approval-gate deliverable that lands first and gates the NARR-02…06 pruning/fixes)
+**Requirements**: NARR-01, NARR-02, NARR-03, NARR-04, NARR-05, NARR-06
+**Success Criteria** (what must be TRUE):
+
+  1. A full narration-branch audit (storm, docking, battle, trade, bribe, etc.) cataloguing thematic repetitions/inconsistencies with a pruning recommendation is delivered to Wyatt, and pruning is applied only after he reviews it. *(NARR-01)*
+  2. The missing "broke" line is restored, and the storm intro reads "First, the storm pushes you {dir1}" instead of the "pushes everyone 2 squares, then 2 more south" phrasing. *(NARR-02, NARR-03)*
+  3. The bribe line is context-smart — "with 2 🪙" when a crate is given, and "paid 5 🪙" when the player has no crate to give. *(NARR-04)*
+  4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
+  5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
+
+**Plans**: TBD
+
+### Phase 16: UI/UX Polish, Social Preview & Support
+
+**Goal**: The interface feels consistent and polished, shared links preview well with a favicon, and players can support the game via Ko-Fi.
+**Depends on**: Nothing (independent low-risk polish and additions; can proceed in parallel with Phases 13–15). Explicitly does NOT gate on Wyatt's narration feedback in Phase 15 — start this work concurrently.
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, META-01, META-02, KOFI-01
+**Success Criteria** (what must be TRUE):
+
+  1. Padding between the flippenator row, gameboard, narrator, captains box, and footer is consistent. *(UI-01)*
+  2. Icons rising out of boats stay fully opaque for 1 second before fading; the moveable-square orange highlight is 10% smaller and has a more distinct mouse-hover effect. *(UI-02, UI-03, UI-04)*
+  3. Clicking "Host a Crew" goes straight to the lobby/seat screen (skipping the "Create the game" screen), and the lobby shows each name once — your seat reads "{name} – you" (or "{captain} – you"), with no "Crustbeard – Crustbeard" doubling. *(UI-05, UI-06)*
+  4. Shared links and search results show a preview image (Open Graph / Twitter card), and the site serves a favicon. *(META-01, META-02)*
+  5. A Ko-Fi "Buy me a cookie" button appears in the footer (right of Feedback, styled the same) and in the Credits modal (after the credits text). *(KOFI-01)*
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 17: Final Multiplayer Verification
+
+**Goal**: Confirm the milestone is playable end-to-end in the target browsers — the critical clock stall is fixed and a multiplayer game plays through from start to finish.
+**Depends on**: Phases 13, 14, 15, 16 (final end-to-end gate over the full milestone)
+**Requirements**: VERIFY-01
+**Success Criteria** (what must be TRUE):
+
+  1. In Safari, a two-window multiplayer game starts on its own with no clock-stall workaround. *(VERIFY-01)*
+  2. The game plays through from the first turn to end-of-voyage across both Safari and Chrome windows. *(VERIFY-01)*
+  3. Storm movement and pause/resume observed during the playtest behave as fixed — no lost game state and no false "dock held fast" message. *(VERIFY-01)*
+
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
+Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17. Within v1.2, Phases 13–16 are independent and may be planned/executed in parallel; Phase 17 gates on all four.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
@@ -255,11 +339,14 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 4. UI/UX Polish | v1.0 | — | Complete | 2026-07-24 |
 | 5. Bot Personalities | v1.0 | — | Complete | 2026-07-24 |
 | 6. End of Voyage Celebration | v1.0 | — | Complete | 2026-07-24 |
-| 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
-| 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
-| 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
-| 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
-| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
-| 12. Verification & Validation | v1.1 | 4/4 | Complete    | 2026-07-25 |
-</content>
-</invoke>
+| 7. Foundation & Determinism Baseline | v1.1 | 3/3 | Complete | 2026-07-25 |
+| 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | Complete | 2026-07-25 |
+| 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | Complete | 2026-07-25 |
+| 10. App State & De-globalization | v1.1 | 7/7 | Complete | 2026-07-25 |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
+| 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
+| 13. Multiplayer Turn Clock | v1.2 | 0/TBD | Not started | - |
+| 14. Storm Movement & Determinism | v1.2 | 0/TBD | Not started | - |
+| 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
+| 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
+| 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |

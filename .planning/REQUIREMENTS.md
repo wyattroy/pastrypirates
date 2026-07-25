@@ -98,33 +98,34 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLOCK-01 | TBD | Pending |
-| CLOCK-02 | TBD | Pending |
-| CLOCK-03 | TBD | Pending |
-| STORM-01 | TBD | Pending |
-| NARR-01 | TBD | Pending |
-| NARR-02 | TBD | Pending |
-| NARR-03 | TBD | Pending |
-| NARR-04 | TBD | Pending |
-| NARR-05 | TBD | Pending |
-| NARR-06 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
-| UI-04 | TBD | Pending |
-| UI-05 | TBD | Pending |
-| UI-06 | TBD | Pending |
-| META-01 | TBD | Pending |
-| META-02 | TBD | Pending |
-| KOFI-01 | TBD | Pending |
-| VERIFY-01 | TBD | Pending |
-| VERIFY-02 | TBD | Pending |
+| CLOCK-01 | Phase 13 | Pending |
+| CLOCK-02 | Phase 13 | Pending |
+| CLOCK-03 | Phase 13 | Pending |
+| STORM-01 | Phase 14 | Pending |
+| NARR-01 | Phase 15 | Pending |
+| NARR-02 | Phase 15 | Pending |
+| NARR-03 | Phase 15 | Pending |
+| NARR-04 | Phase 15 | Pending |
+| NARR-05 | Phase 15 | Pending |
+| NARR-06 | Phase 15 | Pending |
+| UI-01 | Phase 16 | Pending |
+| UI-02 | Phase 16 | Pending |
+| UI-03 | Phase 16 | Pending |
+| UI-04 | Phase 16 | Pending |
+| UI-05 | Phase 16 | Pending |
+| UI-06 | Phase 16 | Pending |
+| META-01 | Phase 16 | Pending |
+| META-02 | Phase 16 | Pending |
+| KOFI-01 | Phase 16 | Pending |
+| VERIFY-01 | Phase 17 | Pending |
+| VERIFY-02 | Phase 14 | Pending |
 
 **Coverage:**
 
 - v1 requirements: 21 total
-- Mapped to phases: 0 (roadmap not yet created)
-- Unmapped: 21
+- Mapped to phases: 21 (Phases 13–17)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-25*
+*Traceability populated: 2026-07-25 (roadmap created — Phases 13–17)*
