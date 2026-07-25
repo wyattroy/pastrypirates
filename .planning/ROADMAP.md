@@ -174,7 +174,7 @@ Plans:
   4. The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent).
   5. Storm rendering re-verifies cleanly on Safari after UI extraction (no perf/compat regression at this phase boundary).
 
-**Plans**: 5/8 plans executed
+**Plans**: 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -199,7 +199,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 11-06-PLAN.md — Move the 44 orchestration net-callers into `src/orchestrator.js`; make `src/main.js` the real orchestrator; formalize the seam; watchRoom idempotent (D-13) (wave 6)
+- [x] 11-06-PLAN.md — Move the 44 orchestration net-callers into `src/orchestrator.js`; make `src/main.js` the real orchestrator; formalize the seam; watchRoom idempotent (D-13) (wave 6)
 
 **Wave 7** *(blocked on Wave 6)*
 
@@ -242,7 +242,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
-| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 5/8 | In Progress|  |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 6/8 | In Progress|  |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
 </invoke>

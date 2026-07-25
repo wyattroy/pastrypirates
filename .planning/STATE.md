@@ -5,15 +5,15 @@ milestone_name: Monolith Refactor
 current_phase: 11
 current_phase_name: ui-extraction-orchestration-bridge-removal
 status: executing
-stopped_at: Completed 11-05-PLAN.md
-last_updated: "2026-07-25T04:44:15.399Z"
+stopped_at: Completed 11-06-PLAN.md
+last_updated: "2026-07-25T05:14:46.162Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 28
-  completed_plans: 25
+  completed_plans: 26
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 11 (ui-extraction-orchestration-bridge-removal) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 11 execution started
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Progress: [█████████░] 89%
 | Phase 11 P03 | ~40min | 2 tasks | 3 files |
 | Phase 11 P04 | ~35min | 2 tasks | 6 files |
 | Phase 11 P05 | ~50min | 3 tasks | 4 files |
+| Phase 11 P06 | ~30min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,9 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 11 Plan 5: moved 31 functions (turn-flow/interaction, battle-UI/side-bets/intro/game-start, recovery/replay) into src/ui/flow.js; battleAsk/renderBattle/watchBattle/asyncBattle deliberately stay classic (orchestration, deferred to 11-06)
 - [Phase ?]: Phase 11 Plan 5: resolved the final 3 of 6 UI->orchestration seam edges via src/ui/handlers.js's injected-handler seam (remotePickHighlights->onRespond, endReplay->onRecovery, wireRestoreFail->onRecovery+onLeave) -- all 5 UI-side edges now resolved without src/ui/ ever importing src/net/ (D-07)
 - [Phase ?]: Phase 11 Plan 5: classic-script function count dropped from 80 to 49 (44 orchestration net-callers + top-level wiring); deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 5 of 8 phase plans done, PP bridge still present by design
+- [Phase ?]: Phase 11 Plan 6: moved all 44 remaining orchestration functions into src/orchestrator.js (tier 'main', imports both net and ui); positionChatBubble/removeChatBubble/clearChatBubbles homed in src/ui/board.js instead (zero net calls, avoids a ui->main import edge); classic <script> region now holds zero top-level function declarations
+- [Phase ?]: Phase 11 Plan 6: src/main.js's PP object literal left untouched; orchestrator's exports published via a separate Object.assign(globalThis, orchestrator) statement (Rule 2 addition) so already-moved src/ui/ bare calls into orchestration functions keep resolving; ui.setNetHandlers() now binds real orchestrator.* references, no globalThis indirection left; boot() called directly
+- [Phase ?]: Phase 11 Plan 6: watchRoom() made idempotent (D-13) via a module-scope guard, independently verified with a Node harness; deliberately left SPLIT-03/05/06 Pending in REQUIREMENTS.md -- 6 of 8 phase plans done, bridge (now including the orchestrator-publish line) still present by design until 11-07
 
 ### Pending Todos
 
@@ -168,8 +172,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-25T04:44:15.391Z
-Stopped at: Completed 11-05-PLAN.md
+Last session: 2026-07-25T05:14:46.154Z
+Stopped at: Completed 11-06-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
