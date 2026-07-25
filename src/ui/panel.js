@@ -35,7 +35,9 @@ import { appState } from "../state/index.js";
 import {
   PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, BLOCKED_SLASH_IMG, STOPWATCH_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
 } from "../shared/index.js";
-import { render, boardCell, boardShipEls, chatBubbles } from "./board.js";
+import {
+  render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
+} from "./board.js";
 import {
   soloBotGame, currentTurnSeat, syncLogLines, spawnPops, describe, pn, boatXY, msgHoldMs,
   waitWhilePaused,
@@ -273,8 +275,10 @@ export function appendChatLine(seat,text){
   log.scrollTop=log.scrollHeight;
 }
 // one bubble div per seat; a new message replaces whatever that seat was already showing.
-// chatBubbles itself lives in src/ui/board.js (11-03, render()'s only other reader) — imported
-// directly here (same ui/ tier, already-moved sibling), rather than left as a bare bridge read.
+// chatBubbles/positionChatBubble/removeChatBubble all live in src/ui/board.js (chatBubbles since
+// 11-03; positionChatBubble/removeChatBubble moved there in 11-06 — see that file's header for
+// why) — imported directly here (same ui/ tier, already-moved sibling), rather than left as a
+// bare bridge read.
 export function showChatBubble(i,text){
   const holder=$("chatBubbles");if(!holder)return;
   removeChatBubble(i);

@@ -274,10 +274,34 @@ export function buildStormLayers(ov){
 }
 
 // see the file header's chatBubbles deviation note: moved (exported) alongside render(), the
-// only cluster function that reads it; still-classic positionChatBubble/showChatBubble/
-// removeChatBubble/clearChatBubbles (a later wave) keep mutating it as a bare global via the
-// bridge with no changes to their own bodies.
+// only cluster function that reads it.
 export const chatBubbles={};
+
+// 11-06: positionChatBubble/removeChatBubble/clearChatBubbles moved verbatim here (NOT into
+// src/orchestrator.js — see that file's own header for why: zero net calls, and render() right
+// below is already this cluster's own same-module caller of positionChatBubble). showChatBubble
+// (src/ui/panel.js, 11-04) imports removeChatBubble/positionChatBubble from here instead of
+// reading them bare.
+function positionChatBubble(i,x,y){
+  const b=chatBubbles[i];if(!b)return;
+  // x,y come from shipXY(), in the SVG's fixed 0..640 viewBox space — clamp X only (like the
+  // lab.html bubble prototype this is adapted from) so a boat hugging the left/right edge
+  // doesn't push its bubble half off the board; Y is left alone, same as popEmoji().
+  b.style.left=Math.max(15,Math.min(85,x/640*100))+"%";
+  b.style.top=(y/640*100)+"%";
+}
+// removes a bubble immediately regardless of whether it's mid-typewriter-reveal, holding fully
+// visible, or already fading — a click must dismiss it instantly at any stage (so one player
+// can't wall off the board by spamming chat and leaving bubbles up to expire on their own clock)
+function removeChatBubble(i){
+  const b=chatBubbles[i];if(!b)return;
+  if(b._msgEl&&b._msgEl._revealTimer)clearTimeout(b._msgEl._revealTimer);
+  if(b._timer)clearTimeout(b._timer);
+  b.remove();
+  delete chatBubbles[i];
+}
+export function clearChatBubbles(){Object.keys(chatBubbles).map(Number).forEach(removeChatBubble);}
+export { positionChatBubble, removeChatBubble };
 
 export function render(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
