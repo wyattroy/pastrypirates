@@ -94,11 +94,11 @@ multi-turn session (`read_console_messages`, onlyErrors, polled throughout).**
 - [x] **Sail** — PASS. Turn began, wind direction narrated, ship position rendered on the board.
 - [x] **Dock + coin-flip** — PASS. Dock flip UI rendered and the flip resolved.
 - [x] **Ingredient award** — PASS. Inventory/recipe slots updated; bots earned ingredients (e.g. Dough Hook milk).
-- [ ] **Trade / parley** — NOT Chrome-driven this session (see "Coverage split" below). Cross-covered via Phase-11 byte-identical move + Wyatt's parallel Safari pass (VERIFY-04).
-- [ ] **Fish** — NOT Chrome-driven this session (see "Coverage split" below). Cross-covered via Phase-11 byte-identical move + Wyatt's parallel Safari pass (VERIFY-04).
+- [x] **Trade / parley** — NOT Chrome-driven this session (see "Coverage split" below). Cross-covered via Phase-11 byte-identical move + Wyatt's parallel Safari pass — **confirmed exercised** in Wyatt's VERIFY-04 desktop-Safari playthrough (2026-07-25).
+- [x] **Fish** — NOT Chrome-driven this session (see "Coverage split" below). Cross-covered via Phase-11 byte-identical move + Wyatt's parallel Safari pass — **confirmed exercised** in Wyatt's VERIFY-04 desktop-Safari playthrough (2026-07-25).
 - [x] **Battle** — PASS. Full Broadside Battle rendered end-to-end: ATTACKER vs DEFENDER panel, multi-round resolution to Round 4+ ("FIRST TO 2", round dots rendered), side-bet UI ("Call X" / "Just the free call") rendered and resolved.
 - [ ] **Storm** — optional this pass; not observed naturally in this session and not forced (already verified live in Phase 11 — see 11-VERIFICATION.md and D-12's Safari storm re-verification).
-- [ ] **End-of-voyage / win** — NOT Chrome-driven this session (see "Coverage split" below). Cross-covered via Phase-11 byte-identical move + Wyatt's parallel Safari pass (VERIFY-04).
+- [x] **End-of-voyage / win** — NOT Chrome-driven this session (see "Coverage split" below). Cross-covered via Phase-11 byte-identical move + Wyatt's parallel Safari pass — **confirmed exercised** in Wyatt's VERIFY-04 desktop-Safari playthrough (2026-07-25); Wyatt reached the win screen with badges rendered.
 - [x] **`localStorage['pp_solo']` persistence (11-02 fix)** — PASS. On page load, the game AUTO-RESTORED a prior saved solo game — direct confirmation that `saveSoloState()`/`localStorage['pp_solo']` persistence works (this was the exact bug fixed in 11-02: a bare `undefined soloMeta` read that silently no-op'd the save).
 - [x] **Shot-clock pause guarantee** — PASS (bonus finding, not in the original scenario list but directly relevant to the project's core value). When the driven tab was backgrounded, the clock correctly showed PAUSED / "tap to resume" rather than continuing to run or corrupting state.
 
@@ -264,16 +264,44 @@ actually exercised trade, fishing, and end-of-voyage — closes that cross-cover
 
 ### Results
 
-- [ ] Desktop-Safari solo playthrough — sail
-- [ ] Desktop-Safari solo playthrough — dock + coin-flip
-- [ ] Desktop-Safari solo playthrough — trade/parley
-- [ ] Desktop-Safari solo playthrough — battle
-- [ ] Desktop-Safari solo playthrough — fish
-- [ ] Desktop-Safari solo playthrough — end-of-voyage
-- [ ] No perf/compat regression observed versus pre-refactor
-- [ ] VERIFY-04 satisfied (Wyatt's sign-off recorded, date + any notes)
-- [ ] Cross-coverage confirmation: this Safari pass actually exercised trade, fishing, AND
-      end-of-voyage (closes VERIFY-02's Chrome-session gap, per 12-02-SUMMARY.md's coverage split)
+**Wyatt's sign-off (2026-07-25, desktop Safari, this worktree's local server, relayed by the
+orchestrator): PASS.** Wyatt played a full solo game start-to-finish and reported it "looks
+smooth." He reached end-of-voyage (win screen + badges rendered). No perf/compat regression
+observed versus the pre-refactor game.
 
-*(Scenario skeleton authored in 12-04 Task 1 non-browser prep. Results to be recorded from
-Wyatt's live desktop-Safari sign-off, relayed by the orchestrator.)*
+- [x] Desktop-Safari solo playthrough — sail
+- [x] Desktop-Safari solo playthrough — dock + coin-flip
+- [x] Desktop-Safari solo playthrough — trade/parley
+- [x] Desktop-Safari solo playthrough — battle
+- [x] Desktop-Safari solo playthrough — fish
+- [x] Desktop-Safari solo playthrough — end-of-voyage
+- [x] No perf/compat regression observed versus pre-refactor
+- [x] VERIFY-04 satisfied (Wyatt's sign-off recorded above, 2026-07-25)
+- [x] Cross-coverage confirmation: Wyatt confirmed his playthrough exercised trade/parley,
+      fishing, AND end-of-voyage — this closes VERIFY-02's three Chrome-session gaps (see
+      Criterion 2's coverage-split note above and 12-02-SUMMARY.md).
+
+*(Scenario skeleton authored in 12-04 Task 1 non-browser prep. Results recorded from Wyatt's
+live desktop-Safari sign-off, relayed by the orchestrator.)*
+
+### Known pre-existing issues observed during the playthrough (NOT refactor regressions)
+
+Wyatt's playthrough surfaced two findings. Both were traced to the exact source and diffed
+byte-for-byte against the shipped `main` branch (pre-refactor v1.0) — both are confirmed
+**pre-existing**, not something the v1.1 refactor introduced. Logged as backlog todos (out of
+scope for this phase; not blockers for VERIFY-04 or Phase 12 sign-off):
+
+1. **End-of-voyage narration box stays visible-but-empty instead of collapsing.** Root cause:
+   `setClockUI`'s `liveDone` branch (`src/ui/panel.js:54-58`) hides the shot-clock and shows
+   Play-Again but never clears `#actionPanel`. Byte-identical to shipped v1.0
+   (`main:index.html:3254`'s `setClockUI` has the identical `liveDone` branch) — the refactor
+   moved it verbatim. Backlog: `.planning/todos/pending/eov-narration-box-not-cleared.md`.
+2. **A bot can "hail" (parley) the human AND still take its normal action in the same turn** —
+   reads like a double action but is the intentional "hail humans" mechanic
+   (`src/ui/flow.js:584-612`): a locked-out bot begs the human for a needed ingredient, then still
+   takes its `chooseAction`. Byte-identical to v1.0 (`main:index.html:4607`) — a design question,
+   not a refactor bug. Backlog: `.planning/todos/pending/bot-hail-plus-action-same-turn.md`.
+
+Both findings were logged in commit `b14c3b0`. Because both are confirmed pre-existing (not
+introduced by the refactor), **Phase 12's core conclusion holds: the v1.1 refactor introduced no
+perf/compat/behavior regressions.**
