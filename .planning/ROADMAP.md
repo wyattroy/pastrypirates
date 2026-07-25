@@ -223,7 +223,24 @@ Plans:
   3. Claude-driven Chrome-MCP E2E tests exercise a full multiplayer game across two browser tabs (host + guest) with deterministic sync intact.
   4. Manual Safari + Chrome playtests confirm no perf/compat regressions — including storm rendering and multiplayer pause/refresh state.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 12-01-PLAN.md — Verification apparatus tracer + Criterion-1 determinism/regression gate (VERIFY-01); creates the committed `docs/VERIFICATION-CHECKLIST.md`
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 12-02-PLAN.md — Full solo gameplay-loop E2E in Chrome — sail/dock/trade/fish/battle/storm/end-of-voyage (VERIFY-02)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 12-03-PLAN.md — Two-tab multiplayer E2E + pause/refresh recovery matrix in Chrome (VERIFY-03, D-02)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 12-04-PLAN.md — Wyatt's desktop-Safari solo playthrough (VERIFY-04, D-03) + `12-VALIDATION.md` closeout marking VERIFY-01..04 satisfied (blocking human checkpoint)
 
 ## Progress
 
@@ -243,6 +260,6 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
-| 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
+| 12. Verification & Validation | v1.1 | 0/4 | Planned | - |
 </content>
 </invoke>
