@@ -228,6 +228,52 @@ orchestrator's live Chrome-MCP two-tab drive.)*
 
 ## Criterion 4 — Manual desktop-Safari playthrough (VERIFY-04)
 
-- [ ] One full desktop-Safari solo playthrough start-to-finish (sail, dock, trade, battle, fish, end-of-voyage) — Wyatt's personal sign-off (D-03)
+Context: Wyatt already re-verified the desktop-Safari storm render in Phase 11 (D-12), so it is
+not required again here (though it may occur naturally). This criterion is Wyatt's personal
+sign-off (D-03): one full desktop-Safari solo playthrough covering the rest of the Safari surface
+— sail, dock, trade, battle, fish, end-of-voyage — with no perf/compat regression versus the
+pre-refactor game. **Out of scope for this pass:** mobile Safari (iPhone), iPad, and Safari
+multiplayer (D-03; see 12-CONTEXT.md § Deferred).
 
-*(Filled by a later plan in this phase — 12-04.)*
+This pass ALSO doubles as cross-coverage for VERIFY-02's three Chrome-session gaps (Criterion 2
+above): trade/parley, fish, and end-of-voyage were not Chrome-driven in 12-02 because the
+browser-MCP tab is never OS-foreground and the shot-clock correctly pauses on a backgrounded tab.
+Wyatt's foreground Safari session has no such blocker, so his sign-off — once confirmed to have
+actually exercised trade, fishing, and end-of-voyage — closes that cross-coverage claim too.
+
+### Scenario steps (Wyatt, on his Mac, desktop Safari only)
+
+1. **Serve locally on a FRESH port** — Safari caches ES modules by URL; a page-URL `?cb=` query
+   does NOT bust imported module files, so reusing an already-visited port can silently serve a
+   stale cached module even after a reload. Use a new origin/port for this session, or a full hard
+   reload if reusing one. Confirm the server's working directory is THIS worktree — **never**
+   `playpastrypirates.com` (still serving v1.0 code, per D-01) — and do not reuse port 8000 or
+   8021 (other worktree/orchestrator sessions).
+2. **Open the local URL in DESKTOP Safari** on the Mac (not iPhone/iPad Safari — out of scope).
+3. **Play one full solo game start-to-finish:**
+   - Sail the ship at least once.
+   - Dock at an island and resolve the ingredient coin-flip.
+   - Trade/parley with a bot captain.
+   - Fight at least one battle.
+   - Fish at least once.
+   - Play through to end-of-voyage (win screen / badges / confetti).
+   - (Storm is not required this pass — already Safari-verified in Phase 11/D-12 — but note it if
+     one occurs naturally.)
+4. **Watch for regressions** — any freeze, jank, visual breakage, or broken interaction versus the
+   pre-refactor (v1.0) game.
+
+### Results
+
+- [ ] Desktop-Safari solo playthrough — sail
+- [ ] Desktop-Safari solo playthrough — dock + coin-flip
+- [ ] Desktop-Safari solo playthrough — trade/parley
+- [ ] Desktop-Safari solo playthrough — battle
+- [ ] Desktop-Safari solo playthrough — fish
+- [ ] Desktop-Safari solo playthrough — end-of-voyage
+- [ ] No perf/compat regression observed versus pre-refactor
+- [ ] VERIFY-04 satisfied (Wyatt's sign-off recorded, date + any notes)
+- [ ] Cross-coverage confirmation: this Safari pass actually exercised trade, fishing, AND
+      end-of-voyage (closes VERIFY-02's Chrome-session gap, per 12-02-SUMMARY.md's coverage split)
+
+*(Scenario skeleton authored in 12-04 Task 1 non-browser prep. Results to be recorded from
+Wyatt's live desktop-Safari sign-off, relayed by the orchestrator.)*
