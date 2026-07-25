@@ -220,10 +220,6 @@ same disclosure standard as 12-02's coverage-split note.
 *(Scenario skeleton authored in 12-03 Task 1 non-browser prep; results recorded from the
 orchestrator's live Chrome-MCP two-tab drive.)*
 
-- [ ] VERIFY-03 satisfied (sync + all three D-02 recovery sub-steps PASS)
-
-*(Scenario skeleton authored in 12-03 Task 1 non-browser prep; results to be recorded from the orchestrator's live Chrome-MCP two-tab drive.)*
-
 ---
 
 ## Criterion 4 — Manual desktop-Safari playthrough (VERIFY-04)
