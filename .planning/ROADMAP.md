@@ -174,7 +174,41 @@ Plans:
   4. The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent).
   5. Storm rendering re-verifies cleanly on Safari after UI extraction (no perf/compat regression at this phase boundary).
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 11-01-PLAN.md — Safety net (commit analyzer + `module_graph_check.js` + `ui_contract_check.js`, red-proof) + tracer: extract the recipe/pastry cluster into `src/ui/`; Chrome mechanism gate (wave 1, blocking checkpoint)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 11-02-PLAN.md — Extract the pure leaf helpers (formatting/name/geometry/session/shot-clock) into `src/ui/util.js` (wave 2)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 11-03-PLAN.md — Extract the board + storm render cluster (drawBoard/render/buildStormLayers) into `src/ui/board.js`, storm surface verbatim (wave 3)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 11-04-PLAN.md — Extract panel/clock/narration/chat/modals + lobby views; stand up the handler-injection seam (`src/ui/panel.js`, `lobby.js`, `handlers.js`) (wave 4)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 11-05-PLAN.md — Extract turn-flow + battle-UI + recovery into `src/ui/flow.js`; resolve all 5 UI-side criterion-1 seam edges (wave 5)
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 11-06-PLAN.md — Move the 44 orchestration net-callers into `src/orchestrator.js`; make `src/main.js` the real orchestrator; formalize the seam; watchRoom idempotent (D-13) (wave 6)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 11-07-PLAN.md — Gated bridge deletion + `index.html`→markup + `window.revealMyRecipe` retained global + wire `ui_contract_check` into `npm test` + docs; decision gate + solo/two-tab Chrome click-through (wave 7, blocking checkpoints)
+
+**Wave 8** *(blocked on Wave 7)*
+
+- [ ] 11-08-PLAN.md — Consolidated automated phase gate + human Safari storm re-verification (D-12, criterion 5) (wave 8, blocking checkpoint)
+
 **UI hint**: yes
 
 ### Phase 12: Verification & Validation
@@ -208,7 +242,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
 | 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
 | 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
-| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/TBD | Not started | - |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 0/8 | Planned | - |
 | 12. Verification & Validation | v1.1 | 0/TBD | Not started | - |
 </content>
 </invoke>
