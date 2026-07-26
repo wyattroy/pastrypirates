@@ -40,7 +40,7 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 
 **Milestone Goal:** Clear a second live-playtest punch list without regressing the core value (playable and fair in Safari and multiplayer). Front-load the critical multiplayer turn-clock stall so a multiplayer game is playable immediately, correct storm movement behind the determinism harness, complete a narration audit + fixes gated on Wyatt's review, and land low-risk UI/UX polish plus social-preview metadata and a Ko-Fi support button — closed out by a manual Safari + Chrome two-window playtest. The tutorial, sound effects, and island redesign from the same punch list are deferred to a later milestone.
 
-- [ ] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03)
+- [x] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03) (completed 2026-07-26)
 - [ ] **Phase 14: Engine-Adjacent Gameplay Fixes & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the bot hail/action turn follows a decided rule; the determinism harness stays green (STORM-01, AI-01, VERIFY-02)
 - [ ] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06)
 - [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01)
@@ -355,7 +355,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 10. App State & De-globalization | v1.1 | 7/7 | Complete | 2026-07-25 |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
-| 13. Multiplayer Turn Clock | v1.2 | 3/3 | In Progress|  |
+| 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
 | 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 0/TBD | Not started | - |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
@@ -370,4 +370,5 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (promote with /gsd-review-backlog when ready)

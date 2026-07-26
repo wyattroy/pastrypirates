@@ -55,15 +55,17 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 - ✓ Hardened deterministic engine/replay module seams + regression harness; determinism 30/30 preserved (ENGINE-01/02/03, FOUND-04) — Phases 7–8
 - ✓ Verification: expanded headless harness + Chrome MCP solo & multiplayer end-to-end + Safari storm re-verified (VERIFY-01…04) — Phase 12
 
+**v1.2 Playtest Fixes & Polish — in progress (Phases 13–17)**
+
+- ✓ Multiplayer turn clock: the MP clock no longer stalls "paused" before the game starts (stale pre-refactor local session state self-heals at boot via a per-blob schema-version stamp, without wiping a live game, device id, or timer preference); a host-authoritative play/pause any player can trigger freezes the whole table and resumes from the remaining time — kept in sync across windows by re-broadcasting the clock on pause/resume; the large "PAUSED" symbol is itself a clickable resume button (CLOCK-01/02/03) — Phase 13, human-verified
+
 ### Active
 
 <!-- v1.2 Playtest Fixes & Polish scope. Requirements defined in .planning/REQUIREMENTS.md. -->
 
-- Critical: multiplayer turn-clock stall / starts-paused bug + play/pause available in MP — v1.2
 - Storm one-square-at-a-time movement across the full dir1+dir2 push — v1.2
 - Bot hail/action turn rule decided + fixed (folded-in backlog bug AI-01) — v1.2
 - Narration audit + fixes (prune repetition, restore missing line, storm intro, bribe/anchored context, timing) — v1.2
-- Turn clock: clickable PAUSED resume button — v1.2
 - UI/UX polish (padding, moveable squares, welcome flow, name-doubling, boat-image opacity, empty EOV box, Google preview + favicon) — v1.2
 - Ko-Fi support button (footer + credits) — v1.2
 
@@ -106,6 +108,7 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 | Real Safari storm fix was pre-baked PNG rain, not the typewriter batch | First hypothesis (per-char DOM writes) helped but the compositing cost was the storm rain; PNG tile was the actual fix | ✓ Good — Safari-verified v1.0 |
 | v1.2 splits the second punch list: fixes/polish now, big features later | Tutorial, sound effects, and island redesign are large enough (and the island redesign touches deterministic board generation) to warrant their own milestone; keeps v1.2 a fast polish pass | Pending — v1.2 |
 | Ko-Fi button included in v1.2 despite a third-party ko-fi.com script embed | Small, self-contained monetization add Wyatt wants live now; approved with awareness of the external script | Pending — v1.2 |
+| Multiplayer pause stays in sync by re-broadcasting the host-authoritative clock, not per-client math | Live UAT found guests desynced (froze at a different number, raced to 0 on resume) because the host recomputed the deadline locally but never re-broadcast it; guests must render frozen/running state from the broadcast payload, never host-only locals | ✓ Good — fixed + human-verified Phase 13 |
 
 ## Evolution
 
@@ -125,4 +128,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-25 — v1.2 Playtest Fixes & Polish milestone started (second punch list; tutorial/sound/island-redesign deferred)*
+*Last updated: 2026-07-26 — after Phase 13 (Multiplayer Turn Clock) complete: CLOCK-01/02/03 validated and human-verified*

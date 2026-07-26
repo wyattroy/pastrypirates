@@ -2,36 +2,36 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Playtest Fixes & Polish
-current_phase: 13
-current_phase_name: Multiplayer Turn Clock
-status: executing
+current_phase: 14
+current_phase_name: Engine-Adjacent Gameplay Fixes & Determinism
+status: planning
 stopped_at: Phase 13 context gathered
-last_updated: "2026-07-26T03:06:40.700Z"
-last_activity: 2026-07-25
-last_activity_desc: Phase 13 execution started
+last_updated: "2026-07-26T18:16:35.914Z"
+last_activity: 2026-07-26
+last_activity_desc: Phase 13 complete, transitioned to Phase 14
 progress:
   total_phases: 11
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 9
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-25)
+See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 13 — Multiplayer Turn Clock
+**Current focus:** Phase 14 — Engine-Adjacent Gameplay Fixes & Determinism
 
 ## Current Position
 
-Phase: 13 (Multiplayer Turn Clock) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 13
-Last activity: 2026-07-25 — Phase 13 execution started
+Phase: 14 — Engine-Adjacent Gameplay Fixes & Determinism
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-26 — Phase 13 complete, transitioned to Phase 14
 
 Progress: [░░░░░░░░░░] 0% (v1.2)
 
@@ -39,7 +39,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2)
 
 **Velocity (v1.2):**
 
-- Total plans completed: 0
+- Total plans completed: 3
 - Average duration: — min
 - Total execution time: 0 hours
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2)
 | 15. Narration Audit & Fixes | TBD | — | — |
 | 16. UI/UX Polish, Social Preview & Support | TBD | — | — |
 | 17. Final Multiplayer Verification | TBD | — | — |
+| 13 | 3 | - | - |
 
 *Updated after each plan completion*
 
