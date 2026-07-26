@@ -5,8 +5,8 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 14
 current_phase_name: Engine-Adjacent Gameplay Fixes & Determinism
 status: planning
-stopped_at: Phase 13 context gathered
-last_updated: "2026-07-26T18:16:35.914Z"
+stopped_at: Phase 14 context gathered
+last_updated: "2026-07-26T18:51:32.944Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 13 complete, transitioned to Phase 14
 progress:
@@ -96,9 +96,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-26T01:17:43.215Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-multiplayer-turn-clock/13-CONTEXT.md
+Last session: 2026-07-26T18:51:32.932Z
+Stopped at: Phase 14 context gathered
+Resume file: .planning/phases/14-engine-adjacent-gameplay-fixes-determinism/14-CONTEXT.md
 
 ## Operator Next Steps
 
