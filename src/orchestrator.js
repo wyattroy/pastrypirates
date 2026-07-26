@@ -141,7 +141,21 @@ export function watchFlip(){
 
 export function broadcastClock(){
   setClockUI();
-  if(appState.db&&appState.room)netSetClock(appState.db,appState.room,appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline},netFail("clock"));
+  if(!appState.db||!appState.room)return;
+  // CLOCK-02 FIX (mp-pause-clock-desync): the payload now also carries the whole-table pause
+  // state, so a guest flips frozen<->running AND reads its frozen remaining from the SAME
+  // authoritative clock write that carries the deadline — never a round-trip apart from the
+  // /paused flag. That round-trip gap WAS the desync: guests rendered the stale pre-pause
+  // deadline and a host-only pauseElapsed they never received. `paused` rides every write (so a
+  // running broadcast clears it); `pauseElapsed` (the host's frozen elapsed, D-07) is only
+  // meaningful while paused, so it is included only then. Host stays the sole deadline writer.
+  const payload=appState.shotClockSeat==null?null:{
+    seat:appState.shotClockSeat,
+    deadline:appState.shotClockDeadline,
+    paused:!!appState.shotClockPaused,
+  };
+  if(payload&&appState.shotClockPaused)payload.pauseElapsed=appState.shotClockPauseElapsed;
+  netSetClock(appState.db,appState.room,payload,netFail("clock"));
 }
 // #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
 // table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
@@ -170,8 +184,15 @@ export function togglePause(){
 export function watchPause(){
   netWatchPaused(appState.db,appState.room,s=>{
     const v=!!s.val();
-    if(appState.isHost)applyPauseState(v);
-    else appState.shotClockPaused=v;
+    if(appState.isHost){
+      applyPauseState(v);
+      // CLOCK-02 FIX (mp-pause-clock-desync): applyPauseState() recomputes the host-authoritative
+      // deadline (resume) / stashes pauseElapsed (pause) but is PURELY LOCAL. Without this
+      // re-broadcast the guests keep rendering the stale pre-pause deadline — freezing at a
+      // different number and racing to 0 on resume. broadcastClock() is the single deadline writer
+      // (host authority preserved) and now also carries the pause state for the guest render.
+      broadcastClock();
+    }else appState.shotClockPaused=v;
     setClockUI();
   });
 }

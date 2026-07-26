@@ -3,14 +3,14 @@ status: testing
 phase: 13-multiplayer-turn-clock
 source: [13-VERIFICATION.md]
 started: 2026-07-26T03:34:50Z
-updated: 2026-07-26T17:24:10Z
+updated: 2026-07-26T18:20:00Z
 ---
 
 ## Current Test
 
 number: —
-name: All 5 tests run. 4 passed, 1 failed (test 3 CLOCK-02 pause desync). Awaiting fix before phase can complete.
-awaiting: gap fix for test 3
+name: All 5 tests run. 4 passed; test 3 (CLOCK-02 pause desync) FIX IMPLEMENTED — awaiting human re-test. Debug session .planning/debug/mp-pause-clock-desync.md. npm test + determinism 30/30 green.
+awaiting: human re-run of test 3 (2-window MP) + re-confirm tests 4 & 5 (solo). See Gaps → CLOCK-02-pause-desync (fix applied) and CLOCK-03-paused-affordance-inconsistency (folded into the same fix).
 
 ## Tests
 
@@ -46,6 +46,8 @@ blocked: 0
 ## Gaps
 
 ### CLOCK-02-pause-desync — pause/resume does not re-broadcast the shot-clock deadline to guests
+- **Status:** FIX IMPLEMENTED (2026-07-26) — awaiting human 2-window re-test. Debug session: `.planning/debug/mp-pause-clock-desync.md`. `npm test` (19-watcher inventory intact) + determinism 30/30 green.
+- **Fix applied:** (1) `watchPause()` host branch now calls `broadcastClock()` after `applyPauseState()` on BOTH pause and resume (src/orchestrator.js) — the single host-authoritative deadline writer now fires on the pause/resume path. (2) `broadcastClock()` payload now carries `paused` + `pauseElapsed` so guests render the frozen number from authoritative data (they never own `shotClockPauseElapsed`). (3) `setClockUI()` (src/ui/panel.js) derives the paused branch from the broadcast's own `paused` bit so the frozen↔running flip and the deadline update atomically on guests (kills the resume "flash to 0" that the watchPause/watchClock ordering gap would leave), and reads `state.pauseElapsed` for the frozen number. Guests never mutate deadline/pauseElapsed (host authority preserved); freezing still routes through the single `appState.shotClockPaused`; no watcher added/removed (inventory stays 19).
 - **Requirement:** CLOCK-02 (D-07: "on resume the current player's countdown continues from the remaining time it had when paused").
 - **Symptom (2-window MP, host-initiated pause):** paused windows show mismatched frozen remaining time (host 13s / guest 20s); on resume the guest countdown jumps to ~0 ("lose your turn", red) while the host continues from the correct remaining time. Reproduced by Wyatt in a regular-Chrome host + Incognito guest game.
 - **Works:** the shared paused flag DOES sync (both windows freeze; bots stop) — the freeze half of CLOCK-02 is correct.
@@ -54,6 +56,7 @@ blocked: 0
 - **Relevant code:** src/ui/util.js `applyPauseState` (~616), `shotClockTick` (~644); src/orchestrator.js `togglePause`/`watchPause` (~160/170), `broadcastClock` (~142), `watchClock` (~238).
 
 ### CLOCK-03-paused-affordance-inconsistency (minor UX polish — non-blocking)
+- **Status:** FIX IMPLEMENTED (2026-07-26, folded into the CLOCK-02 fix) — awaiting human confirmation. The frozen your-own-turn paused number now gets a `.tappable` class (dotted underline + hover lift, reduced-motion aware) in `setClockUI()`'s state-present paused branch, so it visibly reads as tap-to-resume like the large ⏸-symbol branch. Class is reset each render tick alongside the existing onclick/cursor reset.
 - **Requirement:** CLOCK-03 — functionally PASSES (clicking the paused display resumes in both render branches, confirmed by Wyatt).
 - **Observation:** the paused resume target looks different depending on whose turn it is. On a bot/idle turn the paused panel shows the large `PAUSE_SYMBOL_IMG` (obviously tappable). On the human's OWN turn it shows the frozen countdown number ("10 seconds / tap ▶ to resume") — that number IS click-to-resume (`numEl.onclick` set in the state-present paused branch of `setClockUI`, src/ui/panel.js), but it does not visually read as tappable, and the hint text points at the tiny corner ▶ instead. Users may not realize the big number resumes on their own turn.
 - **Not a functional failure** — CLOCK-03's "clicking the large PAUSED image resumes" is met wherever the large image appears, and the number is a working bonus affordance. This is a discoverability/consistency polish item (candidate for Phase 16 UI/UX, or a small tweak folded into the CLOCK-02 fix since the same paused-render code is in scope).

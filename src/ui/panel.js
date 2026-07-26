@@ -59,18 +59,26 @@ export function setClockUI(){
   }
   wrap.style.display="";
   $("btnPlayAgain").style.display="none";
-  const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline}):appState.clockState;
+  const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline,paused:appState.shotClockPaused,pauseElapsed:appState.shotClockPauseElapsed}):appState.clockState;
+  // CLOCK-02 FIX (mp-pause-clock-desync): on a GUEST the frozen<->running decision AND the frozen
+  // remaining it renders must both flip from the SAME authoritative clock broadcast. Driving the
+  // paused branch off appState.shotClockPaused alone (set by watchPause on the /paused flag) let
+  // the flag land a network round-trip BEFORE the fresh deadline (watchClock) and flash a stale
+  // countdown — the "guest races to 0 on resume". Prefer the broadcast's own paused bit; fall back
+  // to the mirrored flag only until the first clock write arrives. The host owns the clock, so its
+  // inline state.paused IS its live flag — no behavior change for host or solo.
+  const paused=(state&&typeof state.paused==="boolean")?state.paused:appState.shotClockPaused;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
   // CLOCK-03: defensive reset, once per tick, BEFORE any branch below. setClockUI() re-runs on
   // the 500ms interval, so a click-to-resume handler set in a prior PAUSED tick must never
   // survive into a later non-paused tick (RESEARCH Anti-Pattern 4) — only the two paused
-  // branches below re-arm it.
-  numEl.onclick=null;numEl.style.cursor="";
+  // branches below re-arm it. The .tappable affordance class is reset here for the same reason.
+  numEl.onclick=null;numEl.style.cursor="";numEl.classList.remove("tappable");
   // CLOCK-02/D-09: de-gated from appState.isHost&&soloBotGame() — the ▶/⏸ pause is now shown to
   // every player in both solo and multiplayer (a guest's click reaches togglePause() via
   // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
   pauseEl.style.display=(!appState.liveDone)?"":"none";
-  $("scPauseImg").src=appState.shotClockPaused?PLAY_IMG:PAUSE_IMG;
+  $("scPauseImg").src=paused?PLAY_IMG:PAUSE_IMG;
   // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
   // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
   const toggleEl=$("scTimerToggle");
@@ -87,7 +95,7 @@ export function setClockUI(){
     return;
   }
   if(!state){
-    if(appState.shotClockPaused){
+    if(paused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
       // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
@@ -107,16 +115,24 @@ export function setClockUI(){
     return;
   }
   wrap.classList.remove("idle");
-  if(appState.shotClockPaused){
-    const elapsed=appState.shotClockPauseElapsed/1000;
+  if(paused){
+    // CLOCK-02 FIX (mp-pause-clock-desync): the frozen remaining comes from the host's
+    // pauseElapsed carried in the clock broadcast (state.pauseElapsed) so host and guest show the
+    // IDENTICAL number — a guest never owns appState.shotClockPauseElapsed (it stays 0), which is
+    // why it used to freeze at 20s while the host showed 13s. Fall back to the live deadline only
+    // for the brief pre-broadcast window on a guest (self-corrects on the next clock write).
+    const peMs=(state.pauseElapsed!=null)?state.pauseElapsed:Math.max(0,30000-(state.deadline-Date.now()));
+    const elapsed=peMs/1000;
     const urgent=elapsed>=20;
     wrap.classList.remove("urgent");wrap.classList.add("paused");
     labelEl.textContent="paused";
     numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
     unitEl.textContent="seconds";
     subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
-    // CLOCK-03: same big-symbol resume affordance as the other paused branch above.
-    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
+    // CLOCK-03: same togglePause resume seam as the other paused branch above. UX (this phase):
+    // the frozen NUMBER didn't read as clickable (unlike the ⏸-symbol branch), so .tappable adds
+    // a dotted underline + hover lift making it obviously tap-to-resume on your own turn.
+    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();numEl.classList.add("tappable");
     return;
   }
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));

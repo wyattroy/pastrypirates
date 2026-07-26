@@ -365,6 +365,15 @@
   #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8;
     display: inline-block; min-width: 2ch; }
   #shotClockPanel.urgent #shotClockNum { color: #ff8f86; }
+  /* CLOCK-02 UX: while paused the frozen number is click-to-resume (setClockUI adds .tappable) —
+     the ⏸-symbol paused branch already reads as a button, but this numeric branch did not. Dotted
+     underline + hover lift signal it's tappable without disturbing the tabular-nums layout. */
+  #shotClockNum.tappable { cursor: pointer; text-decoration: underline dotted rgba(255,255,255,.65);
+    text-underline-offset: 3px; border-radius: 6px; padding: 0 2px;
+    transition: background .12s ease, transform .12s ease; }
+  #shotClockNum.tappable:hover { background: rgba(255,255,255,.2); transform: scale(1.05); }
+  @media (prefers-reduced-motion: reduce) { #shotClockNum.tappable { transition: none; }
+    #shotClockNum.tappable:hover { transform: none; } }
   /* reserve room for the widest label ("seconds"/"or lose your turn") so the panel doesn't
      narrow when the idle state clears these to shorter placeholder text */
   #scUnit { font-size: clamp(7px,2.2cqw,12px); color: #e0c58f; display: inline-block; min-width: 7ch; }
