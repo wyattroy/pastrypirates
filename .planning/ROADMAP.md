@@ -360,3 +360,14 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
+
+## Backlog
+
+### Phase 999.1: Resume restores exact narration step on reload (BACKLOG)
+
+**Goal:** [Captured for future planning] On page reload mid-game, resume rebuilds state by replaying the recorded decision log with narration suppressed (`appState.replaying`), landing the player back at their own next turn with all already-decided bot turns silently re-applied — no narration shown for them. The player expects to return exactly where they left off, so it feels confusing. Ideal: resume restores the exact narration/animation step that was on screen at reload time. NOT a Phase 13 regression (pre-existing v1.1 host-reload/solo-resume replay contract; 13-02 only added the schema-version guard in front of resume) and NOT a fairness exploit (replay only re-runs already-made decisions). Implementation note: would require persisting the transient narration cursor / current-turn display position in the save blob (`pp_solo`/`pp_sess`), which the decision-log model deliberately does not capture today. Relevant code: `src/orchestrator.js` `resumeSoloGame`/`resumeHostGame` + the `appState.replaying` suppression in `netNarrate`/`showNarration`/`sleep`. Surfaced during Phase 13 CLOCK-01 UAT (test 1, Part A).
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
