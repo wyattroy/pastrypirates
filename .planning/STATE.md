@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Playtest Fixes & Polish
 current_phase: 14
-current_phase_name: Engine-Adjacent Gameplay Fixes & Determinism
+current_phase_name: engine-adjacent-gameplay-fixes-determinism
 status: executing
-stopped_at: Phase 14 context gathered
-last_updated: "2026-07-26T20:25:16.671Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-07-26T20:40:30.317Z"
 last_activity: 2026-07-26
-last_activity_desc: Phase 13 complete, transitioned to Phase 14
+last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 9
-  completed_plans: 3
+  completed_plans: 4
   percent: 9
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 14 — Engine-Adjacent Gameplay Fixes & Determinism
+**Current focus:** Phase 14 — engine-adjacent-gameplay-fixes-determinism
 
 ## Current Position
 
-Phase: 14 — Engine-Adjacent Gameplay Fixes & Determinism
-Plan: Not started
+Phase: 14 (engine-adjacent-gameplay-fixes-determinism) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-07-26 — Phase 13 complete, transitioned to Phase 14
+Last activity: 2026-07-26 — Phase 14 execution started
 
-Progress: [░░░░░░░░░░] 0% (v1.2)
+Progress: [████░░░░░░] 44% (v1.2)
 
 ## Performance Metrics
 
@@ -57,6 +57,11 @@ Progress: [░░░░░░░░░░] 0% (v1.2)
 | 13 | 3 | - | - |
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 14 P01 | 30min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -69,6 +74,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - STORM-01 is the one engine-adjacent change; it is grouped with VERIFY-02 in Phase 14 so determinism re-verification (30/30) is deliberate, not incidental.
 - NARR-01 is an approval-gate deliverable — the narration audit goes to Wyatt for review before the NARR-02…06 pruning/fixes are applied.
 - Ko-Fi "Buy me a cookie" button (KOFI-01) approved for v1.2 despite the third-party ko-fi.com script embed.
+- [Phase ?]: D-18: leeward() now tests the upwind square against isHome() as well as isIsland() — Tortuga casts a wind shadow like every other island (fixture-perturbing, deliberate)
+- [Phase ?]: Determinism gate is deliberately RED (19/30 seeds diverge) after D-18 — re-record deferred to 14-04 per D-16; docs/DETERMINISM-RERECORD.md seeded with real per-seed measurements
 
 ### Pending Todos
 
@@ -96,9 +103,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-26T18:51:32.932Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-engine-adjacent-gameplay-fixes-determinism/14-CONTEXT.md
+Last session: 2026-07-26T20:40:30.305Z
+Stopped at: Completed 14-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

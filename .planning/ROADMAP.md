@@ -295,12 +295,12 @@ Plans:
 > divergence report. D-16's original "confirm the differences are storm-related only" test is replaced
 > by D-26's explainability test.
 
-**Plans**: 6 plans
+**Plans**: 1/6 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 14-01-PLAN.md — Tracer: full per-seed determinism diff tooling (D-26) + Tortuga's wind shadow (D-18), with the re-record record seeded [Wave 1]
+- [x] 14-01-PLAN.md — Tracer: full per-seed determinism diff tooling (D-26) + Tortuga's wind shadow (D-18), with the re-record record seeded [Wave 1]
 - [ ] 14-02-PLAN.md — AI-01: the bot hail becomes a real action — ranked targets, scaled offers, and a turn that ends (D-02…D-08, D-24, D-25) [Wave 1]
 
 **Wave 2** *(blocked on Wave 1)*
@@ -384,7 +384,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
-| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 0/6 | Planned | - |
+| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 1/6 | In Progress|  |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
