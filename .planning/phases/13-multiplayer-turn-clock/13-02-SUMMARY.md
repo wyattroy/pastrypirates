@@ -123,3 +123,9 @@ None - no external service configuration required.
 ---
 *Phase: 13-multiplayer-turn-clock*
 *Completed: 2026-07-26*
+
+## Self-Check: PASSED
+- FOUND: .planning/phases/13-multiplayer-turn-clock/13-02-SUMMARY.md
+- FOUND: 9a9fceb (Task 1 commit)
+- FOUND: 95eab05 (Task 2 commit)
+- FOUND: b75603f (docs/SUMMARY commit)
