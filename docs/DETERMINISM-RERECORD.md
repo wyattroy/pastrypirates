@@ -145,6 +145,154 @@ the `state`/`pos` cascade, and `--ignore-keys` is available so 14-04's checkpoin
 each divergence to a named decision (D-18 here; D-15/D-21 when they land). **This finding is marked
 here as awaiting Wyatt's confirmation at 14-04's checkpoint — it is not presented as settled.**
 
-## 5. Verdict
+## 5. Final complete attributed divergence report — 14-04 Task 1
 
-**PENDING — completed in 14-04 before --capture.**
+Measured this session, with all three fixture-perturbing changes (D-15, D-18, D-21) in the tree,
+by running all four required diff passes over the full 30-seed corpus. No fixture byte was
+written in this task.
+
+### 5.1 The four passes, real numbers
+
+1. **`node scripts/determinism_diff.js`** — full human-readable report, 30 seeds, 62,205 lines of
+   output (every divergent line in every seed, to the end — never stopping at the first).
+2. **`node scripts/determinism_diff.js --json`** — machine report. Top-line summary:
+   `divergentSeeds: 30/30`, `structuralDivergentSeeds: 30/30`, `preStormStructuralFailures: 27`
+   (this raw number is dominated by D-15's `wind2` field making every seed's line 0 "structural"
+   under a no-ignore run — see pass 3 for the isolated, meaningful figure).
+3. **`node scripts/determinism_diff.js --ignore-keys=wind2`** — isolates D-15's additive
+   serialization delta. `divergentSeeds: 30/30` (unchanged from pass 2 — proves `wind2`'s presence
+   never flips any seed's divergent/non-divergent verdict, i.e. it is purely additive, not
+   behavioral). With `wind2` no longer forcing every line 0 "structural", `preStormStructuralFailures`
+   drops to **16** — the real, attributable figure.
+4. **`node scripts/determinism_diff.js --ignore-keys=wind2,reason`** — additionally isolates
+   D-21's `reason` field. `divergentSeeds: 30/30` (unchanged again) and `preStormStructuralFailures`
+   stays at **16** (`reason` never appears before a seed's first storm round, since `moored` events
+   cannot fire before any movement, so it cannot move this figure — confirmed structurally).
+
+### 5.2 Full byEventType / byKey histograms (identical across all four passes — see 5.3 for why)
+
+`byEventType` (divergent line counts, 30-seed corpus, all three changes landed):
+`newround:612, turn:2511, sail:1856, fish:1486, battle:127, dock:793, anchor:9, blocked:57,
+windmove:204, dodge:36, blownOut:106, moored:159, battleflee:36, trade:74, finish:41,
+tradewind:84, end:39, __final__:38, anchorHold:5, bakeoff:4, aground:6`.
+
+`byKey` (divergent line counts per differing JSON key):
+`wind2:7816, state:7049, tokens:6365, t:5851, p:5421, wind:5098, round:3960, storm:2901,
+heads:2701, got:1197, ing:1081, windStreak:826, dir:836, winner:321, rounds:252, flips:251,
+downwind:251, d:250, spoil:202, spoilIng:202, reason:157, b:133, gave:126, kind:126, players:58,
+a:383, other:74`.
+
+**Note on why the histograms don't change across ignore-keys passes:** `byEventType`/`byKey` count
+every line that has *any* differing key at all, and every key that differs on that line — the
+`--ignore-keys` flag only changes whether a line counts as `structural` (used for
+`preStormStructuralDivergence`), not whether it's counted in these two histograms. This is
+correct tool behavior (confirmed by reading `scripts/determinism_diff.js:90-121`): the histograms
+answer "what changed," the structural flag answers "does this specific divergence count toward
+the pre-storm assertion."
+
+### 5.3 Attribution — every key, named
+
+- **`wind2` (7,816 lines, spans every event type present in the histogram)** — **D-15.** This is
+  the new `windNow2` field `ev()` now writes onto every event (`null` on calm rounds, a direction
+  letter on stormy ones). Proven purely additive by pass 3: ignoring it changes zero seeds'
+  divergent/non-divergent verdict. This key alone explains why every seed's line 0 differs.
+- **`reason` (157 lines, all 157 on `moored`-typed lines — verified programmatically: 0 non-moored
+  lines carry `reason`)** — **D-21.** The new `moored` cause tag (`justDocked`/`dock`/`home`).
+  `byEventType.moored` is 159 (2 more than 157) because 2 moored lines already diverged on other
+  keys from the same routing cascade and so don't separately register `reason` as "new" in that
+  line's diff — consistent with 14-03's finding, still correctly tagged, not double-counted.
+- **Everything else — `state`, `tokens`, `t`, `p`, `wind`, `round`, `storm`, `heads`, `got`, `ing`,
+  `windStreak`, `dir`, `winner`, `rounds`, `flips`, `downwind`, `d`, `spoil`, `spoilIng`, `b`,
+  `gave`, `kind`, `players`, `a`, `other`** — **D-18's routing cascade, compounded by D-15's second
+  gust.** Every event carries the full per-player `state` snapshot (`Game.ev()`), so the instant one
+  player's `pos` diverges from a routing decision (D-18's `sailBudget` 9→7 near home changing
+  `stepToward`'s Dijkstra result) or a movement decision (D-15's up-to-4-square push consuming an
+  extra `this.r()` draw and shifting the RNG stream), every subsequent event's `state`/`tokens`/
+  `wind`/`storm`/`round` fields diverge for the rest of that seed. This is one cascade, not dozens
+  of independent causes.
+
+### 5.4 Attribution by event type — every entry in `byEventType`, named
+
+- **`newround`, `turn`** — per-round bookkeeping; diverge because the round-by-round state differs
+  (D-18 routing + D-15's extra RNG draw per stormy round).
+- **`sail`** — bot sail destinations differ because `sailBudget()` changed near home (D-18) and
+  because the push itself now travels up to 4 squares instead of 2 (D-15).
+- **`fish`, `dock`, `trade`, `battle`, `battleflee`, `tradewind`** — consequence events. A bot that
+  routes to a different square fishes/docks/trades/battles differently there. This is the
+  legitimate cascade D-26 named as the reason D-16's narrow "storm-only" criterion had to be
+  replaced, not a sign of an unrelated regression.
+- **`windmove`, `dodge`, `blownOut`, `anchor`, `anchorHold`, `aground`, `blocked`** — storm-push
+  outcome events, directly caused by D-15's second gust (more squares travelled, more outcomes to
+  land on) and by D-18 changing which squares are leeward/reachable.
+- **`moored`** — D-21's `reason` field (157/159 lines) plus the same D-18/D-15 state cascade on the
+  remaining lines.
+- **`finish`, `bakeoff`, `end`, `__final__`** — endgame summary events. Checked directly: the 38
+  divergent `__final__` lines differ only on `players`, `round`, `t`, `winner`, `heads`, `p`,
+  `state`, `storm`, `tokens`, `wind`, `got`, `ing` — every one of these is a state-cascade field
+  with a routing explanation (different final positions/coin counts/round-of-completion/winner
+  fall out of the whole-game cascade). No `__final__` line diverges on a field with no upstream
+  routing explanation.
+- **No event type in this histogram is new or unaccounted for.** Every type listed
+  (`newround, turn, sail, fish, battle, dock, anchor, blocked, windmove, dodge, blownOut, moored,
+  battleflee, trade, finish, tradewind, end, __final__, anchorHold, bakeoff, aground`) is part of
+  the engine's existing, pre-phase event vocabulary (cross-checked against
+  `REQUIRED_EVENT_TYPES` in `scripts/determinism_baseline.js:41-49` and the engine's known `ev()`
+  call sites) — this phase changed *which* squares/outcomes fire these events, not *what* event
+  types exist.
+- **Spot-checked the `other` key** (74 lines, appears/disappears on `blocked`/`fish` lines) — this
+  is an existing field (the other player's seat index on a `blocked` event), not a new or mystery
+  field; it appears/disappears at a given line index because a different event type now occupies
+  that JSONL line position after the routing cascade shifted the sequence of actions. Not an
+  anomaly.
+
+### 5.5 Per-seed `preStormStructuralDivergence` — measured explanation
+
+Isolating D-18/D-15's real behavioral divergence from D-15/D-21's additive fields
+(`--ignore-keys=wind2,reason`), **16 of the 30 seeds diverge structurally before their first storm
+round**: 12345, 12346, 12347, 12349, 12352, 12354, 12361, 12363, 12364, 12365, 12366, 12368,
+12370, 12372, 12373, 12374.
+
+**This is the identical 16-seed set 14-01 already found and documented in Section 4 for D-18
+alone** (measured there against only 19 divergent seeds, before D-15/D-21 landed). Landing D-15 and
+D-21 on top of D-18 did not change which seeds diverge before their first storm round, or how many
+— strong corroborating evidence that the pre-storm mechanism is exactly what Section 4 already
+named (every player spawns on a Tortuga berth; `leeward()` is a wind effect that fires every round,
+not a storm-gated one) and that D-15/D-21 contribute nothing to this specific figure, exactly as
+expected since `windNow2` and `moored`'s `reason` can only ever appear on/after a round with
+movement that already happened — they cannot cause a divergence to appear *earlier* than it already
+did under D-18 alone.
+
+Three seeds never roll a storm at all across this 30-round-cap playthrough
+(`firstStormEventIndex: -1`) yet still diverge: 12354, 12366, 12373 — the same three 14-01
+identified, confirming again that this mechanism is wind-driven, not storm-gated, and unaffected by
+D-15/D-21.
+
+**`preStormStructuralDivergence: true` for 16/30 seeds is the honest, expected result of D-26's
+literal criterion, not a new finding requiring separate action** — D-26 explicitly anticipated this
+outcome (Section 4) and named the replacement evidence (this section's per-key attribution) as the
+thing actually relied upon. Nothing here is being weakened; it is being reported as designed.
+
+### 5.6 Unattributed divergences
+
+**unattributed divergences: none.** Every divergent event type in `summary.byEventType` and every
+divergent JSON key in `summary.byKey` is attributed above to exactly one of D-15, D-18, or D-21 (or,
+for the great majority of lines, to the D-18/D-15 cascade acting jointly through the shared `state`
+snapshot). No seed shows a divergence confined to `battle`/`trade`/`dock`/`fish` with nothing
+storm/routing-related upstream; no `__final__` line diverges on a field without a routing
+explanation; no event type outside the engine's existing vocabulary appears; the `other` key's
+appearance/disappearance is a known field at a shifted line position, not a new field.
+
+### 5.7 What Task 2 must present, restated for the checkpoint
+
+- Three named causes (D-15, D-18, D-21) and what each changes (Section 1).
+- Divergent-seed count (30/30), the event-type histogram, and the key histogram (5.2 above).
+- The attribution mapping every event type/key to a cause (5.3, 5.4), with the explicit
+  `unattributed divergences: none` line (5.6).
+- The honest D-26 finding: the literal pre-storm assertion fails for 16/30 seeds, for a fully
+  measured and named mechanism (5.5), and D-26's own replacement evidence (per-key attribution) is
+  what is actually relied upon — Wyatt must confirm that substitution explicitly.
+- The unresolved VERIFY-02 probe row, stated as unresolved (per the plan's `<flagged_assumptions>`).
+
+## 6. Verdict
+
+**AWAITING DECISION — see 14-04 Task 2.**
