@@ -368,7 +368,10 @@ export async function narrateLastEvent(){
 // on screen — regardless of how fast or slow reveals run in a given browser. Held on screen
 // fully-visible for the hold period, then fades out over .5s before flash() resolves, so the next
 // narration/prompt never clobbers this one mid-transition.
-export async function flash(msg,ms){
+// D-10: `holdMs`, when a number, overrides the human msgHoldMs() hold — this is how botWindLeg
+// (src/ui/flow.js) gets its own, snappier bot pacing without a second flash() implementation.
+// Purely additive: `ms` and every existing two-argument call site behave exactly as before.
+export async function flash(msg,ms,holdMs){
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate
   // is itself still a classic-script global this wave, wired in through the still-present PP
@@ -377,7 +380,7 @@ export async function flash(msg,ms){
   const el=$("actionPanel").querySelector(".apMsg");
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;
-  await sleep(msgHoldMs(text));
+  await sleep(typeof holdMs==="number"?holdMs:msgHoldMs(text));
   if(el&&el.isConnected){
     el.classList.add("fadeOut"); // BUG-01: text fades via opacity only — no grid-row collapse, so
                                  // nothing animates the box height (see #apGrid CSS). The box snaps

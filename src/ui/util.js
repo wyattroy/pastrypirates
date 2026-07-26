@@ -477,8 +477,25 @@ export function msgHoldMs(text){
 }
 // D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
 // snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);
-// see botWindLeg for the bot's own, snappier BOT_STORM_STEP_MS.
+// BOT_STORM_STEP_MS is the bot's own, snappier per-square beat (botWindLeg, src/ui/flow.js).
 export const STORM_STEP_MS=320;
+export const BOT_STORM_STEP_MS=170;
+
+// D-10: "snappiness and legibility are the two things being balanced" — a separate, shorter hold
+// curve for bot narration, not a scaled copy of msgHoldMs's. Same base/per-char/pause shape, but a
+// lower floor and ceiling (clamped BEFORE the multiplier) so a bot's per-event lines read fast
+// without going illegible on a long line. A single named constant (BOT_MSG_HOLD_MULTIPLIER) plus
+// STORM_STEP_MS/BOT_STORM_STEP_MS above are the whole pacing surface — tune the feel here only.
+export const BOT_MSG_HOLD_MULTIPLIER=0.5;
+export function botMsgHoldMs(text){
+  text=text||"";
+  const base=1000,charTime=50;
+  let raw=base+text.length*charTime;
+  const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
+  const pauses=(body.match(/[,!?.]/g)||[]).length;
+  raw+=pauses*300;
+  return Math.round(Math.min(Math.max(raw,900),2600)*BOT_MSG_HOLD_MULTIPLIER);
+}
 
 // reads a boat's current on-screen position straight off its own <g>, rather than deriving it
 // from game.events[evIdx] — that array is still empty during the pre-round intro narration (boats

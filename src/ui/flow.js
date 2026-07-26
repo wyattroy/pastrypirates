@@ -55,7 +55,7 @@ import {
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
-  replayShortfall, STORM_STEP_MS,
+  replayShortfall, STORM_STEP_MS, describe, botMsgHoldMs, BOT_STORM_STEP_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -270,6 +270,45 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     }
   }
   appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
+}
+// bot's own storm push (D-09/D-10/D-11) — mirrors windLeg's per-square shape, but delegates each
+// square's outcome to the engine's own windPush(p,d,1,dodgedOnce) rather than re-deriving the
+// island-outcome ladder: the engine already makes bots' storm decisions today, so reimplementing
+// the ladder here would let bots and humans silently drift apart on the rule itself (the same
+// "keep the two in step" convention this file already follows for humanDock/Game.doDock). Narrates
+// EVERY event the square records, not just the last — the fix for D-11: botBeat()'s own
+// narrateCurrent() only ever narrates the single appState.evIdx pointer, which is exactly why bot
+// storm outcomes have been vanishing. No flip animation for a bot: windPush already calls
+// g.flip(p) directly and records the resulting anchor/aground/shipwrecked event; narrating that
+// event states the result, which is all D-11 asks for. The interactive human flip helper
+// (humanFlip) is never reached from this function.
+export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
+  dodgedOnce=dodgedOnce||{v:false};
+  const g=appState.game;
+  for(let s=0;s<dist;s++){
+    const before=[...p.pos];
+    const evBefore=g.events.length;
+    g.windPush(p,DIRS[dirKey],1,dodgedOnce);
+    if(g.events.length>evBefore){
+      for(let k=evBefore;k<g.events.length;k++){
+        const L=describe(g.events[k]);
+        if(L)await flash(L.txt,null,botMsgHoldMs(L.txt));
+      }
+      liveRender();
+      return; // the engine returned early — this square's own outcome ends the leg
+    }
+    if(p.pos[0]!==before[0]||p.pos[1]!==before[1]){
+      liveRender();
+      await sleep(BOT_STORM_STEP_MS);
+      if(g.onRim(p.pos))return; // the engine already resolved the rim; no further square to push
+      continue;
+    }
+    return; // neither moved nor recorded anything — a blocked square, stop silently like windLeg
+  }
+  g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
+  const L=describe(g.events[g.events.length-1]);
+  if(L)await flash(L.txt,null,botMsgHoldMs(L.txt));
+  liveRender();
 }
 // only ever called during a storm now (see humanTurn) — normal turns don't force-move anyone
 export async function humanWind(p){
@@ -596,17 +635,16 @@ export async function botTurn(p){
   // wind no longer force-moves anyone on a normal turn (see #7) — only storms still shove
   // ships around; a normal turn's wind only shapes this player's own sail budget below
   if(g.stormNow){
-    const before=[...p.pos];
     const wasDocked=g.adjPort(p)!==null;
     const dodgedOnce={v:false};
-    g.windPush(p,DIRS[g.windNow],2,dodgedOnce);
-    g.windPush(p,DIRS[g.windNow2],2,dodgedOnce);
+    await botWindLeg(p,g.windNow,2,dodgedOnce,wasDocked);
+    // mirrors humanWind's own mid-storm direction flash (:281) at bot pace, naming the second leg
+    const secondLegMsg=`⛈️ Now the storm moves ${pn(p.idx)} ${DIRNAME[g.windNow2]}!`;
+    await flash(`⛈️ Now the storm moves ${pn(p.idx)} <b>${DIRNAME[g.windNow2]}</b>!`,null,botMsgHoldMs(secondLegMsg));
+    await botWindLeg(p,g.windNow2,2,dodgedOnce,wasDocked);
+    // botWindLeg already emits and narrates its own blownOut/windmove summary per leg — no
+    // separate summary emit or botBeat() here, or every storm outcome double-narrates
     p.justDocked=false;
-    // windPush itself may already have logged a moored/dodge/anchor/aground event (none of which
-    // move the ship) — narrate every time, not just on a position change, or the yellow panel goes
-    // stale while those outcomes silently happen off-screen
-    if(p.pos[0]!==before[0]||p.pos[1]!==before[1])g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
-    await botBeat();
     if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
   }
   if(!g.adjPort(p))p.dockedNow.clear();
