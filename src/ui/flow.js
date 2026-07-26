@@ -546,6 +546,39 @@ export async function humanTurn(p){
   // button sits frozen (blurred but visible) behind the next pass-the-device screen
   if(appState.passAndPlay)liveRender();
 }
+/* ================= bot hail (AI-01) ================= */
+// D-04/D-06/D-07: pure, DOM/Firebase/RNG-free — take `g` as an explicit param, read no appState,
+// touch no DOM, and never call g.r(), so a repeated evaluation inside one round is always safe.
+const HAIL_BASE_PRICE=5,HAIL_RESERVE=1; // reserve is exactly what a bot needs to sail next turn (:579)
+// D-06: prefer sellers holding 2+ (a genuine spare), then whoever it hurts least to give one up
+// (humanTrade's own essential idiom, :370 — recipe.includes+cnt<=1, NOT needs(q).includes per
+// <planner_corrections>), then proximity to the ingredient's island as a tiebreaker only — the
+// crate pool is guaranteed empty whenever a hail fires (D-05's gate), so no target can actually
+// restock; proximity never implies "can resupply easily". Seat index closes out a full tie.
+export function rankHailTargets(g,p,ing){
+  return g.players.filter(q=>q.strategy==="human"&&!q.done&&q.ing.includes(ing)).sort((a,b)=>{
+    const spareA=g.cnt(a.ing,ing),spareB=g.cnt(b.ing,ing);
+    if(spareB!==spareA)return spareB-spareA;
+    const hurtsA=(a.recipe.includes(ing)&&spareA<=1)?1:0,hurtsB=(b.recipe.includes(ing)&&spareB<=1)?1:0;
+    if(hurtsA!==hurtsB)return hurtsA-hurtsB;
+    const distA=man(a.pos,g.islandOf[ing]),distB=man(b.pos,g.islandOf[ing]);
+    if(distA!==distB)return distA-distB;
+    return a.idx-b.idx;
+  });
+}
+// D-07: scales on BOTH the bot's own desperation and what giving it up costs the seller, clamped
+// by the bot's purse minus its reserve — the clamp is the bankruptcy guard and is not optional.
+export function priceHailOffer(g,p,seller,ing){
+  const desperation=g.needs(p).length<=1?2:(g.needs(p).length<=2?1:0);
+  const sellerCost=g.cnt(seller.ing,ing)>=2?0:(seller.recipe.includes(ing)?2:1);
+  return Math.max(0,Math.min(HAIL_BASE_PRICE+desperation+sellerCost,p.coins-HAIL_RESERVE));
+}
+// D-04: evaluated AFTER D-05's crate-supply gate has already passed — true only when the purse
+// covers the base offer with the reserve intact AND the spend is genuinely worth it: the
+// ingredient is among the bot's last two remaining needs, or the bot is stuck outright.
+export function hailWorthIt(g,p,ing){
+  return p.coins>=HAIL_BASE_PRICE+HAIL_RESERVE&&(g.needs(p).length<=2||g.boxedIn(p));
+}
 export async function botTurn(p){
   const g=appState.game;
   g.ev({t:"turn",p:p.idx});
