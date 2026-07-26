@@ -253,8 +253,10 @@ class Game{
     return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
   }
   leeward(p){ // an island upwind of you blocks the wind — cuts your sail budget (see #7c)
-    const d=DIRS[OPPOSITE[this.windNow]];
-    return this.isIsland([p.pos[0]+d[0],p.pos[1]+d[1]]);
+    const d=DIRS[OPPOSITE[this.windNow]],up=[p.pos[0]+d[0],p.pos[1]+d[1]];
+    // D-18: Tortuga is land for wind purposes too, exactly like every other island — mirrors the
+    // isIsland(o)||isHome(o) blocking-movement parity already used by stepToward's pass() (:295).
+    return this.isIsland(up)||this.isHome(up);
   }
   sailBudget(p){return this.leeward(p)?SAIL_BUDGET_LEEWARD:SAIL_BUDGET;}
   windPush(p,d,dist,dodgedOnce){
