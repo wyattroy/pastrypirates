@@ -268,7 +268,12 @@ Plans:
   3. Clicking the large "PAUSED" image resumes the clock. *(CLOCK-03)*
 
 **Plans**: 3 plans
+**Wave 1**
+
 - [ ] 13-01-PLAN.md — CLOCK-02 multiplayer pause: tracer sync path (net→state→ui) + surface the ▶/⏸ control [Wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 13-02-PLAN.md — CLOCK-01 boot hardening: localStorage schema-version guard for pp_sess/pp_solo [Wave 2]
 - [ ] 13-03-PLAN.md — CLOCK-03 clickable large PAUSED symbol resumes (solo + multiplayer) [Wave 2]
 
