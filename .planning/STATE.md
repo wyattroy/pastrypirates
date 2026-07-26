@@ -4,15 +4,15 @@ milestone: v1.2
 milestone_name: Playtest Fixes & Polish
 current_phase: 14
 current_phase_name: Engine-Adjacent Gameplay Fixes & Determinism
-status: planning
+status: executing
 stopped_at: Phase 14 context gathered
-last_updated: "2026-07-26T18:51:32.944Z"
+last_updated: "2026-07-26T20:25:16.671Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 13 complete, transitioned to Phase 14
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 3
+  total_plans: 9
   completed_plans: 3
   percent: 9
 ---
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 Phase: 14 — Engine-Adjacent Gameplay Fixes & Determinism
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 Last activity: 2026-07-26 — Phase 13 complete, transitioned to Phase 14
 
 Progress: [░░░░░░░░░░] 0% (v1.2)
