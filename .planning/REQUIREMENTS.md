@@ -11,7 +11,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 ### Turn Clock (CLOCK)
 
-- [ ] **CLOCK-01**: In a multiplayer game (2+ windows), the turn clock starts running normally so the first turn begins — the game no longer stalls "paused" before it starts, and no timer off/on toggle workaround is needed *(critical)*
+- [x] **CLOCK-01**: In a multiplayer game (2+ windows), the turn clock starts running normally so the first turn begins — the game no longer stalls "paused" before it starts, and no timer off/on toggle workaround is needed *(critical)*
 - [ ] **CLOCK-02**: A play/pause control is available in multiplayer games so any player can pause without missing bot actions
 - [ ] **CLOCK-03**: The large "PAUSED" image is itself a clickable button that resumes the clock when pressed
 
@@ -85,6 +85,7 @@ Deferred to a later milestone. Tracked but not in this roadmap.
 - **LOAD-01**: On a slow internet connection the game must not reveal itself until its assets are ready — the boot loader should stay up until loading completes, instead of being hidden after a fixed 6s cap that a slow connection blows past. *(Observed live: game appeared with art still streaming in. Root cause: `Promise.race([preloadAssets(), setTimeout(…, 6000)])` at `src/orchestrator.js:1076` hides the loader after whichever comes first — the 6s escape hatch wins on slow connections. The 6s cap exists to avoid a hung loader on a dead image host, so any fix must preserve a bailout for genuinely failed/offline asset hosts, e.g. a longer/adaptive timeout or progress-based reveal rather than removing the cap.)*
 - **LOAD-02**: The preload set should cover all first-view art, not just the board cluster — `preloadAssets()` at `src/ui/util.js:707` currently waits only for board/dock/wind/trade/logo/boats/islands/ingredients and omits icons (3.4 MB), badges, compass, and clock, so those still pop in. *(Context: total initial download is ~18 MB of images — board.png alone is 4.5 MB, pastries 5.3 MB, icons 3.4 MB. Asset-size reduction/optimization is a separate, larger concern and is out of scope for this loading-gate fix.)*
 - **LOAD-03**: `playpastrypirates.com` must load fast for every visitor without forcing the full ~18 MB game download up front. The **welcome screen is the default first screen** for anyone who has never visited — the "hoisting the sails" boot loader must NOT appear before it. Heavy game assets are downloaded **only after the player chooses to play** (e.g., clicks a play-mode button), and the "hoisting the sails" load screen is shown at THAT point — gating entry into the game itself, not the initial site visit. *(Wyatt, 2026-07-25. This supersedes the current boot flow where `preloadAssets()` + boot loader run at page load in `boot()` — LOAD-01/02's "keep the loader up until assets are ready" applies to this post-play load gate, not the initial welcome paint. Lazy-loading the 18 MB is the core win; also complements any future asset-size reduction.)*
+- **LOAD-04**: Optimize the game's image assets to shrink the total package from ~18 MB down to a target of **~3–5 MB**, without a visible quality drop in-game. This is the asset-size-reduction concern LOAD-02 explicitly deferred (distinct from the loading-gate/lazy-load fixes): compress and right-size the heavy art — board.png (~4.5 MB), pastries (~5.3 MB), icons (~3.4 MB) are the biggest wins — via e.g. PNG→optimized-PNG/WebP conversion, resolution/dimension trimming to actual on-screen size, and stripping metadata. Complements LOAD-01/02/03 (a 3–5 MB package makes the load gate near-instant on most connections) and any future work, but stands alone as its own optimization pass. *(Wyatt, 2026-07-25. Keep the emoji fallback path intact; must still run correctly in Safari and Chrome.)*
 
 ### Carried forward from v1.1 (still deferred)
 
@@ -109,7 +110,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLOCK-01 | Phase 13 | Pending |
+| CLOCK-01 | Phase 13 | Complete |
 | CLOCK-02 | Phase 13 | Pending |
 | CLOCK-03 | Phase 13 | Pending |
 | STORM-01 | Phase 14 | Pending |
