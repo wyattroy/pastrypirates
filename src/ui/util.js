@@ -250,19 +250,21 @@ export const EVENT_NARRATION={
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
   dodge:(e,at)=>({txt:`${pn(e.p)} pays 1🌕 to anchor safely`,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]}),
   anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
-  // D-19/D-20/D-21 (DRAFT — 14-06 presents these three lines for Wyatt's edit): one line used to
-  // cover three unrelated safe-harbor causes. mooredReason() now tags every event with which one
-  // actually fired — branch on it so the narration finally tells the truth. Same {txt,pops} shape,
-  // same ⚓ pop for all three; a replayed pre-change log with no reason falls back to the old
-  // generic line rather than rendering "undefined".
+  // D-19/D-20/D-21/D-27 (Wyatt-approved 2026-07-26): one line used to cover three unrelated
+  // safe-harbor causes. mooredReason() still tags every event with which one actually fired (the
+  // engine's `reason` field is untouched — this is a narration-only collapse). Per Wyatt's
+  // decision, `home` (a Tortuga berth) now renders the SAME line as `justDocked`, since D-18
+  // treats Tortuga as a normal island/dock and it should not get bespoke wording. `dock` keeps its
+  // own drafted line, approved as-is. A replayed pre-change log with no reason falls back to the
+  // old generic line rather than rendering "undefined".
   moored:(e,at)=>{
     const L={
-      justDocked:`${pn(e.p)} is still tied up from docking last turn — the storm can't drag a moored ship anywhere ⚓`,
+      justDocked:`${pn(e.p)} is still docked, so the storm can't run them aground.`,
       // D-20: the mechanics stay a lucky save (a ship blown ONTO a dock is sheltered by it) — the
       // wording change is the fix, per Wyatt: "you're able to steady your boat against the dock to
       // not be blown aground."
       dock:`Lucky break! The gust shoves ${pn(e.p)} onto a dock, and the crew steadies her fast against it ⚓`,
-      home:`${pn(e.p)} rides it out safe at the Isle of Tortuga — the harbour holds her fast ⚓`,
+      home:`${pn(e.p)} is still docked, so the storm can't run them aground.`,
     };
     return {txt:L[e.reason]||`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
   },
@@ -270,11 +272,13 @@ export const EVENT_NARRATION={
   anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
   tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
   parley:(e,at)=>{
-    const base=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`;
-    // D-01/D-24 (DRAFT — 14-06 presents this alongside the moored variants for Wyatt's edit): a
-    // refused hail still spent the bot's one action for that turn — say so, so the price being
-    // paid reads as a rule, not a glitch. A human's own parley (no kind:"hail") is untouched.
-    const txt=(e.kind==="hail"&&!e.ok)?`${base} <span class="nobrk">— but it cost ${pn(e.a)} their turn all the same.</span>`:base;
+    // D-01/D-24/D-27 (Wyatt-approved 2026-07-26): a refused hail still spends the bot's one action
+    // for that turn (the turn genuinely ends — see botTurn), but per Wyatt's decision the narration
+    // no longer spells that action-cost out as a visible clause — his approved wording drops the
+    // whole "cost {bot} their turn all the same" clause and its markup entirely; the refused-hail
+    // line now reads the same as any other refused offer. A human's own parley (no kind:"hail") is
+    // untouched, and the "deal struck!" line is unchanged.
+    const txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"they refused."}`;
     return {cls:"trade",txt,pops:[[at(e.a),e.ok?"🤝":"🙅"]]};
   },
   aground:(e,at,cellPx=0)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,

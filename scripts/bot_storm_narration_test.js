@@ -245,13 +245,21 @@ function s1of(pos, dir) { return [pos[0] + dir[0], pos[1] + dir[1]]; }
   check("second leg: position unchanged across both legs (moored/anchorHold never move a ship)", `${p.pos}`, `${posAfterLeg1}`);
 }
 
-/* ---------- assertion 4: EVENT_NARRATION.moored — three distinct lines + a sane fallback ---------- */
+/* ---------- assertion 4: EVENT_NARRATION.moored — engine reasons stay distinct; narration collapses justDocked/home ---------- */
 
+// Wyatt's copy decision (2026-07-26, 14-06 Task 1/2): the engine still tags every moored event
+// with a distinct `reason` (justDocked/dock/home — untouched, still asserted at the engine level
+// above and in scripts/storm_moored_reason_test.js). But at the NARRATION layer only, `home` (a
+// Tortuga berth) now renders the exact same line as `justDocked`, since D-18 treats Tortuga as a
+// normal island/dock and it should not get bespoke wording. `dock` keeps its own distinct line.
+// So the render-level assertion is TWO distinct strings across the three reasons, not three.
 {
   const at = () => [0, 0];
   const f = EVENT_NARRATION.moored;
   const texts = ["justDocked", "dock", "home"].map(reason => f({ t: "moored", p: 0, reason }, at).txt);
-  check("EVENT_NARRATION.moored: three reasons render three distinct lines", new Set(texts).size, 3);
+  check("EVENT_NARRATION.moored: three reasons render two distinct lines (justDocked/home share copy, dock is its own)", new Set(texts).size, 2);
+  check("EVENT_NARRATION.moored: justDocked and home render the identical narration line", texts[0], texts[2]);
+  checkTrue("EVENT_NARRATION.moored: dock's line differs from justDocked/home", texts[1] !== texts[0]);
   const bare = f({ t: "moored", p: 0 }, at).txt;
   checkTrue("EVENT_NARRATION.moored: no-reason event renders a real (non-empty, non-undefined) line", !!bare && !/undefined/.test(bare));
   checkTrue("describe(): a reasoned moored event still produces a non-null captain's-log line", describe({ t: "moored", p: 0, reason: "dock" }) !== null);
