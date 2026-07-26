@@ -729,13 +729,22 @@ export function preloadAssets(){
 }
 
 /* ---------- session persistence / host-refresh recovery ---------- */
+// CLOCK-01: schema-version stamps for the two *resumable-game-state* blobs (pp_sess/pp_solo).
+// Each blob evolves on its own schedule (multiplayer resume vs. solo resume are separate code
+// paths), so two independent constants rather than one shared "build version" (RESEARCH Pattern 3
+// Alternatives Considered) — bump only the one whose shape actually changes. boot()'s guard clears
+// a blob (via the existing clearSession()/clearSoloState()) whenever its stamp doesn't match,
+// treating an unstamped pre-refactor blob or a stale mismatched one as "no resume" (D-01/D-02).
+// pp_id/pp_timerOff are structurally excluded from this mechanism (D-03) — never versioned/cleared.
+export const SESSION_SCHEMA_V=1;
+export const SOLO_SCHEMA_V=1;
 export function getMyId(){
   let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
   if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}
   return id;
 }
 export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
-export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
+export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
 export function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
 
 // --- host-refresh recovery: record & replay the decision log ---
@@ -747,7 +756,7 @@ export function decodeDec(e){return (e&&Object.prototype.hasOwnProperty.call(e,"
 // but keep the log in localStorage instead of Firebase, since there's no server for solo games ----
 export function saveSoloState(){
   if(!appState.soloMeta)return;
-  try{localStorage.setItem("pp_solo",JSON.stringify({...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
+  try{localStorage.setItem("pp_solo",JSON.stringify({v:SOLO_SCHEMA_V,...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
 }
 export function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
 export function resumeSoloGame(saved){
