@@ -254,7 +254,14 @@ export const EVENT_NARRATION={
   blocked:(e,at)=>({txt:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
   anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
   tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
-  parley:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`,pops:[[at(e.a),e.ok?"🤝":"🙅"]]}),
+  parley:(e,at)=>{
+    const base=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"<b>refused</b>"}`;
+    // D-01/D-24 (DRAFT — 14-06 presents this alongside the moored variants for Wyatt's edit): a
+    // refused hail still spent the bot's one action for that turn — say so, so the price being
+    // paid reads as a rule, not a glitch. A human's own parley (no kind:"hail") is untouched.
+    const txt=(e.kind==="hail"&&!e.ok)?`${base} <span class="nobrk">— but it cost ${pn(e.a)} their turn all the same.</span>`:base;
+    return {cls:"trade",txt,pops:[[at(e.a),e.ok?"🤝":"🙅"]]};
+  },
   aground:(e,at,cellPx=0)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
     caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
     pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
