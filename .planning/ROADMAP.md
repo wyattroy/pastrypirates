@@ -267,10 +267,10 @@ Plans:
   2. Any player can pause and then resume the clock during a multiplayer game without missing bot actions. *(CLOCK-02)*
   3. Clicking the large "PAUSED" image resumes the clock. *(CLOCK-03)*
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 **Wave 1**
 
-- [ ] 13-01-PLAN.md — CLOCK-02 multiplayer pause: tracer sync path (net→state→ui) + surface the ▶/⏸ control [Wave 1]
+- [x] 13-01-PLAN.md — CLOCK-02 multiplayer pause: tracer sync path (net→state→ui) + surface the ▶/⏸ control [Wave 1]
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -355,7 +355,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 10. App State & De-globalization | v1.1 | 7/7 | Complete | 2026-07-25 |
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
-| 13. Multiplayer Turn Clock | v1.2 | 0/TBD | Not started | - |
+| 13. Multiplayer Turn Clock | v1.2 | 1/3 | In Progress|  |
 | 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 0/TBD | Not started | - |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
