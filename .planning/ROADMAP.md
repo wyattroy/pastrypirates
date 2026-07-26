@@ -267,7 +267,10 @@ Plans:
   2. Any player can pause and then resume the clock during a multiplayer game without missing bot actions. *(CLOCK-02)*
   3. Clicking the large "PAUSED" image resumes the clock. *(CLOCK-03)*
 
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 13-01-PLAN.md — CLOCK-02 multiplayer pause: tracer sync path (net→state→ui) + surface the ▶/⏸ control [Wave 1]
+- [ ] 13-02-PLAN.md — CLOCK-01 boot hardening: localStorage schema-version guard for pp_sess/pp_solo [Wave 2]
+- [ ] 13-03-PLAN.md — CLOCK-03 clickable large PAUSED symbol resumes (solo + multiplayer) [Wave 2]
 
 ### Phase 14: Engine-Adjacent Gameplay Fixes & Determinism
 
