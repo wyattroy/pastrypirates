@@ -295,7 +295,7 @@ Plans:
 > divergence report. D-16's original "confirm the differences are storm-related only" test is replaced
 > by D-26's explainability test.
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 **Wave 1**
@@ -313,7 +313,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 14-05-PLAN.md — STORM-01: per-square storm rendering for humans and bots, every outcome narrated, three honest moored lines (D-09…D-11, D-20, D-22) [Wave 4]
+- [x] 14-05-PLAN.md — STORM-01: per-square storm rendering for humans and bots, every outcome narrated, three honest moored lines (D-09…D-11, D-20, D-22) [Wave 4]
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -384,7 +384,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
-| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 4/6 | In Progress|  |
+| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 5/6 | In Progress|  |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |

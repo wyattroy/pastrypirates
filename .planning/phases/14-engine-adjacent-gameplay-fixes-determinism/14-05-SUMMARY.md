@@ -180,3 +180,15 @@ Per project precedent, storm narration copy is authored/approved by Wyatt, not a
 ---
 *Phase: 14-engine-adjacent-gameplay-fixes-determinism*
 *Completed: 2026-07-26*
+
+## Self-Check: PASSED
+
+- FOUND: src/ui/flow.js
+- FOUND: src/ui/util.js
+- FOUND: src/ui/panel.js
+- FOUND: scripts/bot_storm_narration_test.js
+- FOUND: .planning/phases/14-engine-adjacent-gameplay-fixes-determinism/14-05-SUMMARY.md
+- FOUND: commit bd2719e (Task 1)
+- FOUND: commit a7c6233 (Task 2)
+- FOUND: commit de53c0b (Task 3)
+- FOUND: commit d3cdb51 (SUMMARY.md)

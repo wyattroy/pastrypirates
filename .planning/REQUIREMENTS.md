@@ -17,7 +17,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 ### Storm Movement (STORM)
 
-- [ ] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
+- [x] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
 
 ### Bot Behavior (AI)
 
