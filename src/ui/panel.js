@@ -61,6 +61,11 @@ export function setClockUI(){
   $("btnPlayAgain").style.display="none";
   const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline}):appState.clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
+  // CLOCK-03: defensive reset, once per tick, BEFORE any branch below. setClockUI() re-runs on
+  // the 500ms interval, so a click-to-resume handler set in a prior PAUSED tick must never
+  // survive into a later non-paused tick (RESEARCH Anti-Pattern 4) — only the two paused
+  // branches below re-arm it.
+  numEl.onclick=null;numEl.style.cursor="";
   // CLOCK-02/D-09: de-gated from appState.isHost&&soloBotGame() — the ▶/⏸ pause is now shown to
   // every player in both solo and multiplayer (a guest's click reaches togglePause() via
   // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
@@ -85,6 +90,10 @@ export function setClockUI(){
     if(appState.shotClockPaused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
+      // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
+      // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
+      // src/orchestrator.js (main-tier) directly.
+      numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
       return;
     }
     // notes/edits #5a: a bot's turn in solo mode never arms the shot clock, so `state` stays
@@ -106,6 +115,8 @@ export function setClockUI(){
     numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
     unitEl.textContent="seconds";
     subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
+    // CLOCK-03: same big-symbol resume affordance as the other paused branch above.
+    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
     return;
   }
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
