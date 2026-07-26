@@ -249,8 +249,16 @@ class Game{
     }
     return false;
   }
+  // D-21: the FIRST matching cause, same precedence moored()'s || chain already used — null when
+  // none match. moored() is now defined in terms of this, not a parallel rule.
+  mooredReason(p){
+    if(p.justDocked)return "justDocked";
+    if(this.cfg.singleDock&&this.adjPort(p)!==null)return "dock";
+    if(man(p.pos,this.home)<=1)return "home";
+    return null;
+  }
   moored(p){ // ships that DOCKED last turn (or sit at a berth / Isle of Tortuga) can't be wind-forced into land
-    return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
+    return this.mooredReason(p)!==null;
   }
   leeward(p){ // an island upwind of you blocks the wind — cuts your sail budget (see #7c)
     const d=DIRS[OPPOSITE[this.windNow]],up=[p.pos[0]+d[0],p.pos[1]+d[1]];
@@ -264,9 +272,14 @@ class Game{
     for(let s=0;s<dist;s++){
       const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
       if(this.blocked(nx))return;
-      if(this.isHome(nx)){this.ev({t:"moored",p:p.idx});return;} // safe harbor
-      if(this.isIsland(nx)){
-        if(this.moored(p)){this.ev({t:"moored",p:p.idx});return;}
+      // D-19: Tortuga is a single square, so the only cells you can be pushed onto it FROM are
+      // its four orthogonal neighbours — which are exactly the berths — and a berth always
+      // satisfies mooredReason's "home" cause. So the aground ladder below is unreachable for the
+      // home square; the old separate isHome(nx) early return was redundant with moored(), not
+      // load-bearing, and folds into ordinary land handling here without changing any outcome.
+      if(this.isIsland(nx)||this.isHome(nx)){
+        const reason=this.mooredReason(p);
+        if(reason){this.ev({t:"moored",p:p.idx,reason});return;}
         // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
         // also hits an island is a free pass, already-paid anchor holding fast
         if(dodgedOnce.v){this.ev({t:"anchorHold",p:p.idx});return;}
