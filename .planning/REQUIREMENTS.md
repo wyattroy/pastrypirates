@@ -17,7 +17,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 ### Storm Movement (STORM)
 
-- [x] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
+- [ ] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
 
 ### Bot Behavior (AI)
 
@@ -54,7 +54,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 ### Verification (VERIFY)
 
 - [ ] **VERIFY-01**: A manual Safari + Chrome multiplayer playtest (two windows) confirms the critical clock stall is fixed and a game starts and plays through end-to-end
-- [x] **VERIFY-02**: The determinism regression harness stays green (30/30) — storm-movement and any engine-adjacent changes do not break lockstep replay
+- [ ] **VERIFY-02**: The determinism regression harness stays green (30/30) — storm-movement and any engine-adjacent changes do not break lockstep replay
 
 ## Future Requirements
 
@@ -113,7 +113,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CLOCK-01 | Phase 13 | Complete |
 | CLOCK-02 | Phase 13 | Complete |
 | CLOCK-03 | Phase 13 | Complete |
-| STORM-01 | Phase 14 | Complete |
+| STORM-01 | Phase 14 | In Progress |
 | AI-01 | Phase 14 | Complete |
 | NARR-01 | Phase 15 | Pending |
 | NARR-02 | Phase 15 | Pending |
@@ -132,7 +132,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | META-02 | Phase 16 | Pending |
 | KOFI-01 | Phase 16 | Pending |
 | VERIFY-01 | Phase 17 | Pending |
-| VERIFY-02 | Phase 14 | Complete |
+| VERIFY-02 | Phase 14 | In Progress |
 
 **Coverage:**
 
