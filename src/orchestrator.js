@@ -102,6 +102,7 @@ import {
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
+  SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask,
@@ -1109,10 +1110,17 @@ export function boot(){
   showHome();
   syncBoardSizing();
   let sess=null;try{sess=JSON.parse(localStorage.getItem("pp_sess"));}catch(e){}
+  // CLOCK-01: a blob with no v field (pre-refactor build) or a mismatched v (stale schema) is
+  // treated as absent — cleared via the existing clearSession(), never partially trusted — so a
+  // returning old-version player starts clean instead of stalling on an invalid resume attempt
+  // (D-01/D-02). A current-version blob's v always matches and is never touched here.
+  if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
   if(!sess||!sess.room){
     // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
     // Checked before Firebase init so an offline refresh mid-solo-game still resumes.
     let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
+    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
+    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
     if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
   }
   const fbOk=fbInit();
