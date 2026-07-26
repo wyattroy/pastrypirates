@@ -40,23 +40,44 @@ created: 2026-07-26
 
 ## Per-Task Verification Map
 
-*Populated by the planner — one row per task, keyed to the plan and wave it lands in.*
+*Populated by the planner 2026-07-26 — one row per task, keyed to the plan and wave it lands in.*
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| *TBD by planner* | | | | — | N/A | | | | ⬜ pending |
+| 14-01-T1 | 14-01 tracer | 1 | VERIFY-02, STORM-01 | T-14-01 | Fixtures are never rewritten to clear a red gate | tooling + unit | `node scripts/determinism_diff.js --json` shape probe; `node scripts/determinism_diff.js --assert-clean` (expect RED); the 6 non-determinism contract gates | ❌ → created by this task | ⬜ pending |
+| 14-01-T2 | 14-01 | 1 | VERIFY-02 | T-14-02 | The re-record carries an audit trail | doc assertion | `node -e` marker probe over `docs/DETERMINISM-RERECORD.md` | ❌ → created by this task | ⬜ pending |
+| 14-02-T1 | 14-02 | 1 | AI-01 | — | N/A | unit (DOM-free) | `node scripts/hail_ranking_test.js` | ❌ → created by this task | ⬜ pending |
+| 14-02-T2 | 14-02 | 1 | AI-01 | T-14-05, T-14-06 | Shot-clock guard before any trade mutation; hail cannot grant a second action | structural + unit | `! grep -qi 'hail' src/engine/index.js`; `botTurn` structure probe; `node scripts/hail_ranking_test.js` | ✅ (source exists) | ⬜ pending |
+| 14-02-T3 | 14-02 | 1 | AI-01 | — | N/A | unit (narration render) | `EVENT_NARRATION.parley` three-way render probe | ✅ | ⬜ pending |
+| 14-03-T1 | 14-03 | 2 | STORM-01, VERIFY-02 | T-14-08 | RNG draw order matches the live loop exactly | structural + integration | two-gust + draw-order probes; `node scripts/dlog_replay_test.js`; `node scripts/determinism_diff.js --ignore-keys=wind2 --json` | ✅ | ⬜ pending |
+| 14-03-T2 | 14-03 | 2 | STORM-01, VERIFY-02 | T-14-09 | Berth protection cannot be silently dropped | unit (DOM-free) + structural | `node scripts/storm_moored_reason_test.js`; `mooredReason`/fold probe | ❌ → created by this task | ⬜ pending |
+| 14-04-T1 | 14-04 | 3 | VERIFY-02 | T-14-11 | Full enumeration precedes any write | tooling | `node scripts/determinism_diff.js --json`; record-completeness probe; fixtures-untouched probe | ✅ (tool from 14-01) | ⬜ pending |
+| 14-04-T2 | 14-04 | 3 | VERIFY-02 | T-14-11 | Human authorises the one-way door | `checkpoint:decision` (blocking) | — (human gate) | N/A | ⬜ pending |
+| 14-04-T3 | 14-04 | 3 | VERIFY-02 | T-14-12, T-14-13, T-14-14 | Coverage assertion intact; no source-hash rebase shortcut | integration | `node scripts/determinism_baseline.js --verify`; `node scripts/determinism_diff.js --assert-clean`; `npm test`; manifest-coverage probe | ✅ | ⬜ pending |
+| 14-05-T1 | 14-05 | 4 | STORM-01 | T-14-15 | UI push stays in lockstep with the engine push | structural + integration | `windLeg` render/reason probe; `npm test` | ✅ | ⬜ pending |
+| 14-05-T2 | 14-05 | 4 | STORM-01 | T-14-15, T-14-16 | Bot leg delegates rather than re-deriving; pacing never hides an outcome | structural + unit | `botWindLeg`/`botTurn` probe; `botMsgHoldMs` vs `msgHoldMs` probe; `flash` override probe; `npm test` | ✅ | ⬜ pending |
+| 14-05-T3 | 14-05 | 4 | STORM-01 | T-14-17 | Per-square equals two-square | unit (DOM-free) | `node scripts/bot_storm_narration_test.js`; three-moored-lines render probe | ❌ → created by this task | ⬜ pending |
+| 14-06-T1 | 14-06 | 5 | STORM-01 | — | Copy is authored by Wyatt, never auto-generated | `checkpoint:decision` (blocking) | — (human gate) | N/A | ⬜ pending |
+| 14-06-T2 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | — | N/A | integration | `npm test` (12 gates); gate-list probe; validation sign-off probe | ✅ | ⬜ pending |
+| 14-06-T3 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | T-14-18, T-14-20 | Forced-storm scaffolding cannot ship | manual/UAT + automated teardown check | forced-storm-reverted probe; `npm test`; `<human-check>` nine-point Safari + Chrome playtest | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+**Sampling continuity:** no three consecutive tasks lack an automated verify — every task above
+carries at least one `<automated>` command except the two blocking checkpoints (14-04-T2, 14-06-T1),
+which are never adjacent to each other.
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] **Full per-seed determinism diff** — `scripts/determinism_baseline.js --diff` or a new `scripts/determinism_diff.js`. The existing `verify()` (`scripts/determinism_baseline.js:150-241`) reports only the **first** divergent seed and the first divergent event within it. That cannot satisfy D-26's replacement criterion. Must enumerate **every** divergent event across all 30 seeds, tagged by event type. **Highest priority — blocks safely re-recording the corpus.**
-- [ ] **First-storm-round assertion** — a check that no seed diverges *before* its first storm round, which is the D-26 "explainable, not narrow" evidence that replaces D-16's now-unachievable "storm-only differences" criterion.
-- [ ] **Pure, DOM/Firebase-free hail logic** — extract hail targeting and pricing (e.g. `rankHailTargets` / `priceHailOffer`) so D-06/D-07 are unit-testable without mocking `ask()`, DOM, or `netHandlers()`.
-- [ ] **`moored` reason assertion** — confirm the three `moored` causes (D-21) tag distinct `reason` values and render three distinct narration strings.
-- [ ] No test-runner install needed — `node` (v25.9.0 confirmed present) is the only runtime dependency; `npm test` has no missing tool dependencies.
+- [ ] **Full per-seed determinism diff** — delivered as `scripts/determinism_diff.js` in **14-01 Task 1 (tracer)**. The existing `verify()` (`scripts/determinism_baseline.js:150-241`) reports only the **first** divergent seed and the first divergent event within it. That cannot satisfy D-26's replacement criterion. The new tool enumerates **every** divergent event across all 30 seeds, tagged by event type and by differing JSON key, with an `--ignore-keys` mode that separates an additive serialization delta from a real behavioural change. **Highest priority — blocks safely re-recording the corpus.**
+- [ ] **First-storm-round assertion** — delivered in the same tool (**14-01 Task 1**) as the per-seed `preStormStructuralDivergence` verdict.
+  > **Planner finding (2026-07-26), carried to 14-04's checkpoint rather than resolved here.** D-26's literal wording is expected to FAIL, for two measured reasons. (a) `leeward()` is a WIND effect that applies on every round, not a storm effect, and every player spawns on a Tortuga berth (`src/engine/index.js:209`) — verified this session across all 30 seeds, at least one player is downwind of home on round 1. (b) D-15 makes `ev()` write `wind2` onto every event, so every seed's line 0 changes. The assertion is still implemented and still run; its result is evidence Wyatt sees at the one-way-door checkpoint, not a criterion to soften silently. The evidence actually relied on is the per-key attribution.
+- [ ] **Pure, DOM/Firebase-free hail logic** — delivered as `rankHailTargets` / `priceHailOffer` / `hailWorthIt` plus `scripts/hail_ranking_test.js` in **14-02 Task 1**. Note: RESEARCH.md's assumption A2 proxy (`needs(q).includes(ing)`) is constant-false for any holder and is replaced by `humanTrade`'s own `essential` idiom — see 14-02's `<planner_corrections>`.
+- [ ] **`moored` reason assertion** — delivered as `scripts/storm_moored_reason_test.js` in **14-03 Task 2** (three distinct `reason` values, unchanged `moored()` boolean, and the D-19 berth-protection regression guard) and as the three-distinct-strings render probe in **14-05 Task 3**.
+- [ ] **Per-square/two-square push equivalence** — added by the planner as a fourth Wave 0 item, delivered as `scripts/bot_storm_narration_test.js` in **14-05 Task 3**. `botWindLeg` delegates each square to the engine's own push, so `windPush(p,d,2,once)` must be provably identical to two `windPush(p,d,1,once)` calls sharing one `once` — otherwise bots silently start playing a different game from the simulator.
+- [ ] No test-runner install needed — `node` (v25.9.0 confirmed present) is the only runtime dependency; `npm test` has no missing tool dependencies. All three new scripts are wired into the `npm test` chain in **14-06 Task 2**, taking the gate count from 9 to 12.
 
 ---
 
@@ -71,6 +92,14 @@ created: 2026-07-26
 | Hail targeting prefers spare-holders and the offer scales sensibly | D-06 / D-07 | Judgment on game feel; bots must not bankrupt themselves | Multi-human game; observe which seat gets hailed and at what price. Cross-check bot solvency over a full voyage. |
 | Tortuga casts a wind shadow | D-18 | Visible only as a changed sail budget in play | Position a ship downwind of Tortuga; confirm the sail budget drops as it does downwind of any other island |
 | Storm copy approval | D-14 / D-27 | Wyatt authors and approves storm copy by project precedent | Present the existing reused lines **plus** the genuinely new ones (three `moored` variants, refused-hail turn-end) for edit before the phase closes |
+| Three `moored` lines each read true in play | D-21 | Which of the three causes fired is only visible in a real push | Reach a berth, be blown onto a dock, and be pushed after docking last turn — confirm three different lines, each accurate |
+| No console errors across a full voyage | STORM-01 / AI-01 | Runtime errors surface only in a browser | Play a full voyage in each browser with the console open |
+
+**All rows above are discharged by 14-06 Task 3's nine-point `<human-check>`** (`workflow.human_verify_mode`
+is `end-of-phase`, so manual verification rides in `<verify><human-check>` rather than a
+`checkpoint:human-verify` task). Safari carries checks 1-5 and 8-9; Chrome repeats 1, 3, 6 and 9.
+The forced-storm hook (`cfg.storm=1` in `roundCfg`) is scaffolding and its revert is an automated
+acceptance criterion of that task.
 
 ---
 

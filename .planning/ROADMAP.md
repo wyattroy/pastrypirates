@@ -289,7 +289,35 @@ Plans:
   3. The bot hail/parley turn follows the rule Wyatt decides during this phase — a hailing bot no longer *appears* to take two actions in one turn unless that is the deliberately chosen behavior; if the rule applies to bot-vs-bot it is mirrored in the engine's `takeTurn`. *(AI-01)*
   4. The determinism regression harness stays green (30/30) after the storm-movement and bot-rule changes — lockstep replay is unaffected. *(VERIFY-02)*
 
-**Plans**: TBD
+> **Note on criterion 4 (recorded during planning, 2026-07-26):** per CONTEXT.md D-15/D-18/D-21 the 30
+> golden fixtures are re-recorded exactly once during this phase, deliberately. "Green 30/30" means
+> green against the **new** baseline, after a blocking human decision and a full, attributed
+> divergence report. D-16's original "confirm the differences are storm-related only" test is replaced
+> by D-26's explainability test.
+
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 14-01-PLAN.md — Tracer: full per-seed determinism diff tooling (D-26) + Tortuga's wind shadow (D-18), with the re-record record seeded [Wave 1]
+- [ ] 14-02-PLAN.md — AI-01: the bot hail becomes a real action — ranked targets, scaled offers, and a turn that ends (D-02…D-08, D-24, D-25) [Wave 1]
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 14-03-PLAN.md — Engine: both storm gusts in the simulator (D-15) + `moored` gains a cause and Tortuga's berths stay safe (D-19, D-21) [Wave 2]
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 14-04-PLAN.md — The one-way door: enumerate, attribute, decide, re-record once, document (VERIFY-02, D-16, D-26) [Wave 3, blocking decision checkpoint]
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 14-05-PLAN.md — STORM-01: per-square storm rendering for humans and bots, every outcome narrated, three honest moored lines (D-09…D-11, D-20, D-22) [Wave 4]
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 14-06-PLAN.md — Wyatt's storm-copy approval (D-14, D-27), three new standing gates, Safari + Chrome playtest [Wave 5, blocking decision checkpoint]
 
 ### Phase 15: Narration Audit & Fixes
 
@@ -356,7 +384,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
-| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 0/TBD | Not started | - |
+| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 0/6 | Planned | - |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
