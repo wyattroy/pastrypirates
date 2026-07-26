@@ -5,15 +5,15 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 14
 current_phase_name: engine-adjacent-gameplay-fixes-determinism
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-07-26T20:40:30.317Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-07-26T20:51:56.628Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 9
-  completed_plans: 4
+  completed_plans: 5
   percent: 9
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 14 (engine-adjacent-gameplay-fixes-determinism) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-07-26 — Phase 14 execution started
 
-Progress: [████░░░░░░] 44% (v1.2)
+Progress: [██████░░░░] 56% (v1.2)
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [████░░░░░░] 44% (v1.2)
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 14 P01 | 30min | 2 tasks | 3 files |
+| Phase 14 P02 | 25min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - Ko-Fi "Buy me a cookie" button (KOFI-01) approved for v1.2 despite the third-party ko-fi.com script embed.
 - [Phase ?]: D-18: leeward() now tests the upwind square against isHome() as well as isIsland() — Tortuga casts a wind shadow like every other island (fixture-perturbing, deliberate)
 - [Phase ?]: Determinism gate is deliberately RED (19/30 seeds diverge) after D-18 — re-record deferred to 14-04 per D-16; docs/DETERMINISM-RERECORD.md seeded with real per-seed measurements
+- [Phase ?]: D-06 rule 2's 'hurts least' proxy uses humanTrade's essential idiom (recipe.includes+cnt<=1), not RESEARCH's broken needs(q) proxy, per <planner_corrections>
+- [Phase ?]: Hail action-cost commits (p.lastOffer + hailed flag) the instant an offer reaches the table, before the await, so a shot-clock expiry mid-hail still counts as a spent action with no partial trade
 
 ### Pending Todos
 
@@ -103,8 +106,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-26T20:40:30.305Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-07-26T20:51:56.617Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

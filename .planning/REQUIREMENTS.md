@@ -21,7 +21,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 ### Bot Behavior (AI)
 
-- [ ] **AI-01**: The bot "hail humans" turn structure follows an intended, decided rule — a bot that hails/parleys the human no longer appears to take two actions in one turn (hail *and* fish/dock/etc.) unless that is the deliberately chosen behavior. The rule (does a hail consume the bot's turn action, or is it a free pre-action negotiation?) is decided with Wyatt during Phase 14, then implemented; if the rule must also apply to bot-vs-bot it is mirrored in the deterministic engine's `takeTurn` so replay/determinism stays consistent *(design decision — pre-existing since v1.0; src/ui/flow.js:584-612)*
+- [x] **AI-01**: The bot "hail humans" turn structure follows an intended, decided rule — a bot that hails/parleys the human no longer appears to take two actions in one turn (hail *and* fish/dock/etc.) unless that is the deliberately chosen behavior. The rule (does a hail consume the bot's turn action, or is it a free pre-action negotiation?) is decided with Wyatt during Phase 14, then implemented; if the rule must also apply to bot-vs-bot it is mirrored in the deterministic engine's `takeTurn` so replay/determinism stays consistent *(design decision — pre-existing since v1.0; src/ui/flow.js:584-612)*
 
 ### Narration (NARR)
 
@@ -114,7 +114,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CLOCK-02 | Phase 13 | Complete |
 | CLOCK-03 | Phase 13 | Complete |
 | STORM-01 | Phase 14 | Pending |
-| AI-01 | Phase 14 | Pending |
+| AI-01 | Phase 14 | Complete |
 | NARR-01 | Phase 15 | Pending |
 | NARR-02 | Phase 15 | Pending |
 | NARR-03 | Phase 15 | Pending |

@@ -156,3 +156,14 @@ None - no external service configuration required.
 ---
 *Phase: 14-engine-adjacent-gameplay-fixes-determinism*
 *Completed: 2026-07-26*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/hail_ranking_test.js
+- FOUND: src/ui/flow.js
+- FOUND: src/ui/util.js
+- FOUND: .planning/phases/14-engine-adjacent-gameplay-fixes-determinism/14-02-SUMMARY.md
+- FOUND: commit a9f247a (Task 1)
+- FOUND: commit d9d5f79 (Task 2)
+- FOUND: commit 1898ca3 (Task 3)
+- FOUND: commit 223716e (SUMMARY.md)
