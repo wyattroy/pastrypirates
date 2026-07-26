@@ -57,9 +57,9 @@ created: 2026-07-26
 | 14-05-T1 | 14-05 | 4 | STORM-01 | T-14-15 | UI push stays in lockstep with the engine push | structural + integration | `windLeg` render/reason probe; `npm test` | ✅ | ⬜ pending |
 | 14-05-T2 | 14-05 | 4 | STORM-01 | T-14-15, T-14-16 | Bot leg delegates rather than re-deriving; pacing never hides an outcome | structural + unit | `botWindLeg`/`botTurn` probe; `botMsgHoldMs` vs `msgHoldMs` probe; `flash` override probe; `npm test` | ✅ | ⬜ pending |
 | 14-05-T3 | 14-05 | 4 | STORM-01 | T-14-17 | Per-square equals two-square | unit (DOM-free) | `node scripts/bot_storm_narration_test.js`; three-moored-lines render probe | ❌ → created by this task | ⬜ pending |
-| 14-06-T1 | 14-06 | 5 | STORM-01 | — | Copy is authored by Wyatt, never auto-generated | `checkpoint:decision` (blocking) | — (human gate) | N/A | ⬜ pending |
-| 14-06-T2 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | — | N/A | integration | `npm test` (12 gates); gate-list probe; validation sign-off probe | ✅ | ⬜ pending |
-| 14-06-T3 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | T-14-18, T-14-20 | Forced-storm scaffolding cannot ship | manual/UAT + automated teardown check | forced-storm-reverted probe; `npm test`; `<human-check>` nine-point Safari + Chrome playtest | ✅ | ⬜ pending |
+| 14-06-T1 | 14-06 | 5 | STORM-01 | — | Copy is authored by Wyatt, never auto-generated | `checkpoint:decision` (blocking) | — (human gate) | N/A | ✅ green — Wyatt answered 2026-07-26, see Copy Approval Record below |
+| 14-06-T2 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | — | N/A | integration | `npm test` (12 gates); gate-list probe; validation sign-off probe | ✅ | ✅ green — copy applied verbatim (commit `5aa9a8e`), gate-list wired (commit `2b9b4a7`), `npm test` 12/12 gates pass, determinism 31/31 |
+| 14-06-T3 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | T-14-18, T-14-20 | Forced-storm scaffolding cannot ship | manual/UAT + automated teardown check | forced-storm-reverted probe; `npm test`; `<human-check>` nine-point Safari + Chrome playtest | ✅ | ⬜ pending — playtest environment being set up; Wyatt has not yet run the nine-point check |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -71,13 +71,13 @@ which are never adjacent to each other.
 
 ## Wave 0 Requirements
 
-- [ ] **Full per-seed determinism diff** — delivered as `scripts/determinism_diff.js` in **14-01 Task 1 (tracer)**. The existing `verify()` (`scripts/determinism_baseline.js:150-241`) reports only the **first** divergent seed and the first divergent event within it. That cannot satisfy D-26's replacement criterion. The new tool enumerates **every** divergent event across all 30 seeds, tagged by event type and by differing JSON key, with an `--ignore-keys` mode that separates an additive serialization delta from a real behavioural change. **Highest priority — blocks safely re-recording the corpus.**
-- [ ] **First-storm-round assertion** — delivered in the same tool (**14-01 Task 1**) as the per-seed `preStormStructuralDivergence` verdict.
+- [x] **Full per-seed determinism diff** — delivered as `scripts/determinism_diff.js` in **14-01 Task 1 (tracer)**. The existing `verify()` (`scripts/determinism_baseline.js:150-241`) reports only the **first** divergent seed and the first divergent event within it. That cannot satisfy D-26's replacement criterion. The new tool enumerates **every** divergent event across all 30 seeds, tagged by event type and by differing JSON key, with an `--ignore-keys` mode that separates an additive serialization delta from a real behavioural change. **Highest priority — blocks safely re-recording the corpus.**
+- [x] **First-storm-round assertion** — delivered in the same tool (**14-01 Task 1**) as the per-seed `preStormStructuralDivergence` verdict.
   > **Planner finding (2026-07-26), carried to 14-04's checkpoint rather than resolved here.** D-26's literal wording is expected to FAIL, for two measured reasons. (a) `leeward()` is a WIND effect that applies on every round, not a storm effect, and every player spawns on a Tortuga berth (`src/engine/index.js:209`) — verified this session across all 30 seeds, at least one player is downwind of home on round 1. (b) D-15 makes `ev()` write `wind2` onto every event, so every seed's line 0 changes. The assertion is still implemented and still run; its result is evidence Wyatt sees at the one-way-door checkpoint, not a criterion to soften silently. The evidence actually relied on is the per-key attribution.
-- [ ] **Pure, DOM/Firebase-free hail logic** — delivered as `rankHailTargets` / `priceHailOffer` / `hailWorthIt` plus `scripts/hail_ranking_test.js` in **14-02 Task 1**. Note: RESEARCH.md's assumption A2 proxy (`needs(q).includes(ing)`) is constant-false for any holder and is replaced by `humanTrade`'s own `essential` idiom — see 14-02's `<planner_corrections>`.
-- [ ] **`moored` reason assertion** — delivered as `scripts/storm_moored_reason_test.js` in **14-03 Task 2** (three distinct `reason` values, unchanged `moored()` boolean, and the D-19 berth-protection regression guard) and as the three-distinct-strings render probe in **14-05 Task 3**.
-- [ ] **Per-square/two-square push equivalence** — added by the planner as a fourth Wave 0 item, delivered as `scripts/bot_storm_narration_test.js` in **14-05 Task 3**. `botWindLeg` delegates each square to the engine's own push, so `windPush(p,d,2,once)` must be provably identical to two `windPush(p,d,1,once)` calls sharing one `once` — otherwise bots silently start playing a different game from the simulator.
-- [ ] No test-runner install needed — `node` (v25.9.0 confirmed present) is the only runtime dependency; `npm test` has no missing tool dependencies. All three new scripts are wired into the `npm test` chain in **14-06 Task 2**, taking the gate count from 9 to 12.
+- [x] **Pure, DOM/Firebase-free hail logic** — delivered as `rankHailTargets` / `priceHailOffer` / `hailWorthIt` plus `scripts/hail_ranking_test.js` in **14-02 Task 1**. Note: RESEARCH.md's assumption A2 proxy (`needs(q).includes(ing)`) is constant-false for any holder and is replaced by `humanTrade`'s own `essential` idiom — see 14-02's `<planner_corrections>`.
+- [x] **`moored` reason assertion** — delivered as `scripts/storm_moored_reason_test.js` in **14-03 Task 2** (three distinct `reason` values, unchanged `moored()` boolean, and the D-19 berth-protection regression guard). The render-level probe in **14-05/14-06 Task 3** was updated during 14-06's copy application: per Wyatt's approved copy, the `home` reason now renders the identical narration string as `justDocked` (narration-layer collapse only — the engine's `reason` field stays three-valued and untouched), so the probe now asserts **two** distinct rendered lines, not three.
+- [x] **Per-square/two-square push equivalence** — added by the planner as a fourth Wave 0 item, delivered as `scripts/bot_storm_narration_test.js` in **14-05 Task 3**. `botWindLeg` delegates each square to the engine's own push, so `windPush(p,d,2,once)` must be provably identical to two `windPush(p,d,1,once)` calls sharing one `once` — otherwise bots silently start playing a different game from the simulator.
+- [x] No test-runner install needed — `node` (v25.9.0 confirmed present) is the only runtime dependency; `npm test` has no missing tool dependencies. All three new scripts are wired into the `npm test` chain in **14-06 Task 2**, taking the gate count from 9 to 12.
 
 ---
 
@@ -95,11 +95,33 @@ which are never adjacent to each other.
 | Three `moored` lines each read true in play | D-21 | Which of the three causes fired is only visible in a real push | Reach a berth, be blown onto a dock, and be pushed after docking last turn — confirm three different lines, each accurate |
 | No console errors across a full voyage | STORM-01 / AI-01 | Runtime errors surface only in a browser | Play a full voyage in each browser with the console open |
 
-**All rows above are discharged by 14-06 Task 3's nine-point `<human-check>`** (`workflow.human_verify_mode`
-is `end-of-phase`, so manual verification rides in `<verify><human-check>` rather than a
-`checkpoint:human-verify` task). Safari carries checks 1-5 and 8-9; Chrome repeats 1, 3, 6 and 9.
-The forced-storm hook (`cfg.storm=1` in `roundCfg`) is scaffolding and its revert is an automated
-acceptance criterion of that task.
+**All rows above except "Storm copy approval" are discharged by 14-06 Task 3's nine-point
+`<human-check>`** (`workflow.human_verify_mode` is `end-of-phase`, so manual verification rides in
+`<verify><human-check>` rather than a `checkpoint:human-verify` task). Safari carries checks 1-5
+and 8-9; Chrome repeats 1, 3, 6 and 9. The forced-storm hook (`cfg.storm=1` in `roundCfg`) is
+scaffolding and its revert is an automated acceptance criterion of that task.
+
+**As of this update, those eight rows remain PENDING — Task 3's live playtest has not yet been
+run.** The one row that IS discharged is "Storm copy approval," recorded below.
+
+### Copy Approval Record — GRANTED (Wyatt, 2026-07-26)
+
+Wyatt reviewed the complete Task 1 storm-copy list (nine reused Group A lines, three `moored`
+variants, and the refused-hail `parley` clause) and returned per-line decisions. Applied verbatim
+in `src/ui/util.js` (commit `5aa9a8e`):
+
+| Line | Decision | Result |
+|------|----------|--------|
+| Group A (9 pre-existing lines: `windmove`, `blownOut`, `dodge`, `anchor`, `blocked`, `anchorHold`, `aground` x2, `shipwrecked`) | No changes requested | Left exactly as they were |
+| `moored` / `justDocked` | Rewritten by Wyatt | `"{name} is still docked, so the storm can't run them aground."` |
+| `moored` / `dock` | Approved as drafted | Unchanged: `"Lucky break! The gust shoves {name} onto a dock, and the crew steadies her fast against it ⚓"` |
+| `moored` / `home` (Tortuga berth) | Removed as a separate line | Now renders the **same** string as `justDocked`. Wyatt's reasoning: with D-18 landed, Tortuga is a normal island/dock and should not get bespoke wording. **Narration layer only** — `Game.mooredReason()` and `src/engine/index.js` are unmodified; the engine still emits `reason: "home"` distinctly from `"justDocked"`, and all 31 determinism fixtures remain valid (verified 31/31 after this change). |
+| `parley` refused-hail clause | Rewritten by Wyatt | `"🤝 {bot} offered {offer} for {seller}'s {item} — they refused."` — drops the D-24 "cost {bot} their turn all the same" clause and its markup entirely, at Wyatt's explicit direction after being told this removes the visible action-cost signal. The bot's turn still ends on a refused hail; only the displayed text changed. |
+| Pacing constants (`STORM_STEP_MS`, `BOT_STORM_STEP_MS`, `BOT_MSG_HOLD_MULTIPLIER`, `botMsgHoldMs`) | No change | Left as-is; remain tunable during Task 3's playtest |
+
+`scripts/bot_storm_narration_test.js`'s render-level `EVENT_NARRATION.moored` assertion was updated
+to match (two distinct rendered lines across three engine reasons, not three); `npm test` passes
+all twelve gates and `node scripts/determinism_baseline.js --verify` remains 31/31.
 
 ---
 
