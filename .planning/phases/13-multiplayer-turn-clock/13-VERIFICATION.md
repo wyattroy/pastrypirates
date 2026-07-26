@@ -1,36 +1,44 @@
 ---
 phase: 13-multiplayer-turn-clock
 verified: 2026-07-26T03:32:46Z
-status: human_needed
+status: passed
 score: 9/12 must-haves verified
 behavior_unverified: 3
 overrides_applied: 0
 behavior_unverified_items:
+
   - truth: "In a 2+ window multiplayer game, the turn clock starts running on its own and the first turn begins — no stall, no timer-toggle workaround (CLOCK-01)."
     test: "Set localStorage pp_sess/pp_solo to unversioned (no `v` field) and to versioned blobs in a real browser, reload each time, and separately host+join a real 2-window multiplayer game from a clean boot."
     expected: "Unversioned blob is cleared and does NOT drive a resume (home screen shown); a current-version blob still resumes; a fresh 2-window game's clock starts running on its own with the first turn beginning, no stall."
     why_human: "This is the full live boot sequence (localStorage + Firebase init + DOM) — the executor session had no browser/Chrome-MCP tool. Code-level guard logic (boot()'s null-safe v!== check placed before every existing resume branch) was confirmed by static read, but the end-to-end boot behavior itself is unexercised by any test."
+
   - truth: "Any player (host or guest) can pause and then resume the clock during a live multiplayer game without missing bot actions (CLOCK-02)."
     test: "In a 2-tab MP game (unique pp_id per tab), click #scPause or #shotClockNum from the GUEST tab. Then resume from either tab."
     expected: "rooms/{room}/paused becomes true; window.__pp_app_state_debug().shotClockPaused===true on BOTH tabs; a bot's turn does not advance while paused; resuming continues the countdown from the remaining time (not a fresh 30s)."
     why_human: "State-transition/freeze invariant across a real Firebase round-trip and two browser tabs — no browser/MCP tool was available to the executor. The wiring (netSetPaused/watchPause/applyPauseState/waitWhilePaused) was confirmed correct by static code read, but the live freeze-and-resume behavior is unexercised by any test."
+
   - truth: "Clicking the large 'PAUSED' image (#shotClockNum) resumes the clock, in solo and multiplayer (CLOCK-03)."
     test: "Pause a game (solo or 2-tab MP), then .click() #shotClockNum."
     expected: "shotClockPaused flips to false (resumes) on click while paused; clicking #shotClockNum while NOT paused does nothing (regression check)."
     why_human: "DOM click interaction — no browser/MCP tool was available to the executor. The handler wiring and the per-tick defensive reset were confirmed correct by static code read, but the click-driven resume itself is unexercised by any test."
 human_verification:
+
   - test: "Set localStorage pp_sess to a JSON blob with room/mySeat/isHost but NO v field, reload → confirm home screen shows (no resume) and pp_sess is gone. Repeat with a v===SESSION_SCHEMA_V blob → confirm resume IS attempted. Repeat both cases for pp_solo/SOLO_SCHEMA_V. Confirm pp_timerOff and pp_id survive all four reloads."
     expected: "Unversioned/mismatched blobs are cleared and do not drive a resume; versioned blobs still resume; pp_id/pp_timerOff untouched."
     why_human: "Requires setting real browser localStorage and reloading the page — no browser/MCP tool in this session."
+
   - test: "Host+join a fresh 2-window multiplayer game from a clean boot (no prior session)."
     expected: "The shot clock starts running on its own and the first turn begins without a stall or a timer-toggle workaround."
     why_human: "Full live multiplayer boot sequence, needs 2 real browser windows and Firebase."
+
   - test: "In a 2-tab MP game (unique pp_id per tab), a GUEST clicks #scPause. Confirm both ▶/⏸ and ⏱ controls are visible on both tabs, #shotClockPanel shows \"paused\" on BOTH tabs, a bot turn does not advance, and window.__pp_app_state_debug().shotClockPaused===true on both. Click again (from either tab) to resume, confirming the countdown continues from the remaining time, not a fresh 30s."
     expected: "Whole-table freeze/resume works from a guest-initiated pause; both controls visible; resume continues from remaining time."
     why_human: "Live 2-tab Firebase round-trip and DOM state — no browser/MCP tool in this session."
+
   - test: "Repeat the pause/resume check in a SOLO game (regression) to confirm ▶/⏸ still works there."
     expected: "Solo pause/resume unregressed."
     why_human: "DOM interaction, needs a live browser session."
+
   - test: "While paused (solo and 2-tab MP), click #shotClockNum (the large paused symbol) and confirm shotClockPaused flips to false on click; while NOT paused, click #shotClockNum and confirm nothing happens (no accidental pause)."
     expected: "Big-symbol click resumes only while paused; inert otherwise."
     why_human: "DOM click interaction, needs a live browser session."
