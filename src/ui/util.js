@@ -250,7 +250,22 @@ export const EVENT_NARRATION={
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
   dodge:(e,at)=>({txt:`${pn(e.p)} pays 1🌕 to anchor safely`,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]}),
   anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
-  moored:(e,at)=>({txt:`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]}),
+  // D-19/D-20/D-21 (DRAFT — 14-06 presents these three lines for Wyatt's edit): one line used to
+  // cover three unrelated safe-harbor causes. mooredReason() now tags every event with which one
+  // actually fired — branch on it so the narration finally tells the truth. Same {txt,pops} shape,
+  // same ⚓ pop for all three; a replayed pre-change log with no reason falls back to the old
+  // generic line rather than rendering "undefined".
+  moored:(e,at)=>{
+    const L={
+      justDocked:`${pn(e.p)} is still tied up from docking last turn — the storm can't drag a moored ship anywhere ⚓`,
+      // D-20: the mechanics stay a lucky save (a ship blown ONTO a dock is sheltered by it) — the
+      // wording change is the fix, per Wyatt: "you're able to steady your boat against the dock to
+      // not be blown aground."
+      dock:`Lucky break! The gust shoves ${pn(e.p)} onto a dock, and the crew steadies her fast against it ⚓`,
+      home:`${pn(e.p)} rides it out safe at the Isle of Tortuga — the harbour holds her fast ⚓`,
+    };
+    return {txt:L[e.reason]||`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
+  },
   blocked:(e,at)=>({txt:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
   anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
   tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
