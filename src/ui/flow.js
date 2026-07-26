@@ -55,7 +55,7 @@ import {
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
-  replayShortfall,
+  replayShortfall, STORM_STEP_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -209,11 +209,16 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     if(appState.game.blocked(nx))return;
-    if(appState.game.isHome(nx)){appState.game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
     const blocker=appState.game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
     if(blocker){appState.game.ev({t:"blocked",p:p.idx,other:blocker.idx});await narrateLastEvent();liveRender();return;} // another ship holds that square — wind stops short (see #20: surface the "strikes sail" narration)
-    if(appState.game.islands[nx]!==undefined){
-      if(appState.game.moored(p)){appState.game.ev({t:"moored",p:p.idx});await narrateLastEvent();liveRender();return;}
+    if(appState.game.islands[nx]!==undefined||appState.game.isHome(nx)){
+      // D-19/D-21/D-22: mooredReason() is the single source of truth for which of the three
+      // safe-harbor causes fired — call the engine's own accessor rather than re-deriving the
+      // cause here. Folds the old standalone isHome(nx) early return into ordinary land
+      // handling, mirroring windPush's own isIsland(nx)||isHome(nx) branch
+      // (src/engine/index.js:280) — same order this file already keeps (blocker before land).
+      const reason=appState.game.mooredReason(p);
+      if(reason){appState.game.ev({t:"moored",p:p.idx,reason});await narrateLastEvent();liveRender();return;}
       // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
       // also hits an island is a free pass, already-paid anchor holding fast
       if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
@@ -252,7 +257,12 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       dodgedOnce.v=true;
       liveRender();return;
     }
+    // D-22: render THIS square before the next one's outcome can narrate — the reported "false
+    // dock held fast" symptom was the board being a square behind when the message played, not a
+    // wrong message. sleep() is a no-op during replay (:64), so this adds no replay-timing risk.
     p.pos=nx;
+    liveRender();
+    await sleep(STORM_STEP_MS);
     if(appState.game.onRim(nx)){ // swept into the trade winds
       appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300);}

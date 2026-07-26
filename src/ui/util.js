@@ -475,6 +475,10 @@ export function msgHoldMs(text){
   raw+=pauses*300;
   return Math.round(Math.min(Math.max(raw,1200),7000)*MSG_HOLD_MULTIPLIER);
 }
+// D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
+// snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);
+// see botWindLeg for the bot's own, snappier BOT_STORM_STEP_MS.
+export const STORM_STEP_MS=320;
 
 // reads a boat's current on-screen position straight off its own <g>, rather than deriving it
 // from game.events[evIdx] — that array is still empty during the pre-round intro narration (boats
