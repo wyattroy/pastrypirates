@@ -13,7 +13,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 - [x] **CLOCK-01**: In a multiplayer game (2+ windows), the turn clock starts running normally so the first turn begins — the game no longer stalls "paused" before it starts, and no timer off/on toggle workaround is needed *(critical)*
 - [ ] **CLOCK-02**: A play/pause control is available in multiplayer games so any player can pause without missing bot actions
-- [ ] **CLOCK-03**: The large "PAUSED" image is itself a clickable button that resumes the clock when pressed
+- [x] **CLOCK-03**: The large "PAUSED" image is itself a clickable button that resumes the clock when pressed
 
 ### Storm Movement (STORM)
 
@@ -112,7 +112,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 |-------------|-------|--------|
 | CLOCK-01 | Phase 13 | Complete |
 | CLOCK-02 | Phase 13 | Pending |
-| CLOCK-03 | Phase 13 | Pending |
+| CLOCK-03 | Phase 13 | Complete |
 | STORM-01 | Phase 14 | Pending |
 | AI-01 | Phase 14 | Pending |
 | NARR-01 | Phase 15 | Pending |
