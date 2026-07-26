@@ -1,16 +1,16 @@
 ---
-status: testing
+status: passed
 phase: 13-multiplayer-turn-clock
 source: [13-VERIFICATION.md]
 started: 2026-07-26T03:34:50Z
-updated: 2026-07-26T18:20:00Z
+updated: 2026-07-26T18:45:00Z
 ---
 
 ## Current Test
 
 number: —
-name: All 5 tests run. 4 passed; test 3 (CLOCK-02 pause desync) FIX IMPLEMENTED — awaiting human re-test. Debug session .planning/debug/mp-pause-clock-desync.md. npm test + determinism 30/30 green.
-awaiting: human re-run of test 3 (2-window MP) + re-confirm tests 4 & 5 (solo). See Gaps → CLOCK-02-pause-desync (fix applied) and CLOCK-03-paused-affordance-inconsistency (folded into the same fix).
+name: All 5 tests pass. Test 3 (CLOCK-02 pause desync) fixed in commit 8a8da0a and CONFIRMED by human UAT (freeze 9/9, guest no longer races to 0). Both gaps resolved. Phase 13 UAT complete.
+awaiting: —
 
 ## Tests
 
@@ -24,7 +24,7 @@ result: passed — 2-window game (regular Chrome host + Incognito guest) started
 
 ### 3. Guest-initiated pause freezes the whole table and resumes from remaining time
 expected: In a 2-tab MP game (unique pp_id per tab), a GUEST clicks #scPause. Both ▶/⏸ and ⏱ controls are visible on both tabs; #shotClockPanel shows "paused" on BOTH tabs; a bot turn does not advance while paused; window.__pp_app_state_debug().shotClockPaused === true on both tabs. Click again (either tab) to resume — the countdown continues from the remaining time, not a fresh 30s. *(CLOCK-02)*
-result: FAILED (partial) — the pause FLAG syncs correctly (both windows show PAUSED, bots freeze), but the countdown DEADLINE does not sync across pause/resume. While paused the two windows showed different frozen remaining times (host 13s vs guest 20s); after resume the guest clock raced to 0 / "lose your turn" (red) while the host showed ~5s. See Gaps → CLOCK-02-pause-desync.
+result: passed (after fix, commit 8a8da0a) — INITIALLY FAILED (partial): the pause flag synced but the countdown deadline did not (paused host 13s vs guest 20s; on resume the guest raced to 0 while the host continued). Root cause: the host recomputed the deadline in applyPauseState() but never re-broadcast it, and the guest derived its frozen number from a host-only field. Fixed by re-broadcasting the deadline + pause state on every pause/resume and having guests render frozen values from the authoritative broadcast. Re-tested by Wyatt in a 2-window MP game (Chrome host + Incognito guest): pause freezes BOTH windows at the SAME number (9/9) and resume continues together — guest no longer races to 0 (confirmed with screenshots). See Gaps → CLOCK-02-pause-desync (RESOLVED).
 
 ### 4. Solo pause/resume still works (regression)
 expected: Repeat the pause/resume check in a SOLO game — ▶/⏸ pauses and resumes without regression. *(CLOCK-02)*
@@ -37,16 +37,16 @@ result: passed — clicking #shotClockNum while running does nothing (5a); click
 ## Summary
 
 total: 5
-passed: 4
-issues: 1
+passed: 5
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-### CLOCK-02-pause-desync — pause/resume does not re-broadcast the shot-clock deadline to guests
-- **Status:** FIX IMPLEMENTED (2026-07-26) — awaiting human 2-window re-test. Debug session: `.planning/debug/mp-pause-clock-desync.md`. `npm test` (19-watcher inventory intact) + determinism 30/30 green.
+### CLOCK-02-pause-desync — pause/resume does not re-broadcast the shot-clock deadline to guests [RESOLVED]
+- **Status:** RESOLVED (2026-07-26, commit 8a8da0a) — CONFIRMED by human 2-window UAT (pause freezes both windows at the same number 9/9, guest no longer races to 0 on resume; screenshots). Debug session archived: `.planning/debug/resolved/mp-pause-clock-desync.md`. `npm test` 9/9 (19-watcher inventory intact) + determinism 30/30 green, zero `src/engine/` changes.
 - **Fix applied:** (1) `watchPause()` host branch now calls `broadcastClock()` after `applyPauseState()` on BOTH pause and resume (src/orchestrator.js) — the single host-authoritative deadline writer now fires on the pause/resume path. (2) `broadcastClock()` payload now carries `paused` + `pauseElapsed` so guests render the frozen number from authoritative data (they never own `shotClockPauseElapsed`). (3) `setClockUI()` (src/ui/panel.js) derives the paused branch from the broadcast's own `paused` bit so the frozen↔running flip and the deadline update atomically on guests (kills the resume "flash to 0" that the watchPause/watchClock ordering gap would leave), and reads `state.pauseElapsed` for the frozen number. Guests never mutate deadline/pauseElapsed (host authority preserved); freezing still routes through the single `appState.shotClockPaused`; no watcher added/removed (inventory stays 19).
 - **Requirement:** CLOCK-02 (D-07: "on resume the current player's countdown continues from the remaining time it had when paused").
 - **Symptom (2-window MP, host-initiated pause):** paused windows show mismatched frozen remaining time (host 13s / guest 20s); on resume the guest countdown jumps to ~0 ("lose your turn", red) while the host continues from the correct remaining time. Reproduced by Wyatt in a regular-Chrome host + Incognito guest game.
@@ -55,8 +55,8 @@ blocked: 0
 - **Likely fix direction:** have the host call `broadcastClock()` after `applyPauseState()` on both pause and resume (host branch of `watchPause()`), so the frozen/restored deadline propagates to guests; ensure the guest's tick honors `shotClockPaused` so it does not keep counting against a stale deadline while paused. Verify with the same 2-window setup; keep `npm test` (19-watcher inventory) and determinism 30/30 green.
 - **Relevant code:** src/ui/util.js `applyPauseState` (~616), `shotClockTick` (~644); src/orchestrator.js `togglePause`/`watchPause` (~160/170), `broadcastClock` (~142), `watchClock` (~238).
 
-### CLOCK-03-paused-affordance-inconsistency (minor UX polish — non-blocking)
-- **Status:** FIX IMPLEMENTED (2026-07-26, folded into the CLOCK-02 fix) — awaiting human confirmation. The frozen your-own-turn paused number now gets a `.tappable` class (dotted underline + hover lift, reduced-motion aware) in `setClockUI()`'s state-present paused branch, so it visibly reads as tap-to-resume like the large ⏸-symbol branch. Class is reset each render tick alongside the existing onclick/cursor reset.
+### CLOCK-03-paused-affordance-inconsistency (minor UX polish — non-blocking) [RESOLVED]
+- **Status:** RESOLVED (2026-07-26, commit 8a8da0a, folded into the CLOCK-02 fix) — CONFIRMED by human UAT (test 5 pass). The frozen your-own-turn paused number now gets a `.tappable` class (dotted underline + hover lift, reduced-motion aware) in `setClockUI()`'s state-present paused branch, so it visibly reads as tap-to-resume like the large ⏸-symbol branch. Class is reset each render tick alongside the existing onclick/cursor reset.
 - **Requirement:** CLOCK-03 — functionally PASSES (clicking the paused display resumes in both render branches, confirmed by Wyatt).
 - **Observation:** the paused resume target looks different depending on whose turn it is. On a bot/idle turn the paused panel shows the large `PAUSE_SYMBOL_IMG` (obviously tappable). On the human's OWN turn it shows the frozen countdown number ("10 seconds / tap ▶ to resume") — that number IS click-to-resume (`numEl.onclick` set in the state-present paused branch of `setClockUI`, src/ui/panel.js), but it does not visually read as tappable, and the hint text points at the tiny corner ▶ instead. Users may not realize the big number resumes on their own turn.
 - **Not a functional failure** — CLOCK-03's "clicking the large PAUSED image resumes" is met wherever the large image appears, and the number is a working bonus affordance. This is a discoverability/consistency polish item (candidate for Phase 16 UI/UX, or a small tweak folded into the CLOCK-02 fix since the same paused-render code is in scope).

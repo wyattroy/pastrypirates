@@ -1,10 +1,12 @@
 ---
-status: awaiting_human_verify
+status: resolved
 slug: mp-pause-clock-desync
 phase: 13-multiplayer-turn-clock
 trigger: "Phase 13 UAT test 3 — in a 2-window multiplayer game, pausing/resuming desyncs the shot-clock countdown between host and guest. Paused windows show different frozen remaining times (host 13s vs guest 20s); after resume the guest clock races to 0 / 'lose your turn' (red) while the host continues from the correct remaining time. Plus an approved UX tweak: the your-own-turn paused number resumes on click but does not look tappable."
 created: 2026-07-26T17:41:49Z
-updated: 2026-07-26T18:05:00Z
+updated: 2026-07-26T18:45:00Z
+resolved: 2026-07-26T18:45:00Z
+commit: 8a8da0a
 ---
 
 # Debug Session: mp-pause-clock-desync
@@ -40,7 +42,7 @@ expecting: |
   With the host re-broadcasting the deadline after applyPauseState() on both pause and
   resume, and the guest honoring the paused flag, both windows show identical frozen
   remaining time while paused and identical continued countdown after resume.
-next_action: "Verify the missing-broadcast hypothesis in code, then implement: (1) host re-broadcasts clock via broadcastClock() after applyPauseState() on pause AND resume in watchPause()'s host branch (and togglePause's solo/local path); (2) guest countdown/tick honors shotClockPaused (no ticking toward stale deadline while paused); (3) UX: make the your-turn paused number visibly tappable in setClockUI() state-present paused branch. Run npm test + determinism 30/30. Hand back to user for 2-window re-test of test 3 (+ re-confirm 4 & 5)."
+next_action: "RESOLVED — fix implemented (commit 8a8da0a), all gates green, and CONFIRMED by human UAT (test 3 9/9, tests 4 & 5 pass). Session archived to .planning/debug/resolved/; knowledge-base entry appended; both UAT gaps marked resolved."
 
 reasoning_checkpoint:
   hypothesis: "The host recomputes shotClockDeadline (resume) / stashes shotClockPauseElapsed (pause) locally in applyPauseState() but NEVER re-broadcasts, so guests keep rendering the stale pre-pause deadline (via appState.clockState) and derive their frozen paused number from a host-only appState.shotClockPauseElapsed they never receive — causing the frozen-number mismatch and the post-resume race to 0."
@@ -131,5 +133,6 @@ verification:
   adjacent_tests:     { result: pass, suites_run: ["npm test (determinism_baseline --verify, engine_contract_check, dlog_replay_test, net_registry_test, net_contract_check, state_contract_check, module_graph_check, ui_contract_check, no_undef_check)", "determinism_baseline --verify 30/30"] }
   revert_and_reconfirm: { result: pass, bug_returned_on_revert: true, fixed_on_reapply: true }  # logic-level: FIX OFF reproduces host=13/guest=20 paused + host=23/guest=0 resume; FIX ON both MATCH. Behavioral 2-window revert-and-reconfirm delegated to human UAT (finish_line).
   guardrail_verdict:  accepted
-  full_behavioral_verification: "pending human UAT — 2-window MP test 3 + solo re-confirm tests 4 & 5 (finish_line)"
-files_changed: [src/orchestrator.js, src/ui/panel.js, index.html]
+  full_behavioral_verification: "CONFIRMED by human UAT (Wyatt, 2026-07-26, commit 8a8da0a) — test 3 (2-window MP, Chrome host + Incognito guest): pause freezes BOTH windows at the SAME number 9/9 and resume continues together, guest no longer races to 0 (verified with screenshots); test 4 (solo pause/resume regression): pass; test 5 (CLOCK-03 clickable paused symbol + new tappable affordance): pass. npm test 9/9 (19-watcher inventory intact), determinism 30/30, zero src/engine/ changes."
+files_changed: [index.html, src/orchestrator.js, src/ui/panel.js]
+commit: 8a8da0a
