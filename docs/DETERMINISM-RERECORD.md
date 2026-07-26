@@ -295,4 +295,142 @@ appearance/disappearance is a known field at a shifted line position, not a new 
 
 ## 6. Verdict
 
-**AWAITING DECISION — see 14-04 Task 2.**
+**DECIDED: capture-now — Wyatt, 2026-07-26.**
+
+Presented with Section 5's full attributed divergence report (30/30 divergent seeds, the
+`byEventType`/`byKey` histograms, the three-cause attribution mapping every entry to D-15, D-18,
+or D-21, and the explicit `unattributed divergences: none` finding), Wyatt selected **capture-now**
+and explicitly confirmed the D-26 criterion substitution: the original "nothing differs before the
+first storm" assertion is superseded by the per-key attribution evidence (Section 5.3-5.6), on the
+stated grounds that the Tortuga wind-shadow fix (D-18) was never storm-gated — `leeward()` is a
+wind effect applying every round, and every player spawns on a Tortuga berth (Section 4/5.5) — so
+the original assertion was unachievable by construction, not by defect. Wyatt was shown, and
+approved on the basis of: the three-cause attribution table (5.3-5.4), the zero-unattributed
+finding (5.6), and the explicit warning that the old (Phase 7) oracle is destroyed by capture and
+cannot be regenerated without reverting D-15/D-18/D-21 and restoring fixtures from git history
+(Section 2).
+
+### 6a. Capture attempted — BLOCKED by the corpus's own coverage assertion (not run a second time)
+
+`node scripts/determinism_baseline.js --capture` was run once. It replayed and wrote all 30
+`seed-*.jsonl` files, then its own coverage assertion (`:127-131`) failed BEFORE writing
+`manifest.json`:
+
+```
+FAIL capture: corpus does not cover required event type(s): shipwrecked
+```
+
+No manifest was written. The 30 rewritten seed files were reverted with `git checkout --` back to
+the last committed (old Phase 7) baseline, so the repo is clean and the old oracle is intact —
+`--verify` still reports 30/30 FAIL against it exactly as before this attempt, confirming nothing
+was silently buried. **`--capture` has not run a second time and will not, pending Wyatt's decision
+below** — the plan's own prohibition is "do not weaken `REQUIRED_EVENT_TYPES` to make a capture
+pass; a genuinely absent mechanic is a finding," and Wyatt's resume instruction was explicit: if
+anything other than green comes back, stop and report rather than patch around it.
+
+**Investigation, so the finding is a measured one rather than a guess:**
+
+- `shipwrecked` fires in exactly one narrow compound branch of `windPush` (`src/engine/index.js:296`):
+  a ship pushed onto land, with no valid `moored` reason, on the FIRST land-hit of that turn's
+  combined gust (not gated behind two-gust `dodgedOnce` sharing — it can fire on gust 1 same as
+  before D-15), where the player has zero coins, zero ingredients in hold, AND loses a coin flip.
+  It is a rare, multi-condition tail event, not a mechanic D-15/D-18/D-21 removed or gated.
+- In the OLD (Phase 7) 30-seed corpus, exactly **one** seed produced it: `seed-12361.jsonl`
+  (`coverage.shipwrecked: 1` in the committed manifest).
+- Seed 12361 is one of the 16 seeds Section 5.5 already documented as diverging structurally
+  BEFORE its first storm round (the D-18 Tortuga wind-shadow / berth-spawn mechanism). Its entire
+  RNG-consuming trajectory shifts from round 1 onward, and D-15 layers a further per-stormy-round
+  RNG draw shift on top. By the time that seed reaches the point in its (now different) playthrough
+  where a player would be pushed onto land, the compound condition (0 coins + 0 ingredients + tails)
+  no longer coincides for any player in any of the 30 fixed seeds.
+- This is the same cascade mechanism already attributed in Sections 5.3-5.5 (D-18's routing shift
+  compounded by D-15's RNG-stream shift) acting on a probabilistic tail event rather than a
+  deterministic routing outcome — not a new or unrelated regression, but it is a genuine coverage
+  gap in this specific fixed 30-seed corpus, not a hallucinated one.
+
+**What this blocks:** Task 3's acceptance criteria requires the coverage assertion to pass without
+editing `REQUIRED_EVENT_TYPES`, over these same 30 seeds. As measured, it currently does not.
+Options for Wyatt to choose from (none applied without his answer):
+1. Add a supplementary seed to the corpus specifically chosen to still exercise the compound
+   0-coin/0-ingredient/tails-on-land branch under the new RNG stream (architectural: grows the
+   corpus from 30 to 31 seeds).
+2. Authorize an explicitly-documented exception: capture with `shipwrecked` coverage at 0,
+   recorded here as a known, attributed gap, revisited later if/when a seed naturally produces it.
+3. Investigate further / hold at red pending a different fix.
+
+**Recovery path if capture is later re-attempted and needs undoing:** revert D-15/D-18/D-21 in
+`src/engine/index.js` AND restore `scripts/fixtures/determinism/manifest.json` plus all
+`seed-*.jsonl` files from the git commit immediately before that capture. Both halves are required
+(Section 2).
+
+### 6b. Resolution — add-a-seed, Wyatt, 2026-07-26
+
+**DECIDED: add-a-seed.** Presented with the three options in 6a, Wyatt chose option 1 (add a
+supplementary seed) over option 2 (accept the coverage gap) specifically because the guard that
+caught this — the `capture()` coverage assertion at `scripts/determinism_baseline.js:127-131` — is
+worth keeping: a shipwreck is a real, reachable game outcome and should stay covered by lockstep
+verification, not quietly waived. He was told and accepted that VERIFY-02's wording changes from
+"(30/30)" to "(31/31)" — same substance (the coverage gate is green against the full corpus),
+updated wording to match the corpus's new size.
+
+**Corpus shape chosen:** extend the definition from "30 contiguous seeds" to "the same 30
+contiguous seeds (`SEED_BASE=12345`, `SEED_COUNT=30`, unchanged, seedIndex 0..29, personality
+rotation unchanged) PLUS one explicit extra seed (`EXTRA_SEEDS` in
+`scripts/determinism_baseline.js`), appended — never inserted — so the original 30 keep their
+existing seedIndex and stay directly comparable to every prior measurement in this document. The
+extra seed's seedIndex is 30, continuing the same
+`BOT_STRATS[(seedIndex + seat) % BOT_STRATS.length]` rotation rule. `capture()` and `verify()` both
+iterate base-range-then-extras in this fixed order (implemented this session).
+
+**Seed search — first-match, bounded, reproducible.** A throwaway script
+(`/private/tmp/.../find_shipwreck.mjs`, not committed) replayed candidate seeds starting at 12375
+against the CURRENT (post-14-01/14-03) engine, each evaluated at the fixed seedIndex 30 (the
+seedIndex the chosen seed will actually occupy once added — not the seedIndex the search loop
+happened to reach), and reported which produced at least one `shipwrecked` event.
+
+- Search range: seeds 12375 upward.
+- Candidates scanned: **5** (12375, 12376, 12377, 12378, 12379).
+- First qualifying seed: **12379** — the first candidate in the scanned range to produce a
+  `shipwrecked` event at seedIndex 30, chosen as first-match rather than picked for any other
+  property, so the choice is non-arbitrary and reproducible from this record alone.
+
+**Capture, run once against the extended 31-seed corpus:**
+
+```
+node scripts/determinism_baseline.js --capture
+```
+
+`capture()`'s own coverage assertion (`:127-131`) passed without `REQUIRED_EVENT_TYPES` being
+edited — `shipwrecked` remains in the required list, satisfied by seed 12379's single occurrence
+(`manifest.coverage.shipwrecked: 1`).
+
+**Verification, against the new 31-seed manifest:**
+
+- `node scripts/determinism_baseline.js --verify` — **31/31 PASS** (all 31 `PASS` lines present;
+  `SOURCE: unchanged`).
+- `node scripts/determinism_diff.js --assert-clean` — `PASS --assert-clean: 0 seeds diverged from
+  the committed corpus.`
+- `npm test` — all nine gates green (determinism, engine contract, dlog replay, net registry, net
+  contract, state contract, module graph, ui contract, no-undef), exit code 0.
+- `node scripts/hail_ranking_test.js` — PASSED, 0 failing checks.
+- `node scripts/storm_moored_reason_test.js` — PASSED, 0 failing checks.
+
+**New manifest identity, named per D-16's surviving requirement:**
+
+- `capturedAt`: `2026-07-26T22:17:01.251Z`
+- `engineSourceHash`: `a9b4dde97e20625198ddeb0fae834627f886cb76aed312caf1d715e79fe48006`
+- `seedCount` (base range): `30`
+- `extraSeeds`: `[12379]`
+- `perSeed.length` (total corpus): `31`
+- `coverage.shipwrecked`: `1`
+
+**Recovery path if this add-a-seed extension needs undoing:** revert the `EXTRA_SEEDS`/
+`allSeedsWithIndex()` change in `scripts/determinism_baseline.js` back to the plain 30-seed loop,
+AND restore `scripts/fixtures/determinism/manifest.json` plus all `seed-*.jsonl` files from the git
+commit immediately before this capture (which also reverts D-15/D-18/D-21 per Section 2/6a if the
+underlying engine changes are being undone too — the two recoveries are independent: this one only
+undoes the corpus-size extension, Section 2's undoes the engine behavior it re-recorded against).
+
+Both of Wyatt's decisions in this document are now closed: Section 6 (capture-now, with the D-26
+criterion substitution confirmed) and this section (add-a-seed, resolving the coverage gap that
+`capture-now` then surfaced). The determinism gate is green again on the new 31-seed baseline.
