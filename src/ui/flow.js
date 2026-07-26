@@ -614,35 +614,49 @@ export async function botTurn(p){
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
-  // hail humans: locked-out bots offer coins for a crate they can't get any other way
+  // hail humans: locked-out bots offer coins for a crate they can't get any other way. D-02/D-24:
+  // an offer reaching the table spends the bot's one action — accepted, countered, or refused, its
+  // turn ends here, exactly like a human's Parley (humanAct :432, humanTrade :336/:485 precedent).
+  // D-25: this stays UI-tier only — the action selector below is shared with the simulator's
+  // takeTurn(), so a taken hail must return before reaching it rather than folding hailing in.
+  let hailed=false;
   if(g.cfg.parley&&(appState.game.round-(p.lastOffer||-9))>=3){
     for(const ing of g.needs(p)){
-      if(g.tokens[ing]>0)continue; // island still has crates — no need to beg
-      const human=g.players.find(q=>q.strategy==="human"&&!q.done&&q.ing.includes(ing));
-      if(human&&p.coins>=5){
-        p.lastOffer=appState.game.round;
-        setActor(human.idx);
-        const choice=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! 5🌕 for your ${ilabelImg(ing)} — what say ye?"`,
-          [{label:"Sell for 5🌕",value:"sell"},{label:"Counter",value:"counter"},{label:"Refuse",value:"refuse"}]);
-        let price=5,dealt=choice==="sell";
-        if(choice==="counter"){
-          const raises=[6,7,8,9,10].filter(n=>n<=p.coins);
-          const counterAmt=raises.length?await ask(`Counter — how much for your ${ilabelImg(ing)}?`,
-            raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:"Never mind",value:0}])):0;
-          if(counterAmt>0){price=counterAmt;dealt=true;} // the bot's only source is this trade, so it pays up if it can afford it
-        }
-        g.ev({t:"parley",a:p.idx,b:human.idx,offer:price+" coins",want:ing,ok:dealt});
-        if(dealt){
-          human.ing.splice(human.ing.indexOf(ing),1);p.ing.push(ing);
-          p.coins-=price;human.coins+=price;g.trades++;
-          if(g.cfg.tradeBonus){p.coins++;human.coins++;}
-          g.ev({t:"trade",a:p.idx,b:human.idx,gave:price+" coins",got:ing,kind:"hail"});
-        }
-        await botBeat();
-        break;
+      if(g.tokens[ing]>0)continue; // island still has crates — no need to beg (D-05, last-resort only)
+      if(!hailWorthIt(g,p,ing))continue; // D-04: only spend the action when it's genuinely worth it
+      const targets=rankHailTargets(g,p,ing);
+      if(!targets.length)continue;
+      const human=targets[0];
+      const price=priceHailOffer(g,p,human,ing);
+      // D-24: stamp lastOffer and spend the action THE MOMENT the offer reaches the table — before
+      // the await, not after — so the cooldown and the action cost are committed whether the human
+      // accepts, counters, or refuses (and a re-entrant pass within the cooldown is a no-op).
+      p.lastOffer=appState.game.round;
+      hailed=true;
+      setActor(human.idx);
+      const choice=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! ${price}🌕 for your ${ilabelImg(ing)} — what say ye?"`,
+        [{label:`Sell for ${price}🌕`,value:"sell"},{label:"Counter",value:"counter"},{label:"Refuse",value:"refuse"}]);
+      if(appState.turnExpired)return; // shot-clock expired mid-hail — no partial trade, ever
+      let finalPrice=price,dealt=choice==="sell";
+      if(choice==="counter"){
+        const raises=[price+1,price+2,price+3].filter(n=>n<=p.coins-HAIL_RESERVE);
+        const counterAmt=raises.length?await ask(`Counter — how much for your ${ilabelImg(ing)}?`,
+          raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:"Never mind",value:0}])):0;
+        if(appState.turnExpired)return;
+        if(counterAmt>0){finalPrice=counterAmt;dealt=true;} // the bot's only source is this trade, so it pays up if it can afford it
       }
+      g.ev({t:"parley",a:p.idx,b:human.idx,offer:finalPrice+" coins",want:ing,ok:dealt,kind:"hail"});
+      if(dealt){
+        human.ing.splice(human.ing.indexOf(ing),1);p.ing.push(ing);
+        p.coins-=finalPrice;human.coins+=finalPrice;g.trades++;
+        if(g.cfg.tradeBonus){p.coins++;human.coins++;}
+        g.ev({t:"trade",a:p.idx,b:human.idx,gave:finalPrice+" coins",got:ing,kind:"hail"});
+      }
+      await botBeat();
+      break;
     }
   }
+  if(hailed){await botBeat();return;}
   const action=g.chooseAction(p);
   if(action.type==="attack"){
     if(!g.tryTrade(p))await netHandlers().onAsyncBattle(p,action.target);
