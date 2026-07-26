@@ -144,3 +144,15 @@ None - no external service configuration required.
 ---
 *Phase: 14-engine-adjacent-gameplay-fixes-determinism*
 *Completed: 2026-07-26*
+
+## Self-Check: PASSED
+
+- FOUND: src/engine/index.js
+- FOUND: scripts/storm_moored_reason_test.js
+- FOUND: docs/DETERMINISM-RERECORD.md
+- FOUND: .planning/phases/14-engine-adjacent-gameplay-fixes-determinism/14-03-SUMMARY.md
+- FOUND: commit a098ff5 (Task 1)
+- FOUND: commit 681e99c (Task 2 — test, RED)
+- FOUND: commit 17ee908 (Task 2 — feat, GREEN)
+- FOUND: commit 87ad415 (docs — determinism re-record findings)
+- FOUND: commit f736aab (docs — plan summary)

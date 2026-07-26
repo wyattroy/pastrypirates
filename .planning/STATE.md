@@ -5,15 +5,15 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 14
 current_phase_name: engine-adjacent-gameplay-fixes-determinism
 status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-07-26T20:51:56.628Z"
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-07-26T21:23:53.449Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 6
   percent: 9
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 14 (engine-adjacent-gameplay-fixes-determinism) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-07-26 — Phase 14 execution started
 
-Progress: [██████░░░░] 56% (v1.2)
+Progress: [███████░░░] 67% (v1.2)
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [██████░░░░] 56% (v1.2)
 |------|----------|-------|-------|
 | Phase 14 P01 | 30min | 2 tasks | 3 files |
 | Phase 14 P02 | 25min | 3 tasks | 3 files |
+| Phase 14 P03 | 30min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: Determinism gate is deliberately RED (19/30 seeds diverge) after D-18 — re-record deferred to 14-04 per D-16; docs/DETERMINISM-RERECORD.md seeded with real per-seed measurements
 - [Phase ?]: D-06 rule 2's 'hurts least' proxy uses humanTrade's essential idiom (recipe.includes+cnt<=1), not RESEARCH's broken needs(q) proxy, per <planner_corrections>
 - [Phase ?]: Hail action-cost commits (p.lastOffer + hailed flag) the instant an offer reaches the table, before the await, so a shot-clock expiry mid-hail still counts as a spent action with no partial trade
+- [Phase ?]: D-15: the all-bot simulator's takeTurn now applies both storm gusts (up to 4 squares) sharing one dodgedOnce, matching the live game; play() rolls windNow2 from PERP at the exact orchestrator RNG draw point
+- [Phase ?]: D-19/D-21: Game.mooredReason(p) tags every moored event with its actual cause (justDocked/dock/home); moored(p) is unchanged behaviorally; the D-19 berth-protection invariant is now proven by scripts/storm_moored_reason_test.js, not assumed
+- [Phase ?]: All three fixture-perturbing decisions for Phase 14 (D-15, D-18, D-21) are now landed; determinism gate deliberately RED (30/30 seeds diverge) until 14-04's single, gated --capture re-record
 
 ### Pending Todos
 
@@ -106,8 +110,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-26T20:51:56.617Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-07-26T21:23:53.438Z
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
