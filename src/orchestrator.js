@@ -74,6 +74,7 @@ import {
 } from "./shared/index.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
+  netSetPaused, netWatchPaused,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
   netWatchConnected, netWatchPresence, netMarkPresence, netInit,
@@ -102,7 +103,7 @@ import {
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
-  rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, describe, seatLocal,
+  rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask,
   stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
 } from "./ui/index.js";
@@ -149,6 +150,29 @@ export function toggleTimer(){
   const next=!appState.timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
   netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
+}
+// CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
+// countdown AND bot captains — not just the ⏱ timer-off toggle above (D-05: the two coexist).
+// Multiplayer: write the flag; every client's watchPause() mirrors it, and only the host's
+// branch mutates shotClockDeadline/shotClockPauseElapsed (D-06/D-07 — see applyPauseState).
+// Solo/pass-and-play (no db/room): fall back to the local toggleShotClockPause() unchanged.
+export function togglePause(){
+  if(appState.db&&appState.room){
+    netSetPaused(appState.db,appState.room,!appState.shotClockPaused,netFail("pause"));
+  }else{
+    toggleShotClockPause();
+  }
+}
+// Structurally identical to watchTimer() below: every client (host and guest) attaches this so
+// the shared paused flag is tracked table-wide. Only the host branch runs applyPauseState (the
+// deadline/pauseElapsed math) — a guest just mirrors the boolean for rendering (D-06).
+export function watchPause(){
+  netWatchPaused(appState.db,appState.room,s=>{
+    const v=!!s.val();
+    if(appState.isHost)applyPauseState(v);
+    else appState.shotClockPaused=v;
+    setClockUI();
+  });
 }
 export function watchTimer(){
   netWatchTimerOff(appState.db,appState.room,s=>{
@@ -970,6 +994,7 @@ export function beginGame(cfg,seed){
   else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
+  watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
@@ -1008,7 +1033,7 @@ export function wireLobby(){
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};
   $("btnPlayAgain").onclick=leaveGame;
-  $("scPause").onclick=toggleShotClockPause;
+  $("scPause").onclick=togglePause;
   $("scTimerToggle").onclick=toggleTimer;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};

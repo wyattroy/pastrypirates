@@ -63,6 +63,14 @@ export function netWatchTimerOff(db, room, handler) {
   return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "timerOff" });
 }
 
+// CLOCK-02: mirrors netWatchTimerOff exactly — a room-scoped value watcher on the shared
+// whole-table pause flag, attached by every client (host and guest alike).
+export function netWatchPaused(db, room, handler) {
+  if (!db || !room) return null;
+  const ref = db.ref("rooms/" + room + "/paused");
+  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "paused" });
+}
+
 export function netWatchClock(db, room, handler) {
   if (!db || !room) return null;
   const ref = db.ref("rooms/" + room + "/clock");

@@ -266,7 +266,7 @@ const WATCHER_INVENTORY = [
   "netWatchClock", "netWatchChat", "netWatchBattle", "netWatchRecovery",
   "netWatchDraftPrompt", "netWatchEvents", "netWatchPrompt", "netWatchNarr",
   "netWatchSeats", "netWatchStatus", "netWatchTurnOrder", "netWatchRecipes",
-  "netWatchResponse", "netWatchDraftResponse",
+  "netWatchResponse", "netWatchDraftResponse", "netWatchPaused",
 ];
 const WATCHERS_FILE = path.join(NET_DIR, "watchers.js");
 
@@ -290,9 +290,9 @@ async function checkWatcherInventory() {
 
   const content = fs.readFileSync(WATCHERS_FILE, "utf8");
   const attachCount = (content.match(/registry\.attach\(/g) || []).length;
-  if (attachCount !== 18) {
+  if (attachCount !== 19) {
     ok = false;
-    failures.push(`INVENTORY: expected exactly 18 registry.attach() calls in src/net/watchers.js, found ${attachCount}`);
+    failures.push(`INVENTORY: expected exactly 19 registry.attach() calls in src/net/watchers.js, found ${attachCount}`);
   }
 
   return ok;
@@ -316,7 +316,7 @@ async function main() {
 
   const inventoryOk = await checkWatcherInventory();
   console.log(
-    `${inventoryOk ? "PASS" : "FAIL"} watcher inventory completeness (NET-01, D-01) — all eighteen watchers exported, exactly eighteen registry.attach() calls`
+    `${inventoryOk ? "PASS" : "FAIL"} watcher inventory completeness (NET-01, D-01) — all nineteen watchers exported, exactly nineteen registry.attach() calls`
   );
 
   if (failures.length) {

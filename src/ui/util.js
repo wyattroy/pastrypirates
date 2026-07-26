@@ -606,24 +606,38 @@ export function rearmShotClock(p){
 }
 // solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
 export function soloBotGame(){return appState.game&&appState.game.players&&appState.game.players.filter(p=>p.strategy==="human").length<=1;}
-// works any time in solo play, not just on your own turn — shotClockPaused doubles as the
-// whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
-// actually freezes the bots instead of just a countdown that isn't running yet.
-export function toggleShotClockPause(){
-  if(!appState.isHost||!soloBotGame())return;
-  if(appState.shotClockPaused){
-    appState.shotClockPaused=false;
-    if(appState.shotClockSeat!=null){
-      appState.shotClockDeadline=Date.now()+30000-appState.shotClockPauseElapsed;
-      appState.shotClockTimer=setInterval(shotClockTick,500);
-    }
-  }else{
+// CLOCK-02: the pause/resume state-mutation body, extracted out of toggleShotClockPause below
+// so src/orchestrator.js's watchPause() can call it directly on the host branch of a networked
+// pause toggle — the SAME shotClockDeadline/shotClockPauseElapsed math as before (D-07: resume
+// continues from the remaining time, not a fresh 30s), just relocated, not rewritten. No
+// isHost/soloBotGame gate lives in here on purpose (D-05/D-06): the caller decides who may call
+// this — solo's toggleShotClockPause() below (host-only), or the host branch of watchPause()
+// (never the guest branch, which only mirrors the boolean for rendering).
+export function applyPauseState(nowPaused){
+  if(nowPaused){
     appState.shotClockPaused=true;
     if(appState.shotClockSeat!=null){
       appState.shotClockPauseElapsed=Date.now()-(appState.shotClockDeadline-30000);
       if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
     }
+  }else{
+    appState.shotClockPaused=false;
+    if(appState.shotClockSeat!=null){
+      appState.shotClockDeadline=Date.now()+30000-appState.shotClockPauseElapsed;
+      appState.shotClockTimer=setInterval(shotClockTick,500);
+    }
   }
+}
+// works any time in solo play, not just on your own turn — shotClockPaused doubles as the
+// whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
+// actually freezes the bots instead of just a countdown that isn't running yet.
+// CLOCK-02/D-05/D-06: the soloBotGame() half of the old gate is REMOVED here — multiplayer now
+// reaches pause too, via src/orchestrator.js's togglePause()/watchPause(), which call
+// applyPauseState() directly instead of this wrapper. This wrapper stays host-gated and is now
+// only the solo/pass-and-play path (togglePause()'s local fallback when there is no db/room).
+export function toggleShotClockPause(){
+  if(!appState.isHost)return;
+  applyPauseState(!appState.shotClockPaused);
   netHandlers().onSetClockUI();
 }
 export function shotClockTick(){

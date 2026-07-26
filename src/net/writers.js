@@ -58,6 +58,14 @@ export function netSetTimerOff(db, room, val, onError) {
   return withReporter(db.ref("rooms/" + room + "/timerOff").set(val), onError);
 }
 
+// CLOCK-02: host-authoritative whole-table pause/resume flag, same
+// withReporter(db.ref(...).set(val), onError) shape as netSetTimerOff above —
+// any client (host or guest) may write it, but only the host's watchPause
+// branch reacts to it authoritatively (src/orchestrator.js).
+export function netSetPaused(db, room, val, onError) {
+  return withReporter(db.ref("rooms/" + room + "/paused").set(val), onError);
+}
+
 /* ---------- prompt / response (the shared singular prompt node) -------------------------------- */
 
 export function netSetPrompt(db, room, payload, onError) {

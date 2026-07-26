@@ -82,6 +82,7 @@ if (typeof window !== "undefined") {
     onBroadcastFlip: orchestrator.broadcastFlip,
     onBroadcastClock: orchestrator.broadcastClock,
     onExpireShotClock: orchestrator.expireShotClock,
+    onTogglePause: orchestrator.togglePause,
     onNetBroadcast: orchestrator.netBroadcast,
     onRenderBattle: orchestrator.renderBattle,
     onBattleAsk: orchestrator.battleAsk,
