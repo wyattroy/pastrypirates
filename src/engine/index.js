@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, man, ilabelImg } from "../shared/index.js";
 
 // notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
 // exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
@@ -699,7 +699,12 @@ class Game{
     if(storm){
       const before=[...p.pos];
       const wasDocked=this.adjPort(p)!==null;
-      this.windPush(p,DIRS[windDir],2);
+      // D-15: mirrors src/ui/flow.js:556-567's live bot storm block exactly — both gusts, one
+      // shared dodgedOnce, so a second leg that also hits land is a free pass on an already-paid
+      // anchor rather than a fresh charge.
+      const dodgedOnce={v:false};
+      this.windPush(p,DIRS[windDir],2,dodgedOnce);
+      this.windPush(p,DIRS[this.windNow2],2,dodgedOnce);
       p.justDocked=false;
       if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
       if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
@@ -750,6 +755,11 @@ class Game{
       this.round++;
       const wind="NSEW"[Math.floor(this.r()*4)];
       const storm=rollStorm(this); // #1a
+      // D-15: roll the second gust's direction the instant the round knows it's stormy, at the
+      // exact point src/orchestrator.js:681-683 draws it — one extra RNG draw, right after
+      // rollStorm and before anything else touches the seed this round, so live play and the
+      // headless simulator consume it identically from here forward.
+      this.windNow2=storm?PERP[wind][Math.floor(this.r()*2)]:null;
       this.windNow=wind;this.stormNow=storm;
       this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind)}); // NARR-04
       for(const i of order){
