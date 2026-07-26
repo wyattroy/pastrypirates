@@ -76,7 +76,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- **Determinism risk (Phase 14):** STORM-01 changes movement, which is engine-adjacent. RNG/iteration-order desync is the top risk — byte-for-byte regression against the golden baseline is non-negotiable; VERIFY-02 must be green (30/30) before Phase 14 closes.
+- **Determinism risk (Phase 14) — UPDATED 2026-07-26 by 14-CONTEXT.md D-15/D-16:** STORM-01 changes movement, which is engine-adjacent. RNG/iteration-order desync remains the top risk. **The golden baseline is now scheduled for a deliberate, one-time re-record** — Phase 14 aligns the all-bot simulator to the real game's full 4-square storm (the sim currently applies only the first gust), so all 30 fingerprints change on purpose. This supersedes the earlier "byte-for-byte against the golden baseline is non-negotiable" framing. Guardrails: re-record only after confirming the diffs are storm-related *only* (D-16), and resolve the open research question D-17 (does the sim already charge bot trades an action?) first, so the corpus is re-recorded **once**, not twice. VERIFY-02 must be green (30/30) against the *new* baseline before Phase 14 closes.
 - **Safari re-verification:** Storm rendering has a prior Safari-specific crash precedent; storm-movement work (Phase 14) and the final playtest (Phase 17) must both re-verify in Safari, not Chrome alone.
 - **MP test-harness gotcha:** Same-machine two-tab multiplayer shares localStorage `pp_id`, causing a transient host-reload collision during Phase 12 tests — re-set the host's own `pp_id` before reloading. Use synthetic-prompt injection for deterministic remote-render checks (see MEMORY.md).
 - **Backlog UAT findings (from v1.1 Phase 12 Safari playthrough, pre-existing, not regressions):** EOV narration box not cleared; bot hail + action on the same turn. The EOV narration item may intersect Phase 15 narration work.
@@ -102,4 +102,4 @@ Resume file: .planning/phases/14-engine-adjacent-gameplay-fixes-determinism/14-C
 
 ## Operator Next Steps
 
-- Review the v1.2 roadmap, then plan the first phase with `/gsd-plan-phase 13`
+- Phase 13 complete (CLOCK-01/02/03 human-verified). Phase 14 context gathered — plan it with `/gsd-plan-phase 14`
