@@ -295,7 +295,7 @@ Plans:
 > divergence report. D-16's original "confirm the differences are storm-related only" test is replaced
 > by D-26's explainability test.
 
-**Plans**: 3/6 plans executed
+**Plans**: 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -309,7 +309,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 14-04-PLAN.md — The one-way door: enumerate, attribute, decide, re-record once, document (VERIFY-02, D-16, D-26) [Wave 3, blocking decision checkpoint]
+- [x] 14-04-PLAN.md — The one-way door: enumerate, attribute, decide, re-record once, document (VERIFY-02, D-16, D-26) [Wave 3, blocking decision checkpoint]
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -384,7 +384,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
-| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 3/6 | In Progress|  |
+| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 4/6 | In Progress|  |
 | 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |

@@ -54,7 +54,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 ### Verification (VERIFY)
 
 - [ ] **VERIFY-01**: A manual Safari + Chrome multiplayer playtest (two windows) confirms the critical clock stall is fixed and a game starts and plays through end-to-end
-- [ ] **VERIFY-02**: The determinism regression harness stays green (30/30) — storm-movement and any engine-adjacent changes do not break lockstep replay
+- [x] **VERIFY-02**: The determinism regression harness stays green (31/31) — storm-movement and any engine-adjacent changes do not break lockstep replay
 
 ## Future Requirements
 
@@ -132,7 +132,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | META-02 | Phase 16 | Pending |
 | KOFI-01 | Phase 16 | Pending |
 | VERIFY-01 | Phase 17 | Pending |
-| VERIFY-02 | Phase 14 | In Progress |
+| VERIFY-02 | Phase 14 | Complete |
 
 **Coverage:**
 
