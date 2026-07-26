@@ -61,7 +61,10 @@ export function setClockUI(){
   $("btnPlayAgain").style.display="none";
   const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline}):appState.clockState;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
-  pauseEl.style.display=(appState.isHost&&soloBotGame()&&!appState.liveDone)?"":"none";
+  // CLOCK-02/D-09: de-gated from appState.isHost&&soloBotGame() — the ▶/⏸ pause is now shown to
+  // every player in both solo and multiplayer (a guest's click reaches togglePause() via
+  // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
+  pauseEl.style.display=(!appState.liveDone)?"":"none";
   $("scPauseImg").src=appState.shotClockPaused?PLAY_IMG:PAUSE_IMG;
   // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
   // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
@@ -79,7 +82,7 @@ export function setClockUI(){
     return;
   }
   if(!state){
-    if(appState.isHost&&appState.shotClockPaused){
+    if(appState.shotClockPaused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
       return;
@@ -95,7 +98,7 @@ export function setClockUI(){
     return;
   }
   wrap.classList.remove("idle");
-  if(appState.isHost&&appState.shotClockPaused){
+  if(appState.shotClockPaused){
     const elapsed=appState.shotClockPauseElapsed/1000;
     const urgent=elapsed>=20;
     wrap.classList.remove("urgent");wrap.classList.add("paused");
