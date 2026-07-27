@@ -304,6 +304,44 @@ function removeChatBubble(i){
 export function clearChatBubbles(){Object.keys(chatBubbles).map(Number).forEach(removeChatBubble);}
 export { positionChatBubble, removeChatBubble };
 
+// D-22 fix (storm push not rendered): render() below draws every ship from the position SNAPSHOT
+// that Game.ev() bakes into each event (events[evIdx].state), NOT from the live player objects. So
+// a move that emits no event — which is exactly what an ordinary per-square storm step is, see
+// windPush's `p.pos=nx` fall-through — repaints the identical square and the boat never appears to
+// budge; it only jumps once the leg's own outcome event finally lands. This paints the ships from
+// their LIVE positions instead, and is the per-square storm beat's redraw (windLeg/botWindLeg).
+//
+// Positions only, deliberately: coins, crates, the captain's log, the scrub bar and the host's
+// event broadcast all belong to the event stream, and every storm outcome that changes any of them
+// emits its own event and goes through the full liveRender()/render() path exactly as before. The
+// live-players-as-a-seat-array idiom is the same one drawBoard() already uses at :244.
+export function renderLiveShips(){
+  if(appState.replaying)return;      // reload-replay rebuilds state silently — same guard liveRender() uses
+  if(!shipEls.length)return;         // board not built yet
+  const live=appState.game.players;  // shipXY() only reads .pos off each entry
+  live.forEach((p,i)=>{
+    const [x,y]=shipXY(p.pos,i,live,cell);
+    shipEls[i].style.transform=`translate(${x}px,${y}px)`;
+    if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
+  });
+  // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
+  // The whose-turn-is-it scan is DUPLICATED from render() rather than factored out of it: this
+  // file's header forbids touching render()'s body at all ("moved BYTE-IDENTICAL... do not
+  // refactor... anything inside them" — it carries the v1.0 BUG-01 Safari storm-crash fix), and
+  // extracting the scan would have meant editing it. Keep the two copies in step by hand.
+  if(activeRing){
+    let a=null;
+    for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
+      const t=appState.game.events[i].t;
+      if(t==="turn"){a=appState.game.events[i].p;break;}
+      if(t==="newround")break;
+    }
+    if(a!=null&&live[a]&&!live[a].done){
+      const [ax,ay]=shipXY(live[a].pos,a,live,cell);
+      activeRing.style.transform=`translate(${ax}px,${ay}px)`;
+    }
+  }
+}
 export function render(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
   const st=e.state;

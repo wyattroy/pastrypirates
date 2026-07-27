@@ -48,7 +48,7 @@ import {
   DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, EYES_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive } from "./board.js";
+import { el, boardCell, setFlipActive, renderLiveShips } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -260,8 +260,14 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     // D-22: render THIS square before the next one's outcome can narrate — the reported "false
     // dock held fast" symptom was the board being a square behind when the message played, not a
     // wrong message. sleep() is a no-op during replay (:64), so this adds no replay-timing risk.
+    //
+    // renderLiveShips(), NOT liveRender(): an ordinary storm square emits no event, and liveRender()
+    // -> render() draws every ship from events[evIdx].state — the snapshot on the LAST EMITTED
+    // event — so it repainted the square the ship had already left and the push was invisible.
+    // Nothing else changed on this square either (no event to log, broadcast or pop), so painting
+    // the ships from their live positions is both the fix and the whole of the work owed here.
     p.pos=nx;
-    liveRender();
+    renderLiveShips();
     await sleep(STORM_STEP_MS);
     if(appState.game.onRim(nx)){ // swept into the trade winds
       appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
@@ -290,6 +296,13 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     const evBefore=g.events.length;
     g.windPush(p,DIRS[dirKey],1,dodgedOnce);
     if(g.events.length>evBefore){
+      // paint BEFORE narrating, same order the human path already uses for its own rim sweep
+      // (windLeg :274 renders, then flashes). windPush can move the ship AND record an event in
+      // one call — a square onto the rim is followed by tradewind() flinging it to the quadrant
+      // head — and the board must already show where the ship ended up when the line describing
+      // it plays, which is the whole of D-22. Without this the boat sat on its old square through
+      // the entire message and only jumped at the liveRender() below.
+      renderLiveShips();
       for(let k=evBefore;k<g.events.length;k++){
         const L=describe(g.events[k]);
         if(L)await flash(L.txt,null,botMsgHoldMs(L.txt));
@@ -298,7 +311,10 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       return; // the engine returned early — this square's own outcome ends the leg
     }
     if(p.pos[0]!==before[0]||p.pos[1]!==before[1]){
-      liveRender();
+      // same reason windLeg uses it (:263) — the engine moved the ship without emitting an event,
+      // and render() only ever draws ships from the last event's position snapshot, so liveRender()
+      // here repainted the square the ship had just left. This is the square that was invisible.
+      renderLiveShips();
       await sleep(BOT_STORM_STEP_MS);
       if(g.onRim(p.pos))return; // the engine already resolved the rim; no further square to push
       continue;

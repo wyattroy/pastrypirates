@@ -21,7 +21,8 @@
 
 import { loadEngine } from "./lib/load_engine.js";
 import { DIRS } from "../src/shared/index.js";
-import { EVENT_NARRATION, describe } from "../src/ui/util.js";
+import { EVENT_NARRATION, describe, movedSinceTurnStart } from "../src/ui/util.js";
+import { appState } from "../src/state/index.js";
 
 const { Game, roundCfg } = await loadEngine();
 
@@ -251,18 +252,152 @@ function s1of(pos, dir) { return [pos[0] + dir[0], pos[1] + dir[1]]; }
 // with a distinct `reason` (justDocked/dock/home — untouched, still asserted at the engine level
 // above and in scripts/storm_moored_reason_test.js). But at the NARRATION layer only, `home` (a
 // Tortuga berth) now renders the exact same line as `justDocked`, since D-18 treats Tortuga as a
-// normal island/dock and it should not get bespoke wording. `dock` keeps its own distinct line.
-// So the render-level assertion is TWO distinct strings across the three reasons, not three.
+// normal island/dock and it should not get bespoke wording.
+//
+// BUG-2 (.planning/debug/resolved/storm-push-not-rendered.md) refined `dock` further: it is NOT
+// unconditionally its own line. reason `dock` fires whenever the ship is standing on a dock when a
+// gust would run it aground, and that covers two different stories — the storm shoved it onto that
+// dock earlier in the same push (D-20's lucky save, which the "the gust shoves…" copy describes),
+// or it was parked there before the storm and never moved (which that copy misdescribes; Wyatt
+// watched it announce a shove that never happened). The engine cannot distinguish them and must
+// not change (`reason` is serialized into all 31 determinism fixtures), so src/ui/util.js's
+// movedSinceTurnStart() decides the wording from the position snapshots already in the event
+// stream. These checks pin BOTH halves of that rule against real engine-built event streams.
 {
   const at = () => [0, 0];
   const f = EVENT_NARRATION.moored;
   const texts = ["justDocked", "dock", "home"].map(reason => f({ t: "moored", p: 0, reason }, at).txt);
-  check("EVENT_NARRATION.moored: three reasons render two distinct lines (justDocked/home share copy, dock is its own)", new Set(texts).size, 2);
   check("EVENT_NARRATION.moored: justDocked and home render the identical narration line", texts[0], texts[2]);
-  checkTrue("EVENT_NARRATION.moored: dock's line differs from justDocked/home", texts[1] !== texts[0]);
   const bare = f({ t: "moored", p: 0 }, at).txt;
   checkTrue("EVENT_NARRATION.moored: no-reason event renders a real (non-empty, non-undefined) line", !!bare && !/undefined/.test(bare));
   checkTrue("describe(): a reasoned moored event still produces a non-null captain's-log line", describe({ t: "moored", p: 0, reason: "dock" }) !== null);
+  // the safe default: a detached/fabricated event carries no snapshot to compare, so the wording
+  // must fall back to the honest "still docked" line and never claim a shove it cannot evidence
+  check("EVENT_NARRATION.moored: reason \"dock\" with no position evidence renders the \"still docked\" line, not the shove line", texts[1], texts[0]);
+}
+
+/* ---------- assertion 5 (BUG-2): reason "dock" picks its wording from whether the ship moved ---------- */
+
+// A storm's second gust always blows PERPENDICULAR to its first (PERP, src/shared/index.js:148),
+// never back along it, so a storm can never return a ship to the square it started the turn on.
+// That is what makes "position at the `turn` event !== position now" an exact test for "this storm
+// actually moved this ship", and it is the comparison movedSinceTurnStart() performs.
+
+// A dock cell whose island lies one step further along `dir`, with the square BEFORE the dock
+// (dock - dir) ordinary open water — so a ship starting there is pushed ONTO the dock and only
+// then meets the island. This is D-20's genuine lucky save, the one case the shove copy describes.
+function findShovedOntoDock(g) {
+  for (const ing of g.ings) {
+    const dock = g.dockOf[ing];
+    for (const dk of Object.keys(DIRS)) {
+      const d = DIRS[dk];
+      if (!g.isIsland([dock[0] + d[0], dock[1] + d[1]])) continue;
+      const from = [dock[0] - d[0], dock[1] - d[1]];
+      if (g.blocked(from) || g.isIsland(from) || g.isHome(from) || g.onRim(from)) continue;
+      if (mDist(from, g.home) <= 1) continue;   // a berth would moor with reason "home" instead
+      return { from, dock: [...dock], dir: d };
+    }
+  }
+  return null;
+}
+
+// The already-parked case: standing ON a dock with its island straight ahead — the ship never moves.
+function findParkedOnDock(g) {
+  for (const ing of g.ings) {
+    const dock = g.dockOf[ing];
+    for (const dk of Object.keys(DIRS)) {
+      const d = DIRS[dk];
+      if (g.isIsland([dock[0] + d[0], dock[1] + d[1]])) return { dock: [...dock], dir: d };
+    }
+  }
+  return null;
+}
+
+{
+  const at = () => [0, 0];
+  const f = EVENT_NARRATION.moored;
+  const stillDockedLine = f({ t: "moored", p: 0, reason: "justDocked" }, at).txt;
+
+  // movedSinceTurnStart() reads the live event stream off appState.game — the same stream the
+  // captain's log, every remote guest and a reload-replay all describe() from. Pointing appState at
+  // the constructed game is all this DOM-free harness needs to exercise the real code path.
+  const shoved = findShovedOntoDock(freshGame(seed));
+  const parked = findParkedOnDock(freshGame(seed));
+  if (!shoved || !parked) {
+    console.log("  FAIL  BUG-2: seed's board offers no shoved-onto-dock / parked-on-dock geometry");
+    failures++;
+  } else {
+    {
+      // moved: open water -> pushed onto the dock -> island. The shove really happened.
+      const g = freshGame(seed);
+      appState.game = g;
+      const [p] = g.players;
+      g.players.forEach((q, i) => { if (i) q.done = true; });
+      p.pos = [...shoved.from];
+      p.justDocked = false;
+      g.ev({ t: "turn", p: p.idx });
+      g.windPush(p, shoved.dir, 2, { v: false });
+      const ev = g.events[g.events.length - 1];
+      check("BUG-2 (moved): the engine still emits moored/dock for a ship shoved onto a dock", `${ev.t}/${ev.reason}`, "moored/dock");
+      check("BUG-2 (moved): the ship genuinely advanced onto the dock square", `${p.pos}`, `${shoved.dock}`);
+      checkTrue("BUG-2 (moved): movedSinceTurnStart() reports true", movedSinceTurnStart(ev) === true);
+      checkTrue("BUG-2 (moved): narration IS the \"gust shoves … onto a dock\" line", /gust shoves/.test(f(ev, at).txt));
+    }
+    {
+      // never moved: parked on the dock before the storm. The shove line would be a lie.
+      const g = freshGame(seed);
+      appState.game = g;
+      const [p] = g.players;
+      g.players.forEach((q, i) => { if (i) q.done = true; });
+      p.pos = [...parked.dock];
+      p.justDocked = false;
+      g.ev({ t: "turn", p: p.idx });
+      g.windPush(p, parked.dir, 1, { v: false });
+      const ev = g.events[g.events.length - 1];
+      check("BUG-2 (not moved): the engine still emits the SAME moored/dock reason (event stream unchanged)", `${ev.t}/${ev.reason}`, "moored/dock");
+      check("BUG-2 (not moved): the ship never left its dock square", `${p.pos}`, `${parked.dock}`);
+      checkTrue("BUG-2 (not moved): movedSinceTurnStart() reports false", movedSinceTurnStart(ev) === false);
+      checkTrue("BUG-2 (not moved): narration does NOT claim a shove", !/gust shoves/.test(f(ev, at).txt));
+      check("BUG-2 (not moved): narration is the already-approved \"still docked\" line", f(ev, at).txt, stillDockedLine);
+    }
+    {
+      // boundary: an INTERVENING event sits between the turn event and the moored event. This is
+      // the ordinary two-leg storm — botWindLeg emits a `windmove` summary when leg 1 ends, and
+      // that event's snapshot already holds the moved-to square. The anchor must remain the `turn`
+      // event; anchoring on "the previous event" instead would read this genuine shove as "never
+      // moved" and silently lose D-20's lucky-save line. (Mutation-checked: relaxing the
+      // turn-event search in movedSinceTurnStart survives every other case in this battery.)
+      const g = freshGame(seed);
+      appState.game = g;
+      const [p] = g.players;
+      g.players.forEach((q, i) => { if (i) q.done = true; });
+      p.pos = [...shoved.from];
+      p.justDocked = false;
+      g.ev({ t: "turn", p: p.idx });
+      g.windPush(p, shoved.dir, 1, { v: false });   // leg 1: steps onto the dock square, emits nothing
+      g.ev({ t: "windmove", p: p.idx });            // ...then the leg-end summary botWindLeg emits
+      g.windPush(p, shoved.dir, 1, { v: false });   // leg 2: meets the island, moors against the dock
+      const ev = g.events[g.events.length - 1];
+      check("BUG-2 (intervening event): the moored/dock reason still arrives after a leg-end windmove", `${ev.t}/${ev.reason}`, "moored/dock");
+      checkTrue("BUG-2 (intervening event): movedSinceTurnStart() still anchors on the turn event, not the windmove", movedSinceTurnStart(ev) === true);
+      checkTrue("BUG-2 (intervening event): the lucky-save shove line survives an intervening event", /gust shoves/.test(f(ev, at).txt));
+    }
+    {
+      // boundary: the nearest preceding `turn` belongs to ANOTHER seat, so there is no valid
+      // anchor to measure against — must report "can't tell" and fall back to the honest line
+      const g = freshGame(seed);
+      appState.game = g;
+      const [p] = g.players;
+      g.players.forEach((q, i) => { if (i) q.done = true; });
+      p.pos = [...parked.dock];
+      p.justDocked = false;
+      g.ev({ t: "turn", p: 1 }); // a different seat's turn — the wrong anchor
+      g.windPush(p, parked.dir, 1, { v: false });
+      const ev = g.events[g.events.length - 1];
+      checkTrue("BUG-2 (wrong anchor): movedSinceTurnStart() reports null rather than guessing", movedSinceTurnStart(ev) === null);
+      checkTrue("BUG-2 (wrong anchor): narration falls back to the no-shove line", !/gust shoves/.test(f(ev, at).txt));
+    }
+  }
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

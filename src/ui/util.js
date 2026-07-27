@@ -222,6 +222,38 @@ export function windHoldPhrase(dir,streak){
   const a=WIND_ADJ[dir]||"wind";
   return (streak||2)>=3?`this ${a} won't quit`:`this ${a} is gusting`;
 }
+// BUG-2 (storm-push-not-rendered): did this player's ship actually move between the start of its
+// turn and the moment event `e` was recorded? A storm push is the very first thing a turn does
+// (humanTurn/botTurn both emit `turn` and then push), so the `turn` event that opened this seat's
+// turn holds where the ship sat BEFORE the storm touched it, and every event carries a full
+// position snapshot (Game.ev, src/engine/index.js:233-235). Comparing the two is how the narration
+// tells "the gust shoved you here" apart from "you were parked there all along".
+//
+// Derived from the event stream rather than from live UI bookkeeping ON PURPOSE. The captain's log
+// is produced by running describe() over the event stream — on the host, on every remote guest
+// (which never runs the push code at all, only receives its events — see watchEvents), and again
+// on a reload-replay. UI-tier scratch state would only exist on the host, so a guest's log would
+// tell the wrong story. Snapshots are in the stream everywhere, so this reads the same on all three.
+//
+// Returns true/false, or null for "can't tell" — a detached or fabricated event (no snapshot, or
+// not in the current stream). Every caller must treat null as NOT a shove: understating a real
+// lucky save is a far cheaper mistake than announcing a shove that never happened, which is the
+// whole bug being fixed.
+export function movedSinceTurnStart(e){
+  if(!e||!e.state||!e.state[e.p])return null;
+  const evs=(appState.game&&appState.game.events)||[];
+  const idx=evs.lastIndexOf(e); // events are only ever appended, so the newest match is the right one
+  if(idx<0)return null;
+  for(let i=idx-1;i>=0;i--){
+    const q=evs[i];
+    if(q.t==="newround")return null;                       // ran past the turn's start — no anchor to compare
+    if(q.t!=="turn")continue;
+    if(q.p!==e.p||!q.state||!q.state[e.p])return null;     // the nearest turn isn't this seat's — wrong anchor
+    const a=q.state[e.p].pos,b=e.state[e.p].pos;
+    return a[0]!==b[0]||a[1]!==b[1];
+  }
+  return null;
+}
 export const EVENT_NARRATION={
   // notes/edits NARR-03: a wind that hasn't changed direction is "still" blowing that way — it
   // doesn't newly go anywhere, so it never says "now".
@@ -258,13 +290,27 @@ export const EVENT_NARRATION={
   // own drafted line, approved as-is. A replayed pre-change log with no reason falls back to the
   // old generic line rather than rendering "undefined".
   moored:(e,at)=>{
+    const stillDocked=`${pn(e.p)} is still docked, so the storm can't run them aground.`;
     const L={
-      justDocked:`${pn(e.p)} is still docked, so the storm can't run them aground.`,
+      justDocked:stillDocked,
       // D-20: the mechanics stay a lucky save (a ship blown ONTO a dock is sheltered by it) — the
       // wording change is the fix, per Wyatt: "you're able to steady your boat against the dock to
       // not be blown aground."
-      dock:`Lucky break! The gust shoves ${pn(e.p)} onto a dock, and the crew steadies her fast against it ⚓`,
-      home:`${pn(e.p)} is still docked, so the storm can't run them aground.`,
+      //
+      // BUG-2 (storm-push-not-rendered): reason `dock` is mooredReason()'s "standing on a dock"
+      // cause, and that covers TWO different stories the engine cannot tell apart — the storm
+      // shoved this ship onto the dock earlier in this same push (D-20's genuine lucky save), or
+      // the ship was simply parked at that dock before the storm started and has not moved an
+      // inch. The shove line is only true for the first, and Wyatt watched it fire for the second.
+      // The engine must keep emitting the one `dock` reason (that field is serialized into all 31
+      // determinism fixtures — see .planning/debug/storm-push-not-rendered.md), so the UI picks
+      // the wording instead, from movement the event stream already records. When the ship never
+      // moved, it renders the SAME already-approved "still docked" line as justDocked/home, which
+      // is exactly what it is — no new player-facing copy is invented here (D-14/D-27).
+      dock:movedSinceTurnStart(e)===true
+        ?`Lucky break! The gust shoves ${pn(e.p)} onto a dock, and the crew steadies her fast against it ⚓`
+        :stillDocked,
+      home:stillDocked,
     };
     return {txt:L[e.reason]||`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
   },
@@ -497,8 +543,22 @@ export function msgHoldMs(text){
 // D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
 // snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);
 // BOT_STORM_STEP_MS is the bot's own, snappier per-square beat (botWindLeg, src/ui/flow.js).
-export const STORM_STEP_MS=320;
-export const BOT_STORM_STEP_MS=170;
+//
+// BOTH MUST STAY ABOVE SHIP_GLIDE_MS. Each ship <g> carries its own
+// `transition: transform .35s` (src/ui/board.js, in drawBoard's ship loop), so a painted move
+// takes 350ms to actually travel. A beat shorter than that retargets the boat mid-glide: it slides
+// continuously through the push and never comes to rest on the squares in between, which is the
+// opposite of the per-square reading this beat exists to create.
+//
+// The original 320/170 predate any of this being observable — until the storm-push render bug was
+// fixed (.planning/debug/resolved/storm-push-not-rendered.md) an ordinary storm square painted
+// NOTHING at all, so these two numbers had never once been seen against the glide they pace. Live
+// measurement on the fixed build put the real dwell at 166ms (bot) and 317ms (human), both under
+// the 350ms glide, exactly as that predicts. Raised to clear it with a little rest at each square.
+// Still the feel knob: tune freely, but keep both above SHIP_GLIDE_MS or the stepping is lost.
+export const SHIP_GLIDE_MS=350; // must match drawBoard()'s ship `transition: transform .35s`
+export const STORM_STEP_MS=SHIP_GLIDE_MS+70;     // 420 — the human watching their own ship
+export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappier of the two
 
 // D-10: "snappiness and legibility are the two things being balanced" — a separate, shorter hold
 // curve for bot narration, not a scaled copy of msgHoldMs's. Same base/per-char/pause shape, but a
