@@ -287,13 +287,20 @@ Plans:
   1. During a storm the boat visibly moves one square at a time across the full dir1+dir2 push (up to 4 squares). *(STORM-01)*
   2. Docking/aground checks evaluate at the correct square — the false "the dock held fast" message no longer appears when the boat is still a square away from the dock. *(STORM-01)*
   3. The bot hail/parley turn follows the rule Wyatt decides during this phase — a hailing bot no longer *appears* to take two actions in one turn unless that is the deliberately chosen behavior; if the rule applies to bot-vs-bot it is mirrored in the engine's `takeTurn`. *(AI-01)*
-  4. The determinism regression harness stays green (30/30) after the storm-movement and bot-rule changes — lockstep replay is unaffected. *(VERIFY-02)*
+  4. The determinism regression harness stays green (31/31) after the storm-movement and bot-rule changes — lockstep replay is unaffected. *(VERIFY-02)*
 
 > **Note on criterion 4 (recorded during planning, 2026-07-26):** per CONTEXT.md D-15/D-18/D-21 the 30
-> golden fixtures are re-recorded exactly once during this phase, deliberately. "Green 30/30" means
+> golden fixtures are re-recorded exactly once during this phase, deliberately. "Green" means
 > green against the **new** baseline, after a blocking human decision and a full, attributed
 > divergence report. D-16's original "confirm the differences are storm-related only" test is replaced
 > by D-26's explainability test.
+>
+> **Updated at execution (2026-07-26):** the corpus is **31** seeds, not 30. After the phase's three
+> engine changes no seed produced a `shipwrecked` event any more, and the capture tool's coverage
+> guard refused to write a corpus blind to a required mechanic. Wyatt chose to add a 31st seed
+> (12379, first match over a bounded search) rather than accept the coverage gap, so the criterion
+> is 31/31. The original 30 keep their seed indices and personality rotation and stay directly
+> comparable.
 
 **Plans**: 6/6 plans executed
 
