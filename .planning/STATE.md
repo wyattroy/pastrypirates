@@ -5,8 +5,8 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: Narration Audit & Fixes
 status: planning
-stopped_at: Completed 14-06-PLAN.md — Phase 14 all 6 plans done, ready for phase verification
-last_updated: "2026-07-27T01:51:45.046Z"
+stopped_at: Phase 15 context gathered
+last_updated: "2026-07-27T23:33:16.335Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 14 complete, transitioned to Phase 15
 progress:
@@ -122,9 +122,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-27T00:49:26.633Z
-Stopped at: Completed 14-06-PLAN.md — Phase 14 all 6 plans done, ready for phase verification
-Resume file: None
+Last session: 2026-07-27T23:33:16.316Z
+Stopped at: Phase 15 context gathered
+Resume file: .planning/phases/15-narration-audit-fixes/15-CONTEXT.md
 
 ## Operator Next Steps
 
