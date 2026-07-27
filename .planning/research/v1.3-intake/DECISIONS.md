@@ -40,18 +40,26 @@ can't escape it. So the fix is **escape hatches and legibility**, not a changed 
    and disable/re-enable. No mode is a special case.
 4. **The tutorial explains the timer** and how to switch it off — and the tutorial itself is untimed.
 
-### Knock-on effects (flagged, not decided)
+### Knock-on effects (all three confirmed by Wyatt 2026-07-27)
 
-- **The settings menu survives D-02.** Phase 7 in the draft roadmap existed partly to host the hints
-  toggle. D-02 = B removes hints — but D-01 now *requires* a disable/re-enable control in every
-  mode, so the settings menu is still needed. Its justification changed; its necessity did not.
-- **D-01's tutorial requirement lands in the onboarding milestone, not v1.3.** Point 4 above depends
-  on a tutorial existing, and D-02 defers that. So v1.3 ships the clock controls and the urgency
-  animation; the *explanation* of them ships with onboarding. Worth confirming that split is
-  acceptable rather than assuming it.
-- **New scope not in the original 63 items.** The urgency animation (300% rings, red, spanning both
-  phases), solo-mode clock disabling, and cross-mode parity are all new asks arising from this
-  answer. They need their own requirement IDs when v1.3 is formally planned.
+- **NO settings menu in v1.3.** *(This corrects an earlier draft claim that the settings menu
+  "survives" D-02 — it does not.)* The clock-disable control **already exists** in
+  multiplayer/pass-and-play. It is broken, not missing: `watchTimer()`
+  (`src/orchestrator.js:199-217`) arms/disarms the shot clock by watching a Firebase `timerOff`
+  node, and pass-and-play has no Firebase connection at all (`appState.room` is null,
+  `appState.passAndPlay=true` at `src/ui/flow.js:966`), so the control silently no-ops there.
+  The work is therefore: **(a)** give it a local, non-Firebase code path so it actually works, and
+  **(b)** extend the same control to solo mode. The settings-menu idea came from PDF item 7.f
+  (relocating the toggle into the *hints* settings menu) — D-02 defers hints, so that relocation
+  defers with it. Wyatt: *"we don't need a settings menu at this stage."*
+- **The tutorial's timer explanation defers to the onboarding milestone.** Confirmed by Wyatt —
+  v1.3 ships the working controls and the urgency animation; teaching the player about them ships
+  with the tutorial. Accepted that there is an interim window where the controls exist and nothing
+  explicitly teaches them; the red urgency treatment is expected to carry that weight on its own.
+- **The new scope goes into v1.3.** Confirmed. Needs its own requirement IDs at planning time:
+  the urgency animation (rings 300% larger and red, triggering at 5s on the 20s phase and persisting
+  through the whole 10s phase), solo-mode clock disable/re-enable, and pause/disable parity across
+  solo, pass-and-play, and multiplayer.
 - **D-04 adds copy work.** "Work 'parley' into a different narration path" is new writing, and
   belongs in the D-06 batched session rather than being invented during implementation.
 
