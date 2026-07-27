@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Playtest Fixes & Polish
-current_phase: 14
-current_phase_name: engine-adjacent-gameplay-fixes-determinism
-status: verifying
+current_phase: 15
+current_phase_name: Narration Audit & Fixes
+status: planning
 stopped_at: Completed 14-06-PLAN.md — Phase 14 all 6 plans done, ready for phase verification
-last_updated: "2026-07-27T00:49:26.640Z"
+last_updated: "2026-07-27T01:51:45.046Z"
 last_activity: 2026-07-26
-last_activity_desc: Phase 14 execution started
+last_activity_desc: Phase 14 complete, transitioned to Phase 15
 progress:
   total_phases: 11
   completed_phases: 2
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 14 — engine-adjacent-gameplay-fixes-determinism
+**Current focus:** Phase 15 — Narration Audit & Fixes
 
 ## Current Position
 
-Phase: 14 (engine-adjacent-gameplay-fixes-determinism) — EXECUTING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-07-26 — Phase 14 execution started
+Phase: 15 — Narration Audit & Fixes
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-26 — Phase 14 complete, transitioned to Phase 15
 
 Progress: [██████████] 100% (v1.2)
 
@@ -39,7 +39,7 @@ Progress: [██████████] 100% (v1.2)
 
 **Velocity (v1.2):**
 
-- Total plans completed: 3
+- Total plans completed: 9
 - Average duration: — min
 - Total execution time: 0 hours
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100% (v1.2)
 | 16. UI/UX Polish, Social Preview & Support | TBD | — | — |
 | 17. Final Multiplayer Verification | TBD | — | — |
 | 13 | 3 | - | - |
+| 14 | 6 | - | - |
 
 *Updated after each plan completion*
 **Per-Plan Metrics:**
@@ -76,7 +77,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 
 - v1.2 splits the second punch list — fixes/polish now (CLOCK, STORM, NARR, UI, META, KOFI); the tutorial, sound effects, and island redesign are deferred (island redesign touches deterministic board generation).
 - CLOCK-01 (multiplayer clock stall) is the critical headline fix and is front-loaded as Phase 13 so multiplayer is playable as early as possible.
-- STORM-01 is the one engine-adjacent change; it is grouped with VERIFY-02 in Phase 14 so determinism re-verification (30/30) is deliberate, not incidental.
+- STORM-01 is the one engine-adjacent change; it is grouped with VERIFY-02 in Phase 14 so determinism re-verification is deliberate, not incidental. **Settled at Phase 14 close: the corpus is now 31 seeds, not 30** (a 31st was added to preserve `shipwrecked` coverage), and the gate is 31/31 green.
 - NARR-01 is an approval-gate deliverable — the narration audit goes to Wyatt for review before the NARR-02…06 pruning/fixes are applied.
 - Ko-Fi "Buy me a cookie" button (KOFI-01) approved for v1.2 despite the third-party ko-fi.com script embed.
 - [Phase ?]: D-18: leeward() now tests the upwind square against isHome() as well as isIsland() — Tortuga casts a wind shadow like every other island (fixture-perturbing, deliberate)
@@ -99,10 +100,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- **Determinism risk (Phase 14) — UPDATED 2026-07-26 by 14-CONTEXT.md D-15/D-16:** STORM-01 changes movement, which is engine-adjacent. RNG/iteration-order desync remains the top risk. **The golden baseline is now scheduled for a deliberate, one-time re-record** — Phase 14 aligns the all-bot simulator to the real game's full 4-square storm (the sim currently applies only the first gust), so all 30 fingerprints change on purpose. This supersedes the earlier "byte-for-byte against the golden baseline is non-negotiable" framing. Guardrails: re-record only after confirming the diffs are storm-related *only* (D-16), and resolve the open research question D-17 (does the sim already charge bot trades an action?) first, so the corpus is re-recorded **once**, not twice. VERIFY-02 must be green (30/30) against the *new* baseline before Phase 14 closes.
+- ~~**Determinism risk (Phase 14)**~~ — **RESOLVED at Phase 14 close (2026-07-26).** The one-time re-record happened exactly once, behind a blocking human decision, after a full per-seed divergence report attributed every change. The corpus grew 30 → 31 seeds (a 31st was added when the coverage guard found no seed produced a `shipwrecked` event any more; `REQUIRED_EVENT_TYPES` was left unweakened). VERIFY-02 is green at **31/31** against the new baseline. Full record: `docs/DETERMINISM-RERECORD.md`.
+- **Standing determinism rule (carried forward):** the 31-seed corpus is the multiplayer lockstep oracle and there is no cheap re-record. Any future change to what `src/engine/index.js` emits into the event stream — including adding a field to an existing event — invalidates all 31 fixtures and requires another gated re-record. Prefer UI-tier fixes. This is what forced STORM-02 (guest storm animation) to the backlog rather than into Phase 14.
 - **Safari re-verification:** Storm rendering has a prior Safari-specific crash precedent; storm-movement work (Phase 14) and the final playtest (Phase 17) must both re-verify in Safari, not Chrome alone.
 - **MP test-harness gotcha:** Same-machine two-tab multiplayer shares localStorage `pp_id`, causing a transient host-reload collision during Phase 12 tests — re-set the host's own `pp_id` before reloading. Use synthetic-prompt injection for deterministic remote-render checks (see MEMORY.md).
-- **Backlog UAT findings (from v1.1 Phase 12 Safari playthrough, pre-existing, not regressions):** EOV narration box not cleared; bot hail + action on the same turn. The EOV narration item may intersect Phase 15 narration work.
+- **Backlog UAT findings (from v1.1 Phase 12 Safari playthrough, pre-existing, not regressions):** EOV narration box not cleared (still open, tagged `resolves_phase: 16`; may intersect Phase 15 narration work). ~~Bot hail + action on the same turn~~ — **closed by Phase 14 (AI-01/plan 14-02)**; the todo is filed under `.planning/todos/completed/`.
 
 ## Deferred Items
 

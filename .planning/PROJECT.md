@@ -128,4 +128,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-26 — after Phase 13 (Multiplayer Turn Clock) complete: CLOCK-01/02/03 validated and human-verified*
+*Last updated: 2026-07-26 — after Phase 14 (Engine-Adjacent Gameplay Fixes & Determinism) complete: STORM-01, AI-01, VERIFY-02 validated and human-verified. The determinism corpus was re-recorded once behind a blocking human decision and grew 30 → 31 seeds to preserve `shipwrecked` coverage; the gate is green at 31/31. STORM-01's scope was amended to solo/host — multiplayer guest storm animation is backlogged as STORM-02, because delivering it would require changing the engine event stream and forcing another corpus re-record.*
