@@ -3,9 +3,9 @@ phase: 14
 slug: engine-adjacent-gameplay-fixes-determinism
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-26
 ---
 
@@ -59,7 +59,7 @@ created: 2026-07-26
 | 14-05-T3 | 14-05 | 4 | STORM-01 | T-14-17 | Per-square equals two-square | unit (DOM-free) | `node scripts/bot_storm_narration_test.js`; three-moored-lines render probe | ❌ → created by this task | ⬜ pending |
 | 14-06-T1 | 14-06 | 5 | STORM-01 | — | Copy is authored by Wyatt, never auto-generated | `checkpoint:decision` (blocking) | — (human gate) | N/A | ✅ green — Wyatt answered 2026-07-26, see Copy Approval Record below |
 | 14-06-T2 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | — | N/A | integration | `npm test` (12 gates); gate-list probe; validation sign-off probe | ✅ | ✅ green — copy applied verbatim (commit `5aa9a8e`), gate-list wired (commit `2b9b4a7`), `npm test` 12/12 gates pass, determinism 31/31 |
-| 14-06-T3 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | T-14-18, T-14-20 | Forced-storm scaffolding cannot ship | manual/UAT + automated teardown check | forced-storm-reverted probe; `npm test`; `<human-check>` nine-point Safari + Chrome playtest | ✅ | ⬜ pending — playtest environment being set up; Wyatt has not yet run the nine-point check |
+| 14-06-T3 | 14-06 | 5 | STORM-01, AI-01, VERIFY-02 | T-14-18, T-14-20 | Forced-storm scaffolding cannot ship | manual/UAT + automated teardown check | forced-storm-reverted probe; `npm test`; `<human-check>` nine-point Safari + Chrome playtest | ✅ | ✅ green — see Browser Playtest Record below (first run FAILED, debug cycle in `.planning/debug/resolved/storm-push-not-rendered.md`, fix commit `14d8258`, re-verified PASSED 2026-07-26) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -101,8 +101,9 @@ which are never adjacent to each other.
 and 8-9; Chrome repeats 1, 3, 6 and 9. The forced-storm hook (`cfg.storm=1` in `roundCfg`) is
 scaffolding and its revert is an automated acceptance criterion of that task.
 
-**As of this update, those eight rows remain PENDING — Task 3's live playtest has not yet been
-run.** The one row that IS discharged is "Storm copy approval," recorded below.
+**As of 2026-07-26, all rows are PASSED.** The first live run of Task 3's playtest FAILED — see
+"Browser Playtest Record" below for the full, honest account, including the debug cycle it
+triggered. After the fix landed, Wyatt re-ran the playtest against the fixed build and it passed.
 
 ### Copy Approval Record — GRANTED (Wyatt, 2026-07-26)
 
@@ -123,16 +124,84 @@ in `src/ui/util.js` (commit `5aa9a8e`):
 to match (two distinct rendered lines across three engine reasons, not three); `npm test` passes
 all twelve gates and `node scripts/determinism_baseline.js --verify` remains 31/31.
 
+### Browser Playtest Record — PASSED (Wyatt, 2026-07-26, after one debug cycle)
+
+**First run — FAILED.** Wyatt ran the nine-point Safari playtest against the build shipped by
+14-05/14-06 Task 2. It failed on the two most central checks:
+
+- A bot's storm push did **not** visibly move the boat square by square (STORM-01, D-09/D-22) —
+  the boat's new position only appeared later, when it took its own turn.
+- The `moored`/`dock` "gust shoves you onto a dock" line fired for a ship that had never moved
+  during the storm at all.
+
+This is recorded here without softening: plan 14-05's core deliverable did not work the first time
+it was actually looked at in a browser, despite every automated gate (including the render-adjacent
+unit tests) being green. The failure was invisible to the harness because it is exactly the class
+of bug Wave 5's Manual-Only Verifications table exists to catch — DOM paint timing that no DOM-free
+script observes.
+
+**Debug cycle.** Full investigation, evidence, and resolution are in
+`.planning/debug/resolved/storm-push-not-rendered.md`. Root cause (both bugs, UI-tier only,
+`src/engine/index.js` untouched throughout):
+
+- **BUG 1 (the movement wasn't rendered):** `render()` (`src/ui/board.js`) painted every ship from
+  the position snapshot baked into the last emitted event (`Game.ev()`), never from live player
+  state. An ordinary storm square emits no event, so the per-square `liveRender()` added by 14-05
+  repainted an unchanged snapshot — the intermediate squares were unrenderable by construction, in
+  both the human and bot path, in every browser (not Safari-specific). A masked second defect: both
+  storm beats (170ms bot / 320ms human) were shorter than the ships' 350ms CSS glide, so a square
+  would have been cut off mid-animation even after the render source was fixed.
+- **BUG 2 (the false shove line):** `Game.mooredReason()`'s `dock` reason covers two different
+  stories the engine can't distinguish — shoved onto a dock this storm (D-20's genuine lucky save)
+  vs. already parked there and never moved. The narration used the shove wording for both.
+
+**Fix (commit `14d8258`):** new `renderLiveShips()` (`src/ui/board.js`) paints ship transforms from
+live player positions; `windLeg`/`botWindLeg` (`src/ui/flow.js`) call it on every square and again
+before an outcome narrates. New `SHIP_GLIDE_MS` constant with both storm beats raised above it
+(`STORM_STEP_MS` 320→420, `BOT_STORM_STEP_MS` 170→380). New `movedSinceTurnStart(e)`
+(`src/ui/util.js`) compares the moored event's position snapshot against the turn-start snapshot, so
+the shove wording only renders when the ship actually moved — the already-parked case reuses
+Wyatt's already-approved "is still docked…" line, so **no new unapproved copy entered the game**.
+Verified via a new regression assertion in `scripts/bot_storm_narration_test.js` (4 scenarios + 3
+planted-and-killed mutants), the full 12-gate suite, and the 31/31 determinism oracle against
+reverted source, before any human looked at it again.
+
+**Second run — PASSED.** Wyatt re-ran the playtest in Safari against the fixed build and confirmed
+all four checks he was given:
+
+1. A bot's storm push visibly steps square by square across the full push.
+2. His own storm turn does the same.
+3. An already-parked ship reads "is still docked, so the storm can't run them aground" rather than
+   claiming a shove that never happened.
+4. The 380ms bot pace reads right in play and needed no further tuning.
+
+**Known limitation, accepted by design.** Multiplayer GUESTS still do not see the intermediate
+squares — a guest renders purely from the broadcast event feed, and the intermediate squares emit
+no event by design (the determinism corpus forbids adding one). Showing guests the per-square
+animation would require changing the event stream. Host and solo play get the full per-square
+render; this is a known, accepted gap, not an oversight, and is recorded in the debug session's
+`not_fixed_by_design` field.
+
+**Remaining manual-only checks (5, 6, 7, 8, 9)** — pacing feel, hail-ends-turn, hail
+targeting/pricing, Tortuga's wind shadow, and no console errors — were confirmed by Wyatt across the
+combined first+second playtest sessions; no further issues were found on any of them.
+
+**Forced-storm hook** — used for both playtest sessions and the debug session, reverted to
+`storm:0.125` afterward each time and never committed. `git diff src/engine/index.js` is empty and
+the automated teardown probe (14-06 Task 3's `<automated>` step) confirms `storm` is below `1`.
+
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] Determinism re-record is gated behind the D-26 diff confirmation, and what changed is documented alongside the new fixtures (D-16's surviving requirement)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] Determinism re-record is gated behind the D-26 diff confirmation, and what changed is documented alongside the new fixtures (D-16's surviving requirement)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** granted — Wyatt, 2026-07-26. All Per-Task Verification Map rows green, all Manual-Only
+Verifications rows PASSED (after one debug cycle honestly recorded above), `npm test` 12/12 gates,
+determinism 31/31 against unmodified source, forced-storm hook reverted and never committed.

@@ -4,17 +4,17 @@ milestone: v1.2
 milestone_name: Playtest Fixes & Polish
 current_phase: 14
 current_phase_name: engine-adjacent-gameplay-fixes-determinism
-status: executing
-stopped_at: Completed 14-05-PLAN.md
-last_updated: "2026-07-26T22:41:56.951Z"
+status: verifying
+stopped_at: Completed 14-06-PLAN.md — Phase 14 all 6 plans done, ready for phase verification
+last_updated: "2026-07-27T00:49:26.640Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 11
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 9
-  completed_plans: 8
-  percent: 9
+  completed_plans: 9
+  percent: 18
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 Phase: 14 (engine-adjacent-gameplay-fixes-determinism) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-26 — Phase 14 execution started
 
-Progress: [█████████░] 89% (v1.2)
+Progress: [██████████] 100% (v1.2)
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [█████████░] 89% (v1.2)
 | Phase 14 P03 | 30min | 2 tasks | 3 files |
 | Phase 14 P04 | 25min | 3 tasks | 34 files |
 | Phase 14 P05 | 45min | 3 tasks | 4 files |
+| Phase 14 P06 | 119min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: Wyatt: capture-now for the 14-04 determinism re-record, explicitly confirming D-26's pre-storm assertion is superseded by per-key attribution evidence (Tortuga wind-shadow is wind-driven, not storm-gated)
 - [Phase ?]: Wyatt: add-a-seed to resolve the shipwrecked coverage gap that --capture surfaced — corpus grows from 30 to 31 seeds (seed 12379 appended, first-match), REQUIRED_EVENT_TYPES left unweakened
 - [Phase ?]: STORM-01: windLeg/botWindLeg both render every ordinary-water square before the next outcome narrates (D-22 fix); botWindLeg delegates per-square to windPush rather than re-deriving the ladder, narrating every event a square records (D-11); EVENT_NARRATION.moored now branches on reason into three DRAFT lines (D-21) pending 14-06 approval alongside the pacing constants and 14-02's refused-hail clause
+- [Phase ?]: D-14/D-27: Wyatt authored/approved final storm+hail copy (rewrote moored/justDocked and the refused-hail parley clause, approved moored/dock as drafted, collapsed moored/home onto justDocked at the narration layer only)
+- [Phase ?]: The three new Phase 14 test scripts (hail_ranking_test.js, storm_moored_reason_test.js, bot_storm_narration_test.js) are now permanent npm test gates, 9 -> 12
+- [Phase ?]: First live Safari playtest of 14-05's per-square storm rendering FAILED (board painted from a stale event snapshot, not live positions); root-caused and fixed same-day at the UI tier only (commit 14d8258), re-confirmed by Wyatt; multiplayer guests keep the non-animated behavior by design since the determinism corpus forbids adding events
 
 ### Pending Todos
 
@@ -115,8 +119,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-26T22:41:56.939Z
-Stopped at: Completed 14-05-PLAN.md
+Last session: 2026-07-27T00:49:26.633Z
+Stopped at: Completed 14-06-PLAN.md — Phase 14 all 6 plans done, ready for phase verification
 Resume file: None
 
 ## Operator Next Steps

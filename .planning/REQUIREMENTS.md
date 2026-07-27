@@ -113,7 +113,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CLOCK-01 | Phase 13 | Complete |
 | CLOCK-02 | Phase 13 | Complete |
 | CLOCK-03 | Phase 13 | Complete |
-| STORM-01 | Phase 14 | In Progress |
+| STORM-01 | Phase 14 | Complete |
 | AI-01 | Phase 14 | Complete |
 | NARR-01 | Phase 15 | Pending |
 | NARR-02 | Phase 15 | Pending |
