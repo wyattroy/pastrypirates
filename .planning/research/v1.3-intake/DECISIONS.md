@@ -1,6 +1,59 @@
 # v1.3 Intake — Decisions Needed
 
-Read this in one sitting. Everything below is a question for you — nothing here has been decided or built.
+> **ANSWERED by Wyatt 2026-07-27.** See `## Wyatt's Answers` immediately below. The original
+> questions are preserved unchanged underneath for context.
+
+---
+
+## Wyatt's Answers (2026-07-27)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Gating question** | **A — finish v1.2 first** | Phases 15/16/17 complete, then v1.3 opens with its worst bugs |
+| **D-01** clock default | **A — keep ON by default** | …but with substantial new requirements, see below |
+| **D-02** hints system | **B — stay deferred** | "we need it, but we'll do an onboarding milestone soon" |
+| **D-03** bug investigation | **B** | Fix pass-and-play timer first, then re-test the disappearing ingredients |
+| **D-04** Parley → Trade | **A — rename** | Plus: work "parley" back in via a *different* narration path |
+| **D-05** trade-wind research | **A — research this milestone** | |
+| **D-06** copy batch | **A — one batched session** | |
+| **D-07** device-passing | **A — remove the forced pass** | |
+
+### D-01 in full — this is a design decision, not just a default
+
+Wyatt's reasoning, recorded because it changes scope well beyond the original question:
+
+> "this is a genuine design problem from my playtests… new players get totally messed up by the
+> clock, and it's really stressful for them, which is the opposite of fun, and violates the corest
+> value of the game: fun. i think the clock actually adds a really important energy to the gameplay,
+> though — so i do want to keep it on by default; we just need to make it really easy (and bug-free)
+> to turn off."
+
+The clock stays ON because it earns its place — it adds energy. The problem is that new players
+can't escape it. So the fix is **escape hatches and legibility**, not a changed default:
+
+1. **Urgency has to be unmissable.** When the first 20-second phase drops to 5 seconds remaining, the
+   animated rings around the clock grow **300% larger** and turn **red** — and that treatment
+   persists through the entire second 10-second phase, not just the first.
+2. **Every mode can turn the clock off**, including solo. Not just pause — fully disable and
+   re-enable.
+3. **Full parity across all modes.** Solo, pass-and-play, and multiplayer all get: pause/unpause,
+   and disable/re-enable. No mode is a special case.
+4. **The tutorial explains the timer** and how to switch it off — and the tutorial itself is untimed.
+
+### Knock-on effects (flagged, not decided)
+
+- **The settings menu survives D-02.** Phase 7 in the draft roadmap existed partly to host the hints
+  toggle. D-02 = B removes hints — but D-01 now *requires* a disable/re-enable control in every
+  mode, so the settings menu is still needed. Its justification changed; its necessity did not.
+- **D-01's tutorial requirement lands in the onboarding milestone, not v1.3.** Point 4 above depends
+  on a tutorial existing, and D-02 defers that. So v1.3 ships the clock controls and the urgency
+  animation; the *explanation* of them ships with onboarding. Worth confirming that split is
+  acceptable rather than assuming it.
+- **New scope not in the original 63 items.** The urgency animation (300% rings, red, spanning both
+  phases), solo-mode clock disabling, and cross-mode parity are all new asks arising from this
+  answer. They need their own requirement IDs when v1.3 is formally planned.
+- **D-04 adds copy work.** "Work 'parley' into a different narration path" is new writing, and
+  belongs in the D-06 batched session rather than being invented during implementation.
 
 ---
 
