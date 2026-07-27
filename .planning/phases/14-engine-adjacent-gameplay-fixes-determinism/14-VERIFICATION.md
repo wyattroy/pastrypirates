@@ -1,14 +1,16 @@
 ---
 phase: 14-engine-adjacent-gameplay-fixes-determinism
 verified: 2026-07-27T01:10:20Z
-status: human_needed
+status: passed
 score: 9/10 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "Confirm with Wyatt whether the multiplayer-GUEST storm-push visibility gap is an acceptable, permanent scope limit for STORM-01, or whether it needs a follow-up phase/backlog item."
     expected: "An explicit yes/no from Wyatt, recorded somewhere durable (CONTEXT.md addendum, REQUIREMENTS.md footnote, or a new backlog todo) — not just an executor's own 'accepted by design' note."
     why_human: "This is a scope/product decision, not a code-correctness question. The mechanism (guests render only from the broadcast event stream, and the intermediate storm squares emit no event by design, per the determinism corpus's frozen event shape) is real and unavoidable without reopening the event-stream contract — but no one asked Wyatt to accept it FOR THIS SPECIFIC CASE. He signed off on the Safari/Chrome host-side playtest (VALIDATION.md, four checks) and on the storm/hail copy (D-14/D-27), but the guest-render gap surfaced only inside the debug session (storm-push-not-rendered.md) and was self-declared 'accepted by design' by the executor, not put to him as a question. ROADMAP.md's Success Criterion 1 ('the boat visibly moves one square at a time') and REQUIREMENTS.md's STORM-01 line carry no host/guest qualifier, so as literally worded this criterion is not fully met for every player role."
+
   - test: "Decide whether ROADMAP.md's Phase 14 success-criterion-4 wording ('(30/30)') should be updated to match REQUIREMENTS.md's already-updated '(31/31)' wording."
     expected: "A one-line ROADMAP.md edit, or an explicit decision that the drift is acceptable since REQUIREMENTS.md (the authoritative traceability doc) already reflects the correct number and DETERMINISM-RERECORD.md documents the add-a-seed decision in full."
     why_human: "Cosmetic documentation drift only — the underlying determinism gate is genuinely green at 31/31 (independently re-run and confirmed by this verification, not merely trusted from SUMMARY.md). Flagged for completeness, not because it affects behavior."

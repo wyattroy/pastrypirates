@@ -1,5 +1,5 @@
 ---
-status: resolved
+status: complete
 phase: 14-engine-adjacent-gameplay-fixes-determinism
 source: [14-VERIFICATION.md]
 started: 2026-07-26
