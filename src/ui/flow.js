@@ -720,7 +720,12 @@ export async function botTurn(p){
       break;
     }
   }
-  if(hailed){await botBeat();return;}
+  // CR-01: the hail's own botBeat() already fired at the end of the loop above, and liveRender()
+  // pins evIdx to events.length-1 (src/ui/panel.js:170). No event is appended between there and
+  // here, so a second botBeat() re-narrates the identical line and re-fires spawnPops for the same
+  // event — a visible double-flash on every resolved hail. Just end the turn: D-24's whole point is
+  // that the hail WAS the action.
+  if(hailed)return;
   const action=g.chooseAction(p);
   if(action.type==="attack"){
     if(!g.tryTrade(p))await netHandlers().onAsyncBattle(p,action.target);
