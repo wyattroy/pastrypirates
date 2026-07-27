@@ -1,5 +1,5 @@
 ---
-status: testing
+status: resolved
 phase: 14-engine-adjacent-gameplay-fixes-determinism
 source: [14-VERIFICATION.md]
 started: 2026-07-26
@@ -36,20 +36,27 @@ expected: |
         in a later milestone, which would need a determinism re-record.
     (c) Not satisfied — treat the guest case as in scope for Phase 14, which reopens the phase and
         requires an engine/event-stream change plus another corpus re-record.
-awaiting: user response
+awaiting: none — answered 2026-07-26
+resolution: |
+  (a) ACCEPT AS-IS, chosen by Wyatt on 2026-07-26. STORM-01 is satisfied. Its wording in
+  REQUIREMENTS.md was amended to scope the square-by-square animation to solo play and the
+  multiplayer host's own screen, recording that the narration half is correct for guests too.
+  Guest animation parity was logged to the backlog as STORM-02 (STATE.md Deferred Items) rather
+  than treated as a Phase 14 gap.
 
 ## Tests
 
 ### 1. Multiplayer guests do not see the square-by-square storm push — is STORM-01 satisfied?
 expected: A decision between accept-as-is / defer / not-satisfied (full detail above).
-result: [pending]
+result: passed — Wyatt chose ACCEPT AS-IS on 2026-07-26. STORM-01 wording amended to scope the
+  animation to solo/host; guest parity logged to the backlog as STORM-02. Not a gap.
 
 ## Summary
 
 total: 1
-passed: 0
+passed: 1
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

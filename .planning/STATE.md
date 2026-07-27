@@ -116,6 +116,7 @@ Items acknowledged and carried forward from previous milestone close:
 | Networking | NETMOD-01 — modular Firebase v9+ SDK migration | Deferred to v2 | v1.1 requirements |
 | DX | DX-01 — JSDoc typedefs for event objects | Deferred to v2 | v1.1 requirements |
 | DX | DX-02 — isolated pure replay-runner extraction | Deferred to v2 (only if seam surfaces bugs) | v1.1 requirements |
+| Networking | **STORM-02 — multiplayer guest storm-push parity.** Guests see a storm-pushed boat jump to its final square; solo play and the host see it step square by square. A guest renders only from the broadcast event feed, and the intermediate squares emit no event by design. Delivering parity means adding to the event stream, which forces another full re-record of the determinism corpus — so it is deliberately not a Phase 14 gap. Narration is already correct for guests. | Backlog — accepted as-is at Phase 14 close by Wyatt | Phase 14 close (2026-07-26) |
 
 ## Session Continuity
 

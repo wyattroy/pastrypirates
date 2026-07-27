@@ -18,6 +18,13 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 ### Storm Movement (STORM)
 
 - [x] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
+  - **Scope amended at Phase 14 close (2026-07-26, Wyatt's decision):** the square-by-square
+    animation is delivered for **solo play and the multiplayer host's own screen**. Multiplayer
+    *guests* still see the boat arrive at its final square, because a guest renders purely from the
+    broadcast event feed and the intermediate storm squares deliberately emit no event — adding one
+    would force another full re-record of the determinism corpus. The narration half of STORM-01
+    (correct square, no false "dock held fast") IS correct for guests too, since narration derives
+    from the event stream. Guest animation parity is logged as a backlog item, not a gap.
 
 ### Bot Behavior (AI)
 
