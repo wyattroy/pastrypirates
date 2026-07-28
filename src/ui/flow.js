@@ -55,7 +55,7 @@ import {
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
-  replayShortfall, STORM_STEP_MS, describe, botMsgHoldMs, BOT_STORM_STEP_MS,
+  replayShortfall, STORM_STEP_MS, describe, isLocalTo, NEUTRAL_VIEWER, botMsgHoldMs, BOT_STORM_STEP_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -201,6 +201,24 @@ export function localPickCell(p,cells){
     $("apStay").onclick=()=>done(null);
   });
 }
+// D-11 (Wyatt: "Both" — a broke line for BOTH broke moments): can't-afford-to-sail, for a human
+// (humanTurn's own sail gate, below) AND a bot (botTurn's sail gate) — so a broke bot states why
+// it isn't moving instead of appearing to forget its turn. DRAFT copy pending Wyatt's D-04 review,
+// same convention as EVENT_NARRATION.moored's own D-21 draft comment. States the constraint and
+// what the captain can still do — never mocks the player for being broke (NARR-02).
+export function brokeSailLine(seat,viewerSeat){
+  return isLocalTo(seat,viewerSeat)
+    ?`${pn(seat)} — too skint to hire the wind! No sailing this turn, matey.`
+    :`${pn(seat)} is too skint to hire the wind — no sailing this turn.`;
+}
+// D-11 case 2: can't-afford-to-anchor — told plainly the anchor is out of reach, rather than the
+// Pay-to-anchor option silently vanishing from the list below (windLeg's storm-anchor block).
+// DRAFT copy pending D-04.
+export function brokeAnchorLine(seat,viewerSeat){
+  return isLocalTo(seat,viewerSeat)
+    ?`${pn(seat)} — ye can't afford to anchor! Flip and take yer chances.`
+    :`${pn(seat)} can't afford to anchor — flips and takes their chances.`;
+}
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
 export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
@@ -236,6 +254,9 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       const promptMsg=trueShipwreck
         ?`${pn(p.idx)}: the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
         :`${pn(p.idx)}: the storm blows you toward an island! Anchor safely, or flip to take yer chances.`;
+      // D-11 case 2: the Pay-to-anchor option is already silently absent above when broke — say so
+      // plainly instead of leaving the missing option unexplained.
+      if(broke)await flash(brokeAnchorLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]);
       const v=await ask(promptMsg,opts);
       if(appState.turnExpired)return;
       if(v==="pay"){p.coins--;appState.game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
@@ -600,7 +621,7 @@ export async function humanTurn(p){
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
-  } // no coins to sail — the action prompt right after already explains it, no need for a second box
+  }else await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: broke — the action prompt right after also reframes, but this is the sail-specific nudge
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
   if(!appState.game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
@@ -672,10 +693,11 @@ export async function botTurn(p){
   }
   const dist=man(p.pos,target);
   const exact=g.dockCells.has(target[0]+","+target[1]);
-  if((dist>1||(dist===1&&exact))&&p.coins>0){
+  const wantsToSail=dist>1||(dist===1&&exact);
+  if(wantsToSail&&p.coins>0){
     p.coins--;const b=[...p.pos];g.stepToward(p,target,g.sailBudget(p));
     if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}else p.coins++;
-  }
+  }else if(wantsToSail)await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),null,botMsgHoldMs(brokeSailLine(p.idx,NEUTRAL_VIEWER)),[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: a broke bot states why it isn't moving
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
   // hail humans: locked-out bots offer coins for a crate they can't get any other way. D-02/D-24:
