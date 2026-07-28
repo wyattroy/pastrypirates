@@ -339,12 +339,12 @@ Plans:
   4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
   5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
 
-**Plans**: 6 plans
+**Plans**: 1/6 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 15-01-PLAN.md — TRACER: viewer-aware narration proven end-to-end on one line, plus the DOM-free narration harness (NARR-05, D-07/D-08/D-10)
+- [x] 15-01-PLAN.md — TRACER: viewer-aware narration proven end-to-end on one line, plus the DOM-free narration harness (NARR-05, D-07/D-08/D-10)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -414,7 +414,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
 | 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 6/6 | Complete    | 2026-07-26 |
-| 15. Narration Audit & Fixes | v1.2 | 0/TBD | Not started | - |
+| 15. Narration Audit & Fixes | v1.2 | 1/6 | In Progress|  |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 

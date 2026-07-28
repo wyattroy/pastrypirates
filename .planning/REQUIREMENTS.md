@@ -36,7 +36,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 - [ ] **NARR-02**: The missing "broke" narration line is restored
 - [ ] **NARR-03**: The storm intro line reads "First, the storm pushes you {dir1}" instead of the "pushes everyone 2 squares, then 2 more south" phrasing
 - [ ] **NARR-04**: The bribe line is context-smart — "with 2 🪙" when a crate is given, and "paid 5 🪙" when the player has no crates to give
-- [ ] **NARR-05**: Whenever the narration box describes an action *you* (the local player) took, it addresses you in 2nd person ("you") instead of 3rd person ("{your name}") — making the narration read more naturally. This includes the "already anchored safely" line (which currently only appears for other players/bots) and every other self-referential narration branch
+- [x] **NARR-05**: Whenever the narration box describes an action *you* (the local player) took, it addresses you in 2nd person ("you") instead of 3rd person ("{your name}") — making the narration read more naturally. This includes the "already anchored safely" line (which currently only appears for other players/bots) and every other self-referential narration branch
 - [ ] **NARR-06**: Narration text stays fully visible 10% less time before it begins fading
 
 ### UI / UX Polish (UI)
@@ -126,7 +126,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | NARR-02 | Phase 15 | Pending |
 | NARR-03 | Phase 15 | Pending |
 | NARR-04 | Phase 15 | Pending |
-| NARR-05 | Phase 15 | Pending |
+| NARR-05 | Phase 15 | Complete |
 | NARR-06 | Phase 15 | Pending |
 | UI-01 | Phase 16 | Pending |
 | UI-02 | Phase 16 | Pending |

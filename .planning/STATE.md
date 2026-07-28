@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Playtest Fixes & Polish
 current_phase: 15
-current_phase_name: Narration Audit & Fixes
+current_phase_name: narration-audit-fixes
 status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-07-28T00:45:04.409Z"
-last_activity: 2026-07-26
-last_activity_desc: Phase 14 complete, transitioned to Phase 15
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-07-28T01:13:44.979Z"
+last_activity: 2026-07-27
+last_activity_desc: Phase 15 execution started
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 15
-  completed_plans: 9
+  completed_plans: 10
   percent: 18
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 15 — Narration Audit & Fixes
+**Current focus:** Phase 15 — narration-audit-fixes
 
 ## Current Position
 
-Phase: 15 — Narration Audit & Fixes
-Plan: Not started
+Phase: 15 (narration-audit-fixes) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-07-26 — Phase 14 complete, transitioned to Phase 15
+Last activity: 2026-07-27 — Phase 15 execution started
 
-Progress: [██████████] 100% (v1.2)
+Progress: [███████░░░] 67% (v1.2)
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [██████████] 100% (v1.2)
 | Phase 14 P04 | 25min | 3 tasks | 34 files |
 | Phase 14 P05 | 45min | 3 tasks | 4 files |
 | Phase 14 P06 | 119min | 3 tasks | 7 files |
+| Phase 15 P01 | 12min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: D-14/D-27: Wyatt authored/approved final storm+hail copy (rewrote moored/justDocked and the refused-hail parley clause, approved moored/dock as drafted, collapsed moored/home onto justDocked at the narration layer only)
 - [Phase ?]: The three new Phase 14 test scripts (hail_ranking_test.js, storm_moored_reason_test.js, bot_storm_narration_test.js) are now permanent npm test gates, 9 -> 12
 - [Phase ?]: First live Safari playtest of 14-05's per-square storm rendering FAILED (board painted from a stale event snapshot, not live positions); root-caused and fixed same-day at the UI tier only (commit 14d8258), re-confirmed by Wyatt; multiplayer guests keep the non-animated behavior by design since the determinism corpus forbids adding events
+- [Phase ?]: 15-01: NEUTRAL_VIEWER is a numeric sentinel (-1), not a Symbol, so it stays type-number per the plan's export-type check and can never collide with a real 0-3 seat index.
+- [Phase ?]: 15-01: dodge's addressed second-person copy is DRAFT pending Wyatt's D-04 review, same convention as Phase 14's moored/D-21 draft lines.
 
 ### Pending Todos
 
@@ -122,9 +125,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-27T23:33:16.316Z
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-narration-audit-fixes/15-CONTEXT.md
+Last session: 2026-07-28T01:13:44.966Z
+Stopped at: Completed 15-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
