@@ -191,6 +191,40 @@ icons that are currently used to be kept -- my notes are just about the words."*
 - Verification for 15-06: the icon inventory of the shipped narration must be a superset of the
   pre-15-06 icon inventory, minus only icons he removed in words.
 
+**D-17 — Ingredients in trade/parley narration use system emoji instead of the custom art.**
+
+Wyatt's verbatim note: *"many of the narrations still use the original emojis. none of them should --
+they should all use the custom images we made (for coin heads, coin tails, and coin). Audit all
+narrations to replace the emojis."*
+
+**Audit result — the premise is right, but the cause is narrower than "emoji everywhere in source."**
+
+The raw emoji in the narration source (102 occurrences of `🌕`/`⚪`/`⚫`, ~145 of everything else)
+are *deliberate shorthand*, not a bug. `emojify()` (`src/shared/index.js:102`) swaps them for custom
+art via the 70-entry `EMOJI_IMG` map at two chokepoints that between them cover every narration
+surface: `describeFor()` (`src/ui/util.js:542`) for the `EVENT_NARRATION` table, and `panel()`
+(`src/ui/panel.js:188`) for every ad-hoc `flash()` line. **Coin, heads and tails — the three Wyatt
+named — are all in the map and already render as custom art in-game.** Verified by rendering the
+audit page headless: 105 `narrIcon` `<img>` tags emitted.
+
+**The genuine defect is the ingredient emoji.** Two parallel helpers disagree:
+
+| Helper | Output | Used by |
+|---|---|---|
+| `ilabelImg(x)` (`src/shared/index.js:137`) | `<img class="narrIcon" src="assets/ingredients/wheat.png"> Toasty Wheat` — **custom art** | docking, aground, shot-clock-skip |
+| `fmtItem(x)` (`src/ui/util.js:211`) | `🌾 Toasty Wheat` — **raw system emoji** | trade, parley (8 call sites) |
+
+None of the nine ingredient emoji (`🌾🥛🍬🥚🍫🌶️🌼🧂🍯`) are keys in `EMOJI_IMG`, so `emojify()`
+cannot rescue them — they reach the screen as system emoji. Worse, `fmtItem` *does* map `"coins"`
+to `🌕`, which **is** in the map, so a single trade line renders custom coin art sitting next to a
+system-emoji ingredient. That is precisely the inconsistency Wyatt spotted.
+
+**Fix for plan 15-06:** make `fmtItem()` render ingredients through the same custom art as
+`ilabelImg()`, keeping its existing coin handling. Affects the 5 trade/parley narration lines
+(`parley`, `trade` and their addressed variants). Do **not** bulk-replace emoji in source — that
+shorthand is load-bearing and `emojify()` already handles it. Verification: no narration `.msgBox`
+on the audit page renders a raw ingredient emoji, and `npm test` stays green.
+
 </review_addendum>
 
 ---

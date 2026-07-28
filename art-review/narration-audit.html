@@ -200,7 +200,7 @@ appState.game = {
 const { EVENT_NARRATION, describeFor, narrationVariants, NEUTRAL_VIEWER, pn, poss } =
   await import("../src/ui/util.js");
 const { brokeSailLine, brokeAnchorLine, stormIntroClause } = await import("../src/ui/flow.js");
-const { DIRNAME } = await import("../src/shared/index.js");
+const { DIRNAME, emojify } = await import("../src/shared/index.js");
 
 const GROUPS_ORDER = [
   "Round Header", "Storm", "Docking", "Battle", "Trade & Parley",
@@ -273,8 +273,17 @@ function seatBadge(i) {
   const colors = ["#f2679e", "#1d96a6", "#27c78d", "#f5a623"];
   return `<span class="seatDot" style="background:${colors[i]}"></span>${SEAT_NAMES[i]}`;
 }
+// D-17: the ad-hoc renderers below hand back RAW builder-style strings (bare "🌕", "⚪H", …),
+// exactly as they appear in source. In the live game those never reach a screen un-swapped —
+// panel() runs emojify() on every string it renders, and describeFor() does the same for the
+// table. The audit page was only getting that swap for free on the table cards (which come
+// through describeFor); the ad-hoc cards rendered their raw source and so showed system emoji
+// where the game shows custom art. Running emojify() here puts every card on the same footing
+// as the shipped panel. emojify() is idempotent (already-swapped text has no emoji left to
+// match), so the table cards passing through it a second time are unaffected. It runs BEFORE
+// fixAssetPaths so the <img> tags it emits get their paths rewritten for this subdirectory too.
 function msgBox(html, kind) {
-  return `<div class="msgBox ${kind}">${fixAssetPaths(html)}</div>`;
+  return `<div class="msgBox ${kind}">${fixAssetPaths(emojify(html))}</div>`;
 }
 function renderVariantsBlock(variants) {
   if (!variants || !variants.length) return "";
