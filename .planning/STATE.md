@@ -5,15 +5,15 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: narration-audit-fixes
 status: executing
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-07-28T01:19:50.159Z"
+stopped_at: Completed 15-03-PLAN.md
+last_updated: "2026-07-28T01:52:54.448Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 15 execution started
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 12
   percent: 18
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 15 (narration-audit-fixes) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 15 execution started
 
-Progress: [███████░░░] 73% (v1.2)
+Progress: [████████░░] 80% (v1.2)
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [███████░░░] 73% (v1.2)
 | Phase 14 P06 | 119min | 3 tasks | 7 files |
 | Phase 15 P01 | 12min | 2 tasks | 5 files |
 | Phase 15 P02 | 8min | 2 tasks | 3 files |
+| Phase 15 P03 | 25min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: 15-01: dodge's addressed second-person copy is DRAFT pending Wyatt's D-04 review, same convention as Phase 14's moored/D-21 draft lines.
 - [Phase ?]: 15-02: CHAT_BUBBLE_HOLD_MULTIPLIER set to 0.8 (msgHoldMs's pre-Phase-15 value, not 1.0) per plan's planner_correction, so bubbles reproduce exactly today's timing rather than holding 25% longer
 - [Phase ?]: 15-02: MSG_HOLD_MULTIPLIER 0.8->0.72 and BOT_MSG_HOLD_MULTIPLIER 0.5->0.45 — identical 0.9 ratio on both curves so human and bot narration stay in proportion
+- [Phase ?]: 15-03: The plan's own listed awk verify commands for humanTurn/botTurn ranges are self-defeating (start pattern also matches the generic end pattern on the same line) — narration_flow_test.js uses string-index slicing instead, which is immune to the trap
+- [Phase ?]: 15-03: humanWind's second-leg flash always renders "you" unconditionally with no viewer selection (doesn't call pn()/poss(), so it's outside this plan's literal scope) — left as a discovered gap for a future narration pass
 
 ### Pending Todos
 
@@ -128,8 +131,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-28T01:19:50.147Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-07-28T01:52:54.441Z
+Stopped at: Completed 15-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
