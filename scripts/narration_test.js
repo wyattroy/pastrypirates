@@ -23,7 +23,7 @@
 
 import {
   EVENT_NARRATION, describe, pname, describeFor, NEUTRAL_VIEWER, narrationVariants,
-  pickNarrVariant,
+  pickNarrVariant, msgHoldMs, botMsgHoldMs, chatBubbleHoldMs,
 } from "../src/ui/util.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
@@ -189,6 +189,72 @@ for (const key of KEYS) {
   checkTrue("netSetNarr: an empty variants array is OMITTED from the written payload entirely (not written as [])", !Object.prototype.hasOwnProperty.call(oldPayload, "variants"));
   check("pickNarrVariant: a payload with no variants key still yields the neutral text (old-host skew)", pickNarrVariant(oldPayload, dodgeEvent.p), neutral.txt);
   checkTrue("pickNarrVariant: never returns undefined/null for a well-formed payload", typeof pickNarrVariant(oldPayload, dodgeEvent.p) === "string");
+}
+
+/* ---------- Task 2 (NARR-06/D-14/D-15): the 10% hold cut, pinned across all three curves ----------
+   Computes every "before" value from the documented base/per-char/pause/clamp formula with the
+   OLD multiplier (never hardcoded from memory), then asserts the "after" value the live curve
+   actually returns is exactly 0.9x that — mechanically enforcing D-14's "10% less time" on both
+   cut curves, while chatBubbleHoldMs (D-15) stays completely unmoved by this task. */
+{
+  // mirrors msgHoldMs/botMsgHoldMs/chatBubbleHoldMs's own base/per-char/pause/clamp shape exactly,
+  // parameterized by clamp bounds + multiplier, so "old value" can be computed without importing
+  // a frozen pre-change copy of the function itself
+  function holdFormula(text, lo, hi, multiplier) {
+    text = text || "";
+    const base = 1000, charTime = 50;
+    let raw = base + text.length * charTime;
+    const body = text.replace(/[.,!?]+$/, "");
+    const pauses = (body.match(/[,!?.]/g) || []).length;
+    raw += pauses * 300;
+    return Math.round(Math.min(Math.max(raw, lo), hi) * multiplier);
+  }
+
+  const sample40 = "x".repeat(40); // 40 code units, no punctuation — the plan's own pinned sample
+
+  /* ---- the numeric relationship: 0.9x the pre-change value, on both cut curves ---- */
+  const oldHuman = holdFormula(sample40, 1200, 7000, 0.8); // msgHoldMs's PRE-Phase-15 multiplier
+  const oldBot = holdFormula(sample40, 900, 2600, 0.5);    // botMsgHoldMs's PRE-Phase-15 multiplier
+  check("msgHoldMs: 40-code-unit sample is exactly 0.9x its pre-change value", msgHoldMs(sample40), Math.round(oldHuman * 0.9));
+  check("msgHoldMs: 40-code-unit sample returns 2160 (pinned literal)", msgHoldMs(sample40), 2160);
+  check("botMsgHoldMs: 40-code-unit sample is exactly 0.9x its pre-change value", botMsgHoldMs(sample40), Math.round(oldBot * 0.9));
+  check("botMsgHoldMs: 40-code-unit sample returns 1170 (pinned literal)", botMsgHoldMs(sample40), 1170);
+
+  /* ---- the D-15 invariant: chat bubbles are UNCHANGED by this task, and equal to msgHoldMs's own pre-cut value ---- */
+  const bubbleExpected = holdFormula(sample40, 1200, 7000, 0.8); // CHAT_BUBBLE_HOLD_MULTIPLIER, pinned at Task 1
+  check("chatBubbleHoldMs: 40-code-unit sample is unchanged by the NARR-06 cut", chatBubbleHoldMs(sample40), bubbleExpected);
+  check("chatBubbleHoldMs: 40-code-unit sample returns 2400 (pinned literal, equal to msgHoldMs's pre-change value)", chatBubbleHoldMs(sample40), 2400);
+
+  /* ---- NARR-06 empty: "", null, undefined all return a positive, clamped-floor hold on every curve ---- */
+  for (const input of ["", null, undefined]) {
+    const label = input === "" ? '""' : String(input);
+    const humanVal = msgHoldMs(input);
+    check(`msgHoldMs(${label}): clamped floor 1200 x 0.72`, humanVal, 864);
+    checkTrue(`msgHoldMs(${label}): positive integer, never NaN/zero/negative`, Number.isInteger(humanVal) && humanVal > 0);
+    const botVal = botMsgHoldMs(input);
+    check(`botMsgHoldMs(${label}): raw 1000 (above its own 900 floor) x 0.45`, botVal, 450);
+    checkTrue(`botMsgHoldMs(${label}): positive integer, never NaN/zero/negative`, Number.isInteger(botVal) && botVal > 0);
+    const bubbleVal = chatBubbleHoldMs(input);
+    check(`chatBubbleHoldMs(${label}): clamped floor 1200 x 0.8`, bubbleVal, 960);
+    checkTrue(`chatBubbleHoldMs(${label}): positive integer, never NaN/zero/negative`, Number.isInteger(bubbleVal) && bubbleVal > 0);
+  }
+
+  /* ---- NARR-06 encoding: emoji vs ASCII of equal String.length hold identically on all three curves ---- */
+  // 20 astral-plane emoji, each a UTF-16 surrogate PAIR -> String.length === 40, same as the
+  // 40-character ASCII sample — these curves only ever read text.length and match ASCII
+  // punctuation, so this is unaffected by describe()/emojify()'s DOM-only EMOJI_IMG substitution.
+  const emojiSample = "\u{1F419}".repeat(20); // octopus emoji, astral plane (surrogate pair)
+  const asciiSample = "y".repeat(40);
+  check("encoding: 20-emoji sample has String.length 40 (UTF-16 code units, not 20 grapheme clusters)", emojiSample.length, 40);
+  check("encoding: 40-ASCII-character sample has String.length 40", asciiSample.length, 40);
+  check("msgHoldMs: emoji sample and ASCII sample of equal String.length hold identically", msgHoldMs(emojiSample), msgHoldMs(asciiSample));
+  check("botMsgHoldMs: emoji sample and ASCII sample of equal String.length hold identically", botMsgHoldMs(emojiSample), botMsgHoldMs(asciiSample));
+  check("chatBubbleHoldMs: emoji sample and ASCII sample of equal String.length hold identically", chatBubbleHoldMs(emojiSample), chatBubbleHoldMs(asciiSample));
+
+  /* ---- the D-15 invariant, restated across every sample string in this block: bubbles outlast narration ---- */
+  for (const s of [sample40, emojiSample, asciiSample, ""]) {
+    checkTrue(`chatBubbleHoldMs > msgHoldMs for sample len=${s.length}`, chatBubbleHoldMs(s) > msgHoldMs(s));
+  }
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

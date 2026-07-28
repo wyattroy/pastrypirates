@@ -593,7 +593,13 @@ export function assignBadges(){
 // less time. Applied to the clamped result so the floor and cap scale with it and the whole curve
 // shortens uniformly, rather than short messages sticking at an unchanged floor. This is the HOLD
 // duration only; REVEAL_MS_PER_CHAR (the typing rate) is deliberately untouched.
-const MSG_HOLD_MULTIPLIER=0.8;
+// Phase 15 (NARR-06/D-14): a second, STACKING cut on top of the one above — hold for 10% less
+// time again (0.8 -> 0.72), same "applied to the clamped result" rule so the floor/cap scale with
+// it and the whole curve shortens uniformly. Both msgHoldMs and botMsgHoldMs take the identical
+// 0.9 ratio here, so the two curves stay in proportion to each other. Chat bubbles are
+// deliberately EXCLUDED from this cut — see CHAT_BUBBLE_HOLD_MULTIPLIER below, which is its own
+// named constant precisely so the narration curve and the bubble curve can drift apart on purpose.
+const MSG_HOLD_MULTIPLIER=0.72;
 export function msgHoldMs(text){
   text=text||"";
   const base=1000,charTime=50;
@@ -628,7 +634,10 @@ export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappi
 // lower floor and ceiling (clamped BEFORE the multiplier) so a bot's per-event lines read fast
 // without going illegible on a long line. A single named constant (BOT_MSG_HOLD_MULTIPLIER) plus
 // STORM_STEP_MS/BOT_STORM_STEP_MS above are the whole pacing surface — tune the feel here only.
-export const BOT_MSG_HOLD_MULTIPLIER=0.5;
+// Phase 15 (NARR-06/D-14): a second, STACKING cut — 10% less time again (0.5 -> 0.45), same 0.9
+// ratio as msgHoldMs above so the two curves stay in proportion. See that constant's comment for
+// the full rationale; this is the bot side of the identical change.
+export const BOT_MSG_HOLD_MULTIPLIER=0.45;
 export function botMsgHoldMs(text){
   text=text||"";
   const base=1000,charTime=50;
