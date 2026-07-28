@@ -639,6 +639,24 @@ export function botMsgHoldMs(text){
   return Math.round(Math.min(Math.max(raw,900),2600)*BOT_MSG_HOLD_MULTIPLIER);
 }
 
+// Phase 15 (NARR-06/D-15): a chat bubble is another player typing TO you, not the game reporting —
+// it earns the extra beat, so it is deliberately pinned to today's pacing rather than riding
+// msgHoldMs's own cut. Same base/per-char/pause formula and the same 1200/7000 clamp as the
+// shared narration curve, but its own named multiplier applied to the clamped result — this
+// constant is what lets the narration curve and the bubble curve drift apart on purpose from here
+// on. Set to 0.8 (msgHoldMs's PRE-cut value, not 1.0) so chatBubbleHoldMs(t) reproduces exactly
+// what the shared curve returned for the same t before this phase's 10% cut landed.
+export const CHAT_BUBBLE_HOLD_MULTIPLIER=0.8;
+export function chatBubbleHoldMs(text){
+  text=text||"";
+  const base=1000,charTime=50;
+  let raw=base+text.length*charTime;
+  const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
+  const pauses=(body.match(/[,!?.]/g)||[]).length;
+  raw+=pauses*300;
+  return Math.round(Math.min(Math.max(raw,1200),7000)*CHAT_BUBBLE_HOLD_MULTIPLIER);
+}
+
 // reads a boat's current on-screen position straight off its own <g>, rather than deriving it
 // from game.events[evIdx] — that array is still empty during the pre-round intro narration (boats
 // are already docked and drawn by drawBoard() at that point, just not yet driven by real events),

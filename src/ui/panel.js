@@ -39,7 +39,7 @@ import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs,
+  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
   waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
@@ -332,7 +332,7 @@ export function showChatBubble(i,text){
       if(chatBubbles[i]!==b)return;
       b.classList.add("fadeOut");
       b._timer=setTimeout(()=>{if(chatBubbles[i]===b)removeChatBubble(i);},500);
-    },msgHoldMs(text));
+    },chatBubbleHoldMs(text)); // D-15: bubbles run on their own hold curve, pinned to today's timing
   })();
 }
 
