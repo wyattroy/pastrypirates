@@ -9,9 +9,13 @@
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 
 /* ================= Engine (port of cocoa_pirates_sim.py) ================= */
-// first `nIslands` (7) of these are the ingredients in play — kept in the requested order
-const ING_ALL=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla","salt","honey"];
-const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️",honey:"🍯",salt:"🧂"};
+// THE 7 ingredients in the game — kept in the requested order, and matched 1:1 by
+// assets/ingredients/*.png. There is no eighth or ninth: `salt` and `honey` used to trail this
+// list as never-dealt leftovers (no art on disk, so they also 404'd the boot preloader) and were
+// removed. `nIslands` (7) still slices this list so a smaller board stays possible; it is not a
+// hint that more ingredients exist.
+const ING_ALL=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla"];
+const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️"};
 // custom-art pipeline: drop matching files in assets/ and they render in place of the emoji/
 // vector fallback automatically (iconAt() below removes the <image> on load failure, leaving
 // the original emoji/shape visible) — nothing else in the code needs to change.
@@ -116,18 +120,17 @@ const TET=[
   [[0,0],[1,0],[2,0],[3,0]],[[0,0],[1,0],[0,1],[1,1]],
   [[0,0],[1,0],[2,0],[0,1]],[[0,0],[1,0],[1,1],[2,1]],[[0,0],[1,0],[2,0],[1,1]]];
 const ING_NAME={wheat:"Toasty Wheat",dairy:"Fresh Milk",sugar:"Crystal Sugar",eggs:"Speckled Eggs",
-  cocoa:"Cacao Pods",salt:"Sea Salt",vanilla:"Vanilla Beans",spice:"Hot Cinnamon",honey:"Golden Honey"};
+  cocoa:"Cacao Pods",vanilla:"Vanilla Beans",spice:"Hot Cinnamon"};
 // the plain baker's term each pirate ingredient stands in for — shown as a gloss on recipe cards
 const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
-  cocoa:"chocolate",salt:"salt",vanilla:"vanilla",spice:"cinnamon",honey:"honey"};
+  cocoa:"chocolate",vanilla:"vanilla",spice:"cinnamon"};
 // worldbuilding (notes/edits #2): every ingredient island has a place-name + a flavorful haul,
-// announced when a pirate docks there. Only the 7 in-play ingredients need entries (nIslands:7).
+// announced when a pirate docks there. One entry per ingredient in ING_ALL — all 7.
 const DOCK_PLACE={sugar:"Glitter Bay",vanilla:"Custard Key",spice:"the Spice Isle",
-  wheat:"the Flour Patch",dairy:"Full Cream Folly",eggs:"Clucker's Cove",cocoa:"Cocoa Cabana",
-  salt:"Brineholt",honey:"Honeycomb Hollow"};
+  wheat:"the Flour Patch",dairy:"Full Cream Folly",eggs:"Clucker's Cove",cocoa:"Cocoa Cabana"};
 const DOCK_FLAVOR={sugar:"a sack of crystal sugar",vanilla:"rich vanilla beans",
   spice:"sprigs of red hot cinnamon",wheat:"a sack of toasty wheat",dairy:"some jugs of cool milk",
-  eggs:"sand-speckled eggs",cocoa:"bursting cacao pods",salt:"a scoop of sea salt",honey:"a pot of golden honey"};
+  eggs:"sand-speckled eggs",cocoa:"bursting cacao pods"};
 const dockPlace=x=>DOCK_PLACE[x]||"the island";
 const dockFlavor=x=>DOCK_FLAVOR[x]||iname(x);
 const iname=x=>ING_NAME[x]||x;
