@@ -374,9 +374,33 @@ export const EVENT_NARRATION={
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
     const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
     const spImg=e.spoilIng?ING_IMG[e.spoilIng]:null; // #3: won ingredient rises from the boat as art, not emoji
-    // ingredient spoils read as the winner taking a crate; coin spoils read as the loser
-    // bribing their way out of giving one up — no ingredient actually changes hands there.
-    const spoilClause=e.spoilIng?`${pn(e.winner)} takes ${e.spoil}.`:`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`;
+    // ingredient spoils read as the winner taking a crate — untouched by the split below.
+    //
+    // NARR-04/D-12 (DRAFT copy, pending Wyatt's D-04 review — same convention as EVENT_NARRATION.
+    // moored's own D-21 draft comment): a coin spoil used to read as a single "bribe" clause
+    // regardless of amount. Both real spoil-generation paths — src/orchestrator.js's asyncBattle
+    // (every real game) and the offline-simulator-only src/engine/index.js — clamp the coin take
+    // to at most 5. So when the loser holds no crate and the leading number in e.spoil reached
+    // that full 5, they had a full purse and chose to pay rather than give one up: a genuine
+    // bribe (today's wording, unchanged). When it's below 5, the live path guarantees the loser
+    // also held zero crates (holding one would have routed to the ingredient branch above instead)
+    // — there was nothing left to bargain with, so the winner simply takes what was left: cleaned
+    // out, not bribed. This is the real-wording form of the simulator-only "(all they had)"
+    // parenthetical the plan asked to fold into prose rather than ever carry as a trailing aside.
+    //
+    // e.spoil is HTML for the ingredient case and is NEVER parsed there; only here, for the coin
+    // case, is its LEADING NUMBER parsed — a different operation from parsing it for a pop icon
+    // (spoilClause never does that either). Guarded so an absent, empty, or non-numeric spoil
+    // falls through to the cleaned-out framing (the one that claims least) rather than ever
+    // rendering `undefined`/NaN — the cleaned-out line also never mocks or piles on the loser
+    // (T-15-08/the plan's own values prohibition), it just reports the outcome.
+    const spoilN=e.spoilIng?null:parseInt(e.spoil,10);
+    const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5;
+    const spoilClause=e.spoilIng
+      ?`${pn(e.winner)} takes ${e.spoil}.`
+      :isBribe
+        ?`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`
+        :`${pn(loser)} has nothing left to give — ${pn(e.winner)} takes what's left${e.spoil?`: ${e.spoil}`:""}.`;
     return {cls:"battle",
       txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}. ${spoilClause}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],

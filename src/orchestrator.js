@@ -239,17 +239,20 @@ export async function expireShotClock(){
   if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
   if(p){
     let lost;
+    // NARR-01 audit finding: both branches used to hand-write text byte-identical to
+    // EVENT_NARRATION.shotclockskip (src/ui/util.js) — narrate through the table instead, exactly
+    // as every other event in the codebase is narrated, so the duplicate can never drift again.
     if(p.ing.length){
       const idx=Math.floor(appState.game.r()*p.ing.length);
       lost=p.ing.splice(idx,1)[0];
       appState.game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
       appState.game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — a crate of ${ilabelImg(lost)} tumbles overboard and floats back to its island.`);
+      await narrateLastEvent();
     }else{
       const take=Math.min(5,p.coins);
       p.coins-=take;
       appState.game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
+      await narrateLastEvent();
     }
     liveRender();
     if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));

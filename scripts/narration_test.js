@@ -257,5 +257,58 @@ for (const key of KEYS) {
   }
 }
 
+/* ---------- Plan 15-04 Task 1 (NARR-04/D-12): battle spoil bribe-vs-cleaned-out split ----------
+   Direct-table-call style (mirrors scripts/bot_storm_narration_test.js's own EVENT_NARRATION.
+   moored assertions) — fabricated battle events, no engine/DOM needed. Asserts the boundary sits
+   exactly between 4 and 5 coins, ingredient spoils are untouched, and an absent/empty/non-numeric
+   spoil always falls through to the cleaned-out (least-claiming) framing with no undefined/NaN. */
+{
+  const f = EVENT_NARRATION.battle;
+  const mkEvent = (spoil, spoilIng = null) => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[true, false, false, "a"]], spoil, spoilIng });
+  const isBribe = txt => /bribes their way out of giving away a crate/.test(txt);
+  const isCleanedOut = txt => /has nothing left to give/.test(txt);
+
+  const genuine = f(mkEvent("5 coins"), at).txt;
+  const cleaned = f(mkEvent("2 coins"), at).txt;
+  checkTrue("battle: 5-coin (bribe) wording differs from 2-coin (cleaned-out) wording", genuine !== cleaned);
+  checkTrue("battle: both renderings non-empty with no undefined/NaN token", !!genuine && !!cleaned && !/undefined|NaN/.test(genuine) && !/undefined|NaN/.test(cleaned));
+
+  for (const n of [0, 1, 2, 4]) {
+    const txt = f(mkEvent(`${n} coins`), at).txt;
+    checkTrue(`battle: ${n}-coin spoil renders the cleaned-out framing`, isCleanedOut(txt));
+    checkTrue(`battle: ${n}-coin spoil does NOT render the bribe framing`, !isBribe(txt));
+  }
+  {
+    const txt = f(mkEvent("5 coins"), at).txt;
+    checkTrue("battle: 5-coin spoil renders the bribe framing", isBribe(txt));
+    checkTrue("battle: 5-coin spoil does NOT render the cleaned-out framing", !isCleanedOut(txt));
+  }
+
+  // ingredient spoils are UNTOUCHED by the split — pin the literal "{winner} takes {spoil}." clause
+  const ingTxt = f(mkEvent('<img class="ic" src="x">Wheat', "wheat"), at).txt;
+  checkTrue("battle: ingredient-spoil clause still reads '{winner} takes {spoil}.' (untouched by the split)", ingTxt.includes('takes <img class="ic" src="x">Wheat.'));
+
+  for (const [label, spoil] of [["absent", undefined], ["empty", ""], ["non-numeric", "abc coins"]]) {
+    const txt = f(mkEvent(spoil), at).txt;
+    checkTrue(`battle: ${label} spoil still renders a non-empty line with no undefined/NaN token`, !!txt && !/undefined|NaN/.test(txt));
+    checkTrue(`battle: ${label} spoil falls through to the cleaned-out (least-claiming) framing`, isCleanedOut(txt));
+  }
+}
+
+/* ---------- Plan 15-04 Task 1 (NARR-01 audit finding): shotclockskip narrates from the table ----------
+   src/orchestrator.js's expireShotClock() no longer hand-writes text — both its branches now
+   await narrateLastEvent(), which reads through EVENT_NARRATION.shotclockskip. This block proves
+   the table entry itself (the single source of truth both branches now share) renders correctly
+   for both the ingredient-loss and coin-loss shapes. The dedup itself (no more hand-written
+   flash() strings in expireShotClock) is asserted at the shell level by this task's own <verify>
+   awk/grep commands against src/orchestrator.js. */
+{
+  const f = EVENT_NARRATION.shotclockskip;
+  const ingTxt = f({ t: "shotclockskip", p: 0, ing: "wheat" }, at).txt;
+  checkTrue("shotclockskip: ingredient-loss wording is non-empty with no undefined token", !!ingTxt && !/undefined/.test(ingTxt));
+  const coinTxt = f({ t: "shotclockskip", p: 0, coins: 3 }, at).txt;
+  checkTrue("shotclockskip: coin-loss wording is non-empty with no undefined token", !!coinTxt && !/undefined/.test(coinTxt));
+}
+
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);
