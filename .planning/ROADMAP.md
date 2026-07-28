@@ -339,7 +339,7 @@ Plans:
   4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
   5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
 
-**Plans**: 3/6 plans executed
+**Plans**: 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -353,7 +353,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 15-04-PLAN.md — `EVENT_NARRATION` table: bribe-vs-cleaned-out split, second person across the table including two-party events, duplicate shot-clock line removed (NARR-01/04/05, D-12/D-12a)
+- [x] 15-04-PLAN.md — `EVENT_NARRATION` table: bribe-vs-cleaned-out split, second person across the table including two-party events, duplicate shot-clock line removed (NARR-01/04/05, D-12/D-12a)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -414,7 +414,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
 | 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 6/6 | Complete    | 2026-07-26 |
-| 15. Narration Audit & Fixes | v1.2 | 3/6 | In Progress|  |
+| 15. Narration Audit & Fixes | v1.2 | 4/6 | In Progress|  |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 

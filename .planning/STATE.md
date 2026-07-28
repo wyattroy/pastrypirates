@@ -5,15 +5,15 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: narration-audit-fixes
 status: executing
-stopped_at: Completed 15-03-PLAN.md
-last_updated: "2026-07-28T01:52:54.448Z"
+stopped_at: Completed 15-04-PLAN.md
+last_updated: "2026-07-28T02:09:36.393Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 15 execution started
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 18
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 15 (narration-audit-fixes) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 15 execution started
 
-Progress: [████████░░] 80% (v1.2)
+Progress: [█████████░] 87% (v1.2)
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [████████░░] 80% (v1.2)
 | Phase 15 P01 | 12min | 2 tasks | 5 files |
 | Phase 15 P02 | 8min | 2 tasks | 3 files |
 | Phase 15 P03 | 25min | 3 tasks | 3 files |
+| Phase 15 P04 | 15min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: 15-02: MSG_HOLD_MULTIPLIER 0.8->0.72 and BOT_MSG_HOLD_MULTIPLIER 0.5->0.45 — identical 0.9 ratio on both curves so human and bot narration stay in proportion
 - [Phase ?]: 15-03: The plan's own listed awk verify commands for humanTurn/botTurn ranges are self-defeating (start pattern also matches the generic end pattern on the same line) — narration_flow_test.js uses string-index slicing instead, which is immune to the trap
 - [Phase ?]: 15-03: humanWind's second-leg flash always renders "you" unconditionally with no viewer selection (doesn't call pn()/poss(), so it's outside this plan's literal scope) — left as a discovered gap for a future narration pass
+- [Phase ?]: 15-04: bribe/cleaned-out battle spoil boundary is spoilN>=5 exactly (both real spoil paths clamp coin take to 5); cleaned-out wording is the real-prose form of the simulator-only '(all they had)' parenthetical, never a literal carried suffix
+- [Phase ?]: 15-04: moored's addressed branch is a full sibling object (LA) beside the untouched L object, not an isLocalTo() conditional threaded into L's own values — keeps byte-identical third-person text a structural guarantee
+- [Phase ?]: 15-04: bakeoff's loser gets its own commiseration line rather than reusing the neutral text verbatim, since narrationVariants() filters out any addressed rendering equal to the neutral one — a byte-identical loser line would have silently produced zero variant entries for that seat
 
 ### Pending Todos
 
@@ -131,8 +135,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-28T01:52:54.441Z
-Stopped at: Completed 15-03-PLAN.md
+Last session: 2026-07-28T02:09:36.385Z
+Stopped at: Completed 15-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
