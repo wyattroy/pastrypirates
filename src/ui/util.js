@@ -345,21 +345,32 @@ export const EVENT_NARRATION={
     }
     return {txt:L[e.reason]||`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
   },
-  // D-08: `blocked` names TWO captains (e.p, the ship that struck sail, and e.other, the ship
-  // spotted dead ahead). This entry stays single-subject for Task 2 (e.p's own addressed branch
-  // only) — Task 3 adds e.other's own addressed branch alongside it, as a sibling `else if`, not a
-  // replacement of the neutral fallback below.
-  blocked:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} — you strike sail and hold fast.`:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
+  // D-08: `blocked` names TWO captains — e.p (the ship that struck sail) and e.other (the ship
+  // spotted dead ahead, blocking the way). Each reads it addressed to themselves independently.
+  blocked:(e,at,cellPx,viewerSeat)=>{
+    let txt;
+    if(isLocalTo(e.p,viewerSeat))txt=`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} — you strike sail and hold fast.`;
+    else if(isLocalTo(e.other,viewerSeat))txt=`Spotting you dead ahead, ${pn(e.p)} strikes sail and holds fast.`;
+    else txt=`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`;
+    return {txt,pops:[[at(e.p),"⚓"]]};
+  },
   anchorHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — your anchor's already down. It holds fast — no need to pay twice in one storm ⚓`:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
   tradewind:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — you're carried into the trade winds and whipped around the rim!`:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
-  parley:(e,at)=>{
+  parley:(e,at,cellPx,viewerSeat)=>{
     // D-01/D-24/D-27 (Wyatt-approved 2026-07-26): a refused hail still spends the bot's one action
     // for that turn (the turn genuinely ends — see botTurn), but per Wyatt's decision the narration
     // no longer spells that action-cost out as a visible clause — his approved wording drops the
     // whole "cost {bot} their turn all the same" clause and its markup entirely; the refused-hail
     // line now reads the same as any other refused offer. A human's own parley (no kind:"hail") is
     // untouched, and the "deal struck!" line is unchanged.
-    const txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"they refused."}`;
+    const outcome=e.ok?"deal struck!":"they refused.";
+    // D-08 (DRAFT, pending D-04): each named captain reads the offer addressed to themselves — the
+    // offerer's own view, and the target's own view (whose outcome clause reads "you refused"/
+    // "deal struck!" rather than "they refused"); a third-party viewer reads today's exact text.
+    let txt;
+    if(isLocalTo(e.a,viewerSeat))txt=`🤝 ${pn(e.a)} — you offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${outcome}`;
+    else if(isLocalTo(e.b,viewerSeat))txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for your ${fmtItem(e.want)} — ${e.ok?"deal struck!":"you refused."}`;
+    else txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${outcome}`;
     return {cls:"trade",txt,pops:[[at(e.a),e.ok?"🤝":"🙅"]]};
   },
   aground:(e,at,cellPx=0,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
@@ -393,9 +404,19 @@ export const EVENT_NARRATION={
       pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
   // notes/edits NARR-02: name the cooperation bonus rather than leaving a bare "(+1🌕 each)"
-  trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${appState.game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':""}`,
-    caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
-    pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]}),
+  trade:(e,at,cellPx,viewerSeat)=>{
+    const bonus=appState.game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':"";
+    const bonusYou=appState.game.cfg.tradeBonus?' <span class="nobrk">— you each get +1🌕 for cooperating like good friendly pirates</span>':"";
+    // D-08 (DRAFT, pending D-04): each named trader reads it addressed to themselves; a
+    // third-party viewer reads today's exact text.
+    let txt;
+    if(isLocalTo(e.a,viewerSeat))txt=`🤝 ${pn(e.a)} — you trade ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${bonusYou}`;
+    else if(isLocalTo(e.b,viewerSeat))txt=`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to you for ${fmtItem(e.got)}${bonusYou}`;
+    else txt=`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${bonus}`;
+    return {cls:"trade",txt,
+      caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
+      pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]};
+  },
   sidebet:(e,at,cellPx,viewerSeat)=>{
     const you=isLocalTo(e.p,viewerSeat);
     if(e.won)return {cls:"trade",txt:you
@@ -405,7 +426,7 @@ export const EVENT_NARRATION={
       ?(e.amt?`💰 ${pn(e.p)} — you backed the wrong ship and lose ${e.amt}🌕`:`🔭 ${pn(e.p)} — you missed the call, no bounty`)
       :(e.amt?`💰 ${pn(e.p)} backed the wrong ship — loses ${e.amt}🌕`:`🔭 ${pn(e.p)} missed the call — no bounty`)};
   },
-  battle:(e,at,cellPx=0)=>{
+  battle:(e,at,cellPx=0,viewerSeat)=>{
     // count by who actually scored (r[3]) rather than the raw flip pattern — a both-heads
     // downwind round scores a point but isn't "a XOR d landed heads", so filtering on the flips
     // alone silently drops it and undercounts the displayed score.
@@ -437,18 +458,36 @@ export const EVENT_NARRATION={
     // (T-15-08/the plan's own values prohibition), it just reports the outcome.
     const spoilN=e.spoilIng?null:parseInt(e.spoil,10);
     const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5;
-    const spoilClause=e.spoilIng
-      ?`${pn(e.winner)} takes ${e.spoil}.`
-      :isBribe
-        ?`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`
-        :`${pn(loser)} has nothing left to give — ${pn(e.winner)} takes what's left${e.spoil?`: ${e.spoil}`:""}.`;
+    // D-08 (DRAFT, pending D-04): the attacker and the defender each read the outcome addressed to
+    // themselves — a third-party viewer (including NEUTRAL_VIEWER) reads today's exact third-person
+    // text. Only ever one of aAddr/dAddr can be true (distinct seats), so the spoil clause below
+    // resolves against whichever of winner/loser the viewer actually is.
+    const aAddr=isLocalTo(e.a,viewerSeat),dAddr=isLocalTo(e.d,viewerSeat);
+    const winIsA=e.winner===e.a;
+    let mainClause;
+    if(aAddr)mainClause=`⚔️ ${pn(e.a)} — you attack ${pn(e.d)} — you ${winIsA?"win":"lose"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}.`;
+    else if(dAddr)mainClause=`⚔️ ${pn(e.a)} attacks you — you ${winIsA?"lose":"win"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}.`;
+    else mainClause=`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${winIsA?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}.`;
+    const viewerIsWinner=isLocalTo(e.winner,viewerSeat),viewerIsLoser=isLocalTo(loser,viewerSeat);
+    let spoilClause;
+    if(e.spoilIng)spoilClause=viewerIsWinner?`You take ${e.spoil}.`:`${pn(e.winner)} takes ${e.spoil}.`;
+    else if(isBribe)spoilClause=viewerIsLoser?`You bribe your way out of giving away a crate with ${e.spoil}.`:`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`;
+    else if(viewerIsLoser)spoilClause=`You had nothing left to give — ${pn(e.winner)} takes what's left${e.spoil?`: ${e.spoil}`:""}.`;
+    else if(viewerIsWinner)spoilClause=`You take what's left${e.spoil?`: ${e.spoil}`:""} — it's all ${pn(loser)} had to give.`;
+    else spoilClause=`${pn(loser)} has nothing left to give — ${pn(e.winner)} takes what's left${e.spoil?`: ${e.spoil}`:""}.`;
     return {cls:"battle",
-      txt:`⚔️ ${pn(e.a)} attacks ${pn(e.d)} — ${pn(e.a)} ${e.winner===e.a?"wins":"loses"} ${aP}–${dP} in ${rn} round${rn>1?"s":""}. ${spoilClause}`,
+      txt:`${mainClause} ${spoilClause}`,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cellPx*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
-  battleflee:(e,at)=>({cls:"battle",txt:`🏃 ${pn(e.a)} attacks ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(pays 1🌕)</span>`,
-    caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
+  battleflee:(e,at,cellPx,viewerSeat)=>{
+    const aAddr=isLocalTo(e.a,viewerSeat),dAddr=isLocalTo(e.d,viewerSeat);
+    let txt;
+    if(aAddr)txt=`🏃 ${pn(e.a)} — you attack ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(they pay 1🌕)</span>`;
+    else if(dAddr)txt=`🏃 ${pn(e.a)} attacks you — both shots miss wildly and you slip away! <span class="nobrk">(pays 1🌕)</span>`;
+    else txt=`🏃 ${pn(e.a)} attacks ${pn(e.d)} — both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(pays 1🌕)</span>`;
+    return {cls:"battle",txt,caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]};
+  },
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
   fish:(e,at,cellPx,viewerSeat)=>{
@@ -466,8 +505,18 @@ export const EVENT_NARRATION={
       ?(e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} — you lose the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} — you lose the turn — ${e.coins}🌕 tumbles overboard!`)
       :(e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — ${e.coins}🌕 tumbles overboard!`),
     pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
-  bakeoff:(e,at)=>({cls:"battle",txt:`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`,
-    caps:[[e.winner,`${iconImg(CUPCAKE_IMG)} wins the bakeoff!`]],pops:[[at(e.winner),"🧁",true,CUPCAKE_IMG]]}),
+  // D-08 (DRAFT, pending D-04): both finalists read the result addressed to themselves — the
+  // winner's own "you take it!", the loser's own commiseration; a third-party viewer (and
+  // NEUTRAL_VIEWER) reads today's exact third-person text.
+  bakeoff:(e,at,cellPx,viewerSeat)=>{
+    const loser=e.winner===e.a?e.b:e.a;
+    let txt;
+    if(isLocalTo(e.winner,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — you take it!`;
+    else if(isLocalTo(loser,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it! Better luck next voyage.`;
+    else txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`;
+    return {cls:"battle",txt,
+      caps:[[e.winner,`${iconImg(CUPCAKE_IMG)} wins the bakeoff!`]],pops:[[at(e.winner),"🧁",true,CUPCAKE_IMG]]};
+  },
   // notes/edits EOV-01: the blue narration box no longer announces the win — it would duplicate the
   // dedicated one-off victory box (see endLive's flash) and the End of Voyage summary. The board
   // still gets a crown pop over the winner; the announcement itself lives in the celebratory box.

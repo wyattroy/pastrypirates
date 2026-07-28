@@ -389,5 +389,49 @@ for (const key of KEYS) {
   }
 }
 
+/* ---------- Plan 15-04 Task 3 (D-08): two-party viewer-aware branches + payload ordering ----------
+   parley/trade/battle/battleflee/bakeoff/blocked each name TWO seats; this block proves each is
+   addressed independently, narrationVariants() emits one deterministic {seat,html} entry per named
+   seat (never more than one per seat), and pickNarrVariant() routes each seat to its own line. */
+{
+  const battleEvent = { t: "battle", a: 0, d: 2, winner: 0, rounds: [[true, false, false, "a"]], spoil: "5 coins", spoilIng: null };
+  const neutral = describeFor(battleEvent, NEUTRAL_VIEWER).txt;
+  const forAttacker = describeFor(battleEvent, 0).txt;
+  const forDefender = describeFor(battleEvent, 2).txt;
+  checkTrue("battle: viewer 0 (attacker), viewer 2 (defender), and the neutral rendering are pairwise distinct",
+    neutral !== forAttacker && neutral !== forDefender && forAttacker !== forDefender);
+  checkTrue("battle: attacker's addressed rendering is non-empty with no JS undefined token", !!forAttacker && !/undefined/.test(forAttacker));
+  checkTrue("battle: defender's addressed rendering is non-empty with no JS undefined token", !!forDefender && !/undefined/.test(forDefender));
+  checkTrue("battle: a third seat (1) sees the viewer-neutral rendering", describeFor(battleEvent, 1).txt === neutral);
+
+  const variants = narrationVariants(battleEvent);
+  check("narrationVariants(battleEvent): exactly 2 entries", variants.length, 2);
+  checkTrue("narrationVariants(battleEvent): seats are exactly the attacker (0) and defender (2), sorted ascending",
+    variants.length === 2 && variants[0].seat === 0 && variants[1].seat === 2);
+  check("narrationVariants: calling it twice on the same event is deep-equal, including order",
+    JSON.stringify(narrationVariants(battleEvent)), JSON.stringify(variants));
+
+  for (const key of ["parley", "trade", "battle", "battleflee", "bakeoff", "blocked"]) {
+    const fab = FAB[key];
+    const v = narrationVariants(fab);
+    const seats = v.map(x => x.seat);
+    check(`narrationVariants: ${key} emits at most one entry per seat`, seats.length, new Set(seats).size);
+  }
+
+  check("pickNarrVariant: the attacker's seat gets the attacker's addressed text", pickNarrVariant({ html: neutral, variants }, 0), variants.find(x => x.seat === 0).html);
+  check("pickNarrVariant: the defender's seat gets the defender's addressed text", pickNarrVariant({ html: neutral, variants }, 2), variants.find(x => x.seat === 2).html);
+  check("pickNarrVariant: a third seat gets the viewer-neutral text", pickNarrVariant({ html: neutral, variants }, 1), neutral);
+
+  // each two-party entry is addressed independently for BOTH named seats (D-08 in full)
+  for (const key of ["parley", "trade", "battleflee", "bakeoff", "blocked"]) {
+    const fab = FAB[key];
+    const seatA = key === "blocked" ? fab.p : fab.a;
+    const seatB = key === "blocked" ? fab.other : (fab.b != null ? fab.b : fab.d);
+    const neutralTxt = describeFor(fab, NEUTRAL_VIEWER).txt;
+    checkTrue(`${key}: seat A's addressed rendering differs from the viewer-neutral rendering`, describeFor(fab, seatA).txt !== neutralTxt);
+    checkTrue(`${key}: seat B's addressed rendering differs from the viewer-neutral rendering`, describeFor(fab, seatB).txt !== neutralTxt);
+  }
+}
+
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);

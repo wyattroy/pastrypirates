@@ -384,7 +384,11 @@ export function battleAsk(p,o,msg,opts,colors){
 // collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 export async function asyncBattle(att,def){
   const c=appState.game.cfg,need=2;
-  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()));
+  // D-08 (DRAFT, pending D-04): the opening announcement names both combatants — convert to the
+  // neutral-plus-variants form, same shape plan 15-01 added to flash(), so each combatant's own
+  // screen reads it addressed to themselves while every other viewer sees today's exact text.
+  const battleOpenVariants=[{seat:att.idx,html:`⚔️ ${pn(att.idx)} — you attack ${pn(def.idx)}! First to ${need} points wins…`},{seat:def.idx,html:`⚔️ ${pn(att.idx)} attacks you! First to ${need} points wins…`}];
+  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()),undefined,battleOpenVariants);
   if(c.powder)att.coins-=c.powder;
   appState.game.battles++;
   const bets=await collectSideBets(att,def);
