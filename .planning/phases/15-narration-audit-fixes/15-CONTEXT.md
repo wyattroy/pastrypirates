@@ -214,16 +214,33 @@ audit page headless: 105 `narrIcon` `<img>` tags emitted.
 | `ilabelImg(x)` (`src/shared/index.js:137`) | `<img class="narrIcon" src="assets/ingredients/wheat.png"> Toasty Wheat` — **custom art** | docking, aground, shot-clock-skip |
 | `fmtItem(x)` (`src/ui/util.js:211`) | `🌾 Toasty Wheat` — **raw system emoji** | trade, parley (8 call sites) |
 
-None of the nine ingredient emoji (`🌾🥛🍬🥚🍫🌶️🌼🧂🍯`) are keys in `EMOJI_IMG`, so `emojify()`
-cannot rescue them — they reach the screen as system emoji. Worse, `fmtItem` *does* map `"coins"`
-to `🌕`, which **is** in the map, so a single trade line renders custom coin art sitting next to a
-system-emoji ingredient. That is precisely the inconsistency Wyatt spotted.
+**There are 7 ingredients in play, not 9** (Wyatt's correction, confirmed in source). `ING_ALL`
+lists nine, but `roundCfg` sets `nIslands: 7` and the engine takes `ING_ALL.slice(0, cfg.nIslands)`
+(`src/engine/index.js:94`) — so only **wheat, dairy, sugar, eggs, cocoa, spice, vanilla** are ever
+placed. `salt` and `honey` are vestigial: they have `ING_EMOJI` entries but **no art on disk** and
+are never dealt. `src/shared/index.js:12` says so outright. Any fix or count here is over 7, and
+`salt`/`honey` must not be used as evidence that art is missing.
+
+None of the seven in-play ingredient emoji (`🌾🥛🍬🥚🍫🌶️🌼`) are keys in `EMOJI_IMG`, so
+`emojify()` cannot rescue them — they reach the screen as system emoji. Worse, `fmtItem` *does* map
+`"coins"` to `🌕`, which **is** in the map, so a single trade line renders custom coin art sitting
+next to a system-emoji ingredient. That is precisely the inconsistency Wyatt spotted.
+
+**The art already exists — no new assets needed** (Wyatt: *"the images for those ingredients do
+already exist -- they are used on the islands, and in the captain's box. those are the exact same
+images that should be used as the emojis inline when the ingredients are discussed."*). The asset
+set is `ING_IMG[x]` → `assets/ingredients/{x}.png` (`src/shared/index.js:19`) — exactly the seven
+files on disk, and exactly what already draws the island art, the captain's-box crates, and the
+docking narration via `iconImg(ING_IMG[e.ing])`. The inline ingredient icon must be **that same
+image**, not a new or resized variant.
 
 **Fix for plan 15-06:** make `fmtItem()` render ingredients through the same custom art as
-`ilabelImg()`, keeping its existing coin handling. Affects the 5 trade/parley narration lines
-(`parley`, `trade` and their addressed variants). Do **not** bulk-replace emoji in source — that
-shorthand is load-bearing and `emojify()` already handles it. Verification: no narration `.msgBox`
-on the audit page renders a raw ingredient emoji, and `npm test` stays green.
+`ilabelImg()` (`<img class="narrIcon" src="${ING_IMG[x]}">`), keeping its existing coin handling.
+Affects the 5 trade/parley narration lines (`parley`, `trade` and their addressed variants). Do
+**not** bulk-replace emoji in source — that shorthand is load-bearing and `emojify()` already
+handles it. Verification: no narration `.msgBox` on the audit page renders a raw ingredient emoji,
+the inline `src` matches the island/captain's-box `src` for the same ingredient, and `npm test`
+stays green.
 
 </review_addendum>
 
