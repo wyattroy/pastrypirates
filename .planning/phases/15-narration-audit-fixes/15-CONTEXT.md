@@ -167,5 +167,34 @@ ROADMAP.md carries no `Canonical refs:` line for Phase 15. The list below was ac
 
 ---
 
+<review_addendum>
+## Review Addendum — added during the 15-05 approval gate (2026-07-28)
+
+**D-16 — Icons are out of scope for Wyatt's review; keep every one of them.**
+
+Wyatt's verbatim note while working through the audit page: *"I'm editing the narration now, but
+in my notes i'm unable to copy-paste in the icons that are integrated in the text. I want all
+icons that are currently used to be kept -- my notes are just about the words."*
+
+**Binding rule for plan 15-06 (and any continuation agent writing `15-COPY-APPROVED.md`):**
+
+- His dispositions and rewrites cover **words only**. The notes field on the audit page cannot
+  carry the inline icon markup, so its absence from a note is a limitation of the tool — it is
+  **never** an instruction to remove an icon.
+- Every icon/image currently rendered inside a narration line **stays**, in the same role and the
+  same relative position, unless he says so in words (e.g. "drop the coin icon here").
+- When applying a reworded line, re-attach the existing icon markup to the new wording rather
+  than shipping the plain-text note as the literal new string. A rewrite that silently drops an
+  `<img class="narrIcon">`, an ingredient image, or a coin glyph is a **defect**, not a faithful
+  transcription.
+- This applies equally to lines he tags `merge` — the surviving line keeps its icons.
+- Verification for 15-06: the icon inventory of the shipped narration must be a superset of the
+  pre-15-06 icon inventory, minus only icons he removed in words.
+
+</review_addendum>
+
+---
+
 *Phase: 15-narration-audit-fixes*
 *Context gathered: 2026-07-27*
+*Review addendum: 2026-07-28*
