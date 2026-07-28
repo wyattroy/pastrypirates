@@ -339,7 +339,7 @@ Plans:
   4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
   5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 Plans:
 **Wave 1**
@@ -348,7 +348,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 15-02-PLAN.md — NARR-06 timing: 10% hold cut on both curves, chat bubbles separated onto their own multiplier (D-14/D-15)
+- [x] 15-02-PLAN.md — NARR-06 timing: 10% hold cut on both curves, chat bubbles separated onto their own multiplier (D-14/D-15)
 - [ ] 15-03-PLAN.md — Turn-flow gaps in `src/ui/flow.js`: broke lines for both moments, storm intro, the missing anchor-hold narrate call, ad-hoc lines onto the variants form (NARR-02/03/05, D-11/D-13)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -414,7 +414,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
 | 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 6/6 | Complete    | 2026-07-26 |
-| 15. Narration Audit & Fixes | v1.2 | 1/6 | In Progress|  |
+| 15. Narration Audit & Fixes | v1.2 | 2/6 | In Progress|  |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 

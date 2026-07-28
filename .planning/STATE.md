@@ -5,15 +5,15 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: narration-audit-fixes
 status: executing
-stopped_at: Completed 15-01-PLAN.md
-last_updated: "2026-07-28T01:13:44.979Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-07-28T01:19:50.159Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 15 execution started
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 15
-  completed_plans: 10
+  completed_plans: 11
   percent: 18
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 15 (narration-audit-fixes) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 15 execution started
 
-Progress: [███████░░░] 67% (v1.2)
+Progress: [███████░░░] 73% (v1.2)
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [███████░░░] 67% (v1.2)
 | Phase 14 P05 | 45min | 3 tasks | 4 files |
 | Phase 14 P06 | 119min | 3 tasks | 7 files |
 | Phase 15 P01 | 12min | 2 tasks | 5 files |
+| Phase 15 P02 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: First live Safari playtest of 14-05's per-square storm rendering FAILED (board painted from a stale event snapshot, not live positions); root-caused and fixed same-day at the UI tier only (commit 14d8258), re-confirmed by Wyatt; multiplayer guests keep the non-animated behavior by design since the determinism corpus forbids adding events
 - [Phase ?]: 15-01: NEUTRAL_VIEWER is a numeric sentinel (-1), not a Symbol, so it stays type-number per the plan's export-type check and can never collide with a real 0-3 seat index.
 - [Phase ?]: 15-01: dodge's addressed second-person copy is DRAFT pending Wyatt's D-04 review, same convention as Phase 14's moored/D-21 draft lines.
+- [Phase ?]: 15-02: CHAT_BUBBLE_HOLD_MULTIPLIER set to 0.8 (msgHoldMs's pre-Phase-15 value, not 1.0) per plan's planner_correction, so bubbles reproduce exactly today's timing rather than holding 25% longer
+- [Phase ?]: 15-02: MSG_HOLD_MULTIPLIER 0.8->0.72 and BOT_MSG_HOLD_MULTIPLIER 0.5->0.45 — identical 0.9 ratio on both curves so human and bot narration stay in proportion
 
 ### Pending Todos
 
@@ -125,8 +128,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-28T01:13:44.966Z
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-07-28T01:19:50.147Z
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
