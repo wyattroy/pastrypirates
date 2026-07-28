@@ -321,6 +321,55 @@ paired with its addressed "you" variant. Same for the ad-hoc lines. A line the p
 is a line Wyatt cannot approve, so an un-rendered branch is a **blocking defect**, not a nicety.
 Add a self-check that fails if any builder yields a text no card displays.
 
+**D-22 — The rebuilt audit page is a FLOW CHART, not a list.**
+
+Wyatt: *"I want you to format it more intelligently for a designer to rewrite and see each line of
+dialogue in the context of the lines that will come before it and after it in a real game. Use
+branching and flow chart conventions (including connecting lines) to show which narration line will
+go to which next one, and display them on the html site accordingly."*
+
+The audience is a **designer rewriting copy**, and copy can only be judged in sequence — a line
+reads differently depending on what preceded it. A flat grouped list cannot show that.
+
+**Requirements:**
+
+- **Real sequence, derived from code — never invented.** Trace the actual turn flow (`humanTurn` →
+  `humanWind`/`windLeg` legs 1 and 2 → per-square outcomes → `humanAct` → action outcomes → shot
+  clock → round roll-over → `finish`/`bakeoff`/`end`) and build the edge list from those call
+  paths. A wrong edge is worse than no edge: it would have him rewriting for a sequence that never
+  happens. Where reachability is genuinely uncertain, mark the edge as such rather than guessing.
+- **Connecting lines must be actually drawn** (SVG edges, positioned after layout), not implied by
+  indentation. They must survive window resize and must not sit on top of the editing controls.
+- **Branch points are forks.** This composes with D-21: every branch that must be rendered as its
+  own card is exactly a fork in the chart. A `dock` with 4 outcomes is a 4-way fork, not one card.
+- **Editing affordances survive the redesign.** Per-card tag control, notes field, localStorage
+  persistence and JSON export are how Wyatt works — the chart must not cost him any of them.
+- Keep each card's addressed "you" variant alongside its neutral text (D-07/D-10 shape).
+- No external/CDN libraries (project has no build step; the page already imports live ES modules
+  from `src/` and must keep doing so, so it stays truthful to shipped code).
+
+**D-23 — Bot and human narration hold for the SAME duration (parity now; speed slider later).**
+
+Wyatt: *"Narration events will ultimately have a 'speed' slider which lets users make them all
+appear faster and slower. For the moment, let's have all bot narration events last the same length
+as humans so we can finally bring everything into parity."*
+
+Resolves the open question in D-18 violation #4 — the bot/human timing split is **a violation, not
+deliberate pacing.**
+
+- Collapse `botMsgHoldMs` (multiplier 0.45) into `msgHoldMs` (0.72). Call sites: `flow.js:333`,
+  `flow.js:352`, `flow.js:702`, `flow.js:722`, plus any inside `botBeat`.
+- **This does NOT touch the chat-bubble curve.** `CHAT_BUBBLE_HOLD_MULTIPLIER` (0.8, added in 15-02)
+  is a *bubble vs narration* distinction, deliberately kept (see Specific Ideas above: "a bubble is
+  another player talking to you"). D-23 collapses **bot vs human**, nothing else.
+- **Forward-looking:** keep the resulting hold a single centralized multiplier so a future global
+  speed slider can drive it from one place. Do not scatter new per-call-site durations.
+- **Flagged, NOT auto-included — needs Wyatt's confirmation:** `BOT_STORM_STEP_MS` vs
+  `STORM_STEP_MS` is a second bot/human timing difference, but it paces the *animation between
+  storm squares* rather than how long narration text is readable. It is adjacent to this decision
+  and arguably in the spirit of "bring everything into parity," but he asked specifically about
+  narration events. 15-06 must surface this rather than silently changing it.
+
 </review_addendum>
 
 ---
