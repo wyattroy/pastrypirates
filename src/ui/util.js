@@ -280,7 +280,16 @@ export const EVENT_NARRATION={
   windmove:e=>({txt:`${pn(e.p)} is carried by the storm`,caps:[[e.p,"🌬️ drifts"]]}),
   blownOut:e=>({txt:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
   sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
-  dodge:(e,at)=>({txt:`${pn(e.p)} pays 1🌕 to anchor safely`,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]}),
+  // D-07 (DRAFT copy, pending Wyatt's D-04 review — same convention as moored's own D-21 draft
+  // comment): the tracer line for viewer-aware narration (NARR-05/D-10). The addressed reader
+  // keeps the name prefix, then switches to second person; every other viewer (including
+  // NEUTRAL_VIEWER, and describe()'s own default when appState.mySeat is unset) sees the
+  // pre-change third-person line byte-for-byte — see isLocalTo()'s own header comment for why.
+  dodge:(e,at,cellPx,viewerSeat)=>{
+    const addressed=isLocalTo(e.p,viewerSeat);
+    const txt=addressed?`${pn(e.p)} — you pay 1🌕 to anchor safely!`:`${pn(e.p)} pays 1🌕 to anchor safely`;
+    return {txt,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]};
+  },
   anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
   // D-19/D-20/D-21/D-27 (Wyatt-approved 2026-07-26): one line used to cover three unrelated
   // safe-harbor causes. mooredReason() still tags every event with which one actually fired (the
@@ -394,15 +403,69 @@ export const EVENT_NARRATION={
   turn:()=>null,
 };
 const NO_AT=()=>[0,0]; // describe()/captions() never need real board coordinates
-export function describe(e){
+// D-10: describeFor is the viewer-aware core; describe() below is now a thin wrapper
+// (viewerSeat undefined) so its own observable behaviour stays byte-identical to before this
+// wave, and every existing describe() consumer (syncLogLines()/the captain's log) keeps
+// personalising per client for free — describe() itself never reads "which viewer", that's
+// threaded through by the caller (isLocalTo()'s null/undefined fallback to seatLocal() is what
+// makes this safe: describe() → describeFor(e, undefined) → each builder's own
+// isLocalTo(seat, undefined) → seatLocal(seat), i.e. today's live appState.mySeat read).
+export function describeFor(e,viewerSeat){
   if(!e)return null;
   const fn=EVENT_NARRATION[e.t];if(!fn)return null;
-  const r=fn(e,NO_AT);
+  const r=fn(e,NO_AT,0,viewerSeat);
   // EOV-01: an event that yields no text (the suppressed win banner) produces no captain's-log line
   // at all — the blue box "disappears" rather than showing an empty strip. Board pops still fire via
   // spawnPops, which reads the raw narration independently of this.
   if(!r||!r.txt)return null;
   return {cls:r.cls,txt:emojify(r.txt)};
+}
+export function describe(e){return describeFor(e,undefined);}
+// D-08: the seats an event NAMES — the doer AND the target, not just the doer (e.g. a battle
+// addresses both attacker and defender; a trade/parley/bakeoff addresses both parties; a
+// blocked-by-another-ship event also names the ship in the way). Deduplicated and sorted
+// ascending, so narrationVariants() below emits at most one entry per seat in a deterministic
+// order regardless of how many of these clauses happen to match the same seat twice.
+export function narrationSubjects(e){
+  if(!e)return [];
+  const seats=new Set();
+  if(e.p!=null)seats.add(e.p);
+  if(e.t==="battle"||e.t==="battleflee"){if(e.a!=null)seats.add(e.a);if(e.d!=null)seats.add(e.d);}
+  if(e.t==="parley"||e.t==="trade"||e.t==="bakeoff"){if(e.a!=null)seats.add(e.a);if(e.b!=null)seats.add(e.b);}
+  if(e.t==="blocked"&&e.other!=null)seats.add(e.other);
+  return [...seats].sort((a,b)=>a-b);
+}
+// D-10: the host computes this ONCE per broadcast narration line — the viewer-neutral default
+// (today's exact text, via NEUTRAL_VIEWER) plus, for every subject seat whose addressed
+// rendering actually differs, a {seat,html} entry. A builder with no viewer branch (every entry
+// but `dodge`, until later plans extend more of them) always renders identically for every seat,
+// so it correctly contributes zero entries here — safe to call on every event unconditionally,
+// not just ones that happen to have a viewer-aware builder.
+export function narrationVariants(e){
+  if(!e)return [];
+  const neutral=describeFor(e,NEUTRAL_VIEWER);
+  const neutralTxt=neutral?neutral.txt:null;
+  const out=[];
+  for(const seat of narrationSubjects(e)){
+    const forSeat=describeFor(e,seat);
+    const txt=forSeat?forSeat.txt:null;
+    if(txt!=null&&txt!==neutralTxt)out.push({seat,html:txt});
+  }
+  return out;
+}
+// D-10: the one function both the host's own render (netNarrate) and every guest's watcher
+// (watchNarr) go through to pick their own line out of a rooms/{code}/narr payload — tolerant of
+// a null payload, a missing/empty variants array, and a null asking seat, so an old host's
+// payload (no variants key at all) and a viewer with no seat both degrade to the payload's own
+// html rather than ever returning undefined/null.
+export function pickNarrVariant(payload,seat){
+  if(!payload)return "";
+  const variants=payload.variants;
+  if(Array.isArray(variants)){
+    const found=variants.find(v=>v&&v.seat===seat);
+    if(found)return found.html;
+  }
+  return payload.html||"";
 }
 // #: describe() only the events added since logLines was last synced, instead of remapping the
 // whole (append-only) game.events history on every single new event. A long-running game racks up
@@ -665,6 +728,18 @@ export async function narrateCurrent(){
 }
 export function setActor(s){appState.curSeat=s;}
 export function seatLocal(s){return s===appState.mySeat;}
+// D-10: a sentinel seat value no real seat index (0..3) can ever equal — passing it as
+// viewerSeat forces isLocalTo()'s neutral (never-addressed) branch, used to compute the
+// viewer-neutral default line narrationVariants() diffs every per-seat rendering against.
+export const NEUTRAL_VIEWER=-1;
+// D-10/Pitfall 2: viewerSeat null/undefined MUST delegate to seatLocal()'s live appState.mySeat
+// read and therefore behave byte-identically to today — scripts/bot_storm_narration_test.js
+// never sets appState.mySeat, so this default is exactly what keeps that script green
+// unmodified. An explicit numeric viewerSeat (including NEUTRAL_VIEWER) instead compares
+// directly, ignoring whatever the live appState.mySeat happens to be.
+export function isLocalTo(seat,viewerSeat){
+  return viewerSeat==null?seatLocal(seat):seat===viewerSeat;
+}
 // pass & play: every human seat shares this one browser, so any human seat resolves locally
 // regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
 // remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).

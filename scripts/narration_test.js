@@ -21,7 +21,11 @@
 // counter, plain console.log, process.exit(failures?1:0). Direct `import` of the narration surface
 // from src/ui/util.js — no DOM reference, no import of src/ui/flow.js or src/ui/panel.js.
 
-import { EVENT_NARRATION, describe, pname } from "../src/ui/util.js";
+import {
+  EVENT_NARRATION, describe, pname, describeFor, NEUTRAL_VIEWER, narrationVariants,
+  pickNarrVariant,
+} from "../src/ui/util.js";
+import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
 
 let failures = 0;
@@ -136,6 +140,55 @@ for (const key of KEYS) {
   check("dock: the escaped captain name appears exactly once in the narration", occurrences, 1);
   checkTrue("dock: the name survives intact (é + emoji both present)", txt.includes("Piér") && txt.includes("🐙"));
   appState.roster = savedRoster;
+}
+
+/* ---------- Task 2 (TRACER): viewer-aware narration, one line, end to end, DOM-free ----------
+   Reproduces the whole chain — table builder -> viewer-neutral default + per-seat variants ->
+   the payload netSetNarr writes -> pickNarrVariant's per-client selection — exactly as
+   narrateLastEvent()/netNarrate()/watchNarr() do it in the real UI, but with a fake `db` that
+   just records what it's handed instead of touching Firebase. */
+{
+  const dodgeEvent = { t: "dodge", p: 1 };
+
+  // ---- table builder -> viewer-neutral default + per-seat variants (mirrors narrateLastEvent()) ----
+  const neutral = describeFor(dodgeEvent, NEUTRAL_VIEWER);
+  checkTrue("dodge: describeFor(e, NEUTRAL_VIEWER) is non-null", neutral !== null);
+  const variants = narrationVariants(dodgeEvent);
+  check("dodge: narrationVariants(e) has exactly one entry (the addressed subject seat)", variants.length, 1);
+  checkTrue("dodge: the one variant's seat equals the event's subject seat (e.p)", variants.length === 1 && variants[0].seat === dodgeEvent.p);
+  checkTrue("dodge: describeFor(e, subjectSeat).txt differs from the neutral rendering", describeFor(dodgeEvent, dodgeEvent.p).txt !== neutral.txt);
+  checkTrue("dodge: with appState.mySeat unset, describe(e).txt equals the neutral rendering", describe(dodgeEvent).txt === neutral.txt);
+  checkTrue("narrationVariants: calling it twice returns arrays with identical ordering", JSON.stringify(narrationVariants(dodgeEvent)) === JSON.stringify(variants));
+  check("narrationVariants: a builder with no viewer branch (anchor) returns an empty array", narrationVariants({ t: "anchor", p: 0 }).length, 0);
+
+  // ---- the payload netSetNarr writes (mirrors netNarrate/netBroadcast's own call) ----
+  function makeFakeDb() {
+    const calls = [];
+    return { calls, ref(path) { return { set(payload) { calls.push({ path, payload }); return Promise.resolve(); } }; } };
+  }
+  const fakeDb = makeFakeDb();
+  netSetNarr(fakeDb, "ROOM", neutral.txt, null, variants);
+  check("netSetNarr: writes to the rooms/<room>/narr path", fakeDb.calls[0] && fakeDb.calls[0].path, "rooms/ROOM/narr");
+  const payload = fakeDb.calls[0] && fakeDb.calls[0].payload;
+  checkTrue("netSetNarr: a non-empty variants array lands on the written payload", !!payload && Array.isArray(payload.variants) && payload.variants.length === 1);
+  check("netSetNarr: the written payload's html field is the viewer-neutral text", payload && payload.html, neutral.txt);
+
+  // ---- pickNarrVariant's per-client selection (mirrors netNarrate's own screen AND watchNarr) ----
+  check("pickNarrVariant: the subject seat gets the addressed text", pickNarrVariant(payload, dodgeEvent.p), variants[0].html);
+  check("pickNarrVariant: a non-subject seat gets the viewer-neutral text", pickNarrVariant(payload, dodgeEvent.p + 1), neutral.txt);
+  check("pickNarrVariant: a viewer with a null seat gets the viewer-neutral text", pickNarrVariant(payload, null), neutral.txt);
+  check("pickNarrVariant: literal spec example — html-only payload", pickNarrVariant({ html: "X" }, 2), "X");
+  check("pickNarrVariant: literal spec example — empty variants array", pickNarrVariant({ html: "X", variants: [] }, 2), "X");
+  check("pickNarrVariant: literal spec example — null payload", pickNarrVariant(null, 2), "");
+  check("pickNarrVariant: literal spec example — null seat falls back to html", pickNarrVariant({ html: "X", variants: [{ seat: 2, html: "Y" }] }, null), "X");
+
+  // ---- both version-skew directions degrade cleanly to the payload's own html ----
+  const fakeDbOld = makeFakeDb();
+  netSetNarr(fakeDbOld, "ROOM", neutral.txt, null, []); // an "old host" writes no variants at all
+  const oldPayload = fakeDbOld.calls[0].payload;
+  checkTrue("netSetNarr: an empty variants array is OMITTED from the written payload entirely (not written as [])", !Object.prototype.hasOwnProperty.call(oldPayload, "variants"));
+  check("pickNarrVariant: a payload with no variants key still yields the neutral text (old-host skew)", pickNarrVariant(oldPayload, dodgeEvent.p), neutral.txt);
+  checkTrue("pickNarrVariant: never returns undefined/null for a well-formed payload", typeof pickNarrVariant(oldPayload, dodgeEvent.p) === "string");
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

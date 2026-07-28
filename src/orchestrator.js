@@ -105,7 +105,7 @@ import {
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
-  decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask,
+  decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
 } from "./ui/index.js";
 
@@ -261,10 +261,15 @@ export function watchClock(){
 }
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
-export function netNarrate(html){if(appState.replaying)return;showNarration(html);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"));}
+// D-10: `variants` is additive — the host's OWN screen now selects from the exact same payload
+// every other client selects from (pickNarrVariant), rather than always rendering the
+// viewer-neutral `html` verbatim. That's what lets a host who is themselves the subject of the
+// line read the addressed ("you...") form, while the broadcast `html` field stays neutral for
+// every other seat and for old clients that never read `variants` at all.
+export function netNarrate(html,variants){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat));if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-export function netBroadcast(html){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"));}
+export function netBroadcast(html,variants){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants);}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -912,7 +917,9 @@ export function watchNarr(){
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
     // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
     // letting them overwrite the panel made the battle box flicker away between flips (#9)
-    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)showNarration(v.html);});
+    // D-10: pickNarrVariant degrades an old payload (no `variants` key at all) to `v.html`
+    // exactly as before — a new guest reading an old host's broadcast sees no behavior change.
+    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)showNarration(pickNarrVariant(v,appState.mySeat));});
 }
 
 /* ================= welcome modal ================= */

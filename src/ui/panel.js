@@ -39,8 +39,8 @@ import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, describe, pn, boatXY, msgHoldMs,
-  waitWhilePaused,
+  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs,
+  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -348,14 +348,20 @@ export async function narrateLastEvent(){
   // every bettor — re-narrating the last individual sidebet event here would just duplicate it.
   if(e.t==="sidebet")return;
   if($("actionPanel").classList.contains("needsAction"))return;
-  const L=describe(e);if(!L)return;
+  // D-10: the BROADCAST payload is built from the viewer-NEUTRAL rendering (never the ambient
+  // appState.mySeat-flavored one) plus per-seat variants — netNarrate on the receiving end (the
+  // host's own screen) and watchNarr on every guest both select their own line via
+  // pickNarrVariant, so building this from anything OTHER than the neutral default would leak
+  // the host's own personalised phrasing into every other seat's broadcast.
+  const L=describeFor(e,NEUTRAL_VIEWER);if(!L)return;
+  const variants=narrationVariants(e);
   // notes/edits #1 follow-up: this used to be netNarrate()+a flat 3000ms sleep, a leftover from
   // before the typewriter/hold/fade system existed. That fixed window never accounted for reveal
   // time at all, so a long multi-sentence line (battle results especially — often 120-160+ chars)
   // could burn the ENTIRE 3s just typing itself in, leaving no time to actually read it before the
   // next event overwrote it. flash() awaits real reveal completion, then holds for length*80ms —
   // scaling with the text instead of a one-size-fits-all timer.
-  await flash(L.txt);
+  await flash(L.txt,undefined,undefined,variants);
 }
 
 // notes/edits #1: ms is no longer used to size the hold — the hold duration is derived purely
@@ -371,12 +377,16 @@ export async function narrateLastEvent(){
 // D-10: `holdMs`, when a number, overrides the human msgHoldMs() hold — this is how botWindLeg
 // (src/ui/flow.js) gets its own, snappier bot pacing without a second flash() implementation.
 // Purely additive: `ms` and every existing two-argument call site behave exactly as before.
-export async function flash(msg,ms,holdMs){
+// D-10 (widened narr payload): `variants`, when present, is the per-seat addressed-rendering
+// array narrationVariants() built for `msg` — additive 4th parameter, same precedent as holdMs
+// immediately above. Every existing 1-/2-/3-argument call site keeps behaving exactly as before
+// (variants undefined forwards as undefined, which netSetNarr treats as "no variants field").
+export async function flash(msg,ms,holdMs,variants){
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate
   // is itself still a classic-script global this wave, wired in through the still-present PP
   // bridge by src/main.js's setNetHandlers() call, formalized to a real src/net/ import in 11-06.
-  if(_nh.onBroadcast)_nh.onBroadcast(msg);
+  if(_nh.onBroadcast)_nh.onBroadcast(msg,variants);
   const el=$("actionPanel").querySelector(".apMsg");
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;
