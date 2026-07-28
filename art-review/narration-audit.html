@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pastry Pirates — Narration Audit (Phase 15, NARR-01)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #14181c;
+    --card-bg: #1e2328;
+    --border: #2c3238;
+    --text: #eef2f5;
+    --muted: #9aa4ad;
+    --accent: #f5a623;
+    --warn: #f2679e;
+    --p0: #f2679e; --p1: #1d96a6; --p2: #27c78d; --p3: #f5a623;
+    --panel-a: #eafaf3; --panel-b: #cdf0e2; --panel-border: #1d96a6;
+    --panel2-a: #fff6c2; --panel2-b: #ffe066; --panel2-border: #f5a623;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 32px 24px 80px;
+  }
+  header { max-width: 1200px; margin: 0 auto 28px; }
+  h1 { font-size: 1.5rem; margin: 0 0 8px; }
+  header p { color: var(--muted); line-height: 1.55; max-width: 90ch; }
+  header .methodNote { font-size: 0.85rem; border-left: 3px solid var(--accent); padding-left: 12px; margin-top: 12px; }
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(20,24,28,0.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: -32px -24px 28px;
+  }
+  .toolbar button {
+    background: var(--accent);
+    color: #1f1400;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .toolbar button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .toolbar .status { font-size: 0.8rem; color: var(--muted); }
+  .toolbar .grandTotal { font-size: 0.85rem; color: var(--text); margin-left: auto; }
+  section.group { max-width: 1200px; margin: 0 auto 36px; }
+  section.group h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; }
+  .groupCount { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cardHead h3 { margin: 0 0 2px; font-size: 1rem; }
+  .cardMeta { font-size: 0.72rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .silentBadge {
+    font-size: 0.68rem; background: rgba(154,164,173,0.18); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; margin-left: 6px;
+  }
+  .cardBody { display: flex; flex-direction: column; gap: 8px; }
+  .msgBox {
+    border-radius: 9px; padding: 8px 11px; font-weight: 600; font-size: 0.92rem; line-height: 1.4;
+    border: 2px solid var(--panel-border);
+    background: linear-gradient(160deg, var(--panel-a), var(--panel-b));
+    color: #16302f;
+  }
+  .msgBox.addressed { border-color: var(--panel2-border); background: linear-gradient(160deg, var(--panel2-a), var(--panel2-b)); }
+  .msgBox img.narrIcon { width: 16px; height: 16px; vertical-align: -3px; object-fit: contain; margin: 0 1px; }
+  .msgBox b { color: inherit; }
+  .variantRow { display: flex; flex-direction: column; gap: 4px; }
+  .variantLabel { font-size: 0.74rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .seatDot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+  .subSection { border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 2px; }
+  .subSection h4 { margin: 0 0 8px; font-size: 0.85rem; color: var(--accent); }
+  .subRow { margin-bottom: 10px; }
+  .subLabel { font-size: 0.76rem; color: var(--muted); margin-bottom: 4px; }
+  .silentNote, .passThroughNote, .cardNote, .mergeNote {
+    font-size: 0.82rem; color: var(--muted); line-height: 1.45; margin: 0;
+  }
+  .passThroughNote { font-style: italic; }
+  .mergeNote { color: var(--warn); }
+  .rawSource summary { cursor: pointer; color: var(--accent); font-size: 0.8rem; }
+  .rawSource pre {
+    white-space: pre-wrap; word-break: break-word; font-size: 0.72rem; background: #10141a;
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin: 6px 0 0;
+  }
+  .tagRow { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+  .tagRow select { background: #10141a; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; }
+  .defaultTagNote { color: var(--muted); font-size: 0.74rem; }
+  .notesLabel { font-size: 0.78rem; color: var(--muted); }
+  textarea.notesArea {
+    width: 100%; min-height: 56px; resize: vertical;
+    background: #10141a; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 8px 10px; font-family: inherit; font-size: 0.85rem;
+  }
+  textarea.notesArea:focus, select:focus { outline: 1px solid var(--accent); }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button id="exportBtn">Export dispositions (JSON)</button>
+  <button id="clearBtn" class="secondary">Clear all dispositions</button>
+  <span class="status" id="fbStatus"></span>
+  <span class="grandTotal" id="totalCount">loading…</span>
+</div>
+<header>
+  <h1>Narration Audit — every line, tagged, with proposed wording (NARR-01)</h1>
+  <p>
+    Every narration surface in the game — the <code>EVENT_NARRATION</code> table
+    (<code>src/ui/util.js</code>) AND every hand-written <code>flash()</code> call in
+    <code>src/ui/flow.js</code>, <code>src/orchestrator.js</code> and <code>src/ui/util.js</code> —
+    rendered exactly as it appears on your screen (seat colors, icons, ingredient art), grouped by
+    moment. Every card carries a keep / cut / merge / rewrite recommendation you can change, plus a
+    notes field. <b>The recommendation is biased toward rewriting, not deleting</b>: this pass keeps
+    roughly the same number of lines and instead proposes distinct verbs/imagery for the handful of
+    moments that currently blur together (flagged below) — it never defaults to a one-line-per-moment
+    cut, and nothing is pre-selected for deletion on your behalf. Where two call sites render
+    byte-identical text, both are listed and flagged as a merge candidate rather than silently
+    collapsed — they're two places in the code that can drift apart. A surface that deliberately
+    renders no text at all is still listed, marked "silent", rather than dropped for having nothing
+    to show.
+  </p>
+  <p class="methodNote">
+    <b>How this page is built:</b> table cards call the real <code>EVENT_NARRATION</code> builders
+    (via <code>describeFor</code>/<code>narrationVariants</code>) with a fabricated event — the exact
+    same code that ships, so there is zero drift between this page and the game. The three new
+    NARR-02 builders (<code>brokeSailLine</code>/<code>brokeAnchorLine</code>/
+    <code>stormIntroClause</code>) are called the same way, imported directly from
+    <code>src/ui/flow.js</code>. The remaining hand-written <code>flash()</code> lines can't be
+    called as isolated functions — each ad-hoc card reconstructs its wording using the SAME real
+    name/color/icon helpers (<code>pn</code>/<code>poss</code>/<code>ilabelImg</code>/
+    <code>DIRNAME</code>) the source line itself calls, and a "Raw source" disclosure on every ad-hoc
+    card shows the exact JS text the extraction script pulled from the file, so you can cross-check
+    the reconstruction against the real code yourself.
+  </p>
+  <p class="methodNote">
+    <b>End-of-voyage lines:</b> tagged <i>keep</i> with no wording changes proposed this phase —
+    Phase 16's UI-07 owns that box's visibility, not its wording, so any change there is your call to
+    make at that gate, not something to decide here.
+  </p>
+  <p class="methodNote">
+    This page imports live ES modules and must be served over HTTP (<code>npm start</code>) —
+    opening it directly from a bare filesystem path will fail silently in every current browser,
+    since module imports are blocked from that origin.
+  </p>
+</header>
+<div id="sections">loading…</div>
+
+<script type="module">
+import { appState } from "../src/state/index.js";
+
+// Minimal live-shaped bootstrap: a fixed synthetic four-captain roster (so pn()/poss() render
+// real names in real seat colors) plus a game config/players shape just complete enough that
+// every EVENT_NARRATION builder and every imported helper below runs with no throw outside a
+// live game — same pattern 15-PATTERNS.md verified safe (appState is a plain mutable object,
+// roundCfg is a pure function; neither has import-time side effects).
+const SEAT_NAMES = ["Crustbeard", "Davy Scones", "Dough Hook", "Flaky Jack"];
+appState.roster = SEAT_NAMES.map((name) => ({ id: "synthetic", name }));
+appState.game = {
+  cfg: { tradeBonus: true, sardine: true },
+  events: [],
+  players: [
+    { recipe: ["wheat", "sugar", "eggs"] },
+    { recipe: ["cocoa", "dairy", "spice"] },
+    { recipe: ["vanilla", "salt", "honey"] },
+    { recipe: ["wheat", "cocoa", "dairy"] },
+  ],
+  windNow: "N",
+  windNow2: "S",
+  stormNow: true,
+};
+
+const { EVENT_NARRATION, describeFor, narrationVariants, NEUTRAL_VIEWER, pn, poss } =
+  await import("../src/ui/util.js");
+const { brokeSailLine, brokeAnchorLine, stormIntroClause } = await import("../src/ui/flow.js");
+const { DIRNAME } = await import("../src/shared/index.js");
+
+const GROUPS_ORDER = [
+  "Round Header", "Storm", "Docking", "Battle", "Trade & Parley",
+  "Fishing", "Shot Clock", "End of Voyage", "Sailing & Movement",
+];
+
+// Default recommendation per table key. Biased toward "rewrite" only where lines genuinely blur
+// (D-06) — the windmove/blownOut/tradewind trio, all three "the wind carries you somewhere"
+// moments that currently read almost identically. Everything else defaults to "keep": this
+// table already went through several drafting passes across plans 15-01..15-04.
+const TABLE_TAGS = {
+  newround: "keep", windmove: "rewrite", blownOut: "rewrite", sail: "keep", dodge: "keep",
+  anchor: "keep", moored: "keep", blocked: "keep", anchorHold: "keep", tradewind: "rewrite",
+  parley: "keep", aground: "keep", shipwrecked: "keep", dock: "keep", trade: "keep",
+  sidebet: "keep", battle: "keep", battleflee: "keep", fish: "keep", finish: "keep",
+  shotclock: "keep", shotclockskip: "keep", bakeoff: "keep", end: "keep", turn: "keep",
+};
+const TABLE_NOTES = {
+  windmove: "Blurs with blownOut/tradewind — all three are “the wind/storm carries you somewhere” moments today. Proposal: give each a distinct verb/image (D-06) instead of collapsing them.",
+  blownOut: "Same blur family as windmove/tradewind — a gale off the dock reads almost identically to a mid-sea drift today.",
+  tradewind: "Same blur family as windmove/blownOut — swept to the rim, blown off a dock, and carried mid-storm currently all read alike.",
+  moored: "Already split into 3 distinct causes (justDocked/dock/home) by Phase 14's D-19/D-21/D-27 — flagged keep, not part of this pass's blur concern.",
+  battle: "NARR-04/D-12: the coin-spoil clause is split below into a genuine-bribe reading (a full 5-coin purse) and a cleaned-out reading (anything less) — see “Spoil framing”.",
+  turn: "Deliberately silent (returns no text at all) — the bot turn-start banner is a separate ad-hoc line instead (see Sailing & Movement group, narrateCurrent). Listed per NARR-01's “don't drop silent surfaces” rule.",
+  end: "Deliberately silent (EOV-01 — the blue box no longer announces the win, avoiding a duplicate of the dedicated victory box). Listed per NARR-01's “don't drop silent surfaces” rule.",
+};
+
+function fabricateEvent(key) {
+  switch (key) {
+    case "newround": return { t: "newround", dir: "N", dir2: "S", windStreak: 1, storm: true, streak: 1, round: 3 };
+    case "windmove": return { t: "windmove", p: 0 };
+    case "blownOut": return { t: "blownOut", p: 0 };
+    case "sail": return { t: "sail", p: 0 };
+    case "dodge": return { t: "dodge", p: 0 };
+    case "anchor": return { t: "anchor", p: 0 };
+    case "moored": return { t: "moored", p: 0, reason: "justDocked" };
+    case "blocked": return { t: "blocked", p: 0, other: 1 };
+    case "anchorHold": return { t: "anchorHold", p: 0 };
+    case "tradewind": return { t: "tradewind", p: 0 };
+    case "parley": return { t: "parley", a: 0, b: 1, offer: "wheat", want: "sugar", ok: true };
+    case "aground": return { t: "aground", p: 0, ing: null };
+    case "shipwrecked": return { t: "shipwrecked", p: 0 };
+    case "dock": return { t: "dock", p: 0, ing: "wheat", got: "ing", heads: 1 };
+    case "trade": return { t: "trade", a: 0, b: 1, gave: "wheat", got: "sugar" };
+    case "sidebet": return { t: "sidebet", p: 2, won: true, amt: 2, delta: 5, on: "a" };
+    case "battle": return { t: "battle", a: 0, d: 1, winner: 0, rounds: [[1, 0, false, "a"], [0, 1, false, "d"]], spoil: "5 coins", spoilIng: null };
+    case "battleflee": return { t: "battleflee", a: 0, d: 1 };
+    case "fish": return { t: "fish", p: 0, heads: 1 };
+    case "finish": return { t: "finish", p: 0 };
+    case "shotclock": return { t: "shotclock", p: 0 };
+    case "shotclockskip": return { t: "shotclockskip", p: 0, ing: null, coins: 3 };
+    case "bakeoff": return { t: "bakeoff", a: 0, b: 1, winner: 0 };
+    case "end": return { t: "end", winner: 0 };
+    case "turn": return { t: "turn", p: 0 };
+    default: return { t: key, p: 0 };
+  }
+}
+
+// Every emoji/ingredient <img> the real builders emit is written `src="assets/..."` — correct
+// when the document IS index.html at the repo root, wrong one directory down from here
+// (art-review/). The wording itself is 100% real (rendered live, zero drift); only this
+// asset-path prefix needs correcting so the images actually load from this page's location.
+function fixAssetPaths(html) {
+  return html == null ? html : html.replaceAll('src="assets/', 'src="../assets/');
+}
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function seatBadge(i) {
+  const colors = ["#f2679e", "#1d96a6", "#27c78d", "#f5a623"];
+  return `<span class="seatDot" style="background:${colors[i]}"></span>${SEAT_NAMES[i]}`;
+}
+function msgBox(html, kind) {
+  return `<div class="msgBox ${kind}">${fixAssetPaths(html)}</div>`;
+}
+function renderVariantsBlock(variants) {
+  if (!variants || !variants.length) return "";
+  return variants.map((v) => `
+    <div class="variantRow">
+      <div class="variantLabel">Addressed to ${seatBadge(v.seat)}</div>
+      ${msgBox(v.html, "addressed")}
+    </div>`).join("");
+}
+
+// Hand-authored per-ad-hoc-line renderers, keyed by "file:line" (matching the extraction
+// script's inventory). Each calls the SAME real imported helpers (pn/poss/DIRNAME/
+// brokeSailLine/brokeAnchorLine/stormIntroClause) the source line itself calls — never a
+// hand-typed transcription of what those helpers would produce. The literal surrounding wording
+// (the parts of each string that are NOT a helper call) is reproduced from the source; the "Raw
+// source" disclosure on every card shows the exact extracted JS text so it can be cross-checked
+// against this reconstruction.
+const ADHOC_RENDERERS = {
+  "src/ui/flow.js:111": () => ({
+    current: `${pn(0)} flips ⚪ HEADS!`,
+    proposed: [{ seat: 0, html: `You flip ⚪ HEADS!` }],
+    note: "Tails uses the identical shape (⚫ TAILS) — see raw source.",
+  }),
+  "src/ui/flow.js:260": () => ({
+    current: brokeAnchorLine(0, NEUTRAL_VIEWER),
+    proposed: [{ seat: 0, html: brokeAnchorLine(0, 0) }],
+  }),
+  "src/ui/flow.js:296": () => ({
+    current: `🌀 ${pn(0)} is swept into the trade winds and whipped around the rim!`,
+    proposed: [{ seat: 0, html: "🌀 You are swept into the trade winds, and whipped around the rim!" }],
+  }),
+  "src/ui/flow.js:373": () => ({
+    current: `⛈️ Now the storm moves you <b>${DIRNAME["S"]}</b>!`,
+    proposed: [],
+    note: "Always renders “you” unconditionally — no viewer branch exists here yet (discovered gap, 15-03 SUMMARY). Shown as-is; a genuine third-person form has never existed for this specific line.",
+  }),
+  "src/ui/flow.js:410": () => ({ current: "No one has cargo to trade for.", proposed: [] }),
+  "src/ui/flow.js:516": () => ({
+    current: `${pn(1)} declines ${pn(0)}'s offer!`,
+    proposed: [{ seat: 0, html: `${pn(1)} declines your offer!` }],
+    note: "Alternate branch when the human is exactly one need away from finishing: a taunt line instead of a plain decline — see raw source.",
+  }),
+  "src/ui/flow.js:524": () => ({
+    current: `${pn(1)} declines!`,
+    proposed: [{ seat: 1, html: "You decline!" }],
+  }),
+  "src/ui/flow.js:571": () => ADHOC_RENDERERS["src/ui/flow.js:296"](),
+  "src/ui/flow.js:574": () => ({ current: "🧁 Firing up the ovens on the Isle of Tortuga!", proposed: [] }),
+  "src/ui/flow.js:582": () => ({
+    current: `${pn(0)} can't afford powder.`,
+    proposed: [{ seat: 0, html: `Yer too poor to afford powder! Go fishin'` }],
+  }),
+  "src/ui/flow.js:613": () => {
+    const addressedBanner = `⛵ Ahoy, ${pn(0)} — your turn! The wind blows <b>${DIRNAME["N"]}</b> this round${stormIntroClause("N")}.`;
+    return {
+      current: `⛵ Ahoy, ${poss(0)} turn! The wind blows <b>${DIRNAME["N"]}</b> this round — ⛈️ STORM! First, it pushes ${pn(0)} 2 squares <b>${DIRNAME["N"]}</b>.`,
+      proposed: [{ seat: 0, html: addressedBanner }],
+    };
+  },
+  "src/ui/flow.js:640": () => ({
+    current: `🏝️ Land's blockin' ${pn(0)}'s wind — slow as cold molasses in this lee.`,
+    proposed: [{ seat: 0, html: `🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.` }],
+  }),
+  "src/ui/flow.js:645": () => ADHOC_RENDERERS["src/ui/flow.js:296"](),
+  "src/ui/flow.js:646": () => ({
+    current: brokeSailLine(0, NEUTRAL_VIEWER),
+    proposed: [{ seat: 0, html: brokeSailLine(0, 0) }],
+  }),
+  "src/ui/flow.js:702": () => ({
+    current: `⛈️ Now the storm moves ${pn(0)} <b>${DIRNAME["S"]}</b>!`,
+    proposed: [],
+    note: "A bot has no screen of its own to address — always third-person, by design (not a gap).",
+  }),
+  "src/ui/flow.js:722": () => ({
+    current: brokeSailLine(0, NEUTRAL_VIEWER),
+    proposed: [{ seat: 0, html: brokeSailLine(0, 0) }],
+  }),
+  "src/ui/flow.js:901": () => ({
+    current: `💰 ${pn(2)} calls ${pn(0)} and backs it with 2🌕!`,
+    proposed: [
+      { seat: 2, html: `💰 You call ${pn(0)} and back it with 2🌕!` },
+      { seat: 0, html: `💰 ${pn(2)} calls you to win and backs it with 2🌕!` },
+    ],
+  }),
+  "src/ui/flow.js:902": () => ({
+    current: `🔭 ${pn(2)} calls ${pn(0)} from the crow's nest.`,
+    proposed: [
+      { seat: 2, html: `🔭 You call ${pn(0)} from the crow's nest.` },
+      { seat: 0, html: `🔭 ${pn(2)} calls you to win from the crow's nest.` },
+    ],
+  }),
+  "src/ui/flow.js:928": () => ({
+    current: `🔭 The Lookout's Call settles — ${pn(2)} +5🌕 · ${pn(3)} −2🌕`,
+    proposed: [],
+    note: "One aggregate line covering every bettor at once — no per-viewer variant exists for this line yet.",
+  }),
+  "src/orchestrator.js:391": () => ({
+    current: `⚔️ ${pn(0)} attacks ${pn(1)}! First to 2 points wins…`,
+    proposed: [
+      { seat: 0, html: `⚔️ ${pn(0)} — you attack ${pn(1)}! First to 2 points wins…` },
+      { seat: 1, html: `⚔️ ${pn(0)} attacks you! First to 2 points wins…` },
+    ],
+  }),
+  "src/orchestrator.js:754": () => ({ current: "⏳ Nobody finished the voyage.", proposed: [] }),
+  "src/orchestrator.js:758": () => ({
+    current: `<div>👑 ${pn(0)} baked a <span class="narrRecipeLink">📜 Spiced Cocoa Shortbread</span> and won <b>Best Baker in the Caribbean!</b></div>`,
+    proposed: [],
+    note: "The recipe title/image shown here is an illustrative placeholder (the real line reads the winner's actual finished recipe) — the surrounding wording itself is unchanged this phase.",
+  }),
+  "src/ui/util.js:874": () => ({
+    current: `🧭 ${pn(0)} takes the wheel…`,
+    proposed: [{ seat: 0, html: `🧭 ${pn(0)} — you take the wheel…` }],
+  }),
+};
+
+function cardShell({ id, title, meta, body, defaultTag, silent }) {
+  const tags = ["keep", "cut", "merge", "rewrite"];
+  return `
+  <div class="card" data-id="${id}">
+    <div class="cardHead">
+      <h3>${title}${silent ? ' <span class="silentBadge">silent</span>' : ""}</h3>
+      <div class="cardMeta">${meta}</div>
+    </div>
+    <div class="cardBody">${body}</div>
+    <div class="tagRow">
+      <label>Recommendation
+        <select class="tagSelect" data-id="${id}" data-default="${defaultTag}">
+          ${tags.map((t) => `<option value="${t}" ${t === defaultTag ? "selected" : ""}>${t}</option>`).join("")}
+        </select>
+      </label>
+      <span class="defaultTagNote">default: ${defaultTag}</span>
+    </div>
+    <label class="notesLabel">Notes<textarea class="notesArea" data-id="${id}" placeholder="keep / cut / merge / rewrite reasoning..."></textarea></label>
+  </div>`;
+}
+
+function buildTableCard(entry) {
+  const { key, file, line, group } = entry;
+  const id = `table:${key}`;
+  const ev = fabricateEvent(key);
+  const rendered = describeFor(ev, NEUTRAL_VIEWER);
+  const variants = narrationVariants(ev);
+  const silent = !rendered || !rendered.txt;
+  let body = silent
+    ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
+    : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
+  if (key === "battle") {
+    const evCleaned = Object.assign({}, ev, { spoil: "2 coins" });
+    const rC = describeFor(evCleaned, NEUTRAL_VIEWER);
+    const vC = narrationVariants(evCleaned);
+    body += `
+      <div class="subSection">
+        <h4>Spoil framing (NARR-04/D-12)</h4>
+        <div class="subRow"><div class="subLabel">Full bribe (5 coins)</div>${msgBox(rendered.txt, "neutral")}${renderVariantsBlock(variants)}</div>
+        <div class="subRow"><div class="subLabel">Cleaned out (2 coins)</div>${msgBox(rC.txt, "neutral")}${renderVariantsBlock(vC)}</div>
+      </div>`;
+  }
+  if (TABLE_NOTES[key]) body += `<p class="cardNote">${TABLE_NOTES[key]}</p>`;
+  return { html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `${file}:${line} · table`, body, defaultTag: TABLE_TAGS[key] || "keep", silent }), group };
+}
+
+const PASS_THROUGH = new Set([
+  "src/ui/flow.js:333", "src/ui/flow.js:352", "src/orchestrator.js:699",
+  "src/orchestrator.js:720", "src/ui/util.js:878",
+]);
+
+function buildAdhocCard(entry) {
+  const { file, line, fn, group, label, defaultTag, mergeWith, rawNeutral, rawVariants } = entry;
+  const key = `${file}:${line}`;
+  const id = `adhoc:${key}`;
+  let body;
+  if (PASS_THROUGH.has(key)) {
+    body = `<p class="passThroughNote">Table pass-through — renders whichever EVENT_NARRATION entry actually fired for that event (see the matching card in its own group above). Not counted as separate copy — tagged keep by default.</p>`;
+  } else {
+    const renderer = ADHOC_RENDERERS[key];
+    const result = renderer ? renderer() : { current: "(no renderer defined for this line yet)", proposed: [] };
+    body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
+    if (result.note) body += `<p class="cardNote">${result.note}</p>`;
+  }
+  if (mergeWith && mergeWith.length) body += `<p class="mergeNote">Byte-identical to: ${mergeWith.join(", ")}</p>`;
+  body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
+    <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
+    ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
+  </details>`;
+  return { html: cardShell({ id, title: label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false }), group };
+}
+
+// ---------- fetch inventory, group + render ----------
+const inv = await fetch("narration-inventory.json").then((r) => r.json());
+const allEntries = [
+  ...inv.table.map((e) => ({ ...e, kind: "table" })),
+  ...inv.adhoc.map((e) => ({ ...e, kind: "adhoc" })),
+];
+
+const grouped = {};
+for (const g of GROUPS_ORDER) grouped[g] = [];
+for (const e of allEntries) {
+  const built = e.kind === "table" ? buildTableCard(e) : buildAdhocCard(e);
+  if (!grouped[built.group]) grouped[built.group] = [];
+  grouped[built.group].push(built.html);
+}
+
+let sectionsHtml = "";
+let totalCards = 0;
+for (const g of GROUPS_ORDER) {
+  const cards = grouped[g] || [];
+  if (!cards.length) continue;
+  totalCards += cards.length;
+  sectionsHtml += `<section class="group"><h2>${g} <span class="groupCount">(${cards.length})</span></h2><div class="grid">${cards.join("")}</div></section>`;
+}
+document.getElementById("sections").innerHTML = sectionsHtml;
+
+const grandTotal = inv.table.length + inv.adhoc.length;
+const totalNote = `${totalCards} lines rendered · ${inv.table.length} table + ${inv.adhoc.length} ad-hoc = ${grandTotal} total`;
+document.getElementById("totalCount").textContent = totalCards === grandTotal ? totalNote : `${totalNote} ⚠ MISMATCH — see console`;
+if (totalCards !== grandTotal) console.error("Rendered card count", totalCards, "!= inventory total", grandTotal);
+
+// ---------- persistence + export ----------
+const STORAGE_KEY = "pastrypirates_narration_audit_v15_dispositions";
+function loadSaved() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; } }
+function saveAll(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function setStatus(t) { document.getElementById("fbStatus").textContent = t; }
+
+const saved = loadSaved();
+document.querySelectorAll(".tagSelect").forEach((sel) => {
+  const id = sel.dataset.id;
+  if (saved[id] && saved[id].tag) sel.value = saved[id].tag;
+  sel.addEventListener("change", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].tag = sel.value;
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+  });
+});
+document.querySelectorAll(".notesArea").forEach((ta) => {
+  const id = ta.dataset.id;
+  if (saved[id] && saved[id].notes) ta.value = saved[id].notes;
+  ta.addEventListener("input", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].notes = ta.value;
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+  });
+});
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const data = loadSaved();
+  const out = [];
+  document.querySelectorAll(".card").forEach((card) => {
+    const id = card.dataset.id;
+    const sel = card.querySelector(".tagSelect");
+    const ta = card.querySelector(".notesArea");
+    const title = card.querySelector("h3").textContent.replace(/\s*silent\s*$/i, "").trim();
+    const meta = card.querySelector(".cardMeta").textContent.trim();
+    out.push({
+      id,
+      label: title,
+      source: meta,
+      defaultTag: sel.dataset.default,
+      finalTag: sel.value,
+      notes: ta.value || "",
+    });
+  });
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "narration-audit-dispositions.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus(`exported ${out.length} dispositions`);
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (!confirm("Clear all dispositions and notes on this page? This can't be undone.")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+</script>
+</body>
+</html>
