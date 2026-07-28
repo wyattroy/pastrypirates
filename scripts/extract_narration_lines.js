@@ -118,43 +118,60 @@ function enclosingFunction(marks, line) {
   return name;
 }
 
-// String/template-literal-aware balanced-delimiter scan: given `text` and the index of an opening
-// "(", returns the substring between it and its matching ")" — needed because call-site arguments
-// routinely contain nested parens/brackets/braces and template literals with ${...} interpolation
-// (e.g. the turn banner at flow.js:613), which a naive indexOf(")") would cut short.
-function extractBalanced(text, openIdx) {
-  let depth = 1, i = openIdx + 1;
-  let inString = null, inTemplate = false;
-  const start = i;
-  for (; i < text.length && depth > 0; i++) {
-    const c = text[i], prev = text[i - 1];
-    if (inString) { if (c === inString && prev !== "\\") inString = null; continue; }
-    if (inTemplate) { if (c === "`" && prev !== "\\") inTemplate = false; continue; }
-    if (c === "'" || c === '"') { inString = c; continue; }
-    if (c === "`") { inTemplate = true; continue; }
-    if (c === "(" || c === "[" || c === "{") { depth++; continue; }
-    if (c === ")" || c === "]" || c === "}") { depth--; if (depth === 0) break; continue; }
-  }
-  return text.slice(start, i);
-}
-// splits a call's argument-list text on top-level commas only (never inside nested
-// parens/brackets/braces/strings/templates) so `flash(a, b, c, [{...}])`'s 4th arg comes back whole
-function splitTopLevelArgs(argsText) {
+// Stack-based, string/template-literal-aware call-argument parser. Given `text` and the index of
+// a call's opening "(", walks forward tracking a context stack (paren/bracket/brace/template/
+// templateExpr) so nested template literals with ${...} interpolation — including a template
+// literal NESTED INSIDE another template literal's own ${...} expression, e.g. the turn banner's
+// storm clause at flow.js:613 (`` `...${cond?`...${pn(p.idx)}...`:""}...` ``) — are walked
+// correctly instead of a naive single inTemplate boolean mis-pairing the inner backticks as the
+// outer template's own close (which silently truncates the argument and misreads a comma INSIDE
+// the nested template's literal text, e.g. "First, it pushes", as a top-level arg separator).
+// Returns both the top-level-comma-split argument list and the index just past the matching ")".
+function parseCallArgs(text, openParenIdx) {
+  const stack = ["paren"]; // the call's own already-consumed "("
+  let i = openParenIdx + 1;
+  let inString = null; // "'" or '"' — simple strings never nest
   const args = [];
-  let depth = 0, inString = null, inTemplate = false, cur = "";
-  for (let i = 0; i < argsText.length; i++) {
-    const c = argsText[i], prev = argsText[i - 1];
-    if (inString) { cur += c; if (c === inString && prev !== "\\") inString = null; continue; }
-    if (inTemplate) { cur += c; if (c === "`" && prev !== "\\") inTemplate = false; continue; }
+  let cur = "";
+  for (; i < text.length && stack.length > 0; i++) {
+    const c = text[i], prev = text[i - 1];
+    if (inString) {
+      cur += c;
+      if (c === inString && prev !== "\\") inString = null;
+      continue;
+    }
+    const top = stack[stack.length - 1];
+    if (top === "template") {
+      cur += c;
+      if (c === "`" && prev !== "\\") { stack.pop(); continue; }
+      if (c === "{" && prev === "$") { stack.push("templateExpr"); continue; }
+      continue;
+    }
+    // top is one of paren/bracket/brace/templateExpr — all ordinary "code" contexts
     if (c === "'" || c === '"') { inString = c; cur += c; continue; }
-    if (c === "`") { inTemplate = true; cur += c; continue; }
-    if (c === "(" || c === "[" || c === "{") { depth++; cur += c; continue; }
-    if (c === ")" || c === "]" || c === "}") { depth--; cur += c; continue; }
-    if (c === "," && depth === 0) { args.push(cur.trim()); cur = ""; continue; }
+    if (c === "`") { stack.push("template"); cur += c; continue; }
+    if (c === "(") { stack.push("paren"); cur += c; continue; }
+    if (c === "[") { stack.push("bracket"); cur += c; continue; }
+    if (c === "{") { stack.push("brace"); cur += c; continue; }
+    if (c === ")") {
+      if (top === "paren") {
+        stack.pop();
+        if (stack.length === 0) break; // matched the CALL's own opening paren — done
+      }
+      cur += c;
+      continue;
+    }
+    if (c === "]") { if (top === "bracket") stack.pop(); cur += c; continue; }
+    if (c === "}") {
+      if (top === "brace" || top === "templateExpr") stack.pop(); // templateExpr pop returns to "template"
+      cur += c;
+      continue;
+    }
+    if (c === "," && stack.length === 1) { args.push(cur.trim()); cur = ""; continue; }
     cur += c;
   }
   if (cur.trim() !== "") args.push(cur.trim());
-  return args;
+  return { args, endIdx: i };
 }
 function isCommentLine(fileSrc, lineNo) {
   const lineText = fileSrc.split("\n")[lineNo - 1] || "";
@@ -177,8 +194,7 @@ function findCallSites(fileSrc, filePath) {
     const lineNo = fileSrc.slice(0, idx).split("\n").length;
     if (isCommentLine(fileSrc, lineNo)) continue;
     const openParenIdx = idx + m[0].length - 1;
-    const argsText = extractBalanced(fileSrc, openParenIdx);
-    const args = splitTopLevelArgs(argsText);
+    const { args } = parseCallArgs(fileSrc, openParenIdx);
     const rawNeutral = args[0] || "";
     const rawVariants = args.length >= 4 ? args[3] : null;
     sites.push({

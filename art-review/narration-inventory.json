@@ -371,8 +371,8 @@
       "label": "Per-turn banner + storm intro (NARR-03, rewritten this phase)",
       "defaultTag": "rewrite",
       "mergeWith": null,
-      "rawNeutral": "`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First",
-      "rawVariants": "undefined"
+      "rawNeutral": "`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First, it pushes ${pn(p.idx)} 2 squares <b>${DIRNAME[appState.game.windNow]}</b>`:\"\"}.`",
+      "rawVariants": "[{seat:p.idx,html:addressedBanner}]"
     },
     {
       "file": "src/ui/flow.js",
