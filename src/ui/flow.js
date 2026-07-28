@@ -221,7 +221,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       if(reason){appState.game.ev({t:"moored",p:p.idx,reason});await narrateLastEvent();liveRender();return;}
       // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
       // also hits an island is a free pass, already-paid anchor holding fast
-      if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});liveRender();return;}
+      if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});await narrateLastEvent();liveRender();return;}
       const opts=[];
       if(p.coins>=1)opts.push({label:"Pay 1🌕 to anchor",value:"pay"});
       // notes/edits #10b: the real tails consequence depends on what this player actually has to
