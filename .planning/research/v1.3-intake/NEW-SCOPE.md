@@ -107,6 +107,46 @@ should not be invented during implementation.
 
 ---
 
+## N-06 — Drop the time-out penalty that confiscates a crate
+
+**Origin:** Wyatt, 2026-07-27, during Phase 15 planning — *"disable the timer penalty that takes a
+crate away from a player if their turn is skipped due to 30-second time-out. it's confusing players."*
+Not in the original 63-item punch list. Explicitly **not** to be actioned before v1.3 is planned.
+
+**What must be true:** running out the 30-second shot clock costs the player their turn and nothing
+else. No crate is confiscated, no coins are taken.
+
+**Why it matters:** the penalty is unclear at the table. A player who times out sees a crate vanish
+without a clear cause-and-effect, on top of already losing the turn — a double punishment that reads
+as a bug rather than a rule. Losing the turn is punishment enough. This is the same "the clock
+blindsides new players" thread as D-01: N-02 makes the clock's endgame unmissable and N-03/N-04 let
+you switch it off; this removes the part that stings without teaching anything.
+
+**Current behaviour:** `expireShotClock()` (`src/orchestrator.js:223-258`) strips a resource on every
+expiry — a randomly chosen crate if the player holds any (`:242-247`, returned to that island's
+supply rather than destroyed), otherwise up to 5 coins (`:248-253`). Either branch records a
+`shotclockskip` event and flashes the *"⏰ Snoozing pirates lose their treasure!"* line
+(`EVENT_NARRATION.shotclockskip`, `src/ui/util.js:386`).
+
+**Change shape:** stop taking the resource; keep the turn-loss. The narration line then becomes wrong
+(nothing tumbles overboard) and needs replacement copy — **which is Wyatt's to write**, so this joins
+the batched copy session alongside N-05. Note `shotClockCount` (`src/ui/util.js:474`) tallies both
+`shotclock` and `shotclockskip` for the end-of-voyage badges; check whether a badge depends on the
+confiscation before removing it.
+
+**Determinism check before planning:** the penalty emits a `shotclockskip` event, so confirm whether
+the deterministic corpus ever reaches this path. The shot clock is live-play-only orchestration and
+the headless `Game.play()` simulator has no concept of it — so this is *probably* UI-tier and
+re-record-free, but it must be confirmed, not assumed. If any fixture does carry a `shotclockskip`,
+this becomes a gated re-record (`docs/DETERMINISM-RERECORD.md`).
+
+**Size:** small in code; gated on copy and on the determinism check.
+
+**Related:** N-02/N-03/N-04 (the same clock code path, all currently untested), N-01 (pass-and-play
+coverage that would exercise it), N-05 (shares the batched copy session).
+
+---
+
 ## Deferred out of v1.3 by these same decisions
 
 - **Tutorial explanation of the turn clock** — Wyatt's D-01 point 4 asked for the (untimed) tutorial
