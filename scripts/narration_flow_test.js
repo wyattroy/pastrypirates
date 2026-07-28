@@ -27,8 +27,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brokeSailLine, brokeAnchorLine } from "../src/ui/flow.js";
+import { brokeSailLine, brokeAnchorLine, stormIntroClause } from "../src/ui/flow.js";
 import { appState } from "../src/state/index.js";
+import { DIRS } from "../src/shared/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -117,6 +118,13 @@ function lineOf(src, idx) {
   checkTrue("humanTurn function body located", !!humanTurnBody);
   if (humanTurnBody) {
     checkTrue("humanTurn: the human sail gate narrates its own broke moment via brokeSailLine (D-11 case 1, human)", humanTurnBody.includes("brokeSailLine"));
+    checkTrue("humanTurn: the turn banner no longer pre-announces the second storm leg (windNow2)", !humanTurnBody.includes("windNow2"));
+  }
+
+  const { body: humanWindBody } = extractFn(FLOW_SRC, "export async function humanWind", "export async function humanDock");
+  checkTrue("humanWind function body located", !!humanWindBody);
+  if (humanWindBody) {
+    checkTrue("humanWind: still announces the second leg's own direction at the moment it happens (windNow2)", humanWindBody.includes("windNow2"));
   }
 
   const { body: botTurnBody } = extractFn(FLOW_SRC, "export async function botTurn", "/* ================= battle-UI");
@@ -134,6 +142,45 @@ function lineOf(src, idx) {
     check("windLeg: exactly one Pay-to-anchor option is ever pushed (unaffected by the broke narration)", payOpts, 1);
     check("windLeg: the flip is offered in every case (unaffected by the broke narration)", flipOpts, 1);
   }
+}
+
+/* ---------- Task 3 (NARR-03): stormIntroClause — one leg, second person, four distinct directions ---------- */
+{
+  checkTrue("stormIntroClause is exported and callable with no DOM", typeof stormIntroClause === "function");
+  const byDir = {};
+  for (const dk of Object.keys(DIRS)) {
+    const clause = stormIntroClause(dk);
+    byDir[dk] = clause;
+    checkTrue(`stormIntroClause(${dk}): non-empty and contains no JS undefined token`, !!clause && !/undefined/.test(clause));
+  }
+  const dirKeys = Object.keys(DIRS);
+  checkTrue("stormIntroClause: two different directions produce different output", byDir[dirKeys[0]] !== byDir[dirKeys[1]]);
+}
+
+/* ---------- Task 3 (D-07/D-08/D-09/D-10): every ad-hoc flash() site is neutral-plus-variants ---------- */
+{
+  const flashSeatLocalLines = FLOW_SRC.split("\n").filter((l) => /flash\([^;]*seatLocal\(/.test(l));
+  check("no flash( call in src/ui/flow.js still selects its message with an inline seatLocal( ternary", flashSeatLocalLines.length, 0);
+
+  const variantsFormLines = FLOW_SRC.split("\n").filter((l) => /flash\([^;]*\[\{\s*seat/.test(l));
+  checkTrue(`the neutral-plus-variants form is in use at >= 8 sites (found ${variantsFormLines.length})`, variantsFormLines.length >= 8);
+
+  const { body: botWindLegBody } = extractFn(FLOW_SRC, "export async function botWindLeg", "// only ever called during a storm now");
+  checkTrue("botWindLeg function body located", !!botWindLegBody);
+  if (botWindLegBody) {
+    const nvCount = (botWindLegBody.match(/narrationVariants\(/g) || []).length;
+    check("botWindLeg: both describe()-then-flash() sites now render neutral text with narrationVariants(...)", nvCount, 2);
+  }
+
+  // T-15-02: names still flow through pn()/poss() only — no raw ${x.name} interpolation anywhere
+  // in this file (the same encoding guarantee narration_test.js already pins on util.js's side).
+  const rawNameLines = FLOW_SRC.split("\n").filter((l) => /\$\{[A-Za-z_.[\]() ]*\.name\}/.test(l));
+  check("T-15-02: no raw ${...name} interpolation in src/ui/flow.js — names flow through pn()/poss() only", rawNameLines.length, 0);
+}
+
+/* ---------- D-09: the round-level lines this plan must NOT touch stay out of this file's diff surface ---------- */
+{
+  checkTrue("D-09: this file never defines EVENT_NARRATION.newround (that table lives in src/ui/util.js, plan 15-04's territory)", !FLOW_SRC.includes("newround:"));
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

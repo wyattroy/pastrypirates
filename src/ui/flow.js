@@ -55,7 +55,8 @@ import {
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
-  replayShortfall, STORM_STEP_MS, describe, isLocalTo, NEUTRAL_VIEWER, botMsgHoldMs, BOT_STORM_STEP_MS,
+  replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
+  botMsgHoldMs, BOT_STORM_STEP_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -107,7 +108,7 @@ export async function humanFlip(p,label,allowBack){
   netHandlers().onBroadcastFlip(h?"H":"T");
   // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
   // (short) message's own length instead of a flat timer unrelated to how long it takes to read
-  await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
+  await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`,undefined,undefined,[{seat:p.idx,html:`You flip ${h?"⚪ HEADS!":"⚫ TAILS"}`}]);
   netHandlers().onBroadcastFlip("wait");
   return h;
 }
@@ -292,7 +293,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     await sleep(STORM_STEP_MS);
     if(appState.game.onRim(nx)){ // swept into the trade winds
       appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300);}
+      if(appState.game.tradewind(p)){liveRender();await flash(`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300,undefined,[{seat:p.idx,html:"🌀 You are swept into the trade winds, and whipped around the rim!"}]);}
       return;
     }
   }
@@ -325,8 +326,11 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // the entire message and only jumped at the liveRender() below.
       renderLiveShips();
       for(let k=evBefore;k<g.events.length;k++){
-        const L=describe(g.events[k]);
-        if(L)await flash(L.txt,null,botMsgHoldMs(L.txt));
+        const ev=g.events[k];
+        // D-10: render the viewer-NEUTRAL text (never the ambient appState.mySeat-flavored one)
+        // plus per-seat variants — the same broadcast-safe split narrateLastEvent() uses.
+        const L=describeFor(ev,NEUTRAL_VIEWER);
+        if(L)await flash(L.txt,null,botMsgHoldMs(L.txt),narrationVariants(ev));
       }
       liveRender();
       return; // the engine returned early — this square's own outcome ends the leg
@@ -343,9 +347,21 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     return; // neither moved nor recorded anything — a blocked square, stop silently like windLeg
   }
   g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
-  const L=describe(g.events[g.events.length-1]);
-  if(L)await flash(L.txt,null,botMsgHoldMs(L.txt));
+  const lastEv=g.events[g.events.length-1];
+  const L=describeFor(lastEv,NEUTRAL_VIEWER);
+  if(L)await flash(L.txt,null,botMsgHoldMs(L.txt),narrationVariants(lastEv));
   liveRender();
+}
+// NARR-03 (DRAFT, pending D-04): the per-turn storm intro clause — sits inside the addressed turn
+// banner ("Ahoy, {name} — your turn!", humanTurn below) and previously pre-announced BOTH storm
+// legs before either happened. humanWind (below) and botTurn already announce the second leg's
+// own direction at the moment it actually happens, so pre-announcing it here was exactly that
+// redundancy — this clause now names only the leg happening now. Second person because this
+// clause only ever renders inside the addressed (one-captain) form of the turn banner — see
+// <disambiguation_D09_vs_NARR03>; the round header (EVENT_NARRATION.newround) stays third person
+// and untouched (D-09).
+export function stormIntroClause(dir1){
+  return ` — ⛈️ STORM! First, it pushes you 2 squares <b>${DIRNAME[dir1]}</b>`;
 }
 // only ever called during a storm now (see humanTurn) — normal turns don't force-move anyone
 export async function humanWind(p){
@@ -495,14 +511,17 @@ export async function humanTrade(p){
       }
       appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
       liveRender();
-      await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines!`);
+      // D-08: this refusal names two seats (q the decliner, p the offerer) — p already reads the
+      // taunt addressed ("ye"/"yer") in its own DRAFT wording; every other viewer sees p named.
+      await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ${pn(p.idx)} finish their recipe that easy!"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines your offer!`}]);
       return true;
     }
   }
   if(!accept){
     appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
     liveRender();
-    await flash(`${pn(q.idx)} declines!`);
+    // D-08: q just answered their own decline via ask() above — q's own view reads it addressed.
+    await flash(`${pn(q.idx)} declines!`,undefined,undefined,[{seat:q.idx,html:"You decline!"}]);
     return true;
   }
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
@@ -549,7 +568,7 @@ export async function humanAct(p,sailCtx){
     const dest=await pickCell(p,reachable(p));
     if(appState.turnExpired)return;
     if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
+      if(appState.game.tradewind(p)){liveRender();await flash(`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200,undefined,[{seat:p.idx,html:"🌀 You are swept into the trade winds, and whipped around the rim!"}]);}}
     await humanAct(p,sailCtx);return;
   }
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
@@ -560,7 +579,7 @@ export async function humanAct(p,sailCtx){
   else if(v==="attack"){
     // #5d: safety net — the button is disabled when you can't afford powder, but guard the action
     // too (e.g. a forced/edge selection) so we never enter a battle you can't pay for.
-    if(p.coins<appState.game.cfg.powder){await flash(seatLocal(p.idx)?`Yer too poor to afford powder! Go fishin'`:`${pn(p.idx)} can't afford powder.`,1400);await humanAct(p,sailCtx);return;}
+    if(p.coins<appState.game.cfg.powder){await flash(`${pn(p.idx)} can't afford powder.`,1400,undefined,[{seat:p.idx,html:`Yer too poor to afford powder! Go fishin'`}]);await humanAct(p,sailCtx);return;}
     const t=targets.length===1?targets[0]:
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
@@ -588,7 +607,10 @@ export async function humanTurn(p){
   appState.activeTurnSeat=p.idx;appState.recipeRevealed=false;
   appState.game.ev({t:"turn",p:p.idx});
   liveRender();
-  await flash(`⛵ Ahoy, ${seatLocal(p.idx)?`${pn(p.idx)} — your turn!`:`${poss(p.idx)} turn!`} The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! It pushes everyone 2 squares, then 2 more <b>${DIRNAME[appState.game.windNow2]}</b>`:""}.`,1500);
+  // NARR-03: the storm clause now names only the leg happening now (dir1/windNow) — the second
+  // leg's own direction is announced separately, at the moment it actually happens, by humanWind.
+  const addressedBanner=`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?stormIntroClause(appState.game.windNow):""}.`;
+  await flash(`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First, it pushes ${pn(p.idx)} 2 squares <b>${DIRNAME[appState.game.windNow]}</b>`:""}.`,1500,undefined,[{seat:p.idx,html:addressedBanner}]);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
@@ -615,12 +637,12 @@ export async function humanTurn(p){
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   if(p.coins>0){
     // notes/edits #10: an island upwind steals your wind — warn before the move pick
-    if(appState.game.leeward(p))await flash(seatLocal(p.idx)?`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`:`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500);
+    if(appState.game.leeward(p))await flash(`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500,undefined,[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`}]);
     const dest=await pickCell(p,reachable(p));
     appState.recipeRevealed=false; // sail destination chosen — re-lock
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await flash(seatLocal(p.idx)?"🌀 You are swept into the trade winds, and whipped around the rim!":`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200);}}
+      if(appState.game.tradewind(p)){liveRender();await flash(`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200,undefined,[{seat:p.idx,html:"🌀 You are swept into the trade winds, and whipped around the rim!"}]);}}
   }else await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: broke — the action prompt right after also reframes, but this is the sail-specific nudge
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
   if(!appState.game.adjPort(p))p.dockedNow.clear();
@@ -873,8 +895,11 @@ export async function collectSideBets(att,def){
         break;
       }
       bets.push({idx:s.idx,on:who,amt});
-      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} and backs it with ${amt}🌕!`,1100);
-      else await flash(`🔭 ${pn(s.idx)} calls ${pn(who==="a"?att.idx:def.idx)} from the crow's nest.`,900);
+      // D-08: a side-bet call names two seats — the caller (s) AND the called captain (att/def) —
+      // so both get their own addressed variant, not just the actor.
+      const calledIdx=who==="a"?att.idx:def.idx;
+      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and backs it with ${amt}🌕!`,1100,undefined,[{seat:s.idx,html:`💰 You call ${pn(calledIdx)} and back it with ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls you to win and backs it with ${amt}🌕!`}]);
+      else await flash(`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`,900,undefined,[{seat:s.idx,html:`🔭 You call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls you to win from the crow's nest.`}]);
     }else{
       // Bots always call (favoring the fuller purse), and sometimes back it with coin.
       const fav=att.coins>=def.coins?"a":"d";
