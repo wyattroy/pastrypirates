@@ -339,7 +339,29 @@ Plans:
   4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
   5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 15-01-PLAN.md — TRACER: viewer-aware narration proven end-to-end on one line, plus the DOM-free narration harness (NARR-05, D-07/D-08/D-10)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 15-02-PLAN.md — NARR-06 timing: 10% hold cut on both curves, chat bubbles separated onto their own multiplier (D-14/D-15)
+- [ ] 15-03-PLAN.md — Turn-flow gaps in `src/ui/flow.js`: broke lines for both moments, storm intro, the missing anchor-hold narrate call, ad-hoc lines onto the variants form (NARR-02/03/05, D-11/D-13)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 15-04-PLAN.md — `EVENT_NARRATION` table: bribe-vs-cleaned-out split, second person across the table including two-party events, duplicate shot-clock line removed (NARR-01/04/05, D-12/D-12a)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 15-05-PLAN.md — The NARR-01 deliverable: line-inventory extraction script, the rendered audit page, and Wyatt's single review pass (blocking approval checkpoint, D-01…D-04/D-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 15-06-PLAN.md — Apply the approved pruning and final wording across both sources, then reconcile the shipped tree against the approved record (NARR-01…05)
 
 ### Phase 16: UI/UX Polish, Social Preview & Support
 
