@@ -159,7 +159,10 @@ for (const key of KEYS) {
   checkTrue("dodge: describeFor(e, subjectSeat).txt differs from the neutral rendering", describeFor(dodgeEvent, dodgeEvent.p).txt !== neutral.txt);
   checkTrue("dodge: with appState.mySeat unset, describe(e).txt equals the neutral rendering", describe(dodgeEvent).txt === neutral.txt);
   checkTrue("narrationVariants: calling it twice returns arrays with identical ordering", JSON.stringify(narrationVariants(dodgeEvent)) === JSON.stringify(variants));
-  check("narrationVariants: a builder with no viewer branch (anchor) returns an empty array", narrationVariants({ t: "anchor", p: 0 }).length, 0);
+  // Plan 15-04 Task 2 note: this originally pinned "anchor" as the no-viewer-branch example, but
+  // Task 2 (D-07) deliberately gives `anchor` its own addressed branch — `newround` (D-09) is the
+  // one entry guaranteed to stay branch-free for the life of this table, so the pin moves there.
+  check("narrationVariants: a builder with no viewer branch (newround) returns an empty array", narrationVariants({ t: "newround", round: 1, dir: "N", dir2: "E", windStreak: 1, storm: false, streak: 0 }).length, 0);
 
   // ---- the payload netSetNarr writes (mirrors netNarrate/netBroadcast's own call) ----
   function makeFakeDb() {
@@ -308,6 +311,82 @@ for (const key of KEYS) {
   checkTrue("shotclockskip: ingredient-loss wording is non-empty with no undefined token", !!ingTxt && !/undefined/.test(ingTxt));
   const coinTxt = f({ t: "shotclockskip", p: 0, coins: 3 }, at).txt;
   checkTrue("shotclockskip: coin-loss wording is non-empty with no undefined token", !!coinTxt && !/undefined/.test(coinTxt));
+}
+
+/* ---------- Plan 15-04 Task 2 (D-07/D-09): viewer-aware branches across the single-subject table ----------
+   Iterates the table generically instead of asserting entry by entry: every key must still be
+   callable with no throw; the viewer-neutral rendering must stay non-empty (except the keys
+   documented as producing no text) and undefined-token-free; and for every one of the 16 keys this
+   task covers, the addressed rendering must differ from the viewer-neutral rendering. `newround`
+   (D-09) is pinned identical with and without a viewer seat — it never gains a branch. */
+{
+  const COVERED_SINGLE_SUBJECT = [
+    "windmove", "blownOut", "sail", "anchor", "moored", "blocked", "anchorHold", "tradewind",
+    "aground", "shipwrecked", "dock", "sidebet", "fish", "finish", "shotclock", "shotclockskip",
+  ];
+  check("COVERED_SINGLE_SUBJECT has exactly 16 keys (the plan's own covered-key count)", COVERED_SINGLE_SUBJECT.length, 16);
+  const SILENT_KEYS = new Set(["turn", "end"]); // documented as producing no captain's-log line (or none in this fabricated shape)
+
+  for (const key of KEYS) {
+    const fab = FAB[key];
+    let result, threw = false;
+    try { result = EVENT_NARRATION[key](fab, at); } catch (e) { threw = true; }
+    checkTrue(`viewer-neutral (post-Task2): EVENT_NARRATION.${key}(...) does not throw`, !threw);
+    if (threw) continue;
+    const txt = result && result.txt;
+    if (!SILENT_KEYS.has(key)) {
+      checkTrue(`viewer-neutral (post-Task2): EVENT_NARRATION.${key} renders non-empty text`, !!txt);
+      checkTrue(`viewer-neutral (post-Task2): EVENT_NARRATION.${key} contains no JS undefined token`, !txt || !/undefined/.test(txt));
+    }
+  }
+
+  for (const key of COVERED_SINGLE_SUBJECT) {
+    const fab = FAB[key];
+    const neutralTxt = describeFor(fab, NEUTRAL_VIEWER).txt;
+    const addressedTxt = describeFor(fab, fab.p).txt;
+    checkTrue(`${key}: addressed rendering differs from the viewer-neutral rendering`, addressedTxt !== neutralTxt);
+    checkTrue(`${key}: addressed rendering is non-empty with no JS undefined token`, !!addressedTxt && !/undefined/.test(addressedTxt));
+    checkTrue(`${key}: viewer-neutral rendering is non-empty with no JS undefined token`, !!neutralTxt && !/undefined/.test(neutralTxt));
+  }
+
+  // D-09: newround gets NO viewer branch at all — identical with and without a viewer seat
+  const newroundFab = FAB.newround;
+  check("newround: rendering identical with a viewer seat (0) and without one (undefined)",
+    describeFor(newroundFab, 0).txt, describeFor(newroundFab, undefined).txt);
+  check("newround: rendering identical with NEUTRAL_VIEWER too",
+    describeFor(newroundFab, NEUTRAL_VIEWER).txt, describeFor(newroundFab, 1).txt);
+
+  // moored invariants (mirrors assertion 3 / bot_storm_narration_test.js) must survive byte-identical
+  {
+    const f = EVENT_NARRATION.moored;
+    const justDocked = f({ t: "moored", p: 0, reason: "justDocked" }, at).txt;
+    const home = f({ t: "moored", p: 0, reason: "home" }, at).txt;
+    check("moored (post-Task2, appState.mySeat unset): reason justDocked and reason home render the identical line", justDocked, home);
+    const bare = f({ t: "moored", p: 0 }, at).txt;
+    checkTrue("moored (post-Task2, appState.mySeat unset): a no-reason event renders a real (non-empty, non-undefined) line", !!bare && !/undefined/.test(bare));
+    const dockLine = f({ t: "moored", p: 0, reason: "dock" }, at).txt;
+    check("moored (post-Task2, appState.mySeat unset): reason \"dock\" with no position evidence renders the \"still docked\" line, not the shove line", dockLine, justDocked);
+  }
+
+  // Object.keys(EVENT_NARRATION).length still 25 — no key added or removed
+  check("EVENT_NARRATION still has exactly 25 keys after Task 2", Object.keys(EVENT_NARRATION).length, 25);
+
+  // describe(e) with appState.mySeat null equals describeFor(e, NEUTRAL_VIEWER) for every key
+  for (const key of KEYS) {
+    const fab = FAB[key];
+    const d = describe(fab);
+    const n = describeFor(fab, NEUTRAL_VIEWER);
+    check(`describe(): ${key} equals describeFor(e, NEUTRAL_VIEWER) with appState.mySeat unset`, d ? d.txt : null, n ? n.txt : null);
+  }
+
+  // caps/pops are unchanged by addressing — the viewer only ever selects .txt
+  for (const key of COVERED_SINGLE_SUBJECT) {
+    const fab = FAB[key];
+    const neutralResult = EVENT_NARRATION[key](fab, at, 0);
+    const addressedResult = EVENT_NARRATION[key](fab, at, 0, fab.p);
+    check(`${key}: caps array unchanged by addressing`, JSON.stringify(addressedResult.caps || []), JSON.stringify(neutralResult.caps || []));
+    check(`${key}: pops array unchanged by addressing`, JSON.stringify(addressedResult.pops || []), JSON.stringify(neutralResult.pops || []));
+  }
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

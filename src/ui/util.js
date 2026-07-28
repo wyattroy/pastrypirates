@@ -254,6 +254,14 @@ export function movedSinceTurnStart(e){
   }
   return null;
 }
+// D-07/D-09 (DRAFT copy, pending Wyatt's D-04 review — same convention as EVENT_NARRATION.moored's
+// own D-21 draft comment): every single-subject EVENT_NARRATION entry below that names a captain
+// now takes an optional 4th `viewerSeat` parameter and selects an addressed ("you") branch via
+// isLocalTo(e.p, viewerSeat) — the addressed form uses D-07's name-prefix-then-second-person shape
+// (`${pn(seat)} — you ...`); every other viewer (including describe()'s own default when
+// appState.mySeat is unset, and NEUTRAL_VIEWER) sees today's exact third-person line byte-for-byte.
+// `newround` is deliberately EXCLUDED (D-09 — it addresses the whole table, never one captain), and
+// `end`/`turn` name no captain at all, so neither gains a branch either.
 export const EVENT_NARRATION={
   // notes/edits NARR-03: a wind that hasn't changed direction is "still" blowing that way — it
   // doesn't newly go anywhere, so it never says "now".
@@ -277,9 +285,9 @@ export const EVENT_NARRATION={
     }
     return {cls:"roundhdr",txt:`— Round ${e.round}: wind ${held?"still blows":"blows"} ${D}${gust} —`};
   },
-  windmove:e=>({txt:`${pn(e.p)} is carried by the storm`,caps:[[e.p,"🌬️ drifts"]]}),
-  blownOut:e=>({txt:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
-  sail:e=>({txt:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
+  windmove:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — you're carried by the storm`:`${pn(e.p)} is carried by the storm`,caps:[[e.p,"🌬️ drifts"]]}),
+  blownOut:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`⛵ ${pn(e.p)} — a gale blows you off the dock!`:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
+  sail:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — you pay 1🌕 and sail`:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
   // D-07 (DRAFT copy, pending Wyatt's D-04 review — same convention as moored's own D-21 draft
   // comment): the tracer line for viewer-aware narration (NARR-05/D-10). The addressed reader
   // keeps the name prefix, then switches to second person; every other viewer (including
@@ -290,7 +298,7 @@ export const EVENT_NARRATION={
     const txt=addressed?`${pn(e.p)} — you pay 1🌕 to anchor safely!`:`${pn(e.p)} pays 1🌕 to anchor safely`;
     return {txt,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]};
   },
-  anchor:(e,at)=>({txt:`${pn(e.p)} flips ⚪HEADS — dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
+  anchor:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — you flip ⚪HEADS and dodge the rocks!`:`${pn(e.p)} flips ⚪HEADS — dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
   // D-19/D-20/D-21/D-27 (Wyatt-approved 2026-07-26): one line used to cover three unrelated
   // safe-harbor causes. mooredReason() still tags every event with which one actually fired (the
   // engine's `reason` field is untouched — this is a narration-only collapse). Per Wyatt's
@@ -298,7 +306,7 @@ export const EVENT_NARRATION={
   // treats Tortuga as a normal island/dock and it should not get bespoke wording. `dock` keeps its
   // own drafted line, approved as-is. A replayed pre-change log with no reason falls back to the
   // old generic line rather than rendering "undefined".
-  moored:(e,at)=>{
+  moored:(e,at,cellPx,viewerSeat)=>{
     const stillDocked=`${pn(e.p)} is still docked, so the storm can't run them aground.`;
     const L={
       justDocked:stillDocked,
@@ -321,11 +329,29 @@ export const EVENT_NARRATION={
         :stillDocked,
       home:stillDocked,
     };
+    // D-07 (DRAFT, pending D-04 review): addressed siblings to L above — a sibling table, never a
+    // replacement, so the third-person strings above (asserted byte-identical by
+    // scripts/bot_storm_narration_test.js) are untouched by this branch existing.
+    if(isLocalTo(e.p,viewerSeat)){
+      const stillDockedYou=`${pn(e.p)} — you're still docked, so the storm can't run you aground.`;
+      const LA={
+        justDocked:stillDockedYou,
+        dock:movedSinceTurnStart(e)===true
+          ?`Lucky break! The gust shoves you onto a dock, ${pn(e.p)}, and your crew steadies her fast against it ⚓`
+          :stillDockedYou,
+        home:stillDockedYou,
+      };
+      return {txt:LA[e.reason]||`Your dock steadies you from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
+    }
     return {txt:L[e.reason]||`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
   },
-  blocked:(e,at)=>({txt:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
-  anchorHold:(e,at)=>({txt:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
-  tradewind:(e,at)=>({txt:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
+  // D-08: `blocked` names TWO captains (e.p, the ship that struck sail, and e.other, the ship
+  // spotted dead ahead). This entry stays single-subject for Task 2 (e.p's own addressed branch
+  // only) — Task 3 adds e.other's own addressed branch alongside it, as a sibling `else if`, not a
+  // replacement of the neutral fallback below.
+  blocked:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} — you strike sail and hold fast.`:`Spotting ${pn(e.other)} dead ahead, ${pn(e.p)} strikes sail and holds fast.`,pops:[[at(e.p),"⚓"]]}),
+  anchorHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — your anchor's already down. It holds fast — no need to pay twice in one storm ⚓`:`${pn(e.p)}'s anchor already down — it holds fast, no need to pay twice in one storm ⚓`,pops:[[at(e.p),"⚓"]]}),
+  tradewind:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — you're carried into the trade winds and whipped around the rim!`:`🌀 ${pn(e.p)} is carried into the trade winds and whipped around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
   parley:(e,at)=>{
     // D-01/D-24/D-27 (Wyatt-approved 2026-07-26): a refused hail still spends the bot's one action
     // for that turn (the turn genuinely ends — see botTurn), but per Wyatt's decision the narration
@@ -336,11 +362,13 @@ export const EVENT_NARRATION={
     const txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — ${e.ok?"deal struck!":"they refused."}`;
     return {cls:"trade",txt,pops:[[at(e.a),e.ok?"🤝":"🙅"]]};
   },
-  aground:(e,at,cellPx=0)=>({txt:e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`,
+  aground:(e,at,cellPx=0,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
+      ?(e.ing?`${pn(e.p)} — you flip ⚫TAILS and run aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} — you flip ⚫TAILS and run aground! You lose half your coins ⚠️`)
+      :(e.ing?`${pn(e.p)} flips ⚫TAILS — runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS — runs aground! Loses half their coins ⚠️`),
     caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
     pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]}),
-  shipwrecked:(e,at)=>({txt:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
-  dock:(e,at)=>{
+  shipwrecked:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — you're shipwrecked, and spend your turn making repairs.`:`${pn(e.p)} is shipwrecked, and spends their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
+  dock:(e,at,cellPx,viewerSeat)=>{
     const place=dockPlace(e.ing),flavor=dockFlavor(e.ing);
     // notes/edits NARR-01: every tails-flip report shows the ingredient's art before naming it, so
     // the wording matches the rest of the UI (the `bought` line already did; `coins` now does too).
@@ -349,21 +377,34 @@ export const EVENT_NARRATION={
       empty:`docks at ${place} and finds no ${ilabelImg(e.ing)}, so grabs 3🌕`,
       bought:`docks at ${place} for ${iconImg(ING_IMG[e.ing])} ${flavor} and flips tails, but buys it anyway for 3🌕`,
       coins:`docks at ${place} for ${iconImg(ING_IMG[e.ing])} ${flavor}, but flips tails and takes 3🌕`};
+    // D-07 (DRAFT): the addressed sibling of g above — same four keys, second-person verbs.
+    const gA={ing:`dock at ${place} — you haul aboard ${ilabelImg(e.ing)}!`,
+      empty:`dock at ${place} and find no ${ilabelImg(e.ing)}, so you grab 3🌕`,
+      bought:`dock at ${place} for ${iconImg(ING_IMG[e.ing])} ${flavor} and flip tails, but buy it anyway for 3🌕`,
+      coins:`dock at ${place} for ${iconImg(ING_IMG[e.ing])} ${flavor}, but flip tails and take 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     // no flip happened on an empty island, so don't caption one
     const F=e.got==="empty"?"":(e.heads?"⚪H":"⚫T");
     const gotIng=(e.got==="ing"||e.got==="bought");
     // #3: the crate rising out of the boat renders the ingredient art (ING_IMG), not the old
     // emoji — the emoji stays as the fallback popEmoji() shows if the image can't load.
-    return {txt:`${pn(e.p)} ${g[e.got]}`,caps:[[e.p,F?`docks ${F} ${capM[e.got]}`:`docks — ${capM[e.got]}`]],
+    const txt=isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — you ${gA[e.got]}`:`${pn(e.p)} ${g[e.got]}`;
+    return {txt,caps:[[e.p,F?`docks ${F} ${capM[e.got]}`:`docks — ${capM[e.got]}`]],
       pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
   },
   // notes/edits NARR-02: name the cooperation bonus rather than leaving a bare "(+1🌕 each)"
   trade:(e,at)=>({cls:"trade",txt:`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${appState.game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':""}`,
     caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
     pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]}),
-  sidebet:e=>e.won?{cls:"trade",txt:`🔭 ${pn(e.p)} called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`}
-    :{cls:"trade",txt:e.amt?`💰 ${pn(e.p)} backed the wrong ship — loses ${e.amt}🌕`:`🔭 ${pn(e.p)} missed the call — no bounty`},
+  sidebet:(e,at,cellPx,viewerSeat)=>{
+    const you=isLocalTo(e.p,viewerSeat);
+    if(e.won)return {cls:"trade",txt:you
+      ?`🔭 ${pn(e.p)} — you called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`
+      :`🔭 ${pn(e.p)} called it${e.amt?` and backed it with ${e.amt}🌕`:""} — Spotter's Bounty +${e.delta}🌕`};
+    return {cls:"trade",txt:you
+      ?(e.amt?`💰 ${pn(e.p)} — you backed the wrong ship and lose ${e.amt}🌕`:`🔭 ${pn(e.p)} — you missed the call, no bounty`)
+      :(e.amt?`💰 ${pn(e.p)} backed the wrong ship — loses ${e.amt}🌕`:`🔭 ${pn(e.p)} missed the call — no bounty`)};
+  },
   battle:(e,at,cellPx=0)=>{
     // count by who actually scored (r[3]) rather than the raw flip pattern — a both-heads
     // downwind round scores a point but isn't "a XOR d landed heads", so filtering on the flips
@@ -410,13 +451,20 @@ export const EVENT_NARRATION={
     caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]}),
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
-  fish:(e,at)=>({txt:`${pn(e.p)} casts a line, ${e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(appState.game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"comes up empty-handed")}`,
-    caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(appState.game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
-    pops:[[at(e.p),e.heads?"🐠":(appState.game.cfg.sardine?"🦀":"🎣")]]}),
-  finish:(e,at)=>({cls:"roundhdr",txt:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
+  fish:(e,at,cellPx,viewerSeat)=>{
+    const outcome=e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(appState.game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"comes up empty-handed");
+    const outcomeYou=e.heads?'catch a 🐠 sugarfish! <span class="nobrk">(2🌕)</span>':(appState.game.cfg.sardine?'net a 🦀 candycrab <span class="nobrk">(1🌕)</span>':"come up empty-handed");
+    const txt=isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — you cast a line and ${outcomeYou}`:`${pn(e.p)} casts a line, ${outcome}`;
+    return {txt,
+      caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(appState.game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
+      pops:[[at(e.p),e.heads?"🐠":(appState.game.cfg.sardine?"🦀":"🎣")]]};
+  },
+  finish:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",txt:isLocalTo(e.p,viewerSeat)?`🏁 ${pn(e.p)} — you return to the Isle of Tortuga with a full recipe!`:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
-  shotclock:e=>({cls:"trade",txt:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
-  shotclockskip:(e,at,cellPx=0)=>({cls:"roundhdr",txt:e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — ${e.coins}🌕 tumbles overboard!`,
+  shotclock:(e,at,cellPx,viewerSeat)=>({cls:"trade",txt:isLocalTo(e.p,viewerSeat)?`⏱ ${pn(e.p)} — you were too slow and lose 1🌕; everyone else +1🌕`:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
+  shotclockskip:(e,at,cellPx=0,viewerSeat)=>({cls:"roundhdr",txt:isLocalTo(e.p,viewerSeat)
+      ?(e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} — you lose the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} — you lose the turn — ${e.coins}🌕 tumbles overboard!`)
+      :(e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses the turn — ${e.coins}🌕 tumbles overboard!`),
     pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
   bakeoff:(e,at)=>({cls:"battle",txt:`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`,
     caps:[[e.winner,`${iconImg(CUPCAKE_IMG)} wins the bakeoff!`]],pops:[[at(e.winner),"🧁",true,CUPCAKE_IMG]]}),
@@ -771,7 +819,10 @@ export async function botBeat(){netHandlers().onLiveRender();await narrateCurren
 // updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
 export async function narrateCurrent(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
-  if(e.t==="turn"){await netHandlers().onFlash(`🧭 ${pn(e.p)} takes the wheel…`);return;}
+  // D-07 (DRAFT, pending Wyatt's D-04 review): the one ad-hoc (non-EVENT_NARRATION-table)
+  // narration line that lives here in util.js itself — converted to the neutral-plus-variants
+  // shape exactly as plan 15-03 converted every other ad-hoc flash() site in src/ui/flow.js.
+  if(e.t==="turn"){await netHandlers().onFlash(`🧭 ${pn(e.p)} takes the wheel…`,undefined,undefined,[{seat:e.p,html:`🧭 ${pn(e.p)} — you take the wheel…`}]);return;}
   // settleSideBets() already flashed one aggregate message covering every bettor — skip the
   // duplicate individual re-narration (same reasoning as narrateLastEvent()).
   if(e.t==="sidebet")return;
