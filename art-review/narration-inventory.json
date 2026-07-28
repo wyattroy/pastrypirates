@@ -1,0 +1,501 @@
+{
+  "table": [
+    {
+      "key": "newround",
+      "file": "src/ui/util.js",
+      "line": 270,
+      "group": "Round Header"
+    },
+    {
+      "key": "windmove",
+      "file": "src/ui/util.js",
+      "line": 288,
+      "group": "Storm"
+    },
+    {
+      "key": "blownOut",
+      "file": "src/ui/util.js",
+      "line": 289,
+      "group": "Storm"
+    },
+    {
+      "key": "sail",
+      "file": "src/ui/util.js",
+      "line": 290,
+      "group": "Sailing & Movement"
+    },
+    {
+      "key": "dodge",
+      "file": "src/ui/util.js",
+      "line": 296,
+      "group": "Storm"
+    },
+    {
+      "key": "anchor",
+      "file": "src/ui/util.js",
+      "line": 301,
+      "group": "Storm"
+    },
+    {
+      "key": "moored",
+      "file": "src/ui/util.js",
+      "line": 309,
+      "group": "Storm"
+    },
+    {
+      "key": "blocked",
+      "file": "src/ui/util.js",
+      "line": 350,
+      "group": "Sailing & Movement"
+    },
+    {
+      "key": "anchorHold",
+      "file": "src/ui/util.js",
+      "line": 357,
+      "group": "Storm"
+    },
+    {
+      "key": "tradewind",
+      "file": "src/ui/util.js",
+      "line": 358,
+      "group": "Storm"
+    },
+    {
+      "key": "parley",
+      "file": "src/ui/util.js",
+      "line": 359,
+      "group": "Trade & Parley"
+    },
+    {
+      "key": "aground",
+      "file": "src/ui/util.js",
+      "line": 376,
+      "group": "Storm"
+    },
+    {
+      "key": "shipwrecked",
+      "file": "src/ui/util.js",
+      "line": 381,
+      "group": "Storm"
+    },
+    {
+      "key": "dock",
+      "file": "src/ui/util.js",
+      "line": 382,
+      "group": "Docking"
+    },
+    {
+      "key": "trade",
+      "file": "src/ui/util.js",
+      "line": 407,
+      "group": "Trade & Parley"
+    },
+    {
+      "key": "sidebet",
+      "file": "src/ui/util.js",
+      "line": 420,
+      "group": "Battle"
+    },
+    {
+      "key": "battle",
+      "file": "src/ui/util.js",
+      "line": 429,
+      "group": "Battle"
+    },
+    {
+      "key": "battleflee",
+      "file": "src/ui/util.js",
+      "line": 483,
+      "group": "Battle"
+    },
+    {
+      "key": "fish",
+      "file": "src/ui/util.js",
+      "line": 493,
+      "group": "Fishing"
+    },
+    {
+      "key": "finish",
+      "file": "src/ui/util.js",
+      "line": 501,
+      "group": "End of Voyage"
+    },
+    {
+      "key": "shotclock",
+      "file": "src/ui/util.js",
+      "line": 503,
+      "group": "Shot Clock"
+    },
+    {
+      "key": "shotclockskip",
+      "file": "src/ui/util.js",
+      "line": 504,
+      "group": "Shot Clock"
+    },
+    {
+      "key": "bakeoff",
+      "file": "src/ui/util.js",
+      "line": 511,
+      "group": "End of Voyage"
+    },
+    {
+      "key": "end",
+      "file": "src/ui/util.js",
+      "line": 523,
+      "group": "End of Voyage"
+    },
+    {
+      "key": "turn",
+      "file": "src/ui/util.js",
+      "line": 524,
+      "group": "Sailing & Movement"
+    }
+  ],
+  "adhoc": [
+    {
+      "file": "src/orchestrator.js",
+      "line": 391,
+      "fn": "asyncBattle",
+      "tableDriven": false,
+      "group": "Battle",
+      "label": "Battle opening announcement (D-08)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`",
+      "rawVariants": "battleOpenVariants"
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 699,
+      "fn": "runLiveNet",
+      "tableDriven": true,
+      "group": "Round Header",
+      "label": "Round-header flash — table pass-through, not new copy",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "describe(appState.game.events[appState.game.events.length-1]).txt",
+      "rawVariants": null
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 720,
+      "fn": "runLiveNet",
+      "tableDriven": true,
+      "group": "Round Header",
+      "label": "Final-round header flash — table pass-through, not new copy",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "describe(appState.game.events[appState.game.events.length-1]).txt",
+      "rawVariants": null
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 754,
+      "fn": "liveResolveEndNet",
+      "tableDriven": false,
+      "group": "End of Voyage",
+      "label": "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "\"⏳ Nobody finished the voyage.\"",
+      "rawVariants": null
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 758,
+      "fn": "liveResolveEndNet",
+      "tableDriven": false,
+      "group": "End of Voyage",
+      "label": "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`<div class=\"victoryBox\">${pic}<div class=\"victoryText\">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`",
+      "rawVariants": null
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 111,
+      "fn": "humanFlip",
+      "tableDriven": false,
+      "group": "Docking",
+      "label": "Coin-flip announcement (generic — used at docking/anchor moments)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`${pn(p.idx)} flips ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`",
+      "rawVariants": "[{seat:p.idx,html:`You flip ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 260,
+      "fn": "windLeg",
+      "tableDriven": false,
+      "group": "Storm",
+      "label": "Broke — can't afford to anchor (D-11/NARR-02, new this phase)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "brokeAnchorLine(p.idx,NEUTRAL_VIEWER)",
+      "rawVariants": "[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 296,
+      "fn": "windLeg",
+      "tableDriven": false,
+      "group": "Storm",
+      "label": "Trade-wind rim sweep (windLeg leg)",
+      "defaultTag": "merge",
+      "mergeWith": [
+        "src/ui/flow.js:571",
+        "src/ui/flow.js:645"
+      ],
+      "rawNeutral": "`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`",
+      "rawVariants": "[{seat:p.idx,html:\"🌀 You are swept into the trade winds, and whipped around the rim!\"}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 333,
+      "fn": "botWindLeg",
+      "tableDriven": true,
+      "group": "Storm",
+      "label": "Bot per-square storm outcome — table pass-through, not new copy",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "L.txt",
+      "rawVariants": "narrationVariants(ev)"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 352,
+      "fn": "botWindLeg",
+      "tableDriven": true,
+      "group": "Storm",
+      "label": "Bot storm-leg summary — table pass-through, not new copy",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "L.txt",
+      "rawVariants": "narrationVariants(lastEv)"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 373,
+      "fn": "humanWind",
+      "tableDriven": false,
+      "group": "Storm",
+      "label": "Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)",
+      "defaultTag": "rewrite",
+      "mergeWith": null,
+      "rawNeutral": "`⛈️ Now the storm moves you <b>${DIRNAME[appState.game.windNow2]}</b>!`",
+      "rawVariants": null
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 410,
+      "fn": "humanTrade",
+      "tableDriven": false,
+      "group": "Trade & Parley",
+      "label": "No cargo to trade for",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "\"No one has cargo to trade for.\"",
+      "rawVariants": null
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 516,
+      "fn": "humanTrade",
+      "tableDriven": false,
+      "group": "Trade & Parley",
+      "label": "Trade refusal (D-08, new addressed copy this phase)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ${pn(p.idx)} finish their recipe that easy!\"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`",
+      "rawVariants": "[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ye finish yer recipe that easy!\"`:`${pn(q.idx)} declines your offer!`}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 524,
+      "fn": "humanTrade",
+      "tableDriven": false,
+      "group": "Trade & Parley",
+      "label": "Simple decline (D-08, new addressed copy this phase)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`${pn(q.idx)} declines!`",
+      "rawVariants": "[{seat:q.idx,html:\"You decline!\"}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 571,
+      "fn": "humanAct",
+      "tableDriven": false,
+      "group": "Storm",
+      "label": "Trade-wind rim sweep (move-instead path)",
+      "defaultTag": "merge",
+      "mergeWith": [
+        "src/ui/flow.js:296",
+        "src/ui/flow.js:645"
+      ],
+      "rawNeutral": "`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`",
+      "rawVariants": "[{seat:p.idx,html:\"🌀 You are swept into the trade winds, and whipped around the rim!\"}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 574,
+      "fn": "humanAct",
+      "tableDriven": false,
+      "group": "Sailing & Movement",
+      "label": "Start the bakery",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "\"🧁 Firing up the ovens on the Isle of Tortuga!\"",
+      "rawVariants": null
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 582,
+      "fn": "humanAct",
+      "tableDriven": false,
+      "group": "Battle",
+      "label": "Can't afford powder",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`${pn(p.idx)} can't afford powder.`",
+      "rawVariants": "[{seat:p.idx,html:`Yer too poor to afford powder! Go fishin'`}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 613,
+      "fn": "humanTurn",
+      "tableDriven": false,
+      "group": "Round Header",
+      "label": "Per-turn banner + storm intro (NARR-03, rewritten this phase)",
+      "defaultTag": "rewrite",
+      "mergeWith": null,
+      "rawNeutral": "`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First",
+      "rawVariants": "undefined"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 640,
+      "fn": "humanTurn",
+      "tableDriven": false,
+      "group": "Sailing & Movement",
+      "label": "Leeward warning",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`",
+      "rawVariants": "[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 645,
+      "fn": "humanTurn",
+      "tableDriven": false,
+      "group": "Storm",
+      "label": "Trade-wind rim sweep (post-sail)",
+      "defaultTag": "merge",
+      "mergeWith": [
+        "src/ui/flow.js:296",
+        "src/ui/flow.js:571"
+      ],
+      "rawNeutral": "`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`",
+      "rawVariants": "[{seat:p.idx,html:\"🌀 You are swept into the trade winds, and whipped around the rim!\"}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 646,
+      "fn": "humanTurn",
+      "tableDriven": false,
+      "group": "Sailing & Movement",
+      "label": "Broke — can't afford to sail, human (D-11/NARR-02, new this phase)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "brokeSailLine(p.idx,NEUTRAL_VIEWER)",
+      "rawVariants": "[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 702,
+      "fn": "botTurn",
+      "tableDriven": false,
+      "group": "Storm",
+      "label": "Second storm leg direction (bot)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`⛈️ Now the storm moves ${pn(p.idx)} <b>${DIRNAME[g.windNow2]}</b>!`",
+      "rawVariants": null
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 722,
+      "fn": "botTurn",
+      "tableDriven": false,
+      "group": "Sailing & Movement",
+      "label": "Broke — can't afford to sail, bot (D-11/NARR-02, new this phase — the likely source of the reported \"broke bot forgets its turn\")",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "brokeSailLine(p.idx,NEUTRAL_VIEWER)",
+      "rawVariants": "[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 901,
+      "fn": "collectSideBets",
+      "tableDriven": false,
+      "group": "Battle",
+      "label": "Side bet — backed with coin (D-08)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and backs it with ${amt}🌕!`",
+      "rawVariants": "[{seat:s.idx,html:`💰 You call ${pn(calledIdx)} and back it with ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls you to win and backs it with ${amt}🌕!`}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 902,
+      "fn": "collectSideBets",
+      "tableDriven": false,
+      "group": "Battle",
+      "label": "Side bet — free call (D-08)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`",
+      "rawVariants": "[{seat:s.idx,html:`🔭 You call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls you to win from the crow's nest.`}]"
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 928,
+      "fn": "settleSideBets",
+      "tableDriven": false,
+      "group": "Battle",
+      "label": "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "\"🔭 The Lookout's Call settles — \"+parts.join(\" · \")",
+      "rawVariants": null
+    },
+    {
+      "file": "src/ui/util.js",
+      "line": 874,
+      "fn": "narrateCurrent",
+      "tableDriven": false,
+      "group": "Sailing & Movement",
+      "label": "Bot turn-start banner (D-07, new addressed copy this phase)",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "`🧭 ${pn(e.p)} takes the wheel…`",
+      "rawVariants": "[{seat:e.p,html:`🧭 ${pn(e.p)} — you take the wheel…`}]"
+    },
+    {
+      "file": "src/ui/util.js",
+      "line": 878,
+      "fn": "narrateCurrent",
+      "tableDriven": true,
+      "group": "Sailing & Movement",
+      "label": "Bot event narration — table pass-through, not new copy",
+      "defaultTag": "keep",
+      "mergeWith": null,
+      "rawNeutral": "L.txt",
+      "rawVariants": null
+    }
+  ]
+}
