@@ -8,11 +8,14 @@
   :root {
     --bg: #14181c;
     --card-bg: #1e2328;
+    --ng-bg: #171b20;
     --border: #2c3238;
     --text: #eef2f5;
     --muted: #9aa4ad;
     --accent: #f5a623;
     --warn: #f2679e;
+    --edge: #4a5560;
+    --edge-uncertain: #b06a2e;
     --p0: #f2679e; --p1: #1d96a6; --p2: #27c78d; --p3: #f5a623;
     --panel-a: #eafaf3; --panel-b: #cdf0e2; --panel-border: #1d96a6;
     --panel2-a: #fff6c2; --panel2-b: #ffe066; --panel2-border: #f5a623;
@@ -23,16 +26,17 @@
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    padding: 32px 24px 80px;
+    padding: 32px 24px 120px;
   }
   header { max-width: 1200px; margin: 0 auto 28px; }
   h1 { font-size: 1.5rem; margin: 0 0 8px; }
-  header p { color: var(--muted); line-height: 1.55; max-width: 90ch; }
+  header p { color: var(--muted); line-height: 1.55; max-width: 96ch; }
   header .methodNote { font-size: 0.85rem; border-left: 3px solid var(--accent); padding-left: 12px; margin-top: 12px; }
+  header .methodNote.warnNote { border-left-color: var(--warn); }
   .toolbar {
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 20;
     background: rgba(20,24,28,0.94);
     backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--border);
@@ -61,64 +65,81 @@
   }
   .toolbar .status { font-size: 0.8rem; color: var(--muted); }
   .toolbar .grandTotal { font-size: 0.85rem; color: var(--text); margin-left: auto; }
-  section.group { max-width: 1200px; margin: 0 auto 36px; }
-  section.group h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; }
-  .groupCount { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 18px;
+  .selfCheckBanner {
+    max-width: 1200px; margin: 0 auto 20px; padding: 10px 16px; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 600;
   }
+  .selfCheckBanner.pass { background: rgba(39,199,141,0.12); border: 1px solid #27c78d; color: #27c78d; }
+  .selfCheckBanner.fail { background: rgba(242,103,158,0.15); border: 1px solid var(--warn); color: var(--warn); }
+
+  /* ---------- flow chart canvas ---------- */
+  #flowCanvas { position: relative; max-width: 100%; overflow-x: auto; }
+  #edgeSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: visible; }
+  .stageRow { position: relative; z-index: 2; display: flex; flex-direction: row; flex-wrap: wrap; gap: 40px; margin-bottom: 76px; align-items: flex-start; }
+  .stageRow .stageLabel {
+    position: absolute; left: 0; top: -26px; font-size: 0.72rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+  }
+  .nodeGroup {
+    background: var(--ng-bg); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; width: 340px; flex: 0 0 340px; position: relative; z-index: 2;
+  }
+  .nodeGroup h3 { margin: 0 0 2px; font-size: 0.98rem; }
+  .nodeGroupMeta { font-size: 0.68rem; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
+  .nodeGroupMeta .uncertainTag { color: var(--edge-uncertain); font-weight: 600; }
+  .branchCards { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ---------- cards (branch-level) ---------- */
   .card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 14px 16px 16px;
+    padding: 12px 14px 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
-  .cardHead h3 { margin: 0 0 2px; font-size: 1rem; }
-  .cardMeta { font-size: 0.72rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .cardHead h4 { margin: 0 0 2px; font-size: 0.88rem; }
+  .cardMeta { font-size: 0.68rem; color: var(--muted); font-family: ui-monospace, monospace; }
+  .seededBadge {
+    font-size: 0.64rem; background: rgba(245,166,35,0.14); color: var(--accent);
+    border: 1px solid rgba(245,166,35,0.4); border-radius: 5px; padding: 1px 6px; margin-left: 6px;
+  }
   .silentBadge {
-    font-size: 0.68rem; background: rgba(154,164,173,0.18); color: var(--muted);
+    font-size: 0.64rem; background: rgba(154,164,173,0.18); color: var(--muted);
     border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; margin-left: 6px;
   }
-  .cardBody { display: flex; flex-direction: column; gap: 8px; }
+  .cardBody { display: flex; flex-direction: column; gap: 6px; }
   .msgBox {
-    border-radius: 9px; padding: 8px 11px; font-weight: 600; font-size: 0.92rem; line-height: 1.4;
+    border-radius: 9px; padding: 7px 10px; font-weight: 600; font-size: 0.86rem; line-height: 1.4;
     border: 2px solid var(--panel-border);
     background: linear-gradient(160deg, var(--panel-a), var(--panel-b));
     color: #16302f;
   }
   .msgBox.addressed { border-color: var(--panel2-border); background: linear-gradient(160deg, var(--panel2-a), var(--panel2-b)); }
-  .msgBox img.narrIcon { width: 16px; height: 16px; vertical-align: -3px; object-fit: contain; margin: 0 1px; }
+  .msgBox img.narrIcon { width: 15px; height: 15px; vertical-align: -3px; object-fit: contain; margin: 0 1px; }
   .msgBox b { color: inherit; }
-  .variantRow { display: flex; flex-direction: column; gap: 4px; }
-  .variantLabel { font-size: 0.74rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .variantRow { display: flex; flex-direction: column; gap: 3px; }
+  .variantLabel { font-size: 0.7rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
   .seatDot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-  .subSection { border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 2px; }
-  .subSection h4 { margin: 0 0 8px; font-size: 0.85rem; color: var(--accent); }
-  .subRow { margin-bottom: 10px; }
-  .subLabel { font-size: 0.76rem; color: var(--muted); margin-bottom: 4px; }
   .silentNote, .passThroughNote, .cardNote, .mergeNote {
-    font-size: 0.82rem; color: var(--muted); line-height: 1.45; margin: 0;
+    font-size: 0.78rem; color: var(--muted); line-height: 1.4; margin: 0;
   }
   .passThroughNote { font-style: italic; }
   .mergeNote { color: var(--warn); }
-  .rawSource summary { cursor: pointer; color: var(--accent); font-size: 0.8rem; }
+  .rawSource summary { cursor: pointer; color: var(--accent); font-size: 0.75rem; }
   .rawSource pre {
-    white-space: pre-wrap; word-break: break-word; font-size: 0.72rem; background: #10141a;
-    border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin: 6px 0 0;
+    white-space: pre-wrap; word-break: break-word; font-size: 0.68rem; background: #10141a;
+    border: 1px solid var(--border); border-radius: 6px; padding: 7px; margin: 6px 0 0;
   }
-  .tagRow { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+  .tagRow { display: flex; align-items: center; gap: 8px; font-size: 0.76rem; }
   .tagRow select { background: #10141a; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; }
-  .defaultTagNote { color: var(--muted); font-size: 0.74rem; }
-  .notesLabel { font-size: 0.78rem; color: var(--muted); }
+  .defaultTagNote { color: var(--muted); font-size: 0.7rem; }
+  .notesLabel { font-size: 0.74rem; color: var(--muted); }
   textarea.notesArea {
-    width: 100%; min-height: 56px; resize: vertical;
+    width: 100%; min-height: 48px; resize: vertical;
     background: #10141a; border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text); padding: 8px 10px; font-family: inherit; font-size: 0.85rem;
+    color: var(--text); padding: 7px 9px; font-family: inherit; font-size: 0.8rem;
   }
   textarea.notesArea:focus, select:focus { outline: 1px solid var(--accent); }
 </style>
@@ -131,39 +152,46 @@
   <span class="grandTotal" id="totalCount">loading…</span>
 </div>
 <header>
-  <h1>Narration Audit — every line, tagged, with proposed wording (NARR-01)</h1>
+  <h1>Narration Audit — flow chart, every branch (NARR-01)</h1>
   <p>
     Every narration surface in the game — the <code>EVENT_NARRATION</code> table
     (<code>src/ui/util.js</code>) AND every hand-written <code>flash()</code> call in
     <code>src/ui/flow.js</code>, <code>src/orchestrator.js</code> and <code>src/ui/util.js</code> —
-    rendered exactly as it appears on your screen (seat colors, icons, ingredient art), grouped by
-    moment. Every card carries a keep / cut / merge / rewrite recommendation you can change, plus a
-    notes field. <b>The recommendation is biased toward rewriting, not deleting</b>: this pass keeps
-    roughly the same number of lines and instead proposes distinct verbs/imagery for the handful of
-    moments that currently blur together (flagged below) — it never defaults to a one-line-per-moment
-    cut, and nothing is pre-selected for deletion on your behalf. Where two call sites render
-    byte-identical text, both are listed and flagged as a merge candidate rather than silently
-    collapsed — they're two places in the code that can drift apart. A surface that deliberately
-    renders no text at all is still listed, marked "silent", rather than dropped for having nothing
-    to show.
+    laid out as a flow chart in the order a real game actually plays it: turn start → storm legs →
+    sail → the action you choose → shot clock → round roll-over → voyage end, looping back into the
+    next round. <b>Every branch a builder can produce is its own editable card</b> — every
+    <code>got</code>/<code>heads</code>/<code>reason</code>/<code>ok</code>/<code>winner</code>/
+    ingredient-present value and every config-gated variant (the trade-cooperation bonus, the
+    sardine/candycrab rule) gets its own card, grouped inside the moment it belongs to. A moment
+    with more than one outcome is drawn as a fork — several cards inside one box. Each card still
+    carries a keep/cut/merge/rewrite recommendation, a notes field, and persists to your browser
+    (localStorage); the toolbar exports every disposition as JSON.
   </p>
   <p class="methodNote">
-    <b>How this page is built:</b> table cards call the real <code>EVENT_NARRATION</code> builders
-    (via <code>describeFor</code>/<code>narrationVariants</code>) with a fabricated event — the exact
-    same code that ships, so there is zero drift between this page and the game. The three new
-    NARR-02 builders (<code>brokeSailLine</code>/<code>brokeAnchorLine</code>/
-    <code>stormIntroClause</code>) are called the same way, imported directly from
-    <code>src/ui/flow.js</code>. The remaining hand-written <code>flash()</code> lines can't be
-    called as isolated functions — each ad-hoc card reconstructs its wording using the SAME real
-    name/color/icon helpers (<code>pn</code>/<code>poss</code>/<code>ilabelImg</code>/
-    <code>DIRNAME</code>) the source line itself calls, and a "Raw source" disclosure on every ad-hoc
-    card shows the exact JS text the extraction script pulled from the file, so you can cross-check
-    the reconstruction against the real code yourself.
+    <b>How this page is built:</b> every card calls the REAL builder — the <code>EVENT_NARRATION</code>
+    table via <code>describeFor</code>/<code>narrationVariants</code>, and the real
+    <code>brokeSailLine</code>/<code>brokeAnchorLine</code>/<code>stormIntroClause</code> —
+    with a fabricated event tuned to that specific branch, so every rendering is the exact code
+    that ships. Every card's HTML also runs through the real <code>emojify()</code>, matching what
+    the shipped panel shows. Hand-written <code>flash()</code> lines that can't be called in
+    isolation reconstruct their wording using the SAME real name/color/icon helpers the source line
+    itself calls; a "Raw source" disclosure on every such card shows the exact JS text the
+    extraction script pulled from the file, for cross-checking.
   </p>
   <p class="methodNote">
-    <b>End-of-voyage lines:</b> tagged <i>keep</i> with no wording changes proposed this phase —
-    Phase 16's UI-07 owns that box's visibility, not its wording, so any change there is your call to
-    make at that gate, not something to decide here.
+    <b>Flow chart edges</b> are derived from the real call paths in <code>src/ui/flow.js</code>
+    (<code>humanTurn</code> → <code>windLeg</code> legs 1/2 → per-square outcomes →
+    <code>humanAct</code> → its outcomes → shot clock → round roll-over → <code>finish</code>/
+    <code>bakeoff</code>/<code>end</code>) — never invented. Where reachability genuinely depends on
+    game state that can't be shown structurally (e.g. side-bet settlement only fires when spectating
+    captains remain), the edge is drawn dashed and labelled <span class="uncertainTag">uncertain</span>.
+  </p>
+  <p class="methodNote warnNote">
+    <b>Your pass-1 marks are pre-filled.</b> Every card whose id exactly matches a line you already
+    reviewed carries your tag and notes exactly as you left them — you do not need to redo those. New
+    sibling branches split out of a line you already marked (e.g. <code>dock</code>'s other 3
+    outcomes) start pre-filled from that SAME mark as a starting point, tagged <span class="seededBadge">from pass 1</span> — review and adjust per branch as needed; brand-new branches (like the candycrab
+    line) start blank.
   </p>
   <p class="methodNote">
     This page imports live ES modules and must be served over HTTP (<code>npm start</code>) —
@@ -171,7 +199,11 @@
     since module imports are blocked from that origin.
   </p>
 </header>
-<div id="sections">loading…</div>
+<div id="selfCheckBanner" class="selfCheckBanner">running self-check…</div>
+<div id="flowCanvas">
+  <svg id="edgeSvg"></svg>
+  <div id="stages">loading…</div>
+</div>
 
 <script type="module">
 import { appState } from "../src/state/index.js";
@@ -179,8 +211,8 @@ import { appState } from "../src/state/index.js";
 // Minimal live-shaped bootstrap: a fixed synthetic four-captain roster (so pn()/poss() render
 // real names in real seat colors) plus a game config/players shape just complete enough that
 // every EVENT_NARRATION builder and every imported helper below runs with no throw outside a
-// live game — same pattern 15-PATTERNS.md verified safe (appState is a plain mutable object,
-// roundCfg is a pure function; neither has import-time side effects).
+// live game (appState is a plain mutable object, roundCfg is a pure function; neither has
+// import-time side effects — verified safe in 15-PATTERNS.md and this page's own first build).
 const SEAT_NAMES = ["Crustbeard", "Davy Scones", "Dough Hook", "Flaky Jack"];
 appState.roster = SEAT_NAMES.map((name) => ({ id: "synthetic", name }));
 appState.game = {
@@ -189,7 +221,7 @@ appState.game = {
   players: [
     { recipe: ["wheat", "sugar", "eggs"] },
     { recipe: ["cocoa", "dairy", "spice"] },
-    { recipe: ["vanilla", "salt", "honey"] },
+    { recipe: ["vanilla", "spice"] },
     { recipe: ["wheat", "cocoa", "dairy"] },
   ],
   windNow: "N",
@@ -202,67 +234,9 @@ const { EVENT_NARRATION, describeFor, narrationVariants, NEUTRAL_VIEWER, pn, pos
 const { brokeSailLine, brokeAnchorLine, stormIntroClause } = await import("../src/ui/flow.js");
 const { DIRNAME, emojify } = await import("../src/shared/index.js");
 
-const GROUPS_ORDER = [
-  "Round Header", "Storm", "Docking", "Battle", "Trade & Parley",
-  "Fishing", "Shot Clock", "End of Voyage", "Sailing & Movement",
-];
-
-// Default recommendation per table key. Biased toward "rewrite" only where lines genuinely blur
-// (D-06) — the windmove/blownOut/tradewind trio, all three "the wind carries you somewhere"
-// moments that currently read almost identically. Everything else defaults to "keep": this
-// table already went through several drafting passes across plans 15-01..15-04.
-const TABLE_TAGS = {
-  newround: "keep", windmove: "rewrite", blownOut: "rewrite", sail: "keep", dodge: "keep",
-  anchor: "keep", moored: "keep", blocked: "keep", anchorHold: "keep", tradewind: "rewrite",
-  parley: "keep", aground: "keep", shipwrecked: "keep", dock: "keep", trade: "keep",
-  sidebet: "keep", battle: "keep", battleflee: "keep", fish: "keep", finish: "keep",
-  shotclock: "keep", shotclockskip: "keep", bakeoff: "keep", end: "keep", turn: "keep",
-};
-const TABLE_NOTES = {
-  windmove: "Blurs with blownOut/tradewind — all three are “the wind/storm carries you somewhere” moments today. Proposal: give each a distinct verb/image (D-06) instead of collapsing them.",
-  blownOut: "Same blur family as windmove/tradewind — a gale off the dock reads almost identically to a mid-sea drift today.",
-  tradewind: "Same blur family as windmove/blownOut — swept to the rim, blown off a dock, and carried mid-storm currently all read alike.",
-  moored: "Already split into 3 distinct causes (justDocked/dock/home) by Phase 14's D-19/D-21/D-27 — flagged keep, not part of this pass's blur concern.",
-  battle: "NARR-04/D-12: the coin-spoil clause is split below into a genuine-bribe reading (a full 5-coin purse) and a cleaned-out reading (anything less) — see “Spoil framing”.",
-  turn: "Deliberately silent (returns no text at all) — the bot turn-start banner is a separate ad-hoc line instead (see Sailing & Movement group, narrateCurrent). Listed per NARR-01's “don't drop silent surfaces” rule.",
-  end: "Deliberately silent (EOV-01 — the blue box no longer announces the win, avoiding a duplicate of the dedicated victory box). Listed per NARR-01's “don't drop silent surfaces” rule.",
-};
-
-function fabricateEvent(key) {
-  switch (key) {
-    case "newround": return { t: "newround", dir: "N", dir2: "S", windStreak: 1, storm: true, streak: 1, round: 3 };
-    case "windmove": return { t: "windmove", p: 0 };
-    case "blownOut": return { t: "blownOut", p: 0 };
-    case "sail": return { t: "sail", p: 0 };
-    case "dodge": return { t: "dodge", p: 0 };
-    case "anchor": return { t: "anchor", p: 0 };
-    case "moored": return { t: "moored", p: 0, reason: "justDocked" };
-    case "blocked": return { t: "blocked", p: 0, other: 1 };
-    case "anchorHold": return { t: "anchorHold", p: 0 };
-    case "tradewind": return { t: "tradewind", p: 0 };
-    case "parley": return { t: "parley", a: 0, b: 1, offer: "wheat", want: "sugar", ok: true };
-    case "aground": return { t: "aground", p: 0, ing: null };
-    case "shipwrecked": return { t: "shipwrecked", p: 0 };
-    case "dock": return { t: "dock", p: 0, ing: "wheat", got: "ing", heads: 1 };
-    case "trade": return { t: "trade", a: 0, b: 1, gave: "wheat", got: "sugar" };
-    case "sidebet": return { t: "sidebet", p: 2, won: true, amt: 2, delta: 5, on: "a" };
-    case "battle": return { t: "battle", a: 0, d: 1, winner: 0, rounds: [[1, 0, false, "a"], [0, 1, false, "d"]], spoil: "5 coins", spoilIng: null };
-    case "battleflee": return { t: "battleflee", a: 0, d: 1 };
-    case "fish": return { t: "fish", p: 0, heads: 1 };
-    case "finish": return { t: "finish", p: 0 };
-    case "shotclock": return { t: "shotclock", p: 0 };
-    case "shotclockskip": return { t: "shotclockskip", p: 0, ing: null, coins: 3 };
-    case "bakeoff": return { t: "bakeoff", a: 0, b: 1, winner: 0 };
-    case "end": return { t: "end", winner: 0 };
-    case "turn": return { t: "turn", p: 0 };
-    default: return { t: key, p: 0 };
-  }
-}
-
-// Every emoji/ingredient <img> the real builders emit is written `src="assets/..."` — correct
-// when the document IS index.html at the repo root, wrong one directory down from here
-// (art-review/). The wording itself is 100% real (rendered live, zero drift); only this
-// asset-path prefix needs correcting so the images actually load from this page's location.
+/* ============================================================================
+ * Shared render helpers (unchanged in spirit from this page's first build)
+ * ==========================================================================*/
 function fixAssetPaths(html) {
   return html == null ? html : html.replaceAll('src="assets/', 'src="../assets/');
 }
@@ -273,15 +247,10 @@ function seatBadge(i) {
   const colors = ["#f2679e", "#1d96a6", "#27c78d", "#f5a623"];
   return `<span class="seatDot" style="background:${colors[i]}"></span>${SEAT_NAMES[i]}`;
 }
-// D-17: the ad-hoc renderers below hand back RAW builder-style strings (bare "🌕", "⚪H", …),
-// exactly as they appear in source. In the live game those never reach a screen un-swapped —
-// panel() runs emojify() on every string it renders, and describeFor() does the same for the
-// table. The audit page was only getting that swap for free on the table cards (which come
-// through describeFor); the ad-hoc cards rendered their raw source and so showed system emoji
-// where the game shows custom art. Running emojify() here puts every card on the same footing
-// as the shipped panel. emojify() is idempotent (already-swapped text has no emoji left to
-// match), so the table cards passing through it a second time are unaffected. It runs BEFORE
-// fixAssetPaths so the <img> tags it emits get their paths rewritten for this subdirectory too.
+// D-17 fix (already applied): every card's HTML runs through the real emojify() so ad-hoc cards
+// show the same custom art the shipped panel shows, not raw system emoji. Idempotent, so table
+// cards (which already went through describeFor's own emojify pass) are unaffected by a second
+// pass. Runs BEFORE fixAssetPaths so the <img> tags it emits also get their paths corrected.
 function msgBox(html, kind) {
   return `<div class="msgBox ${kind}">${fixAssetPaths(emojify(html))}</div>`;
 }
@@ -294,18 +263,219 @@ function renderVariantsBlock(variants) {
     </div>`).join("");
 }
 
-// Hand-authored per-ad-hoc-line renderers, keyed by "file:line" (matching the extraction
-// script's inventory). Each calls the SAME real imported helpers (pn/poss/DIRNAME/
-// brokeSailLine/brokeAnchorLine/stormIntroClause) the source line itself calls — never a
-// hand-typed transcription of what those helpers would produce. The literal surrounding wording
-// (the parts of each string that are NOT a helper call) is reproduced from the source; the "Raw
-// source" disclosure on every card shows the exact extracted JS text so it can be cross-checked
-// against this reconstruction.
+/* ============================================================================
+ * D-21: exhaustive branch enumeration for the EVENT_NARRATION table.
+ *
+ * BASE_EVENTS gives every key a plausible default event. TABLE_BRANCHES lists,
+ * for every key whose builder branches on something besides viewer perspective,
+ * one entry PER BRANCH: {tag, label, fields, cfg, buildEvent}.
+ *   - tag: null marks the ONE branch that keeps the bare "table:<key>" id — chosen to be
+ *     whichever branch this page's FIRST build already rendered as <key>'s single example,
+ *     so that id's pass-1 disposition survives untouched. Every other branch gets a
+ *     "table:<key>~<tag>" sibling id.
+ *   - fields: overrides merged onto BASE_EVENTS[key]().
+ *   - cfg: temporary appState.game.cfg overrides for this branch only (restored after).
+ *   - buildEvent: full custom event construction for branches BASE_EVENTS+fields can't express
+ *     (moored's `dock` reason needs a real events[] history for movedSinceTurnStart()).
+ * Keys absent from TABLE_BRANCHES have exactly one branch (id "table:<key>").
+ * ==========================================================================*/
+const BASE_EVENTS = {
+  newround: () => ({ t: "newround", dir: "N", dir2: "S", windStreak: 1, storm: true, streak: 1, round: 3 }),
+  windmove: () => ({ t: "windmove", p: 0 }),
+  blownOut: () => ({ t: "blownOut", p: 0 }),
+  sail: () => ({ t: "sail", p: 0 }),
+  dodge: () => ({ t: "dodge", p: 0 }),
+  anchor: () => ({ t: "anchor", p: 0 }),
+  moored: () => ({ t: "moored", p: 0, reason: "justDocked" }),
+  blocked: () => ({ t: "blocked", p: 0, other: 1 }),
+  anchorHold: () => ({ t: "anchorHold", p: 0 }),
+  tradewind: () => ({ t: "tradewind", p: 0 }),
+  parley: () => ({ t: "parley", a: 0, b: 1, offer: "wheat", want: "sugar", ok: true }),
+  aground: () => ({ t: "aground", p: 0, ing: null }),
+  shipwrecked: () => ({ t: "shipwrecked", p: 0 }),
+  dock: () => ({ t: "dock", p: 0, ing: "wheat", got: "ing", heads: 1 }),
+  trade: () => ({ t: "trade", a: 0, b: 1, gave: "wheat", got: "sugar" }),
+  sidebet: () => ({ t: "sidebet", p: 2, won: true, amt: 2, delta: 5, on: "a" }),
+  battle: () => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[1, 0, false, "a"], [0, 1, false, "d"]], spoil: "5 coins", spoilIng: null }),
+  battleflee: () => ({ t: "battleflee", a: 0, d: 1 }),
+  fish: () => ({ t: "fish", p: 0, heads: 1 }),
+  finish: () => ({ t: "finish", p: 0 }),
+  shotclock: () => ({ t: "shotclock", p: 0 }),
+  shotclockskip: () => ({ t: "shotclockskip", p: 0, ing: null, coins: 3 }),
+  bakeoff: () => ({ t: "bakeoff", a: 0, b: 1, winner: 0 }),
+  end: () => ({ t: "end", winner: 0 }),
+  turn: () => ({ t: "turn", p: 0 }),
+};
+
+// moored's `dock` reason needs a real (turn-event, moored-event) pair in appState.game.events for
+// movedSinceTurnStart() to resolve true/false instead of null (see src/ui/util.js's own function).
+function mooredDockEvent(moved) {
+  const at = moved ? [3, 3] : [0, 0];
+  const turnEv = { t: "turn", p: 0, state: [{ pos: [0, 0] }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
+  const mooredEv = { t: "moored", p: 0, reason: "dock", state: [{ pos: at }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
+  appState.game.events = [turnEv, mooredEv];
+  return mooredEv;
+}
+
+const TABLE_BRANCHES = {
+  // windStreak (direction-hold streak) and streak (storm-commitment streak) are two INDEPENDENT
+  // counters — a first self-check-probe run caught that this key has 8 real branches, not 5:
+  // windHoldPhrase()'s own "is gusting" (windStreak===2) vs "won't quit" (windStreak>=3) split is
+  // a further branch anywhere the `gust` clause is actually referenced (both no-storm cases, and
+  // the storm+streak>=2+held case) — it is NOT referenced in the storm+streak<2+held case, so that
+  // one stays a single branch regardless of windStreak's exact value.
+  newround: [
+    { tag: "freshWind", label: "Fresh wind, no storm", fields: { storm: false, windStreak: 1, streak: 0 } },
+    { tag: "heldWindGusting", label: "Wind holds (2 rounds), no storm", fields: { storm: false, windStreak: 2, streak: 0 } },
+    { tag: "heldWindWontQuit", label: "Wind holds (≥3 rounds — “won't quit”), no storm", fields: { storm: false, windStreak: 3, streak: 0 } },
+    { tag: null, label: "Fresh storm", fields: { storm: true, windStreak: 1, streak: 1 } },
+    { tag: "heldStorm", label: "Storm + wind holds (streak < 2)", fields: { storm: true, windStreak: 2, streak: 1 } },
+    { tag: "streakStorm", label: "Storm committed ≥2 rounds running, wind not held", fields: { storm: true, windStreak: 1, streak: 2 } },
+    { tag: "streakStormHeldGusting", label: "Storm committed ≥2 rounds + wind holds (2 rounds)", fields: { storm: true, windStreak: 2, streak: 2 } },
+    { tag: "streakStormHeldWontQuit", label: "Storm committed ≥2 rounds + wind holds (≥3 — “won't quit”)", fields: { storm: true, windStreak: 3, streak: 2 } },
+  ],
+  moored: [
+    { tag: null, label: "Reason: just docked", fields: { reason: "justDocked" } },
+    { tag: "dockMoved", label: "Reason: dock — storm shoved you onto it THIS turn", buildEvent: () => mooredDockEvent(true) },
+    { tag: "dockStill", label: "Reason: dock — already parked, storm-untouched", buildEvent: () => mooredDockEvent(false) },
+    { tag: "home", label: "Reason: home berth (Tortuga)", fields: { reason: "home" } },
+    { tag: "legacyFallback", label: "Reason: unrecognized (legacy replay log with no reason field)", fields: { reason: undefined } },
+  ],
+  parley: [
+    { tag: null, label: "Deal struck", fields: { ok: true } },
+    { tag: "refused", label: "Refused", fields: { ok: false } },
+  ],
+  aground: [
+    { tag: null, label: "No crate held — half the coin purse lost", fields: { ing: null } },
+    { tag: "crate", label: "Crate lost — tumbles overboard", fields: { ing: "wheat" } },
+  ],
+  dock: [
+    { tag: null, label: "Heads — hauls aboard a crate", fields: { got: "ing", heads: 1 } },
+    { tag: "empty", label: "Empty island — grabs 3 coins, no flip (NARR-07)", fields: { got: "empty" } },
+    { tag: "bought", label: "Tails, buys the crate anyway", fields: { got: "bought", heads: 0 } },
+    { tag: "coins", label: "Tails, takes the 3 coins", fields: { got: "coins", heads: 0 } },
+  ],
+  trade: [
+    { tag: null, label: "Cooperation bonus ON (cfg.tradeBonus)", fields: {}, cfg: { tradeBonus: true } },
+    { tag: "noBonus", label: "Cooperation bonus OFF", fields: {}, cfg: { tradeBonus: false } },
+  ],
+  sidebet: [
+    { tag: null, label: "Won, backed with coin", fields: { won: true, amt: 2, delta: 5 } },
+    { tag: "wonNoAmt", label: "Won, free call (no coin backed)", fields: { won: true, amt: 0, delta: 1 } },
+    { tag: "lostAmt", label: "Lost, backed with coin", fields: { won: false, amt: 2, delta: -2 } },
+    { tag: "lostNoAmt", label: "Lost, free call (no coin backed)", fields: { won: false, amt: 0, delta: 0 } },
+  ],
+  battle: [
+    { tag: null, label: "Coin spoil — genuine bribe (a full 5-coin purse)", fields: { spoil: "5 coins", spoilIng: null } },
+    { tag: "cleaned", label: "Coin spoil — cleaned out (under 5 coins)", fields: { spoil: "2 coins", spoilIng: null } },
+    { tag: "crate", label: "Ingredient spoil — a crate changes hands", fields: { spoil: null, spoilIng: "cocoa" } },
+  ],
+  fish: [
+    { tag: null, label: "Heads — sugarfish", fields: { heads: 1 } },
+    { tag: "candycrab", label: "Tails, sardine rule ON — candycrab", fields: { heads: 0 }, cfg: { sardine: true } },
+    { tag: "empty", label: "Tails, sardine rule OFF — empty-handed", fields: { heads: 0 }, cfg: { sardine: false } },
+  ],
+  shotclockskip: [
+    { tag: null, label: "No crate held — coins tumble overboard", fields: { ing: null } },
+    { tag: "crate", label: "Crate tumbles overboard", fields: { ing: "wheat" } },
+  ],
+};
+
+function withCfg(overrides, fn) {
+  if (!overrides) return fn();
+  const prev = Object.assign({}, appState.game.cfg);
+  Object.assign(appState.game.cfg, overrides);
+  try { return fn(); } finally { Object.assign(appState.game.cfg, prev); }
+}
+function resetEvents() { appState.game.events = []; }
+
+// Every distinct (neutral + addressed) text a branch actually rendered, per table key — populated
+// while building cards, consumed by the self-check probe below.
+const RENDERED_TEXTS = {};
+function recordTexts(key, rendered, variants) {
+  if (!RENDERED_TEXTS[key]) RENDERED_TEXTS[key] = new Set();
+  if (rendered && rendered.txt) RENDERED_TEXTS[key].add(fixAssetPaths(emojify(rendered.txt)));
+  (variants || []).forEach((v) => RENDERED_TEXTS[key].add(fixAssetPaths(emojify(v.html))));
+}
+
+function renderTableBranch(key, spec) {
+  resetEvents();
+  const ev = spec.buildEvent
+    ? spec.buildEvent()
+    : Object.assign(BASE_EVENTS[key](), spec.fields || {});
+  const run = () => {
+    const rendered = describeFor(ev, NEUTRAL_VIEWER);
+    const variants = narrationVariants(ev);
+    recordTexts(key, rendered, variants);
+    return { rendered, variants };
+  };
+  const { rendered, variants } = spec.cfg ? withCfg(spec.cfg, run) : run();
+  resetEvents();
+  return { rendered, variants };
+}
+
+function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${key}`; }
+
+function buildTableBranchCard(key, spec, group) {
+  const id = tableCardId(key, spec.tag);
+  const { rendered, variants } = renderTableBranch(key, spec);
+  const silent = !rendered || !rendered.txt;
+  const body = silent
+    ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
+    : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
+  return { id, group, html: cardShell({ id, title: spec.label || `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, seededFromLegacy: spec.tag != null }) };
+}
+
+function buildTableKeyCards(key, group) {
+  const branches = TABLE_BRANCHES[key];
+  if (!branches) {
+    resetEvents();
+    const ev = BASE_EVENTS[key] ? BASE_EVENTS[key]() : { t: key, p: 0 };
+    const rendered = describeFor(ev, NEUTRAL_VIEWER);
+    const variants = narrationVariants(ev);
+    recordTexts(key, rendered, variants);
+    resetEvents();
+    const silent = !rendered || !rendered.txt;
+    const body = silent
+      ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
+      : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
+    const id = `table:${key}`;
+    const note = TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "";
+    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent }) }];
+  }
+  return branches.map((spec) => buildTableBranchCard(key, spec, group));
+}
+
+// Default recommendation per table key (applies to every branch of that key unless a branch's
+// own history overrides it via seeding). Biased toward "rewrite" only where lines genuinely blur
+// (D-06) — unchanged from this page's first build.
+const TABLE_TAGS = {
+  newround: "keep", windmove: "rewrite", blownOut: "rewrite", sail: "keep", dodge: "keep",
+  anchor: "keep", moored: "keep", blocked: "keep", anchorHold: "keep", tradewind: "rewrite",
+  parley: "keep", aground: "keep", shipwrecked: "keep", dock: "keep", trade: "keep",
+  sidebet: "keep", battle: "keep", battleflee: "keep", fish: "keep", finish: "keep",
+  shotclock: "keep", shotclockskip: "keep", bakeoff: "keep", end: "keep", turn: "keep",
+};
+const TABLE_NOTES = {
+  moored: "5 reason-branches shown: justDocked / dock (moved this turn) / dock (already parked) / home / an unrecognized-reason legacy fallback for old replay logs (src/ui/util.js's own `||` fallback).",
+  battle: "3 spoil-framing branches (NARR-04/D-12): an ingredient crate changes hands, a genuine bribe (full 5-coin purse), or cleaned out (under 5 coins).",
+  turn: "Deliberately silent (returns no text at all) — the bot turn-start banner is a separate ad-hoc line instead (see the Turn Start stage, narrateCurrent). Listed per NARR-01's “don't drop silent surfaces” rule.",
+  end: "Deliberately silent (EOV-01 — the blue box no longer announces the win, avoiding a duplicate of the dedicated victory box). Listed per NARR-01's “don't drop silent surfaces” rule.",
+};
+
+/* ============================================================================
+ * D-21: ad-hoc line branches (the 3 hand-written flash() lines that branch on
+ * more than viewer perspective) plus the single-branch renderers, keyed by
+ * "file:line" or "file:line~tag" — same legacy-id convention as the table.
+ * ==========================================================================*/
 const ADHOC_RENDERERS = {
   "src/ui/flow.js:111": () => ({
     current: `${pn(0)} flips ⚪ HEADS!`,
     proposed: [{ seat: 0, html: `You flip ⚪ HEADS!` }],
-    note: "Tails uses the identical shape (⚫ TAILS) — see raw source.",
+  }),
+  "src/ui/flow.js:111~tails": () => ({
+    current: `${pn(0)} flips ⚫ TAILS`,
+    proposed: [{ seat: 0, html: `You flip ⚫ TAILS` }],
   }),
   "src/ui/flow.js:260": () => ({
     current: brokeAnchorLine(0, NEUTRAL_VIEWER),
@@ -324,7 +494,11 @@ const ADHOC_RENDERERS = {
   "src/ui/flow.js:516": () => ({
     current: `${pn(1)} declines ${pn(0)}'s offer!`,
     proposed: [{ seat: 0, html: `${pn(1)} declines your offer!` }],
-    note: "Alternate branch when the human is exactly one need away from finishing: a taunt line instead of a plain decline — see raw source.",
+  }),
+  "src/ui/flow.js:516~finishTaunt": () => ({
+    current: `${pn(1)} refuses — "Not lettin' ${pn(0)} finish their recipe that easy!"`,
+    proposed: [{ seat: 0, html: `${pn(1)} refuses — "Not lettin' ye finish yer recipe that easy!"` }],
+    note: "Fires instead of the plain decline specifically when the human offerer is exactly one ingredient away from finishing their recipe.",
   }),
   "src/ui/flow.js:524": () => ({
     current: `${pn(1)} declines!`,
@@ -343,6 +517,11 @@ const ADHOC_RENDERERS = {
       proposed: [{ seat: 0, html: addressedBanner }],
     };
   },
+  "src/ui/flow.js:613~noStorm": () => ({
+    current: `⛵ Ahoy, ${poss(0)} turn! The wind blows <b>${DIRNAME["N"]}</b> this round.`,
+    proposed: [{ seat: 0, html: `⛵ Ahoy, ${pn(0)} — your turn! The wind blows <b>${DIRNAME["N"]}</b> this round.` }],
+    note: "No storm this round — the storm-intro clause (NARR-03) is entirely absent.",
+  }),
   "src/ui/flow.js:640": () => ({
     current: `🏝️ Land's blockin' ${pn(0)}'s wind — slow as cold molasses in this lee.`,
     proposed: [{ seat: 0, html: `🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.` }],
@@ -398,18 +577,76 @@ const ADHOC_RENDERERS = {
     proposed: [{ seat: 0, html: `🧭 ${pn(0)} — you take the wheel…` }],
   }),
 };
+// Every extra sibling branch this rebuild adds, beyond the inventory's one entry per call site.
+const ADHOC_EXTRA_TAGS = {
+  "src/ui/flow.js:111": ["tails"],
+  "src/ui/flow.js:516": ["finishTaunt"],
+  "src/ui/flow.js:613": ["noStorm"],
+};
+const ADHOC_LABEL_OVERRIDE = {
+  "src/ui/flow.js:111~tails": "Coin-flip announcement — tails",
+  "src/ui/flow.js:516~finishTaunt": "Trade refusal — the human is one ingredient from finishing (taunt line)",
+  "src/ui/flow.js:613~noStorm": "Per-turn banner, no storm this round",
+};
 
-function cardShell({ id, title, meta, body, defaultTag, silent }) {
+const PASS_THROUGH = new Set([
+  "src/ui/flow.js:333", "src/ui/flow.js:352", "src/orchestrator.js:699",
+  "src/orchestrator.js:720", "src/ui/util.js:878",
+]);
+
+function buildAdhocCard(entry, idOverride, labelOverride, group) {
+  const { file, line, fn, defaultTag, mergeWith, rawNeutral, rawVariants } = entry;
+  const baseKey = `${file}:${line}`;
+  const key = idOverride || baseKey;
+  const id = `adhoc:${key}`;
+  let body;
+  if (PASS_THROUGH.has(baseKey)) {
+    body = `<p class="passThroughNote">Table pass-through — renders whichever EVENT_NARRATION entry actually fired for that event (see its own card in the matching stage). Not counted as separate copy — tagged keep by default.</p>`;
+  } else {
+    const renderer = ADHOC_RENDERERS[key];
+    const result = renderer ? renderer() : { current: "(no renderer defined for this line yet)", proposed: [] };
+    if (RENDERED_TEXTS_ADHOC[baseKey] === undefined) RENDERED_TEXTS_ADHOC[baseKey] = new Set();
+    RENDERED_TEXTS_ADHOC[baseKey].add(fixAssetPaths(emojify(result.current)));
+    (result.proposed || []).forEach((v) => RENDERED_TEXTS_ADHOC[baseKey].add(fixAssetPaths(emojify(v.html))));
+    body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
+    if (result.note) body += `<p class="cardNote">${result.note}</p>`;
+  }
+  if (mergeWith && mergeWith.length) body += `<p class="mergeNote">Byte-identical to: ${mergeWith.join(", ")}</p>`;
+  body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
+    <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
+    ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
+  </details>`;
+  return { id, group, html: cardShell({ id, title: labelOverride || entry.label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, seededFromLegacy: !!idOverride }) };
+}
+const RENDERED_TEXTS_ADHOC = {};
+
+function buildAdhocKeyCards(entry, group) {
+  const baseKey = `${entry.file}:${entry.line}`;
+  const extras = ADHOC_EXTRA_TAGS[baseKey] || [];
+  const cards = [buildAdhocCard(entry, null, null, group)];
+  extras.forEach((tag) => {
+    const idKey = `${baseKey}~${tag}`;
+    cards.push(buildAdhocCard(entry, idKey, ADHOC_LABEL_OVERRIDE[idKey], group));
+  });
+  return cards;
+}
+
+/* ============================================================================
+ * Card shell (tag select + notes textarea) — unchanged in spirit from the
+ * first build. `seededFromLegacy` marks a branch pre-filled from a sibling's
+ * pass-1 mark rather than its own (see the "from pass 1" badge).
+ * ==========================================================================*/
+function cardShell({ id, title, meta, body, defaultTag, silent, seededFromLegacy }) {
   const tags = ["keep", "cut", "merge", "rewrite"];
   return `
   <div class="card" data-id="${id}">
     <div class="cardHead">
-      <h3>${title}${silent ? ' <span class="silentBadge">silent</span>' : ""}</h3>
+      <h4>${title}${silent ? ' <span class="silentBadge">silent</span>' : ""}</h4>
       <div class="cardMeta">${meta}</div>
     </div>
     <div class="cardBody">${body}</div>
     <div class="tagRow">
-      <label>Recommendation
+      <label>Rec.
         <select class="tagSelect" data-id="${id}" data-default="${defaultTag}">
           ${tags.map((t) => `<option value="${t}" ${t === defaultTag ? "selected" : ""}>${t}</option>`).join("")}
         </select>
@@ -420,94 +657,408 @@ function cardShell({ id, title, meta, body, defaultTag, silent }) {
   </div>`;
 }
 
-function buildTableCard(entry) {
-  const { key, file, line, group } = entry;
-  const id = `table:${key}`;
-  const ev = fabricateEvent(key);
+/* ============================================================================
+ * D-22: the flow chart. Node-groups are the graph's visual nodes; each
+ * contains 1+ branch cards (a fork). Edges are derived from the real call
+ * paths cited in each node-group's own `via` field. `uncertain:true` marks an
+ * edge whose reachability depends on live game state this page can't show
+ * structurally, per D-22's "never invent an edge" instruction.
+ * ==========================================================================*/
+const inv = await fetch("narration-inventory.json").then((r) => r.json());
+const tableByKey = Object.fromEntries(inv.table.map((e) => [e.key, e]));
+const adhocByLine = Object.fromEntries(inv.adhoc.map((e) => [`${e.file}:${e.line}`, e]));
+
+function tableCards(key) { return buildTableKeyCards(key, key); }
+function adhocCards(fileLine) { return buildAdhocKeyCards(adhocByLine[fileLine], fileLine); }
+
+const NODE_GROUPS = [
+  {
+    id: "newround", stage: 0, title: "Round roll-over", parents: [],
+    via: "src/orchestrator.js:696 (runLiveNet, and the final-round re-roll at :719) — this.ev({t:\"newround\",...})",
+    cardsOf: () => tableCards("newround").concat(adhocCards("src/orchestrator.js:699"), adhocCards("src/orchestrator.js:720")),
+  },
+  {
+    id: "humanTurnBanner", stage: 1, title: "Turn start — human", parents: [{ id: "newround" }],
+    via: "src/ui/flow.js:597 humanTurn() — ev({t:\"turn\"}) (deliberately silent — see EVENT_NARRATION.turn below), then the turn banner flash() fires immediately after",
+    cardsOf: () => tableCards("turn").concat(adhocCards("src/ui/flow.js:613")),
+  },
+  {
+    id: "botTurnBanner", stage: 1, title: "Turn start — bot", parents: [{ id: "newround" }],
+    via: "src/ui/flow.js:690 botTurn() → src/ui/util.js:866 botBeat() → narrateCurrent(), which dispatches the turn-start banner AND (for every later bot event this same turn) the pass-through table-driven line below",
+    cardsOf: () => adhocCards("src/ui/util.js:874").concat(adhocCards("src/ui/util.js:878")),
+  },
+  {
+    id: "stormOutcomes", stage: 2, title: "Storm push — per-square outcomes", parents: [
+      { id: "humanTurnBanner", label: "stormNow" }, { id: "botTurnBanner", label: "stormNow" },
+    ],
+    via: "src/ui/flow.js:225 windLeg() / :313 botWindLeg() — one square at a time; each square can moor, hold anchor, get blocked, dodge/anchor/aground/shipwreck, or sweep to the rim",
+    cardsOf: () => [].concat(
+      tableCards("moored"), tableCards("anchorHold"), tableCards("blocked"),
+      adhocCards("src/ui/flow.js:260"),
+      tableCards("dodge"), tableCards("anchor"), tableCards("aground"), tableCards("shipwrecked"),
+      tableCards("windmove"), tableCards("blownOut"), tableCards("tradewind"),
+      adhocCards("src/ui/flow.js:296"),
+      adhocCards("src/ui/flow.js:111"),
+      adhocCards("src/ui/flow.js:333"), adhocCards("src/ui/flow.js:352"),
+    ),
+  },
+  {
+    id: "secondLeg", stage: 3, title: "Storm push — second leg direction", parents: [{ id: "stormOutcomes" }],
+    via: "src/ui/flow.js:367 humanWind() (:373 flash) and src/ui/flow.js:690 botTurn() (:702 flash) — announces windNow2, then windLeg/botWindLeg runs again (loops back into the same per-square outcomes above)",
+    cardsOf: () => adhocCards("src/ui/flow.js:373").concat(adhocCards("src/ui/flow.js:702")),
+  },
+  {
+    id: "sailDecision", stage: 4, title: "Sail (or can't)", parents: [
+      { id: "secondLeg", label: "after both legs" },
+      { id: "humanTurnBanner", label: "no storm this round" },
+      { id: "botTurnBanner", label: "no storm this round" },
+    ],
+    via: "src/ui/flow.js:638 humanTurn()'s sail block and :690 botTurn()'s sail gate",
+    cardsOf: () => tableCards("sail").concat(
+      adhocCards("src/ui/flow.js:640"), adhocCards("src/ui/flow.js:571"), adhocCards("src/ui/flow.js:645"),
+      adhocCards("src/ui/flow.js:646"), adhocCards("src/ui/flow.js:722"),
+    ),
+  },
+  {
+    id: "dockOutcomes", stage: 5, title: "Action: Dock", parents: [{ id: "sailDecision", label: "chose Dock" }],
+    via: "src/ui/flow.js:377 humanDock() — the coin flip (humanFlip, shared with the storm-anchor dodge above) then one of 4 outcomes",
+    cardsOf: () => adhocCards("src/ui/flow.js:111").concat(tableCards("dock")),
+  },
+  {
+    id: "battleOpen", stage: 5, title: "Action: Attack — opening", parents: [{ id: "sailDecision", label: "chose Attack" }],
+    via: "src/orchestrator.js:385 asyncBattle() (:391 flash); src/ui/flow.js:579 humanAct()'s attack branch (:582 the can't-afford-powder guard)",
+    cardsOf: () => adhocCards("src/orchestrator.js:391").concat(adhocCards("src/ui/flow.js:582")),
+  },
+  {
+    id: "sideBetCalls", stage: 6, title: "Attack — side bets called", parents: [{ id: "battleOpen", uncertain: true, label: "spectating captains remain" }],
+    via: "src/ui/flow.js:870 collectSideBets() — every non-combatant captain still in play calls it",
+    cardsOf: () => adhocCards("src/ui/flow.js:901").concat(adhocCards("src/ui/flow.js:902")),
+  },
+  {
+    id: "battleOutcomes", stage: 7, title: "Attack — outcome", parents: [{ id: "battleOpen" }],
+    via: "src/orchestrator.js:385 asyncBattle()'s round loop resolves into src/ui/util.js's battle/battleflee builders",
+    cardsOf: () => tableCards("battle").concat(tableCards("battleflee")),
+  },
+  {
+    id: "sideBetSettle", stage: 8, title: "Attack — side bets settle", parents: [{ id: "battleOutcomes", uncertain: true, label: "only if bets were called" }],
+    via: "src/ui/flow.js:913 settleSideBets() — skipped entirely when collectSideBets() returned no bets",
+    cardsOf: () => tableCards("sidebet").concat(adhocCards("src/ui/flow.js:928")),
+  },
+  {
+    id: "tradeFlow", stage: 5, title: "Action: Parley / Trade", parents: [{ id: "sailDecision", label: "chose Parley" }],
+    via: "src/ui/flow.js:407 humanTrade() — the parley step machine; bots also reach `trade`/`parley` via the hail flow (src/ui/flow.js:730, a separate entry point not modeled as its own stage here)",
+    cardsOf: () => adhocCards("src/ui/flow.js:410").concat(
+      tableCards("trade"), tableCards("parley"),
+      adhocCards("src/ui/flow.js:516"), adhocCards("src/ui/flow.js:524"),
+    ),
+  },
+  {
+    id: "fishOutcomes", stage: 5, title: "Action: Fish", parents: [{ id: "sailDecision", label: "chose Fish" }],
+    via: "src/ui/flow.js:117 fishCast()",
+    cardsOf: () => tableCards("fish"),
+  },
+  {
+    id: "bakeryStart", stage: 5, title: "Action: Start the bakery", parents: [{ id: "sailDecision", label: "full recipe, adjacent to home", uncertain: true }],
+    via: "src/ui/flow.js:574 humanAct()'s bakery branch",
+    cardsOf: () => adhocCards("src/ui/flow.js:574"),
+  },
+  {
+    id: "shotClock", stage: 9, title: "Shot clock", parents: [
+      { id: "dockOutcomes" }, { id: "sideBetSettle" }, { id: "tradeFlow" }, { id: "fishOutcomes" }, { id: "bakeryStart" },
+    ],
+    via: "src/orchestrator.js:223 expireShotClock() — can fire on ANY decision point above if the timer runs out, not only at turn end",
+    cardsOf: () => tableCards("shotclock").concat(tableCards("shotclockskip")),
+  },
+  {
+    id: "voyageEnd", stage: 10, title: "Voyage end", parents: [{ id: "shotClock", uncertain: true, label: "only once a recipe completes" }],
+    via: "src/ui/flow.js:501 EVENT_NARRATION.finish; src/ui/flow.js:932 asyncBakeoff() → EVENT_NARRATION.bakeoff; src/orchestrator.js:737 liveResolveEndNet() → EVENT_NARRATION.end + :754/:758",
+    cardsOf: () => tableCards("finish").concat(
+      tableCards("bakeoff"), tableCards("end"),
+      adhocCards("src/orchestrator.js:754"), adhocCards("src/orchestrator.js:758"),
+    ),
+  },
+];
+// The round loop: any of the turn-level outcomes can be followed by the NEXT round's newround —
+// drawn as a distinct back-edge (dashed) rather than folded into the forward graph above.
+const LOOP_EDGES = [{ from: "shotClock", to: "newround", label: "next round", uncertain: false, loop: true }];
+
+/* ============================================================================
+ * Legacy dispositions (Wyatt's pass-1 export, notes/narration-audit-dispositions.json —
+ * gitignored on disk, embedded here so pass 2 starts from where pass 1 left off). Seeded
+ * into localStorage on first load ONLY for ids with no existing localStorage entry, so a
+ * partially-finished pass-2 session is never clobbered by a reload.
+ * ==========================================================================*/
+const SEED_ROWS = [
+  { id: "table:newround", finalTag: "rewrite", notes: "Round 3: A ⛈️ storm be ragin'! It'll blow ye all {dir1}, then {dir2}." },
+  { id: "adhoc:src/orchestrator.js:699", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:720", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:613", finalTag: "rewrite", notes: "⛵ Ahoy, Crustbeard's turn! First the ⛈️ storm blows 2 squares {direction}" },
+  { id: "table:windmove", finalTag: "rewrite", notes: "Crustbeard is blown by the storm" },
+  { id: "table:blownOut", finalTag: "keep", notes: "" },
+  { id: "table:dodge", finalTag: "keep", notes: "" },
+  { id: "table:anchor", finalTag: "keep", notes: "" },
+  { id: "table:moored", finalTag: "keep", notes: "" },
+  { id: "table:anchorHold", finalTag: "rewrite", notes: "Crustbeard's anchor is already down — it holds fast." },
+  { id: "table:tradewind", finalTag: "rewrite", notes: "" },
+  { id: "table:aground", finalTag: "keep", notes: "" },
+  { id: "table:shipwrecked", finalTag: "rewrite", notes: "Crustbeard is shipwrecked, and loses their turn making repairs." },
+  { id: "adhoc:src/ui/flow.js:260", finalTag: "rewrite", notes: "Crustbeard's too broke to anchor — flips and takes their chances dodging the rocks." },
+  { id: "adhoc:src/ui/flow.js:296", finalTag: "merge", notes: "Note for claude: i don't think this is called any more, but double-check -- I think it is from a past version of the game where normal wind could move players. It seems like the same use case as EVENT_NARRATION.tradewind\nsrc/ui/util.js:358 · table" },
+  { id: "adhoc:src/ui/flow.js:333", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:352", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:373", finalTag: "rewrite", notes: "Now the ⛈️ storm blows you 2 squares south!\n" },
+  { id: "adhoc:src/ui/flow.js:571", finalTag: "merge", notes: "" },
+  { id: "adhoc:src/ui/flow.js:645", finalTag: "merge", notes: "" },
+  { id: "adhoc:src/ui/flow.js:702", finalTag: "merge", notes: "Note for Claude: this seems like the human-player addressed  version of the \"Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)\nsrc/ui/flow.js:373 · humanWind()\" -- can we merge these, and use the same 3rd person form for viewers of humans or bots?" },
+  { id: "table:dock", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:111", finalTag: "rewrite", notes: "Use the coin heads icon instead of the emoji" },
+  { id: "table:sidebet", finalTag: "keep", notes: " Dough Hook called it and added 2 — Bounty +5" },
+  { id: "table:battle", finalTag: "rewrite", notes: " Crustbeard attacks Davy Scones — and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
+  { id: "table:battleflee", finalTag: "rewrite", notes: "When Crustbeard attacks Davy Scones, both shots miss wildly and Davy Scones slips away!" },
+  { id: "adhoc:src/orchestrator.js:391", finalTag: "rewrite", notes: "⚔️ Crustbeard attacks Davy Scones! First to 2 hits wins…" },
+  { id: "adhoc:src/ui/flow.js:582", finalTag: "rewrite", notes: "Yer too poor to afford powder (2{coin}) for a battle! Go fishin'." },
+  { id: "adhoc:src/ui/flow.js:901", finalTag: "keep", notes: "Note for claude: use the coin image, not the emoji. " },
+  { id: "adhoc:src/ui/flow.js:902", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:928", finalTag: "rewrite", notes: "🔭 The Spotter's Bounty settles — Dough Hook +5🌕 · Flaky Jack −2🌕" },
+  { id: "table:parley", finalTag: "cut", notes: "Where is this called? Is it called anywhere? It seems to serve the same function as EVENT_NARRATION.trade -- in which case we should remove it -- but make sure i'm right first." },
+  { id: "table:trade", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:410", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:516", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:524", finalTag: "keep", notes: "" },
+  { id: "table:fish", finalTag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
+  { id: "table:shotclock", finalTag: "keep", notes: "" },
+  { id: "table:shotclockskip", finalTag: "keep", notes: "" },
+  { id: "table:finish", finalTag: "keep", notes: " Crustbeard returns to the Isle of Tortuga with ingredients for their full recipe!" },
+  { id: "table:bakeoff", finalTag: "keep", notes: "" },
+  { id: "table:end", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:754", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:758", finalTag: "keep", notes: "" },
+  { id: "table:sail", finalTag: "keep", notes: "" },
+  { id: "table:blocked", finalTag: "keep", notes: "" },
+  { id: "table:turn", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:574", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:640", finalTag: "keep", notes: "🏝️ Land's blockin' Crustbeard's wind — can't sail as far here. It's slow as cold molasses in this lee." },
+  { id: "adhoc:src/ui/flow.js:646", finalTag: "keep", notes: "Crustbeard is too broke to pay the crew — no sailing this turn." },
+  { id: "adhoc:src/ui/flow.js:722", finalTag: "keep", notes: "Crustbeard is too broke to pay the crew — no sailing this turn." },
+  { id: "adhoc:src/ui/util.js:874", finalTag: "keep", notes: "" },
+  { id: "adhoc:src/ui/util.js:878", finalTag: "keep", notes: "" },
+];
+const SEED = Object.fromEntries(SEED_ROWS.map((r) => [r.id, { tag: r.finalTag, notes: r.notes || "" }]));
+// sibling branches split out of an id in SEED inherit that SAME mark as a starting point
+const SIBLING_OF = {
+  "table:newround~freshWind": "table:newround", "table:newround~heldWindGusting": "table:newround",
+  "table:newround~heldWindWontQuit": "table:newround", "table:newround~heldStorm": "table:newround",
+  "table:newround~streakStorm": "table:newround", "table:newround~streakStormHeldGusting": "table:newround",
+  "table:newround~streakStormHeldWontQuit": "table:newround",
+  "table:moored~dockMoved": "table:moored", "table:moored~dockStill": "table:moored",
+  "table:moored~home": "table:moored", "table:moored~legacyFallback": "table:moored",
+  "table:parley~refused": "table:parley",
+  "table:aground~crate": "table:aground",
+  "table:dock~empty": "table:dock", "table:dock~bought": "table:dock", "table:dock~coins": "table:dock",
+  "table:trade~noBonus": "table:trade",
+  "table:sidebet~wonNoAmt": "table:sidebet", "table:sidebet~lostAmt": "table:sidebet", "table:sidebet~lostNoAmt": "table:sidebet",
+  "table:battle~cleaned": "table:battle", "table:battle~crate": "table:battle",
+  "table:fish~candycrab": "table:fish", "table:fish~empty": "table:fish",
+  "table:shotclockskip~crate": "table:shotclockskip",
+  "adhoc:src/ui/flow.js:111~tails": "adhoc:src/ui/flow.js:111",
+  "adhoc:src/ui/flow.js:516~finishTaunt": "adhoc:src/ui/flow.js:516",
+  "adhoc:src/ui/flow.js:613~noStorm": "adhoc:src/ui/flow.js:613",
+};
+
+/* ============================================================================
+ * Render: build every node-group's cards, lay out stages, draw edges.
+ * ==========================================================================*/
+let stagesHtml = "";
+const maxStage = Math.max(...NODE_GROUPS.map((n) => n.stage));
+for (let s = 0; s <= maxStage; s++) {
+  const groups = NODE_GROUPS.filter((n) => n.stage === s);
+  if (!groups.length) continue;
+  const boxesHtml = groups.map((ng) => {
+    const built = ng.cardsOf();
+    const uncertainParents = ng.parents.filter((p) => p.uncertain).map((p) => p.label || p.id);
+    const metaBits = [`via ${ng.via}`];
+    if (uncertainParents.length) metaBits.push(`<span class="uncertainTag">uncertain reach:</span> ${uncertainParents.join(", ")}`);
+    return `<div class="nodeGroup" id="ng-${ng.id}">
+      <h3>${ng.title}</h3>
+      <div class="nodeGroupMeta">${metaBits.join(" · ")}</div>
+      <div class="branchCards">${built.map((c) => c.html).join("")}</div>
+    </div>`;
+  }).join("");
+  stagesHtml += `<div class="stageRow" data-stage="${s}"><span class="stageLabel">Stage ${s}</span>${boxesHtml}</div>`;
+}
+document.getElementById("stages").innerHTML = stagesHtml;
+
+// ---------- edges: draw AFTER layout, recompute on resize ----------
+function edgeAnchor(el, side) {
+  const canvas = document.getElementById("flowCanvas");
+  const cr = canvas.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const x = side === "top" ? r.left + r.width / 2 : r.left + r.width / 2;
+  const y = side === "top" ? r.top : r.bottom;
+  return { x: x - cr.left + canvas.scrollLeft, y: y - cr.top + canvas.scrollTop };
+}
+function drawEdges() {
+  const svg = document.getElementById("edgeSvg");
+  const canvas = document.getElementById("flowCanvas");
+  svg.setAttribute("width", canvas.scrollWidth);
+  svg.setAttribute("height", canvas.scrollHeight);
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--edge)"></path>
+      </marker>
+      <marker id="arrowU" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--edge-uncertain)"></path>
+      </marker>
+    </defs>`;
+  const paths = [];
+  function pathFor(fromId, toId, uncertain, loop, label) {
+    const fromEl = document.getElementById(`ng-${fromId}`);
+    const toEl = document.getElementById(`ng-${toId}`);
+    if (!fromEl || !toEl) return;
+    const a = edgeAnchor(fromEl, loop ? "top" : "bottom");
+    const b = edgeAnchor(toEl, "top");
+    let d;
+    if (loop) {
+      // loop-back: route below the source, out to the right, and back up into the target's top
+      const midY = a.y + 46;
+      d = `M ${a.x},${edgeAnchor(fromEl, "bottom").y} C ${a.x},${midY} ${b.x},${midY} ${b.x},${b.y}`;
+    } else {
+      const midY = (a.y + b.y) / 2;
+      d = `M ${a.x},${a.y} C ${a.x},${midY} ${b.x},${midY} ${b.x},${b.y}`;
+    }
+    paths.push(`<path d="${d}" fill="none" stroke="${uncertain ? "var(--edge-uncertain)" : "var(--edge)"}" stroke-width="1.6" stroke-dasharray="${uncertain || loop ? "5,4" : "none"}" marker-end="url(#${uncertain ? "arrowU" : "arrow"})" opacity="0.85"></path>`);
+  }
+  NODE_GROUPS.forEach((ng) => {
+    ng.parents.forEach((p) => pathFor(p.id, ng.id, !!p.uncertain, false, p.label));
+  });
+  LOOP_EDGES.forEach((e) => pathFor(e.from, e.to, e.uncertain, true, e.label));
+  svg.innerHTML += paths.join("");
+}
+requestAnimationFrame(() => requestAnimationFrame(drawEdges));
+let resizeTimer = null;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawEdges, 120); });
+new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawEdges, 120); }).observe(document.getElementById("flowCanvas"));
+
+// ---------- total count ----------
+// A handful of ids appear twice on the page (the coin-flip line, reachable from two different
+// forks) — report both the raw card-element count and the distinct-id count so the number is
+// unambiguous either way.
+const allCardEls = document.querySelectorAll(".card");
+const distinctIds = new Set(Array.from(allCardEls).map((c) => c.dataset.id));
+document.getElementById("totalCount").textContent =
+  `${distinctIds.size} distinct lines (${allCardEls.length} cards across ${NODE_GROUPS.length} moments)`;
+
+/* ============================================================================
+ * D-21 self-check: an INDEPENDENT probe (its own field enumeration, not reused
+ * from TABLE_BRANCHES above) that tries every legal branch value per key —
+ * including a couple of "unexpected" ones to also catch fallback branches —
+ * and asserts every text the real builder can produce this way is already
+ * present in RENDERED_TEXTS[key]. Fails loudly (banner + console) if not.
+ * ==========================================================================*/
+// Field values here are independently re-derived from the source a second time (this is what
+// caught newround's real 5→8-branch undercount on the first run of this probe). For fields that
+// are NOT structural (an ingredient's name, a coin amount) the probe deliberately uses the SAME
+// representative value the cards above use — varying only NAMES/AMOUNTS produces a different
+// interpolated noun/number, never a different sentence SHAPE, so it is intentionally not treated
+// as a distinct branch (same reasoning already applied to wind direction substitution elsewhere
+// on this page). The probe's value is catching a missed STRUCTURAL branch, not enumerating every
+// possible ingredient×amount combination.
+const PROBE_AXES = {
+  newround: [
+    { storm: false, windStreak: 1, streak: 0 }, { storm: false, windStreak: 2, streak: 0 }, { storm: false, windStreak: 3, streak: 0 },
+    { storm: true, windStreak: 1, streak: 1 }, { storm: true, windStreak: 2, streak: 1 },
+    { storm: true, windStreak: 1, streak: 2 }, { storm: true, windStreak: 2, streak: 2 }, { storm: true, windStreak: 3, streak: 2 },
+  ],
+  parley: [{ ok: true }, { ok: false }],
+  aground: [{ ing: null }, { ing: "wheat" }],
+  dock: [{ got: "ing" }, { got: "empty" }, { got: "bought" }, { got: "coins" }],
+  sidebet: [{ won: true, amt: 0, delta: 1 }, { won: true, amt: 2, delta: 5 }, { won: false, amt: 0, delta: 0 }, { won: false, amt: 2, delta: -2 }],
+  battle: [
+    { spoil: "5 coins", spoilIng: null }, { spoil: "2 coins", spoilIng: null }, { spoil: null, spoilIng: "cocoa" },
+  ],
+  shotclockskip: [{ ing: null }, { ing: "wheat" }],
+};
+const PROBE_CFG_AXES = {
+  trade: [{ tradeBonus: true }, { tradeBonus: false }],
+  fish: [{ sardine: true, __heads: 0 }, { sardine: false, __heads: 0 }, { __heads: 1 }],
+};
+const probeFailures = [];
+function probeCheck(key, fields, cfg) {
+  resetEvents();
+  const run = () => {
+    const ev = Object.assign(BASE_EVENTS[key](), fields || {});
+    const rendered = describeFor(ev, NEUTRAL_VIEWER);
+    const variants = narrationVariants(ev);
+    const texts = [];
+    if (rendered && rendered.txt) texts.push(fixAssetPaths(emojify(rendered.txt)));
+    (variants || []).forEach((v) => texts.push(fixAssetPaths(emojify(v.html))));
+    const known = RENDERED_TEXTS[key] || new Set();
+    texts.forEach((t) => { if (!known.has(t)) probeFailures.push({ key, fields, cfg, text: t }); });
+  };
+  if (cfg) withCfg(cfg, run); else run();
+  resetEvents();
+}
+Object.entries(PROBE_AXES).forEach(([key, combos]) => combos.forEach((f) => probeCheck(key, f)));
+Object.entries(PROBE_CFG_AXES).forEach(([key, combos]) => combos.forEach((c) => {
+  const { __heads, ...cfg } = c;
+  probeCheck(key, __heads !== undefined ? { heads: __heads } : {}, Object.keys(cfg).length ? cfg : null);
+}));
+// moored: probe every reason value (including an unrecognized one) against the SAME movedSinceTurnStart
+// path the rendered cards use, via a fresh independent event object each time.
+["justDocked", "dock", "home", "bogus", undefined].forEach((reason) => {
+  resetEvents();
+  const ev = { t: "moored", p: 0, reason };
   const rendered = describeFor(ev, NEUTRAL_VIEWER);
   const variants = narrationVariants(ev);
-  const silent = !rendered || !rendered.txt;
-  let body = silent
-    ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
-    : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
-  if (key === "battle") {
-    const evCleaned = Object.assign({}, ev, { spoil: "2 coins" });
-    const rC = describeFor(evCleaned, NEUTRAL_VIEWER);
-    const vC = narrationVariants(evCleaned);
-    body += `
-      <div class="subSection">
-        <h4>Spoil framing (NARR-04/D-12)</h4>
-        <div class="subRow"><div class="subLabel">Full bribe (5 coins)</div>${msgBox(rendered.txt, "neutral")}${renderVariantsBlock(variants)}</div>
-        <div class="subRow"><div class="subLabel">Cleaned out (2 coins)</div>${msgBox(rC.txt, "neutral")}${renderVariantsBlock(vC)}</div>
-      </div>`;
-  }
-  if (TABLE_NOTES[key]) body += `<p class="cardNote">${TABLE_NOTES[key]}</p>`;
-  return { html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `${file}:${line} · table`, body, defaultTag: TABLE_TAGS[key] || "keep", silent }), group };
+  const texts = [];
+  if (rendered && rendered.txt) texts.push(fixAssetPaths(emojify(rendered.txt)));
+  (variants || []).forEach((v) => texts.push(fixAssetPaths(emojify(v.html))));
+  const known = RENDERED_TEXTS.moored || new Set();
+  texts.forEach((t) => { if (!known.has(t)) probeFailures.push({ key: "moored", fields: { reason }, text: t }); });
+  resetEvents();
+});
+
+const selfCheckBanner = document.getElementById("selfCheckBanner");
+if (probeFailures.length) {
+  selfCheckBanner.className = "selfCheckBanner fail";
+  selfCheckBanner.textContent = `⚠ SELF-CHECK FAILED — ${probeFailures.length} text(s) the builders can produce have no matching card. See console for details.`;
+  console.error("D-21 self-check failures (text produced by the builder but not rendered by any card):", probeFailures);
+  selfCheckBanner.insertAdjacentHTML("beforeend", `<pre id="__debugFailures" style="white-space:pre-wrap;font-size:0.7rem;margin-top:8px;">${escapeHtml(JSON.stringify(probeFailures, null, 2))}</pre>`);
+} else {
+  selfCheckBanner.className = "selfCheckBanner pass";
+  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed).`;
 }
 
-const PASS_THROUGH = new Set([
-  "src/ui/flow.js:333", "src/ui/flow.js:352", "src/orchestrator.js:699",
-  "src/orchestrator.js:720", "src/ui/util.js:878",
-]);
-
-function buildAdhocCard(entry) {
-  const { file, line, fn, group, label, defaultTag, mergeWith, rawNeutral, rawVariants } = entry;
-  const key = `${file}:${line}`;
-  const id = `adhoc:${key}`;
-  let body;
-  if (PASS_THROUGH.has(key)) {
-    body = `<p class="passThroughNote">Table pass-through — renders whichever EVENT_NARRATION entry actually fired for that event (see the matching card in its own group above). Not counted as separate copy — tagged keep by default.</p>`;
-  } else {
-    const renderer = ADHOC_RENDERERS[key];
-    const result = renderer ? renderer() : { current: "(no renderer defined for this line yet)", proposed: [] };
-    body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
-    if (result.note) body += `<p class="cardNote">${result.note}</p>`;
-  }
-  if (mergeWith && mergeWith.length) body += `<p class="mergeNote">Byte-identical to: ${mergeWith.join(", ")}</p>`;
-  body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
-    <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
-    ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
-  </details>`;
-  return { html: cardShell({ id, title: label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false }), group };
-}
-
-// ---------- fetch inventory, group + render ----------
-const inv = await fetch("narration-inventory.json").then((r) => r.json());
-const allEntries = [
-  ...inv.table.map((e) => ({ ...e, kind: "table" })),
-  ...inv.adhoc.map((e) => ({ ...e, kind: "adhoc" })),
-];
-
-const grouped = {};
-for (const g of GROUPS_ORDER) grouped[g] = [];
-for (const e of allEntries) {
-  const built = e.kind === "table" ? buildTableCard(e) : buildAdhocCard(e);
-  if (!grouped[built.group]) grouped[built.group] = [];
-  grouped[built.group].push(built.html);
-}
-
-let sectionsHtml = "";
-let totalCards = 0;
-for (const g of GROUPS_ORDER) {
-  const cards = grouped[g] || [];
-  if (!cards.length) continue;
-  totalCards += cards.length;
-  sectionsHtml += `<section class="group"><h2>${g} <span class="groupCount">(${cards.length})</span></h2><div class="grid">${cards.join("")}</div></section>`;
-}
-document.getElementById("sections").innerHTML = sectionsHtml;
-
-const grandTotal = inv.table.length + inv.adhoc.length;
-const totalNote = `${totalCards} lines rendered · ${inv.table.length} table + ${inv.adhoc.length} ad-hoc = ${grandTotal} total`;
-document.getElementById("totalCount").textContent = totalCards === grandTotal ? totalNote : `${totalNote} ⚠ MISMATCH — see console`;
-if (totalCards !== grandTotal) console.error("Rendered card count", totalCards, "!= inventory total", grandTotal);
-
-// ---------- persistence + export ----------
+/* ============================================================================
+ * Persistence + export (unchanged mechanism from the first build) — seeded
+ * from SEED/SIBLING_OF on first load per id, never overwriting an id that
+ * already has its own localStorage entry.
+ * ==========================================================================*/
 const STORAGE_KEY = "pastrypirates_narration_audit_v15_dispositions";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; } }
 function saveAll(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function setStatus(t) { document.getElementById("fbStatus").textContent = t; }
 
 const saved = loadSaved();
+let seededCount = 0;
+document.querySelectorAll(".card").forEach((card) => {
+  const id = card.dataset.id;
+  if (saved[id]) return; // pass-2 progress already exists for this exact id — never clobber
+  const direct = SEED[id];
+  const parentId = SIBLING_OF[id];
+  const inherited = parentId ? SEED[parentId] : null;
+  const seedVal = direct || inherited;
+  if (!seedVal) return;
+  saved[id] = { tag: seedVal.tag, notes: seedVal.notes };
+  if (!direct && inherited) {
+    seededCount++;
+    const meta = card.querySelector(".cardHead h4");
+    if (meta && !meta.querySelector(".seededBadge")) meta.insertAdjacentHTML("beforeend", ' <span class="seededBadge">from pass 1</span>');
+  }
+});
+saveAll(saved);
+
 document.querySelectorAll(".tagSelect").forEach((sel) => {
   const id = sel.dataset.id;
   if (saved[id] && saved[id].tag) sel.value = saved[id].tag;
@@ -530,24 +1081,23 @@ document.querySelectorAll(".notesArea").forEach((ta) => {
     setStatus("saved " + new Date().toLocaleTimeString());
   });
 });
+if (seededCount) setStatus(`${seededCount} new branch card(s) pre-filled from your pass-1 marks`);
 
 document.getElementById("exportBtn").addEventListener("click", () => {
-  const data = loadSaved();
+  // A handful of ids (the shared coin-flip line, reachable from both the storm-dodge fork and
+  // the dock fork) render as more than one DOM card — export each id exactly once, reading its
+  // FIRST occurrence, since both instances are kept in sync through the same localStorage key.
+  const seenIds = new Set();
   const out = [];
   document.querySelectorAll(".card").forEach((card) => {
     const id = card.dataset.id;
+    if (seenIds.has(id)) return;
+    seenIds.add(id);
     const sel = card.querySelector(".tagSelect");
     const ta = card.querySelector(".notesArea");
-    const title = card.querySelector("h3").textContent.replace(/\s*silent\s*$/i, "").trim();
+    const title = card.querySelector("h4").textContent.replace(/\s*(silent|from pass 1)\s*$/i, "").trim();
     const meta = card.querySelector(".cardMeta").textContent.trim();
-    out.push({
-      id,
-      label: title,
-      source: meta,
-      defaultTag: sel.dataset.default,
-      finalTag: sel.value,
-      notes: ta.value || "",
-    });
+    out.push({ id, label: title, source: meta, defaultTag: sel.dataset.default, finalTag: sel.value, notes: ta.value || "" });
   });
   const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
