@@ -242,6 +242,85 @@ handles it. Verification: no narration `.msgBox` on the audit page renders a raw
 the inline `src` matches the island/captain's-box `src` for the same ingredient, and `npm test`
 stays green.
 
+**D-18 — Wyatt's governing design intent for narration (supersedes any conflicting reading).**
+
+Verbatim: *"all players, whether they be bots or human, are treated the same and described the same.
+The only difference is whether the player is YOU or someone else— that just changes the perspective
+tense."*
+
+**One axis of variation only: viewer perspective.** Not actor type. A bot doing X and a human doing
+X must produce the *same* sentence; the only thing that may differ is whether the reader is the one
+who did it ("you") or not (their name). Any code that narrates differently because the actor is a
+bot is a defect against this rule.
+
+**Audit — what currently violates it:**
+
+| # | Violation | Evidence |
+|---|---|---|
+| 1 | Two parallel turn/storm pipelines split by actor type | `humanTurn`/`humanWind`/`windLeg` vs `botTurn`(`flow.js:690`)/`botWindLeg`(`flow.js:313`) |
+| 2 | Same moment, two different wordings — and one is broken | Second storm leg: `flow.js:373` hardcodes "you" with **no viewer branch** (so spectators of a human's turn also read "you"); `flow.js:702` is always third person |
+| 3 | Two turn-start banners | human `flow.js:613` vs bot `util.js:874` (`narrateCurrent`) |
+| 4 | **Bot narration displays ~38% shorter** | `botMsgHoldMs` (0.45) vs `msgHoldMs` (0.72) — the same event is readable for less time when a bot did it. **Open question for Wyatt: deliberate pacing, or a violation to remove?** |
+| 5 | Two event types for one concept | `parley` vs `trade` — see D-19 |
+
+**Root cause:** the code is organised by *who acts*; the narration must be organised by *what
+happened*, with viewer perspective applied at render time. Plan 15-01 already built exactly the
+right mechanism (one viewer-neutral line + per-seat addressed variants). The bot/human split
+predates it and was never collapsed. **Direction for 15-06: delete actor-specific narration; one
+narration path per event; let the viewer axis do all the work.**
+
+**D-19 — Merge `parley` into `trade`; successful `parley` is pure duplication.**
+
+Wyatt: *"it is messy to have two duplicate flows… Can you merge the parley and trade logic so that
+it's just one flow?"* He also asked whether successful-parley ever fires. **It does — and when it
+does, it double-narrates.**
+
+- `parley` with `ok:false` — `flow.js:512`, `flow.js:521` (human trade refusals). **Unique content.**
+- `parley` with `ok:true` — only `flow.js:756` (bot hail), and lines 757–761 immediately emit a
+  **`trade` event for the same swap**. So one accepted hail produces two captain's-log lines saying
+  the same thing. The successful branch of `parley` is redundant in every case it can fire.
+
+**Fix for 15-06:** one flow. A single `trade` event carrying an `ok` field (and the existing `kind`
+of `swap`/`buy`/`counter`/`hail`); the refusal wording becomes a branch inside the one `trade`
+builder. Remove the `parley` event type and its table entry. Verify no accepted hail emits two
+events. This is the merge Wyatt asked for — **not** the plain `cut` his disposition file recorded,
+which would have silenced refusals.
+
+**D-20 — Disposition tags: where a `keep` tag carries edit text in `notes`, the NOTES WIN.**
+
+Wyatt: *"For the entries tagged as 'keep' but I gave edits— use my edits; I forgot to change the
+dropdown from 'keep' to 'rewrite'… The tag is a mistake."* Affects `table:sidebet`, `table:fish`,
+`table:finish`, `adhoc:flow.js:640`, `adhoc:flow.js:646`, `adhoc:flow.js:722`, and any other row
+where `finalTag: "keep"` coexists with non-empty `notes` containing replacement wording. Treat a
+note that is a *question* to Claude (not replacement copy) as a question, not a rewrite.
+
+**D-21 — The audit page must render EVERY branch, not one representative case per line.**
+
+Wyatt: *"I wanted your audit page to render every line of narration in the game— that means the
+tails branches too— so I'm not happy that candycrab was missing (how am I supposed to edit it if
+it's missing?) and it makes me wonder what else is missing."*
+
+**He is right, and candycrab was not the only gap.** Measured by rendering every realistic field
+combination through the live builders: the page showed **~26** renderings for the `EVENT_NARRATION`
+table; the builders actually produce **62+ distinct player-visible texts** (a floor — the count
+under-samples config-gated branches). **More than half the table's wordings never appeared on the
+page he was asked to approve.**
+
+Per-line gaps (distinct texts the builders produce, vs the single case the page rendered):
+
+`dock` 8 · `parley` 6 · `moored` 4 · `aground` 4 · `sidebet` 4 · `shotclockskip` 4 · `blocked` 3 ·
+`battleflee` 3 · `bakeoff` 3 · `fish` 3 outcomes (heads→sugarfish, tails+sardine→candycrab,
+tails→empty — only the heads case was shown).
+
+Only `battle` was handled correctly (its bribe/cleaned-out split was rendered as two cards).
+
+**Requirement for the rebuilt page:** enumerate every branch of every builder — every `got`/`heads`
+/`reason`/`ok`/`winner`/`ing`-present value and every config-gated variant (`cfg.sardine`,
+`cfg.tradeBonus`) — and render each as its own editable, separately-taggable card, each still
+paired with its addressed "you" variant. Same for the ad-hoc lines. A line the page cannot render
+is a line Wyatt cannot approve, so an un-rendered branch is a **blocking defect**, not a nicety.
+Add a self-check that fails if any builder yields a text no card displays.
+
 </review_addendum>
 
 ---
