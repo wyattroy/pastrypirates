@@ -1446,3 +1446,56 @@ whole point of that line). Do not apply the cut across all four.
    differ: actor gets *"Ye haul aboard Toasty Wheat!"*, spectators get *"Crustbeard docks at the
    Flour Patch and hauls a crate aboard!"* The mechanism already exists.
 
+
+**D-47 — Every card needs a SECOND copy field for the addressed ("you") rendering.**
+
+Wyatt: *"yes, add the second notes box and migrate my questions."*
+
+**The gap:** every narration line has **two** renderings — viewer-neutral and addressed (D-07/D-10) —
+but the card offers **one** notes box. Wyatt has been writing the neutral version in Notes and the
+addressed version in the **Question** field, which by design never becomes copy (D-26). As it stands
+15-06 would apply his neutral rewrites and **silently discard every "you" variant.**
+
+**Measured across his live session: 18 questions, of which the field is doing three different jobs:**
+
+| Content | Count | Belongs in |
+|---|---|---|
+| Addressed-variant copy | 6 | **the new second notes box** |
+| Merge targets written as prose | ≥2 | the `mergeInto` selector (D-36/D-44) |
+| Genuine questions | ~10 | the Question field, as intended |
+
+**Required:**
+1. A second copy field per card — *"Addressed ('you') version"* — sitting beside Notes, exported as
+   its own key, and feeding the derived-intent line so both renderings are visible before shipping.
+2. **Migrate conservatively.** Move a question into the new field only where it clearly specifies the
+   addressed rendering (matches `you[- ]version`, `the "you"`, `addressed`, or opens with `ye `).
+   Leave everything else where it is. **Show a one-time summary of exactly what moved** so he can
+   check — a wrong migration turns a question into shipped copy, the failure the Question field
+   exists to prevent.
+3. **Do NOT auto-resolve merge targets from prose.** Surface them to him against the `mergeInto`
+   selector instead — free-text matching to a card id is exactly the guesswork D-44 warned about.
+
+**D-48 — Dock flavour text is KEPT. His current rewrites contradict that; he must reconcile.**
+
+Wyatt: *"I want to keep the flavor text."* All seven `DOCK_FLAVOR` strings stay, and their cards
+remain `keep`. They are **not** dead copy.
+
+**Conflict, flagged not resolved:** his in-progress rewrites for `table:dock~bought` and
+`table:dock~coins` both read *"docks at the Flour Patch **for Toasty Wheat**…"* — replacing the
+flavour phrasing (*"for 🌾 a sack of toasty wheat"*) with the plain ingredient name. Applied as
+written, they delete the very text he has just said to keep, and `DOCK_FLAVOR` becomes unused.
+
+**Ask him to reconcile — do not pick for him.** Either those two notes change back to the flavour
+phrasing, or "keep the flavour text" means keep the strings while these two lines stop using them
+(in which case the seven cards are dead after all). The two readings ship differently.
+
+**D-49 — The two open `newround` merge targets are answered (found in his question fields).**
+
+- `table:newround~heldStorm` → *"merge with fresh storm"* → **`table:newround`** (Fresh storm)
+- `table:newround~streakStormHeldWontQuit` → *"Merge with Storm committed ≥2 rounds + wind holds
+  (2 rounds)"* → **`table:newround~streakStormHeldGusting`**
+
+Closes the question left open since D-27. **Confirm these readings with him** before setting them in
+`mergeInto` — both are prose-to-card-id inferences, and D-44 exists because a wrong merge target is
+worse than an unset one.
+
