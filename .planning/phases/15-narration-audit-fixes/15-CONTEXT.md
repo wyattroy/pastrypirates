@@ -1963,3 +1963,42 @@ A new line arriving from `watchNarr` cancels the pending fade of the previous li
 
 **Deferred to a new phase (see ROADMAP):** moving narration out of flow control on the host.
 
+
+**D-59 — Show the ACTUAL coin loss on the storm-flip button. No backend change.**
+
+Wyatt: *"for aground, can't we just display it visually in the button? the point is simply to help the
+user understand how many coins they'd lose -- not to change anything on the backend at all.
+especially important because we don't say that we're rounding down -- so if you have 3 coins, the
+most you could lose is 1, and that would be great to know visually."*
+
+**This sidesteps the determinism problem entirely.** The `aground` *event* cannot carry the amount
+(adding a field invalidates all 31 fixtures — the phase boundary forbids it), but the **button label
+is composed client-side at prompt time, where `p.coins` is already in hand**:
+
+```js
+// src/ui/flow.js:250-253 — p.coins is right here
+const flipLabel = trueShipwreck ? "…lose yer turn!"
+  : broke ? "…lose a crate!"
+  : "Flip! Heads: dodge. Tails: lose half 🌕";
+```
+
+**Change:** replace the vague *"lose half"* with the real number,
+`Math.max(1, Math.floor(p.coins/2))` — the same expression the engine uses at `flow.js:270` /
+`engine/index.js:290`, so the label cannot disagree with the outcome. Per D-38 it is signed:
+**`(−1🌕)`**.
+
+**Why it matters beyond clarity:** the rounding is currently invisible. At 3 coins you lose 1, not
+1.5 — a player has no way to know that, and "half" reads worse than it is. Showing the number teaches
+the rule at the moment the decision is made.
+
+**Scope:** the *button* only. The `aground` narration keeps its existing wording — it is describing
+what happened, not helping a decision. Applies to the ordinary branch; the broke and truly-shipwrecked
+branches already name their real consequence (a crate, the turn).
+
+**D-60 — `orchestrator.js:1012` keeps its own copy; only `:956` merges into `:945`.**
+
+Wyatt: *"good catch on 1012 -- keep 1012 on its own."* `:945` and `:956` are both capacity failures
+and share his line — *"Arrgh, the server's got too many pirates baking right now! Try a Solo game
+instead?"* `:1012` is a transient failure ("try again in a moment"), a different situation deserving
+different words. Its `merge` tag is superseded by this decision: **treat `:1012` as `keep`.**
+
