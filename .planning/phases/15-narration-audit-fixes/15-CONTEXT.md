@@ -995,3 +995,31 @@ render at different widths and weights beside a coin. Normalise to `−` (U+2212
 **Verification for 15-06:** no parenthesised amount adjacent to a coin glyph lacks a leading `+` or
 `−`, and no player-facing minus uses an ASCII hyphen.
 
+
+**D-38 RESOLVED — Wyatt confirmed both ambiguous cases and the minus normalisation (2026-07-29):**
+
+1. **Counter-offer buttons** (`flow.js:752`) → **`+{n}🌕`**. *"correct, +3🌕"*. Money he receives for
+   his crate.
+2. **Trade offer summary** (`flow.js:461`) → **left alone, deliberately.** *"agree, leave this
+   alone."* The composed string reads *"Toasty Wheat + 2🌕"*, where `+` means "and also"; a `−`
+   would collide with that reading. **This is a stated exception, not an oversight — do not
+   "fix" it in a later pass.**
+3. **Normalise the minus character** → *"please normalize the minuses"*. All player-facing minuses
+   become **U+2212 `−`**. The ASCII hyphen `-` currently used on the Attack button (`flow.js:549`)
+   and 2 other sites renders narrower and lighter than the `−` used elsewhere, so amounts fail to
+   align beside the coin art.
+
+**Final change list for 15-06 (D-38):**
+
+| Site | From | To |
+|---|---|---|
+| `util.js:494`, `:495` | `(2🌕)` / `(1🌕)` | `(+2🌕)` / `(+1🌕)` |
+| `util.js:486` | `(they pay 1🌕)` | `(−1🌕)` |
+| `util.js:487`, `:488` | `(pays 1🌕)` | `(−1🌕)` |
+| `flow.js:752` | `` `${n}🌕` `` | `` `+${n}🌕` `` |
+| `flow.js:549` + 2 others | ASCII `-` | U+2212 `−` |
+| `flow.js:461` | — | **no change (exception above)** |
+
+**Verification:** no parenthesised amount adjacent to a coin glyph lacks a leading `+`/`−`; no
+player-facing minus is an ASCII hyphen; `flow.js:461` still reads *"{ingredient} + {n}🌕"*.
+
