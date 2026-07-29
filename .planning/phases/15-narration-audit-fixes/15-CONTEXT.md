@@ -1216,3 +1216,38 @@ routine walls.
 no opponent holding cargo, Parley likewise; neither dead-end message is reachable by clicking a
 visibly-enabled control.
 
+
+**D-43 — Config-gated branches whose flag is a hardcoded constant are DEAD. Two cards are affected.**
+
+Wyatt, of the `trade` card *"Cooperation bonus OFF"*: *"when does this get shown?"* — **never.**
+
+`roundCfg()` (`src/engine/index.js:813-822`) is the **only** config factory — every game-start path
+goes through it (`orchestrator.js:1006`, `flow.js:1006/1017`, `board.js:573`, `util.js:1112`) — and
+**nothing in `src/` ever mutates `cfg` after construction** (verified: no `cfg.X =` assignment
+anywhere). Every flag is a hardcoded literal:
+
+`tradeBonus:true` · `sardine:true` · `parley:true` · `dockBuy:true` · `merchant:true` ·
+`roundBoard:true` · `unlimitedDock:true` · `asym:false`
+
+**So two audit cards render text no player can reach:**
+
+| Card | Gated on | Why dead |
+|---|---|---|
+| `trade` — *"Cooperation bonus OFF"* | `cfg.tradeBonus === false` | always `true` |
+| `fish` — *"Tails, sardine rule OFF — empty-handed"* | `cfg.sardine === false` | always `true` |
+
+(`asym:false` is the already-known dead raider battle branch — see Deferred Ideas.)
+
+**This is not a D-21 regression.** Rendering every config-gated variant was correct for completeness;
+the problem is that two of those variants are unreachable in the shipped configuration and the page
+does not say so. Only the test harness (`scripts/narration_test.js:51`) ever sets these false.
+
+**Required — extend the dead-copy detection (D-33/D-34/D-40 family):** a branch gated on a config
+flag whose value is a hardcoded literal in `roundCfg()` is unreachable, and its card must be badged
+accordingly. Derive this from `roundCfg()` rather than hand-listing, so a future flag that genuinely
+becomes configurable stops being flagged automatically.
+
+**Keep the code, badge the card.** These branches cost nothing and would matter if a flag ever became
+a real option — the point is only to stop Wyatt spending rewrites on them, as he nearly did on the
+`humanFlip` fallback (D-33).
+
