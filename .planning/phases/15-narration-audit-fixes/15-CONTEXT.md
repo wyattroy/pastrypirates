@@ -1410,3 +1410,39 @@ the circle. Both are now settled and consistent with their own natures; neither 
 **parley** flow's Back buttons. It does not extend to the hail's "Never mind", which is an exit, not
 a Back. Recorded so a later pass does not "fix" the inconsistency by making it step back.
 
+
+**D-46 — The docking sequence: PLACE names the destination, INGREDIENT names the payoff.**
+
+Wyatt, across three messages: the island place-names *"SHOULD be called in the 'Dock at the Flour
+Patch'"* button; the narration can then drop *"docks at the Flour Patch"* and read
+*"Crustbeard hauls aboard Toasty Wheat!"*; and *"this prompt should say 'Docking at 🌾 The Flour
+Patch — flip!'"*.
+
+**The principle:** the two steps that are about *going somewhere* name the **place**; the step about
+*what you got* names the **ingredient**. Nothing is said three times.
+
+| Step | Site | Today | Becomes |
+|---|---|---|---|
+| Action button | `flow.js:545` | `⚓ Dock at {ilabelImg(port)}` → *"Dock at 🌾 Toasty Wheat"* | *"⚓ Dock at the Flour Patch"* |
+| Flip prompt | `flow.js:389` | `Docking at {ilabelImg(ing)} — flip!` | *"Docking at 🌾 The Flour Patch — flip!"* — **ingredient icon kept, place name substituted** |
+| Narration (heads) | `util.js:387` | `docks at {place} — hauls aboard {ilabelImg(e.ing)}!` | *"Crustbeard hauls aboard Toasty Wheat!"* |
+
+**Implementation note:** the prompt wants *icon + place*, not `ilabelImg()` (which emits icon +
+*ingredient*). The needed shape already exists in the `bought`/`coins` dock branches:
+`${iconImg(ING_IMG[e.ing])} ${…}`. Reuse it — do not hand-roll a new img tag.
+
+**Only the `ing` (heads) narration branch loses its place clause.** The other three dock branches
+still need theirs, and `empty` still needs the ingredient name (*"finds no Toasty Wheat"* is the
+whole point of that line). Do not apply the cut across all four.
+
+**Two things flagged for Wyatt, not decided:**
+1. **Capitalisation.** He wrote *"The Flour Patch"*; `DOCK_PLACE` stores *"the Flour Patch"* — and the
+   articles are deliberately baked in per island (2 of 7 carry *"the"*: `the Spice Isle`,
+   `the Flour Patch`; the other 5 are bare: `Glitter Bay`, `Custard Key`, `Full Cream Folly`,
+   `Clucker's Cove`, `Cocoa Cabana`). Mid-sentence, *"Docking at the Flour Patch"* reads correctly
+   and *"Docking at The Flour Patch"* does not. **Recommend keeping the stored lowercase article.**
+2. **Spectators see neither the button nor the prompt** — only the narration. Cutting the place from
+   the heads line leaves them without a location. If that matters, the addressed/neutral split can
+   differ: actor gets *"Ye haul aboard Toasty Wheat!"*, spectators get *"Crustbeard docks at the
+   Flour Patch and hauls a crate aboard!"* The mechanism already exists.
+
