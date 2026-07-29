@@ -340,7 +340,7 @@ Plans:
   4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
   5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 **Wave 1**
@@ -358,7 +358,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 15-05-PLAN.md — The NARR-01 deliverable: line-inventory extraction script, the rendered audit page, and Wyatt's single review pass (blocking approval checkpoint, D-01…D-04/D-06)
+- [x] 15-05-PLAN.md — The NARR-01 deliverable: line-inventory extraction script, the rendered audit page, and Wyatt's single review pass (blocking approval checkpoint, D-01…D-04/D-06)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -382,11 +382,13 @@ Plans:
 **UI hint**: yes
 
 **Added during Phase 15 (host/guest drift — see 15-CONTEXT D-55/D-56):**
+
   - Give guest sail-highlights `class:"sailCell"` and drop the inline fill/opacity so host and guest
     take the same CSS. Today the guest board has no pulse animation, no hover feedback, and a
     dimmer/different orange — the affordance that says "clickable" is missing for anyone who joined
     rather than hosted. One line in `remotePickHighlights()` (`src/ui/flow.js:1040`). Do it in the
     same sitting as 15-06's D-35 wording fix, which touches the same two functions.
+
   - **Host/guest render-parity test** (`scripts/`, wired into `npm test`): assert `localAsk` and
     `watchPrompt` emit the same CSS class set (`apBack`, `apMsg`, `apBtns`, `apBtn`, `apDisabled`,
     `apSub`, `recipes`), and that both sail-highlight paths agree on `sailCell`. Static source
@@ -427,12 +429,11 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
 | 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
 | 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 6/6 | Complete    | 2026-07-26 |
-| 15. Narration Audit & Fixes | v1.2 | 4/6 | In Progress|  |
+| 15. Narration Audit & Fixes | v1.2 | 5/6 | In Progress|  |
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 
 ## Backlog
-
 
 ### Phase 18: Narration Pacing — commentary, not a gate
 
