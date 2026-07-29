@@ -1162,3 +1162,20 @@ whose notes are non-empty and whose tag is `keep` should have its dropdown corre
 same rule, applied once to existing state. No dispositions change, since the derived intent was
 already `rewrite`; only the visible control catches up.
 
+
+**D-41 RESOLVED — the Parley button disable lands in 15-06.**
+
+Wyatt: *"do the trade button disable in 15-06"* — scope question settled. Not deferred to Phase 16.
+
+Justified: it touches no engine code, changes no event, and the exact pattern already exists eleven
+lines away in the same function (the Attack button's `disabled:!canAfford` + `sub` helper). It is
+presentation-tier, which is what this phase is scoped to.
+
+**15-06 task:** compute real parley availability once — `tradeOpp(p).filter(q => q.ing.length > 0)` —
+and use it for **both** the button's `disabled` flag (`flow.js:551`) and the action guard
+(`flow.js:409`). Add `sub` helper text under the greyed button saying why. `flow.js:410`'s flash then
+becomes a guarded safety net (D-40) instead of a routine dead end.
+
+**Verify:** with no opponent holding cargo, the Parley button renders greyed with its reason visible,
+and it is not possible to click through to *"No one has cargo to trade for."*
+
