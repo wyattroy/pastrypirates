@@ -1680,3 +1680,32 @@ in neutral-plus-addressed form. Six branches become four. Same pattern as D-18's
 duplication and D-35's host/guest sail prompt — a fork that exists only because the code branches on
 *who*, when the narration should branch on *who is reading*.
 
+
+**D-53 — `--` in Wyatt's copy becomes an EM dash `—`, not an en dash. Applied at 15-06.**
+
+Wyatt: *"i can't type n-dashes in the text boxes -- so if I write '--' replace that with the
+appropriate n-dash"*, then *"you can do it at the end"*.
+
+**Correction to the ask — the house style is the EM dash.** Counted across the three narration files:
+
+| Character | Count | Used for |
+|---|---|---|
+| **`—` em dash** | **441** | every prose break — the game's universal convention |
+| `–` en dash | 4 | **only** battle scores (`${aP}–${dP}`, `util.js:468-470`) and one placeholder coin dash |
+| ` - ` spaced hyphen | 1 | — |
+
+So `--` in his copy means the **em dash `—`** he sees everywhere in the existing narration. The en
+dash is reserved for number pairs; substituting it in prose would be wrong in all 441 places and
+right in none.
+
+**Rule for 15-06:** replace `--` (and a spaced ` - ` used as a prose break) with `—` in every applied
+string. **Do NOT touch a `–` between digits** — that is a score and is already correct.
+
+Timing is his call: *"you can do it at the end"* — this is a normalisation pass applied when copy is
+written to `src/`, alongside D-50's whitespace trimming and placeholder translation. It is **not**
+applied live on the audit page, so his cards will keep showing `--` while he works; that is expected
+and not a defect.
+
+**Verification:** no applied narration string contains `--`; every `–` in shipped copy sits between
+two digits.
+
