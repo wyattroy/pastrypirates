@@ -5,10 +5,10 @@ milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: narration-audit-fixes
 status: verifying
-stopped_at: Completed 15-06-PLAN.md (phase 15 fully executed, plan 6 of 6)
-last_updated: "2026-07-29T18:40:13.578Z"
-last_activity: 2026-07-27
-last_activity_desc: Phase 15 execution started
+stopped_at: Quick task 20260729-phase15-verification-gaps — Tasks 1-8 committed, Task 9 blocking review gate open for Wyatt
+last_updated: "2026-07-29T22:47:09.145Z"
+last_activity: 2026-07-29
+last_activity_desc: Quick task 20260729-phase15-verification-gaps — 8/9 tasks, awaiting Task 9 review gate
 progress:
   total_phases: 12
   completed_phases: 3
@@ -74,6 +74,12 @@ Progress: [██████████] 100% (v1.2)
 | Phase 15 P04 | 15min | 3 tasks | 3 files |
 | Phase 15 P06 | large-session | 2 tasks | 9 files |
 
+## Quick Tasks Completed
+
+| Date | Task | Tasks | Commits | Outcome |
+|------|------|-------|---------|---------|
+| 2026-07-29 | `20260729-phase15-verification-gaps` — close the 5 gaps in `15-VERIFICATION.md` | 8 of 9 | 8 (`0cc674d`..`8b18467`) | **Awaiting Task 9 checkpoint (Wyatt).** All 5 gaps closed; `npm test` 14 -> 15 gates; `src/engine/index.js` diff empty, 31/31 determinism seeds verify. Four copy rulings open for him. |
+
 ## Accumulated Context
 
 ### Decisions
@@ -109,6 +115,11 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: 15-04: bakeoff's loser gets its own commiseration line rather than reusing the neutral text verbatim, since narrationVariants() filters out any addressed rendering equal to the neutral one — a byte-identical loser line would have silently produced zero variant entries for that seat
 - [Phase ?]: D-19 SIMPLIFIED: accepted bot hails emit only a trade event (no more duplicate parley+trade double-narration); Parley renamed Trade everywhere a player reads it
 - [Phase ?]: D-57/D-58: guest narration (showNarration) now holds and fades non-blockingly on the same curve as host flash() narration
+- [Quick 2026-07-29]: D-25 reinterpreted for the audit page: because `pirateVoice()` ran LIVE at the msgBox chokepoint, a card tagged `keep` with empty notes DISPLAYED converted text — so that converted text is what Wyatt approved. 15-06's reading of `keep` + empty notes as "no source change" is what produced Gap 2.
+- [Quick 2026-07-29]: D-29's conversion ships as plain literals, NOT as a runtime `pirateVoice()` helper — a helper nothing calls at runtime would be dead code (the thing D-33/D-34/D-40 exist to prevent). The audit page's regex is used as the spec and as the verifier instead: each shipped literal is proven byte-equal to `pirateVoice(its own baseline text)`.
+- [Quick 2026-07-29]: D-54's three approved loser-view battle lines restructure the sentence (winner named, one sentence not two), so the loser gets a composite branch of its own; the winner-addressed and neutral renderings stay byte-unchanged. The score slot remains attacker–defender order — that is pre-existing and deliberately not "fixed".
+- [Quick 2026-07-29]: D-17's `fmtItem()` fix requires the `ING_IMG[x] ?` guard — the else-branch input is not always an ingredient key (`offerLabel` display strings, `"nothing"`), so an unguarded lookup would emit `<img src="undefined">`.
+- [Quick 2026-07-29]: `npm test` is now 15 gates — `scripts/extract_narration_lines.js` joined the chain, so the D-21/D-31/D-32/D-33 narration coverage guard is CI-enforced. `ui_contract_check.js` gained assertion 5 (the standing D-29 register + the `layout` intactness probe), red-proof drilled with 5 fixtures including a negative control.
 
 ### Pending Todos
 
@@ -122,6 +133,8 @@ None yet.
 - **MP test-harness gotcha:** Same-machine two-tab multiplayer shares localStorage `pp_id`, causing a transient host-reload collision during Phase 12 tests — re-set the host's own `pp_id` before reloading. Use synthetic-prompt injection for deterministic remote-render checks (see MEMORY.md).
 - **Backlog UAT findings (from v1.1 Phase 12 Safari playthrough, pre-existing, not regressions):** EOV narration box not cleared (still open, tagged `resolves_phase: 16`; may intersect Phase 15 narration work). ~~Bot hail + action on the same turn~~ — **closed by Phase 14 (AI-01/plan 14-02)**; the todo is filed under `.planning/todos/completed/`.
 - 15-06's browser-based human-check steps (Chrome solo, Safari solo, two-tab multiplayer) were not performed — no browser available in the execution environment. Needs a human pass, especially for D-57/D-58 (guest narration fade) and D-35 (sail-prompt merge).
+- **OPEN — quick task `20260729-phase15-verification-gaps` Task 9 is a blocking review gate awaiting Wyatt.** Four copy rulings: (1) `src/ui/recipe.js:34,69,146` cookbook prose — recommend LEAVE; (2) `index.html:743` credits paragraph — recommend LEAVE; (3) `index.html:650`/`:761` privacy notice + form placeholder — CONVERTED, confirm he's happy; (4) `misc:battleLine:src/orchestrator.js:482`/`:486` `addressedNotes` — recommend DEFER (battle footer has no per-seat variant mechanism). If he rules "convert" on (1), also remove the `src/ui/recipe.js` exclusion from `ui_contract_check.js` assertion 5.
+- The quick task's two `<human-check>` items fold into the already-scheduled two-tab playtest: **P8 flips from expected-FAIL to expected-PASS** (D-17 ingredient art in trade narration), and **P12 is now answerable**. P1–P4 and P5 remain playtest-only.
 
 ## Deferred Items
 
@@ -139,9 +152,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-29T18:40:13.479Z
-Stopped at: Completed 15-06-PLAN.md (phase 15 fully executed, plan 6 of 6)
-Resume file: None
+Last session: 2026-07-29T22:47:09.151Z
+Stopped at: Quick task 20260729-phase15-verification-gaps — Tasks 1-8 committed (0cc674d..8b18467), Task 9 blocking review gate open for Wyatt
+Resume file: .planning/quick/20260729-phase15-verification-gaps/PLAN.md (Task 9)
 
 ## Operator Next Steps
 
