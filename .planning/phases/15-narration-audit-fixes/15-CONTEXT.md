@@ -960,3 +960,38 @@ the subject of *carried*, *swept*, *whipped* or *moves*. **`shoves` is permitted
 `util.js:328`** (the `moored` lucky-break branch). Any new *shove* elsewhere is a violation; that one
 is not.
 
+
+**D-38 — Every parenthesised cost/benefit carries an explicit + or −.**
+
+Wyatt: *"I want the parenthesis cost/benefit to have a + or - in front of it always, so players can
+easily see what that amount will do to their balance. I just noticed it with Button Attack (-2)…
+can you [audit the rest]?"*
+
+**Rule:** an amount shown in parentheses as a cost or benefit always states its direction. A player
+should never have to infer from surrounding prose whether a number is coming in or going out.
+
+**Scope — parenthesised amounts only.** Amounts inside a sentence stay unsigned (*"pays 1🌕 and
+sails"*, *"Take 3🌕"*), because a sign reads as arithmetic mid-prose. Buttons whose whole label is a
+price (*"Sell for 5🌕"*) are also out of scope: the verb already states direction.
+
+**Already correct (6):** `(−1🌕)` dodge/anchor · `(−3🌕)` buy crate · `(+{n}🌕)` turn-order intro ·
+`(+{n}🌕)` coin sweetener · `🦀 +1🌕` candycrab caption · `(-{powder}🌕)` Attack — *see sign-character
+defect below*.
+
+**Needs a sign — proposed direction, CONFIRM the two marked (?):**
+
+| Site | Current | Proposed | Why |
+|---|---|---|---|
+| `util.js:494/495` | `(2🌕)` sugarfish, `(1🌕)` candycrab | `(+2🌕)` / `(+1🌕)` | a catch is a gain |
+| `util.js:486` | `(they pay 1🌕)` | `(−1🌕)` | flee cost. **Drop "they pay"** — redundant once signed, and *"(they pay −1🌕)"* is nonsense |
+| `util.js:487/488` | `(pays 1🌕)` | `(−1🌕)` | same, both variants |
+| `flow.js:752` (?) | `{n}🌕` counter buttons | `+{n}🌕` | he is naming a price he would **receive** for his crate |
+| `flow.js:461` (?) | `{give.coins}🌕` in the offer summary | `−{give.coins}🌕` | coins he is **giving away** — but this is a composed offer string (*"Wheat + 2🌕"*), where a minus may read as subtraction rather than cost |
+
+**Separate defect — two different minus characters are in use.** `(-2🌕)` on the Attack button is an
+ASCII hyphen `-`; `(−1🌕)` elsewhere is a proper minus `−` (U+2212). **3 hyphens vs 5 minuses.** They
+render at different widths and weights beside a coin. Normalise to `−` (U+2212) everywhere.
+
+**Verification for 15-06:** no parenthesised amount adjacent to a coin glyph lacks a leading `+` or
+`−`, and no player-facing minus uses an ASCII hyphen.
+
