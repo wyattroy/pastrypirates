@@ -713,3 +713,38 @@ the exact duplication he is trying to avoid. **A prompt without its buttons is u
 - **Add a self-check assertion**: every prompt card must render at least one button, or be explicitly
   marked dynamic. An empty button list must fail the check, exactly as an un-rendered branch does.
 
+
+**D-32 — Whole CATEGORIES of player-facing copy are still absent from the audit.**
+
+Wyatt asked for an independent sweep to confirm nothing was still missing. It is not.
+
+Method: enumerated every player-facing string in `src/`, normalised both sides through the D-29
+pirate conversion, and tested each against the rendered audit page's visible text.
+
+**Confirmed absent — every item verified missing, not merely unmatched:**
+
+| Category | Count | Examples |
+|---|---|---|
+| **Intro / barrier banners** (`netIntroBarrier`, 3 sites + button labels) | 6 | *"⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win!"*; *"The crew draws lots for sailing order — … Patience pays, mateys!"*; the final-round *"fired up the bakery! Last chance, crew"*; buttons *"⚓ Arrgh! Let's start"*, *"🦜 Aye, set sail!"*, *"🦜 Final round — set sail!"* |
+| **End-of-voyage awards** | 21 | 10 names + 11 bylines — *"The Cutlass of a Thousand Notches"* / *"One notch per fallen foe, carved into the hilt."*, *"The Black Spot of Bad Tides"*, *"The Golden Herring"* |
+| **Battle blow-by-blow** | 3+ | *"Both fire HEADS — crosswind, cannonballs collide, no damage."*, *"Both miss — TAILS all round."*, *"Both HEADS — no score this round."* |
+| **Multiplayer errors / room join** | 6 | *"Couldn't reach the multiplayer service…"*, *"No game found with code"*, *"That game has already set sail."*, *"That game is full."*, *"That game no longer exists."*, *"Enter the room code your host shared."* |
+| **Recipe draft + waiting states** | 4 | *"⚓ Everyone's choosing their recipe…"*, *"⚓ Recipe chosen! Waiting for the rest of the crew…"*, *"⚓ Waiting for yer pirate mateys to continue…"*, *"is choosing where to sail…"* |
+| **Dock flavour text** | 6 of 7 | Only *"a sack of toasty wheat"* renders (the dock card fabricates a wheat event). *"rich vanilla beans"*, *"bursting cacao pods"*, *"sand-speckled eggs"*, *"some jugs of cool milk"*, *"sprigs of red hot cinnamon"*, *"a sack of crystal sugar"* never appear |
+| **Timer controls** | 2 | *"Turn the timer off"* / *"Turn the timer back on"* |
+| **Lobby / pass-and-play** | 1 | *"Pass the device to …"* |
+
+**~50 further strings.** The intro banner is the **first text any player reads**; the awards are the
+**last**. Neither has ever been reviewable.
+
+**Root cause — the scope was defined by MECHANISM, not by audience.** D-03 scoped the audit to the
+`EVENT_NARRATION` table plus ad-hoc `flash()` calls; D-30 added `ask()`/`panel()`. Anything reaching
+the player by another route — `netIntroBarrier()`, direct DOM writes for awards, lobby, room-join
+errors — was structurally invisible. This is the same failure as D-21 (one case per line), D-30
+(prompts absent) and D-31 (buttons absent): each time the page looked complete because it was
+complete *against its own definition of scope*, and the definition was too narrow.
+
+**The definition must change from "narration" to "every string a player can read."** The self-check
+must enforce coverage against that definition — enumerate player-facing strings from source and fail
+on any without a card — so the next omission is caught by the page, not by Wyatt.
+
