@@ -852,3 +852,30 @@ duplication (D-18 #2) — the pipeline is forked, so the copy forked with it —
 rather than by actor type. **Worth sweeping for other host/guest wording pairs while fixing it**;
 this one was found by eye, so others may exist.
 
+
+**D-35 SWEEP RESULT — `localPickCell`/`remotePickHighlights` is the ONLY host/guest wording fork.**
+
+Wyatt asked 15-06 to sweep for further pairs. Done now so 15-06 gets a list, not an instruction.
+
+**Method:** enumerated every local-vs-remote branch point (`decisionIsLocal()`), then checked whether
+each guest-side function **receives** its player-facing text or **hardcodes** its own. Hardcoding is
+the structural signature of the fork — a received message cannot diverge from the host's.
+
+| Branch point | Guest side gets its text from | Forked? |
+|---|---|---|
+| `util.js:841` — the whole `ask()` path | `msg` computed once, passed to both branches | **No** |
+| `orchestrator.js:361` — `asyncBattle` | `msg` vs `spectMsg`, chosen by `seat===mySeat` | **No** — that is the *correct* actor/spectator split (D-10), not a transport fork |
+| `orchestrator.js:665` — recipe draft | single `msgFor(p)` | **No** |
+| `watchPrompt` (`:901`,`:912`) | `p.msg` from the payload | **No** |
+| `watchDraftPrompt` (`:849`) | `p.msg` / `p.waitMsg` from the payload | **No** |
+| **`flow.js:178` — sail-cell pick** | **`remotePickHighlights` HARDCODES its own sentence** | **YES — the D-35 fork** |
+
+**`remotePickHighlights` (`flow.js:1044`) is the only guest-side function that writes its own
+player-facing copy instead of rendering what the host sent.** Every other remote path is a pure
+renderer, so its wording cannot drift. Confirmed by scanning each guest-side function for hardcoded
+string literals — only this one has any.
+
+**So 15-06 fixes one pair, not a category** — but the fix should keep the invariant explicit:
+*guest-side code renders text, it never authors it.* That property is what kept the other five paths
+correct, and is worth stating so a future remote renderer does not reintroduce the fork.
+
