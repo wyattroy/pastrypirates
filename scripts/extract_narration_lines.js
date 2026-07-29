@@ -242,8 +242,14 @@ const AD_HOC_META = {
   "src/orchestrator.js:720": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
   "src/orchestrator.js:754": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
   "src/orchestrator.js:758": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/ui/util.js:874": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07, new addressed copy this phase)" },
-  "src/ui/util.js:878": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
+  // D-24 (commit 2480d7e) added comment lines above narrateCurrent(), shifting these two call
+  // sites from :874/:878 down to :882/:886. The AUDIT PAGE pins its card ids to the ORIGINAL
+  // :874/:878 (see LEGACY_CARD_ID_PIN there) because Wyatt's pass-2 review already covers those
+  // exact ids (rows 14-15 of the reviewed set) — re-keying here would silently drop that history.
+  // This script stays accurate about the TRUE current source location; only the audit page's own
+  // display id is pinned.
+  "src/ui/util.js:882": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07, new addressed copy this phase)" },
+  "src/ui/util.js:886": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
 };
 
 function applyMeta(sites) {
@@ -275,6 +281,73 @@ const utilSites = findCallSites(src.util, FILE_PATHS.util);
 const adhoc = [...applyMeta(flowSites), ...applyMeta(orchSites), ...applyMeta(utilSites)]
   .sort((a, b) => (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)));
 
+/* ================= D-30: ask()/panel() prompt + button extraction =================
+ * A third narration-adjacent surface, never in scope for D-03 — action prompts and their button
+ * labels, the text players read most (every turn, every decision). Same discipline as the
+ * flash()/onFlash() extraction above: mechanical, not hand-transcribed, cross-checked against an
+ * independent count.
+ *
+ * `panel("")` (and equivalent empty-string clears) carry no copy of their own — dropped, not
+ * counted as a prompt, but still counted in the raw independent-count cross-check so a real
+ * prompt can never hide behind an under-counted total.
+ *
+ * Button labels: only STATIC ones (a literal string/template inside `label:`) are extracted as
+ * editable copy. A DYNAMIC label (e.g. `label:pn(o.idx)`, a live captain name) renders data, not
+ * fixed copy — same reasoning table cards don't need one card per captain name — so it is counted
+ * (dynamicLabelCount) but not extracted individually.
+ */
+function isEmptyStringLiteral(raw) {
+  const t = (raw || "").trim();
+  return t === '""' || t === "''" || t === "``";
+}
+function extractLabels(optsRaw) {
+  if (!optsRaw) return { labels: [], dynamicLabelCount: 0 };
+  const labelValueRe = /label\s*:\s*(`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g;
+  const labels = [];
+  let m;
+  while ((m = labelValueRe.exec(optsRaw))) labels.push(m[1]);
+  const allLabelRe = /label\s*:/g;
+  let totalLabelKeys = 0;
+  while (allLabelRe.exec(optsRaw)) totalLabelKeys++;
+  return { labels, dynamicLabelCount: Math.max(0, totalLabelKeys - labels.length) };
+}
+function findPromptSites(fileSrc, filePath) {
+  const marks = functionBoundaries(fileSrc);
+  const sites = [];
+  let rawCount = 0;
+  const callRe = /\b(ask|panel)\s*\(/g;
+  let m;
+  while ((m = callRe.exec(fileSrc))) {
+    const idx = m.index;
+    const kind = m[1];
+    const lineNo = fileSrc.slice(0, idx).split("\n").length;
+    if (isCommentLine(fileSrc, lineNo)) continue;
+    rawCount++;
+    const openParenIdx = idx + m[0].length - 1;
+    const { args } = parseCallArgs(fileSrc, openParenIdx);
+    const rawMsg = args[0] || "";
+    if (kind === "panel" && isEmptyStringLiteral(rawMsg)) continue; // clear — no copy of its own
+    const rawOpts = kind === "ask" ? (args[1] || null) : null;
+    const { labels, dynamicLabelCount } = extractLabels(rawOpts);
+    sites.push({
+      file: filePath,
+      line: lineNo,
+      fn: enclosingFunction(marks, lineNo),
+      kind,
+      rawMsg,
+      rawOpts,
+      labels,
+      dynamicLabelCount,
+      isLiteral: /^[`"']/.test(rawMsg.trim()), // false = a pre-computed variable (e.g. `promptMsg`), not an inline literal
+    });
+  }
+  return { sites, rawCount };
+}
+const flowPromptResult = findPromptSites(src.flow, FILE_PATHS.flow);
+const orchPromptResult = findPromptSites(src.orch, FILE_PATHS.orch);
+const prompts = [...flowPromptResult.sites, ...orchPromptResult.sites]
+  .sort((a, b) => (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)));
+
 /* ================= self cross-check (independent second pass) ================= */
 
 function independentCount(fileSrc) {
@@ -296,6 +369,20 @@ crossCheck(FILE_PATHS.flow, src.flow, flowSites.length);
 crossCheck(FILE_PATHS.orch, src.orch, orchSites.length);
 crossCheck(FILE_PATHS.util, src.util, utilSites.length);
 
+function independentPromptCount(fileSrc) {
+  const kept = fileSrc.split("\n").filter((line) => !/^\s*\/\//.test(line)).join("\n");
+  const m = kept.match(/\b(ask|panel)\s*\(/g);
+  return m ? m.length : 0;
+}
+function crossCheckPrompts(name, fileSrc, rawCount) {
+  const simple = independentPromptCount(fileSrc);
+  if (simple !== rawCount) {
+    fail(`${name}: structured extraction found ${rawCount} ask()/panel() call site(s) but the independent count found ${simple} — named diff, extraction is unreliable`);
+  }
+}
+crossCheckPrompts(FILE_PATHS.flow, src.flow, flowPromptResult.rawCount);
+crossCheckPrompts(FILE_PATHS.orch, src.orch, orchPromptResult.rawCount);
+
 if (Object.keys(EVENT_NARRATION).length !== table.length) {
   fail(`EVENT_NARRATION has ${Object.keys(EVENT_NARRATION).length} keys but the table array built ${table.length} entries`);
 }
@@ -305,10 +392,14 @@ if (Object.keys(EVENT_NARRATION).length !== table.length) {
 const tableCount = table.length;
 const adhocCount = adhoc.length;
 const total = tableCount + adhocCount;
+const promptCount = prompts.length;
+const buttonCount = prompts.reduce((n, p) => n + p.labels.length, 0);
 
 console.log(`table entries:  ${tableCount}`);
 console.log(`ad-hoc entries: ${adhocCount} (${adhoc.filter((a) => a.tableDriven).length} table-driven pass-through, ${adhoc.filter((a) => !a.tableDriven).length} genuine ad-hoc)`);
 console.log(`total:          ${total}`);
+console.log(`prompt sites:   ${promptCount} (${prompts.filter((p) => p.kind === "ask").length} ask, ${prompts.filter((p) => p.kind === "panel").length} panel)`);
+console.log(`button labels:  ${buttonCount} static (+ ${prompts.reduce((n, p) => n + p.dynamicLabelCount, 0)} dynamic, not extracted as copy)`);
 
 // the corrected pre-change surface count from 15-RESEARCH.md — plans 15-03/15-04 can only raise
 // this (new brokeSailLine/brokeAnchorLine/stormIntroClause call sites), never lower it
@@ -319,7 +410,7 @@ if (failures) {
   process.exit(1);
 }
 
-const inventory = { table, adhoc };
+const inventory = { table, adhoc, prompts };
 writeFileSync(
   join(ROOT, "art-review/narration-inventory.json"),
   JSON.stringify(inventory, null, 2) + "\n",

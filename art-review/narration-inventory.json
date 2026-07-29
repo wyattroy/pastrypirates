@@ -475,7 +475,7 @@
     },
     {
       "file": "src/ui/util.js",
-      "line": 874,
+      "line": 882,
       "fn": "narrateCurrent",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -487,7 +487,7 @@
     },
     {
       "file": "src/ui/util.js",
-      "line": 878,
+      "line": 886,
       "fn": "narrateCurrent",
       "tableDriven": true,
       "group": "Sailing & Movement",
@@ -496,6 +496,353 @@
       "mergeWith": null,
       "rawNeutral": "L.txt",
       "rawVariants": null
+    }
+  ],
+  "prompts": [
+    {
+      "file": "src/orchestrator.js",
+      "line": 306,
+      "fn": "renderBattle",
+      "kind": "panel",
+      "rawMsg": "`<div class=\"btl\">\n    <div class=\"btl-hd\"><span>${title}</span><span class=\"rnd\">Round ${o.round} · first to ${need}</span></div>\n    <div class=\"btl-body\">\n      <div class=\"btl-col${o.live===\"a\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(A.idx)}\">${nm(A.idx)}</div>\n        <div class=\"role\">${o.roleA||\"Attacker\"}</div>\n        ${coinHTML(o.atState,o.atBs,o.winCoin===\"a\")}\n        ${pipsHTML(o.a,col(A.idx),need)}\n      </div>\n      <div class=\"btl-mid\">VS</div>\n      <div class=\"btl-col${o.live===\"d\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(D.idx)}\">${nm(D.idx)}</div>\n        <div class=\"role\">${o.roleD||\"Defender\"}</div>\n        ${coinHTML(o.dfState,o.dfBs,o.winCoin===\"d\")}\n        ${pipsHTML(o.d,col(D.idx),need)}\n      </div>\n    </div>\n    ${battleFooter(o)}\n  </div>`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 503,
+      "fn": "asyncBattle",
+      "kind": "ask",
+      "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Pay 1🌕 to slip away and flee the battle?`",
+      "rawOpts": "[{label:\"🏃 Flee! (−1🌕)\",value:true},{label:\"Keep fighting\",value:false}]",
+      "labels": [
+        "\"🏃 Flee! (−1🌕)\"",
+        "\"Keep fighting\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 535,
+      "fn": "asyncBattle",
+      "kind": "ask",
+      "rawMsg": "`${pn(lose.idx)}, you lost! Pay with…`",
+      "rawOpts": "[{label:\"5🌕\",value:\"coins\"},{label:\"a crate (winner picks)\",value:\"ing\"}]",
+      "labels": [
+        "\"5🌕\"",
+        "\"a crate (winner picks)\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 544,
+      "fn": "asyncBattle",
+      "kind": "ask",
+      "rawMsg": "`${pn(win.idx)}, choose your plunder!`",
+      "rawOpts": "uniq.map(i=>({label:ilabelImg(i),value:i}))",
+      "labels": [],
+      "dynamicLabelCount": 1,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 844,
+      "fn": "watchDraftPrompt",
+      "kind": "panel",
+      "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 901,
+      "fn": "watchPrompt",
+      "kind": "panel",
+      "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 912,
+      "fn": "watchPrompt",
+      "kind": "panel",
+      "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/orchestrator.js",
+      "line": 1128,
+      "fn": "resumeHostGame",
+      "kind": "panel",
+      "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to your voyage…</div>'",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 90,
+      "fn": "localAsk",
+      "kind": "panel",
+      "rawMsg": "`${backHtml}<div class=\"apMsg\">${msg}</div><div class=\"apBtns${grid}\">`+\n      rest.map(x=>`<button class=\"apBtn ${x.o.cls||\"\"}${x.o.disabled?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${x.o.disabled?\" disabled\":\"\"}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join(\"\")+`</div>${subHtml}`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 103,
+      "fn": "humanFlip",
+      "kind": "ask",
+      "rawMsg": "label||\"Flip the dubloon!\"",
+      "rawOpts": "opts",
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": false
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 125,
+      "fn": "fishCast",
+      "kind": "ask",
+      "rawMsg": "label||`${pn(p.idx)}: cast your line — flip!`",
+      "rawOpts": "opts",
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": false
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 200,
+      "fn": "localPickCell",
+      "kind": "panel",
+      "rawMsg": "`<div class=\"apMsg\">${pn(p.idx)}: click a highlighted square to sail (−1🌕)</div>\n      <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 261,
+      "fn": "windLeg",
+      "kind": "ask",
+      "rawMsg": "promptMsg",
+      "rawOpts": "opts",
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": false
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 396,
+      "fn": "humanDock",
+      "kind": "ask",
+      "rawMsg": "`Tails! Take 3🌕 — or buy ${ilabelImg(ing)} anyway for 3🌕?`",
+      "rawOpts": "[\n        {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:\"Take 3🌕\",value:false}]",
+      "labels": [
+        "`Buy ${ilabelImg(ing)} (−3🌕)`",
+        "\"Take 3🌕\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 423,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "\"Parley with whom?\"",
+      "rawOpts": "opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:\"← Back\",back:true,value:\"__back__\"}])",
+      "labels": [
+        "\"← Back\""
+      ],
+      "dynamicLabelCount": 1,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 428,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "`What do you want from ${pn(st.q.idx)}?`",
+      "rawOpts": "[...new Set(st.q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:\"← Back\",back:true,value:\"__back__\"}])",
+      "labels": [
+        "\"← Back\""
+      ],
+      "dynamicLabelCount": 1,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 437,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "\"Offer which ingredient (or coins only)?\"",
+      "rawOpts": "ingOpts",
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 446,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "\"Ye don't have any to offer!\"",
+      "rawOpts": "[{label:\"← Back\",back:true,value:-1}]",
+      "labels": [
+        "\"← Back\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 451,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "st.baseIng?`Sweeten with coin? (offering ${ilabelImg(st.baseIng)})`:\"How many coins?\"",
+      "rawOpts": "coinOpts",
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": false
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 465,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "`${pn(q.idx)}: accept ${offerDisplay} for your ${ilabelImg(want)}?`",
+      "rawOpts": "[{label:`${iconImg(CHECKMARK_IMG)} Accept`,value:true},{label:`${iconImg(CANCEL_X_IMG)} Decline`,value:false}]",
+      "labels": [
+        "`${iconImg(CHECKMARK_IMG)} Accept`",
+        "`${iconImg(CANCEL_X_IMG)} Decline`"
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 497,
+      "fn": "humanTrade",
+      "kind": "ask",
+      "rawMsg": "`${pn(q.idx)} scoffs — but counters: \"${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it.\"`",
+      "rawOpts": "[{label:`Pay ${askFor}🌕 more`,value:true},{label:\"Walk away\",value:false}]",
+      "labels": [
+        "`Pay ${askFor}🌕 more`",
+        "\"Walk away\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 563,
+      "fn": "humanAct",
+      "kind": "ask",
+      "rawMsg": "prompt",
+      "rawOpts": "opts",
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": false
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 584,
+      "fn": "humanAct",
+      "kind": "ask",
+      "rawMsg": "\"Attack whom?\"",
+      "rawOpts": "targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:\"← Back\",back:true,value:null}])",
+      "labels": [
+        "\"← Back\""
+      ],
+      "dynamicLabelCount": 1,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 745,
+      "fn": "botTurn",
+      "kind": "ask",
+      "rawMsg": "`📯 ${pn(p.idx)} hails you: \"Ahoy! ${price}🌕 for your ${ilabelImg(ing)} — what say ye?\"`",
+      "rawOpts": "[{label:`Sell for ${price}🌕`,value:\"sell\"},{label:\"Counter\",value:\"counter\"},{label:\"Refuse\",value:\"refuse\"}]",
+      "labels": [
+        "`Sell for ${price}🌕`",
+        "\"Counter\"",
+        "\"Refuse\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 751,
+      "fn": "botTurn",
+      "kind": "ask",
+      "rawMsg": "`Counter — how much for your ${ilabelImg(ing)}?`",
+      "rawOpts": "raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:\"Never mind\",value:0}])",
+      "labels": [
+        "`${n}🌕`",
+        "\"Never mind\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 880,
+      "fn": "collectSideBets",
+      "kind": "ask",
+      "rawMsg": "`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`",
+      "rawOpts": "[{label:`Call ${ns(att.idx)}`,value:\"a\"},{label:`Call ${ns(def.idx)}`,value:\"d\"}]",
+      "labels": [
+        "`Call ${ns(att.idx)}`",
+        "`Call ${ns(def.idx)}`"
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 889,
+      "fn": "collectSideBets",
+      "kind": "ask",
+      "rawMsg": "`💰 Back your call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win, you double your stake + 1🌕. Lose, you get nothing.`",
+      "rawOpts": "[{label:\"Just the free call\",value:0}].concat(\n              amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?\" — all in!\":\"\"),value:n})))\n              .concat([{label:\"← Back\",back:true,value:\"back\"}])",
+      "labels": [
+        "\"Just the free call\"",
+        "`Back with ${n}🌕`",
+        "\"← Back\""
+      ],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
+    },
+    {
+      "file": "src/ui/flow.js",
+      "line": 1044,
+      "fn": "remotePickHighlights",
+      "kind": "panel",
+      "rawMsg": "`<div class=\"apMsg\">Your move — click a highlighted square to sail (−1🌕)</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
+      "rawOpts": null,
+      "labels": [],
+      "dynamicLabelCount": 0,
+      "isLiteral": true
     }
   ]
 }

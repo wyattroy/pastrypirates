@@ -99,6 +99,18 @@
     flex-direction: column;
     gap: 8px;
   }
+  /* D-30: distinct background for prompts/buttons so they read at a glance against narration
+     cards (Wyatt's explicit ask) — deliberately the SAME warm gold the real game's own
+     #actionPanel.needsAction panel uses while it's waiting on you, so the color itself is
+     already meaningful rather than arbitrary. Buttons get a slightly darker/narrower variant so
+     a prompt and its own buttons are still visually distinguishable from each other. */
+  .card.promptCard { background: #3a3320; border-color: #6b5a1f; }
+  .card.buttonCard { background: #322d1c; border-color: #55491c; margin-left: 14px; }
+  .promptBox {
+    border-radius: 9px; padding: 7px 10px; font-weight: 700; font-size: 0.88rem; line-height: 1.4;
+    border: 2px solid #f5a623; background: linear-gradient(160deg, #fff6c2, #ffe066); color: #4a3a08;
+  }
+  .promptBox img.narrIcon { width: 15px; height: 15px; vertical-align: -3px; object-fit: contain; margin: 0 1px; }
   .cardHead h4 { margin: 0 0 2px; font-size: 0.88rem; }
   .cardMeta { font-size: 0.68rem; color: var(--muted); font-family: ui-monospace, monospace; }
   .silentBadge {
@@ -179,14 +191,19 @@
   <span class="grandTotal" id="totalCount">loading…</span>
 </div>
 <header>
-  <h1>Narration Audit — flow chart, every branch (NARR-01)</h1>
+  <h1>Narration Audit — flow chart, every branch, every prompt (NARR-01)</h1>
   <p>
     Every narration surface in the game — the <code>EVENT_NARRATION</code> table
     (<code>src/ui/util.js</code>) AND every hand-written <code>flash()</code> call in
     <code>src/ui/flow.js</code>, <code>src/orchestrator.js</code> and <code>src/ui/util.js</code> —
+    <b>plus every action prompt and button label</b> (<code>ask()</code>/<code>panel()</code> calls,
+    D-30 — the text players read most: every turn, every decision), styled in warm gold so they read
+    at a glance against the teal/amber narration cards —
     laid out as a flow chart in the order a real game actually plays it: turn start → storm legs →
-    sail → the action you choose → shot clock → round roll-over → voyage end, looping back into the
-    next round. <b>Every branch a builder can produce is its own editable card</b> — every
+    sail → the action prompt and the action you pick → shot clock → round roll-over → voyage end,
+    looping back into the next round, each prompt sitting beside the narration that answers it, its
+    buttons grouped right under it as their own small cards. <b>Every branch a builder can produce is
+    its own editable card</b> — every
     <code>got</code>/<code>heads</code>/<code>reason</code>/<code>ok</code>/<code>winner</code>/
     ingredient-present value and every config-gated variant (the trade-cooperation bonus, the
     sardine/candycrab rule) gets its own card, grouped inside the moment it belongs to. A moment
@@ -261,6 +278,15 @@
     itself with every sibling it also changes.
   </p>
   <p class="methodNote">
+    <b>Every card speaks pirate now — "ye"/"yer" (D-29, confirmed).</b> <code>you</code>→<code>ye</code>,
+    <code>your</code>→<code>yer</code>, <code>you're</code>→<code>yer</code> (one word does both jobs,
+    his call), case-preserving, applied live to EVERY card on this page — narration, prompts, button
+    labels — because <code>keep</code> means "ship exactly what this card displays" (D-25): if the
+    conversion happened later instead, what you'd be approving here wouldn't match what actually
+    ships. Type a rewrite into a notes box in plain English — it converts the same way, shown on the
+    derived-intent line, so you never have to type "ye" by hand.
+  </p>
+  <p class="methodNote">
     This page imports live ES modules and must be served over HTTP (<code>npm start</code>) —
     opening it directly from a bare filesystem path will fail silently in every current browser,
     since module imports are blocked from that origin.
@@ -297,10 +323,10 @@ appState.game = {
   stormNow: true,
 };
 
-const { EVENT_NARRATION, describeFor, narrationVariants, NEUTRAL_VIEWER, pn, poss } =
+const { EVENT_NARRATION, describeFor, narrationVariants, NEUTRAL_VIEWER, pn, poss, fmtItem } =
   await import("../src/ui/util.js");
 const { brokeSailLine, brokeAnchorLine, stormIntroClause } = await import("../src/ui/flow.js");
-const { DIRNAME, emojify } = await import("../src/shared/index.js");
+const { DIRNAME, emojify, ilabelImg, iconImg, CHECKMARK_IMG, CANCEL_X_IMG } = await import("../src/shared/index.js");
 
 /* ============================================================================
  * Shared render helpers (unchanged in spirit from this page's first build)
@@ -315,12 +341,42 @@ function seatBadge(i) {
   const colors = ["#f2679e", "#1d96a6", "#27c78d", "#f5a623"];
   return `<span class="seatDot" style="background:${colors[i]}"></span>${SEAT_NAMES[i]}`;
 }
+// D-29 (Wyatt-confirmed, RESOLVED 2026-07-29): you->ye, your->yer, you're->yer — one word does
+// both "your" and "you're" jobs, his explicit call. Case-preserving (You->Ye, Your/You're->Yer).
+// Word-boundary matched and longest-alternative-first (yourself/you're/yours before bare
+// your/you), same technique src/shared/index.js's own EMOJIFY_RE already uses for
+// multi-codepoint emoji — otherwise "you're" would collapse to "ye're" and "yours"/"yourself"
+// would truncate. Word-boundary matching is mandatory: `layout`, `layoutWide`, `youIdx`,
+// `stillDockedYou`, `bonusYou`, `outcomeYou` all contain "you" as a bare substring and would
+// corrupt under a naive replace (`layout` -> `layet`); \b rejects every one of them correctly.
+// Scope per Wyatt's "convert everything": ALL player-facing text goes through this, not just
+// EVENT_NARRATION — applied via finalize() below at the one chokepoint (msgBox) every card's
+// rendering passes through, AND to Wyatt's own typed rewrite copy (computeIntent), so what he
+// approves on a card is byte-identical to what ships (D-25's "keep = exactly what's displayed").
+const PIRATE_RE = /\b(yourself|you're|yours|your|you)\b/gi;
+const PIRATE_MAP = { yourself: "yerself", "you're": "yer", yours: "yers", your: "yer", you: "ye" };
+function pirateVoice(text) {
+  if (!text) return text;
+  return text.replace(PIRATE_RE, (match) => {
+    const replacement = PIRATE_MAP[match.toLowerCase()];
+    if (!replacement) return match;
+    const firstIsUpper = match[0] !== match[0].toLowerCase() && match[0] === match[0].toUpperCase();
+    return firstIsUpper ? replacement[0].toUpperCase() + replacement.slice(1) : replacement;
+  });
+}
+// The one place every piece of rendered/compared text on this page should flow through: emojify
+// (custom art, D-17) -> fixAssetPaths (this subdirectory's relative image paths) -> pirateVoice
+// (D-29). Order between the first two doesn't matter (disjoint token types); pirateVoice runs
+// last so the FINAL on-screen HTML is what gets converted, matching "render the converted text".
+function finalize(html) {
+  return pirateVoice(fixAssetPaths(emojify(html)));
+}
 // D-17 fix (already applied): every card's HTML runs through the real emojify() so ad-hoc cards
 // show the same custom art the shipped panel shows, not raw system emoji. Idempotent, so table
 // cards (which already went through describeFor's own emojify pass) are unaffected by a second
-// pass. Runs BEFORE fixAssetPaths so the <img> tags it emits also get their paths corrected.
+// pass.
 function msgBox(html, kind) {
-  return `<div class="msgBox ${kind}">${fixAssetPaths(emojify(html))}</div>`;
+  return `<div class="msgBox ${kind}">${finalize(html)}</div>`;
 }
 function renderVariantsBlock(variants) {
   if (!variants || !variants.length) return "";
@@ -462,12 +518,12 @@ function resetEvents() { appState.game.events = []; }
 const RENDERED_TEXTS = {};
 function recordTexts(key, rendered, variants) {
   if (!RENDERED_TEXTS[key]) RENDERED_TEXTS[key] = new Set();
-  if (rendered && rendered.txt) RENDERED_TEXTS[key].add(fixAssetPaths(emojify(rendered.txt)));
-  (variants || []).forEach((v) => RENDERED_TEXTS[key].add(fixAssetPaths(emojify(v.html))));
+  if (rendered && rendered.txt) RENDERED_TEXTS[key].add(finalize(rendered.txt));
+  (variants || []).forEach((v) => RENDERED_TEXTS[key].add(finalize(v.html)));
 }
 
 // D-28: one entry per non-silent card's NEUTRAL text (exactly what's on screen — same
-// fixAssetPaths(emojify(...)) normalization the duplicate-text guard uses), plus which "base"
+// finalize(...) normalization the duplicate-text guard uses), plus which "base"
 // it belongs to (a table key, or an ad-hoc file:line). Consumed after every card is built to
 // distinguish "one string reached by several branches of the SAME source" (D-28 — moored's
 // justDocked/home/dock-unmoved all reference the same `stillDocked` const; NOT a merge
@@ -511,7 +567,7 @@ function buildTableBranchCard(key, spec, group) {
   const body = silent
     ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
     : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
-  if (!silent) recordNeutralTextEntry(id, title, key, fixAssetPaths(emojify(rendered.txt)));
+  if (!silent) recordNeutralTextEntry(id, title, key, finalize(rendered.txt));
   return { id, group, html: cardShell({ id, title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) };
 }
 
@@ -530,7 +586,7 @@ function buildTableKeyCards(key, group) {
       : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
     const id = `table:${key}`;
     const note = TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "";
-    if (!silent) recordNeutralTextEntry(id, `EVENT_NARRATION.${key}`, key, fixAssetPaths(emojify(rendered.txt)));
+    if (!silent) recordNeutralTextEntry(id, `EVENT_NARRATION.${key}`, key, finalize(rendered.txt));
     return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) }];
   }
   return branches.map((spec) => buildTableBranchCard(key, spec, group));
@@ -701,11 +757,11 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     const renderer = ADHOC_RENDERERS[key];
     const result = renderer ? renderer() : { current: "(no renderer defined for this line yet)", proposed: [] };
     if (RENDERED_TEXTS_ADHOC[baseKey] === undefined) RENDERED_TEXTS_ADHOC[baseKey] = new Set();
-    RENDERED_TEXTS_ADHOC[baseKey].add(fixAssetPaths(emojify(result.current)));
-    (result.proposed || []).forEach((v) => RENDERED_TEXTS_ADHOC[baseKey].add(fixAssetPaths(emojify(v.html))));
+    RENDERED_TEXTS_ADHOC[baseKey].add(finalize(result.current));
+    (result.proposed || []).forEach((v) => RENDERED_TEXTS_ADHOC[baseKey].add(finalize(v.html)));
     body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
     if (result.note) body += `<p class="cardNote">${result.note}</p>`;
-    recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, fixAssetPaths(emojify(result.current)));
+    recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, finalize(result.current));
   }
   if (mergeWith && mergeWith.length) body += `<p class="mergeNote">Byte-identical to: ${mergeWith.join(", ")}</p>`;
   body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
@@ -716,7 +772,19 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
 }
 const RENDERED_TEXTS_ADHOC = {};
 
-function buildAdhocKeyCards(entry, group) {
+// D-24 (commit 2480d7e) added comment lines above narrateCurrent(), shifting its two flash()
+// sites down 8 lines (:874/:878 -> :882/:886). Wyatt's pass-2 review already covers ids at the
+// ORIGINAL line numbers (rows 14-15 of PASS2_ROWS) — pin the card id to that original value here
+// (the one place every ad-hoc card's id gets constructed) so re-running the extraction script to
+// stay accurate about the true source location never silently drops his review history.
+const LEGACY_CARD_ID_PIN = {
+  "src/ui/util.js:882": "src/ui/util.js:874",
+  "src/ui/util.js:886": "src/ui/util.js:878",
+};
+function buildAdhocKeyCards(rawEntry, group) {
+  const actualKey = `${rawEntry.file}:${rawEntry.line}`;
+  const pinned = LEGACY_CARD_ID_PIN[actualKey];
+  const entry = pinned ? Object.assign({}, rawEntry, { line: Number(pinned.split(":").pop()) }) : rawEntry;
   const baseKey = `${entry.file}:${entry.line}`;
   const extras = ADHOC_EXTRA_TAGS[baseKey] || [];
   const cards = [buildAdhocCard(entry, null, null, group)];
@@ -733,10 +801,10 @@ function buildAdhocKeyCards(entry, group) {
  * and a live derived-intent line. `mergeTarget`, when known structurally
  * (the byte-identical ad-hoc duplicates), is shown in the merge intent line.
  * ==========================================================================*/
-function cardShell({ id, title, meta, body, defaultTag, silent, mergeTarget }) {
+function cardShell({ id, title, meta, body, defaultTag, silent, mergeTarget, cardClass }) {
   const tags = ["keep", "cut", "merge", "rewrite"];
   return `
-  <div class="card" data-id="${id}" data-merge-target="${escapeHtml(mergeTarget || "")}">
+  <div class="card${cardClass ? " " + cardClass : ""}" data-id="${id}" data-merge-target="${escapeHtml(mergeTarget || "")}">
     <div class="cardHead">
       <h4>${title}${silent ? ' <span class="silentBadge">silent</span>' : ""}</h4>
       <div class="cardMeta">${meta}</div>
@@ -771,11 +839,141 @@ const adhocByLine = Object.fromEntries(inv.adhoc.map((e) => [`${e.file}:${e.line
 function tableCards(key) { return buildTableKeyCards(key, key); }
 function adhocCards(fileLine) { return buildAdhocKeyCards(adhocByLine[fileLine], fileLine); }
 
+/* ============================================================================
+ * D-30: action prompts and their button labels — a third narration-adjacent
+ * surface (ask()/panel() calls), never in scope under D-03. Extracted
+ * mechanically by scripts/extract_narration_lines.js (inv.prompts), same
+ * discipline as the table/ad-hoc sources: raw source captured, never
+ * hand-transcribed. Most prompt/button text is a genuine JS expression
+ * (template literals calling pn()/ilabelImg()/etc.) — evaluated for real
+ * against a small representative context (evalSource below), the same
+ * zero-hand-transcription principle the ad-hoc renderers use, generalized
+ * so ~24 sites don't need 24 hand-written functions. A handful reference a
+ * variable computed a few lines above the ask() call itself (promptMsg,
+ * prompt) — those get a small hand-written PROMPT_RENDERERS entry instead,
+ * same convention ADHOC_RENDERERS already uses for that exact situation.
+ * ==========================================================================*/
+const promptByLine = Object.fromEntries((inv.prompts || []).map((e) => [`${e.file}:${e.line}`, e]));
+
+// panel() sites that only clear the panel, re-render an ALREADY-CAPTURED remote prompt's own
+// msg (no new copy of their own), or render a complex dynamic scoreboard (not fixed copy) —
+// pass-through, mirroring the flash() table-driven concept.
+const PROMPT_PASS_THROUGH = new Set([
+  "src/ui/flow.js:90",            // localAsk's own rendering plumbing — redundant with the ask() site itself
+  "src/orchestrator.js:306",      // renderBattle's live scoreboard HTML — dynamic rounds/score, not fixed copy
+  "src/orchestrator.js:844",      // watchDraftPrompt re-renders an already-captured p.msg
+  "src/orchestrator.js:901",      // watchPrompt re-renders an already-captured p.msg
+  "src/orchestrator.js:912",      // watchPrompt re-renders an already-captured p.msg (with buttons)
+]);
+
+const PROMPT_CTX_BASE = {
+  pn, poss, ilabelImg, iconImg, fmtItem, DIRNAME, CHECKMARK_IMG, CANCEL_X_IMG,
+  ns: pn, nm: pn,
+  p: { idx: 0 }, q: { idx: 1 }, s: { idx: 2 }, o: { idx: 1 },
+  att: { idx: 0 }, def: { idx: 1 }, win: { idx: 0 }, lose: { idx: 1 },
+  who: "a", ing: "wheat", want: "sugar", price: 6, askFor: 2, n: 3,
+  offerDisplay: `${ilabelImg("wheat")}`,
+  st: { baseIng: "wheat", want: "sugar", q: { idx: 1 } },
+  label: null,
+};
+// A raw extracted source snippet is a genuine JS expression (guaranteed syntactically valid —
+// it compiled in the real file) — evaluated for real against PROMPT_CTX_BASE plus any per-site
+// override. Never a hand-transcription of what it would produce. Falls back to null (caller
+// shows the raw source instead) if evaluation genuinely fails (a free variable this shared
+// context doesn't cover).
+function evalSource(rawSrc, extraCtx) {
+  if (!rawSrc) return null;
+  const ctx = Object.assign({}, PROMPT_CTX_BASE, extraCtx || {});
+  const keys = Object.keys(ctx);
+  try {
+    const fn = new Function(...keys, `"use strict"; return (${rawSrc});`);
+    const result = fn(...keys.map((k) => ctx[k]));
+    return typeof result === "string" ? result : (result == null ? null : String(result));
+  } catch (err) {
+    return null;
+  }
+}
+// Sites whose prompt text is a pre-computed VARIABLE (not an inline literal) — the raw source is
+// just an identifier like `promptMsg`, which evalSource can't usefully evaluate on its own. Same
+// convention ADHOC_RENDERERS already uses for this exact situation (e.g. flow.js:613's
+// addressedBanner) — reconstructed here using the SAME real helpers the source itself calls.
+const PROMPT_RENDERERS = {
+  "src/ui/flow.js:261": () => ({
+    // windLeg's storm-anchor promptMsg — two branches (trueShipwreck / ordinary broke-or-not)
+    current: `${pn(0)}: the storm blows ye toward an island! Anchor safely, or flip to take yer chances.`,
+    note: "Shown: the ordinary branch. When truly shipwrecked (no coins AND no crates), the prompt instead reads: \"" + `${pn(0)}: the storm blows ye toward an island! Yer broke — if ye run aground, ye'll lose yer turn!` + "\"",
+  }),
+  "src/ui/flow.js:563": () => ({
+    current: `${pn(0)}, choose your action:`,
+    note: "Shown: the ordinary branch (can afford to act). When broke (0 coins), the prompt instead reads: \"" + `${pn(0)}, ye got nothin to pay yer crew, so they won't budge. Pick one:` + "\"",
+  }),
+};
+
+function promptCardId(file, line) { return `prompt:${file}:${line}`; }
+function buttonCardId(file, line, i) { return `button:${file}:${line}~${i}`; }
+
+function buildPromptCard(entry, group) {
+  const key = `${entry.file}:${entry.line}`;
+  const id = promptCardId(entry.file, entry.line);
+  let current, note;
+  const custom = PROMPT_RENDERERS[key];
+  if (custom) {
+    const r = custom();
+    current = r.current; note = r.note;
+  } else {
+    // Always attempt real evaluation, even for a non-"pure literal" expression like
+    // `label||"Flip the dubloon!"` or a ternary — evalSource's own try/catch is what
+    // correctly falls through to the raw-source fallback for a genuine bare variable
+    // reference (e.g. `promptMsg`) that PROMPT_RENDERERS doesn't already special-case.
+    current = evalSource(entry.rawMsg);
+  }
+  const evalFailed = current == null;
+  const displayText = evalFailed ? escapeHtml(entry.rawMsg) : current;
+  recordNeutralTextEntry(id, `Prompt: ${entry.fn}()`, key, evalFailed ? null : finalize(displayText));
+  const body = (evalFailed
+    ? `<p class="cardNote">Could not evaluate this prompt's live expression outside a real game — raw source shown as-is (not yet run through emojify/ye-yer conversion).</p><div class="msgBox neutral promptBox">${displayText}</div>`
+    : `<div class="msgBox neutral promptBox">${finalize(displayText)}</div>`)
+    + (note ? `<p class="cardNote">${note}</p>` : "")
+    + `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary><pre>${escapeHtml(entry.rawMsg)}</pre></details>`;
+  return { id, group, html: cardShell({ id, title: `Prompt (${entry.kind}) — ${entry.fn}()`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false, cardClass: "promptCard" }) };
+}
+function buildButtonCards(entry, group) {
+  return entry.labels.map((rawLabel, i) => {
+    const id = buttonCardId(entry.file, entry.line, i);
+    const evaluated = evalSource(rawLabel);
+    const evalFailed = evaluated == null;
+    const displayText = evalFailed ? escapeHtml(rawLabel) : evaluated;
+    const labelKey = `${entry.file}:${entry.line}~btn${i}`;
+    recordNeutralTextEntry(id, `"${entry.fn}()" button, ${entry.file}:${entry.line}`, labelKey, evalFailed ? null : finalize(displayText));
+    const body = (evalFailed
+      ? `<p class="cardNote">Could not evaluate this button's live expression — raw source shown as-is.</p><div class="msgBox neutral promptBox">${displayText}</div>`
+      : `<div class="msgBox neutral promptBox">${finalize(displayText)}</div>`)
+      + `<details class="rawSource"><summary>Raw source</summary><pre>${escapeHtml(rawLabel)}</pre></details>`;
+    return { id, group, html: cardShell({ id, title: `Button`, meta: `${entry.file}:${entry.line} · option ${i + 1} of ${entry.labels.length}`, body, defaultTag: "keep", silent: false, cardClass: "buttonCard" }) };
+  });
+}
+// D-30's own cross-source duplicate detector for buttons/prompts — the SAME "byte-identical
+// text at DIFFERENT source locations" concept the ad-hoc mergeWith cross-reference already
+// covers for the 3 hand-identified flow.js sites, generalized and auto-computed here since 57
+// button labels is too many to hand-curate. Uses a DIFFERENT key space (`btn~`) than
+// computeSharedWordingGroups' baseKey so a button never gets misread as a moored-style
+// "one string, several branches" case — every button occurrence IS a separate call site.
+function promptCards(fileLine) {
+  const entry = promptByLine[fileLine];
+  if (!entry) return [];
+  if (PROMPT_PASS_THROUGH.has(fileLine)) {
+    const id = promptCardId(entry.file, entry.line);
+    const body = `<p class="passThroughNote">Rendering plumbing, or a live scoreboard/re-render of a message already captured elsewhere — not new copy on its own.</p>`;
+    return [{ id, group: fileLine, html: cardShell({ id, title: `Prompt (${entry.kind}) — pass-through`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false, cardClass: "promptCard" }) }];
+  }
+  return [buildPromptCard(entry, fileLine)].concat(buildButtonCards(entry, fileLine));
+}
+
 const NODE_GROUPS = [
   {
     id: "newround", stage: 0, title: "Round roll-over", parents: [],
     via: "src/orchestrator.js:696 (runLiveNet, and the final-round re-roll at :719) — this.ev({t:\"newround\",...})",
-    cardsOf: () => tableCards("newround").concat(adhocCards("src/orchestrator.js:699"), adhocCards("src/orchestrator.js:720")),
+    cardsOf: () => tableCards("newround").concat(adhocCards("src/orchestrator.js:699"), adhocCards("src/orchestrator.js:720"), promptCards("src/orchestrator.js:1128")),
   },
   {
     id: "humanTurnBanner", stage: 1, title: "Turn start — human", parents: [{ id: "newround" }],
@@ -785,7 +983,9 @@ const NODE_GROUPS = [
   {
     id: "botTurnBanner", stage: 1, title: "Turn start — bot", parents: [{ id: "newround" }],
     via: "src/ui/flow.js:690 botTurn() → src/ui/util.js:866 botBeat() → narrateCurrent(), which dispatches the turn-start banner AND (for every later bot event this same turn) the pass-through table-driven line below",
-    cardsOf: () => adhocCards("src/ui/util.js:874").concat(adhocCards("src/ui/util.js:878")),
+    // looked up by the CURRENT actual line (:882/:886, per D-24's comment shift) — buildAdhocKeyCards
+    // pins the resulting card id back to :874/:878 so Wyatt's pass-2 review history survives
+    cardsOf: () => adhocCards("src/ui/util.js:882").concat(adhocCards("src/ui/util.js:886")),
   },
   {
     id: "stormOutcomes", stage: 2, title: "Storm push — per-square outcomes", parents: [
@@ -793,11 +993,13 @@ const NODE_GROUPS = [
     ],
     via: "src/ui/flow.js:225 windLeg() / :313 botWindLeg() — one square at a time; each square can moor, hold anchor, get blocked, dodge/anchor/aground/shipwreck, or sweep to the rim",
     cardsOf: () => [].concat(
+      promptCards("src/ui/flow.js:261"),
       tableCards("moored"), tableCards("anchorHold"), tableCards("blocked"),
       adhocCards("src/ui/flow.js:260"),
       tableCards("dodge"), tableCards("anchor"), tableCards("aground"), tableCards("shipwrecked"),
       tableCards("windmove"), tableCards("blownOut"), tableCards("tradewind"),
       adhocCards("src/ui/flow.js:296"),
+      promptCards("src/ui/flow.js:103"),
       adhocCards("src/ui/flow.js:111"),
       adhocCards("src/ui/flow.js:333"), adhocCards("src/ui/flow.js:352"),
     ),
@@ -815,29 +1017,39 @@ const NODE_GROUPS = [
     ],
     via: "src/ui/flow.js:638 humanTurn()'s sail block and :690 botTurn()'s sail gate",
     cardsOf: () => tableCards("sail").concat(
+      promptCards("src/ui/flow.js:200"), promptCards("src/ui/flow.js:1044"),
       adhocCards("src/ui/flow.js:640"), adhocCards("src/ui/flow.js:571"), adhocCards("src/ui/flow.js:645"),
       adhocCards("src/ui/flow.js:646"), adhocCards("src/ui/flow.js:722"),
+      promptCards("src/ui/flow.js:563"),
+      // pass-through prompt-rendering plumbing (D-30) — no real copy of their own, still listed
+      // so "every ask()/panel() site has a card" holds without exception
+      promptCards("src/ui/flow.js:90"), promptCards("src/orchestrator.js:844"),
+      promptCards("src/orchestrator.js:901"), promptCards("src/orchestrator.js:912"),
     ),
   },
   {
     id: "dockOutcomes", stage: 5, title: "Action: Dock", parents: [{ id: "sailDecision", label: "chose Dock" }],
     via: "src/ui/flow.js:377 humanDock() — the coin flip (humanFlip, shared with the storm-anchor dodge above) then one of 4 outcomes",
-    cardsOf: () => adhocCards("src/ui/flow.js:111").concat(tableCards("dock")),
+    cardsOf: () => promptCards("src/ui/flow.js:103").concat(adhocCards("src/ui/flow.js:111"), tableCards("dock"), promptCards("src/ui/flow.js:396")),
   },
   {
     id: "battleOpen", stage: 5, title: "Action: Attack — opening", parents: [{ id: "sailDecision", label: "chose Attack" }],
     via: "src/orchestrator.js:385 asyncBattle() (:391 flash); src/ui/flow.js:579 humanAct()'s attack branch (:582 the can't-afford-powder guard)",
-    cardsOf: () => adhocCards("src/orchestrator.js:391").concat(adhocCards("src/ui/flow.js:582")),
+    cardsOf: () => promptCards("src/ui/flow.js:584").concat(adhocCards("src/orchestrator.js:391"), adhocCards("src/ui/flow.js:582")),
   },
   {
     id: "sideBetCalls", stage: 6, title: "Attack — side bets called", parents: [{ id: "battleOpen", uncertain: true, label: "spectating captains remain" }],
     via: "src/ui/flow.js:870 collectSideBets() — every non-combatant captain still in play calls it",
-    cardsOf: () => adhocCards("src/ui/flow.js:901").concat(adhocCards("src/ui/flow.js:902")),
+    cardsOf: () => promptCards("src/ui/flow.js:880").concat(promptCards("src/ui/flow.js:889"), adhocCards("src/ui/flow.js:901"), adhocCards("src/ui/flow.js:902")),
   },
   {
     id: "battleOutcomes", stage: 7, title: "Attack — outcome", parents: [{ id: "battleOpen" }],
     via: "src/orchestrator.js:385 asyncBattle()'s round loop resolves into src/ui/util.js's battle/battleflee builders",
-    cardsOf: () => tableCards("battle").concat(tableCards("battleflee")),
+    cardsOf: () => promptCards("src/orchestrator.js:503").concat(
+      tableCards("battle"), tableCards("battleflee"),
+      promptCards("src/orchestrator.js:535"), promptCards("src/orchestrator.js:544"),
+      promptCards("src/orchestrator.js:306"),
+    ),
   },
   {
     id: "sideBetSettle", stage: 8, title: "Attack — side bets settle", parents: [{ id: "battleOutcomes", uncertain: true, label: "only if bets were called" }],
@@ -848,14 +1060,18 @@ const NODE_GROUPS = [
     id: "tradeFlow", stage: 5, title: "Action: Parley / Trade", parents: [{ id: "sailDecision", label: "chose Parley" }],
     via: "src/ui/flow.js:407 humanTrade() — the parley step machine; bots also reach `trade`/`parley` via the hail flow (src/ui/flow.js:730, a separate entry point not modeled as its own stage here)",
     cardsOf: () => adhocCards("src/ui/flow.js:410").concat(
+      promptCards("src/ui/flow.js:423"), promptCards("src/ui/flow.js:428"), promptCards("src/ui/flow.js:437"),
+      promptCards("src/ui/flow.js:446"), promptCards("src/ui/flow.js:451"), promptCards("src/ui/flow.js:465"),
+      promptCards("src/ui/flow.js:497"),
       tableCards("trade"), tableCards("parley"),
       adhocCards("src/ui/flow.js:516"), adhocCards("src/ui/flow.js:524"),
+      promptCards("src/ui/flow.js:745"), promptCards("src/ui/flow.js:751"),
     ),
   },
   {
     id: "fishOutcomes", stage: 5, title: "Action: Fish", parents: [{ id: "sailDecision", label: "chose Fish" }],
     via: "src/ui/flow.js:117 fishCast()",
-    cardsOf: () => tableCards("fish"),
+    cardsOf: () => promptCards("src/ui/flow.js:125").concat(tableCards("fish")),
   },
   {
     id: "bakeryStart", stage: 5, title: "Action: Start the bakery", parents: [{ id: "sailDecision", label: "full recipe, adjacent to home", uncertain: true }],
@@ -1048,6 +1264,42 @@ document.querySelectorAll(".card").forEach((card) => {
   body.appendChild(note);
 });
 
+/* ============================================================================
+ * D-30: cross-source duplicate detector for buttons (and any other card) —
+ * the OPPOSITE condition from computeSharedWordingGroups above: groups where
+ * members do NOT all share a baseKey are separate call sites that happen to
+ * render identical text right now (e.g. "← Back" appears at many distinct
+ * ask() sites) — genuine merge/consolidate candidates, styled like the
+ * existing hand-curated ad-hoc mergeWith cross-reference (pink), but
+ * auto-computed since 57 button labels is too many to hand-curate. Restricted
+ * to button/prompt cards so it doesn't duplicate-display alongside the
+ * already-correct hand-curated mergeWith notice on the 3 ad-hoc trio cards.
+ * ==========================================================================*/
+(function computeCrossSourceDuplicateButtons() {
+  const byText = new Map();
+  NEUTRAL_TEXT_ENTRIES.forEach((e) => {
+    if (!(e.id.startsWith("button:") || e.id.startsWith("prompt:"))) return;
+    if (!byText.has(e.text)) byText.set(e.text, []);
+    byText.get(e.text).push(e);
+  });
+  byText.forEach((entries) => {
+    if (entries.length < 2) return;
+    const sameSource = entries.every((e) => e.baseKey === entries[0].baseKey);
+    if (sameSource) return; // handled (or correctly not flagged) by computeSharedWordingGroups above
+    entries.forEach((entry) => {
+      const others = entries.filter((x) => x.id !== entry.id);
+      document.querySelectorAll(`.card[data-id="${CSS.escape(entry.id)}"]`).forEach((card) => {
+        const body = card.querySelector(".cardBody");
+        if (!body) return;
+        const note = document.createElement("p");
+        note.className = "mergeNote";
+        note.textContent = `Byte-identical to: ${others.map((o) => o.label).join(", ")}`;
+        body.appendChild(note);
+      });
+    });
+  });
+})();
+
 // ---------- edges: draw AFTER layout, recompute on resize ----------
 function edgeAnchor(el, side) {
   const canvas = document.getElementById("flowCanvas");
@@ -1151,8 +1403,8 @@ function probeCheck(key, fields, cfg) {
     const rendered = describeFor(ev, NEUTRAL_VIEWER);
     const variants = narrationVariants(ev);
     const texts = [];
-    if (rendered && rendered.txt) texts.push(fixAssetPaths(emojify(rendered.txt)));
-    (variants || []).forEach((v) => texts.push(fixAssetPaths(emojify(v.html))));
+    if (rendered && rendered.txt) texts.push(finalize(rendered.txt));
+    (variants || []).forEach((v) => texts.push(finalize(v.html)));
     const known = RENDERED_TEXTS[key] || new Set();
     texts.forEach((t) => { if (!known.has(t)) probeFailures.push({ key, fields, cfg, text: t }); });
   };
@@ -1172,12 +1424,36 @@ Object.entries(PROBE_CFG_AXES).forEach(([key, combos]) => combos.forEach((c) => 
   const rendered = describeFor(ev, NEUTRAL_VIEWER);
   const variants = narrationVariants(ev);
   const texts = [];
-  if (rendered && rendered.txt) texts.push(fixAssetPaths(emojify(rendered.txt)));
-  (variants || []).forEach((v) => texts.push(fixAssetPaths(emojify(v.html))));
+  if (rendered && rendered.txt) texts.push(finalize(rendered.txt));
+  (variants || []).forEach((v) => texts.push(finalize(v.html)));
   const known = RENDERED_TEXTS.moored || new Set();
   texts.forEach((t) => { if (!known.has(t)) probeFailures.push({ key: "moored", fields: { reason }, text: t }); });
   resetEvents();
 });
+
+// D-30: every ask()/panel() prompt string and every static button label must have a rendered
+// card — the same blocking-defect framing D-21 already applies to narration branches. Checked
+// against the actual live DOM (post-render), not re-derived, so a card that silently failed to
+// mount would be caught the same way a missing branch would.
+(function checkPromptCoverage() {
+  const renderedIds = new Set();
+  document.querySelectorAll(".card").forEach((c) => renderedIds.add(c.dataset.id));
+  (inv.prompts || []).forEach((entry) => {
+    const key = `${entry.file}:${entry.line}`;
+    const promptId = promptCardId(entry.file, entry.line);
+    if (!renderedIds.has(promptId)) {
+      probeFailures.push({ key: "prompt", fields: { file: entry.file, line: entry.line, kind: entry.kind }, text: `MISSING CARD for ${promptId}` });
+      return;
+    }
+    if (PROMPT_PASS_THROUGH.has(key)) return;
+    entry.labels.forEach((label, i) => {
+      const btnId = buttonCardId(entry.file, entry.line, i);
+      if (!renderedIds.has(btnId)) {
+        probeFailures.push({ key: "button", fields: { file: entry.file, line: entry.line, label }, text: `MISSING CARD for ${btnId}` });
+      }
+    });
+  });
+})();
 
 const selfCheckBanner = document.getElementById("selfCheckBanner");
 if (probeFailures.length) {
@@ -1187,7 +1463,7 @@ if (probeFailures.length) {
   selfCheckBanner.insertAdjacentHTML("beforeend", `<pre id="__debugFailures" style="white-space:pre-wrap;font-size:0.7rem;margin-top:8px;">${escapeHtml(JSON.stringify(probeFailures, null, 2))}</pre>`);
 } else {
   selfCheckBanner.className = "selfCheckBanner pass";
-  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed).`;
+  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), and every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30).`;
 }
 
 /* ============================================================================
@@ -1204,7 +1480,10 @@ function computeIntent(tag, notes) {
   if (tag === "merge") return { intent: "merge" };
   const trimmed = (notes || "").trim();
   if (!trimmed) return { intent: "keep" };
-  return { intent: "rewrite", finalText: trimmed };
+  // D-29: his own typed replacement copy converts the same way narration does — he never has to
+  // type "ye"/"yer" by hand, and what he approves (the derived-intent line, below) is
+  // byte-identical to what the export's finalText carries and what would ship.
+  return { intent: "rewrite", finalText: pirateVoice(trimmed) };
 }
 function renderDerivedLine(card) {
   const sel = card.querySelector(".tagSelect");
