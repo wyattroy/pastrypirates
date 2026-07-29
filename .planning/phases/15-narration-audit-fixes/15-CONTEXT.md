@@ -1780,3 +1780,45 @@ owns UI-01…07. Flagged there rather than smuggled into a copy pass. **Related:
 (15-06) touches the same two functions — worth doing both in one sitting so the fork is closed
 rather than half-closed.**
 
+
+**D-56 — Host/guest drift is ONE path, not a pattern. Roll it in; add a parity test, not an audit.**
+
+Wyatt: *"Is it worth scoping a whole audit of the drift from host to guest, for a different
+milestone, or is it small enough to roll into something else"* — **measured, and it rolls in.**
+
+**There are only three host/guest branch points, and two are healthy:**
+
+| Path | Branch | State |
+|---|---|---|
+| Every `ask()` prompt | `util.js:841` | `localAsk` (`flow.js:86-96`) and `watchPrompt` (`orchestrator.js:896-916`) are **near-identical twins** — same `apBack` / `apMsg` / `apBtns${grid}` / `apBtn` / `apDisabled` / `apSub`, same `apBtnStyle`, same disabled-is-display-only rule |
+| Battle prompts | `orchestrator.js:361` | same shape; `msg`/`spectMsg` is a deliberate actor/spectator split, not drift |
+| **Sail highlights** | `flow.js:178` | **the outlier** — see D-35, D-55 |
+
+**Why the outlier is the outlier:** it is the only place the guest **draws its own element** rather
+than reproducing the host's markup. Everywhere else the guest renders a payload the host composed, so
+it *cannot* drift. Give a path its own drawing code and it drifts in every dimension at once —
+wording (D-35), DOM contract (D-55), and visual affordance (D-55).
+
+**So an audit would spend real effort confirming a two-minute finding. Do not scope one.**
+
+**The genuine residual risk:** those twin renderers match **by discipline, not by structure**. Two
+parallel implementations kept in step by whoever remembers. Nothing enforces it, and nothing would
+notice if they diverged tomorrow.
+
+**Agreed plan:**
+1. **Fix the sail highlights** — give the guest rect `class:"sailCell"`, drop the inline fill/opacity
+   so both take the same CSS (Phase 16, alongside D-35's wording fix in the same two functions —
+   close the fork in one sitting rather than half-closing it).
+2. **Add a class-parity regression test (Phase 16 task, see below)** — converts "we keep these in
+   step carefully" into "they cannot silently diverge."
+3. **No separate audit, no new milestone.**
+
+**PHASE 16 TASK — host/guest render-parity test.** Add to `scripts/` and wire into `npm test`:
+assert that `localAsk` and `watchPrompt` emit the **same set of CSS class names** for an equivalent
+prompt (`apBack`, `apMsg`, `apBtns`, `apBtn`, `apDisabled`, `apSub`, plus the `recipes` grid
+modifier), and that the sail-highlight paths agree on `sailCell`. Static source-scanning is
+acceptable — the existing `scripts/*_check.js` gates already work that way and need no DOM. Fail
+loudly naming the class present on one side and missing on the other. ~10 lines; the point is that
+the next divergence is caught by CI rather than by someone playing a guest seat and noticing their
+board doesn't pulse.
+
