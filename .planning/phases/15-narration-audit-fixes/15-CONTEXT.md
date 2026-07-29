@@ -442,3 +442,42 @@ intro, the broke-sail/broke-anchor lines, the split bribe/cleaned-out battle lin
 setting tags deliberately this round — but a note that is a *question* is still a question, never
 copy).
 
+
+**D-26 — Strip the pass-1 badges; infer intent from what Wyatt actually wrote.**
+
+Wyatt: *"strip the badges. also, write some simple intelligence for the tags to make sure my intent
+is understood -- if i have written new language in the textbox, then that implies i want a rewrite
+-- so assume a rewrite. if i have written nothing in the text box, that implies a keep. if i
+explicitly choose 'merge' or 'cut' as a tag, that's a deliberate choice."*
+
+**Remove the "from pass 1" badges entirely** — under D-25 the pass-2 export is self-contained, so a
+badge claiming inherited history is noise at best and misleading at worst.
+
+**Derived-intent rules (in precedence order):**
+
+1. Tag is `cut` or `merge` → **that intent, always.** Deliberate selections; never overridden by
+   the notes box. Any notes are reasoning, not replacement copy.
+2. Notes box is empty → **`keep`** (ship the text as displayed on the card, per D-25).
+3. Notes box has content → **`rewrite`**, and the notes ARE the new copy.
+
+**The sharp edge — questions must never become copy.** In pass 1 Wyatt used the notes box for
+questions to Claude (*"Note for claude: i don't think this is called any more…"*, *"Where is this
+called? Is it called anywhere?"*, *"isn't there a candycrab line too?"*). Under rule 3 those would
+silently become the shipped narration text. Two mitigations, **both required**:
+
+- **A separate "Question for Claude" field per card**, so a question is never typed into the copy
+  box in the first place. It carries into the export as `question` and never affects intent.
+- **A visible derived-intent line on every card**, computed live as he types, in plain language:
+  `→ KEEP as displayed` / `→ REWRITE to: "<text>"` / `→ CUT` / `→ MERGE with <target>`. This makes a
+  misread self-evident at edit time rather than at apply time. This is the primary safety net —
+  the page must never infer silently.
+
+**Also surfaced by the derived line:** tag `rewrite` with an empty notes box resolves to `keep` under
+rule 2. The card must say so explicitly (`→ KEEP as displayed (no new wording given)`) so he can
+see and correct it rather than losing an intended rewrite.
+
+**Export contract for 15-06:** each row carries the raw `tag`, the raw `notes`, the optional
+`question`, AND the resolved `intent` (`keep`/`rewrite`/`cut`/`merge`) plus `finalText` where the
+intent is `rewrite`. **15-06 reads `intent`/`finalText` and re-infers nothing** — the inference
+happens once, on the page, in front of Wyatt, where he can see and correct it.
+
