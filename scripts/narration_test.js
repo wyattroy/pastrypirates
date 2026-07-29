@@ -22,11 +22,15 @@
 // from src/ui/util.js — no DOM reference, no import of src/ui/flow.js or src/ui/panel.js.
 
 import {
-  EVENT_NARRATION, describe, pname, describeFor, NEUTRAL_VIEWER, narrationVariants,
+  EVENT_NARRATION, describe, pname, pn, describeFor, NEUTRAL_VIEWER, narrationVariants,
   pickNarrVariant, msgHoldMs, botMsgHoldMs, chatBubbleHoldMs,
 } from "../src/ui/util.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
+// D-54: src/ui/flow.js's flash() sites are not table-driven, so the one approved ad-hoc line there
+// is pinned by reading the shipped source rather than by importing it (this harness deliberately
+// never imports src/ui/flow.js — see the header note above).
+import { readFileSync } from "node:fs";
 
 let failures = 0;
 function check(name, actual, expected) {
@@ -298,6 +302,74 @@ for (const key of KEYS) {
     const txt = f(mkEvent(spoil), at).txt;
     checkTrue(`battle: ${label} spoil still renders a non-empty line with no undefined/NaN token`, !!txt && !/undefined|NaN/.test(txt));
     checkTrue(`battle: ${label} spoil falls through to the cleaned-out (least-claiming) framing`, isCleanedOut(txt));
+  }
+}
+
+/* ---------- D-54 (Wyatt-approved 2026-07-29): the LOSER's own view, pinned byte-for-byte ----------
+   Source of truth: .planning/phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json rows
+   table:battle / table:battle~cleaned / table:battle~crate, plus adhoc:src/ui/flow.js:901.
+   His three battle rewrites all name the WINNER and join into ONE sentence, unlike the
+   winner-addressed and neutral renderings — which this block also pins as unchanged.
+
+   Two mechanical notes on how the expected literals are built, both deliberate:
+   - Names go through pn(), the same helper the builder itself uses and the single source of truth
+     for how a name is coloured and escaped (cf. this file's dock assertion, which pins pname()'s
+     escaping the same way). Hardcoding pn()'s <b style> markup here would pin the styling instead
+     of the copy, and would break on any future palette change.
+   - The score slot is ALWAYS attacker–defender order, never winner-first — that is pre-existing
+     shipped behaviour of the shared head and is out of scope here. So the fabricated event makes
+     the ATTACKER the winner (seat 1, "Crustbeard" — the name the audit page itself sampled), which
+     is what reproduces his approved "wins 2–1". {coin} -> 🌕 per D-50. */
+{
+  const f = EVENT_NARRATION.battle;
+  // attacker = seat 1 (Crustbeard) and also the winner; defender = seat 0 (Davy Scones), the loser.
+  // aP=2, dP=1 -> the head reads "Crustbeard wins 2–1", exactly his approved sample.
+  const mk = (spoil, spoilIng = null) => ({
+    t: "battle", a: 1, d: 0, winner: 1, spoil, spoilIng,
+    rounds: [[true, false, false, "a"], [false, true, false, "d"], [true, false, false, "a"]],
+  });
+  const WINNER = 1, LOSER = 0, SPECTATOR = 2;
+  const W = pn(1), L = pn(0);
+
+  check("D-54 battle (loser's view, bribe): matches Wyatt's approved line",
+    f(mk("5🌕"), at, 0, LOSER).txt,
+    `⚔️ ${W} wins 2–1 — ye bribe yer way out of givin' away a crate with 5🌕.`);
+  check("D-54 battle~cleaned (loser's view): matches Wyatt's approved line",
+    f(mk("2🌕"), at, 0, LOSER).txt,
+    `⚔️ ${W} wins 2–1 — ye give up all ye have: 2🌕.`);
+  // ~crate: {ingredient} is e.spoil, which every real emit site sets to ilabelImg(pick) — so the
+  // possessive "takes yer" carries the custom art. Note the deliberate ABSENT trailing period.
+  check("D-54 battle~crate (loser's view): matches Wyatt's approved line, no trailing period",
+    f(mk('<img class="ic" src="x">Cacao Pods', "cacao"), at, 0, LOSER).txt,
+    `⚔️ ${W} wins 2–1 and takes yer <img class="ic" src="x">Cacao Pods`);
+
+  // the other two viewers are deliberately NOT restructured — still two sentences, and the bribe
+  // clause still keys on viewerIsLoser, so the winner reads the third-person form of it
+  check("D-54: the winner-addressed rendering is unchanged (two sentences)",
+    f(mk("5🌕"), at, 0, WINNER).txt,
+    `⚔️ ${W} — ye win 2–1. ${L} bribes their way out of giving away a crate with 5🌕.`);
+  check("D-54: the viewer-neutral rendering is unchanged (two sentences)",
+    f(mk("5🌕"), at, 0, NEUTRAL_VIEWER).txt,
+    `⚔️ ${W} wins 2–1. ${L} bribes their way out of giving away a crate with 5🌕.`);
+  checkTrue("D-54: a spectator seat still reads the viewer-neutral rendering",
+    f(mk("5🌕"), at, 0, SPECTATOR).txt === f(mk("5🌕"), at, 0, NEUTRAL_VIEWER).txt);
+
+  // the spoilN/isBribe guard survives the new branch — no NaN in the loser's composite either
+  for (const [label, spoil] of [["absent", undefined], ["empty", ""], ["non-numeric", "abc coins"]]) {
+    const txt = f(mk(spoil), at, 0, LOSER).txt;
+    checkTrue(`D-54: ${label} spoil still falls through to the loser's cleaned-out framing, no NaN`,
+      /ye give up all ye have/.test(txt) && !/undefined|NaN/.test(txt));
+  }
+
+  // adhoc:src/ui/flow.js:901 — the called captain's side-bet variant. flow.js's flash() sites are
+  // not table-driven, so pin the shipped literal in source (same technique as this file's other
+  // source-grep assertions).
+  {
+    const src = readFileSync(new URL("../src/ui/flow.js", import.meta.url), "utf8");
+    checkTrue("D-54 adhoc flow.js:901: the called captain's side-bet variant ends 'bets N🌕 on it!'",
+      src.includes("calls ye to win and bets ${amt}\u{1F315} on it!"));
+    checkTrue("D-54: the free-call sibling is untouched (matches its own approved row already)",
+      src.includes("calls ye to win from the crow's nest."));
   }
 }
 

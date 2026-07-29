@@ -505,8 +505,24 @@ export const EVENT_NARRATION={
     else if(viewerIsLoser)spoilClause=`Ye give up all ye have${e.spoil?`: ${e.spoil}`:""}.`;
     else if(viewerIsWinner)spoilClause=`Ye take all ${pn(loser)} has${e.spoil?`: ${e.spoil}`:""}.`;
     else spoilClause=`${pn(loser)} gives up all they have${e.spoil?`: ${e.spoil}`:""}.`;
+    // D-54/D-25/D-16 (Wyatt-approved 2026-07-29): his three approved rewrites of the LOSER's own
+    // view (table:battle / ~cleaned / ~crate in 15-ADDRESSED2-APPROVED.json) all restructure the
+    // sentence, so the loser gets a composite of its own rather than the mainClause+spoilClause
+    // join. Three deliberate differences, applied verbatim: the WINNER is named (not the loser),
+    // the clauses join with " — "/" and" into ONE sentence (not two), and the wording is his —
+    // elided "givin'", possessive "takes yer", and no trailing period on the crate line. The
+    // leading ⚔️ is re-attached (his note could not carry inline markup). The winner-addressed and
+    // neutral renderings below are byte-unchanged, and the spoilN/isBribe guard is reused as-is so
+    // a non-numeric or absent spoil still falls through to the cleaned-out framing, never NaN.
+    let txt;
+    if(viewerIsLoser){
+      const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
+      if(e.spoilIng)txt=`${head} and takes yer ${e.spoil}`;
+      else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${e.spoil}.`;
+      else txt=`${head} — ye give up all ye have${e.spoil?`: ${e.spoil}`:""}.`;
+    }else txt=`${mainClause} ${spoilClause}`;
     return {cls:"battle",
-      txt:`${mainClause} ${spoilClause}`,
+      txt,
       caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cellPx*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },

@@ -968,7 +968,11 @@ export async function collectSideBets(att,def){
       // D-08: a side-bet call names two seats — the caller (s) AND the called captain (att/def) —
       // so both get their own addressed variant, not just the actor.
       const calledIdx=who==="a"?att.idx:def.idx;
-      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and bets ${amt}🌕!`,1100,undefined,[{seat:s.idx,html:`💰 Ye call ${pn(calledIdx)} and bet ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls ye to win and bets ${amt}🌕!`}]);
+      // D-54/D-25 (Wyatt-approved 2026-07-29): the called captain's variant ends "bets N🌕 on it!"
+      // per adhoc:src/ui/flow.js:901 in 15-ADDRESSED2-APPROVED.json. The leading 💰 is re-attached
+      // (D-16 — his note could not carry inline markup). The free-call sibling below already
+      // matches its own approved row byte-for-byte and is deliberately untouched.
+      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and bets ${amt}🌕!`,1100,undefined,[{seat:s.idx,html:`💰 Ye call ${pn(calledIdx)} and bet ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls ye to win and bets ${amt}🌕 on it!`}]);
       else await flash(`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`,900,undefined,[{seat:s.idx,html:`🔭 ${pn(s.idx)} — ye call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls ye to win from the crow's nest.`}]);
     }else{
       // Bots always call (favoring the fuller purse), and sometimes back it with coin.
