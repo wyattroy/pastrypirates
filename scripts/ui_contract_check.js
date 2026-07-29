@@ -43,6 +43,28 @@
 //    src/ is `window.revealMyRecipe`. The four debug hooks (`__pp_module_ok`/`MODULE_OK_FLAG`,
 //    `__pp_boot_count`, `__pp_net_debug`, `__pp_app_state_debug`) are exempt by name — they are
 //    documented, permanent observation surfaces, not part of the deleted bridge.
+// 5. The D-29 pirate register (added 2026-07-29) — no player-facing string under src/ or in
+//    index.html reads the pre-conversion 2nd-person pronouns, plus the `layout` intactness probe
+//    that conversion's own hazard demands. See the block below for why this is a STANDING gate.
+//
+// ============================================================================
+// Assertion 5 — why the D-29 register is gated rather than swept (2026-07-29)
+// ============================================================================
+// D-29 was originally a one-time manual sweep with nothing enforcing it afterwards. Half of it
+// silently did not happen: 15 strings under src/ and 17 lines in index.html kept the old register
+// for a full phase, and no gate noticed. 15-VERIFICATION.md's Gap 2 is that miss. A one-time sweep
+// is not a contract; this assertion makes it one.
+//
+// The conversion itself is NOT shipped as runtime code. art-review/narration-audit.html's own
+// PIRATE_RE/PIRATE_MAP/pirateVoice() applied the substitution LIVE at render, so it is the
+// specification — but exporting a pirateVoice() from src/ that nothing calls would ship dead code,
+// which D-33/D-34/D-40 spent three decisions stamping out. The source literals are plain, and this
+// assertion is what proves they stay converted.
+//
+// The `layout` probe rides along in the same assertion because it is the hazard that makes this
+// conversion dangerous: a bare substring replace of the 3-letter pronoun turns `layout` into
+// `layet`, and `layoutWide`, `youIdx`, `stillDockedYou`, `bonusYou` and `outcomeYou` are all in
+// the tree. Word-boundary matching rejects every one, and this probe proves it stayed that way.
 //
 // Every check function below takes an explicit root path (defaulting to the real repo ROOT) so
 // `--drill` can re-run the exact same logic against synthetic fixture trees under a temp
@@ -172,6 +194,118 @@ function checkRetainedGlobalsAllowlist(root) {
   return { ok: failures.length === 0, failures };
 }
 
+/* ================= Assertion 5: the D-29 pirate register (standing) ================= */
+// The same word-boundary alternation art-review/narration-audit.html:636 uses, longest-first so
+// `you're`/`yours`/`your` match before bare `you` (the technique EMOJIFY_RE already uses for
+// multi-codepoint emoji). Case-insensitive: the audit page's pirateVoice() is case-preserving, so
+// `You` and `Your` are equally in scope.
+const PRONOUN_RE = /\b(?:yourself|you're|yours|your|you)\b/i;
+
+// ---------------------------------------------------------------------------
+// EXCLUSIONS — explicit and individually justified. NEVER widen this list to make a run go green;
+// that is the "weaken the check until it stops catching anything real" trap this file's own header
+// warns about. Every entry is anchored on CONTENT, never on a line number, so a line shift makes
+// the gate go loud rather than silently letting a new site through (the drift mechanism that broke
+// scripts/extract_narration_lines.js's AD_HOC_META twice).
+// ---------------------------------------------------------------------------
+const REGISTER_SKIP_FILES = [
+  // comments only, and the file must keep an EMPTY diff — it is the determinism fixture corpus's
+  // single source of truth (docs/DETERMINISM-RERECORD.md). Touching it invalidates all 31 seeds.
+  path.join("src", "engine", "index.js"),
+  // cookbook prose — recipe descriptions and cooking-method text ("melt-in-your-mouth shortbread",
+  // "run your thumb around the inside rim"). Arguably a diegetic object with its own register: the
+  // recipe card the captain is HOLDING, not the game's narrator speaking. That is a copy judgment
+  // only Wyatt can make, so it is deferred to him.
+  // >>> REMOVE THIS EXCLUSION THE MOMENT HE RULES. If he says convert, it is a 3-line follow-up.
+  path.join("src", "ui", "recipe.js"),
+];
+
+// Whole-line content anchors: the line is excluded wherever it appears in the tree.
+const REGISTER_LINE_ANCHORS = [
+  // src/orchestrator.js — a block-comment CONTINUATION line, so it does not start with a comment
+  // marker and the leading-comment filter cannot see it. D-29 excludes comments.
+  "ONLINE_SETUP.md",
+  // src/ui/flow.js — a TRAILING comment on a line of real code, likewise invisible to the
+  // leading-comment filter. Also a comment.
+  "entering the trade winds",
+  // index.html — the credits / acknowledgements paragraph. Wyatt's own authorial prose about real
+  // people (Luca, Amelia, Nick Lesko, Luis Zanforlin, his parents, Xavaar, Juju), not the game
+  // addressing a player. Converting it would put pirate voice in his personal thank-yous.
+  // Also raised for his ruling; recommendation is to LEAVE it.
+  "overly enthusiastic noodle",
+];
+
+// src/ui/util.js's `sidebet` builder uses `you` as a LOCAL VARIABLE NAME (D-08's viewer flag), not
+// as copy. These are the only four places it appears as an identifier; each is a read, none is
+// player-facing text. Scoped to that one file so the fragments can never excuse a real string
+// somewhere else, and anchored on the exact code shape so a reformat goes loud.
+const REGISTER_IDENT_FILE = path.join("src", "ui", "util.js");
+const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you?`", ":(you?`", "txt:you"];
+
+// A leading-comment line, in either JS (`//`) or CSS/JSDoc (`/*`, `*`) form. index.html's two
+// excluded CSS comments — the shot-clock width reservation at :377 and the "you just lost treasure"
+// pop note at :425 — are both caught here by construction, not by a special case.
+const isLeadingComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+
+function scanRegisterFile(rel, content) {
+  const failures = [];
+  content.split("\n").forEach((line, i) => {
+    if (!PRONOUN_RE.test(line)) return;
+    if (isLeadingComment(line)) return;
+    if (REGISTER_LINE_ANCHORS.some((a) => line.includes(a))) return;
+    if (rel === REGISTER_IDENT_FILE && REGISTER_IDENT_FRAGMENTS.some((f) => line.includes(f))) return;
+    failures.push(`D-29-REGISTER: ${rel}:${i + 1} — a player-facing string still reads the pre-conversion 2nd-person register; convert it to ye/yer (art-review/narration-audit.html's PIRATE_MAP is the spec)`);
+  });
+  return failures;
+}
+
+// The `layout` landmine probe. Two parts, deliberately different in kind:
+//   - the corruption marker (`layet`) is checked wherever it can appear — a bare substring replace
+//     of the pronoun is the only thing that produces it, so any hit is proof of exactly that bug.
+//   - the `layoutWide` counts are pinned per file. If a future change legitimately adds or removes
+//     a usage, UPDATE THE EXPECTED COUNT — do not delete the probe.
+const LAYOUT_WIDE_EXPECTED = [
+  { rel: "index.html", count: 4 },
+  { rel: path.join("src", "ui", "board.js"), count: 1 },
+];
+
+function checkPirateRegister(root) {
+  const failures = [];
+  const skip = new Set(REGISTER_SKIP_FILES);
+  const targets = [];
+
+  for (const file of jsFilesRecursive(path.join(root, "src"))) {
+    const rel = path.relative(root, file);
+    if (skip.has(rel)) continue;
+    targets.push([rel, file]);
+  }
+  const indexHtml = path.join(root, "index.html");
+  if (fs.existsSync(indexHtml)) targets.push(["index.html", indexHtml]);
+
+  for (const [rel, full] of targets) {
+    const content = fs.readFileSync(full, "utf8");
+    failures.push(...scanRegisterFile(rel, content));
+    // corruption marker — checked on the SAME set of files, comments included (a `layet` in a
+    // comment is still evidence the bare replace ran)
+    content.split("\n").forEach((line, i) => {
+      if (line.includes("layet")) {
+        failures.push(`LAYOUT-CORRUPTION: ${rel}:${i + 1} contains "layet" — a bare substring replace of the 2nd-person pronoun corrupted the word "layout"`);
+      }
+    });
+  }
+
+  for (const { rel, count } of LAYOUT_WIDE_EXPECTED) {
+    const full = path.join(root, rel);
+    if (!fs.existsSync(full)) continue; // absent in a synthetic drill fixture; nothing to pin
+    const actual = (fs.readFileSync(full, "utf8").match(/layoutWide/g) || []).length;
+    if (actual !== count) {
+      failures.push(`LAYOUT-WIDE-COUNT: ${rel} has ${actual} "layoutWide" occurrence(s), expected ${count} — if this change was intentional, update LAYOUT_WIDE_EXPECTED in scripts/ui_contract_check.js; if it was not, the word-boundary rule was violated`);
+    }
+  }
+
+  return { ok: failures.length === 0, failures };
+}
+
 /* ================= Runner (real tree) ================= */
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
@@ -192,6 +326,10 @@ function runAll(root, { quiet = false } = {}) {
   const a4 = checkRetainedGlobalsAllowlist(root);
   log(`${a4.ok ? "PASS" : "FAIL"} retained-globals allowlist — only window.revealMyRecipe (+ the 4 debug hooks) permitted under src/`);
   results.push({ name: "retained-globals-allowlist", ...a4 });
+
+  const a5 = checkPirateRegister(root);
+  log(`${a5.ok ? "PASS" : "FAIL"} the D-29 pirate register holds across src/ and index.html (+ the layout intactness probe)`);
+  results.push({ name: "pirate-register", ...a5 });
 
   return results;
 }
@@ -263,9 +401,84 @@ function drill() {
     if (!drillOk) allDrillsOk = false;
   }
 
+  // --- Drill 5: the D-29 register. Three distinct failure modes, so three synthetic violations,
+  //     plus one NEGATIVE fixture proving the exclusions do not simply swallow everything (an
+  //     assertion that can only ever pass is not a gate either).
+  {
+    // 5a: an unconverted player-facing string under src/
+    resetFixture();
+    fixture("src/ui/prompt.js", "export const msg = `Cast your line — flip!`;\n");
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok;
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5a/5 (unconverted-register-in-src) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5b: an unconverted player-facing line in index.html
+    resetFixture();
+    fixture("index.html", `<html><body>\n<label>Your captain name</label>\n</body></html>\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok;
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5b/5 (unconverted-register-in-index-html) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5c: the layout landmine detonated — a bare substring replace produced "layet"
+    resetFixture();
+    fixture("src/ui/board.js", "const layetWide = 1; // was layoutWide before a bare replace\n");
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("LAYOUT-CORRUPTION"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5c/5 (layout-corruption) — expected FAIL naming LAYOUT-CORRUPTION, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5d: the layoutWide count drifted (index.html present, but with 3 occurrences instead of 4)
+    resetFixture();
+    fixture("index.html", `<html><body>\n<!-- layoutWide layoutWide layoutWide -->\n</body></html>\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("LAYOUT-WIDE-COUNT"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5d/5 (layoutWide-count-drift) — expected FAIL naming LAYOUT-WIDE-COUNT, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5e: NEGATIVE control — a converted string, a leading comment carrying the old register, an
+    //     anchored comment, and the sidebet identifier must ALL pass. This proves 5a-5d fail for
+    //     the right reason rather than the check being unconditionally red.
+    resetFixture();
+    fixture("src/ui/prompt.js", "export const msg = `Cast yer line — flip!`;\n// this comment mentions your pantry and is excluded because D-29 excludes comments\n");
+    fixture("src/ui/flow.js", "if (onRim(c)) continue; // entering the trade winds ends your move\n");
+    // the sidebet builder's real code shape, fragment-for-fragment — an unfaithful fixture here
+    // would let a broken exclusion pass this control unnoticed
+    fixture("src/ui/util.js", [
+      "    const you=isLocalTo(e.p,viewerSeat);",
+      "    if(e.won)return {cls:\"trade\",txt:e.amt",
+      "      ?(you?`ye called it! (+${e.delta})`:`called it! (+${e.delta})`)",
+      "      :(you?`ye called it!`:`called it!`)};",
+      "    return {cls:\"trade\",txt:you",
+      "      ?`ye backed the wrong ship`:`backed the wrong ship`};",
+      "",
+    ].join("\n"));
+    fixture("src/ui/recipe.js", "export const d = 'melt-in-your-mouth shortbread';\n");
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = r.ok;
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5e/5 (negative control — exclusions hold) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+  }
+
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 
-  console.log(`\n${allDrillsOk ? "ALL 4 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allDrillsOk ? "ALL 5 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allDrillsOk ? 0 : 1);
 }
 
