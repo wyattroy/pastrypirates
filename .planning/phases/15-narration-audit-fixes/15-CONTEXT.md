@@ -1947,3 +1947,19 @@ removing the block could make a busy round unreadable even though nothing "drags
 requirement; the blocking is a design change and deserves its own before/after comparison rather than
 riding along with a copy pass.
 
+
+**D-58 RESOLVED — 15-06 does D-57 only; the un-blocking becomes its own phase.**
+
+Wyatt: *"do 1 now and scope 2 as a follow-up phase"*.
+
+**In 15-06 (now):** give the guest a **cancellable** hold + fade, per D-57's implementation notes.
+Host behaviour is unchanged — it keeps awaiting `flash()`. Narration then fades for every player and
+NARR-06 is true from a guest seat.
+
+**Critical: do NOT copy `flash()` wholesale.** Take its *display* half (await the typewriter reveal,
+hold `msgHoldMs(renderedText)`, add `.fadeOut`) and none of its *flow-control* half. The guest path
+must stay non-blocking — `showNarration()` has no caller awaiting it, and it must not acquire one.
+A new line arriving from `watchNarr` cancels the pending fade of the previous line.
+
+**Deferred to a new phase (see ROADMAP):** moving narration out of flow control on the host.
+
