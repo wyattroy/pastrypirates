@@ -825,3 +825,30 @@ Where a marker label is dead but the CONTROL is live, say so on the card — e.g
 circular ‹ back button; this text is never shown."* Wyatt needs to know the control exists without
 being invited to rewrite words that go nowhere.
 
+
+**D-35 — The sail-prompt is written twice, split by TRANSPORT, and the two wordings disagree.**
+
+Wyatt: *"when is this shown? … it seems like the same purpose as localPickCell()"* — correct, and the
+split is a D-18 violation in a new flavour.
+
+| | `localPickCell` (`flow.js:200`) | `remotePickHighlights` (`flow.js:1044`) |
+|---|---|---|
+| Shown to | the player whose turn it is | **the same player**, when they are a remote guest |
+| Reached via | `flow.js:178` — `decisionIsLocal(p.idx) ? localPickCell(…)` | `orchestrator.js:918` — host relays the prompt over Firebase |
+| Wording | *"Crustbeard: click a highlighted square to sail (−1🌕)"* | *"Yer move — click a highlighted square to sail (−1🌕)"* |
+| Button | `Stay put` | `Stay put` (byte-identical duplicate) |
+
+**Same moment, same audience, two different sentences — decided by whether the player happens to be
+the host or a guest.** A player would read one wording solo and the other online. D-18's rule is that
+the ONLY axis of variation is viewer perspective, and here the viewer is literally the same person.
+
+Neither matches D-07's agreed form (name-prefix + second person). The correct single line is one
+neutral rendering plus one addressed variant, e.g. *"Crustbeard — yer move! Click a highlighted
+square to sail (−1🌕)"* for the actor and the named third-person form for everyone watching.
+
+**For 15-06:** collapse to one prompt used by both transports, in the D-10 neutral-plus-variants
+shape. `Stay put` becomes a single shared label. This is the same defect as the bot/human storm-leg
+duplication (D-18 #2) — the pipeline is forked, so the copy forked with it — but split by host/guest
+rather than by actor type. **Worth sweeping for other host/guest wording pairs while fixing it**;
+this one was found by eye, so others may exist.
+
