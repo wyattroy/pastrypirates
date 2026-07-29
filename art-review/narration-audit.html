@@ -3060,6 +3060,103 @@ function checkMergeCycles() {
 }
 checkMergeCycles();
 
+/* ============================================================================
+ * Scroll-position persistence (Wyatt: "can you add in a scroll-memory to the
+ * page so I don't lose my place each time i refresh" — lost his place on
+ * roughly a dozen reloads today). Anchored to a CARD ID, never a pixel
+ * offset — card heights have changed on nearly every reload this session
+ * (new cards, new fields, badges), so a pixel scrollY would already be wrong
+ * again next reload; a card id survives layout changes, which is the whole
+ * point. Stored under its OWN localStorage key, deliberately separate from
+ * STORAGE_KEY (the dispositions — his irreplaceable full day of review): a
+ * bug in this purely ergonomic feature must never be able to touch, let
+ * alone corrupt, that data. A broken/stale pointer fails silently to the
+ * top — never throws — the same lesson commit 4a6e790 already taught this
+ * page once (a stale sidecar took the whole render down that time).
+ * ==========================================================================*/
+const SCROLL_STORAGE_KEY = "pastrypirates_narration_audit_v15_scroll_position";
+function loadScrollPos() {
+  try { return JSON.parse(localStorage.getItem(SCROLL_STORAGE_KEY) || "{}") || {}; }
+  catch (e) { return {}; }
+}
+function saveScrollPos(obj) {
+  try { localStorage.setItem(SCROLL_STORAGE_KEY, JSON.stringify(obj)); }
+  catch (e) { /* storage full/unavailable — scroll memory is a nicety, never worth surfacing an error for */ }
+}
+// The topmost card currently below the sticky toolbar — DOM order matches visual top-to-bottom
+// order for this purpose (stage rows stack vertically; the side-by-side node-groups WITHIN a
+// stage row sit at the same vertical band, so "first card whose bottom edge clears the toolbar"
+// is a correct, cheap proxy for "what he's actually looking at" without needing a full
+// intersection-observer setup for a save-on-scroll feature this lightweight).
+function getTopmostVisibleCardId() {
+  const toolbar = document.querySelector(".toolbar");
+  const offset = toolbar ? toolbar.getBoundingClientRect().bottom : 0;
+  const cards = document.querySelectorAll(".card");
+  for (const card of cards) {
+    if (card.getBoundingClientRect().bottom > offset) return card.dataset.id;
+  }
+  return null;
+}
+// Scrolls so the card's own top sits just below the sticky toolbar — plain scrollIntoView() would
+// tuck the card's top edge BEHIND the toolbar, since the toolbar overlays the top of the page.
+function scrollCardToTop(card) {
+  const toolbar = document.querySelector(".toolbar");
+  const toolbarHeight = toolbar ? toolbar.getBoundingClientRect().height : 0;
+  const rect = card.getBoundingClientRect();
+  const targetY = window.scrollY + rect.top - toolbarHeight - 10;
+  window.scrollTo(0, Math.max(0, targetY));
+}
+// Save on scroll, throttled to ~200ms so continuous scrolling doesn't thrash storage — fires once
+// per burst rather than on every scroll event.
+let scrollSaveThrottle = null;
+window.addEventListener("scroll", () => {
+  if (scrollSaveThrottle) return;
+  scrollSaveThrottle = setTimeout(() => {
+    scrollSaveThrottle = null;
+    const id = getTopmostVisibleCardId();
+    if (id) saveScrollPos({ cardId: id, savedAt: Date.now() });
+  }, 200);
+}, { passive: true });
+// Restore — deliberately the LAST thing this script does, after every card is rendered and after
+// both the D-42 (tag) and D-47 (addressed-field) restore/migration passes above, so it can never
+// try to scroll to a card that doesn't exist yet or land on a position layout hasn't settled into.
+// A double requestAnimationFrame (same pattern drawEdges() already uses) waits for that layout.
+function restoreScrollPosition() {
+  // Wrapped end-to-end: a scroll-memory bug must never take the page down (D-... — see the stale
+  // sidecar precedent, commit 4a6e790). Any failure here silently leaves the page at the top,
+  // which is exactly where a fresh load already starts — a true no-op, not a degraded state.
+  try {
+    const stored = loadScrollPos();
+    const storedId = typeof stored.cardId === "string" ? stored.cardId : null;
+    if (storedId) {
+      const card = document.querySelector(`.card[data-id="${CSS.escape(storedId)}"]`);
+      if (card) {
+        scrollCardToTop(card);
+        setStatus(`resumed at ${storedId}`);
+      }
+      // Stored id no longer exists (renamed/removed in a later build) — fail silently to the top,
+      // never throw.
+      return;
+    }
+    // No stored position at all — he reviews in card order, so land on the first UNREVIEWED card
+    // instead of the very top of a 200+ card page. Never overrides an actual stored position.
+    const savedDispositions = loadSaved();
+    const allCards = document.querySelectorAll(".card");
+    for (const card of allCards) {
+      const id = card.dataset.id;
+      if (!(savedDispositions[id] && savedDispositions[id].reviewed)) {
+        scrollCardToTop(card);
+        setStatus(`resumed at first unreviewed card: ${id}`);
+        return;
+      }
+    }
+    // every card already reviewed — nothing to jump to, stay at the top
+  } catch (e) {
+    console.error("scroll-memory restore failed (non-fatal, staying at top):", e);
+  }
+}
+requestAnimationFrame(() => requestAnimationFrame(restoreScrollPosition));
+
 document.getElementById("exportBtn").addEventListener("click", () => {
   // A handful of ids (the shared coin-flip line, reachable from both the storm-dodge fork and
   // the dock fork) render as more than one DOM card — export each id exactly once, reading its
