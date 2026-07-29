@@ -670,3 +670,46 @@ shared-wording notice from D-28 applies to them, so he sees when one edit change
 - The reviewed-progress denominator will rise from 81; that is expected and must not reset or
   invalidate marks already made.
 
+
+**D-31 — 15 of 28 prompts show NO buttons. The extractor only reads inline option arrays.**
+
+Wyatt: *"i need to see the buttons here to know what the full text says! I don't want to duplicate
+wording in the prompt and on the button. Where is the button, why is it not appearing with the
+prompt?"*
+
+**Cause.** `scripts/extract_narration_lines.js` captures button labels only when the `ask()` options
+argument is an **inline array literal**. Whenever the code builds the options into a local variable
+first — `opts`, `ingOpts`, `coinOpts` — the extractor records `rawOpts: "opts"` and `labels: []`.
+That is the pattern used by **every prompt with conditional options**, i.e. the important ones.
+
+**Measured: 15 of 28 prompts have zero captured labels**, and only 24 of the ~57 button labels in
+`src/` are represented. Missing prompts include the ones that matter most:
+
+| Site | Prompt |
+|---|---|
+| `flow.js:563` `humanAct` | **the main action menu** |
+| `flow.js:261` `windLeg` | storm anchor-or-flip choice |
+| `flow.js:103` `humanFlip` | the coin flip |
+| `flow.js:125` `fishCast` | fishing |
+| `flow.js:437/451` `humanTrade` | ingredient and coin pickers |
+| `orchestrator.js:544` `asyncBattle` | plunder picker (`uniq.map(...)` — dynamic) |
+
+**Why it is blocking, in his words:** without the buttons he cannot tell what the prompt still needs
+to say. Concretely, `windLeg`'s buttons already read *"Flip! Heads: dodge. Tails: lose half 🌕"*, and
+his in-progress prompt rewrite was re-stating that same heads/tails consequence in the prompt body —
+the exact duplication he is trying to avoid. **A prompt without its buttons is unreviewable.**
+
+**Required:**
+
+- Extend the extractor to resolve a **locally-built options array**: within the enclosing function
+  body, follow the variable named in `rawOpts` and collect every `const X=[…]` initialiser and every
+  `X.push({label:…})` / `X.concat([…])` contribution.
+- **Conditional labels are BRANCHES and every one must render** (D-21 applies to buttons exactly as
+  it does to narration). `windLeg`'s flip button alone has three: *"…Tails: lose yer turn!"* (truly
+  broke), *"…Tails: lose a crate!"* (broke, holding crates), *"…Tails: lose half 🌕"* (ordinary).
+  Conditionally-present options (`Pay 1🌕 to anchor` only when `coins>=1`) must show their condition.
+- Where options are genuinely dynamic (`uniq.map(i=>({label:ilabelImg(i)…}))`), render a described
+  placeholder naming the generator rather than an empty list — silence is what caused this.
+- **Add a self-check assertion**: every prompt card must render at least one button, or be explicitly
+  marked dynamic. An empty button list must fail the check, exactly as an un-rendered branch does.
+
