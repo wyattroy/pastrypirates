@@ -290,7 +290,30 @@ const REVEAL_MS_PER_CHAR=20;
 export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
-export function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
+// D-57/D-58 (Wyatt-approved 2026-07-29): the host's own flash() holds and fades; showNarration()
+// (the guest's — and the host's own echo's — display path) used to just render and stop, so guest
+// narration never faded and NARR-06's 10% hold cut never reached a guest seat. Fixed as a DISPLAY
+// concern only, per Wyatt's principle that narration is a running commentary, never a gate: render
+// → wait for the typewriter reveal → hold `msgHoldMs(text)` (the SAME curve flash() uses, so the
+// cut applies once, to both) → fade. Nothing here is awaited by any caller — showNarration() has
+// never had a caller that awaits it, and it must not acquire one, or a guest starts dragging the
+// way the host already does (D-58's deferred fix). A `_narrToken` bump on every call cancels any
+// still-pending hold/fade from a previous line — narration replaces, in sync, never stacks.
+let _narrToken=0;
+export function showNarration(html){
+  const token=++_narrToken;
+  panel(html?`<div class="apMsg">${html}</div>`:"");
+  if(!html)return;
+  const el=$("actionPanel").querySelector(".apMsg");
+  (async()=>{
+    if(el&&el._revealDone)await el._revealDone;
+    if(token!==_narrToken)return; // superseded by a newer line while the reveal was still running
+    const text=el?el.textContent:html;
+    await sleep(msgHoldMs(text));
+    if(token!==_narrToken)return; // superseded while holding
+    if(el&&el.isConnected)el.classList.add("fadeOut");
+  })();
+}
 // netNarrate/netBroadcast remain classic-script globals this wave (they call showNarration bare,
 // which resolves fine via the PP bridge) — they call into src/net/'s netSetNarr directly and are
 // homed in main/orchestration in a later wave, not moved here (RESEARCH.md's battleAsk-style
