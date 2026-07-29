@@ -380,6 +380,18 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+**Added during Phase 15 (host/guest drift — see 15-CONTEXT D-55/D-56):**
+  - Give guest sail-highlights `class:"sailCell"` and drop the inline fill/opacity so host and guest
+    take the same CSS. Today the guest board has no pulse animation, no hover feedback, and a
+    dimmer/different orange — the affordance that says "clickable" is missing for anyone who joined
+    rather than hosted. One line in `remotePickHighlights()` (`src/ui/flow.js:1040`). Do it in the
+    same sitting as 15-06's D-35 wording fix, which touches the same two functions.
+  - **Host/guest render-parity test** (`scripts/`, wired into `npm test`): assert `localAsk` and
+    `watchPrompt` emit the same CSS class set (`apBack`, `apMsg`, `apBtns`, `apBtn`, `apDisabled`,
+    `apSub`, `recipes`), and that both sail-highlight paths agree on `sailCell`. Static source
+    scanning is fine — matches the existing `scripts/*_check.js` gates. The two prompt renderers
+    currently match by discipline, not structure; nothing would notice if they drifted.
+
 ### Phase 17: Final Multiplayer Verification
 
 **Goal**: Confirm the milestone is playable end-to-end in the target browsers — the critical clock stall is fixed and a multiplayer game plays through from start to finish.
