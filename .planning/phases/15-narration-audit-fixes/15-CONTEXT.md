@@ -1895,3 +1895,55 @@ the host's timing for the same line; a rapid second line cancels the first's fad
 inheriting it. **NARR-06's criterion must be demonstrably true from a guest seat, not only a host
 seat** — that is the whole point of this decision, so the phase's verification must test it there.
 
+
+**D-58 — Narration is a running COMMENTARY, not a gate. The host blocks on it; that is the drag.**
+
+Wyatt, correcting the framing: *"everyone's narration should stay in sync; if one player -- be they
+host or guest, it doesn't matter -- clicks a prompt before the narration has appeared for the others,
+that is OKAY and everyone's text should stay in sync and be replaced with the next text. what we
+*don't* want is for the game to drag"*.
+
+(Also: **parley ignoring distance is intentional design, not a defect.** Struck from the playtest
+findings — that was Claude discovering a decision, not a hole.)
+
+**The stated principle:**
+1. All players see the same line at the same time.
+2. A new line **replaces** the current one everywhere, immediately.
+3. A player outpacing the narration is **fine** — narration must never gate play.
+4. Dragging is the failure mode to avoid.
+
+**What the code does instead — the host waits for its own commentary.** `flash()`
+(`src/ui/panel.js:384`) is `await`ed at **27 call sites**, and each call blocks the host's game loop
+for:
+
+```
+typewriter reveal  +  msgHoldMs(text)  +  500ms fade
+```
+
+So every narration line pauses the game by roughly its own reading time. **That is the drag** — and
+it is the same hold NARR-06 shaved 10% off. NARR-06 treated a symptom: the real issue is that
+narration timing sits in the flow-control path at all.
+
+The guest is the accidental counter-example: `showNarration()` never blocks (it also never fades —
+D-57), and the guest never drags.
+
+**So D-57's fix must not simply copy `flash()` to the guest.** Mirroring the host would import the
+blocking too. The right shape, matching Wyatt's principle:
+
+- **Display concern:** render → hold → fade, cancellable, per client.
+- **Flow concern:** the game does **not** await it. A new line cancels the previous line's pending
+  fade and replaces it.
+- Both paths share `msgHoldMs()` so NARR-06's cut applies once, to both.
+
+**Open scope question for Wyatt — this is bigger than 15-06 as currently written.** Un-awaiting 27
+call sites changes the game's whole pacing: today the hold is what stops events blurring past, and
+removing the block could make a busy round unreadable even though nothing "drags". Options:
+1. **15-06 does D-57 only** (guest gets a cancellable hold+fade, host unchanged) — narration is in
+   sync and fades everywhere; the host still paces itself. Small, safe, ships this phase.
+2. **A follow-up phase** moves narration out of flow control entirely, per the principle above —
+   larger, changes pacing everywhere, wants its own playtest.
+
+**Recommend 1 now, 2 as a scoped follow-up.** The sync and fade gap is a defect against a shipped
+requirement; the blocking is a design change and deserves its own before/after comparison rather than
+riding along with a copy pass.
+
