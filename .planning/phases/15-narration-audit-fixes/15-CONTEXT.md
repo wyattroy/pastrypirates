@@ -786,3 +786,42 @@ is lexically at the call site and cannot see what callers actually pass.
 - The D-32 self-check ("every string a player can read has a card") must also assert the inverse:
   **no card renders a string a player can never read.**
 
+
+**D-34 — `back:true` and `flip:true` option labels are STRUCTURAL MARKERS, never rendered text.**
+
+Wyatt: *"I wanted the back button to always be just a circle with '<' inside it -- isn't that used
+instead of this button with the word 'back' on it?"* — **he is right.**
+
+`localAsk()` (`src/ui/flow.js:81-90`) finds the option flagged `back:true` and the one flagged
+`flip:true`, **excludes both from the rendered button row** (`rest = opts.filter(x => x.i !== flipIdx
+&& x.i !== backIdx)`), and re-renders them elsewhere with their own hardcoded text:
+
+| Option label in code | What the player actually sees | Rendered by |
+|---|---|---|
+| `← Back` (**8 sites**) | a circular `‹` button — `.apBack`, `border-radius:50%`, 26×26px | `flow.js:88`, `orchestrator.js:896` |
+| `🌕 FLIP!` | the coin element, `textContent = "FLIP"` | `board.js:639` `setFlipActive()` |
+| `🎣 CAST!` | the same coin element — also **"FLIP"** | `board.js:639` |
+
+**So ten button labels on the audit page are text no player has ever read.** The label strings exist
+only so the code can find the option; their content is discarded.
+
+**Note for a later phase (NOT this one):** the coin renders the literal word `FLIP` even during a
+fishing cast, where the option claims `🎣 CAST!`. Either the cast label is dead or the coin is wrong
+for fishing — worth a look, but it is a UI-behaviour question, not narration copy.
+
+**This is the second class of dead copy Wyatt has been asked to edit** (D-33 was the first —
+unreachable parameter fallbacks). Both were surfaced by him asking "is this even shown?", which the
+page should be answering for him.
+
+**Required — concrete test list for the D-33 inverse check** ("no card renders a string a player can
+never read"). These must be marked unreachable or removed, never presented as editable copy:
+
+- every `← Back` label (8 sites)
+- `🌕 FLIP!` and `🎣 CAST!`
+- `"Flip the dubloon!"` (`flow.js:103` fallback, D-33)
+- `` `${pn(p.idx)}: cast your line — flip!` `` (`flow.js:125` fallback, D-33)
+
+Where a marker label is dead but the CONTROL is live, say so on the card — e.g. *"Renders as the
+circular ‹ back button; this text is never shown."* Wyatt needs to know the control exists without
+being invited to rewrite words that go nowhere.
+
