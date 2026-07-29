@@ -426,13 +426,25 @@ for (const key of KEYS) {
   check("pickNarrVariant: a third seat gets the viewer-neutral text", pickNarrVariant({ html: neutral, variants }, 1), neutral);
 
   // each two-party entry is addressed independently for BOTH named seats (D-08 in full)
+  //
+  // EXCEPTION — `bakeoff`'s seat B. Wyatt's approved loser wording (D-54,
+  // 15-ADDRESSED2-APPROVED.json) keeps BOTH captains named: "BAKEOFF! {a} vs {b} — {winner} takes
+  // it!". In a bakeoff the matchup is the drama, and turning the loser into "ye" flattens one of the
+  // two names exactly when the pairing is the point. That makes the loser's rendering deliberately
+  // IDENTICAL to the spectator's, so the differs-from-neutral rule below does not apply to it.
+  // This is a copy decision, not a missing variant: seat A (the winner) still reads "ye take it!".
+  const SEAT_B_MATCHES_NEUTRAL = new Set(["bakeoff"]);
   for (const key of ["parley", "trade", "battleflee", "bakeoff", "blocked"]) {
     const fab = FAB[key];
     const seatA = key === "blocked" ? fab.p : fab.a;
     const seatB = key === "blocked" ? fab.other : (fab.b != null ? fab.b : fab.d);
     const neutralTxt = describeFor(fab, NEUTRAL_VIEWER).txt;
     checkTrue(`${key}: seat A's addressed rendering differs from the viewer-neutral rendering`, describeFor(fab, seatA).txt !== neutralTxt);
-    checkTrue(`${key}: seat B's addressed rendering differs from the viewer-neutral rendering`, describeFor(fab, seatB).txt !== neutralTxt);
+    if (SEAT_B_MATCHES_NEUTRAL.has(key)) {
+      checkTrue(`${key}: seat B intentionally matches the viewer-neutral rendering (D-54 — both captains stay named)`, describeFor(fab, seatB).txt === neutralTxt);
+    } else {
+      checkTrue(`${key}: seat B's addressed rendering differs from the viewer-neutral rendering`, describeFor(fab, seatB).txt !== neutralTxt);
+    }
   }
 }
 

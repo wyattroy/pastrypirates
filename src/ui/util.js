@@ -548,7 +548,11 @@ export const EVENT_NARRATION={
     const loser=e.winner===e.a?e.b:e.a;
     let txt;
     if(isLocalTo(e.winner,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ye take it!`;
-    else if(isLocalTo(loser,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it! Better luck next voyage.`;
+    // D-54: the loser's line is Wyatt's own wording (15-ADDRESSED2-APPROVED.json) — both captains
+    // stay NAMED rather than the loser becoming "ye". In a bakeoff the matchup is the drama, and
+    // "vs ye" flattens one of the two names exactly when the pairing is the point. It also carries
+    // no consolation clause: he approved it plain. Do not re-add one.
+    else if(isLocalTo(loser,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`;
     else txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`;
     return {cls:"battle",txt,
       caps:[[e.winner,`${iconImg(CUPCAKE_IMG)} wins the bakeoff!`]],pops:[[at(e.winner),"🧁",true,CUPCAKE_IMG]]};
