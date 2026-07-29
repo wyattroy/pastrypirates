@@ -916,3 +916,30 @@ disappears, since `keep` ships what the card displays (D-25). Three of the four 
 *"swept"*. **Ask Wyatt which verb the surviving line should use** — do not assume the table's
 existing wording is a deliberate choice.
 
+
+**D-37 — Wind acts on a player with ONE verb: "blow". Supersedes carried / swept / whipped.**
+
+Wyatt: *"I rewrote the table entry to say 'blown' so they should now ALL say 'blown' (instead of
+carried or swept). they trade winds themselves *sweep* you along, but i want the wind to always
+*blow* you"*
+
+**The rule:** whenever wind, storm, gale or gust moves a player, the verb is **blow/blown/blows**.
+He is knowingly trading a more evocative word ("sweep" genuinely suits trade winds) for a consistent
+one — the player should learn a single verb that always means "the wind moved you".
+
+**Resolves D-36's open verb question:** the surviving `EVENT_NARRATION.tradewind` line uses **blown**
+— not "carried" (the table's old wording) and not "swept" (the three ad-hoc copies). All four
+collapse to the one "blown" line.
+
+**Stragglers still using another verb — flagged, NOT auto-changed:**
+
+| Site | Current | Note |
+|---|---|---|
+| `flow.js:373` (human) + `flow.js:702` (bot) | *"Now the storm **moves** ye 2 squares south!"* | Straight violation. Already merging under D-18 #2 — apply "blows" to the surviving line. |
+| `util.js:328` (`moored`, lucky-break branch) | *"the gust **shoves** {name} onto a dock"* | **Ask before changing.** This is not a wind-pushes-you-N-squares moment — it is the gust *saving* you by pressing the ship against a dock. "Shoves" may be deliberate force, and D-20's approved rewrite kept it. |
+| `util.js:288` (`windmove`) | *"is **carried** by the storm"* | His own pass-2 rewrite already reads *"Crustbeard is blown by the storm"* — consistent, no action needed beyond applying his note. |
+
+**For 15-06:** apply the rule to the trade-wind merge and the storm-leg merge. Do **not** silently
+rewrite `util.js:328` — surface it for his call. **Verification:** no player-facing string has wind /
+storm / gale / gust as the subject of *carried*, *swept*, *whipped* or *moves*.
+
