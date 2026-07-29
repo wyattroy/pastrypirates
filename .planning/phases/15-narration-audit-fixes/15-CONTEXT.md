@@ -1589,3 +1589,26 @@ direction name.
 **Required of 15-06:** normalise whitespace on every applied string; translate any surviving
 `{token}` per the tables above; **stop and ask** on `{clock/stopwatch}` rather than guessing.
 
+
+**D-50 RESOLVED — `{clock/stopwatch}` is the HOURGLASS `⏳`, and the three clock icons have distinct meanings.**
+
+Wyatt: *"okay use the hourglass in that context."*
+
+The lobby caption (`misc:lobby:lobby.js:115` — *"{clock/stopwatch} Yer mateys will appear above…"*)
+uses **`⏳` / `HOURGLASS_IMG`**. It is about waiting for players to join, not about a control.
+
+**All four clock-family icons have custom art on disk** (`assets/icons/`: `hourglass.png`,
+`alarm.png`, `stopwatch.png`, `pause-symbol.png`). Their meanings, now settled — **keep them
+distinct**:
+
+| Icon | Means | Used at |
+|---|---|---|
+| `⏱` `STOPWATCH_IMG` | **the shot-clock control** — something you can press | `panel.js:87` toggle, `:94` *"no rush — tap ⏱"* |
+| `⏳` `HOURGLASS_IMG` | **time passing / elapsed** | `board.js:542` *"Nobody finished!"*; now also the lobby wait caption |
+| `⏰` `ALARM_IMG` | — | **defined but used nowhere.** Available, but introducing it means adding a third clock meaning; do not reach for it casually |
+| `⏸` `PAUSE_SYMBOL_IMG` | paused state | panel |
+
+**The reasoning matters more than the pick:** `⏱` currently signals *"this is a control"* consistently.
+Using it for a passive waiting message would blur a signal that is presently clean. A later pass must
+not "unify" these icons — the split is deliberate.
+
