@@ -1388,3 +1388,25 @@ machine (`flow.js:411`: *"Back moves to the PREVIOUS prompt"*). **Flagged for Wy
 the D-41 fix**, since making it a true Back is a behaviour change he has not asked for, and "abandon
 the hail" may well be intended.
 
+
+**D-45 — "Never mind" correctly abandons the hail. No change.**
+
+Wyatt: *"I agree -- 'abandon the negotiation' is exactly what you want there — walking away from a
+haggle is a real choice, not a mis-click."*
+
+`flow.js:751` `{label:"Never mind", value:0}` stays exactly as it is. It ends the hail rather than
+returning to the Sell/Counter/Refuse prompt, and that is **intended**: declining to haggle is a
+decision, not a navigation slip, so it does not owe the player a step back.
+
+**It is also already rendered correctly**, which is why Wyatt could read it in the first place: it
+carries **no `back:true` flag**, so `localAsk()` leaves it in the button row with its label intact
+instead of collapsing it to the circular `‹` (D-34). Its shape matches its meaning — a real choice
+looks like a button, navigation looks like a back arrow.
+
+**Contrast with D-39** (`"← Actually, move instead"`), which *does* carry `back:true` and renders as
+the circle. Both are now settled and consistent with their own natures; neither is a defect.
+
+**UI-08's step-machine rule** (`flow.js:411`: *"Back moves to the PREVIOUS prompt"*) governs the
+**parley** flow's Back buttons. It does not extend to the hail's "Never mind", which is an exit, not
+a Back. Recorded so a later pass does not "fix" the inconsistency by making it step back.
+
