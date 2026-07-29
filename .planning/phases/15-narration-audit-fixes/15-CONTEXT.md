@@ -1863,3 +1863,35 @@ Update that todo rather than filing a second one.
 Option 1 is the honest reading of the requirement. **This must not be discovered after the phase is
 marked complete** — it is the requirement's own success criterion.
 
+
+**D-57 RESOLVED — give the guest a hold and fade. NARR-06 becomes true for every player.**
+
+Wyatt: *"do option 1 -- give the guest a hold and fade"*.
+
+**15-06 task.** `showNarration(html)` (`src/ui/panel.js`) currently is, in full:
+
+```js
+export function showNarration(html){ panel(html?`<div class="apMsg">${html}</div>`:""); }
+```
+
+It must mirror `flash()`'s timing (`panel.js:384-397`): render, wait `msgHoldMs(text)` against the
+**rendered** text, then add `.fadeOut`. Reuse `msgHoldMs()` — do not introduce a second multiplier,
+or NARR-06's 10% cut will apply to one path and not the other, which is precisely today's bug.
+
+**Implementation notes:**
+- Measure the hold from the **rendered** text (`el.textContent`) exactly as `flash()` does, not the
+  raw HTML — icon markup and `<span>`s would otherwise inflate the length.
+- `flash()` awaits `el._revealDone` (the typewriter promise) before starting its hold. The guest
+  path must do the same, or the fade can begin while characters are still appearing.
+- Guests receive narration from `watchNarr`, which can deliver a new line while the previous hold is
+  still pending. **Cancel any in-flight hold/fade when a new line arrives** — otherwise a stale timer
+  fades the new message. `flash()` does not face this (it is awaited in sequence); the guest path is
+  event-driven and does.
+- Keep it a UI-layer change only. **No engine or event-stream change** — the phase boundary and the
+  31 determinism fixtures are untouched by narration timing.
+
+**Verify:** on a guest seat, a narration line fades after a hold proportional to its length, matching
+the host's timing for the same line; a rapid second line cancels the first's fade rather than
+inheriting it. **NARR-06's criterion must be demonstrably true from a guest seat, not only a host
+seat** — that is the whole point of this decision, so the phase's verification must test it there.
+
