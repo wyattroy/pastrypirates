@@ -943,3 +943,20 @@ collapse to the one "blown" line.
 rewrite `util.js:328` — surface it for his call. **Verification:** no player-facing string has wind /
 storm / gale / gust as the subject of *carried*, *swept*, *whipped* or *moves*.
 
+
+**D-37 RESOLVED — the lucky-break "shove" stays.**
+
+Wyatt: *"keep the shove — it's saving you, not moving you"*.
+
+`util.js:328` keeps *"the gust **shoves** {name} onto a dock"*. **This is an exception with a stated
+principle, not an oversight**, and the principle is what a later pass must honour:
+
+> D-37's "wind always blows" governs wind **moving** a player. It does not govern wind **saving**
+> one. The lucky-break dock line is a rescue — the gust presses the ship against the dock and stops
+> it running aground — so it keeps the stronger verb.
+
+**Verification for 15-06, corrected:** no player-facing string may have wind / storm / gale / gust as
+the subject of *carried*, *swept*, *whipped* or *moves*. **`shoves` is permitted only at
+`util.js:328`** (the `moored` lucky-break branch). Any new *shove* elsewhere is a violation; that one
+is not.
+
