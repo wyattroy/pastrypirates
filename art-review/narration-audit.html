@@ -832,12 +832,29 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeTarget, car
  * edge whose reachability depends on live game state this page can't show
  * structurally, per D-22's "never invent an edge" instruction.
  * ==========================================================================*/
-const inv = await fetch("narration-inventory.json").then((r) => r.json());
+// cache:"no-store" is load-bearing, not belt-and-braces. The dev server sends no cache headers, so
+// Chrome heuristically caches this JSON — and it survived even a hard reload. When the extractor
+// regenerated the inventory (new line numbers after D-24's comment shift, plus D-30's `prompts`),
+// Wyatt's browser kept serving the OLD copy against the NEW page: every adhocByLine lookup for a
+// shifted line returned undefined and the whole render died on `rawEntry.file`, leaving the page
+// stuck on "loading..." with no cards. A stale sidecar must never be able to break the page again.
+const inv = await fetch("narration-inventory.json", { cache: "no-store" }).then((r) => r.json());
+if (!inv || !Array.isArray(inv.adhoc) || !Array.isArray(inv.table) || !Array.isArray(inv.prompts)) {
+  throw new Error("narration-inventory.json is missing or stale (no `prompts` key) — re-run `node scripts/extract_narration_lines.js`.");
+}
 const tableByKey = Object.fromEntries(inv.table.map((e) => [e.key, e]));
 const adhocByLine = Object.fromEntries(inv.adhoc.map((e) => [`${e.file}:${e.line}`, e]));
 
 function tableCards(key) { return buildTableKeyCards(key, key); }
-function adhocCards(fileLine) { return buildAdhocKeyCards(adhocByLine[fileLine], fileLine); }
+// Fail LOUD on a missing key. This lookup returning undefined is what killed the page when a stale
+// inventory was served: buildAdhocKeyCards read `rawEntry.file` off undefined, the exception escaped
+// the whole render, and every card vanished behind "loading..." with nothing naming the cause.
+// A bad key now names itself instead of taking the page down silently.
+function adhocCards(fileLine) {
+  const entry = adhocByLine[fileLine];
+  if (!entry) throw new Error(`narration-inventory.json has no ad-hoc entry for "${fileLine}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
+  return buildAdhocKeyCards(entry, fileLine);
+}
 
 /* ============================================================================
  * D-30: action prompts and their button labels — a third narration-adjacent
