@@ -1251,3 +1251,31 @@ becomes configurable stops being flagged automatically.
 a real option — the point is only to stop Wyatt spending rewrites on them, as he nearly did on the
 `humanFlip` fallback (D-33).
 
+
+**D-44 — A `merge` default with no target reads as "merge with the card next to me". Pre-set every known target.**
+
+Wyatt, on the `parley~refused` card: *"this one is flagged for merging, but i think it's merging with
+the success message…? That seems wrong."*
+
+**Diagnosis: it has no target at all.** Both parley cards carry `tag:"merge"`, `mergeInto` unset, and
+the selector reads *"— choose a target —"*. With the sibling *"Deal struck"* card rendered directly
+above it inside the same `parley` group, a bare `merge` naturally reads as *merge with that one* —
+which would be exactly backwards, since deal-struck and refused are opposite outcomes.
+
+**Root cause: D-19's decision was never applied as the card default.** D-36's work pre-set
+`EVENT_NARRATION.tradewind` on the three rim-sweep cards from Wyatt's explicit instruction, but the
+equally explicit D-19 decision — *`parley` folds into `EVENT_NARRATION.trade`, the refusal becoming a
+branch inside the one `trade` builder* — was applied to the card's **recommendation** (`merge`) and
+not to its **target**. Half the decision landed.
+
+**Required:**
+1. Pre-set `mergeInto: "EVENT_NARRATION.trade"` on **both** `table:parley` and `table:parley~refused`,
+   matching how the tradewind trio were handled.
+2. **A card must never display `merge` without naming a destination.** Where no target is known, the
+   card must say so unmissably — *"MERGE: no destination chosen — pick one"* — rather than leaving a
+   bare tag whose meaning the reader infers from adjacent cards. Sitting inside a group of siblings
+   makes the wrong inference the natural one.
+3. Sweep every card whose default recommendation is `merge` and confirm each has a pre-set target or
+   the explicit "choose one" state. Four such tags existed unresolved from his earlier pass (D-27
+   era); this is the same defect surfacing again.
+
