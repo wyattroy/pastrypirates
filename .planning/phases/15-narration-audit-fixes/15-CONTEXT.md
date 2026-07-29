@@ -879,3 +879,40 @@ string literals — only this one has any.
 *guest-side code renders text, it never authors it.* That property is what kept the other five paths
 correct, and is worth stating so a future remote renderer does not reintroduce the fork.
 
+
+**D-36 — All trade-wind rim-sweep lines merge into `EVENT_NARRATION.tradewind`. Merge notes must name a CANONICAL target.**
+
+Wyatt: *"the tradewind merge notes seem to recursively refer to each other -- many of them say to
+merge with flow.js:296, but that one says to merge with 571 -- and 571 says to merge with 296. They
+should all merge with: EVENT_NARRATION.tradewind, src/ui/util.js"*
+
+**His decision:** the three ad-hoc rim-sweep `flash()` calls — `flow.js:296` (storm push),
+`flow.js:571` (move-instead path), `flow.js:645` (post-sail) — all collapse into the table entry
+`EVENT_NARRATION.tradewind` (`src/ui/util.js:358`), becoming table pass-throughs like the round
+headers. Four wordings become one.
+
+**Why the page produced a cycle.** The "Byte-identical to: …" cross-reference is **symmetric** — it
+lists other cards rendering the same text. The three ad-hoc lines are byte-identical *to each other*
+(*"is swept into the trade winds and whipped around the rim!"*), so each pointed at the others and
+none pointed anywhere terminal. The table entry was never linked at all because it reads *"is
+**carried** into the trade winds…"* — one verb different, so byte-matching could not see it.
+
+**The mechanism defect:** byte-identity finds *duplicates*, but a merge needs a *destination*. Where
+a table entry expresses the same moment in near-identical words, that entry is the natural
+destination and byte-matching will never surface it.
+
+**Required:**
+- A `merge` disposition must carry an explicit **target**, and the export must include it
+  (`mergeInto`). A merge with no target is not actionable — four such tags already exist (D-27 era).
+- Replace the symmetric "Byte-identical to: …" list with a **canonical-target** presentation: name
+  one destination, mark the others as folding into it. Never emit a cycle.
+- Where a table entry exists for the same moment, offer it as the default target even when wording
+  differs slightly — that is precisely the case byte-matching misses.
+- Let Wyatt override the target per card; his answer here (`EVENT_NARRATION.tradewind`) is the
+  default for all three rim-sweep cards.
+
+**Still open — the verb.** Merging into the table entry means *"carried"* survives and *"swept"*
+disappears, since `keep` ships what the card displays (D-25). Three of the four sites currently say
+*"swept"*. **Ask Wyatt which verb the surviving line should use** — do not assume the table's
+existing wording is a deliberate choice.
+
