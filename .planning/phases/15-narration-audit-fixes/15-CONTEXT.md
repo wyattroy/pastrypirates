@@ -416,3 +416,29 @@ expand log work beyond this. It predates the narration box and is not a design s
 investment.
 
 </review_addendum_2>
+
+**D-25 — Pass-2 tag semantics: `keep` means "keep AS DISPLAYED ON THIS CARD".**
+
+Wyatt: *"i'm going to make sure my tags are all correct this round -- keep should mean 'keep as is
+displayed here' not 'keep whatever i did in pass 1'."*
+
+**The pass-2 export is self-contained and authoritative.** Every tag refers to the text rendered on
+that card at the moment he set it. It does NOT refer to, defer to, or inherit from his pass-1
+disposition. He is setting every tag explicitly this round, so pass-1 marks and the "from pass 1"
+badges are superseded wherever the two disagree — **pass 2 wins, unconditionally.**
+
+**The trap 15-06 must not fall into.** Many cards already display the NEW phase-15 wording — the
+DRAFT lines introduced by plans 15-01 through 15-04 (second-person forms, the rewritten storm
+intro, the broke-sail/broke-anchor lines, the split bribe/cleaned-out battle line). On those cards:
+
+- `keep` = **ship the draft text shown on the card**. It does NOT mean "revert to the pre-phase-15
+  wording", and it does NOT mean "this line was never changed".
+- The only source of truth for what `keep` preserves is the card's rendered text, which is why
+  D-21 (every branch must render) is a precondition for this convention working at all — a tag on a
+  card whose text he could not see would be meaningless.
+
+**Where a `rewrite` tag carries wording in `notes`, apply the notes** (unchanged from D-20; D-20's
+"the notes win over a mistaken keep tag" rule was a pass-1 correction and is now moot, since he is
+setting tags deliberately this round — but a note that is a *question* is still a question, never
+copy).
+
