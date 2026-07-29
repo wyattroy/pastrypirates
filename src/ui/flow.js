@@ -122,7 +122,14 @@ export async function fishCast(p,label,allowBack){
     setActor(p.idx);
     const opts=[{label:"🎣 CAST!",value:1,flip:true}];
     if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
-    const v=await ask(label||`${pn(p.idx)}: cast your line — flip!`,opts);
+    // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
+    // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
+    // transformation using art-review/narration-audit.html's own PIRATE_RE/PIRATE_MAP as the spec (the
+    // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
+    // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
+    // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
+    // of scope. scripts/ui_contract_check.js now gates this permanently.
+    const v=await ask(label||`${pn(p.idx)}: cast yer line — flip!`,opts);
     if(v==="back")return "back";
   }
   netHandlers().onBroadcastFlip("spin");
@@ -263,7 +270,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))`;
       opts.push({label:flipLabel,value:"flip"});
       const promptMsg=trueShipwreck
-        ?`${pn(p.idx)}: the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
+        ?`${pn(p.idx)}: the storm blows ye toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
         :`${pn(p.idx)}: the storm's blowin' ye into land! Anchor safely, or take yer chances dodging the rocks.`;
       // D-11 case 2: the Pay-to-anchor option is already silently absent above when broke — say so
       // plainly instead of leaving the missing option unexplained.
@@ -494,7 +501,7 @@ export async function humanTrade(p){
   let accept;
   if(q.strategy==="human"){
     setActor(q.idx);
-    accept=await ask(`${pn(q.idx)}: accept ${offerDisplay} for your ${ilabelImg(want)}?`,
+    accept=await ask(`${pn(q.idx)}: accept ${offerDisplay} for yer ${ilabelImg(want)}?`,
       [{label:`${iconImg(CHECKMARK_IMG)} Accept`,value:true},{label:`${iconImg(CANCEL_X_IMG)} Decline`,value:false}]);
   }else{
     // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare — unless
@@ -592,7 +599,7 @@ export async function humanAct(p,sailCtx){
     opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` (−${appState.game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
   if(appState.game.tradeOpp(p).length)opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
   if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
-    opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start your bakery!`,value:"bakery"});
+    opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
   opts.push({label:"🎣 Fish (+1-2🌕)",value:"fish"});
   // offered only if this player's sail step ended in "Stay put" (nothing spent/moved) and they
   // could still afford to sail — covers the reported "hit Stay put by accident" complaint
@@ -635,7 +642,7 @@ export async function humanAct(p,sailCtx){
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;}
   else if(v==="fish"){
-    const r=await fishCast(p,"🎣 Cast your line — flip!",true);
+    const r=await fishCast(p,"🎣 Cast yer line — flip!",true);
     if(r==="back"){await humanAct(p,sailCtx);return;}
     await narrateLastEvent();
   }
@@ -810,7 +817,7 @@ export async function botTurn(p){
       if(appState.turnExpired)return; // shot-clock expired mid-hail — no partial trade, ever
       let finalPrice=price,dealt=choice==="sell";
       if(choice==="counter"){
-        const counterAmt=await ask(`Counter — how much for your ${ilabelImg(ing)}?`,
+        const counterAmt=await ask(`Counter — how much for yer ${ilabelImg(ing)}?`,
           raises.map(n=>({label:`+${n}🌕`,value:n})).concat([{label:"Never mind",value:0}]));
         if(appState.turnExpired)return;
         if(counterAmt>0){finalPrice=counterAmt;dealt=true;} // the bot's only source is this trade, so it pays up if it can afford it

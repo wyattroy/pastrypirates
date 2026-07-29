@@ -105,7 +105,14 @@ export function renderSeatList(seats){
     const me=(s.id===appState.myId);
     let label;
     // BOT-01: no personality picker — every captain's temperament is fixed (see SEAT_BOT_STRAT)
-    if(s.id)label=escHtml(s.name)+(me?" — you":"");
+    // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
+    // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
+    // transformation using art-review/narration-audit.html's own PIRATE_RE/PIRATE_MAP as the spec (the
+    // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
+    // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
+    // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
+    // of scope. scripts/ui_contract_check.js now gates this permanently.
+    if(s.id)label=escHtml(s.name)+(me?" — ye":"");
     else label="🤖 bot";
     html+=`<div class="seat ${me?"me":""}"><span class="dot" style="background:${HEXCOL[i]}"></span>
       <span class="nm">${pn(i)} — ${label}</span></div>`;

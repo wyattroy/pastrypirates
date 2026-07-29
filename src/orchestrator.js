@@ -468,7 +468,14 @@ export async function asyncBattle(att,def){
     await sleep(beat);
     // ---- DEFENDER flips ----
     if(hD){
-      dh=await hFlip("d",def,round===1?`⚔️ ${nm(att.idx)} attacks you — defend! FLIP`:"⚔️ Defend! FLIP",{atState:ah?"H":"T",atBs:bs});
+    // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
+    // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
+    // transformation using art-review/narration-audit.html's own PIRATE_RE/PIRATE_MAP as the spec (the
+    // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
+    // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
+    // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
+    // of scope. scripts/ui_contract_check.js now gates this permanently.
+      dh=await hFlip("d",def,round===1?`⚔️ ${nm(att.idx)} attacks ye — defend! FLIP`:"⚔️ Defend! FLIP",{atState:ah?"H":"T",atBs:bs});
     }else{
       dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
@@ -546,7 +553,7 @@ export async function asyncBattle(att,def){
     let mode;
     if(canCoins&&hasIng){
       if(lose.strategy==="human"){setActor(lose.idx);
-        mode=await ask(`${pn(lose.idx)}, you lost! Pay with…`,
+        mode=await ask(`${pn(lose.idx)}, ye lost! Pay with…`,
           [{label:"5🌕",value:"coins"},{label:"a crate (winner picks)",value:"ing"}]);}
       else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
     }else if(hasIng)mode="ing";else mode="coins";
@@ -555,7 +562,7 @@ export async function asyncBattle(att,def){
       let pick;
       const uniq=[...new Set(lose.ing)];
       if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
-        pick=await ask(`${pn(win.idx)}, choose your plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
+        pick=await ask(`${pn(win.idx)}, choose yer plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
       else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
       lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabelImg(pick);spoilIng=pick;
     }
@@ -655,7 +662,7 @@ export async function recipeDraftNet(){
     pending.push(p);
   }
   if(pending.length){
-    const msgFor=p=>`${pn(p.idx)}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
+    const msgFor=p=>`${pn(p.idx)}, choose yer recipe — bake it by gathering every ingredient, then sail home to win:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
     if(appState.passAndPlay){
@@ -969,7 +976,7 @@ export async function createRoom(){
 export async function joinRoom(){
   const typedName=($("joinName").value||"").trim().slice(0,40);
   const code=($("joinCode").value||"").toUpperCase().trim();
-  if(code.length<4){alert("Enter the room code your host shared.");return;}
+  if(code.length<4){alert("Enter the room code yer host shared.");return;}
   let snap;
   try{snap=await netReadRoom(appState.db,code);}
   catch(e){console.error("joinRoom failed",e);alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");return;}
@@ -1144,7 +1151,7 @@ export async function resumeHostGame(r){
   let evval={};try{evval=(await netReadEv(appState.db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume events")(e);}
   appState.resumeEvLen=evval?Object.keys(evval).length:0;
   showGameView();
-  panel('<div class="apMsg">⚓ Reconnecting to your voyage…</div>');
+  panel('<div class="apMsg">⚓ Reconnecting to yer voyage…</div>');
   appState.replaying=true;
   beginGame(r.cfg,r.seed);
 }
