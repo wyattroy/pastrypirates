@@ -25,9 +25,27 @@
 // Convention (matches determinism_baseline.js/hail_ranking_test.js/bot_storm_narration_test.js/
 // narration_test.js): no assertion library, plain console.log, process.exit(failures?1:0).
 //
-// Deliberately NOT wired into npm test (see this plan's own hard_constraint): this is a
-// review-time tool, and plan 15-06 will legitimately shrink the line count once Wyatt's cuts are
-// applied — a permanent floor gate here would go red for the right reason at the wrong time.
+// ============================================================================
+// Wired into `npm test` as of 2026-07-29 (15-VERIFICATION.md Gap 3)
+// ============================================================================
+// This was previously withheld from `npm test` because plan 15-06 would legitimately shrink the
+// line count once Wyatt's cuts were applied — a permanent floor gate would have gone red for the
+// right reason at the wrong time. Those cuts are now applied, and the withholding turned out to be
+// the whole problem: 15-06's own final commit shifted src/ui/util.js by 4 lines, AD_HOC_META went
+// stale, this self-check went red, and NOTHING NOTICED because `npm test` did not run it. That is
+// Gap 3. It now runs last in the chain, so the D-21/D-31/D-32/D-33 coverage guard is CI-enforced.
+//
+// KNOWN FRAGILITY, recorded deliberately rather than fixed here. AD_HOC_META below is keyed by
+// hardcoded line number, so any edit that inserts a line above a flash() site drifts it. That has
+// now broken twice. The durable fix is the convention this script ALREADY uses in its own D-32
+// section: curate by exact ANCHOR TEXT and verify each anchor's presence, so a reword or a move
+// fails loudly instead of going stale. Migrating AD_HOC_META's 25 entries to anchor-text keying is
+// a refactor with its own failure modes and does not belong in a gap-closure pass — it is filed as
+// a follow-up. Running inside `npm test` at least makes the drift LOUD, and the failure message
+// already names the file, line and enclosing function, so it is actionable noise, not mystery
+// noise. When you hit it: re-key by the entry's own `label` and enclosing `fn`, NEVER by proximity
+// — applyMeta() fails only on a MISSING key, so a stale key can silently attach the wrong label to
+// a shifted site while an orphan sits unnoticed. The orphan/count assertions are the safety net.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -227,30 +245,30 @@ function findCallSites(fileSrc, filePath) {
 // for this extractor to find at all. The merge is complete, not pending.
 const AD_HOC_META = {
   "src/ui/flow.js:111": { fn: "humanFlip", group: "Docking", tag: "keep", label: "Coin-flip announcement (generic — used at docking/anchor moments)" },
-  "src/ui/flow.js:270": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02)" },
-  "src/ui/flow.js:343": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
-  "src/ui/flow.js:362": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
-  "src/ui/flow.js:395": { fn: "humanWind", group: "Storm", tag: "keep", label: "Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn" },
-  "src/ui/flow.js:434": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)" },
-  "src/ui/flow.js:550": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)" },
-  "src/ui/flow.js:561": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)" },
-  "src/ui/flow.js:620": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
-  "src/ui/flow.js:628": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder, action guard (guarded safety net)" },
-  "src/ui/flow.js:668": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03)" },
-  "src/ui/flow.js:695": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
-  "src/ui/flow.js:701": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn" },
-  "src/ui/flow.js:759": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction, bot — shared secondLegLine() helper" },
-  "src/ui/flow.js:779": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot — shared brokeSailLine() helper" },
-  "src/ui/flow.js:971": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — backed with coin (D-08)" },
-  "src/ui/flow.js:972": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — free call (D-08)" },
-  "src/ui/flow.js:998": { fn: "settleSideBets", group: "Battle", tag: "keep", label: "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)" },
+  "src/ui/flow.js:277": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02)" },
+  "src/ui/flow.js:350": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
+  "src/ui/flow.js:369": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
+  "src/ui/flow.js:402": { fn: "humanWind", group: "Storm", tag: "keep", label: "Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn" },
+  "src/ui/flow.js:441": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)" },
+  "src/ui/flow.js:557": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)" },
+  "src/ui/flow.js:568": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)" },
+  "src/ui/flow.js:627": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
+  "src/ui/flow.js:635": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder, action guard (guarded safety net)" },
+  "src/ui/flow.js:675": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03)" },
+  "src/ui/flow.js:702": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
+  "src/ui/flow.js:708": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn" },
+  "src/ui/flow.js:766": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction, bot — shared secondLegLine() helper" },
+  "src/ui/flow.js:786": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot — shared brokeSailLine() helper" },
+  "src/ui/flow.js:982": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — backed with coin (D-08)" },
+  "src/ui/flow.js:983": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — free call (D-08)" },
+  "src/ui/flow.js:1009": { fn: "settleSideBets", group: "Battle", tag: "keep", label: "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)" },
   "src/orchestrator.js:391": { fn: "asyncBattle", group: "Battle", tag: "keep", label: "Battle opening announcement (D-08)" },
-  "src/orchestrator.js:709": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
-  "src/orchestrator.js:731": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
-  "src/orchestrator.js:765": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/orchestrator.js:769": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/ui/util.js:914": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
-  "src/ui/util.js:918": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
+  "src/orchestrator.js:720": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
+  "src/orchestrator.js:742": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
+  "src/orchestrator.js:776": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "src/orchestrator.js:780": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "src/ui/util.js:952": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
+  "src/ui/util.js:956": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
 };
 
 function applyMeta(sites) {
