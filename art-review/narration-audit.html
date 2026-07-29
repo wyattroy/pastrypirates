@@ -125,6 +125,13 @@
     color: #16302f;
   }
   .msgBox.addressed { border-color: var(--panel2-border); background: linear-gradient(160deg, var(--panel2-a), var(--panel2-b)); }
+  /* D-50 (Wyatt: "the text rendered inside this blue box is much longer than 'a sack of' — I
+     thought the flavor text was just 'a sack of'"): a THIRD msgBox variant for CONTEXT — the real
+     containing sentence around a fragment card's editable value, rendered with the same fidelity
+     (real icons/colors) but deliberately dimmed + dashed (the SAME "not directly editable here"
+     signal the Question field's dashed border already uses) so it can never be mistaken for the
+     blue "this is the copy, edit it here" box every other card on this page means. */
+  .msgBox.context { opacity: 0.62; border-style: dashed; }
   .msgBox img.narrIcon { width: 15px; height: 15px; vertical-align: -3px; object-fit: contain; margin: 0 1px; }
   .msgBox b { color: inherit; }
   .variantRow { display: flex; flex-direction: column; gap: 3px; }
@@ -1770,18 +1777,44 @@ function awardCards() {
   });
 }
 
-/* ---- dockFlavor: every ingredient's dock haul text (DOCK_PLACE + DOCK_FLAVOR) — a live import,
- * never a snapshot, so it can never drift from what src/shared/index.js actually contains. All 7
- * ingredients ever placed (D-17: salt/honey are vestigial, no art, never dealt), rendered directly
- * from the table rather than fabricating a full dock event per ingredient (this plan's own
- * instruction — the flavour text isn't a narration BRANCH, it's a per-ingredient DATA VALUE). ---- */
+/* ---- dockFlavor: every ingredient's dock haul text (DOCK_FLAVOR) — a live import, never a
+ * snapshot, so it can never drift from what src/shared/index.js actually contains. All 7
+ * ingredients ever placed (D-17: salt/honey are vestigial, no art, never dealt).
+ *
+ * D-50 (Wyatt: "the text rendered inside this blue box is much longer than 'a sack of' — I
+ * thought the flavor text was just 'a sack of'"): the blue msgBox on every OTHER card on this
+ * page means "this is the copy, edit it here" — composing a demo sentence
+ * (`${ilabelImg(ing)} — docks at ${place} for ${flavor}`) around the actual DOCK_FLAVOR fragment
+ * made his ~7-word value indistinguishable from ~15 words that aren't his, in a box that reads as
+ * fully editable. Two failure modes: a rewrite replaces the whole sentence, silently duplicating
+ * "docks at…" that the REAL containing line already supplies elsewhere; or the sentence reads
+ * fine as prose and the actual fragment goes unedited. Fixed: the editable msgBox shows ONLY the
+ * fragment now; the real containing sentence (one of DOCK_FLAVOR's two actual call sites — the
+ * "coins" tails branch, EVENT_NARRATION.dock, util.js:390) is rendered as read-only CONTEXT
+ * through the REAL builder (never hand-composed, so the preview can't silently drop the "but
+ * flips tails and takes 3🌕" ending the way the old demo sentence did), visually dimmed+dashed so
+ * it can never be mistaken for the editable box above it. DOCK_FLAVOR is used ONLY in the two
+ * tails branches (bought/coins, util.js:389-390 + their addressed siblings :394-395) — never on
+ * heads, never on an empty island; stated explicitly since nothing else on the card says so. ---- */
 function dockFlavorCards() {
   return ING_ALL.slice(0, 7).map((ing) => {
     const id = `misc:dockFlavor:${ing}`;
-    const place = dockPlace(ing), flavor = dockFlavor(ing);
-    const text = `${ilabelImg(ing)} — docks at ${place} for ${flavor}`;
-    recordNeutralTextEntry(id, `Dock flavour — ${ing}`, `dockFlavor:${ing}`, finalize(text));
-    const body = msgBox(text, "neutral") + `<p class="cardNote">src/shared/index.js · DOCK_PLACE/DOCK_FLAVOR["${ing}"] — live import, not a snapshot.</p>`;
+    const flavor = dockFlavor(ing);
+    // The EDITABLE value is the bare fragment ONLY — this is what recordNeutralTextEntry tracks
+    // too (D-28 shared-wording / D-26 duplicate-rewrite detection must compare against what he can
+    // actually edit, not a sentence he never typed).
+    recordNeutralTextEntry(id, `Dock flavour — ${ing}`, `dockFlavor:${ing}`, finalize(flavor));
+    // The REAL containing line, for context only — called through the actual dock builder (the
+    // "coins" tails branch) with this specific ingredient, so it is never wrong about what ships.
+    const contextEv = { t: "dock", p: 0, ing, got: "coins", heads: 0 };
+    const contextRendered = describeFor(contextEv, NEUTRAL_VIEWER);
+    const contextHtml = (contextRendered && contextRendered.txt) ? contextRendered.txt : "";
+    const body = msgBox(flavor, "neutral")
+      + `<p class="cardNote">↑ This fragment is the only thing DOCK_FLAVOR actually stores — edit it above. Everything below is CONTEXT, not editable here.</p>`
+      + (contextHtml
+          ? `<p class="cardNote">Full line (EVENT_NARRATION.dock, the "coins" tails branch — real narration, dimmed/dashed to mark it read-only):</p>` + msgBox(contextHtml, "context")
+          : "")
+      + `<p class="cardNote">src/shared/index.js · DOCK_FLAVOR["${escapeHtml(ing)}"] — live import, not a snapshot. Used ONLY in the two tails branches (<code>bought</code>/<code>coins</code>) — never on heads, never on an empty island.</p>`;
     return { id, group: "dockOutcomes", html: cardShell({ id, title: `Dock flavour — ${ing}`, meta: `src/shared/index.js · DOCK_FLAVOR["${ing}"]`, body, defaultTag: "keep", silent: false }) };
   });
 }
