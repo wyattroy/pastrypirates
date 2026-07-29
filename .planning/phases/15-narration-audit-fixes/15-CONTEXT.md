@@ -622,3 +622,51 @@ without him having to type `ye` by hand.
 identifier/comment exclusion are now load-bearing across the whole UI layer, not just narration.
 Re-scan for `\w*you\w+` style collisions across every file touched, not only the original four.
 
+
+**D-30 — Action prompts and button labels JOIN the audit. The gap was blocking his rewrite.**
+
+Wyatt: *"the action prompts aren't here. because they're missing, I can't actually see what the
+players are seeing, or reacting to. And I can't edit the most important lines of dialogue in the
+game. Is it possible for you to add the action prompts to this audit, colored a different background
+so I can recognize them, and keep everything else about this audit working?"*
+
+**He is right, and the omission traces back to D-03**, which scoped the audit to the two *narration*
+sources (the `EVENT_NARRATION` table + ad-hoc `flash()` calls). Action prompts are `ask()`/`panel()`
+calls — a third surface, never in scope, and by volume the text players read most: every turn, every
+decision. Two independent reasons it must be fixed now:
+
+1. **Narration reads as a response to the prompt that preceded it.** Judging narration copy without
+   the prompt above it is judging half a conversation — which is exactly what D-22's flow chart was
+   meant to prevent.
+2. **D-29 already commits to converting prompts to `ye`/`yer`** ("convert everything"). Approving a
+   conversion he cannot see contradicts D-25's "ship exactly what this card displays".
+
+**Scope — measured, not estimated:**
+
+| Surface | Count |
+|---|---|
+| `ask()` prompt strings | 11 template-literal sites (20 `ask(` call sites total) |
+| `panel()` prompt strings | 7 template-literal sites (16 `panel(` sites total) |
+| **Button labels** | **57** |
+
+Button labels are player-facing copy and must be individually editable — `🌕 FLIP!`, `🎣 CAST!`,
+`Pay 1🌕 to anchor`, `Take 3🌕`, `a crate (winner picks)`, `🏃 Flee! (−1🌕)`, `Keep fighting`,
+`← Back`, `Never mind`. Several are duplicated across sites (`← Back` many times); the
+shared-wording notice from D-28 applies to them, so he sees when one edit changes several buttons.
+
+**Requirements:**
+
+- **Visually distinct background** so prompts are recognizable at a glance versus narration cards
+  (his explicit ask). Must remain legible in the existing dark theme.
+- **Placed in the flow chart at the point they actually fire**, so each prompt sits with the
+  narration that answers it — a prompt divorced from its outcome recreates the original problem.
+- **Buttons render on their own card, grouped under their prompt** — a prompt and its options are
+  one decision moment and must be reviewable together.
+- **Everything else keeps working, unchanged:** his `22 of 81` reviewed state and all saved marks,
+  the same `STORAGE_KEY`, existing card ids (new ids only for the new prompt/button cards), the
+  reviewed tracking, question field, derived-intent line, shared-wording notices, duplicate guard,
+  self-check, and the `ye`/`yer` conversion from D-29 (which applies to prompts and button labels
+  too).
+- The reviewed-progress denominator will rise from 81; that is expected and must not reset or
+  invalidate marks already made.
+
