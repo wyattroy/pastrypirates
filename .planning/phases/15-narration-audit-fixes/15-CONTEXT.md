@@ -1822,3 +1822,44 @@ loudly naming the class present on one side and missing on the other. ~10 lines;
 the next divergence is caught by CI rather than by someone playing a guest seat and noticing their
 board doesn't pulse.
 
+
+**D-57 — GUEST NARRATION NEVER FADES. NARR-06's timing change only affects the host.**
+
+Found by Wyatt during the 2026-07-29 playtest: *"it's faded for the host, and not for the guest."*
+Verified live on the guest seat — the end-of-voyage message carried `class="apMsg"`, **no
+`fadeOut`**, `opacity: 1`.
+
+**The two render paths:**
+
+| | Host | Guest |
+|---|---|---|
+| Entry point | `flash(msg, ms, holdMs, variants)` (`panel.js:384`) | `showNarration(html)` (`panel.js`) |
+| Body | render → `await sleep(msgHoldMs(text))` → `el.classList.add("fadeOut")` (`:395`) | `panel(html ? '<div class="apMsg">'+html+'</div>' : "")` — **that is the whole function** |
+| Hold timer | yes, length-aware | **none** |
+| Fade | yes | **never** |
+
+**Consequence for this phase: NARR-06 is only half-delivered.** Its success criterion is *"Narration
+text stays fully visible 10% less time before it begins fading."* Plan 15-02 cut
+`MSG_HOLD_MULTIPLIER` 0.8→0.72 and `BOT_MSG_HOLD_MULTIPLIER` 0.5→0.45 — **both consumed exclusively
+by `msgHoldMs()`, which only `flash()` calls.** A guest has no hold to shorten and no fade to begin,
+so the requirement is unverifiable on a guest and false as written. Every remote player in every
+online game is unaffected by the change we shipped for it.
+
+**Same root cause as D-35/D-55/D-56, fourth instance** — a host path and a guest path for one
+concept, drifting independently. Here the guest path is not a degraded copy but a *stub*: three
+of `flash()`'s four parameters (`ms`, `holdMs`, `variants`) have no equivalent at all.
+
+**Also observed in the same box (formatting, separate defect):** at end of voyage the narration box
+sits under the End-of-Voyage panel showing *" Wyatt baked a Caramel Slice and won Best Baker in the
+Caribbean!"* — duplicating the win the panel already announces, and with the leading space D-50
+predicted (a stripped emoji). Related to the pending todo `eov-narration-box-not-cleared`
+(`resolves_phase: 16`), but that todo describes an **empty** box; this is a **non-empty duplicate**.
+Update that todo rather than filing a second one.
+
+**Decision needed from Wyatt before phase sign-off:** either
+1. give the guest path a hold+fade (mirroring `flash()`'s timing, so NARR-06 is true for everyone), or
+2. accept NARR-06 as host-only and record the limitation explicitly.
+
+Option 1 is the honest reading of the requirement. **This must not be discovered after the phase is
+marked complete** — it is the requirement's own success criterion.
+
