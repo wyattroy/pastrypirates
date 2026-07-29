@@ -1228,9 +1228,9 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 116,
+      "line": 118,
       "fn": "renderSeatList",
-      "rawMsg": "\"Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots.\""
+      "rawMsg": "`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`"
     },
     {
       "category": "mpError",

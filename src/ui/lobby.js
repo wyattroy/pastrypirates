@@ -35,7 +35,7 @@
 
 import { appState } from "../state/index.js";
 import {
-  HEXCOL, DEFAULT_NAMES, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG,
+  HEXCOL, DEFAULT_NAMES, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG, HOURGLASS_IMG,
   iconImg, emojify,
 } from "../shared/index.js";
 import { pname, pn } from "./util.js";
@@ -113,7 +113,9 @@ export function renderSeatList(seats){
   $("seatList").innerHTML=emojify(html);
   if(appState.isHost){
     $("btnStart").style.display="";
-    $("waitMsg").innerHTML="Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots.";
+    // NARR-01/D-25/D-50 (Wyatt-approved 2026-07-29): applied verbatim; {clock/stopwatch} resolves
+    // to the hourglass (D-50 RESOLVED — this is a "waiting for players" moment, not a control).
+    $("waitMsg").innerHTML=`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`;
   }else{
     $("btnStart").style.display="none";
     $("waitMsg").textContent="Waiting for the host to start the voyage…";
