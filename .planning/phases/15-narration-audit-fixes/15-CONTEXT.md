@@ -1524,3 +1524,68 @@ phrasing (*"for 🌾 a sack of toasty wheat"*) in place of the plain ingredient 
 variants written, and he is not going to edit them twice. **Tell him explicitly when the page is
 ready**, naming those two cards, or the flavour text ships deleted despite D-48 saying keep it.
 
+
+**D-50 — Canonical glossary for Wyatt's `{curly brace}` shorthand, and the typo sweep.**
+
+Wyatt: *"make fix the correct shorthand for the images, etc. that I am putting in the {curly braces}
+-- i don't know what any of those variables … or images … are actually called."*
+
+**23 distinct tokens across 78 written fields.** Mapping, authoritative for 15-06:
+
+**Icons — Wyatt should write the EMOJI, not a placeholder.** `emojify()` (`src/shared/index.js:102`)
+swaps every one of these for its custom art automatically at render. A `{token}` is *more* work and
+has to be translated; the emoji is the shorthand the game already understands.
+
+| His token | Count | Write instead | Resolves to |
+|---|---|---|---|
+| `{coin}` | 15 | `🌕` | `COIN_IMG` |
+| `{coin-tails}` | 7 | `⚫` | `FLIP_TAILS_IMG` |
+| `{coin-heads}` | 4 | `⚪` | `FLIP_HEADS_IMG` |
+| `{sailboat}` | 2 | `⛵` | `SAILBOAT_IMG` |
+| `{swords}` | 1 | `⚔️` | `BATTLE_IMG` |
+| `{sugarfish}` | 1 | `🐠` | `SUGARFISH_IMG` |
+| `{crab}` | 1 | `🦀` | `CANDY_CRAB_IMG` |
+| **`{rod}` + `{fishing-hook}`** | 1+1 | `🎣` | `FISHING_ROD_IMG` — **two names, one icon** |
+| **`{clock/stopwatch}`** | 1 | **ambiguous** | three exist: `⏳` hourglass, `⏰` alarm, `⏱` stopwatch. **Ask him.** |
+
+**Ingredients — icon + name together, via `ilabelImg(key)`.** Note two of his tokens use the display
+word, not the key:
+
+| His token | Actual key | Renders as |
+|---|---|---|
+| `{wheat}` ×2 | `wheat` | 🌾 Toasty Wheat |
+| **`{milk}`** | **`dairy`** | 🥛 Fresh Milk |
+| `{sugar}` | `sugar` | 🍬 Crystal Sugar |
+| `{eggs}` | `eggs` | 🥚 Speckled Eggs |
+| `{cocoa}` | `cocoa` | 🍫 Cacao Pods |
+| **`{cinnamon}`** | **`spice`** | 🌶️ Hot Cinnamon |
+| `{vanilla}` | `vanilla` | 🌼 Vanilla Beans |
+
+(Ingredient emoji are NOT in `EMOJI_IMG` — that is D-17's defect, fixed in 15-06 via `fmtItem`. Until
+then ingredients must go through `ilabelImg`, not a bare emoji.)
+
+**Variables — genuine placeholders, keep a token:**
+
+| Token | Real source |
+|---|---|
+| `{dir}`, `{dir1}` | `DIRNAME[e.dir]` — the round's first/only wind direction |
+| `{dir2}` | `DIRNAME[e.dir2]` — the storm's second gust (always perpendicular) |
+| `{player}` | `pn(seat)` — coloured, bolded captain name |
+| `{offer}` | the event's own offer field |
+| `{N}` | a numeric amount from the event |
+
+**Use the existing helper, do not string-concatenate.** Wyatt wrote *"this {dir}erly is gusting"*.
+`windHoldPhrase(dir, streak)` (`src/ui/util.js`) already produces exactly that from `WIND_ADJ[dir]`,
+including the ≥3 "won't quit" variant. 15-06 must call it rather than appending `"erly"` to a
+direction name.
+
+**Mechanical defects found — 22 of 78 fields:**
+- **Leading/trailing spaces (~14)** — almost all are where he deleted a leading emoji when pasting
+  (`" Crustbeard attacks…"` was `"⚔️ Crustbeard attacks…"`). **Per D-16 the icon is re-attached
+  regardless**, so these are harmless, but the stray space must be trimmed.
+- **Double spaces (3)** — e.g. `"— Round 3:  The storm's baked in"`.
+- Brace and quote mismatches he had already found and fixed himself before this sweep.
+
+**Required of 15-06:** normalise whitespace on every applied string; translate any surviving
+`{token}` per the tables above; **stop and ask** on `{clock/stopwatch}` rather than guessing.
+
