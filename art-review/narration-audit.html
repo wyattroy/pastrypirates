@@ -195,14 +195,19 @@
      Question field's dashed "not-copy" treatment, so the two copy fields read as siblings and the
      Question field still reads as visually distinct from both. */
   .addressedNotesLabel { color: #f5c26b; }
-  textarea.notesArea, textarea.questionArea, textarea.addressedNotesArea {
+  /* D-54: [class^="addressedNotesArea"] catches BOTH the original single field (class
+     "addressedNotesArea") and the second, role-labelled field a two-party card adds (class
+     "addressedNotesArea2") with one rule — cardShell() builds the class name as
+     `addressedNotesArea${suffix}`, suffix "" or "2", so a prefix match is exactly the right tool
+     rather than hand-duplicating every selector below for a fixed set of suffixes. */
+  textarea.notesArea, textarea.questionArea, textarea[class^="addressedNotesArea"] {
     width: 100%; min-height: 48px; resize: vertical;
     background: #10141a; border: 1px solid var(--border); border-radius: 8px;
     color: var(--text); padding: 7px 9px; font-family: inherit; font-size: 0.8rem;
   }
   textarea.questionArea { min-height: 34px; border-style: dashed; border-color: #3a5566; }
-  textarea.addressedNotesArea { border-color: rgba(245,194,107,0.4); }
-  textarea.notesArea:focus, textarea.questionArea:focus, textarea.addressedNotesArea:focus, select:focus { outline: 1px solid var(--accent); }
+  textarea[class^="addressedNotesArea"] { border-color: rgba(245,194,107,0.4); }
+  textarea.notesArea:focus, textarea.questionArea:focus, textarea[class^="addressedNotesArea"]:focus, select:focus { outline: 1px solid var(--accent); }
   .derivedIntent {
     font-size: 0.78rem; font-weight: 600; padding: 6px 9px; border-radius: 8px;
     background: rgba(154,164,173,0.08); border: 1px solid var(--border); color: var(--text);
@@ -211,14 +216,16 @@
   .derivedIntent.intentRewrite { color: var(--accent); border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
   .derivedIntent.intentCut { color: var(--warn); border-color: rgba(242,103,158,0.4); background: rgba(242,103,158,0.08); }
   .derivedIntent.intentMerge { color: #7fd6ff; border-color: rgba(127,214,255,0.4); background: rgba(127,214,255,0.08); }
-  /* D-47: a SECOND derived line, shown only when the addressed field carries text — kept visually
-     distinct from .derivedIntent (amber vs the tag-driven colors above) so "this is the OTHER
-     rendering" reads at a glance, never mistaken for a second neutral-rewrite decision. */
-  .addressedDerivedIntent {
+  /* D-47/D-54: a SECOND (and, on a two-party card, THIRD) derived line, shown only when its own
+     addressed field carries text — kept visually distinct from .derivedIntent (amber vs the
+     tag-driven colors above) so "this is an OTHER rendering" reads at a glance, never mistaken
+     for a neutral-rewrite decision. [class^=] covers both "addressedDerivedIntent" and
+     "addressedDerivedIntent2" with one rule, same reasoning as the textarea selector above. */
+  div[class^="addressedDerivedIntent"] {
     font-size: 0.78rem; font-weight: 600; padding: 6px 9px; border-radius: 8px; margin: 0;
   }
-  .addressedDerivedIntent:empty { display: none; }
-  .addressedDerivedIntent.hasAddressed {
+  div[class^="addressedDerivedIntent"]:empty { display: none; }
+  div[class^="addressedDerivedIntent"].hasAddressed {
     color: #f5c26b; border: 1px solid rgba(245,194,107,0.4); background: rgba(245,194,107,0.08);
   }
   /* D-47: the merge-target-in-prose hint — a card whose Question field may describe a merge
@@ -395,6 +402,29 @@
     <code>mergeInto</code> selector itself — never left duplicated where a stale note could
     disagree with it (D-44). A one-time summary banner shows exactly what moved, so it can be
     checked against what he meant, not discovered later.
+  </p>
+  <p class="methodNote">
+    <b>A TWO-PARTY line has THREE renderings — D-47 one step further (D-54).</b> Wyatt, of the
+    battle-opening card: <i>"these battle lines NEED three options, just like are currently
+    displayed. can you add those just here for parity?"</i> — he was right: a battle names both an
+    attacker AND a defender, so it renders neutral, addressed-to-attacker, AND
+    addressed-to-defender, but D-47 only ever gave a card ONE addressed field. A rewrite of the
+    second party's line had nowhere to go — exactly the D-47 bug, one layer deeper. Every
+    two-party card (13 of them: <code>battle</code> ×3 branches, <code>battleflee</code>,
+    <code>parley</code> ×2, <code>trade</code> ×2, <code>blocked</code>, <code>bakeoff</code>, the
+    battle-opening announcement, and both side-bet lines) now gets a SECOND addressed field —
+    derived from the card's own already-rendered variant count
+    (<code>.variantRow</code> boxes actually on the page), never a hand-listed set of ids, so a
+    future event with more subjects, or fewer, is picked up automatically. Labelled by
+    <b>role</b>, never by sample seat name — <i>"Addressed to the attacker"</i>/<i>"…the
+    defender"</i>, <i>"…the offerer"</i>/<i>"…the other captain"</i> — since "Addressed to Davy
+    Scones" says nothing about which role actually ships that line. Its own export key
+    (<code>addressedNotes2</code>/<code>addressedFinalText2</code>, plus
+    <code>addressedRole</code>/<code>addressedRole2</code> carrying the exact role wording shown),
+    its own derived line, and it drives the same auto-rewrite rule the other two copy fields do.
+    <b>The existing addressed text on those 13 cards was drafted from the first-named party's side
+    (attacker/offerer/bettor) — left exactly where it is; the new field starts empty for the
+    second party</b>, so nothing already written moved or was overwritten.
   </p>
   <p class="methodNote">
     <b>Every card speaks pirate now — "ye"/"yer" (D-29, confirmed).</b> <code>you</code>→<code>ye</code>,
@@ -898,7 +928,7 @@ function renderTableBranch(key, spec) {
   };
   const { rendered, variants } = spec.cfg ? withCfg(spec.cfg, run) : run();
   resetEvents();
-  return { rendered, variants };
+  return { rendered, variants, ev }; // D-54: callers need `ev` too, to role-label two-party addressed fields
 }
 
 function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${key}`; }
@@ -939,7 +969,7 @@ function configGateNote(cfgOverride) {
 function buildTableBranchCard(key, spec, group) {
   const id = tableCardId(key, spec.tag);
   const title = spec.label || `EVENT_NARRATION.${key}`;
-  const { rendered, variants } = renderTableBranch(key, spec);
+  const { rendered, variants, ev } = renderTableBranch(key, spec);
   const silent = !rendered || !rendered.txt;
   const cfgNote = configGateNote(spec.cfg);
   // D-36/D-49: a BRANCH card can also be a merge DESTINATION (table:trade for parley;
@@ -961,7 +991,10 @@ function buildTableBranchCard(key, spec, group) {
   const defaultTag = cfgNote && TABLE_TAGS[key] === "rewrite" ? "keep" : (TABLE_TAGS[key] || "keep");
   // D-49 CONFIRMED: a branch-specific target wins over the per-key default when both could apply.
   const mergeInto = TABLE_BRANCH_MERGE_TARGET[id] || TABLE_MERGE_TARGET[key];
-  return { id, group, html: cardShell({ id, title: cfgNote ? `${title} (config-gated — D-43)` : title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag, silent, mergeInto, mergeCandidates: mergeCandidatesFor(id) }) };
+  // D-54: derived from the SAME variants array that just decided how many boxes render above —
+  // never a hand-listed set of ids.
+  const addressedFields = tableAddressedFields(key, ev, variants);
+  return { id, group, html: cardShell({ id, title: cfgNote ? `${title} (config-gated — D-43)` : title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag, silent, mergeInto, mergeCandidates: mergeCandidatesFor(id), addressedFields }) };
 }
 
 function buildTableKeyCards(key, group) {
@@ -987,7 +1020,10 @@ function buildTableKeyCards(key, group) {
       : "";
     const note = (TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "") + inboundNote;
     if (!silent) recordNeutralTextEntry(id, `EVENT_NARRATION.${key}`, key, finalize(rendered.txt));
-    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id) }) }];
+    // D-54: same derivation as the branch-card path — from this exact `variants` array, never a
+    // hand-listed set of ids.
+    const addressedFields = tableAddressedFields(key, ev, variants);
+    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id), addressedFields }) }];
   }
   return branches.map((spec) => buildTableBranchCard(key, spec, group));
 }
@@ -1177,6 +1213,16 @@ function guardedNote(id) {
     : "";
   return `<p class="guardedNote">🛡 GUARDED (D-40) — reachable only if an upstream guard fails; players will not normally see this in a normal game. Guard: ${g.guard}.${siblingLink} Worth KEEPING (it is a real safety net, e.g. against a desynced multiplayer client) — this badge only stops a rewrite landing on the wrong card, it is not a request to delete anything.</p>`;
 }
+// D-54: role labels for the ad-hoc two-party sites — hand-curated, unlike table cards (an ad-hoc
+// `proposed` array has no underlying event object to compare seats against). These are the ONLY
+// three ad-hoc sites whose `proposed` array carries more than one entry — confirmed by the same
+// proposed.length-derived logic buildAdhocCard uses below, never a separately hand-listed set of
+// ids; this map only supplies the WORDING for a count buildAdhocCard already computed.
+const ADHOC_TWO_PARTY_ROLE_LABELS = {
+  "src/orchestrator.js:391": ["the attacker", "the defender"],
+  "src/ui/flow.js:901": ["the bettor", "the called captain"],
+  "src/ui/flow.js:902": ["the bettor", "the called captain"],
+};
 function buildAdhocCard(entry, idOverride, labelOverride, group) {
   const { file, line, fn, mergeInto, siblingMerges, rawNeutral, rawVariants } = entry;
   const baseKey = `${file}:${line}`;
@@ -1189,6 +1235,7 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
   // guards any future guarded entry whose curated default happens to be "rewrite".
   const defaultTag = guarded && entry.defaultTag === "rewrite" ? "keep" : entry.defaultTag;
   let body;
+  let addressedFields = null;
   if (PASS_THROUGH.has(baseKey)) {
     body = `<p class="passThroughNote">Table pass-through — renders whichever EVENT_NARRATION entry actually fired for that event (see its own card in the matching stage). Not counted as separate copy — tagged keep by default.</p>`;
   } else {
@@ -1200,6 +1247,17 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
     if (result.note) body += `<p class="cardNote">${result.note}</p>`;
     recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, finalize(result.current));
+    // D-54: derived from THIS card's own proposed.length (the exact array renderVariantsBlock
+    // just rendered above) — never a hand-listed set of ids. The role WORDING for the (currently
+    // three) sites that qualify is curated in ADHOC_TWO_PARTY_ROLE_LABELS above.
+    const proposed = result.proposed || [];
+    if (proposed.length >= 2) {
+      const roleLabels = ADHOC_TWO_PARTY_ROLE_LABELS[baseKey];
+      addressedFields = proposed.slice(0, 2).map((v, i) => ({
+        suffix: i === 0 ? "" : "2",
+        label: `Addressed to ${roleLabels ? roleLabels[i] : `seat ${v.seat}`}`,
+      }));
+    }
   }
   // D-36: canonical-target presentation, not the old symmetric "Byte-identical to:" list — name
   // ONE destination plus who else folds into the SAME one, never point at another duplicate.
@@ -1212,7 +1270,7 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
     ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
   </details>`;
-  return { id, group, html: cardShell({ id, title: guarded ? `${labelOverride || entry.label} (guarded — D-40)` : (labelOverride || entry.label), meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeInto, mergeCandidates: mergeCandidatesFor(id) }) };
+  return { id, group, html: cardShell({ id, title: guarded ? `${labelOverride || entry.label} (guarded — D-40)` : (labelOverride || entry.label), meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeInto, mergeCandidates: mergeCandidatesFor(id), addressedFields }) };
 }
 const RENDERED_TEXTS_ADHOC = {};
 
@@ -1249,16 +1307,44 @@ function buildAdhocKeyCards(rawEntry, group) {
 // card note is gone now that D-49 answered it.
 const MERGE_TARGET_QUESTION_IDS = new Set(["table:newround~heldStorm", "table:newround~streakStormHeldWontQuit"]);
 
+// D-54 (Wyatt, of the battle-opening card: "these battle lines NEED three options, just like are
+// currently displayed. can you add those just here for parity?"): a TWO-PARTY event renders THREE
+// boxes — neutral, addressed-to-party-1, addressed-to-party-2 — but D-47 only ever gave a card ONE
+// addressed field. Role-labelled, never by sample seat name ("Addressed to Davy Scones" tells him
+// nothing about which role ships that line): {label, label2} below name each party by ROLE. Keyed
+// by table KEY (the vocabulary is fixed per event type, regardless of which specific branch).
+const TWO_PARTY_ROLE_LABELS = {
+  battle: (ev, seat) => (seat === ev.a ? "the attacker" : "the defender"),
+  battleflee: (ev, seat) => (seat === ev.a ? "the attacker" : "the defender"),
+  parley: (ev, seat) => (seat === ev.a ? "the offerer" : "the other captain"),
+  trade: (ev, seat) => (seat === ev.a ? "the offerer" : "the other captain"),
+  blocked: (ev, seat) => (seat === ev.p ? "the blocked captain" : "the ship in the way"),
+  bakeoff: (ev, seat) => (seat === ev.a ? "the first finalist" : "the other finalist"),
+};
+// Builds the cardShell() `addressedFields` array for a TABLE card from its own already-computed
+// `variants` (narrationVariants(ev), the SAME array that decides how many boxes render) — never a
+// hand-listed set of ids. 0 or 1 variant -> null (cardShell falls back to the single generic
+// D-47 field); 2+ variants -> one role-labelled field per variant (capped at 2 — no table event on
+// this page currently names more than two subjects; narrationSubjects() itself is 2-seat max today).
+function tableAddressedFields(key, ev, variants) {
+  if (!variants || variants.length < 2) return null;
+  const roleFn = TWO_PARTY_ROLE_LABELS[key];
+  return variants.slice(0, 2).map((v, i) => ({
+    suffix: i === 0 ? "" : "2",
+    label: `Addressed to ${roleFn ? roleFn(ev, v.seat) : `seat ${v.seat}`}`,
+  }));
+}
 /* ============================================================================
- * D-25/D-26/D-36/D-47: card shell — tag select, a MERGE TARGET row (D-36 — a
- * select of known canonical destinations plus a free-text fallback, never a
- * symmetric "byte-identical" list that can point in a circle), Notes (= the
- * NEUTRAL rewrite copy when non-empty), the Addressed ("you") version field
- * (D-47 — the SECOND rendering every line actually has, D-07/D-10), a
- * separate Question-for-Claude field (never copy, never affects intent), and
- * live derived-intent lines for both copy fields.
+ * D-25/D-26/D-36/D-47/D-54: card shell — tag select, a MERGE TARGET row (D-36
+ * — a select of known canonical destinations plus a free-text fallback, never
+ * a symmetric "byte-identical" list that can point in a circle), Notes (= the
+ * NEUTRAL rewrite copy when non-empty), one or two Addressed ("you") version
+ * fields (D-47 — the SECOND rendering every line actually has, D-07/D-10;
+ * D-54 — a TWO-PARTY line has a THIRD rendering, one per named subject, role-
+ * labelled), a separate Question-for-Claude field (never copy, never affects
+ * intent), and live derived-intent lines for every copy field.
  * ==========================================================================*/
-function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, mergeCandidates, cardClass }) {
+function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, mergeCandidates, cardClass, addressedFields }) {
   const tags = ["keep", "cut", "merge", "rewrite"];
   const candidates = mergeCandidates || [];
   const mergeOptions = candidates.map((c) =>
@@ -1267,6 +1353,16 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, merge
   const mergeQuestionHint = MERGE_TARGET_QUESTION_IDS.has(id)
     ? `<p class="mergeQuestionHint">📋 D-49 CONFIRMED: this branch's merge target was previously a prose question — Wyatt has confirmed it, so it's now pre-set above (and the migration cleared the old prose from Question). Override the selector if this ever needs to change.</p>`
     : "";
+  // D-54: a two-party card gets TWO role-labelled fields (suffix "" and "2" — "" reuses D-47's
+  // original class/key names exactly, so every existing addressedNotes value and its wiring is
+  // untouched); every other card gets exactly the ONE generic field D-47 already had. Never a
+  // third box on a single-subject card.
+  const fields = (addressedFields && addressedFields.length)
+    ? addressedFields
+    : [{ suffix: "", label: `Addressed ("you") version — the second-person rendering this same line has (D-07/D-10/D-47)` }];
+  const addressedBlocksHtml = fields.map(({ suffix, label }) => `
+    <label class="addressedNotesLabel">${escapeHtml(label)}<textarea class="addressedNotesArea${suffix}" data-id="${id}" data-role-label="${escapeHtml(label)}" placeholder="leave empty if you have no rewrite for this variant, or type it here — separate from Notes, since every line has more than one rendering..."></textarea></label>
+    <div class="addressedDerivedIntent${suffix}" data-id="${id}"></div>`).join("");
   return `
   <div class="card${cardClass ? " " + cardClass : ""}" data-id="${id}" data-merge-into-default="${escapeHtml(mergeInto || "")}">
     <div class="cardHead">
@@ -1294,8 +1390,7 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, merge
     </div>
     <label class="notesLabel">Notes (neutral) — non-empty means REWRITE and becomes the new copy (D-26)<textarea class="notesArea" data-id="${id}" placeholder="leave empty to keep as displayed, or type the replacement wording..."></textarea></label>
     <div class="derivedIntent" data-id="${id}">→ …</div>
-    <label class="addressedNotesLabel">Addressed ("you") version — the second-person rendering this same line has (D-07/D-10/D-47)<textarea class="addressedNotesArea" data-id="${id}" placeholder="leave empty if you have no rewrite for the addressed variant, or type it here — separate from Notes, since every line has BOTH renderings..."></textarea></label>
-    <div class="addressedDerivedIntent" data-id="${id}"></div>
+    ${addressedBlocksHtml}
     <label class="questionLabel">Question for Claude — never becomes narration text<textarea class="questionArea" data-id="${id}" placeholder="anything that's a question, not copy..."></textarea></label>
     <label class="reviewedRow"><input type="checkbox" class="reviewedBox" data-id="${id}"> I've reviewed this card (D-27 — an untouched default is NOT a decision)</label>
   </div>`;
@@ -2590,6 +2685,29 @@ FABRICATED_EVENT_VIOLATIONS.forEach((msg) => probeFailures.push({ key: "fabricat
     if (!card.querySelector(".addressedNotesArea") || !card.querySelector(".addressedDerivedIntent")) {
       probeFailures.push({ key: "addressedFieldMissing", fields: { id }, text: `${id} has no Addressed ("you") version field — D-47` });
     }
+    // D-54: independently re-derive the variant count from the ACTUAL rendered DOM (.variantRow
+    // count inside .cardBody — one per narrationVariants()/proposed entry actually rendered),
+    // never trusting the same construction logic that decided whether to add the field. A card
+    // with 2+ rendered addressed variants must offer a SECOND field; a card with 0 or 1 must NOT
+    // (no dead third box on a single-subject card).
+    const renderedVariantCount = card.querySelectorAll(".cardBody .variantRow").length;
+    const hasSecondField = !!(card.querySelector(".addressedNotesArea2") && card.querySelector(".addressedDerivedIntent2"));
+    if (renderedVariantCount >= 2 && !hasSecondField) {
+      probeFailures.push({ key: "addressedFieldMissing", fields: { id, renderedVariantCount }, text: `${id} renders ${renderedVariantCount} addressed variants but has only ONE addressed field — D-54` });
+    }
+    if (renderedVariantCount < 2 && hasSecondField) {
+      probeFailures.push({ key: "addressedFieldMissing", fields: { id, renderedVariantCount }, text: `${id} renders ${renderedVariantCount} addressed variant(s) but has a SECOND addressed field anyway — D-54 (no dead third box on a single-subject card)` });
+    }
+    // D-54: a two-party field's label must be role-specific, not the generic D-47 wording — a
+    // label reading "Addressed ('you') version" on a two-party card would tell him nothing about
+    // which party ships that line.
+    if (hasSecondField) {
+      const label1 = card.querySelector(".addressedNotesArea").dataset.roleLabel || "";
+      const label2 = card.querySelector(".addressedNotesArea2").dataset.roleLabel || "";
+      if (/^Addressed \("you"\) version/.test(label1) || /^Addressed \("you"\) version/.test(label2)) {
+        probeFailures.push({ key: "addressedFieldMissing", fields: { id, label1, label2 }, text: `${id} has two addressed fields but at least one still carries the generic D-47 label, not a role label — D-54` });
+      }
+    }
   });
 })();
 
@@ -2634,7 +2752,7 @@ if (probeFailures.length) {
   selfCheckBanner.insertAdjacentHTML("beforeend", `<pre id="__debugFailures" style="white-space:pre-wrap;font-size:0.7rem;margin-top:8px;">${escapeHtml(JSON.stringify(probeFailures, null, 2))}</pre>`);
 } else {
   selfCheckBanner.className = "selfCheckBanner pass";
-  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44/D-49, never a silent bare tag), every card carries its second, Addressed ("you") copy field (D-47, so 15-06 can never silently discard that rendering), every fabricated battle event satisfies its real emit sites' invariants — paired spoil/spoilIng, a reachable first-to-2 score (D-51, no more impossible values behind a correctly-rendered line), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
+  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44/D-49, never a silent bare tag), every card carries its second, Addressed ("you") copy field (D-47, so 15-06 can never silently discard that rendering), every two-party card carries its role-labelled THIRD copy field too (D-54, derived from the card's own rendered variant count), every fabricated battle event satisfies its real emit sites' invariants — paired spoil/spoilIng, a reachable first-to-2 score (D-51, no more impossible values behind a correctly-rendered line), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
 }
 
 /* ============================================================================
@@ -2704,21 +2822,27 @@ function renderDerivedLine(card) {
   el.textContent = text;
   el.className = "derivedIntent " + cls;
 }
-// D-47: the SECOND derived line — the addressed ("you") field is independent of the tag/intent
-// machinery above (it is not gated by cut/merge/keep the way Notes is; every line has an
-// addressed rendering regardless of what happens to the neutral one), so it renders whenever it
-// carries text, full stop. Empty means "no addressed rewrite given" — shown as nothing (CSS
-// :empty hides the box entirely) rather than a placeholder that would clutter every other card.
-function renderAddressedDerivedLine(card) {
-  const el = card.querySelector(".addressedDerivedIntent");
-  const ta = card.querySelector(".addressedNotesArea");
+// D-47/D-54: the SECOND (and, on a two-party card, THIRD) derived line — an addressed field is
+// independent of the tag/intent machinery above (it is not gated by cut/merge/keep the way Notes
+// is; every line has an addressed rendering regardless of what happens to the neutral one), so it
+// renders whenever it carries text, full stop. Empty means "no addressed rewrite given" — shown
+// as nothing (CSS :empty hides the box entirely) rather than a placeholder that would clutter
+// every other card. Shared by suffix "" (D-47's original field) and "2" (D-54's second, on
+// two-party cards only) — one function, not a hand-duplicated pair, so a future third field would
+// only need a new suffix, never new logic.
+function renderAddressedDerivedLineForSuffix(card, suffix) {
+  const el = card.querySelector(`.addressedDerivedIntent${suffix}`);
+  const ta = card.querySelector(`.addressedNotesArea${suffix}`);
   if (!el || !ta) return;
   const trimmed = ta.value.trim();
-  if (!trimmed) { el.textContent = ""; el.className = "addressedDerivedIntent"; return; }
+  const baseClass = `addressedDerivedIntent${suffix}`;
+  if (!trimmed) { el.textContent = ""; el.className = baseClass; return; }
   const finalText = pirateVoice(trimmed); // D-29: his own typed copy converts the same way narration does
   el.textContent = `→ ADDRESSED ("you") version: "${finalText}"`;
-  el.className = "addressedDerivedIntent hasAddressed";
+  el.className = `${baseClass} hasAddressed`;
 }
+function renderAddressedDerivedLine(card) { renderAddressedDerivedLineForSuffix(card, ""); }
+function renderAddressedDerivedLine2(card) { renderAddressedDerivedLineForSuffix(card, "2"); }
 
 /* ============================================================================
  * D-27: seeding. `reviewed` is the whole point of this section — a card must
@@ -2752,7 +2876,7 @@ document.querySelectorAll(".card").forEach((card) => {
   if (PASS2_REVIEWED_IDS.has(id)) {
     // rows 1-17 of the committed pass-2 export — Wyatt's genuine, already-reviewed marks.
     const row = PASS2_BY_ID[id];
-    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "" };
+    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "", addressedNotes2: "" };
   } else {
     // Everything else (rows 18-81, and any id the export doesn't cover) is a pass-1 leftover
     // the OLD seeding wrongly pre-filled, never something Wyatt decided — D-27. Unreviewed,
@@ -2760,7 +2884,7 @@ document.querySelectorAll(".card").forEach((card) => {
     // (never a stale pass-1/leftover tag).
     const sel = card.querySelector(".tagSelect");
     const defaultTag = (sel && sel.dataset.default) || "keep";
-    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "" };
+    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "", addressedNotes2: "" };
   }
 });
 saveAll(saved);
@@ -2888,14 +3012,15 @@ document.querySelectorAll(".tagSelect").forEach((sel) => {
     checkMergeCycles(); // D-36: switching a tag to/from "merge" changes cycle-graph membership
   });
 });
-// D-42/D-47: shared auto-rewrite logic — a card now has TWO copy fields (Notes = neutral, D-47's
-// Addressed = "you"), and typing in EITHER while tagged "keep" means he has new copy, so either
-// one auto-selects "rewrite" the same way. Clearing BOTH fields on an auto-set rewrite reverts to
-// "keep"; clearing just one while the other still holds text does NOT revert (he still has copy).
-// D-26's own precedence is untouched: cut/merge are deliberate and always win.
+// D-42/D-47/D-54: shared auto-rewrite logic — a card now has TWO or THREE copy fields (Notes =
+// neutral, D-47's Addressed = "you", D-54's second Addressed on two-party cards), and typing in
+// ANY of them while tagged "keep" means he has new copy, so any one auto-selects "rewrite" the
+// same way. Clearing ALL of them on an auto-set rewrite reverts to "keep"; clearing just one
+// while another still holds text does NOT revert (he still has copy). D-26's own precedence is
+// untouched: cut/merge are deliberate and always win.
 function applyAutoRewriteRule(id, data) {
   const currentTag = data[id].tag || "keep";
-  const anyNonEmpty = (data[id].notes || "").trim() !== "" || (data[id].addressedNotes || "").trim() !== "";
+  const anyNonEmpty = (data[id].notes || "").trim() !== "" || (data[id].addressedNotes || "").trim() !== "" || (data[id].addressedNotes2 || "").trim() !== "";
   let tagChanged = false;
   document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
     const cardSel = card.querySelector(".tagSelect");
@@ -2949,6 +3074,30 @@ document.querySelectorAll(".addressedNotesArea").forEach((ta) => {
     document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
       renderDerivedLine(card);
       renderAddressedDerivedLine(card);
+    });
+    markReviewed(id);
+    checkDuplicateFinalText();
+    if (tagChanged) checkMergeCycles();
+  });
+});
+// D-54: the SECOND addressed field, present only on two-party cards (13 of them) — role-labelled
+// ("the attacker"/"the defender", etc., set in cardShell()), its own export key
+// (addressedNotes2/addressedFinalText2), its own derived line (renderAddressedDerivedLine2), and
+// the SAME auto-rewrite rule as every other copy field. A no-op wiring pass on the ~200
+// single-subject cards, which never render an .addressedNotesArea2 element at all.
+document.querySelectorAll(".addressedNotesArea2").forEach((ta) => {
+  const id = ta.dataset.id;
+  if (saved[id] && saved[id].addressedNotes2) ta.value = saved[id].addressedNotes2;
+  ta.addEventListener("input", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].addressedNotes2 = ta.value;
+    const tagChanged = applyAutoRewriteRule(id, data);
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
+      renderDerivedLine(card);
+      renderAddressedDerivedLine2(card);
     });
     markReviewed(id);
     checkDuplicateFinalText();
@@ -3022,11 +3171,12 @@ document.querySelectorAll(".reviewedBox").forEach((box) => {
     updateReviewProgress();
   });
 });
-// initial paint: derived-intent lines (neutral + D-47's addressed) + reviewed dimming for every
-// card, reflecting whatever just loaded
+// initial paint: derived-intent lines (neutral + D-47's addressed + D-54's second addressed) +
+// reviewed dimming for every card, reflecting whatever just loaded
 document.querySelectorAll(".card").forEach((card) => {
   renderDerivedLine(card);
   renderAddressedDerivedLine(card);
+  renderAddressedDerivedLine2(card);
   setCardReviewedVisual(card, saved[card.dataset.id] && saved[card.dataset.id].reviewed);
 });
 
@@ -3255,6 +3405,7 @@ document.getElementById("exportBtn").addEventListener("click", () => {
     const sel = card.querySelector(".tagSelect");
     const ta = card.querySelector(".notesArea");
     const ata = card.querySelector(".addressedNotesArea");
+    const ata2 = card.querySelector(".addressedNotesArea2");
     const qa = card.querySelector(".questionArea");
     const title = card.querySelector("h4").textContent.replace(/\s*silent\s*$/i, "").trim();
     const meta = card.querySelector(".cardMeta").textContent.trim();
@@ -3269,14 +3420,25 @@ document.getElementById("exportBtn").addEventListener("click", () => {
       reviewed: !!(data[id] && data[id].reviewed),
     };
     if (intent === "rewrite") row.finalText = finalText;
-    // D-47: the addressed ("you") version — a SECOND, independent copy field, always exported
-    // under its own key when non-empty, regardless of the neutral tag/intent above (every line
-    // has both renderings; 15-06 must not silently discard this one the way it would have
-    // discarded every "you" variant Wyatt had been parking in the Question field instead).
+    // D-47/D-54: the addressed ("you") version field(s) — SEPARATE, independent copy fields,
+    // always exported under their own keys when non-empty, regardless of the neutral tag/intent
+    // above (every line has at least one addressed rendering, two-party lines have two; 15-06
+    // must not silently discard any of them the way it would have discarded every "you" variant
+    // Wyatt had been parking in the Question field instead). addressedRole/addressedRole2 carry
+    // the SAME role wording the card itself displayed (D-54: "the attacker"/"the defender", etc.
+    // — never a bare seat index), read from the field's own data-role-label rather than
+    // re-derived, so the export can never disagree with what he actually saw.
     const addressedRaw = (ata && ata.value) || "";
     if (addressedRaw.trim()) {
       row.addressedNotes = addressedRaw;
       row.addressedFinalText = pirateVoice(addressedRaw.trim());
+      if (ata && ata.dataset.roleLabel) row.addressedRole = ata.dataset.roleLabel;
+    }
+    const addressedRaw2 = (ata2 && ata2.value) || "";
+    if (addressedRaw2.trim()) {
+      row.addressedNotes2 = addressedRaw2;
+      row.addressedFinalText2 = pirateVoice(addressedRaw2.trim());
+      if (ata2 && ata2.dataset.roleLabel) row.addressedRole2 = ata2.dataset.roleLabel;
     }
     // D-36: a merge disposition ALWAYS carries its resolved target as `mergeInto` (an actual card
     // id when the select was used, a free-text label otherwise) — never omitted, so "a merge with
