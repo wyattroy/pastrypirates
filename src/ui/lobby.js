@@ -83,7 +83,8 @@ export function passGate(seatIdx){
   // already correct the moment replay catches up to the live edge — no UI shown mid-replay
   return new Promise(res=>{
     $("game").classList.add("bg-blurred");
-    $("passOverlayMsg").innerHTML=`${iconImg(DEVICE_IMG)} Pass the device to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
+    // NARR-01/D-25 (Wyatt-approved 2026-07-29).
+    $("passOverlayMsg").innerHTML=`${iconImg(DEVICE_IMG)} Pass the board to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
     const btn=$("passHelmBtn");
     btn.innerHTML=`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`;
     btn.style.background=HEXCOL[seatIdx];btn.style.borderColor=HEXCOL[seatIdx];

@@ -215,13 +215,14 @@ for (const key of KEYS) {
 
   const sample40 = "x".repeat(40); // 40 code units, no punctuation — the plan's own pinned sample
 
-  /* ---- the numeric relationship: 0.9x the pre-change value, on both cut curves ---- */
+  /* ---- the numeric relationship: 0.9x the pre-change value, on the human cut curve ---- */
   const oldHuman = holdFormula(sample40, 1200, 7000, 0.8); // msgHoldMs's PRE-Phase-15 multiplier
-  const oldBot = holdFormula(sample40, 900, 2600, 0.5);    // botMsgHoldMs's PRE-Phase-15 multiplier
   check("msgHoldMs: 40-code-unit sample is exactly 0.9x its pre-change value", msgHoldMs(sample40), Math.round(oldHuman * 0.9));
   check("msgHoldMs: 40-code-unit sample returns 2160 (pinned literal)", msgHoldMs(sample40), 2160);
-  check("botMsgHoldMs: 40-code-unit sample is exactly 0.9x its pre-change value", botMsgHoldMs(sample40), Math.round(oldBot * 0.9));
-  check("botMsgHoldMs: 40-code-unit sample returns 1170 (pinned literal)", botMsgHoldMs(sample40), 1170);
+  // D-23 (Wyatt-approved 2026-07-29): the separate, shorter bot curve is RETIRED — bot narration
+  // now holds for exactly as long as an identical human line (D-18 parity), so botMsgHoldMs is a
+  // pure alias for msgHoldMs and this asserts that equality rather than the old distinct formula.
+  check("botMsgHoldMs: is now a pure alias for msgHoldMs (D-23 parity)", botMsgHoldMs(sample40), msgHoldMs(sample40));
 
   /* ---- the D-15 invariant: chat bubbles are UNCHANGED by this task, and equal to msgHoldMs's own pre-cut value ---- */
   const bubbleExpected = holdFormula(sample40, 1200, 7000, 0.8); // CHAT_BUBBLE_HOLD_MULTIPLIER, pinned at Task 1
@@ -235,7 +236,7 @@ for (const key of KEYS) {
     check(`msgHoldMs(${label}): clamped floor 1200 x 0.72`, humanVal, 864);
     checkTrue(`msgHoldMs(${label}): positive integer, never NaN/zero/negative`, Number.isInteger(humanVal) && humanVal > 0);
     const botVal = botMsgHoldMs(input);
-    check(`botMsgHoldMs(${label}): raw 1000 (above its own 900 floor) x 0.45`, botVal, 450);
+    check(`botMsgHoldMs(${label}): D-23 parity — equals msgHoldMs(${label})`, botVal, humanVal);
     checkTrue(`botMsgHoldMs(${label}): positive integer, never NaN/zero/negative`, Number.isInteger(botVal) && botVal > 0);
     const bubbleVal = chatBubbleHoldMs(input);
     check(`chatBubbleHoldMs(${label}): clamped floor 1200 x 0.8`, bubbleVal, 960);
@@ -269,7 +270,9 @@ for (const key of KEYS) {
   const f = EVENT_NARRATION.battle;
   const mkEvent = (spoil, spoilIng = null) => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[true, false, false, "a"]], spoil, spoilIng });
   const isBribe = txt => /bribes their way out of giving away a crate/.test(txt);
-  const isCleanedOut = txt => /has nothing left to give/.test(txt);
+  // NARR-01/D-25 (Wyatt-approved 2026-07-29): the cleaned-out framing's wording changed to
+  // "gives up all they have" (was "has nothing left to give") — same invariant, new literal.
+  const isCleanedOut = txt => /gives up all they have/.test(txt);
 
   const genuine = f(mkEvent("5 coins"), at).txt;
   const cleaned = f(mkEvent("2 coins"), at).txt;

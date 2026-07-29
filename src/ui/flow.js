@@ -45,7 +45,7 @@
 import { appState } from "../state/index.js";
 import { roundCfg } from "../engine/index.js";
 import {
-  DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES,
+  DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavor, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, EYES_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips } from "./board.js";
@@ -56,7 +56,7 @@ import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
-  botMsgHoldMs, BOT_STORM_STEP_MS,
+  msgHoldMs, BOT_STORM_STEP_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -108,7 +108,7 @@ export async function humanFlip(p,label,allowBack){
   netHandlers().onBroadcastFlip(h?"H":"T");
   // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
   // (short) message's own length instead of a flat timer unrelated to how long it takes to read
-  await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`,undefined,undefined,[{seat:p.idx,html:`You flip ${h?"⚪ HEADS!":"⚫ TAILS"}`}]);
+  await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`,undefined,undefined,[{seat:p.idx,html:`${pn(p.idx)} — ye flip ${h?"⚪ HEADS!":"⚫ TAILS"}`}]);
   netHandlers().onBroadcastFlip("wait");
   return h;
 }
@@ -167,6 +167,14 @@ export function reachable(p){
   }
   return out;
 }
+// D-25/D-35 (Wyatt-approved 2026-07-29): the one sail-prompt message, shared by BOTH transports —
+// the host's own localPickCell() and a guest's remotePickHighlights(). Previously the guest path
+// hardcoded its own separate sentence instead of rendering what the host composed, so the same
+// player read two different prompts depending on whether they happened to be the host or a guest
+// (D-35's sweep finding: guest-side code must render text, never author it).
+export function sailPickMsg(seat){
+  return `${pn(seat)}: click any yellow square to sail there (−1🌕)`;
+}
 export function pickCell(p,cells){
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(appState.dlog[appState.dlogIdx++]);}
@@ -176,7 +184,7 @@ export function pickCell(p,cells){
   netHandlers().onBroadcast(p.idx===appState.mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
   armClock(p.idx);
   const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
-    :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:`${pn(p.idx)}: click a highlighted square to sail (−1🌕)`});
+    :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:sailPickMsg(p.idx)});
   const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
@@ -197,27 +205,25 @@ export function localPickCell(p,cells){
       r.addEventListener("click",()=>done(c));
       hs.push(r);
     });
-    panel(`<div class="apMsg">${pn(p.idx)}: click a highlighted square to sail (−1🌕)</div>
+    panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
     $("apStay").onclick=()=>done(null);
   });
 }
-// D-11 (Wyatt: "Both" — a broke line for BOTH broke moments): can't-afford-to-sail, for a human
-// (humanTurn's own sail gate, below) AND a bot (botTurn's sail gate) — so a broke bot states why
-// it isn't moving instead of appearing to forget its turn. DRAFT copy pending Wyatt's D-04 review,
-// same convention as EVENT_NARRATION.moored's own D-21 draft comment. States the constraint and
-// what the captain can still do — never mocks the player for being broke (NARR-02).
+// D-11/D-25 (Wyatt-approved 2026-07-29): can't-afford-to-sail, for a human (humanTurn's own sail
+// gate, below) AND a bot (botTurn's sail gate, merged in per D-18/D-25 — both call this same
+// function, so the wording can never fork by actor type) — so a broke bot states why it isn't
+// moving instead of appearing to forget its turn.
 export function brokeSailLine(seat,viewerSeat){
   return isLocalTo(seat,viewerSeat)
-    ?`${pn(seat)} — too skint to hire the wind! No sailing this turn, matey.`
-    :`${pn(seat)} is too skint to hire the wind — no sailing this turn.`;
+    ?`${pn(seat)} — yer too broke to pay the crew. No sailing this turn.`
+    :`${pn(seat)} is too broke to pay the crew — no sailing this turn.`;
 }
-// D-11 case 2: can't-afford-to-anchor — told plainly the anchor is out of reach, rather than the
-// Pay-to-anchor option silently vanishing from the list below (windLeg's storm-anchor block).
-// DRAFT copy pending D-04.
+// D-11 case 2/D-25: can't-afford-to-anchor — told plainly the anchor is out of reach, rather than
+// the Pay-to-anchor option silently vanishing from the list below (windLeg's storm-anchor block).
 export function brokeAnchorLine(seat,viewerSeat){
   return isLocalTo(seat,viewerSeat)
-    ?`${pn(seat)} — ye can't afford to anchor! Flip and take yer chances.`
+    ?`${pn(seat)} — ye can't afford to anchor. Flip and take yer chances.`
     :`${pn(seat)} can't afford to anchor — flips and takes their chances.`;
 }
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
@@ -242,19 +248,23 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // also hits an island is a free pass, already-paid anchor holding fast
       if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});await narrateLastEvent();liveRender();return;}
       const opts=[];
-      if(p.coins>=1)opts.push({label:"Pay 1🌕 to anchor",value:"pay"});
+      // D-38 (Wyatt-approved 2026-07-29): signed parenthesised cost, U+2212 minus.
+      if(p.coins>=1)opts.push({label:"Anchor safely (−1🌕)",value:"pay"});
       // notes/edits #10b: the real tails consequence depends on what this player actually has to
       // lose (mirrors the branches below) — a broke player with crates loses one of those, not
       // "half their coins" (they have none), and only a truly broke, empty-holds player risks
       // losing the whole turn to repairs.
       const broke=p.coins===0,trueShipwreck=broke&&!p.ing.length;
-      const flipLabel=trueShipwreck?"Flip! Heads: dodge. Tails: lose yer turn!"
-        :broke?"Flip! Heads: dodge. Tails: lose a crate!"
-        :"Flip! Heads: dodge. Tails: lose half 🌕";
+      // D-59 (Wyatt-approved 2026-07-29): the ordinary branch shows the REAL coin loss — the same
+      // Math.max(1,Math.floor(p.coins/2)) expression the engine uses below, so the button can never
+      // disagree with the outcome, and the rounding-down is visible before the decision is made.
+      const flipLabel=trueShipwreck?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose turn)"
+        :broke?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)"
+        :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))`;
       opts.push({label:flipLabel,value:"flip"});
       const promptMsg=trueShipwreck
         ?`${pn(p.idx)}: the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
-        :`${pn(p.idx)}: the storm blows you toward an island! Anchor safely, or flip to take yer chances.`;
+        :`${pn(p.idx)}: the storm's blowin' ye into land! Anchor safely, or take yer chances dodging the rocks.`;
       // D-11 case 2: the Pay-to-anchor option is already silently absent above when broke — say so
       // plainly instead of leaving the missing option unexplained.
       if(broke)await flash(brokeAnchorLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]);
@@ -293,7 +303,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     await sleep(STORM_STEP_MS);
     if(appState.game.onRim(nx)){ // swept into the trade winds
       appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await flash(`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1300,undefined,[{seat:p.idx,html:"🌀 You are swept into the trade winds, and whipped around the rim!"}]);}
+      if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}
       return;
     }
   }
@@ -330,7 +340,7 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         // D-10: render the viewer-NEUTRAL text (never the ambient appState.mySeat-flavored one)
         // plus per-seat variants — the same broadcast-safe split narrateLastEvent() uses.
         const L=describeFor(ev,NEUTRAL_VIEWER);
-        if(L)await flash(L.txt,null,botMsgHoldMs(L.txt),narrationVariants(ev));
+        if(L)await flash(L.txt,null,msgHoldMs(L.txt),narrationVariants(ev));
       }
       liveRender();
       return; // the engine returned early — this square's own outcome ends the leg
@@ -349,19 +359,31 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
   const lastEv=g.events[g.events.length-1];
   const L=describeFor(lastEv,NEUTRAL_VIEWER);
-  if(L)await flash(L.txt,null,botMsgHoldMs(L.txt),narrationVariants(lastEv));
+  if(L)await flash(L.txt,null,msgHoldMs(L.txt),narrationVariants(lastEv));
   liveRender();
 }
-// NARR-03 (DRAFT, pending D-04): the per-turn storm intro clause — sits inside the addressed turn
-// banner ("Ahoy, {name} — your turn!", humanTurn below) and previously pre-announced BOTH storm
-// legs before either happened. humanWind (below) and botTurn already announce the second leg's
-// own direction at the moment it actually happens, so pre-announcing it here was exactly that
-// redundancy — this clause now names only the leg happening now. Second person because this
-// clause only ever renders inside the addressed (one-captain) form of the turn banner — see
-// <disambiguation_D09_vs_NARR03>; the round header (EVENT_NARRATION.newround) stays third person
-// and untouched (D-09).
+// NARR-03: the per-turn storm intro clause — sits inside the addressed turn banner ("Ahoy, {name}
+// — yer turn!", humanTurn below) and previously pre-announced BOTH storm legs before either
+// happened. humanWind (below) and botTurn already announce the second leg's own direction at the
+// moment it actually happens, so pre-announcing it here was exactly that redundancy — this clause
+// now names only the leg happening now. Second person because this clause only ever renders inside
+// the addressed (one-captain) form of the turn banner; the round header (EVENT_NARRATION.newround)
+// stays third person and untouched (D-09).
+// NARR-01/D-25/D-37 (Wyatt-approved 2026-07-29): the turn banner's storm clause. "Blows", per D-37
+// — wind never "pushes" or "moves" a player, it blows them.
 export function stormIntroClause(dir1){
-  return ` — ⛈️ STORM! First, it pushes you 2 squares <b>${DIRNAME[dir1]}</b>`;
+  return ` First the ⛈️ storm blows ye 2 squares <b>${DIRNAME[dir1]}</b>.`;
+}
+// D-18/D-23/D-37/D-25 (Wyatt-approved 2026-07-29): the second-storm-leg announcement, shared by the
+// human path (humanWind, below) AND the bot path (botTurn) — one narration path per event, viewer
+// perspective is the only axis that varies (D-18). Previously humanWind hardcoded a "you" line with
+// no viewer branch (so a spectator of a human's turn also read "you" — the exact fork D-18 flags),
+// and botTurn's own copy of the same line ran on the separate, shorter bot hold curve (D-23 removes
+// that gap: both now go through msgHoldMs). "Blows", never "moves" (D-37).
+export function secondLegLine(seat,dir,viewerSeat){
+  return isLocalTo(seat,viewerSeat)
+    ?`⛈️ Now the storm blows ye <b>${DIRNAME[dir]}</b>!`
+    :`⛈️ Now the storm blows ${pn(seat)} <b>${DIRNAME[dir]}</b>!`;
 }
 // only ever called during a storm now (see humanTurn) — normal turns don't force-move anyone
 export async function humanWind(p){
@@ -370,7 +392,7 @@ export async function humanWind(p){
   const dodgedOnce={v:false};
   await windLeg(p,appState.game.windNow,2,dodgedOnce,wasDocked);
   if(appState.turnExpired)return;
-  await flash(`⛈️ Now the storm moves you <b>${DIRNAME[appState.game.windNow2]}</b>!`,900);
+  await flash(secondLegLine(p.idx,appState.game.windNow2,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:secondLegLine(p.idx,appState.game.windNow2,p.idx)}]);
   if(appState.turnExpired)return;
   await windLeg(p,appState.game.windNow2,2,dodgedOnce,wasDocked);
 }
@@ -386,14 +408,16 @@ export async function humanDock(p,port){
     liveRender();
     return;
   }
-  const h=await humanFlip(p,`Docking at ${ilabelImg(ing)} — flip!`,true);
+  // D-46 (Wyatt-approved 2026-07-29): the flip prompt names the PLACE, not the ingredient — the
+  // ingredient icon is kept (D-16), the ingredient is the payoff named once the flip resolves.
+  const h=await humanFlip(p,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`,true);
   if(h==="back")return "back";
   if(h){
     appState.game.tokens[ing]--;p.ing.push(ing);appState.game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});
   }else{
     let got="coins";
     if(appState.game.cfg.dockBuy&&p.coins>=3&&appState.game.tokens[ing]>0){
-      const buy=await ask(`Tails! Take 3🌕 — or buy ${ilabelImg(ing)} anyway for 3🌕?`,[
+      const buy=await ask(`Tails! Take 3🌕 — or buy ${iconImg(ING_IMG[ing])} ${dockFlavor(ing)} for 3🌕?`,[
         {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
       if(buy){p.coins-=3;appState.game.tokens[ing]--;p.ing.push(ing);got="bought";}
       else p.coins+=3;
@@ -420,35 +444,43 @@ export async function humanTrade(p){
   let step=firstStep;
   while(step<4){
     if(step===0){
-      const q=await ask("Parley with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:"__back__"}]),
+      // D-19 (Wyatt-approved 2026-07-29): "Trade", never "Parley" — the only two places the word
+      // reached a player.
+      const q=await ask("Trade with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:"__back__"}]),
         opps.map(o=>HEXCOL[o.idx]).concat([null]));
       if(q==="__back__"||q==null)return false; // Back from the first step → action menu (one step)
       st.q=q;step=1;
     }else if(step===1){
-      const want=await ask(`What do you want from ${pn(st.q.idx)}?`,
+      const want=await ask(`What do ye WANT from ${pn(st.q.idx)}?`,
         [...new Set(st.q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:"← Back",back:true,value:"__back__"}]));
       if(want==="__back__"||want==null){if(step===firstStep)return false;step--;continue;}
       st.want=want;step=2;
     }else if(step===2){
       // An offer is an ingredient, coins, or both together — sweeten a crate with a few coins on top.
+      // D-41 EXTENDED (Wyatt-approved 2026-07-29): "coins only" dead-ends when the purse is empty —
+      // grey it out and say why, same pattern as Attack/Trade's own availability gating.
+      const canOfferCoins=p.coins>0;
       const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}));
-      ingOpts.push({label:"— coins only —",value:"__coinsonly__"});
+      ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins});
       ingOpts.push({label:"← Back",back:true,value:"__back__"});
-      const baseIng=await ask("Offer which ingredient (or coins only)?",ingOpts);
+      const offerSub=canOfferCoins?null:`Ye don't have any coin to offer — pick a crate instead.`;
+      const baseIng=await ask(`What will ye GIVE ${pn(st.q.idx)} in exchange?`,ingOpts,null,offerSub);
       if(baseIng==="__back__"){if(step===firstStep)return false;step--;continue;}
       st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=3;
     }else{ // step 3
       const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
       if(!st.baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
       if(!coinChoices.length){
-        // #4: a coins-only offer with an empty purse leaves nothing to put on the table. Say so and
-        // step back to the offer choice (UI-08: one step back, not out to the action menu).
+        // D-40: guarded safety net — the "coins only" option is now greyed out whenever the purse
+        // is empty (above), so this is unreachable through the normal UI; kept for a forced/edge
+        // selection, same convention as Attack's own guard.
         await ask("Ye don't have any to offer!",[{label:"← Back",back:true,value:-1}]);
         step=2;continue;
       }
       const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
       coinOpts.push({label:"← Back",back:true,value:-1});
-      const extraCoins=await ask(st.baseIng?`Sweeten with coin? (offering ${ilabelImg(st.baseIng)})`:"How many coins?",coinOpts);
+      const offerSoFar=st.baseIng?ilabelImg(st.baseIng):"nothing yet";
+      const extraCoins=await ask(`Add any 🌕 to yer offer of ${offerSoFar}?`,coinOpts);
       if(extraCoins===-1){step=2;continue;}
       st.extraCoins=extraCoins;step=4;
     }
@@ -509,19 +541,24 @@ export async function humanTrade(p){
           return true;
         }
       }
-      appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
+      // D-19 SIMPLIFIED (Wyatt-approved 2026-07-29): `ok` is dropped — a refusal is now the only
+      // thing this event ever records, so the field was an invariant, i.e. no field.
+      appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want});
       liveRender();
-      // D-08: this refusal names two seats (q the decliner, p the offerer) — p already reads the
-      // taunt addressed ("ye"/"yer") in its own DRAFT wording; every other viewer sees p named.
-      await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ${pn(p.idx)} finish their recipe that easy!"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines your offer!`}]);
+      // D-08/D-25: this refusal names two seats (q the decliner, p the offerer) — p reads the taunt
+      // addressed ("ye"/"yer"); every other viewer sees p named.
+      await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ${pn(p.idx)} finish their recipe that easy!"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines yer offer!`}]);
       return true;
     }
   }
   if(!accept){
-    appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want,ok:false});
+    appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want});
     liveRender();
-    // D-08: q just answered their own decline via ask() above — q's own view reads it addressed.
-    await flash(`${pn(q.idx)} declines!`,undefined,undefined,[{seat:q.idx,html:"You decline!"}]);
+    // D-18/D-25 (Wyatt-approved 2026-07-29): merged with the bot-decline wording above — a human
+    // clicking Decline and a bot computing a decline are the same moment, and the only thing that
+    // should ever vary is who's reading, never who (or what) decided (D-18). Previously this branch
+    // had its own bare "declines!" wording, addressed to the decliner rather than the offerer.
+    await flash(`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:`${pn(q.idx)} declines yer offer!`}]);
     return true;
   }
   q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
@@ -541,25 +578,34 @@ export async function humanAct(p,sailCtx){
     &&!(appState.game.cfg.singleDock&&appState.game.dockOccupiedBy(port,p));
   const targets=appState.game.adjOpp(p);
   const canAfford=p.coins>=appState.game.cfg.powder;
+  // D-41 EXTENDED (Wyatt-approved 2026-07-29): Parley/Trade is offered whenever any opponent is
+  // alive, but the action itself only ever works against someone HOLDING cargo — compute real
+  // availability once and drive both the button's `disabled` flag and the action guard (:602 below)
+  // from it, following the same pattern already used for Attack.
+  const tradeTargets=appState.game.tradeOpp(p).filter(q=>q.ing.length>0);
+  const canTrade=!!tradeTargets.length;
   const opts=[];
-  if(canDock)opts.push({label:`⚓ Dock at ${ilabelImg(port)}`,value:"dock"});
+  if(canDock)opts.push({label:`⚓ ${iconImg(ING_IMG[port])} Dock at ${dockPlace(port)}`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   if(targets.length)
-    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` (-${appState.game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
-  if(appState.game.tradeOpp(p).length)opts.push({label:"🤝 Parley",value:"trade"});
+    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` (−${appState.game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
+  if(appState.game.tradeOpp(p).length)opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
   if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start your bakery!`,value:"bakery"});
-  opts.push({label:"🎣 Fish",value:"fish"});
+  opts.push({label:"🎣 Fish (+1-2🌕)",value:"fish"});
   // offered only if this player's sail step ended in "Stay put" (nothing spent/moved) and they
   // could still afford to sail — covers the reported "hit Stay put by accident" complaint
   const canMoveInstead=sailCtx&&p.coins>0&&p.coins===sailCtx.preSailCoins&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  // #5c: helper text under the buttons explains the powder cost; #5d swaps in the too-poor nudge.
-  const sub=targets.length?(canAfford?`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Fire downwind for the edge!`:`Yer too poor to afford powder! Go fishin'`):null;
+  // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
+  // powder gate, and now Trade's cargo gate, follow the same pattern.
+  let sub=null;
+  if(targets.length)sub=canAfford?`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Firing downwind wins ties!`:`Yer too poor to afford powder! Go fishin' 🎣`;
+  else if(appState.game.tradeOpp(p).length&&!canTrade)sub=`No one's holding cargo to trade for yet.`;
   // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
-  const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, choose your action:`;
+  const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, what'll ye do:`;
   const v=await ask(prompt,opts,null,sub);
   if(appState.turnExpired)return;
   // the clock keeps running (and re-arms fresh) through dock/attack/trade/fish now, instead of
@@ -568,7 +614,7 @@ export async function humanAct(p,sailCtx){
     const dest=await pickCell(p,reachable(p));
     if(appState.turnExpired)return;
     if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await flash(`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200,undefined,[{seat:p.idx,html:"🌀 You are swept into the trade winds, and whipped around the rim!"}]);}}
+      if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
@@ -579,7 +625,7 @@ export async function humanAct(p,sailCtx){
   else if(v==="attack"){
     // #5d: safety net — the button is disabled when you can't afford powder, but guard the action
     // too (e.g. a forced/edge selection) so we never enter a battle you can't pay for.
-    if(p.coins<appState.game.cfg.powder){await flash(`${pn(p.idx)} can't afford powder.`,1400,undefined,[{seat:p.idx,html:`Yer too poor to afford powder! Go fishin'`}]);await humanAct(p,sailCtx);return;}
+    if(p.coins<appState.game.cfg.powder){await flash(`${pn(p.idx)} can't afford powder.`,1400,undefined,[{seat:p.idx,html:`Yer too poor to afford powder. Go fishin' 🎣`}]);await humanAct(p,sailCtx);return;}
     const t=targets.length===1?targets[0]:
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
@@ -607,10 +653,19 @@ export async function humanTurn(p){
   appState.activeTurnSeat=p.idx;appState.recipeRevealed=false;
   appState.game.ev({t:"turn",p:p.idx});
   liveRender();
-  // NARR-03: the storm clause now names only the leg happening now (dir1/windNow) — the second
-  // leg's own direction is announced separately, at the moment it actually happens, by humanWind.
-  const addressedBanner=`⛵ Ahoy, ${pn(p.idx)} — your turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?stormIntroClause(appState.game.windNow):""}.`;
-  await flash(`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First, it pushes ${pn(p.idx)} 2 squares <b>${DIRNAME[appState.game.windNow]}</b>`:""}.`,1500,undefined,[{seat:p.idx,html:addressedBanner}]);
+  // NARR-01/NARR-03/D-25 (Wyatt-approved 2026-07-29): the storm clause names only the leg happening
+  // now (dir1/windNow) — the second leg's own direction is announced separately, at the moment it
+  // actually happens, by humanWind. A non-storm turn drops the wind-direction repeat entirely — the
+  // round header (EVENT_NARRATION.newround) already announced it moments ago at the top of the
+  // round, so restating it here every single turn was exactly the redundancy this phase removes.
+  const stormNow=appState.game.stormNow;
+  const neutralBanner=stormNow
+    ?`⛵ Ahoy, ${poss(p.idx)} turn! First the ⛈️ storm blows them 2 squares <b>${DIRNAME[appState.game.windNow]}</b>.`
+    :`⛵ Ahoy, ${poss(p.idx)} turn!`;
+  const addressedBanner=stormNow
+    ?`⛵ Ahoy, ${pn(p.idx)} — yer turn!${stormIntroClause(appState.game.windNow)}`
+    :`⛵ Ahoy, ${pn(p.idx)} — yer turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round.`;
+  await flash(neutralBanner,1500,undefined,[{seat:p.idx,html:addressedBanner}]);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
@@ -637,12 +692,12 @@ export async function humanTurn(p){
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   if(p.coins>0){
     // notes/edits #10: an island upwind steals your wind — warn before the move pick
-    if(appState.game.leeward(p))await flash(`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`,1500,undefined,[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`}]);
+    if(appState.game.leeward(p))await flash(`🏝️ Land's blockin' ${pn(p.idx)}'s wind — can't sail as far. Movin' slow as cold molasses in this lee.`,1500,undefined,[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, ${pn(p.idx)} — can't sail as far. Movin' slow as cold molasses in this lee.`}]);
     const dest=await pickCell(p,reachable(p));
     appState.recipeRevealed=false; // sail destination chosen — re-lock
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await flash(`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`,1200,undefined,[{seat:p.idx,html:"🌀 You are swept into the trade winds, and whipped around the rim!"}]);}}
+      if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
   }else await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: broke — the action prompt right after also reframes, but this is the sail-specific nudge
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
   if(!appState.game.adjPort(p))p.dockedNow.clear();
@@ -698,8 +753,10 @@ export async function botTurn(p){
     const dodgedOnce={v:false};
     await botWindLeg(p,g.windNow,2,dodgedOnce,wasDocked);
     // mirrors humanWind's own mid-storm direction flash (:281) at bot pace, naming the second leg
-    const secondLegMsg=`⛈️ Now the storm moves ${pn(p.idx)} ${DIRNAME[g.windNow2]}!`;
-    await flash(`⛈️ Now the storm moves ${pn(p.idx)} <b>${DIRNAME[g.windNow2]}</b>!`,null,botMsgHoldMs(secondLegMsg));
+    // D-18/D-23/D-37: shared with humanWind's own second-leg line — one narration path, viewer
+    // perspective only, same hold curve as a human's turn (D-23 parity).
+    const secondLegMsg=secondLegLine(p.idx,g.windNow2,NEUTRAL_VIEWER);
+    await flash(secondLegMsg,null,msgHoldMs(secondLegMsg),[{seat:p.idx,html:secondLegLine(p.idx,g.windNow2,p.idx)}]);
     await botWindLeg(p,g.windNow2,2,dodgedOnce,wasDocked);
     // botWindLeg already emits and narrates its own blownOut/windmove summary per leg — no
     // separate summary emit or botBeat() here, or every storm outcome double-narrates
@@ -719,7 +776,7 @@ export async function botTurn(p){
   if(wantsToSail&&p.coins>0){
     p.coins--;const b=[...p.pos];g.stepToward(p,target,g.sailBudget(p));
     if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}else p.coins++;
-  }else if(wantsToSail)await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),null,botMsgHoldMs(brokeSailLine(p.idx,NEUTRAL_VIEWER)),[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: a broke bot states why it isn't moving
+  }else if(wantsToSail)await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),null,msgHoldMs(brokeSailLine(p.idx,NEUTRAL_VIEWER)),[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11/D-23: a broke bot states why it isn't moving, on the same hold curve a human gets
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
   // hail humans: locked-out bots offer coins for a crate they can't get any other way. D-02/D-24:
@@ -742,18 +799,29 @@ export async function botTurn(p){
       p.lastOffer=appState.game.round;
       hailed=true;
       setActor(human.idx);
-      const choice=await ask(`📯 ${pn(p.idx)} hails you: "Ahoy! ${price}🌕 for your ${ilabelImg(ing)} — what say ye?"`,
-        [{label:`Sell for ${price}🌕`,value:"sell"},{label:"Counter",value:"counter"},{label:"Refuse",value:"refuse"}]);
+      // D-41 EXTENDED (Wyatt-approved 2026-07-29): Counter-offer dead-ends silently when the bot
+      // can't afford to go any higher — compute `raises` BEFORE offering the choice and grey the
+      // option out with a reason, same pattern as Attack/Trade.
+      const raises=[price+1,price+2,price+3].filter(n=>n<=p.coins-HAIL_RESERVE);
+      const canCounter=raises.length>0;
+      const choice=await ask(`📯 ${pn(p.idx)} hails ye: "Ahoy! Want ${price}🌕 for yer ${ilabelImg(ing)}?"`,
+        [{label:`Sell for ${price}🌕`,value:"sell"},{label:"Counter-offer",value:"counter",disabled:!canCounter},{label:"Refuse",value:"refuse"}],
+        null,canCounter?null:`${pn(p.idx)} can't afford to go any higher.`);
       if(appState.turnExpired)return; // shot-clock expired mid-hail — no partial trade, ever
       let finalPrice=price,dealt=choice==="sell";
       if(choice==="counter"){
-        const raises=[price+1,price+2,price+3].filter(n=>n<=p.coins-HAIL_RESERVE);
-        const counterAmt=raises.length?await ask(`Counter — how much for your ${ilabelImg(ing)}?`,
-          raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:"Never mind",value:0}])):0;
+        const counterAmt=await ask(`Counter — how much for your ${ilabelImg(ing)}?`,
+          raises.map(n=>({label:`+${n}🌕`,value:n})).concat([{label:"Never mind",value:0}]));
         if(appState.turnExpired)return;
         if(counterAmt>0){finalPrice=counterAmt;dealt=true;} // the bot's only source is this trade, so it pays up if it can afford it
       }
-      g.ev({t:"parley",a:p.idx,b:human.idx,offer:finalPrice+" coins",want:ing,ok:dealt,kind:"hail"});
+      // D-19 SIMPLIFIED (Wyatt-approved 2026-07-29): emit `parley` only on a refusal — the accepted
+      // branch already emits its own `trade` event two lines below, so emitting both here produced
+      // two captain's-log lines for one swap. No `ok` field: it can now only ever be `false` (an
+      // invariant field is no field), and EVENT_NARRATION.parley's builder has been simplified to
+      // match. UI-tier only, does not touch src/engine/index.js — zero `parley` events across all
+      // 31 determinism fixtures (Game.play()'s headless path never reaches this human-trade flow).
+      if(!dealt)g.ev({t:"parley",a:p.idx,b:human.idx,offer:finalPrice+" coins",want:ing,kind:"hail"});
       if(dealt){
         human.ing.splice(human.ing.indexOf(ing),1);p.ing.push(ing);
         p.coins-=finalPrice;human.coins+=finalPrice;g.trades++;
@@ -806,7 +874,7 @@ export async function netIntroBarrier(msg,btnLabel){
   }
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
   // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
-  const waitMsg=humans.length>1?"⚓ Waiting for yer pirate mateys to continue…":null;
+  const waitMsg=humans.length>1?"⚓ Waiting for yer mateys…":null;
   await Promise.all(humans.map(p=>seatLocal(p.idx)
     ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg);return i;})
     :netHandlers().onRemoteDraftPrompt(p.idx,msg,opts,waitMsg)));
@@ -815,18 +883,20 @@ export async function netIntroBarrier(msg,btnLabel){
 // and clicks through, rather than auto-advancing on a timer like every other narration
 export async function showAhoyIntro(){
   const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`;
-  await netIntroBarrier(msg,"⚓ Arrgh! Let's start");
+  // NARR-01/D-25 (Wyatt-approved 2026-07-29): button trimmed to just "Arrgh!" — icon kept (D-16).
+  await netIntroBarrier(msg,"⚓ Arrgh!");
 }
 // right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
 // everyone sailing later by pointing out the coin they get in exchange for waiting. Stays up
 // until every human player dismisses it (like showAhoyIntro) since it's easy to blink and miss
 // a flashed message.
+// NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
 export async function showTurnOrderIntro(order){
   const lead=pn(order[0]);
-  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
-  const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+
-    `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`;
-  await netIntroBarrier(msg,"🦜 Aye, set sail!");
+  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1})`).join(", ");
+  const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+
+    `No fretting, patience pays — ${rest} all cast off with extra dubloons.`;
+  await netIntroBarrier(msg,"🦜 Start");
 }
 export function coinHTML(state,bs,win){
   const b=bs?`<span class="bs">🔥</span>`:"";
@@ -877,7 +947,7 @@ export async function collectSideBets(att,def){
       let who,amt=0;
       for(;;){
         setActor(s.idx);
-        who=await ask(`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`,
+        who=await ask(`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`,
           [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
           [HEXCOL[att.idx],HEXCOL[def.idx]]);
         amt=0;
@@ -886,9 +956,9 @@ export async function collectSideBets(att,def){
         if(amounts.length){
           setActor(s.idx);
           // Optional: sweeten the call with real coin.
-          amt=await ask(`💰 Back your call on ${who==="a"?ns(att.idx):ns(def.idx)}? Win, you double your stake + 1🌕. Lose, you get nothing.`,
+          amt=await ask(`💰 Add to yer call on ${who==="a"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`,
             [{label:"Just the free call",value:0}].concat(
-              amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?" — all in!":""),value:n})))
+              amounts.map(n=>({label:`Bet ${n}🌕`+(n===s.coins?" — all in!":""),value:n})))
               .concat([{label:"← Back",back:true,value:"back"}]));
           if(amt==="back")continue; // re-pick the winner
         }
@@ -898,8 +968,8 @@ export async function collectSideBets(att,def){
       // D-08: a side-bet call names two seats — the caller (s) AND the called captain (att/def) —
       // so both get their own addressed variant, not just the actor.
       const calledIdx=who==="a"?att.idx:def.idx;
-      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and backs it with ${amt}🌕!`,1100,undefined,[{seat:s.idx,html:`💰 You call ${pn(calledIdx)} and back it with ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls you to win and backs it with ${amt}🌕!`}]);
-      else await flash(`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`,900,undefined,[{seat:s.idx,html:`🔭 You call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls you to win from the crow's nest.`}]);
+      if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and bets ${amt}🌕!`,1100,undefined,[{seat:s.idx,html:`💰 Ye call ${pn(calledIdx)} and bet ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls ye to win and bets ${amt}🌕!`}]);
+      else await flash(`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`,900,undefined,[{seat:s.idx,html:`🔭 ${pn(s.idx)} — ye call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls ye to win from the crow's nest.`}]);
     }else{
       // Bots always call (favoring the fuller purse), and sometimes back it with coin.
       const fav=att.coins>=def.coins?"a":"d";
@@ -962,10 +1032,16 @@ export async function asyncBakeoff(A,B){
     const ah=await flipSide("a",A);
     const dh=await flipSide("d",B);
     let scorer=null,rmsg;
-    if(ah&&dh){rmsg=`<span class="cancel">Both HEADS — no score this round.</span>`;}
-    else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(A.idx)} scores! +1</span>`;}
-    else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(B.idx)} scores! +1</span>`;}
-    else{rmsg=`<span class="cancel">Both TAILS — no score this round.</span>`;}
+    // NARR-01/D-25/D-52 (Wyatt-approved 2026-07-29): the two "{finalist} scores!" branches merge
+    // into one template naming whoever actually scored — same D-52 pattern as asyncBattle's own
+    // round-result merge above (a name-slot difference, not a real branch).
+    if(ah&&dh){rmsg=`<span class="cancel">Both ⚪️ HEADS — no score this round.</span>`;}
+    else if(ah||dh){
+      scorer=ah?"a":"d";
+      if(ah)a++;else d++;
+      rmsg=`<span class="score">${ah?nm(A.idx):nm(B.idx)} scores!</span>`;
+    }
+    else{rmsg=`<span class="cancel">Both ⚫️ TAILS — no score this round.</span>`;}
     netHandlers().onRenderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
     await sleep(hold);
   }
@@ -1030,18 +1106,24 @@ export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
 // onBroadcast/onEvents, still pointing at the classic globals via the PP bridge this wave —
 // formalized to real src/net/ imports in 11-06.
 
-// draw the same highlighted cells on a REMOTE player's board and post their choice back
-export function remotePickHighlights(cells,promptId){
+// draw the same highlighted cells on a REMOTE player's board and post their choice back.
+// D-35 (Wyatt-approved 2026-07-29): `msg` is what the host composed (sailPickMsg, via pickCell's
+// onRemotePrompt payload) — rendered here, never re-authored. Falls back to sailPickMsg(mySeat) for
+// an older host payload with no `msg` field, so a mid-game version skew still reads sensibly.
+export function remotePickHighlights(cells,promptId,msg){
   const svg=$("board"),hs=[];
   const done=v=>{hs.forEach(h=>h.remove());panel("");netHandlers().onRespond?.(promptId,v);};
   const cellPx=boardCell(); // notes/edits 11-03: cell now lives in src/ui/board.js
+  // D-55/D-56: the guest rect's own visual affordance (class, fill, animation) is a DOM-contract/
+  // visual-polish gap, deliberately scoped to Phase 16 (UI-01…07), not this copy-and-behavior plan
+  // — left exactly as it was here; only the TEXT fork (D-35, above) is this plan's to close.
   for(const c of cells){
     const r=el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:5,
       fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
     r.addEventListener("click",()=>done(c));
     hs.push(r);
   }
-  panel(`<div class="apMsg">Your move — click a highlighted square to sail (−1🌕)</div>
+  panel(`<div class="apMsg">${msg||sailPickMsg(appState.mySeat)}</div>
     <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
   $("apStay").onclick=()=>done(null);
 }

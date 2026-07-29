@@ -384,11 +384,11 @@ export function battleAsk(p,o,msg,opts,colors){
 // collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 export async function asyncBattle(att,def){
   const c=appState.game.cfg,need=2;
-  // D-08 (DRAFT, pending D-04): the opening announcement names both combatants — convert to the
-  // neutral-plus-variants form, same shape plan 15-01 added to flash(), so each combatant's own
-  // screen reads it addressed to themselves while every other viewer sees today's exact text.
-  const battleOpenVariants=[{seat:att.idx,html:`⚔️ ${pn(att.idx)} — you attack ${pn(def.idx)}! First to ${need} points wins…`},{seat:def.idx,html:`⚔️ ${pn(att.idx)} attacks you! First to ${need} points wins…`}];
-  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()),undefined,battleOpenVariants);
+  // D-08/D-25 (Wyatt-approved 2026-07-29): the opening announcement names both combatants — a
+  // neutral-plus-variants form so each combatant's own screen reads it addressed to themselves
+  // while every other viewer sees the third-person text. "Hits", not "points" (his approved copy).
+  const battleOpenVariants=[{seat:att.idx,html:`⚔️ ${pn(att.idx)} — ye attack ${pn(def.idx)}! First to ${need} hits wins…`},{seat:def.idx,html:`⚔️ ${pn(att.idx)} attacks ye! First to ${need} hits wins…`}];
+  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} hits wins…`,Math.max(900,stepDelay()),undefined,battleOpenVariants);
   if(c.powder)att.coins-=c.powder;
   appState.game.battles++;
   const bets=await collectSideBets(att,def);
@@ -476,16 +476,26 @@ export async function asyncBattle(att,def){
     // both-HEADS tiebreak resolved just below.
     // ---- resolve the round ----
     let scorer=null,rmsg;
-    // notes/edits #3: two HEADS no longer just cancel — the shot carries downwind. Whoever's
-    // firing with the wind lands the hit; if neither is downwind (crosswind), they still cancel.
+    // notes/edits #3/D-52 (Wyatt-approved 2026-07-29): two HEADS no longer just cancel — the shot
+    // hits downwind. D-52 merges the attacker-downwind/defender-downwind pair into one template
+    // naming whoever's downwind (Wyatt: "i dont know why this was its own branch?" — it was purely
+    // a name-slot difference, exactly what the D-10 mechanism already handles elsewhere), and
+    // likewise merges the attacker-hit/defender-hit pair into one template naming whoever landed it.
     if(ah&&dh){
-      if(downwind==="a"){a++;scorer="a";rmsg=`<span class="score">Both fire HEADS — but ${nm(att.idx)}'s downwind and the shot carries! +1</span>`;}
-      else if(downwind==="d"){d++;scorer="d";rmsg=`<span class="score">Both fire HEADS — but ${nm(def.idx)}'s downwind and the shot carries! +1</span>`;}
-      else rmsg=`<span class="cancel">Both fire HEADS — crosswind, cannonballs collide, no damage.</span>`;
+      if(downwind){
+        scorer=downwind;
+        if(downwind==="a")a++;else d++;
+        const dwName=downwind==="a"?nm(att.idx):nm(def.idx);
+        rmsg=`<span class="score">Both fire HEADS — but ${dwName}'s downwind and the shot hits!</span>`;
+      }else rmsg=`<span class="cancel">Both fire HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`;
     }
-    else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(att.idx)} lands a hit! +1</span>`;}
-    else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(def.idx)} lands a hit! +1</span>`;}
-    else{rmsg=`<span class="cancel">Both miss — TAILS all round.</span>`;}
+    else if(ah||dh){
+      scorer=ah?"a":"d";
+      if(ah)a++;else d++;
+      const hitName=ah?nm(att.idx):nm(def.idx);
+      rmsg=`<span class="score">${hitName} lands a hit!</span>`;
+    }
+    else{rmsg=`<span class="cancel">Both miss — ⚫️ TAILS all round.</span>`;}
     // notes/edits #23: record who actually scored the round (not just the raw flip pattern) —
     // a both-heads downwind round scores a real point but doesn't fit the "a XOR d landed heads"
     // shape, so anything deriving the displayed score from raw flips alone undercounts it.
@@ -500,8 +510,8 @@ export async function asyncBattle(att,def){
       const cells=reachable(def,3);
       if(cells.length){
         let flee;
-        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Pay 1🌕 to slip away and flee the battle?`,
-          [{label:"🏃 Flee! (−1🌕)",value:true},{label:"Keep fighting",value:false}]);}
+        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`,
+          [{label:"🏃 Flee! (−1🌕)",value:true},{label:"⚔️ Keep fighting",value:false}]);}
         else flee=d<a; // bots flee a losing fight, press on if ahead or even
         if(flee){
           def.coins--;
@@ -711,7 +721,8 @@ export async function runLiveNet(){
           // apparent turn order). netIntroBarrier self-skips during host-refresh replay, and the
           // wind re-spin's game.r() calls run identically live and on replay, so state stays
           // deterministic.
-          await netIntroBarrier(`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`,"🦜 Final round — set sail!");
+          // NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
+          await netIntroBarrier(`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`,"🦜 Final round — set sail!");
           appState.game.round++;
           appState.game.windNow="NSEW"[Math.floor(appState.game.r()*4)];
           appState.game.stormNow=rollStorm(appState.game); // #1a
@@ -915,7 +926,9 @@ export function watchPrompt(){
     }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
-      remotePickHighlights(p.cells||[],p.id);
+      // D-35: thread the host-composed message through — remotePickHighlights renders it, never
+      // authors its own.
+      remotePickHighlights(p.cells||[],p.id,p.msg);
     }
   });
 }
@@ -942,7 +955,9 @@ export async function createRoom(){
     await netCreateRoom(appState.db,code,{host:appState.myId,status:"lobby",numSeats:appState.numSeats,seats,createdAt:Date.now()});
   }catch(e){
     console.error("createRoom failed",e);appState.room=null;appState.isHost=false;
-    alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");
+    // NARR-01/D-25/D-60 (Wyatt-approved 2026-07-29): one line for every multiplayer-service
+    // disruption — createRoom's own failure and joinRoom's below share it verbatim (D-60).
+    alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");
     return;
   }
   saveSession();showRoom();watchRoom();
@@ -953,14 +968,14 @@ export async function joinRoom(){
   if(code.length<4){alert("Enter the room code your host shared.");return;}
   let snap;
   try{snap=await netReadRoom(appState.db,code);}
-  catch(e){console.error("joinRoom failed",e);alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");return;}
-  if(!snap.exists()){alert("No game found with code "+code+".");return;}
+  catch(e){console.error("joinRoom failed",e);alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");return;}
+  if(!snap.exists()){alert(`Arrgh, no game found with code ${code}. Try typin' again.`);return;}
   const r=snap.val();
   const seats=r.seats||{};
   let mine=null;
   for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===appState.myId)mine=i;
   if(mine!=null){appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;}
-  if(r.status!=="lobby"){alert("That game has already set sail.");return;}
+  if(r.status!=="lobby"){alert("⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.");return;}
   let claimed=null;
   await netClaimSeat(appState.db,code,s=>{
     if(!s)return s;
@@ -970,7 +985,7 @@ export async function joinRoom(){
       s[i]={name:typedName||unusedDefaultName(s,i),id:appState.myId,bot:false};claimed=i;return s;}}
     return s;
   });
-  if(claimed==null){alert("That game is full.");return;}
+  if(claimed==null){alert("Too many pirates already in that game.");return;}
   appState.room=code;appState.mySeat=claimed;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();
 }
 // D-13: module-scope guard so a repeated watchRoom() call for the SAME room (a normal guest-join

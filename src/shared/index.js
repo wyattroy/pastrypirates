@@ -128,9 +128,10 @@ const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
 // announced when a pirate docks there. One entry per ingredient in ING_ALL — all 7.
 const DOCK_PLACE={sugar:"Glitter Bay",vanilla:"Custard Key",spice:"the Spice Isle",
   wheat:"the Flour Patch",dairy:"Full Cream Folly",eggs:"Clucker's Cove",cocoa:"Cocoa Cabana"};
-const DOCK_FLAVOR={sugar:"a sack of crystal sugar",vanilla:"rich vanilla beans",
-  spice:"sprigs of red hot cinnamon",wheat:"a sack of toasty wheat",dairy:"some jugs of cool milk",
-  eggs:"sand-speckled eggs",cocoa:"bursting cacao pods"};
+// NARR-01/D-25/D-48 (Wyatt-approved 2026-07-29): flavour phrasing, kept and applied verbatim.
+const DOCK_FLAVOR={sugar:"a jar of Crystal Sugar",vanilla:"a bundle of Velvety Vanilla Beans",
+  spice:"sprigs of Red-Hot Cinnamon",wheat:"a sack of Toasty Wheat",dairy:"some jugs of Fresh Milk",
+  eggs:"a dozen Sand-Speckled Eggs",cocoa:"a pod of Luscious Cacao Beans"};
 const dockPlace=x=>DOCK_PLACE[x]||"the island";
 const dockFlavor=x=>DOCK_FLAVOR[x]||iname(x);
 const iname=x=>ING_NAME[x]||x;
