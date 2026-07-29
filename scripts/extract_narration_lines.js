@@ -249,8 +249,8 @@ const AD_HOC_META = {
   "src/orchestrator.js:731": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
   "src/orchestrator.js:765": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
   "src/orchestrator.js:769": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/ui/util.js:910": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
-  "src/ui/util.js:914": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
+  "src/ui/util.js:914": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
+  "src/ui/util.js:918": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
 };
 
 function applyMeta(sites) {
