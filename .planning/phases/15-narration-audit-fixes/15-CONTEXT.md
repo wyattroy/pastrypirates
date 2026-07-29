@@ -1612,3 +1612,37 @@ distinct**:
 Using it for a passive waiting message would blur a signal that is presently clean. A later pass must
 not "unify" these icons — the split is deliberate.
 
+
+**D-51 — A fabricated event must be one the real game could actually produce.**
+
+Wyatt, of the battle crate card: *"this shouldn't say 'null' right? … Crustbeard takes null."* —
+**correct, and the game never produces it.**
+
+`art-review/narration-audit.html:772` fabricates `{ spoil: null, spoilIng: "cocoa" }`. But every real
+emit site sets **both** fields together, and for a crate win `spoil` is the rendered ingredient:
+
+```js
+spoil = ilabelImg(pick); spoilIng = pick;   // orchestrator.js:546, engine/index.js:572-573
+```
+
+The builder renders `takes ${e.spoil}` for the ingredient case (`util.js:473`), so a null `spoil`
+prints the word **null**. The card should read *"Crustbeard takes 🍫 Cacao Pods."*
+
+**Second defect on the same card:** the fabricated `rounds` (`[[1,0,false,"a"],[0,1,false,"d"]]`)
+score **1–1**, rendered as *"wins 1–1 in 2 rounds"* — impossible, since a battle is first to 2 hits.
+A card cannot be judged as copy when its numbers could not occur.
+
+**This is a third class of audit-page defect**, distinct from the two already handled:
+
+| Class | Defect |
+|---|---|
+| D-21 | a branch the game produces but **no card renders** |
+| D-33 / D-34 / D-40 / D-43 | a card renders text the game **can never produce** |
+| **D-51** | a card renders the **right line with impossible values** |
+
+The first two are now enforced by self-checks; this one is not. **Required:** every fabricated event
+must satisfy the invariants of its real emit sites — `spoil` set whenever `spoilIng` is, scores that
+a real battle could reach, and so on. Where an invariant is mechanically checkable (paired fields,
+especially), assert it; otherwise derive the fabricated value from the same helper the game uses
+(`ilabelImg`) rather than hand-writing a literal, which is how `null` got in.
+
