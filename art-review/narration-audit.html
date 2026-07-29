@@ -101,10 +101,6 @@
   }
   .cardHead h4 { margin: 0 0 2px; font-size: 0.88rem; }
   .cardMeta { font-size: 0.68rem; color: var(--muted); font-family: ui-monospace, monospace; }
-  .seededBadge {
-    font-size: 0.64rem; background: rgba(245,166,35,0.14); color: var(--accent);
-    border: 1px solid rgba(245,166,35,0.4); border-radius: 5px; padding: 1px 6px; margin-left: 6px;
-  }
   .silentBadge {
     font-size: 0.64rem; background: rgba(154,164,173,0.18); color: var(--muted);
     border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; margin-left: 6px;
@@ -135,13 +131,35 @@
   .tagRow { display: flex; align-items: center; gap: 8px; font-size: 0.76rem; }
   .tagRow select { background: #10141a; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; }
   .defaultTagNote { color: var(--muted); font-size: 0.7rem; }
-  .notesLabel { font-size: 0.74rem; color: var(--muted); }
-  textarea.notesArea {
+  .notesLabel, .questionLabel { font-size: 0.74rem; color: var(--muted); }
+  .questionLabel { color: #8fb4c9; }
+  textarea.notesArea, textarea.questionArea {
     width: 100%; min-height: 48px; resize: vertical;
     background: #10141a; border: 1px solid var(--border); border-radius: 8px;
     color: var(--text); padding: 7px 9px; font-family: inherit; font-size: 0.8rem;
   }
-  textarea.notesArea:focus, select:focus { outline: 1px solid var(--accent); }
+  textarea.questionArea { min-height: 34px; border-style: dashed; border-color: #3a5566; }
+  textarea.notesArea:focus, textarea.questionArea:focus, select:focus { outline: 1px solid var(--accent); }
+  .derivedIntent {
+    font-size: 0.78rem; font-weight: 600; padding: 6px 9px; border-radius: 8px;
+    background: rgba(154,164,173,0.08); border: 1px solid var(--border); color: var(--text);
+  }
+  .derivedIntent.intentKeep { color: var(--muted); }
+  .derivedIntent.intentRewrite { color: var(--accent); border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
+  .derivedIntent.intentCut { color: var(--warn); border-color: rgba(242,103,158,0.4); background: rgba(242,103,158,0.08); }
+  .derivedIntent.intentMerge { color: #7fd6ff; border-color: rgba(127,214,255,0.4); background: rgba(127,214,255,0.08); }
+  .dupWarning { font-size: 0.76rem; color: var(--warn); font-weight: 600; margin: 0; }
+  .reviewedRow {
+    display: flex; align-items: center; gap: 7px; font-size: 0.76rem; color: var(--muted);
+    cursor: pointer;
+  }
+  .reviewedRow input { accent-color: #27c78d; width: 15px; height: 15px; cursor: pointer; }
+  /* D-27: an untouched default must never LOOK decided — dim the whole card and flag it plainly
+     until reviewed=true, so an incomplete pass is obvious at a glance, not just in the export. */
+  .card:not(.isReviewed) { opacity: 0.55; }
+  .card:not(.isReviewed) .reviewedRow { color: var(--warn); font-weight: 600; }
+  .card.isReviewed { opacity: 1; border-color: #2f4a3a; }
+  #reviewProgress { font-weight: 700; }
 </style>
 </head>
 <body>
@@ -149,6 +167,7 @@
   <button id="exportBtn">Export dispositions (JSON)</button>
   <button id="clearBtn" class="secondary">Clear all dispositions</button>
   <span class="status" id="fbStatus"></span>
+  <span id="reviewProgress">loading…</span>
   <span class="grandTotal" id="totalCount">loading…</span>
 </div>
 <header>
@@ -187,11 +206,41 @@
     captains remain), the edge is drawn dashed and labelled <span class="uncertainTag">uncertain</span>.
   </p>
   <p class="methodNote warnNote">
-    <b>Your pass-1 marks are pre-filled.</b> Every card whose id exactly matches a line you already
-    reviewed carries your tag and notes exactly as you left them — you do not need to redo those. New
-    sibling branches split out of a line you already marked (e.g. <code>dock</code>'s other 3
-    outcomes) start pre-filled from that SAME mark as a starting point, tagged <span class="seededBadge">from pass 1</span> — review and adjust per branch as needed; brand-new branches (like the candycrab
-    line) start blank.
+    <b>This pass is self-contained and authoritative (D-25).</b> Every tag you set means "keep/cut/
+    merge/rewrite AS DISPLAYED ON THIS CARD" — it does not refer back to pass 1. Many cards already
+    show phase-15's new draft wording (second-person forms, the rewritten storm intro, the split
+    battle spoil, the broke-sail/broke-anchor lines); tagging one <code>keep</code> ships THAT text,
+    not a reversion to what shipped before this phase. Only the 17 cards you'd genuinely reached in
+    your committed in-progress session (through the <code>moored</code> "storm shoved you onto it
+    this turn" card) start pre-filled with your real marks — everything past that point starts
+    blank with its own default tag, never a leftover note (D-27; see below).
+  </p>
+  <p class="methodNote">
+    <b>Every card tracks whether you've actually looked at it (D-27).</b> The toolbar's
+    <code>N of 81 reviewed</code> counter and each card's own checkbox are the source of truth for
+    that — an untouched card is dimmed and its recommendation is a default, not a decision, no
+    matter what tag happens to be pre-selected. Changing a card's tag, or typing in its notes or
+    question field, marks it reviewed automatically; the checkbox is there for the "I looked, the
+    default is right, ship it" case where you change nothing. The export carries
+    <code>reviewed: true/false</code> on every row — 15-06 applies ONLY the rows marked
+    <code>true</code>. An unreviewed row is not a <code>keep</code>; it is <i>unknown</i>, and
+    leaves that line exactly as the code currently is.
+  </p>
+  <p class="methodNote">
+    <b>Every card now derives and shows its own intent, live, as you type (D-26):</b> choosing
+    <code>cut</code> or <code>merge</code> is always a deliberate choice and wins outright; otherwise
+    an <b>empty</b> notes box means <code>keep</code> (ship the text as displayed), and any text
+    typed into notes is read as <b>replacement copy</b> — the notes field is the rewrite. A
+    <code>rewrite</code> tag left with empty notes resolves to keep and says so explicitly, so an
+    intended rewrite is never silently lost. The derived line under each card's controls
+    (<code>→ KEEP as displayed</code> / <code>→ REWRITE to: "…"</code> / <code>→ CUT</code> /
+    <code>→ MERGE with …</code>) is the actual exported intent — check it, not just the dropdown.
+    Use the separate, dashed <b>"Question for Claude"</b> field for anything that isn't copy (a
+    question, a "is this even called?") — it is never read as a rewrite and ships in the export
+    as its own <code>question</code> field, untouched. If two cards resolve to the exact same
+    rewrite text, both are flagged live (a warning under the derived-intent line, and counted in
+    the banner below) — usually a sign a branch got the wrong text, occasionally intentional, but
+    always worth a second look before it ships.
   </p>
   <p class="methodNote">
     This page imports live ES modules and must be served over HTTP (<code>npm start</code>) —
@@ -200,6 +249,7 @@
   </p>
 </header>
 <div id="selfCheckBanner" class="selfCheckBanner">running self-check…</div>
+<div id="dupWarningBanner" class="selfCheckBanner">checking for duplicate rewrite text…</div>
 <div id="flowCanvas">
   <svg id="edgeSvg"></svg>
   <div id="stages">loading…</div>
@@ -416,6 +466,11 @@ function renderTableBranch(key, spec) {
 
 function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${key}`; }
 
+// D-19/D-27: the one table key whose default recommendation is a structural merge, not a
+// per-line rewrite — surfaced in the derived-intent line the same way an ad-hoc byte-identical
+// duplicate's mergeWith is.
+const TABLE_MERGE_TARGET = { parley: "EVENT_NARRATION.trade (D-19)" };
+
 function buildTableBranchCard(key, spec, group) {
   const id = tableCardId(key, spec.tag);
   const { rendered, variants } = renderTableBranch(key, spec);
@@ -423,7 +478,7 @@ function buildTableBranchCard(key, spec, group) {
   const body = silent
     ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
     : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
-  return { id, group, html: cardShell({ id, title: spec.label || `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, seededFromLegacy: spec.tag != null }) };
+  return { id, group, html: cardShell({ id, title: spec.label || `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) };
 }
 
 function buildTableKeyCards(key, group) {
@@ -441,7 +496,7 @@ function buildTableKeyCards(key, group) {
       : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
     const id = `table:${key}`;
     const note = TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "";
-    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent }) }];
+    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) }];
   }
   return branches.map((spec) => buildTableBranchCard(key, spec, group));
 }
@@ -450,15 +505,20 @@ function buildTableKeyCards(key, group) {
 // own history overrides it via seeding). Biased toward "rewrite" only where lines genuinely blur
 // (D-06) — unchanged from this page's first build.
 const TABLE_TAGS = {
+  // D-19/D-27: Wyatt confirmed "treat the parley cuts as the merge" — parley folds into trade,
+  // not a plain cut. Default recommendation updated to merge accordingly (the pass-2 file's own
+  // parley rows are in the stale, unreviewed range anyway — see PASS2_REVIEWED_CUTOFF below — so
+  // this default is what actually reaches the page for both parley branches).
   newround: "keep", windmove: "rewrite", blownOut: "rewrite", sail: "keep", dodge: "keep",
   anchor: "keep", moored: "keep", blocked: "keep", anchorHold: "keep", tradewind: "rewrite",
-  parley: "keep", aground: "keep", shipwrecked: "keep", dock: "keep", trade: "keep",
+  parley: "merge", aground: "keep", shipwrecked: "keep", dock: "keep", trade: "keep",
   sidebet: "keep", battle: "keep", battleflee: "keep", fish: "keep", finish: "keep",
   shotclock: "keep", shotclockskip: "keep", bakeoff: "keep", end: "keep", turn: "keep",
 };
 const TABLE_NOTES = {
   moored: "5 reason-branches shown: justDocked / dock (moved this turn) / dock (already parked) / home / an unrecognized-reason legacy fallback for old replay logs (src/ui/util.js's own `||` fallback).",
   battle: "3 spoil-framing branches (NARR-04/D-12): an ingredient crate changes hands, a genuine bribe (full 5-coin purse), or cleaned out (under 5 coins).",
+  parley: "D-19/D-27 (confirmed): parley folds into trade — this whole event type is recommended for merge, not a per-branch rewrite. 15-06 removes the parley event type and its table entry once this is approved.",
   turn: "Deliberately silent (returns no text at all) — the bot turn-start banner is a separate ad-hoc line instead (see the Turn Start stage, narrateCurrent). Listed per NARR-01's “don't drop silent surfaces” rule.",
   end: "Deliberately silent (EOV-01 — the blue box no longer announces the win, avoiding a duplicate of the dedicated victory box). Listed per NARR-01's “don't drop silent surfaces” rule.",
 };
@@ -616,7 +676,7 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
     ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
   </details>`;
-  return { id, group, html: cardShell({ id, title: labelOverride || entry.label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, seededFromLegacy: !!idOverride }) };
+  return { id, group, html: cardShell({ id, title: labelOverride || entry.label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeTarget: mergeWith && mergeWith.length ? mergeWith.join(", ") : undefined }) };
 }
 const RENDERED_TEXTS_ADHOC = {};
 
@@ -632,14 +692,15 @@ function buildAdhocKeyCards(entry, group) {
 }
 
 /* ============================================================================
- * Card shell (tag select + notes textarea) — unchanged in spirit from the
- * first build. `seededFromLegacy` marks a branch pre-filled from a sibling's
- * pass-1 mark rather than its own (see the "from pass 1" badge).
+ * D-25/D-26: card shell — tag select, notes (= rewrite copy when non-empty),
+ * a separate Question-for-Claude field (never copy, never affects intent),
+ * and a live derived-intent line. `mergeTarget`, when known structurally
+ * (the byte-identical ad-hoc duplicates), is shown in the merge intent line.
  * ==========================================================================*/
-function cardShell({ id, title, meta, body, defaultTag, silent, seededFromLegacy }) {
+function cardShell({ id, title, meta, body, defaultTag, silent, mergeTarget }) {
   const tags = ["keep", "cut", "merge", "rewrite"];
   return `
-  <div class="card" data-id="${id}">
+  <div class="card" data-id="${id}" data-merge-target="${escapeHtml(mergeTarget || "")}">
     <div class="cardHead">
       <h4>${title}${silent ? ' <span class="silentBadge">silent</span>' : ""}</h4>
       <div class="cardMeta">${meta}</div>
@@ -653,7 +714,10 @@ function cardShell({ id, title, meta, body, defaultTag, silent, seededFromLegacy
       </label>
       <span class="defaultTagNote">default: ${defaultTag}</span>
     </div>
-    <label class="notesLabel">Notes<textarea class="notesArea" data-id="${id}" placeholder="keep / cut / merge / rewrite reasoning..."></textarea></label>
+    <label class="notesLabel">Notes — non-empty means REWRITE and becomes the new copy (D-26)<textarea class="notesArea" data-id="${id}" placeholder="leave empty to keep as displayed, or type the replacement wording..."></textarea></label>
+    <label class="questionLabel">Question for Claude — never becomes narration text<textarea class="questionArea" data-id="${id}" placeholder="anything that's a question, not copy..."></textarea></label>
+    <div class="derivedIntent" data-id="${id}">→ …</div>
+    <label class="reviewedRow"><input type="checkbox" class="reviewedBox" data-id="${id}"> I've reviewed this card (D-27 — an untouched default is NOT a decision)</label>
   </div>`;
 }
 
@@ -783,87 +847,102 @@ const NODE_GROUPS = [
 const LOOP_EDGES = [{ from: "shotClock", to: "newround", label: "next round", uncertain: false, loop: true }];
 
 /* ============================================================================
- * Legacy dispositions (Wyatt's pass-1 export, notes/narration-audit-dispositions.json —
- * gitignored on disk, embedded here so pass 2 starts from where pass 1 left off). Seeded
- * into localStorage on first load ONLY for ids with no existing localStorage entry, so a
- * partially-finished pass-2 session is never clobbered by a reload.
+ * D-27: pass-2 is INCOMPLETE. Wyatt's committed in-progress export
+ * (.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-PASS2.json) has
+ * 81 rows in file order, but he only reviewed the first 17 (cutoff:
+ * "table:moored~dockMoved", inclusive) before this correction landed — every
+ * row after that is a pass-1 leftover the OLD (buggy) seeding pre-filled,
+ * never something he actually decided. Only rows 1-17 seed as reviewed with
+ * their real marks; every other id seeds UNREVIEWED with an EMPTY notes box
+ * and its own default tag (never a stale pass-1/leftover tag) — see the
+ * seeding loop below, in the Persistence section.
  * ==========================================================================*/
-const SEED_ROWS = [
-  { id: "table:newround", finalTag: "rewrite", notes: "Round 3: A ⛈️ storm be ragin'! It'll blow ye all {dir1}, then {dir2}." },
-  { id: "adhoc:src/orchestrator.js:699", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:720", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:613", finalTag: "rewrite", notes: "⛵ Ahoy, Crustbeard's turn! First the ⛈️ storm blows 2 squares {direction}" },
-  { id: "table:windmove", finalTag: "rewrite", notes: "Crustbeard is blown by the storm" },
-  { id: "table:blownOut", finalTag: "keep", notes: "" },
-  { id: "table:dodge", finalTag: "keep", notes: "" },
-  { id: "table:anchor", finalTag: "keep", notes: "" },
-  { id: "table:moored", finalTag: "keep", notes: "" },
-  { id: "table:anchorHold", finalTag: "rewrite", notes: "Crustbeard's anchor is already down — it holds fast." },
-  { id: "table:tradewind", finalTag: "rewrite", notes: "" },
-  { id: "table:aground", finalTag: "keep", notes: "" },
-  { id: "table:shipwrecked", finalTag: "rewrite", notes: "Crustbeard is shipwrecked, and loses their turn making repairs." },
-  { id: "adhoc:src/ui/flow.js:260", finalTag: "rewrite", notes: "Crustbeard's too broke to anchor — flips and takes their chances dodging the rocks." },
-  { id: "adhoc:src/ui/flow.js:296", finalTag: "merge", notes: "Note for claude: i don't think this is called any more, but double-check -- I think it is from a past version of the game where normal wind could move players. It seems like the same use case as EVENT_NARRATION.tradewind\nsrc/ui/util.js:358 · table" },
-  { id: "adhoc:src/ui/flow.js:333", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:352", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:373", finalTag: "rewrite", notes: "Now the ⛈️ storm blows you 2 squares south!\n" },
-  { id: "adhoc:src/ui/flow.js:571", finalTag: "merge", notes: "" },
-  { id: "adhoc:src/ui/flow.js:645", finalTag: "merge", notes: "" },
-  { id: "adhoc:src/ui/flow.js:702", finalTag: "merge", notes: "Note for Claude: this seems like the human-player addressed  version of the \"Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)\nsrc/ui/flow.js:373 · humanWind()\" -- can we merge these, and use the same 3rd person form for viewers of humans or bots?" },
-  { id: "table:dock", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:111", finalTag: "rewrite", notes: "Use the coin heads icon instead of the emoji" },
-  { id: "table:sidebet", finalTag: "keep", notes: " Dough Hook called it and added 2 — Bounty +5" },
-  { id: "table:battle", finalTag: "rewrite", notes: " Crustbeard attacks Davy Scones — and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
-  { id: "table:battleflee", finalTag: "rewrite", notes: "When Crustbeard attacks Davy Scones, both shots miss wildly and Davy Scones slips away!" },
-  { id: "adhoc:src/orchestrator.js:391", finalTag: "rewrite", notes: "⚔️ Crustbeard attacks Davy Scones! First to 2 hits wins…" },
-  { id: "adhoc:src/ui/flow.js:582", finalTag: "rewrite", notes: "Yer too poor to afford powder (2{coin}) for a battle! Go fishin'." },
-  { id: "adhoc:src/ui/flow.js:901", finalTag: "keep", notes: "Note for claude: use the coin image, not the emoji. " },
-  { id: "adhoc:src/ui/flow.js:902", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:928", finalTag: "rewrite", notes: "🔭 The Spotter's Bounty settles — Dough Hook +5🌕 · Flaky Jack −2🌕" },
-  { id: "table:parley", finalTag: "cut", notes: "Where is this called? Is it called anywhere? It seems to serve the same function as EVENT_NARRATION.trade -- in which case we should remove it -- but make sure i'm right first." },
-  { id: "table:trade", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:410", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:516", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:524", finalTag: "keep", notes: "" },
-  { id: "table:fish", finalTag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
-  { id: "table:shotclock", finalTag: "keep", notes: "" },
-  { id: "table:shotclockskip", finalTag: "keep", notes: "" },
-  { id: "table:finish", finalTag: "keep", notes: " Crustbeard returns to the Isle of Tortuga with ingredients for their full recipe!" },
-  { id: "table:bakeoff", finalTag: "keep", notes: "" },
-  { id: "table:end", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:754", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:758", finalTag: "keep", notes: "" },
-  { id: "table:sail", finalTag: "keep", notes: "" },
-  { id: "table:blocked", finalTag: "keep", notes: "" },
-  { id: "table:turn", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:574", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:640", finalTag: "keep", notes: "🏝️ Land's blockin' Crustbeard's wind — can't sail as far here. It's slow as cold molasses in this lee." },
-  { id: "adhoc:src/ui/flow.js:646", finalTag: "keep", notes: "Crustbeard is too broke to pay the crew — no sailing this turn." },
-  { id: "adhoc:src/ui/flow.js:722", finalTag: "keep", notes: "Crustbeard is too broke to pay the crew — no sailing this turn." },
-  { id: "adhoc:src/ui/util.js:874", finalTag: "keep", notes: "" },
-  { id: "adhoc:src/ui/util.js:878", finalTag: "keep", notes: "" },
+const PASS2_ROWS = [
+  { id: "table:newround~freshWind", tag: "rewrite", notes: "\u2014 Round 3: wind blowin' north \u2014" },
+  { id: "table:newround~heldWindGusting", tag: "keep", notes: "" },
+  { id: "table:newround~heldWindWontQuit", tag: "rewrite", notes: "\u2014 Round 3: wind still to the north, this northerly won't quit \u2014" },
+  { id: "table:newround", tag: "rewrite", notes: "Round 3: A \u26c8\ufe0f storm be ragin'! It'll blow yer ships {dir1}, then {dir2}." },
+  { id: "table:newround~heldStorm", tag: "merge", notes: "" },
+  { id: "table:newround~streakStorm", tag: "keep", notes: "\u2014 Round 3:  The storm's baked in and refuses to cool down! It's aiming north, then south. Batten down the hatches, ye scurvy lot! \u2014" },
+  { id: "table:newround~streakStormHeldGusting", tag: "keep", notes: "\u2014 Round 3:  The storm's baked in and refuses to cool down! It's still aiming north, then south. Batten down the hatches, ye scurvy lot! \u2014" },
+  { id: "table:newround~streakStormHeldWontQuit", tag: "merge", notes: "" },
+  { id: "adhoc:src/orchestrator.js:699", tag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:720", tag: "keep", notes: "" },
+  { id: "table:turn", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:613", tag: "rewrite", notes: "\u26f5 Ahoy, Crustbeard -- your turn! First the \u26c8\ufe0f storm you blows 2 squares {dir1}." },
+  { id: "adhoc:src/ui/flow.js:613~noStorm", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/util.js:874", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/util.js:878", tag: "keep", notes: "" },
+  { id: "table:moored", tag: "keep", notes: "" },
+  { id: "table:moored~dockMoved", tag: "rewrite", notes: "Lucky break! The gust shoves Crustbeard towards a dock, and the crew steadies her fast." },
+  { id: "table:moored~dockStill", tag: "keep", notes: "" },
+  { id: "table:moored~home", tag: "keep", notes: "" },
+  { id: "table:moored~legacyFallback", tag: "keep", notes: "" },
+  { id: "table:anchorHold", tag: "rewrite", notes: "Crustbeard's anchor is already down \u2014 it holds fast." },
+  { id: "table:blocked", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:260", tag: "rewrite", notes: "Crustbeard's too broke to anchor \u2014 flips and takes their chances dodging the rocks." },
+  { id: "table:dodge", tag: "keep", notes: "" },
+  { id: "table:anchor", tag: "keep", notes: "" },
+  { id: "table:aground", tag: "keep", notes: "" },
+  { id: "table:aground~crate", tag: "keep", notes: "" },
+  { id: "table:shipwrecked", tag: "rewrite", notes: "Crustbeard is shipwrecked, and loses their turn making repairs." },
+  { id: "table:windmove", tag: "rewrite", notes: "Crustbeard is blown by the storm" },
+  { id: "table:blownOut", tag: "keep", notes: "" },
+  { id: "table:tradewind", tag: "rewrite", notes: "" },
+  { id: "adhoc:src/ui/flow.js:296", tag: "merge", notes: "Note for claude: i don't think this is called any more, but double-check -- I think it is from a past version of the game where normal wind could move players. It seems like the same use case as EVENT_NARRATION.tradewind\nsrc/ui/util.js:358 \u00b7 table" },
+  { id: "adhoc:src/ui/flow.js:111", tag: "rewrite", notes: "Use the coin heads icon instead of the emoji" },
+  { id: "adhoc:src/ui/flow.js:111~tails", tag: "rewrite", notes: "Use the coin heads icon instead of the emoji" },
+  { id: "adhoc:src/ui/flow.js:333", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:352", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:373", tag: "rewrite", notes: "Now the \u26c8\ufe0f storm blows you 2 squares south!\n" },
+  { id: "adhoc:src/ui/flow.js:702", tag: "merge", notes: "Note for Claude: this seems like the human-player addressed  version of the \"Second storm leg direction (human) \u2014 always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)\nsrc/ui/flow.js:373 \u00b7 humanWind()\" -- can we merge these, and use the same 3rd person form for viewers of humans or bots?" },
+  { id: "table:sail", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:640", tag: "keep", notes: "\ud83c\udfdd\ufe0f Land's blockin' Crustbeard's wind \u2014 can't sail as far here. It's slow as cold molasses in this lee." },
+  { id: "adhoc:src/ui/flow.js:571", tag: "merge", notes: "" },
+  { id: "adhoc:src/ui/flow.js:645", tag: "merge", notes: "" },
+  { id: "adhoc:src/ui/flow.js:646", tag: "keep", notes: "Crustbeard is too broke to pay the crew \u2014 no sailing this turn." },
+  { id: "adhoc:src/ui/flow.js:722", tag: "keep", notes: "Crustbeard is too broke to pay the crew \u2014 no sailing this turn." },
+  { id: "table:dock", tag: "keep", notes: "" },
+  { id: "table:dock~empty", tag: "keep", notes: "" },
+  { id: "table:dock~bought", tag: "keep", notes: "" },
+  { id: "table:dock~coins", tag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:391", tag: "rewrite", notes: "\u2694\ufe0f Crustbeard attacks Davy Scones! First to 2 hits wins\u2026" },
+  { id: "adhoc:src/ui/flow.js:582", tag: "rewrite", notes: "Yer too poor to afford powder (2{coin}) for a battle! Go fishin'." },
+  { id: "adhoc:src/ui/flow.js:410", tag: "keep", notes: "" },
+  { id: "table:trade", tag: "keep", notes: "" },
+  { id: "table:trade~noBonus", tag: "keep", notes: "" },
+  { id: "table:parley", tag: "cut", notes: "Where is this called? Is it called anywhere? It seems to serve the same function as EVENT_NARRATION.trade -- in which case we should remove it -- but make sure i'm right first." },
+  { id: "table:parley~refused", tag: "cut", notes: "Where is this called? Is it called anywhere? It seems to serve the same function as EVENT_NARRATION.trade -- in which case we should remove it -- but make sure i'm right first." },
+  { id: "adhoc:src/ui/flow.js:516", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:516~finishTaunt", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:524", tag: "keep", notes: "" },
+  { id: "table:fish", tag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
+  { id: "table:fish~candycrab", tag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
+  { id: "table:fish~empty", tag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
+  { id: "adhoc:src/ui/flow.js:574", tag: "keep", notes: "" },
+  { id: "adhoc:src/ui/flow.js:901", tag: "keep", notes: "Note for claude: use the coin image, not the emoji. " },
+  { id: "adhoc:src/ui/flow.js:902", tag: "keep", notes: "" },
+  { id: "table:battle", tag: "rewrite", notes: " Crustbeard attacks Davy Scones \u2014 and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
+  { id: "table:battle~cleaned", tag: "rewrite", notes: " Crustbeard attacks Davy Scones \u2014 and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
+  { id: "table:battle~crate", tag: "rewrite", notes: " Crustbeard attacks Davy Scones \u2014 and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
+  { id: "table:battleflee", tag: "rewrite", notes: "When Crustbeard attacks Davy Scones, both shots miss wildly and Davy Scones slips away!" },
+  { id: "table:sidebet", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
+  { id: "table:sidebet~wonNoAmt", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
+  { id: "table:sidebet~lostAmt", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
+  { id: "table:sidebet~lostNoAmt", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
+  { id: "adhoc:src/ui/flow.js:928", tag: "rewrite", notes: "\ud83d\udd2d The Spotter's Bounty settles \u2014 Dough Hook +5\ud83c\udf15 \u00b7 Flaky Jack \u22122\ud83c\udf15" },
+  { id: "table:shotclock", tag: "keep", notes: "" },
+  { id: "table:shotclockskip", tag: "keep", notes: "" },
+  { id: "table:shotclockskip~crate", tag: "keep", notes: "" },
+  { id: "table:finish", tag: "keep", notes: " Crustbeard returns to the Isle of Tortuga with ingredients for their full recipe!" },
+  { id: "table:bakeoff", tag: "keep", notes: "" },
+  { id: "table:end", tag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:754", tag: "keep", notes: "" },
+  { id: "adhoc:src/orchestrator.js:758", tag: "keep", notes: "" },
 ];
-const SEED = Object.fromEntries(SEED_ROWS.map((r) => [r.id, { tag: r.finalTag, notes: r.notes || "" }]));
-// sibling branches split out of an id in SEED inherit that SAME mark as a starting point
-const SIBLING_OF = {
-  "table:newround~freshWind": "table:newround", "table:newround~heldWindGusting": "table:newround",
-  "table:newround~heldWindWontQuit": "table:newround", "table:newround~heldStorm": "table:newround",
-  "table:newround~streakStorm": "table:newround", "table:newround~streakStormHeldGusting": "table:newround",
-  "table:newround~streakStormHeldWontQuit": "table:newround",
-  "table:moored~dockMoved": "table:moored", "table:moored~dockStill": "table:moored",
-  "table:moored~home": "table:moored", "table:moored~legacyFallback": "table:moored",
-  "table:parley~refused": "table:parley",
-  "table:aground~crate": "table:aground",
-  "table:dock~empty": "table:dock", "table:dock~bought": "table:dock", "table:dock~coins": "table:dock",
-  "table:trade~noBonus": "table:trade",
-  "table:sidebet~wonNoAmt": "table:sidebet", "table:sidebet~lostAmt": "table:sidebet", "table:sidebet~lostNoAmt": "table:sidebet",
-  "table:battle~cleaned": "table:battle", "table:battle~crate": "table:battle",
-  "table:fish~candycrab": "table:fish", "table:fish~empty": "table:fish",
-  "table:shotclockskip~crate": "table:shotclockskip",
-  "adhoc:src/ui/flow.js:111~tails": "adhoc:src/ui/flow.js:111",
-  "adhoc:src/ui/flow.js:516~finishTaunt": "adhoc:src/ui/flow.js:516",
-  "adhoc:src/ui/flow.js:613~noStorm": "adhoc:src/ui/flow.js:613",
-};
+const PASS2_REVIEWED_CUTOFF = 17; // rows[0..16] — "table:moored~dockMoved" is index 16
+const PASS2_REVIEWED_IDS = new Set(PASS2_ROWS.slice(0, PASS2_REVIEWED_CUTOFF).map((r) => r.id));
+const PASS2_BY_ID = Object.fromEntries(PASS2_ROWS.map((r) => [r.id, { tag: r.tag, notes: r.notes || "" }]));
 
 /* ============================================================================
  * Render: build every node-group's cards, lay out stages, draw edges.
@@ -1031,9 +1110,52 @@ if (probeFailures.length) {
 }
 
 /* ============================================================================
- * Persistence + export (unchanged mechanism from the first build) — seeded
- * from SEED/SIBLING_OF on first load per id, never overwriting an id that
- * already has its own localStorage entry.
+ * D-25/D-26: derived intent — computed the SAME way here (live, per keystroke)
+ * and at export time, so the visible line is always exactly what ships.
+ *
+ * Precedence: (1) tag cut/merge always wins, notes are reasoning not copy;
+ * (2) empty notes -> keep (ship the text as displayed); (3) non-empty notes
+ * -> rewrite, and the notes ARE the new copy. The Question-for-Claude field
+ * is never part of this computation — a question can never become copy.
+ * ==========================================================================*/
+function computeIntent(tag, notes) {
+  if (tag === "cut") return { intent: "cut" };
+  if (tag === "merge") return { intent: "merge" };
+  const trimmed = (notes || "").trim();
+  if (!trimmed) return { intent: "keep" };
+  return { intent: "rewrite", finalText: trimmed };
+}
+function renderDerivedLine(card) {
+  const sel = card.querySelector(".tagSelect");
+  const ta = card.querySelector(".notesArea");
+  if (!sel || !ta) return;
+  const tag = sel.value, notes = ta.value;
+  const mergeTarget = card.dataset.mergeTarget || "";
+  const { intent, finalText } = computeIntent(tag, notes);
+  const el = card.querySelector(".derivedIntent");
+  if (!el) return;
+  let text, cls;
+  if (intent === "cut") { text = "→ CUT"; cls = "intentCut"; }
+  else if (intent === "merge") {
+    cls = "intentMerge";
+    if (mergeTarget) text = `→ MERGE with ${mergeTarget}`;
+    else if (notes.trim()) text = `→ MERGE (see notes: "${notes.trim()}")`;
+    else text = "→ MERGE (target not specified — add to notes)";
+  } else if (intent === "rewrite") { text = `→ REWRITE to: "${finalText}"`; cls = "intentRewrite"; }
+  else { // keep
+    text = tag === "rewrite" ? "→ KEEP as displayed (no new wording given)" : "→ KEEP as displayed";
+    cls = "intentKeep";
+  }
+  el.textContent = text;
+  el.className = "derivedIntent " + cls;
+}
+
+/* ============================================================================
+ * D-27: seeding. `reviewed` is the whole point of this section — a card must
+ * NEVER look decided until Wyatt has actually touched it in SOME session
+ * (this one, or the genuinely-reviewed first 17 rows of the committed
+ * pass-2 export). Seeded fields never overwrite an id that already has its
+ * own localStorage entry from an earlier session on this browser.
  * ==========================================================================*/
 const STORAGE_KEY = "pastrypirates_narration_audit_v15_dispositions";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; } }
@@ -1041,23 +1163,41 @@ function saveAll(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 function setStatus(t) { document.getElementById("fbStatus").textContent = t; }
 
 const saved = loadSaved();
-let seededCount = 0;
 document.querySelectorAll(".card").forEach((card) => {
   const id = card.dataset.id;
-  if (saved[id]) return; // pass-2 progress already exists for this exact id — never clobber
-  const direct = SEED[id];
-  const parentId = SIBLING_OF[id];
-  const inherited = parentId ? SEED[parentId] : null;
-  const seedVal = direct || inherited;
-  if (!seedVal) return;
-  saved[id] = { tag: seedVal.tag, notes: seedVal.notes };
-  if (!direct && inherited) {
-    seededCount++;
-    const meta = card.querySelector(".cardHead h4");
-    if (meta && !meta.querySelector(".seededBadge")) meta.insertAdjacentHTML("beforeend", ' <span class="seededBadge">from pass 1</span>');
+  if (saved[id]) return; // this browser's own in-progress session already covers this id — never clobber
+  if (PASS2_REVIEWED_IDS.has(id)) {
+    // rows 1-17 of the committed pass-2 export — Wyatt's genuine, already-reviewed marks.
+    const row = PASS2_BY_ID[id];
+    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true };
+  } else {
+    // Everything else (rows 18-81, and any id the export doesn't cover) is a pass-1 leftover
+    // the OLD seeding wrongly pre-filled, never something Wyatt decided — D-27. Unreviewed,
+    // empty notes (never carry stale copy forward), tag falls back to the card's own default
+    // (never a stale pass-1/leftover tag).
+    const sel = card.querySelector(".tagSelect");
+    const defaultTag = (sel && sel.dataset.default) || "keep";
+    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false };
   }
 });
 saveAll(saved);
+
+function setCardReviewedVisual(card, isReviewed) {
+  card.classList.toggle("isReviewed", !!isReviewed);
+}
+function markReviewed(id) {
+  const data = loadSaved();
+  data[id] = data[id] || {};
+  if (data[id].reviewed) return; // already true — no redundant write/repaint
+  data[id].reviewed = true;
+  saveAll(data);
+  document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
+    setCardReviewedVisual(card, true);
+    const box = card.querySelector(".reviewedBox");
+    if (box) box.checked = true;
+  });
+  updateReviewProgress();
+}
 
 document.querySelectorAll(".tagSelect").forEach((sel) => {
   const id = sel.dataset.id;
@@ -1068,6 +1208,9 @@ document.querySelectorAll(".tagSelect").forEach((sel) => {
     data[id].tag = sel.value;
     saveAll(data);
     setStatus("saved " + new Date().toLocaleTimeString());
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
+    markReviewed(id);
+    checkDuplicateFinalText();
   });
 });
 document.querySelectorAll(".notesArea").forEach((ta) => {
@@ -1079,14 +1222,114 @@ document.querySelectorAll(".notesArea").forEach((ta) => {
     data[id].notes = ta.value;
     saveAll(data);
     setStatus("saved " + new Date().toLocaleTimeString());
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
+    markReviewed(id);
+    checkDuplicateFinalText();
   });
 });
-if (seededCount) setStatus(`${seededCount} new branch card(s) pre-filled from your pass-1 marks`);
+document.querySelectorAll(".questionArea").forEach((qa) => {
+  const id = qa.dataset.id;
+  if (saved[id] && saved[id].question) qa.value = saved[id].question;
+  qa.addEventListener("input", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].question = qa.value;
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+    // deliberately does NOT call renderDerivedLine — a question never affects intent (D-26)
+    markReviewed(id);
+  });
+});
+document.querySelectorAll(".reviewedBox").forEach((box) => {
+  const id = box.dataset.id;
+  box.checked = !!(saved[id] && saved[id].reviewed);
+  box.addEventListener("change", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].reviewed = box.checked;
+    saveAll(data);
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
+      setCardReviewedVisual(card, box.checked);
+      const otherBox = card.querySelector(".reviewedBox");
+      if (otherBox) otherBox.checked = box.checked;
+    });
+    setStatus("saved " + new Date().toLocaleTimeString());
+    updateReviewProgress();
+  });
+});
+// initial paint: derived-intent line + reviewed dimming for every card, reflecting whatever just loaded
+document.querySelectorAll(".card").forEach((card) => {
+  renderDerivedLine(card);
+  setCardReviewedVisual(card, saved[card.dataset.id] && saved[card.dataset.id].reviewed);
+});
+
+function distinctCardIds() {
+  const ids = new Set();
+  document.querySelectorAll(".card").forEach((c) => ids.add(c.dataset.id));
+  return ids;
+}
+function updateReviewProgress() {
+  const data = loadSaved();
+  const ids = distinctCardIds();
+  let reviewedCount = 0;
+  ids.forEach((id) => { if (data[id] && data[id].reviewed) reviewedCount++; });
+  document.getElementById("reviewProgress").textContent = `${reviewedCount} of ${ids.size} reviewed`;
+}
+updateReviewProgress();
+
+/* ============================================================================
+ * D-26: duplicate-text guard. Two DIFFERENT cards resolving to the exact same
+ * rewrite text is usually the D-27 inheritance bug's signature, occasionally
+ * deliberate — Wyatt must see it, never lose it silently. Live: re-runs after
+ * every tag/notes change (see the two listeners above).
+ * ==========================================================================*/
+function checkDuplicateFinalText() {
+  document.querySelectorAll(".dupWarning").forEach((el) => el.remove());
+  const byText = new Map();
+  const seenIds = new Set();
+  document.querySelectorAll(".card").forEach((card) => {
+    const id = card.dataset.id;
+    if (seenIds.has(id)) return; // the coin-flip line's 2 DOM instances share one id
+    seenIds.add(id);
+    const sel = card.querySelector(".tagSelect"), ta = card.querySelector(".notesArea");
+    const { intent, finalText } = computeIntent(sel.value, ta.value);
+    if (intent !== "rewrite") return;
+    if (!byText.has(finalText)) byText.set(finalText, []);
+    byText.get(finalText).push({ id, label: card.querySelector("h4").textContent.trim() });
+  });
+  const dupGroups = [...byText.entries()].filter(([, arr]) => arr.length > 1);
+  dupGroups.forEach(([, arr]) => {
+    arr.forEach((entry) => {
+      const others = arr.filter((x) => x.id !== entry.id).map((x) => x.label).join(", ");
+      document.querySelectorAll(`.card[data-id="${CSS.escape(entry.id)}"]`).forEach((card) => {
+        const warn = document.createElement("p");
+        warn.className = "dupWarning";
+        warn.textContent = `⚠ same replacement text as ${others} — is that intended?`;
+        const anchor = card.querySelector(".derivedIntent");
+        if (anchor) anchor.insertAdjacentElement("afterend", warn);
+      });
+    });
+  });
+  const dupBanner = document.getElementById("dupWarningBanner");
+  if (dupBanner) {
+    if (!dupGroups.length) {
+      dupBanner.className = "selfCheckBanner pass";
+      dupBanner.textContent = "✓ No duplicate rewrite text across different cards.";
+    } else {
+      dupBanner.className = "selfCheckBanner fail";
+      const names = dupGroups.map(([, arr]) => arr.map((x) => x.id).join(" = ")).join(" · ");
+      dupBanner.textContent = `⚠ ${dupGroups.length} group(s) of cards share identical rewrite text: ${names}`;
+    }
+  }
+  return dupGroups;
+}
+checkDuplicateFinalText();
 
 document.getElementById("exportBtn").addEventListener("click", () => {
   // A handful of ids (the shared coin-flip line, reachable from both the storm-dodge fork and
   // the dock fork) render as more than one DOM card — export each id exactly once, reading its
   // FIRST occurrence, since both instances are kept in sync through the same localStorage key.
+  const data = loadSaved();
   const seenIds = new Set();
   const out = [];
   document.querySelectorAll(".card").forEach((card) => {
@@ -1095,9 +1338,21 @@ document.getElementById("exportBtn").addEventListener("click", () => {
     seenIds.add(id);
     const sel = card.querySelector(".tagSelect");
     const ta = card.querySelector(".notesArea");
-    const title = card.querySelector("h4").textContent.replace(/\s*(silent|from pass 1)\s*$/i, "").trim();
+    const qa = card.querySelector(".questionArea");
+    const title = card.querySelector("h4").textContent.replace(/\s*silent\s*$/i, "").trim();
     const meta = card.querySelector(".cardMeta").textContent.trim();
-    out.push({ id, label: title, source: meta, defaultTag: sel.dataset.default, finalTag: sel.value, notes: ta.value || "" });
+    const tag = sel.value, notes = ta.value || "";
+    const { intent, finalText } = computeIntent(tag, notes);
+    const row = {
+      id, label: title, source: meta,
+      defaultTag: sel.dataset.default,
+      tag, notes,
+      question: (qa && qa.value) || "",
+      intent,
+      reviewed: !!(data[id] && data[id].reviewed),
+    };
+    if (intent === "rewrite") row.finalText = finalText;
+    out.push(row);
   });
   const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1108,7 +1363,8 @@ document.getElementById("exportBtn").addEventListener("click", () => {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  setStatus(`exported ${out.length} dispositions`);
+  const reviewedOut = out.filter((r) => r.reviewed).length;
+  setStatus(`exported ${out.length} dispositions (${reviewedOut} reviewed)`);
 });
 document.getElementById("clearBtn").addEventListener("click", () => {
   if (!confirm("Clear all dispositions and notes on this page? This can't be undone.")) return;
