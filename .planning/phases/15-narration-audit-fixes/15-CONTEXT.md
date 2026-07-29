@@ -1351,3 +1351,40 @@ invalidated the corpus, which the phase boundary forbids.
 **Verify:** an accepted hail produces exactly one log line; a refused offer still narrates; `git diff`
 shows no change to any `t:"trade"` payload.
 
+
+**D-41 EXTENDED AGAIN — the hail "Counter" option is a FOURTH dead end, and the worst of them.**
+
+Wyatt: *"yes add to D-41"*, after asking what the *"Never mind"* button does.
+
+**`flow.js:750`** builds the counter-price list as
+`[price+1, price+2, price+3].filter(n => n <= p.coins - HAIL_RESERVE)` — only raises the bot can
+afford. The prompt is then `raises.length ? await ask(…) : 0`. **When the bot cannot afford any
+raise, `raises` is empty, no prompt is shown at all, and `counterAmt` is silently `0`** — the hail
+ends as a refusal.
+
+**So the player clicks "Counter" and nothing happens.** No screen, no message, no explanation. This
+is worse than the other three, which at least surface a dead-end line the player can read.
+
+**Now four instances of one pattern** — an option offered without checking it can do anything:
+
+| Option | Offered when | Actually requires | Today |
+|---|---|---|---|
+| `⚔️ Attack` (`flow.js:549`) | a target is adjacent | …**and** `coins >= powder` | ✅ greyed + `sub` explains |
+| `🤝 Parley` (`flow.js:551`) | any opponent alive | …**and** an opponent holds cargo | ❌ dead-ends at `flow.js:410` |
+| `— coins only —` (`flow.js:435`) | always | …**and** `coins >= 1` | ❌ dead-ends at `flow.js:446` |
+| `Counter` (`flow.js:746`) | always, on every hail | …**and** the bot can afford a raise | ❌ **silent** — no prompt, no message |
+
+**15-06 task, added to the existing three:** compute `raises` **before** offering the hail choices and
+gate the `Counter` option on `raises.length > 0`; grey it with `sub` text saying why (the bot cannot
+go higher). The `raises.length ? … : 0` fallback then becomes an unreachable guard (D-40), not a
+silent exit.
+
+**Separate, smaller finding — "Never mind" is not a Back button** (`flow.js:751`,
+`{label:"Never mind", value:0}`). It carries **no `back:true` flag**, so unlike its cousins it renders
+as a normal labelled button (which is why Wyatt can see its text at all). But it abandons the whole
+hail rather than returning to the Sell/Counter/Refuse prompt — so a player who picks Counter by
+mistake **cannot get back to "Sell"**; the offer is gone. That contradicts UI-08's deliberate step
+machine (`flow.js:411`: *"Back moves to the PREVIOUS prompt"*). **Flagged for Wyatt — not folded into
+the D-41 fix**, since making it a true Back is a behaviour change he has not asked for, and "abandon
+the hail" may well be intended.
+
