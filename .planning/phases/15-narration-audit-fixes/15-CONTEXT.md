@@ -521,3 +521,37 @@ merge"*. `parley` folds into `trade` as designed in D-19; the two `cut` tags in 
 superseded. (Those rows are in the stale range anyway, but the decision itself is now explicit and
 stands regardless of what a later export says.)
 
+
+**D-28 — Cards that render shared wording must say so, BEFORE Wyatt edits them.**
+
+Wyatt asked whether to tag `table:moored~dockStill` as `merge`, because it renders text byte-identical
+to `table:moored` (`justDocked`) and the Tortuga-berth card. **Correct answer: `keep`** — those three
+are not three copies to consolidate, they are **one string with three doors into it**:
+
+```js
+const stillDocked=`${pn(e.p)} is still docked, so the storm can't run them aground.`;
+const L={ justDocked:stillDocked, dock: moved ? `Lucky break!…` : stillDocked, home:stillDocked };
+```
+
+A `merge` tag here would send 15-06 hunting for duplicate strings to consolidate — the right
+instruction for the four trade-wind rim sweeps (genuinely separate copies), the wrong one here.
+
+**The defect is that he had to ask.** The page knows which cards resolve to identical rendered text
+(the duplicate-text guard already computes it) but only surfaces it *after* an edit creates a
+divergence. It must surface it *before*:
+
+- On every card whose rendered neutral text is byte-identical to another card's, show a
+  **shared-wording notice naming the siblings**, e.g. *"Shared wording — this exact sentence also
+  renders for 'docked last turn' and 'Tortuga berth'. Editing it changes all three."*
+- Computed from the live builders (same probe the self-check uses), never a hand-maintained list.
+- This is distinct from the `mergeWith` byte-identical cross-reference already shown for the ad-hoc
+  lines: that flags *separate strings that happen to match* (merge candidates); this flags *one
+  string reached by several branches* (not a merge candidate). **The wording must make that
+  difference obvious**, since the correct tag differs — `merge` for the former, `keep`/`rewrite` for
+  the latter.
+- Where a rewrite on a shared string is entered, the derived-intent line should reflect the blast
+  radius: `→ REWRITE to: "…" (also changes: <sibling labels>)`.
+
+Known shared-string group at time of writing: `justDocked` / `home` / `dock`-when-unmoved all render
+`stillDocked`. The probe must find any others rather than relying on that list.
+
