@@ -377,3 +377,42 @@ deliberate pacing.**
 *Phase: 15-narration-audit-fixes*
 *Context gathered: 2026-07-27*
 *Review addendum: 2026-07-28*
+
+<review_addendum_2>
+## Review Addendum 2 — 2026-07-29
+
+**D-24 — The captain's log is a THIRD-PERSON stream. Applied.**
+
+Wyatt: *"i want the captain's log to be simply a 3rd-person stream of exactly what happens in the
+narration"* → after discussion: *"make it third-person, it's one line"*.
+
+**Facts established while investigating (correct the record — his initial read was understandable
+but wrong in both directions):**
+
+- The log was **never bespoke**. `syncLogLines()` called `describe()`, i.e. the same
+  `EVENT_NARRATION` table that feeds the message box. One entry, two surfaces; a copy edit lands in
+  both automatically.
+- Action prompts (*"Ahoy Crustbeard, what do you want to do?"*) **structurally cannot** enter the
+  log: the log is built from `game.events`, and prompts are `panel()` calls that emit no event.
+  The behaviour he said he wanted was already guaranteed.
+- The real gap was the opposite of his suspicion: `describe(e)` → `describeFor(e, undefined)` →
+  `isLocalTo(seat, undefined)` → `seatLocal(seat)` → reads live `appState.mySeat`. So the log was
+  **second person for your own moves** ("Crustbeard — you pay 1🌕 and sail").
+
+**Change applied (`src/ui/util.js`, `src/ui/board.js`):** `syncLogLines()` now calls
+`describeFor(e, NEUTRAL_VIEWER)`, forcing every builder's un-addressed branch. The demo-board log
+seed in `board.js` was changed identically — behaviourally a no-op there (`mySeat` is null, so it
+already resolved neutral) but made explicit so the two log-building paths cannot drift.
+
+**Explicitly NOT changed:** the message box keeps addressing the player directly via its own
+per-seat variants. `describe()`'s remaining callers are the round-header flashes
+(`orchestrator.js:699`, `:720`), which should stay addressed. The stale comment at `util.js:529`
+claiming "every existing describe() consumer keeps personalising per client" was corrected.
+
+**Standing context — the log is low priority.** Wyatt: *"i don't see the log being used very much by
+real-world players… we now have firebase logs for you to refer to to debug… players are simply
+playing the game, not reading the log. I'm not sure it's worth prioritizing it any more."* Do not
+expand log work beyond this. It predates the narration box and is not a design surface worth
+investment.
+
+</review_addendum_2>

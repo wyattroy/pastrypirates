@@ -526,8 +526,10 @@ export const EVENT_NARRATION={
 const NO_AT=()=>[0,0]; // describe()/captions() never need real board coordinates
 // D-10: describeFor is the viewer-aware core; describe() below is now a thin wrapper
 // (viewerSeat undefined) so its own observable behaviour stays byte-identical to before this
-// wave, and every existing describe() consumer (syncLogLines()/the captain's log) keeps
-// personalising per client for free — describe() itself never reads "which viewer", that's
+// wave. NOTE (D-24): syncLogLines()/the captain's log NO LONGER go through describe() — the log
+// is a third-person record and calls describeFor(e, NEUTRAL_VIEWER) explicitly. describe()'s
+// remaining callers are the message-box round-header flashes, which should stay addressed.
+// describe() itself never reads "which viewer", that's
 // threaded through by the caller (isLocalTo()'s null/undefined fallback to seatLocal() is what
 // makes this safe: describe() → describeFor(e, undefined) → each builder's own
 // isLocalTo(seat, undefined) → seatLocal(seat), i.e. today's live appState.mySeat read).
@@ -595,8 +597,14 @@ export function pickNarrVariant(payload,seat){
 // laggier the longer it runs. Safe because events are only ever pushed, never spliced/reordered;
 // any real reset reassigns logLines directly (see the two `logLines=[...]` resets) rather than
 // going through this path.
+// D-24: the captain's log is a THIRD-PERSON stream — a neutral record of what happened, not a
+// retelling aimed at whoever happens to be sitting here. describe() would resolve viewerSeat to
+// the live appState.mySeat (via isLocalTo's null-fallback to seatLocal), so the log used to read
+// "Crustbeard — you pay 1<coin> and sail" for your own moves. Passing NEUTRAL_VIEWER explicitly
+// forces every builder's un-addressed branch, so every seat is named the same way. The message
+// box is unaffected — it keeps addressing you directly via its own per-seat variants.
 export function syncLogLines(){
-  for(let i=appState.logLines.length;i<appState.game.events.length;i++)appState.logLines.push(describe(appState.game.events[i]));
+  for(let i=appState.logLines.length;i<appState.game.events.length;i++)appState.logLines.push(describeFor(appState.game.events[i],NEUTRAL_VIEWER));
 }
 
 /* ---------- playback ---------- */

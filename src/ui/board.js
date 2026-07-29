@@ -65,7 +65,7 @@ import {
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describe, assignBadges, pname, pn, buildPlayerRows,
+  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows,
 } from "./util.js";
 import { recipeTitle } from "./recipe.js";
 
@@ -576,7 +576,10 @@ export function renderDecorativeBoard(){
     drawBoard();buildPlayerRows();
     appState.game.round=1;appState.game.windNow="NSEW"[Math.floor(Math.random()*4)];appState.game.stormNow=false;
     appState.game.ev({t:"newround",dir:appState.game.windNow});
-    appState.evIdx=0;appState.logLines=[describe(appState.game.events[0])];
+    // D-24: seed the demo log third-person like syncLogLines() does. Behaviourally identical here
+    // (mySeat is null above, so describe() already resolves neutral) — made explicit so the two
+    // log-building paths cannot drift if this preview ever runs with a seat assigned.
+    appState.evIdx=0;appState.logLines=[describeFor(appState.game.events[0],NEUTRAL_VIEWER)];
     render();
     $("statsWrap").style.display="none";
     $("actionPanel").style.display="none";
