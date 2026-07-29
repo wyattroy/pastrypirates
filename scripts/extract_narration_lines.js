@@ -220,49 +220,37 @@ function findCallSites(fileSrc, filePath) {
 // Keyed by "file:line" so a call site the extraction finds with no matching entry here fails the
 // self-check loudly instead of silently guessing (a real safeguard: if a future edit adds/removes
 // a flash() site, this table goes stale and the script says so instead of drifting quietly).
+// NARR-01/D-25/D-36 (Wyatt-approved 2026-07-29): line numbers below reflect plan 15-06's applied
+// copy. The three trade-wind rim-sweep ad-hoc call sites (windLeg/humanAct/humanTurn) that used to
+// live here are GONE, not merely tagged — 15-06 replaced each with `await narrateLastEvent()`, so
+// they render straight through EVENT_NARRATION.tradewind and are no longer separate flash() sites
+// for this extractor to find at all. The merge is complete, not pending.
 const AD_HOC_META = {
   "src/ui/flow.js:111": { fn: "humanFlip", group: "Docking", tag: "keep", label: "Coin-flip announcement (generic — used at docking/anchor moments)" },
-  "src/ui/flow.js:260": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02, new this phase)" },
-  // D-36 (Wyatt): the "Byte-identical to: …" cross-reference is SYMMETRIC — each of these three
-  // pointed at the other two, and none pointed anywhere terminal, so the page rendered a visible
-  // cycle. A merge needs a DESTINATION, not a list of duplicates. His decision: all three collapse
-  // into EVENT_NARRATION.tradewind (src/ui/util.js:358) — "carried" survives, "swept" (3 of 4
-  // sites) does not, UNLESS he says otherwise on that table card (see its own TABLE_NOTES entry —
-  // this is his open verb question, not resolved here). `mergeInto` is the CANONICAL target this
-  // card resolves to by default; `siblingMerges` is display-only (who else folds into the SAME
-  // target, shown alongside it — never itself treated as a target).
-  "src/ui/flow.js:296": { fn: "windLeg", group: "Storm", tag: "merge", mergeInto: "table:tradewind", siblingMerges: ["src/ui/flow.js:571", "src/ui/flow.js:645"], label: "Trade-wind rim sweep (windLeg leg)" },
-  "src/ui/flow.js:333": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
-  "src/ui/flow.js:352": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
-  "src/ui/flow.js:373": { fn: "humanWind", group: "Storm", tag: "rewrite", label: "Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)" },
-  "src/ui/flow.js:410": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for" },
-  "src/ui/flow.js:516": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal (D-08, new addressed copy this phase)" },
-  "src/ui/flow.js:524": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Simple decline (D-08, new addressed copy this phase)" },
-  "src/ui/flow.js:571": { fn: "humanAct", group: "Storm", tag: "merge", mergeInto: "table:tradewind", siblingMerges: ["src/ui/flow.js:296", "src/ui/flow.js:645"], label: "Trade-wind rim sweep (move-instead path)" },
-  "src/ui/flow.js:574": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
-  "src/ui/flow.js:582": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder" },
-  "src/ui/flow.js:613": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03, rewritten this phase)" },
-  "src/ui/flow.js:640": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
-  "src/ui/flow.js:645": { fn: "humanTurn", group: "Storm", tag: "merge", mergeInto: "table:tradewind", siblingMerges: ["src/ui/flow.js:296", "src/ui/flow.js:571"], label: "Trade-wind rim sweep (post-sail)" },
-  "src/ui/flow.js:646": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02, new this phase)" },
-  "src/ui/flow.js:702": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction (bot)" },
-  "src/ui/flow.js:722": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot (D-11/NARR-02, new this phase — the likely source of the reported \"broke bot forgets its turn\")" },
-  "src/ui/flow.js:901": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — backed with coin (D-08)" },
-  "src/ui/flow.js:902": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — free call (D-08)" },
-  "src/ui/flow.js:928": { fn: "settleSideBets", group: "Battle", tag: "keep", label: "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)" },
+  "src/ui/flow.js:270": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02)" },
+  "src/ui/flow.js:343": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
+  "src/ui/flow.js:362": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
+  "src/ui/flow.js:395": { fn: "humanWind", group: "Storm", tag: "keep", label: "Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn" },
+  "src/ui/flow.js:434": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)" },
+  "src/ui/flow.js:550": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)" },
+  "src/ui/flow.js:561": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)" },
+  "src/ui/flow.js:620": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
+  "src/ui/flow.js:628": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder, action guard (guarded safety net)" },
+  "src/ui/flow.js:668": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03)" },
+  "src/ui/flow.js:695": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
+  "src/ui/flow.js:701": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn" },
+  "src/ui/flow.js:759": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction, bot — shared secondLegLine() helper" },
+  "src/ui/flow.js:779": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot — shared brokeSailLine() helper" },
+  "src/ui/flow.js:971": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — backed with coin (D-08)" },
+  "src/ui/flow.js:972": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — free call (D-08)" },
+  "src/ui/flow.js:998": { fn: "settleSideBets", group: "Battle", tag: "keep", label: "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)" },
   "src/orchestrator.js:391": { fn: "asyncBattle", group: "Battle", tag: "keep", label: "Battle opening announcement (D-08)" },
-  "src/orchestrator.js:699": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
-  "src/orchestrator.js:720": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
-  "src/orchestrator.js:754": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/orchestrator.js:758": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  // D-24 (commit 2480d7e) added comment lines above narrateCurrent(), shifting these two call
-  // sites from :874/:878 down to :882/:886. The AUDIT PAGE pins its card ids to the ORIGINAL
-  // :874/:878 (see LEGACY_CARD_ID_PIN there) because Wyatt's pass-2 review already covers those
-  // exact ids (rows 14-15 of the reviewed set) — re-keying here would silently drop that history.
-  // This script stays accurate about the TRUE current source location; only the audit page's own
-  // display id is pinned.
-  "src/ui/util.js:882": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07, new addressed copy this phase)" },
-  "src/ui/util.js:886": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
+  "src/orchestrator.js:709": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
+  "src/orchestrator.js:731": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
+  "src/orchestrator.js:765": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "src/orchestrator.js:769": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "src/ui/util.js:910": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
+  "src/ui/util.js:914": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
 };
 
 function applyMeta(sites) {
@@ -782,14 +770,16 @@ const battleLineFlowRaw = findAssignmentByLHS(src.flow, FILE_PATHS.flow, "\\brms
   if (indepFlow !== battleLineFlowRaw.length) fail(`battleLine: structured extraction found ${battleLineFlowRaw.length} "rmsg=" assignment(s) in ${FILE_PATHS.flow} but the independent count found ${indepFlow}`);
 }
 const battleLine = battleLineOrchRaw.concat(battleLineFlowRaw).filter((s) => /^[`"']/.test(s.rawMsg));
-if (battleLine.length !== 10) fail(`battleLine: expected exactly 10 literal "rmsg=" result lines (6 in asyncBattle, 4 in asyncBakeoff), found ${battleLine.length}`);
+// D-52 (Wyatt-approved 2026-07-29): both battle-round-result blocks merged their name-slot-only
+// duplicate branches into one shared template — asyncBattle 6->4, asyncBakeoff 4->3.
+if (battleLine.length !== 7) fail(`battleLine: expected exactly 7 literal "rmsg=" result lines (4 in asyncBattle, 3 in asyncBakeoff, post-D-52 merge), found ${battleLine.length}`);
 
 /* ---- draftWait: recipe-draft + "waiting"/"choosing" broadcasts — see this section's header
  * comment for why this one is anchor-verified rather than count-cross-checked. ---- */
 const DRAFT_WAIT_SITES = [
   { file: FILE_PATHS.orch, anchor: "choosing their recipe" },
   { file: FILE_PATHS.orch, anchor: "Recipe chosen! Waiting for the rest of the crew" },
-  { file: FILE_PATHS.flow, anchor: "Waiting for yer pirate mateys to continue" },
+  { file: FILE_PATHS.flow, anchor: "Waiting for yer mateys" },
   { file: FILE_PATHS.flow, anchor: "is choosing where to sail" },
 ];
 const draftWait = DRAFT_WAIT_SITES.map((site) => {

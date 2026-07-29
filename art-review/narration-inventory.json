@@ -3,151 +3,151 @@
     {
       "key": "newround",
       "file": "src/ui/util.js",
-      "line": 270,
+      "line": 275,
       "group": "Round Header"
     },
     {
       "key": "windmove",
       "file": "src/ui/util.js",
-      "line": 288,
+      "line": 291,
       "group": "Storm"
     },
     {
       "key": "blownOut",
       "file": "src/ui/util.js",
-      "line": 289,
+      "line": 292,
       "group": "Storm"
     },
     {
       "key": "sail",
       "file": "src/ui/util.js",
-      "line": 290,
+      "line": 293,
       "group": "Sailing & Movement"
     },
     {
       "key": "dodge",
       "file": "src/ui/util.js",
-      "line": 296,
+      "line": 298,
       "group": "Storm"
     },
     {
       "key": "anchor",
       "file": "src/ui/util.js",
-      "line": 301,
+      "line": 303,
       "group": "Storm"
     },
     {
       "key": "moored",
       "file": "src/ui/util.js",
-      "line": 309,
+      "line": 311,
       "group": "Storm"
     },
     {
       "key": "blocked",
       "file": "src/ui/util.js",
-      "line": 350,
+      "line": 363,
       "group": "Sailing & Movement"
     },
     {
       "key": "anchorHold",
       "file": "src/ui/util.js",
-      "line": 357,
+      "line": 370,
       "group": "Storm"
     },
     {
       "key": "tradewind",
       "file": "src/ui/util.js",
-      "line": 358,
+      "line": 371,
       "group": "Storm"
     },
     {
       "key": "parley",
       "file": "src/ui/util.js",
-      "line": 359,
+      "line": 378,
       "group": "Trade & Parley"
     },
     {
       "key": "aground",
       "file": "src/ui/util.js",
-      "line": 376,
+      "line": 392,
       "group": "Storm"
     },
     {
       "key": "shipwrecked",
       "file": "src/ui/util.js",
-      "line": 381,
+      "line": 406,
       "group": "Storm"
     },
     {
       "key": "dock",
       "file": "src/ui/util.js",
-      "line": 382,
+      "line": 412,
       "group": "Docking"
     },
     {
       "key": "trade",
       "file": "src/ui/util.js",
-      "line": 407,
+      "line": 434,
       "group": "Trade & Parley"
     },
     {
       "key": "sidebet",
       "file": "src/ui/util.js",
-      "line": 420,
+      "line": 448,
       "group": "Battle"
     },
     {
       "key": "battle",
       "file": "src/ui/util.js",
-      "line": 429,
+      "line": 457,
       "group": "Battle"
     },
     {
       "key": "battleflee",
       "file": "src/ui/util.js",
-      "line": 483,
+      "line": 516,
       "group": "Battle"
     },
     {
       "key": "fish",
       "file": "src/ui/util.js",
-      "line": 493,
+      "line": 527,
       "group": "Fishing"
     },
     {
       "key": "finish",
       "file": "src/ui/util.js",
-      "line": 501,
+      "line": 535,
       "group": "End of Voyage"
     },
     {
       "key": "shotclock",
       "file": "src/ui/util.js",
-      "line": 503,
+      "line": 537,
       "group": "Shot Clock"
     },
     {
       "key": "shotclockskip",
       "file": "src/ui/util.js",
-      "line": 504,
+      "line": 540,
       "group": "Shot Clock"
     },
     {
       "key": "bakeoff",
       "file": "src/ui/util.js",
-      "line": 511,
+      "line": 547,
       "group": "End of Voyage"
     },
     {
       "key": "end",
       "file": "src/ui/util.js",
-      "line": 523,
+      "line": 559,
       "group": "End of Voyage"
     },
     {
       "key": "turn",
       "file": "src/ui/util.js",
-      "line": 524,
+      "line": 560,
       "group": "Sailing & Movement"
     }
   ],
@@ -162,12 +162,12 @@
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`",
+      "rawNeutral": "`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} hits wins…`",
       "rawVariants": "battleOpenVariants"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 699,
+      "line": 709,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -180,7 +180,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 720,
+      "line": 731,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -193,7 +193,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 754,
+      "line": 765,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -206,7 +206,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 758,
+      "line": 769,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -228,15 +228,15 @@
       "mergeInto": null,
       "siblingMerges": null,
       "rawNeutral": "`${pn(p.idx)} flips ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`",
-      "rawVariants": "[{seat:p.idx,html:`You flip ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`}]"
+      "rawVariants": "[{seat:p.idx,html:`${pn(p.idx)} — ye flip ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 260,
+      "line": 270,
       "fn": "windLeg",
       "tableDriven": false,
       "group": "Storm",
-      "label": "Broke — can't afford to anchor (D-11/NARR-02, new this phase)",
+      "label": "Broke — can't afford to anchor (D-11/NARR-02)",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
@@ -245,23 +245,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 296,
-      "fn": "windLeg",
-      "tableDriven": false,
-      "group": "Storm",
-      "label": "Trade-wind rim sweep (windLeg leg)",
-      "defaultTag": "merge",
-      "mergeInto": "table:tradewind",
-      "siblingMerges": [
-        "src/ui/flow.js:571",
-        "src/ui/flow.js:645"
-      ],
-      "rawNeutral": "`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`",
-      "rawVariants": "[{seat:p.idx,html:\"🌀 You are swept into the trade winds, and whipped around the rim!\"}]"
-    },
-    {
-      "file": "src/ui/flow.js",
-      "line": 333,
+      "line": 343,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -274,7 +258,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 352,
+      "line": 362,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -287,24 +271,24 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 373,
+      "line": 395,
       "fn": "humanWind",
       "tableDriven": false,
       "group": "Storm",
-      "label": "Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)",
-      "defaultTag": "rewrite",
+      "label": "Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn",
+      "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`⛈️ Now the storm moves you <b>${DIRNAME[appState.game.windNow2]}</b>!`",
-      "rawVariants": null
+      "rawNeutral": "secondLegLine(p.idx,appState.game.windNow2,NEUTRAL_VIEWER)",
+      "rawVariants": "[{seat:p.idx,html:secondLegLine(p.idx,appState.game.windNow2,p.idx)}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 410,
+      "line": 434,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
-      "label": "No cargo to trade for",
+      "label": "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
@@ -313,49 +297,33 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 516,
+      "line": 550,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
-      "label": "Trade refusal (D-08, new addressed copy this phase)",
+      "label": "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
       "rawNeutral": "humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ${pn(p.idx)} finish their recipe that easy!\"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`",
-      "rawVariants": "[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ye finish yer recipe that easy!\"`:`${pn(q.idx)} declines your offer!`}]"
+      "rawVariants": "[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ye finish yer recipe that easy!\"`:`${pn(q.idx)} declines yer offer!`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 524,
+      "line": 561,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
-      "label": "Simple decline (D-08, new addressed copy this phase)",
+      "label": "Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`${pn(q.idx)} declines!`",
-      "rawVariants": "[{seat:q.idx,html:\"You decline!\"}]"
+      "rawNeutral": "`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`",
+      "rawVariants": "[{seat:p.idx,html:`${pn(q.idx)} declines yer offer!`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 571,
-      "fn": "humanAct",
-      "tableDriven": false,
-      "group": "Storm",
-      "label": "Trade-wind rim sweep (move-instead path)",
-      "defaultTag": "merge",
-      "mergeInto": "table:tradewind",
-      "siblingMerges": [
-        "src/ui/flow.js:296",
-        "src/ui/flow.js:645"
-      ],
-      "rawNeutral": "`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`",
-      "rawVariants": "[{seat:p.idx,html:\"🌀 You are swept into the trade winds, and whipped around the rim!\"}]"
-    },
-    {
-      "file": "src/ui/flow.js",
-      "line": 574,
+      "line": 620,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -368,33 +336,33 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 582,
+      "line": 628,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Battle",
-      "label": "Can't afford powder",
+      "label": "Can't afford powder, action guard (guarded safety net)",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
       "rawNeutral": "`${pn(p.idx)} can't afford powder.`",
-      "rawVariants": "[{seat:p.idx,html:`Yer too poor to afford powder! Go fishin'`}]"
+      "rawVariants": "[{seat:p.idx,html:`Yer too poor to afford powder. Go fishin' 🎣`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 613,
+      "line": 668,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Round Header",
-      "label": "Per-turn banner + storm intro (NARR-03, rewritten this phase)",
+      "label": "Per-turn banner + storm intro (NARR-03)",
       "defaultTag": "rewrite",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First, it pushes ${pn(p.idx)} 2 squares <b>${DIRNAME[appState.game.windNow]}</b>`:\"\"}.`",
+      "rawNeutral": "neutralBanner",
       "rawVariants": "[{seat:p.idx,html:addressedBanner}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 640,
+      "line": 695,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -402,32 +370,16 @@
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`",
-      "rawVariants": "[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`}]"
+      "rawNeutral": "`🏝️ Land's blockin' ${pn(p.idx)}'s wind — can't sail as far. Movin' slow as cold molasses in this lee.`",
+      "rawVariants": "[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, ${pn(p.idx)} — can't sail as far. Movin' slow as cold molasses in this lee.`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 645,
-      "fn": "humanTurn",
-      "tableDriven": false,
-      "group": "Storm",
-      "label": "Trade-wind rim sweep (post-sail)",
-      "defaultTag": "merge",
-      "mergeInto": "table:tradewind",
-      "siblingMerges": [
-        "src/ui/flow.js:296",
-        "src/ui/flow.js:571"
-      ],
-      "rawNeutral": "`🌀 ${pn(p.idx)} is swept into the trade winds and whipped around the rim!`",
-      "rawVariants": "[{seat:p.idx,html:\"🌀 You are swept into the trade winds, and whipped around the rim!\"}]"
-    },
-    {
-      "file": "src/ui/flow.js",
-      "line": 646,
+      "line": 701,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
-      "label": "Broke — can't afford to sail, human (D-11/NARR-02, new this phase)",
+      "label": "Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
@@ -436,24 +388,24 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 702,
+      "line": 759,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Storm",
-      "label": "Second storm leg direction (bot)",
+      "label": "Second storm leg direction, bot — shared secondLegLine() helper",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`⛈️ Now the storm moves ${pn(p.idx)} <b>${DIRNAME[g.windNow2]}</b>!`",
-      "rawVariants": null
+      "rawNeutral": "secondLegMsg",
+      "rawVariants": "[{seat:p.idx,html:secondLegLine(p.idx,g.windNow2,p.idx)}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 722,
+      "line": 779,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
-      "label": "Broke — can't afford to sail, bot (D-11/NARR-02, new this phase — the likely source of the reported \"broke bot forgets its turn\")",
+      "label": "Broke — can't afford to sail, bot — shared brokeSailLine() helper",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
@@ -462,7 +414,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 901,
+      "line": 971,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -470,12 +422,12 @@
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
-      "rawNeutral": "`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and backs it with ${amt}🌕!`",
-      "rawVariants": "[{seat:s.idx,html:`💰 You call ${pn(calledIdx)} and back it with ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls you to win and backs it with ${amt}🌕!`}]"
+      "rawNeutral": "`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and bets ${amt}🌕!`",
+      "rawVariants": "[{seat:s.idx,html:`💰 Ye call ${pn(calledIdx)} and bet ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls ye to win and bets ${amt}🌕!`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 902,
+      "line": 972,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -484,11 +436,11 @@
       "mergeInto": null,
       "siblingMerges": null,
       "rawNeutral": "`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`",
-      "rawVariants": "[{seat:s.idx,html:`🔭 You call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls you to win from the crow's nest.`}]"
+      "rawVariants": "[{seat:s.idx,html:`🔭 ${pn(s.idx)} — ye call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls ye to win from the crow's nest.`}]"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 928,
+      "line": 998,
       "fn": "settleSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -501,20 +453,20 @@
     },
     {
       "file": "src/ui/util.js",
-      "line": 882,
+      "line": 910,
       "fn": "narrateCurrent",
       "tableDriven": false,
       "group": "Sailing & Movement",
-      "label": "Bot turn-start banner (D-07, new addressed copy this phase)",
+      "label": "Bot turn-start banner (D-07)",
       "defaultTag": "keep",
       "mergeInto": null,
       "siblingMerges": null,
       "rawNeutral": "`🧭 ${pn(e.p)} takes the wheel…`",
-      "rawVariants": "[{seat:e.p,html:`🧭 ${pn(e.p)} — you take the wheel…`}]"
+      "rawVariants": "[{seat:e.p,html:`🧭 ${pn(e.p)} — ye take the wheel…`}]"
     },
     {
       "file": "src/ui/util.js",
-      "line": 886,
+      "line": 914,
       "fn": "narrateCurrent",
       "tableDriven": true,
       "group": "Sailing & Movement",
@@ -542,11 +494,11 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 503,
+      "line": 513,
       "fn": "asyncBattle",
       "kind": "ask",
-      "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Pay 1🌕 to slip away and flee the battle?`",
-      "rawOpts": "[{label:\"🏃 Flee! (−1🌕)\",value:true},{label:\"Keep fighting\",value:false}]",
+      "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`",
+      "rawOpts": "[{label:\"🏃 Flee! (−1🌕)\",value:true},{label:\"⚔️ Keep fighting\",value:false}]",
       "labels": [
         {
           "raw": "\"🏃 Flee! (−1🌕)\"",
@@ -555,7 +507,7 @@
           "flipMarker": false
         },
         {
-          "raw": "\"Keep fighting\"",
+          "raw": "\"⚔️ Keep fighting\"",
           "condition": null,
           "backMarker": false,
           "flipMarker": false
@@ -568,7 +520,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 535,
+      "line": 545,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(lose.idx)}, you lost! Pay with…`",
@@ -594,7 +546,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 544,
+      "line": 554,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(win.idx)}, choose your plunder!`",
@@ -607,7 +559,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 844,
+      "line": 855,
       "fn": "watchDraftPrompt",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
@@ -620,7 +572,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 901,
+      "line": 912,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
@@ -633,7 +585,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 912,
+      "line": 923,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -646,7 +598,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1128,
+      "line": 1143,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to your voyage…</div>'",
@@ -724,10 +676,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 200,
+      "line": 208,
       "fn": "localPickCell",
       "kind": "panel",
-      "rawMsg": "`<div class=\"apMsg\">${pn(p.idx)}: click a highlighted square to sail (−1🌕)</div>\n      <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
+      "rawMsg": "`<div class=\"apMsg\">${sailPickMsg(p.idx)}</div>\n      <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
@@ -737,32 +689,32 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 261,
+      "line": 271,
       "fn": "windLeg",
       "kind": "ask",
       "rawMsg": "promptMsg",
       "rawOpts": "opts",
       "labels": [
         {
-          "raw": "\"Pay 1🌕 to anchor\"",
+          "raw": "\"Anchor safely (−1🌕)\"",
           "condition": "p.coins>=1",
           "backMarker": false,
           "flipMarker": false
         },
         {
-          "raw": "\"Flip! Heads: dodge. Tails: lose yer turn!\"",
+          "raw": "\"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose turn)\"",
           "condition": "trueShipwreck",
           "backMarker": false,
           "flipMarker": false
         },
         {
-          "raw": "\"Flip! Heads: dodge. Tails: lose a crate!\"",
+          "raw": "\"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)\"",
           "condition": "broke",
           "backMarker": false,
           "flipMarker": false
         },
         {
-          "raw": "\"Flip! Heads: dodge. Tails: lose half 🌕\"",
+          "raw": "`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))`",
           "condition": null,
           "backMarker": false,
           "flipMarker": false
@@ -775,10 +727,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 396,
+      "line": 420,
       "fn": "humanDock",
       "kind": "ask",
-      "rawMsg": "`Tails! Take 3🌕 — or buy ${ilabelImg(ing)} anyway for 3🌕?`",
+      "rawMsg": "`Tails! Take 3🌕 — or buy ${iconImg(ING_IMG[ing])} ${dockFlavor(ing)} for 3🌕?`",
       "rawOpts": "[\n        {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:\"Take 3🌕\",value:false}]",
       "labels": [
         {
@@ -801,10 +753,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 423,
+      "line": 449,
       "fn": "humanTrade",
       "kind": "ask",
-      "rawMsg": "\"Parley with whom?\"",
+      "rawMsg": "\"Trade with whom?\"",
       "rawOpts": "opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:\"← Back\",back:true,value:\"__back__\"}])",
       "labels": [
         {
@@ -821,10 +773,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 428,
+      "line": 454,
       "fn": "humanTrade",
       "kind": "ask",
-      "rawMsg": "`What do you want from ${pn(st.q.idx)}?`",
+      "rawMsg": "`What do ye WANT from ${pn(st.q.idx)}?`",
       "rawOpts": "[...new Set(st.q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:\"← Back\",back:true,value:\"__back__\"}])",
       "labels": [
         {
@@ -841,10 +793,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 437,
+      "line": 467,
       "fn": "humanTrade",
       "kind": "ask",
-      "rawMsg": "\"Offer which ingredient (or coins only)?\"",
+      "rawMsg": "`What will ye GIVE ${pn(st.q.idx)} in exchange?`",
       "rawOpts": "ingOpts",
       "labels": [
         {
@@ -862,12 +814,12 @@
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": "[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}))",
-      "rawSub": null,
+      "rawSub": "offerSub",
       "isLiteral": true
     },
     {
       "file": "src/ui/flow.js",
-      "line": 446,
+      "line": 477,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Ye don't have any to offer!\"",
@@ -887,10 +839,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 451,
+      "line": 483,
       "fn": "humanTrade",
       "kind": "ask",
-      "rawMsg": "st.baseIng?`Sweeten with coin? (offering ${ilabelImg(st.baseIng)})`:\"How many coins?\"",
+      "rawMsg": "`Add any 🌕 to yer offer of ${offerSoFar}?`",
       "rawOpts": "coinOpts",
       "labels": [
         {
@@ -903,11 +855,11 @@
       "dynamicLabelCount": 0,
       "dynamicBase": "coinChoices.map(n=>({label:n===0?\"No extra coins\":`+${n}🌕`,value:n}))",
       "rawSub": null,
-      "isLiteral": false
+      "isLiteral": true
     },
     {
       "file": "src/ui/flow.js",
-      "line": 465,
+      "line": 497,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)}: accept ${offerDisplay} for your ${ilabelImg(want)}?`",
@@ -933,7 +885,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 497,
+      "line": 529,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)} scoffs — but counters: \"${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it.\"`",
@@ -959,26 +911,26 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 563,
+      "line": 609,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "prompt",
       "rawOpts": "opts",
       "labels": [
         {
-          "raw": "`⚓ Dock at ${ilabelImg(port)}`",
+          "raw": "`⚓ ${iconImg(ING_IMG[port])} Dock at ${dockPlace(port)}`",
           "condition": "canDock",
           "backMarker": false,
           "flipMarker": false
         },
         {
-          "raw": "`⚔️ Attack${appState.game.cfg.powder?` (-${appState.game.cfg.powder}🌕)`:\"\"}`",
+          "raw": "`⚔️ Attack${appState.game.cfg.powder?` (−${appState.game.cfg.powder}🌕)`:\"\"}`",
           "condition": "targets.length",
           "backMarker": false,
           "flipMarker": false
         },
         {
-          "raw": "\"🤝 Parley\"",
+          "raw": "\"🤝 Trade\"",
           "condition": "appState.game.tradeOpp(p).length",
           "backMarker": false,
           "flipMarker": false
@@ -990,7 +942,7 @@
           "flipMarker": false
         },
         {
-          "raw": "\"🎣 Fish\"",
+          "raw": "\"🎣 Fish (+1-2🌕)\"",
           "condition": null,
           "backMarker": false,
           "flipMarker": false
@@ -1009,7 +961,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 584,
+      "line": 630,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "\"Attack whom?\"",
@@ -1029,11 +981,11 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 745,
+      "line": 807,
       "fn": "botTurn",
       "kind": "ask",
-      "rawMsg": "`📯 ${pn(p.idx)} hails you: \"Ahoy! ${price}🌕 for your ${ilabelImg(ing)} — what say ye?\"`",
-      "rawOpts": "[{label:`Sell for ${price}🌕`,value:\"sell\"},{label:\"Counter\",value:\"counter\"},{label:\"Refuse\",value:\"refuse\"}]",
+      "rawMsg": "`📯 ${pn(p.idx)} hails ye: \"Ahoy! Want ${price}🌕 for yer ${ilabelImg(ing)}?\"`",
+      "rawOpts": "[{label:`Sell for ${price}🌕`,value:\"sell\"},{label:\"Counter-offer\",value:\"counter\",disabled:!canCounter},{label:\"Refuse\",value:\"refuse\"}]",
       "labels": [
         {
           "raw": "`Sell for ${price}🌕`",
@@ -1042,7 +994,7 @@
           "flipMarker": false
         },
         {
-          "raw": "\"Counter\"",
+          "raw": "\"Counter-offer\"",
           "condition": null,
           "backMarker": false,
           "flipMarker": false
@@ -1056,19 +1008,19 @@
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
-      "rawSub": null,
+      "rawSub": "canCounter?null:`${pn(p.idx)} can't afford to go any higher.`",
       "isLiteral": true
     },
     {
       "file": "src/ui/flow.js",
-      "line": 751,
+      "line": 813,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`Counter — how much for your ${ilabelImg(ing)}?`",
-      "rawOpts": "raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:\"Never mind\",value:0}])",
+      "rawOpts": "raises.map(n=>({label:`+${n}🌕`,value:n})).concat([{label:\"Never mind\",value:0}])",
       "labels": [
         {
-          "raw": "`${n}🌕`",
+          "raw": "`+${n}🌕`",
           "condition": null,
           "backMarker": false,
           "flipMarker": false
@@ -1087,10 +1039,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 880,
+      "line": 950,
       "fn": "collectSideBets",
       "kind": "ask",
-      "rawMsg": "`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`",
+      "rawMsg": "`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`",
       "rawOpts": "[{label:`Call ${ns(att.idx)}`,value:\"a\"},{label:`Call ${ns(def.idx)}`,value:\"d\"}]",
       "labels": [
         {
@@ -1113,11 +1065,11 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 889,
+      "line": 959,
       "fn": "collectSideBets",
       "kind": "ask",
-      "rawMsg": "`💰 Back your call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win, you double your stake + 1🌕. Lose, you get nothing.`",
-      "rawOpts": "[{label:\"Just the free call\",value:0}].concat(\n              amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?\" — all in!\":\"\"),value:n})))\n              .concat([{label:\"← Back\",back:true,value:\"back\"}])",
+      "rawMsg": "`💰 Add to yer call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`",
+      "rawOpts": "[{label:\"Just the free call\",value:0}].concat(\n              amounts.map(n=>({label:`Bet ${n}🌕`+(n===s.coins?\" — all in!\":\"\"),value:n})))\n              .concat([{label:\"← Back\",back:true,value:\"back\"}])",
       "labels": [
         {
           "raw": "\"Just the free call\"",
@@ -1126,7 +1078,7 @@
           "flipMarker": false
         },
         {
-          "raw": "`Back with ${n}🌕`+(n===s.coins?\" — all in!\":\"\")",
+          "raw": "`Bet ${n}🌕`+(n===s.coins?\" — all in!\":\"\")",
           "condition": null,
           "backMarker": false,
           "flipMarker": false
@@ -1145,10 +1097,10 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1044,
+      "line": 1126,
       "fn": "remotePickHighlights",
       "kind": "panel",
-      "rawMsg": "`<div class=\"apMsg\">Your move — click a highlighted square to sail (−1🌕)</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
+      "rawMsg": "`<div class=\"apMsg\">${msg||sailPickMsg(appState.mySeat)}</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
@@ -1161,206 +1113,185 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 482,
+      "line": 489,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"score\">Both fire HEADS — but ${nm(att.idx)}'s downwind and the shot carries! +1</span>`"
+      "rawMsg": "`<span class=\"score\">Both fire HEADS — but ${dwName}'s downwind and the shot hits!</span>`"
     },
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 483,
+      "line": 490,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"score\">Both fire HEADS — but ${nm(def.idx)}'s downwind and the shot carries! +1</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both fire HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`"
     },
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 484,
+      "line": 496,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"cancel\">Both fire HEADS — crosswind, cannonballs collide, no damage.</span>`"
+      "rawMsg": "`<span class=\"score\">${hitName} lands a hit!</span>`"
     },
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 486,
+      "line": 498,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"score\">${nm(att.idx)} lands a hit! +1</span>`"
-    },
-    {
-      "category": "battleLine",
-      "file": "src/orchestrator.js",
-      "line": 487,
-      "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"score\">${nm(def.idx)} lands a hit! +1</span>`"
-    },
-    {
-      "category": "battleLine",
-      "file": "src/orchestrator.js",
-      "line": 488,
-      "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"cancel\">Both miss — TAILS all round.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both miss — ⚫️ TAILS all round.</span>`"
     },
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 965,
+      "line": 1038,
       "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"cancel\">Both HEADS — no score this round.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both ⚪️ HEADS — no score this round.</span>`"
     },
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 966,
+      "line": 1042,
       "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"score\">${nm(A.idx)} scores! +1</span>`"
+      "rawMsg": "`<span class=\"score\">${ah?nm(A.idx):nm(B.idx)} scores!</span>`"
     },
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 967,
+      "line": 1044,
       "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"score\">${nm(B.idx)} scores! +1</span>`"
-    },
-    {
-      "category": "battleLine",
-      "file": "src/ui/flow.js",
-      "line": 968,
-      "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"cancel\">Both TAILS — no score this round.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both ⚫️ TAILS — no score this round.</span>`"
     },
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 657,
+      "line": 667,
       "fn": "recipeDraftNet",
       "anchor": "choosing their recipe"
     },
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 663,
+      "line": 673,
       "fn": "recipeDraftNet",
       "anchor": "Recipe chosen! Waiting for the rest of the crew"
     },
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 176,
+      "line": 184,
       "fn": "pickCell",
       "anchor": "is choosing where to sail"
     },
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 809,
+      "line": 877,
       "fn": "netIntroBarrier",
-      "anchor": "Waiting for yer pirate mateys to continue"
+      "anchor": "Waiting for yer mateys"
     },
     {
       "category": "introBarrier",
       "file": "src/orchestrator.js",
-      "line": 714,
+      "line": 725,
       "fn": "runLiveNet",
-      "rawMsg": "`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`",
+      "rawMsg": "`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`",
       "rawButton": "\"🦜 Final round — set sail!\""
     },
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 818,
+      "line": 887,
       "fn": "showAhoyIntro",
       "rawMsg": "`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`",
-      "rawButton": "\"⚓ Arrgh! Let's start\""
+      "rawButton": "\"⚓ Arrgh!\""
     },
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 829,
+      "line": 899,
       "fn": "showTurnOrderIntro",
-      "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+\n    `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`",
-      "rawButton": "\"🦜 Aye, set sail!\""
+      "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+\n    `No fretting, patience pays — ${rest} all cast off with extra dubloons.`",
+      "rawButton": "\"🦜 Start\""
     },
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 86,
+      "line": 87,
       "fn": "passGate",
-      "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the device to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`"
+      "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the board to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`"
     },
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 88,
+      "line": 89,
       "fn": "passGate",
       "rawMsg": "`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`"
     },
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 115,
+      "line": 116,
       "fn": "renderSeatList",
       "rawMsg": "\"Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots.\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 945,
+      "line": 960,
       "fn": "createRoom",
-      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!\""
+      "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 953,
+      "line": 968,
       "fn": "joinRoom",
       "rawMsg": "\"Enter the room code your host shared.\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 956,
+      "line": 971,
       "fn": "joinRoom",
-      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!\""
+      "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 957,
+      "line": 972,
       "fn": "joinRoom",
-      "rawMsg": "\"No game found with code \"+code+\".\""
+      "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 963,
+      "line": 978,
       "fn": "joinRoom",
-      "rawMsg": "\"That game has already set sail.\""
+      "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 973,
+      "line": 988,
       "fn": "joinRoom",
-      "rawMsg": "\"That game is full.\""
+      "rawMsg": "\"Too many pirates already in that game.\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 982,
+      "line": 997,
       "fn": "watchRoom",
       "rawMsg": "\"That game no longer exists.\""
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1012,
+      "line": 1027,
       "fn": "startGame",
       "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\""
     },
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 265,
+      "line": 275,
       "fn": "windLeg",
       "callee": "humanFlip",
       "rawLabel": "\"Flip to dodge!\"",
@@ -1370,17 +1301,17 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 389,
+      "line": 413,
       "fn": "humanDock",
       "callee": "humanFlip",
-      "rawLabel": "`Docking at ${ilabelImg(ing)} — flip!`",
+      "rawLabel": "`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`",
       "hasLabel": true,
       "rawAllowBack": "true"
     },
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 592,
+      "line": 638,
       "fn": "humanAct",
       "callee": "fishCast",
       "rawLabel": "\"🎣 Cast your line — flip!\"",
@@ -1390,7 +1321,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 781,
+      "line": 849,
       "fn": "botTurn",
       "callee": "fishCast",
       "rawLabel": "",
@@ -1411,77 +1342,77 @@
       "img": "cutlass",
       "name": "The Cutlass of a Thousand Notches",
       "byline": "One notch per fallen foe, carved into the hilt.",
-      "line": 680
+      "line": 716
     },
     {
       "key": "fishCount",
       "img": "herring",
       "name": "The Golden Herring",
       "byline": "For the sweetest rod in the ocean.",
-      "line": 681
+      "line": 717
     },
     {
       "key": "dist",
       "img": "compass",
       "name": "The Horizon-Chaser's Compass",
       "byline": "For the salt-crusted soul who sailed further than sense allowed.",
-      "line": 682
+      "line": 718
     },
     {
       "key": "longestBattle",
       "img": "medal",
       "name": "The Iron Gut Medal",
       "byline": "For the crew that refused to sink.",
-      "line": 683
+      "line": 719
     },
     {
       "key": "tails",
       "img": "blackspot",
       "name": "The Black Spot of Bad Tides",
       "byline": "Survived the curse — worst luck on the Sugar Seas.",
-      "line": 684
+      "line": 720
     },
     {
       "key": "hottestStreak",
       "img": "doubloon",
       "name": "The Lucky Doubloon",
       "byline": "Heads, then heads, then heads again — Lady Luck rode on their shoulder.",
-      "line": 685
+      "line": 721
     },
     {
       "key": "trades",
       "img": "ledger",
       "name": "The Silver-Tongued Ledger",
       "byline": "Struck more deals than a Tortuga fishmonger on market day.",
-      "line": 686
+      "line": 722
     },
     {
       "key": "timesAttacked",
       "img": "target",
       "name": "The Painted Target",
       "byline": "Somehow every cannon in the Caribbean swung their way.",
-      "line": 687
+      "line": 723
     },
     {
       "key": "battlesLost",
       "img": "timbers",
       "name": "The Splintered Timbers",
       "byline": "Took a right drubbing and lived to grumble about it.",
-      "line": 688
+      "line": 724
     },
     {
       "key": "shotClockCount",
       "img": "barnacle",
       "name": "The Barnacle Brain",
       "byline": "Pondered each move till the barnacles grew — no rush in these waters.",
-      "line": 689
+      "line": 725
     },
     {
       "key": "fallback",
       "img": "anchor",
       "name": "Good Mate",
       "byline": "Pirated for the love of the game.",
-      "line": 694
+      "line": 730
     }
   ],
   "roundCfgFlags": {
