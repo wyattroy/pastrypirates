@@ -4,17 +4,17 @@ milestone: v1.2
 milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: narration-audit-fixes
-status: executing
-stopped_at: Completed 15-05-PLAN.md (approval gate closed)
-last_updated: "2026-07-29T17:54:58.732Z"
+status: verifying
+stopped_at: Completed 15-06-PLAN.md (phase 15 fully executed, plan 6 of 6)
+last_updated: "2026-07-29T18:40:13.578Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 15 execution started
 progress:
   total_phases: 12
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 14
-  percent: 17
+  completed_plans: 15
+  percent: 25
 ---
 
 # Project State
@@ -30,10 +30,10 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 Phase: 15 (narration-audit-fixes) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-27 — Phase 15 execution started
 
-Progress: [█████████░] 93% (v1.2)
+Progress: [██████████] 100% (v1.2)
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 93% (v1.2)
 | Phase 15 P02 | 8min | 2 tasks | 3 files |
 | Phase 15 P03 | 25min | 3 tasks | 3 files |
 | Phase 15 P04 | 15min | 3 tasks | 3 files |
+| Phase 15 P06 | large-session | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: 15-04: bribe/cleaned-out battle spoil boundary is spoilN>=5 exactly (both real spoil paths clamp coin take to 5); cleaned-out wording is the real-prose form of the simulator-only '(all they had)' parenthetical, never a literal carried suffix
 - [Phase ?]: 15-04: moored's addressed branch is a full sibling object (LA) beside the untouched L object, not an isLocalTo() conditional threaded into L's own values — keeps byte-identical third-person text a structural guarantee
 - [Phase ?]: 15-04: bakeoff's loser gets its own commiseration line rather than reusing the neutral text verbatim, since narrationVariants() filters out any addressed rendering equal to the neutral one — a byte-identical loser line would have silently produced zero variant entries for that seat
+- [Phase ?]: D-19 SIMPLIFIED: accepted bot hails emit only a trade event (no more duplicate parley+trade double-narration); Parley renamed Trade everywhere a player reads it
+- [Phase ?]: D-57/D-58: guest narration (showNarration) now holds and fades non-blockingly on the same curve as host flash() narration
 
 ### Pending Todos
 
@@ -118,6 +121,7 @@ None yet.
 - **Safari re-verification:** Storm rendering has a prior Safari-specific crash precedent; storm-movement work (Phase 14) and the final playtest (Phase 17) must both re-verify in Safari, not Chrome alone.
 - **MP test-harness gotcha:** Same-machine two-tab multiplayer shares localStorage `pp_id`, causing a transient host-reload collision during Phase 12 tests — re-set the host's own `pp_id` before reloading. Use synthetic-prompt injection for deterministic remote-render checks (see MEMORY.md).
 - **Backlog UAT findings (from v1.1 Phase 12 Safari playthrough, pre-existing, not regressions):** EOV narration box not cleared (still open, tagged `resolves_phase: 16`; may intersect Phase 15 narration work). ~~Bot hail + action on the same turn~~ — **closed by Phase 14 (AI-01/plan 14-02)**; the todo is filed under `.planning/todos/completed/`.
+- 15-06's browser-based human-check steps (Chrome solo, Safari solo, two-tab multiplayer) were not performed — no browser available in the execution environment. Needs a human pass, especially for D-57/D-58 (guest narration fade) and D-35 (sail-prompt merge).
 
 ## Deferred Items
 
@@ -135,8 +139,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-29T17:54:58.724Z
-Stopped at: Completed 15-05-PLAN.md (approval gate closed)
+Last session: 2026-07-29T18:40:13.479Z
+Stopped at: Completed 15-06-PLAN.md (phase 15 fully executed, plan 6 of 6)
 Resume file: None
 
 ## Operator Next Steps
