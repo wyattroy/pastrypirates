@@ -123,6 +123,14 @@
   }
   .passThroughNote { font-style: italic; }
   .mergeNote { color: var(--warn); }
+  /* D-28: deliberately NOT pink/warn (that's .mergeNote's color, reserved for genuine merge
+     candidates) — a distinct teal so "shared wording, not a merge" can never be misread as the
+     byte-identical-duplicate flag at a glance. */
+  .sharedWordingNote {
+    font-size: 0.78rem; line-height: 1.4; margin: 0; color: #4fd6b8;
+    background: rgba(79,214,184,0.08); border: 1px solid rgba(79,214,184,0.35);
+    border-radius: 7px; padding: 6px 8px;
+  }
   .rawSource summary { cursor: pointer; color: var(--accent); font-size: 0.75rem; }
   .rawSource pre {
     white-space: pre-wrap; word-break: break-word; font-size: 0.68rem; background: #10141a;
@@ -241,6 +249,16 @@
     rewrite text, both are flagged live (a warning under the derived-intent line, and counted in
     the banner below) — usually a sign a branch got the wrong text, occasionally intentional, but
     always worth a second look before it ships.
+  </p>
+  <p class="methodNote">
+    <b>Two different notices, two different meanings — read the color (D-28).</b> A pink
+    <b>"Byte-identical to: …"</b> note means separate lines in the code that happen to render the
+    same text right now — a genuine <code>merge</code> candidate. A teal 🔗 <b>"Shared wording"</b>
+    note means the OPPOSITE: one string in the code reached by several branches (e.g.
+    <code>moored</code>'s "still docked" line, referenced by three different <code>reason</code>
+    values) — tagging that <code>merge</code> would send the wrong instruction; <code>keep</code>
+    or <code>rewrite</code> is what applies, and a rewrite there is called out on the derived line
+    itself with every sibling it also changes.
   </p>
   <p class="methodNote">
     This page imports live ES modules and must be served over HTTP (<code>npm start</code>) —
@@ -448,6 +466,20 @@ function recordTexts(key, rendered, variants) {
   (variants || []).forEach((v) => RENDERED_TEXTS[key].add(fixAssetPaths(emojify(v.html))));
 }
 
+// D-28: one entry per non-silent card's NEUTRAL text (exactly what's on screen — same
+// fixAssetPaths(emojify(...)) normalization the duplicate-text guard uses), plus which "base"
+// it belongs to (a table key, or an ad-hoc file:line). Consumed after every card is built to
+// distinguish "one string reached by several branches of the SAME source" (D-28 — moored's
+// justDocked/home/dock-unmoved all reference the same `stillDocked` const; NOT a merge
+// candidate) from "separate source lines that happen to produce identical text" (a genuine
+// merge candidate — the ad-hoc trade-wind trio already flagged via mergeWith). Computed live
+// from the same builders every other check on this page uses — never a hand-maintained list.
+const NEUTRAL_TEXT_ENTRIES = [];
+function recordNeutralTextEntry(id, label, baseKey, text) {
+  if (!text) return; // silent cards contribute nothing to compare
+  NEUTRAL_TEXT_ENTRIES.push({ id, label, baseKey, text });
+}
+
 function renderTableBranch(key, spec) {
   resetEvents();
   const ev = spec.buildEvent
@@ -473,12 +505,14 @@ const TABLE_MERGE_TARGET = { parley: "EVENT_NARRATION.trade (D-19)" };
 
 function buildTableBranchCard(key, spec, group) {
   const id = tableCardId(key, spec.tag);
+  const title = spec.label || `EVENT_NARRATION.${key}`;
   const { rendered, variants } = renderTableBranch(key, spec);
   const silent = !rendered || !rendered.txt;
   const body = silent
     ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
     : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
-  return { id, group, html: cardShell({ id, title: spec.label || `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) };
+  if (!silent) recordNeutralTextEntry(id, title, key, fixAssetPaths(emojify(rendered.txt)));
+  return { id, group, html: cardShell({ id, title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) };
 }
 
 function buildTableKeyCards(key, group) {
@@ -496,6 +530,7 @@ function buildTableKeyCards(key, group) {
       : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
     const id = `table:${key}`;
     const note = TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "";
+    if (!silent) recordNeutralTextEntry(id, `EVENT_NARRATION.${key}`, key, fixAssetPaths(emojify(rendered.txt)));
     return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) }];
   }
   return branches.map((spec) => buildTableBranchCard(key, spec, group));
@@ -670,6 +705,7 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     (result.proposed || []).forEach((v) => RENDERED_TEXTS_ADHOC[baseKey].add(fixAssetPaths(emojify(v.html))));
     body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
     if (result.note) body += `<p class="cardNote">${result.note}</p>`;
+    recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, fixAssetPaths(emojify(result.current)));
   }
   if (mergeWith && mergeWith.length) body += `<p class="mergeNote">Byte-identical to: ${mergeWith.join(", ")}</p>`;
   body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
@@ -967,6 +1003,51 @@ for (let s = 0; s <= maxStage; s++) {
 }
 document.getElementById("stages").innerHTML = stagesHtml;
 
+/* ============================================================================
+ * D-28: shared-wording notice. Groups NEUTRAL_TEXT_ENTRIES by rendered text;
+ * a group counts as "shared wording, one string, several doors" ONLY when
+ * every member shares the same baseKey (same table key, or same ad-hoc
+ * file:line) — i.e. they are different BRANCHES of the SAME source, not
+ * different source lines. That is deliberately narrower than the duplicate-
+ * text guard below (which flags ANY two cards, regardless of source, that
+ * currently resolve to the same text) and than the ad-hoc mergeWith
+ * cross-reference (hand-identified separate call sites, e.g. the trade-wind
+ * trio) — this notice must read as "editing this one place changes all of
+ * these", not "these look like duplicates to consolidate", or Wyatt tags the
+ * wrong thing (D-28's own example: table:moored~dockStill is NOT a merge).
+ * ==========================================================================*/
+function joinNatural(labels) {
+  if (labels.length === 1) return `'${labels[0]}'`;
+  if (labels.length === 2) return `'${labels[0]}' and '${labels[1]}'`;
+  return labels.slice(0, -1).map((l) => `'${l}'`).join(", ") + `, and '${labels[labels.length - 1]}'`;
+}
+const SHARED_WORDING_SIBLINGS = {}; // id -> [{id,label}, ...] (excluding self), used by renderDerivedLine too
+(function computeSharedWordingGroups() {
+  const byText = new Map();
+  NEUTRAL_TEXT_ENTRIES.forEach((e) => {
+    if (!byText.has(e.text)) byText.set(e.text, []);
+    byText.get(e.text).push(e);
+  });
+  byText.forEach((entries) => {
+    if (entries.length < 2) return;
+    const sameSource = entries.every((e) => e.baseKey === entries[0].baseKey);
+    if (!sameSource) return; // different source lines matching by coincidence — a merge question, not this notice
+    entries.forEach((entry) => {
+      SHARED_WORDING_SIBLINGS[entry.id] = entries.filter((x) => x.id !== entry.id).map((x) => ({ id: x.id, label: x.label }));
+    });
+  });
+})();
+document.querySelectorAll(".card").forEach((card) => {
+  const siblings = SHARED_WORDING_SIBLINGS[card.dataset.id];
+  if (!siblings || !siblings.length) return;
+  const body = card.querySelector(".cardBody");
+  if (!body) return;
+  const note = document.createElement("p");
+  note.className = "sharedWordingNote";
+  note.innerHTML = `🔗 Shared wording — this exact sentence also renders for ${joinNatural(siblings.map((s) => s.label))}. Editing it changes all ${siblings.length + 1}. (Not a merge candidate — one string, several branches into it; see the byte-identical cross-reference below instead when THAT'S what applies.)`;
+  body.appendChild(note);
+});
+
 // ---------- edges: draw AFTER layout, recompute on resize ----------
 function edgeAnchor(el, side) {
   const canvas = document.getElementById("flowCanvas");
@@ -1141,8 +1222,14 @@ function renderDerivedLine(card) {
     if (mergeTarget) text = `→ MERGE with ${mergeTarget}`;
     else if (notes.trim()) text = `→ MERGE (see notes: "${notes.trim()}")`;
     else text = "→ MERGE (target not specified — add to notes)";
-  } else if (intent === "rewrite") { text = `→ REWRITE to: "${finalText}"`; cls = "intentRewrite"; }
-  else { // keep
+  } else if (intent === "rewrite") {
+    text = `→ REWRITE to: "${finalText}"`;
+    cls = "intentRewrite";
+    // D-28: a rewrite on a shared-wording card (one string, several branches into it) changes
+    // every sibling too — say so on the derived line itself, the primary safety net.
+    const siblings = SHARED_WORDING_SIBLINGS[card.dataset.id];
+    if (siblings && siblings.length) text += ` (also changes: ${siblings.map((s) => s.label).join(", ")})`;
+  } else { // keep
     text = tag === "rewrite" ? "→ KEEP as displayed (no new wording given)" : "→ KEEP as displayed";
     cls = "intentKeep";
   }
