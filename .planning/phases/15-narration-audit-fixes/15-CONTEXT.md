@@ -1129,3 +1129,36 @@ D-40's, rather than a routine dead end.
 presentation-tier, touches no engine code, and the exact pattern already exists in `humanAct` for
 Attack. Flagged for Wyatt to confirm 15-06 rather than Phase 16.
 
+
+**D-42 — Typing in the Notes box auto-selects `rewrite`. The dropdown must stop lying.**
+
+Wyatt: *"if i start typing in the Notes box, automatically select 'rewrite' from the dropdown. I'm
+only writing a new line because i want that to be used -- i am trying to remember to also select
+'rewrite' but i'm worried i'm forgetting."*
+
+**He is forgetting, and it has cost him nothing — but the anxiety is the defect.** Measured against
+his live session: of **33 reviewed cards carrying notes, 14 still had `tag: "keep"`** (42%). D-26's
+derived intent already treats non-empty notes as `rewrite`, and the export carries that derived
+intent, so all 14 apply correctly. The dropdown was never the source of truth.
+
+**The real problem is that the visible control disagrees with the actual decision**, leaving him
+checking his own work on every card. A UI that requires the user to remember what the system already
+knows is the bug.
+
+**Required:** typing in the Notes box sets the dropdown to `rewrite` automatically, so the visible
+state matches the derived intent.
+
+**Preserve D-26's precedence — this must NOT clobber a deliberate choice:**
+- Auto-select `rewrite` **only when the current tag is `keep`** (or unset). If the tag is `cut` or
+  `merge`, leave it alone — those are deliberate selections that win outright, and notes on them are
+  *reasoning*, not replacement copy.
+- Clearing the notes box on a card whose `rewrite` was auto-set should revert it to `keep`; a
+  manually-chosen `rewrite` stays.
+- The derived-intent line remains the authority and must keep updating live — this change only makes
+  the dropdown agree with it, it does not alter what is exported.
+
+**Retro-fix required:** the 14 already-marked cards must not be left looking wrong. On load, any card
+whose notes are non-empty and whose tag is `keep` should have its dropdown corrected to `rewrite` —
+same rule, applied once to existing state. No dispositions change, since the derived intent was
+already `rewrite`; only the visible control catches up.
+
