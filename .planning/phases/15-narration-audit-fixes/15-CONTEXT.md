@@ -481,3 +481,43 @@ see and correct it rather than losing an intended rewrite.
 intent is `rewrite`. **15-06 reads `intent`/`finalText` and re-infers nothing** — the inference
 happens once, on the page, in front of Wyatt, where he can see and correct it.
 
+
+**D-27 — Pass 2 is INCOMPLETE: only the first 17 rows are Wyatt's. Everything after is stale.**
+
+Wyatt: *"I actually did not get as far as that in my writing session just now, I only got down to
+here: [Reason: dock — storm shoved you onto it THIS turn] … so every decision 'made' after that is
+actually left over from pass 1."*
+
+**Cutoff: `table:moored~dockMoved` — row 17 of 81** in
+`.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-PASS2.json` (inclusive; he edited it).
+
+- **Rows 1–17 — genuinely reviewed in pass 2.** Authoritative under D-25/D-26.
+- **Rows 18–81 (64 rows) — NOT decisions.** Pass-1 leftovers the page pre-filled. 30 of them carry
+  notes that D-26's inference would turn into rewrites, and 21 carry non-`keep` tags. **None of it
+  may be applied.** This includes every `battle`, `fish`, `sidebet`, `parley`, `tradewind`,
+  `battleflee` and coin-flip mark.
+
+**Root cause (mine, not his):** I instructed the page to pre-fill sibling cards from pass-1 marks to
+save him work. Under the old tag-based reading that was harmless; under D-26 (text ⇒ rewrite) a
+pre-filled note becomes an instruction to change copy he never looked at. Compounding it, the page
+gave no way to distinguish *"Wyatt decided this"* from *"this is a default he never touched"* — so a
+partial session exports looking complete.
+
+**Required — a per-card `reviewed` state.** The page must record when Wyatt actually interacts with
+a card (changes its tag, types in notes/question, or explicitly clicks a "reviewed / looks good"
+affordance) and must:
+
+- Export `reviewed: true|false` per row. **15-06 applies ONLY `reviewed: true` rows.** An unreviewed
+  row is not a `keep` — it is *unknown*, and must be left exactly as the code currently is.
+- Show a visible progress counter (`17 of 81 reviewed`) and visually distinguish untouched cards, so
+  an incomplete pass is obvious both to him and to anyone reading the export.
+- Never let a pre-filled default count as reviewed.
+
+**Seeding rule (with D-26's exact-id rule):** seed rows 1–17 as reviewed with their marks intact;
+seed rows 18–81 as **unreviewed with empty notes**, discarding the inherited pass-1 text entirely.
+
+**D-19 CONFIRMED by Wyatt — the `parley` `cut` tags mean MERGE.** *"yes, treat the parley cuts as the
+merge"*. `parley` folds into `trade` as designed in D-19; the two `cut` tags in the pass-2 file are
+superseded. (Those rows are in the stale range anyway, but the decision itself is now explicit and
+stands regardless of what a later export says.)
+
