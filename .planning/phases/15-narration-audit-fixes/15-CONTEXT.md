@@ -1058,3 +1058,22 @@ because its only signpost is thrown away at render time.
 secondary", but its actual effect is "replace this option's text with a `‹`". The option is a real
 choice with a real consequence, so it should read like one.
 
+
+**D-39 RESOLVED — "move instead" stays a normal back button. Consistency over signposting.**
+
+Wyatt: *"I'm fine with this being just a normal back button -- if a player misclicks, they'll hit
+back, and then be able to move again. let's keep things consistent"*.
+
+**Decision: option 3 — leave as-is.** `flow.js:558` keeps `back:true`, keeps rendering as the
+circular `‹`, and the label text stays unshown like every other back marker (D-34).
+
+**His reasoning, recorded because it is the load-bearing part:** a player who mis-clicks "Stay put"
+will reach for *back* by instinct — and back is exactly what this control is. The generic `‹` is
+therefore discoverable enough, and one consistent back affordance everywhere beats a special case
+that reads differently in one menu.
+
+**Consequence for the audit:** `"← Actually, move instead"` is confirmed dead copy alongside the
+other `back:true`/`flip:true` labels (D-34). It stays marked as such — **no rewrite should be spent
+on it**, and a later pass must not "restore" it as a labelled button. This closes D-39; no 15-06 or
+Phase 16 work follows from it.
+
