@@ -1179,3 +1179,40 @@ becomes a guarded safety net (D-40) instead of a routine dead end.
 **Verify:** with no opponent holding cargo, the Parley button renders greyed with its reason visible,
 and it is not possible to click through to *"No one has cargo to trade for."*
 
+
+**D-41 EXTENDED — three options invite a click that cannot work. Fix all three together in 15-06.**
+
+Wyatt: *"yes, add it to D-41 and fix all three together"*.
+
+`flow.js:446` — *"Ye don't have any to offer!"* — is the same defect one layer deeper. **"— coins
+only —" is pushed unconditionally** (`flow.js:435`), with no check on whether the player has any
+coins. A skint captain picks it, reaches the coins step, finds `coinChoices` empty and is bounced
+back. **Reachable whenever `p.coins === 0`** — a normal state, and precisely when a player would want
+to trade a crate instead.
+
+**The pattern, and its one correct instance:**
+
+| Option | Offered when | Actually requires | Today |
+|---|---|---|---|
+| `⚔️ Attack` (`flow.js:549`) | a target is adjacent | …**and** `coins >= powder` | ✅ `disabled:!canAfford` + `sub` explains why |
+| `🤝 Parley` (`flow.js:551`) | any opponent alive (with `cfg.parley`, effectively always) | …**and** an opponent holds cargo | ❌ dead-ends at `flow.js:410` |
+| `— coins only —` (`flow.js:435`) | always | …**and** `coins >= 1` | ❌ dead-ends at `flow.js:446` |
+
+**Attack is the reference implementation** — compute real availability once, use it for both the
+`disabled` flag and the action guard, explain the greying in `sub` helper text. The other two simply
+never got the same treatment.
+
+**15-06 task (all three in one pass):**
+1. **Parley** — availability is `tradeOpp(p).filter(q => q.ing.length > 0)`; drive both
+   `flow.js:551`'s `disabled` and `flow.js:409`'s guard from it; add `sub` text.
+2. **Coins-only** — availability is `p.coins > 0`; drive `flow.js:435`'s `disabled` from it. `ask()`'s
+   `sub` argument is available on that prompt for the reason.
+3. **Attack** — no behaviour change; confirm it still matches the pattern so all three read alike.
+
+Both dead-end flashes (`flow.js:410`, `flow.js:446`) then become guarded safety nets (D-40), not
+routine walls.
+
+**Verify:** with 0 coins, "— coins only —" renders greyed with its reason and cannot be chosen; with
+no opponent holding cargo, Parley likewise; neither dead-end message is reachable by clicking a
+visibly-enabled control.
+
