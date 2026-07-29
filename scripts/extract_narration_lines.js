@@ -873,6 +873,44 @@ const misc = []
   .concat(lobbySites.map((s) => Object.assign({ category: "lobby" }, s)))
   .sort((a, b) => (a.category === b.category ? (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)) : a.category.localeCompare(b.category)));
 
+/* ================= D-43: roundCfg()'s own hardcoded boolean flags =================
+ * A narration branch gated on a config flag that roundCfg() (src/engine/index.js) ALWAYS
+ * hardcodes the opposite way can never fire in the shipped game — e.g. the audit page's
+ * `table:trade~noBonus` card (cfg.tradeBonus===false) and `table:fish~empty`
+ * (cfg.sardine===false), since roundCfg() always returns tradeBonus:true and sardine:true.
+ * "Keep the code, badge the card" — this does NOT prune the audit page's own D-21 branch
+ * enumeration (rendering every config-gated variant was correct for completeness); it only marks
+ * which of those variants the shipped configuration can never actually produce, the same
+ * "effectively dead" family D-33/D-34/D-40 already established.
+ *
+ * Derived by PARSING roundCfg()'s own returned object literal — never a hand-written list — so a
+ * flag that later becomes genuinely configurable (a strategies-dependent expression, not a plain
+ * `key:true`/`key:false` literal) stops being flagged automatically the moment the source changes,
+ * with nobody having to remember to update anything here.
+ */
+const ENGINE_PATH = "src/engine/index.js";
+const engineSrc = readFileSync(join(ROOT, ENGINE_PATH), "utf8");
+function extractRoundCfgFlags(fileSrc) {
+  const fnMarker = "function roundCfg(";
+  const fnIdx = fileSrc.indexOf(fnMarker);
+  if (fnIdx === -1) { fail(`roundCfg() not found in ${ENGINE_PATH} — D-43's flag source has moved or been renamed`); return {}; }
+  const returnMarker = "return {";
+  const retIdx = fileSrc.indexOf(returnMarker, fnIdx);
+  if (retIdx === -1) { fail(`roundCfg()'s own "return {...}" not found in ${ENGINE_PATH}`); return {}; }
+  const objStart = retIdx + "return ".length; // start at the object literal's own leading "{"
+  const objText = captureExprUntilSemicolon(fileSrc, objStart);
+  const flags = {};
+  // ONLY a pure boolean literal `key:true`/`key:false` counts as "hardcoded" — a computed
+  // expression (e.g. `crates` from the np===2 ternary above it, or `strategies` itself) is
+  // deliberately excluded: that is already a flag that reads as configurable, not a literal.
+  const re = /\b([A-Za-z_$][\w$]*)\s*:\s*(true|false)\b/g;
+  let m;
+  while ((m = re.exec(objText))) flags[m[1]] = m[2] === "true";
+  return flags;
+}
+const roundCfgFlags = extractRoundCfgFlags(engineSrc);
+if (Object.keys(roundCfgFlags).length < 5) fail(`roundCfg() flag parsing found only ${Object.keys(roundCfgFlags).length} boolean literal(s) in ${ENGINE_PATH} — the parser likely broke against a source change`);
+
 /* ================= self cross-check (independent second pass) ================= */
 
 function independentCount(fileSrc) {
@@ -927,6 +965,7 @@ console.log(`prompt sites:   ${promptCount} (${prompts.filter((p) => p.kind === 
 console.log(`button labels:  ${buttonCount} static (+ ${prompts.reduce((n, p) => n + p.dynamicLabelCount, 0)} dynamic, not extracted as copy)`);
 console.log(`D-32 misc:      ${misc.length} (introBarrier ${introBarrier.length}, paramPrompt ${paramPrompt.length}, mpError ${mpError.length}, battleLine ${battleLine.length}, draftWait ${draftWait.length}, timer ${timerSites.length}, lobby ${lobbySites.length})`);
 console.log(`D-32 awards:    ${awards.length} (${badgePool.length} BADGE_POOL + ${fallbackBadge ? 1 : 0} FALLBACK_BADGE)`);
+console.log(`D-43 roundCfg:  ${Object.keys(roundCfgFlags).length} hardcoded boolean flag(s) parsed from roundCfg()`);
 
 // the corrected pre-change surface count from 15-RESEARCH.md — plans 15-03/15-04 can only raise
 // this (new brokeSailLine/brokeAnchorLine/stormIntroClause call sites), never lower it
@@ -937,7 +976,7 @@ if (failures) {
   process.exit(1);
 }
 
-const inventory = { table, adhoc, prompts, misc, awards };
+const inventory = { table, adhoc, prompts, misc, awards, roundCfgFlags };
 writeFileSync(
   join(ROOT, "art-review/narration-inventory.json"),
   JSON.stringify(inventory, null, 2) + "\n",

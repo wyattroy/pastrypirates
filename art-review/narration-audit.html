@@ -152,6 +152,16 @@
     background: rgba(242,103,158,0.14); border: 2px solid var(--warn);
     border-radius: 7px; padding: 7px 9px;
   }
+  /* D-40: a THIRD, distinct badge — "effectively dead" text (reachable in principle, blocked in
+     practice by an upstream guard). Deliberately NOT the same color as .deadCopyNote (pink, "never
+     rendered, don't rewrite") since this text is worth KEEPING; the badge only redirects a rewrite
+     toward the live sibling that actually carries this wording to a player. A cool blue reads as
+     "informational/keep" rather than "warning/remove", at a glance. */
+  .guardedNote {
+    font-size: 0.78rem; font-weight: 700; line-height: 1.4; margin: 0; color: #5fb8e0;
+    background: rgba(95,184,224,0.12); border: 2px solid #5fb8e0;
+    border-radius: 7px; padding: 7px 9px;
+  }
   .rawSource summary { cursor: pointer; color: var(--accent); font-size: 0.75rem; }
   .rawSource pre {
     white-space: pre-wrap; word-break: break-word; font-size: 0.68rem; background: #10141a;
@@ -312,6 +322,21 @@
     loudly (banner) if two merge-tagged cards ever point at each other again.
   </p>
   <p class="methodNote">
+    <b>A merge is never shown without a destination — the absence is as loud as the presence
+    (D-44).</b> Wyatt, on <code>parley~refused</code>: "this one is flagged for merging, but I
+    think it's merging with the success message…? That seems wrong." It was: a bare
+    <code>merge</code> tag with no visible target, sitting right below its sibling
+    "Deal struck" card, reads as "merge with that one" — exactly backwards, since deal-struck and
+    refused are opposite outcomes. Root cause: D-19's decision (<code>parley</code> folds into
+    <code>EVENT_NARRATION.trade</code>) had been applied to the recommendation but never
+    pre-set as the target — now fixed on both <code>parley</code> cards, the same way the
+    tradewind trio already were. More generally: an unresolved merge target no longer shares
+    <code>→ MERGE into: …</code>'s calm blue — it gets its own loud,
+    <code>⚠ MERGE: no destination chosen — pick one below</code> state, styled with the same
+    urgency as <code>CUT</code>, so a silent bare tag can never again be misread as pointing at
+    whatever card happens to sit nearby.
+  </p>
+  <p class="methodNote">
     <b>Every card speaks pirate now — "ye"/"yer" (D-29, confirmed).</b> <code>you</code>→<code>ye</code>,
     <code>your</code>→<code>yer</code>, <code>you're</code>→<code>yer</code> (one word does both jobs,
     his call), case-preserving, applied live to EVERY card on this page — narration, prompts, button
@@ -353,6 +378,74 @@
     caller's actual prompt) or the real control (the ‹/coin), and defaults away from
     <code>keep</code>. <code>checkDeadCopyMarking</code> fails loudly if any known-dead card is
     missing its marker.
+  </p>
+  <p class="methodNote">
+    <b>Every parenthesised coin amount carries an explicit sign, applied LIVE (D-38).</b> Same
+    principle as D-29's ye/yer: <code>keep</code> means "ship exactly what this card displays"
+    (D-25), so a sign rule applied only later, at 15-06 time, would make every <code>keep</code> on
+    an affected card approve something different from what actually ships — the flee card used to
+    read <code>(pays 1🌕)</code>; the shipped text reads <code>(−1🌕)</code>. Two passes, run at the
+    same chokepoint every other live conversion uses: a MECHANICAL one (any ASCII hyphen used as a
+    minus inside a parenthesised coin amount becomes U+2212 <code>−</code>, everywhere, no
+    direction judgement needed) and a TARGETED one, Wyatt's own confirmed table — battleflee's
+    <code>(they pay 1🌕)</code>/<code>(pays 1🌕)</code> and fish's bare <code>(2🌕)</code>/
+    <code>(1🌕)</code> each become an explicit <code>+</code>/<code>−</code>. Scope stays narrow on
+    purpose: amounts inside a sentence and price-only button labels stay unsigned, and
+    <code>flow.js:461</code>'s composed trade-offer summary (<code>"Wheat + 2🌕"</code>, where
+    <code>+</code> means "and also") is a recorded exception, never touched.
+    <code>checkSignRule</code> fails loudly if any parenthesised coin amount is still unsigned or
+    still uses an ASCII hyphen.
+  </p>
+  <p class="methodNote">
+    <b>A THIRD badge — reachable in principle, guarded in practice (D-40).</b> Distinct from
+    D-33 (structurally unreachable) and D-34 (a marker label a control replaces): this text COULD
+    render, but a normal game never reaches it because an upstream guard — usually a disabled
+    button, which <code>localAsk()</code> gives no click handler at all — prevents it. Wyatt has
+    now spent a rewrite on the wrong half of a near-identical pair three times running (D-33's
+    dubloon fallback, D-34's back labels, and the canonical case here:
+    <code>flow.js:582</code>'s "can't afford powder" flash, guarded by the Attack button's own
+    <code>disabled:!canAfford</code>, while the wording a player actually reads lives on a
+    <i>different</i> card — the <code>sub</code> helper text at <code>flow.js:560</code>). The
+    <span class="guardedNote" style="display:inline;padding:1px 6px;">🛡 guarded</span> badge names
+    the guard and points at that live sibling; it is deliberately a different color from
+    <span class="deadCopyNote" style="display:inline;padding:1px 6px;">⚠ dead copy</span> because
+    this text is worth <b>keeping</b> (a real safety net, e.g. against a desynced multiplayer
+    client) — the badge only redirects a rewrite, it never asks for deletion. Curated by hand, not
+    a general detector: proving a guard unreachable requires cross-referencing an
+    <code>if(&lt;condition&gt;)</code> around a <code>flash()</code> call against a
+    <code>disabled:</code> flag on an option in a <i>different function entirely</i>, which is
+    real control-flow analysis this page's text-scanning tools aren't built to do safely yet.
+  </p>
+  <p class="methodNote">
+    <b>Typing in Notes auto-selects "rewrite" — the dropdown stops disagreeing with the decision
+    (D-42).</b> D-26's derived intent already treats non-empty notes as <code>rewrite</code>
+    regardless of the dropdown, and the export already carries that derived intent — the dropdown
+    was never the source of truth, it just visibly disagreed, so every card cost a manual
+    double-check. Now: typing non-empty notes on a <code>keep</code>-tagged card auto-selects
+    <code>rewrite</code>; clearing the notes box reverts an <b>auto-set</b> <code>rewrite</code>
+    back to <code>keep</code>. A <b>manually</b>-chosen <code>rewrite</code> (picked from the
+    dropdown itself) is unaffected by clearing notes — it stays. <code>cut</code>/<code>merge</code>
+    are untouched no matter what the notes say, preserving D-26's own precedence exactly: those
+    two are deliberate choices and always win. A one-time retro-fix on load corrects any card
+    already showing <code>keep</code> with non-empty notes — no disposition changes (the derived
+    intent there was already <code>rewrite</code>), only the visible control catching up.
+  </p>
+  <p class="methodNote">
+    <b>A branch the shipped config can never produce is badged too (D-43).</b> Wyatt asked of
+    <code>table:trade~noBonus</code> ("Cooperation bonus OFF") "when does this get shown?" — never:
+    <code>roundCfg()</code> (<code>src/engine/index.js</code>) hardcodes <code>tradeBonus:true</code>
+    and nothing in <code>src/</code> ever mutates <code>cfg</code> afterward. Same for
+    <code>fish</code>'s "sardine rule OFF" branch (<code>sardine:true</code>, always). D-21's own
+    branch enumeration was still right to render both — completeness matters — but the page never
+    said which variants the CURRENT shipped configuration can never actually reach. Derived live by
+    <b>parsing</b> <code>roundCfg()</code>'s own returned object literal (never a hand-written
+    list): any <code>TABLE_BRANCHES</code> entry whose <code>cfg</code> override flips a flag away
+    from what <code>roundCfg()</code> hardcodes gets the same
+    <span class="guardedNote" style="display:inline;padding:1px 6px;">🛡 guarded</span> badge as
+    D-40 — worth <b>keeping</b> (correct the moment that flag becomes a real option), not worth a
+    rewrite today. Because it is derived by parsing rather than a curated list, a flag that later
+    stops being a literal (becomes a real, computed option) silently stops being flagged — nobody
+    has to remember to update anything here.
   </p>
   <p class="methodNote">
     This page imports live ES modules and must be served over HTTP (<code>npm start</code>) —
@@ -439,12 +532,60 @@ function pirateVoice(text) {
     return firstIsUpper ? replacement[0].toUpperCase() + replacement.slice(1) : replacement;
   });
 }
-// The one place every piece of rendered/compared text on this page should flow through: emojify
-// (custom art, D-17) -> fixAssetPaths (this subdirectory's relative image paths) -> pirateVoice
-// (D-29). Order between the first two doesn't matter (disjoint token types); pirateVoice runs
-// last so the FINAL on-screen HTML is what gets converted, matching "render the converted text".
+// D-38 (Wyatt, confirmed): every parenthesised cost/benefit amount adjacent to a coin glyph
+// carries an explicit + or −, and every player-facing minus is U+2212 (never an ASCII hyphen) —
+// applied LIVE at this SAME chokepoint, exactly like D-29's ye/yer. D-25 fixed `keep` to mean
+// "ship exactly what this card displays" — if this rule were applied only at 15-06 time, every
+// `keep` on an affected card would silently diverge from what actually ships (the flee card
+// currently renders "(pays 1🌕)"; the shipped text will read "(−1🌕)") — the precise contract
+// breach D-29's own conversion already exists to prevent.
+//
+// Two passes:
+//  1. MECHANICAL, safe to apply to any text: an ASCII hyphen used as a minus directly inside a
+//     parenthesised coin amount becomes U+2212. Pure character normalisation — no direction
+//     judgement needed — and it catches flow.js:549's Attack button (and any sibling site using
+//     the wrong character) without enumerating every site by hand.
+//  2. TARGETED, per Wyatt's own confirmed change list (nothing inferred): the parenthesised
+//     amounts that currently carry NO sign at all — battleflee's "(they pay 1🌕)"/"(pays 1🌕)"
+//     (util.js:486-488, "drop 'they pay'/'pays', add the sign") and fish's bare "(2🌕)"/"(1🌕)"
+//     (util.js:494/495, "a catch is a gain"). A blind regex cannot know direction; these are
+//     literal substring swaps, each verified unique to its one known site — no other narration
+//     text in src/ contains these exact substrings.
+// flow.js:461's composed trade-offer summary ("Toasty Wheat + 2🌕") is a DELIBERATE exception —
+// the "+" there means "and also", not a benefit — and it is never parenthesised, so neither pass
+// below ever touches it. SIGN_RULE_EXEMPT_IDS (near the self-check) records that explicitly.
+// A coin amount reaches applySignRule in ONE OF TWO SHAPES, not one: ad-hoc/button text is still
+// raw "🌕" (this page's own finalize() hasn't emojified it yet); TABLE text is already
+// "<img ... coin-emoji.png ...>" because describeFor() (src/ui/util.js) calls the REAL emojify()
+// INTERNALLY before ever returning rendered.txt to this page — a step this page cannot intercept
+// or reorder, since it calls the real, unmodified function. (Caught live: running applySignRule
+// "before this page's own emojify" fixed ad-hoc/button text but left every TABLE card's fish/
+// battleflee amount unsigned, because the emoji was ALREADY gone by the time applySignRule ever
+// saw it.) COIN_MARKER matches either shape so one rule covers both sources.
+const COIN_MARKER = '(?:🌕|<img[^>]*?src="[^"]*coin[^"]*"[^>]*>)';
+const MINUS_HYPHEN_RE = new RegExp(`\\(-(\\d+)(${COIN_MARKER})\\)`, "g");
+const SIGN_REPLACEMENTS = [
+  [new RegExp(`\\(they pay 1(${COIN_MARKER})\\)`, "g"), (m, marker) => `(−1${marker})`],
+  [new RegExp(`\\(pays 1(${COIN_MARKER})\\)`, "g"), (m, marker) => `(−1${marker})`],
+  [new RegExp(`\\(2(${COIN_MARKER})\\)`, "g"), (m, marker) => `(+2${marker})`],
+  [new RegExp(`\\(1(${COIN_MARKER})\\)`, "g"), (m, marker) => `(+1${marker})`],
+];
+function applySignRule(html) {
+  if (!html) return html;
+  let out = html.replace(MINUS_HYPHEN_RE, (m, num, marker) => `(−${num}${marker})`);
+  SIGN_REPLACEMENTS.forEach(([re, to]) => { out = out.replace(re, to); });
+  return out;
+}
+// The one place every piece of rendered/compared text on this page should flow through:
+// applySignRule (D-38) -> emojify (custom art, D-17) -> fixAssetPaths (this subdirectory's
+// relative image paths) -> pirateVoice (D-29). applySignRule MUST run before THIS PAGE'S OWN
+// emojify call (its ad-hoc/button-text regexes need the raw 🌕 character, which this page's own
+// emojify() would otherwise consume first) — COIN_MARKER's <img> alternative is what still lets
+// it work on table-sourced text where the emoji is ALREADY gone (see COIN_MARKER's own comment).
+// pirateVoice and applySignRule operate on disjoint token types (you/your/you're vs digits/
+// parens/hyphens/emoji/img) so their relative order doesn't matter to each other.
 function finalize(html) {
-  return pirateVoice(fixAssetPaths(emojify(html)));
+  return pirateVoice(fixAssetPaths(emojify(applySignRule(html))));
 }
 // D-17 fix (already applied): every card's HTML runs through the real emojify() so ad-hoc cards
 // show the same custom art the shipped panel shows, not raw system emoji. Idempotent, so table
@@ -635,16 +776,38 @@ function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${k
 // does — D-36's own fix for the symmetric "Byte-identical to:" cycle Wyatt hit).
 const TABLE_MERGE_TARGET = { parley: "table:trade" }; // D-19
 
+// D-43 (Wyatt: "when does this get shown?" of table:trade~noBonus — never): a branch's own `cfg`
+// override that flips a flag AWAY from roundCfg()'s hardcoded value (src/engine/index.js) can
+// never fire in the shipped game — checked live against inv.roundCfgFlags, parsed by the
+// extraction script from roundCfg()'s own source, never a hand-written list, so a flag that later
+// becomes genuinely configurable stops being flagged the moment the source changes. Same "keep the
+// code, badge the card" family as D-33/D-34/D-40 — this does not prune D-21's own branch
+// enumeration, it only marks which of those branches the CURRENT shipped configuration can never
+// actually produce.
+function configGateNote(cfgOverride) {
+  if (!cfgOverride) return "";
+  const flags = inv.roundCfgFlags || {};
+  const mismatches = Object.entries(cfgOverride).filter(([k, v]) => Object.prototype.hasOwnProperty.call(flags, k) && flags[k] !== v);
+  if (!mismatches.length) return "";
+  const detail = mismatches.map(([k, v]) => `<code>cfg.${escapeHtml(k)}</code> would need to be <code>${v}</code>, but <code>roundCfg()</code> always sets it <code>${flags[k]}</code>`).join("; ");
+  return `<p class="guardedNote">🛡 CONFIG-GATED (D-43) — unreachable in the shipped game: ${detail}. Worth keeping (correct if that flag ever becomes a real option, and D-21's own branch enumeration is right to render it for completeness) — this badge only stops a rewrite landing on text the current build can never show.</p>`;
+}
+
 function buildTableBranchCard(key, spec, group) {
   const id = tableCardId(key, spec.tag);
   const title = spec.label || `EVENT_NARRATION.${key}`;
   const { rendered, variants } = renderTableBranch(key, spec);
   const silent = !rendered || !rendered.txt;
-  const body = silent
+  const cfgNote = configGateNote(spec.cfg);
+  const body = (silent
     ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
-    : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
+    : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants))
+    + cfgNote;
   if (!silent) recordNeutralTextEntry(id, title, key, finalize(rendered.txt));
-  return { id, group, html: cardShell({ id, title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id) }) };
+  // D-43: default away from "rewrite" for a config-gated branch, same "worth keeping, not worth
+  // rewriting" contract D-40 already established — never forced to "cut" either.
+  const defaultTag = cfgNote && TABLE_TAGS[key] === "rewrite" ? "keep" : (TABLE_TAGS[key] || "keep");
+  return { id, group, html: cardShell({ id, title: cfgNote ? `${title} (config-gated — D-43)` : title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag, silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id) }) };
 }
 
 function buildTableKeyCards(key, group) {
@@ -833,11 +996,44 @@ const PASS_THROUGH = new Set([
   "src/orchestrator.js:720", "src/ui/util.js:878",
 ]);
 
+// D-40: "effectively dead" text — reachable IN PRINCIPLE, but a normal game never reaches it
+// because an upstream guard (here: a disabled button, so localAsk() never wires a click handler)
+// prevents it. Distinct from D-33 (structurally unreachable — no caller can ever supply this text)
+// and D-34 (a marker label a control replaces outright): this text COULD render, it just won't in
+// a normal game — and Wyatt has now spent a rewrite on the wrong card three times in a row because
+// nothing said so (D-33's dubloon fallback, D-34's back labels, now this).
+//
+// Curated by hand, NOT a general detector: the shape requires proving an `if(<condition>)` guard
+// around a flash() call is made unreachable by a `disabled:` flag on an OPTION defined in a
+// DIFFERENT function entirely (flow.js:582's guard vs. flow.js:549's Attack option) — real
+// cross-function control-flow analysis, which a reliable static detector would need far more than
+// this page's existing text-scanning tools to establish safely. A curated list is what D-40's own
+// instruction sanctions when a general detector would be unreliable.
+const GUARDED_TEXT = {
+  "adhoc:src/ui/flow.js:582": {
+    guard: "the Attack option's own <code>disabled:!canAfford</code> flag (src/ui/flow.js:549) — localAsk() gives a disabled button no click handler at all, so a normal player cannot trigger this guard",
+    liveSibling: { id: "sub:src/ui/flow.js:563~poor", label: "Helper text (sub) — humanAct() [too-poor-to-attack branch]" },
+  },
+};
+function guardedNote(id) {
+  const g = GUARDED_TEXT[id];
+  if (!g) return "";
+  const siblingLink = g.liveSibling
+    ? ` The wording a player actually reads in this situation lives on a DIFFERENT card — <b>${escapeHtml(g.liveSibling.label)}</b> (<code>${escapeHtml(g.liveSibling.id)}</code>) — redirect any rewrite there instead.`
+    : "";
+  return `<p class="guardedNote">🛡 GUARDED (D-40) — reachable only if an upstream guard fails; players will not normally see this in a normal game. Guard: ${g.guard}.${siblingLink} Worth KEEPING (it is a real safety net, e.g. against a desynced multiplayer client) — this badge only stops a rewrite landing on the wrong card, it is not a request to delete anything.</p>`;
+}
 function buildAdhocCard(entry, idOverride, labelOverride, group) {
-  const { file, line, fn, defaultTag, mergeInto, siblingMerges, rawNeutral, rawVariants } = entry;
+  const { file, line, fn, mergeInto, siblingMerges, rawNeutral, rawVariants } = entry;
   const baseKey = `${file}:${line}`;
   const key = idOverride || baseKey;
   const id = `adhoc:${key}`;
+  const guarded = GUARDED_TEXT[id];
+  // D-40: "default the card away from rewrite, but NOT mark it for deletion" — force away from
+  // `rewrite` specifically (never `cut` either, unlike D-34's dead labels: this text is worth
+  // keeping). Currently a no-op for flow.js:582 (its own default is already "keep"), but this
+  // guards any future guarded entry whose curated default happens to be "rewrite".
+  const defaultTag = guarded && entry.defaultTag === "rewrite" ? "keep" : entry.defaultTag;
   let body;
   if (PASS_THROUGH.has(baseKey)) {
     body = `<p class="passThroughNote">Table pass-through — renders whichever EVENT_NARRATION entry actually fired for that event (see its own card in the matching stage). Not counted as separate copy — tagged keep by default.</p>`;
@@ -857,11 +1053,12 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     const siblingLabel = (siblingMerges && siblingMerges.length) ? `, along with ${siblingMerges.join(", ")}` : "";
     body += `<p class="mergeNote">🔗 Merges into: ${mergeTargetLabel(mergeInto)}${siblingLabel}.</p>`;
   }
+  body += guardedNote(id);
   body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
     <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
     ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
   </details>`;
-  return { id, group, html: cardShell({ id, title: labelOverride || entry.label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeInto, mergeCandidates: mergeCandidatesFor(id) }) };
+  return { id, group, html: cardShell({ id, title: guarded ? `${labelOverride || entry.label} (guarded — D-40)` : (labelOverride || entry.label), meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeInto, mergeCandidates: mergeCandidatesFor(id) }) };
 }
 const RENDERED_TEXTS_ADHOC = {};
 
@@ -947,8 +1144,8 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, merge
 // stuck on "loading..." with no cards. A stale sidecar must never be able to break the page again.
 const inv = await fetch("narration-inventory.json", { cache: "no-store" }).then((r) => r.json());
 if (!inv || !Array.isArray(inv.adhoc) || !Array.isArray(inv.table) || !Array.isArray(inv.prompts)
-    || !Array.isArray(inv.misc) || !Array.isArray(inv.awards)) {
-  throw new Error("narration-inventory.json is missing or stale (no `prompts`/`misc`/`awards` key) — re-run `node scripts/extract_narration_lines.js`.");
+    || !Array.isArray(inv.misc) || !Array.isArray(inv.awards) || typeof inv.roundCfgFlags !== "object" || !inv.roundCfgFlags) {
+  throw new Error("narration-inventory.json is missing or stale (no `prompts`/`misc`/`awards`/`roundCfgFlags` key) — re-run `node scripts/extract_narration_lines.js`.");
 }
 const tableByKey = Object.fromEntries(inv.table.map((e) => [e.key, e]));
 const adhocByLine = Object.fromEntries(inv.adhoc.map((e) => [`${e.file}:${e.line}`, e]));
@@ -1210,13 +1407,22 @@ function deadLabelNote(labelEntry) {
   }
   return "";
 }
+// D-38: the counter-offer button's own raw label is bare `${n}🌕` — never parenthesised, so
+// applySignRule's regex-based passes (finalize(), above) can never see it, and it always renders
+// as a GAIN (money the human receives for their crate) — Wyatt confirmed "+{n}🌕". Targeted to
+// this exact site AND this exact raw-text shape (never "Never mind", the same ask()'s other
+// option; never a price-only button elsewhere, which D-38's own scope discipline keeps unsigned).
+const SIGN_RULE_BUTTON_OVERRIDE = { "src/ui/flow.js:751": /^`\$\{n\}🌕`$/ };
 function buildButtonCards(entry, group) {
   return entry.labels.map((labelEntry, i) => {
     const rawLabel = labelEntry.raw;
     const condition = labelEntry.condition;
     const isDead = !!(labelEntry.backMarker || labelEntry.flipMarker);
     const id = buttonCardId(entry.file, entry.line, i);
-    const evaluated = evalSource(rawLabel);
+    const overridePattern = SIGN_RULE_BUTTON_OVERRIDE[`${entry.file}:${entry.line}`];
+    const needsSignOverride = overridePattern && overridePattern.test(rawLabel.trim());
+    const evaluatedRaw = evalSource(rawLabel);
+    const evaluated = (evaluatedRaw != null && needsSignOverride) ? `+${evaluatedRaw}` : evaluatedRaw;
     const evalFailed = evaluated == null;
     const displayText = evalFailed ? escapeHtml(rawLabel) : evaluated;
     const labelKey = `${entry.file}:${entry.line}~btn${i}`;
@@ -2096,6 +2302,94 @@ Object.entries(PROBE_CFG_AXES).forEach(([key, combos]) => combos.forEach((c) => 
       }
     });
   });
+  // D-40: every curated GUARDED_TEXT entry must actually carry the .guardedNote marker (a THIRD,
+  // distinct badge from .deadCopyNote — this text is worth keeping, unlike D-33/D-34's).
+  Object.keys(GUARDED_TEXT).forEach((id) => {
+    const card = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+    if (!card) {
+      probeFailures.push({ key: "guardedText", fields: { id }, text: `MISSING CARD for ${id} (expected a guarded-text-marked card)` });
+      return;
+    }
+    if (!card.querySelector(".guardedNote")) {
+      probeFailures.push({ key: "guardedText", fields: { id }, text: `${id} is curated as guarded/effectively-dead text but carries NO .guardedNote marker — D-40` });
+    }
+    // its named live sibling must also actually exist, or the redirect is a dead link
+    const sib = GUARDED_TEXT[id].liveSibling;
+    if (sib && !document.querySelector(`.card[data-id="${CSS.escape(sib.id)}"]`)) {
+      probeFailures.push({ key: "guardedText", fields: { id, sibling: sib.id }, text: `${id}'s named live sibling ${sib.id} has no matching card — D-40 redirect target is broken` });
+    }
+  });
+  // D-43: every TABLE_BRANCHES entry whose `cfg` override mismatches roundCfg()'s own hardcoded
+  // flags must carry the same badge — computed the SAME way configGateNote() does, independently
+  // re-derived here (not read off the card) so a card that silently failed to render its badge is
+  // caught, not just a card that was never asked to check itself.
+  Object.entries(TABLE_BRANCHES).forEach(([key, branches]) => {
+    branches.forEach((spec) => {
+      const flags = inv.roundCfgFlags || {};
+      const mismatches = spec.cfg ? Object.entries(spec.cfg).filter(([k, v]) => Object.prototype.hasOwnProperty.call(flags, k) && flags[k] !== v) : [];
+      if (!mismatches.length) return;
+      const id = tableCardId(key, spec.tag);
+      const card = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+      if (!card) {
+        probeFailures.push({ key: "configGate", fields: { id }, text: `MISSING CARD for ${id} (expected a config-gated card)` });
+        return;
+      }
+      if (!card.querySelector(".guardedNote")) {
+        probeFailures.push({ key: "configGate", fields: { id, mismatches }, text: `${id} is config-gated unreachable (roundCfg() never produces this) but carries NO .guardedNote marker — D-43` });
+      }
+    });
+  });
+})();
+
+// D-44 (Wyatt, on parley~refused: "this one is flagged for merging, but I think it's merging with
+// the success message…? That seems wrong."): a bare "merge" tag with no visible destination reads
+// as "merge with whatever sibling is nearby" inside a group — exactly backwards. SWEEP — every
+// card whose DEFAULT recommendation is "merge" must be structurally capable of resolving to EITHER
+// a pre-set target or the loud "no destination chosen" state (renderDerivedLine, above); it must
+// never be silently ambiguous. cardShell() always renders the merge-target UI, so this should never
+// fail — asserted anyway so a future card type that skips it is caught, not shipped silently.
+(function checkMergeDefaultsResolvable() {
+  document.querySelectorAll('.tagSelect[data-default="merge"]').forEach((sel) => {
+    const card = sel.closest(".card");
+    if (!card) return;
+    const id = card.dataset.id;
+    if (!card.querySelector(".mergeTargetSelect") || !card.querySelector(".mergeTargetCustom")) {
+      probeFailures.push({ key: "mergeNoTargetUI", fields: { id }, text: `${id} defaults to "merge" but has no merge-target UI to resolve a destination — D-44` });
+    }
+  });
+})();
+
+// D-38: live self-check — no parenthesised amount adjacent to a coin glyph may lack a leading
+// +/−, and no player-facing minus may be an ASCII hyphen. Checked against the ACTUAL rendered DOM
+// (every .msgBox/.promptBox, after finalize()'s applySignRule has already run), not re-derived,
+// so a card whose sign rule silently failed to apply is caught the same way a missing branch or a
+// dead-copy marker would be. Scans innerHTML with the SAME COIN_MARKER alternation applySignRule
+// itself uses (textContent alone is not enough — by final render EVERY 🌕 has become an <img>, in
+// both the ad-hoc and table paths, so a textContent-only scan can never see a coin amount at all;
+// this is exactly the shape of bug the reordering fix above needed). flow.js:461's composed
+// trade-offer summary is never parenthesised (its "+" means "and also"), so it would never match
+// either pattern below — SIGN_RULE_EXEMPT_IDS records the exception explicitly anyway, per
+// instruction, rather than relying on that being self-evident from the regex scope.
+const SIGN_RULE_EXEMPT_IDS = new Set(["prompt:src/ui/flow.js:465"]); // flow.js:461's offerDisplay, rendered inline in this prompt's own message
+(function checkSignRule() {
+  const UNSIGNED_PAREN_RE = new RegExp(`\\((?!\\+|−)\\d[^()]*${COIN_MARKER}\\)`);
+  const ASCII_MINUS_PAREN_RE = new RegExp(`\\(-\\d[^()]*${COIN_MARKER}\\)`);
+  const seenIds = new Set();
+  document.querySelectorAll(".card").forEach((card) => {
+    const id = card.dataset.id;
+    if (seenIds.has(id)) return; // shared-id duplicates (the coin-flip line) — check once
+    seenIds.add(id);
+    if (SIGN_RULE_EXEMPT_IDS.has(id)) return;
+    card.querySelectorAll(".msgBox, .promptBox").forEach((box) => {
+      const html = box.innerHTML || "";
+      if (UNSIGNED_PAREN_RE.test(html)) {
+        probeFailures.push({ key: "signRule", fields: { id }, text: `${id}: parenthesised coin amount missing a leading +/− — D-38` });
+      }
+      if (ASCII_MINUS_PAREN_RE.test(html)) {
+        probeFailures.push({ key: "signRule", fields: { id }, text: `${id}: ASCII hyphen used as a minus next to a parenthesised coin amount — D-38` });
+      }
+    });
+  });
 })();
 
 const selfCheckBanner = document.getElementById("selfCheckBanner");
@@ -2106,7 +2400,7 @@ if (probeFailures.length) {
   selfCheckBanner.insertAdjacentHTML("beforeend", `<pre id="__debugFailures" style="white-space:pre-wrap;font-size:0.7rem;margin-top:8px;">${escapeHtml(JSON.stringify(probeFailures, null, 2))}</pre>`);
 } else {
   selfCheckBanner.className = "selfCheckBanner pass";
-  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, AND the inverse holds (D-33/D-34): every known-unreachable prompt fallback and every back:true/flip:true "dead" button label is clearly marked, never presented as real copy. Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
+  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44, never a silent bare tag), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
 }
 
 /* ============================================================================
@@ -2152,11 +2446,16 @@ function renderDerivedLine(card) {
   let text, cls;
   if (intent === "cut") { text = "→ CUT"; cls = "intentCut"; }
   else if (intent === "merge") {
-    cls = "intentMerge";
-    // D-36: a CANONICAL target, never the old symmetric "byte-identical duplicates" list — a
-    // merge with no target is flagged as not-yet-actionable rather than silently exported anyway.
+    // D-36/D-44: a CANONICAL target, never the old symmetric "byte-identical duplicates" list.
+    // D-44 (Wyatt, on parley~refused: "this one is flagged for merging, but I think it's merging
+    // with the success message…? That seems wrong."): a bare "merge" tag with no visible
+    // destination reads as "merge with whatever sibling is nearby" — exactly backwards inside a
+    // group of siblings. NEVER display merge without a destination: an unresolved target gets its
+    // OWN loud, warning-styled state (matching .intentCut's urgency, not .intentMerge's calm
+    // blue), so the absence is as visually loud as the presence.
     const target = getMergeTarget(card);
-    text = target ? `→ MERGE into: ${target.label}` : "→ MERGE (target not specified — choose one below)";
+    if (target) { text = `→ MERGE into: ${target.label}`; cls = "intentMerge"; }
+    else { text = "⚠ MERGE: no destination chosen — pick one below"; cls = "intentCut"; }
   } else if (intent === "rewrite") {
     text = `→ REWRITE to: "${finalText}"`;
     cls = "intentRewrite";
@@ -2217,6 +2516,31 @@ document.querySelectorAll(".card").forEach((card) => {
 });
 saveAll(saved);
 
+// D-42 (Wyatt: "I'm trying to remember to also select 'rewrite' but I'm worried I'm forgetting" —
+// measured against his live session: 33 reviewed cards carried notes, 14 still showed "keep",
+// 42%). D-26's derived intent already treats non-empty notes as "rewrite" regardless of the
+// dropdown, and the export already carries that derived intent — the dropdown was never the
+// source of truth, it just visibly DISAGREED with the actual decision, so he had to hand-check
+// every card against a rule the system already applied. Retro-fix, run ONCE on load: any card
+// whose notes are non-empty and whose tag reads "keep" gets its dropdown corrected to "rewrite" —
+// same rule the live listeners below apply going forward. NOT a disposition change: computeIntent
+// already resolves tag "keep" + non-empty notes to intent "rewrite" identically to tag "rewrite" +
+// the same notes, so nothing exported differs — only the visible control catches up. Marked
+// autoRewrite so a later "clear the notes box" correctly reverts it (see the notesArea listener),
+// exactly as if he had just typed it in this session.
+Object.keys(saved).forEach((id) => {
+  const row = saved[id];
+  if (row && (row.tag === "keep" || !row.tag) && (row.notes || "").trim() !== "") {
+    row.tag = "rewrite";
+    row.autoRewrite = true;
+  }
+});
+saveAll(saved);
+document.querySelectorAll(".tagSelect").forEach((sel) => {
+  const id = sel.dataset.id;
+  if (saved[id] && saved[id].tag) sel.value = saved[id].tag; // pre-paint with the retro-fixed value
+});
+
 function setCardReviewedVisual(card, isReviewed) {
   card.classList.toggle("isReviewed", !!isReviewed);
 }
@@ -2241,6 +2565,11 @@ document.querySelectorAll(".tagSelect").forEach((sel) => {
     const data = loadSaved();
     data[id] = data[id] || {};
     data[id].tag = sel.value;
+    // D-42: ANY manual dropdown interaction is a deliberate choice from here on — clear the
+    // auto-set flag so a later "clear the notes box" never reverts a tag he picked himself
+    // (including re-picking "rewrite" by hand, which must then STAY "rewrite" if notes are
+    // cleared — "a manually-chosen rewrite stays").
+    data[id].autoRewrite = false;
     saveAll(data);
     setStatus("saved " + new Date().toLocaleTimeString());
     document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
@@ -2256,22 +2585,51 @@ document.querySelectorAll(".notesArea").forEach((ta) => {
     const data = loadSaved();
     data[id] = data[id] || {};
     data[id].notes = ta.value;
+    // D-42: the dropdown must stop lying — typing a rewrite auto-selects "rewrite" so the visible
+    // control agrees with what D-26's derived intent already does. D-26's own precedence is
+    // untouched: "cut"/"merge" are deliberate and ALWAYS win, so notes on them are reasoning, not
+    // copy, and the tag is never auto-changed out from under them.
+    const currentTag = data[id].tag || "keep";
+    const trimmed = ta.value.trim();
+    let tagChanged = false;
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
+      const cardSel = card.querySelector(".tagSelect");
+      if (!cardSel) return;
+      if (trimmed !== "" && (currentTag === "keep" || !currentTag)) {
+        cardSel.value = "rewrite";
+        tagChanged = true;
+      } else if (trimmed === "" && data[id].autoRewrite && currentTag === "rewrite") {
+        // clearing an AUTO-set rewrite reverts to keep; a MANUALLY-chosen rewrite (autoRewrite
+        // false) stays exactly as he left it.
+        cardSel.value = "keep";
+        tagChanged = true;
+      }
+    });
+    if (tagChanged) {
+      const newTag = document.querySelector(`.card[data-id="${CSS.escape(id)}"] .tagSelect`).value;
+      data[id].tag = newTag;
+      data[id].autoRewrite = newTag === "rewrite" ? true : false;
+    }
     saveAll(data);
     setStatus("saved " + new Date().toLocaleTimeString());
     document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
     markReviewed(id);
     checkDuplicateFinalText();
+    if (tagChanged) checkMergeCycles(); // tag could have moved to/from a merge-adjacent state
   });
 });
-// D-36: merge-target select — restores the saved value if he explicitly set one (including an
-// explicit clear, `""`), else falls back to the card's own curated default (`mergeIntoDefault`) so
-// a card he's already touched for OTHER reasons (tag/notes) before this feature existed still
-// shows its pre-set default rather than an unexplained blank.
+// D-36/D-44: merge-target select — restores the saved value ONLY if it is a genuine, non-empty
+// choice; ANY falsy stored value (missing entirely, OR an explicit "" — D-44 found his live
+// session carrying exactly that for both parley cards, left over from before this selector
+// existed) falls back to the card's own curated default (`mergeIntoDefault`) instead. An empty
+// string can never represent a deliberate "no target" decision distinct from "never chosen" — D-44's
+// own rule is "never display merge without a destination", so whenever a curated default is known,
+// prefer it over a blank, regardless of how the blank got there.
 document.querySelectorAll(".mergeTargetSelect").forEach((sel) => {
   const id = sel.dataset.id;
   const card = sel.closest(".card");
   const defaultTarget = (card && card.dataset.mergeIntoDefault) || "";
-  sel.value = (saved[id] && saved[id].mergeInto != null) ? saved[id].mergeInto : defaultTarget;
+  sel.value = (saved[id] && saved[id].mergeInto) ? saved[id].mergeInto : defaultTarget;
   sel.addEventListener("change", () => {
     const data = loadSaved();
     data[id] = data[id] || {};

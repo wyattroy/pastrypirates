@@ -1483,5 +1483,17 @@
       "byline": "Pirated for the love of the game.",
       "line": 694
     }
-  ]
+  ],
+  "roundCfgFlags": {
+    "dockBuy": true,
+    "merchant": true,
+    "parley": true,
+    "tradeBonus": true,
+    "asym": false,
+    "tetris": true,
+    "singleDock": true,
+    "sardine": true,
+    "roundBoard": true,
+    "unlimitedDock": true
+  }
 }
