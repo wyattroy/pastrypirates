@@ -180,15 +180,22 @@
     color: var(--text); padding: 5px 7px; font-family: inherit; font-size: 0.78rem; margin-top: 2px;
   }
   .mergeTargetSelect:focus, .mergeTargetCustom:focus { outline: 1px solid var(--accent); }
-  .notesLabel, .questionLabel { font-size: 0.74rem; color: var(--muted); }
+  .notesLabel, .questionLabel, .addressedNotesLabel { font-size: 0.74rem; color: var(--muted); }
   .questionLabel { color: #8fb4c9; }
-  textarea.notesArea, textarea.questionArea {
+  /* D-47: the SECOND copy field — the addressed ("you") rendering, sitting beside Notes so both
+     renderings of a rewrite are visible before anything ships. Deliberately the SAME visual
+     family as .notesArea (this IS copy, same as Notes — just the other viewer's version), not the
+     Question field's dashed "not-copy" treatment, so the two copy fields read as siblings and the
+     Question field still reads as visually distinct from both. */
+  .addressedNotesLabel { color: #f5c26b; }
+  textarea.notesArea, textarea.questionArea, textarea.addressedNotesArea {
     width: 100%; min-height: 48px; resize: vertical;
     background: #10141a; border: 1px solid var(--border); border-radius: 8px;
     color: var(--text); padding: 7px 9px; font-family: inherit; font-size: 0.8rem;
   }
   textarea.questionArea { min-height: 34px; border-style: dashed; border-color: #3a5566; }
-  textarea.notesArea:focus, textarea.questionArea:focus, select:focus { outline: 1px solid var(--accent); }
+  textarea.addressedNotesArea { border-color: rgba(245,194,107,0.4); }
+  textarea.notesArea:focus, textarea.questionArea:focus, textarea.addressedNotesArea:focus, select:focus { outline: 1px solid var(--accent); }
   .derivedIntent {
     font-size: 0.78rem; font-weight: 600; padding: 6px 9px; border-radius: 8px;
     background: rgba(154,164,173,0.08); border: 1px solid var(--border); color: var(--text);
@@ -197,6 +204,26 @@
   .derivedIntent.intentRewrite { color: var(--accent); border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
   .derivedIntent.intentCut { color: var(--warn); border-color: rgba(242,103,158,0.4); background: rgba(242,103,158,0.08); }
   .derivedIntent.intentMerge { color: #7fd6ff; border-color: rgba(127,214,255,0.4); background: rgba(127,214,255,0.08); }
+  /* D-47: a SECOND derived line, shown only when the addressed field carries text — kept visually
+     distinct from .derivedIntent (amber vs the tag-driven colors above) so "this is the OTHER
+     rendering" reads at a glance, never mistaken for a second neutral-rewrite decision. */
+  .addressedDerivedIntent {
+    font-size: 0.78rem; font-weight: 600; padding: 6px 9px; border-radius: 8px; margin: 0;
+  }
+  .addressedDerivedIntent:empty { display: none; }
+  .addressedDerivedIntent.hasAddressed {
+    color: #f5c26b; border: 1px solid rgba(245,194,107,0.4); background: rgba(245,194,107,0.08);
+  }
+  /* D-47: the merge-target-in-prose hint — a card whose Question field may describe a merge
+     target that D-47 deliberately did NOT auto-apply (D-44's own warning against prose-to-id
+     guesswork). Amber/blue blend reads as "go look, don't infer" rather than error or dead-copy. */
+  .mergeQuestionHint {
+    font-size: 0.76rem; font-weight: 600; line-height: 1.4; margin: 0; color: #c9a0f5;
+    background: rgba(201,160,245,0.1); border: 1px dashed #c9a0f5; border-radius: 7px; padding: 6px 8px;
+  }
+  /* D-47: the one-time migration summary — shown only on the load where a migration actually
+     happened (naturally one-time: once a question is moved, nothing matches on the next reload). */
+  #migrationSummaryBanner:empty { display: none; }
   .dupWarning { font-size: 0.76rem; color: var(--warn); font-weight: 600; margin: 0; }
   .reviewedRow {
     display: flex; align-items: center; gap: 7px; font-size: 0.76rem; color: var(--muted);
@@ -334,7 +361,33 @@
     <code>→ MERGE into: …</code>'s calm blue — it gets its own loud,
     <code>⚠ MERGE: no destination chosen — pick one below</code> state, styled with the same
     urgency as <code>CUT</code>, so a silent bare tag can never again be misread as pointing at
-    whatever card happens to sit nearby.
+    whatever card happens to sit nearby. <b>D-49:</b> the two newround branches that were still
+    unresolved (found sitting in Question fields since D-27) are now confirmed and pre-set the
+    same way — <code>heldStorm</code> → <code>table:newround</code> ("Fresh storm"),
+    <code>streakStormHeldWontQuit</code> → <code>table:newround~streakStormHeldGusting</code> —
+    and the destination cards now name their sources too (the same forward-reference the
+    tradewind trio's target already had, extended here to branch-card destinations, which
+    previously showed nothing).
+  </p>
+  <p class="methodNote">
+    <b>Every line has TWO renderings — now there are two copy fields (D-47).</b> Neutral and
+    addressed ("you") per D-07/D-10, but the card only ever offered one Notes box — so Wyatt had
+    been writing the addressed version into the <b>Question</b> field, which by design (D-26)
+    never becomes copy. Unfixed, 15-06 would have applied his neutral rewrites and silently
+    discarded every "you" variant — a data-loss bug, not a convenience gap. Every card now carries
+    a second field, <b>Addressed ("you") version</b>, beside Notes — its own derived line, its own
+    export key (<code>addressedNotes</code>/<code>addressedFinalText</code>), and it drives the
+    same D-42 auto-rewrite rule Notes does (typing in either field while tagged <code>keep</code>
+    auto-selects <code>rewrite</code>; clearing BOTH reverts an auto-set rewrite). <b>Migrated
+    conservatively, once, on load:</b> a question moved to the new field only where it clearly
+    <i>specified</i> the addressed rendering (matching <code>you[- ]version</code>,
+    <code>the "you"</code>, <code>addressed</code>, or opening with <code>ye </code>) — everything
+    else was left exactly where it was, since a wrong migration turns a genuine question into
+    shipped copy, the precise failure the Question field exists to prevent. The two merge-target
+    questions (D-49, above) were cleared rather than moved, since their answer is now the
+    <code>mergeInto</code> selector itself — never left duplicated where a stale note could
+    disagree with it (D-44). A one-time summary banner shows exactly what moved, so it can be
+    checked against what he meant, not discovered later.
   </p>
   <p class="methodNote">
     <b>Every card speaks pirate now — "ye"/"yer" (D-29, confirmed).</b> <code>you</code>→<code>ye</code>,
@@ -456,6 +509,7 @@
 <div id="selfCheckBanner" class="selfCheckBanner">running self-check…</div>
 <div id="dupWarningBanner" class="selfCheckBanner">checking for duplicate rewrite text…</div>
 <div id="mergeCycleBanner" class="selfCheckBanner">checking for merge-target cycles (D-36)…</div>
+<div id="migrationSummaryBanner" class="selfCheckBanner"></div>
 <div id="flowCanvas">
   <svg id="edgeSvg"></svg>
   <div id="stages">loading…</div>
@@ -775,6 +829,16 @@ function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${k
 // label string, so it participates in the same resolution/cycle-checking every merge target
 // does — D-36's own fix for the symmetric "Byte-identical to:" cycle Wyatt hit).
 const TABLE_MERGE_TARGET = { parley: "table:trade" }; // D-19
+// D-49 CONFIRMED: two SPECIFIC newround branches (not the whole key — every other newround
+// branch stays "keep") merge into a sibling branch of the SAME key. These were the two prose
+// merge targets sitting in Wyatt's Question fields since D-27; he has now confirmed both readings
+// (D-49), so — same mechanism as the tradewind trio and the parley pair — they are pre-set here,
+// not left for guesswork. Keyed by the branch's own `table:<key>~<tag>` id, checked BEFORE the
+// per-key TABLE_MERGE_TARGET fallback above (which doesn't vary by branch).
+const TABLE_BRANCH_MERGE_TARGET = {
+  "table:newround~heldStorm": "table:newround", // "merge with fresh storm"
+  "table:newround~streakStormHeldWontQuit": "table:newround~streakStormHeldGusting", // "Merge with Storm committed ≥2 rounds + wind holds (2 rounds)"
+};
 
 // D-43 (Wyatt: "when does this get shown?" of table:trade~noBonus — never): a branch's own `cfg`
 // override that flips a flag AWAY from roundCfg()'s hardcoded value (src/engine/index.js) can
@@ -799,15 +863,26 @@ function buildTableBranchCard(key, spec, group) {
   const { rendered, variants } = renderTableBranch(key, spec);
   const silent = !rendered || !rendered.txt;
   const cfgNote = configGateNote(spec.cfg);
+  // D-36/D-49: a BRANCH card can also be a merge DESTINATION (table:trade for parley;
+  // table:newround and table:newround~streakStormHeldGusting for the two D-49-confirmed newround
+  // branches) — name its sources here too, the same forward-reference the no-branches path
+  // (buildTableKeyCards) already gives single-card table keys. Previously only that single-card
+  // path showed inbound merges, so a branch-card destination never named its sources at all.
+  const inbound = MERGE_INBOUND[id];
+  const inboundNote = inbound && inbound.length
+    ? `<p class="cardNote">🔗 Merge target (D-36/D-49) — ${inbound.map((s) => s.label).join(", ")} fold into this line.</p>`
+    : "";
   const body = (silent
     ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
     : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants))
-    + cfgNote;
+    + cfgNote + inboundNote;
   if (!silent) recordNeutralTextEntry(id, title, key, finalize(rendered.txt));
   // D-43: default away from "rewrite" for a config-gated branch, same "worth keeping, not worth
   // rewriting" contract D-40 already established — never forced to "cut" either.
   const defaultTag = cfgNote && TABLE_TAGS[key] === "rewrite" ? "keep" : (TABLE_TAGS[key] || "keep");
-  return { id, group, html: cardShell({ id, title: cfgNote ? `${title} (config-gated — D-43)` : title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag, silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id) }) };
+  // D-49 CONFIRMED: a branch-specific target wins over the per-key default when both could apply.
+  const mergeInto = TABLE_BRANCH_MERGE_TARGET[id] || TABLE_MERGE_TARGET[key];
+  return { id, group, html: cardShell({ id, title: cfgNote ? `${title} (config-gated — D-43)` : title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag, silent, mergeInto, mergeCandidates: mergeCandidatesFor(id) }) };
 }
 
 function buildTableKeyCards(key, group) {
@@ -1085,12 +1160,24 @@ function buildAdhocKeyCards(rawEntry, group) {
   return cards;
 }
 
+// D-47/D-49: two cards whose Question field described a MERGE TARGET in prose ("merge with fresh
+// storm", "Merge with Storm committed ≥2 rounds + wind holds (2 rounds)") — NEVER auto-resolved
+// from that prose (D-44's own warning against free-text-to-card-id guesswork). Surfaced to Wyatt
+// instead; he has now CONFIRMED both readings (D-49), so TABLE_BRANCH_MERGE_TARGET pre-sets them
+// structurally and the D-47 migration (below) clears the now-redundant prose from Question rather
+// than leaving a stale instruction that could disagree with the selector (D-44's own concern).
+// This set still identifies those two ids for that migration step; the earlier "please confirm"
+// card note is gone now that D-49 answered it.
+const MERGE_TARGET_QUESTION_IDS = new Set(["table:newround~heldStorm", "table:newround~streakStormHeldWontQuit"]);
+
 /* ============================================================================
- * D-25/D-26/D-36: card shell — tag select, a MERGE TARGET row (D-36 — a select
- * of known canonical destinations plus a free-text fallback, never a symmetric
- * "byte-identical" list that can point in a circle), notes (= rewrite copy
- * when non-empty), a separate Question-for-Claude field (never copy, never
- * affects intent), and a live derived-intent line.
+ * D-25/D-26/D-36/D-47: card shell — tag select, a MERGE TARGET row (D-36 — a
+ * select of known canonical destinations plus a free-text fallback, never a
+ * symmetric "byte-identical" list that can point in a circle), Notes (= the
+ * NEUTRAL rewrite copy when non-empty), the Addressed ("you") version field
+ * (D-47 — the SECOND rendering every line actually has, D-07/D-10), a
+ * separate Question-for-Claude field (never copy, never affects intent), and
+ * live derived-intent lines for both copy fields.
  * ==========================================================================*/
 function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, mergeCandidates, cardClass }) {
   const tags = ["keep", "cut", "merge", "rewrite"];
@@ -1098,6 +1185,9 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, merge
   const mergeOptions = candidates.map((c) =>
     `<option value="${escapeHtml(c.id)}" ${c.id === mergeInto ? "selected" : ""}>${escapeHtml(c.label)}</option>`
   ).join("");
+  const mergeQuestionHint = MERGE_TARGET_QUESTION_IDS.has(id)
+    ? `<p class="mergeQuestionHint">📋 D-49 CONFIRMED: this branch's merge target was previously a prose question — Wyatt has confirmed it, so it's now pre-set above (and the migration cleared the old prose from Question). Override the selector if this ever needs to change.</p>`
+    : "";
   return `
   <div class="card${cardClass ? " " + cardClass : ""}" data-id="${id}" data-merge-into-default="${escapeHtml(mergeInto || "")}">
     <div class="cardHead">
@@ -1121,10 +1211,13 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, merge
         </select>
       </label>
       <input type="text" class="mergeTargetCustom" data-id="${id}" placeholder="…or type a custom target (used only if no option above fits)">
+      ${mergeQuestionHint}
     </div>
-    <label class="notesLabel">Notes — non-empty means REWRITE and becomes the new copy (D-26)<textarea class="notesArea" data-id="${id}" placeholder="leave empty to keep as displayed, or type the replacement wording..."></textarea></label>
-    <label class="questionLabel">Question for Claude — never becomes narration text<textarea class="questionArea" data-id="${id}" placeholder="anything that's a question, not copy..."></textarea></label>
+    <label class="notesLabel">Notes (neutral) — non-empty means REWRITE and becomes the new copy (D-26)<textarea class="notesArea" data-id="${id}" placeholder="leave empty to keep as displayed, or type the replacement wording..."></textarea></label>
     <div class="derivedIntent" data-id="${id}">→ …</div>
+    <label class="addressedNotesLabel">Addressed ("you") version — the second-person rendering this same line has (D-07/D-10/D-47)<textarea class="addressedNotesArea" data-id="${id}" placeholder="leave empty if you have no rewrite for the addressed variant, or type it here — separate from Notes, since every line has BOTH renderings..."></textarea></label>
+    <div class="addressedDerivedIntent" data-id="${id}"></div>
+    <label class="questionLabel">Question for Claude — never becomes narration text<textarea class="questionArea" data-id="${id}" placeholder="anything that's a question, not copy..."></textarea></label>
     <label class="reviewedRow"><input type="checkbox" class="reviewedBox" data-id="${id}"> I've reviewed this card (D-27 — an untouched default is NOT a decision)</label>
   </div>`;
 }
@@ -1183,6 +1276,10 @@ function addInbound(sourceId, targetId, label) {
   if (e.mergeInto) addInbound(`adhoc:${e.file}:${e.line}`, e.mergeInto, `${e.file}:${e.line}`);
 });
 Object.entries(TABLE_MERGE_TARGET).forEach(([key, targetId]) => addInbound(`table:${key}`, targetId, `EVENT_NARRATION.${key}`));
+// D-49 CONFIRMED: the two per-BRANCH newround merge targets register their own inbound entries
+// too, keyed by the branch's own id rather than the outer key (a plain `table:${key}` label here
+// would be wrong — these two specific branches, not the whole newround key, merge).
+Object.entries(TABLE_BRANCH_MERGE_TARGET).forEach(([sourceId, targetId]) => addInbound(sourceId, targetId, sourceId.replace(/^table:/, "EVENT_NARRATION.").replace("~", " ~ ")));
 // Candidate list a card's own merge-target <select> offers: its curated default first (if any),
 // then every OTHER card known to share that SAME default target (D-36 requirement 3 — "offer the
 // table entry as the default target even when wording differs slightly" is exactly what a curated
@@ -1195,14 +1292,17 @@ function mergeCandidatesFor(id) {
     seen.add(targetId);
     out.push({ id: targetId, label: mergeTargetLabel(targetId) });
   };
-  const own = id.startsWith("table:") ? TABLE_MERGE_TARGET[id.slice("table:".length).split("~")[0]]
+  // D-49: a branch-specific target (TABLE_BRANCH_MERGE_TARGET) wins over the per-key default
+  // (TABLE_MERGE_TARGET) when both could apply — checked first.
+  const own = TABLE_BRANCH_MERGE_TARGET[id] || (id.startsWith("table:") ? TABLE_MERGE_TARGET[id.slice("table:".length).split("~")[0]]
     : id.startsWith("adhoc:") ? (adhocByLine[id.slice("adhoc:".length)] || {}).mergeInto
-    : null;
+    : null);
   push(own);
   // every DISTINCT target any sibling ad-hoc entry resolves to, so a card can be pointed at a
   // group it isn't curated for by default, without needing free text
   (inv.adhoc || []).forEach((e) => e.mergeInto && push(e.mergeInto));
   Object.values(TABLE_MERGE_TARGET).forEach(push);
+  Object.values(TABLE_BRANCH_MERGE_TARGET).forEach(push);
   return out;
 }
 
@@ -2359,6 +2459,23 @@ Object.entries(PROBE_CFG_AXES).forEach(([key, combos]) => combos.forEach((c) => 
   });
 })();
 
+// D-47: every card must carry the SECOND copy field (Addressed "you" version) + its own derived
+// line — structural presence check, same convention as checkMergeDefaultsResolvable above. Should
+// never fail (cardShell() renders both unconditionally on every card), asserted anyway so a
+// future card type that bypasses cardShell is caught, not shipped silently missing a field that
+// exists specifically to stop 15-06 from discarding every "you" variant.
+(function checkAddressedFieldPresent() {
+  const seenIds = new Set();
+  document.querySelectorAll(".card").forEach((card) => {
+    const id = card.dataset.id;
+    if (seenIds.has(id)) return;
+    seenIds.add(id);
+    if (!card.querySelector(".addressedNotesArea") || !card.querySelector(".addressedDerivedIntent")) {
+      probeFailures.push({ key: "addressedFieldMissing", fields: { id }, text: `${id} has no Addressed ("you") version field — D-47` });
+    }
+  });
+})();
+
 // D-38: live self-check — no parenthesised amount adjacent to a coin glyph may lack a leading
 // +/−, and no player-facing minus may be an ASCII hyphen. Checked against the ACTUAL rendered DOM
 // (every .msgBox/.promptBox, after finalize()'s applySignRule has already run), not re-derived,
@@ -2400,7 +2517,7 @@ if (probeFailures.length) {
   selfCheckBanner.insertAdjacentHTML("beforeend", `<pre id="__debugFailures" style="white-space:pre-wrap;font-size:0.7rem;margin-top:8px;">${escapeHtml(JSON.stringify(probeFailures, null, 2))}</pre>`);
 } else {
   selfCheckBanner.className = "selfCheckBanner pass";
-  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44, never a silent bare tag), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
+  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44/D-49, never a silent bare tag), every card carries its second, Addressed ("you") copy field (D-47, so 15-06 can never silently discard that rendering), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
 }
 
 /* ============================================================================
@@ -2470,6 +2587,21 @@ function renderDerivedLine(card) {
   el.textContent = text;
   el.className = "derivedIntent " + cls;
 }
+// D-47: the SECOND derived line — the addressed ("you") field is independent of the tag/intent
+// machinery above (it is not gated by cut/merge/keep the way Notes is; every line has an
+// addressed rendering regardless of what happens to the neutral one), so it renders whenever it
+// carries text, full stop. Empty means "no addressed rewrite given" — shown as nothing (CSS
+// :empty hides the box entirely) rather than a placeholder that would clutter every other card.
+function renderAddressedDerivedLine(card) {
+  const el = card.querySelector(".addressedDerivedIntent");
+  const ta = card.querySelector(".addressedNotesArea");
+  if (!el || !ta) return;
+  const trimmed = ta.value.trim();
+  if (!trimmed) { el.textContent = ""; el.className = "addressedDerivedIntent"; return; }
+  const finalText = pirateVoice(trimmed); // D-29: his own typed copy converts the same way narration does
+  el.textContent = `→ ADDRESSED ("you") version: "${finalText}"`;
+  el.className = "addressedDerivedIntent hasAddressed";
+}
 
 /* ============================================================================
  * D-27: seeding. `reviewed` is the whole point of this section — a card must
@@ -2503,7 +2635,7 @@ document.querySelectorAll(".card").forEach((card) => {
   if (PASS2_REVIEWED_IDS.has(id)) {
     // rows 1-17 of the committed pass-2 export — Wyatt's genuine, already-reviewed marks.
     const row = PASS2_BY_ID[id];
-    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true, mergeInto: defaultMergeInto, mergeIntoCustom: "" };
+    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "" };
   } else {
     // Everything else (rows 18-81, and any id the export doesn't cover) is a pass-1 leftover
     // the OLD seeding wrongly pre-filled, never something Wyatt decided — D-27. Unreviewed,
@@ -2511,10 +2643,71 @@ document.querySelectorAll(".card").forEach((card) => {
     // (never a stale pass-1/leftover tag).
     const sel = card.querySelector(".tagSelect");
     const defaultTag = (sel && sel.dataset.default) || "keep";
-    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false, mergeInto: defaultMergeInto, mergeIntoCustom: "" };
+    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "" };
   }
 });
 saveAll(saved);
+
+/* ============================================================================
+ * D-47: the Question field has been doing THREE jobs — genuine questions (its
+ * intended use), addressed ("you") copy (which D-26 deliberately never ships,
+ * so 15-06 would silently discard every one), and merge targets written as
+ * prose (D-44's own warning against free-text-to-id guesswork). Run ONCE on
+ * load, conservatively: naturally idempotent, since a migrated question is
+ * CLEARED, so nothing matches again on the next reload — no separate
+ * "already migrated" flag needed.
+ * ==========================================================================*/
+// Matches ONLY where a question clearly SPECIFIES the addressed rendering — deliberately narrow
+// (D-47's own instruction: "leave everything else where it is"). A false-positive migration turns
+// a genuine question into shipped copy, the exact failure the Question field exists to prevent.
+const ADDRESSED_QUESTION_RE = /you[- ]version|the ["'“”]you["'“”]|addressed|^ye\s/i;
+const migrationLog = []; // { id, kind: "addressed"|"mergeTarget", moved } — shown once, below
+Object.keys(saved).forEach((id) => {
+  const row = saved[id];
+  if (!row) return;
+  const q = (row.question || "").trim();
+  if (!q) return;
+  if (MERGE_TARGET_QUESTION_IDS.has(id)) {
+    // D-49 CONFIRMED: these two questions' prose merge targets are now SET structurally via
+    // mergeInto (TABLE_BRANCH_MERGE_TARGET, above) — the prose instruction is cleared, never
+    // duplicated, so a stale note can't disagree with the selector (D-44's own concern).
+    row.question = "";
+    if (typeof row.addressedNotes !== "string") row.addressedNotes = "";
+    migrationLog.push({ id, kind: "mergeTarget", moved: q });
+    return;
+  }
+  if (ADDRESSED_QUESTION_RE.test(q)) {
+    row.addressedNotes = q; // move verbatim — never reworded, never re-typed
+    row.question = "";
+    migrationLog.push({ id, kind: "addressed", moved: q });
+  }
+});
+// D-42/D-47: a migrated addressed-copy question is new copy, exactly like typing it live would
+// be — run the SAME "keep + copy present -> rewrite" retro-fix once more, now that migration may
+// have just populated addressedNotes for cards the earlier D-42 retro-fix pass (above, which only
+// checked `notes`) had no way to know about yet. Pure data mutation (saved[id] directly) — the
+// DOM's own .tagSelect restore happens later and reads FROM this, so no DOM access needed here.
+migrationLog.filter((m) => m.kind === "addressed").forEach(({ id }) => {
+  const row = saved[id];
+  if (row && (row.tag === "keep" || !row.tag)) {
+    row.tag = "rewrite";
+    row.autoRewrite = true;
+  }
+});
+if (migrationLog.length) saveAll(saved);
+// One-time summary — visible so a wrong migration is caught immediately, not discovered at 15-06.
+(function renderMigrationSummary() {
+  const banner = document.getElementById("migrationSummaryBanner");
+  if (!banner || !migrationLog.length) return;
+  const addressedMoves = migrationLog.filter((m) => m.kind === "addressed");
+  const mergeMoves = migrationLog.filter((m) => m.kind === "mergeTarget");
+  const rows = migrationLog.map((m) => {
+    const label = m.kind === "addressed" ? "→ Addressed (\"you\") version" : "→ Question cleared (merge target now set via D-49)";
+    return `<div style="margin-top:4px;"><code>${escapeHtml(m.id)}</code> ${label}: "${escapeHtml(m.moved.length > 140 ? m.moved.slice(0, 140) + "…" : m.moved)}"</div>`;
+  }).join("");
+  banner.className = "selfCheckBanner pass";
+  banner.innerHTML = `✓ D-47 one-time migration: ${addressedMoves.length} question(s) moved to the new Addressed ("you") field, ${mergeMoves.length} merge-target question(s) cleared (now set via the mergeInto selector, D-49). Check these against what you meant:${rows}`;
+})();
 
 // D-42 (Wyatt: "I'm trying to remember to also select 'rewrite' but I'm worried I'm forgetting" —
 // measured against his live session: 33 reviewed cards carried notes, 14 still showed "keep",
@@ -2578,6 +2771,35 @@ document.querySelectorAll(".tagSelect").forEach((sel) => {
     checkMergeCycles(); // D-36: switching a tag to/from "merge" changes cycle-graph membership
   });
 });
+// D-42/D-47: shared auto-rewrite logic — a card now has TWO copy fields (Notes = neutral, D-47's
+// Addressed = "you"), and typing in EITHER while tagged "keep" means he has new copy, so either
+// one auto-selects "rewrite" the same way. Clearing BOTH fields on an auto-set rewrite reverts to
+// "keep"; clearing just one while the other still holds text does NOT revert (he still has copy).
+// D-26's own precedence is untouched: cut/merge are deliberate and always win.
+function applyAutoRewriteRule(id, data) {
+  const currentTag = data[id].tag || "keep";
+  const anyNonEmpty = (data[id].notes || "").trim() !== "" || (data[id].addressedNotes || "").trim() !== "";
+  let tagChanged = false;
+  document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
+    const cardSel = card.querySelector(".tagSelect");
+    if (!cardSel) return;
+    if (anyNonEmpty && (currentTag === "keep" || !currentTag)) {
+      cardSel.value = "rewrite";
+      tagChanged = true;
+    } else if (!anyNonEmpty && data[id].autoRewrite && currentTag === "rewrite") {
+      // clearing an AUTO-set rewrite (with BOTH copy fields now empty) reverts to keep; a
+      // MANUALLY-chosen rewrite (autoRewrite false) stays exactly as he left it.
+      cardSel.value = "keep";
+      tagChanged = true;
+    }
+  });
+  if (tagChanged) {
+    const newTag = document.querySelector(`.card[data-id="${CSS.escape(id)}"] .tagSelect`).value;
+    data[id].tag = newTag;
+    data[id].autoRewrite = newTag === "rewrite";
+  }
+  return tagChanged;
+}
 document.querySelectorAll(".notesArea").forEach((ta) => {
   const id = ta.dataset.id;
   if (saved[id] && saved[id].notes) ta.value = saved[id].notes;
@@ -2585,37 +2807,35 @@ document.querySelectorAll(".notesArea").forEach((ta) => {
     const data = loadSaved();
     data[id] = data[id] || {};
     data[id].notes = ta.value;
-    // D-42: the dropdown must stop lying — typing a rewrite auto-selects "rewrite" so the visible
-    // control agrees with what D-26's derived intent already does. D-26's own precedence is
-    // untouched: "cut"/"merge" are deliberate and ALWAYS win, so notes on them are reasoning, not
-    // copy, and the tag is never auto-changed out from under them.
-    const currentTag = data[id].tag || "keep";
-    const trimmed = ta.value.trim();
-    let tagChanged = false;
-    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
-      const cardSel = card.querySelector(".tagSelect");
-      if (!cardSel) return;
-      if (trimmed !== "" && (currentTag === "keep" || !currentTag)) {
-        cardSel.value = "rewrite";
-        tagChanged = true;
-      } else if (trimmed === "" && data[id].autoRewrite && currentTag === "rewrite") {
-        // clearing an AUTO-set rewrite reverts to keep; a MANUALLY-chosen rewrite (autoRewrite
-        // false) stays exactly as he left it.
-        cardSel.value = "keep";
-        tagChanged = true;
-      }
-    });
-    if (tagChanged) {
-      const newTag = document.querySelector(`.card[data-id="${CSS.escape(id)}"] .tagSelect`).value;
-      data[id].tag = newTag;
-      data[id].autoRewrite = newTag === "rewrite" ? true : false;
-    }
+    const tagChanged = applyAutoRewriteRule(id, data);
     saveAll(data);
     setStatus("saved " + new Date().toLocaleTimeString());
     document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
     markReviewed(id);
     checkDuplicateFinalText();
     if (tagChanged) checkMergeCycles(); // tag could have moved to/from a merge-adjacent state
+  });
+});
+// D-47: the Addressed ("you") version field — a SECOND, independent copy field, exported under
+// its own key, feeding its own derived line (renderAddressedDerivedLine) so both renderings are
+// visible before anything ships. Drives the SAME auto-rewrite rule as Notes (above).
+document.querySelectorAll(".addressedNotesArea").forEach((ta) => {
+  const id = ta.dataset.id;
+  if (saved[id] && saved[id].addressedNotes) ta.value = saved[id].addressedNotes;
+  ta.addEventListener("input", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].addressedNotes = ta.value;
+    const tagChanged = applyAutoRewriteRule(id, data);
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach((card) => {
+      renderDerivedLine(card);
+      renderAddressedDerivedLine(card);
+    });
+    markReviewed(id);
+    checkDuplicateFinalText();
+    if (tagChanged) checkMergeCycles();
   });
 });
 // D-36/D-44: merge-target select — restores the saved value ONLY if it is a genuine, non-empty
@@ -2685,9 +2905,11 @@ document.querySelectorAll(".reviewedBox").forEach((box) => {
     updateReviewProgress();
   });
 });
-// initial paint: derived-intent line + reviewed dimming for every card, reflecting whatever just loaded
+// initial paint: derived-intent lines (neutral + D-47's addressed) + reviewed dimming for every
+// card, reflecting whatever just loaded
 document.querySelectorAll(".card").forEach((card) => {
   renderDerivedLine(card);
+  renderAddressedDerivedLine(card);
   setCardReviewedVisual(card, saved[card.dataset.id] && saved[card.dataset.id].reviewed);
 });
 
@@ -2818,6 +3040,7 @@ document.getElementById("exportBtn").addEventListener("click", () => {
     seenIds.add(id);
     const sel = card.querySelector(".tagSelect");
     const ta = card.querySelector(".notesArea");
+    const ata = card.querySelector(".addressedNotesArea");
     const qa = card.querySelector(".questionArea");
     const title = card.querySelector("h4").textContent.replace(/\s*silent\s*$/i, "").trim();
     const meta = card.querySelector(".cardMeta").textContent.trim();
@@ -2832,6 +3055,15 @@ document.getElementById("exportBtn").addEventListener("click", () => {
       reviewed: !!(data[id] && data[id].reviewed),
     };
     if (intent === "rewrite") row.finalText = finalText;
+    // D-47: the addressed ("you") version — a SECOND, independent copy field, always exported
+    // under its own key when non-empty, regardless of the neutral tag/intent above (every line
+    // has both renderings; 15-06 must not silently discard this one the way it would have
+    // discarded every "you" variant Wyatt had been parking in the Question field instead).
+    const addressedRaw = (ata && ata.value) || "";
+    if (addressedRaw.trim()) {
+      row.addressedNotes = addressedRaw;
+      row.addressedFinalText = pirateVoice(addressedRaw.trim());
+    }
     // D-36: a merge disposition ALWAYS carries its resolved target as `mergeInto` (an actual card
     // id when the select was used, a free-text label otherwise) — never omitted, so "a merge with
     // no target is not actionable" is visible in the export itself, not just on the page.
