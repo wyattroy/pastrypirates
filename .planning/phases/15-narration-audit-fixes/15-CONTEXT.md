@@ -1646,3 +1646,37 @@ a real battle could reach, and so on. Where an invariant is mechanically checkab
 especially), assert it; otherwise derive the fabricated value from the same helper the game uses
 (`ilabelImg`) rather than hand-writing a literal, which is how `null` got in.
 
+
+**D-52 — The battle round-result block has TWO attacker/defender duplicate pairs. Merge both.**
+
+Wyatt tagged `orchestrator.js:483` `merge` with the question *"i dont know why this was its own
+branch?"* — correct: it is `:482` with the names swapped.
+
+**The block is six lines (`orchestrator.js:482-488`), containing two identical-shape duplicate pairs:**
+
+| Lines | Differ only by | Wyatt's marks |
+|---|---|---|
+| **482 / 483** — both-heads, downwind carries the shot | attacker vs defender is downwind | 482 `rewrite`, **483 `merge`** ✅ he caught it |
+| **486 / 487** — one side lands a hit | attacker vs defender hit | 486 `rewrite`, **487 `keep`, unreviewed** ⚠ same defect, not yet caught |
+| 484 crosswind cancel · 488 both miss | — | no duplicate, genuinely single lines |
+
+**His own 482 rewrite already contains the solution.** He wrote both renderings:
+
+- neutral: *"Both fire ⚪️ HEADS — but Crustbeard's firing downwind and the shot hits!"*
+- addressed: *"Both fire ⚪️ HEADS — but yer firing downwind and the shot hits!"*
+
+That is the merge: **one line, with the downwind shooter named — or addressed as "ye" when it is
+you.** The attacker/defender split disappears because the only thing that ever differed was *which
+name goes in the slot*, which the D-10 neutral-plus-variants mechanism already handles. The side that
+is downwind is computed one line earlier, so the shooter is already known.
+
+**486/487 collapse the same way** — one line naming whoever landed the hit, addressed when it is the
+reader. His 486 rewrite is *"Crustbeard lands a hit!"*; the addressed sibling is *"Ye land a hit!"*
+and 487 folds in. **Flag this to him** — 487 is currently `keep` and unreviewed, so as it stands 486
+gets rewritten and its twin does not, and the two drift apart. Exactly the failure the merge prevents.
+
+**For 15-06:** collapse `:482`/`:483` into one downwind line and `:486`/`:487` into one hit line, both
+in neutral-plus-addressed form. Six branches become four. Same pattern as D-18's bot/human storm-leg
+duplication and D-35's host/guest sail prompt — a fork that exists only because the code branches on
+*who*, when the narration should branch on *who is reading*.
+
