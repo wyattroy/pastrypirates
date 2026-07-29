@@ -160,7 +160,8 @@
       "group": "Battle",
       "label": "Battle opening announcement (D-08)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`",
       "rawVariants": "battleOpenVariants"
     },
@@ -172,7 +173,8 @@
       "group": "Round Header",
       "label": "Round-header flash — table pass-through, not new copy",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "describe(appState.game.events[appState.game.events.length-1]).txt",
       "rawVariants": null
     },
@@ -184,7 +186,8 @@
       "group": "Round Header",
       "label": "Final-round header flash — table pass-through, not new copy",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "describe(appState.game.events[appState.game.events.length-1]).txt",
       "rawVariants": null
     },
@@ -196,7 +199,8 @@
       "group": "End of Voyage",
       "label": "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "\"⏳ Nobody finished the voyage.\"",
       "rawVariants": null
     },
@@ -208,7 +212,8 @@
       "group": "End of Voyage",
       "label": "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`<div class=\"victoryBox\">${pic}<div class=\"victoryText\">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`",
       "rawVariants": null
     },
@@ -220,7 +225,8 @@
       "group": "Docking",
       "label": "Coin-flip announcement (generic — used at docking/anchor moments)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`${pn(p.idx)} flips ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`",
       "rawVariants": "[{seat:p.idx,html:`You flip ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`}]"
     },
@@ -232,7 +238,8 @@
       "group": "Storm",
       "label": "Broke — can't afford to anchor (D-11/NARR-02, new this phase)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "brokeAnchorLine(p.idx,NEUTRAL_VIEWER)",
       "rawVariants": "[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]"
     },
@@ -244,7 +251,8 @@
       "group": "Storm",
       "label": "Trade-wind rim sweep (windLeg leg)",
       "defaultTag": "merge",
-      "mergeWith": [
+      "mergeInto": "table:tradewind",
+      "siblingMerges": [
         "src/ui/flow.js:571",
         "src/ui/flow.js:645"
       ],
@@ -259,7 +267,8 @@
       "group": "Storm",
       "label": "Bot per-square storm outcome — table pass-through, not new copy",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "L.txt",
       "rawVariants": "narrationVariants(ev)"
     },
@@ -271,7 +280,8 @@
       "group": "Storm",
       "label": "Bot storm-leg summary — table pass-through, not new copy",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "L.txt",
       "rawVariants": "narrationVariants(lastEv)"
     },
@@ -283,7 +293,8 @@
       "group": "Storm",
       "label": "Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)",
       "defaultTag": "rewrite",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`⛈️ Now the storm moves you <b>${DIRNAME[appState.game.windNow2]}</b>!`",
       "rawVariants": null
     },
@@ -295,7 +306,8 @@
       "group": "Trade & Parley",
       "label": "No cargo to trade for",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "\"No one has cargo to trade for.\"",
       "rawVariants": null
     },
@@ -307,7 +319,8 @@
       "group": "Trade & Parley",
       "label": "Trade refusal (D-08, new addressed copy this phase)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ${pn(p.idx)} finish their recipe that easy!\"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`",
       "rawVariants": "[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ye finish yer recipe that easy!\"`:`${pn(q.idx)} declines your offer!`}]"
     },
@@ -319,7 +332,8 @@
       "group": "Trade & Parley",
       "label": "Simple decline (D-08, new addressed copy this phase)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`${pn(q.idx)} declines!`",
       "rawVariants": "[{seat:q.idx,html:\"You decline!\"}]"
     },
@@ -331,7 +345,8 @@
       "group": "Storm",
       "label": "Trade-wind rim sweep (move-instead path)",
       "defaultTag": "merge",
-      "mergeWith": [
+      "mergeInto": "table:tradewind",
+      "siblingMerges": [
         "src/ui/flow.js:296",
         "src/ui/flow.js:645"
       ],
@@ -346,7 +361,8 @@
       "group": "Sailing & Movement",
       "label": "Start the bakery",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "\"🧁 Firing up the ovens on the Isle of Tortuga!\"",
       "rawVariants": null
     },
@@ -358,7 +374,8 @@
       "group": "Battle",
       "label": "Can't afford powder",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`${pn(p.idx)} can't afford powder.`",
       "rawVariants": "[{seat:p.idx,html:`Yer too poor to afford powder! Go fishin'`}]"
     },
@@ -370,7 +387,8 @@
       "group": "Round Header",
       "label": "Per-turn banner + storm intro (NARR-03, rewritten this phase)",
       "defaultTag": "rewrite",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`⛵ Ahoy, ${poss(p.idx)} turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round${appState.game.stormNow?` — ⛈️ STORM! First, it pushes ${pn(p.idx)} 2 squares <b>${DIRNAME[appState.game.windNow]}</b>`:\"\"}.`",
       "rawVariants": "[{seat:p.idx,html:addressedBanner}]"
     },
@@ -382,7 +400,8 @@
       "group": "Sailing & Movement",
       "label": "Leeward warning",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`🏝️ Land's blockin' ${pn(p.idx)}'s wind — slow as cold molasses in this lee.`",
       "rawVariants": "[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.`}]"
     },
@@ -394,7 +413,8 @@
       "group": "Storm",
       "label": "Trade-wind rim sweep (post-sail)",
       "defaultTag": "merge",
-      "mergeWith": [
+      "mergeInto": "table:tradewind",
+      "siblingMerges": [
         "src/ui/flow.js:296",
         "src/ui/flow.js:571"
       ],
@@ -409,7 +429,8 @@
       "group": "Sailing & Movement",
       "label": "Broke — can't afford to sail, human (D-11/NARR-02, new this phase)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "brokeSailLine(p.idx,NEUTRAL_VIEWER)",
       "rawVariants": "[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]"
     },
@@ -421,7 +442,8 @@
       "group": "Storm",
       "label": "Second storm leg direction (bot)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`⛈️ Now the storm moves ${pn(p.idx)} <b>${DIRNAME[g.windNow2]}</b>!`",
       "rawVariants": null
     },
@@ -433,7 +455,8 @@
       "group": "Sailing & Movement",
       "label": "Broke — can't afford to sail, bot (D-11/NARR-02, new this phase — the likely source of the reported \"broke bot forgets its turn\")",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "brokeSailLine(p.idx,NEUTRAL_VIEWER)",
       "rawVariants": "[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]"
     },
@@ -445,7 +468,8 @@
       "group": "Battle",
       "label": "Side bet — backed with coin (D-08)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and backs it with ${amt}🌕!`",
       "rawVariants": "[{seat:s.idx,html:`💰 You call ${pn(calledIdx)} and back it with ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls you to win and backs it with ${amt}🌕!`}]"
     },
@@ -457,7 +481,8 @@
       "group": "Battle",
       "label": "Side bet — free call (D-08)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`",
       "rawVariants": "[{seat:s.idx,html:`🔭 You call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls you to win from the crow's nest.`}]"
     },
@@ -469,7 +494,8 @@
       "group": "Battle",
       "label": "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "\"🔭 The Lookout's Call settles — \"+parts.join(\" · \")",
       "rawVariants": null
     },
@@ -481,7 +507,8 @@
       "group": "Sailing & Movement",
       "label": "Bot turn-start banner (D-07, new addressed copy this phase)",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "`🧭 ${pn(e.p)} takes the wheel…`",
       "rawVariants": "[{seat:e.p,html:`🧭 ${pn(e.p)} — you take the wheel…`}]"
     },
@@ -493,7 +520,8 @@
       "group": "Sailing & Movement",
       "label": "Bot event narration — table pass-through, not new copy",
       "defaultTag": "keep",
-      "mergeWith": null,
+      "mergeInto": null,
+      "siblingMerges": null,
       "rawNeutral": "L.txt",
       "rawVariants": null
     }

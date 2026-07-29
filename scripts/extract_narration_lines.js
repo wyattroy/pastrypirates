@@ -223,19 +223,27 @@ function findCallSites(fileSrc, filePath) {
 const AD_HOC_META = {
   "src/ui/flow.js:111": { fn: "humanFlip", group: "Docking", tag: "keep", label: "Coin-flip announcement (generic — used at docking/anchor moments)" },
   "src/ui/flow.js:260": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02, new this phase)" },
-  "src/ui/flow.js:296": { fn: "windLeg", group: "Storm", tag: "merge", mergeWith: ["src/ui/flow.js:571", "src/ui/flow.js:645"], label: "Trade-wind rim sweep (windLeg leg)" },
+  // D-36 (Wyatt): the "Byte-identical to: …" cross-reference is SYMMETRIC — each of these three
+  // pointed at the other two, and none pointed anywhere terminal, so the page rendered a visible
+  // cycle. A merge needs a DESTINATION, not a list of duplicates. His decision: all three collapse
+  // into EVENT_NARRATION.tradewind (src/ui/util.js:358) — "carried" survives, "swept" (3 of 4
+  // sites) does not, UNLESS he says otherwise on that table card (see its own TABLE_NOTES entry —
+  // this is his open verb question, not resolved here). `mergeInto` is the CANONICAL target this
+  // card resolves to by default; `siblingMerges` is display-only (who else folds into the SAME
+  // target, shown alongside it — never itself treated as a target).
+  "src/ui/flow.js:296": { fn: "windLeg", group: "Storm", tag: "merge", mergeInto: "table:tradewind", siblingMerges: ["src/ui/flow.js:571", "src/ui/flow.js:645"], label: "Trade-wind rim sweep (windLeg leg)" },
   "src/ui/flow.js:333": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
   "src/ui/flow.js:352": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
   "src/ui/flow.js:373": { fn: "humanWind", group: "Storm", tag: "rewrite", label: "Second storm leg direction (human) — always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)" },
   "src/ui/flow.js:410": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for" },
   "src/ui/flow.js:516": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal (D-08, new addressed copy this phase)" },
   "src/ui/flow.js:524": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Simple decline (D-08, new addressed copy this phase)" },
-  "src/ui/flow.js:571": { fn: "humanAct", group: "Storm", tag: "merge", mergeWith: ["src/ui/flow.js:296", "src/ui/flow.js:645"], label: "Trade-wind rim sweep (move-instead path)" },
+  "src/ui/flow.js:571": { fn: "humanAct", group: "Storm", tag: "merge", mergeInto: "table:tradewind", siblingMerges: ["src/ui/flow.js:296", "src/ui/flow.js:645"], label: "Trade-wind rim sweep (move-instead path)" },
   "src/ui/flow.js:574": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
   "src/ui/flow.js:582": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder" },
   "src/ui/flow.js:613": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03, rewritten this phase)" },
   "src/ui/flow.js:640": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
-  "src/ui/flow.js:645": { fn: "humanTurn", group: "Storm", tag: "merge", mergeWith: ["src/ui/flow.js:296", "src/ui/flow.js:571"], label: "Trade-wind rim sweep (post-sail)" },
+  "src/ui/flow.js:645": { fn: "humanTurn", group: "Storm", tag: "merge", mergeInto: "table:tradewind", siblingMerges: ["src/ui/flow.js:296", "src/ui/flow.js:571"], label: "Trade-wind rim sweep (post-sail)" },
   "src/ui/flow.js:646": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02, new this phase)" },
   "src/ui/flow.js:702": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction (bot)" },
   "src/ui/flow.js:722": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot (D-11/NARR-02, new this phase — the likely source of the reported \"broke bot forgets its turn\")" },
@@ -272,7 +280,10 @@ function applyMeta(sites) {
       group: (meta && meta.group) || "Sailing & Movement",
       label: (meta && meta.label) || "(unlabeled — see AD_HOC_META)",
       defaultTag: (meta && meta.tag) || "keep",
-      mergeWith: (meta && meta.mergeWith) || null,
+      // D-36: mergeInto is the CANONICAL target id this card resolves to by default (never a
+      // symmetric list); siblingMerges is display-only — who else folds into that SAME target.
+      mergeInto: (meta && meta.mergeInto) || null,
+      siblingMerges: (meta && meta.siblingMerges) || null,
       rawNeutral: s.rawNeutral,
       rawVariants: s.rawVariants,
     };
@@ -285,6 +296,25 @@ const utilSites = findCallSites(src.util, FILE_PATHS.util);
 
 const adhoc = [...applyMeta(flowSites), ...applyMeta(orchSites), ...applyMeta(utilSites)]
   .sort((a, b) => (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)));
+
+// D-36: a STATIC, curation-time guard — if AD_HOC_META's own `mergeInto` values ever formed a
+// cycle (a future curation mistake, the exact defect Wyatt hit live), fail loudly here rather than
+// shipping a broken metadata table for the page to render. Independent of the page's OWN live
+// cycle check (which covers Wyatt's actual dispositions, not just this static table).
+(function checkAdHocMergeTargetsAcyclic() {
+  const byKey = Object.fromEntries(Object.entries(AD_HOC_META).map(([k, v]) => [k, v.mergeInto || null]));
+  const visiting = new Set(), visited = new Set();
+  function dfs(key, path) {
+    if (visited.has(key)) return;
+    if (visiting.has(key)) { fail(`AD_HOC_META mergeInto cycle detected: ${[...path, key].join(" -> ")}`); return; }
+    if (!(key in byKey) || byKey[key] == null) return; // terminal (table target, or no target)
+    visiting.add(key);
+    dfs(byKey[key], [...path, key]);
+    visiting.delete(key);
+    visited.add(key);
+  }
+  Object.keys(byKey).forEach((key) => dfs(key, []));
+})();
 
 /* ================= D-30/D-31: ask()/panel() prompt + button extraction =================
  * A third narration-adjacent surface, never in scope for D-03 — action prompts and their button

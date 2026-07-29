@@ -160,6 +160,16 @@
   .tagRow { display: flex; align-items: center; gap: 8px; font-size: 0.76rem; }
   .tagRow select { background: #10141a; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; }
   .defaultTagNote { color: var(--muted); font-size: 0.7rem; }
+  /* D-36: the merge-target row — de-emphasized like the question field (dashed border) since it
+     only matters when Rec. = merge, but always present so switching a card TO merge never lands
+     on a control that doesn't exist yet. */
+  .mergeTargetRow { display: flex; flex-direction: column; gap: 4px; }
+  .mergeTargetLabel { font-size: 0.74rem; color: #8fb4c9; }
+  .mergeTargetSelect, .mergeTargetCustom {
+    width: 100%; background: #10141a; border: 1px dashed #3a5566; border-radius: 6px;
+    color: var(--text); padding: 5px 7px; font-family: inherit; font-size: 0.78rem; margin-top: 2px;
+  }
+  .mergeTargetSelect:focus, .mergeTargetCustom:focus { outline: 1px solid var(--accent); }
   .notesLabel, .questionLabel { font-size: 0.74rem; color: var(--muted); }
   .questionLabel { color: #8fb4c9; }
   textarea.notesArea, textarea.questionArea {
@@ -278,13 +288,28 @@
   </p>
   <p class="methodNote">
     <b>Two different notices, two different meanings — read the color (D-28).</b> A pink
-    <b>"Byte-identical to: …"</b> note means separate lines in the code that happen to render the
-    same text right now — a genuine <code>merge</code> candidate. A teal 🔗 <b>"Shared wording"</b>
-    note means the OPPOSITE: one string in the code reached by several branches (e.g.
-    <code>moored</code>'s "still docked" line, referenced by three different <code>reason</code>
-    values) — tagging that <code>merge</code> would send the wrong instruction; <code>keep</code>
-    or <code>rewrite</code> is what applies, and a rewrite there is called out on the derived line
-    itself with every sibling it also changes.
+    <b>"Merges into: …"</b> note means separate lines in the code that happen to render the
+    same text right now — a genuine <code>merge</code> candidate, pointing at ONE canonical
+    destination (D-36 — see below; this used to be a symmetric "Byte-identical to: …" list before
+    that fix). A teal 🔗 <b>"Shared wording"</b> note means the OPPOSITE: one string in the code
+    reached by several branches (e.g. <code>moored</code>'s "still docked" line, referenced by
+    three different <code>reason</code> values) — tagging that <code>merge</code> would send the
+    wrong instruction; <code>keep</code> or <code>rewrite</code> is what applies, and a rewrite
+    there is called out on the derived line itself with every sibling it also changes.
+  </p>
+  <p class="methodNote">
+    <b>A merge disposition names ONE destination, never a cycle (D-36).</b> Wyatt hit this live:
+    the three trade-wind rim-sweep lines pointed at each other ("many of them say to merge with
+    flow.js:296, but that one says to merge with 571 — and 571 says to merge with 296") because the
+    old cross-reference was symmetric — it listed OTHER byte-identical duplicates, never a
+    destination, so three duplicates with no fourth anchor just pointed in a circle. Every merge
+    card now carries an explicit <b>Merge target</b> selector, defaulting to a curated canonical
+    destination where one is known (his own answer — all three rim-sweep lines merge into
+    <code>EVENT_NARRATION.tradewind</code> — is pre-set) and offered even when the destination's
+    wording differs slightly (byte-matching alone would never surface "carried into the trade
+    winds" as the same moment as "swept into the trade winds"). Override it per card if the default
+    is wrong. <code>checkMergeCycles</code> re-runs live on every tag/target change and fails
+    loudly (banner) if two merge-tagged cards ever point at each other again.
   </p>
   <p class="methodNote">
     <b>Every card speaks pirate now — "ye"/"yer" (D-29, confirmed).</b> <code>you</code>→<code>ye</code>,
@@ -337,6 +362,7 @@
 </header>
 <div id="selfCheckBanner" class="selfCheckBanner">running self-check…</div>
 <div id="dupWarningBanner" class="selfCheckBanner">checking for duplicate rewrite text…</div>
+<div id="mergeCycleBanner" class="selfCheckBanner">checking for merge-target cycles (D-36)…</div>
 <div id="flowCanvas">
   <svg id="edgeSvg"></svg>
   <div id="stages">loading…</div>
@@ -577,7 +603,7 @@ function recordTexts(key, rendered, variants) {
 // distinguish "one string reached by several branches of the SAME source" (D-28 — moored's
 // justDocked/home/dock-unmoved all reference the same `stillDocked` const; NOT a merge
 // candidate) from "separate source lines that happen to produce identical text" (a genuine
-// merge candidate — the ad-hoc trade-wind trio already flagged via mergeWith). Computed live
+// merge candidate — the ad-hoc trade-wind trio already flagged via mergeInto/D-36). Computed live
 // from the same builders every other check on this page uses — never a hand-maintained list.
 const NEUTRAL_TEXT_ENTRIES = [];
 function recordNeutralTextEntry(id, label, baseKey, text) {
@@ -603,10 +629,11 @@ function renderTableBranch(key, spec) {
 
 function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${key}`; }
 
-// D-19/D-27: the one table key whose default recommendation is a structural merge, not a
-// per-line rewrite — surfaced in the derived-intent line the same way an ad-hoc byte-identical
-// duplicate's mergeWith is.
-const TABLE_MERGE_TARGET = { parley: "EVENT_NARRATION.trade (D-19)" };
+// D-19/D-27/D-36: the one table key whose default recommendation is a structural merge, not a
+// per-line rewrite. `TABLE_MERGE_TARGET` names a canonical target CARD ID (never a hand-typed
+// label string, so it participates in the same resolution/cycle-checking every merge target
+// does — D-36's own fix for the symmetric "Byte-identical to:" cycle Wyatt hit).
+const TABLE_MERGE_TARGET = { parley: "table:trade" }; // D-19
 
 function buildTableBranchCard(key, spec, group) {
   const id = tableCardId(key, spec.tag);
@@ -617,7 +644,7 @@ function buildTableBranchCard(key, spec, group) {
     ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
     : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
   if (!silent) recordNeutralTextEntry(id, title, key, finalize(rendered.txt));
-  return { id, group, html: cardShell({ id, title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) };
+  return { id, group, html: cardShell({ id, title, meta: `src/ui/util.js · table · ${key}`, body, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id) }) };
 }
 
 function buildTableKeyCards(key, group) {
@@ -634,9 +661,16 @@ function buildTableKeyCards(key, group) {
       ? `<p class="silentNote">Deliberately silent — this event renders no text at all.</p>`
       : msgBox(rendered.txt, "neutral") + renderVariantsBlock(variants);
     const id = `table:${key}`;
-    const note = TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "";
+    // D-36: a card that other cards merge INTO shows who folds into it — the forward-reference
+    // half of the canonical-target presentation (the source cards show the target; the target
+    // shows its sources), computed from the SAME MERGE_INBOUND registry, never hand-maintained.
+    const inbound = MERGE_INBOUND[id];
+    const inboundNote = inbound && inbound.length
+      ? `<p class="cardNote">🔗 Merge target (D-36) — ${inbound.map((s) => s.label).join(", ")} fold into this line.</p>`
+      : "";
+    const note = (TABLE_NOTES[key] ? `<p class="cardNote">${TABLE_NOTES[key]}</p>` : "") + inboundNote;
     if (!silent) recordNeutralTextEntry(id, `EVENT_NARRATION.${key}`, key, finalize(rendered.txt));
-    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeTarget: TABLE_MERGE_TARGET[key] }) }];
+    return [{ id, group, html: cardShell({ id, title: `EVENT_NARRATION.${key}`, meta: `src/ui/util.js · table`, body: body + note, defaultTag: TABLE_TAGS[key] || "keep", silent, mergeInto: TABLE_MERGE_TARGET[key], mergeCandidates: mergeCandidatesFor(id) }) }];
   }
   return branches.map((spec) => buildTableBranchCard(key, spec, group));
 }
@@ -661,6 +695,11 @@ const TABLE_NOTES = {
   parley: "D-19/D-27 (confirmed): parley folds into trade — this whole event type is recommended for merge, not a per-branch rewrite. 15-06 removes the parley event type and its table entry once this is approved.",
   turn: "Deliberately silent (returns no text at all) — the bot turn-start banner is a separate ad-hoc line instead (see the Turn Start stage, narrateCurrent). Listed per NARR-01's “don't drop silent surfaces” rule.",
   end: "Deliberately silent (EOV-01 — the blue box no longer announces the win, avoiding a duplicate of the dedicated victory box). Listed per NARR-01's “don't drop silent surfaces” rule.",
+  // D-36: Wyatt's decision landed the DESTINATION, not the wording. 3 of the 4 merging sites say
+  // "swept"; this table entry says "carried" — and keep ships exactly what's displayed (D-25), so
+  // merging here otherwise means "carried" wins by default, silently. Open question, his to answer
+  // on THIS card (not assumed) — same "don't resolve it yourself" instruction as the merge itself.
+  tradewind: "🔗 D-36: the 3 ad-hoc rim-sweep lines (windLeg leg / move-instead / post-sail — “…is swept into the trade winds…”) all merge INTO this card. Open question: 3 of those 4 sites say “swept”, this one says “carried” — which verb should the ONE surviving line use? If “carried” is fine as-is, tag this card keep; to change it, use the notes field here (the notes on the SOURCE cards no longer matter once merged).",
 };
 
 /* ============================================================================
@@ -795,7 +834,7 @@ const PASS_THROUGH = new Set([
 ]);
 
 function buildAdhocCard(entry, idOverride, labelOverride, group) {
-  const { file, line, fn, defaultTag, mergeWith, rawNeutral, rawVariants } = entry;
+  const { file, line, fn, defaultTag, mergeInto, siblingMerges, rawNeutral, rawVariants } = entry;
   const baseKey = `${file}:${line}`;
   const key = idOverride || baseKey;
   const id = `adhoc:${key}`;
@@ -812,12 +851,17 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
     if (result.note) body += `<p class="cardNote">${result.note}</p>`;
     recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, finalize(result.current));
   }
-  if (mergeWith && mergeWith.length) body += `<p class="mergeNote">Byte-identical to: ${mergeWith.join(", ")}</p>`;
+  // D-36: canonical-target presentation, not the old symmetric "Byte-identical to:" list — name
+  // ONE destination plus who else folds into the SAME one, never point at another duplicate.
+  if (mergeInto) {
+    const siblingLabel = (siblingMerges && siblingMerges.length) ? `, along with ${siblingMerges.join(", ")}` : "";
+    body += `<p class="mergeNote">🔗 Merges into: ${mergeTargetLabel(mergeInto)}${siblingLabel}.</p>`;
+  }
   body += `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary>
     <pre>neutral: ${escapeHtml(rawNeutral || "")}</pre>
     ${rawVariants ? `<pre>variants: ${escapeHtml(rawVariants)}</pre>` : ""}
   </details>`;
-  return { id, group, html: cardShell({ id, title: labelOverride || entry.label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeTarget: mergeWith && mergeWith.length ? mergeWith.join(", ") : undefined }) };
+  return { id, group, html: cardShell({ id, title: labelOverride || entry.label, meta: `${file}:${line} · ${fn}()`, body, defaultTag, silent: false, mergeInto, mergeCandidates: mergeCandidatesFor(id) }) };
 }
 const RENDERED_TEXTS_ADHOC = {};
 
@@ -845,15 +889,20 @@ function buildAdhocKeyCards(rawEntry, group) {
 }
 
 /* ============================================================================
- * D-25/D-26: card shell — tag select, notes (= rewrite copy when non-empty),
- * a separate Question-for-Claude field (never copy, never affects intent),
- * and a live derived-intent line. `mergeTarget`, when known structurally
- * (the byte-identical ad-hoc duplicates), is shown in the merge intent line.
+ * D-25/D-26/D-36: card shell — tag select, a MERGE TARGET row (D-36 — a select
+ * of known canonical destinations plus a free-text fallback, never a symmetric
+ * "byte-identical" list that can point in a circle), notes (= rewrite copy
+ * when non-empty), a separate Question-for-Claude field (never copy, never
+ * affects intent), and a live derived-intent line.
  * ==========================================================================*/
-function cardShell({ id, title, meta, body, defaultTag, silent, mergeTarget, cardClass }) {
+function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, mergeCandidates, cardClass }) {
   const tags = ["keep", "cut", "merge", "rewrite"];
+  const candidates = mergeCandidates || [];
+  const mergeOptions = candidates.map((c) =>
+    `<option value="${escapeHtml(c.id)}" ${c.id === mergeInto ? "selected" : ""}>${escapeHtml(c.label)}</option>`
+  ).join("");
   return `
-  <div class="card${cardClass ? " " + cardClass : ""}" data-id="${id}" data-merge-target="${escapeHtml(mergeTarget || "")}">
+  <div class="card${cardClass ? " " + cardClass : ""}" data-id="${id}" data-merge-into-default="${escapeHtml(mergeInto || "")}">
     <div class="cardHead">
       <h4>${title}${silent ? ' <span class="silentBadge">silent</span>' : ""}</h4>
       <div class="cardMeta">${meta}</div>
@@ -866,6 +915,15 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeTarget, car
         </select>
       </label>
       <span class="defaultTagNote">default: ${defaultTag}</span>
+    </div>
+    <div class="mergeTargetRow">
+      <label class="mergeTargetLabel">Merge target (D-36 — only used when Rec. = merge; a merge with no target is not actionable)
+        <select class="mergeTargetSelect" data-id="${id}">
+          <option value="">— choose a target —</option>
+          ${mergeOptions}
+        </select>
+      </label>
+      <input type="text" class="mergeTargetCustom" data-id="${id}" placeholder="…or type a custom target (used only if no option above fits)">
     </div>
     <label class="notesLabel">Notes — non-empty means REWRITE and becomes the new copy (D-26)<textarea class="notesArea" data-id="${id}" placeholder="leave empty to keep as displayed, or type the replacement wording..."></textarea></label>
     <label class="questionLabel">Question for Claude — never becomes narration text<textarea class="questionArea" data-id="${id}" placeholder="anything that's a question, not copy..."></textarea></label>
@@ -894,6 +952,62 @@ if (!inv || !Array.isArray(inv.adhoc) || !Array.isArray(inv.table) || !Array.isA
 }
 const tableByKey = Object.fromEntries(inv.table.map((e) => [e.key, e]));
 const adhocByLine = Object.fromEntries(inv.adhoc.map((e) => [`${e.file}:${e.line}`, e]));
+
+/* ============================================================================
+ * D-36: canonical merge-target registry. Every merge id used on this page is
+ * either "table:<key>" or "adhoc:<file>:<line>" — the SAME id scheme cardShell()
+ * already assigns to every card. ONE resolver turns an id into a human label
+ * (mergeTargetLabel), and ONE registry (MERGE_INBOUND) is built by scanning
+ * every known mergeInto pointer so a destination card can name its own sources
+ * without a hand-maintained reverse list. This replaces the symmetric "Byte-
+ * identical to: …" cross-reference entirely for ad-hoc merge candidates: that
+ * list pointed at OTHER DUPLICATES (a cycle waiting to happen — exactly what
+ * Wyatt hit); this points at ONE canonical destination, always.
+ * ==========================================================================*/
+function mergeTargetLabel(id) {
+  if (!id) return id;
+  if (id.startsWith("table:")) {
+    const key = id.slice("table:".length).split("~")[0];
+    return `EVENT_NARRATION.${key}`;
+  }
+  if (id.startsWith("adhoc:")) return id.slice("adhoc:".length);
+  return id;
+}
+// id -> [{id, label}] — every OTHER card whose default `mergeInto` points at this id. Built from
+// the ad-hoc inventory's own `mergeInto` field (D-36) and TABLE_MERGE_TARGET (D-19/parley) — the
+// only two sources of a CURATED default target on this page.
+const MERGE_INBOUND = {};
+function addInbound(sourceId, targetId, label) {
+  if (!targetId) return;
+  if (!MERGE_INBOUND[targetId]) MERGE_INBOUND[targetId] = [];
+  MERGE_INBOUND[targetId].push({ id: sourceId, label: label || mergeTargetLabel(sourceId) });
+}
+(inv.adhoc || []).forEach((e) => {
+  if (e.mergeInto) addInbound(`adhoc:${e.file}:${e.line}`, e.mergeInto, `${e.file}:${e.line}`);
+});
+Object.entries(TABLE_MERGE_TARGET).forEach(([key, targetId]) => addInbound(`table:${key}`, targetId, `EVENT_NARRATION.${key}`));
+// Candidate list a card's own merge-target <select> offers: its curated default first (if any),
+// then every OTHER card known to share that SAME default target (D-36 requirement 3 — "offer the
+// table entry as the default target even when wording differs slightly" is exactly what a curated
+// mergeInto IS; this just also surfaces the siblings already pointed the same way, for a card
+// that might reasonably join them).
+function mergeCandidatesFor(id) {
+  const seen = new Set(), out = [];
+  const push = (targetId) => {
+    if (!targetId || seen.has(targetId)) return;
+    seen.add(targetId);
+    out.push({ id: targetId, label: mergeTargetLabel(targetId) });
+  };
+  const own = id.startsWith("table:") ? TABLE_MERGE_TARGET[id.slice("table:".length).split("~")[0]]
+    : id.startsWith("adhoc:") ? (adhocByLine[id.slice("adhoc:".length)] || {}).mergeInto
+    : null;
+  push(own);
+  // every DISTINCT target any sibling ad-hoc entry resolves to, so a card can be pointed at a
+  // group it isn't curated for by default, without needing free text
+  (inv.adhoc || []).forEach((e) => e.mergeInto && push(e.mergeInto));
+  Object.values(TABLE_MERGE_TARGET).forEach(push);
+  return out;
+}
 
 function tableCards(key) { return buildTableKeyCards(key, key); }
 // Fail LOUD on a missing key. This lookup returning undefined is what killed the page when a stale
@@ -1130,7 +1244,7 @@ function buildButtonCards(entry, group) {
   });
 }
 // D-30's own cross-source duplicate detector for buttons/prompts — the SAME "byte-identical
-// text at DIFFERENT source locations" concept the ad-hoc mergeWith cross-reference already
+// text at DIFFERENT source locations" concept the ad-hoc mergeInto cross-reference (D-36) already
 // covers for the 3 hand-identified flow.js sites, generalized and auto-computed here since 57
 // button labels is too many to hand-curate. Uses a DIFFERENT key space (`btn~`) than
 // computeSharedWordingGroups' baseKey so a button never gets misread as a moored-style
@@ -1678,8 +1792,8 @@ document.getElementById("stages").innerHTML = stagesHtml;
  * file:line) — i.e. they are different BRANCHES of the SAME source, not
  * different source lines. That is deliberately narrower than the duplicate-
  * text guard below (which flags ANY two cards, regardless of source, that
- * currently resolve to the same text) and than the ad-hoc mergeWith
- * cross-reference (hand-identified separate call sites, e.g. the trade-wind
+ * currently resolve to the same text) and than the ad-hoc mergeInto
+ * cross-reference (D-36 — hand-identified separate call sites, e.g. the trade-wind
  * trio) — this notice must read as "editing this one place changes all of
  * these", not "these look like duplicates to consolidate", or Wyatt tags the
  * wrong thing (D-28's own example: table:moored~dockStill is NOT a merge).
@@ -1720,12 +1834,15 @@ document.querySelectorAll(".card").forEach((card) => {
  * D-30: cross-source duplicate detector for buttons (and any other card) —
  * the OPPOSITE condition from computeSharedWordingGroups above: groups where
  * members do NOT all share a baseKey are separate call sites that happen to
- * render identical text right now (e.g. "← Back" appears at many distinct
- * ask() sites) — genuine merge/consolidate candidates, styled like the
- * existing hand-curated ad-hoc mergeWith cross-reference (pink), but
- * auto-computed since 57 button labels is too many to hand-curate. Restricted
- * to button/prompt cards so it doesn't duplicate-display alongside the
- * already-correct hand-curated mergeWith notice on the 3 ad-hoc trio cards.
+ * render identical text right now — genuine merge/consolidate candidates,
+ * styled like the existing hand-curated ad-hoc mergeInto cross-reference
+ * (D-36, pink), but auto-computed since 57 button labels is too many to
+ * hand-curate. (D-34's dead back:true/flip:true labels — e.g. every "← Back"
+ * — are excluded from recordNeutralTextEntry entirely, so they never surface
+ * here: grouping 9 discarded labels as a "merge candidate" would be exactly
+ * backwards, since there is no wording to merge, only a control to restyle.)
+ * Restricted to button/prompt cards so it doesn't duplicate-display alongside
+ * the already-correct hand-curated mergeInto notice on the 3 ad-hoc trio cards.
  * ==========================================================================*/
 (function computeCrossSourceDuplicateButtons() {
   const byText = new Map();
@@ -2011,12 +2128,24 @@ function computeIntent(tag, notes) {
   // byte-identical to what the export's finalText carries and what would ship.
   return { intent: "rewrite", finalText: pirateVoice(trimmed) };
 }
+// D-36: resolves a card's ACTUAL merge target — the select's chosen value (label read straight
+// off the chosen <option>) if set, else the free-text custom field, else nothing. Used identically
+// here, in the export, and in the live cycle check below, so all three agree by construction.
+function getMergeTarget(card) {
+  const sel = card.querySelector(".mergeTargetSelect");
+  const custom = card.querySelector(".mergeTargetCustom");
+  if (sel && sel.value) {
+    const opt = sel.querySelector(`option[value="${CSS.escape(sel.value)}"]`);
+    return { id: sel.value, label: (opt && opt.textContent) || mergeTargetLabel(sel.value) };
+  }
+  if (custom && custom.value.trim()) return { id: null, label: custom.value.trim() };
+  return null;
+}
 function renderDerivedLine(card) {
   const sel = card.querySelector(".tagSelect");
   const ta = card.querySelector(".notesArea");
   if (!sel || !ta) return;
   const tag = sel.value, notes = ta.value;
-  const mergeTarget = card.dataset.mergeTarget || "";
   const { intent, finalText } = computeIntent(tag, notes);
   const el = card.querySelector(".derivedIntent");
   if (!el) return;
@@ -2024,9 +2153,10 @@ function renderDerivedLine(card) {
   if (intent === "cut") { text = "→ CUT"; cls = "intentCut"; }
   else if (intent === "merge") {
     cls = "intentMerge";
-    if (mergeTarget) text = `→ MERGE with ${mergeTarget}`;
-    else if (notes.trim()) text = `→ MERGE (see notes: "${notes.trim()}")`;
-    else text = "→ MERGE (target not specified — add to notes)";
+    // D-36: a CANONICAL target, never the old symmetric "byte-identical duplicates" list — a
+    // merge with no target is flagged as not-yet-actionable rather than silently exported anyway.
+    const target = getMergeTarget(card);
+    text = target ? `→ MERGE into: ${target.label}` : "→ MERGE (target not specified — choose one below)";
   } else if (intent === "rewrite") {
     text = `→ REWRITE to: "${finalText}"`;
     cls = "intentRewrite";
@@ -2066,11 +2196,15 @@ function setStatus(t) { document.getElementById("fbStatus").textContent = t; }
 const saved = loadSaved();
 document.querySelectorAll(".card").forEach((card) => {
   const id = card.dataset.id;
+  // D-36: the curated default merge target (e.g. the 3 rim-sweep cards' EVENT_NARRATION.tradewind
+  // — Wyatt's own decision) — seeded regardless of branch below, same "never clobber an existing
+  // localStorage entry" rule the rest of this seeding already follows.
+  const defaultMergeInto = card.dataset.mergeIntoDefault || "";
   if (saved[id]) return; // this browser's own in-progress session already covers this id — never clobber
   if (PASS2_REVIEWED_IDS.has(id)) {
     // rows 1-17 of the committed pass-2 export — Wyatt's genuine, already-reviewed marks.
     const row = PASS2_BY_ID[id];
-    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true };
+    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true, mergeInto: defaultMergeInto, mergeIntoCustom: "" };
   } else {
     // Everything else (rows 18-81, and any id the export doesn't cover) is a pass-1 leftover
     // the OLD seeding wrongly pre-filled, never something Wyatt decided — D-27. Unreviewed,
@@ -2078,7 +2212,7 @@ document.querySelectorAll(".card").forEach((card) => {
     // (never a stale pass-1/leftover tag).
     const sel = card.querySelector(".tagSelect");
     const defaultTag = (sel && sel.dataset.default) || "keep";
-    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false };
+    saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false, mergeInto: defaultMergeInto, mergeIntoCustom: "" };
   }
 });
 saveAll(saved);
@@ -2112,6 +2246,7 @@ document.querySelectorAll(".tagSelect").forEach((sel) => {
     document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
     markReviewed(id);
     checkDuplicateFinalText();
+    checkMergeCycles(); // D-36: switching a tag to/from "merge" changes cycle-graph membership
   });
 });
 document.querySelectorAll(".notesArea").forEach((ta) => {
@@ -2126,6 +2261,40 @@ document.querySelectorAll(".notesArea").forEach((ta) => {
     document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
     markReviewed(id);
     checkDuplicateFinalText();
+  });
+});
+// D-36: merge-target select — restores the saved value if he explicitly set one (including an
+// explicit clear, `""`), else falls back to the card's own curated default (`mergeIntoDefault`) so
+// a card he's already touched for OTHER reasons (tag/notes) before this feature existed still
+// shows its pre-set default rather than an unexplained blank.
+document.querySelectorAll(".mergeTargetSelect").forEach((sel) => {
+  const id = sel.dataset.id;
+  const card = sel.closest(".card");
+  const defaultTarget = (card && card.dataset.mergeIntoDefault) || "";
+  sel.value = (saved[id] && saved[id].mergeInto != null) ? saved[id].mergeInto : defaultTarget;
+  sel.addEventListener("change", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].mergeInto = sel.value;
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
+    markReviewed(id);
+    checkMergeCycles();
+  });
+});
+document.querySelectorAll(".mergeTargetCustom").forEach((inp) => {
+  const id = inp.dataset.id;
+  if (saved[id] && saved[id].mergeIntoCustom) inp.value = saved[id].mergeIntoCustom;
+  inp.addEventListener("input", () => {
+    const data = loadSaved();
+    data[id] = data[id] || {};
+    data[id].mergeIntoCustom = inp.value;
+    saveAll(data);
+    setStatus("saved " + new Date().toLocaleTimeString());
+    document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`).forEach(renderDerivedLine);
+    markReviewed(id);
+    checkMergeCycles();
   });
 });
 document.querySelectorAll(".questionArea").forEach((qa) => {
@@ -2226,6 +2395,58 @@ function checkDuplicateFinalText() {
 }
 checkDuplicateFinalText();
 
+/* ============================================================================
+ * D-36: live merge-cycle guard — the actual defect Wyatt hit ("many of them say
+ * to merge with flow.js:296, but that one says to merge with 571 -- and 571
+ * says to merge with 296"). Builds a directed graph from every card CURRENTLY
+ * resolved to intent "merge" (live, exactly like checkDuplicateFinalText above)
+ * to its own resolved target (getMergeTarget), then DFS's for a cycle. This is
+ * the LIVE counterpart to the static AD_HOC_META check the extraction script
+ * already runs at build time — that one guards the curated defaults; this one
+ * guards whatever Wyatt actually ends up choosing, which can differ (he can
+ * always override a target, including — in principle — into a cycle again if
+ * two cards are pointed at each other by hand).
+ * ==========================================================================*/
+function checkMergeCycles() {
+  const nodes = {}; // card id -> target card id (or null if the target isn't itself a known card)
+  const seenIds = new Set();
+  document.querySelectorAll(".card").forEach((card) => {
+    const id = card.dataset.id;
+    if (seenIds.has(id)) return; // shared-id duplicates (the coin-flip line) — one entry each
+    seenIds.add(id);
+    const sel = card.querySelector(".tagSelect"), ta = card.querySelector(".notesArea");
+    if (!sel || !ta) return;
+    const { intent } = computeIntent(sel.value, ta.value);
+    if (intent !== "merge") return;
+    const target = getMergeTarget(card);
+    nodes[id] = (target && target.id) ? target.id : null; // free-text targets can't cycle
+  });
+  const cycles = [];
+  const visiting = new Set(), visited = new Set();
+  function dfs(id, path) {
+    if (visited.has(id)) return;
+    if (visiting.has(id)) { cycles.push([...path, id]); return; }
+    if (!(id in nodes) || nodes[id] == null) { visited.add(id); return; } // terminal — not a merge node, or no target yet
+    visiting.add(id);
+    dfs(nodes[id], [...path, id]);
+    visiting.delete(id);
+    visited.add(id);
+  }
+  Object.keys(nodes).forEach((id) => dfs(id, []));
+  const banner = document.getElementById("mergeCycleBanner");
+  if (banner) {
+    if (!cycles.length) {
+      banner.className = "selfCheckBanner pass";
+      banner.textContent = "✓ No merge-target cycles — every merge-tagged card resolves toward a terminal target (or is flagged as needing one).";
+    } else {
+      banner.className = "selfCheckBanner fail";
+      banner.textContent = `⚠ ${cycles.length} merge-target cycle(s) detected: ${cycles.map((c) => c.join(" → ")).join(" · ")} — D-36 exists to prevent exactly this.`;
+    }
+  }
+  return cycles;
+}
+checkMergeCycles();
+
 document.getElementById("exportBtn").addEventListener("click", () => {
   // A handful of ids (the shared coin-flip line, reachable from both the storm-dodge fork and
   // the dock fork) render as more than one DOM card — export each id exactly once, reading its
@@ -2253,6 +2474,14 @@ document.getElementById("exportBtn").addEventListener("click", () => {
       reviewed: !!(data[id] && data[id].reviewed),
     };
     if (intent === "rewrite") row.finalText = finalText;
+    // D-36: a merge disposition ALWAYS carries its resolved target as `mergeInto` (an actual card
+    // id when the select was used, a free-text label otherwise) — never omitted, so "a merge with
+    // no target is not actionable" is visible in the export itself, not just on the page.
+    if (intent === "merge") {
+      const target = getMergeTarget(card);
+      row.mergeInto = target ? (target.id || target.label) : null;
+      if (target) row.mergeIntoLabel = target.label;
+    }
     out.push(row);
   });
   const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
