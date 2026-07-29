@@ -481,13 +481,17 @@ export async function asyncBattle(att,def){
     // naming whoever's downwind (Wyatt: "i dont know why this was its own branch?" — it was purely
     // a name-slot difference, exactly what the D-10 mechanism already handles elsewhere), and
     // likewise merges the attacker-hit/defender-hit pair into one template naming whoever landed it.
+    // D-52/D-25/D-16 (Wyatt-approved 2026-07-29): both surviving both-HEADS lines carry the ⚪️ coin
+    // he typed into his rewrite, matching the ⚫️ TAILS sibling below. The glyph is not shipped as a
+    // raw system emoji: this footer reaches emojify() via renderBattle -> panel(), which strips the
+    // U+FE0F selector and swaps in FLIP_HEADS_IMG. The word "firing" is likewise his, not ours.
     if(ah&&dh){
       if(downwind){
         scorer=downwind;
         if(downwind==="a")a++;else d++;
         const dwName=downwind==="a"?nm(att.idx):nm(def.idx);
-        rmsg=`<span class="score">Both fire HEADS — but ${dwName}'s downwind and the shot hits!</span>`;
-      }else rmsg=`<span class="cancel">Both fire HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`;
+        rmsg=`<span class="score">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`;
+      }else rmsg=`<span class="cancel">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`;
     }
     else if(ah||dh){
       scorer=ah?"a":"d";
