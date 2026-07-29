@@ -509,6 +509,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -521,15 +522,20 @@
       "labels": [
         {
           "raw": "\"🏃 Flee! (−1🌕)\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Keep fighting\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -542,15 +548,20 @@
       "labels": [
         {
           "raw": "\"5🌕\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"a crate (winner picks)\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -563,6 +574,7 @@
       "labels": [],
       "dynamicLabelCount": 1,
       "dynamicBase": "uniq.map(i=>({label:ilabelImg(i),value:i}))",
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -575,6 +587,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -587,6 +600,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -599,6 +613,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -611,6 +626,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -623,6 +639,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -635,15 +652,20 @@
       "labels": [
         {
           "raw": "\"🌕 FLIP!\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": true
         },
         {
           "raw": "\"← Back\"",
-          "condition": "allowBack"
+          "condition": "allowBack",
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": false
     },
     {
@@ -656,15 +678,20 @@
       "labels": [
         {
           "raw": "\"🎣 CAST!\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": true
         },
         {
           "raw": "\"← Back\"",
-          "condition": "allowBack"
+          "condition": "allowBack",
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": false
     },
     {
@@ -677,6 +704,7 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -689,23 +717,32 @@
       "labels": [
         {
           "raw": "\"Pay 1🌕 to anchor\"",
-          "condition": "p.coins>=1"
+          "condition": "p.coins>=1",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Flip! Heads: dodge. Tails: lose yer turn!\"",
-          "condition": "trueShipwreck"
+          "condition": "trueShipwreck",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Flip! Heads: dodge. Tails: lose a crate!\"",
-          "condition": "broke"
+          "condition": "broke",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Flip! Heads: dodge. Tails: lose half 🌕\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": false
     },
     {
@@ -718,15 +755,20 @@
       "labels": [
         {
           "raw": "`Buy ${ilabelImg(ing)} (−3🌕)`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Take 3🌕\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -739,11 +781,14 @@
       "labels": [
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 1,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -756,11 +801,14 @@
       "labels": [
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 1,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -773,15 +821,20 @@
       "labels": [
         {
           "raw": "\"— coins only —\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": "[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}))",
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -794,11 +847,14 @@
       "labels": [
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -811,11 +867,14 @@
       "labels": [
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": "coinChoices.map(n=>({label:n===0?\"No extra coins\":`+${n}🌕`,value:n}))",
+      "rawSub": null,
       "isLiteral": false
     },
     {
@@ -828,15 +887,20 @@
       "labels": [
         {
           "raw": "`${iconImg(CHECKMARK_IMG)} Accept`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "`${iconImg(CANCEL_X_IMG)} Decline`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -849,15 +913,20 @@
       "labels": [
         {
           "raw": "`Pay ${askFor}🌕 more`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Walk away\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -870,31 +939,44 @@
       "labels": [
         {
           "raw": "`⚓ Dock at ${ilabelImg(port)}`",
-          "condition": "canDock"
+          "condition": "canDock",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "`⚔️ Attack${appState.game.cfg.powder?` (-${appState.game.cfg.powder}🌕)`:\"\"}`",
-          "condition": "targets.length"
+          "condition": "targets.length",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"🤝 Parley\"",
-          "condition": "appState.game.tradeOpp(p).length"
+          "condition": "appState.game.tradeOpp(p).length",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "`${iconImg(CUPCAKE_IMG)} Start your bakery!`",
-          "condition": "!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1"
+          "condition": "!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1",
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"🎣 Fish\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"← Actually, move instead\"",
-          "condition": "canMoveInstead"
+          "condition": "canMoveInstead",
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": "sub",
       "isLiteral": false
     },
     {
@@ -907,11 +989,14 @@
       "labels": [
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 1,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -924,19 +1009,26 @@
       "labels": [
         {
           "raw": "`Sell for ${price}🌕`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Counter\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Refuse\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -949,15 +1041,20 @@
       "labels": [
         {
           "raw": "`${n}🌕`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"Never mind\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -970,15 +1067,20 @@
       "labels": [
         {
           "raw": "`Call ${ns(att.idx)}`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "`Call ${ns(def.idx)}`",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -991,19 +1093,26 @@
       "labels": [
         {
           "raw": "\"Just the free call\"",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "`Back with ${n}🌕`+(n===s.coins?\" — all in!\":\"\")",
-          "condition": null
+          "condition": null,
+          "backMarker": false,
+          "flipMarker": false
         },
         {
           "raw": "\"← Back\"",
-          "condition": null
+          "condition": null,
+          "backMarker": true,
+          "flipMarker": false
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
     },
     {
@@ -1016,7 +1125,335 @@
       "labels": [],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
+      "rawSub": null,
       "isLiteral": true
+    }
+  ],
+  "misc": [
+    {
+      "category": "battleLine",
+      "file": "src/orchestrator.js",
+      "line": 482,
+      "fn": "asyncBattle",
+      "rawMsg": "`<span class=\"score\">Both fire HEADS — but ${nm(att.idx)}'s downwind and the shot carries! +1</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/orchestrator.js",
+      "line": 483,
+      "fn": "asyncBattle",
+      "rawMsg": "`<span class=\"score\">Both fire HEADS — but ${nm(def.idx)}'s downwind and the shot carries! +1</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/orchestrator.js",
+      "line": 484,
+      "fn": "asyncBattle",
+      "rawMsg": "`<span class=\"cancel\">Both fire HEADS — crosswind, cannonballs collide, no damage.</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/orchestrator.js",
+      "line": 486,
+      "fn": "asyncBattle",
+      "rawMsg": "`<span class=\"score\">${nm(att.idx)} lands a hit! +1</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/orchestrator.js",
+      "line": 487,
+      "fn": "asyncBattle",
+      "rawMsg": "`<span class=\"score\">${nm(def.idx)} lands a hit! +1</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/orchestrator.js",
+      "line": 488,
+      "fn": "asyncBattle",
+      "rawMsg": "`<span class=\"cancel\">Both miss — TAILS all round.</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/ui/flow.js",
+      "line": 965,
+      "fn": "asyncBakeoff",
+      "rawMsg": "`<span class=\"cancel\">Both HEADS — no score this round.</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/ui/flow.js",
+      "line": 966,
+      "fn": "asyncBakeoff",
+      "rawMsg": "`<span class=\"score\">${nm(A.idx)} scores! +1</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/ui/flow.js",
+      "line": 967,
+      "fn": "asyncBakeoff",
+      "rawMsg": "`<span class=\"score\">${nm(B.idx)} scores! +1</span>`"
+    },
+    {
+      "category": "battleLine",
+      "file": "src/ui/flow.js",
+      "line": 968,
+      "fn": "asyncBakeoff",
+      "rawMsg": "`<span class=\"cancel\">Both TAILS — no score this round.</span>`"
+    },
+    {
+      "category": "draftWait",
+      "file": "src/orchestrator.js",
+      "line": 657,
+      "fn": "recipeDraftNet",
+      "anchor": "choosing their recipe"
+    },
+    {
+      "category": "draftWait",
+      "file": "src/orchestrator.js",
+      "line": 663,
+      "fn": "recipeDraftNet",
+      "anchor": "Recipe chosen! Waiting for the rest of the crew"
+    },
+    {
+      "category": "draftWait",
+      "file": "src/ui/flow.js",
+      "line": 176,
+      "fn": "pickCell",
+      "anchor": "is choosing where to sail"
+    },
+    {
+      "category": "draftWait",
+      "file": "src/ui/flow.js",
+      "line": 809,
+      "fn": "netIntroBarrier",
+      "anchor": "Waiting for yer pirate mateys to continue"
+    },
+    {
+      "category": "introBarrier",
+      "file": "src/orchestrator.js",
+      "line": 714,
+      "fn": "runLiveNet",
+      "rawMsg": "`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`",
+      "rawButton": "\"🦜 Final round — set sail!\""
+    },
+    {
+      "category": "introBarrier",
+      "file": "src/ui/flow.js",
+      "line": 818,
+      "fn": "showAhoyIntro",
+      "rawMsg": "`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`",
+      "rawButton": "\"⚓ Arrgh! Let's start\""
+    },
+    {
+      "category": "introBarrier",
+      "file": "src/ui/flow.js",
+      "line": 829,
+      "fn": "showTurnOrderIntro",
+      "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} catches the wind first!<br><br>`+\n    `No fretting, rest of the crew — ${rest} all cast off with extra coin in the hold to make up for it. Patience pays, mateys!`",
+      "rawButton": "\"🦜 Aye, set sail!\""
+    },
+    {
+      "category": "lobby",
+      "file": "src/ui/lobby.js",
+      "line": 86,
+      "fn": "passGate",
+      "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the device to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`"
+    },
+    {
+      "category": "lobby",
+      "file": "src/ui/lobby.js",
+      "line": 88,
+      "fn": "passGate",
+      "rawMsg": "`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`"
+    },
+    {
+      "category": "lobby",
+      "file": "src/ui/lobby.js",
+      "line": 115,
+      "fn": "renderSeatList",
+      "rawMsg": "\"Your crew will appear above as they join. Wait for them before clicking start. Empty seats are played by bots.\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 945,
+      "fn": "createRoom",
+      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 953,
+      "fn": "joinRoom",
+      "rawMsg": "\"Enter the room code your host shared.\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 956,
+      "fn": "joinRoom",
+      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 957,
+      "fn": "joinRoom",
+      "rawMsg": "\"No game found with code \"+code+\".\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 963,
+      "fn": "joinRoom",
+      "rawMsg": "\"That game has already set sail.\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 973,
+      "fn": "joinRoom",
+      "rawMsg": "\"That game is full.\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 982,
+      "fn": "watchRoom",
+      "rawMsg": "\"That game no longer exists.\""
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 1012,
+      "fn": "startGame",
+      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\""
+    },
+    {
+      "category": "paramPrompt",
+      "file": "src/ui/flow.js",
+      "line": 265,
+      "fn": "windLeg",
+      "callee": "humanFlip",
+      "rawLabel": "\"Flip to dodge!\"",
+      "hasLabel": true,
+      "rawAllowBack": null
+    },
+    {
+      "category": "paramPrompt",
+      "file": "src/ui/flow.js",
+      "line": 389,
+      "fn": "humanDock",
+      "callee": "humanFlip",
+      "rawLabel": "`Docking at ${ilabelImg(ing)} — flip!`",
+      "hasLabel": true,
+      "rawAllowBack": "true"
+    },
+    {
+      "category": "paramPrompt",
+      "file": "src/ui/flow.js",
+      "line": 592,
+      "fn": "humanAct",
+      "callee": "fishCast",
+      "rawLabel": "\"🎣 Cast your line — flip!\"",
+      "hasLabel": true,
+      "rawAllowBack": "true"
+    },
+    {
+      "category": "paramPrompt",
+      "file": "src/ui/flow.js",
+      "line": 781,
+      "fn": "botTurn",
+      "callee": "fishCast",
+      "rawLabel": "",
+      "hasLabel": false,
+      "rawAllowBack": null
+    },
+    {
+      "category": "timer",
+      "file": "src/ui/panel.js",
+      "line": 88,
+      "fn": "setClockUI",
+      "rawMsg": "appState.timerOff?\"Turn the timer back on\":\"Turn the timer off\""
+    }
+  ],
+  "awards": [
+    {
+      "key": "battlesWon",
+      "img": "cutlass",
+      "name": "The Cutlass of a Thousand Notches",
+      "byline": "One notch per fallen foe, carved into the hilt.",
+      "line": 680
+    },
+    {
+      "key": "fishCount",
+      "img": "herring",
+      "name": "The Golden Herring",
+      "byline": "For the sweetest rod in the ocean.",
+      "line": 681
+    },
+    {
+      "key": "dist",
+      "img": "compass",
+      "name": "The Horizon-Chaser's Compass",
+      "byline": "For the salt-crusted soul who sailed further than sense allowed.",
+      "line": 682
+    },
+    {
+      "key": "longestBattle",
+      "img": "medal",
+      "name": "The Iron Gut Medal",
+      "byline": "For the crew that refused to sink.",
+      "line": 683
+    },
+    {
+      "key": "tails",
+      "img": "blackspot",
+      "name": "The Black Spot of Bad Tides",
+      "byline": "Survived the curse — worst luck on the Sugar Seas.",
+      "line": 684
+    },
+    {
+      "key": "hottestStreak",
+      "img": "doubloon",
+      "name": "The Lucky Doubloon",
+      "byline": "Heads, then heads, then heads again — Lady Luck rode on their shoulder.",
+      "line": 685
+    },
+    {
+      "key": "trades",
+      "img": "ledger",
+      "name": "The Silver-Tongued Ledger",
+      "byline": "Struck more deals than a Tortuga fishmonger on market day.",
+      "line": 686
+    },
+    {
+      "key": "timesAttacked",
+      "img": "target",
+      "name": "The Painted Target",
+      "byline": "Somehow every cannon in the Caribbean swung their way.",
+      "line": 687
+    },
+    {
+      "key": "battlesLost",
+      "img": "timbers",
+      "name": "The Splintered Timbers",
+      "byline": "Took a right drubbing and lived to grumble about it.",
+      "line": 688
+    },
+    {
+      "key": "shotClockCount",
+      "img": "barnacle",
+      "name": "The Barnacle Brain",
+      "byline": "Pondered each move till the barnacles grew — no rush in these waters.",
+      "line": 689
+    },
+    {
+      "key": "fallback",
+      "img": "anchor",
+      "name": "Good Mate",
+      "byline": "Pirated for the love of the game.",
+      "line": 694
     }
   ]
 }
