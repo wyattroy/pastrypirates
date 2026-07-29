@@ -1023,3 +1023,38 @@ render at different widths and weights beside a coin. Normalise to `−` (U+2212
 **Verification:** no parenthesised amount adjacent to a coin glyph lacks a leading `+`/`−`; no
 player-facing minus is an ASCII hyphen; `flow.js:461` still reads *"{ingredient} + {n}🌕"*.
 
+
+**D-39 — "← Actually, move instead" EXISTS and works, but renders as a bare `‹` circle. The label is
+the one dead marker that carried real meaning.**
+
+Wyatt: *"This button doesn't exist, right? … ← Actually, move instead"* — **it does exist**, and is
+reachable, but he has never seen those words.
+
+`flow.js:558` — `{label:"← Actually, move instead", back:true, value:"moveInstead"}` — is the **only**
+`back:true` option in `humanAct`'s list, so `localAsk()`'s `backIdx` finds it, excludes it from the
+button row, and renders it as the generic circular `‹` (D-34). The action itself is live and handled
+at `flow.js:567`.
+
+**Offered only when** `canMoveInstead` — the sail step ended in "Stay put", nothing was spent or
+moved, and the player can still afford to sail. The code comment states its purpose: *"covers the
+reported 'hit Stay put by accident' complaint."*
+
+**Why this differs from every other dead marker label (D-34).** For an ordinary `← Back`, discarding
+the text costs nothing — a `‹` self-evidently means *go back*. Here the label carries information the
+circle cannot: *you can undo your Stay put and move after all*. A player who mis-clicked sees an
+unlabelled `‹` in a place they have no reason to look, and the feature built to rescue them is
+invisible.
+
+**So the fix that was shipped for that complaint is undiscoverable** — not because it is missing, but
+because its only signpost is thrown away at render time.
+
+**Options (Wyatt's call, and arguably Phase 16 / UI territory rather than narration copy):**
+1. Render it as a normal labelled button — drop `back:true`, keep `value:"moveInstead"`; it is a
+   distinct choice, not a navigation control.
+2. Keep the circle but give it a tooltip / `aria-label` carrying the wording.
+3. Leave as-is and accept it is discoverable only by experiment.
+
+**Recommendation: option 1.** `back:true` is being used here as "put this last and style it as
+secondary", but its actual effect is "replace this option's text with a `‹`". The option is a real
+choice with a real consequence, so it should read like one.
+
