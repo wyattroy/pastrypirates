@@ -1499,3 +1499,28 @@ Closes the question left open since D-27. **Confirm these readings with him** be
 `mergeInto` — both are prose-to-card-id inferences, and D-44 exists because a wrong merge target is
 worse than an unset one.
 
+
+**D-49 CONFIRMED — the two `newround` merge targets are set (2026-07-29).**
+
+Wyatt: *"yes, those merge targets are right — set them."* The readings inferred from his question
+fields are correct and become the cards' `mergeInto` values:
+
+| Card | Merges into |
+|---|---|
+| `table:newround~heldStorm` (*Storm + wind holds, streak < 2*) | **`table:newround`** — Fresh storm |
+| `table:newround~streakStormHeldWontQuit` (*Storm ≥2 rounds + wind holds ≥3*) | **`table:newround~streakStormHeldGusting`** — Storm ≥2 + wind holds (2 rounds) |
+
+**Closes the question open since D-27** ("one line for all eight branches, or several"). The answer
+turned out to be *several, with two of the eight folded in* — the two rarest, at roughly 1 round in
+37 and 1 in 1,000 respectively. Six distinct round headers survive.
+
+**D-48 FOLLOW-UP — flavour text restoration is pending on Wyatt, and he is waiting on the page.**
+
+Wyatt: *"I will re-add the flavor text back in when you tell me i can."* He intends to reconcile the
+conflict himself by editing `table:dock~bought` and `table:dock~coins` to restore the flavour
+phrasing (*"for 🌾 a sack of toasty wheat"*) in place of the plain ingredient name he currently has.
+
+**Blocked on D-47's second copy field landing** — those two cards also need their addressed ("you")
+variants written, and he is not going to edit them twice. **Tell him explicitly when the page is
+ready**, naming those two cards, or the flavour text ships deleted despite D-48 saying keep it.
+
