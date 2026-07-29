@@ -1279,3 +1279,40 @@ not to its **target**. Half the decision landed.
    the explicit "choose one" state. Four such tags existed unresolved from his earlier pass (D-27
    era); this is the same defect surfacing again.
 
+
+**D-19 CLARIFIED + CONFIRMED — two separate changes, both approved. (2026-07-29)**
+
+Wyatt: *"the whole parley/trade fold was actually mostly just about copy -- i wanted to have players
+only see the word 'trade' instead of the word 'parley'. i'm not sure what this 'folding in' entailed
+on the back end?"* → then, given the two options: **"copy plus the merge"**.
+
+**Correction to how D-19 was originally recorded.** Wyatt's stated goal was a *copy* change; the
+event merge was escalated onto it from a defect I found separately. They are independent and are now
+recorded as such, so neither is mistaken for a consequence of the other.
+
+**Change 1 — the copy (what he actually asked for). Two edits, no back-end work:**
+
+| Site | From | To |
+|---|---|---|
+| `flow.js:550` | button label `"🤝 Parley"` | `"🤝 Trade"` |
+| `flow.js:423` | prompt `"Parley with whom?"` | `"Trade with whom?"` |
+
+Those are the **only** two places the word reaches a player. Everywhere else — the event type, the
+builder name, comments — is internal and invisible. The button's `value` is already `"trade"`. The
+`parley` narration builder's own text never contains the word.
+
+**Change 2 — the event merge (a separate defect, independently approved).** Motivation is NOT the
+wording: an accepted bot hail currently emits **both** a `parley` and a `trade` event for the same
+swap (`flow.js:756-761`), writing two captain's-log lines for one trade. Fix: a single `trade` event
+carrying an `ok` field alongside the existing `kind` (`swap`/`buy`/`counter`/`hail`); the refusal
+wording becomes a branch inside the one `trade` builder; the `parley` event type and its table entry
+are removed.
+
+**Determinism is NOT at risk** — verified: **zero `parley` events across all 31 fixtures**, because
+`Game.play()`'s headless path never emits them (they arise only from human trade flows in
+`src/ui/flow.js`). The engine's own event stream is untouched, so the phase's governing constraint
+holds.
+
+**Both land in 15-06.** Verify after: the word "parley" appears nowhere a player can read it, and an
+accepted hail produces exactly one log line.
+
