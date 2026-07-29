@@ -1077,3 +1077,55 @@ other `back:true`/`flip:true` labels (D-34). It stays marked as such — **no re
 on it**, and a later pass must not "restore" it as a labelled button. This closes D-39; no 15-06 or
 Phase 16 work follows from it.
 
+
+**D-40 — Cards must flag EFFECTIVELY-dead text, not just structurally-dead text.**
+
+Wyatt: *"yes, flag it on the card when the text is dead."*
+
+D-34 marks text that **can never** render (marker labels replaced by a control). D-33 marks
+**unreachable fallbacks**. Neither covers a third category Wyatt has now hit three times: text that
+is reachable in principle but that a player in a normal game will not see, because a guard upstream
+prevents it.
+
+**Canonical example — `flow.js:582`, "Crustbeard can't afford powder."** The Attack option carries
+`disabled:!canAfford`, and `localAsk()` gives disabled buttons no click handler, so the normal path
+cannot reach it. The code comment says so outright: *"the button is disabled when you can't afford
+powder, but guard the action too (e.g. a forced/edge selection)."* It is a genuine safety net against
+a desynced multiplayer client — **worth keeping, not worth rewriting.**
+
+**Why it matters:** the wording a player actually reads in that situation is the `sub` helper text at
+`flow.js:560` — *"Yer too poor to afford powder! Go fishin'"* — a **different card**. Wyatt's pass-1
+rewrite went onto the guard, not the live line. Third time this has happened (D-33 dubloon fallback,
+D-34 back labels, now this), each time because the page gave no signal which of a near-identical pair
+was the live one.
+
+**Required:** a third card badge — *"Guarded: reachable only if an upstream guard fails; players will
+not normally see this"* — naming the guard and, where one exists, **the live sibling that carries this
+wording for real** (here: the `sub` helper at `flow.js:560`). Distinct from the dead-copy badge, since
+the text is worth keeping; the point is to stop rewrites landing on it.
+
+**D-41 — The Parley button leads to a dead end. It should be disabled with helper text, like Attack.**
+
+Wyatt: *"this shouldn't be shown because it should be greyed out. It should be displayed as helper
+text underneath a greyed out button explaining why it's greyed out."* — about `flow.js:410`,
+*"No one has cargo to trade for."*
+
+**The button's condition is far coarser than the action's.** `flow.js:551` offers Parley when
+`tradeOpp(p).length`, and with `cfg.parley:true` `tradeOpp()` returns **every player still in the
+game** — no distance check, no cargo check. `humanTrade()` then filters to `q.ing.length>0` and
+bails with the message when none qualify.
+
+**So the dead end is common, not exotic** — any round where no opponent is holding a crate, which
+includes the opening rounds before anyone has docked. The player clicks Parley and is bounced
+straight back.
+
+**Fix (follows the Attack precedent already in this file):** compute the real availability once —
+`tradeOpp(p).filter(q => q.ing.length > 0)` — and use it for **both** the button's `disabled` flag and
+the action guard. Add `sub` helper text under the greyed button explaining why (e.g. *"No one's
+holding cargo to parley for yet."*). `flow.js:410`'s flash then becomes a guarded safety net like
+D-40's, rather than a routine dead end.
+
+**Scope note:** this is a behaviour change (disabling a button), not pure copy — but it is
+presentation-tier, touches no engine code, and the exact pattern already exists in `humanAct` for
+Attack. Flagged for Wyatt to confirm 15-06 rather than Phase 16.
+
