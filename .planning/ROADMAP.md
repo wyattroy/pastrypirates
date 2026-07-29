@@ -45,6 +45,7 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 - [ ] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06)
 - [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01)
 - [ ] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01)
+- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07)
 
 ## Phase Details
 
@@ -431,6 +432,22 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 
 ## Backlog
+
+
+### Phase 18: Narration Pacing — commentary, not a gate
+
+**Goal**: Narration reads as a running commentary that never gates play — in sync for every player, replaced cleanly by the next line, and never a reason the game feels slow.
+**Depends on**: Phase 15 (narration copy + the guest hold/fade from D-57 must land first).
+**Requirements**: NARR-07
+**Success Criteria** (what must be TRUE):
+
+  1. The game loop does not wait on narration. `flash()` is awaited at **27 call sites** today, each blocking for `typewriter reveal + msgHoldMs(text) + 500ms`; after this phase, narration timing is a display concern only. *(NARR-07)*
+  2. A player who acts before a line has finished appearing does not stall anyone else; the next line replaces the current one for every player at once. *(NARR-07)*
+  3. Nothing blurs past unread — removing the block must not make a busy round unreadable. Judged by a real two-player playtest, before and after, not by a unit test.
+  4. Host and guest share one timing source (`msgHoldMs`), so a future change to the hold applies to both — the D-57 failure mode cannot recur.
+
+**Origin**: Phase 15 playtest, 2026-07-29 (15-CONTEXT D-58). Wyatt: *"everyone's narration should stay in sync… what we *don't* want is for the game to drag."*
+**Plans**: TBD
 
 ### Phase 999.1: Resume restores exact narration step on reload (BACKLOG)
 
