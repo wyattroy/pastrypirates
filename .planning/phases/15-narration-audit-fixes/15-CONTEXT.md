@@ -1745,3 +1745,38 @@ line has nowhere to go and would be silently lost, exactly as the addressed form
 was written from the **first-named party's** side — attacker, offerer, bettor. Those stay where they
 are; the new field starts empty for the second party.
 
+
+**D-55 — Guest sail-highlights are a second, degraded rendering. Same host/guest fork, third instance.**
+
+Found while Claude played as a guest in Wyatt's game (2026-07-29): selecting `.sailCell` returned
+nothing, so three turns were silently spent clicking "Stay put". The class exists only on the host's
+board. Wyatt: *"Might be worth 15-06 or Phase 16 giving guest highlights the same class, purely so
+the two boards are inspectable the same way."* — **agreed, and the player-facing half matters more.**
+
+| | Host (`localPickCell`, `flow.js:196`) | Guest (`remotePickHighlights`, `flow.js:1040`) |
+|---|---|---|
+| class | `sailCell` | **none** |
+| fill | `#ffc23a` | `#fdb63d` |
+| opacity | `.5` (via CSS) | `.4` (inline) |
+| animation | **`sailBounce` pulse**, staggered per cell | **none** |
+| hover | **brightness + drop-shadow** (`index.html:413`) | **none** |
+| reduced-motion | honoured (`index.html:418`) | n/a — nothing animates |
+
+**So a guest's move options don't pulse, don't respond to the cursor, and are dimmer and a different
+orange.** The affordance that says *"these are clickable"* is the animation and the hover, and guests
+get neither. Two players in the same game are looking at materially different boards.
+
+**This is the D-35 fork a third time.** The sail decision has forked host/guest code, and each fork
+has drifted independently: D-35 the *wording*, this the *DOM contract*, and this the *visual
+affordance*. Same root cause every time — `flow.js:178`'s `decisionIsLocal(p.idx) ? localPickCell(…)
+: remotePickHighlights(…)`.
+
+**Fix:** give guest highlights `class:"sailCell"` and drop the inline fill/opacity so both paths take
+the same CSS. One line, and it fixes the animation, hover, colour and reduced-motion handling at
+once — inspectability comes free.
+
+**Scope: Phase 16, not 15-06.** It is visual polish with no narration content, and Phase 16 already
+owns UI-01…07. Flagged there rather than smuggled into a copy pass. **Related: D-35's wording fix
+(15-06) touches the same two functions — worth doing both in one sitting so the fork is closed
+rather than half-closed.**
+
