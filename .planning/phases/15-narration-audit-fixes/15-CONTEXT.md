@@ -1709,3 +1709,39 @@ and not a defect.
 **Verification:** no applied narration string contains `--`; every `–` in shipped copy sits between
 two digits.
 
+
+**D-54 — Two-party lines render THREE variants but the editor offers TWO fields. Add the third.**
+
+Wyatt, of the battle opening card: *"these battle lines NEED three options, just like are currently
+displayed. can you add those just here for parity?"*
+
+**The card already renders all three** — it is the editor that is short:
+
+| Rendered | Editable? |
+|---|---|
+| Neutral — *"Crustbeard attacks Davy Scones! First to 2 points wins…"* | ✅ Notes |
+| Addressed to the **attacker** — *"Crustbeard — ye attack Davy Scones!…"* | ✅ Addressed field (D-47) |
+| Addressed to the **defender** — *"Crustbeard attacks ye!…"* | ❌ **no field** |
+
+**13 cards are affected** — every two-party event, i.e. those where `narrationSubjects()`
+(`util.js:548`) returns two seats: `battle`, `battleflee`, `parley` (×2 branches), `trade` (×2),
+`blocked`, `bakeoff`, the battle opening announcement, and both side-bet lines.
+
+**This is D-47 one step further.** D-47 fixed "one box for two renderings"; two-party events have
+**three**, and the second addressed form is currently unwritable — so a rewrite of the defender's
+line has nowhere to go and would be silently lost, exactly as the addressed forms were before D-47.
+
+**Required:**
+- A **second addressed field on two-party cards only** — do not add a dead third box to the ~200
+  single-subject cards.
+- **Label each by its role, not by seat index** — *"Addressed to the attacker"* / *"…the defender"*,
+  *"…the offerer"* / *"…the other captain"*. `Crustbeard`/`Davy Scones` are sample names; a label
+  reading "Addressed to Davy Scones" tells him nothing about which role ships that line.
+- Derive the count from the card's actual rendered variants (it already knows — that is how the page
+  renders three boxes), never a hand-listed set of ids.
+- Export under its own key; feed the derived-intent line like the other two.
+
+**Note for the migration:** for the 13 affected cards Claude's drafted addressed text (D-47 follow-up)
+was written from the **first-named party's** side — attacker, offerer, bettor. Those stay where they
+are; the new field starts empty for the second party.
+
