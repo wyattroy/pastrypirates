@@ -555,3 +555,42 @@ divergence. It must surface it *before*:
 Known shared-string group at time of writing: `justDocked` / `home` / `dock`-when-unmoved all render
 `stillDocked`. The probe must find any others rather than relying on that list.
 
+
+**D-29 — Global pirate second person: "you" → "ye", "your" → "yer". Applied as a RULE, not 81 edits.**
+
+Wyatt: *"I want to write 'ye' instead of 'you' and 'yer' instead of 'your' everywhere in the
+narration, but I don't want to manually 'rewrite' each block just to do that -- can you write a note
+to do that yourself?"*
+
+**Scale:** 134 occurrences across `src/ui/util.js`, `src/ui/flow.js`, `src/orchestrator.js`,
+`src/ui/panel.js` — `you` ×80, `your` ×35, `You` ×12, `You're` ×5, `Your` ×2. The voice is already
+partly there: `flow.js` alone has `yer` ×13 and `ye` ×14, so this finishes a conversion already begun
+rather than introducing a new register.
+
+**MANDATORY — word-boundary matching.** A boundary-less replace corrupts code: `layout`
+(`src/ui/util.js`, `src/orchestrator.js`) contains `you` and would become `layet`. Use `\byou\b` /
+`\byour\b` etc. Never a bare substring replace.
+
+**Case must be preserved:** `You`→`Ye`, `Your`→`Yer`, `you`→`ye`, `your`→`yer`.
+
+**Scope — player-facing narration string literals ONLY.** Never identifiers, never comments, never
+the audit page's own UI chrome, never variable/function/CSS names.
+
+**CRITICAL INTERACTION WITH D-25 — the page must apply this rule LIVE.** D-25 fixed `keep` to mean
+"ship exactly what this card displays". If the you→ye rule were applied later, at 15-06 time, then
+what ships would differ from what Wyatt approved, silently breaking that contract on every card. So
+**the audit page must render the converted text**, and Wyatt reviews the final pirate wording. The
+rule is applied once, visibly, at review time — not invisibly afterwards. The same conversion must
+also apply to replacement copy he types into a notes box, so his own rewrites match the register
+without him having to type `ye` by hand.
+
+**OPEN QUESTIONS — do not guess, ask Wyatt:**
+
+1. **`you're` (5 occurrences)** — `yer` or `ye're`? Pirate convention uses `yer` for both *your* and
+   *you're* ("yer carried by the storm" reads naturally), which is the recommendation, but it is his
+   call.
+2. **Scope beyond narration** — he said "in the narration". Action prompts and buttons are also
+   player-facing ("Ahoy, what do ye want to do?"). Converting them too keeps one consistent voice;
+   leaving them makes the game read in two registers. **Ask before widening.**
+3. `yours` / `yourself` — none currently present; if any appear, `yers` / `yerself`.
+
