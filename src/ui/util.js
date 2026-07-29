@@ -208,7 +208,22 @@ export function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
 // possessive form for narration addressed to spectators of someone else's turn, e.g. "Davy Scones' turn"
 export function poss(i){const nm=pname(i);return `<b style="color:${HEXCOL[i]}">${nm}${nm.endsWith("s")?"'":"'s"}</b>`;}
 export function fl(h){return h?"⚪H":"⚫T";}
-export function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_EMOJI[x]||"")+" "+iname(x);}
+// D-17 (Wyatt-approved 2026-07-29): ingredients render as the SAME custom art the islands and the
+// captain's box draw (ilabelImg -> ING_IMG), not as raw system emoji. None of the 7 in-play
+// ingredient emoji are EMOJI_IMG keys, so emojify() could never rescue them downstream — they were
+// reaching the screen as system glyphs sitting beside custom coin art, the exact inconsistency he
+// reported. Two guards below are load-bearing, not padding:
+//   - the /coin/ branch stays FIRST and unchanged: x is not always an ingredient key. flow.js's
+//     offerLabel composes a DISPLAY string ("Toasty Wheat + 2 coins") and the engine emits
+//     price+" coins"; both contain "coin", so this branch already handles them and reordering
+//     would break them.
+//   - the ING_IMG[x] guard is required for the same reason: offerLabel with zero coins yields the
+//     display NAME ("Toasty Wheat"), and "nothing" is emitted at three flow.js sites. Without it
+//     those would emit <img src="undefined">. With it they fall through to the previous output
+//     byte-for-byte.
+// D-17 is also explicit that the ~145 raw emoji elsewhere in narration source are deliberate
+// shorthand that emojify() converts at its two chokepoints — the defect was only this one branch.
+export function fmtItem(x){return /coin/.test(x)?x.replace(" coins","🌕").replace("coins","🌕"):(ING_IMG[x]?ilabelImg(x):(ING_EMOJI[x]||"")+" "+iname(x));}
 // Single source of truth for what an event says (long-log text), pops (board emoji/icon
 // animation), and caps (per-ship mini-log caption) — one function per event type instead of
 // three independent switches that used to drift out of sync with each other (see describe()/

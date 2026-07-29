@@ -23,8 +23,9 @@
 
 import {
   EVENT_NARRATION, describe, pname, pn, describeFor, NEUTRAL_VIEWER, narrationVariants,
-  pickNarrVariant, msgHoldMs, botMsgHoldMs, chatBubbleHoldMs,
+  pickNarrVariant, msgHoldMs, botMsgHoldMs, chatBubbleHoldMs, fmtItem,
 } from "../src/ui/util.js";
+import { ilabelImg, ING_IMG, ING_ALL } from "../src/shared/index.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
 // D-54: src/ui/flow.js's flash() sites are not table-driven, so the one approved ad-hoc line there
@@ -370,6 +371,55 @@ for (const key of KEYS) {
       src.includes("calls ye to win and bets ${amt}\u{1F315} on it!"));
     checkTrue("D-54: the free-call sibling is untouched (matches its own approved row already)",
       src.includes("calls ye to win from the crow's nest."));
+  }
+}
+
+/* ---------- D-17 (Wyatt-approved 2026-07-29): fmtItem() renders ingredients as custom art --------
+   The gap: fmtItem() was byte-unchanged since before Phase 15 and still emitted ING_EMOJI[x]. None
+   of the 7 in-play ingredient emoji are EMOJI_IMG keys, so emojify() could not rescue them
+   downstream — they reached the screen as raw system glyphs beside custom coin art.
+
+   This block pins the fix AND all three of its traps: the coin branch must stay first, the
+   ING_IMG guard must keep non-key inputs byte-identical, and the emitted src must be the SAME
+   file the islands and the captain's box draw (D-17's own stated verification). */
+{
+  // --- the fix itself, across every in-play ingredient, not just one sample ---
+  const RAW_ING_EMOJI = /[\u{1F33E}\u{1F95B}\u{1F36C}\u{1F95A}\u{1F36B}\u{1F336}\u{1F33C}]/u;
+  for (const key of ING_ALL) {
+    const out = fmtItem(key);
+    check(`D-17 fmtItem(${key}): equals ilabelImg(${key}) — the shared custom-art helper`,
+      out, ilabelImg(key));
+    checkTrue(`D-17 fmtItem(${key}): emits no raw system ingredient emoji`, !RAW_ING_EMOJI.test(out));
+    // D-17's own stated check: the inline src is the island / captain's-box asset, not a lookalike
+    checkTrue(`D-17 fmtItem(${key}): src is ING_IMG.${key}, the same asset the board draws`,
+      out.includes(`src="${ING_IMG[key]}"`));
+    checkTrue(`D-17 fmtItem(${key}): carries the narrIcon class`, out.includes('class="narrIcon"'));
+  }
+
+  // --- trap 1: the /coin/ branch stays FIRST and unchanged ---
+  check("D-17 trap 1: fmtItem('2 coins') unchanged (coin branch leads)", fmtItem("2 coins"), "2🌕");
+  check("D-17 trap 1: fmtItem('coins') unchanged", fmtItem("coins"), "🌕");
+  // offerLabel composes a DISPLAY string, not an ingredient key — it must not be re-looked-up
+  check("D-17 trap 1: fmtItem('Toasty Wheat + 2 coins') unchanged (composite display label)",
+    fmtItem("Toasty Wheat + 2 coins"), "Toasty Wheat + 2🌕");
+
+  // --- trap 2: the ING_IMG guard keeps every non-key input byte-identical, never <img src=undefined>
+  for (const probe of ["nothing", "Toasty Wheat", "", "Crystal Sugar"]) {
+    const out = fmtItem(probe);
+    checkTrue(`D-17 trap 2: fmtItem(${JSON.stringify(probe)}) emits no <img src="undefined">`,
+      !/undefined/.test(out) && !/<img/.test(out));
+  }
+  // "nothing" is emitted at three src/ui/flow.js sites; pin its exact pre-change output
+  check("D-17 trap 2: fmtItem('nothing') is byte-identical to its pre-change output",
+    fmtItem("nothing"), " nothing");
+
+  // --- the end-to-end effect: a rendered trade line carries art, not emoji ---
+  {
+    const t = EVENT_NARRATION.trade({ t: "trade", a: 0, b: 1, gave: "wheat", got: "sugar" }, at, 0, NEUTRAL_VIEWER);
+    check("D-17: a rendered trade event's text carries exactly 2 narrIcon images",
+      (t.txt.match(/class="narrIcon"/g) || []).length, 2);
+    checkTrue("D-17: a rendered trade event's text carries zero raw ingredient emoji",
+      !RAW_ING_EMOJI.test(t.txt));
   }
 }
 
