@@ -457,6 +457,25 @@
     still uses an ASCII hyphen.
   </p>
   <p class="methodNote">
+    <b>Fabricated events must be ones the real game could produce (D-51).</b> Wyatt, of
+    <code>table:battle~crate</code>: <i>"this shouldn't say 'null' right? … Crustbeard takes
+    null."</i> It shouldn't, and the game never produces it — a hand-written <code>spoil:
+    null</code> reached a rendered card. A <b>third</b> class of defect, distinct from the two
+    already self-checked: D-21 catches a branch the game produces but no card renders; D-33/34/
+    40/43 catch a card rendering text the game can never produce; <b>this catches a card rendering
+    the RIGHT line with IMPOSSIBLE VALUES</b> — copy judged against numbers that could not occur.
+    Every fabricated <code>battle</code> event (both the rendered cards and the self-check probe's
+    own field-enumeration) is now asserted against its real emit sites' invariants: <code>spoil</code>
+    and <code>spoilIng</code> are always set <b>together</b> (derived via
+    <code>ilabelImg()</code>, the same helper the game itself calls — never a hand-written
+    literal, which is how the null got in), and a battle's score must be one <code>asyncBattle()</code>'s
+    own first-to-2 rule could actually reach (a fabricated 1–1 tie is impossible — fixed to a
+    genuine 2–1 in 3 rounds). Checked against every OTHER fabricated event on the page for the
+    same class of defect (paired fields, reachable scores) — see the plan's own execution notes
+    for the full audit; everything else either had no such invariant or was already internally
+    consistent.
+  </p>
+  <p class="methodNote">
     <b>A THIRD badge — reachable in principle, guarded in practice (D-40).</b> Distinct from
     D-33 (structurally unreachable) and D-34 (a marker label a control replaces): this text COULD
     render, but a normal game never reaches it because an upstream guard — usually a disabled
@@ -697,7 +716,10 @@ const BASE_EVENTS = {
   dock: () => ({ t: "dock", p: 0, ing: "wheat", got: "ing", heads: 1 }),
   trade: () => ({ t: "trade", a: 0, b: 1, gave: "wheat", got: "sugar" }),
   sidebet: () => ({ t: "sidebet", p: 2, won: true, amt: 2, delta: 5, on: "a" }),
-  battle: () => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[1, 0, false, "a"], [0, 1, false, "d"]], spoil: "5 coins", spoilIng: null }),
+  // D-51 (Wyatt, of the rendered "wins 1–1 in 2 rounds"): asyncBattle() is first to 2 hits
+  // (orchestrator.js:386, need=2) — a battle can never end tied with a winner. 2–1 in 3 rounds is
+  // a genuinely reachable outcome (winner scores twice, loser once) rather than an impossible tie.
+  battle: () => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[1, 0, false, "a"], [0, 1, false, "d"], [1, 0, false, "a"]], spoil: "5 coins", spoilIng: null }),
   battleflee: () => ({ t: "battleflee", a: 0, d: 1 }),
   fish: () => ({ t: "fish", p: 0, heads: 1 }),
   finish: () => ({ t: "finish", p: 0 }),
@@ -769,7 +791,13 @@ const TABLE_BRANCHES = {
   battle: [
     { tag: null, label: "Coin spoil — genuine bribe (a full 5-coin purse)", fields: { spoil: "5 coins", spoilIng: null } },
     { tag: "cleaned", label: "Coin spoil — cleaned out (under 5 coins)", fields: { spoil: "2 coins", spoilIng: null } },
-    { tag: "crate", label: "Ingredient spoil — a crate changes hands", fields: { spoil: null, spoilIng: "cocoa" } },
+    // D-51 (Wyatt: "this shouldn't say 'null' right? … Crustbeard takes null" — correct, the game
+    // never produces it): every real emit site sets spoil and spoilIng TOGETHER —
+    // spoil=ilabelImg(pick), spoilIng=pick (orchestrator.js:546, engine/index.js:572-573) — the
+    // builder renders `takes ${e.spoil}` for the ingredient case (util.js:473), so a hand-written
+    // null prints the literal word "null". Derived via the SAME helper the game uses, not a
+    // hand-written literal — that's how the null got in in the first place.
+    { tag: "crate", label: "Ingredient spoil — a crate changes hands", fields: { spoil: ilabelImg("cocoa"), spoilIng: "cocoa" } },
   ],
   fish: [
     { tag: null, label: "Heads — sugarfish", fields: { heads: 1 } },
@@ -813,11 +841,55 @@ function recordNeutralTextEntry(id, label, baseKey, text) {
   NEUTRAL_TEXT_ENTRIES.push({ id, label, baseKey, text });
 }
 
+/* ============================================================================
+ * D-51 (Wyatt, of table:battle~crate: "this shouldn't say 'null' right? …
+ * Crustbeard takes null" — correct, the game never produces it): a THIRD class
+ * of audit-page defect, distinct from the two already self-checked —
+ *   D-21            a branch the game produces but no card renders
+ *   D-33/34/40/43   a card renders text the game can never produce
+ *   D-51            a card renders the RIGHT line with IMPOSSIBLE VALUES
+ * Collected during card construction (renderTableBranch runs long before
+ * probeFailures exists — same reason RENDERED_TEXTS/NEUTRAL_TEXT_ENTRIES are
+ * also collected early and consumed later), merged into probeFailures once
+ * it exists, below.
+ * ==========================================================================*/
+const FABRICATED_EVENT_VIOLATIONS = [];
+function assertBattleEventInvariants(ev, label) {
+  // Paired-field invariant: every real emit site sets spoil and spoilIng TOGETHER —
+  // spoil=ilabelImg(pick), spoilIng=pick (orchestrator.js:546, engine/index.js:572-573) — and
+  // spoil is never null/undefined even on a coin win (util.js:473 always renders `takes
+  // ${e.spoil}` once a spoil clause fires at all). A hand-written `spoil:null` is how the
+  // literal word "null" reached a rendered card.
+  if (ev.spoilIng) {
+    const expected = ilabelImg(ev.spoilIng);
+    if (ev.spoil !== expected) {
+      FABRICATED_EVENT_VIOLATIONS.push(`${label}: spoilIng=${JSON.stringify(ev.spoilIng)} is set but spoil is not ilabelImg(spoilIng) (got ${JSON.stringify(ev.spoil)}) — real emit sites always set both together (D-51)`);
+    }
+  } else if (ev.spoil == null) {
+    FABRICATED_EVENT_VIOLATIONS.push(`${label}: spoil is ${JSON.stringify(ev.spoil)} with no spoilIng set — the real game never leaves spoil unset (D-51)`);
+  }
+  // Reachable-score invariant: asyncBattle() is first to 2 hits (orchestrator.js:386, need=2) —
+  // the winner's own round count must be exactly 2, and the loser can never also reach 2 (that
+  // would mean the battle kept running past a decided outcome).
+  if (Array.isArray(ev.rounds)) {
+    const aScore = ev.rounds.filter((r) => r[3] === "a").length;
+    const dScore = ev.rounds.filter((r) => r[3] === "d").length;
+    const winnerScore = ev.winner === ev.a ? aScore : dScore;
+    const loserScore = ev.winner === ev.a ? dScore : aScore;
+    if (winnerScore !== 2 || loserScore >= 2) {
+      FABRICATED_EVENT_VIOLATIONS.push(`${label}: rounds score ${aScore}-${dScore} is not a reachable outcome for a first-to-2 battle (D-51)`);
+    }
+  }
+}
+
 function renderTableBranch(key, spec) {
   resetEvents();
   const ev = spec.buildEvent
     ? spec.buildEvent()
     : Object.assign(BASE_EVENTS[key](), spec.fields || {});
+  // D-51: check the ACTUAL constructed event (this exact object, not a hand-maintained parallel
+  // reconstruction that could drift) against its real-emit-site invariants before it's rendered.
+  if (key === "battle") assertBattleEventInvariants(ev, tableCardId(key, spec.tag));
   const run = () => {
     const rendered = describeFor(ev, NEUTRAL_VIEWER);
     const variants = narrationVariants(ev);
@@ -2294,8 +2366,10 @@ const PROBE_AXES = {
   aground: [{ ing: null }, { ing: "wheat" }],
   dock: [{ got: "ing" }, { got: "empty" }, { got: "bought" }, { got: "coins" }],
   sidebet: [{ won: true, amt: 0, delta: 1 }, { won: true, amt: 2, delta: 5 }, { won: false, amt: 0, delta: 0 }, { won: false, amt: 2, delta: -2 }],
+  // D-51: the crate-spoil probe axis carried the same hand-written `spoil: null` the rendered
+  // card did — fixed the same way (derived via ilabelImg, never a literal).
   battle: [
-    { spoil: "5 coins", spoilIng: null }, { spoil: "2 coins", spoilIng: null }, { spoil: null, spoilIng: "cocoa" },
+    { spoil: "5 coins", spoilIng: null }, { spoil: "2 coins", spoilIng: null }, { spoil: ilabelImg("cocoa"), spoilIng: "cocoa" },
   ],
   shotclockskip: [{ ing: null }, { ing: "wheat" }],
 };
@@ -2308,6 +2382,10 @@ function probeCheck(key, fields, cfg) {
   resetEvents();
   const run = () => {
     const ev = Object.assign(BASE_EVENTS[key](), fields || {});
+    // D-51: the probe's own fabricated events are subject to the same real-emit-site invariants
+    // as the rendered cards — collected into the SAME FABRICATED_EVENT_VIOLATIONS array
+    // renderTableBranch already uses, merged into probeFailures once, below.
+    if (key === "battle") assertBattleEventInvariants(ev, `probe:battle:${JSON.stringify(fields)}`);
     const rendered = describeFor(ev, NEUTRAL_VIEWER);
     const variants = narrationVariants(ev);
     const texts = [];
@@ -2324,6 +2402,12 @@ Object.entries(PROBE_CFG_AXES).forEach(([key, combos]) => combos.forEach((c) => 
   const { __heads, ...cfg } = c;
   probeCheck(key, __heads !== undefined ? { heads: __heads } : {}, Object.keys(cfg).length ? cfg : null);
 }));
+// D-51: merge every fabricated-event invariant violation found so far — both renderTableBranch's
+// (collected while building the actual rendered cards, long before probeFailures existed) and
+// probeCheck's own (collected just above) — into the SAME shared banner D-21/D-33/34/40/43
+// already use, rather than a separate, easy-to-miss channel. One merge point, after every
+// producer of FABRICATED_EVENT_VIOLATIONS has already run.
+FABRICATED_EVENT_VIOLATIONS.forEach((msg) => probeFailures.push({ key: "fabricatedInvariant", text: msg }));
 // moored: probe every reason value (including an unrecognized one) against the SAME movedSinceTurnStart
 // path the rendered cards use, via a fresh independent event object each time.
 ["justDocked", "dock", "home", "bogus", undefined].forEach((reason) => {
@@ -2550,7 +2634,7 @@ if (probeFailures.length) {
   selfCheckBanner.insertAdjacentHTML("beforeend", `<pre id="__debugFailures" style="white-space:pre-wrap;font-size:0.7rem;margin-top:8px;">${escapeHtml(JSON.stringify(probeFailures, null, 2))}</pre>`);
 } else {
   selfCheckBanner.className = "selfCheckBanner pass";
-  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44/D-49, never a silent bare tag), every card carries its second, Addressed ("you") copy field (D-47, so 15-06 can never silently discard that rendering), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
+  selfCheckBanner.textContent = `✓ Self-check passed — every probed branch text is covered by a rendered card (${Object.keys(RENDERED_TEXTS).length} table keys probed), every ask()/panel() prompt + static button label from the extraction script's inventory has a matching card (D-30), every D-32 surface (${(inv.misc || []).length} misc entries, ${(inv.awards || []).length} awards, 7 dock-flavour ingredients) has one too, the inverse holds (D-33/D-34/D-40/D-43): every known-unreachable prompt fallback, every back:true/flip:true "dead" button label, every guarded-but-worth-keeping line, and every branch roundCfg()'s own hardcoded flags can never produce is clearly marked toward the card that actually ships, every merge-defaulted card can resolve to a pre-set target or the loud "choose one" state (D-44/D-49, never a silent bare tag), every card carries its second, Addressed ("you") copy field (D-47, so 15-06 can never silently discard that rendering), every fabricated battle event satisfies its real emit sites' invariants — paired spoil/spoilIng, a reachable first-to-2 score (D-51, no more impossible values behind a correctly-rendered line), AND every parenthesised coin amount carries a sign with no ASCII-hyphen minuses left (D-38, live-applied). Scope is now "every string a player can read — and nothing else," not a fixed mechanism list.`;
 }
 
 /* ============================================================================
