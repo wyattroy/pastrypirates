@@ -508,6 +508,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -518,10 +519,17 @@
       "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Pay 1🌕 to slip away and flee the battle?`",
       "rawOpts": "[{label:\"🏃 Flee! (−1🌕)\",value:true},{label:\"Keep fighting\",value:false}]",
       "labels": [
-        "\"🏃 Flee! (−1🌕)\"",
-        "\"Keep fighting\""
+        {
+          "raw": "\"🏃 Flee! (−1🌕)\"",
+          "condition": null
+        },
+        {
+          "raw": "\"Keep fighting\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -532,10 +540,17 @@
       "rawMsg": "`${pn(lose.idx)}, you lost! Pay with…`",
       "rawOpts": "[{label:\"5🌕\",value:\"coins\"},{label:\"a crate (winner picks)\",value:\"ing\"}]",
       "labels": [
-        "\"5🌕\"",
-        "\"a crate (winner picks)\""
+        {
+          "raw": "\"5🌕\"",
+          "condition": null
+        },
+        {
+          "raw": "\"a crate (winner picks)\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -547,6 +562,7 @@
       "rawOpts": "uniq.map(i=>({label:ilabelImg(i),value:i}))",
       "labels": [],
       "dynamicLabelCount": 1,
+      "dynamicBase": "uniq.map(i=>({label:ilabelImg(i),value:i}))",
       "isLiteral": true
     },
     {
@@ -558,6 +574,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -569,6 +586,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -580,6 +598,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -591,6 +610,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -602,6 +622,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -611,8 +632,18 @@
       "kind": "ask",
       "rawMsg": "label||\"Flip the dubloon!\"",
       "rawOpts": "opts",
-      "labels": [],
+      "labels": [
+        {
+          "raw": "\"🌕 FLIP!\"",
+          "condition": null
+        },
+        {
+          "raw": "\"← Back\"",
+          "condition": "allowBack"
+        }
+      ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": false
     },
     {
@@ -622,8 +653,18 @@
       "kind": "ask",
       "rawMsg": "label||`${pn(p.idx)}: cast your line — flip!`",
       "rawOpts": "opts",
-      "labels": [],
+      "labels": [
+        {
+          "raw": "\"🎣 CAST!\"",
+          "condition": null
+        },
+        {
+          "raw": "\"← Back\"",
+          "condition": "allowBack"
+        }
+      ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": false
     },
     {
@@ -635,6 +676,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -644,8 +686,26 @@
       "kind": "ask",
       "rawMsg": "promptMsg",
       "rawOpts": "opts",
-      "labels": [],
+      "labels": [
+        {
+          "raw": "\"Pay 1🌕 to anchor\"",
+          "condition": "p.coins>=1"
+        },
+        {
+          "raw": "\"Flip! Heads: dodge. Tails: lose yer turn!\"",
+          "condition": "trueShipwreck"
+        },
+        {
+          "raw": "\"Flip! Heads: dodge. Tails: lose a crate!\"",
+          "condition": "broke"
+        },
+        {
+          "raw": "\"Flip! Heads: dodge. Tails: lose half 🌕\"",
+          "condition": null
+        }
+      ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": false
     },
     {
@@ -656,10 +716,17 @@
       "rawMsg": "`Tails! Take 3🌕 — or buy ${ilabelImg(ing)} anyway for 3🌕?`",
       "rawOpts": "[\n        {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:\"Take 3🌕\",value:false}]",
       "labels": [
-        "`Buy ${ilabelImg(ing)} (−3🌕)`",
-        "\"Take 3🌕\""
+        {
+          "raw": "`Buy ${ilabelImg(ing)} (−3🌕)`",
+          "condition": null
+        },
+        {
+          "raw": "\"Take 3🌕\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -670,9 +737,13 @@
       "rawMsg": "\"Parley with whom?\"",
       "rawOpts": "opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:\"← Back\",back:true,value:\"__back__\"}])",
       "labels": [
-        "\"← Back\""
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 1,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -683,9 +754,13 @@
       "rawMsg": "`What do you want from ${pn(st.q.idx)}?`",
       "rawOpts": "[...new Set(st.q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:\"← Back\",back:true,value:\"__back__\"}])",
       "labels": [
-        "\"← Back\""
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 1,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -695,8 +770,18 @@
       "kind": "ask",
       "rawMsg": "\"Offer which ingredient (or coins only)?\"",
       "rawOpts": "ingOpts",
-      "labels": [],
+      "labels": [
+        {
+          "raw": "\"— coins only —\"",
+          "condition": null
+        },
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
+      ],
       "dynamicLabelCount": 0,
+      "dynamicBase": "[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}))",
       "isLiteral": true
     },
     {
@@ -707,9 +792,13 @@
       "rawMsg": "\"Ye don't have any to offer!\"",
       "rawOpts": "[{label:\"← Back\",back:true,value:-1}]",
       "labels": [
-        "\"← Back\""
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -719,8 +808,14 @@
       "kind": "ask",
       "rawMsg": "st.baseIng?`Sweeten with coin? (offering ${ilabelImg(st.baseIng)})`:\"How many coins?\"",
       "rawOpts": "coinOpts",
-      "labels": [],
+      "labels": [
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
+      ],
       "dynamicLabelCount": 0,
+      "dynamicBase": "coinChoices.map(n=>({label:n===0?\"No extra coins\":`+${n}🌕`,value:n}))",
       "isLiteral": false
     },
     {
@@ -731,10 +826,17 @@
       "rawMsg": "`${pn(q.idx)}: accept ${offerDisplay} for your ${ilabelImg(want)}?`",
       "rawOpts": "[{label:`${iconImg(CHECKMARK_IMG)} Accept`,value:true},{label:`${iconImg(CANCEL_X_IMG)} Decline`,value:false}]",
       "labels": [
-        "`${iconImg(CHECKMARK_IMG)} Accept`",
-        "`${iconImg(CANCEL_X_IMG)} Decline`"
+        {
+          "raw": "`${iconImg(CHECKMARK_IMG)} Accept`",
+          "condition": null
+        },
+        {
+          "raw": "`${iconImg(CANCEL_X_IMG)} Decline`",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -745,10 +847,17 @@
       "rawMsg": "`${pn(q.idx)} scoffs — but counters: \"${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it.\"`",
       "rawOpts": "[{label:`Pay ${askFor}🌕 more`,value:true},{label:\"Walk away\",value:false}]",
       "labels": [
-        "`Pay ${askFor}🌕 more`",
-        "\"Walk away\""
+        {
+          "raw": "`Pay ${askFor}🌕 more`",
+          "condition": null
+        },
+        {
+          "raw": "\"Walk away\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -758,8 +867,34 @@
       "kind": "ask",
       "rawMsg": "prompt",
       "rawOpts": "opts",
-      "labels": [],
+      "labels": [
+        {
+          "raw": "`⚓ Dock at ${ilabelImg(port)}`",
+          "condition": "canDock"
+        },
+        {
+          "raw": "`⚔️ Attack${appState.game.cfg.powder?` (-${appState.game.cfg.powder}🌕)`:\"\"}`",
+          "condition": "targets.length"
+        },
+        {
+          "raw": "\"🤝 Parley\"",
+          "condition": "appState.game.tradeOpp(p).length"
+        },
+        {
+          "raw": "`${iconImg(CUPCAKE_IMG)} Start your bakery!`",
+          "condition": "!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1"
+        },
+        {
+          "raw": "\"🎣 Fish\"",
+          "condition": null
+        },
+        {
+          "raw": "\"← Actually, move instead\"",
+          "condition": "canMoveInstead"
+        }
+      ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": false
     },
     {
@@ -770,9 +905,13 @@
       "rawMsg": "\"Attack whom?\"",
       "rawOpts": "targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:\"← Back\",back:true,value:null}])",
       "labels": [
-        "\"← Back\""
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 1,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -783,11 +922,21 @@
       "rawMsg": "`📯 ${pn(p.idx)} hails you: \"Ahoy! ${price}🌕 for your ${ilabelImg(ing)} — what say ye?\"`",
       "rawOpts": "[{label:`Sell for ${price}🌕`,value:\"sell\"},{label:\"Counter\",value:\"counter\"},{label:\"Refuse\",value:\"refuse\"}]",
       "labels": [
-        "`Sell for ${price}🌕`",
-        "\"Counter\"",
-        "\"Refuse\""
+        {
+          "raw": "`Sell for ${price}🌕`",
+          "condition": null
+        },
+        {
+          "raw": "\"Counter\"",
+          "condition": null
+        },
+        {
+          "raw": "\"Refuse\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -798,10 +947,17 @@
       "rawMsg": "`Counter — how much for your ${ilabelImg(ing)}?`",
       "rawOpts": "raises.map(n=>({label:`${n}🌕`,value:n})).concat([{label:\"Never mind\",value:0}])",
       "labels": [
-        "`${n}🌕`",
-        "\"Never mind\""
+        {
+          "raw": "`${n}🌕`",
+          "condition": null
+        },
+        {
+          "raw": "\"Never mind\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -812,10 +968,17 @@
       "rawMsg": "`⚔️ A battle's brewing! Guess the winner for free and win a dubloon — or back your own call with coin next for double or nothing.`",
       "rawOpts": "[{label:`Call ${ns(att.idx)}`,value:\"a\"},{label:`Call ${ns(def.idx)}`,value:\"d\"}]",
       "labels": [
-        "`Call ${ns(att.idx)}`",
-        "`Call ${ns(def.idx)}`"
+        {
+          "raw": "`Call ${ns(att.idx)}`",
+          "condition": null
+        },
+        {
+          "raw": "`Call ${ns(def.idx)}`",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -826,11 +989,21 @@
       "rawMsg": "`💰 Back your call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win, you double your stake + 1🌕. Lose, you get nothing.`",
       "rawOpts": "[{label:\"Just the free call\",value:0}].concat(\n              amounts.map(n=>({label:`Back with ${n}🌕`+(n===s.coins?\" — all in!\":\"\"),value:n})))\n              .concat([{label:\"← Back\",back:true,value:\"back\"}])",
       "labels": [
-        "\"Just the free call\"",
-        "`Back with ${n}🌕`",
-        "\"← Back\""
+        {
+          "raw": "\"Just the free call\"",
+          "condition": null
+        },
+        {
+          "raw": "`Back with ${n}🌕`+(n===s.coins?\" — all in!\":\"\")",
+          "condition": null
+        },
+        {
+          "raw": "\"← Back\"",
+          "condition": null
+        }
       ],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     },
     {
@@ -842,6 +1015,7 @@
       "rawOpts": null,
       "labels": [],
       "dynamicLabelCount": 0,
+      "dynamicBase": null,
       "isLiteral": true
     }
   ]

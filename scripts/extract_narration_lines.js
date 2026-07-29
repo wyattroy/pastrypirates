@@ -281,7 +281,7 @@ const utilSites = findCallSites(src.util, FILE_PATHS.util);
 const adhoc = [...applyMeta(flowSites), ...applyMeta(orchSites), ...applyMeta(utilSites)]
   .sort((a, b) => (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)));
 
-/* ================= D-30: ask()/panel() prompt + button extraction =================
+/* ================= D-30/D-31: ask()/panel() prompt + button extraction =================
  * A third narration-adjacent surface, never in scope for D-03 — action prompts and their button
  * labels, the text players read most (every turn, every decision). Same discipline as the
  * flash()/onFlash() extraction above: mechanical, not hand-transcribed, cross-checked against an
@@ -291,26 +291,218 @@ const adhoc = [...applyMeta(flowSites), ...applyMeta(orchSites), ...applyMeta(ut
  * counted as a prompt, but still counted in the raw independent-count cross-check so a real
  * prompt can never hide behind an under-counted total.
  *
- * Button labels: only STATIC ones (a literal string/template inside `label:`) are extracted as
- * editable copy. A DYNAMIC label (e.g. `label:pn(o.idx)`, a live captain name) renders data, not
- * fixed copy — same reasoning table cards don't need one card per captain name — so it is counted
- * (dynamicLabelCount) but not extracted individually.
+ * D-31: the FIRST version of this only read an INLINE array literal passed directly as ask()'s
+ * 2nd argument. Every prompt with CONDITIONAL options — humanAct's own action menu chief among
+ * them — builds that array into a local variable first (`opts`, `ingOpts`, `coinOpts`) and the
+ * old extraction recorded `rawOpts:"opts"`, `labels:[]`: a bare identifier contains no `label:`
+ * substring for the old regex to find, so 15 of 28 prompts silently rendered zero buttons.
+ * resolveLocalOptsRaw() below follows that identifier through the ENCLOSING FUNCTION's own body:
+ * its own `const X=…` initializer, plus every `X.push(…)`/`X.unshift(…)` contribution up to the
+ * ask() call itself — concatenated into one blob and run through the SAME label-extraction regex
+ * used for inline arrays, so a bare-identifier opts variable is no longer invisible to it.
+ *
+ * Every option a `.push()`/`.unshift()` call ADDS conditionally (guarded by an `if(cond)`
+ * immediately before it, brace-less — the only shape actually used in this codebase) carries that
+ * condition alongside its label, since D-21 treats a conditionally-present option as a real branch
+ * (`windLeg`'s own `Pay 1🌕 to anchor` button, present only when `coins>=1`) — the audit page must
+ * show the option is ABSENT under the opposite condition, not just show it unconditionally.
+ *
+ * A label that is itself a bare identifier (`label:flipLabel`) is followed ONE level further: if
+ * that identifier's own `const flipLabel=cond?"A":cond2?"B":"C"` declaration is a ternary cascade,
+ * splitTernaryLeaves() below splits it into one branch per leaf, each carrying its own condition —
+ * this is the exact shape `windLeg`'s 3-way flip button needed (D-31's own worked example).
+ *
+ * Genuinely dynamic option GENERATORS (`uniq.map(i=>({label:ilabelImg(i),…}))` — the array itself,
+ * not one option within it, is produced from live game state) are recorded as `dynamicBase`, never
+ * silently dropped — the audit page renders a described placeholder naming the generator rather
+ * than showing nothing (D-31's explicit "silence is what caused this").
  */
 function isEmptyStringLiteral(raw) {
   const t = (raw || "").trim();
   return t === '""' || t === "''" || t === "``";
 }
-function extractLabels(optsRaw) {
-  if (!optsRaw) return { labels: [], dynamicLabelCount: 0 };
-  const labelValueRe = /label\s*:\s*(`(?:[^`\\]|\\.)*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g;
-  const labels = [];
-  let m;
-  while ((m = labelValueRe.exec(optsRaw))) labels.push(m[1]);
-  const allLabelRe = /label\s*:/g;
-  let totalLabelKeys = 0;
-  while (allLabelRe.exec(optsRaw)) totalLabelKeys++;
-  return { labels, dynamicLabelCount: Math.max(0, totalLabelKeys - labels.length) };
+const LABEL_KEY_RE = /label\s*:\s*/g;
+const IDENTIFIER_RE = /^[A-Za-z_$][\w$]*$/;
+
+// Scans forward from `startIdx` (right after "label:") and captures exactly one value expression
+// — up to the first TOP-LEVEL ',' or the enclosing object literal's own closing '}' — using a
+// context stack (value/paren/bracket/brace/template/templateExpr), the SAME nested-template-aware
+// technique parseCallArgs already uses. A naive backtick-terminated regex here would (and, before
+// this fix, did) truncate a value like the action menu's own Attack button —
+// `` `⚔️ Attack${cond?` (-${n}🌕)`:""}` `` — at the FIRST backtick it meets, which is the OPENING
+// backtick of the ternary's own NESTED template, not the label's closing one.
+function captureValueExpr(text, startIdx) {
+  const stack = ["value"];
+  let i = startIdx, inString = null;
+  for (; i < text.length; i++) {
+    const c = text[i], prev = text[i - 1];
+    if (inString) { if (c === inString && prev !== "\\") inString = null; continue; }
+    const top = stack[stack.length - 1];
+    if (top === "template") {
+      if (c === "`" && prev !== "\\") { stack.pop(); continue; }
+      if (c === "{" && prev === "$") { stack.push("templateExpr"); continue; }
+      continue;
+    }
+    if (c === "'" || c === '"') { inString = c; continue; }
+    if (c === "`") { stack.push("template"); continue; }
+    if (c === "(") { stack.push("paren"); continue; }
+    if (c === "[") { stack.push("bracket"); continue; }
+    if (c === "{") { stack.push("brace"); continue; }
+    if (c === ")") { if (top === "paren") stack.pop(); continue; }
+    if (c === "]") { if (top === "bracket") stack.pop(); continue; }
+    if (c === "}") {
+      if (top === "templateExpr" || top === "brace") { stack.pop(); continue; }
+      if (top === "value") break; // the enclosing {label:...} object's own closing brace
+      continue;
+    }
+    if (c === "," && top === "value") break;
+  }
+  return { raw: text.slice(startIdx, i).trim(), endIdx: i };
 }
+
+// Splits a top-level ternary cascade (`cond?a:cond2?b:c`) into leaves, each `{condition, raw}` —
+// condition is the guarding expression's raw source, or null for the final unconditional leaf.
+// Respects string/template/bracket nesting via the same character-class approach parseCallArgs
+// uses, so a `?`/`:` inside a nested template literal (e.g. `` `Sweeten…${ilabelImg(x)}` ``) is
+// never mistaken for the ternary's own operators.
+function splitTernaryLeaves(expr) {
+  const trimmed = expr.trim();
+  let depth = 0, inString = null, inTemplate = false, templateDepth = 0;
+  for (let i = 0; i < trimmed.length; i++) {
+    const c = trimmed[i], prev = trimmed[i - 1];
+    if (inString) { if (c === inString && prev !== "\\") inString = null; continue; }
+    if (inTemplate) {
+      if (c === "`" && prev !== "\\" && templateDepth === 0) inTemplate = false;
+      else if (c === "{" && prev === "$") templateDepth++;
+      else if (c === "}" && templateDepth > 0) templateDepth--;
+      continue;
+    }
+    if (c === "'" || c === '"') { inString = c; continue; }
+    if (c === "`") { inTemplate = true; continue; }
+    if (c === "(" || c === "[" || c === "{") { depth++; continue; }
+    if (c === ")" || c === "]" || c === "}") { depth--; continue; }
+    if (depth === 0 && c === "?") {
+      const cond = trimmed.slice(0, i).trim();
+      // find the MATCHING top-level ':' for this '?' (there may be nested ternaries in either branch)
+      let j = i + 1, qDepth = 0, bDepth = 0, jInString = null, jInTemplate = false;
+      for (; j < trimmed.length; j++) {
+        const cc = trimmed[j], pp = trimmed[j - 1];
+        if (jInString) { if (cc === jInString && pp !== "\\") jInString = null; continue; }
+        if (jInTemplate) { if (cc === "`" && pp !== "\\") jInTemplate = false; continue; }
+        if (cc === "'" || cc === '"') { jInString = cc; continue; }
+        if (cc === "`") { jInTemplate = true; continue; }
+        if (cc === "(" || cc === "[" || cc === "{") { bDepth++; continue; }
+        if (cc === ")" || cc === "]" || cc === "}") { bDepth--; continue; }
+        if (bDepth === 0 && cc === "?") { qDepth++; continue; }
+        if (bDepth === 0 && cc === ":") { if (qDepth === 0) break; qDepth--; continue; }
+      }
+      const trueBranch = trimmed.slice(i + 1, j).trim();
+      const falseBranch = trimmed.slice(j + 1).trim();
+      const rest = splitTernaryLeaves(falseBranch); // recurse — falseBranch may itself be a ternary
+      return [{ condition: cond, raw: trueBranch }, ...rest];
+    }
+  }
+  return [{ condition: null, raw: trimmed }];
+}
+
+// Scans `body` starting at `startIdx` (right after a `const NAME=` or similar) and returns the
+// raw text up to (not including) the first TOP-LEVEL ';' — same balanced string/template/bracket
+// tracking as parseCallArgs, different stop condition (semicolon, not a matching close-paren).
+function captureExprUntilSemicolon(body, startIdx) {
+  let depth = 0, inString = null, inTemplate = false;
+  let i = startIdx;
+  for (; i < body.length; i++) {
+    const c = body[i], prev = body[i - 1];
+    if (inString) { if (c === inString && prev !== "\\") inString = null; continue; }
+    if (inTemplate) { if (c === "`" && prev !== "\\") inTemplate = false; continue; }
+    if (c === "'" || c === '"') { inString = c; continue; }
+    if (c === "`") { inTemplate = true; continue; }
+    if (c === "(" || c === "[" || c === "{") { depth++; continue; }
+    if (c === ")" || c === "]" || c === "}") { depth--; continue; }
+    if (depth === 0 && c === ";") break;
+  }
+  return body.slice(startIdx, i).trim();
+}
+
+function findEnclosingFunctionBody(fileSrc, marks, callLine) {
+  let startLine = null, endLine = fileSrc.split("\n").length;
+  for (let i = 0; i < marks.length; i++) {
+    if (marks[i].line <= callLine) {
+      startLine = marks[i].line;
+      if (marks[i + 1]) endLine = marks[i + 1].line - 1;
+    } else break;
+  }
+  if (startLine == null) return "";
+  return fileSrc.split("\n").slice(startLine - 1, endLine).join("\n");
+}
+
+// Follows a bare-identifier `rawOpts` (e.g. "opts") through its enclosing function's own body:
+// the variable's OWN initializer (its raw text — an array literal's contents run through the
+// SAME label regex as an inline array; a non-array-literal initializer, e.g. `[...x].map(…)`, is
+// recorded as `dynamicBase` for a described placeholder) plus every subsequent `.push()`/
+// `.unshift()` contribution, each carrying its own guarding `if(cond)` when present (brace-less
+// single-statement guards only — the only shape this codebase actually uses).
+function resolveLocalOptsRaw(fileSrc, marks, callLine, varName) {
+  const body = findEnclosingFunctionBody(fileSrc, marks, callLine);
+  const declRe = new RegExp(`\\b(?:const|let)\\s+${varName}\\s*=`);
+  const declMatch = declRe.exec(body);
+  let initRaw = null;
+  if (declMatch) initRaw = captureExprUntilSemicolon(body, declMatch.index + declMatch[0].length);
+  const isArrayLiteral = initRaw != null && initRaw.trim().startsWith("[") && !/\]\s*\.\s*\w/.test(initRaw); // `[...].map(...)` still starts with '[' but is a chain, not a plain literal
+  const pushes = [];
+  const pushRe = new RegExp(`\\b${varName}\\.(push|unshift)\\s*\\(`, "g");
+  let m;
+  while ((m = pushRe.exec(body))) {
+    const openParenIdx = m.index + m[0].length - 1;
+    const { args } = parseCallArgs(body, openParenIdx);
+    const argRaw = args[0] || "";
+    // guard detection: an `if(cond)` immediately preceding this exact call (same line or the
+    // line(s) directly above, no other statement in between, no braces)
+    const guardRe = new RegExp(`if\\s*\\(((?:[^()]|\\([^()]*\\))*)\\)\\s*${varName}\\.(?:push|unshift)\\s*\\(\\s*$`);
+    const before = body.slice(0, openParenIdx + 1 - (argRaw.length ? 0 : 0)).slice(0, m.index + m[0].length);
+    const guardMatch = guardRe.exec(before);
+    pushes.push({ argRaw, condition: guardMatch ? guardMatch[1].trim() : null });
+  }
+  return { initRaw, isArrayLiteral, pushes };
+}
+
+// Extracts every static `label:` value from a raw source blob, resolving one level of
+// bare-identifier indirection (`label:flipLabel` -> flipLabel's own ternary, split into branches)
+// against the SAME enclosing-function body a locally-built opts array was resolved from (pass
+// `null` for inline-array sites, which have no need for this).
+function extractLabelValues(raw, body) {
+  const out = [];
+  let dynamicCount = 0;
+  LABEL_KEY_RE.lastIndex = 0;
+  let m;
+  while ((m = LABEL_KEY_RE.exec(raw))) {
+    const { raw: valueRaw, endIdx } = captureValueExpr(raw, m.index + m[0].length);
+    LABEL_KEY_RE.lastIndex = endIdx; // resume scanning right after this value's true end (not its trimmed length)
+    if (/^[`"']/.test(valueRaw)) { out.push({ raw: valueRaw, condition: null }); continue; }
+    if (IDENTIFIER_RE.test(valueRaw)) {
+      // bare-identifier label (`label:flipLabel`) — try to resolve it against the enclosing
+      // function body: its own `const NAME=...` declaration, split into ternary leaves if it is one
+      if (!body) { dynamicCount++; continue; }
+      const declRe = new RegExp(`\\b(?:const|let)\\s+${valueRaw}\\s*=`);
+      const declMatch = declRe.exec(body);
+      if (!declMatch) { dynamicCount++; continue; }
+      const exprRaw = captureExprUntilSemicolon(body, declMatch.index + declMatch[0].length);
+      if (!/\?/.test(exprRaw)) {
+        if (/^[`"']/.test(exprRaw.trim())) out.push({ raw: exprRaw.trim(), condition: null });
+        else dynamicCount++;
+        continue;
+      }
+      splitTernaryLeaves(exprRaw).forEach((leaf) => {
+        if (/^[`"']/.test(leaf.raw)) out.push({ raw: leaf.raw, condition: leaf.condition });
+        else dynamicCount++;
+      });
+      continue;
+    }
+    dynamicCount++; // a full expression (e.g. `pn(o.idx)`, `ilabelImg(i)`) — live data, not fixed copy
+  }
+  return { labels: out, dynamicLabelCount: dynamicCount };
+}
+
 function findPromptSites(fileSrc, filePath) {
   const marks = functionBoundaries(fileSrc);
   const sites = [];
@@ -328,7 +520,36 @@ function findPromptSites(fileSrc, filePath) {
     const rawMsg = args[0] || "";
     if (kind === "panel" && isEmptyStringLiteral(rawMsg)) continue; // clear — no copy of its own
     const rawOpts = kind === "ask" ? (args[1] || null) : null;
-    const { labels, dynamicLabelCount } = extractLabels(rawOpts);
+
+    let labels = [], dynamicLabelCount = 0, dynamicBase = null;
+    if (rawOpts) {
+      const trimmedOpts = rawOpts.trim();
+      if (IDENTIFIER_RE.test(trimmedOpts)) {
+        // D-31: locally-built options variable — resolve it
+        const { initRaw, isArrayLiteral, pushes } = resolveLocalOptsRaw(fileSrc, marks, lineNo, trimmedOpts);
+        const body = findEnclosingFunctionBody(fileSrc, marks, lineNo);
+        if (initRaw && !isArrayLiteral) dynamicBase = initRaw; // e.g. `[...new Set(p.ing)].map(i=>({label:ilabelImg(i),...}))`
+        const initResolved = initRaw && isArrayLiteral ? extractLabelValues(initRaw, body) : { labels: [], dynamicLabelCount: 0 };
+        labels = labels.concat(initResolved.labels);
+        dynamicLabelCount += initResolved.dynamicLabelCount;
+        pushes.forEach(({ argRaw, condition }) => {
+          const r = extractLabelValues(argRaw, body);
+          r.labels.forEach((l) => labels.push({ raw: l.raw, condition: l.condition || condition }));
+          dynamicLabelCount += r.dynamicLabelCount;
+        });
+      } else {
+        // inline expression (array literal, ternary, or `.map(...).concat([...])` compound) —
+        // resolve against the enclosing function body too, so a bare-identifier LABEL inside an
+        // otherwise-inline array (rare, none currently observed) would still resolve
+        const body = findEnclosingFunctionBody(fileSrc, marks, lineNo);
+        const r = extractLabelValues(rawOpts, body);
+        labels = r.labels;
+        dynamicLabelCount = r.dynamicLabelCount;
+        // D-31: a fully dynamic inline generator (e.g. `uniq.map(i=>({label:ilabelImg(i),...}))`)
+        // yields zero static labels — describe the generator rather than rendering nothing
+        if (labels.length === 0 && dynamicLabelCount > 0) dynamicBase = rawOpts;
+      }
+    }
     sites.push({
       file: filePath,
       line: lineNo,
@@ -338,6 +559,7 @@ function findPromptSites(fileSrc, filePath) {
       rawOpts,
       labels,
       dynamicLabelCount,
+      dynamicBase,
       isLiteral: /^[`"']/.test(rawMsg.trim()), // false = a pre-computed variable (e.g. `promptMsg`), not an inline literal
     });
   }

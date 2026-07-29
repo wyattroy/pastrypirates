@@ -310,7 +310,7 @@ import { appState } from "../src/state/index.js";
 const SEAT_NAMES = ["Crustbeard", "Davy Scones", "Dough Hook", "Flaky Jack"];
 appState.roster = SEAT_NAMES.map((name) => ({ id: "synthetic", name }));
 appState.game = {
-  cfg: { tradeBonus: true, sardine: true },
+  cfg: { tradeBonus: true, sardine: true, powder: 2 },
   events: [],
   players: [
     { recipe: ["wheat", "sugar", "eggs"] },
@@ -326,7 +326,7 @@ appState.game = {
 const { EVENT_NARRATION, describeFor, narrationVariants, NEUTRAL_VIEWER, pn, poss, fmtItem } =
   await import("../src/ui/util.js");
 const { brokeSailLine, brokeAnchorLine, stormIntroClause } = await import("../src/ui/flow.js");
-const { DIRNAME, emojify, ilabelImg, iconImg, CHECKMARK_IMG, CANCEL_X_IMG } = await import("../src/shared/index.js");
+const { DIRNAME, emojify, ilabelImg, iconImg, CHECKMARK_IMG, CANCEL_X_IMG, CUPCAKE_IMG } = await import("../src/shared/index.js");
 
 /* ============================================================================
  * Shared render helpers (unchanged in spirit from this page's first build)
@@ -884,11 +884,11 @@ const PROMPT_PASS_THROUGH = new Set([
 ]);
 
 const PROMPT_CTX_BASE = {
-  pn, poss, ilabelImg, iconImg, fmtItem, DIRNAME, CHECKMARK_IMG, CANCEL_X_IMG,
+  pn, poss, ilabelImg, iconImg, fmtItem, DIRNAME, CHECKMARK_IMG, CANCEL_X_IMG, CUPCAKE_IMG, appState,
   ns: pn, nm: pn,
   p: { idx: 0 }, q: { idx: 1 }, s: { idx: 2 }, o: { idx: 1 },
   att: { idx: 0 }, def: { idx: 1 }, win: { idx: 0 }, lose: { idx: 1 },
-  who: "a", ing: "wheat", want: "sugar", price: 6, askFor: 2, n: 3,
+  who: "a", ing: "wheat", want: "sugar", price: 6, askFor: 2, n: 3, port: "wheat",
   offerDisplay: `${ilabelImg("wheat")}`,
   st: { baseIng: "wheat", want: "sugar", q: { idx: 1 } },
   label: null,
@@ -947,24 +947,41 @@ function buildPromptCard(entry, group) {
   const evalFailed = current == null;
   const displayText = evalFailed ? escapeHtml(entry.rawMsg) : current;
   recordNeutralTextEntry(id, `Prompt: ${entry.fn}()`, key, evalFailed ? null : finalize(displayText));
+  // D-31: a prompt whose options resolve to a fully dynamic generator (no static labels at all —
+  // orchestrator.js:544's plunder picker) gets a described placeholder INSIDE the prompt card
+  // itself, since buildButtonCards below would otherwise render nothing for it — "explicitly
+  // marked dynamic" per the self-check requirement, never silent.
+  const dynamicNote = (entry.labels.length === 0 && entry.dynamicBase)
+    ? `<p class="cardNote">⚙ Options are fully dynamic — generated live from: <code>${escapeHtml(entry.dynamicBase)}</code>. No fixed button copy to review here (the generator itself decides what appears).</p>`
+    : "";
   const body = (evalFailed
     ? `<p class="cardNote">Could not evaluate this prompt's live expression outside a real game — raw source shown as-is (not yet run through emojify/ye-yer conversion).</p><div class="msgBox neutral promptBox">${displayText}</div>`
     : `<div class="msgBox neutral promptBox">${finalize(displayText)}</div>`)
     + (note ? `<p class="cardNote">${note}</p>` : "")
+    + dynamicNote
     + `<details class="rawSource"><summary>Raw source (extracted, for cross-check)</summary><pre>${escapeHtml(entry.rawMsg)}</pre></details>`;
   return { id, group, html: cardShell({ id, title: `Prompt (${entry.kind}) — ${entry.fn}()`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false, cardClass: "promptCard" }) };
 }
 function buildButtonCards(entry, group) {
-  return entry.labels.map((rawLabel, i) => {
+  return entry.labels.map((labelEntry, i) => {
+    const rawLabel = labelEntry.raw;
+    const condition = labelEntry.condition;
     const id = buttonCardId(entry.file, entry.line, i);
     const evaluated = evalSource(rawLabel);
     const evalFailed = evaluated == null;
     const displayText = evalFailed ? escapeHtml(rawLabel) : evaluated;
     const labelKey = `${entry.file}:${entry.line}~btn${i}`;
     recordNeutralTextEntry(id, `"${entry.fn}()" button, ${entry.file}:${entry.line}`, labelKey, evalFailed ? null : finalize(displayText));
+    // D-31: a conditionally-present option (D-21 treats this as a real branch) must show its own
+    // condition — a prompt reads differently when this option is silently ABSENT, not just when
+    // it's shown a different way.
+    const conditionNote = condition
+      ? `<p class="cardNote">Shown only when: <code>${escapeHtml(condition)}</code> — absent from the prompt otherwise.</p>`
+      : `<p class="cardNote">Always present on this prompt (unconditional).</p>`;
     const body = (evalFailed
       ? `<p class="cardNote">Could not evaluate this button's live expression — raw source shown as-is.</p><div class="msgBox neutral promptBox">${displayText}</div>`
       : `<div class="msgBox neutral promptBox">${finalize(displayText)}</div>`)
+      + conditionNote
       + `<details class="rawSource"><summary>Raw source</summary><pre>${escapeHtml(rawLabel)}</pre></details>`;
     return { id, group, html: cardShell({ id, title: `Button`, meta: `${entry.file}:${entry.line} · option ${i + 1} of ${entry.labels.length}`, body, defaultTag: "keep", silent: false, cardClass: "buttonCard" }) };
   });
@@ -1469,6 +1486,12 @@ Object.entries(PROBE_CFG_AXES).forEach(([key, combos]) => combos.forEach((c) => 
         probeFailures.push({ key: "button", fields: { file: entry.file, line: entry.line, label }, text: `MISSING CARD for ${btnId}` });
       }
     });
+    // D-31: a prompt that renders ZERO buttons and isn't explicitly marked dynamic is exactly the
+    // defect that made humanAct's action menu and windLeg's anchor-or-flip choice unreviewable —
+    // same blocking status as an un-rendered narration branch under D-21.
+    if (entry.kind === "ask" && entry.labels.length === 0 && !entry.dynamicBase) {
+      probeFailures.push({ key: "prompt-no-buttons", fields: { file: entry.file, line: entry.line, rawOpts: entry.rawOpts }, text: `${promptId} renders ZERO buttons and has no dynamicBase — D-31` });
+    }
   });
 })();
 
