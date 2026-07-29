@@ -1157,7 +1157,16 @@ function renderDerivedLine(card) {
  * pass-2 export). Seeded fields never overwrite an id that already has its
  * own localStorage entry from an earlier session on this browser.
  * ==========================================================================*/
-const STORAGE_KEY = "pastrypirates_narration_audit_v15_dispositions";
+// D-27 fix (bumped, not migrated): a browser that already ran the pre-D-27 build has an entry
+// under the OLD key for every one of the 81 current ids — that is literally where the corrupt
+// 15-DISPOSITIONS-PASS2.json export came from. The old seeding guard (`if (saved[id]) return;`)
+// would treat every one of those as "already has pass-2 progress" and never re-seed, so the
+// D-27 fix above would be unreachable in the one browser it exists for. Bumping the key makes
+// old state invisible wholesale rather than attempting a partial in-place migration (a half-
+// migrated schema — some entries fixed, some not — is worse than either a clean cutover or no
+// fix at all). No genuine work is lost: the real reviewed rows (1-17) live in the committed
+// PASS2_ROWS below, not only in the old localStorage entry.
+const STORAGE_KEY = "pastrypirates_narration_audit_v15_dispositions_v2";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; } }
 function saveAll(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function setStatus(t) { document.getElementById("fbStatus").textContent = t; }
