@@ -594,3 +594,31 @@ without him having to type `ye` by hand.
    leaving them makes the game read in two registers. **Ask before widening.**
 3. `yours` / `yourself` — none currently present; if any appear, `yers` / `yerself`.
 
+
+**D-29 RESOLVED — Wyatt answered both open questions (2026-07-29):**
+
+1. *"make you're and your 'yer'"* → **`your` → `yer` AND `you're` → `yer`.** One word does both jobs,
+   which is standard pirate usage. So: `you`→`ye`, `your`→`yer`, `you're`→`yer` (and `You`→`Ye`,
+   `Your`→`Yer`, `You're`→`Yer`).
+2. *"convert everything"* → **scope is ALL player-facing text, not just narration.** Action prompts,
+   button labels, the yellow action panel, modal copy, banners, intro/outro text — the whole game
+   speaks one register. Still **never** identifiers, comments, or the audit page's own UI chrome.
+
+**Final substitution table (word-boundary matched, case-preserving):**
+
+| From | To |
+|---|---|
+| `you` / `You` | `ye` / `Ye` |
+| `your` / `Your` | `yer` / `Yer` |
+| `you're` / `You're` | `yer` / `Yer` |
+| `yours` / `yourself` (if any appear) | `yers` / `yerself` |
+
+**Ordering note:** match `you're` and `your` BEFORE bare `you`, or `you're` becomes `ye're` and
+`your` becomes `yer` only by accident. Longest-alternative-first, as the existing `EMOJIFY_RE` in
+`src/shared/index.js` already does for multi-codepoint emoji — same technique, same reason.
+
+**Widened scope means widened hazard surface.** The `layout` landmine (D-29 above) was found in the
+4 narration files; converting *everything* pulls in more files, so the word-boundary rule and an
+identifier/comment exclusion are now load-bearing across the whole UI layer, not just narration.
+Re-scan for `\w*you\w+` style collisions across every file touched, not only the original four.
+
