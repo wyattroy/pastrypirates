@@ -1316,3 +1316,38 @@ holds.
 **Both land in 15-06.** Verify after: the word "parley" appears nowhere a player can read it, and an
 accepted hail produces exactly one log line.
 
+
+**D-19 SIMPLIFIED — no `ok` field. The fix is one conditional. (supersedes the earlier D-19 design)**
+
+Wyatt: *"why does The merge adds an ok field to the trade event?"* — **it does not need to.** The
+`ok` field was my design, not a requirement, and it is unnecessary.
+
+**The three `parley` emit sites:**
+
+| Site | `ok` |
+|---|---|
+| `flow.js:512` | always `false` — human refuses the counter |
+| `flow.js:521` | always `false` — human declines outright |
+| `flow.js:756` | `ok:dealt` — **and when `dealt` is true, `flow.js:761` emits a `trade` event for the same swap** |
+
+The only place `ok` can be `true` is the one place that already double-narrates. **Emit the parley
+event only when the hail is refused** (`if(!dealt)`), and `ok` is `false` at every site — an
+invariant field, i.e. no field.
+
+**Resulting change set for 15-06 — much smaller than the original D-19 spec:**
+1. `flow.js:756` — emit only when `!dealt`. Fixes the duplicate captain's-log line.
+2. Drop the now-invariant `ok` field from the three emits and from the builder's branching; the
+   `parley` builder collapses to its refusal wording only (its deal-struck branch becomes dead).
+3. Copy: `flow.js:550` `"🤝 Parley"` → `"🤝 Trade"`, `flow.js:423` `"Parley with whom?"` →
+   `"Trade with whom?"` (D-19 clarified).
+4. Optional, internal only: rename the `parley` event type to reflect that it now means *refusal*.
+   Players never see it — cosmetic, and it churns replay/log handling, so **not recommended**.
+
+**No change to the `trade` event. The engine emits `trade` (`engine/index.js:450/455`) and those
+events are in all 31 determinism fixtures (75 of them: 63 `buy`, 12 `swap`) — leaving `trade`
+untouched means the baseline does not move.** The earlier plan to add `ok` to `trade` would have
+invalidated the corpus, which the phase boundary forbids.
+
+**Verify:** an accepted hail produces exactly one log line; a refused offer still narrates; `git diff`
+shows no change to any `t:"trade"` payload.
+
