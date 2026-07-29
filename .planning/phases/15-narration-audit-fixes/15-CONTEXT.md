@@ -748,3 +748,41 @@ complete *against its own definition of scope*, and the definition was too narro
 must enforce coverage against that definition — enumerate player-facing strings from source and fail
 on any without a card — so the next omission is caught by the page, not by Wyatt.
 
+
+**D-33 — Prompts whose message is a PARAMETER show the unreachable in-function fallback, not the real text.**
+
+Wyatt, on the `humanFlip` card: *"when is this written?"* — answer: **never**.
+
+`humanFlip(p, label, allowBack)` renders `ask(label || "Flip the dubloon!", opts)`. The literal the
+extractor captured is the **fallback**, reached only when a caller passes no label. Both callers
+pass one:
+
+| Call site | Real prompt the player sees | On the audit? |
+|---|---|---|
+| `flow.js:265` (storm anchor flip) | *"Flip to dodge!"* | **✗ missing** |
+| `flow.js:389` (docking flip, with Back) | *"Docking at {ingredient} — flip!"* | **✗ missing** |
+| `flow.js:103` fallback | *"Flip the dubloon!"* | ✓ shown — **but unreachable** |
+
+Same shape in `fishCast(p, label, allowBack)`: fallback `` `${pn(p.idx)}: cast your line — flip!` ``
+is rendered, while the real label from `flow.js:592` — *"🎣 Cast your line — flip!"* — is missing.
+(`flow.js:781` calls `fishCast(p)` with no label, but that is the bot path, which never reaches the
+`ask()` at all — so the fallback is dead in both functions.)
+
+**Also missing: the `ask()` helper text.** `localAsk(msg, opts, colors, sub)` takes a **4th argument**
+rendered under the buttons. `humanAct` passes two variants — *"Attacking costs ye 2🌕 for powder.
+Fire downwind for the edge!"* and the too-poor nudge. The extractor does not capture `sub` at all.
+
+**This is D-31's defect one level up.** D-31 fixed options built into a local variable; the same
+blind spot applies to the *message* when it arrives as a function argument. The extractor reads what
+is lexically at the call site and cannot see what callers actually pass.
+
+**Required:**
+- For a prompt whose message is a parameter, **enumerate the callers** and render one card per real
+  message passed, not the fallback.
+- Where a fallback is genuinely unreachable (all callers supply a label), either omit it or mark it
+  clearly as unreachable — it must never be presented as editable copy, because Wyatt spent a
+  rewrite on one.
+- Capture and render the `sub` helper text as its own card, with all its variants.
+- The D-32 self-check ("every string a player can read has a card") must also assert the inverse:
+  **no card renders a string a player can never read.**
+
