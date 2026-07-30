@@ -7,6 +7,16 @@
 Wyatt host on :8231, Claude guest seat 1 on :8232, 2 bots. Every narration line recorded on the guest
 with timings via a MutationObserver on `#actionPanel`. ~150 lines logged.
 
+## HUMAN-EYE CHECKS — all three cleared (2026-07-30)
+
+The three things no gate could answer, all confirmed by Wyatt in a browser:
+
+| Check | Verdict |
+|---|---|
+| **Guest sail-highlight parity (G25)** | **PASS**, measured on the guest: 13 of 13 squares carry `class="sailCell"`, `fill="#ffc23a"`, `rx="6"`, live `sailBounce` at 1.15s with a 0.24s stagger — attribute-identical to the host. Yesterday: `#fdb63d`, `opacity .4`, no class, no animation. |
+| **Seeded + retuned storm rain (G19)** | **PASS in Safari** — Wyatt: *"stotm looks great in safari"*. This is the browser that matters for this overlay: v1.0's BUG-01 was a live gradient + mask that Safari re-rasterised on the CPU every frame and dragged the board to ~2fps. G19 swapped the RNG source and two constants without reintroducing any live gradient, mask or per-frame work, and the scoped exception is recorded in `board.js`'s header. |
+| **Narration fade + hold (G17/G28)** | **PASS after retune.** G17's strict sequence shipped at 180ms; watching it live he judged it too fast — *"the point of it is to let the player know that the text is about to leave, so they can hurry up and read it"* — and retuned the whole curve with me against a measured table. See G28. |
+
 ## CONFIRMED FIXED — yesterday's and this morning's work, seen live
 
 | Fix | Evidence on screen |
