@@ -516,7 +516,24 @@ export async function humanDock(p,port){
       // that gate (added for F11) requires every `disabled:` option to have a reason reachable in
       // the state it explains, so it now covers this option and would fail if the reason were ever
       // removed or moved into a branch that cannot fire alongside the greying.
-      const buy=await ask(`Tails! Take 3🌕 — or buy ${dockFlavorIcon(ing)} for 3🌕?`,[
+      //
+      // G12 (Wyatt-approved 2026-07-30): the prompt is now his own words, typed verbatim —
+      // `⚫️ TAILS! Take treasure instead? Or buy a bundle of 🌼 Velvety Vanilla Beans?`. Three
+      // things in it are load-bearing:
+      //   1. THE AMOUNTS ARE REMOVED ON PURPOSE. The buttons below already carry them
+      //      (`Buy … (−3🌕)` / `Take 3🌕`). D-31 applied deliberately, in his words: "I don't want
+      //      to duplicate wording in the prompt and on the button."
+      //   2. `TAILS` IS ALL CAPS because the game is announcing a flip outcome AS IT HAPPENS. The
+      //      sweep found this prompt was the ONLY in-play offender; explanatory prose (the
+      //      how-to-play modal) and statistics (award bylines, `heads-luck`) stay lowercase at his
+      //      word — "just the in-play line is fine, leave the prose and stats". The ruling and the
+      //      blanket-replace hazard live in .planning/todos/pending/flip-outcomes-all-caps-in-play-only.md.
+      //   3. `⚫️` IS EMOJI SHORTHAND, NOT AN <img> — emojify() turns it into the coin artwork at the
+      //      panel() chokepoint (D-50). It carries the U+FE0F variation selector exactly as he typed
+      //      it; do not strip it.
+      // The flavour phrase is still dockFlavorIcon(ing) — F5's one-place-decides rule, icon before
+      // the NOUN. Never hand-roll it here.
+      const buy=await ask(`⚫️ TAILS! Take treasure instead? Or buy ${dockFlavorIcon(ing)}?`,[
         {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true,disabled:!canBuy},{label:"Take 3🌕",value:false}],
         null,canBuy?null:`Yer too broke to buy it — take the 3🌕 instead.`);
       // D-40 safety net: guard the purchase on affordability as well as on the returned choice, so a

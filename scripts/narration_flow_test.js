@@ -355,11 +355,17 @@ function lineOf(src, idx) {
   }
 
   // Site 2 — the dock-on-tails buy prompt, now rendered through the declared {prefix,name} split.
-  const tailsIdx = liveCode.indexOf("Tails! Take");
+  // RE-PIN 2026-07-30 (G12): the content anchor moved from "Tails! Take" to "TAILS! Take treasure
+  // instead?" because Wyatt rewrote the prompt in his own words — ALL CAPS on the flip outcome, and
+  // the amounts DELETED because the buttons already carry them (D-31). The anchor is exactly as
+  // specific as the one it replaces; nothing here was widened to accommodate the new copy. What F5
+  // asserts about this site — that the flavour phrase comes from dockFlavorIcon() and the BUTTON
+  // keeps ilabelImg() — is unchanged and still holds.
+  const tailsIdx = liveCode.indexOf("TAILS! Take treasure instead?");
   checkTrue("F5: the dock-on-tails buy prompt located by content", tailsIdx > 0);
   if (tailsIdx > 0) {
     const tailsRegion = liveCode.slice(tailsIdx - 120, tailsIdx + 260);
-    checkTrue(`F5: the tails buy prompt renders its flavour through dockFlavorIcon() (${FLOW_REL}:${lineOf(FLOW_SRC, FLOW_SRC.indexOf("Tails! Take"))})`, /dockFlavorIcon\s*\(/.test(tailsRegion));
+    checkTrue(`F5: the tails buy prompt renders its flavour through dockFlavorIcon() (${FLOW_REL}:${lineOf(FLOW_SRC, FLOW_SRC.indexOf("TAILS! Take treasure instead?"))})`, /dockFlavorIcon\s*\(/.test(tailsRegion));
     checkTrue("F5: the buy BUTTON label keeps its own icon-then-name rendering (ilabelImg) — it was already correct", /ilabelImg\(ing\)/.test(tailsRegion));
   }
   check("F5: no icon-before-flavour interpolation survives anywhere in this file", /iconImg\(ING_IMG\[\w+\]\)\}\s*\$\{dockFlavor\(/.test(liveCode), false);
@@ -375,7 +381,10 @@ function lineOf(src, idx) {
 /* ---------- F9: the unaffordable dock-buy option greys out with its reason, instead of vanishing ---------- */
 {
   const liveCode = FLOW_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
-  const tailsIdx = liveCode.indexOf("Tails! Take");
+  // RE-PIN 2026-07-30 (G12): same anchor move as F5's site 2 above, same reason — Wyatt's rewritten
+  // prompt. F9's subject (the option greys instead of vanishing, and its reason is conditional) is
+  // untouched by the copy change; only the string this block locates itself by moved.
+  const tailsIdx = liveCode.indexOf("TAILS! Take treasure instead?");
   checkTrue("F9: the dock-on-tails prompt located by content", tailsIdx > 0);
 
   // 1. the coin test is OUT of the branch condition, so the prompt can no longer vanish. Extracted
