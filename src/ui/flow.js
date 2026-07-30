@@ -1306,7 +1306,12 @@ export async function showAhoyIntro(){
 // NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
 export async function showTurnOrderIntro(order){
   const lead=pn(order[0]);
-  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1})`).join(", ");
+  // G27 (Wyatt-approved 2026-07-30, spotted mid-playtest): the waiting captains' consolation is an
+  // amount of MONEY, so it carries the coin like every other amount in the game — "(+1🌕)", not a bare
+  // "(+1)". Emoji shorthand, not hand-rolled markup: emojify() swaps it for COIN_IMG at panel()'s
+  // chokepoint (D-50), the same path every other 🌕 in this file takes. No sign change — D-38 already
+  // has this one right, it is a gain and it was already signed.
+  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
   const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+
     `No fretting, patience pays — ${rest} all cast off with extra dubloons.`;
   // @copy misc.introbarrier.turnorder

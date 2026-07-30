@@ -435,7 +435,7 @@
     {
       "id": "adhoc.sidebet.backed",
       "file": "src/ui/flow.js",
-      "line": 1392,
+      "line": 1397,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -449,7 +449,7 @@
     {
       "id": "adhoc.sidebet.freecall",
       "file": "src/ui/flow.js",
-      "line": 1394,
+      "line": 1399,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -463,7 +463,7 @@
     {
       "id": "adhoc.sidebet.settle",
       "file": "src/ui/flow.js",
-      "line": 1432,
+      "line": 1437,
       "fn": "settleSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -1161,7 +1161,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1365,
+      "line": 1370,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`",
@@ -1192,7 +1192,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1375,
+      "line": 1380,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`💰 Add to yer call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`",
@@ -1231,7 +1231,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1565,
+      "line": 1570,
       "fn": "remotePickHighlights",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${msg||sailPickMsg(appState.mySeat)}</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
@@ -1280,7 +1280,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1473,
+      "line": 1478,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"cancel\">Both ⚪️ HEADS — no score this round.</span>`",
       "id": "misc.battleline.bakeoffbothheads"
@@ -1288,7 +1288,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1478,
+      "line": 1483,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"score\">${ah?nm(A.idx):nm(B.idx)} scores!</span>`",
       "id": "misc.battleline.bakeoffscores"
@@ -1296,7 +1296,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1481,
+      "line": 1486,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"cancel\">Both ⚫️ TAILS — no score this round.</span>`",
       "id": "misc.battleline.bakeoffbothtails"
@@ -1402,7 +1402,7 @@
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 1313,
+      "line": 1318,
       "fn": "showTurnOrderIntro",
       "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+\n    `No fretting, patience pays — ${rest} all cast off with extra dubloons.`",
       "rawButton": "\"🦜 Start\"",
