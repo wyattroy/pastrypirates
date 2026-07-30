@@ -45,17 +45,28 @@ appState.roster = SEAT_NAMES.map((name) => ({ id: "synthetic", name }));
 appState.game = {
   cfg: { tradeBonus: true, sardine: true, powder: 2 },
   events: [],
+  // `flips`/`heads` feed src/ui/board.js's end-of-voyage heads-luck row (a plausible sample stands in
+  // for a real tally, exactly as BASE_EVENTS stands in for a real event — it decides the NUMBER
+  // interpolated, never the wording around it).
   players: [
-    { recipe: ["wheat", "sugar", "eggs"] },
-    { recipe: ["cocoa", "dairy", "spice"] },
-    { recipe: ["vanilla", "spice"] },
-    { recipe: ["wheat", "cocoa", "dairy"] },
+    { recipe: ["wheat", "sugar", "eggs"], flips: 12, heads: 7 },
+    { recipe: ["cocoa", "dairy", "spice"], flips: 9, heads: 4 },
+    { recipe: ["vanilla", "spice"], flips: 11, heads: 6 },
+    { recipe: ["wheat", "cocoa", "dairy"], flips: 8, heads: 3 },
   ],
   windNow: "N",
   windNow2: "S",
   stormNow: true,
   winner: 0,
   home: [0, 0],
+  // The end-of-voyage stats table (D-32 board surface) interpolates these. Same standing: sample
+  // tallies, so the real template runs and its HEADINGS — "Rounds", "attacker won X%", "yes — N
+  // finishers" — are reviewable copy rather than prose somebody typed into this page by hand.
+  round: 7,
+  battles: 4,
+  attWins: 3,
+  trades: 5,
+  finishOrder: [0, 1],
   // Method stubs the real option/helper-text expressions call while deciding which branch of a
   // prompt to build (`tradeOpp(p).length`, `needs(p).length`). They stand in for game state the
   // same way BASE_EVENTS stands in for a real event — they decide which branch renders, never what
@@ -459,7 +470,7 @@ export const TWO_PARTY_ROLE_LABELS = {
  * never network input, never anything Wyatt types (threat T-QT-02).
  * ==========================================================================*/
 const CTX_BASE = {
-  pn, poss, pname, ilabelImg, iconImg, ingImg: shared.ingImg, fmtItem, DIRNAME, appState, man,
+  pn, poss, pname, ilabelImg, iconImg, ingImg: shared.ingImg, iname: shared.iname, fmtItem, DIRNAME, appState, man,
   dockPlace, dockFlavor, ING_IMG, ING_ALL, DOCK_FLAVOR, DOCK_PLACE, HEXCOL, ASSET_BASE,
   // F5 (2026-07-29): the dock-on-tails buy prompt now renders its flavour through dockFlavorIcon(),
   // so the eval scope has to know the symbol — without it EVERY snippet in src/ui/flow.js throws
@@ -879,6 +890,20 @@ export function renderSub(entry, axis) {
 
 const MISC_CTX = {
   introBarrier: {}, mpError: {}, battleLine: {}, paramPrompt: {}, lobby: {}, timer: {}, draftWait: {},
+  // src/ui/board.js — the board chrome and the end-of-voyage summary. `st` is drawPanels()'s
+  // per-event state snapshot and `i` the seat being drawn; both are locals the real prow-panel
+  // expressions read, and resolveLocal() walks `hold`/`chips`/`extras`/`held` back to their own
+  // declarations from there. A hold deliberately holding ONE recipe crate and TWO surplus ones is
+  // what makes the surplus-cargo tooltip and the recipe chip render side by side, the way a player
+  // sees them. `w` and `luck` are showStats()'s own locals.
+  board: {
+    i: 0,
+    st: [
+      { ing: ["wheat", "cocoa", "cocoa"] }, { ing: ["dairy"] }, { ing: [] }, { ing: ["sugar"] },
+    ],
+    w: 0,
+    luck: appState.game.players.map((p) => (p.flips ? p.heads / p.flips : 0)),
+  },
 };
 export const MISC_BRANCH_AXES = {
   "misc.timer.toggletooltip": [
@@ -888,6 +913,21 @@ export const MISC_BRANCH_AXES = {
   "misc.draftwait.recipechoosing": [
     { tag: "multi", ctx: { multi: true }, note: "Shown when more than one human is drafting a recipe at once." },
     { tag: "single", ctx: { multi: false }, note: "Shown when exactly one human is drafting (the rest of the crew are bots)." },
+  ],
+  // showStats()'s banner: somebody baked a winning recipe, or the voyage ran out of rounds first.
+  "misc.board.eovbanner": [
+    { tag: null, ctx: { w: 0 }, note: "Shown when a captain finished — the very last line of a completed voyage." },
+    { tag: "nobody", ctx: { w: null }, note: "Shown when the round limit ran out with no finished recipe (game.winner is null)." },
+  ],
+  // ONE axis, not two: these two sites each have exactly one branch that carries wording, and the
+  // context below is what makes that branch the one rendered. A second card for the other branch
+  // would show crate icons with no copy in them — a card whose box holds nothing to review is the
+  // D-33 mistake in a new place.
+  "misc.board.emptyhold": [
+    { tag: null, ctx: { held: [] }, note: "Rendered with an EMPTY hold, because the placeholder is the only wording this site has. With cargo aboard it renders the crate icons instead — no copy of its own; their tooltips are ingredient names, reviewable on the dock-flavour and ingredient cards." },
+  ],
+  "misc.board.surplustooltip": [
+    { tag: null, ctx: { st: [{ ing: ["cocoa"] }, { ing: [] }, { ing: [] }, { ing: [] }] }, note: "Rendered with exactly ONE surplus crate so the tooltip reads on its own; the live site renders one of these per leftover crate, so the wording is repeated, never joined." },
   ],
 };
 
@@ -919,6 +959,7 @@ export function renderMisc(entry, axis) {
     : entry.category === "paramPrompt" ? `${entry.callee}() prompt — ${entry.fn}()`
     : entry.category === "draftWait" ? `Broadcast — ${entry.fn}()`
     : entry.category === "timer" ? `Timer toggle tooltip — ${entry.fn}()`
+    : entry.category === "board" ? `Board / end-of-voyage — ${entry.fn}()`
     : `Lobby — ${entry.fn}()`;
   return {
     id, label, kind: "misc", category: entry.category,

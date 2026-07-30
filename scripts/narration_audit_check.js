@@ -171,6 +171,7 @@ const LOOKUPS = {
   miscParamPromptCard:   { kind: "misc",   category: "paramPrompt",  throws: true },
   miscBattleLineCard:    { kind: "misc",   category: "battleLine",   throws: true },
   miscTimerCards:        { kind: "misc",   category: "timer",        throws: true },
+  miscBoardCards:        { kind: "misc",   category: "board",        throws: true },
 };
 
 function nodeGroupsBlock(page) {

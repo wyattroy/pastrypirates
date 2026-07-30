@@ -82,7 +82,8 @@ talking about the same things.
 | Command | What it does |
 |---|---|
 | `npm run audit:extract` | Re-reads the game's code and rebuilds the list of every place the game says something. Run after the game's code changes. Under the bonnet: `scripts/extract_narration_lines.js`. |
-| `npm run audit:check` | Checks the tool itself is healthy — every card resolves and renders, no card shows placeholder text, and all 209 of your reviewed decisions are still accounted for. Under the bonnet: `scripts/narration_audit_check.js`. |
+| `npm run audit:check` | Checks the tool itself is healthy — it opens the page for real (no browser needed), counts the cards, and fails if even one is missing; also that no card shows placeholder text and all 209 of your reviewed decisions are still accounted for. Under the bonnet: `scripts/narration_audit_check.js`. |
+| `node scripts/narration_audit_check.js --live` | If the above says cards are missing, this lists every one of them by name. |
 | `npm test` | Runs everything, including both of the above. |
 
 **Two more commands are planned and not built yet:**
@@ -112,6 +113,23 @@ These are the reasons this tool stopped decaying between visits:
   one who said to merge it. The tool refuses to retire anything you didn't say to merge.
 - **The tool is checked without a browser.** Everything above runs as part of `npm test`.
   The old problem wasn't that things broke — it was that nothing noticed for a whole phase.
+- **`npm test` now opens the page for real.** Added July 30th, because everything above was
+  green while the page was showing 61 cards instead of 212 and quietly saying so in a place
+  nobody reads. Every check before this one read the page as *text*, and the page's text was
+  fine — the fault was an error thrown while building the cards. The test now actually runs
+  the page (no browser needed) and fails if a single card is missing, if any group of cards
+  collapsed, or if the page's own self-check has anything to complain about. It prints the
+  three numbers every time: how many cards rendered, how many the game can produce, and how
+  many are missing. If those three don't agree, the test is red.
+- **Nothing player-facing can be left out by accident.** Five things you read on screen —
+  the end-of-voyage banner, the end-of-voyage stats table, the "Check my recipe" button,
+  the "empty hold" label and the surplus-cargo tooltip — had never been in this tool at all,
+  because the file they live in had never been read. Every file that draws the game's screen
+  is now either swept for wording or *listed with a reason why not*. A new one that is
+  neither fails the test. The one deliberate exclusion is the recipe book
+  (`src/ui/recipe.js`): those are real baking recipes, and the pirate-voice rules that apply
+  to everything here would be wrong applied to "Preheat oven to 165°C". Reviewing those is
+  a separate job.
 - **A greyed-out button explains itself in the state where it's greyed.** Found in the
   July 29th playtest: the greyed Trade button was showing Attack's helper text instead of
   its own reason. Now checked automatically.

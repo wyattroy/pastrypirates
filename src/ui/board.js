@@ -377,16 +377,20 @@ export function render(){
         if(have)hold.splice(k,1);
         return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ingImg(ing)}</span>`;
       });
+      // @copy misc.board.surplustooltip
       const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ingImg(x2)}</span>`);
+      // @copy misc.board.prowcargorow
       newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else if(offerCheckBtn){
       $("prowRecipe"+i).classList.remove("hasRecipe");
+      // @copy misc.board.checkrecipebtn
       newChipsHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">🔍 Check my recipe</button>`;
     }else{
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
       // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
       $("prowRecipe"+i).classList.remove("hasRecipe");
       const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ingImg(x2)}</span>`);
+      // @copy misc.board.emptyhold
       newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
     if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
@@ -539,6 +543,7 @@ export function showStats(){
   $("statsWrap").style.display="";
   celebrateHomeDocks();
   const w=appState.game.winner;
+  // @copy misc.board.eovbanner
   const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
   // notes/edits EOV-02: the winner's recipe image is NOT shown here anymore — it lives in the one-off
   // victory box (see endLive), so the End of Voyage summary isn't doubling it up.
@@ -554,15 +559,20 @@ export function showStats(){
       <hr class="awardRule">
       <div class="awardStat">${b.def.stat}${b.value!=null?` — <b>${b.value}${b.def.unit||""}</b>`:""}</div>
     </div>`).join("");
-  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
-    <div class="awardsRow">${awards}</div>
-    <table>
+  // NARR-01: the stats table is hoisted into its own local purely so the wording audit can review it
+  // as one unit of copy (art-review/narration-audit.html, `// @copy` below). Pure string hoist — the
+  // rendered HTML is byte-identical to the inline version it replaced.
+  // @copy misc.board.statsheadings
+  const statsTable=`<table>
     <tr><td>Rounds</td><td>${appState.game.round}</td></tr>
     <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
     <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
     <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?"yes — "+appState.game.finishOrder.length+" finishers":"no"}</td></tr>
     ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
     </table>`;
+  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
+    <div class="awardsRow">${awards}</div>
+    ${statsTable}`;
 }
 
 // a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players

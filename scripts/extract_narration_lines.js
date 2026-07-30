@@ -78,7 +78,7 @@
 //
 // An id can now only break if somebody deletes a marker, and (1) fails loudly when they do.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { EVENT_NARRATION } from "../src/ui/util.js";
@@ -95,7 +95,46 @@ const FILE_PATHS = {
   // this script — added here so the D-32 "misc" extraction below can sweep them.
   panel: "src/ui/panel.js",
   lobby: "src/ui/lobby.js",
+  // 15-07 Task 7: src/ui/board.js had NEVER been read by this script, so five player-facing
+  // surfaces had never been in the audit at ALL — not drifted, absent. The end-of-voyage banner and
+  // stats table, the pass-and-play "Check my recipe" button, the "empty hold" placeholder and the
+  // surplus-cargo tooltip. See SCOPE_EXCLUSIONS below for the file this is deliberately NOT.
+  board: "src/ui/board.js",
 };
+
+/* ================= the scope rule, in BOTH directions (15-07 Task 7) =================
+ *
+ * FILE_PATHS above says what IS swept. This says what is not, and why — because "the audit page's
+ * scope kept being defined by MECHANISM, never by AUDIENCE" (D-32) has now been discovered FIVE
+ * times, each time by Wyatt noticing something missing. Silence is what made that repeatable: a
+ * `src/ui/*.js` file simply not appearing in FILE_PATHS looked identical to a file with no copy in
+ * it. Every UI module must now be one or the other, ON PURPOSE, and the assertion below fails if a
+ * new one appears as neither.
+ */
+const SCOPE_EXCLUSIONS = {
+  "src/ui/index.js": "a re-export barrel — no strings of its own at all.",
+  "src/ui/handlers.js": "wires DOM events to the flow functions; every string it shows is built in flow.js/util.js and swept there.",
+  "src/ui/recipe.js":
+    "RECIPE CONTENT, not narration. It holds the 20 real pastry recipes — titles, descriptions, "
+    + "ingredient quantities and baking steps (\"Preheat oven to 165°C (325°F)…\"). Player-facing, but it is "
+    + "cookbook prose, not the pirate voice: D-29's register conversion (you->ye) would be WRONG applied to "
+    + "a baking instruction, the sign rule has no meaning in a quantity, and a wording pass over the game's "
+    + "narration must not put 400 lines of culinary copy in front of the reviewer. Excluded deliberately, "
+    + "and stated here rather than absent — reviewing recipe text is a separate job with different rules.",
+};
+// (the assertion that enforces this runs below, once fail() has its counter — checkScopeCoverage())
+function checkScopeCoverage() {
+  const swept = new Set(Object.values(FILE_PATHS));
+  for (const f of readdirSync(join(ROOT, "src/ui")).filter((n) => n.endsWith(".js")).sort()) {
+    const rel = `src/ui/${f}`;
+    if (swept.has(rel) || SCOPE_EXCLUSIONS[rel]) continue;
+    fail(`${rel} is neither swept for player-facing copy (add it to FILE_PATHS) nor listed in SCOPE_EXCLUSIONS with a reason. A UI module that is silently neither is exactly how five surfaces went missing.`);
+  }
+  for (const rel of Object.keys(SCOPE_EXCLUSIONS)) {
+    if (swept.has(rel)) fail(`${rel} is in BOTH FILE_PATHS and SCOPE_EXCLUSIONS — decide which.`);
+    if (!existsSync(join(ROOT, rel))) fail(`SCOPE_EXCLUSIONS names ${rel}, which no longer exists — a stale exclusion reads as a reasoned decision about a file nobody has looked at.`);
+  }
+}
 const src = {};
 for (const [k, rel] of Object.entries(FILE_PATHS)) src[k] = readFileSync(join(ROOT, rel), "utf8");
 
@@ -1020,6 +1059,35 @@ const awards = fallbackBadge ? badgePool.concat([fallbackBadge]) : badgePool;
 }
 if (awards.length !== 11) fail(`awards: expected exactly 11 (10 BADGE_POOL entries + FALLBACK_BADGE), found ${awards.length}`);
 
+/* ---- board (15-07 Task 7): src/ui/board.js's own player-facing copy, never previously extracted by
+ * ANY pass of this script — the file was not in FILE_PATHS at all. Five sites, each a string a player
+ * reads and nobody had ever reviewed:
+ *
+ *   const banner      showStats()  the very last line of a voyage ("{captain} wins!" / "Nobody finished!")
+ *   const statsTable  showStats()  the end-of-voyage table's headings and phrasings
+ *   const extras      drawPanels() the surplus-cargo chip tooltip
+ *   newChipsHtml x3   drawPanels() the composed prow cargo row, the "Check my recipe" button, "empty hold"
+ *
+ * All three `newChipsHtml=` assignments are collected, not just the two that read as obvious copy: a
+ * collector that quietly skipped the composed row would leave a fourth branch free to appear later
+ * with nothing noticing. Each carries its own `// @copy` marker, so the marker sweep below holds them
+ * to the same rule as every other site. ---- */
+const boardSites = findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst banner")
+  .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst statsTable"))
+  .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst extras"))
+  .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bnewChipsHtml"))
+  .sort((a, b) => a.line - b.line);
+// Independent cross-check, same convention as battleLine's: count the raw occurrences a second way.
+{
+  const want = { "const banner=": 1, "const statsTable=": 1, "const extras=": 1, "newChipsHtml=": 3 };
+  for (const [needle, n] of Object.entries(want)) {
+    const found = src.board.split(needle).length - 1;
+    if (found !== n) fail(`board: expected ${n} "${needle}" site(s) in ${FILE_PATHS.board}, found ${found} — a copy site was added or removed; extend boardSites and this count together`);
+  }
+}
+if (boardSites.length !== 6) fail(`board: expected exactly 6 copy sites in ${FILE_PATHS.board}, found ${boardSites.length}`);
+checkScopeCoverage();
+
 // Deterministic ordering: category (alphabetical), then file, then line — same convention the
 // table/adhoc/prompts arrays already use.
 const misc = []
@@ -1030,6 +1098,7 @@ const misc = []
   .concat(draftWait.map((s) => Object.assign({ category: "draftWait" }, s)))
   .concat(timerSites.map((s) => Object.assign({ category: "timer" }, s)))
   .concat(lobbySites.map((s) => Object.assign({ category: "lobby" }, s)))
+  .concat(boardSites.map((s) => Object.assign({ category: "board" }, s)))
   .sort((a, b) => (a.category === b.category ? (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)) : a.category.localeCompare(b.category)));
 
 /* ================= D-43: roundCfg()'s own hardcoded boolean flags =================
@@ -1082,7 +1151,14 @@ const SITE_FILE_SRC = {
   [FILE_PATHS.orch]: src.orch,
   [FILE_PATHS.panel]: src.panel,
   [FILE_PATHS.lobby]: src.lobby,
+  [FILE_PATHS.board]: src.board,
 };
+// Derived from FILE_PATHS, not hand-maintained alongside it: a file added to FILE_PATHS whose text was
+// forgotten here fails with "this script does not read as text", which is a confusing way to be told
+// you edited one list and not the other.
+for (const [k, rel] of Object.entries(FILE_PATHS)) {
+  if (!(rel in SITE_FILE_SRC)) SITE_FILE_SRC[rel] = src[k];
+}
 const RETIRED_IDS = loadRetiredIds();
 
 {
@@ -1217,7 +1293,7 @@ console.log(`prompt sites:   ${promptCount} (${prompts.filter((p) => p.kind === 
 console.log(`button labels:  ${buttonCount} static (+ ${prompts.reduce((n, p) => n + p.dynamicLabelCount, 0)} dynamic, not extracted as copy)`);
 console.log(`button slots:   ${buttonCount - buttonSlotFallbacks} keyed to the option's own value, ${buttonSlotFallbacks} fell back to the ordinal`);
 console.log(`@copy ids:      ${[...adhoc, ...prompts, ...misc].filter((e) => e.id).length} bound across ${Object.keys(SITE_FILE_SRC).length} source file(s); ${RETIRED_IDS.size} id(s) on the retired ledger`);
-console.log(`D-32 misc:      ${misc.length} (introBarrier ${introBarrier.length}, paramPrompt ${paramPrompt.length}, mpError ${mpError.length}, battleLine ${battleLine.length}, draftWait ${draftWait.length}, timer ${timerSites.length}, lobby ${lobbySites.length})`);
+console.log(`D-32 misc:      ${misc.length} (introBarrier ${introBarrier.length}, paramPrompt ${paramPrompt.length}, mpError ${mpError.length}, battleLine ${battleLine.length}, draftWait ${draftWait.length}, timer ${timerSites.length}, lobby ${lobbySites.length}, board ${boardSites.length})`);
 console.log(`D-32 awards:    ${awards.length} (${badgePool.length} BADGE_POOL + ${fallbackBadge ? 1 : 0} FALLBACK_BADGE)`);
 console.log(`D-43 roundCfg:  ${Object.keys(roundCfgFlags).length} hardcoded boolean flag(s) parsed from roundCfg()`);
 

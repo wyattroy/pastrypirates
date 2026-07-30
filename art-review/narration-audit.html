@@ -1686,6 +1686,43 @@ function miscLobbyCard(siteId) {
   return [{ id, group, html: cardShell({ id, title: `Lobby — ${entry.fn}() @${entry.line}`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false }) }];
 }
 
+/* ---- board (15-07 Task 7): src/ui/board.js's own copy. This file had never been read by the
+ * extraction script, so these six sites had never been in this audit at all — not stale, ABSENT,
+ * which is the fifth time the tool's scope has been found short by audience rather than by mechanism
+ * (D-32). The end-of-voyage banner and stats table, the prow cargo row and its surplus-cargo tooltip,
+ * the pass-and-play "Check my recipe" button, and the "empty hold" placeholder.
+ *
+ * Text comes from the core's renderMisc(), which evaluates the real extracted expression against
+ * MISC_CTX.board and resolves each site's locals (`hold`, `chips`, `extras`, `held`, `w`, `luck`) out
+ * of their own declarations in board.js. The two banner branches are cards of their own via
+ * core.MISC_BRANCH_AXES. Nothing here is hand-typed.
+ *
+ * Placement: the two showStats() sites belong to `voyageEnd` (the last thing a player reads); the four
+ * drawPanels() sites are board chrome that is on screen from the first turn onward, so they sit with
+ * the turn-start banner rather than pretending to belong to one moment. ---- */
+const BOARD_GROUPS = {
+  "misc.board.eovbanner": "voyageEnd",
+  "misc.board.statsheadings": "voyageEnd",
+};
+function miscBoardCards(siteId) {
+  const entry = requireMiscEntry("board", siteId);
+  const axes = core.MISC_BRANCH_AXES[siteId] || [null];
+  const group = BOARD_GROUPS[siteId] || "humanTurnBanner";
+  return axes.map((axis) => {
+    const rendered = core.renderCardSafely(entry, core.renderMisc, axis);
+    if (rendered.error) return errorCard(rendered.id || miscCardId("board", entry), rendered.error);
+    const id = rendered.id;
+    const failed = rendered.neutral == null;
+    const body = (failed
+      ? `<p class="cardNote">Could not evaluate — raw source shown as-is.</p><div class="msgBox neutral">${escapeHtml(entry.rawMsg || "")}</div>`
+      : msgBox(rendered.neutral, "neutral"))
+      + (rendered.notes || []).filter(Boolean).map((n) => `<p class="cardNote">${escapeHtml(n)}</p>`).join("")
+      + `<details class="rawSource"><summary>Raw source (extracted, evaluated live)</summary><pre>${escapeHtml(entry.rawMsg || "")}</pre></details>`;
+    if (!failed) recordNeutralTextEntry(id, `Board — ${entry.fn}()`, `board:${entry.id}`, finalize(rendered.neutral));
+    return { id, group, html: cardShell({ id, title: `${rendered.label}${axis && axis.tag ? " (" + axis.tag + ")" : ""}`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false }) };
+  });
+}
+
 /* ---- awards: end-of-voyage keepsakes (BADGE_POOL + FALLBACK_BADGE) — name + byline rendered
  * TOGETHER as one card, one unit of copy, per this plan's own instruction. All 11, always — no
  * per-captain sampling (a single assignBadges() call only ever returns 4, one per seat). ---- */
@@ -1772,7 +1809,14 @@ const NODE_GROUPS = [
   {
     id: "humanTurnBanner", stage: 1, title: "Turn start — human", parents: [{ id: "newround" }],
     via: "src/ui/flow.js:597 humanTurn() — ev({t:\"turn\"}) (deliberately silent — see EVENT_NARRATION.turn below), then the turn banner flash() fires immediately after",
-    cardsOf: () => tableCards("turn").concat(adhocCards("adhoc.turn.banner")),
+    cardsOf: () => tableCards("turn").concat(
+      adhocCards("adhoc.turn.banner"),
+      // D-32/Task 7: the prow panel's own copy (src/ui/board.js). Board chrome rather than a single
+      // moment's line — it is on screen from the first turn onward, so it is placed at the first
+      // moment a player can read it rather than being given a moment of its own that lies.
+      miscBoardCards("misc.board.prowcargorow"), miscBoardCards("misc.board.surplustooltip"),
+      miscBoardCards("misc.board.checkrecipebtn"), miscBoardCards("misc.board.emptyhold"),
+    ),
   },
   {
     id: "botTurnBanner", stage: 1, title: "Turn start — bot", parents: [{ id: "newround" }],
@@ -1916,6 +1960,9 @@ const NODE_GROUPS = [
       miscBattleLineCard("misc.battleline.bakeoffbothheads"), miscBattleLineCard("misc.battleline.bakeoffscores"),
       miscBattleLineCard("misc.battleline.bakeoffbothtails"), // :967, the bakeoff scorer duplicate, is retired (D-52)
       awardCards(),
+      // D-32/Task 7: showStats()'s own copy — the winner banner (two branches) and the stats table's
+      // headings. Literally the last text a player reads, and never in this audit before now.
+      miscBoardCards("misc.board.eovbanner"), miscBoardCards("misc.board.statsheadings"),
     ),
   },
 ];
