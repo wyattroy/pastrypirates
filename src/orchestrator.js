@@ -681,7 +681,12 @@ export async function recipeDraftNet(){
     pending.push(p);
   }
   if(pending.length){
-    const msgFor=p=>`${pn(p.idx)}, choose yer recipe — bake it by gathering every ingredient, then sail home to win:`;
+    // G4 (Wyatt-approved 2026-07-30): one short line. The trailing clause explaining how to win
+    // duplicated the Ahoy intro that closed moments earlier (and, after G5, immediately before) —
+    // the prompt's job is to ask, not to re-teach. The two recipe cards below it carry the detail.
+    // Not an extracted @copy site: the message reaches localAsk/remoteDraftPrompt via a variable,
+    // so it drifts no baseline. D-29 (`yer`, not `your`) satisfied.
+    const msgFor=p=>`${pn(p.idx)}, choose yer recipe:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
     if(appState.passAndPlay){

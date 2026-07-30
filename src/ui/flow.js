@@ -1021,7 +1021,13 @@ export async function showAhoyIntro(){
   // A sixth instance of the approved-but-not-applied class after D-17/D-29/D-54 — and the first
   // found outside the five audited gaps, which is why the copy gate must check all 155 approval
   // fields rather than a hand-picked subset.
-  const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win!`;
+  //
+  // G4 (Wyatt-approved 2026-07-30): the sentence now opens with "Choose a recipe" — the FIRST thing
+  // the player is actually asked to do, which (with G5 moving the draft ahead of the turn-order
+  // intro) is the very next screen. The old wording described gathering before he had a recipe to
+  // gather for. The leading ⚓ is KEPT again here: D-16 requires removal stated in words, and he
+  // named no icon. D-53 (a `--` becomes an em dash) is a no-op check on this string — it has none.
+  const msg=`⚓ Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!`;
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): button trimmed to just "Arrgh!" — icon kept (D-16).
   // @copy misc.introbarrier.ahoy
   await netIntroBarrier(msg,"⚓ Arrgh!");
