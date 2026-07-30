@@ -19,14 +19,16 @@ reason, and I have not touched any of them because how to handle it is your call
 
 ## 2. Open this and play
 
-**http://localhost:8911**
+**The game — http://localhost:8118**
 
-The first time you open it, force a full refresh — hold Shift and click the reload button, or press
-Command-Shift-R. An ordinary reload is not enough, because the browser quietly keeps its own copies of
-the game's code, and two of yesterday's "bugs" turned out to be nothing but that.
+**The review page — http://localhost:8118/art-review/narration-audit.html**
 
-If the page does not load at all, the small local web server that serves the game is not running — start
-it the same way you did yesterday and the address above will work.
+Use **8118**. It is a brand-new address that no browser has ever loaded, so there is nothing cached and
+nothing stale — you should not need a hard refresh at all. (Two of yesterday's "bugs" turned out to be
+nothing but a browser holding on to old code, which is why I set this up rather than reusing 8911.)
+
+Both are already running and I checked both answer. If either does not load, the little local web server
+has stopped — say so and I will restart it.
 
 ## 3. What to look at, in order
 
@@ -103,6 +105,47 @@ These are genuinely open. Everything else I either had your word on or had a wri
    both had their ingredient picture moved. Not one word changed — only where the picture sits. The
    review tool will show them to you again next time you sit down with it, so you can confirm them
    properly then.
+
+## 4b. The review page — it works again, and here is exactly how far
+
+You asked for this alongside the bugs, so here is the honest state. **Yesterday it was a blank page** —
+not a broken card, nothing at all. One stale line number threw an error partway through drawing, and
+because that happened mid-render you got the loading message and no cards. You had not hit it yet because
+your open tab predated it.
+
+**It now renders 224 cards and the counter reads "203 of 219 reviewed".** I opened it in a real browser
+and checked, rather than trusting a report — twice tonight a report said it was fine when it was not.
+
+What changed underneath, in plain terms: **the page used to find each line by where it sat in the file.**
+Line 901, line 613. Edit anything above and every number below it shifts, so last round's marks stop
+pointing at anything. That is what broke it, twice in one week. Each line now carries a small permanent
+tag instead, which survives being moved *and* rewritten — that second part matters, because rewriting is
+the whole point of the tool.
+
+**Your 203 marks came across intact.** Six were retired, and all six are lines you personally tagged
+merge — the tool now refuses to retire anything you did not. Your original file was never touched.
+
+**Three things it now shows you that it never could before:**
+- The end-of-voyage banner, "Check my recipe", the empty-hold label and the stats headings. These were
+  never in the audit at all, so you have never been able to review that wording.
+- Your new buy line — *"Yer too broke to buy it — take the 3🌕 instead."* It is on a card, from live
+  source. That card was missing until an hour ago, which is a neat illustration of why this mattered:
+  a line you approved last night was already invisible to the tool meant for reviewing it.
+- Every branch of every line, including the ones that only appear on a tails flip.
+
+**Two things it still does not do, and you should know before you sit down with it:**
+
+1. **There are no connecting lines between the cards.** You asked for a flow chart with the lines actually
+   drawn, surviving a resize. The cards are grouped under the right moments and in the right order, but
+   nothing is drawn between them — there is an empty frame where the lines should go. So it reads as an
+   ordered list of moments, not a chart. Do not go looking for lines to resize; they are not there yet.
+
+2. **Nothing yet compares what you approved against what the game actually says.** This is the important
+   one and it is the same tool referred to at the bottom of this brief. It is why item 7 in the list above
+   is me telling you by hand. Everything it needs now exists — the tags, the migration, a saved snapshot
+   of every card — but the comparison itself has never been run. **So the page can show you every line,
+   and still cannot tell you which of your approved rewrites never landed.** Yesterday that gap hid four
+   of them.
 
 ## 5. Still open on purpose
 
