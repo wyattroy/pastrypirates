@@ -41,17 +41,42 @@
 // The account below is kept because the *why* is the load-bearing part; the mechanism it describes
 // is history, not current behaviour.
 //
-// KNOWN FRAGILITY, recorded deliberately rather than fixed here. AD_HOC_META below is keyed by
-// hardcoded line number, so any edit that inserts a line above a flash() site drifts it. That has
-// now broken twice. The durable fix is the convention this script ALREADY uses in its own D-32
-// section: curate by exact ANCHOR TEXT and verify each anchor's presence, so a reword or a move
-// fails loudly instead of going stale. Migrating AD_HOC_META's 25 entries to anchor-text keying is
-// a refactor with its own failure modes and does not belong in a gap-closure pass — it is filed as
-// a follow-up. Running inside `npm test` at least makes the drift LOUD, and the failure message
-// already names the file, line and enclosing function, so it is actionable noise, not mystery
-// noise. When you hit it: re-key by the entry's own `label` and enclosing `fn`, NEVER by proximity
-// — applyMeta() fails only on a MISSING key, so a stale key can silently attach the wrong label to
-// a shifted site while an orphan sits unnoticed. The orphan/count assertions are the safety net.
+// THE LINE-NUMBER FRAGILITY IS RESOLVED (15-07). The account of WHY is the load-bearing part, so it
+// is kept rather than deleted.
+//
+// What it was: AD_HOC_META used to be keyed by hardcoded line number, so any edit that inserted a
+// line above a flash() site drifted it. That broke twice. The second time it was worse than "the
+// audit page decayed" — 80 of the page's 91 hardcoded locations had gone stale, the very first
+// lookup in render order threw, the exception escaped the whole render, and the page showed its
+// loading placeholder and nothing else. 130 of Wyatt's 209 review marks pointed at cards that no
+// longer existed under those names. The tool was not fragile; it was dead, and nothing said so
+// because nothing checked it outside a browser.
+//
+// The follow-up filed here proposed keying by exact ANCHOR TEXT. That is now done, ONE STEP BETTER:
+// an anchor made of prose breaks on the one operation this tool exists to perform — rewriting copy.
+// So identity is an EXPLICIT ID DECLARED IN THE SOURCE instead.
+//
+// What is true now:
+//   - every player-facing copy site carries a `// @copy <id>` marker comment, and this script binds
+//     each marker to the next qualifying extracted site in the same enclosing function;
+//   - every ad-hoc, prompt and misc inventory entry carries that `id`, and the curated metadata is
+//     keyed by it. `file`, `line` and `fn` are still emitted, but for REPORTING only — nothing keys
+//     off them, ever again (that rule is what this note used to be about);
+//   - a button is keyed by its option's own `value:`-derived `slot`, never by its label, because the
+//     label is exactly what a wording pass rewrites;
+//   - art-review/narration-retired-ids.json lists ids that must never be issued again, so a future
+//     site cannot claim a deleted site's id and inherit its review mark.
+//
+// Three gates keep the scheme honest, and all three run in `npm test`:
+//   1. THIS SCRIPT fails by name on a live site with no marker, two markers binding to the same
+//      site, a marker binding to nothing, a duplicate id, an illegal id, a duplicate button slot,
+//      a metadata entry whose id has no live site, or an attempt to re-issue a retired id.
+//   2. scripts/narration_audit_check.js checks the audit page itself — every lookup resolves, every
+//      live site is placed exactly once, no card id contains a line number, every card renders real
+//      text from live source, and all 209 of Wyatt's dispositions are still accounted for.
+//   3. scripts/ui_contract_check.js gates the src/ contracts the copy depends on.
+//
+// An id can now only break if somebody deletes a marker, and (1) fails loudly when they do.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
