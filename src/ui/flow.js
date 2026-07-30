@@ -191,6 +191,31 @@ export function reachable(p){
 export function sailPickMsg(seat){
   return `${pn(seat)}: click any yellow square to sail there (−1🌕)`;
 }
+// G25 (Wyatt-approved 2026-07-30, D-55 PULLED FORWARD): THE ONE PLACE that decides what a sail
+// square looks like. Asked whether the four host/guest drifts were structurally fixed so they
+// cannot drift again, he said: "yes, add it and pull D-55 forward." Deferred to Phase 16 twice; it
+// was the last of the four never fixed at all.
+//
+// THE GAP, MEASURED. The host drew rx:6, fill #ffc23a, the sailCell class and a per-square
+// animation-delay stagger. The guest drew rx:5, fill:#fdb63d, opacity:.4 and NO CLASS AT ALL — so a
+// guest's move options were a different orange, dimmer, didn't pulse, didn't respond to the cursor
+// and ignored prefers-reduced-motion. Two players in one game looked at materially different boards.
+//
+// FIXED BY CONSTRUCTION, NOT BY COPYING ATTRIBUTES. Copying the host's attribute list into the
+// guest is the same "match by discipline" that produced four drifts; one builder means there is
+// nothing left to keep in sync. Same reasoning as sailPickMsg() above, which this sits beside —
+// the established home for "the one thing both transports share". Each caller keeps its own
+// click handler and its own hs.push(r); only the RECT is shared.
+//
+// THE INLINE fill STAYS, and that is load-bearing: .sailCell sets opacity, animation,
+// transform-box/origin and transition but does NOT set fill (verified at index.html:424-426), so
+// dropping the inline fill would give BOTH boards default-black squares. If .sailCell ever gains a
+// fill, re-derive this — scripts/host_guest_parity_check.js and this comment are the only warning.
+// The guest's old opacity:.4 goes: .sailCell supplies .5 and the keyframes animate it.
+export function sailHighlightRect(c,cellPx,svg){
+  return el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:6,
+    fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
+}
 export function pickCell(p,cells){
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(appState.dlog[appState.dlogIdx++]);}
@@ -214,15 +239,15 @@ export function localPickCell(p,cells){
     const svg=$("board"),hs=[];
     const done=v=>{hs.forEach(h=>h.remove());panel("");appState.activePickCleanup=null;res(v);};
     appState.activePickCleanup=()=>{hs.forEach(h=>h.remove());panel("");};
-    // notes/edits UI-06: the sail squares now read as obviously tappable — brighter fill, a soft
-    // bounce so they draw the eye, and a hover state that pops the square and deepens the colour.
-    // Each square's bounce is phase-offset a touch by its board position so they shimmer rather
-    // than pulse in dead unison. transform-box:fill-box + centered origin keeps the scale centered.
+    // notes/edits UI-06: the sail squares read as obviously tappable — brighter fill, a soft bounce
+    // so they draw the eye, and a hover state that pops the square and deepens the colour. Each
+    // square's bounce is phase-offset a touch by its board position so they shimmer rather than
+    // pulse in dead unison. transform-box:fill-box + centered origin keeps the scale centered.
+    // G25: those attributes now live in sailHighlightRect() above, shared with the guest path.
     // notes/edits 11-03: cellPx now read via boardCell() — cell itself lives in src/ui/board.js.
     const cellPx=boardCell();
-    cells.forEach((c,ci)=>{
-      const r=el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:6,
-        fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
+    cells.forEach(c=>{
+      const r=sailHighlightRect(c,cellPx,svg);
       r.addEventListener("click",()=>done(c));
       hs.push(r);
     });
@@ -1412,12 +1437,13 @@ export function remotePickHighlights(cells,promptId,msg){
   const svg=$("board"),hs=[];
   const done=v=>{hs.forEach(h=>h.remove());panel("");netHandlers().onRespond?.(promptId,v);};
   const cellPx=boardCell(); // notes/edits 11-03: cell now lives in src/ui/board.js
-  // D-55/D-56: the guest rect's own visual affordance (class, fill, animation) is a DOM-contract/
-  // visual-polish gap, deliberately scoped to Phase 16 (UI-01…07), not this copy-and-behavior plan
-  // — left exactly as it was here; only the TEXT fork (D-35, above) is this plan's to close.
+  // D-55/D-56 CLOSED by G25 (Wyatt-approved 2026-07-30). This loop used to build its own rect —
+  // rx:5, fill:#fdb63d, opacity:.4, no class — so a guest's squares were a different orange,
+  // dimmer, unanimated and unhoverable. It now calls sailHighlightRect(), the SAME builder the
+  // host's localPickCell() calls, so the two cannot drift again by construction. The click handler
+  // and hs.push stay here, where they differ legitimately (this path responds over the wire).
   for(const c of cells){
-    const r=el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:5,
-      fill:"#fdb63d",opacity:.4,style:"cursor:pointer"},svg);
+    const r=sailHighlightRect(c,cellPx,svg);
     r.addEventListener("click",()=>done(c));
     hs.push(r);
   }

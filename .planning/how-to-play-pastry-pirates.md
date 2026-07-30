@@ -115,11 +115,16 @@ but costs you a whole extra visit to that island.
 - **Same origin as the audit page.** NEVER `localStorage.clear()` — it would destroy the narration
   review. Set only `pp_id`.
 - Unique `pp_id` before load or you rejoin as the host (all tabs share storage). Set it, then reload.
-- **Guest boards render sail highlights WITHOUT the `.sailCell` class** — that class only exists in
-  `localPickCell` (host/local). `remotePickHighlights` draws bare `<rect fill="#fdb63d" opacity=.4
-  style="cursor:pointer">` with no class and no data attributes. **This cost me three turns of
-  clicking "Stay put".** Detect by `cursor:pointer` / fill, and derive grid coords as
-  `Math.round((x − 2) / cellPx)`.
+- **`.sailCell` is now the correct selector on a guest too** (changed 2026-07-30, G25). Both
+  `localPickCell` (host/local) and `remotePickHighlights` (guest) build their rect from the single
+  shared `sailHighlightRect()` in `src/ui/flow.js`, so guest and host squares are attribute-identical
+  — same class, same `#ffc23a` fill, same `rx:6`, same staggered bounce. Derive grid coords as
+  `Math.round((x − 2) / cellPx)`, which is unchanged and still right.
+  - *History, because a stale harness note is worse than none:* until 2026-07-30 the guest drew a
+    bare `<rect fill="#fdb63d" opacity=.4 style="cursor:pointer">` with no class and no data
+    attributes, and selecting `.sailCell` as a guest matched nothing. **That cost three turns of
+    clicking "Stay put".** D-55 recorded it; G25 fixed it and
+    `scripts/host_guest_parity_check.js` now fails if the two paths fork again.
 - **Do not gate on reading your own name in the prompt** — the panel types out one character at a
   time, so you will see `"Ahoy, C"` and skip your turn. Gate on
   `#actionPanel.needsAction` instead; a guest only ever receives prompts meant for it.
@@ -133,7 +138,13 @@ but costs you a whole extra visit to that island.
 ## Mistakes to not repeat
 
 1. Ignoring the trade winds. Free board-crossing travel, and I planned a 37-square route without it.
-2. Selecting `.sailCell` as a guest. Silent — it just falls through to "Stay put".
+2. ~~Selecting `.sailCell` as a guest. Silent — it just falls through to "Stay put".~~
+   **NO LONGER TRUE as of 2026-07-30 (G25).** It was true until that date: the guest path built its
+   own class-less rect, so the selector matched nothing and the failure was silent. One shared
+   `sailHighlightRect()` now builds both, `.sailCell` is correct on either seat, and a gate asserts
+   it. Kept as dated history rather than deleted — the same treatment the Manhattan-distance
+   correction got — because the *shape* of the mistake (assuming host and guest DOM match) is still
+   worth remembering.
 3. Matching the player name in a half-typed prompt.
 4. Acting only when a tool call happens, rather than on a timer.
 
