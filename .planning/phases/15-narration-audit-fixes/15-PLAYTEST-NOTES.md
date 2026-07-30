@@ -156,6 +156,48 @@ watching each other's turns.
 
 ---
 
+## HOST-SEAT CONFIRMATIONS (Wyatt playing solo-with-bots, room HYMQ, screenshots)
+
+Three more items verified on the HOST seat at 0-1 coins — a state the guest run never reached.
+
+**NARR-02 / D-11 case 1 — the broke-can't-sail line: PASS, first live sighting.**
+
+    Wy — yer too broke to pay the crew. No sailing this turn.
+
+This is the requirement's whole point: before this phase a captain with 0 coins got no move and the game
+said nothing. Rendered in the addressed form for the actor, at 0 coins, exactly as `brokeSailLine()`
+specifies. Gate-asserted since 15-02, never seen in a real game until now.
+
+**The 0-coin action-prompt reframe: PASS.**
+
+    Wy, ye got nothin to pay yer crew, so they won't budge. Pick one:
+
+`src/ui/flow.js:642`'s `p.coins<=0` branch. Reframes the menu rather than offering a sail option that
+cannot work — the D-41 principle applied to the prompt itself rather than to a button.
+
+**D-41 Attack — the reference implementation: PASS, greying AND reason.**
+
+    ⚔️ Attack (−2🌕)   ← greyed
+    Yer too poor to afford powder! Go fishin' 🎣
+
+At 1 coin with an adjacent target. Confirms the pattern works end to end *when only one reason is in
+play* — which sharpens F11 rather than contradicting it: the Attack branch is the one that always wins,
+so its own text is never suppressed. F11 is specifically that the Trade reason lives in the `else` arm
+and is shadowed whenever a target happens to be adjacent.
+
+Also visible: `Fish (+1–2🌕)` now renders the en dash (`0022d74`).
+
+**Running D-41 status:**
+
+| Case | Greys out | Explains why |
+|---|---|---|
+| Attack — can't afford powder | ✅ | ✅ |
+| Trade — nobody holding cargo | ✅ | ❌ shadowed (F11) |
+| "— coins only —" at 0 coins | untested | untested |
+| Hail `Counter` — bot can't raise | untested | untested |
+
+---
+
 ## F12 — COINS GO NEGATIVE: the bot's counter-offer cap ignores coins already in the offer
 
 **The most serious find of the playtest — it corrupts game state, not just wording.**
