@@ -357,7 +357,15 @@ export function battleAsk(p,o,msg,opts,colors){
     ?(seat===o.def.idx?`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)}! Waiting for ${pname(o.def.idx)} to defend…`
       :`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)} — waiting for ${pname(seat)}…`)
     :`${pn(seat)} is deciding…`;
-  netBroadcast(seat===appState.mySeat?msg:spectMsg);
+  // D-10 DELIVERY (F7): the spectator line is the neutral broadcast, the asked seat's own prompt is
+  // that seat's variant, and each client selects for itself through the mechanism that already ships.
+  //
+  // THIS IS A NEW FINDING, NOT A REVERSAL. D-35's sweep listed this site as "the correct
+  // actor/spectator split (D-10), not a transport fork", and it was right about the question it
+  // asked: does guest-side code AUTHOR its own text? It does not. This gate asks a different
+  // question — does the broadcast REACH the right viewer? — which that sweep never examined. One
+  // message cannot express a per-viewer difference, however correctly it was authored.
+  netBroadcast(spectMsg,[{seat,html:msg}]);
   let idxP;
   if(decisionIsLocal(seat)){
     idxP=new Promise(res=>{

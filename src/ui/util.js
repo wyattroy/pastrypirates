@@ -905,7 +905,20 @@ export function ask(msg,opts,colors,sub){
     netHandlers().onEndReplay();
   }
   const seat=appState.curSeat;
-  netHandlers().onBroadcast(seat===appState.mySeat?msg:`${pn(seat)} is deciding…`);
+  // D-10 DELIVERY (F7, found in the 2026-07-29 two-tab playtest): ONE broadcast reaches EVERY
+  // client, so content that branches on the local viewer can never be right. This line used to read
+  // `seat===appState.mySeat?msg:spectatorLine` — but ask() runs on the HOST, so `mySeat` is the
+  // host's seat, and whichever branch the host took was sent to the whole table. Measured live on a
+  // guest: the host's raw prompts arrived verbatim ("Wyatt, what'll ye do:" held 1694ms), and of
+  // 2516 recorded narration lines, ZERO contained "is deciding" — the spectator line never reached
+  // any client at all.
+  //
+  // Fixed by using the mechanism that already ships: broadcast the SPECTATOR line as the neutral
+  // content, and the actor's own prompt as that seat's variant. netNarrate forwards `variants` to
+  // pickNarrVariant on the host and through netSetNarr to watchNarr on every guest, so each client
+  // selects for itself. No new copy — both strings already existed.
+  // scripts/ui_contract_check.js assertion 7 gates the rule.
+  netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);
   armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`

@@ -464,6 +464,140 @@ function checkCoReachableExplanations(root) {
   return { ok: failures.length === 0, failures, stats: { varsFound, chainsChecked, disabledChecked } };
 }
 
+/* ================= Assertion 7: DELIVERY — a broadcast reaches everyone, so its content must not
+ *                                branch on the local viewer
+ *
+ * Dimension 4 of the four (see assertion 6's header). The rule, stated generally because that is
+ * what makes this a gate rather than three patches: A SINGLE BROADCAST REACHES EVERY CLIENT, so
+ * content that branches on the LOCAL viewer is always a defect. One message cannot express a
+ * per-viewer difference, however correctly it was authored.
+ *
+ * The live instance (F7, 2026-07-29 playtest): ask() sent
+ * `onBroadcast(seat===appState.mySeat?msg:spectatorLine)`. ask() runs on the HOST, so `mySeat` is
+ * the host's seat, and whichever branch the host took went to the whole table. Measured on a guest:
+ * the host's raw prompts arrived verbatim, and of 2516 recorded narration lines ZERO contained "is
+ * deciding" — the spectator line never reached any client. Two sibling sites had the same shape.
+ *
+ * The correct shape already ships: broadcast neutral content plus per-seat `variants`, and let each
+ * client select. netNarrate forwards variants to pickNarrVariant on the host and through netSetNarr
+ * to watchNarr on every guest.
+ *
+ * DELIVERY IS THE SHARED ROOT OF FOUR RECORDED DECISIONS. D-35 (sail wording), D-55 (highlight DOM
+ * contract), D-57 (guest fade) and now F7 are all one host path and one guest path for a single
+ * concept, drifting independently. D-56 concluded "host/guest drift is ONE path, not a pattern" —
+ * that answered a narrower question (does guest-side code author its own text?) and was right about
+ * it. This catches a different failure: not who writes the string, but WHO RECEIVES IT.
+ *
+ * TWO PRECISION REQUIREMENTS, both load-bearing:
+ *  - EXAMINE THE CONTENT ARGUMENT ONLY. netNarrate's own definition references the local seat inside
+ *    pickNarrVariant(...) — that is the SELECTION, which is the correct mechanism. Flagging it would
+ *    make the gate unsatisfiable, and an unsatisfiable gate gets loosened. The mechanism's definition
+ *    sites are exempt BY NAME, with the reason written next to the exemption.
+ *  - FAIL WITH THE FIX IN THE MESSAGE, naming the neutral-plus-variants shape, so the next person
+ *    hits a signpost rather than a puzzle.
+ * ==========================================================================*/
+const BROADCAST_SINKS = ["onBroadcast", "netNarrate", "netSetNarr", "netBroadcast"];
+// A reference to the LOCAL viewer's seat. `mySeat` is the ambient one; the three helpers each
+// resolve "is this seat the local one?" and are equally wrong in a broadcast's content.
+const LOCAL_VIEWER_RE = /\bmySeat\b|\bseatLocal\s*\(|\bdecisionIsLocal\s*\(|\bisLocalTo\s*\(/;
+// The MECHANISM's own definitions. These reference the local seat precisely in order to SELECT a
+// variant from a payload that is already neutral — the correct thing, and the thing this rule exists
+// to route everything through. Exempt by function NAME rather than by line, so the exemption cannot
+// silently migrate onto a different site when the file moves.
+const DELIVERY_MECHANISM_DEFINITIONS = [
+  "netNarrate",   // selects the local seat's variant for the host's own panel, then broadcasts neutral
+  "netBroadcast", // broadcasts only; its signature carries variants through untouched
+  "watchNarr",    // the guest side of the same selection
+  "pickNarrVariant",
+];
+
+/** Split a call's argument list at top level, so a nested call's commas do not confuse it. */
+function topLevelArgs(inner) {
+  const args = [];
+  let depth = 0, cur = "", inStr = null;
+  for (const ch of inner) {
+    if (inStr) { cur += ch; if (ch === inStr) inStr = null; continue; }
+    if (ch === '"' || ch === "'" || ch === "`") { inStr = ch; cur += ch; continue; }
+    if ("([{".includes(ch)) depth++;
+    if (")]}".includes(ch)) depth--;
+    if (ch === "," && depth === 0) { args.push(cur); cur = ""; continue; }
+    cur += ch;
+  }
+  args.push(cur);
+  return args;
+}
+
+/** Extract a call's argument text starting at the open paren index, balanced. */
+function callArgs(text, openIdx) {
+  let depth = 0, inStr = null;
+  for (let i = openIdx; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) { if (ch === inStr) inStr = null; continue; }
+    if (ch === '"' || ch === "'" || ch === "`") { inStr = ch; continue; }
+    if (ch === "(") depth++;
+    else if (ch === ")") { depth--; if (depth === 0) return text.slice(openIdx + 1, i); }
+  }
+  return null;
+}
+
+function checkBroadcastDelivery(root) {
+  const failures = [];
+  const files = jsFilesRecursive(path.join(root, "src"));
+  let callsChecked = 0, exempted = 0;
+
+  for (const full of files) {
+    const rel = path.relative(root, full);
+    const content = fs.readFileSync(full, "utf8");
+    // the byte offset each line starts at, so a match can be reported as file:line
+    const lineStarts = [0];
+    for (let i = 0; i < content.length; i++) if (content[i] === "\n") lineStarts.push(i + 1);
+    const lineOf = (idx) => { let lo = 0, hi = lineStarts.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (lineStarts[mid] <= idx) lo = mid; else hi = mid - 1; } return lo + 1; };
+
+    // the byte ranges belonging to a mechanism definition, so its own selection call is exempt
+    const exemptRanges = [];
+    for (const name of DELIVERY_MECHANISM_DEFINITIONS) {
+      const re = new RegExp(`(?:export\\s+)?function\\s+${name}\\s*\\(`, "g");
+      let dm;
+      while ((dm = re.exec(content))) {
+        // to the end of that line for a one-liner, or the end of the statement — a generous window,
+        // deliberately: the point is to exempt the MECHANISM, not to police its internals
+        const nl = content.indexOf("\n", dm.index);
+        exemptRanges.push([dm.index, nl < 0 ? content.length : nl]);
+      }
+    }
+    const isExempt = (idx) => exemptRanges.some(([a, b]) => idx >= a && idx <= b);
+
+    for (const sink of BROADCAST_SINKS) {
+      const re = new RegExp(`\\b${sink}\\s*\\(`, "g");
+      let m;
+      while ((m = re.exec(content))) {
+        const openIdx = m.index + m[0].length - 1;
+        // skip the sink's own definition and the mechanism sites
+        if (isExempt(m.index)) { exempted++; continue; }
+        const lineIdx = lineOf(m.index);
+        const lineText = content.split("\n")[lineIdx - 1] || "";
+        if (/^\s*\/\//.test(lineText)) continue;
+        const inner = callArgs(content, openIdx);
+        if (inner == null) continue;
+        const args = topLevelArgs(inner);
+        callsChecked++;
+        // THE CONTENT ARGUMENT ONLY. For netSetNarr the content is the 3rd argument (db, room, html);
+        // for every other sink it is the 1st. The variants argument is deliberately NOT examined —
+        // a per-seat variant list is the mechanism, and flagging it would make the rule unsatisfiable.
+        const contentArg = sink === "netSetNarr" ? (args[2] || "") : (args[0] || "");
+        if (LOCAL_VIEWER_RE.test(contentArg)) {
+          failures.push(
+            `${rel}:${lineIdx} — ${sink}()'s CONTENT argument branches on the local viewer: \`${contentArg.trim().slice(0, 110)}\`. ` +
+            `A single broadcast reaches EVERY client, so one message cannot express a per-viewer difference — whichever branch the host takes is what the whole table receives. ` +
+            `FIX: broadcast the neutral (spectator) content and pass the per-seat difference as variants — ${sink}(spectatorLine, [{ seat, html: actorLine }]) — and let each client select via pickNarrVariant/watchNarr.`
+          );
+        }
+      }
+    }
+  }
+  return { ok: failures.length === 0, failures, stats: { callsChecked, exempted } };
+}
+
 /* ================= Runner (real tree) ================= */
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
@@ -492,6 +626,10 @@ function runAll(root, { quiet = false } = {}) {
   const a6 = checkCoReachableExplanations(root);
   log(`${a6.ok ? "PASS" : "FAIL"} co-reachability — a greyed control's reason is reachable in the state it explains (D-41/F11) [${a6.stats.varsFound} explanation var(s), ${a6.stats.chainsChecked} chain(s), ${a6.stats.disabledChecked} disabled option(s)]`);
   results.push({ name: "co-reachable-explanations", ...a6 });
+
+  const a7 = checkBroadcastDelivery(root);
+  log(`${a7.ok ? "PASS" : "FAIL"} delivery — no broadcast's content branches on the local viewer (D-10/F7) [${a7.stats.callsChecked} broadcast call(s) checked, ${a7.stats.exempted} mechanism site(s) exempt]`);
+  results.push({ name: "broadcast-delivery", ...a7 });
 
   return results;
 }
@@ -704,9 +842,62 @@ function drill() {
     if (!r.ok) allDrillsOk = false;
   }
 
+  /* ---- Assertion 7: DELIVERY, red-proofed against the REAL broken code at ab98e04 ----
+   * All three converted sites must be NAMED. A gate that caught only the one the finding mentioned
+   * would have left the other two shipping the same defect.
+   */
+  {
+    resetFixture();
+    for (const rel of ["src/ui/util.js", "src/ui/flow.js", "src/orchestrator.js"]) {
+      fixture(rel, execFileSync("git", ["show", `ab98e04:${rel}`], { cwd: REAL_ROOT, maxBuffer: 1e8 }).toString());
+    }
+    const r = checkBroadcastDelivery(tmpRoot);
+    const named = ["util.js", "flow.js", "orchestrator.js"].filter((f) => r.failures.some((x) => x.includes(f)));
+    const hasFix = r.failures.some((f) => /\[\{ seat, html: actorLine \}\]/.test(f));
+    const ok = !r.ok && named.length === 3 && hasFix;
+    console.log(`${ok ? "PASS" : "FAIL"} drill 7a (delivery, against the REAL ab98e04 code) — expected FAIL naming all 3 sites with the fix in the message, got ${r.ok ? "PASS" : "FAIL"} naming [${named.join(", ")}]${hasFix ? " with the fix" : " WITHOUT the fix in the message"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 1 — the MECHANISM's own definition references the local seat in order to
+    // SELECT a variant. That is the correct thing and must NOT be flagged; flagging it would make the
+    // rule unsatisfiable, and an unsatisfiable rule gets loosened rather than obeyed.
+    resetFixture();
+    fixture("src/orchestrator.js", [
+      "export function netNarrate(html,variants){showNarration(pickNarrVariant({html,variants},appState.mySeat));if(appState.isHost)netSetNarr(appState.db,appState.room,html,cb,variants);}",
+      "export function netBroadcast(html,variants){if(appState.isHost)netSetNarr(appState.db,appState.room,html,cb,variants);}",
+    ].join("\n"));
+    const r = checkBroadcastDelivery(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 7b (negative control — the mechanism's own selection site is not flagged) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 2 — a correctly converted CALL, neutral content plus per-seat variants. If
+    // this were flagged, the gate would be demanding something no correct code could satisfy.
+    resetFixture();
+    fixture("src/ui/util.js", "export function ask(msg){const seat=appState.curSeat;netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);}");
+    const r = checkBroadcastDelivery(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 7c (negative control — a correctly converted call passes) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 3 — the FIXED tree must pass, which is what proves the fix and the gate agree.
+    resetFixture();
+    for (const rel of ["src/ui/util.js", "src/ui/flow.js", "src/orchestrator.js"]) {
+      fixture(rel, fs.readFileSync(path.join(REAL_ROOT, rel), "utf8"));
+    }
+    const r = checkBroadcastDelivery(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 7d (negative control — the FIXED tree passes) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 
-  console.log(`\n${allDrillsOk ? "ALL 6 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allDrillsOk ? "ALL 7 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allDrillsOk ? 0 : 1);
 }
 

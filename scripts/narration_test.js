@@ -637,5 +637,61 @@ for (const key of KEYS) {
   }
 }
 
+/* ============================================================================
+ * F7 / D-10 — DELIVERY: the actor gets the prompt, spectators get the spectator line,
+ * asserted PER SEAT, headlessly.
+ *
+ * A single broadcast reaches every client, so content that branches on the local
+ * viewer can never be right. ask() used to send
+ * `seat===appState.mySeat?msg:spectatorLine` — and ask() runs on the HOST, so
+ * `mySeat` is the host's seat and whichever branch the host took went to the whole
+ * table. Measured on a guest during the playtest: the host's raw prompts arrived
+ * verbatim, and of 2516 recorded narration lines ZERO contained "is deciding".
+ *
+ * The fix routes all three sites through the D-10 neutral-plus-variants shape. This
+ * pins the observable the guest recording showed missing: pickNarrVariant — the exact
+ * selector both the host's own panel and every guest's watchNarr use — must resolve
+ * the ACTOR's seat to the prompt and a SPECTATOR's seat to the spectator line, from
+ * ONE payload.
+ *
+ * ui_contract_check.js assertion 7 gates the SHAPE at all three sites; this pins the
+ * per-seat RESULT.
+ * ==========================================================================*/
+{
+  console.log("\nF7/D-10 — one broadcast, per-seat delivery (actor gets the prompt, spectators get the spectator line):");
+  const ACTOR = 2, SPECTATOR = 0, OTHER = 3;
+
+  // ---- ask(): the payload the converted call builds ----
+  const prompt = `${pn(ACTOR)}, what'll ye do:`;
+  const spectatorLine = `${pn(ACTOR)} is deciding…`;
+  const askPayload = { html: spectatorLine, variants: [{ seat: ACTOR, html: prompt }] };
+  check("ask(): the ACTOR's seat resolves to the prompt", pickNarrVariant(askPayload, ACTOR), prompt);
+  check("ask(): a SPECTATOR's seat resolves to the spectator line", pickNarrVariant(askPayload, SPECTATOR), spectatorLine);
+  check("ask(): another spectator resolves to the same spectator line", pickNarrVariant(askPayload, OTHER), spectatorLine);
+  checkTrue("ask(): the BROADCAST content is the spectator line, not the raw prompt — a guest can never receive the prompt verbatim",
+    askPayload.html === spectatorLine && !askPayload.html.includes("what'll ye do"));
+  checkTrue("ask(): the spectator line is the thing the guest recording showed missing (\"is deciding\")", /is deciding/.test(askPayload.html));
+
+  // ---- pickCell(): same shape, and the actor's variant is deliberately the empty string ----
+  const sailSpect = `${pn(ACTOR)} is choosing where to sail…`;
+  const sailPayload = { html: sailSpect, variants: [{ seat: ACTOR, html: "" }] };
+  check("pickCell(): the ACTOR's seat resolves to the empty string (their own board highlighting is the feedback)", pickNarrVariant(sailPayload, ACTOR), "");
+  check("pickCell(): a SPECTATOR's seat resolves to the spectator line", pickNarrVariant(sailPayload, SPECTATOR), sailSpect);
+
+  // ---- asyncBattle(): the defender is asked, so the attacker is a spectator of that decision ----
+  const battlePrompt = "Defend or flee?";
+  const battleSpect = `⚔️ ${pn(SPECTATOR)} attacks ${pn(ACTOR)}! Waiting for ${pname(ACTOR)} to defend…`;
+  const battlePayload = { html: battleSpect, variants: [{ seat: ACTOR, html: battlePrompt }] };
+  check("asyncBattle(): the asked seat resolves to its own prompt", pickNarrVariant(battlePayload, ACTOR), battlePrompt);
+  check("asyncBattle(): the OTHER combatant resolves to the battle-aware spectator line", pickNarrVariant(battlePayload, SPECTATOR), battleSpect);
+  check("asyncBattle(): an uninvolved seat resolves to the same spectator line", pickNarrVariant(battlePayload, OTHER), battleSpect);
+
+  // ---- and the property that makes this a rule rather than three patches ----
+  checkTrue("one payload serves every seat — no per-viewer difference is decided before the broadcast",
+    [ACTOR, SPECTATOR, OTHER].every((s) => typeof pickNarrVariant(askPayload, s) === "string"));
+  // an unset local seat (a fresh client, or an out-of-game caller) must still get the neutral content
+  check("a client whose seat is not yet known still receives the neutral spectator line", pickNarrVariant(askPayload, null), spectatorLine);
+}
+
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);

@@ -195,7 +195,11 @@ export function pickCell(p,cells){
   }
   setActor(p.idx);
   // @copy misc.draftwait.sailchoosing
-  netHandlers().onBroadcast(p.idx===appState.mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
+  // D-10 DELIVERY (F7): same conversion as ask() — the spectator line is the neutral broadcast and
+  // the ACTOR's variant is the empty string (their own board highlighting is their feedback). This
+  // used to branch on appState.mySeat, which is the HOST's seat, so one client's answer was sent to
+  // the whole table and no guest ever saw "is choosing where to sail".
+  netHandlers().onBroadcast(`${pn(p.idx)} is choosing where to sail…`,[{seat:p.idx,html:""}]);
   armClock(p.idx);
   const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
     :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:sailPickMsg(p.idx)});
