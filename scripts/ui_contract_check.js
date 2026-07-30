@@ -688,6 +688,58 @@ function checkBroadcastDelivery(root) {
 }
 
 /* ================= Runner (real tree) ================= */
+/* ================= Assertion 8: the storm rain draws no unseeded and no GAME randomness ================= */
+// G19 (Wyatt-approved 2026-07-30). buildStormLayers() used to jitter four rain layers with unseeded
+// Math.random() and cache them per browser, so two players in the same room saw permanently
+// different weather (measured: 0.818s/200.5px vs 0.534s/264.7px). It now derives every layer from
+// mulberry32(game.seed) — a PRIVATE stream seeded from a number every client already shares.
+//
+// TWO WAYS THIS CAN REGRESS, and both are failures here:
+//   Math.random( — back to per-client weather, the bug itself.
+//   .r()         — FAR worse: appState.game.r() is the seeded GAME stream, and drawing four extra
+//                  numbers from it would advance that stream, desyncing every client in the room
+//                  AND every one of the 31 determinism fixtures. This is the one to catch.
+//
+// SCOPED BY CONTENT ANCHOR to those two functions, never file-wide or tree-wide. Math.random() is
+// legitimate elsewhere under src/ui/ (session id, room code, pop jitter), so a broad ban would be
+// wrong and would be widened away the first time it fired — which is how a gate stops catching
+// anything real. Anchored, it can stay strict forever.
+export function checkStormRainSeeded(root) {
+  const failures = [];
+  const rel = path.join("src", "ui", "board.js");
+  const full = path.join(root, rel);
+  // a synthetic --drill tree contains only the fixtures a given case needs; an absent file there is
+  // meaningless, the same convention LAYOUT_WIDE_EXPECTED and the chrome list already use
+  if (!fs.existsSync(full)) return { ok: true, failures, stats: { scanned: 0 } };
+  const src = fs.readFileSync(full, "utf8");
+
+  const i = src.indexOf("export function stormLayerSpecs");
+  const j = src.indexOf("export function buildStormLayers");
+  if (i < 0 || j < 0) {
+    // NOT a silent skip: if the anchors are gone the region cannot be located, and a check that
+    // cannot find its subject must go loud rather than pass.
+    failures.push(`RAIN-SEED-ANCHOR: could not locate stormLayerSpecs()/buildStormLayers() in ${rel} — re-anchor this assertion; do NOT delete it. The rule it protects (no unseeded and no game-rng randomness in the rain) is what keeps every client in a room seeing the same weather and all 31 determinism fixtures intact.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  const lo = Math.min(i, j), hi = Math.max(i, j);
+  const after = src.indexOf("\nexport ", hi + 10);
+  const region = src.slice(lo, after < 0 ? src.length : after);
+  // comments in this region deliberately NAME both banned calls to explain the rule, so strip
+  // full-line comments before testing — otherwise the documentation trips its own gate
+  const live = region.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+
+  if (/Math\.random\(/.test(live)) {
+    failures.push(`RAIN-UNSEEDED: the storm-rain region of ${rel} calls Math.random() — every browser would get permanently different weather again, which is exactly what G19 fixed. Seed it from appState.game.seed via mulberry32.`);
+  }
+  if (/\.r\(\)/.test(live)) {
+    failures.push(`RAIN-GAME-RNG: the storm-rain region of ${rel} draws from the GAME rng (.r()) — this advances the seeded game stream, desyncing every client in the room AND all 31 determinism fixtures. Use a PRIVATE mulberry32(seed) instead; it consumes nothing.`);
+  }
+  if (!/mulberry32\(/.test(live)) {
+    failures.push(`RAIN-NO-RNG: the storm-rain region of ${rel} no longer calls mulberry32() — if the seeding was removed, the rain is either constant or unseeded; neither is what Wyatt approved.`);
+  }
+  return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
+}
+
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
   const results = [];
@@ -719,6 +771,10 @@ function runAll(root, { quiet = false } = {}) {
   const a7 = checkBroadcastDelivery(root);
   log(`${a7.ok ? "PASS" : "FAIL"} delivery — no broadcast's content branches on the local viewer (D-10/F7) [${a7.stats.callsChecked} broadcast call(s) checked, ${a7.stats.exempted} mechanism site(s) exempt]`);
   results.push({ name: "broadcast-delivery", ...a7 });
+
+  const a8 = checkStormRainSeeded(root);
+  log(`${a8.ok ? "PASS" : "FAIL"} the storm rain is seeded from the game — no unseeded Math.random(), no GAME .r() (G19)`);
+  results.push({ name: "storm-rain-seeded", ...a8 });
 
   return results;
 }
@@ -1030,9 +1086,69 @@ function drill() {
     if (!r.ok) allDrillsOk = false;
   }
 
+  /* ---- assertion 8 (G19): the storm rain draws no unseeded and no GAME randomness ---- */
+  const RAIN_GOOD = [
+    'export function stormLayerSpecs(seed){',
+    '  const rnd=mulberry32(seed);',
+    '  return [{dur:0.676*rnd(),scale:0.969*rnd()}];',
+    '}',
+    'export function buildStormLayers(ov,seed){',
+    '  for(const s of stormLayerSpecs(seed))ov.appendChild(mk(s));',
+    '}',
+    'export function somethingElse(){ return Math.random(); }',
+    '',
+  ].join("\n");
+
+  // 8a: back to per-client weather — the bug G19 fixed
+  {
+    resetFixture();
+    fixture("src/ui/board.js", RAIN_GOOD.replace("const rnd=mulberry32(seed);", "const rnd=Math.random;"));
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("RAIN-NO-RNG") || f.startsWith("RAIN-UNSEEDED"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8a (rain re-seeded from unseeded Math.random) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 8b: THE ONE THAT MATTERS — drawing from the GAME rng. This would desync every client in the
+  //     room and all 31 determinism fixtures, and it looks superficially like a correct "seeded" fix.
+  {
+    resetFixture();
+    fixture("src/ui/board.js", RAIN_GOOD.replace("0.676*rnd()", "0.676*appState.game.r()"));
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("RAIN-GAME-RNG"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8b (rain drawn from the GAME rng — desyncs clients AND fixtures) — expected FAIL naming RAIN-GAME-RNG, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 8c: the region cannot be located — an anchored check whose subject vanished must go LOUD, not
+  //     pass because it found nothing. This is the vacuous-check trap, drilled.
+  {
+    resetFixture();
+    fixture("src/ui/board.js", "export function drawBoard(){}\n");
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("RAIN-SEED-ANCHOR"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8c (anti-vacuity — a lost anchor FAILS rather than silently passing) — expected FAIL naming RAIN-SEED-ANCHOR, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 8d: NEGATIVE CONTROL — a correctly seeded region passes, AND a legitimate Math.random() OUTSIDE
+  //     the two anchored functions is not flagged. That scoping is why this can stay strict.
+  {
+    resetFixture();
+    fixture("src/ui/board.js", RAIN_GOOD);
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = r.ok;
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8d (negative control — seeded rain passes, and Math.random() elsewhere in the file is untouched) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 
-  console.log(`\n${allDrillsOk ? "ALL 7 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allDrillsOk ? "ALL 8 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allDrillsOk ? 0 : 1);
 }
 
