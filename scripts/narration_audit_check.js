@@ -43,6 +43,24 @@
 // After the repair, assertions 1/2/3/5 must all reach zero and assertion 4 must stay at 14 PASS.
 //
 // ============================================================================
+// SECOND ACCEPTANCE BASELINE — assertion 10, measured at 2cbe551 (2026-07-30)
+// ============================================================================
+// Assertions 1–9 all went green, and the page was still broken. Wyatt opened it in Chrome and found
+// 61 cards where there should be 212, with the page's own console reporting 128 self-check failures,
+// while this gate said 22/22 PASS. Assertion 10 (below) is the answer to that, and it is likewise
+// written RED. Its numbers on the day it was written, reproduced headlessly to the digit:
+//
+//   cards rendered ............... 61 (61 distinct) across 19 moments  [Chrome: 61]
+//   builder-produced texts ....... 212 (art-review/narration-core.js)
+//   unrendered ................... 165
+//   collapsed moments ............ 13 of 19, every one "fileLine is not defined"
+//   junk card ids ................ 1 (`prompt:undefined`)
+//   page's own D-21 self-check ... 128 failure(s)                      [Chrome: 128]
+//
+// After the repair every one of those must read 0 except "cards rendered", which must equal the
+// builder-produced count.
+//
+// ============================================================================
 // NOT WIRED INTO `npm test` YET — wiring point is the page re-key (Task 4)
 // ============================================================================
 // Assertions 1, 2, 3 and 5 are red against ab98e04 for real reasons that the render-core extraction
@@ -57,6 +75,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
+import { renderAuditPageHeadlessIsolated } from "./lib/audit_page_headless.mjs";
 
 // The commit whose inventory Wyatt's review page actually consumed. 136 of his 141 line-keyed ids
 // resolve against it; the other 5 are the page-added exceptions pinned in assertion 8.
@@ -628,6 +647,109 @@ export function checkPageBoundary(page) {
   return res;
 }
 
+/* ================= assertion 10: the LIVE RENDER — what the page actually shows =================
+ *
+ * WHY THIS ASSERTION EXISTS, AND WHY THE OTHER NINE COULD NOT CATCH IT (2026-07-30).
+ *
+ * Assertions 1–9 read the page as TEXT. That was a deliberate choice and it still is: it caught five
+ * classes of decay and it needs no browser. But a static read cannot see an exception thrown INSIDE a
+ * card builder, and that is the failure mode that has now killed this page twice.
+ *
+ * Measured at 2cbe551, in a browser, by Wyatt: the page rendered 61 cards and its own console
+ * reported `D-21 self-check failures ... Array(128)`. `npm test` reported 22/22 PASS. A gate that is
+ * green over a page that knows it is missing 128 lines is worse than no gate, because it is the
+ * reason nobody looked. Concretely: Wyatt's newly approved line — "Yer too broke to buy it — take
+ * the 3🌕 instead." (src/ui/flow.js, `// @copy prompt.dock.tailschoice`) — was already invisible on
+ * the page it exists to be reviewed on, hours after he approved it.
+ *
+ * The cause was two symmetric leftovers from the 15-07 Task 3 re-key, neither visible in page text:
+ *   - `adhocCards()` passed `fileLine`, an identifier that no longer exists in that scope, so EVERY
+ *     ad-hoc lookup threw ReferenceError and each of the 13 NODE_GROUPS containing one collapsed
+ *     into a single error card — 61 rendered instead of 212;
+ *   - the page's own coverage probe called `promptCardId(entry.file, entry.line)` against the new
+ *     one-argument signature, producing the id `prompt:undefined` — and a pass-through prompt card
+ *     was ALSO built under that same junk id, so `renderedIds.has("prompt:undefined")` was true and
+ *     all 28 prompts reported COVERED while 41 of their buttons reported missing. Two bugs cancelling
+ *     into a false pass is exactly what an independent check has to be able to see.
+ *
+ * `scripts/no_undef_check.js` finds precisely this identifier class, but it is scoped to
+ * `src/**\/*.js` and the audit page is not in `src/`. Rather than widen a heuristic, this assertion
+ * EXECUTES the page (scripts/lib/audit_page_headless.mjs + a hand-rolled DOM, no dependency) and
+ * reads its own numbers back. Fidelity is proven, not asserted: headless reproduces the browser's
+ * 61 cards and 128 self-check failures exactly.
+ *
+ * It reports FAIL, never a warning. A coverage shortfall on this page means Wyatt is reviewing
+ * wording that is not all of the wording, which is the one thing this tool must never do quietly.
+ * ==========================================================================*/
+
+// How many missing ids to name in the failure output. Enough to act on, not a wall of text.
+const LIVE_RENDER_SAMPLE = 12;
+
+/**
+ * @param {object} headless the return of renderAuditPageHeadless() — the page's OWN render and its
+ *   OWN probeFailures array, read back. Never re-derived here.
+ * @param {object[]} coreCards core.renderAllCards(inv) — the shared render core's full card list,
+ *   i.e. every distinct text the live builders can produce. The page and this list have exactly one
+ *   implementation between them, which is why comparing them is meaningful rather than circular:
+ *   the core says what text EXISTS, the page says what a reviewer can SEE.
+ */
+export function checkLiveRender(headless, coreCards) {
+  const res = mk("assertion 10 — live render: the page shows a card for every text the builders produce");
+
+  if (!headless || headless.fatal) {
+    fail(res, `the page's module threw before finishing — in a browser this is the "stuck on loading, no cards" failure:\n${headless ? headless.fatal : "(no result at all)"}`);
+    return res;
+  }
+
+  const rendered = new Set(headless.cardIds);
+  const coreIds = coreCards.map((c) => c.id);
+  const distinctCore = new Set(coreIds);
+  const missing = coreIds.filter((id) => !rendered.has(id));
+  const errorCards = headless.errorCards || [];
+  const probe = headless.selfCheckFailures || [];
+
+  // THE NUMBERS, always printed — pass or fail. A gate that only speaks when it is unhappy leaves
+  // nobody able to tell a repaired number from a number that was never measured.
+  note(res, `cards rendered: ${headless.cardIds.length} (${rendered.size} distinct) across ${headless.nodeGroupCount} moments`);
+  note(res, `distinct texts the builders produce (render core): ${distinctCore.size}`);
+  note(res, `unrendered: ${missing.length}`);
+  note(res, `the page's own D-21 self-check: ${probe.length} failure(s)`);
+
+  // (a) a collapsed NODE_GROUP — the per-group boundary caught a throw, so the page survived, but
+  // every card in that group is gone. Named with the real exception so the fix is one read away.
+  if (errorCards.length) {
+    fail(res, `${errorCards.length} of ${headless.nodeGroupCount} moment(s) collapsed into an error card — every card inside them is missing from the page:`);
+    for (const e of errorCards) note(res, `  ${e.id}: ${String(e.detail || "").split("\n")[0]}`);
+  }
+
+  // (b) a junk card id. `prompt:undefined` is not a card, and worse, it silently satisfied the
+  // page's own prompt-coverage probe for all 28 prompts.
+  const junk = Array.from(rendered).filter((id) => /undefined|NaN|:null\b/.test(String(id)));
+  if (junk.length) {
+    fail(res, `${junk.length} rendered card id(s) are junk — a stale call signature produced them, and a junk id can silently satisfy a coverage probe: ${junk.join(", ")}`);
+  }
+
+  // (c) COVERAGE. The assertion this whole file exists for.
+  if (missing.length) {
+    fail(res, `${missing.length} of ${distinctCore.size} builder-produced texts have NO card on the page — Wyatt cannot review what he cannot see. First ${Math.min(LIVE_RENDER_SAMPLE, missing.length)}:`);
+    for (const id of missing.slice(0, LIVE_RENDER_SAMPLE)) note(res, `  ${id}`);
+    if (missing.length > LIVE_RENDER_SAMPLE) note(res, `  …and ${missing.length - LIVE_RENDER_SAMPLE} more (run \`node scripts/narration_audit_check.js --live\` for the full list)`);
+  }
+
+  // (d) the page's OWN self-check, promoted from a console message nobody reads into a gate. Grouped
+  // by its own key so the shape of the shortfall is legible at a glance.
+  if (probe.length) {
+    const byKey = new Map();
+    for (const f of probe) byKey.set(f.key, (byKey.get(f.key) || 0) + 1);
+    const shape = Array.from(byKey.entries()).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}×${n}`).join(", ");
+    fail(res, `the page's own D-21 self-check reports ${probe.length} failure(s) — ${shape}. It has been saying so in the browser console; this is the gate that makes it count. First ${Math.min(LIVE_RENDER_SAMPLE, probe.length)}:`);
+    for (const f of probe.slice(0, LIVE_RENDER_SAMPLE)) note(res, `  [${f.key}] ${String(f.text).replace(/\s+/g, " ").slice(0, 150)}`);
+    if (probe.length > LIVE_RENDER_SAMPLE) note(res, `  …and ${probe.length - LIVE_RENDER_SAMPLE} more`);
+  }
+
+  return res;
+}
+
 /* ================= the whole gate, as one callable function ================= */
 
 export function runChecks(page, inv, opts = {}) {
@@ -642,6 +764,10 @@ export function runChecks(page, inv, opts = {}) {
   if (opts.core) results.push(checkTableBaseline(opts.core, opts.baselineText));
   if (opts.migration) results.push(checkMigration(opts.migration));
   if (opts.checkBoundary !== false) results.push(checkPageBoundary(page));
+  // Assertion 10 needs the page EXECUTED, which is async, so main() renders it once and hands the
+  // result in. runChecks itself stays synchronous — that is what lets --drill run every assertion
+  // against a synthetic tree without a browser or an event loop.
+  if (opts.headless) results.push(checkLiveRender(opts.headless, opts.cards || []));
   return results;
 }
 
@@ -929,6 +1055,65 @@ function drill() {
     say(!r.pass && r.lines.some((l) => /does not carry the id-scheme version/.test(l)), "assertion 9 goes red when the storage key does not carry the id-scheme version");
   }
 
+  /* ---- assertion 10 — the live render. Red-proofed BOTH ways, per this pass's own standard.
+   *
+   * The PASS side matters as much as the fail side here, and it needs saying why it is a fixture. On
+   * the day this assertion was written the real page was 165 cards short, so "it passes when coverage
+   * is complete" could not be demonstrated on the real tree at that commit. It is demonstrated on a
+   * synthetic complete pair instead: a headless result whose rendered ids are exactly the core's card
+   * ids, no error cards, no junk ids, an empty probe array. Every field the assertion reads is
+   * exercised, so a future reader can tell a REPAIRED assertion 10 from a weakened one.
+   *
+   * `complete()` fabricates the HARNESS OUTPUT, not the page — checkLiveRender is pure and takes that
+   * output as data, which is exactly what makes it drillable without a browser. The harness itself is
+   * separately proven faithful: run against the real page it reproduces Chrome's own numbers (61
+   * cards, 128 self-check failures) to the digit. ---- */
+  {
+    const coreCards = [{ id: "table:a" }, { id: "prompt:p" }, { id: "button:p~0" }, { id: "sub:p~poor" }];
+    const complete = (over) => Object.assign({
+      ok: true, fatal: null,
+      cardIds: coreCards.map((c) => c.id),
+      cardElements: coreCards.length,
+      selfCheckFailures: [], errorCards: [], nodeGroupCount: 3,
+      inventoryCounts: { adhoc: 1, prompts: 1, misc: 0, awards: 0 },
+    }, over || {});
+
+    say(checkLiveRender(complete(), coreCards).pass,
+      "negative control: assertion 10 PASSES when every builder-produced text has a rendered card");
+
+    // it must also always PRINT the numbers, pass or fail — a silent pass is unauditable
+    {
+      const r = checkLiveRender(complete(), coreCards);
+      say(r.lines.some((l) => /cards rendered: 4/.test(l)) && r.lines.some((l) => /unrendered: 0/.test(l)),
+        "assertion 10 reports the real counts even when it passes");
+    }
+    {
+      const r = checkLiveRender(complete({ cardIds: ["table:a", "prompt:p"] }), coreCards);
+      say(!r.pass && r.lines.some((l) => /2 of 4 builder-produced texts have NO card/.test(l)) && r.lines.some((l) => /button:p~0/.test(l)),
+        "assertion 10 goes red on an unrendered builder text, and names it");
+    }
+    {
+      const r = checkLiveRender(complete({ errorCards: [{ id: "dockOutcomes", detail: "fileLine is not defined" }] }), coreCards);
+      say(!r.pass && r.lines.some((l) => /collapsed into an error card/.test(l)) && r.lines.some((l) => /fileLine is not defined/.test(l)),
+        "assertion 10 goes red on a collapsed moment, and names the exception");
+    }
+    {
+      const r = checkLiveRender(complete({ cardIds: coreCards.map((c) => c.id).concat("prompt:undefined") }), coreCards);
+      say(!r.pass && r.lines.some((l) => /junk/.test(l) && /prompt:undefined/.test(l)),
+        "assertion 10 goes red on a junk card id — the one that silently satisfied the page's own probe");
+    }
+    {
+      const r = checkLiveRender(complete({ selfCheckFailures: [{ key: "misc", text: "MISSING CARD for misc:timer:x", fields: null }] }), coreCards);
+      say(!r.pass && r.lines.some((l) => /own D-21 self-check reports 1 failure/.test(l)),
+        "assertion 10 goes red on the page's OWN self-check failures — it fails, it does not warn");
+    }
+    {
+      const r = checkLiveRender({ ok: false, fatal: "ReferenceError: boom" }, coreCards);
+      say(!r.pass && r.lines.some((l) => /threw before finishing/.test(l)),
+        "assertion 10 goes red when the page's module throws at all — the historic blank-page failure");
+    }
+  }
+
   // prove the drill never touched the real tree
   const d = mkdtempSync(join(tmpdir(), "narr-audit-drill-"));
   writeFileSync(join(d, "note.txt"), "drill scratch dir — the drill builds its fixtures in memory and never writes to the repo\n");
@@ -1006,7 +1191,28 @@ const migration = dispositions && aliases ? {
   liveCardIds: new Set(cards.map((c) => c.id)),
 } : null;
 
-const results = runChecks(page, inv, { cards, core, baselineText, migration });
+// Assertion 10: EXECUTE the page. This is the one measurement the other nine cannot make (see that
+// assertion's own header). Rendered once, here, and handed to runChecks.
+const headless = renderAuditPageHeadlessIsolated();
+
+/* ---- --live: the full unrendered list plus the page's whole self-check, for working through a
+ * coverage gap rather than just being told its size. ---- */
+if (argv.includes("--live")) {
+  if (headless.fatal) {
+    console.error("the page threw before finishing:\n" + headless.fatal);
+    process.exit(1);
+  }
+  const renderedIds = new Set(headless.cardIds);
+  const missing = cards.map((c) => c.id).filter((id) => !renderedIds.has(id));
+  console.log(`cards rendered: ${headless.cardIds.length} (${renderedIds.size} distinct) · builders produce: ${new Set(cards.map((c) => c.id)).size} · unrendered: ${missing.length}`);
+  console.log(`error cards: ${(headless.errorCards || []).length} · page self-check failures: ${(headless.selfCheckFailures || []).length}\n`);
+  for (const e of headless.errorCards || []) console.log(`ERROR CARD  ${e.id}: ${String(e.detail || "").split("\n")[0]}`);
+  for (const id of missing) console.log(`UNRENDERED  ${id}`);
+  for (const f of headless.selfCheckFailures || []) console.log(`SELF-CHECK  [${f.key}] ${String(f.text).replace(/\s+/g, " ").slice(0, 200)}`);
+  process.exit(0);
+}
+
+const results = runChecks(page, inv, { cards, core, baselineText, migration, headless });
 let failures = 0;
 for (const r of results) {
   console.log((r.pass ? "PASS" : "FAIL") + ": " + r.label);
