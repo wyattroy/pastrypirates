@@ -74,7 +74,7 @@ export const {
 const shared = await import("../src/shared/index.js");
 export const {
   DIRNAME, emojify, ilabelImg, iconImg, ING_IMG, EMOJI_IMG, ASSET_BASE, HEXCOL,
-  DOCK_FLAVOR, DOCK_PLACE, ING_ALL, dockPlace, dockFlavor, man,
+  DOCK_FLAVOR, DOCK_PLACE, ING_ALL, dockPlace, dockFlavor, dockFlavorIcon, man,
 } = shared;
 const { recipeInfo, winRecipeSpan } = await import("../src/ui/recipe.js");
 
@@ -461,6 +461,10 @@ export const TWO_PARTY_ROLE_LABELS = {
 const CTX_BASE = {
   pn, poss, pname, ilabelImg, iconImg, ingImg: shared.ingImg, fmtItem, DIRNAME, appState, man,
   dockPlace, dockFlavor, ING_IMG, ING_ALL, DOCK_FLAVOR, DOCK_PLACE, HEXCOL, ASSET_BASE,
+  // F5 (2026-07-29): the dock-on-tails buy prompt now renders its flavour through dockFlavorIcon(),
+  // so the eval scope has to know the symbol — without it EVERY snippet in src/ui/flow.js throws
+  // and the file's local-variable resolution is poisoned, not just the one card that uses it.
+  dockFlavorIcon,
   describeFor, narrationVariants, NEUTRAL_VIEWER, brokeSailLine, brokeAnchorLine,
   stormIntroClause, secondLegLine, recipeInfo, winRecipeSpan,
   ns: pn, nm: pn, ny: pn,

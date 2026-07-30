@@ -220,6 +220,40 @@ function lineOf(src, idx) {
   }
 }
 
+/* ---------- F5: an ingredient icon sits directly before the noun it names ---------- */
+// Both sites live inside DOM-needing functions (humanAct, humanDock), so they are pinned as
+// source-text assertions — this file's established convention. Located by CONTENT, never by line.
+{
+  const liveCode = FLOW_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+
+  // Site 1 — the dock action button. Wyatt's own example: "Dock at 🥛 Full Cream Folly".
+  const dockBtn = (liveCode.match(/`[^`]*Dock at[^`]*`/g) || []).find((t) => t.includes("⚓"));
+  checkTrue("F5: the dock action button label located by content", !!dockBtn);
+  if (dockBtn) {
+    checkTrue(`F5: the dock button puts the icon AFTER "Dock at" — ${dockBtn}`, dockBtn.indexOf("Dock at") < dockBtn.indexOf("iconImg"));
+    checkTrue("F5: the dock button's icon sits immediately before the place name, with nothing between them", /Dock at \$\{iconImg\(ING_IMG\[port\]\)\} \$\{dockPlace\(port\)\}/.test(dockBtn));
+    checkTrue("F5/D-16: the dock button still carries its ingredient icon", dockBtn.includes("iconImg(ING_IMG[port])"));
+    checkTrue("F5: the anchor still leads the dock button — it labels the ACTION, not the island", dockBtn.trim().startsWith("`⚓"));
+  }
+
+  // Site 2 — the dock-on-tails buy prompt, now rendered through the declared {prefix,name} split.
+  const tailsIdx = liveCode.indexOf("Tails! Take");
+  checkTrue("F5: the dock-on-tails buy prompt located by content", tailsIdx > 0);
+  if (tailsIdx > 0) {
+    const tailsRegion = liveCode.slice(tailsIdx - 120, tailsIdx + 260);
+    checkTrue(`F5: the tails buy prompt renders its flavour through dockFlavorIcon() (${FLOW_REL}:${lineOf(FLOW_SRC, FLOW_SRC.indexOf("Tails! Take"))})`, /dockFlavorIcon\s*\(/.test(tailsRegion));
+    checkTrue("F5: the buy BUTTON label keeps its own icon-then-name rendering (ilabelImg) — it was already correct", /ilabelImg\(ing\)/.test(tailsRegion));
+  }
+  check("F5: no icon-before-flavour interpolation survives anywhere in this file", /iconImg\(ING_IMG\[\w+\]\)\}\s*\$\{dockFlavor\(/.test(liveCode), false);
+  check("F5: dockFlavor is no longer imported here — dockFlavorIcon replaced its only use", /\bdockFlavor\b(?!Icon)/.test(liveCode), false);
+
+  // The dock FLIP prompt was measured ALREADY CORRECT in the playtest (icon directly before the
+  // place name) and must not have moved. Located by its own text — "Docking at", not "Dock at".
+  const flipPrompt = (liveCode.match(/`[^`]*Docking at[^`]*`/g) || []).find((t) => t.includes("flip!"));
+  check("F5: the dock FLIP prompt is byte-unchanged — the playtest measured it already correct",
+    flipPrompt, "`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`");
+}
+
 /* ---------- D-09: the round-level lines this plan must NOT touch stay out of this file's diff surface ---------- */
 {
   checkTrue("D-09: this file never defines EVENT_NARRATION.newround (that table lives in src/ui/util.js, plan 15-04's territory)", !FLOW_SRC.includes("newround:"));

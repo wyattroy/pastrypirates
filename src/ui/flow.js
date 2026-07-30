@@ -45,7 +45,10 @@
 import { appState } from "../state/index.js";
 import { roundCfg } from "../engine/index.js";
 import {
-  DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavor, ING_IMG,
+  // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
+  // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
+  // rather than interpolated in front of the whole flavour phrase.
+  DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips } from "./board.js";
@@ -458,7 +461,12 @@ export async function humanDock(p,port){
     let got="coins";
     if(appState.game.cfg.dockBuy&&p.coins>=3&&appState.game.tokens[ing]>0){
       // @copy prompt.dock.tailschoice
-      const buy=await ask(`Tails! Take 3🌕 — or buy ${iconImg(ING_IMG[ing])} ${dockFlavor(ing)} for 3🌕?`,[
+      // F5 (Wyatt-approved 2026-07-29): SEVENTH site of the icon-before-the-clause shape — not in
+      // the playtest notes' six-site audit table, found while implementing. Was
+      // `${iconImg(ING_IMG[ing])} ${dockFlavor(ing)}`, which floated the icon to the front of the
+      // whole flavour phrase; dockFlavorIcon() places it directly before the ingredient NAME using
+      // the declared split. Same rule, same fix, no new copy — the sentence is unchanged.
+      const buy=await ask(`Tails! Take 3🌕 — or buy ${dockFlavorIcon(ing)} for 3🌕?`,[
         {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
       if(buy){p.coins-=3;appState.game.tokens[ing]--;p.ing.push(ing);got="bought";}
       else p.coins+=3;
@@ -637,7 +645,12 @@ export async function humanAct(p,sailCtx){
   const tradeTargets=appState.game.tradeOpp(p).filter(q=>q.ing.length>0);
   const canTrade=!!tradeTargets.length;
   const opts=[];
-  if(canDock)opts.push({label:`⚓ ${iconImg(ING_IMG[port])} Dock at ${dockPlace(port)}`,value:"dock"});
+  // F5 (Wyatt-approved 2026-07-29), his own example: *"In the 'Dock at Full Cream Folly' the icon
+  // should go directly in front of the island name — 'Dock at 🥛 Full Cream Folly'"*. The icon used
+  // to sit in front of the whole anchor-plus-verb clause. Nothing else about the label changed, and
+  // the anchor stays where it is (it labels the ACTION, not the island). The dock FLIP prompt
+  // (:above) was already correct and is deliberately untouched.
+  if(canDock)opts.push({label:`⚓ Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)}`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   if(targets.length)
