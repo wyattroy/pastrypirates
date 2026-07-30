@@ -3,7 +3,14 @@
 //
 // Phase 15 plan 03 (NARR-02/NARR-03/NARR-05, D-11/D-13): DOM-free harness proving the turn-flow
 // narration invariants that live inside src/ui/flow.js. Grows across this plan's 3 tasks:
-//   Task 1 (D-13): windLeg's anchorHold branch awaits narrateLastEvent() before liveRender().
+//   Task 1 — SUPERSEDED 2026-07-30 by G15. It used to read: "windLeg's anchorHold branch awaits
+//     narrateLastEvent() before liveRender()". That sentence is now the OPPOSITE of the rule.
+//     D-13's actual requirement is that the anchorHold line PLAY AT ALL — it used to be silent —
+//     and that requirement is preserved and asserted separately. The ORDER was incidental, and
+//     pinning it froze a bug: Wyatt watched a storm move his boat only after the message had
+//     already gone. G15 makes PAINT-BEFORE-NARRATE an invariant over windLeg's whole body, plus a
+//     mirror for botWindLeg, so the file can no longer hold both orders with nothing deciding
+//     which is right.
 //   Task 2 (D-11): brokeSailLine/brokeAnchorLine — pure, viewer-aware "broke" narration builders,
 //     for a human AND a bot who can't afford to sail, and a captain who can't afford to anchor.
 //   Task 3 (NARR-03/D-07/D-08/D-10): stormIntroClause + every ad-hoc flash() site in this file
@@ -59,18 +66,100 @@ function extractFn(src, startMarker, endMarker) {
 function lineOf(src, idx) {
   return idx < 0 ? "?" : src.slice(0, idx).split("\n").length;
 }
+// G15: strip FULL-LINE leading comments before any ORDERING assertion. A comment that merely
+// DESCRIBES the rule ("ev() -> await narrateLastEvent()") is not a call site, and counting it makes
+// the gate fire on its own documentation; conversely, without stripping, a branch could satisfy an
+// ordering rule with a comment instead of code. Full-line only — a trailing `//` strip would eat
+// the `https://` inside string literals (the false negative net_contract_check.js's header warns
+// about), and windLeg's blocked branch carries a trailing comment on a line of real code.
+// This mirrors the same technique the F5/F9 blocks below already use via `liveCode`.
+const stripLeadingComments = (src) => src.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
 
-/* ---------- Task 1 (D-13): windLeg's anchorHold branch awaits narrateLastEvent() ---------- */
+/* ---------- Task 1, REWRITTEN by G15 (2026-07-30): PAINT BEFORE NARRATE, as an INVARIANT ---------- */
+// WHAT THIS USED TO ASSERT, and why it was wrong. Two literal pins here required
+// `ev({t:"moored"…}); await narrateLastEvent(); liveRender();` and the same for `anchorHold` — i.e.
+// they pinned the board being repainted AFTER the line describing it had already played. D-13's
+// actual requirement was only that the anchorHold line PLAY AT ALL (it used to be silent); the
+// ordering was incidental, and pinning it froze a bug in place.
+//
+// Wyatt, 2026-07-30: *"the storm animation didn't move your boat until AFTER the message
+// disappeared… is there a way to make the movement happen before the message, for all movements
+// during all storms?"* G15 reverses the order everywhere inside windLeg.
+//
+// D-13 IS PRESERVED: the anchorHold branch still emits and still narrates — the named per-branch
+// checks below assert exactly that. Only the paint/narrate ORDER changed.
+//
+// THE REAL DEFECT was that src/ui/flow.js held BOTH orders with nothing enforcing which was right
+// (botWindLeg does it correctly and even carries a comment describing this bug). So this is now an
+// INVARIANT OVER windLeg's WHOLE BODY rather than three literals: a fourth branch added later is
+// covered for free, and cannot inherit the wrong order.
 {
-  const { body: windLegBody } = extractFn(FLOW_SRC, "export async function windLeg", "export async function botWindLeg");
+  const { body: windLegRaw } = extractFn(FLOW_SRC, "export async function windLeg", "export async function botWindLeg");
+  const windLegBody = windLegRaw && stripLeadingComments(windLegRaw);
   checkTrue("windLeg function body located", !!windLegBody);
   if (windLegBody) {
-    const mooredOrder = /ev\(\{t:"moored"[^}]*\}\);await narrateLastEvent\(\);liveRender\(\);/.test(windLegBody);
-    checkTrue("windLeg: the moored branch keeps its ev() -> await narrateLastEvent() -> liveRender() order (the precedent D-13 copies)", mooredOrder);
+    // THE INVARIANT: split on each narrate call; walk back to the most recent ev( before it; that
+    // span must contain a paint. liveRender() OR renderLiveShips() — an ordinary storm square emits
+    // no event, so windLeg legitimately uses the lighter renderLiveShips() in that case (see its
+    // own D-22 comment).
+    const parts = windLegBody.split("await narrateLastEvent()");
+    const offenders = [];
+    for (let i = 1; i < parts.length; i++) {
+      const seg = parts[i - 1];
+      const k = seg.lastIndexOf("ev(");
+      const since = k < 0 ? seg : seg.slice(k);
+      if (!/liveRender\(\)|renderLiveShips\(\)/.test(since)) {
+        // name the BRANCH, not just "windLeg is wrong" — a bare count is not actionable
+        const tag = (since.match(/ev\(\{t:"(\w+)"/) || [])[1] || "«no t: found»";
+        offenders.push(tag);
+      }
+    }
+    check(`G15 INVARIANT: every await narrateLastEvent() inside windLeg is preceded by a paint since the last ev() — offending branch(es): ${offenders.length ? offenders.join(", ") : "none"} (${parts.length - 1} call site(s) checked)`, offenders.length, 0);
 
-    const anchorHoldOrder = /ev\(\{t:"anchorHold"[^}]*\}\);await narrateLastEvent\(\);liveRender\(\);/.test(windLegBody);
-    const anchorIdx = FLOW_SRC.indexOf('ev({t:"anchorHold"');
-    check(`D-13: windLeg's anchorHold branch (${FLOW_REL}:${lineOf(FLOW_SRC, anchorIdx)}) awaits narrateLastEvent() before liveRender(), same order as the moored branch above it`, anchorHoldOrder, true);
+    // Named per-branch checks alongside the invariant, so a failure says WHICH branch broke and the
+    // three Wyatt's report actually travels through are pinned by name as well as by rule.
+    for (const t of ["blocked", "moored", "anchorHold"]) {
+      const re = new RegExp(`ev\\(\\{t:"${t}"[^}]*\\}\\);liveRender\\(\\);await narrateLastEvent\\(\\);`);
+      const idx = FLOW_SRC.indexOf(`ev({t:"${t}"`);
+      check(`G15: windLeg's ${t} branch (${FLOW_REL}:${lineOf(FLOW_SRC, idx)}) paints BEFORE it narrates — ev() -> liveRender() -> await narrateLastEvent()`, re.test(windLegBody), true);
+    }
+    // D-13's own requirement, kept explicit and separable from the ordering it used to be fused to:
+    // the anchorHold beat must still be narrated at all.
+    checkTrue("D-13 PRESERVED: windLeg's anchorHold branch still emits AND still narrates (the requirement; its ordering was incidental and is now G15's)",
+      /ev\(\{t:"anchorHold"[^}]*\}\);[^;]*;await narrateLastEvent\(\);/.test(windLegBody));
+  }
+}
+
+/* ---------- G15 mirror: botWindLeg must not fork back apart from windLeg ---------- */
+// botWindLeg already painted before it narrated, and its comment describes this exact bug — but
+// nothing asserted it, so the two paths were one edit away from diverging again.
+//
+// WRITTEN AGAINST WHAT botWindLeg ACTUALLY DOES, not against windLeg's shape. It narrates with
+// `await flash(describeFor(ev,…))` per event, NOT with narrateLastEvent(), so re-using windLeg's
+// invariant verbatim here checks ZERO call sites and passes vacuously — which is exactly the class
+// of empty assertion this project has caught three times in two days. The real invariant is the
+// one below.
+//
+// The tail leg-summary (`g.ev({t:blownOut|windmove}); … await flash(…); liveRender();`) is
+// DELIBERATELY not covered: by the time it runs, the loop above has already painted the ship at
+// its final square via renderLiveShips(), and the summary event records no further movement — so
+// there is nothing stale on screen when that line plays. Stated here rather than silently excluded.
+{
+  const { body: botRaw } = extractFn(FLOW_SRC, "export async function botWindLeg", "\nexport async function humanDock");
+  const botBody = botRaw && stripLeadingComments(botRaw);
+  checkTrue("botWindLeg function body located", !!botBody);
+  if (botBody) {
+    // the per-square block: windPush() may move the ship AND record an event in one call, so the
+    // board must be repainted before any line describing that square plays
+    const blockIdx = botBody.indexOf("if(g.events.length>evBefore){");
+    checkTrue("botWindLeg's per-square event block located", blockIdx >= 0);
+    if (blockIdx >= 0) {
+      const block = botBody.slice(blockIdx);
+      const paintIdx = block.indexOf("renderLiveShips()");
+      const flashIdx = block.indexOf("await flash(");
+      checkTrue(`G15 MIRROR: botWindLeg repaints (renderLiveShips) BEFORE it flashes the line describing that square, so the human and bot storm paths cannot fork apart (paint@${paintIdx}, narrate@${flashIdx})`,
+        paintIdx >= 0 && flashIdx >= 0 && paintIdx < flashIdx);
+    }
   }
 }
 

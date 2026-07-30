@@ -320,8 +320,27 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   for(let s=0;s<dist;s++){
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     if(appState.game.blocked(nx))return;
+    // G15 (Wyatt-approved 2026-07-30) — PAINT BEFORE NARRATE, everywhere in this function. His
+    // report: "the storm animation didn't move your boat until AFTER the message disappeared… is
+    // there a way to make the movement happen before the message, for all movements during all
+    // storms?" Every ev() -> await narrateLastEvent() pair below now paints in between, and
+    // scripts/narration_flow_test.js asserts it as an INVARIANT over this whole function (plus a
+    // mirror for botWindLeg), not as a pin on three specific lines — so a fourth branch added later
+    // is covered for free and cannot inherit the wrong order. It also replaces two old pins that
+    // required the WRONG order for `moored` and `anchorHold`; D-13's real requirement (the
+    // anchorHold line must PLAY AT ALL) is preserved and asserted separately.
+    //
+    // BE HONEST ABOUT WHAT EACH BRANCH BUYS — it differs, and a reader who checks will otherwise
+    // think this comment is wrong:
+    //   blocked / moored / anchorHold — the ship does not move on that square, so the visible
+    //     change is small. What these buy is the INVARIANT: no future branch inherits the bug.
+    //   dodge / anchor / aground / shipwrecked — coins and crates change, and the panel should show
+    //     the new purse before the line describing it plays. This is where it is actually visible.
+    //   THE LAG WYATT ACTUALLY WATCHED is the trade-wind rim sweep, which is G14 — a separate fix
+    //     that animates the sweep square-by-square. Do NOT read G15 as having fully answered his
+    //     report; it fixes the ordering, G14 fixes the motion.
     const blocker=appState.game.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
-    if(blocker){appState.game.ev({t:"blocked",p:p.idx,other:blocker.idx});await narrateLastEvent();liveRender();return;} // another ship holds that square — wind stops short (see #20: surface the "strikes sail" narration)
+    if(blocker){appState.game.ev({t:"blocked",p:p.idx,other:blocker.idx});liveRender();await narrateLastEvent();return;} // another ship holds that square — wind stops short (see #20: surface the "strikes sail" narration)
     if(appState.game.islands[nx]!==undefined||appState.game.isHome(nx)){
       // D-19/D-21/D-22: mooredReason() is the single source of truth for which of the three
       // safe-harbor causes fired — call the engine's own accessor rather than re-deriving the
@@ -329,10 +348,10 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // handling, mirroring windPush's own isIsland(nx)||isHome(nx) branch
       // (src/engine/index.js:280) — same order this file already keeps (blocker before land).
       const reason=appState.game.mooredReason(p);
-      if(reason){appState.game.ev({t:"moored",p:p.idx,reason});await narrateLastEvent();liveRender();return;}
+      if(reason){appState.game.ev({t:"moored",p:p.idx,reason});liveRender();await narrateLastEvent();return;}
       // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
       // also hits an island is a free pass, already-paid anchor holding fast
-      if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});await narrateLastEvent();liveRender();return;}
+      if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});liveRender();await narrateLastEvent();return;}
       const opts=[];
       // notes/edits #10b: the real tails consequence depends on what this player actually has to
       // lose (mirrors the branches below) — a broke player with crates loses one of those, not
@@ -394,7 +413,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // between. Re-validated here; a shortfall falls through to the EXISTING flip branch below,
       // which is what a captain with no coin gets anyway — and brokeAnchorLine already explains a
       // missing pay option in existing approved copy, so nothing new is written.
-      if(v==="pay"&&!coinShortfall(1,p.coins)){p.coins--;appState.game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
+      if(v==="pay"&&!coinShortfall(1,p.coins)){p.coins--;appState.game.ev({t:"dodge",p:p.idx});liveRender();await narrateLastEvent();}
       else{
         // @copy misc.paramprompt.stormdodge
         const h=await humanFlip(p,"Flip to dodge!");
@@ -409,6 +428,9 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
           appState.game.tokens[lost]++;
           appState.game.ev({t:"aground",p:p.idx,ing:lost});
         }else{p.shipwrecked=true;appState.game.ev({t:"shipwrecked",p:p.idx});}
+        // G15: the purse/hold has just changed, so paint the new state BEFORE the line describing
+        // it plays — the anchor/aground/shipwrecked outcome is the branch where this buys the most.
+        liveRender();
         await narrateLastEvent();
       }
       dodgedOnce.v=true;
