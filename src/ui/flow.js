@@ -262,6 +262,31 @@ export function brokeAnchorLine(seat,viewerSeat){
 export function counterHeadroom(shortfall,coins,offerCoins){
   return Math.max(0,Math.min(shortfall,coins-offerCoins));
 }
+// G6 (Wyatt-approved 2026-07-30): *"yes, build this check and apply it to all situations."*
+//
+// COIN-AUDIT.md's root cause, in its own sentence: **affordability is checked when the option list
+// is BUILT, the purse is debited AFTER the click, and the 20-second shot-clock penalty
+// (applyShotClockPenalty in src/ui/util.js, which takes Math.min(1,p.coins) from the DECIDING seat)
+// fires inside exactly that window.** `appState.turnExpired` does not protect against it: that flag
+// is set at 30 seconds, and every guard in the codebase checks it — the coin penalty fires at 20
+// and sets no flag at all, so those guards sail straight past it.
+//
+// The audit's correction to its own framing is the important part: this is not eight independent
+// debit sites, it is ONE MISSING STEP repeated at eight of them — re-validate affordability after
+// the await, immediately before the debit. Hence one shared helper rather than eight edits.
+//
+// Returns the SHORTFALL: 0 means clear (the purse covers the debit, proceed), any positive number
+// means it does not. A negative or non-finite debit reports Infinity rather than 0, so a nonsensical
+// value can never clear and turn a debit into a silent CREDIT to the purse.
+//
+// Why the engine needs no such thing, stated so nobody adds one there: `Game.play()` is fully
+// SYNCHRONOUS. There is no `await` anywhere between an engine affordability gate and its matching
+// debit, so no timer can interleave — which is why the audit found zero AT RISK rows in
+// src/engine/index.js, and why nothing here goes near the 31 determinism fixtures.
+export function coinShortfall(debit,purse){
+  if(!Number.isFinite(debit)||debit<0)return Infinity;
+  return Math.max(0,debit-purse);
+}
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
 export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
@@ -308,7 +333,12 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // @copy prompt.storm.anchororflip
       const v=await ask(promptMsg,opts);
       if(appState.turnExpired)return;
-      if(v==="pay"){p.coins--;appState.game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
+      // G6 (COIN-AUDIT.md site 5): the "pay" option was pushed above when p.coins>=1, but `await
+      // ask(...)` sits between that gate and this debit, and the 20s penalty can take the coin in
+      // between. Re-validated here; a shortfall falls through to the EXISTING flip branch below,
+      // which is what a captain with no coin gets anyway — and brokeAnchorLine already explains a
+      // missing pay option in existing approved copy, so nothing new is written.
+      if(v==="pay"&&!coinShortfall(1,p.coins)){p.coins--;appState.game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
         // @copy misc.paramprompt.stormdodge
         const h=await humanFlip(p,"Flip to dodge!");
@@ -612,7 +642,12 @@ export async function humanTrade(p){
         // @copy prompt.trade.counter
         const deal=await ask(`${pn(q.idx)} scoffs — but counters: "${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it."`,
           [{label:`Pay ${askFor}🌕 more`,value:true},{label:"Walk away",value:false}]);
-        if(deal){
+        // G6 (COIN-AUDIT.md site 2): askFor was priced against the purse held when the counter was
+        // composed; `await ask(...)` above is the window. Re-validate the FULL settlement
+        // (give.coins+askFor — the same total debited below), not just the increment. A shortfall
+        // falls through to the "Walk away" outcome: the parley event and the existing
+        // @copy adhoc.trade.refusalbot line just below, which is exactly what declining renders.
+        if(deal&&!coinShortfall(give.coins+askFor,p.coins)){
           q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
           if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
           const totalCoins=give.coins+askFor;
@@ -636,7 +671,12 @@ export async function humanTrade(p){
       return true;
     }
   }
-  if(!accept){
+  // G6 (COIN-AUDIT.md site 3): the coin choices were filtered against the purse when the list was
+  // BUILT (`coinChoices=[0..6].filter(...)`), and the settlement below debits give.coins after an
+  // await. A pledge the captain can no longer cover routes into the EXISTING decline path — the
+  // trade simply does not happen, told in the already-approved @copy adhoc.trade.refusalhuman
+  // wording. No new string, and no half-completed trade where crates move but coins cannot.
+  if(!accept||coinShortfall(give.coins,p.coins)){
     appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want});
     liveRender();
     // D-18/D-25 (Wyatt-approved 2026-07-29): merged with the bot-decline wording above — a human
@@ -725,7 +765,12 @@ export async function humanAct(p,sailCtx){
   if(v==="moveInstead"){
     const dest=await pickCell(p,reachable(p));
     if(appState.turnExpired)return;
-    if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
+    // G6 (COIN-AUDIT.md site 7): reachable() was computed from the pre-await purse and
+    // `await pickCell(...)` is the window. A shortfall falls through to the existing "no
+    // destination" outcome — the ship simply does not move, which renders nothing, so nothing is
+    // invented. appState.turnExpired above does NOT cover this: it is set at 30s, the coin
+    // penalty fires at 20s and sets no flag at all.
+    if(dest&&!coinShortfall(1,p.coins)){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
@@ -814,7 +859,10 @@ export async function humanTurn(p){
     const dest=await pickCell(p,reachable(p));
     appState.recipeRevealed=false; // sail destination chosen — re-lock
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
-    if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
+    // G6 (COIN-AUDIT.md site 8): same shape as site 7 — the `p.coins>0` gate above sits before
+    // `await pickCell(...)`, the debit after it. Falls through to the same "ship does not move"
+    // outcome, which renders nothing.
+    if(dest&&!coinShortfall(1,p.coins)){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
   // @copy adhoc.turn.brokesail
   }else await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: broke — the action prompt right after also reframes, but this is the sail-specific nudge
@@ -1142,11 +1190,20 @@ export async function settleSideBets(bets,winSide){
     const p=appState.game.players[bet.idx],won=bet.on===winSide;
     // Correct call: Spotter's Bounty (+1) plus doubled stake. Wrong: only a
     // wagered stake sinks — a free call costs nothing.
-    const delta=won?1+2*bet.amt:-bet.amt;
+    // G6 (COIN-AUDIT.md site 11 — the WIDEST window in the codebase): the stake is validated in
+    // collectSideBets and not debited until here, after the entire battle resolves, dozens of
+    // awaits later. A bettor who goes all-in at 3 and is penalised during their own side-bet
+    // prompt (3 -> 2) would land at −1. Re-validated at the moment of the debit; a stake the purse
+    // can no longer cover is treated as the FREE call, which settleSideBets already renders in
+    // existing wording ("no bounty" below). Only the LOSING branch is re-validated — a win is a
+    // credit, never a debit, and must not be clawed back.
+    const amt=(won||!coinShortfall(bet.amt,p.coins))?bet.amt:0;
+    const delta=won?1+2*amt:-amt;
     p.coins+=delta;
-    appState.game.ev({t:"sidebet",p:bet.idx,amt:bet.amt,won,on:bet.on,delta});
+    // the event and the message both carry the SETTLED amount, so neither can disagree with the purse
+    appState.game.ev({t:"sidebet",p:bet.idx,amt,won,on:bet.on,delta});
     if(delta>0)parts.push(`${pn(bet.idx)} +${delta}🌕`);
-    else if(delta<0)parts.push(`${pn(bet.idx)} −${bet.amt}🌕`);
+    else if(delta<0)parts.push(`${pn(bet.idx)} −${amt}🌕`);
     else parts.push(`${pn(bet.idx)} no bounty`);
   }
   liveRender();

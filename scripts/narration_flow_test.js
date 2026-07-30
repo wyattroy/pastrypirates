@@ -27,7 +27,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom } from "../src/ui/flow.js";
+import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom, coinShortfall } from "../src/ui/flow.js";
 import { appState } from "../src/state/index.js";
 import { DIRS } from "../src/shared/index.js";
 
@@ -218,6 +218,124 @@ function lineOf(src, idx) {
     const liveCode = FLOW_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
     check("F12: the old total-purse cap appears nowhere in live (non-comment) code", /Math\.min\(shortfall\s*,\s*p\.coins\s*\)/.test(liveCode), false);
   }
+}
+
+/* ---------- G6: one shared coin re-validation, called at every debit site that can interleave ----------
+ * COIN-AUDIT.md's root cause, in one sentence: affordability is checked when the option list is
+ * BUILT, the purse is debited AFTER the click, and the 20-second shot-clock penalty
+ * (src/ui/util.js applyShotClockPenalty, takes Math.min(1,p.coins) from the DECIDING seat) fires
+ * inside exactly that window. appState.turnExpired does not protect against it — that flag is set
+ * at 30 seconds; the coin penalty fires at 20 and sets no flag at all.
+ *
+ * Wyatt, approving the audit's recommendation: "yes, build this check and apply it to all
+ * situations."
+ *
+ * Same DOM-free shape as the F12 counterHeadroom block above: pure arithmetic, no DOM, no appState. */
+{
+  checkTrue("G6: coinShortfall is exported and callable with no DOM", typeof coinShortfall === "function");
+
+  // 0 means "clear" — the purse covers the debit and the caller may proceed.
+  check("G6: a purse that covers the debit clears it", coinShortfall(3, 5), 0);
+  check("G6: debit 0 against purse 0 clears — a free choice is always affordable", coinShortfall(0, 0), 0);
+  check("G6: debit EQUAL to the purse clears exactly — spending the last coin is legal", coinShortfall(5, 5), 0);
+  check("G6: debit one more than the purse reports a shortfall of exactly 1", coinShortfall(6, 5), 1);
+  check("G6: a wider gap reports the true shortfall, not a flag", coinShortfall(9, 4), 5);
+
+  // the guard that stops the helper from becoming a way to CREDIT a purse
+  checkTrue("G6: a NEGATIVE intended debit is unaffordable, never a silent credit", coinShortfall(-3, 5) > 0);
+  checkTrue("G6: a NaN intended debit is unaffordable rather than clearing", coinShortfall(NaN, 5) > 0);
+  checkTrue("G6: an Infinite intended debit is unaffordable rather than clearing", coinShortfall(Infinity, 5) > 0);
+  checkTrue("G6: an undefined intended debit is unaffordable rather than clearing", coinShortfall(undefined, 5) > 0);
+
+  // exhaustive: the helper never reports a negative shortfall, and clearing always means the debit
+  // genuinely fits. Cannot be satisfied by inspection.
+  let violation = null, points = 0;
+  for (let debit = 0; debit <= 12 && !violation; debit++) {
+    for (let purse = 0; purse <= 12; purse++) {
+      const short = coinShortfall(debit, purse);
+      points++;
+      if (short < 0) { violation = `debit=${debit} purse=${purse} -> negative shortfall ${short}`; break; }
+      if (short === 0 && purse - debit < 0) { violation = `debit=${debit} purse=${purse} cleared but would go negative`; break; }
+      if (short > 0 && purse - debit >= 0) { violation = `debit=${debit} purse=${purse} reported a shortfall it does not have`; break; }
+    }
+  }
+  check(`G6 INVARIANT over ${points} points: clearing implies purse-debit >= 0, and no shortfall is ever negative${violation ? ` — FIRST VIOLATION ${violation}` : ""}`, violation, null);
+
+  // the helper is PURE — it must not mutate a purse-bearing object handed to it by mistake
+  {
+    const p = { coins: 5 };
+    coinShortfall(3, p.coins);
+    check("G6: the helper mutates nothing — the purse it was asked about is unchanged", p.coins, 5);
+  }
+
+  /* ---- the INTERLEAVE itself, arithmetically. This is the assertion that would have caught F12
+   * and catches the whole class; the pure helper checks above would not. Scripted exactly as the
+   * audit's shortest repro: an option priced against the purse the player HELD when the list was
+   * built, then the 1-coin slow-play penalty, then the settlement. ---- */
+  {
+    let worst = null, cases = 0;
+    for (let purse = 0; purse <= 8; purse++) {
+      // the option list is built now: every price the player can currently afford is offered
+      for (let priced = 0; priced <= purse; priced++) {
+        // ...the player sits past 20s, and applyShotClockPenalty takes min(1, coins) from THIS seat
+        const afterPenalty = purse - Math.min(1, purse);
+        // ...and only now does the click resolve and the settlement run
+        const settled = coinShortfall(priced, afterPenalty) === 0 ? afterPenalty - priced : afterPenalty;
+        cases++;
+        if (settled < 0) worst = worst || `purse=${purse} priced=${priced} penalty=1 -> ${settled}`;
+      }
+    }
+    check(`G6: over ${cases} scripted (build -> 20s penalty -> settle) interleaves, no captain's purse can end below zero${worst ? ` — FIRST NEGATIVE ${worst}` : ""}`, worst, null);
+    // and the unguarded arithmetic the audit found really does go negative, so the test above is
+    // proving something rather than restating an impossibility
+    checkTrue("G6: the UNGUARDED settlement genuinely goes negative on the audit's shortest repro (purse 3, priced 3, penalty 1) — the guard is load-bearing", (3 - Math.min(1, 3)) - 3 < 0);
+  }
+}
+
+/* ---------- G6: the guards are actually AT the call sites, not merely available ----------
+ * The helper passing its own unit tests proves nothing about whether anything calls it. Located by
+ * CONTENT, never by line number, in this file's established convention. */
+{
+  const liveCode = FLOW_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+  const ORCH_PATH = path.join(ROOT, "src", "orchestrator.js");
+  const ORCH_REL = path.relative(ROOT, ORCH_PATH);
+  const ORCH_SRC = fs.readFileSync(ORCH_PATH, "utf8");
+  const orchCode = ORCH_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+
+  // the five src/ui/flow.js sites, each identified by the debit it protects
+  const flowSites = [
+    ["site 5 — storm anchor pay", /v==="pay"&&!coinShortfall\(1,p\.coins\)/],
+    ["site 2 — trade counter settlement (the FULL total, not just the increment)", /deal&&!coinShortfall\(give\.coins\+askFor,p\.coins\)/],
+    ["site 3 — accepted-offer settlement routes to the existing decline path", /!accept\|\|coinShortfall\(give\.coins,p\.coins\)/],
+    ["site 11 — side-bet stake, losing branch only", /won\|\|!coinShortfall\(bet\.amt,p\.coins\)/],
+  ];
+  for (const [name, re] of flowSites) {
+    checkTrue(`G6: ${FLOW_REL} ${name} re-validates before debiting`, re.test(liveCode));
+  }
+  // sites 7 and 8 are the same guard shape at two sail sites — both must carry it
+  const sailGuards = (liveCode.match(/dest&&!coinShortfall\(1,p\.coins\)/g) || []).length;
+  check("G6: BOTH sail sites (7 — action menu, 8 — turn start) re-validate before p.coins--", sailGuards, 2);
+
+  // the two src/orchestrator.js sites
+  checkTrue(`G6: ${ORCH_REL} site 14 — defender flee re-validates, falling through to keep fighting`, /flee&&!coinShortfall\(1,def\.coins\)/.test(orchCode));
+  checkTrue(`G6: ${ORCH_REL} site 13 — asyncBattle carries the engine's own powder guard`, /c\.powder&&coinShortfall\(c\.powder,att\.coins\)\)return null/.test(orchCode));
+  // ...and it must sit BEFORE the opening broadcast, which is the whole answer to the audit's
+  // "a battle snapshot may already be in flight" concern
+  {
+    const guardIdx = orchCode.indexOf("c.powder&&coinShortfall(c.powder,att.coins)");
+    const openIdx = orchCode.indexOf("adhoc.battle.opening") >= 0
+      ? orchCode.indexOf("attacks ${pn(def.idx)}! First to")
+      : orchCode.indexOf("First to ${need} hits wins");
+    checkTrue("G6: site 13's guard sits BEFORE asyncBattle's opening broadcast — no battle snapshot can be in flight when it returns null", guardIdx > 0 && openIdx > guardIdx);
+  }
+
+  // site 4 is already closed by yesterday's D-40 guard and must NOT be double-guarded
+  checkTrue("G6: site 4 (dock buy) keeps its existing D-40 guard, re-reading p.coins rather than the pre-await flag", /buy&&p\.coins>=3/.test(liveCode));
+  check("G6: site 4 is NOT double-guarded — one guard, not two doing the same job", /buy&&p\.coins>=3&&!coinShortfall/.test(liveCode), false);
+
+  // the sites the audit marked SAFE are arithmetically closed; guarding them would add noise
+  // without removing risk, so their existing clamps must still be the thing doing the work
+  checkTrue("G6: site 12 (shot-clock forfeit) keeps its arithmetic clamp rather than gaining a redundant guard", /Math\.min\(5,p\.coins\)/.test(orchCode));
 }
 
 /* ---------- F5: an ingredient icon sits directly before the noun it names ---------- */

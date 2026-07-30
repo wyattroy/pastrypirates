@@ -107,6 +107,7 @@ import {
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
+  coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
 } from "./ui/index.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
@@ -393,6 +394,24 @@ export function battleAsk(p,o,msg,opts,colors){
 // collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 export async function asyncBattle(att,def){
   const c=appState.game.cfg,need=2;
+  // G6 (COIN-AUDIT.md site 13 — "the missing belt to go with the braces"). The engine's own
+  // battle() refuses outright rather than trusting its caller: src/engine/index.js:524 reads
+  // `if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}`. asyncBattle carried no
+  // such check, relying entirely on both callers — and humanAct's D-40 net (src/ui/flow.js, the
+  // @copy adhoc.act.nopowder branch) runs BEFORE `await ask("Attack whom?")`, so the 20s penalty
+  // can still land between that check and the debit below.
+  //
+  // Placed HERE, at the very top and BEFORE the opening flash(), which is the specific answer to
+  // the audit's "NEEDS A SECOND PAIR OF EYES" concern that *"a `return null` mid-asyncBattle may
+  // not be safe for the network path (a battle snapshot may already be in flight)."* Guarding
+  // before the opening broadcast means NO snapshot can be in flight: nothing has been announced,
+  // no side bets collected, no battle counter incremented.
+  //
+  // Both callers handle a falsy return: humanAct awaits it and then narrateLastEvent() (which,
+  // with no new event emitted, re-narrates the previous line — cosmetic, never state-corrupting),
+  // and botTurn awaits it then ends the turn via botBeat(). Neither reads the return value, so the
+  // contract is unchanged for them.
+  if(c.powder&&coinShortfall(c.powder,att.coins))return null;
   // D-08/D-25 (Wyatt-approved 2026-07-29): the opening announcement names both combatants — a
   // neutral-plus-variants form so each combatant's own screen reads it addressed to themselves
   // while every other viewer sees the third-person text. "Hits", not "points" (his approved copy).
@@ -541,7 +560,11 @@ export async function asyncBattle(att,def){
         if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`,
           [{label:"🏃 Flee! (−1🌕)",value:true},{label:"⚔️ Keep fighting",value:false}]);}
         else flee=d<a; // bots flee a losing fight, press on if ahead or even
-        if(flee){
+        // G6 (COIN-AUDIT.md site 14): `def.coins>=1` gates the branch above, then a human defender
+        // sits on `await ask(...)` — the window. A shortfall falls through to flee=false, i.e. keep
+        // fighting; that path renders nothing and invents no copy. (OOS-2 records that a broke
+        // defender is deliberately never TOLD they cannot flee — that silence is Wyatt's ruling.)
+        if(flee&&!coinShortfall(1,def.coins)){
           def.coins--;
           const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
           if(dest){def.pos=dest;appState.game.tradewind(def);}
