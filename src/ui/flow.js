@@ -1000,7 +1000,30 @@ export async function botTurn(p){
   const wantsToSail=dist>1||(dist===1&&exact);
   if(wantsToSail&&p.coins>0){
     p.coins--;const b=[...p.pos];g.stepToward(p,target,g.sailBudget(p));
-    if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}else p.coins++;
+    // G18 (Wyatt-approved 2026-07-30): "A boxed-in bot SHOULD escape via the rim." The engine's
+    // takeTurn (src/engine/index.js:738-742) has given a walled-in bot a rim escape since AI-05, but
+    // THIS path — the one the live game actually runs — had only two arms, so bots froze in the game
+    // people play and escaped only in headless runs. This mirrors the engine's ladder exactly,
+    // including its order: moved -> rim escape -> refund. UI-TIER BY CONSTRUCTION: boxedIn() and
+    // rimEscape() are existing ENGINE methods being CALLED, so src/engine/index.js keeps its empty
+    // diff and none of the 31 determinism fixtures move.
+    //
+    // rimEscape() records TWO events — {t:"windmove"} at the rim cell, then tradewind()'s own
+    // {t:"tradewind"}. botBeat() is liveRender() + narrateCurrent(), and liveRender() pins
+    // appState.evIdx to the LAST event, so the line that plays is the trade-wind sweep line
+    // (src/ui/util.js's EVENT_NARRATION.tradewind — "…is blown into the trade winds and swept
+    // around the rim!"). That is the right one, and it is exactly what a watching player should
+    // learn from. No new copy: that line already ships.
+    //
+    // COIN ACCOUNTING, deliberately the engine's: p.coins-- has already happened above, and a
+    // SUCCESSFUL rim escape KEEPS the coin (a move was made). Only the both-failed arm refunds.
+    //
+    // .planning/quick/20260730-bot-intelligence/PLAN.md plans to FLAG this same parity gap as a todo
+    // (.planning/todos/pending/bot-rim-escape-live-parity.md, not yet written). Wyatt has now ruled
+    // it should be FIXED, so that task becomes "verify already fixed" rather than a duplicate.
+    if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}
+    else if(g.boxedIn(p)&&g.rimEscape(p)){await botBeat();} // rimEscape recorded its own events
+    else p.coins++;
   // @copy adhoc.turn.botbrokesail
   }else if(wantsToSail)await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),null,msgHoldMs(brokeSailLine(p.idx,NEUTRAL_VIEWER)),[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11/D-23: a broke bot states why it isn't moving, on the same hold curve a human gets
   if(!g.adjPort(p))p.dockedNow.clear();
