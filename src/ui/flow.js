@@ -638,9 +638,25 @@ export async function humanAct(p,sailCtx){
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
+  //
+  // D-41 COMPLETED (F11, found in the 2026-07-29 two-tab playtest): these arms used to be an
+  // if/else-if chain, and the two conditions are INDEPENDENT — whether an enemy is adjacent says
+  // nothing about whether anyone is holding cargo. So whenever an attack target happened to be
+  // adjacent, the first arm won and Trade's greyed reason became unreachable: the playtest showed the
+  // greyed Trade button rendering with ATTACK's helper text beneath it while Attack was enabled. The
+  // string existed, shipped verbatim, and was structurally reachable — it simply never appeared in
+  // the state it explains. Two fixes, both structural:
+  //   1. independent conditions get independent `if`s, so neither can suppress the other, and where
+  //      both apply BOTH reasons are shown rather than one being silently dropped;
+  //   2. a GREYED control's reason outranks an ENABLED control's informational tip — the Attack tip
+  //      only fires when nothing is greyed, because telling a player how Attack works does not
+  //      explain why Trade is unavailable.
+  // No new copy: all three strings already existed and are already Wyatt-approved.
+  // scripts/ui_contract_check.js assertion 6 gates this shape, red-proofed against the ab98e04 code.
   let sub=null;
-  if(targets.length)sub=canAfford?`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Firing downwind wins ties!`:`Yer too poor to afford powder! Go fishin' 🎣`;
-  else if(appState.game.tradeOpp(p).length&&!canTrade)sub=`No one's holding cargo to trade for yet.`;
+  if(targets.length&&!canAfford)sub=`Yer too poor to afford powder! Go fishin' 🎣`;
+  if(appState.game.tradeOpp(p).length&&!canTrade)sub=[sub,`No one's holding cargo to trade for yet.`].filter(Boolean).join(" ");
+  if(!sub&&targets.length)sub=`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Firing downwind wins ties!`;
   // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
   const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, what'll ye do:`;
   // @copy prompt.act.menu

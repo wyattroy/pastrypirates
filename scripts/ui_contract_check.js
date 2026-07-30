@@ -73,6 +73,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { locateClassicScriptRegion } from "./lib/js_region_tokenizer.js";
 
@@ -312,6 +313,157 @@ function checkPirateRegister(root) {
   return { ok: failures.length === 0, failures };
 }
 
+/* ================= Assertion 6: CO-REACHABILITY — a reason must be reachable in the state it explains
+ *
+ * "Is this string right?" has four independent answers, and this repo only ever asked two:
+ *   1 PROVENANCE            does the shipped text match what Wyatt approved?     (the copy gate)
+ *   2 STRUCTURAL REACH      can this string ever render at all?                  (the audit page's badges)
+ *   3 CO-REACHABILITY       does it render in the STATE IT DESCRIBES?            <-- this assertion
+ *   4 DELIVERY              does it reach the INTENDED VIEWER?                   (assertion 7)
+ *
+ * Dimension 3 is why a string can be provably present, provably reachable and byte-identical to its
+ * approval — and still never do its job. The live instance (F11, 2026-07-29 two-tab playtest):
+ * humanAct() assigned its helper text across an if/else-if chain whose two conditions were
+ * INDEPENDENT (is an enemy adjacent? / is anyone holding cargo?). Wyatt's approved reason for the
+ * greyed Trade button sat in the `else` arm, so it was unreachable whenever an attack target happened
+ * to be adjacent — the greyed Trade button rendered with ATTACK's helper text beneath it while Attack
+ * was enabled.
+ *
+ * Two halves, both static — no DOM needed, which is this repo's convention for a *_check.js gate:
+ *   6a  INDEPENDENT-CONDITION SUPPRESSION. For each explanation variable (assigned a string, then
+ *       passed as ask()'s 4th argument), examine the if/else-if chain that assigns it and flag the
+ *       chain when its arms test DISJOINT sets of identifiers, so two can hold at once while only the
+ *       first assigns. A chain testing the SAME variable against different values is a genuine ladder
+ *       and is NOT flagged — that is the negative control.
+ *   6b  DISABLED WITHOUT A REACHABLE REASON. Every option carrying `disabled:<expr>` must have some
+ *       reason string reachable in the state where `<expr>` is true.
+ * ==========================================================================*/
+
+// ask()'s 4th argument is the helper text under the buttons. A call may span lines, so the scan is
+// over the whole file text rather than line by line.
+const ASK_CALL_RE = /\bask\s*\(([^;]*?)\)\s*;/gs;
+
+/** Identifiers a condition expression tests, ignoring property names, literals and keywords. */
+function conditionIdents(expr) {
+  const KEYWORDS = new Set(["true", "false", "null", "undefined", "length", "filter", "some", "every", "map", "includes", "Boolean", "String", "Number", "Math", "typeof", "await", "return"]);
+  const out = new Set();
+  // drop property accesses (`.length`, `.ing`) so `a.length` and `b.length` do not look related
+  for (const m of String(expr).replace(/\.[A-Za-z_$][A-Za-z0-9_$]*/g, "").matchAll(/[A-Za-z_$][A-Za-z0-9_$]*/g)) {
+    if (!KEYWORDS.has(m[0])) out.add(m[0]);
+  }
+  return out;
+}
+
+/** The `sub`-style explanation variables a file passes to ask() as its 4th argument. */
+function explanationVars(content) {
+  const names = new Set();
+  for (const m of content.matchAll(ASK_CALL_RE)) {
+    // split the argument list at top level (depth 0) so a nested call's commas do not confuse it
+    const args = [];
+    let depth = 0, cur = "", inStr = null;
+    for (const ch of m[1]) {
+      if (inStr) { cur += ch; if (ch === inStr) inStr = null; continue; }
+      if (ch === '"' || ch === "'" || ch === "`") { inStr = ch; cur += ch; continue; }
+      if ("([{".includes(ch)) depth++;
+      if (")]}".includes(ch)) depth--;
+      if (ch === "," && depth === 0) { args.push(cur); cur = ""; continue; }
+      cur += ch;
+    }
+    args.push(cur);
+    const fourth = (args[3] || "").trim();
+    const bare = fourth.match(/^([A-Za-z_$][A-Za-z0-9_$]*)$/);
+    if (bare) names.add(bare[1]);
+  }
+  return [...names];
+}
+
+function checkCoReachableExplanations(root) {
+  const failures = [];
+  const files = jsFilesRecursive(path.join(root, "src"));
+  let chainsChecked = 0, disabledChecked = 0, varsFound = 0;
+
+  for (const full of files) {
+    const rel = path.relative(root, full);
+    const content = fs.readFileSync(full, "utf8");
+    const lines = content.split("\n");
+
+    /* ---- 6a: an if/else-if chain assigning an explanation variable ---- */
+    for (const name of explanationVars(content)) {
+      varsFound++;
+      // collect the arms assigning this variable, and whether each is an `else if`
+      const arms = [];
+      const armRe = new RegExp(`^\\s*(\\}?\\s*else\\s+)?if\\s*\\((.+?)\\)\\s*${name}\\s*=(?!=)`);
+      lines.forEach((line, i) => {
+        if (/^\s*\/\//.test(line)) return;
+        const m = armRe.exec(line);
+        if (m) arms.push({ line: i + 1, isElse: !!m[1], cond: m[2] });
+      });
+      // a chain is an `if` followed by one or more `else if`s
+      const chain = arms.filter((a) => a.isElse);
+      if (!chain.length) continue;
+      chainsChecked++;
+      const first = arms.find((a) => !a.isElse);
+      if (!first) continue;
+      for (const arm of chain) {
+        const a = conditionIdents(first.cond), b = conditionIdents(arm.cond);
+        const shared = [...a].filter((x) => b.has(x));
+        if (shared.length === 0) {
+          failures.push(
+            `${rel}:${arm.line} — the explanation variable \`${name}\` is assigned across an if/else-if chain whose conditions are INDEPENDENT ` +
+            `(\`${first.cond.trim()}\` at :${first.line} tests {${[...a].join(", ")}}, \`${arm.cond.trim()}\` tests {${[...b].join(", ")}} — no shared identifier). ` +
+            `Both can hold at once, so the later arm's reason is unreachable whenever the earlier one fires. ` +
+            `FIX: give independent conditions independent \`if\`s, compose both reasons where both apply, and let a GREYED control's reason outrank an ENABLED control's informational tip.`
+          );
+        }
+      }
+    }
+
+    /* ---- 6b: every `disabled:` option must have a reachable reason ----
+     * A reason counts as reachable when the SAME guard flag the `disabled:` flag tests also decides
+     * an explanation string somewhere in the file. Two shapes both count, because both ship today:
+     *   an `if` arm      —  if(targets.length&&!canAfford)sub=`Yer too poor...`
+     *   a ternary        —  const offerSub=canOfferCoins?null:`Ye don't have any coin...`
+     * The flag name is matched WITHOUT a leading \b, because the character before `!` is usually
+     * `&` or `(` and \b never matches between two non-word characters — a subtlety that made this
+     * check report every greyed button as unexplained on its first run. */
+    const explVars = new Set(explanationVars(content));
+    const nonComment = lines.filter((l) => !/^\s*\/\//.test(l));
+    lines.forEach((line, i) => {
+      if (/^\s*\/\//.test(line)) return;
+      for (const m of line.matchAll(/disabled\s*:\s*!([A-Za-z_$][A-Za-z0-9_$]*)/g)) {
+        disabledChecked++;
+        const flagName = m[1];                    // e.g. "canAfford"
+        const guard = `!${flagName}`;
+        const flagRe = new RegExp(`\\b${flagName}\\b`);
+        const assignsExplanation = (l) => {
+          // an assignment to a variable this file passes to ask() as helper text …
+          for (const v of explVars) if (new RegExp(`\\b${v}\\s*=(?!=)`).test(l)) return true;
+          // … or a `<name>Sub`/`sub` declaration whose other ternary branch is null, which is the
+          // established shape for "there is nothing to explain in this state" …
+          if (/\b(?:sub|[A-Za-z_$][A-Za-z0-9_$]*Sub)\s*=(?!=)/.test(l)) return true;
+          // … or the reason passed INLINE as ask()'s 4th argument: `canCounter?null:` + a string.
+          // That ships today (the hail prompt) and is a perfectly good reason — it is simply never
+          // stored in a variable, so an assignment-only test would report it missing.
+          return new RegExp(`\\b${flagName}\\b\\s*\\?[^?]*:[^?]*[\`"']`).test(l) || new RegExp(`!\\s*${flagName}\\b\\s*\\?[^?]*[\`"']`).test(l);
+        };
+        const hasReason = nonComment.some((l) => flagRe.test(l) && assignsExplanation(l) && /[`"']/.test(l));
+        if (!hasReason) {
+          // the label of the option that actually carries this `disabled:` flag — the NEAREST
+          // preceding `label:` on the line, not the first one, since a line can hold several options
+          const before = line.slice(0, m.index);
+          const labels = [...before.matchAll(/label\s*:\s*(`[^`]*`|"[^"]*"|'[^']*')/g)];
+          const label = labels.length ? labels[labels.length - 1][1] : "(label not parsed)";
+          failures.push(
+            `${rel}:${i + 1} — option ${label} is greyed out by \`${guard}\` but no reason string anywhere in this file is decided by \`${flagName}\`, ` +
+            `so a player sees a dead button with no explanation. FIX: assign the helper text under \`if(...${guard}...)\` — in its own \`if\`, never an \`else if\`, so an independent condition cannot suppress it.`
+          );
+        }
+      }
+    });
+  }
+  return { ok: failures.length === 0, failures, stats: { varsFound, chainsChecked, disabledChecked } };
+}
+
 /* ================= Runner (real tree) ================= */
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
@@ -336,6 +488,10 @@ function runAll(root, { quiet = false } = {}) {
   const a5 = checkPirateRegister(root);
   log(`${a5.ok ? "PASS" : "FAIL"} the D-29 pirate register holds across src/ and index.html (+ the layout intactness probe)`);
   results.push({ name: "pirate-register", ...a5 });
+
+  const a6 = checkCoReachableExplanations(root);
+  log(`${a6.ok ? "PASS" : "FAIL"} co-reachability — a greyed control's reason is reachable in the state it explains (D-41/F11) [${a6.stats.varsFound} explanation var(s), ${a6.stats.chainsChecked} chain(s), ${a6.stats.disabledChecked} disabled option(s)]`);
+  results.push({ name: "co-reachable-explanations", ...a6 });
 
   return results;
 }
@@ -482,9 +638,75 @@ function drill() {
     }
   }
 
+  /* ---- Assertion 6: CO-REACHABILITY, red-proofed against the REAL broken code ----
+   * The fixture is `git show ab98e04:src/ui/flow.js` — the genuine tree where the greyed Trade
+   * reason sat in an `else` arm — not a synthetic approximation. A gate written loosely enough to
+   * pass that tree therefore fails its own drill, which is the whole point of using real code here.
+   */
+  {
+    resetFixture();
+    const realBroken = execFileSync("git", ["show", "ab98e04:src/ui/flow.js"], { cwd: REAL_ROOT, maxBuffer: 1e8 }).toString();
+    fixture("src/ui/flow.js", realBroken);
+    const r = checkCoReachableExplanations(tmpRoot);
+    const namesSuppression = r.failures.some((f) => /explanation variable `sub`.*INDEPENDENT/s.test(f));
+    const ok = !r.ok && namesSuppression;
+    console.log(`${ok ? "PASS" : "FAIL"} drill 6a (co-reachability, against the REAL ab98e04 code) — expected FAIL naming the suppressed reason, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!ok) allDrillsOk = false;
+  }
+  {
+    // 6b: a greyed option with NO reason anywhere is a dead button with no explanation
+    resetFixture();
+    fixture("src/ui/flow.js", [
+      "export async function f(p){",
+      "  const canAfford=p.coins>=2;",
+      "  const opts=[{label:\"Attack\",value:\"attack\",disabled:!canAfford}];",
+      "  let sub=null;",
+      "  const v=await ask(`pick`,opts,null,sub);",
+      "  return v;",
+      "}",
+    ].join("\n"));
+    const r = checkCoReachableExplanations(tmpRoot);
+    const ok = !r.ok && r.failures.some((f) => /no reason string anywhere in this file is decided by `canAfford`/.test(f));
+    console.log(`${ok ? "PASS" : "FAIL"} drill 6b (a greyed option with no reason) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 1 — an EXCLUSIVE LADDER. A chain whose arms test the SAME variable against
+    // different values is genuinely exclusive and must NOT be flagged. Without this control the
+    // check would flag every switch-like chain in the codebase and would then get loosened.
+    resetFixture();
+    fixture("src/ui/flow.js", [
+      "export async function f(p){",
+      "  const reason=p.reason;",
+      "  let sub=null;",
+      "  if(reason===\"justDocked\")sub=`ye just docked`;",
+      "  else if(reason===\"home\")sub=`ye be home`;",
+      "  else if(reason===\"dock\")sub=`already parked`;",
+      "  const v=await ask(`pick`,[],null,sub);",
+      "  return v;",
+      "}",
+    ].join("\n"));
+    const r = checkCoReachableExplanations(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 6c (negative control — an exclusive value ladder on ONE variable is not flagged) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 2 — the FIXED tree must pass. This is what proves the fix and the gate agree,
+    // rather than the gate being satisfiable only by deleting the helper text altogether.
+    resetFixture();
+    fixture("src/ui/flow.js", fs.readFileSync(path.join(REAL_ROOT, "src/ui/flow.js"), "utf8"));
+    const r = checkCoReachableExplanations(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 6d (negative control — the FIXED src/ui/flow.js passes) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 
-  console.log(`\n${allDrillsOk ? "ALL 5 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allDrillsOk ? "ALL 6 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allDrillsOk ? 0 : 1);
 }
 

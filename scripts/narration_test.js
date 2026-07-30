@@ -570,5 +570,72 @@ for (const key of KEYS) {
   }
 }
 
+/* ============================================================================
+ * F11 / D-41 — CO-REACHABILITY: the greyed Trade button's reason must be reachable
+ * in the state it explains, headlessly.
+ *
+ * The 2026-07-29 two-tab playtest found the greyed Trade button rendering with
+ * ATTACK's helper text beneath it while Attack was enabled. humanAct() assigned its
+ * helper text across an if/else-if chain whose two conditions are INDEPENDENT —
+ * whether an enemy is adjacent says nothing about whether anyone holds cargo — so
+ * Wyatt's approved cargo reason, sitting in the `else` arm, was unreachable whenever
+ * an attack target happened to be adjacent.
+ *
+ * This pins the OBSERVABLE the playtest found missing, with no browser: run the real
+ * assignment chain out of the shipped source, in the exact state "attack target
+ * adjacent AND nobody holds cargo", and require the cargo reason to be present. The
+ * chain is READ FROM SOURCE rather than imported, the same discipline the rest of
+ * this harness already uses for src/ui/flow.js's flash() sites.
+ *
+ * scripts/ui_contract_check.js assertion 6 gates the SHAPE; this pins the RESULT.
+ * ==========================================================================*/
+{
+  console.log("\nF11/D-41 — the greyed Trade reason is co-reachable with an adjacent attack target:");
+  const flowSrc = readFileSync(new URL("../src/ui/flow.js", import.meta.url), "utf8").split("\n");
+  const start = flowSrc.findIndex((l) => /^\s*let sub=null;/.test(l));
+  checkTrue("humanAct()'s helper-text assignment is still locatable in the shipped source", start >= 0);
+  if (start >= 0) {
+    // every `sub=` assignment from the declaration up to the ask() call that consumes it
+    const askAt = flowSrc.findIndex((l, i) => i > start && /await ask\(prompt,opts,null,sub\)/.test(l));
+    checkTrue("the ask() call that consumes it is still locatable", askAt > start);
+    const body = flowSrc.slice(start, askAt).filter((l) => !/^\s*\/\//.test(l) && /\bsub\s*=(?!=)/.test(l)).join("\n");
+    // NOT an else-if chain any more — an independent-condition chain, which is the fix
+    checkTrue("the cargo reason is no longer in an else-if arm (an adjacent enemy cannot suppress it)",
+      !/else\s+if\s*\([^)]*tradeOpp/.test(flowSrc.slice(start, askAt).join("\n")));
+    checkTrue("the cargo reason has not vanished from the chain entirely", /tradeOpp/.test(body));
+
+    const runChain = ({ targets, canAfford, canTrade }) => {
+      const appStateStub = { game: { cfg: { powder: 2 }, tradeOpp: () => [{ idx: 1 }] } };
+      // eslint-disable-next-line no-new-func
+      // `p` is the acting player; the chain only ever passes it to tradeOpp(), whose result the
+      // stub supplies, so a bare seat object is enough to run the real assignment lines.
+      const fn = new Function("targets", "canAfford", "canTrade", "appState", "p", `"use strict"; ${body}\nreturn sub;`);
+      return fn(targets, canAfford, canTrade, appStateStub, { idx: 0 });
+    };
+    const CARGO = "No one's holding cargo to trade for yet.";
+    const POWDER = "Yer too poor to afford powder!";
+
+    // THE STATE THE PLAYTEST HIT: a target is adjacent, Attack is affordable (so enabled), and
+    // nobody holds cargo (so Trade is greyed). Before the fix this rendered Attack's tip instead.
+    const f11 = runChain({ targets: [{ idx: 1 }], canAfford: true, canTrade: false });
+    checkTrue(`with an attack target adjacent AND nobody holding cargo, the helper text contains "${CARGO}"`,
+      typeof f11 === "string" && f11.includes(CARGO));
+
+    // both greyed -> BOTH reasons, blocked-action reason first, neither silently dropped
+    const both = runChain({ targets: [{ idx: 1 }], canAfford: false, canTrade: false });
+    checkTrue("with BOTH controls greyed, both reasons are present rather than one being dropped",
+      typeof both === "string" && both.includes(POWDER) && both.includes(CARGO));
+    checkTrue("with BOTH greyed, the blocked-action reason comes first", typeof both === "string" && both.indexOf(POWDER) < both.indexOf(CARGO));
+
+    // nothing greyed -> the informational Attack tip still fires (the fix did not delete it)
+    const tip = runChain({ targets: [{ idx: 1 }], canAfford: true, canTrade: true });
+    checkTrue("with nothing greyed, Attack's informational tip still renders", typeof tip === "string" && /Attacking costs ye/.test(tip));
+
+    // no target, cargo available -> deliberately silent, nothing to explain
+    checkTrue("with no target and cargo available, no helper text renders at all",
+      runChain({ targets: [], canAfford: true, canTrade: true }) == null);
+  }
+}
+
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);
