@@ -309,13 +309,24 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // also hits an island is a free pass, already-paid anchor holding fast
       if(dodgedOnce.v){appState.game.ev({t:"anchorHold",p:p.idx});await narrateLastEvent();liveRender();return;}
       const opts=[];
-      // D-38 (Wyatt-approved 2026-07-29): signed parenthesised cost, U+2212 minus.
-      if(p.coins>=1)opts.push({label:"Anchor safely (−1🌕)",value:"pay"});
       // notes/edits #10b: the real tails consequence depends on what this player actually has to
       // lose (mirrors the branches below) — a broke player with crates loses one of those, not
       // "half their coins" (they have none), and only a truly broke, empty-holds player risks
       // losing the whole turn to repairs.
+      // G10 (2026-07-30): HOISTED above the option push — a pure reorder, no behaviour change — so
+      // both the option list and the prompt below can read it.
       const broke=p.coins===0,trueShipwreck=broke&&!p.ing.length;
+      // D-38 (Wyatt-approved 2026-07-29): signed parenthesised cost, U+2212 minus.
+      // G10 (Wyatt-approved 2026-07-30), at 0 coins during a storm push into land: "oooh -- this
+      // should also have a greyed-out button because you can't anchor!" SIXTH instance of the D-41
+      // family after Attack, Trade, coins-only, hail-Counter and dock-buy. The option used to be
+      // pushed only when p.coins>=1, so it VANISHED with no explanation on the decision surface.
+      // Now it is always pushed and greys instead, with his reason verbatim beneath it. The label,
+      // the U+2212 minus and the (−1🌕) parenthetical are untouched.
+      // The reason is supplied ONLY when broke — ui_contract_check.js assertion 6 requires a
+      // disabled option's reason to be reachable in the state it explains and absent in states it
+      // does not.
+      opts.push({label:"Anchor safely (−1🌕)",value:"pay",disabled:broke});
       // D-59 (Wyatt-approved 2026-07-29): the ordinary branch shows the REAL coin loss — the same
       // Math.max(1,Math.floor(p.coins/2)) expression the engine uses below, so the button can never
       // disagree with the outcome, and the rounding-down is visible before the decision is made.
@@ -333,15 +344,25 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         :broke?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)"
         :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer treasure (−${Math.max(1,Math.floor(p.coins/2))}🌕))`;
       opts.push({label:flipLabel,value:"flip"});
+      // G10 second half (2026-07-30): the prompt used to OFFER a branch it could not honour — a
+      // broke captain read "Anchor safely, or take yer chances…" above a button he could not press.
+      // A third case for broke-but-holding-crates, built by DELETING the offer clause from the
+      // existing sentence — NOT by writing a new one. Same operation D-46/G1 already performed on
+      // the dock lines, and D-31 justifies it twice over: what remains of the decision is stated by
+      // the flip BUTTON, which names both consequences. trueShipwreck keeps its own wording, which
+      // already explains the stakes without offering an anchor.
       const promptMsg=trueShipwreck
         ?`${pn(p.idx)}: the storm blows ye toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
+        :broke?`${pn(p.idx)}: the storm's blowin' ye into land!`
         :`${pn(p.idx)}: the storm's blowin' ye into land! Anchor safely, or take yer chances dodging the rocks.`;
-      // D-11 case 2: the Pay-to-anchor option is already silently absent above when broke — say so
-      // plainly instead of leaving the missing option unexplained.
+      // D-11 case 2: the anchor option greys out above when broke — this says the same thing a beat
+      // earlier on the COMMENTARY surface, and is NOT duplication. D-40's finding was that the
+      // explanation lived only on the wrong surface; having it on both is the fix. NARR-02 case 2,
+      // gate-asserted since 15-02 — do not remove it.
       // @copy adhoc.storm.brokeanchor
       if(broke)await flash(brokeAnchorLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]);
       // @copy prompt.storm.anchororflip
-      const v=await ask(promptMsg,opts);
+      const v=await ask(promptMsg,opts,null,broke?`Yer too broke to anchor`:null);
       if(appState.turnExpired)return;
       // G6 (COIN-AUDIT.md site 5): the "pay" option was pushed above when p.coins>=1, but `await
       // ask(...)` sits between that gate and this debit, and the 20s penalty can take the coin in
