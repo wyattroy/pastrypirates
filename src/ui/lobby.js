@@ -84,8 +84,10 @@ export function passGate(seatIdx){
   return new Promise(res=>{
     $("game").classList.add("bg-blurred");
     // NARR-01/D-25 (Wyatt-approved 2026-07-29).
+    // @copy misc.lobby.passmessage
     $("passOverlayMsg").innerHTML=`${iconImg(DEVICE_IMG)} Pass the board to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
     const btn=$("passHelmBtn");
+    // @copy misc.lobby.passbutton
     btn.innerHTML=`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`;
     btn.style.background=HEXCOL[seatIdx];btn.style.borderColor=HEXCOL[seatIdx];
     $("passOverlay").style.display="flex";
@@ -122,6 +124,7 @@ export function renderSeatList(seats){
     $("btnStart").style.display="";
     // NARR-01/D-25/D-50 (Wyatt-approved 2026-07-29): applied verbatim; {clock/stopwatch} resolves
     // to the hourglass (D-50 RESOLVED — this is a "waiting for players" moment, not a control).
+    // @copy misc.lobby.waitcaption
     $("waitMsg").innerHTML=`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`;
   }else{
     $("btnStart").style.display="none";

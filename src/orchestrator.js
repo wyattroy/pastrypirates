@@ -303,6 +303,7 @@ export function renderBattle(o){
   if(appState.replaying)return;          // silent during reload-replay, like liveRender
   const nm=i=>pname(i),col=i=>HEXCOL[i];
   const A=o.att,D=o.def,need=o.need||3,title=o.title||"⚔️ Broadside Battle";
+  // @copy prompt.battle.scoreboard
   panel(`<div class="btl">
     <div class="btl-hd"><span>${title}</span><span class="rnd">Round ${o.round} · first to ${need}</span></div>
     <div class="btl-body">
@@ -388,6 +389,7 @@ export async function asyncBattle(att,def){
   // neutral-plus-variants form so each combatant's own screen reads it addressed to themselves
   // while every other viewer sees the third-person text. "Hits", not "points" (his approved copy).
   const battleOpenVariants=[{seat:att.idx,html:`⚔️ ${pn(att.idx)} — ye attack ${pn(def.idx)}! First to ${need} hits wins…`},{seat:def.idx,html:`⚔️ ${pn(att.idx)} attacks ye! First to ${need} hits wins…`}];
+  // @copy adhoc.battle.opening
   await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} hits wins…`,Math.max(900,stepDelay()),undefined,battleOpenVariants);
   if(c.powder)att.coins-=c.powder;
   appState.game.battles++;
@@ -497,15 +499,19 @@ export async function asyncBattle(att,def){
         scorer=downwind;
         if(downwind==="a")a++;else d++;
         const dwName=downwind==="a"?nm(att.idx):nm(def.idx);
+        // @copy misc.battleline.bothheadsdownwind
         rmsg=`<span class="score">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`;
+      // @copy misc.battleline.bothheadscrosswind
       }else rmsg=`<span class="cancel">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`;
     }
     else if(ah||dh){
       scorer=ah?"a":"d";
       if(ah)a++;else d++;
       const hitName=ah?nm(att.idx):nm(def.idx);
+      // @copy misc.battleline.hitlands
       rmsg=`<span class="score">${hitName} lands a hit!</span>`;
     }
+    // @copy misc.battleline.bothmiss
     else{rmsg=`<span class="cancel">Both miss — ⚫️ TAILS all round.</span>`;}
     // notes/edits #23: record who actually scored the round (not just the raw flip pattern) —
     // a both-heads downwind round scores a real point but doesn't fit the "a XOR d landed heads"
@@ -521,6 +527,7 @@ export async function asyncBattle(att,def){
       const cells=reachable(def,3);
       if(cells.length){
         let flee;
+        // @copy prompt.battle.flee
         if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`,
           [{label:"🏃 Flee! (−1🌕)",value:true},{label:"⚔️ Keep fighting",value:false}]);}
         else flee=d<a; // bots flee a losing fight, press on if ahead or even
@@ -553,6 +560,7 @@ export async function asyncBattle(att,def){
     let mode;
     if(canCoins&&hasIng){
       if(lose.strategy==="human"){setActor(lose.idx);
+        // @copy prompt.battle.loserpays
         mode=await ask(`${pn(lose.idx)}, ye lost! Pay with…`,
           [{label:"5🌕",value:"coins"},{label:"a crate (winner picks)",value:"ing"}]);}
       else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
@@ -562,6 +570,7 @@ export async function asyncBattle(att,def){
       let pick;
       const uniq=[...new Set(lose.ing)];
       if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
+        // @copy prompt.battle.winnerplunder
         pick=await ask(`${pn(win.idx)}, choose yer plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
       else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
       lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabelImg(pick);spoilIng=pick;
@@ -675,12 +684,14 @@ export async function recipeDraftNet(){
         picks[p.idx]=i;logDecision(i);
       }
     }else{
+      // @copy misc.draftwait.recipechoosing
       netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`);
       const results={};
       const jobs=pending.map(p=>{
         setActor(p.idx);
         if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
           results[p.idx]=i;
+          // @copy misc.draftwait.recipechosen
           if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…");
         });
         return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
@@ -717,6 +728,7 @@ export async function runLiveNet(){
     appState.game.ev({t:"newround",dir:appState.game.windNow,dir2:appState.game.windNow2,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow)});liveRender(); // NARR-04
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
+    // @copy adhoc.round.header
     await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
     for(const i of order){
       const p=appState.game.players[i];
@@ -733,12 +745,14 @@ export async function runLiveNet(){
           // wind re-spin's game.r() calls run identically live and on replay, so state stays
           // deterministic.
           // NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
+          // @copy misc.introbarrier.finalround
           await netIntroBarrier(`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`,"🦜 Final round — set sail!");
           appState.game.round++;
           appState.game.windNow="NSEW"[Math.floor(appState.game.r()*4)];
           appState.game.stormNow=rollStorm(appState.game); // #1a
           appState.game.windNow2=appState.game.stormNow?PERP[appState.game.windNow][Math.floor(appState.game.r()*2)]:null;
           appState.game.ev({t:"newround",dir:appState.game.windNow,dir2:appState.game.windNow2,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow)});liveRender(); // NARR-04
+          // @copy adhoc.round.finalheader
           await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
           const startPos=order.indexOf(i);
           const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
@@ -773,10 +787,12 @@ export async function liveResolveEndNet(){
   // finished recipe pictured right in it (the recipe image lives here now, not in the End of Voyage
   // summary — see showStats). EOV-01 already stripped the duplicate blue-box announcement.
   if(appState.game.winner==null){
+    // @copy adhoc.voyageend.nobodyfinished
     await flash("⏳ Nobody finished the voyage.");
   }else{
     const wi=recipeInfo(appState.game.players[appState.game.winner].recipe);
     const pic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:"";
+    // @copy adhoc.voyageend.victory
     await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
     victoryConfetti(appState.game.winner); // EOV-05: a burst of celebration over the board
   }
@@ -863,6 +879,7 @@ export function watchDraftPrompt(){
     if(!p){return;}
     const cls=p.classes||[];
     const grid=cls.some(c=>c)?" recipes":"";
+    // @copy prompt.net.draftrerender
     panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
       (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
@@ -920,6 +937,7 @@ export function watchPrompt(){
         setNeedsAction(true);
         setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,flipIdx);});
         if(backIdx>=0){
+          // @copy prompt.net.promptrerender
           panel(`${backHtml}<div class="apMsg">${p.msg}</div>`,true);
           $("actionPanel").querySelectorAll(".apBack").forEach(b=>{
             b.onclick=()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,+b.dataset.i);};});
@@ -931,6 +949,7 @@ export function watchPrompt(){
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
       const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
+      // @copy prompt.net.promptrerenderbuttons
       panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
         rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?" disabled":""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
       $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{if(b.disabled)return;b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
@@ -968,6 +987,7 @@ export async function createRoom(){
     console.error("createRoom failed",e);appState.room=null;appState.isHost=false;
     // NARR-01/D-25/D-60 (Wyatt-approved 2026-07-29): one line for every multiplayer-service
     // disruption — createRoom's own failure and joinRoom's below share it verbatim (D-60).
+    // @copy misc.mperror.createcapacity
     alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");
     return;
   }
@@ -976,16 +996,20 @@ export async function createRoom(){
 export async function joinRoom(){
   const typedName=($("joinName").value||"").trim().slice(0,40);
   const code=($("joinCode").value||"").toUpperCase().trim();
+  // @copy misc.mperror.entercode
   if(code.length<4){alert("Enter the room code yer host shared.");return;}
   let snap;
   try{snap=await netReadRoom(appState.db,code);}
+  // @copy misc.mperror.joincapacity
   catch(e){console.error("joinRoom failed",e);alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");return;}
+  // @copy misc.mperror.nogamefound
   if(!snap.exists()){alert(`Arrgh, no game found with code ${code}. Try typin' again.`);return;}
   const r=snap.val();
   const seats=r.seats||{};
   let mine=null;
   for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===appState.myId)mine=i;
   if(mine!=null){appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;}
+  // @copy misc.mperror.alreadysailed
   if(r.status!=="lobby"){alert("⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.");return;}
   let claimed=null;
   await netClaimSeat(appState.db,code,s=>{
@@ -996,6 +1020,7 @@ export async function joinRoom(){
       s[i]={name:typedName||unusedDefaultName(s,i),id:appState.myId,bot:false};claimed=i;return s;}}
     return s;
   });
+  // @copy misc.mperror.roomfull
   if(claimed==null){alert("Too many pirates already in that game.");return;}
   appState.room=code;appState.mySeat=claimed;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();
 }
@@ -1005,6 +1030,7 @@ export async function joinRoom(){
 let _watchRoomAttachedFor=null;
 export async function watchRoom(){
   const r0=(await netReadRoom(appState.db,appState.room)).val();
+  // @copy misc.mperror.gamegone
   if(!r0){alert("That game no longer exists.");clearSession();showHome();return;}
   appState.numSeats=r0.numSeats;appState.isHost=(r0.host===appState.myId);
   if(r0.status==="lobby")showRoom();
@@ -1035,6 +1061,7 @@ export async function startGame(){
       recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
   }catch(e){
     console.error("startGame failed",e);
+    // @copy misc.mperror.serviceunreachable
     alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.");
   }
 }
@@ -1151,6 +1178,7 @@ export async function resumeHostGame(r){
   let evval={};try{evval=(await netReadEv(appState.db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume events")(e);}
   appState.resumeEvLen=evval?Object.keys(evval).length:0;
   showGameView();
+  // @copy prompt.net.reconnecting
   panel('<div class="apMsg">⚓ Reconnecting to yer voyage…</div>');
   appState.replaying=true;
   beginGame(r.cfg,r.seed);

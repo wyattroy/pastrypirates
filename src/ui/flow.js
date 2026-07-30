@@ -87,6 +87,7 @@ export function localAsk(msg,opts,colors,sub){
     const grid=rest.some(x=>x.o.cls)?" recipes":"";
     const backHtml=backIdx!==-1?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
     const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
+    // @copy prompt.plumbing.localask
     panel(`${backHtml}<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
       rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?" disabled":""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
       true);
@@ -100,6 +101,7 @@ export async function humanFlip(p,label,allowBack){
   setActor(p.idx);
   const opts=[{label:"🌕 FLIP!",value:1,flip:true}];
   if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
+  // @copy prompt.flip.fallback
   const v=await ask(label||"Flip the dubloon!",opts);
   if(v==="back")return "back";
   netHandlers().onBroadcastFlip("spin");
@@ -108,6 +110,7 @@ export async function humanFlip(p,label,allowBack){
   netHandlers().onBroadcastFlip(h?"H":"T");
   // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
   // (short) message's own length instead of a flat timer unrelated to how long it takes to read
+  // @copy adhoc.flip.announce
   await flash(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`,undefined,undefined,[{seat:p.idx,html:`${pn(p.idx)} — ye flip ${h?"⚪ HEADS!":"⚫ TAILS"}`}]);
   netHandlers().onBroadcastFlip("wait");
   return h;
@@ -129,6 +132,7 @@ export async function fishCast(p,label,allowBack){
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
     // of scope. scripts/ui_contract_check.js now gates this permanently.
+    // @copy prompt.fish.fallback
     const v=await ask(label||`${pn(p.idx)}: cast yer line — flip!`,opts);
     if(v==="back")return "back";
   }
@@ -188,6 +192,7 @@ export function pickCell(p,cells){
     endReplay();
   }
   setActor(p.idx);
+  // @copy misc.draftwait.sailchoosing
   netHandlers().onBroadcast(p.idx===appState.mySeat?"":`${pn(p.idx)} is choosing where to sail…`);
   armClock(p.idx);
   const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
@@ -212,6 +217,7 @@ export function localPickCell(p,cells){
       r.addEventListener("click",()=>done(c));
       hs.push(r);
     });
+    // @copy prompt.sail.pickpanel
     panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
     $("apStay").onclick=()=>done(null);
@@ -274,11 +280,14 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         :`${pn(p.idx)}: the storm's blowin' ye into land! Anchor safely, or take yer chances dodging the rocks.`;
       // D-11 case 2: the Pay-to-anchor option is already silently absent above when broke — say so
       // plainly instead of leaving the missing option unexplained.
+      // @copy adhoc.storm.brokeanchor
       if(broke)await flash(brokeAnchorLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]);
+      // @copy prompt.storm.anchororflip
       const v=await ask(promptMsg,opts);
       if(appState.turnExpired)return;
       if(v==="pay"){p.coins--;appState.game.ev({t:"dodge",p:p.idx});await narrateLastEvent();}
       else{
+        // @copy misc.paramprompt.stormdodge
         const h=await humanFlip(p,"Flip to dodge!");
         if(appState.turnExpired)return;
         if(h)appState.game.ev({t:"anchor",p:p.idx});
@@ -347,6 +356,7 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
         // D-10: render the viewer-NEUTRAL text (never the ambient appState.mySeat-flavored one)
         // plus per-seat variants — the same broadcast-safe split narrateLastEvent() uses.
         const L=describeFor(ev,NEUTRAL_VIEWER);
+        // @copy adhoc.storm.botsquare
         if(L)await flash(L.txt,null,msgHoldMs(L.txt),narrationVariants(ev));
       }
       liveRender();
@@ -366,6 +376,7 @@ export async function botWindLeg(p,dirKey,dist,dodgedOnce,wasDocked){
   g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
   const lastEv=g.events[g.events.length-1];
   const L=describeFor(lastEv,NEUTRAL_VIEWER);
+  // @copy adhoc.storm.botlegsummary
   if(L)await flash(L.txt,null,msgHoldMs(L.txt),narrationVariants(lastEv));
   liveRender();
 }
@@ -399,6 +410,7 @@ export async function humanWind(p){
   const dodgedOnce={v:false};
   await windLeg(p,appState.game.windNow,2,dodgedOnce,wasDocked);
   if(appState.turnExpired)return;
+  // @copy adhoc.storm.secondleg
   await flash(secondLegLine(p.idx,appState.game.windNow2,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:secondLegLine(p.idx,appState.game.windNow2,p.idx)}]);
   if(appState.turnExpired)return;
   await windLeg(p,appState.game.windNow2,2,dodgedOnce,wasDocked);
@@ -417,6 +429,7 @@ export async function humanDock(p,port){
   }
   // D-46 (Wyatt-approved 2026-07-29): the flip prompt names the PLACE, not the ingredient — the
   // ingredient icon is kept (D-16), the ingredient is the payoff named once the flip resolves.
+  // @copy misc.paramprompt.dockflip
   const h=await humanFlip(p,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`,true);
   if(h==="back")return "back";
   if(h){
@@ -424,6 +437,7 @@ export async function humanDock(p,port){
   }else{
     let got="coins";
     if(appState.game.cfg.dockBuy&&p.coins>=3&&appState.game.tokens[ing]>0){
+      // @copy prompt.dock.tailschoice
       const buy=await ask(`Tails! Take 3🌕 — or buy ${iconImg(ING_IMG[ing])} ${dockFlavor(ing)} for 3🌕?`,[
         {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
       if(buy){p.coins-=3;appState.game.tokens[ing]--;p.ing.push(ing);got="bought";}
@@ -438,6 +452,7 @@ export async function humanDock(p,port){
 export async function humanTrade(p){
   setActor(p.idx);
   const opps=appState.game.tradeOpp(p).filter(q=>q.ing.length>0);
+  // @copy adhoc.trade.nocargo
   if(!opps.length){await flash("No one has cargo to trade for.");return false;}
   // notes/edits UI-08: the parley used to be a straight chain of prompts where hitting Back at ANY
   // step returned false all the way out to the action menu — so Back felt like it jumped two (or
@@ -453,11 +468,13 @@ export async function humanTrade(p){
     if(step===0){
       // D-19 (Wyatt-approved 2026-07-29): "Trade", never "Parley" — the only two places the word
       // reached a player.
+      // @copy prompt.trade.partner
       const q=await ask("Trade with whom?",opps.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:"__back__"}]),
         opps.map(o=>HEXCOL[o.idx]).concat([null]));
       if(q==="__back__"||q==null)return false; // Back from the first step → action menu (one step)
       st.q=q;step=1;
     }else if(step===1){
+      // @copy prompt.trade.want
       const want=await ask(`What do ye WANT from ${pn(st.q.idx)}?`,
         [...new Set(st.q.ing)].map(i=>({label:ilabelImg(i),value:i})).concat([{label:"← Back",back:true,value:"__back__"}]));
       if(want==="__back__"||want==null){if(step===firstStep)return false;step--;continue;}
@@ -471,6 +488,7 @@ export async function humanTrade(p){
       ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins});
       ingOpts.push({label:"← Back",back:true,value:"__back__"});
       const offerSub=canOfferCoins?null:`Ye don't have any coin to offer — pick a crate instead.`;
+      // @copy prompt.trade.give
       const baseIng=await ask(`What will ye GIVE ${pn(st.q.idx)} in exchange?`,ingOpts,null,offerSub);
       if(baseIng==="__back__"){if(step===firstStep)return false;step--;continue;}
       st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=3;
@@ -481,12 +499,14 @@ export async function humanTrade(p){
         // D-40: guarded safety net — the "coins only" option is now greyed out whenever the purse
         // is empty (above), so this is unreachable through the normal UI; kept for a forced/edge
         // selection, same convention as Attack's own guard.
+        // @copy prompt.trade.nothingtooffer
         await ask("Ye don't have any to offer!",[{label:"← Back",back:true,value:-1}]);
         step=2;continue;
       }
       const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
       coinOpts.push({label:"← Back",back:true,value:-1});
       const offerSoFar=st.baseIng?ilabelImg(st.baseIng):"nothing yet";
+      // @copy prompt.trade.addcoins
       const extraCoins=await ask(`Add any 🌕 to yer offer of ${offerSoFar}?`,coinOpts);
       if(extraCoins===-1){step=2;continue;}
       st.extraCoins=extraCoins;step=4;
@@ -501,6 +521,7 @@ export async function humanTrade(p){
   let accept;
   if(q.strategy==="human"){
     setActor(q.idx);
+    // @copy prompt.trade.accept
     accept=await ask(`${pn(q.idx)}: accept ${offerDisplay} for yer ${ilabelImg(want)}?`,
       [{label:`${iconImg(CHECKMARK_IMG)} Accept`,value:true},{label:`${iconImg(CANCEL_X_IMG)} Decline`,value:false}]);
   }else{
@@ -533,6 +554,7 @@ export async function humanTrade(p){
       const askFor=Math.min(shortfall,p.coins);
       if(!humanFinishes&&askFor>0){
         setActor(p.idx);
+        // @copy prompt.trade.counter
         const deal=await ask(`${pn(q.idx)} scoffs — but counters: "${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it."`,
           [{label:`Pay ${askFor}🌕 more`,value:true},{label:"Walk away",value:false}]);
         if(deal){
@@ -554,6 +576,7 @@ export async function humanTrade(p){
       liveRender();
       // D-08/D-25: this refusal names two seats (q the decliner, p the offerer) — p reads the taunt
       // addressed ("ye"/"yer"); every other viewer sees p named.
+      // @copy adhoc.trade.refusalbot
       await flash(humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ${pn(p.idx)} finish their recipe that easy!"`:`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — "Not lettin' ye finish yer recipe that easy!"`:`${pn(q.idx)} declines yer offer!`}]);
       return true;
     }
@@ -565,6 +588,7 @@ export async function humanTrade(p){
     // clicking Decline and a bot computing a decline are the same moment, and the only thing that
     // should ever vary is who's reading, never who (or what) decided (D-18). Previously this branch
     // had its own bare "declines!" wording, addressed to the decliner rather than the offerer.
+    // @copy adhoc.trade.refusalhuman
     await flash(`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:`${pn(q.idx)} declines yer offer!`}]);
     return true;
   }
@@ -613,6 +637,7 @@ export async function humanAct(p,sailCtx){
   else if(appState.game.tradeOpp(p).length&&!canTrade)sub=`No one's holding cargo to trade for yet.`;
   // #5e: with an empty purse you can't pay the crew to sail — reframe the action prompt.
   const prompt=p.coins<=0?`${pn(p.idx)}, ye got nothin to pay yer crew, so they won't budge. Pick one:`:`${pn(p.idx)}, what'll ye do:`;
+  // @copy prompt.act.menu
   const v=await ask(prompt,opts,null,sub);
   if(appState.turnExpired)return;
   // the clock keeps running (and re-arms fresh) through dock/attack/trade/fish now, instead of
@@ -624,6 +649,7 @@ export async function humanAct(p,sailCtx){
       if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
+  // @copy adhoc.act.bakerystart
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock"){
     const r=await humanDock(p,port);
@@ -632,8 +658,10 @@ export async function humanAct(p,sailCtx){
   else if(v==="attack"){
     // #5d: safety net — the button is disabled when you can't afford powder, but guard the action
     // too (e.g. a forced/edge selection) so we never enter a battle you can't pay for.
+    // @copy adhoc.act.nopowder
     if(p.coins<appState.game.cfg.powder){await flash(`${pn(p.idx)} can't afford powder.`,1400,undefined,[{seat:p.idx,html:`Yer too poor to afford powder. Go fishin' 🎣`}]);await humanAct(p,sailCtx);return;}
     const t=targets.length===1?targets[0]:
+      // @copy prompt.act.attacktarget
       await ask("Attack whom?",targets.map(o=>({label:pn(o.idx),value:o})).concat([{label:"← Back",back:true,value:null}]),
         targets.map(o=>HEXCOL[o.idx]));
     if(t===null){await humanAct(p,sailCtx);return;}
@@ -642,6 +670,7 @@ export async function humanAct(p,sailCtx){
   }
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;}
   else if(v==="fish"){
+    // @copy misc.paramprompt.fishcast
     const r=await fishCast(p,"🎣 Cast yer line — flip!",true);
     if(r==="back"){await humanAct(p,sailCtx);return;}
     await narrateLastEvent();
@@ -672,6 +701,7 @@ export async function humanTurn(p){
   const addressedBanner=stormNow
     ?`⛵ Ahoy, ${pn(p.idx)} — yer turn!${stormIntroClause(appState.game.windNow)}`
     :`⛵ Ahoy, ${pn(p.idx)} — yer turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round.`;
+  // @copy adhoc.turn.banner
   await flash(neutralBanner,1500,undefined,[{seat:p.idx,html:addressedBanner}]);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
@@ -699,12 +729,14 @@ export async function humanTurn(p){
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   if(p.coins>0){
     // notes/edits #10: an island upwind steals your wind — warn before the move pick
+    // @copy adhoc.turn.leeward
     if(appState.game.leeward(p))await flash(`🏝️ Land's blockin' ${pn(p.idx)}'s wind — can't sail as far. Movin' slow as cold molasses in this lee.`,1500,undefined,[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, ${pn(p.idx)} — can't sail as far. Movin' slow as cold molasses in this lee.`}]);
     const dest=await pickCell(p,reachable(p));
     appState.recipeRevealed=false; // sail destination chosen — re-lock
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
     if(dest){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
+  // @copy adhoc.turn.brokesail
   }else await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: broke — the action prompt right after also reframes, but this is the sail-specific nudge
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
   if(!appState.game.adjPort(p))p.dockedNow.clear();
@@ -763,6 +795,7 @@ export async function botTurn(p){
     // D-18/D-23/D-37: shared with humanWind's own second-leg line — one narration path, viewer
     // perspective only, same hold curve as a human's turn (D-23 parity).
     const secondLegMsg=secondLegLine(p.idx,g.windNow2,NEUTRAL_VIEWER);
+    // @copy adhoc.turn.botsecondleg
     await flash(secondLegMsg,null,msgHoldMs(secondLegMsg),[{seat:p.idx,html:secondLegLine(p.idx,g.windNow2,p.idx)}]);
     await botWindLeg(p,g.windNow2,2,dodgedOnce,wasDocked);
     // botWindLeg already emits and narrates its own blownOut/windmove summary per leg — no
@@ -783,6 +816,7 @@ export async function botTurn(p){
   if(wantsToSail&&p.coins>0){
     p.coins--;const b=[...p.pos];g.stepToward(p,target,g.sailBudget(p));
     if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}else p.coins++;
+  // @copy adhoc.turn.botbrokesail
   }else if(wantsToSail)await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),null,msgHoldMs(brokeSailLine(p.idx,NEUTRAL_VIEWER)),[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11/D-23: a broke bot states why it isn't moving, on the same hold curve a human gets
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
@@ -811,12 +845,14 @@ export async function botTurn(p){
       // option out with a reason, same pattern as Attack/Trade.
       const raises=[price+1,price+2,price+3].filter(n=>n<=p.coins-HAIL_RESERVE);
       const canCounter=raises.length>0;
+      // @copy prompt.hail.offer
       const choice=await ask(`📯 ${pn(p.idx)} hails ye: "Ahoy! Want ${price}🌕 for yer ${ilabelImg(ing)}?"`,
         [{label:`Sell for ${price}🌕`,value:"sell"},{label:"Counter-offer",value:"counter",disabled:!canCounter},{label:"Refuse",value:"refuse"}],
         null,canCounter?null:`${pn(p.idx)} can't afford to go any higher.`);
       if(appState.turnExpired)return; // shot-clock expired mid-hail — no partial trade, ever
       let finalPrice=price,dealt=choice==="sell";
       if(choice==="counter"){
+        // @copy prompt.hail.counter
         const counterAmt=await ask(`Counter — how much for yer ${ilabelImg(ing)}?`,
           raises.map(n=>({label:`+${n}🌕`,value:n})).concat([{label:"Never mind",value:0}]));
         if(appState.turnExpired)return;
@@ -853,6 +889,7 @@ export async function botTurn(p){
   if(action.type==="trade"){g.tryTrade(p);await botBeat();return;}
   if(action.type==="dock"&&g.doDock(p,action.ing)){await botBeat();return;}
   // fallback: fish regardless of purse size — see the matching comment on the sim's takeTurn()
+  // @copy misc.paramprompt.botfishcast
   await fishCast(p);
   await botBeat();
 }
@@ -881,6 +918,7 @@ export async function netIntroBarrier(msg,btnLabel){
   }
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
   // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
+  // @copy misc.draftwait.introwait
   const waitMsg=humans.length>1?"⚓ Waiting for yer mateys…":null;
   await Promise.all(humans.map(p=>seatLocal(p.idx)
     ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg);return i;})
@@ -891,6 +929,7 @@ export async function netIntroBarrier(msg,btnLabel){
 export async function showAhoyIntro(){
   const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`;
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): button trimmed to just "Arrgh!" — icon kept (D-16).
+  // @copy misc.introbarrier.ahoy
   await netIntroBarrier(msg,"⚓ Arrgh!");
 }
 // right after the Ahoy intro closes: announce who won the flip for first mover, and cheer up
@@ -903,6 +942,7 @@ export async function showTurnOrderIntro(order){
   const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1})`).join(", ");
   const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+
     `No fretting, patience pays — ${rest} all cast off with extra dubloons.`;
+  // @copy misc.introbarrier.turnorder
   await netIntroBarrier(msg,"🦜 Start");
 }
 export function coinHTML(state,bs,win){
@@ -954,6 +994,7 @@ export async function collectSideBets(att,def){
       let who,amt=0;
       for(;;){
         setActor(s.idx);
+        // @copy prompt.sidebet.call
         who=await ask(`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`,
           [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
           [HEXCOL[att.idx],HEXCOL[def.idx]]);
@@ -963,6 +1004,7 @@ export async function collectSideBets(att,def){
         if(amounts.length){
           setActor(s.idx);
           // Optional: sweeten the call with real coin.
+          // @copy prompt.sidebet.raise
           amt=await ask(`💰 Add to yer call on ${who==="a"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`,
             [{label:"Just the free call",value:0}].concat(
               amounts.map(n=>({label:`Bet ${n}🌕`+(n===s.coins?" — all in!":""),value:n})))
@@ -979,7 +1021,9 @@ export async function collectSideBets(att,def){
       // per adhoc:src/ui/flow.js:901 in 15-ADDRESSED2-APPROVED.json. The leading 💰 is re-attached
       // (D-16 — his note could not carry inline markup). The free-call sibling below already
       // matches its own approved row byte-for-byte and is deliberately untouched.
+      // @copy adhoc.sidebet.backed
       if(amt)await flash(`💰 ${pn(s.idx)} calls ${pn(calledIdx)} and bets ${amt}🌕!`,1100,undefined,[{seat:s.idx,html:`💰 Ye call ${pn(calledIdx)} and bet ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls ye to win and bets ${amt}🌕 on it!`}]);
+      // @copy adhoc.sidebet.freecall
       else await flash(`🔭 ${pn(s.idx)} calls ${pn(calledIdx)} from the crow's nest.`,900,undefined,[{seat:s.idx,html:`🔭 ${pn(s.idx)} — ye call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls ye to win from the crow's nest.`}]);
     }else{
       // Bots always call (favoring the fuller purse), and sometimes back it with coin.
@@ -1006,6 +1050,7 @@ export async function settleSideBets(bets,winSide){
     else parts.push(`${pn(bet.idx)} no bounty`);
   }
   liveRender();
+  // @copy adhoc.sidebet.settle
   await flash("🔭 The Lookout's Call settles — "+parts.join(" · "),1600);
 }
 // The bakeoff gets the same scoreboard + flippenator treatment as a regular battle, just
@@ -1046,12 +1091,15 @@ export async function asyncBakeoff(A,B){
     // NARR-01/D-25/D-52 (Wyatt-approved 2026-07-29): the two "{finalist} scores!" branches merge
     // into one template naming whoever actually scored — same D-52 pattern as asyncBattle's own
     // round-result merge above (a name-slot difference, not a real branch).
+    // @copy misc.battleline.bakeoffbothheads
     if(ah&&dh){rmsg=`<span class="cancel">Both ⚪️ HEADS — no score this round.</span>`;}
     else if(ah||dh){
       scorer=ah?"a":"d";
       if(ah)a++;else d++;
+      // @copy misc.battleline.bakeoffscores
       rmsg=`<span class="score">${ah?nm(A.idx):nm(B.idx)} scores!</span>`;
     }
+    // @copy misc.battleline.bakeoffbothtails
     else{rmsg=`<span class="cancel">Both ⚫️ TAILS — no score this round.</span>`;}
     netHandlers().onRenderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
     await sleep(hold);
@@ -1134,6 +1182,7 @@ export function remotePickHighlights(cells,promptId,msg){
     r.addEventListener("click",()=>done(c));
     hs.push(r);
   }
+  // @copy prompt.sail.remotepickpanel
   panel(`<div class="apMsg">${msg||sailPickMsg(appState.mySeat)}</div>
     <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
   $("apStay").onclick=()=>done(null);

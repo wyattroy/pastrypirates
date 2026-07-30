@@ -85,6 +85,7 @@ export function setClockUI(){
   if(toggleEl){
     toggleEl.style.display=(!soloBotGame()&&!appState.liveDone)?"":"none";
     toggleEl.innerHTML=appState.timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
+    // @copy misc.timer.toggletooltip
     toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
   }
   if(appState.timerOff){

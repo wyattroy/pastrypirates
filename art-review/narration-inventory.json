@@ -153,8 +153,9 @@
   ],
   "adhoc": [
     {
+      "id": "adhoc.battle.opening",
       "file": "src/orchestrator.js",
-      "line": 391,
+      "line": 393,
       "fn": "asyncBattle",
       "tableDriven": false,
       "group": "Battle",
@@ -166,8 +167,9 @@
       "rawVariants": "battleOpenVariants"
     },
     {
+      "id": "adhoc.round.header",
       "file": "src/orchestrator.js",
-      "line": 720,
+      "line": 732,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -179,8 +181,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.round.finalheader",
       "file": "src/orchestrator.js",
-      "line": 742,
+      "line": 756,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -192,8 +195,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.voyageend.nobodyfinished",
       "file": "src/orchestrator.js",
-      "line": 776,
+      "line": 791,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -205,8 +209,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.voyageend.victory",
       "file": "src/orchestrator.js",
-      "line": 780,
+      "line": 796,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -218,8 +223,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.flip.announce",
       "file": "src/ui/flow.js",
-      "line": 111,
+      "line": 114,
       "fn": "humanFlip",
       "tableDriven": false,
       "group": "Docking",
@@ -231,8 +237,9 @@
       "rawVariants": "[{seat:p.idx,html:`${pn(p.idx)} — ye flip ${h?\"⚪ HEADS!\":\"⚫ TAILS\"}`}]"
     },
     {
+      "id": "adhoc.storm.brokeanchor",
       "file": "src/ui/flow.js",
-      "line": 277,
+      "line": 284,
       "fn": "windLeg",
       "tableDriven": false,
       "group": "Storm",
@@ -244,8 +251,9 @@
       "rawVariants": "[{seat:p.idx,html:brokeAnchorLine(p.idx,p.idx)}]"
     },
     {
+      "id": "adhoc.storm.botsquare",
       "file": "src/ui/flow.js",
-      "line": 350,
+      "line": 360,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -257,8 +265,9 @@
       "rawVariants": "narrationVariants(ev)"
     },
     {
+      "id": "adhoc.storm.botlegsummary",
       "file": "src/ui/flow.js",
-      "line": 369,
+      "line": 380,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -270,8 +279,9 @@
       "rawVariants": "narrationVariants(lastEv)"
     },
     {
+      "id": "adhoc.storm.secondleg",
       "file": "src/ui/flow.js",
-      "line": 402,
+      "line": 414,
       "fn": "humanWind",
       "tableDriven": false,
       "group": "Storm",
@@ -283,8 +293,9 @@
       "rawVariants": "[{seat:p.idx,html:secondLegLine(p.idx,appState.game.windNow2,p.idx)}]"
     },
     {
+      "id": "adhoc.trade.nocargo",
       "file": "src/ui/flow.js",
-      "line": 441,
+      "line": 456,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -296,8 +307,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.trade.refusalbot",
       "file": "src/ui/flow.js",
-      "line": 557,
+      "line": 580,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -309,8 +321,9 @@
       "rawVariants": "[{seat:p.idx,html:humanFinishes?`${pn(q.idx)} refuses — \"Not lettin' ye finish yer recipe that easy!\"`:`${pn(q.idx)} declines yer offer!`}]"
     },
     {
+      "id": "adhoc.trade.refusalhuman",
       "file": "src/ui/flow.js",
-      "line": 568,
+      "line": 592,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -322,8 +335,9 @@
       "rawVariants": "[{seat:p.idx,html:`${pn(q.idx)} declines yer offer!`}]"
     },
     {
+      "id": "adhoc.act.bakerystart",
       "file": "src/ui/flow.js",
-      "line": 627,
+      "line": 653,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -335,8 +349,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.act.nopowder",
       "file": "src/ui/flow.js",
-      "line": 635,
+      "line": 662,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Battle",
@@ -348,8 +363,9 @@
       "rawVariants": "[{seat:p.idx,html:`Yer too poor to afford powder. Go fishin' 🎣`}]"
     },
     {
+      "id": "adhoc.turn.banner",
       "file": "src/ui/flow.js",
-      "line": 675,
+      "line": 705,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Round Header",
@@ -361,8 +377,9 @@
       "rawVariants": "[{seat:p.idx,html:addressedBanner}]"
     },
     {
+      "id": "adhoc.turn.leeward",
       "file": "src/ui/flow.js",
-      "line": 702,
+      "line": 733,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -374,8 +391,9 @@
       "rawVariants": "[{seat:p.idx,html:`🏝️ Land's blockin' yer wind, ${pn(p.idx)} — can't sail as far. Movin' slow as cold molasses in this lee.`}]"
     },
     {
+      "id": "adhoc.turn.brokesail",
       "file": "src/ui/flow.js",
-      "line": 708,
+      "line": 740,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -387,8 +405,9 @@
       "rawVariants": "[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]"
     },
     {
+      "id": "adhoc.turn.botsecondleg",
       "file": "src/ui/flow.js",
-      "line": 766,
+      "line": 799,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Storm",
@@ -400,8 +419,9 @@
       "rawVariants": "[{seat:p.idx,html:secondLegLine(p.idx,g.windNow2,p.idx)}]"
     },
     {
+      "id": "adhoc.turn.botbrokesail",
       "file": "src/ui/flow.js",
-      "line": 786,
+      "line": 820,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -413,8 +433,9 @@
       "rawVariants": "[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]"
     },
     {
+      "id": "adhoc.sidebet.backed",
       "file": "src/ui/flow.js",
-      "line": 982,
+      "line": 1025,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -426,8 +447,9 @@
       "rawVariants": "[{seat:s.idx,html:`💰 Ye call ${pn(calledIdx)} and bet ${amt}🌕!`},{seat:calledIdx,html:`💰 ${pn(s.idx)} calls ye to win and bets ${amt}🌕 on it!`}]"
     },
     {
+      "id": "adhoc.sidebet.freecall",
       "file": "src/ui/flow.js",
-      "line": 983,
+      "line": 1027,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -439,8 +461,9 @@
       "rawVariants": "[{seat:s.idx,html:`🔭 ${pn(s.idx)} — ye call ${pn(calledIdx)} from the crow's nest.`},{seat:calledIdx,html:`🔭 ${pn(s.idx)} calls ye to win from the crow's nest.`}]"
     },
     {
+      "id": "adhoc.sidebet.settle",
       "file": "src/ui/flow.js",
-      "line": 1009,
+      "line": 1054,
       "fn": "settleSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -452,8 +475,9 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.turn.botbanner",
       "file": "src/ui/util.js",
-      "line": 952,
+      "line": 953,
       "fn": "narrateCurrent",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -465,8 +489,9 @@
       "rawVariants": "[{seat:e.p,html:`🧭 ${pn(e.p)} — ye take the wheel…`}]"
     },
     {
+      "id": "adhoc.turn.boteventpassthrough",
       "file": "src/ui/util.js",
-      "line": 956,
+      "line": 958,
       "fn": "narrateCurrent",
       "tableDriven": true,
       "group": "Sailing & Movement",
@@ -481,7 +506,7 @@
   "prompts": [
     {
       "file": "src/orchestrator.js",
-      "line": 306,
+      "line": 307,
       "fn": "renderBattle",
       "kind": "panel",
       "rawMsg": "`<div class=\"btl\">\n    <div class=\"btl-hd\"><span>${title}</span><span class=\"rnd\">Round ${o.round} · first to ${need}</span></div>\n    <div class=\"btl-body\">\n      <div class=\"btl-col${o.live===\"a\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(A.idx)}\">${nm(A.idx)}</div>\n        <div class=\"role\">${o.roleA||\"Attacker\"}</div>\n        ${coinHTML(o.atState,o.atBs,o.winCoin===\"a\")}\n        ${pipsHTML(o.a,col(A.idx),need)}\n      </div>\n      <div class=\"btl-mid\">VS</div>\n      <div class=\"btl-col${o.live===\"d\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(D.idx)}\">${nm(D.idx)}</div>\n        <div class=\"role\">${o.roleD||\"Defender\"}</div>\n        ${coinHTML(o.dfState,o.dfBs,o.winCoin===\"d\")}\n        ${pipsHTML(o.d,col(D.idx),need)}\n      </div>\n    </div>\n    ${battleFooter(o)}\n  </div>`",
@@ -490,11 +515,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.battle.scoreboard"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 524,
+      "line": 531,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`",
@@ -504,23 +530,28 @@
           "raw": "\"🏃 Flee! (−1🌕)\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "true",
+          "slot": "true"
         },
         {
           "raw": "\"⚔️ Keep fighting\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "false",
+          "slot": "false"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.battle.flee"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 556,
+      "line": 564,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(lose.idx)}, ye lost! Pay with…`",
@@ -530,23 +561,28 @@
           "raw": "\"5🌕\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"coins\"",
+          "slot": "coins"
         },
         {
           "raw": "\"a crate (winner picks)\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"ing\"",
+          "slot": "ing"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.battle.loserpays"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 565,
+      "line": 574,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(win.idx)}, choose yer plunder!`",
@@ -555,11 +591,12 @@
       "dynamicLabelCount": 1,
       "dynamicBase": "uniq.map(i=>({label:ilabelImg(i),value:i}))",
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.battle.winnerplunder"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 866,
+      "line": 883,
       "fn": "watchDraftPrompt",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
@@ -568,11 +605,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.net.draftrerender"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 923,
+      "line": 941,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
@@ -581,11 +619,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.net.promptrerender"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 934,
+      "line": 953,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -594,11 +633,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.net.promptrerenderbuttons"
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1154,
+      "line": 1182,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -607,11 +647,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.net.reconnecting"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 90,
+      "line": 91,
       "fn": "localAsk",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${msg}</div><div class=\"apBtns${grid}\">`+\n      rest.map(x=>`<button class=\"apBtn ${x.o.cls||\"\"}${x.o.disabled?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${x.o.disabled?\" disabled\":\"\"}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -620,11 +661,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.plumbing.localask"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 103,
+      "line": 105,
       "fn": "humanFlip",
       "kind": "ask",
       "rawMsg": "label||\"Flip the dubloon!\"",
@@ -634,23 +676,28 @@
           "raw": "\"🌕 FLIP!\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": true
+          "flipMarker": true,
+          "value": "1",
+          "slot": "1"
         },
         {
           "raw": "\"← Back\"",
           "condition": "allowBack",
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"back\"",
+          "slot": "back"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": false
+      "isLiteral": false,
+      "id": "prompt.flip.fallback"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 132,
+      "line": 136,
       "fn": "fishCast",
       "kind": "ask",
       "rawMsg": "label||`${pn(p.idx)}: cast yer line — flip!`",
@@ -660,23 +707,28 @@
           "raw": "\"🎣 CAST!\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": true
+          "flipMarker": true,
+          "value": "1",
+          "slot": "1"
         },
         {
           "raw": "\"← Back\"",
           "condition": "allowBack",
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"back\"",
+          "slot": "back"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": false
+      "isLiteral": false,
+      "id": "prompt.fish.fallback"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 215,
+      "line": 221,
       "fn": "localPickCell",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${sailPickMsg(p.idx)}</div>\n      <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
@@ -685,11 +737,12 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.sail.pickpanel"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 278,
+      "line": 286,
       "fn": "windLeg",
       "kind": "ask",
       "rawMsg": "promptMsg",
@@ -699,35 +752,44 @@
           "raw": "\"Anchor safely (−1🌕)\"",
           "condition": "p.coins>=1",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"pay\"",
+          "slot": "pay"
         },
         {
           "raw": "\"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose turn)\"",
           "condition": "trueShipwreck",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"flip\"",
+          "slot": "1"
         },
         {
           "raw": "\"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)\"",
           "condition": "broke",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"flip\"",
+          "slot": "2"
         },
         {
           "raw": "`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"flip\"",
+          "slot": "3"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": false
+      "isLiteral": false,
+      "id": "prompt.storm.anchororflip"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 427,
+      "line": 441,
       "fn": "humanDock",
       "kind": "ask",
       "rawMsg": "`Tails! Take 3🌕 — or buy ${iconImg(ING_IMG[ing])} ${dockFlavor(ing)} for 3🌕?`",
@@ -737,23 +799,28 @@
           "raw": "`Buy ${ilabelImg(ing)} (−3🌕)`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "true",
+          "slot": "true"
         },
         {
           "raw": "\"Take 3🌕\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "false",
+          "slot": "false"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.dock.tailschoice"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 456,
+      "line": 472,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Trade with whom?\"",
@@ -763,17 +830,20 @@
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"__back__\"",
+          "slot": "back"
         }
       ],
       "dynamicLabelCount": 1,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.partner"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 461,
+      "line": 478,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`What do ye WANT from ${pn(st.q.idx)}?`",
@@ -783,17 +853,20 @@
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"__back__\"",
+          "slot": "back"
         }
       ],
       "dynamicLabelCount": 1,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.want"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 474,
+      "line": 492,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`What will ye GIVE ${pn(st.q.idx)} in exchange?`",
@@ -803,23 +876,28 @@
           "raw": "\"— coins only —\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"__coinsonly__\"",
+          "slot": "coinsonly"
         },
         {
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"__back__\"",
+          "slot": "back"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": "[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}))",
       "rawSub": "offerSub",
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.give"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 484,
+      "line": 503,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Ye don't have any to offer!\"",
@@ -829,17 +907,20 @@
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "-1",
+          "slot": "neg1"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.nothingtooffer"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 490,
+      "line": 510,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`Add any 🌕 to yer offer of ${offerSoFar}?`",
@@ -849,17 +930,20 @@
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "-1",
+          "slot": "neg1"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": "coinChoices.map(n=>({label:n===0?\"No extra coins\":`+${n}🌕`,value:n}))",
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.addcoins"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 504,
+      "line": 525,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)}: accept ${offerDisplay} for yer ${ilabelImg(want)}?`",
@@ -869,23 +953,28 @@
           "raw": "`${iconImg(CHECKMARK_IMG)} Accept`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "true",
+          "slot": "true"
         },
         {
           "raw": "`${iconImg(CANCEL_X_IMG)} Decline`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "false",
+          "slot": "false"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.accept"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 536,
+      "line": 558,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)} scoffs — but counters: \"${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it.\"`",
@@ -895,23 +984,28 @@
           "raw": "`Pay ${askFor}🌕 more`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "true",
+          "slot": "true"
         },
         {
           "raw": "\"Walk away\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "false",
+          "slot": "false"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.trade.counter"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 616,
+      "line": 641,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "prompt",
@@ -921,47 +1015,60 @@
           "raw": "`⚓ ${iconImg(ING_IMG[port])} Dock at ${dockPlace(port)}`",
           "condition": "canDock",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"dock\"",
+          "slot": "dock"
         },
         {
           "raw": "`⚔️ Attack${appState.game.cfg.powder?` (−${appState.game.cfg.powder}🌕)`:\"\"}`",
           "condition": "targets.length",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"attack\"",
+          "slot": "attack"
         },
         {
           "raw": "\"🤝 Trade\"",
           "condition": "appState.game.tradeOpp(p).length",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"trade\"",
+          "slot": "trade"
         },
         {
           "raw": "`${iconImg(CUPCAKE_IMG)} Start yer bakery!`",
           "condition": "!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1",
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"bakery\"",
+          "slot": "bakery"
         },
         {
           "raw": "\"🎣 Fish (+1-2🌕)\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"fish\"",
+          "slot": "fish"
         },
         {
           "raw": "\"← Actually, move instead\"",
           "condition": "canMoveInstead",
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"moveInstead\"",
+          "slot": "moveinstead"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": "sub",
-      "isLiteral": false
+      "isLiteral": false,
+      "id": "prompt.act.menu"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 637,
+      "line": 665,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "\"Attack whom?\"",
@@ -971,17 +1078,20 @@
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "null",
+          "slot": "0"
         }
       ],
       "dynamicLabelCount": 1,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.act.attacktarget"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 814,
+      "line": 849,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`📯 ${pn(p.idx)} hails ye: \"Ahoy! Want ${price}🌕 for yer ${ilabelImg(ing)}?\"`",
@@ -991,29 +1101,36 @@
           "raw": "`Sell for ${price}🌕`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"sell\"",
+          "slot": "sell"
         },
         {
           "raw": "\"Counter-offer\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"counter\"",
+          "slot": "counter"
         },
         {
           "raw": "\"Refuse\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"refuse\"",
+          "slot": "refuse"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": "canCounter?null:`${pn(p.idx)} can't afford to go any higher.`",
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.hail.offer"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 820,
+      "line": 856,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`Counter — how much for yer ${ilabelImg(ing)}?`",
@@ -1023,23 +1140,28 @@
           "raw": "`+${n}🌕`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "n",
+          "slot": "0"
         },
         {
           "raw": "\"Never mind\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "0",
+          "slot": "0"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.hail.counter"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 957,
+      "line": 998,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`",
@@ -1049,23 +1171,28 @@
           "raw": "`Call ${ns(att.idx)}`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"a\"",
+          "slot": "a"
         },
         {
           "raw": "`Call ${ns(def.idx)}`",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"d\"",
+          "slot": "d"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.sidebet.call"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 966,
+      "line": 1008,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`💰 Add to yer call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`",
@@ -1075,29 +1202,36 @@
           "raw": "\"Just the free call\"",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "0",
+          "slot": "0"
         },
         {
           "raw": "`Bet ${n}🌕`+(n===s.coins?\" — all in!\":\"\")",
           "condition": null,
           "backMarker": false,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "n",
+          "slot": "1"
         },
         {
           "raw": "\"← Back\"",
           "condition": null,
           "backMarker": true,
-          "flipMarker": false
+          "flipMarker": false,
+          "value": "\"back\"",
+          "slot": "back"
         }
       ],
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.sidebet.raise"
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1137,
+      "line": 1186,
       "fn": "remotePickHighlights",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${msg||sailPickMsg(appState.mySeat)}</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
@@ -1106,234 +1240,265 @@
       "dynamicLabelCount": 0,
       "dynamicBase": null,
       "rawSub": null,
-      "isLiteral": true
+      "isLiteral": true,
+      "id": "prompt.sail.remotepickpanel"
     }
   ],
   "misc": [
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 500,
+      "line": 503,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"score\">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`"
+      "rawMsg": "`<span class=\"score\">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`",
+      "id": "misc.battleline.bothheadsdownwind"
     },
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 501,
+      "line": 505,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"cancel\">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`",
+      "id": "misc.battleline.bothheadscrosswind"
     },
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 507,
+      "line": 512,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"score\">${hitName} lands a hit!</span>`"
+      "rawMsg": "`<span class=\"score\">${hitName} lands a hit!</span>`",
+      "id": "misc.battleline.hitlands"
     },
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 509,
+      "line": 515,
       "fn": "asyncBattle",
-      "rawMsg": "`<span class=\"cancel\">Both miss — ⚫️ TAILS all round.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both miss — ⚫️ TAILS all round.</span>`",
+      "id": "misc.battleline.bothmiss"
     },
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1049,
+      "line": 1095,
       "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"cancel\">Both ⚪️ HEADS — no score this round.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both ⚪️ HEADS — no score this round.</span>`",
+      "id": "misc.battleline.bakeoffbothheads"
     },
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1053,
+      "line": 1100,
       "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"score\">${ah?nm(A.idx):nm(B.idx)} scores!</span>`"
+      "rawMsg": "`<span class=\"score\">${ah?nm(A.idx):nm(B.idx)} scores!</span>`",
+      "id": "misc.battleline.bakeoffscores"
     },
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1055,
+      "line": 1103,
       "fn": "asyncBakeoff",
-      "rawMsg": "`<span class=\"cancel\">Both ⚫️ TAILS — no score this round.</span>`"
+      "rawMsg": "`<span class=\"cancel\">Both ⚫️ TAILS — no score this round.</span>`",
+      "id": "misc.battleline.bakeoffbothtails"
     },
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 678,
+      "line": 688,
       "fn": "recipeDraftNet",
-      "anchor": "choosing their recipe"
+      "anchor": "choosing their recipe",
+      "id": "misc.draftwait.recipechoosing"
     },
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 684,
+      "line": 695,
       "fn": "recipeDraftNet",
-      "anchor": "Recipe chosen! Waiting for the rest of the crew"
+      "anchor": "Recipe chosen! Waiting for the rest of the crew",
+      "id": "misc.draftwait.recipechosen"
     },
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 191,
+      "line": 196,
       "fn": "pickCell",
-      "anchor": "is choosing where to sail"
+      "anchor": "is choosing where to sail",
+      "id": "misc.draftwait.sailchoosing"
     },
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 884,
+      "line": 922,
       "fn": "netIntroBarrier",
-      "anchor": "Waiting for yer mateys"
+      "anchor": "Waiting for yer mateys",
+      "id": "misc.draftwait.introwait"
     },
     {
       "category": "introBarrier",
       "file": "src/orchestrator.js",
-      "line": 736,
+      "line": 749,
       "fn": "runLiveNet",
       "rawMsg": "`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`",
-      "rawButton": "\"🦜 Final round — set sail!\""
+      "rawButton": "\"🦜 Final round — set sail!\"",
+      "id": "misc.introbarrier.finalround"
     },
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 894,
+      "line": 933,
       "fn": "showAhoyIntro",
       "rawMsg": "`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`",
-      "rawButton": "\"⚓ Arrgh!\""
+      "rawButton": "\"⚓ Arrgh!\"",
+      "id": "misc.introbarrier.ahoy"
     },
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 906,
+      "line": 946,
       "fn": "showTurnOrderIntro",
       "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+\n    `No fretting, patience pays — ${rest} all cast off with extra dubloons.`",
-      "rawButton": "\"🦜 Start\""
+      "rawButton": "\"🦜 Start\"",
+      "id": "misc.introbarrier.turnorder"
     },
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 87,
+      "line": 88,
       "fn": "passGate",
-      "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the board to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`"
+      "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the board to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`",
+      "id": "misc.lobby.passmessage"
     },
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 89,
+      "line": 91,
       "fn": "passGate",
-      "rawMsg": "`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`"
+      "rawMsg": "`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`",
+      "id": "misc.lobby.passbutton"
     },
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 125,
+      "line": 128,
       "fn": "renderSeatList",
-      "rawMsg": "`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`"
+      "rawMsg": "`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`",
+      "id": "misc.lobby.waitcaption"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 971,
+      "line": 991,
       "fn": "createRoom",
-      "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\""
+      "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
+      "id": "misc.mperror.createcapacity"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 979,
+      "line": 1000,
       "fn": "joinRoom",
-      "rawMsg": "\"Enter the room code yer host shared.\""
+      "rawMsg": "\"Enter the room code yer host shared.\"",
+      "id": "misc.mperror.entercode"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 982,
+      "line": 1004,
       "fn": "joinRoom",
-      "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\""
+      "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
+      "id": "misc.mperror.joincapacity"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 983,
+      "line": 1006,
       "fn": "joinRoom",
-      "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`"
+      "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`",
+      "id": "misc.mperror.nogamefound"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 989,
+      "line": 1013,
       "fn": "joinRoom",
-      "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\""
+      "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\"",
+      "id": "misc.mperror.alreadysailed"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 999,
+      "line": 1024,
       "fn": "joinRoom",
-      "rawMsg": "\"Too many pirates already in that game.\""
+      "rawMsg": "\"Too many pirates already in that game.\"",
+      "id": "misc.mperror.roomfull"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1008,
+      "line": 1034,
       "fn": "watchRoom",
-      "rawMsg": "\"That game no longer exists.\""
+      "rawMsg": "\"That game no longer exists.\"",
+      "id": "misc.mperror.gamegone"
     },
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1038,
+      "line": 1065,
       "fn": "startGame",
-      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\""
+      "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\"",
+      "id": "misc.mperror.serviceunreachable"
     },
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 282,
+      "line": 291,
       "fn": "windLeg",
       "callee": "humanFlip",
       "rawLabel": "\"Flip to dodge!\"",
       "hasLabel": true,
-      "rawAllowBack": null
+      "rawAllowBack": null,
+      "id": "misc.paramprompt.stormdodge"
     },
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 420,
+      "line": 433,
       "fn": "humanDock",
       "callee": "humanFlip",
       "rawLabel": "`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`",
       "hasLabel": true,
-      "rawAllowBack": "true"
+      "rawAllowBack": "true",
+      "id": "misc.paramprompt.dockflip"
     },
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 645,
+      "line": 674,
       "fn": "humanAct",
       "callee": "fishCast",
       "rawLabel": "\"🎣 Cast yer line — flip!\"",
       "hasLabel": true,
-      "rawAllowBack": "true"
+      "rawAllowBack": "true",
+      "id": "misc.paramprompt.fishcast"
     },
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 856,
+      "line": 893,
       "fn": "botTurn",
       "callee": "fishCast",
       "rawLabel": "",
       "hasLabel": false,
-      "rawAllowBack": null
+      "rawAllowBack": null,
+      "id": "misc.paramprompt.botfishcast"
     },
     {
       "category": "timer",
       "file": "src/ui/panel.js",
-      "line": 88,
+      "line": 89,
       "fn": "setClockUI",
-      "rawMsg": "appState.timerOff?\"Turn the timer back on\":\"Turn the timer off\""
+      "rawMsg": "appState.timerOff?\"Turn the timer back on\":\"Turn the timer off\"",
+      "id": "misc.timer.toggletooltip"
     }
   ],
   "awards": [

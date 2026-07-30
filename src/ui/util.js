@@ -949,10 +949,12 @@ export async function narrateCurrent(){
   // D-07/D-25 (Wyatt-approved 2026-07-29): the one ad-hoc (non-EVENT_NARRATION-table) narration
   // line that lives here in util.js itself — the neutral-plus-variants shape, same as every other
   // ad-hoc flash() site in src/ui/flow.js.
+  // @copy adhoc.turn.botbanner
   if(e.t==="turn"){await netHandlers().onFlash(`🧭 ${pn(e.p)} takes the wheel…`,undefined,undefined,[{seat:e.p,html:`🧭 ${pn(e.p)} — ye take the wheel…`}]);return;}
   // settleSideBets() already flashed one aggregate message covering every bettor — skip the
   // duplicate individual re-narration (same reasoning as narrateLastEvent()).
   if(e.t==="sidebet")return;
+  // @copy adhoc.turn.boteventpassthrough
   const L=appState.logLines[appState.evIdx];if(L)await netHandlers().onFlash(L.txt);
 }
 export function setActor(s){appState.curSeat=s;}

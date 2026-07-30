@@ -35,6 +35,12 @@
 // stale, this self-check went red, and NOTHING NOTICED because `npm test` did not run it. That is
 // Gap 3. It now runs last in the chain, so the D-21/D-31/D-32/D-33 coverage guard is CI-enforced.
 //
+// RESOLVED (2026-07-29, NARR-01) — the fragility recorded below is FIXED. AD_HOC_META is no longer
+// keyed by line number; every copy site now declares its own permanent `// @copy <id>` marker in
+// source and this script binds and validates them (see the "@copy markers" section further down).
+// The account below is kept because the *why* is the load-bearing part; the mechanism it describes
+// is history, not current behaviour.
+//
 // KNOWN FRAGILITY, recorded deliberately rather than fixed here. AD_HOC_META below is keyed by
 // hardcoded line number, so any edit that inserts a line above a flash() site drifts it. That has
 // now broken twice. The durable fix is the convention this script ALREADY uses in its own D-32
@@ -207,6 +213,99 @@ function isTableDrivenArg(raw) {
   return raw === "L.txt" || /^describe\([\s\S]*\)\.txt$/.test(raw);
 }
 
+/* ================= @copy markers: stable card ids, declared in source =================
+ * NARR-01: the durable fix for the drift recorded in this file's header. Every player-facing copy
+ * site carries a `// @copy <id>` comment naming its own permanent id, and this section binds each
+ * marker to its site and validates the result.
+ *
+ * WHY a source-declared id, rather than the two obvious alternatives:
+ *   - a HASH of the string literal survives a source move but changes every time the wording is
+ *     rewritten — and rewriting wording is the audit tool's PRIMARY operation. It would destroy
+ *     review state on exactly the action the tool exists to support.
+ *   - "enclosing function + ordinal within it" survives a rewrite but silently renumbers every
+ *     later site in a function the moment a new flash() is inserted mid-function. Same silent
+ *     drift, new costume.
+ * An explicit id survives both events, and it is also the exact address the copy applier needs:
+ * with a marker naming the site, the writer's target is one unambiguous literal, so "multi-match
+ * anchor" stops being a refusal case to heuristically detect and becomes structurally impossible.
+ *
+ * ID RULES, all enforced below:
+ *   - character set [a-z0-9.-] only, starting with a letter or digit, globally unique;
+ *   - no "(" — the independent call counters in this file skip whole comment lines, and an id
+ *     carrying a call-shaped fragment could perturb a raw count;
+ *   - no pre-conversion second-person pronoun token (you/your/yours/yourself) —
+ *     ui_contract_check.js's D-29 register assertion deliberately does not strip comments, so a
+ *     trailing marker carrying one would trip it;
+ *   - named for the MOMENT and ROLE, never the wording, so a rewrite never invalidates an id.
+ *
+ * SYNTAX: `// @copy <id>` on the line immediately above the site, or as a trailing comment on the
+ * site's own line where a preceding line would break the surrounding density.
+ */
+const COPY_ID_RE = /^[a-z0-9][a-z0-9.-]*$/;
+const OWN_LINE_MARKER_RE = /^\s*\/\/\s*@copy\s+(\S+)\s*$/;
+const TRAILING_MARKER_RE = /\/\/\s*@copy\s+(\S+)\s*$/;
+const RETIRED_IDS_REL = "art-review/narration-retired-ids.json";
+
+function findCopyMarkers(fileSrc, filePath) {
+  const out = [];
+  fileSrc.split("\n").forEach((line, i) => {
+    const own = OWN_LINE_MARKER_RE.exec(line);
+    if (own) { out.push({ line: i + 1, id: own[1] }); return; }
+    if (/^\s*\/\//.test(line)) return; // some other comment line
+    const trail = TRAILING_MARKER_RE.exec(line);
+    if (trail) out.push({ line: i + 1, id: trail[1] });
+  });
+  for (const m of out) {
+    const where = `${filePath}:${m.line}`;
+    if (!COPY_ID_RE.test(m.id)) fail(`@copy id "${m.id}" at ${where} breaks the character rules — lower-case letters, digits, dots and hyphens only, starting with a letter or digit`);
+    if (m.id.includes("(")) fail(`@copy id "${m.id}" at ${where} contains "(" — that could perturb this file's own independent call counts`);
+    if (/\b(you|your|yours|yourself)\b/.test(m.id)) fail(`@copy id "${m.id}" at ${where} carries a pre-conversion second-person pronoun token — ui_contract_check.js's register assertion does not strip comments and would trip on it`);
+  }
+  return out;
+}
+
+// Binds each marker to the NEXT extracted copy site at or after its own line, within the same
+// enclosing function, and fails by name on every way that can go wrong.
+function bindCopyMarkers(fileSrc, filePath, siteLines) {
+  const marks = functionBoundaries(fileSrc);
+  const markers = findCopyMarkers(fileSrc, filePath).sort((a, b) => a.line - b.line);
+  const sites = [...new Set(siteLines)].sort((a, b) => a - b);
+  const bound = new Map();  // site line -> id
+  const usedBy = new Map(); // site line -> the marker line that claimed it
+  for (const m of markers) {
+    const target = sites.find((l) => l >= m.line);
+    if (target === undefined) {
+      fail(`@copy marker "${m.id}" at ${filePath}:${m.line} binds to NOTHING — there is no extracted copy site at or after it; the site it named has been deleted, so retire the id in ${RETIRED_IDS_REL} and remove the marker`);
+      continue;
+    }
+    if (usedBy.has(target)) {
+      fail(`two @copy markers bind to the SAME site ${filePath}:${target} — "${bound.get(target)}" at :${usedBy.get(target)} and "${m.id}" at :${m.line}`);
+      continue;
+    }
+    const mFn = enclosingFunction(marks, m.line), tFn = enclosingFunction(marks, target);
+    if (mFn !== tFn) {
+      fail(`@copy marker "${m.id}" at ${filePath}:${m.line} (in ${mFn}()) would bind ACROSS a function boundary to ${filePath}:${target} (in ${tFn}()) — the site it was written for has moved or been deleted`);
+      continue;
+    }
+    bound.set(target, m.id);
+    usedBy.set(target, m.line);
+  }
+  for (const l of sites) {
+    if (!bound.has(l)) fail(`live copy site ${filePath}:${l} (in ${enclosingFunction(marks, l)}()) has NO "// @copy <id>" marker — every player-facing copy site must declare its own permanent id, or the audit tool cannot carry a review mark across a source move`);
+  }
+  return bound;
+}
+
+function loadRetiredIds() {
+  try {
+    const raw = JSON.parse(readFileSync(join(ROOT, RETIRED_IDS_REL), "utf8"));
+    return new Set(Array.isArray(raw) ? raw : (raw.ids || []));
+  } catch (e) {
+    fail(`${RETIRED_IDS_REL} is missing or unreadable (${e.message}) — that ledger is what stops a future site claiming a deleted site's id and inheriting its review mark`);
+    return new Set();
+  }
+}
+
 function findCallSites(fileSrc, filePath) {
   const marks = functionBoundaries(fileSrc);
   const sites = [];
@@ -235,50 +334,56 @@ function findCallSites(fileSrc, filePath) {
 // Curated per-call-site metadata: moment group, a short human label, and a default keep/cut/
 // merge/rewrite recommendation the audit page shows (and Wyatt can override). Biased toward
 // "keep"/"rewrite" over "cut" per D-06 — see this plan's own header paragraph in the page.
-// Keyed by "file:line" so a call site the extraction finds with no matching entry here fails the
-// self-check loudly instead of silently guessing (a real safeguard: if a future edit adds/removes
-// a flash() site, this table goes stale and the script says so instead of drifting quietly).
-// NARR-01/D-25/D-36 (Wyatt-approved 2026-07-29): line numbers below reflect plan 15-06's applied
-// copy. The three trade-wind rim-sweep ad-hoc call sites (windLeg/humanAct/humanTurn) that used to
-// live here are GONE, not merely tagged — 15-06 replaced each with `await narrateLastEvent()`, so
-// they render straight through EVENT_NARRATION.tradewind and are no longer separate flash() sites
-// for this extractor to find at all. The merge is complete, not pending.
+// NARR-01 (Wyatt-approved 2026-07-29): keyed by the site's own `// @copy <id>` MARKER, never by
+// "file:line" again. Each label below was moved with ITS OWN SITE — never by proximity — because
+// applyMeta() fails only on a MISSING key, so a stale key silently attaches the wrong label to a
+// shifted site while an orphan sits unnoticed. That trap is now closed from both ends: an unmarked
+// site fails binding, and an AD_HOC_META entry with no live site fails as an orphan (below).
+//
+// D-25/D-36: the three trade-wind rim-sweep ad-hoc call sites (windLeg/humanAct/humanTurn) that
+// used to live here are GONE, not merely tagged — 15-06 replaced each with
+// `await narrateLastEvent()`, so they render straight through EVENT_NARRATION.tradewind and are no
+// longer separate flash() sites for this extractor to find at all. The merge is complete.
 const AD_HOC_META = {
-  "src/ui/flow.js:111": { fn: "humanFlip", group: "Docking", tag: "keep", label: "Coin-flip announcement (generic — used at docking/anchor moments)" },
-  "src/ui/flow.js:277": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02)" },
-  "src/ui/flow.js:350": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
-  "src/ui/flow.js:369": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
-  "src/ui/flow.js:402": { fn: "humanWind", group: "Storm", tag: "keep", label: "Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn" },
-  "src/ui/flow.js:441": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)" },
-  "src/ui/flow.js:557": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)" },
-  "src/ui/flow.js:568": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)" },
-  "src/ui/flow.js:627": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
-  "src/ui/flow.js:635": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder, action guard (guarded safety net)" },
-  "src/ui/flow.js:675": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03)" },
-  "src/ui/flow.js:702": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
-  "src/ui/flow.js:708": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn" },
-  "src/ui/flow.js:766": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction, bot — shared secondLegLine() helper" },
-  "src/ui/flow.js:786": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot — shared brokeSailLine() helper" },
-  "src/ui/flow.js:982": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — backed with coin (D-08)" },
-  "src/ui/flow.js:983": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — free call (D-08)" },
-  "src/ui/flow.js:1009": { fn: "settleSideBets", group: "Battle", tag: "keep", label: "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)" },
-  "src/orchestrator.js:391": { fn: "asyncBattle", group: "Battle", tag: "keep", label: "Battle opening announcement (D-08)" },
-  "src/orchestrator.js:720": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
-  "src/orchestrator.js:742": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
-  "src/orchestrator.js:776": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/orchestrator.js:780": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "src/ui/util.js:952": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
-  "src/ui/util.js:956": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
+  "adhoc.flip.announce": { fn: "humanFlip", group: "Docking", tag: "keep", label: "Coin-flip announcement (generic — used at docking/anchor moments)" },
+  "adhoc.storm.brokeanchor": { fn: "windLeg", group: "Storm", tag: "keep", label: "Broke — can't afford to anchor (D-11/NARR-02)" },
+  "adhoc.storm.botsquare": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot per-square storm outcome — table pass-through, not new copy" },
+  "adhoc.storm.botlegsummary": { fn: "botWindLeg", group: "Storm", tag: "keep", label: "Bot storm-leg summary — table pass-through, not new copy" },
+  "adhoc.storm.secondleg": { fn: "humanWind", group: "Storm", tag: "keep", label: "Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn" },
+  "adhoc.trade.nocargo": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)" },
+  "adhoc.trade.refusalbot": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)" },
+  "adhoc.trade.refusalhuman": { fn: "humanTrade", group: "Trade & Parley", tag: "keep", label: "Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)" },
+  "adhoc.act.bakerystart": { fn: "humanAct", group: "Sailing & Movement", tag: "keep", label: "Start the bakery" },
+  "adhoc.act.nopowder": { fn: "humanAct", group: "Battle", tag: "keep", label: "Can't afford powder, action guard (guarded safety net)" },
+  "adhoc.turn.banner": { fn: "humanTurn", group: "Round Header", tag: "rewrite", label: "Per-turn banner + storm intro (NARR-03)" },
+  "adhoc.turn.leeward": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Leeward warning" },
+  "adhoc.turn.brokesail": { fn: "humanTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn" },
+  "adhoc.turn.botsecondleg": { fn: "botTurn", group: "Storm", tag: "keep", label: "Second storm leg direction, bot — shared secondLegLine() helper" },
+  "adhoc.turn.botbrokesail": { fn: "botTurn", group: "Sailing & Movement", tag: "keep", label: "Broke — can't afford to sail, bot — shared brokeSailLine() helper" },
+  "adhoc.sidebet.backed": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — backed with coin (D-08)" },
+  "adhoc.sidebet.freecall": { fn: "collectSideBets", group: "Battle", tag: "keep", label: "Side bet — free call (D-08)" },
+  "adhoc.sidebet.settle": { fn: "settleSideBets", group: "Battle", tag: "keep", label: "Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)" },
+  "adhoc.battle.opening": { fn: "asyncBattle", group: "Battle", tag: "keep", label: "Battle opening announcement (D-08)" },
+  "adhoc.round.header": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
+  "adhoc.round.finalheader": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
+  "adhoc.voyageend.nobodyfinished": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "adhoc.voyageend.victory": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "adhoc.turn.botbanner": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
+  "adhoc.turn.boteventpassthrough": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
 };
 
 function applyMeta(sites) {
   return sites.map((s) => {
-    const key = `${s.file}:${s.line}`;
-    const meta = AD_HOC_META[key];
+    const meta = AD_HOC_META[s.id];
     if (!meta) {
-      fail(`no AD_HOC_META entry for ${key} (enclosing fn "${s.fn}") — extraction found a flash()/onFlash() call site this script's own metadata table doesn't know about yet; add it to AD_HOC_META`);
+      fail(`no AD_HOC_META entry for @copy id "${s.id}" (${s.file}:${s.line}, enclosing fn "${s.fn}") — extraction found a flash()/onFlash() call site this script's own metadata table doesn't know about yet; add it keyed by that id`);
+    } else if (meta.fn !== s.fn) {
+      // the curated entry claims a different enclosing function than the marker actually sits in —
+      // the exact "wrong label attached to a shifted site" failure this re-key exists to prevent
+      fail(`AD_HOC_META["${s.id}"] records fn "${meta.fn}" but the marker binds inside "${s.fn}()" at ${s.file}:${s.line} — the label and the site have parted company`);
     }
     return {
+      id: s.id,
       file: s.file,
       line: s.line,
       fn: s.fn,
@@ -300,7 +405,10 @@ const flowSites = findCallSites(src.flow, FILE_PATHS.flow);
 const orchSites = findCallSites(src.orch, FILE_PATHS.orch);
 const utilSites = findCallSites(src.util, FILE_PATHS.util);
 
-const adhoc = [...applyMeta(flowSites), ...applyMeta(orchSites), ...applyMeta(utilSites)]
+// `adhocRaw` carries no curated metadata yet — applyMeta() now keys off the site's @copy id, and ids
+// are not bound until every category has been extracted (the binder needs the complete per-file site
+// list). `adhoc` is built from this, after binding, further down.
+const adhocRaw = [...flowSites, ...orchSites, ...utilSites]
   .sort((a, b) => (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)));
 
 // D-36: a STATIC, curation-time guard — if AD_HOC_META's own `mergeInto` values ever formed a
@@ -521,6 +629,23 @@ function labelLineHasFlag(raw, matchIdx, flagName) {
   const line = raw.slice(lineStart, lineEnd);
   return new RegExp(`\\b${flagName}\\s*:\\s*true\\b`).test(line);
 }
+// NARR-01: an option's own `value:` expression, captured so a button's card id can be derived from
+// something OTHER than its label — the label is precisely what Wyatt edits, so keying a button id to
+// it would destroy the button's review mark on every wording pass. Scanned from the label's own
+// match index FORWARD within the same line (never from the line start), because two options
+// routinely share one line — e.g. `{label:"Buy…",value:true},{label:"Take 3🌕",value:false}` — and a
+// line-start scan would hand both labels the first option's value.
+function labelLineValue(raw, matchIdx) {
+  const lineStart = raw.lastIndexOf("\n", matchIdx) + 1;
+  let lineEnd = raw.indexOf("\n", matchIdx);
+  if (lineEnd === -1) lineEnd = raw.length;
+  const line = raw.slice(lineStart, lineEnd);
+  const re = /\bvalue\s*:\s*/g;
+  re.lastIndex = matchIdx - lineStart;
+  const m = re.exec(line);
+  if (!m) return null;
+  return captureValueExpr(line, m.index + m[0].length).raw;
+}
 // Extracts every static `label:` value from a raw source blob, resolving one level of
 // bare-identifier indirection (`label:flipLabel` -> flipLabel's own ternary, split into branches)
 // against the SAME enclosing-function body a locally-built opts array was resolved from (pass
@@ -535,7 +660,8 @@ function extractLabelValues(raw, body) {
     LABEL_KEY_RE.lastIndex = endIdx; // resume scanning right after this value's true end (not its trimmed length)
     const backMarker = labelLineHasFlag(raw, m.index, "back");
     const flipMarker = labelLineHasFlag(raw, m.index, "flip");
-    if (/^[`"']/.test(valueRaw)) { out.push({ raw: valueRaw, condition: null, backMarker, flipMarker }); continue; }
+    const value = labelLineValue(raw, m.index);
+    if (/^[`"']/.test(valueRaw)) { out.push({ raw: valueRaw, condition: null, backMarker, flipMarker, value }); continue; }
     if (IDENTIFIER_RE.test(valueRaw)) {
       // bare-identifier label (`label:flipLabel`) — try to resolve it against the enclosing
       // function body: its own `const NAME=...` declaration, split into ternary leaves if it is one
@@ -545,12 +671,12 @@ function extractLabelValues(raw, body) {
       if (!declMatch) { dynamicCount++; continue; }
       const exprRaw = captureExprUntilSemicolon(body, declMatch.index + declMatch[0].length);
       if (!/\?/.test(exprRaw)) {
-        if (/^[`"']/.test(exprRaw.trim())) out.push({ raw: exprRaw.trim(), condition: null, backMarker, flipMarker });
+        if (/^[`"']/.test(exprRaw.trim())) out.push({ raw: exprRaw.trim(), condition: null, backMarker, flipMarker, value });
         else dynamicCount++;
         continue;
       }
       splitTernaryLeaves(exprRaw).forEach((leaf) => {
-        if (/^[`"']/.test(leaf.raw)) out.push({ raw: leaf.raw, condition: leaf.condition, backMarker, flipMarker });
+        if (/^[`"']/.test(leaf.raw)) out.push({ raw: leaf.raw, condition: leaf.condition, backMarker, flipMarker, value });
         else dynamicCount++;
       });
       continue;
@@ -594,7 +720,7 @@ function findPromptSites(fileSrc, filePath) {
         dynamicLabelCount += initResolved.dynamicLabelCount;
         pushes.forEach(({ argRaw, condition }) => {
           const r = extractLabelValues(argRaw, body);
-          r.labels.forEach((l) => labels.push({ raw: l.raw, condition: l.condition || condition, backMarker: l.backMarker, flipMarker: l.flipMarker }));
+          r.labels.forEach((l) => labels.push({ raw: l.raw, condition: l.condition || condition, backMarker: l.backMarker, flipMarker: l.flipMarker, value: l.value }));
           dynamicLabelCount += r.dynamicLabelCount;
         });
       } else {
@@ -919,6 +1045,85 @@ function extractRoundCfgFlags(fileSrc) {
 const roundCfgFlags = extractRoundCfgFlags(engineSrc);
 if (Object.keys(roundCfgFlags).length < 5) fail(`roundCfg() flag parsing found only ${Object.keys(roundCfgFlags).length} boolean literal(s) in ${ENGINE_PATH} — the parser likely broke against a source change`);
 
+/* ================= bind the @copy ids, then apply metadata by id =================
+ * Runs here, after every category has been extracted, because the binder needs each file's COMPLETE
+ * site list: a marker binds to the next extracted site at or after its own line regardless of which
+ * category that site belongs to, so binding one category at a time could hand an ad-hoc marker to a
+ * prompt site sitting between them.
+ */
+const SITE_FILE_SRC = {
+  [FILE_PATHS.util]: src.util,
+  [FILE_PATHS.flow]: src.flow,
+  [FILE_PATHS.orch]: src.orch,
+  [FILE_PATHS.panel]: src.panel,
+  [FILE_PATHS.lobby]: src.lobby,
+};
+const RETIRED_IDS = loadRetiredIds();
+
+{
+  const emitted = [...adhocRaw, ...prompts, ...misc];
+  // one site, one entry — two entries sharing a file:line would both claim the same marker and read
+  // as a duplicate id, so the ambiguity is named here rather than surfacing as a confusing dup
+  const seenSite = new Map();
+  for (const e of emitted) {
+    const k = `${e.file}:${e.line}`;
+    if (seenSite.has(k)) fail(`two extracted copy sites share ${k} — one marker cannot address both; split the line so each site can declare its own id`);
+    else seenSite.set(k, e);
+  }
+  const byFile = {};
+  for (const e of emitted) (byFile[e.file] = byFile[e.file] || []).push(e);
+  const idOwner = new Map();
+  for (const [filePath, entries] of Object.entries(byFile)) {
+    const fileSrc = SITE_FILE_SRC[filePath];
+    if (!fileSrc) { fail(`extracted a copy site in ${filePath}, which this script does not read as text — add it to FILE_PATHS so its @copy markers can be bound`); continue; }
+    const bound = bindCopyMarkers(fileSrc, filePath, entries.map((e) => e.line));
+    for (const e of entries) {
+      const id = bound.get(e.line);
+      if (!id) continue; // already failed by name inside bindCopyMarkers
+      e.id = id;
+      if (idOwner.has(id)) fail(`duplicate @copy id "${id}" — declared at both ${idOwner.get(id)} and ${filePath}:${e.line}; ids must be globally unique`);
+      else idOwner.set(id, `${filePath}:${e.line}`);
+      if (RETIRED_IDS.has(id)) fail(`@copy id "${id}" at ${filePath}:${e.line} is on the retired-id ledger (${RETIRED_IDS_REL}) — re-issuing it would hand this new site a deleted card's review mark, which is worse than no mark at all`);
+    }
+  }
+}
+
+// metadata by id, and the reciprocal orphan check the old file:line keying could not express
+const adhoc = applyMeta(adhocRaw);
+for (const key of Object.keys(AD_HOC_META)) {
+  if (!adhoc.some((e) => e.id === key)) fail(`AD_HOC_META entry "${key}" has no live copy site declaring that @copy id — the metadata table is stale; either the marker was deleted or the id was renamed`);
+}
+
+/* ---- button slots: a button's card id keyed to its option's VALUE, not its label ----
+ * The label is exactly what a wording pass rewrites, so a label-derived id would lose every button's
+ * review mark on every pass. The option's `value:` expression is the stable half of the same object.
+ * Where a value is a static literal AND unique within its own prompt, it becomes the slot; otherwise
+ * the ordinal is used and the fallback is COUNTED and PRINTED, so the weaker case stays visible
+ * instead of quietly becoming the norm.
+ */
+function valueSlot(raw) {
+  const t = (raw || "").trim();
+  if (!t) return null;
+  const q = /^["'`]([\s\S]*)["'`]$/.exec(t);
+  let v;
+  if (q) v = q[1];
+  else if (/^-?\d+$/.test(t) || t === "true" || t === "false") v = t;
+  else return null; // an identifier or expression (`n`, `i`, `o`, `null`) — live data, not a stable slot
+  v = v.toLowerCase().replace(/^-/, "neg").replace(/[^a-z0-9]+/g, "");
+  return v || null;
+}
+let buttonSlotFallbacks = 0;
+for (const p of prompts) {
+  const slots = (p.labels || []).map((l) => valueSlot(l.value));
+  const counts = {};
+  slots.forEach((s) => { if (s) counts[s] = (counts[s] || 0) + 1; });
+  (p.labels || []).forEach((l, i) => {
+    const s = slots[i];
+    if (s && counts[s] === 1) l.slot = s;
+    else { l.slot = String(i); buttonSlotFallbacks++; }
+  });
+}
+
 /* ================= self cross-check (independent second pass) ================= */
 
 function independentCount(fileSrc) {
@@ -971,6 +1176,8 @@ console.log(`ad-hoc entries: ${adhocCount} (${adhoc.filter((a) => a.tableDriven)
 console.log(`total:          ${total}`);
 console.log(`prompt sites:   ${promptCount} (${prompts.filter((p) => p.kind === "ask").length} ask, ${prompts.filter((p) => p.kind === "panel").length} panel)`);
 console.log(`button labels:  ${buttonCount} static (+ ${prompts.reduce((n, p) => n + p.dynamicLabelCount, 0)} dynamic, not extracted as copy)`);
+console.log(`button slots:   ${buttonCount - buttonSlotFallbacks} keyed to the option's own value, ${buttonSlotFallbacks} fell back to the ordinal`);
+console.log(`@copy ids:      ${[...adhoc, ...prompts, ...misc].filter((e) => e.id).length} bound across ${Object.keys(SITE_FILE_SRC).length} source file(s); ${RETIRED_IDS.size} id(s) on the retired ledger`);
 console.log(`D-32 misc:      ${misc.length} (introBarrier ${introBarrier.length}, paramPrompt ${paramPrompt.length}, mpError ${mpError.length}, battleLine ${battleLine.length}, draftWait ${draftWait.length}, timer ${timerSites.length}, lobby ${lobbySites.length})`);
 console.log(`D-32 awards:    ${awards.length} (${badgePool.length} BADGE_POOL + ${fallbackBadge ? 1 : 0} FALLBACK_BADGE)`);
 console.log(`D-43 roundCfg:  ${Object.keys(roundCfgFlags).length} hardcoded boolean flag(s) parsed from roundCfg()`);
