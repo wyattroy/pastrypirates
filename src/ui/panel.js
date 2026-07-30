@@ -300,29 +300,45 @@ const REVEAL_MS_PER_CHAR=20;
 export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
-// D-57/D-58 (Wyatt-approved 2026-07-29): the host's own flash() holds and fades; showNarration()
-// (the guest's — and the host's own echo's — display path) used to just render and stop, so guest
-// narration never faded and NARR-06's 10% hold cut never reached a guest seat. Fixed as a DISPLAY
-// concern only, per Wyatt's principle that narration is a running commentary, never a gate: render
-// → wait for the typewriter reveal → hold `msgHoldMs(text)` (the SAME curve flash() uses, so the
-// cut applies once, to both) → fade. Nothing here is awaited by any caller — showNarration() has
-// never had a caller that awaits it, and it must not acquire one, or a guest starts dragging the
-// way the host already does (D-58's deferred fix). A `_narrToken` bump on every call cancels any
-// still-pending hold/fade from a previous line — narration replaces, in sync, never stacks.
-let _narrToken=0;
+// D-57/D-58 HISTORY, kept because it explains why this path exists at all: the host's own flash()
+// held and faded; showNarration() (the guest's — and the host's own echo's — display path) used to
+// just render and stop, so guest narration never faded and NARR-06's hold cut never reached a guest
+// seat. D-57 gave it render → await the typewriter reveal → hold msgHoldMs(text) → fade.
+//
+// F6 SUPERSEDES THE FADE HALF (Wyatt-approved 2026-07-29). His rule, verbatim: *"Never fade the last
+// line — only fade when something replaces it."* And the reasoning, which is the load-bearing part:
+// *"we want players to be able to see and think about each others' turns with them, as they think."*
+// Narration is SHARED ATTENTION. A line should persist until the next line needs the space. He put
+// the invariant plainly: **the blue box should never be empty.**
+//
+// So the timed hold-and-fade is gone from this path entirely. The next line's own render is what
+// removes the outgoing one — which IS "fade only when something replaces it", and means no timer can
+// ever leave the box empty. Nothing awaits showNarration() (it has never had a caller that awaits
+// it, and must not acquire one), so removing the internal wait changes no caller's pacing. The
+// typewriter reveal is unaffected: panel() owns it and stashes the promise on the element.
+//
+// `_narrToken` went with it. Its only job was cancelling the fade this function no longer schedules,
+// and a variable nothing reads is dead code — D-33/D-34/D-40 exist to prevent exactly that.
+//
+// A CROSS-FADE WAS CONSIDERED AND REJECTED, recorded here rather than left as an open question:
+// keeping the outgoing element alive to fade it over the existing half-second would delay every
+// guest line by that half-second (the opposite of D-58's anti-drag note) and would briefly put two
+// lines in the box, which snaps the panel height (see BUG-01's note in flash() below). Replacement
+// IS the transition.
+//
+// NARR-06, recorded honestly and NOT silently re-written: its criterion is "narration stays fully
+// visible 10% less time before it begins fading." Under F6 a TRAILING line never begins fading, so
+// that criterion is inapplicable to it. The hold still governs the gap between CONSECUTIVE lines
+// (flash() below), so the 10% cut still does real work. The requirement's literal wording is
+// superseded by this decision and should be RE-WORDED rather than re-verified — that is a change to
+// .planning/REQUIREMENTS.md only Wyatt can authorise, so it is noted here and on the morning brief,
+// and REQUIREMENTS.md is deliberately left untouched.
+//
+// The explicit-clear path is deliberately preserved: a caller passing empty content still empties
+// and hides the panel. A caller ASKING for an empty box is a different thing from a timer producing
+// one, and only the second is what F6 forbids.
 export function showNarration(html){
-  const token=++_narrToken;
   panel(html?`<div class="apMsg">${html}</div>`:"");
-  if(!html)return;
-  const el=$("actionPanel").querySelector(".apMsg");
-  (async()=>{
-    if(el&&el._revealDone)await el._revealDone;
-    if(token!==_narrToken)return; // superseded by a newer line while the reveal was still running
-    const text=el?el.textContent:html;
-    await sleep(msgHoldMs(text));
-    if(token!==_narrToken)return; // superseded while holding
-    if(el&&el.isConnected)el.classList.add("fadeOut");
-  })();
 }
 // netNarrate/netBroadcast remain classic-script globals this wave (they call showNarration bare,
 // which resolves fine via the PP bridge) — they call into src/net/'s netSetNarr directly and are
@@ -423,11 +439,18 @@ export async function flash(msg,ms,holdMs,variants){
   const el=$("actionPanel").querySelector(".apMsg");
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;
+  // F6 (Wyatt-approved 2026-07-29): THE HOLD IS DELIBERATELY PRESERVED. He narrowed the scope
+  // himself — this await is what paces CONSECUTIVE lines, flash() is awaited by its callers, and
+  // MSG_HOLD_MULTIPLIER (0.72) and the chat-bubble curve are not to be touched at all. Removing the
+  // hold would make lines race past each other, which is not what "never fade the last line" asks
+  // for.
   await sleep(typeof holdMs==="number"?holdMs:msgHoldMs(text));
-  if(el&&el.isConnected){
-    el.classList.add("fadeOut"); // BUG-01: text fades via opacity only — no grid-row collapse, so
-                                 // nothing animates the box height (see #apGrid CSS). The box snaps
-                                 // to the next message's height when panel() replaces the content.
-  }
-  await sleep(500);
+  // F6: the two things that CLEARED the box at the end are gone — the fadeOut class, and the
+  // trailing sleep(500) that existed solely to let that fade finish. The next render replaces this
+  // line, so it stays fully readable until something takes its place and the box is never empty.
+  // Reclaims roughly half a second per line, which also serves D-58's standing anti-drag note for
+  // free — a benefit, not a risk.
+  // (BUG-01, for the next reader: the fade was opacity-only with no grid-row collapse, so nothing
+  // ever animated the box height — the box snaps to the next message's height when panel() replaces
+  // the content. That is still true, and it is now the ONLY transition, which is what F6 chose.)
 }

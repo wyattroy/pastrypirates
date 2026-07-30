@@ -836,5 +836,43 @@ const DOCK_FLAVOR_BEFORE = {
   check(`F5: in every goods branch the icon appears AFTER the flavour's opening words — i.e. immediately before the ingredient name, not in front of the phrase${posBad ? ` — ${posBad}` : ""}`, posBad, null);
 }
 
+/* ---------- F6: the narration box is never empty — a line persists until another replaces it ---------- */
+// Source-text assertions over src/ui/panel.js, extracting each function's body by name. The
+// assertions STRIP COMMENT LINES, because this task's own comments necessarily name the class and the
+// behaviour they remove — a raw substring check would fail on its own documentation.
+{
+  const panelSrc = readFileSync(new URL("../src/ui/panel.js", import.meta.url), "utf8");
+  const panelCode = panelSrc.split("\n").filter((l) => !/^\s*(\/\/|\/\*|\*)/.test(l)).join("\n");
+  const bodyOf = (name) => {
+    const i = panelCode.indexOf(name);
+    if (i < 0) return null;
+    const j = panelCode.indexOf("\nexport ", i + name.length);
+    return panelCode.slice(i, j < 0 ? undefined : j);
+  };
+  const sn = bodyOf("export function showNarration");
+  const fl = bodyOf("export async function flash");
+  const cb = bodyOf("export function showChatBubble");
+  checkTrue("F6: showNarration, flash and showChatBubble all located in src/ui/panel.js", !!sn && !!fl && !!cb);
+
+  // the guest display path schedules NO timed fade and NO timed hold, so a trailing line survives
+  check("F6: showNarration schedules no fade — the box is NEVER EMPTY, a line persists until another replaces it", /fadeOut/.test(sn), false);
+  check("F6: showNarration holds on no timer — nothing can time out the last line", /msgHoldMs/.test(sn), false);
+  check("F6: no supersession token survives with no reader — a variable nothing reads is dead code (D-33/D-34/D-40)", /_narrToken/.test(panelCode), false);
+  checkTrue("F6: the EXPLICIT-clear path survives — a caller asking for an empty box is not a timer producing one", /panel\(html\?/.test(sn || ""));
+
+  // the host path KEEPS the hold — that is what paces CONSECUTIVE lines — and loses only the clear
+  checkTrue("F6: flash() STILL awaits msgHoldMs(text) — the hold is deliberately preserved, so pacing between consecutive lines is unchanged", /msgHoldMs\(text\)/.test(fl || ""));
+  check("F6: flash() no longer fades to empty", /fadeOut/.test(fl || ""), false);
+  check("F6: flash() no longer waits out a trailing fade — reclaims ~half a second per line (D-58)", /sleep\(500\)/.test(fl || ""), false);
+
+  // chat bubbles are untouched (D-15), so the fade class keeps a live consumer and nothing is orphaned
+  checkTrue("F6/D-15: showChatBubble keeps its own fade — the fade class still has a live consumer, nothing is orphaned", /fadeOut/.test(cb || ""));
+
+  // the hold CURVES themselves are untouched — the pinned values above must still hold unchanged
+  const utilSrc = readFileSync(new URL("../src/ui/util.js", import.meta.url), "utf8");
+  checkTrue("F6: MSG_HOLD_MULTIPLIER is still 0.72 — the curve is not what F6 changes", /MSG_HOLD_MULTIPLIER=0\.72/.test(utilSrc));
+  checkTrue("F6: CHAT_BUBBLE_HOLD_MULTIPLIER is untouched at 0.8 (D-15)", /CHAT_BUBBLE_HOLD_MULTIPLIER=0\.8/.test(utilSrc));
+}
+
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);
