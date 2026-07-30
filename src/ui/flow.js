@@ -245,6 +245,20 @@ export function brokeAnchorLine(seat,viewerSeat){
     ?`${pn(seat)} — ye can't afford to anchor. Flip and take yer chances.`
     :`${pn(seat)} can't afford to anchor — flips and takes their chances.`;
 }
+// F12 (Wyatt-approved 2026-07-29): how much MORE a bot may demand in a counter-offer. The cap has
+// to be the coins NOT already pledged, because humanTrade's settlement debits `give.coins+askFor`
+// (:below, `const totalCoins=`) — so capping against the full purse counts the pledged coins twice
+// and pays the captain into the negative (he went to −1; the tradeBonus `p.coins++` masked it back
+// to 0, which is why it survived this long). The existing `askFor>0` guard then turns zero headroom
+// into "no counter is offered at all" — the D-41 pattern behaving correctly, one fewer dead-end
+// rather than a new one. The Math.max(0,…) floor makes an over-pledged purse impossible to express
+// as a negative demand even if a future caller passes something unexpected.
+// UI-tier, so no determinism risk: `humanTrade` is a path `Game.play()`'s headless corpus never
+// executes — the same reasoning D-19 used to establish that zero `parley` events appear in any of
+// the 31 fixtures — and the engine's own separate trade settlement (src/engine/index.js) is untouched.
+export function counterHeadroom(shortfall,coins,offerCoins){
+  return Math.max(0,Math.min(shortfall,coins-offerCoins));
+}
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
 export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
@@ -556,8 +570,9 @@ export async function humanTrade(p){
     if(!accept){
       const shortfall=Math.max(0,cost-bonus-ingVal-give.coins);
       // bots always counter a lowball rather than flatly refuse — if the human can't cover the
-      // full shortfall, name the smaller amount they *can* afford instead of walking away outright
-      const askFor=Math.min(shortfall,p.coins);
+      // full shortfall, name the smaller amount they *can* afford instead of walking away outright.
+      // F12: "can afford" means the coins NOT already pledged in this offer — see counterHeadroom().
+      const askFor=counterHeadroom(shortfall,p.coins,give.coins);
       if(!humanFinishes&&askFor>0){
         setActor(p.idx);
         // @copy prompt.trade.counter

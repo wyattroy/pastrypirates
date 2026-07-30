@@ -27,7 +27,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brokeSailLine, brokeAnchorLine, stormIntroClause } from "../src/ui/flow.js";
+import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom } from "../src/ui/flow.js";
 import { appState } from "../src/state/index.js";
 import { DIRS } from "../src/shared/index.js";
 
@@ -176,6 +176,48 @@ function lineOf(src, idx) {
   // in this file (the same encoding guarantee narration_test.js already pins on util.js's side).
   const rawNameLines = FLOW_SRC.split("\n").filter((l) => /\$\{[A-Za-z_.[\]() ]*\.name\}/.test(l));
   check("T-15-02: no raw ${...name} interpolation in src/ui/flow.js — names flow through pn()/poss() only", rawNameLines.length, 0);
+}
+
+/* ---------- F12: counterHeadroom — a bot's counter can never demand coins already pledged ---------- */
+{
+  checkTrue("counterHeadroom is exported and callable with no DOM", typeof counterHeadroom === "function");
+
+  // the live playtest case: Wyatt held 1 coin and had already pledged it, so the headroom is 0 and
+  // the existing `askFor>0` guard suppresses the counter entirely (the D-41 pattern, correctly).
+  check("F12: the live playtest case (shortfall 1, purse 1, 1 already pledged) offers NO counter", counterHeadroom(1, 1, 1), 0);
+  check("F12: purse 3, 1 pledged, shortfall 5 -> names the smaller amount they CAN afford", counterHeadroom(5, 3, 1), 2);
+  check("F12: purse 1, nothing pledged, shortfall 1 -> 1 (the case that always worked)", counterHeadroom(1, 1, 0), 1);
+  check("F12: an over-pledged purse floors at 0, never a negative demand", counterHeadroom(4, 2, 3), 0);
+
+  // the invariant the bug violated: whatever the bot demands, the captain can still pay what they
+  // pledged PLUS the demand out of the purse they actually hold. Cannot be satisfied by inspection.
+  let violation = null;
+  let points = 0;
+  for (let shortfall = 0; shortfall <= 8 && !violation; shortfall++) {
+    for (let purse = 0; purse <= 8 && !violation; purse++) {
+      for (let pledged = 0; pledged <= purse; pledged++) {
+        const headroom = counterHeadroom(shortfall, purse, pledged);
+        points++;
+        if (headroom < 0 || pledged + headroom > purse) {
+          violation = `shortfall=${shortfall} purse=${purse} pledged=${pledged} -> ${headroom}`;
+          break;
+        }
+      }
+    }
+  }
+  check(`F12 INVARIANT over ${points} points: pledged + headroom <= purse, and headroom >= 0${violation ? ` — FIRST VIOLATION ${violation}` : ""}`, violation, null);
+
+  // the arithmetic is the whole defect, so the call site must keep using the helper — a future
+  // inline rewrite of the expression is what this assertion exists to fail on.
+  const counterIdx = FLOW_SRC.indexOf("scoffs — but counters");
+  checkTrue("humanTrade's counter block located by its prompt (never by line number)", counterIdx > 0);
+  if (counterIdx > 0) {
+    const region = FLOW_SRC.slice(Math.max(0, counterIdx - 900), counterIdx + 200);
+    const regionCode = region.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+    checkTrue(`F12: humanTrade's counter block (${FLOW_REL}:${lineOf(FLOW_SRC, counterIdx)}) computes askFor through counterHeadroom(), not inline`, /counterHeadroom\s*\(/.test(regionCode));
+    const liveCode = FLOW_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+    check("F12: the old total-purse cap appears nowhere in live (non-comment) code", /Math\.min\(shortfall\s*,\s*p\.coins\s*\)/.test(liveCode), false);
+  }
 }
 
 /* ---------- D-09: the round-level lines this plan must NOT touch stay out of this file's diff surface ---------- */
