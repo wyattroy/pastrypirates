@@ -319,9 +319,19 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // D-59 (Wyatt-approved 2026-07-29): the ordinary branch shows the REAL coin loss — the same
       // Math.max(1,Math.floor(p.coins/2)) expression the engine uses below, so the button can never
       // disagree with the outcome, and the rounding-down is visible before the decision is made.
+      // G13 (Wyatt-approved 2026-07-30): the ORDINARY branch used to name the coin GLYPH where it now
+      // says "treasure", which put two coin emojis a few characters apart — "the two coin emojis next
+      // to each other are confusing", his words. Only the WORD
+      // changes: the D-59 parenthetical keeps its live expression and its 🌕, so the button still
+      // cannot disagree with the outcome. The trueShipwreck and broke branches are untouched;
+      // neither ever had two coin glyphs.
+      // G24 (Wyatt-declined 2026-07-30): he was offered an inline-icon-spacing change alongside this
+      // and turned it down — "i don't care at all about breathing room around inline items right now
+      // -- i just wanted the emoji wording fix." Do NOT bundle a margin change (here or in
+      // index.html's .narrIcon rule) into a wording fix at this site.
       const flipLabel=trueShipwreck?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose turn)"
         :broke?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)"
-        :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))`;
+        :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer treasure (−${Math.max(1,Math.floor(p.coins/2))}🌕))`;
       opts.push({label:flipLabel,value:"flip"});
       const promptMsg=trueShipwreck
         ?`${pn(p.idx)}: the storm blows ye toward an island! Yer broke — if ye run aground, ye'll lose yer turn!`
