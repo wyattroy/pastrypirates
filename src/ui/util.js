@@ -340,12 +340,32 @@ export const EVENT_NARRATION={
   // D-19/D-20/D-21/D-27 (Wyatt-approved 2026-07-26): one line used to cover three unrelated
   // safe-harbor causes. mooredReason() still tags every event with which one actually fired (the
   // engine's `reason` field is untouched — this is a narration-only collapse). Per Wyatt's
-  // decision, `home` (a Tortuga berth) now renders the SAME line as `justDocked`, since D-18
-  // treats Tortuga as a normal island/dock and it should not get bespoke wording. `dock` keeps its
-  // own drafted line, approved as-is. A replayed pre-change log with no reason falls back to the
-  // old generic line rather than rendering "undefined".
+  // decision, `home` (a Tortuga berth) renders the SAME lines as `dock` — D-18 treats Tortuga as a
+  // normal island/dock, so it gets no bespoke wording of its own, in EITHER of dock's two cases.
+  // A replayed pre-change log with no reason falls back to the old generic line rather than
+  // rendering "undefined".
+  //
+  // G2 (Wyatt-approved 2026-07-30): `home` used to map to `stillDocked` unconditionally, while
+  // `dock` already split on movement. So a ship the storm pressed against the TORTUGA berth took the
+  // `home` reason and read as though it had been parked there all along — Wyatt, this morning:
+  // "Right got blown onto a (tortuga) dock in a storm, but the narration said 'right is still
+  // docked' – instead of 'lucky break!'". Same bug BUG-2 fixed for `dock`, one reason short.
+  // `home` now takes the identical expression, built from the SAME two consts, so the two branches
+  // cannot drift apart — that is why the strings are hoisted rather than repeated.
+  //
+  // D-28 still holds and is NOT weakened: `justDocked`, `dock`-when-unmoved and `home`-when-unmoved
+  // remain ONE shared `stillDocked` string reached by three doors — not three copies awaiting a
+  // merge. This change splits only the MOVED case, and it adds no copy: both strings already ship,
+  // both are Wyatt's own approved rewrites (D-20/D-25/D-37), and D-37 keeps "shoves" here as a
+  // rescue rather than a move. Nothing here is new wording; it is a second door onto approved copy.
   moored:(e,at,cellPx,viewerSeat)=>{
+    // G2: hoisted to ONE call, above both tables. It walks the event stream, so four calls per
+    // render is wasteful — and a single const is what makes `dock` and `home` structurally
+    // identical rather than merely matching today. `null` ("can't tell") is NOT a shove, per
+    // movedSinceTurnStart's own contract.
+    const shoved=movedSinceTurnStart(e)===true;
     const stillDocked=`${pn(e.p)} is still docked, so the storm can't run them aground.`;
+    const dockShove=`Lucky break! The gust shoves ${pn(e.p)} towards a dock, and the crew steadies her fast ⚓`;
     const L={
       justDocked:stillDocked,
       // D-20: the mechanics stay a lucky save (a ship blown ONTO a dock is sheltered by it) — the
@@ -367,22 +387,19 @@ export const EVENT_NARRATION={
       // rewrite, applied verbatim; D-37 keeps "shoves" here deliberately (a rescue, not a move — see
       // that decision's own resolution note). justDocked/dock(unmoved)/home stay byte-identical to
       // each other (D-28: one shared string reached by three doors, not three copies to merge).
-      dock:movedSinceTurnStart(e)===true
-        ?`Lucky break! The gust shoves ${pn(e.p)} towards a dock, and the crew steadies her fast ⚓`
-        :stillDocked,
-      home:stillDocked,
+      dock:shoved?dockShove:stillDocked,
+      home:shoved?dockShove:stillDocked, // G2: the Tortuga berth tells the same two stories
     };
     // D-07/D-25: addressed siblings to L above — a sibling table, never a replacement, so the
     // third-person strings above (asserted byte-identical by scripts/bot_storm_narration_test.js)
     // are untouched by this branch existing.
     if(isLocalTo(e.p,viewerSeat)){
       const stillDockedYou=`${pn(e.p)} — yer still docked, so the storm can't run ye aground.`;
+      const dockShoveYou=`Lucky break! The gust shoves ye towards a dock, ${pn(e.p)}, and yer crew steadies her fast ⚓`;
       const LA={
         justDocked:stillDockedYou,
-        dock:movedSinceTurnStart(e)===true
-          ?`Lucky break! The gust shoves ye towards a dock, ${pn(e.p)}, and yer crew steadies her fast ⚓`
-          :stillDockedYou,
-        home:stillDockedYou,
+        dock:shoved?dockShoveYou:stillDockedYou,
+        home:shoved?dockShoveYou:stillDockedYou, // G2: same split as the neutral table above
       };
       return {txt:LA[e.reason]||`${pn(e.p)} — the dock steadies ye from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
     }

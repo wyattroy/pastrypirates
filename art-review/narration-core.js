@@ -325,12 +325,16 @@ export const BASE_EVENTS = {
   turn: () => ({ t: "turn", p: 0 }),
 };
 
-// moored's `dock` reason needs a real (turn-event, moored-event) pair in appState.game.events for
-// movedSinceTurnStart() to resolve true/false instead of null.
-function mooredDockEvent(moved) {
+// moored's movement-sensitive reasons need a real (turn-event, moored-event) pair in
+// appState.game.events for movedSinceTurnStart() to resolve true/false instead of null.
+//
+// G2 (Wyatt-approved 2026-07-30): generalised from mooredDockEvent(moved) to take the reason too,
+// because `home` now splits on movement exactly as `dock` does. D-21 requires the page to render
+// EVERY branch, so the new home-shoved door needs its own card.
+function mooredMovedEvent(reason, moved) {
   const at = moved ? [3, 3] : [0, 0];
   const turnEv = { t: "turn", p: 0, state: [{ pos: [0, 0] }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
-  const mooredEv = { t: "moored", p: 0, reason: "dock", state: [{ pos: at }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
+  const mooredEv = { t: "moored", p: 0, reason, state: [{ pos: at }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
   appState.game.events = [turnEv, mooredEv];
   return mooredEv;
 }
@@ -351,9 +355,14 @@ export const TABLE_BRANCHES = {
   ],
   moored: [
     { tag: null, label: "Reason: just docked", fields: { reason: "justDocked" } },
-    { tag: "dockMoved", label: "Reason: dock — storm shoved you onto it THIS turn", buildEvent: () => mooredDockEvent(true) },
-    { tag: "dockStill", label: "Reason: dock — already parked, storm-untouched", buildEvent: () => mooredDockEvent(false) },
+    { tag: "dockMoved", label: "Reason: dock — storm shoved you onto it THIS turn", buildEvent: () => mooredMovedEvent("dock", true) },
+    { tag: "dockStill", label: "Reason: dock — already parked, storm-untouched", buildEvent: () => mooredMovedEvent("dock", false) },
+    // fabricates no movement evidence, so movedSinceTurnStart returns null and this still renders
+    // the "still docked" line — which is correct for a ship that was already berthed. Left as-is.
     { tag: "home", label: "Reason: home berth (Tortuga)", fields: { reason: "home" } },
+    // G2 (Wyatt-approved 2026-07-30): the branch his playtest caught — a gust shoves ye onto the
+    // Tortuga berth and it read as "still docked" instead of a lucky break.
+    { tag: "homeMoved", label: "Reason: home berth (Tortuga) — storm shoved you onto it THIS turn", buildEvent: () => mooredMovedEvent("home", true) },
     { tag: "legacyFallback", label: "Reason: unrecognized (legacy replay log with no reason field)", fields: { reason: undefined } },
   ],
   parley: [
