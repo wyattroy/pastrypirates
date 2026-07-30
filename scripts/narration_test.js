@@ -25,7 +25,7 @@ import {
   EVENT_NARRATION, describe, pname, pn, describeFor, NEUTRAL_VIEWER, narrationVariants,
   pickNarrVariant, msgHoldMs, botMsgHoldMs, chatBubbleHoldMs, fmtItem,
 } from "../src/ui/util.js";
-import { ilabelImg, ING_IMG, ING_ALL, iconImg, dockFlavor, dockFlavorIcon } from "../src/shared/index.js";
+import { ilabelImg, ING_IMG, ING_ALL, iconImg, dockFlavor, dockFlavorIcon, dockPlace, iname, HEXCOL } from "../src/shared/index.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
 // D-54: src/ui/flow.js's flash() sites are not table-driven, so the one approved ad-hoc line there
@@ -737,6 +737,103 @@ const DOCK_FLAVOR_BEFORE = {
   let unknownThrew = false;
   try { dockFlavor("nonsuch"); dockFlavorIcon("nonsuch"); } catch { unknownThrew = true; }
   check("F5: an unknown ingredient key falls back on BOTH helpers without throwing", unknownThrew, false);
+}
+
+/* ---------- F5 + F10: the four dock branches ---------- */
+// F5 — the icon sits directly before the ingredient NAME on every branch that names goods.
+// F10 — the addressed bought/coins/empty lines name their place AND their goods, so no pronoun is
+//       left without an antecedent (D-46's letter: only `ing` loses its place clause).
+{
+  appState.roster = [{ id: "a", name: "Claude" }, { id: "b", name: "Wyatt" }, {}, {}];
+  const at = () => [0, 0];
+  const stripIcons = (s) => s.replace(/<img[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  const render = (ing, got, viewer) =>
+    EVENT_NARRATION.dock({ t: "dock", p: 0, ing, got, heads: got === "ing" ? 1 : 0 }, at, 0, viewer).txt;
+  const NAME = `<b style="color:${HEXCOL[0]}">Claude</b>`;
+
+  // ---- the PRE-CHANGE neutral text, hardcoded for one ingredient. Icon markup stripped and
+  // whitespace collapsed, so it is identical before and after F5 by construction: F5 MOVES the icon
+  // and changes no word. A hardcoded literal is the only expectation that cannot pass by comparing
+  // the change to itself.
+  const DAIRY_NEUTRAL_BEFORE = {
+    ing: `${NAME} docks at Full Cream Folly and flips ⚪ HEADS — hauls aboard some jugs of Fresh Milk!`,
+    empty: `${NAME} docks at Full Cream Folly and finds no Fresh Milk, so grabs 3🌕`,
+    bought: `${NAME} docks at Full Cream Folly for some jugs of Fresh Milk and flips ⚫ TAILS, but buys it anyway for 3🌕`,
+    coins: `${NAME} docks at Full Cream Folly for some jugs of Fresh Milk, but flips ⚫ TAILS and takes 3🌕`,
+  };
+  for (const [got, want] of Object.entries(DAIRY_NEUTRAL_BEFORE)) {
+    check(`F5: the neutral dock "${got}" line is its pre-change self with the icon moved and NOTHING else`, stripIcons(render("dairy", got, NEUTRAL_VIEWER)), want);
+  }
+
+  // ---- the exact addressed `bought` line, written out in full. This is the F10 fix itself: the
+  // "it" now resolves to the goods named earlier in the same sentence. Written as a literal so a
+  // future re-cut of the place-and-goods clause fails here rather than passing quietly.
+  check("F10: the addressed dock \"bought\" line names its place AND its goods, so \"it\" has an antecedent",
+    stripIcons(render("dairy", "bought", 0)),
+    `${NAME} — ye dock at Full Cream Folly for some jugs of Fresh Milk and flip ⚫ TAILS, but buy it anyway for 3🌕`);
+  check("F10/D-46: the addressed dock \"coins\" line names its place and its goods",
+    stripIcons(render("dairy", "coins", 0)),
+    `${NAME} — ye dock at Full Cream Folly for some jugs of Fresh Milk, but flip ⚫ TAILS and take 3🌕`);
+  check("F10/D-46: the addressed dock \"empty\" line names its place (one line wider than F10 named — D-46's letter)",
+    stripIcons(render("dairy", "empty", 0)),
+    `${NAME} — ye dock at Full Cream Folly and find no Fresh Milk, so ye grab 3🌕`);
+  // D-46's single sanctioned cut: `ing` alone still drops the place and leads with the payoff.
+  check("D-46: the addressed dock \"ing\" line STILL drops the place clause and leads with the payoff — the one cut D-46 sanctioned",
+    stripIcons(render("dairy", "ing", 0)),
+    `${NAME} — ye haul aboard some jugs of Fresh Milk!`);
+
+  // ---- structural equality across all 7 ingredients x 4 branches x both viewer forms. The sentence
+  // SHAPES below are hardcoded pre-change templates; only the flavour/place words come from the live
+  // helpers, and those are pinned byte-identical against hardcoded literals in the F5 block above.
+  const NEUTRAL_SHAPE = {
+    ing: (place, flavor, label) => `${NAME} docks at ${place} and flips ⚪ HEADS — hauls aboard ${flavor}!`,
+    empty: (place, flavor, label) => `${NAME} docks at ${place} and finds no ${label}, so grabs 3🌕`,
+    bought: (place, flavor, label) => `${NAME} docks at ${place} for ${flavor} and flips ⚫ TAILS, but buys it anyway for 3🌕`,
+    coins: (place, flavor, label) => `${NAME} docks at ${place} for ${flavor}, but flips ⚫ TAILS and takes 3🌕`,
+  };
+  const ADDRESSED_SHAPE = {
+    ing: (place, flavor, label) => `${NAME} — ye haul aboard ${flavor}!`,
+    empty: (place, flavor, label) => `${NAME} — ye dock at ${place} and find no ${label}, so ye grab 3🌕`,
+    bought: (place, flavor, label) => `${NAME} — ye dock at ${place} for ${flavor} and flip ⚫ TAILS, but buy it anyway for 3🌕`,
+    coins: (place, flavor, label) => `${NAME} — ye dock at ${place} for ${flavor}, but flip ⚫ TAILS and take 3🌕`,
+  };
+  let shapeBad = null, iconBad = null, pairs = 0;
+  for (const ing of ING_ALL) {
+    const place = dockPlace(ing), flavor = dockFlavor(ing), label = iname(ing);
+    for (const got of ["ing", "empty", "bought", "coins"]) {
+      for (const [viewer, shape] of [[NEUTRAL_VIEWER, NEUTRAL_SHAPE], [0, ADDRESSED_SHAPE]]) {
+        const raw = render(ing, got, viewer);
+        pairs++;
+        // D-16: every branch, addressed and neutral, still carries the ingredient's icon. Asserted
+        // on the IMAGE rather than on one exact markup form, because the `empty` branch renders it
+        // through ilabelImg() (which carries alt text) while the goods branches use dockFlavorIcon()
+        // -> iconImg() (alt=""). Both are the ingredient's icon; the playtest measured `empty` as
+        // already correct, so demanding the goods-branch markup there would be wrong, not stricter.
+        if (!raw.includes(ING_IMG[ing])) iconBad = iconBad || `${ing}/${got}/${viewer === NEUTRAL_VIEWER ? "neutral" : "addressed"}`;
+        const want = shape[got](place, flavor, label);
+        if (stripIcons(raw) !== want) shapeBad = shapeBad || `${ing}/${got}/${viewer === NEUTRAL_VIEWER ? "neutral" : "addressed"}\n      got:  ${stripIcons(raw)}\n      want: ${want}`;
+      }
+    }
+  }
+  check(`F5/F10: all ${pairs} dock renderings (7 ingredients x 4 branches x neutral+addressed) match their hardcoded sentence shape${shapeBad ? ` — FIRST MISMATCH ${shapeBad}` : ""}`, shapeBad, null);
+  check(`F5/D-16: every one of those ${pairs} renderings still carries its ingredient icon — an icon is never dropped, only moved${iconBad ? ` — FIRST MISSING ${iconBad}` : ""}`, iconBad, null);
+
+  // ---- and the icon is positioned before the NAME, not before the flavour phrase, in the goods
+  // branches. This is the observable difference F5 exists to produce.
+  let posBad = null;
+  for (const ing of ING_ALL) {
+    const icon = iconImg(ING_IMG[ing]);
+    for (const got of ["ing", "bought", "coins"]) {
+      for (const viewer of [NEUTRAL_VIEWER, 0]) {
+        const raw = render(ing, got, viewer);
+        const beforeIcon = raw.slice(0, raw.indexOf(icon));
+        // the flavour's own prefix word(s) must already be on the page before the icon appears
+        const prefix = dockFlavor(ing).split(" ")[0];
+        if (!beforeIcon.includes(prefix)) posBad = posBad || `${ing}/${got}: icon appears before the flavour prefix ${JSON.stringify(prefix)}`;
+      }
+    }
+  }
+  check(`F5: in every goods branch the icon appears AFTER the flavour's opening words — i.e. immediately before the ingredient name, not in front of the phrase${posBad ? ` — ${posBad}` : ""}`, posBad, null);
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

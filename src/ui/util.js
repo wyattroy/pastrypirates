@@ -42,7 +42,9 @@ import {
 } from "../state/index.js";
 import { roundCfg } from "../engine/index.js";
 import {
-  NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavor, iconImg, ING_IMG,
+  // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
+  // dockFlavor consumer; all four branches now take the icon-placed form from the declared split.
+  NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, CROWN_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
 } from "../shared/index.js";
@@ -438,22 +440,42 @@ export const EVENT_NARRATION={
       pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]};
   },
   shipwrecked:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — yer shipwrecked, and lose yer turn making repairs.`:`${pn(e.p)} is shipwrecked, and loses their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
-  // NARR-01/D-25/D-46/D-48 (Wyatt-approved 2026-07-29): docking copy applied verbatim. D-46 — the
-  // place is named on the way in (neutral text for every branch), but the addressed ("you got it")
-  // line for the `ing`/`empty`/`bought`/`coins` branches drops the place clause and leads with the
-  // payoff, since the actor already read the place name on the Dock button and the flip prompt.
+  // NARR-01/D-25/D-46/D-48 (Wyatt-approved 2026-07-29): docking copy applied verbatim.
+  //
+  // D-46, STATED AS IT ACTUALLY READS (this comment used to describe the over-application F10
+  // found, i.e. exactly what D-46 forbade): *"Only the `ing` (heads) narration branch loses its
+  // place clause. The other three dock branches still need theirs. Do not apply the cut across all
+  // four."* So `ing` — and ONLY `ing` — drops the place and leads with the payoff, because the
+  // actor already read the place name on the Dock button and the flip prompt, and the haul itself
+  // is the payoff that needs no antecedent.
+  //
+  // F10 (Wyatt-approved 2026-07-29, read live on seat 1): the addressed `bought`/`coins`/`empty`
+  // lines had been cut down too, and `bought` was left with a DANGLING PRONOUN —
+  // "ye flip ⚫ TAILS, but buy it anyway for 3🌕". "It" referred to nothing, because the goods
+  // clause was gone; the neutral sibling reads correctly precisely because it names the goods
+  // earlier in the same sentence. Restored by person-shifting each branch's OWN neutral sibling —
+  // place clause and goods intact, third-person verbs to second person, NO new phrasing invented.
+  // `empty` is restored too: F10 named only `bought` and `coins`, but D-46's letter covers all three
+  // non-`ing` branches and fixing two of three would replace a uniform problem with a new
+  // inconsistency. Flagged for Wyatt in the morning brief as a D-46-letter restoration.
+  //
+  // F5: the ingredient icon now sits directly before the ingredient NAME on every branch that names
+  // goods, via the single shared `goods` value from dockFlavorIcon() — one place decides where the
+  // icon goes, so these branches cannot drift apart again.
+  //
   // D-48 — the flavour text (DOCK_FLAVOR) is kept and used on every branch, `ing` included.
   dock:(e,at,cellPx,viewerSeat)=>{
-    const place=dockPlace(e.ing),flavor=dockFlavor(e.ing),ingIcon=iconImg(ING_IMG[e.ing]);
-    const g={ing:`docks at ${place} and flips ⚪ HEADS — hauls aboard ${ingIcon} ${flavor}!`,
+    const place=dockPlace(e.ing),goods=dockFlavorIcon(e.ing);
+    const g={ing:`docks at ${place} and flips ⚪ HEADS — hauls aboard ${goods}!`,
       empty:`docks at ${place} and finds no ${ilabelImg(e.ing)}, so grabs 3🌕`,
-      bought:`docks at ${place} for ${ingIcon} ${flavor} and flips ⚫ TAILS, but buys it anyway for 3🌕`,
-      coins:`docks at ${place} for ${ingIcon} ${flavor}, but flips ⚫ TAILS and takes 3🌕`};
-    // D-46: the addressed sibling — the place is dropped, the payoff leads.
-    const gA={ing:`ye haul aboard ${ingIcon} ${flavor}!`,
-      empty:`ye find no ${ilabelImg(e.ing)}, so ye grab 3🌕`,
-      bought:`ye flip ⚫ TAILS, but buy it anyway for 3🌕`,
-      coins:`ye flip ⚫ TAILS and take 3🌕`};
+      bought:`docks at ${place} for ${goods} and flips ⚫ TAILS, but buys it anyway for 3🌕`,
+      coins:`docks at ${place} for ${goods}, but flips ⚫ TAILS and takes 3🌕`};
+    // D-46: `ing` alone drops the place and leads with the payoff. The other three name their place
+    // AND their goods, so no pronoun is left without an antecedent (F10).
+    const gA={ing:`ye haul aboard ${goods}!`,
+      empty:`ye dock at ${place} and find no ${ilabelImg(e.ing)}, so ye grab 3🌕`,
+      bought:`ye dock at ${place} for ${goods} and flip ⚫ TAILS, but buy it anyway for 3🌕`,
+      coins:`ye dock at ${place} for ${goods}, but flip ⚫ TAILS and take 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     // no flip happened on an empty island, so don't caption one
     const F=e.got==="empty"?"":(e.heads?"⚪H":"⚫T");

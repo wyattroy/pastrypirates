@@ -1,5 +1,5 @@
 {
-  "_provenance": "Pre-refactor capture of the EVENT_NARRATION table path, taken by importing src/ui/util.js's real describeFor()/narrationVariants() builders directly — no audit page, no render core. src/ui/util.js has a comment-only diff since ab98e04, so these are the ab98e04 builders. This is a PERMANENT REGRESSION PIN on the one surface that was never broken: art-review/narration-core.js must reproduce it byte-for-byte forever. Regenerate only with a deliberate, reviewed change to the shipped table wording.",
+  "_provenance": "Pre-refactor capture of the EVENT_NARRATION table path, taken by importing src/ui/util.js's real describeFor()/narrationVariants() builders directly — no audit page, no render core. src/ui/util.js has a comment-only diff since ab98e04, so these are the ab98e04 builders. This is a PERMANENT REGRESSION PIN on the one surface that was never broken: art-review/narration-core.js must reproduce it byte-for-byte forever. Regenerate only with a deliberate, reviewed change to the shipped table wording.\n\nRE-PINNED 2026-07-29 (F5 + F10, .planning/quick/20260729-playtest-bug-fixes). Four cards moved and only four: table:dock, table:dock~empty, table:dock~bought, table:dock~coins. Card count unchanged at 50. Two deliberate, reviewed wording changes, both traceable to the two-tab playtest:\n  F5  — the ingredient icon moved to sit directly before the ingredient NAME instead of in front of the whole flavour phrase, on every branch that names goods. No word changed; the icon-stripped text of every neutral line is byte-identical to its pre-change self, and scripts/narration_test.js pins that against hardcoded pre-change literals.\n  F10 — the ADDRESSED bought/coins/empty lines had been cut down to drop their place-and-goods clause, which left \"but buy it anyway\" with a dangling pronoun. Restored by person-shifting each branch’s own neutral sibling, per D-46’s letter (“Only the ing (heads) branch loses its place clause”). No new phrasing was invented. table:dock~empty’s NEUTRAL text did NOT move — only its addressed variants — because the neutral empty line was already correct.\nWyatt’s stored approvals are untouched; the addressed-empty restoration goes beyond the two lines F10 named and is surfaced for his ruling in MORNING-PLAYTEST-BRIEF.md.",
   "cards": {
     "table:newround~freshWind": {
       "key": "newround",
@@ -289,11 +289,11 @@
       "key": "dock",
       "label": "Heads — hauls aboard a crate",
       "silent": false,
-      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch and flips <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\"> HEADS — hauls aboard <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat!",
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch and flips <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\"> HEADS — hauls aboard a sack of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> Toasty Wheat!",
       "variants": [
         {
           "seat": 0,
-          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye haul aboard <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat!"
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye haul aboard a sack of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> Toasty Wheat!"
         }
       ]
     },
@@ -305,7 +305,7 @@
       "variants": [
         {
           "seat": 0,
-          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye find no <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat, so ye grab 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye dock at the Flour Patch and find no <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat, so ye grab 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
         }
       ]
     },
@@ -313,11 +313,11 @@
       "key": "dock",
       "label": "Tails, buys the crate anyway",
       "silent": false,
-      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch for <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat and flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS, but buys it anyway for 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch for a sack of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> Toasty Wheat and flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS, but buys it anyway for 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
       "variants": [
         {
           "seat": 0,
-          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS, but buy it anyway for 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye dock at the Flour Patch for a sack of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> Toasty Wheat and flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS, but buy it anyway for 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
         }
       ]
     },
@@ -325,11 +325,11 @@
       "key": "dock",
       "label": "Tails, takes the 3 coins",
       "silent": false,
-      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch for <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat, but flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS and takes 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch for a sack of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> Toasty Wheat, but flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS and takes 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
       "variants": [
         {
           "seat": 0,
-          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS and take 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye dock at the Flour Patch for a sack of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> Toasty Wheat, but flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS and take 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
         }
       ]
     },
