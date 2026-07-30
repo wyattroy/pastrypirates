@@ -46,7 +46,7 @@ import { appState } from "../state/index.js";
 import { roundCfg } from "../engine/index.js";
 import {
   DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavor, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, EYES_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips } from "./board.js";
 import {
@@ -927,7 +927,21 @@ export async function netIntroBarrier(msg,btnLabel){
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
 export async function showAhoyIntro(){
-  const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win! <br><br>⛵️ Each turn, ye sail, then ye plunder.<br><br>${iconImg(EYES_IMG)} Watch this panel — she'll steer ye straight!`;
+  // D-25/D-26 (Wyatt-approved 2026-07-29, applied 2026-07-29 during the two-tab playtest): his
+  // `misc:introBarrier` rewrite is this ONE sentence. The two that used to follow — "⛵️ Each turn,
+  // ye sail, then ye plunder." and the EYES_IMG "Watch this panel — she'll steer ye straight!" —
+  // are deleted at his explicit word ("I want to delete the other two sentences, because the intro
+  // is too long"), which is what D-16 requires before an icon may go: removal stated in words, not
+  // inferred from a note that simply omits it. The leading ⚓ is KEPT — the leading space in his
+  // stored note is a stripped emoji (D-50), never an instruction to drop the icon.
+  //
+  // This row was `reviewed:true, tag:"rewrite"` in 15-DISPOSITIONS-FINAL.json and was NEVER
+  // applied: 15-06's "apply Wyatt's approved narration copy" commit (11cbf34) changed only this
+  // call's BUTTON label and left the message byte-identical to its Phase 11 original (6dbd87f).
+  // A sixth instance of the approved-but-not-applied class after D-17/D-29/D-54 — and the first
+  // found outside the five audited gaps, which is why the copy gate must check all 155 approval
+  // fields rather than a hand-picked subset.
+  const msg=`⚓ Ahoy! Gather every ingredient in yer recipe, then sail home first to win!`;
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): button trimmed to just "Arrgh!" — icon kept (D-16).
   // @copy misc.introbarrier.ahoy
   await netIntroBarrier(msg,"⚓ Arrgh!");
