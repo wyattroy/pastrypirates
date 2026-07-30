@@ -765,18 +765,34 @@ const DOCK_FLAVOR_BEFORE = {
     check(`F5: the neutral dock "${got}" line is its pre-change self with the icon moved and NOTHING else`, stripIcons(render("dairy", got, NEUTRAL_VIEWER)), want);
   }
 
-  // ---- the exact addressed `bought` line, written out in full. This is the F10 fix itself: the
-  // "it" now resolves to the goods named earlier in the same sentence. Written as a literal so a
-  // future re-cut of the place-and-goods clause fails here rather than passing quietly.
-  check("F10: the addressed dock \"bought\" line names its place AND its goods, so \"it\" has an antecedent",
+  // ---- G1 (Wyatt-approved 2026-07-30): the addressed lines, written out in full. RE-PINNED from
+  // F10's forms, which restored the place clause in order to give `bought`'s "it" an antecedent.
+  // The dangling pronoun was the real defect; the place was never the fix. Each literal below now
+  // protects TWO things at once: that the addressed line carries NO place clause, and — for
+  // `bought` — that it still names its goods, so no pronoun is left without an antecedent.
+  // Written as literals so a future re-restoration of the place clause fails here, loudly.
+  check("G1: the addressed dock \"bought\" line carries NO place clause, and names its goods in place of the pronoun so \"it\" is gone entirely",
     stripIcons(render("dairy", "bought", 0)),
-    `${NAME} — ye dock at Full Cream Folly for some jugs of Fresh Milk and flip ⚫ TAILS, but buy it anyway for 3🌕`);
-  check("F10/D-46: the addressed dock \"coins\" line names its place and its goods",
+    `${NAME} — ye flip ⚫ TAILS, but buy some jugs of Fresh Milk anyway for 3🌕`);
+  check("G1: the addressed dock \"coins\" line carries no place clause and needs no goods — nothing was hauled",
     stripIcons(render("dairy", "coins", 0)),
-    `${NAME} — ye dock at Full Cream Folly for some jugs of Fresh Milk, but flip ⚫ TAILS and take 3🌕`);
-  check("F10/D-46: the addressed dock \"empty\" line names its place (one line wider than F10 named — D-46's letter)",
+    `${NAME} — ye flip ⚫ TAILS and take 3🌕`);
+  check("G1: the addressed dock \"empty\" line carries no place clause (back to its shorter pre-F10 form, at Wyatt's explicit ask)",
     stripIcons(render("dairy", "empty", 0)),
-    `${NAME} — ye dock at Full Cream Folly and find no Fresh Milk, so ye grab 3🌕`);
+    `${NAME} — ye find no Fresh Milk, so ye grab 3🌕`);
+  // G1's rule, asserted directly rather than only as a by-product of the four literals above: no
+  // addressed dock branch may name the place. The actor read it on the Dock button and the flip
+  // prompt already. This is the check that catches a NEW addressed branch reintroducing the clause.
+  {
+    let placeBad = null;
+    for (const ing of ING_ALL) {
+      const place = dockPlace(ing);
+      for (const got of ["ing", "empty", "bought", "coins"]) {
+        if (stripIcons(render(ing, got, 0)).includes(place)) placeBad = placeBad || `${ing}/${got} still names "${place}"`;
+      }
+    }
+    check(`G1: no addressed dock branch names its place, on any of the 7 ingredients${placeBad ? ` — ${placeBad}` : ""}`, placeBad, null);
+  }
   // D-46's single sanctioned cut: `ing` alone still drops the place and leads with the payoff.
   check("D-46: the addressed dock \"ing\" line STILL drops the place clause and leads with the payoff — the one cut D-46 sanctioned",
     stripIcons(render("dairy", "ing", 0)),
@@ -791,32 +807,50 @@ const DOCK_FLAVOR_BEFORE = {
     bought: (place, flavor, label) => `${NAME} docks at ${place} for ${flavor} and flips ⚫ TAILS, but buys it anyway for 3🌕`,
     coins: (place, flavor, label) => `${NAME} docks at ${place} for ${flavor}, but flips ⚫ TAILS and takes 3🌕`,
   };
+  // G1 (Wyatt-approved 2026-07-30): re-pinned — no addressed branch names the place. `bought` keeps
+  // its goods (F10's antecedent fix, carried forward by naming the thing rather than the place).
   const ADDRESSED_SHAPE = {
     ing: (place, flavor, label) => `${NAME} — ye haul aboard ${flavor}!`,
-    empty: (place, flavor, label) => `${NAME} — ye dock at ${place} and find no ${label}, so ye grab 3🌕`,
-    bought: (place, flavor, label) => `${NAME} — ye dock at ${place} for ${flavor} and flip ⚫ TAILS, but buy it anyway for 3🌕`,
-    coins: (place, flavor, label) => `${NAME} — ye dock at ${place} for ${flavor}, but flip ⚫ TAILS and take 3🌕`,
+    empty: (place, flavor, label) => `${NAME} — ye find no ${label}, so ye grab 3🌕`,
+    bought: (place, flavor, label) => `${NAME} — ye flip ⚫ TAILS, but buy ${flavor} anyway for 3🌕`,
+    coins: (place, flavor, label) => `${NAME} — ye flip ⚫ TAILS and take 3🌕`,
   };
-  let shapeBad = null, iconBad = null, pairs = 0;
+  // G1: the addressed `coins` line is the ONE cell that names no ingredient at all, so it is the one
+  // cell that can carry no ingredient icon. Enumerated as a single named exception rather than
+  // relaxing the D-16 assertion below to a subset-match — and paired with its own positive check,
+  // so the removal is PINNED rather than merely tolerated.
+  const namesIngredient = (got, addressed) => !(addressed && got === "coins");
+  let shapeBad = null, iconBad = null, strayIcon = null, pairs = 0, iconCells = 0;
   for (const ing of ING_ALL) {
     const place = dockPlace(ing), flavor = dockFlavor(ing), label = iname(ing);
     for (const got of ["ing", "empty", "bought", "coins"]) {
       for (const [viewer, shape] of [[NEUTRAL_VIEWER, NEUTRAL_SHAPE], [0, ADDRESSED_SHAPE]]) {
         const raw = render(ing, got, viewer);
+        const addressed = viewer !== NEUTRAL_VIEWER;
         pairs++;
-        // D-16: every branch, addressed and neutral, still carries the ingredient's icon. Asserted
+        // D-16: every branch that NAMES the ingredient still carries the ingredient's icon. Asserted
         // on the IMAGE rather than on one exact markup form, because the `empty` branch renders it
         // through ilabelImg() (which carries alt text) while the goods branches use dockFlavorIcon()
         // -> iconImg() (alt=""). Both are the ingredient's icon; the playtest measured `empty` as
         // already correct, so demanding the goods-branch markup there would be wrong, not stricter.
-        if (!raw.includes(ING_IMG[ing])) iconBad = iconBad || `${ing}/${got}/${viewer === NEUTRAL_VIEWER ? "neutral" : "addressed"}`;
+        //
+        // G1: the addressed `coins` line names no ingredient, so it carries none — an icon still
+        // never goes while its subject stays, which is what D-16 protects. Both halves are checked:
+        // present where the ingredient is named, ABSENT where it is not.
+        if (namesIngredient(got, addressed)) {
+          iconCells++;
+          if (!raw.includes(ING_IMG[ing])) iconBad = iconBad || `${ing}/${got}/${addressed ? "addressed" : "neutral"}`;
+        } else if (raw.includes(ING_IMG[ing])) {
+          strayIcon = strayIcon || `${ing}/${got}/addressed carries an ingredient icon but names no ingredient`;
+        }
         const want = shape[got](place, flavor, label);
-        if (stripIcons(raw) !== want) shapeBad = shapeBad || `${ing}/${got}/${viewer === NEUTRAL_VIEWER ? "neutral" : "addressed"}\n      got:  ${stripIcons(raw)}\n      want: ${want}`;
+        if (stripIcons(raw) !== want) shapeBad = shapeBad || `${ing}/${got}/${addressed ? "addressed" : "neutral"}\n      got:  ${stripIcons(raw)}\n      want: ${want}`;
       }
     }
   }
-  check(`F5/F10: all ${pairs} dock renderings (7 ingredients x 4 branches x neutral+addressed) match their hardcoded sentence shape${shapeBad ? ` — FIRST MISMATCH ${shapeBad}` : ""}`, shapeBad, null);
-  check(`F5/D-16: every one of those ${pairs} renderings still carries its ingredient icon — an icon is never dropped, only moved${iconBad ? ` — FIRST MISSING ${iconBad}` : ""}`, iconBad, null);
+  check(`F5/G1: all ${pairs} dock renderings (7 ingredients x 4 branches x neutral+addressed) match their hardcoded sentence shape${shapeBad ? ` — FIRST MISMATCH ${shapeBad}` : ""}`, shapeBad, null);
+  check(`F5/D-16: every one of the ${iconCells} renderings that names its ingredient still carries that ingredient's icon — an icon is never dropped while its subject stays${iconBad ? ` — FIRST MISSING ${iconBad}` : ""}`, iconBad, null);
+  check(`G1/D-16: and the ${pairs - iconCells} addressed "coins" renderings, which name no ingredient, carry no orphaned ingredient icon either${strayIcon ? ` — ${strayIcon}` : ""}`, strayIcon, null);
 
   // ---- and the icon is positioned before the NAME, not before the flavour phrase, in the goods
   // branches. This is the observable difference F5 exists to produce.
@@ -825,6 +859,9 @@ const DOCK_FLAVOR_BEFORE = {
     const icon = iconImg(ING_IMG[ing]);
     for (const got of ["ing", "bought", "coins"]) {
       for (const viewer of [NEUTRAL_VIEWER, 0]) {
+        // G1: the addressed `coins` line names no goods, so there is no icon here to position. Its
+        // absence is pinned by the strayIcon check above, not silently skipped.
+        if (!namesIngredient(got, viewer !== NEUTRAL_VIEWER)) continue;
         const raw = render(ing, got, viewer);
         const beforeIcon = raw.slice(0, raw.indexOf(icon));
         // the flavour's own prefix word(s) must already be on the page before the icon appears

@@ -466,15 +466,20 @@ export const EVENT_NARRATION={
   // actor already read the place name on the Dock button and the flip prompt, and the haul itself
   // is the payoff that needs no antecedent.
   //
-  // F10 (Wyatt-approved 2026-07-29, read live on seat 1): the addressed `bought`/`coins`/`empty`
-  // lines had been cut down too, and `bought` was left with a DANGLING PRONOUN —
-  // "ye flip ⚫ TAILS, but buy it anyway for 3🌕". "It" referred to nothing, because the goods
-  // clause was gone; the neutral sibling reads correctly precisely because it names the goods
-  // earlier in the same sentence. Restored by person-shifting each branch's OWN neutral sibling —
-  // place clause and goods intact, third-person verbs to second person, NO new phrasing invented.
-  // `empty` is restored too: F10 named only `bought` and `coins`, but D-46's letter covers all three
-  // non-`ing` branches and fixing two of three would replace a uniform problem with a new
-  // inconsistency. Flagged for Wyatt in the morning brief as a D-46-letter restoration.
+  // G1 (Wyatt-approved 2026-07-30) — THE RULE, stated rather than its history: **the addressed line
+  // says what happened to YOU, not where you are.** The actor already read the place name on the
+  // Dock button and again on the flip prompt; a third telling is noise. Wyatt: "you already know
+  // that you docked at the Flour Patch — we don't need to tell you that again."
+  //
+  // This governs the `gA` table only. The NEUTRAL `g` table below keeps every place clause, because
+  // a spectator watching someone else's turn has no other source for either the place or the goods.
+  //
+  // F10's real defect was a DANGLING PRONOUN, and it stays fixed — by a different means. The
+  // addressed `bought` line read "ye flip ⚫ TAILS, but buy it anyway for 3🌕", where "it" referred
+  // to nothing. F10 gave "it" an antecedent by restoring the whole place-and-goods clause; that
+  // over-corrected, because the place was never the fix. `bought` now NAMES ITS GOODS directly in
+  // place of the pronoun — antecedent supplied, place dropped. `empty` returns to its shorter
+  // pre-F10 form at Wyatt's explicit ask; `coins` needs neither place nor goods.
   //
   // F5: the ingredient icon now sits directly before the ingredient NAME on every branch that names
   // goods, via the single shared `goods` value from dockFlavorIcon() — one place decides where the
@@ -487,12 +492,13 @@ export const EVENT_NARRATION={
       empty:`docks at ${place} and finds no ${ilabelImg(e.ing)}, so grabs 3🌕`,
       bought:`docks at ${place} for ${goods} and flips ⚫ TAILS, but buys it anyway for 3🌕`,
       coins:`docks at ${place} for ${goods}, but flips ⚫ TAILS and takes 3🌕`};
-    // D-46: `ing` alone drops the place and leads with the payoff. The other three name their place
-    // AND their goods, so no pronoun is left without an antecedent (F10).
+    // G1: no addressed branch names the place — see the rule above. D-46's record stands among the
+    // NEUTRAL forms, where `ing` alone drops the place. `bought` keeps its goods (that is F10's
+    // fix, carried forward: the pronoun is replaced by the thing itself, not by the place).
     const gA={ing:`ye haul aboard ${goods}!`,
-      empty:`ye dock at ${place} and find no ${ilabelImg(e.ing)}, so ye grab 3🌕`,
-      bought:`ye dock at ${place} for ${goods} and flip ⚫ TAILS, but buy it anyway for 3🌕`,
-      coins:`ye dock at ${place} for ${goods}, but flip ⚫ TAILS and take 3🌕`};
+      empty:`ye find no ${ilabelImg(e.ing)}, so ye grab 3🌕`,
+      bought:`ye flip ⚫ TAILS, but buy ${goods} anyway for 3🌕`,
+      coins:`ye flip ⚫ TAILS and take 3🌕`};
     const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
     // no flip happened on an empty island, so don't caption one
     const F=e.got==="empty"?"":(e.heads?"⚪H":"⚫T");
