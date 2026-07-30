@@ -264,8 +264,20 @@ export function panel(html,needsAction=false){
     ghost.addEventListener("animationend",drop,{once:true});
     // belt: animationend can be dropped entirely in a backgrounded tab, which would leak a ghost
     // that then sits over every later line. Same reasoning typewriterReveal records for preferring
-    // setTimeout to requestAnimationFrame. Comfortably clear of the 180ms animation.
-    setTimeout(drop,250);
+    // setTimeout to requestAnimationFrame.
+    //
+    // CR-01 (found by code review, 2026-07-30): this was a HARDCODED 250 — "comfortably clear of the
+    // 180ms animation" — and G28 moved the animation to 800ms in three places without touching it.
+    // The belt then beat animationend every time, so the ghost was ripped out at 250ms while the
+    // incoming line still waited the full GHOST_FADE_MS to start revealing: the box sat EMPTY for
+    // 550ms per replaced line. That silently broke both G28's purpose (a fade long enough to read as
+    // a warning) and F6's rule, which is Wyatt's own — "the blue box should never be empty".
+    //
+    // DERIVED, never hardcoded again. The margin only has to outlast the animation, so tying it to
+    // the constant makes this correct for any future duration by construction rather than by anyone
+    // remembering a fourth site. The CSS rule and GHOST_FADE_MS still have to move together — that
+    // pair is genuinely irreducible — but this no longer joins them.
+    setTimeout(drop,GHOST_FADE_MS+70);
   }
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);

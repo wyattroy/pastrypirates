@@ -953,6 +953,11 @@ const DOCK_FLAVOR_BEFORE = {
   checkTrue("G8: the ghost is out of flow (position:absolute) so resizePanel measures only the incoming message — the box still animates once per message", /position:\s*absolute/.test(fadeRule));
   checkTrue("G8: the ghost is pointer-events:none — panel() also renders prompt buttons, and a ghost swallowing the first click would be worse than the bug being fixed", /pointer-events:\s*none/.test(fadeRule));
   checkTrue("G28: the fade runs at .8s — Wyatt lengthened it so it reads as a WARNING (\"hurry up and read it\"); .18s was too quick to notice and .5s was the earlier draggy reject", /animation:\s*apMsgFadeOut\s+\.8s/.test(fadeRule));
+  // CR-01: the CSS duration alone was never enough — a hardcoded belt timer in panel.js beat the
+  // animation and tore the ghost out early, leaving the box empty. Assert the belt is DERIVED from
+  // GHOST_FADE_MS, not a literal, so the two can never disagree again.
+  checkTrue("CR-01: the ghost's removal belt is derived from GHOST_FADE_MS, never a hardcoded ms literal",
+    /setTimeout\(drop,\s*GHOST_FADE_MS\s*\+/.test(panelSrc) && !/setTimeout\(drop,\s*\d+\)/.test(panelSrc));
   check("G8: the rejected half-second is gone from the rule", /\.5s/.test(fadeRule), false);
 
   // the hold CURVES themselves are untouched — the pinned values above must still hold unchanged
