@@ -9,6 +9,7 @@ files_modified:
   - scripts/apply_narration_copy.js
   - scripts/extract_narration_lines.js
   - scripts/ui_contract_check.js
+  - scripts/narration_test.js
   - art-review/narration-core.js
   - art-review/narration-audit.html
   - art-review/narration-inventory.json
@@ -36,6 +37,8 @@ must_haves:
     - "All 155 fields where Wyatt stored player-facing copy are compared to what he actually wrote (89 neutral + 55 addressed + 11 second-party, merge-tagged rows excluded); the 104 rows carrying no neutral copy are pinned to a committed baseline so future drift fails — two classes, reported separately, neither pretending to be the other"
     - "Approved copy is applied by command, and a bad write cannot land silently: dry-run diff by default, refusal on ambiguity, re-render proof before any byte is written"
     - "Every player-facing sink in the UI files is either a reviewable card or a reasoned, presence-verified exclusion; and no card presents text a player can never read"
+    - "CO-REACHABILITY: an explanation is reachable in the state it explains — a greyed control's reason is never suppressed by an independent condition, and every `disabled:` option has a reachable reason"
+    - "DELIVERY: no broadcast's content branches on the local viewer — spectators receive the spectator line and the actor receives the prompt, asserted per seat without a browser"
     - "Every affordance Wyatt works with is still present, asserted structurally rather than trusted"
     - "GOVERNING: src/engine/index.js has an empty diff; 31/31 determinism fixtures verify; npm test green at every commit (15 gates -> 17)"
   artifacts:
@@ -53,6 +56,7 @@ must_haves:
     - "narration-core.js -> the page AND the Node gates: one renderer, two consumers, so the browser stops being the only place the tool's health can be checked"
     - "committed approved export -> narration_copy_check.js -> npm test: shipped == approved becomes a standing contract, not a one-time sweep"
     - "apply_narration_copy.js -> re-render proof -> refuse: the writer never trusts itself"
+    - "one broadcast -> every client: content that branches on the local viewer can never be right, which is the shared root of D-35/D-55/D-57/F7"
 ---
 
 <objective>
@@ -63,9 +67,10 @@ Purpose: this is his explicit ask — *"solidify the logic in narration-audit.ht
 longterm, so that these issues don't happen again… I'd like to keep coming back to this tool to
 improve all player-facing wording going forward — so we need it to work reliably."*
 
-Output: 8 atomic commits + one blocking decision gate. Two new `npm test` gates (15 -> 17), one
-shared render core, stable content-anchored card ids, all 209 reviewed dispositions carried across,
-and an applier whose bad writes cannot land.
+Output: 10 atomic commits + one blocking decision gate. Two new scripts in the `npm test` chain
+(15 -> 17 gates) plus two new assertions inside `ui_contract_check.js`, one shared render core, stable
+content-anchored card ids, all 209 reviewed dispositions carried across, an applier whose bad writes
+cannot land, and the two live playtest defects fixed with the gates that catch their class.
 </objective>
 
 <current_state>
@@ -312,7 +317,9 @@ The brief asks for this split to be explicit and the human list to be short. It 
 every card resolves and renders (Task 1/4 gate, browser-free); no card shows placeholder text (Task 3);
 all 209 dispositions carried across with no reviewed-count loss (Task 4); shipped text equals approved
 text (Task 5); the applier refuses ambiguity and proves its own write (Task 6); every player-facing
-sink is carded or excluded (Task 7); every affordance hook present (Task 1 census).
+sink is carded or excluded (Task 7); a greyed control's reason is reachable in the state it explains
+(Task 8); every broadcast reaches its intended viewer (Task 9); every affordance hook present (Task 1
+census).
 
 **Human — exactly one sitting, Task 11, five numbered items:**
 1. Open the page. Confirm it renders: stages, cards, drawn edges, and the counter reading `209 of N`.
@@ -2018,7 +2025,12 @@ Run at the final commit, all of it:
   approval cannot pass by self-comparison
 - `node scripts/extract_narration_lines.js` -> exit 0, inventory byte-stable across two runs
 - `node scripts/apply_narration_copy.js` -> exit 0, dry-run, working tree unchanged
-- `node scripts/module_graph_check.js` and `node scripts/ui_contract_check.js --drill` -> exit 0
+- `node scripts/ui_contract_check.js` -> exit 0, **7 assertions** (was 5), including co-reachability and
+  broadcast delivery
+- `node scripts/ui_contract_check.js --drill` -> exit 0, all 7 red-proofed against the real `ab98e04`
+  code where the assertion describes a fixed bug, each with a negative control
+- no broadcast content in `src/` references the local seat except the mechanism's own selection site
+- `node scripts/module_graph_check.js` -> exit 0
 - `git diff -U0 ab98e04..HEAD -- src/ui src/orchestrator.js | grep -vE '^[+-]\s*//'` -> only the
   literal changes any applied copy row made, and each of those is named in the Task 6 output
 - `package.json` `dependencies`/`devDependencies` byte-identical to `ab98e04`; no `package-lock.json`
@@ -2040,6 +2052,10 @@ Run at the final commit, all of it:
 - Approved copy applies by one command, previews before writing, refuses what it cannot prove, and
   re-renders every write to verify it before touching disk — including refusing an added icon that
   would ship in the wrong form.
+- A reason is reachable in the state it explains, and every `disabled:` option has one — gated, and
+  red-proofed against the code that violated it.
+- No broadcast's content branches on the local viewer; the actor gets the prompt and spectators get the
+  spectator line, pinned per seat headlessly.
 - The human budget holds: one sitting, no commands, no gate output, no playthrough.
 - Every way text reaches a player is a reviewable card or a reasoned, presence-verified exclusion;
   no card presents text a player can never read; both directions run in CI.
@@ -2052,5 +2068,6 @@ Run at the final commit, all of it:
 Create `.planning/quick/20260729-narration-audit-tool-hardening/SUMMARY.md` when done, recording:
 the measured before/after for each of the four headline numbers in Current State; the alias map's
 retirement list with reasons; the final divergence allowlist and why each entry remains; every drill
-result; and anything the applier refused.
+result; anything the applier refused; and for the two playtest fixes, the before/after of each converted
+site plus the per-seat assertions that now pin them.
 </output>
