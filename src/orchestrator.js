@@ -732,8 +732,27 @@ export async function runLiveNet(){
   order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
   appState.turnOrder=order.slice();buildPlayerRows();
   if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
-  await showTurnOrderIntro(order);
+  // G5 (Wyatt-approved 2026-07-30): *"Put the recipe selection step NEXT"* — immediately after the
+  // Ahoy intro, before the turn-order intro. The player is told to choose a recipe and then asked
+  // to choose one, with nothing in between.
+  //
+  // ONLY these two awaited calls were swapped. The invariant that made that safe is NOT turn order
+  // itself — it is the seeded RNG stream and the decision log, because a host-reload replay must
+  // reconstruct an identical game. Verified before swapping:
+  //   1. shuffle(order) above consumes game.r() (src/engine/index.js:228).
+  //   2. recipeDraftNet consumes game.r() for bot picks and calls logDecision for human picks.
+  //   3. showTurnOrderIntro -> netIntroBarrier (src/ui/flow.js:988) consumes NEITHER, and returns
+  //      immediately when appState.replaying. Nor do its callees: localAsk, remoteDraftPrompt and
+  //      passGate. logDecision lives only inside ask() (:391), which the barrier never calls.
+  //   4. recipeDraftNet reads nothing from appState.turnOrder and iterates in SEAT-index order.
+  // So r() consumption order (shuffle -> bot recipe picks) and logDecision order are both identical.
+  //
+  // The silent setup above (:727-734 — shuffle, staggered coins, turnOrder, buildPlayerRows,
+  // netSetTurnOrder) was deliberately NOT moved. Nothing is on screen for it, so from a player's
+  // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
+  // the RNG stream, which is the one thing this swap must not do.
   await recipeDraftNet();
+  await showTurnOrderIntro(order);
   let ended=false;
   while(appState.game.round<150&&!ended){
     appState.game.round++;
