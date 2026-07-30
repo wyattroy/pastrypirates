@@ -266,8 +266,14 @@
      the OUTGOING message when, and only when, a new line replaces it. It is never applied to a
      live message, so a trailing line still never fades (F6). Retuned .5s -> .18s: the half-second
      is what was rejected as draggy last night; 180ms reads as a soft handoff rather than a cut and
-     is over before the incoming line's typewriter has revealed more than a few characters. This is
-     the ONE number to change if he wants it slower or faster.
+     is over before the incoming line's typewriter has revealed more than a few characters.
+     G17 (Wyatt-approved 2026-07-30, superseding G8's overlap): he asked for a STRICT sequence —
+     "please fade the current line, THEN show the next" — so the incoming line no longer types in
+     UNDERNEATH this fade. The duration is unchanged at .18s; what changed is that panel() now
+     delays the incoming reveal by the same amount.
+     >>> THIS NUMBER LIVES IN EXACTLY TWO PLACES: this .18s, and GHOST_FADE_MS=180 in
+     src/ui/panel.js. MOVE THEM TOGETHER — a strict sequence is only strict while they agree; if
+     this one grows, the next line starts typing before the old one has finished fading.
      position/inset take the ghost OUT OF FLOW, which is what keeps resizePanel's inner.offsetHeight
      measuring only the incoming message — the panel height still animates exactly once per message.
      pointer-events is load-bearing, not tidiness: panel() also renders action prompts with buttons,
@@ -277,8 +283,11 @@
   @keyframes apMsgFadeOut { to { opacity: 0; } }
   /* the ghost is positioned against the inner box, not the page. No offsets, so flow is unchanged. */
   #apGridInner { position: relative; }
-  /* with motion reduced there is no cross-fade at all — an instant swap, not a ghost sitting opaque
-     over the new line for the belt's duration. panel()'s setTimeout still removes it. */
+  /* with motion reduced there is no fade at all — an instant swap, not a ghost sitting opaque
+     over the new line for the belt's duration. panel()'s setTimeout still removes it.
+     G17: panel() ALSO reads this same media query in JS and zeroes the reveal delay when it
+     matches. It has to: a media query cannot reach a JS timer, so without that read a
+     reduced-motion user would get a blank 180ms gap AND no fade — the worst of both. */
   @media (prefers-reduced-motion: reduce) { .apMsg.fadeOut { display: none; } }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }

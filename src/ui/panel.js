@@ -202,25 +202,49 @@ export function liveRender(){
 // never fades, because the fade is created only when a replacement arrives. What changes is only
 // the REPLACEMENT, which until now was an instant swap.
 //
-// THIS IS A SHORT OVERLAP CROSS-FADE, NOT A STRICT FADE-THEN-SHOW. Said plainly rather than
-// described as what he literally typed: a strict sequence would delay every single line by the
-// fade duration, which is the exact objection recorded against the rejected version below. Flagged
-// for his eye on the human-verify list — the shape is his judgement call, not a gate's.
+// G17 (Wyatt-approved 2026-07-30) — OVERRULES G8's OVERLAP. He asked for a STRICT sequence:
+// *"please fade the current line, THEN show the next"* — and waved off the pacing objection
+// explicitly: *"if we need to shorten the 'hold' time to counteract that fade, we will do that
+// later… you can stop taking so much concern for 'dragging' — that's on me to decide."*
+//
+// G8 shipped a 180ms OVERLAP cross-fade: the ghost faded while the incoming line typed in
+// underneath. That was a real objection, honestly held — and he heard it and overruled it. The
+// cost, stated plainly so nobody has to rediscover it: 180ms of added latency per REPLACED line,
+// paid deliberately, his call. The rejection paragraph below is kept as history, not deleted.
+//
+// THE MECHANISM, which is the whole of the change. panel() stays fully SYNCHRONOUS — that is
+// REQUIRED, not a preference: flash() reads `.apMsg._revealDone` the instant panel() returns, so a
+// deferred swap would hand it the wrong element or none at all. So the DOM is still replaced
+// synchronously and only the REVEAL is delayed. typewriterReveal() already blanks every text node
+// and hides every <img> the moment it is called, so the incoming line is genuinely invisible in the
+// meantime; giving it a start delay equal to the ghost fade produces fade-out-then-type-in with no
+// overlap and no awaits anywhere.
 //
 // The cross-fade rejected on 2026-07-29 (see showNarration's own note) was turned down for two
-// named reasons. Both are real and both are ANSWERED here rather than overridden:
-//   - "it would delay every line by half a second" — nothing here is deferred and nothing is
-//     waited on. panel() stays fully synchronous, which is REQUIRED: flash() reads
-//     `.apMsg._revealDone` the instant panel() returns, so a deferred swap would hand it the wrong
-//     element or none at all.
-//   - "two live lines in the box snap the panel height" — the ghost is `position:absolute` and so
-//     out of flow, meaning resizePanel's `inner.offsetHeight` measurement below still sees ONLY
-//     the incoming message. The box animates once, to the new height, exactly as it does today.
+// named reasons. Both are still real, and here is where each now stands:
+//   - "it would delay every line by half a second" — the delay is now REAL but it is 180ms, not
+//     500ms, and it applies only to a line that REPLACES another. Wyatt accepted it above.
+//   - "two live lines in the box snap the panel height" — still fully answered: the ghost is
+//     `position:absolute` and so out of flow, meaning resizePanel's `inner.offsetHeight`
+//     measurement below still sees ONLY the incoming message. The box animates once, to the new
+//     height, exactly as it does today.
 //
-// Duration: 180ms. Long enough to read as a soft handoff rather than a cut, short enough to be
-// over before the incoming line's typewriter has revealed more than a few characters, and well
-// under the 500ms that was rejected as draggy. If Wyatt wants it slower or faster, the `.18s` in
-// index.html's `.apMsg.fadeOut` rule is the one number to change.
+// EVERY PROPERTY MEASURED GOOD THIS MORNING IS PRESERVED, and each is load-bearing:
+//   - `pointer-events:none` on the ghost — panel() also renders prompts WITH BUTTONS, so a ghost
+//     that could take clicks would swallow a real decision.
+//   - `position:absolute; inset:0` — see the height argument above; the panel moves 0px per swap.
+//   - the `animationend` listener plus the 250ms setTimeout belt.
+//   - panel() synchronous, and flash()'s `_revealDone` contract intact.
+//   - F6 STANDS and is NOT reintroduced as fade-to-empty: the ghost is created only when the
+//     incoming html is non-empty, so a TRAILING line still never fades. An explicit clear (a caller
+//     passing empty content) still empties and hides the panel instantly, with no ghost.
+export const GHOST_FADE_MS=180;
+// ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
+// strict sequence is only strict while they are equal. It stays 180ms: the value Wyatt already
+// looked at this morning, so exactly one variable moves in this change. THIS NUMBER LIVES IN TWO
+// PLACES AND ONLY TWO: here, and the `.18s` in index.html's `.apMsg.fadeOut` rule. Move them
+// together or the fade and the reveal disagree — that CSS rule carries the same warning pointing
+// back here.
 export function panel(html,needsAction=false){
   html=emojify(html);
   const inner=$("apGridInner");
@@ -250,7 +274,15 @@ export function panel(html,needsAction=false){
   // typed in a second time. The ghost is appended after the live content anyway, so this is a belt
   // rather than a fix — but flash() depends on getting the RIGHT element back, so it is cheap.
   const msgEl=$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
-  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);
+  // G17: delay the reveal by exactly the ghost's fade, and only when there IS a ghost — a first
+  // line, or a line after an explicit clear, still types in immediately.
+  //
+  // REDUCED MOTION is read HERE, in JS, and that is not a stylistic choice: index.html's
+  // `@media (prefers-reduced-motion: reduce)` sets `.apMsg.fadeOut{display:none}`, so there is no
+  // fade to wait for — but a CSS media query cannot reach a JS timer. Without this read, a
+  // reduced-motion user would get a blank 180ms gap AND no fade, which is the worst of both.
+  const reduced=typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0);
 }
 // notes/edits BUG-01: smoothly resize the box to the CURRENT message's finished height, exactly
 // ONCE. Measure the natural content height (with the row briefly unconstrained and the transition
@@ -295,7 +327,15 @@ export function resizePanel(hasContent){
 // snapping the height. The typewriter reveal (this) is deliberately kept exactly as-is.
 // Characters are counted as CODE POINTS (`[...str]`, matching the original's `for...of`), not code
 // units — this text is full of emoji and slicing mid-surrogate-pair would render broken glyphs.
-export function typewriterReveal(msgEl,msPerChar){
+// G17 (Wyatt-approved 2026-07-30): the third parameter, `startDelayMs`. panel() passes the ghost
+// fade's duration so the incoming line does not begin revealing until the outgoing one has finished
+// fading — a STRICT sequence rather than G8's overlap. Nothing is deferred and nothing is awaited:
+// the DOM is still replaced synchronously, and this function still BLANKS every text node and sets
+// every <img> to opacity:0 the moment it is called, so the incoming line is genuinely invisible
+// until its first tick. The delay only moves that first tick.
+// The target is clamped at 0 below, so a negative elapsed reveals nothing while the poll loop keeps
+// scheduling — which is what makes the delay work without a separate timer.
+export function typewriterReveal(msgEl,msPerChar,startDelayMs=0){
   if(msgEl._revealTimer)clearTimeout(msgEl._revealTimer);
   const units=[],recs=[];
   const walker=document.createTreeWalker(msgEl,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
@@ -318,10 +358,13 @@ export function typewriterReveal(msgEl,msPerChar){
     const total=units.length;
     if(!total){resolve();return;}
     let revealed=0;
-    const start=performance.now();
+    const start=performance.now()+startDelayMs;
     const pollMs=Math.max(16,Math.min(msPerChar,32));
     const step=()=>{
-      const target=Math.min(total,Math.floor((performance.now()-start)/msPerChar));
+      // Math.max(0,…): before `start` the elapsed is negative, which would floor to a negative
+      // target and, without the clamp, leave `revealed<target` false — ending the poll loop and
+      // resolving an empty message. Clamped to 0 it reveals nothing and keeps scheduling.
+      const target=Math.min(total,Math.max(0,Math.floor((performance.now()-start)/msPerChar)));
       while(revealed<target){
         const u=units[revealed++];
         if(u.img)u.img.style.opacity="1";
@@ -381,6 +424,24 @@ export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.t
 //     resizePanel still measures only the incoming message. One height animation per message.
 // What is NOT superseded: "never fade the last line". The ghost exists only when a replacement
 // arrives, so a trailing line still never fades, and showNarration below still schedules nothing.
+//
+// SUPERSEDED IN TURN BY G17 (Wyatt-approved 2026-07-30, the SAME DAY, later) — and the correction
+// is to the paragraph directly above, so read them in order. G8 shipped an OVERLAP: the ghost faded
+// while the incoming line typed in underneath. He looked at it and asked for a STRICT sequence:
+// *"please fade the current line, THEN show the next."*
+//
+// The pacing objection recorded twice above — a delay per line — is now a REAL cost rather than an
+// avoided one: 180ms per REPLACED line. He was told, and overruled it in terms that leave nothing
+// to re-litigate: *"if we need to shorten the 'hold' time to counteract that fade, we will do that
+// later… you can stop taking so much concern for 'dragging' — that's on me to decide."* So the
+// objection was correct, was heard, and lost on the merits of whose call it is. Do not re-raise it
+// as a defect.
+//
+// The height answer is UNCHANGED and still holds — the ghost is still an out-of-flow clone, so the
+// box still animates once per message. And "never fade the last line" is STILL not superseded: the
+// ghost is created only when the incoming html is non-empty. Verified live over 200 lines this
+// session. The mechanism (a start delay on the typewriter reveal, panel() still synchronous) lives
+// in panel()'s header — the whole of it is there, deliberately, not split across two files.
 //
 // NARR-06, recorded honestly and NOT silently re-written: its criterion is "narration stays fully
 // visible 10% less time before it begins fading." Under F6 a TRAILING line never begins fading, so
