@@ -47,25 +47,33 @@ being fed a fiction.
 
 **Fix:** copy the engine's movement guard to both UI sites. No new copy, no engine change, no re-record.
 
-### G30 — `home` shelter is described as being "docked", and it need not be
+### G30 — WITHDRAWN. My diagnosis contradicted two of Wyatt's own decisions.
 
-`mooredReason()` (`src/engine/index.js:254-259`) returns `"home"` for ANY square within 1 of Tortuga:
+I claimed `home` shelter should stop saying "docked", because a square beside Tortuga is not a berth.
+Wyatt: *"your diagnosis violates past insights."* He is right, on two counts, and I should have checked
+the record before writing it up as a defect:
 
-```js
-if(p.justDocked)return "justDocked";
-if(this.cfg.singleDock&&this.adjPort(p)!==null)return "dock";
-if(man(p.pos,this.home)<=1)return "home";
-```
+1. **He set the model this morning, deciding G2:** *"we're not adding another storm outcome — we're
+   actually removing one. we're just treating tortuga like any other dock — which receives a 'lucky
+   break' message if you're blown onto it."* Under that model **Tortuga IS a dock**, so "still docked"
+   there is accurate, not a lie. G2 was explicitly a REMOVAL of Tortuga's special case; G30 proposed
+   putting one back.
+2. **D-28 already settled the shared string.** `justDocked` / `home` / `dock`-when-unmoved are *"not
+   three copies to consolidate, they are one string with three doors into it"*, and he confirmed `keep`
+   as the right disposition there. Splitting `home` off is precisely what D-28 warned a reader not to do.
 
-and the `home` branch renders *"is still docked, so the storm can't run them aground."* Sitting in open
-water beside the centre island IS shelter, but it is NOT being docked. So the line can claim a berth the
-player does not have — which is exactly what Wyatt saw.
+**So what he actually saw is fully explained by G29 alone** — the unguarded leg summary invents a
+"blown off the dock" that never happened, which then makes the following shelter line look contradictory.
+One bug, not two. G29 stands and is unaffected by this withdrawal.
 
-**Needs a line from Wyatt** — this is new copy, and copy is his (PROJECT.md). Something naming the real
-cause: sheltered by Tortuga / in the lee of home, rather than "docked". The `justDocked` and `dock` reasons
-keep the existing wording, which is accurate for them.
+**Deferred, not a blocker** (his call): fix G29 later; there is nothing to decide about G30.
 
-**Not yet fixed. G29 needs no decision; G30 needs his words.**
+**Lesson for me, worth more than the finding was:** the model was set four hours earlier in this same
+session and written into the record. I diagnosed from the code outward without checking whether the
+behaviour I was calling wrong had already been chosen deliberately. The codebase's own comments at
+`src/ui/util.js`'s `moored` builder say so at length — I read past them.
+
+
 
 ---
 
