@@ -1263,9 +1263,9 @@ function adhocCards(siteId) {
  * zero-hand-transcription principle the ad-hoc renderers use, generalized
  * so ~24 sites don't need 24 hand-written functions. A handful reference a
  * variable computed a few lines above the ask() call itself (promptMsg,
- * prompt) — those get a small hand-written PROMPT_RENDERERS entry instead,
- * resolved the same way the core resolves every other local: by reading that variable own
- * declaration out of the real source file, so nothing is hand-transcribed.
+ * prompt) — those need no special case either: the core's resolveLocal()
+ * reads that variable's own declaration out of the real source file and
+ * evaluates it, so nothing anywhere on this page is hand-transcribed.
  * ==========================================================================*/
 const promptById = Object.fromEntries((inv.prompts || []).map((e) => [e.id, e]));
 
@@ -1553,7 +1553,7 @@ function miscIntroBarrierCards(siteId) {
 }
 
 /* ---- paramPrompt (D-33): the REAL text each caller of humanFlip()/fishCast() passes — see the
- * PARAM_PROMPT_DECL/paramPromptFallbackReachable machinery above (near PROMPT_RENDERERS) for why
+ * PARAM_PROMPT_DECL/paramPromptFallbackReachable machinery above (near promptCards) for why
  * the in-function ask() card at flow.js:103/:125 shows an unreachable fallback instead of this. ---- */
 function miscParamPromptCard(siteId) {
   const entry = requireMiscEntry("paramPrompt", siteId);
