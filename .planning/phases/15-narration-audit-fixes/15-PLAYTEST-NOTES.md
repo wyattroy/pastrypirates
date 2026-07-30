@@ -25,7 +25,7 @@ with timings via a MutationObserver on `#actionPanel`. ~150 lines logged.
 | **G8 fade / F6** | Across ~150 lines **no live line ever carried `fadeOut`** — only the outgoing ghost. Panel height moved **0px** on every swap. Ghost CSS verified: `pointer-events:none`, `0.18s`, `position:absolute`. A sail click registered first time. |
 | **D-33 real flip label** | `Flip to dodge!` — the genuine label, not the unreachable `"Flip the dubloon!"` fallback. |
 
-## G10 — the storm anchor prompt offers a choice it cannot honour (NEW)
+## G10 — the storm anchor prompt offers a choice it cannot honour — **SHIPPED 2026-07-30**
 
 **Wyatt:** *"oooh -- this should also have a greyed-out button because you can't anchor!"*
 
@@ -42,26 +42,51 @@ The information exists but lands on the wrong surface: the narration a beat earl
 
 **Fix needs both halves:** grey the anchor option with its reason (D-41 pattern), AND make the prompt not offer the choice when it is unavailable.
 
-## G11 — coin-picker prompt reads oddly on a coins-only offer
+**Both halves shipped.** The option is pushed unconditionally with `disabled:broke` and his reason verbatim (`Yer too broke to anchor`), supplied ONLY when broke so assertion 6's reachability rule holds; and a third prompt case for broke-with-crates was built by DELETING the offer clause, never by writing new copy. The `brokeAnchorLine` narration (NARR-02 case 2) stays — the explanation now lives on BOTH surfaces, which is the fix, not duplication.
+
+## G11 — coin-picker prompt reads oddly on a coins-only offer — **SHIPPED 2026-07-30**
 
 `Add any 🌕 to yer offer of nothing yet?` — Wyatt: *"this is a weird statement, for players who only offer coins! It should just say 'How many?' -- and i think it would work with all branches"*. Approved: **`How many?`** for both branches. Note the crate branch also carries a `No extra coins` button, so that screen reads "How many?" above a row ending in that option — clear, but he loses the reminder of which crate he is offering.
 
-## G12 — flip outcomes must be ALL CAPS in play
+## G12 — flip outcomes must be ALL CAPS in play — **SHIPPED 2026-07-30**
 
 Wyatt: *"in most places, we use all caps for HEADS and TAILS -- but here, I forgot to."* Swept: the ONLY in-play offender is `src/ui/flow.js:519`'s tails dock prompt, fixed by his rewrite below. Everything else lowercase is **explanatory prose** (the how-to-play modal) or **statistics** (award bylines, `heads-luck`), and he ruled those stay: *"just the in-play line is fine, leave the prose and stats"*.
 
 **Rule:** ALL CAPS when the game announces a flip outcome as it happens; lowercase when teaching or tallying. Same shape as the ye/you distinction.
 **Hazard:** a blanket replace would hit `e.heads`, `p.heads` and the `.coin.heads` CSS class — the `layout`→`layet` trap from D-29. Scope to string literals.
 
-## COPY QUEUE — approved 2026-07-30, not yet applied
+## G13–G26 — the rest of the session-2 punch list, with dispositions
 
-1. Tails dock prompt → `⚫️ TAILS! Take treasure instead? Or buy a bundle of 🌼 Velvety Vanilla Beans?` (amounts stay on the buttons, per his D-31 no-duplication principle)
-2. Coin picker → `How many?`
-3. Privacy notice → back to plain "you" (out-of-character chrome, like the labels)
-4. Fade → strict sequence: fade current line OUT, then show next. He explicitly waved off the drag concern: *"that's on me to decide"*
-5. Tortuga → **remove** the special case; it becomes a dock like any other. *"we're not adding another storm outcome -- we're actually removing one"*
-6. Dock addressed lines → drop the place
-7. G10, G11, G12 above
+Lettered and executed by `.planning/quick/20260730-playtest-session2-fixes/PLAN.md` on 2026-07-30.
+
+| ID | What he said / what it is | Disposition |
+|----|---------------------------|-------------|
+| **G13** | *"the two coin emojis next to each other are confusing"* — the storm flip button's ordinary branch | **SHIPPED.** `lose half yer treasure (−N🌕)`. The `trueShipwreck` and `broke` branches were already fine and are byte-identical. |
+| **G14** | *"the tradewinds to move players square-by-square, quickly… then we don't need a new narration line, and the players are just seeing what happens"* | **SHIPPED, host AND guest, from ONE shared stepper**, with no engine change. A rim sweep is pure GEOMETRY over a static ring every client already holds — unlike a storm push, which is simulation. Bot-storm and battle-flee sweeps still render instantly (documented fall-back, no event at the entry cell). |
+| **G15** | *"the storm animation didn't move your boat until AFTER the message disappeared… make the movement happen before the message, for all movements during all storms"* | **SHIPPED.** Five `windLeg` branches reversed to paint-then-narrate, and the gate that used to pin the WRONG order for two of them is now an INVARIANT over the whole function. The lag he actually watched was the rim sweep — that is G14. |
+| **G16** | *"the whole thing is written in normal english not pirate, so the 'ye' feels weird and out of place"* — the privacy notice | **SHIPPED.** `you`. The register gate's exception list was generalised from "the LABEL class" to OUT-OF-CHARACTER CHROME with a `kind` field, and the credits anchor moved into it — a strictly tighter gate, not a widened one. |
+| **G17** | *"please fade the current line, THEN show the next"* — overriding this morning's G8 overlap | **SHIPPED.** 180ms fade, then a 180ms-delayed reveal. `panel()` stays synchronous. He waved off the pacing objection: *"that's on me to decide."* **Needs his eye in a browser.** |
+| **G18** | *"A boxed-in bot SHOULD escape via the rim"* | **SHIPPED, UI-tier.** `botTurn` now mirrors the engine's `takeTurn` ladder by CALLING the engine's existing `boxedIn()`/`rimEscape()`. Bots used to escape only in headless runs. |
+| **G19** | Storm rain differed per client; he chose seeding (option 1) and the measured midpoint (option 3) | **SHIPPED.** `mulberry32(game.seed)`, never `game.r()`. baseSpeed 0.676, tile ×0.969 — the midpoint of the two screens measured live. Jitter KEPT; variation moved from between PLAYERS to between GAMES. **Needs his eye, and a Safari check.** |
+| **G20** | The queued re-record batch | **RECORDED.** `docs/DETERMINISM-RERECORD-NEXT.md` extended with the bot-intelligence cross-reference. G14's guest half is explicitly NOT queued — it shipped without an engine change. |
+| **G21** | *"i know this… I think it's fine -- it renders okay in the game, because the renderer seems to nudge them next to each other"* — ships stacking after a rim sweep | **RULED, do not fix.** `.planning/todos/pending/ships-stack-after-rim-sweep.md`. The renderer nudge (`shipXY`, ±0.18 cell) is the load-bearing half. |
+| **G22** | *"we don't need to keep reminding a broke player that they're too broke to flee every time they flip double-tails lol. keep it as is"* | **RULED, do not fix** — and now explicitly **no greyed button either**, a deliberate exception to the D-41 family. Extended in `.planning/todos/pending/flee-not-offered-when-broke.md`. |
+| **G23** | *"just the in-play line is fine, leave the prose and stats"* | **RULED.** `.planning/todos/pending/flip-outcomes-all-caps-in-play-only.md`. The sweep is DONE; the file exists to stop it being re-run, and names the `e.heads` / `p.heads` / `.coin.heads` blanket-replace hazard. |
+| **G24** | *"i don't care at all about breathing room around inline items right now -- i just wanted the emoji wording fix"* | **DECLINED.** No inline-icon margin change was made; `index.html` had an empty diff in G13's commit. Recorded as a comment at the G13 site. |
+| **G25** | Asked whether the four host/guest drifts were structurally fixed: *"yes, add it and pull D-55 forward"* | **SHIPPED.** ONE `sailHighlightRect()` builds both the host's and the guest's sail squares. The guest's dimmer, class-less, unanimated rect is gone. **Needs a guest-seat eyeball.** |
+| **G26** | The parity gate D-56 recommended and nobody wrote | **SHIPPED.** `scripts/host_guest_parity_check.js`, `npm test` 16 → 17 gates. Three assertions, all red-proofed. D-57 (two narration schedulers) is the one drift still unenforced — recorded, deliberately not fixed. |
+
+## COPY QUEUE — approved 2026-07-30, ALL APPLIED
+
+Every item below shipped on 2026-07-30. Kept as the record of what was approved and where it went.
+
+1. ✅ Tails dock prompt → `⚫️ TAILS! Take treasure instead? Or buy a bundle of 🌼 Velvety Vanilla Beans?` (amounts stay on the buttons, per his D-31 no-duplication principle) — **G12**
+2. ✅ Coin picker → `How many?` — **G11**
+3. ✅ Privacy notice → back to plain "you" (out-of-character chrome, like the labels) — **G16**
+4. ✅ Fade → strict sequence: fade current line OUT, then show next. He explicitly waved off the drag concern: *"that's on me to decide"* — **G17**
+5. ✅ Tortuga → **remove** the special case; it becomes a dock like any other. *"we're not adding another storm outcome -- we're actually removing one"* — shipped earlier the same day (G2, `20260730-playtest-notes-fixes`)
+6. ✅ Dock addressed lines → drop the place — shipped earlier the same day (G1, same plan)
+7. ✅ G10, G11, G12 above — all three shipped
 
 ---
 

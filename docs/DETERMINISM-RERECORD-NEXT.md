@@ -127,3 +127,43 @@ exists instead of a commit.
 
 **This is one pass that does all of the above together, not four separate engine changes.** The
 corpus is re-recorded exactly once, so every queued item must land before that single capture.
+
+## 8. Ride-along — bot intelligence (`.planning/quick/20260730-bot-intelligence/PLAN.md`)
+
+Added 2026-07-30 (G20). That plan's engine-side improvements also need a gated pass, and it already
+names **this file** as one of its artifacts — so the two are the same pass, not two.
+
+**One re-record, not three.** The engine-purity work in sections 2–5, the bot-intelligence work, and
+STORM-02 (section 9) must all land BEFORE the single `--capture` run described in section 7. Landing
+any one of them alone spends the whole cost for a fraction of the benefit.
+
+One item from that plan is already **done and needs no re-record**: it planned to FLAG the
+`botTurn`/`takeTurn` rim-escape parity gap as a todo
+(`.planning/todos/pending/bot-rim-escape-live-parity.md`, never written). Wyatt ruled on 2026-07-30
+that it should be FIXED instead — *"A boxed-in bot SHOULD escape via the rim"* — and G18 fixed it
+UI-tier by having `botTurn` call the engine's existing `boxedIn()`/`rimEscape()` methods. The engine
+was not touched and the fixtures did not move. **That task is now "verify already fixed", not work.**
+
+## 9. NOT QUEUED HERE — the trade-wind rim sweep (G14). Read this before adding it back.
+
+An earlier framing queued "the intermediate rim-sweep squares in the event stream" in this batch, on
+the assumption that a guest could not derive them. **That assumption was wrong, and the item is
+deliberately NOT in this file.** G14 shipped square-by-square trade-wind sweeps on the host AND the
+guest on 2026-07-30 **without an engine change** (`src/ui/flow.js`'s `rimSweepPath()` /
+`animateRimSweepIfAny()`, `src/ui/board.js`'s `paintShipAt()`).
+
+**The distinction that was got wrong, in one sentence — this is the thing worth writing down:**
+
+> A **storm push is SIMULATION** — its intermediate squares depend on collisions, docks, other ships
+> and the aground ladder, none of which a guest can replay from a single event, so those squares
+> genuinely have to be broadcast. A **rim sweep is pure GEOMETRY** between two known points on a
+> STATIC ring that every client already holds (`rimCellInfo`, built once at construction from board
+> layout), so it needs nothing broadcast at all.
+
+They look alike — a boat travelling several squares that a guest sees as a jump — and that surface
+resemblance is what got them conflated. They are different classes of problem.
+
+**STORM-02 stays parked on its own merits** (see `.planning/STATE.md` §Deferred Items): it really is
+the simulation case, it really does require the event stream, and Wyatt accepted it as-is at Phase 14
+close. If it is ever taken up, it rides in this same single pass. **Do not re-queue the rim sweep,
+and do not treat STORM-02 as solved because G14 shipped.**
