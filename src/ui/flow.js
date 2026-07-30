@@ -1064,8 +1064,10 @@ export async function settleSideBets(bets,winSide){
     else parts.push(`${pn(bet.idx)} no bounty`);
   }
   liveRender();
+  // D-25/D-26 (Wyatt-approved 2026-07-29, applied during the two-tab playtest): his rewrite drops
+  // the possessive — "The Lookout settles", not "The Lookout's Call settles". 🔭 kept per D-16.
   // @copy adhoc.sidebet.settle
-  await flash("🔭 The Lookout's Call settles — "+parts.join(" · "),1600);
+  await flash("🔭 The Lookout settles — "+parts.join(" · "),1600);
 }
 // The bakeoff gets the same scoreboard + flippenator treatment as a regular battle, just
 // without attacker/defender roles, broadsides, or spoils — just two finalists racing to `need`.
