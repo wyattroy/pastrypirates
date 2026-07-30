@@ -1,5 +1,10 @@
 # Determinism Fixture Re-Record — Phase 14
 
+> **This file is a closed historical record of the Phase 14 re-record.** Engine changes SPECIFIED
+> but not yet made, queued for whenever the next gated re-record happens, live in its companion:
+> [`DETERMINISM-RERECORD-NEXT.md`](DETERMINISM-RERECORD-NEXT.md). Read that one before starting a
+> re-record — the corpus is captured exactly once, so everything queued must land first.
+
 D-16's surviving requirement: document what changed and why alongside the new fixtures. This file
 is that record. It is started here, in 14-01, while the tracer's evidence is fresh, and completed
 in 14-04 immediately before the single `--capture` run that rewrites the corpus.
