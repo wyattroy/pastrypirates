@@ -194,9 +194,51 @@ export function liveRender(){
 }
 // needsAction=true turns the panel yellow (this seat must decide something);
 // false (the default) is pale blue — informational only, nothing to click.
+// G8 (Wyatt-approved 2026-07-30): *"I would like a gentle fade before the next line comes in,
+// triggered BY the next line coming in – the logic could be, if new line coming in, then fade
+// current line before displaying it; else keep the current line up."*
+//
+// F6's trailing-line behaviour is UNCHANGED and must stay so: a line with nothing following it
+// never fades, because the fade is created only when a replacement arrives. What changes is only
+// the REPLACEMENT, which until now was an instant swap.
+//
+// THIS IS A SHORT OVERLAP CROSS-FADE, NOT A STRICT FADE-THEN-SHOW. Said plainly rather than
+// described as what he literally typed: a strict sequence would delay every single line by the
+// fade duration, which is the exact objection recorded against the rejected version below. Flagged
+// for his eye on the human-verify list — the shape is his judgement call, not a gate's.
+//
+// The cross-fade rejected on 2026-07-29 (see showNarration's own note) was turned down for two
+// named reasons. Both are real and both are ANSWERED here rather than overridden:
+//   - "it would delay every line by half a second" — nothing here is deferred and nothing is
+//     waited on. panel() stays fully synchronous, which is REQUIRED: flash() reads
+//     `.apMsg._revealDone` the instant panel() returns, so a deferred swap would hand it the wrong
+//     element or none at all.
+//   - "two live lines in the box snap the panel height" — the ghost is `position:absolute` and so
+//     out of flow, meaning resizePanel's `inner.offsetHeight` measurement below still sees ONLY
+//     the incoming message. The box animates once, to the new height, exactly as it does today.
+//
+// Duration: 180ms. Long enough to read as a soft handoff rather than a cut, short enough to be
+// over before the incoming line's typewriter has revealed more than a few characters, and well
+// under the 500ms that was rejected as draggy. If Wyatt wants it slower or faster, the `.18s` in
+// index.html's `.apMsg.fadeOut` rule is the one number to change.
 export function panel(html,needsAction=false){
   html=emojify(html);
-  $("apGridInner").innerHTML=html;
+  const inner=$("apGridInner");
+  // Only when a line is actually being REPLACED: an explicit clear (empty html) still empties and
+  // hides the panel instantly with no ghost, which is the explicit-clear path F6 preserved.
+  const outgoing=html?inner.querySelector(".apMsg:not(.fadeOut)"):null;
+  const ghost=outgoing?outgoing.cloneNode(true):null;
+  inner.innerHTML=html;
+  if(ghost){
+    ghost.classList.add("fadeOut");
+    inner.appendChild(ghost); // appended AFTER the live content, so :not(.fadeOut) lookups below still find the new line first
+    const drop=()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);};
+    ghost.addEventListener("animationend",drop,{once:true});
+    // belt: animationend can be dropped entirely in a backgrounded tab, which would leak a ghost
+    // that then sits over every later line. Same reasoning typewriterReveal records for preferring
+    // setTimeout to requestAnimationFrame. Comfortably clear of the 180ms animation.
+    setTimeout(drop,250);
+  }
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
   resizePanel(!!html);
@@ -204,7 +246,10 @@ export function panel(html,needsAction=false){
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
   // so callers like flash() can wait for real completion instead of a guessed duration.
-  const msgEl=$("actionPanel").querySelector(".apMsg");
+  // G8: `:not(.fadeOut)` so a lingering ghost can never be mistaken for the live message and get
+  // typed in a second time. The ghost is appended after the live content anyway, so this is a belt
+  // rather than a fix — but flash() depends on getting the RIGHT element back, so it is cheap.
+  const msgEl=$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
   if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);
 }
 // notes/edits BUG-01: smoothly resize the box to the CURRENT message's finished height, exactly
@@ -325,6 +370,17 @@ export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.t
 // guest line by that half-second (the opposite of D-58's anti-drag note) and would briefly put two
 // lines in the box, which snaps the panel height (see BUG-01's note in flash() below). Replacement
 // IS the transition.
+//
+// SUPERSEDED BY G8 (Wyatt-approved 2026-07-30) — kept, not deleted, because the next reader needs
+// to know the 500ms version was tried and why this one is different. He asked for *"a gentle fade
+// before the next line comes in, triggered BY the next line coming in"*. Both objections above are
+// answered rather than overridden, and the answer to each is what shapes the implementation (which
+// lives in panel(), NOT here — see its header):
+//   - the half-second delay: 180ms, and nothing is deferred or waited on. panel() stays synchronous.
+//   - the height snap: the outgoing line is an absolutely-positioned GHOST CLONE, out of flow, so
+//     resizePanel still measures only the incoming message. One height animation per message.
+// What is NOT superseded: "never fade the last line". The ghost exists only when a replacement
+// arrives, so a trailing line still never fades, and showNarration below still schedules nothing.
 //
 // NARR-06, recorded honestly and NOT silently re-written: its criterion is "narration stays fully
 // visible 10% less time before it begins fading." Under F6 a TRAILING line never begins fading, so

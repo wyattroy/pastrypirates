@@ -261,11 +261,25 @@
      break — wrap it in this class at the string-building level wherever it appears. */
   .nobrk { white-space: nowrap; }
   /* notes/edits #1: every narration/prompt message types in one character at a time (real DOM
-     text-node reveal via typewriterReveal() in panel() — see there for why). Only flash()'s
-     passive narration (no buttons to click through) ever gets the .fadeOut treatment — action
-     prompts stay until the player dismisses them. */
-  .apMsg.fadeOut { animation: apMsgFadeOut .5s ease both; }
+     text-node reveal via typewriterReveal() in panel() — see there for why).
+     G8 (Wyatt-approved 2026-07-30): this rule now dresses the GHOST — the clone panel() makes of
+     the OUTGOING message when, and only when, a new line replaces it. It is never applied to a
+     live message, so a trailing line still never fades (F6). Retuned .5s -> .18s: the half-second
+     is what was rejected as draggy last night; 180ms reads as a soft handoff rather than a cut and
+     is over before the incoming line's typewriter has revealed more than a few characters. This is
+     the ONE number to change if he wants it slower or faster.
+     position/inset take the ghost OUT OF FLOW, which is what keeps resizePanel's inner.offsetHeight
+     measuring only the incoming message — the panel height still animates exactly once per message.
+     pointer-events is load-bearing, not tidiness: panel() also renders action prompts with buttons,
+     and a ghost that swallowed the first click on a prompt would be a far worse bug than the one
+     this fixes. */
+  .apMsg.fadeOut { animation: apMsgFadeOut .18s ease both; position: absolute; inset: 0; pointer-events: none; }
   @keyframes apMsgFadeOut { to { opacity: 0; } }
+  /* the ghost is positioned against the inner box, not the page. No offsets, so flow is unchanged. */
+  #apGridInner { position: relative; }
+  /* with motion reduced there is no cross-fade at all — an instant swap, not a ghost sitting opaque
+     over the new line for the belt's duration. panel()'s setTimeout still removes it. */
+  @media (prefers-reduced-motion: reduce) { .apMsg.fadeOut { display: none; } }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }

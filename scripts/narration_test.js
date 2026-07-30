@@ -921,6 +921,29 @@ const DOCK_FLAVOR_BEFORE = {
   // chat bubbles are untouched (D-15), so the fade class keeps a live consumer and nothing is orphaned
   checkTrue("F6/D-15: showChatBubble keeps its own fade — the fade class still has a live consumer, nothing is orphaned", /fadeOut/.test(cb || ""));
 
+  /* ---------- G8: the outgoing line fades when — and ONLY when — one replaces it ----------
+   * Source-text assertions in the same DOM-free style as the F6 block above, because panel()
+   * touches the DOM and has no headless gate. No genuine pure function falls out of this change,
+   * so nothing was added to narration_flow_test.js rather than writing a test that asserts nothing.
+   * These do assert something real: they catch a regression to fade-to-empty, a lost
+   * pointer-events guard, a panel() that acquired an await, and a ghost with no removal path. */
+  const pn8 = bodyOf("export function panel");
+  checkTrue("G8: panel() clones the outgoing message into a ghost and dresses it with the fade class", /cloneNode/.test(pn8 || "") && /fadeOut/.test(pn8 || ""));
+  // the trigger condition IS the feature: no incoming line, no ghost, so a trailing line never fades
+  checkTrue("G8/F6: the ghost is built ONLY when incoming html is non-empty — a trailing line has no replacement, so it never fades", /html\?inner\.querySelector/.test(pn8 || ""));
+  check("G8: panel() is still SYNCHRONOUS — flash() reads .apMsg._revealDone the instant it returns, so a deferred swap would hand it the wrong element", /await |async /.test(pn8 || ""), false);
+  checkTrue("G8: the ghost has BOTH removal paths — animationend, and a setTimeout belt for a backgrounded tab that drops the event", /animationend/.test(pn8 || "") && /setTimeout\(drop/.test(pn8 || ""));
+  // F6's rule is untouched BY CONSTRUCTION: the fade lives in panel(), triggered by the replacement,
+  // so showNarration still schedules nothing at all (asserted above and deliberately left as-is).
+  check("G8/F6: showNarration STILL schedules no fade of its own — the replacement triggers it, not a timer", /fadeOut/.test(sn), false);
+
+  const indexSrc = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const fadeRule = (indexSrc.match(/\.apMsg\.fadeOut\s*\{[^}]*\}/) || [""])[0];
+  checkTrue("G8: the ghost is out of flow (position:absolute) so resizePanel measures only the incoming message — the box still animates once per message", /position:\s*absolute/.test(fadeRule));
+  checkTrue("G8: the ghost is pointer-events:none — panel() also renders prompt buttons, and a ghost swallowing the first click would be worse than the bug being fixed", /pointer-events:\s*none/.test(fadeRule));
+  checkTrue("G8: the fade runs at 180ms — the one taste-call number, and NOT the .5s that was rejected as draggy", /animation:\s*apMsgFadeOut\s+\.18s/.test(fadeRule));
+  check("G8: the rejected half-second is gone from the rule", /\.5s/.test(fadeRule), false);
+
   // the hold CURVES themselves are untouched — the pinned values above must still hold unchanged
   const utilSrc = readFileSync(new URL("../src/ui/util.js", import.meta.url), "utf8");
   checkTrue("F6: MSG_HOLD_MULTIPLIER is still 0.72 — the curve is not what F6 changes", /MSG_HOLD_MULTIPLIER=0\.72/.test(utilSrc));
