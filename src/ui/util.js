@@ -925,6 +925,20 @@ export function msgHoldMs(text){
 export const SHIP_GLIDE_MS=350; // must match drawBoard()'s ship `transition: transform .35s`
 export const STORM_STEP_MS=SHIP_GLIDE_MS+70;     // 420 — the human watching their own ship
 export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappier of the two
+// G14 (Wyatt-approved 2026-07-30): the per-square beat for a TRADE-WIND RIM SWEEP. Derived from the
+// constant above rather than invented, so the two pacings stay related if either is tuned.
+//
+// DELIBERATELY BELOW SHIP_GLIDE_MS, which is the opposite of the rule stated for the two constants
+// above — and the reason is the difference between the two motions:
+//   - A STORM PUSH is 1-2 discrete squares, and the point is to READ each one. Hence a beat that
+//     clears the 350ms glide so the boat comes to rest.
+//   - A RIM SWEEP is a long CONTINUOUS ARC. An arc can span nearly half the rim (arc lengths are
+//     randomised per game, src/engine/index.js:70-73), so a storm-paced 420ms per square would run
+//     six seconds for one sweep. At ~95ms the ship retargets mid-glide, which here is exactly what
+//     is wanted: it reads as one continuous travel ALONG the ring rather than a row of hops. That
+//     is what "square-by-square, quickly" should look like.
+// ONE constant, so host and guest are paced identically by construction.
+export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
 
 // D-23 (Wyatt-approved 2026-07-29): bot narration used to hold on screen for LESS time than the
 // identical human line (BOT_MSG_HOLD_MULTIPLIER 0.45 vs MSG_HOLD_MULTIPLIER 0.72) — a violation of

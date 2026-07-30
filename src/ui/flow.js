@@ -51,7 +51,7 @@ import {
   DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, renderLiveShips } from "./board.js";
+import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -59,7 +59,7 @@ import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
-  msgHoldMs, BOT_STORM_STEP_MS,
+  msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_STEP_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -312,6 +312,98 @@ export function coinShortfall(debit,purse){
   if(!Number.isFinite(debit)||debit<0)return Infinity;
   return Math.max(0,debit-purse);
 }
+// G14 (Wyatt-approved 2026-07-30): the ordered rim cells a trade-wind sweep passes THROUGH, from
+// just after `from` up to and including its arc head. PURE and DOM-free, so it is tested headlessly
+// over real boards in scripts/narration_flow_test.js. Never includes `from` itself.
+//
+// Wyatt: *"the tradewinds to move players square-by-square, quickly… then we don't need a new
+// narration line, and the players are just seeing what happens."* He watched a storm push a bot onto
+// the rim and the sweep return it invisibly, so the boat appeared not to move.
+//
+// A GUEST CAN DO THIS TOO, and the earlier claim that it needed the event stream was WRONG — say so
+// here, because the conflation is what parked this for a phase. A storm push is SIMULATION:
+// intermediate squares depend on collisions, docks, other ships and the aground ladder, none of
+// which a guest can replay from one event — that is why STORM-02 is parked, on its own merits. A RIM
+// SWEEP IS PURE GEOMETRY between two known points on a STATIC ring. `rimCellInfo`
+// (src/engine/index.js:92) is the ordered, arc-tagged ring, built once at construction from board
+// layout, and a guest's game object carries it identically. Different class of problem entirely.
+//
+// WHY THE SLICE IS CORRECT — the two structural facts, from the constructor:
+//   1. arcs are CONTIGUOUS in `cells` (built `for q…for i…cells.push({...ring[idx++],q})`), and
+//   2. each arc's head is its LAST member (`for(const c of cells)heads[c.q]=c` — last write wins).
+// Together: headIdx >= fromIdx always, within one arc, with no wraparound. So a plain forward slice
+// is the whole answer.
+export function rimSweepPath(game,from){
+  if(!game||!game.isRound||!game.rimCellInfo||!from)return [];
+  const key=from[0]+","+from[1];
+  const cells=game.rimCellInfo;
+  const fromIdx=cells.findIndex(c=>c.k===key);
+  if(fromIdx<0)return [];                      // not on the ring
+  const head=game.rimHead&&game.rimHead[key];
+  if(!head)return [];
+  if(head[0]===from[0]&&head[1]===from[1])return []; // already AT its arc head — nothing to sweep
+  const headKey=head[0]+","+head[1];
+  const headIdx=cells.findIndex((c,i)=>i>=fromIdx&&c.k===headKey);
+  if(headIdx<0)return [];
+  return cells.slice(fromIdx+1,headIdx+1).map(c=>[c.x,c.y]);
+}
+// G14 (Wyatt-approved 2026-07-30): THE ONE TRADE-WIND STEPPER, called identically by the host sites
+// and by the guest's watchEvents(). Takes NO PARAMETERS on purpose — no call site can pass something
+// a different call site doesn't, so the two tiers cannot be paced or aimed differently.
+//
+// Derives its path from the EVENT STREAM, which both tiers have: the last event must be a
+// `tradewind`; `to` is that event's own state snapshot, `from` is the PREVIOUS event's. It then
+// refuses to animate unless rimSweepPath(from) is non-empty AND lands exactly on `to`. NEVER
+// INVENTS A PATH — if the derivation does not check out, it returns and today's instant render
+// stands.
+//
+// WHERE THE DERIVATION HOLDS (an event exists AT the entry cell):
+//   - a human sailing into the rim — the `sail` event is emitted at the entry cell
+//   - a human storm push onto the rim — `windmove`/`blownOut` likewise
+//   - the engine's rimEscape() — `windmove` at the rim cell, THEN the sweep. That is exactly the
+//     bot-teaching case G18 just turned on.
+// WHERE IT FALLS BACK to today's instant render, honestly listed rather than overclaimed:
+//   - the engine's INTERNAL windPush sweep (a bot storm), which emits nothing between stepping onto
+//     the rim and sweeping, so there is no `from` to read
+//   - the battle-flee sweep (src/orchestrator.js), where `def.pos=dest` is not recorded before
+//     tradewind() runs
+// Both render exactly as they do today — no regression, and no invented path. Closing that residue
+// would require the ENTRY CELL in the event stream, i.e. the STORM-02 class of change, which stays
+// parked on its own merits and is NOT added to the re-record batch.
+let _lastSweptEvIdx=-1;
+export async function animateRimSweepIfAny(){
+  const g=appState.game;
+  if(!g||appState.replaying)return;
+  const n=g.events.length;
+  if(n<2)return;
+  const last=g.events[n-1];
+  if(!last||last.t!=="tradewind")return;
+  // RE-ENTRY GUARD: a module-local index, NEVER a flag stamped on the event object. The host
+  // broadcasts events verbatim (pushEvents -> JSON.parse(JSON.stringify(...))), so an extra field
+  // would leak straight into the Firebase payload and can trip scripts/net_contract_check.js.
+  if(_lastSweptEvIdx===n-1)return;
+  _lastSweptEvIdx=n-1;
+  const seat=last.p;
+  const prev=g.events[n-2];
+  if(!last.state||!prev||!prev.state)return;
+  const to=last.state[seat]&&last.state[seat].pos;
+  const from=prev.state[seat]&&prev.state[seat].pos;
+  if(!to||!from||!g.onRim(from))return;
+  const path=rimSweepPath(g,from);
+  if(!path.length)return;
+  const end=path[path.length-1];
+  if(end[0]!==to[0]||end[1]!==to[1])return;   // the derivation disagrees with the engine — do not guess
+  try{
+    for(const c of path){
+      paintShipAt(seat,c);
+      await sleep(RIM_SWEEP_STEP_MS);
+    }
+  }finally{
+    // an interruption (turn expiry, a mid-sweep event, a thrown paint) must never strand the ship
+    // part-way round the arc
+    paintShipAt(seat,to);
+  }
+}
 // one 1- or 2-square push in a single direction, with the human island-dodge prompt inline.
 // storms chain two of these (see humanWind) — each leg resolves fully before the next begins.
 export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
@@ -450,7 +542,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
     await sleep(STORM_STEP_MS);
     if(appState.game.onRim(nx)){ // swept into the trade winds
       appState.game.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}
+      if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}
       return;
     }
   }
@@ -875,7 +967,7 @@ export async function humanAct(p,sailCtx){
     // invented. appState.turnExpired above does NOT cover this: it is set at 30s, the coin
     // penalty fires at 20s and sets no flag at all.
     if(dest&&!coinShortfall(1,p.coins)){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
+      if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
   // @copy adhoc.act.bakerystart
@@ -967,7 +1059,7 @@ export async function humanTurn(p){
     // `await pickCell(...)`, the debit after it. Falls through to the same "ship does not move"
     // outcome, which renders nothing.
     if(dest&&!coinShortfall(1,p.coins)){p.coins--;p.pos=dest;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      if(appState.game.tradewind(p)){liveRender();await narrateLastEvent();}}
+      if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
   // @copy adhoc.turn.brokesail
   }else await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),900,undefined,[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11: broke — the action prompt right after also reframes, but this is the sail-specific nudge
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
@@ -1069,7 +1161,7 @@ export async function botTurn(p){
     // (.planning/todos/pending/bot-rim-escape-live-parity.md, not yet written). Wyatt has now ruled
     // it should be FIXED, so that task becomes "verify already fixed" rather than a duplicate.
     if(p.pos[0]!==b[0]||p.pos[1]!==b[1]){g.ev({t:"sail",p:p.idx});await botBeat();}
-    else if(g.boxedIn(p)&&g.rimEscape(p)){await botBeat();} // rimEscape recorded its own events
+    else if(g.boxedIn(p)&&g.rimEscape(p)){await animateRimSweepIfAny();await botBeat();} // G14: watch the sweep, then narrate it. rimEscape recorded its own events
     else p.coins++;
   // @copy adhoc.turn.botbrokesail
   }else if(wantsToSail)await flash(brokeSailLine(p.idx,NEUTRAL_VIEWER),null,msgHoldMs(brokeSailLine(p.idx,NEUTRAL_VIEWER)),[{seat:p.idx,html:brokeSailLine(p.idx,p.idx)}]); // D-11/D-23: a broke bot states why it isn't moving, on the same hold curve a human gets

@@ -98,7 +98,7 @@ import {
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, asyncBakeoff, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, remotePickHighlights, wireRestoreFail,
-  endReplay,
+  endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
@@ -567,7 +567,12 @@ export async function asyncBattle(att,def){
         if(flee&&!coinShortfall(1,def.coins)){
           def.coins--;
           const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
-          if(dest){def.pos=dest;appState.game.tradewind(def);}
+          // G14: the shared stepper, called here too. It NO-OPS today — `def.pos=dest` is not
+          // recorded as an event before tradewind() runs, so there is no `from` snapshot to derive
+          // a path from and the sweep falls back to today's instant render. That is correct, and
+          // the call site is here deliberately: if this path ever records the entry cell, the
+          // square-by-square sweep starts working for free, on host and guest alike.
+          if(dest){def.pos=dest;appState.game.tradewind(def);await animateRimSweepIfAny();}
           for(const bet of bets)appState.game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
           fled=true;
           appState.game.recordSkirmish(att,def,null); // fleeing settles nothing, but cools "rich" re-triggers
@@ -949,11 +954,24 @@ export function watchDraftPrompt(){
 }
 // remote: render the game purely from the broadcast event feed
 export function watchEvents(){
-  netWatchEvents(appState.db,appState.room,snap=>{
+  netWatchEvents(appState.db,appState.room,async snap=>{
+    // G14 (Wyatt-approved 2026-07-30): the guest half of the trade-wind sweep. THE PUSH AND THE
+    // evIdx ASSIGNMENT HAPPEN FIRST, BEFORE ANY await — so a second event arriving mid-sweep cannot
+    // reorder the feed. Everything after the await is presentation only.
     appState.game.events.push(fixEv(snap.val()));
     appState.evIdx=appState.game.events.length-1;
     syncLogLines();
     $("scrub").max=Math.max(0,appState.game.events.length-1);
+    // ANIMATE BEFORE render(), or the ship has already jumped to its destination and there is
+    // nothing left to watch. The same shared stepper the host calls — one function, both tiers, so
+    // they cannot be paced or aimed differently (that is what scripts/host_guest_parity_check.js
+    // assertion 3 pins). This tier does NOT read rimCellInfo or rimHead itself.
+    //
+    // KNOWN, ACCEPTED DEGRADATION, stated rather than discovered later: the guest's coin/crate
+    // panels lag by the sweep's duration (~95ms per square) because render() now runs after it, and
+    // an event arriving mid-sweep harmlessly snaps the ship to its true square on the next paint.
+    // Degradation, not breakage.
+    await animateRimSweepIfAny();
     render();
     const e=appState.game.events[appState.evIdx];
     spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js

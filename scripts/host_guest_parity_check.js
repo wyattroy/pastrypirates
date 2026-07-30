@@ -39,10 +39,11 @@
 // 2. ONE SAIL-HIGHLIGHT BUILDER. In src/ui/flow.js exactly one rect builder carries the sailCell
 //    class, both localPickCell and remotePickHighlights call the shared sailHighlightRect(), and
 //    neither builds an el("rect" of its own. This is G25's fix, made permanent.
-// (Assertion 3 — ONE RIM-SWEEP STEPPER — is added by G14 in the commit that ships the stepper it
-//  asserts. An assertion whose subject does not exist yet either fails for a reason unrelated to
-//  the commit it lands in, or is written loosely enough to pass a tree that has nothing in it;
-//  both are worse than adding it alongside its fix.)
+// 3. ONE RIM-SWEEP STEPPER (added by G14, in the same commit that ships the stepper — an assertion
+//    whose subject does not exist yet either fails for an unrelated reason or is written loosely
+//    enough to pass an empty tree). Exactly one rimSweepPath definition; src/orchestrator.js calls
+//    the shared animateRimSweepIfAny() and contains NEITHER rimCellInfo NOR rimHead — i.e. the
+//    guest tier does not reimplement the ring walk.
 //
 // ============================================================================
 // Comment stripping, and why it is not optional here
@@ -145,6 +146,33 @@ export function checkOneSailHighlightBuilder(root) {
   return res;
 }
 
+/* ================= Assertion 3: one rim-sweep stepper ================= */
+// Added by G14/T12. Written to be VACUOUS-PROOF: if the stepper does not exist yet, this fails
+// loudly rather than passing because it found nothing to check.
+export function checkOneRimSweepStepper(root) {
+  const res = mk("assertion 3 — one rim-sweep stepper serves host and guest (G14)");
+  const flow = read(root, FLOW_REL);
+  const orch = read(root, ORCH_REL);
+  if (flow === null) { fail(res, `${FLOW_REL} is missing`); return res; }
+  if (orch === null) { fail(res, `${ORCH_REL} is missing`); return res; }
+  const liveFlow = stripComments(flow), liveOrch = stripComments(orch);
+
+  const defs = (liveFlow.match(/export function rimSweepPath\(/g) || []).length;
+  if (defs !== 1) {
+    fail(res, `PARITY-RIMSWEEP: ${defs} rimSweepPath definition(s) in ${FLOW_REL}, expected exactly 1. The rim walk is pure geometry over a static ring; two copies of it is two chances to disagree about where a ship goes.`);
+  }
+  if (!/animateRimSweepIfAny/.test(liveOrch)) {
+    fail(res, `PARITY-RIMSWEEP: ${ORCH_REL} never calls animateRimSweepIfAny() — the guest is not driving the shared stepper, so a guest watching a trade-wind sweep sees the ship teleport while the host sees it travel.`);
+  }
+  for (const sym of ["rimCellInfo", "rimHead"]) {
+    if (new RegExp(`\\b${sym}\\b`).test(liveOrch)) {
+      fail(res, `PARITY-RIMSWEEP: ${ORCH_REL} reads ${sym} directly — the guest tier is reimplementing the rim walk instead of calling the one shared stepper. That is the fork this assertion exists to prevent.`);
+    }
+  }
+  note(res, `rimSweepPath definitions: ${defs}; the guest tier drives the shared stepper`);
+  return res;
+}
+
 /* ================= Runner ================= */
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
@@ -159,6 +187,11 @@ function runAll(root, { quiet = false } = {}) {
   log(`${a2.ok ? "PASS" : "FAIL"} ${a2.name}`);
   for (const n of a2.notes) log(`      ${n}`);
   results.push(a2);
+
+  const a3 = checkOneRimSweepStepper(root);
+  log(`${a3.ok ? "PASS" : "FAIL"} ${a3.name}`);
+  for (const n of a3.notes) log(`      ${n}`);
+  results.push(a3);
 
   return results;
 }
@@ -270,18 +303,48 @@ function drill() {
   fixture(FLOW_REL, GOOD_PICK);
   expect("drill 2c (negative control — one builder, both callers)", checkOneSailHighlightBuilder(tmpRoot), false);
 
+  // --- assertion 3 fixtures ---
+  const GOOD_SWEEP_FLOW = `export function rimSweepPath(game,from){return [];}\nexport async function animateRimSweepIfAny(){}\n`;
+  const GOOD_SWEEP_ORCH = `export function watchEvents(){ await animateRimSweepIfAny(); render(); }\n`;
+
+  // 3a: the guest walks the ring itself instead of calling the shared stepper
+  resetFixture();
+  fixture(FLOW_REL, GOOD_SWEEP_FLOW);
+  fixture(ORCH_REL, `export function watchEvents(){ const ring=appState.game.rimCellInfo; await animateRimSweepIfAny(); render(); }\n`);
+  expect("drill 3a (guest reimplements the ring walk via rimCellInfo)", checkOneRimSweepStepper(tmpRoot), true, "rimCellInfo");
+
+  // 3b: the guest never calls the stepper at all — the ship teleports on one seat and travels on the other
+  resetFixture();
+  fixture(FLOW_REL, GOOD_SWEEP_FLOW);
+  fixture(ORCH_REL, `export function watchEvents(){ render(); }\n`);
+  expect("drill 3b (guest never drives the shared stepper)", checkOneRimSweepStepper(tmpRoot), true, "animateRimSweepIfAny");
+
+  // 3c: ANTI-VACUITY — the stepper does not exist. The assertion must FAIL, not pass because it
+  //     found nothing to check. This is the form of vacuous check this project has caught three
+  //     times in two days.
+  resetFixture();
+  fixture(FLOW_REL, `export function localPickCell(){}\n`);
+  fixture(ORCH_REL, `export function watchEvents(){ render(); }\n`);
+  expect("drill 3c (anti-vacuity — no stepper at all must FAIL, not silently pass)", checkOneRimSweepStepper(tmpRoot), true, "expected exactly 1");
+
+  // 3d: negative control
+  resetFixture();
+  fixture(FLOW_REL, GOOD_SWEEP_FLOW);
+  fixture(ORCH_REL, GOOD_SWEEP_ORCH);
+  expect("drill 3d (negative control — one stepper, guest drives it)", checkOneRimSweepStepper(tmpRoot), false);
+
   // --- final negative control: the REAL tree passes every assertion, which is what proves the
   //     fixes and the gate agree ---
   {
     const r = runAll(REAL_ROOT, { quiet: true });
     const ok = r.every((x) => x.ok);
-    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes both) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
+    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes all three) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
     for (const x of r) for (const f of x.failures) console.log(`    ${f}`);
     if (!ok) allOk = false;
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "ALL 2 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "ALL 3 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 

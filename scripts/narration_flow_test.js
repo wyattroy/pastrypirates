@@ -34,7 +34,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom, coinShortfall } from "../src/ui/flow.js";
+import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom, coinShortfall, rimSweepPath } from "../src/ui/flow.js";
+import { Game as EngineGame, roundCfg as engineRoundCfg } from "../src/engine/index.js";
 import { appState } from "../src/state/index.js";
 import { DIRS } from "../src/shared/index.js";
 
@@ -509,6 +510,62 @@ const stripLeadingComments = (src) => src.split("\n").filter((l) => !/^\s*(\/\/|
   checkTrue("F9/D-40: the purchase branch was located", !!buyGuard);
   checkTrue(`F9/D-40: the purchase is guarded on affordability as well as on the returned choice — ${buyGuard}`, /&&/.test(buyGuard));
   check("F9/D-40: the guard re-reads p.coins rather than trusting the pre-await canBuy flag", /if\(buy&&p\.coins>=3\)/.test(liveCode), true);
+}
+
+
+/* ---------- G14 (2026-07-30): rimSweepPath — the ONE trade-wind stepper's pure half ---------- */
+// Wyatt: "the tradewinds to move players square-by-square, quickly… then we don't need a new
+// narration line, and the players are just seeing what happens."
+//
+// Run against REAL round boards over 12 seeds and EVERY rim cell on each, because the arc layout is
+// randomised per game (arc lengths and the whole ring's rotation are both RNG-derived,
+// src/engine/index.js:70-83) — a single hand-picked board would prove almost nothing. This is a
+// PURE, DOM-free function, which is exactly why it can be tested here at all.
+{
+  let cellsChecked = 0, atHead = 0, longest = 0;
+  const problems = [];
+  for (let seed = 1; seed <= 12; seed++) {
+    const g = new EngineGame(engineRoundCfg(["balanced", "balanced", "balanced", "balanced"]), seed, true);
+    const ring = g.rimCellInfo || [];
+    if (!ring.length) { problems.push(`seed ${seed}: no rim ring`); continue; }
+    for (const rc of ring) {
+      const from = [rc.x, rc.y];
+      const head = g.rimHead[rc.x + "," + rc.y];
+      const path = rimSweepPath(g, from);
+      cellsChecked++;
+      // a cell already AT its arc head returns []
+      if (head[0] === from[0] && head[1] === from[1]) {
+        if (path.length) problems.push(`seed ${seed}: ${from} is its own arc head but returned a ${path.length}-cell path`);
+        atHead++;
+        continue;
+      }
+      if (!path.length) { problems.push(`seed ${seed}: empty path from non-head rim cell ${from}`); continue; }
+      longest = Math.max(longest, path.length);
+      // the last cell IS the arc head
+      const last = path[path.length - 1];
+      if (last[0] !== head[0] || last[1] !== head[1]) problems.push(`seed ${seed}: path from ${from} ends at ${last}, not the arc head ${head}`);
+      let prev = from;
+      for (const c of path) {
+        // every returned cell is on the rim
+        if (!g.onRim(c)) problems.push(`seed ${seed}: path from ${from} leaves the rim at ${c}`);
+        // consecutive cells are king-move adjacent — proof this is a real ring WALK, not a jump
+        const dx = Math.abs(c[0] - prev[0]), dy = Math.abs(c[1] - prev[1]);
+        if (dx > 1 || dy > 1 || (dx === 0 && dy === 0)) problems.push(`seed ${seed}: path from ${from} jumps ${prev} -> ${c}`);
+        // never includes `from` itself
+        if (c[0] === from[0] && c[1] === from[1]) problems.push(`seed ${seed}: path from ${from} includes its own start`);
+        prev = c;
+      }
+    }
+    // a cell that is not on the ring at all
+    if (rimSweepPath(g, [-1, -1]).length) problems.push(`seed ${seed}: a non-rim cell returned a path`);
+  }
+  check(`G14: rimSweepPath holds over 12 seeds and every rim cell — ${cellsChecked} cell(s) checked, ${atHead} already at their arc head, longest arc ${longest} cell(s)${problems.length ? " — " + problems.slice(0, 5).join("; ") : ""}`, problems.length, 0);
+  checkTrue("G14: the corpus is non-trivial — at least 300 rim cells were actually exercised", cellsChecked >= 300);
+
+  // a NON-ROUND board has no ring at all, so there is nothing to sweep
+  const flat = new EngineGame({ ...engineRoundCfg(["balanced", "balanced", "balanced", "balanced"]), roundBoard: false }, 7, true);
+  check("G14: a non-round board returns [] (no ring exists, so no sweep can be invented)", rimSweepPath(flat, [0, 0]).length, 0);
+  check("G14: a null/absent `from` returns [] rather than throwing", rimSweepPath(flat, null).length, 0);
 }
 
 /* ---------- D-09: the round-level lines this plan must NOT touch stay out of this file's diff surface ---------- */

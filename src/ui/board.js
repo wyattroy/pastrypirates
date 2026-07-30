@@ -388,21 +388,52 @@ export function renderLiveShips(){
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
   });
   // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
-  // The whose-turn-is-it scan is DUPLICATED from render() rather than factored out of it: this
-  // file's header forbids touching render()'s body at all ("moved BYTE-IDENTICAL... do not
-  // refactor... anything inside them" — it carries the v1.0 BUG-01 Safari storm-crash fix), and
-  // extracting the scan would have meant editing it. Keep the two copies in step by hand.
+  // G14: the whose-turn-is-it scan now lives in activeTurnSeat() below, shared with paintShipAt().
+  // It was previously duplicated inline here because this file's header forbids touching render()'s
+  // body ("moved BYTE-IDENTICAL... do not refactor... anything inside them" — the v1.0 BUG-01
+  // Safari storm-crash fix). render() KEEPS its own copy and is still NOT touched; extracting the
+  // duplicate out of THIS function removes the second copy rather than adding a third.
   if(activeRing){
-    let a=null;
-    for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-      const t=appState.game.events[i].t;
-      if(t==="turn"){a=appState.game.events[i].p;break;}
-      if(t==="newround")break;
-    }
+    const a=activeTurnSeat();
     if(a!=null&&live[a]&&!live[a].done){
       const [ax,ay]=shipXY(live[a].pos,a,live,cell);
       activeRing.style.transform=`translate(${ax}px,${ay}px)`;
     }
+  }
+}
+// G14: which seat currently owns the turn, by walking back from the current event to the nearest
+// `turn` (stopping at a round boundary). Extracted from renderLiveShips so paintShipAt can ring the
+// right ship too. render() has an identical inline copy which is deliberately LEFT ALONE — see the
+// file header's BYTE-IDENTICAL rule.
+function activeTurnSeat(){
+  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
+    const t=appState.game.events[i].t;
+    if(t==="turn")return appState.game.events[i].p;
+    if(t==="newround")break;
+  }
+  return null;
+}
+// G14 (Wyatt-approved 2026-07-30): move ONE ship element to an arbitrary cell, without touching game
+// state or the event stream. The per-square painter behind the trade-wind rim sweep.
+//
+// WHY THIS EXISTS AT ALL — and it is the reason the stepper can be SHARED: renderLiveShips() above
+// reads `appState.game.players[i].pos`, which on a GUEST NEVER UPDATES (a guest's authority is the
+// broadcast event feed, not a local simulation), so it cannot be reused here. This function bases
+// the shared-cell nudge on `events[evIdx].state` instead — the same snapshot render() draws from,
+// and the reason a guest can render at all — with just this seat's pos overridden. Correct on both
+// tiers by construction.
+export function paintShipAt(seat,c){
+  if(appState.replaying)return;
+  if(!shipEls.length||!shipEls[seat])return;
+  const ev=appState.game.events[appState.evIdx];
+  // fall back to the live players array when there is no event yet (first paint of a fresh game)
+  const base=(ev&&ev.state)?ev.state:appState.game.players;
+  const st=base.map((s,i)=>i===seat?{...s,pos:c}:s);
+  const [x,y]=shipXY(c,seat,st,cell);
+  shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
+  if(chatBubbles[seat])positionChatBubble(seat,x,y); // the bubble rides along, as renderLiveShips does
+  if(activeRing&&activeTurnSeat()===seat){
+    activeRing.style.transform=`translate(${x}px,${y}px)`;
   }
 }
 export function render(){
