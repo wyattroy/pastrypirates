@@ -129,11 +129,27 @@ const ING_PLAIN={wheat:"flour",dairy:"butter & milk",sugar:"sugar",eggs:"eggs",
 const DOCK_PLACE={sugar:"Glitter Bay",vanilla:"Custard Key",spice:"the Spice Isle",
   wheat:"the Flour Patch",dairy:"Full Cream Folly",eggs:"Clucker's Cove",cocoa:"Cocoa Cabana"};
 // NARR-01/D-25/D-48 (Wyatt-approved 2026-07-29): flavour phrasing, kept and applied verbatim.
-const DOCK_FLAVOR={sugar:"a jar of Crystal Sugar",vanilla:"a bundle of Velvety Vanilla Beans",
-  spice:"sprigs of Red-Hot Cinnamon",wheat:"a sack of Toasty Wheat",dairy:"some jugs of Fresh Milk",
-  eggs:"a dozen Sand-Speckled Eggs",cocoa:"a pod of Luscious Cacao Beans"};
+// F5 (Wyatt-approved 2026-07-29): *"when the ingredient icons are referencing an ingredient (not the
+// island) they should always consistently go directly in front of the ingredient, not in front of
+// the flavor like they do now."*
+//
+// So the icon has to be inserted BETWEEN the quantity/container phrase and the product name — and
+// THE INSERTION POINT CANNOT BE DERIVED FROM THE STRING. iname("cocoa") is "Cacao Pods" while this
+// flavour reads "Luscious Cacao Beans": there is no substring to match on, and a regex guessing at
+// it would silently produce "a pod of Luscious 🍫 Cacao Beans". So the split is DECLARED AS DATA
+// here, once, and dockFlavorIcon() below is the only thing that decides where the icon goes.
+//
+// The name keeps every adjective that belongs to it ("Luscious", "Red-Hot", "Sand-Speckled"). Note
+// `eggs`: its prefix carries no "of" — that asymmetry is exactly why this is data and not a pattern.
+const DOCK_FLAVOR={sugar:{prefix:"a jar of",name:"Crystal Sugar"},vanilla:{prefix:"a bundle of",name:"Velvety Vanilla Beans"},
+  spice:{prefix:"sprigs of",name:"Red-Hot Cinnamon"},wheat:{prefix:"a sack of",name:"Toasty Wheat"},dairy:{prefix:"some jugs of",name:"Fresh Milk"},
+  eggs:{prefix:"a dozen",name:"Sand-Speckled Eggs"},cocoa:{prefix:"a pod of",name:"Luscious Cacao Beans"}};
 const dockPlace=x=>DOCK_PLACE[x]||"the island";
-const dockFlavor=x=>DOCK_FLAVOR[x]||iname(x);
+// UNCHANGED in signature AND in value — all 7 joined strings stay byte-identical, because two things
+// depend on that: the seven `misc:dockFlavor:<ing>` audit cards render dockFlavor(ing) directly (so
+// Wyatt's seven reviewed rows read exactly as they did), and the neutral dock narration's own
+// wording is not what F5 changes. scripts/narration_test.js pins all 7 against hardcoded literals.
+const dockFlavor=x=>{const f=DOCK_FLAVOR[x];return f?`${f.prefix} ${f.name}`:iname(x);};
 const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
 const ingImg=x=>`<img src="${ING_IMG[x]}" alt="${iname(x)}">`;
@@ -143,6 +159,17 @@ const ilabelImg=x=>`<img class="narrIcon" src="${ING_IMG[x]}" alt="${iname(x)}">
 // single emoji rather than an ingredient — drop-in replacement for that emoji character in any
 // narration/label string that already renders as HTML
 const iconImg=src=>`<img class="narrIcon" src="${src}" alt="">`;
+// F5: dockFlavor() with the ingredient's icon inserted immediately before the NAME, per the declared
+// {prefix,name} split above. THE ONE PLACE that decides where a dock-flavour icon goes — every dock
+// string in src/ui/flow.js and src/ui/util.js routes through here, so the branches cannot drift apart
+// again. Differs from dockFlavor() by nothing but the inserted icon; narration_test.js proves that by
+// stripping the icon back out and comparing (D-16: an icon is never dropped, only moved).
+// The unknown-key fallback emits no icon rather than an `src="undefined"` img: for a key with no art
+// there is no icon to drop, so D-16 has nothing to protect here.
+const dockFlavorIcon=x=>{
+  const f=DOCK_FLAVOR[x],icon=ING_IMG[x]?iconImg(ING_IMG[x])+" ":"";
+  return f?`${f.prefix} ${icon}${f.name}`:`${icon}${iname(x)}`;
+};
 // ORDER IS LOAD-BEARING — its Object.values iteration order builds the candidate dock-cell array that the constructor then indexes with an this.r()-derived index; a reorder changes every dock position for an identical RNG draw, and also flips seat-spawn assignment and Dijkstra tie-breaks.
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
 // ORDER IS LOAD-BEARING — parallel table keyed to DIRS; must stay in lockstep with it.
@@ -183,4 +210,4 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };

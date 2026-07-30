@@ -25,7 +25,7 @@ import {
   EVENT_NARRATION, describe, pname, pn, describeFor, NEUTRAL_VIEWER, narrationVariants,
   pickNarrVariant, msgHoldMs, botMsgHoldMs, chatBubbleHoldMs, fmtItem,
 } from "../src/ui/util.js";
-import { ilabelImg, ING_IMG, ING_ALL } from "../src/shared/index.js";
+import { ilabelImg, ING_IMG, ING_ALL, iconImg, dockFlavor, dockFlavorIcon } from "../src/shared/index.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
 // D-54: src/ui/flow.js's flash() sites are not table-driven, so the one approved ad-hoc line there
@@ -691,6 +691,52 @@ for (const key of KEYS) {
     [ACTOR, SPECTATOR, OTHER].every((s) => typeof pickNarrVariant(askPayload, s) === "string"));
   // an unset local seat (a fresh client, or an out-of-game caller) must still get the neutral content
   check("a client whose seat is not yet known still receives the neutral spectator line", pickNarrVariant(askPayload, null), spectatorLine);
+}
+
+/* ---------- F5: the dock-flavour icon insertion point is DECLARED IN DATA ---------- */
+// The comparison input is a HARDCODED copy of the pre-change literals. It is deliberately NOT
+// re-derived from DOCK_FLAVOR: an expectation built from the new structure would be comparing the
+// change to itself and could only ever pass.
+const DOCK_FLAVOR_BEFORE = {
+  sugar: "a jar of Crystal Sugar",
+  vanilla: "a bundle of Velvety Vanilla Beans",
+  spice: "sprigs of Red-Hot Cinnamon",
+  wheat: "a sack of Toasty Wheat",
+  dairy: "some jugs of Fresh Milk",
+  eggs: "a dozen Sand-Speckled Eggs",
+  cocoa: "a pod of Luscious Cacao Beans",
+};
+{
+  // 1. dockFlavor() is unchanged in value — the seven `misc:dockFlavor:<ing>` audit cards render it
+  //    directly, so Wyatt's seven reviewed rows must read exactly as they did before F5.
+  for (const [ing, want] of Object.entries(DOCK_FLAVOR_BEFORE)) {
+    check(`F5: dockFlavor("${ing}") is byte-identical to the pre-change literal`, dockFlavor(ing), want);
+  }
+
+  // 2. dockFlavorIcon() differs from dockFlavor() by NOTHING BUT the inserted icon. Proven by
+  //    stripping the icon back out — so a silently dropped icon or a lost word fails here rather
+  //    than passing as "text unchanged" (D-16).
+  for (const ing of Object.keys(DOCK_FLAVOR_BEFORE)) {
+    const withIcon = dockFlavorIcon(ing);
+    const icon = iconImg(ING_IMG[ing]);
+    checkTrue(`F5/D-16: dockFlavorIcon("${ing}") still carries the ingredient's icon`, withIcon.includes(icon));
+    const stripped = withIcon.split(icon).join(" ").replace(/\s+/g, " ").trim();
+    check(`F5: dockFlavorIcon("${ing}") strips back to exactly dockFlavor("${ing}") — the icon is the only difference`, stripped, DOCK_FLAVOR_BEFORE[ing]);
+
+    // 3. and the icon sits BETWEEN the prefix and the name, not floated to the front of the clause
+    //    — which is the whole point of F5.
+    check(`F5: dockFlavorIcon("${ing}") does not put the icon before the whole clause`, withIcon.trim().startsWith(icon), false);
+    const prefix = withIcon.slice(0, withIcon.indexOf(icon)).trim();
+    checkTrue(`F5: dockFlavorIcon("${ing}") has a prefix (${JSON.stringify(prefix)}) before the icon, and it is the original phrase's own opening`, !!prefix && DOCK_FLAVOR_BEFORE[ing].startsWith(prefix));
+    // the name follows the icon, and it is the remainder of the original phrase
+    const name = withIcon.slice(withIcon.indexOf(icon) + icon.length).trim();
+    check(`F5: dockFlavorIcon("${ing}") puts the icon directly before the ingredient NAME`, `${prefix} ${name}`, DOCK_FLAVOR_BEFORE[ing]);
+  }
+
+  // 4. an unknown key survives on both helpers rather than throwing
+  let unknownThrew = false;
+  try { dockFlavor("nonsuch"); dockFlavorIcon("nonsuch"); } catch { unknownThrew = true; }
+  check("F5: an unknown ingredient key falls back on BOTH helpers without throwing", unknownThrew, false);
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
