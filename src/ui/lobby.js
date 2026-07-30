@@ -109,7 +109,9 @@ export function renderSeatList(seats){
     // BOT-01: no personality picker — every captain's temperament is fixed (see SEAT_BOT_STRAT)
     // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
     // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
-    // transformation using art-review/narration-audit.html's own PIRATE_RE/PIRATE_MAP as the spec (the
+    // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
+    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
+    // alike (the
     // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out

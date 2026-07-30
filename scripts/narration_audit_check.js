@@ -61,6 +61,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const PAGE_REL = "art-review/narration-audit.html";
 const INV_REL = "art-review/narration-inventory.json";
+const BASELINE_REL = "art-review/narration-table-baseline.json";
 
 /* ================= result plumbing ================= */
 
@@ -383,16 +384,97 @@ function checkLineKeying(page) {
   return res;
 }
 
+/* ================= assertion 6: card text is real, never a placeholder =================
+ *
+ * The page used to hand-write each ad-hoc site's current wording in its own per-site renderer
+ * table. Those literals were true when typed and had gone 20-of-26 orphaned and pre-15-06 in
+ * wording, so cards would have shown copy the game no longer ships. art-review/narration-core.js
+ * deletes that layer and renders every card from the live extracted expression instead. This
+ * assertion is what keeps it deleted: if a site's expression is resolvable, its card must show
+ * REAL TEXT — never a placeholder, never an evaluation-failure fallback.
+ *
+ * The curated-renderer cap is the second half. A curated renderer is a licence to hand-write, so
+ * the licence is counted and capped rather than left open-ended.
+ */
+const PLACEHOLDER_PATTERNS = [
+  /no renderer defined/i,
+  /could not evaluate/i,
+  /\(TODO\)/i,
+  /placeholder/i,
+];
+
+export function checkCardText(cards, core) {
+  const res = mk("assertion 6 — fidelity: every card's text is rendered from live source, never a placeholder");
+  const errored = cards.filter((c) => c.error);
+  const silent = cards.filter((c) => c.silent && !c.error);
+  const passThrough = cards.filter((c) => c.passThrough && !c.error);
+  // A card that could not be rendered at all degrades to a NAMED error card (T-QT-04) rather than
+  // blanking the page — but it is still a failure of this gate, because in a healthy tree there is
+  // nothing to degrade from.
+  for (const c of errored) fail(res, `card ${c.id} failed to render — ${c.error}`);
+  // A resolvable site whose text is a placeholder is the exact rot this refactor removed.
+  for (const c of cards) {
+    if (c.error || c.silent || c.passThrough) continue;
+    if (c.neutral == null) {
+      fail(res, `card ${c.id} rendered no text, but its site is neither silent nor a pass-through — raw: ${String(c.rawNeutral).slice(0, 90)}`);
+      continue;
+    }
+    const hit = PLACEHOLDER_PATTERNS.find((re) => re.test(c.neutral));
+    if (hit) fail(res, `card ${c.id} shows placeholder/fallback text matching ${hit} — it must render the real expression`);
+  }
+  const curated = core && core.CURATED_RENDERERS ? Object.keys(core.CURATED_RENDERERS).length : 0;
+  const cap = (core && core.CURATED_RENDERER_CAP) || 0;
+  if (curated > cap) fail(res, `${curated} curated renderer(s) exceeds the cap of ${cap} — each one is a hand-written licence to go stale`);
+  note(res, `cards rendered: ${cards.length} (${silent.length} deliberately silent, ${passThrough.length} table pass-through, ${errored.length} error)`);
+  note(res, `curated renderers: ${curated} of a cap of ${cap}`);
+  // D-51: a fabricated event that violates its real emit site's invariants renders the RIGHT line
+  // with IMPOSSIBLE VALUES — the third defect class, and the one that put the literal word "null"
+  // on a card once.
+  const viol = (core && core.FABRICATED_EVENT_VIOLATIONS) || [];
+  if (viol.length) for (const v of viol) fail(res, `fabricated-event invariant (D-51): ${v}`);
+  else note(res, "fabricated-event invariants (D-51): all satisfied");
+  return res;
+}
+
+/* ================= assertion 7: the table path still reproduces its committed pin =================
+ *
+ * art-review/narration-table-baseline.json was captured BEFORE the render-core extraction, by
+ * importing src/ui/util.js's real describeFor()/narrationVariants() builders directly. The table
+ * surface is the one that was never broken; this keeps it that way. A committed fixture rather than
+ * a temp snapshot, because a temp snapshot becomes unreproducible the moment the refactor lands.
+ */
+export function checkTableBaseline(core, baselineText) {
+  const res = mk("assertion 7 — the table path reproduces its committed baseline byte-for-byte");
+  if (!baselineText) { fail(res, "art-review/narration-table-baseline.json is missing — the regression pin is gone"); return res; }
+  let want;
+  try { want = JSON.parse(baselineText); } catch (e) { fail(res, `baseline is not valid JSON: ${e.message}`); return res; }
+  const got = core.tableCards();
+  const wantIds = Object.keys(want.cards || {});
+  const gotIds = Object.keys(got);
+  if (wantIds.length !== gotIds.length) fail(res, `baseline pins ${wantIds.length} table cards, the core renders ${gotIds.length}`);
+  for (const id of wantIds) {
+    const a = want.cards[id], b = got[id];
+    if (!b) { fail(res, `table card ${id} is pinned in the baseline but the core no longer renders it`); continue; }
+    if (a.neutral !== b.neutral) fail(res, `table card ${id} drifted from the baseline\n        pinned: ${JSON.stringify(a.neutral)}\n        now:    ${JSON.stringify(b.neutral)}`);
+    if (JSON.stringify(a.variants) !== JSON.stringify(b.variants)) fail(res, `table card ${id}'s addressed variants drifted from the baseline`);
+  }
+  note(res, `table baseline: ${wantIds.length} card(s) pinned, ${gotIds.length} rendered`);
+  return res;
+}
+
 /* ================= the whole gate, as one callable function ================= */
 
 export function runChecks(page, inv, opts = {}) {
-  return [
+  const results = [
     checkResolvability(page, inv),
     checkOrphans(page, inv),
     checkPlacement(page, inv, opts.multiPlacementAllowed === undefined ? MULTI_PLACEMENT_ALLOWED : opts.multiPlacementAllowed),
     ...checkAffordances(page),
     checkLineKeying(page),
   ];
+  if (opts.cards) results.push(checkCardText(opts.cards, opts.core));
+  if (opts.core) results.push(checkTableBaseline(opts.core, opts.baselineText));
+  return results;
 }
 
 /* ================= --drill: red-proof every assertion ================= */
@@ -518,12 +600,76 @@ function drill() {
     say(r.lines.some((l) => /distinct: 1, occurrences: 2/.test(l)), "assertion 5 reports distinct and occurrence counts as two separate numbers");
   }
 
+  /* ---- assertion 6 — card fidelity. Its subject is RENDERED CARDS rather than page text, so its
+   * fixtures are synthetic card lists plus a synthetic core stub. ---- */
+  const stubCore = (curated, cap, viol) => ({
+    CURATED_RENDERERS: Object.fromEntries(Array.from({ length: curated }, (_, i) => [`r${i}`, 1])),
+    CURATED_RENDERER_CAP: cap,
+    FABRICATED_EVENT_VIOLATIONS: viol || [],
+  });
+  {
+    // negative control: healthy cards must PASS
+    const cards = [{ id: "a", neutral: "real text" }, { id: "b", silent: true, neutral: null }, { id: "c", passThrough: true, neutral: null }];
+    const r = checkCardText(cards, stubCore(0, 2));
+    say(r.pass, "negative control: assertion 6 PASSES a card list whose text is all real");
+  }
+  {
+    const cards = [{ id: "a", neutral: "(no renderer defined for this line yet)" }];
+    const r = checkCardText(cards, stubCore(0, 2));
+    say(!r.pass && r.lines.some((l) => /placeholder/.test(l)), "assertion 6 goes red on a card showing placeholder text");
+  }
+  {
+    const cards = [{ id: "a", neutral: null, rawNeutral: "`x`" }];
+    const r = checkCardText(cards, stubCore(0, 2));
+    say(!r.pass && r.lines.some((l) => /rendered no text/.test(l)), "assertion 6 goes red on a resolvable site that rendered nothing");
+  }
+  {
+    const cards = [{ id: "a", error: "boom" }];
+    const r = checkCardText(cards, stubCore(0, 2));
+    say(!r.pass && r.lines.some((l) => /failed to render/.test(l)), "assertion 6 goes red on a card that failed to render");
+  }
+  {
+    const r = checkCardText([{ id: "a", neutral: "t" }], stubCore(5, 2));
+    say(!r.pass && r.lines.some((l) => /exceeds the cap/.test(l)), "assertion 6 goes red when curated renderers exceed their cap");
+  }
+  {
+    const r = checkCardText([{ id: "a", neutral: "t" }], stubCore(0, 2, ["table:battle takes null (D-51)"]));
+    say(!r.pass && r.lines.some((l) => /D-51/.test(l)), "assertion 6 goes red on a fabricated event that violates its real emit-site invariants (D-51)");
+  }
+
+  /* ---- assertion 7 — the committed table baseline. ---- */
+  {
+    const fakeCore = { tableCards: () => ({ "table:x": { neutral: "same", variants: [] } }) };
+    const good = JSON.stringify({ cards: { "table:x": { neutral: "same", variants: [] } } });
+    say(checkTableBaseline(fakeCore, good).pass, "negative control: assertion 7 PASSES when the core reproduces the baseline");
+    const drifted = JSON.stringify({ cards: { "table:x": { neutral: "DIFFERENT", variants: [] } } });
+    const r = checkTableBaseline(fakeCore, drifted);
+    say(!r.pass && r.lines.some((l) => /drifted from the baseline/.test(l)), "assertion 7 goes red when a table card drifts from its committed baseline");
+    const rm = checkTableBaseline(fakeCore, null);
+    say(!rm.pass && rm.lines.some((l) => /regression pin is gone/.test(l)), "assertion 7 goes red when the baseline fixture is deleted outright");
+  }
+
   // prove the drill never touched the real tree
   const d = mkdtempSync(join(tmpdir(), "narr-audit-drill-"));
   writeFileSync(join(d, "note.txt"), "drill scratch dir — the drill builds its fixtures in memory and never writes to the repo\n");
 
   console.log(bad ? `\n${bad} drill case(s) FAILED — a guard that does not fail when broken is not a guard.` : "\nall drill cases passed — every assertion red-proofed, negative control included.");
   return bad ? 1 : 0;
+}
+
+/* ================= the render core, loaded once ================= */
+
+// art-review/narration-core.js is the SAME module the page imports. Loading it here is the whole
+// point of the refactor: the tool's rendering becomes answerable without a browser. It needs the raw
+// text of the source files so it can resolve a copy site that interpolates a local computed a few
+// lines above the call (`neutralBanner`, `promptMsg`, `sub`) out of the real declaration, instead of
+// anybody hand-transcribing what those produce.
+async function loadCore() {
+  const core = await import("../art-review/narration-core.js");
+  const sources = {};
+  for (const rel of core.SOURCE_FILES) sources[rel] = readFileSync(join(ROOT, rel), "utf8");
+  core.configure({ sources });
+  return core;
 }
 
 /* ================= main ================= */
@@ -535,7 +681,31 @@ if (argv.includes("--drill")) {
 
 const page = readFileSync(join(ROOT, PAGE_REL), "utf8");
 const inv = JSON.parse(readFileSync(join(ROOT, INV_REL), "utf8"));
-const results = runChecks(page, inv);
+const core = await loadCore();
+
+/* ---- --print: dump every card's id, label and rendered text. --table-only reproduces the
+ * committed table baseline byte-for-byte, which is how that fixture stays checkable forever. ---- */
+if (argv.includes("--print")) {
+  if (argv.includes("--table-only")) {
+    const baseline = JSON.parse(readFileSync(join(ROOT, BASELINE_REL), "utf8"));
+    process.stdout.write(JSON.stringify({ _provenance: baseline._provenance, cards: core.tableCards() }, null, 2) + "\n");
+    process.exit(0);
+  }
+  for (const c of core.renderAllCards(inv)) {
+    if (c.error) { console.log(`--- ${c.id}\n    ERROR: ${c.error}`); continue; }
+    console.log(`--- ${c.id}`);
+    console.log(`    label:   ${c.label}`);
+    console.log(`    neutral: ${c.silent || c.passThrough ? "(deliberately silent / pass-through)" : c.neutral}`);
+    for (const v of c.variants || []) console.log(`    seat ${v.seat}: ${v.text}`);
+    for (const n of c.notes || []) if (n) console.log(`    note:    ${n}`);
+  }
+  process.exit(0);
+}
+
+let baselineText = null;
+try { baselineText = readFileSync(join(ROOT, BASELINE_REL), "utf8"); } catch (e) { baselineText = null; }
+const cards = core.renderAllCards(inv);
+const results = runChecks(page, inv, { cards, core, baselineText });
 let failures = 0;
 for (const r of results) {
   console.log((r.pass ? "PASS" : "FAIL") + ": " + r.label);

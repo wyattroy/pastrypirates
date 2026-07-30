@@ -604,14 +604,31 @@ const { brokeSailLine, brokeAnchorLine, stormIntroClause } = await import("../sr
 // import on this page (D-01). None of these were needed before this fix.
 const { DIRNAME, emojify, ilabelImg, iconImg, CHECKMARK_IMG, CANCEL_X_IMG, CUPCAKE_IMG,
   DOCK_FLAVOR, DOCK_PLACE, ING_ALL, dockPlace, dockFlavor, HEXCOL, ASSET_BASE,
-  DEVICE_IMG, ANCHOR_IMG, EYES_IMG, DICE_IMG } = await import("../src/shared/index.js");
+  DEVICE_IMG, ANCHOR_IMG, DICE_IMG } = await import("../src/shared/index.js");
 
 /* ============================================================================
- * Shared render helpers (unchanged in spirit from this page's first build)
+ * THE SHARED RENDER CORE (15-07 Task 3).
+ *
+ * Every card's TEXT now comes from art-review/narration-core.js, which
+ * `npm test` imports too. That is the whole point: this page stops being the
+ * only place the tool's health can be checked, and there is no longer a second
+ * copy of the wording anywhere that could go stale. This page keeps only the
+ * DOM shell — the card HTML, the editing controls, the flow chart, persistence
+ * and export.
  * ==========================================================================*/
 function fixAssetPaths(html) {
   return html == null ? html : html.replaceAll('src="assets/', 'src="../assets/');
 }
+const core = await import("./narration-core.js");
+// The core needs the raw text of the source files so it can resolve a copy site that
+// interpolates a local computed a few lines above the call (`neutralBanner`, `promptMsg`,
+// `sub`) out of the real declaration — instead of anybody hand-transcribing what those
+// produce, which is exactly what went stale last time.
+const coreSources = {};
+await Promise.all(core.SOURCE_FILES.map(async (rel) => {
+  coreSources[rel] = await fetch(`../${rel}`, { cache: "no-store" }).then((r) => r.text());
+}));
+core.configure({ fixAssetPaths, sources: coreSources });
 function escapeHtml(s) {
   return (s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
@@ -619,84 +636,18 @@ function seatBadge(i) {
   const colors = ["#f2679e", "#1d96a6", "#27c78d", "#f5a623"];
   return `<span class="seatDot" style="background:${colors[i]}"></span>${SEAT_NAMES[i]}`;
 }
-// D-29 (Wyatt-confirmed, RESOLVED 2026-07-29): you->ye, your->yer, you're->yer — one word does
-// both "your" and "you're" jobs, his explicit call. Case-preserving (You->Ye, Your/You're->Yer).
-// Word-boundary matched and longest-alternative-first (yourself/you're/yours before bare
-// your/you), same technique src/shared/index.js's own EMOJIFY_RE already uses for
-// multi-codepoint emoji — otherwise "you're" would collapse to "ye're" and "yours"/"yourself"
-// would truncate. Word-boundary matching is mandatory: `layout`, `layoutWide`, `youIdx`,
-// `stillDockedYou`, `bonusYou`, `outcomeYou` all contain "you" as a bare substring and would
-// corrupt under a naive replace (`layout` -> `layet`); \b rejects every one of them correctly.
-// Scope per Wyatt's "convert everything": ALL player-facing text goes through this, not just
-// EVENT_NARRATION — applied via finalize() below at the one chokepoint (msgBox) every card's
-// rendering passes through, AND to Wyatt's own typed rewrite copy (computeIntent), so what he
-// approves on a card is byte-identical to what ships (D-25's "keep = exactly what's displayed").
-const PIRATE_RE = /\b(yourself|you're|yours|your|you)\b/gi;
-const PIRATE_MAP = { yourself: "yerself", "you're": "yer", yours: "yers", your: "yer", you: "ye" };
-function pirateVoice(text) {
-  if (!text) return text;
-  return text.replace(PIRATE_RE, (match) => {
-    const replacement = PIRATE_MAP[match.toLowerCase()];
-    if (!replacement) return match;
-    const firstIsUpper = match[0] !== match[0].toLowerCase() && match[0] === match[0].toUpperCase();
-    return firstIsUpper ? replacement[0].toUpperCase() + replacement.slice(1) : replacement;
-  });
-}
-// D-38 (Wyatt, confirmed): every parenthesised cost/benefit amount adjacent to a coin glyph
-// carries an explicit + or −, and every player-facing minus is U+2212 (never an ASCII hyphen) —
-// applied LIVE at this SAME chokepoint, exactly like D-29's ye/yer. D-25 fixed `keep` to mean
-// "ship exactly what this card displays" — if this rule were applied only at 15-06 time, every
-// `keep` on an affected card would silently diverge from what actually ships (the flee card
-// currently renders "(pays 1🌕)"; the shipped text will read "(−1🌕)") — the precise contract
-// breach D-29's own conversion already exists to prevent.
+// D-29/D-38 live in the render core now — ONE declaration site in the repo.
 //
-// Two passes:
-//  1. MECHANICAL, safe to apply to any text: an ASCII hyphen used as a minus directly inside a
-//     parenthesised coin amount becomes U+2212. Pure character normalisation — no direction
-//     judgement needed — and it catches flow.js:549's Attack button (and any sibling site using
-//     the wrong character) without enumerating every site by hand.
-//  2. TARGETED, per Wyatt's own confirmed change list (nothing inferred): the parenthesised
-//     amounts that currently carry NO sign at all — battleflee's "(they pay 1🌕)"/"(pays 1🌕)"
-//     (util.js:486-488, "drop 'they pay'/'pays', add the sign") and fish's bare "(2🌕)"/"(1🌕)"
-//     (util.js:494/495, "a catch is a gain"). A blind regex cannot know direction; these are
-//     literal substring swaps, each verified unique to its one known site — no other narration
-//     text in src/ contains these exact substrings.
-// flow.js:461's composed trade-offer summary ("Toasty Wheat + 2🌕") is a DELIBERATE exception —
-// the "+" there means "and also", not a benefit — and it is never parenthesised, so neither pass
-// below ever touches it. SIGN_RULE_EXEMPT_IDS (near the self-check) records that explicitly.
-// A coin amount reaches applySignRule in ONE OF TWO SHAPES, not one: ad-hoc/button text is still
-// raw "🌕" (this page's own finalize() hasn't emojified it yet); TABLE text is already
-// "<img ... coin-emoji.png ...>" because describeFor() (src/ui/util.js) calls the REAL emojify()
-// INTERNALLY before ever returning rendered.txt to this page — a step this page cannot intercept
-// or reorder, since it calls the real, unmodified function. (Caught live: running applySignRule
-// "before this page's own emojify" fixed ad-hoc/button text but left every TABLE card's fish/
-// battleflee amount unsigned, because the emoji was ALREADY gone by the time applySignRule ever
-// saw it.) COIN_MARKER matches either shape so one rule covers both sources.
-const COIN_MARKER = '(?:🌕|<img[^>]*?src="[^"]*coin[^"]*"[^>]*>)';
-const MINUS_HYPHEN_RE = new RegExp(`\\(-(\\d+)(${COIN_MARKER})\\)`, "g");
-const SIGN_REPLACEMENTS = [
-  [new RegExp(`\\(they pay 1(${COIN_MARKER})\\)`, "g"), (m, marker) => `(−1${marker})`],
-  [new RegExp(`\\(pays 1(${COIN_MARKER})\\)`, "g"), (m, marker) => `(−1${marker})`],
-  [new RegExp(`\\(2(${COIN_MARKER})\\)`, "g"), (m, marker) => `(+2${marker})`],
-  [new RegExp(`\\(1(${COIN_MARKER})\\)`, "g"), (m, marker) => `(+1${marker})`],
-];
-function applySignRule(html) {
-  if (!html) return html;
-  let out = html.replace(MINUS_HYPHEN_RE, (m, num, marker) => `(−${num}${marker})`);
-  SIGN_REPLACEMENTS.forEach(([re, to]) => { out = out.replace(re, to); });
-  return out;
-}
-// The one place every piece of rendered/compared text on this page should flow through:
-// applySignRule (D-38) -> emojify (custom art, D-17) -> fixAssetPaths (this subdirectory's
-// relative image paths) -> pirateVoice (D-29). applySignRule MUST run before THIS PAGE'S OWN
-// emojify call (its ad-hoc/button-text regexes need the raw 🌕 character, which this page's own
-// emojify() would otherwise consume first) — COIN_MARKER's <img> alternative is what still lets
-// it work on table-sourced text where the emoji is ALREADY gone (see COIN_MARKER's own comment).
-// pirateVoice and applySignRule operate on disjoint token types (you/your/you're vs digits/
-// parens/hyphens/emoji/img) so their relative order doesn't matter to each other.
-function finalize(html) {
-  return pirateVoice(fixAssetPaths(emojify(applySignRule(html))));
-}
+// The pirate register (you->ye, your/you're->yer, D-29) and the sign rule (every parenthesised
+// coin amount carries an explicit + or −, with U+2212 for the minus, D-38) used to be declared
+// HERE, relied on as the spec by five src/ comments, and detected a second way by
+// scripts/ui_contract_check.js. They are now declared exactly once, in
+// art-review/narration-core.js, and imported by every consumer — this page, the health gate, the
+// copy gate and the applier. finalize() is still the one chokepoint every piece of rendered and
+// compared text flows through; the core takes THIS page's own ../assets/ rewriter as an injected
+// option (see core.configure above), so the browser and Node cannot disagree about anything
+// except the path prefix.
+const { PIRATE_RE, PIRATE_MAP, pirateVoice, COIN_MARKER, applySignRule, finalize } = core;
 // D-17 fix (already applied): every card's HTML runs through the real emojify() so ad-hoc cards
 // show the same custom art the shipped panel shows, not raw system emoji. Idempotent, so table
 // cards (which already went through describeFor's own emojify pass) are unaffected by a second
@@ -729,123 +680,17 @@ function renderVariantsBlock(variants) {
  *     (moored's `dock` reason needs a real events[] history for movedSinceTurnStart()).
  * Keys absent from TABLE_BRANCHES have exactly one branch (id "table:<key>").
  * ==========================================================================*/
-const BASE_EVENTS = {
-  newround: () => ({ t: "newround", dir: "N", dir2: "S", windStreak: 1, storm: true, streak: 1, round: 3 }),
-  windmove: () => ({ t: "windmove", p: 0 }),
-  blownOut: () => ({ t: "blownOut", p: 0 }),
-  sail: () => ({ t: "sail", p: 0 }),
-  dodge: () => ({ t: "dodge", p: 0 }),
-  anchor: () => ({ t: "anchor", p: 0 }),
-  moored: () => ({ t: "moored", p: 0, reason: "justDocked" }),
-  blocked: () => ({ t: "blocked", p: 0, other: 1 }),
-  anchorHold: () => ({ t: "anchorHold", p: 0 }),
-  tradewind: () => ({ t: "tradewind", p: 0 }),
-  parley: () => ({ t: "parley", a: 0, b: 1, offer: "wheat", want: "sugar", ok: true }),
-  aground: () => ({ t: "aground", p: 0, ing: null }),
-  shipwrecked: () => ({ t: "shipwrecked", p: 0 }),
-  dock: () => ({ t: "dock", p: 0, ing: "wheat", got: "ing", heads: 1 }),
-  trade: () => ({ t: "trade", a: 0, b: 1, gave: "wheat", got: "sugar" }),
-  sidebet: () => ({ t: "sidebet", p: 2, won: true, amt: 2, delta: 5, on: "a" }),
-  // D-51 (Wyatt, of the rendered "wins 1–1 in 2 rounds"): asyncBattle() is first to 2 hits
-  // (orchestrator.js:386, need=2) — a battle can never end tied with a winner. 2–1 in 3 rounds is
-  // a genuinely reachable outcome (winner scores twice, loser once) rather than an impossible tie.
-  battle: () => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[1, 0, false, "a"], [0, 1, false, "d"], [1, 0, false, "a"]], spoil: "5 coins", spoilIng: null }),
-  battleflee: () => ({ t: "battleflee", a: 0, d: 1 }),
-  fish: () => ({ t: "fish", p: 0, heads: 1 }),
-  finish: () => ({ t: "finish", p: 0 }),
-  shotclock: () => ({ t: "shotclock", p: 0 }),
-  shotclockskip: () => ({ t: "shotclockskip", p: 0, ing: null, coins: 3 }),
-  bakeoff: () => ({ t: "bakeoff", a: 0, b: 1, winner: 0 }),
-  end: () => ({ t: "end", winner: 0 }),
-  turn: () => ({ t: "turn", p: 0 }),
-};
+// D-21's branch enumeration, D-51's fabricated-event invariants and the table renderer all live in
+// art-review/narration-core.js now, which is what `npm test` imports — so every one of them is
+// checkable without a browser. art-review/narration-table-baseline.json additionally pins the table
+// path's output byte-for-byte as a permanent regression pin on the one surface that was never broken.
+const { BASE_EVENTS, TABLE_BRANCHES, withCfg, assertBattleEventInvariants,
+  FABRICATED_EVENT_VIOLATIONS } = core;
 
 // moored's `dock` reason needs a real (turn-event, moored-event) pair in appState.game.events for
 // movedSinceTurnStart() to resolve true/false instead of null (see src/ui/util.js's own function).
-function mooredDockEvent(moved) {
-  const at = moved ? [3, 3] : [0, 0];
-  const turnEv = { t: "turn", p: 0, state: [{ pos: [0, 0] }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
-  const mooredEv = { t: "moored", p: 0, reason: "dock", state: [{ pos: at }, { pos: [9, 9] }, { pos: [9, 9] }, { pos: [9, 9] }] };
-  appState.game.events = [turnEv, mooredEv];
-  return mooredEv;
-}
 
-const TABLE_BRANCHES = {
-  // windStreak (direction-hold streak) and streak (storm-commitment streak) are two INDEPENDENT
-  // counters — a first self-check-probe run caught that this key has 8 real branches, not 5:
-  // windHoldPhrase()'s own "is gusting" (windStreak===2) vs "won't quit" (windStreak>=3) split is
-  // a further branch anywhere the `gust` clause is actually referenced (both no-storm cases, and
-  // the storm+streak>=2+held case) — it is NOT referenced in the storm+streak<2+held case, so that
-  // one stays a single branch regardless of windStreak's exact value.
-  newround: [
-    { tag: "freshWind", label: "Fresh wind, no storm", fields: { storm: false, windStreak: 1, streak: 0 } },
-    { tag: "heldWindGusting", label: "Wind holds (2 rounds), no storm", fields: { storm: false, windStreak: 2, streak: 0 } },
-    { tag: "heldWindWontQuit", label: "Wind holds (≥3 rounds — “won't quit”), no storm", fields: { storm: false, windStreak: 3, streak: 0 } },
-    { tag: null, label: "Fresh storm", fields: { storm: true, windStreak: 1, streak: 1 } },
-    { tag: "heldStorm", label: "Storm + wind holds (streak < 2)", fields: { storm: true, windStreak: 2, streak: 1 } },
-    { tag: "streakStorm", label: "Storm committed ≥2 rounds running, wind not held", fields: { storm: true, windStreak: 1, streak: 2 } },
-    { tag: "streakStormHeldGusting", label: "Storm committed ≥2 rounds + wind holds (2 rounds)", fields: { storm: true, windStreak: 2, streak: 2 } },
-    { tag: "streakStormHeldWontQuit", label: "Storm committed ≥2 rounds + wind holds (≥3 — “won't quit”)", fields: { storm: true, windStreak: 3, streak: 2 } },
-  ],
-  moored: [
-    { tag: null, label: "Reason: just docked", fields: { reason: "justDocked" } },
-    { tag: "dockMoved", label: "Reason: dock — storm shoved you onto it THIS turn", buildEvent: () => mooredDockEvent(true) },
-    { tag: "dockStill", label: "Reason: dock — already parked, storm-untouched", buildEvent: () => mooredDockEvent(false) },
-    { tag: "home", label: "Reason: home berth (Tortuga)", fields: { reason: "home" } },
-    { tag: "legacyFallback", label: "Reason: unrecognized (legacy replay log with no reason field)", fields: { reason: undefined } },
-  ],
-  parley: [
-    { tag: null, label: "Deal struck", fields: { ok: true } },
-    { tag: "refused", label: "Refused", fields: { ok: false } },
-  ],
-  aground: [
-    { tag: null, label: "No crate held — half the coin purse lost", fields: { ing: null } },
-    { tag: "crate", label: "Crate lost — tumbles overboard", fields: { ing: "wheat" } },
-  ],
-  dock: [
-    { tag: null, label: "Heads — hauls aboard a crate", fields: { got: "ing", heads: 1 } },
-    { tag: "empty", label: "Empty island — grabs 3 coins, no flip (NARR-07)", fields: { got: "empty" } },
-    { tag: "bought", label: "Tails, buys the crate anyway", fields: { got: "bought", heads: 0 } },
-    { tag: "coins", label: "Tails, takes the 3 coins", fields: { got: "coins", heads: 0 } },
-  ],
-  trade: [
-    { tag: null, label: "Cooperation bonus ON (cfg.tradeBonus)", fields: {}, cfg: { tradeBonus: true } },
-    { tag: "noBonus", label: "Cooperation bonus OFF", fields: {}, cfg: { tradeBonus: false } },
-  ],
-  sidebet: [
-    { tag: null, label: "Won, backed with coin", fields: { won: true, amt: 2, delta: 5 } },
-    { tag: "wonNoAmt", label: "Won, free call (no coin backed)", fields: { won: true, amt: 0, delta: 1 } },
-    { tag: "lostAmt", label: "Lost, backed with coin", fields: { won: false, amt: 2, delta: -2 } },
-    { tag: "lostNoAmt", label: "Lost, free call (no coin backed)", fields: { won: false, amt: 0, delta: 0 } },
-  ],
-  battle: [
-    { tag: null, label: "Coin spoil — genuine bribe (a full 5-coin purse)", fields: { spoil: "5 coins", spoilIng: null } },
-    { tag: "cleaned", label: "Coin spoil — cleaned out (under 5 coins)", fields: { spoil: "2 coins", spoilIng: null } },
-    // D-51 (Wyatt: "this shouldn't say 'null' right? … Crustbeard takes null" — correct, the game
-    // never produces it): every real emit site sets spoil and spoilIng TOGETHER —
-    // spoil=ilabelImg(pick), spoilIng=pick (orchestrator.js:546, engine/index.js:572-573) — the
-    // builder renders `takes ${e.spoil}` for the ingredient case (util.js:473), so a hand-written
-    // null prints the literal word "null". Derived via the SAME helper the game uses, not a
-    // hand-written literal — that's how the null got in in the first place.
-    { tag: "crate", label: "Ingredient spoil — a crate changes hands", fields: { spoil: ilabelImg("cocoa"), spoilIng: "cocoa" } },
-  ],
-  fish: [
-    { tag: null, label: "Heads — sugarfish", fields: { heads: 1 } },
-    { tag: "candycrab", label: "Tails, sardine rule ON — candycrab", fields: { heads: 0 }, cfg: { sardine: true } },
-    { tag: "empty", label: "Tails, sardine rule OFF — empty-handed", fields: { heads: 0 }, cfg: { sardine: false } },
-  ],
-  shotclockskip: [
-    { tag: null, label: "No crate held — coins tumble overboard", fields: { ing: null } },
-    { tag: "crate", label: "Crate tumbles overboard", fields: { ing: "wheat" } },
-  ],
-};
 
-function withCfg(overrides, fn) {
-  if (!overrides) return fn();
-  const prev = Object.assign({}, appState.game.cfg);
-  Object.assign(appState.game.cfg, overrides);
-  try { return fn(); } finally { Object.assign(appState.game.cfg, prev); }
-}
 function resetEvents() { appState.game.events = []; }
 
 // Every distinct (neutral + addressed) text a branch actually rendered, per table key — populated
@@ -883,52 +728,14 @@ function recordNeutralTextEntry(id, label, baseKey, text) {
  * also collected early and consumed later), merged into probeFailures once
  * it exists, below.
  * ==========================================================================*/
-const FABRICATED_EVENT_VIOLATIONS = [];
-function assertBattleEventInvariants(ev, label) {
-  // Paired-field invariant: every real emit site sets spoil and spoilIng TOGETHER —
-  // spoil=ilabelImg(pick), spoilIng=pick (orchestrator.js:546, engine/index.js:572-573) — and
-  // spoil is never null/undefined even on a coin win (util.js:473 always renders `takes
-  // ${e.spoil}` once a spoil clause fires at all). A hand-written `spoil:null` is how the
-  // literal word "null" reached a rendered card.
-  if (ev.spoilIng) {
-    const expected = ilabelImg(ev.spoilIng);
-    if (ev.spoil !== expected) {
-      FABRICATED_EVENT_VIOLATIONS.push(`${label}: spoilIng=${JSON.stringify(ev.spoilIng)} is set but spoil is not ilabelImg(spoilIng) (got ${JSON.stringify(ev.spoil)}) — real emit sites always set both together (D-51)`);
-    }
-  } else if (ev.spoil == null) {
-    FABRICATED_EVENT_VIOLATIONS.push(`${label}: spoil is ${JSON.stringify(ev.spoil)} with no spoilIng set — the real game never leaves spoil unset (D-51)`);
-  }
-  // Reachable-score invariant: asyncBattle() is first to 2 hits (orchestrator.js:386, need=2) —
-  // the winner's own round count must be exactly 2, and the loser can never also reach 2 (that
-  // would mean the battle kept running past a decided outcome).
-  if (Array.isArray(ev.rounds)) {
-    const aScore = ev.rounds.filter((r) => r[3] === "a").length;
-    const dScore = ev.rounds.filter((r) => r[3] === "d").length;
-    const winnerScore = ev.winner === ev.a ? aScore : dScore;
-    const loserScore = ev.winner === ev.a ? dScore : aScore;
-    if (winnerScore !== 2 || loserScore >= 2) {
-      FABRICATED_EVENT_VIOLATIONS.push(`${label}: rounds score ${aScore}-${dScore} is not a reachable outcome for a first-to-2 battle (D-51)`);
-    }
-  }
-}
 
+// A thin wrapper over the core's renderer: identical rendering, plus this page's own
+// RENDERED_TEXTS bookkeeping for the D-21 self-check probe below (which is page-only — the
+// probe reads the DOM's stage layout, so it has no meaning in Node).
 function renderTableBranch(key, spec) {
-  resetEvents();
-  const ev = spec.buildEvent
-    ? spec.buildEvent()
-    : Object.assign(BASE_EVENTS[key](), spec.fields || {});
-  // D-51: check the ACTUAL constructed event (this exact object, not a hand-maintained parallel
-  // reconstruction that could drift) against its real-emit-site invariants before it's rendered.
-  if (key === "battle") assertBattleEventInvariants(ev, tableCardId(key, spec.tag));
-  const run = () => {
-    const rendered = describeFor(ev, NEUTRAL_VIEWER);
-    const variants = narrationVariants(ev);
-    recordTexts(key, rendered, variants);
-    return { rendered, variants };
-  };
-  const { rendered, variants } = spec.cfg ? withCfg(spec.cfg, run) : run();
-  resetEvents();
-  return { rendered, variants, ev }; // D-54: callers need `ev` too, to role-label two-party addressed fields
+  const out = core.renderTableBranch(key, spec);
+  recordTexts(key, out.rendered, out.variants);
+  return out;
 }
 
 function tableCardId(key, tag) { return tag ? `table:${key}~${tag}` : `table:${key}`; }
@@ -1060,131 +867,54 @@ const TABLE_NOTES = {
  * more than viewer perspective) plus the single-branch renderers, keyed by
  * "file:line" or "file:line~tag" — same legacy-id convention as the table.
  * ==========================================================================*/
-const ADHOC_RENDERERS = {
-  "src/ui/flow.js:111": () => ({
-    current: `${pn(0)} flips ⚪ HEADS!`,
-    proposed: [{ seat: 0, html: `You flip ⚪ HEADS!` }],
-  }),
-  "src/ui/flow.js:111~tails": () => ({
-    current: `${pn(0)} flips ⚫ TAILS`,
-    proposed: [{ seat: 0, html: `You flip ⚫ TAILS` }],
-  }),
-  "src/ui/flow.js:260": () => ({
-    current: brokeAnchorLine(0, NEUTRAL_VIEWER),
-    proposed: [{ seat: 0, html: brokeAnchorLine(0, 0) }],
-  }),
-  "src/ui/flow.js:296": () => ({
-    current: `🌀 ${pn(0)} is swept into the trade winds and whipped around the rim!`,
-    proposed: [{ seat: 0, html: "🌀 You are swept into the trade winds, and whipped around the rim!" }],
-  }),
-  "src/ui/flow.js:373": () => ({
-    current: `⛈️ Now the storm moves you <b>${DIRNAME["S"]}</b>!`,
-    proposed: [],
-    note: "Always renders “you” unconditionally — no viewer branch exists here yet (discovered gap, 15-03 SUMMARY). Shown as-is; a genuine third-person form has never existed for this specific line.",
-  }),
-  "src/ui/flow.js:410": () => ({ current: "No one has cargo to trade for.", proposed: [] }),
-  "src/ui/flow.js:516": () => ({
-    current: `${pn(1)} declines ${pn(0)}'s offer!`,
-    proposed: [{ seat: 0, html: `${pn(1)} declines your offer!` }],
-  }),
-  "src/ui/flow.js:516~finishTaunt": () => ({
-    current: `${pn(1)} refuses — "Not lettin' ${pn(0)} finish their recipe that easy!"`,
-    proposed: [{ seat: 0, html: `${pn(1)} refuses — "Not lettin' ye finish yer recipe that easy!"` }],
-    note: "Fires instead of the plain decline specifically when the human offerer is exactly one ingredient away from finishing their recipe.",
-  }),
-  "src/ui/flow.js:524": () => ({
-    current: `${pn(1)} declines!`,
-    proposed: [{ seat: 1, html: "You decline!" }],
-  }),
-  "src/ui/flow.js:571": () => ADHOC_RENDERERS["src/ui/flow.js:296"](),
-  "src/ui/flow.js:574": () => ({ current: "🧁 Firing up the ovens on the Isle of Tortuga!", proposed: [] }),
-  "src/ui/flow.js:582": () => ({
-    current: `${pn(0)} can't afford powder.`,
-    proposed: [{ seat: 0, html: `Yer too poor to afford powder! Go fishin'` }],
-  }),
-  "src/ui/flow.js:613": () => {
-    const addressedBanner = `⛵ Ahoy, ${pn(0)} — your turn! The wind blows <b>${DIRNAME["N"]}</b> this round${stormIntroClause("N")}.`;
-    return {
-      current: `⛵ Ahoy, ${poss(0)} turn! The wind blows <b>${DIRNAME["N"]}</b> this round — ⛈️ STORM! First, it pushes ${pn(0)} 2 squares <b>${DIRNAME["N"]}</b>.`,
-      proposed: [{ seat: 0, html: addressedBanner }],
-    };
-  },
-  "src/ui/flow.js:613~noStorm": () => ({
-    current: `⛵ Ahoy, ${poss(0)} turn! The wind blows <b>${DIRNAME["N"]}</b> this round.`,
-    proposed: [{ seat: 0, html: `⛵ Ahoy, ${pn(0)} — your turn! The wind blows <b>${DIRNAME["N"]}</b> this round.` }],
-    note: "No storm this round — the storm-intro clause (NARR-03) is entirely absent.",
-  }),
-  "src/ui/flow.js:640": () => ({
-    current: `🏝️ Land's blockin' ${pn(0)}'s wind — slow as cold molasses in this lee.`,
-    proposed: [{ seat: 0, html: `🏝️ Land's blockin' yer wind, matey. Slow as cold molasses in this lee.` }],
-  }),
-  "src/ui/flow.js:645": () => ADHOC_RENDERERS["src/ui/flow.js:296"](),
-  "src/ui/flow.js:646": () => ({
-    current: brokeSailLine(0, NEUTRAL_VIEWER),
-    proposed: [{ seat: 0, html: brokeSailLine(0, 0) }],
-  }),
-  "src/ui/flow.js:702": () => ({
-    current: `⛈️ Now the storm moves ${pn(0)} <b>${DIRNAME["S"]}</b>!`,
-    proposed: [],
-    note: "A bot has no screen of its own to address — always third-person, by design (not a gap).",
-  }),
-  "src/ui/flow.js:722": () => ({
-    current: brokeSailLine(0, NEUTRAL_VIEWER),
-    proposed: [{ seat: 0, html: brokeSailLine(0, 0) }],
-  }),
-  "src/ui/flow.js:901": () => ({
-    current: `💰 ${pn(2)} calls ${pn(0)} and backs it with 2🌕!`,
-    proposed: [
-      { seat: 2, html: `💰 You call ${pn(0)} and back it with 2🌕!` },
-      { seat: 0, html: `💰 ${pn(2)} calls you to win and backs it with 2🌕!` },
-    ],
-  }),
-  "src/ui/flow.js:902": () => ({
-    current: `🔭 ${pn(2)} calls ${pn(0)} from the crow's nest.`,
-    proposed: [
-      { seat: 2, html: `🔭 You call ${pn(0)} from the crow's nest.` },
-      { seat: 0, html: `🔭 ${pn(2)} calls you to win from the crow's nest.` },
-    ],
-  }),
-  "src/ui/flow.js:928": () => ({
-    current: `🔭 The Lookout's Call settles — ${pn(2)} +5🌕 · ${pn(3)} −2🌕`,
-    proposed: [],
-    note: "One aggregate line covering every bettor at once — no per-viewer variant exists for this line yet.",
-  }),
-  "src/orchestrator.js:391": () => ({
-    current: `⚔️ ${pn(0)} attacks ${pn(1)}! First to 2 points wins…`,
-    proposed: [
-      { seat: 0, html: `⚔️ ${pn(0)} — you attack ${pn(1)}! First to 2 points wins…` },
-      { seat: 1, html: `⚔️ ${pn(0)} attacks you! First to 2 points wins…` },
-    ],
-  }),
-  "src/orchestrator.js:754": () => ({ current: "⏳ Nobody finished the voyage.", proposed: [] }),
-  "src/orchestrator.js:758": () => ({
-    current: `<div>👑 ${pn(0)} baked a <span class="narrRecipeLink">📜 Spiced Cocoa Shortbread</span> and won <b>Best Baker in the Caribbean!</b></div>`,
-    proposed: [],
-    note: "The recipe title/image shown here is an illustrative placeholder (the real line reads the winner's actual finished recipe) — the surrounding wording itself is unchanged this phase.",
-  }),
-  "src/ui/util.js:874": () => ({
-    current: `🧭 ${pn(0)} takes the wheel…`,
-    proposed: [{ seat: 0, html: `🧭 ${pn(0)} — you take the wheel…` }],
-  }),
-};
+/* The hand-transcribed per-site text table that used to live here is GONE (15-07 Task 3).
+ *
+ * It hand-wrote each ad-hoc site's current wording. Those literals were true when typed, and by
+ * the time anyone looked again 20 of its 26 entries were keyed to lines that no longer existed and
+ * its wording predated 15-06 ("the storm moves you", "swept into the trade winds", "your turn") —
+ * copy the game had stopped shipping. Cards would have shown Wyatt text the game does not say.
+ *
+ * Every ad-hoc card's text now comes from art-review/narration-core.js, which evaluates the REAL
+ * extracted expression — the way prompt and button text already worked. Where a site interpolates a
+ * local computed a few lines above the call (`neutralBanner`, `secondLegMsg`, `battleOpenVariants`),
+ * the core reads that local's OWN declaration out of the real file rather than anybody transcribing
+ * what it produces. So there is no second copy of the wording left anywhere to go stale.
+ *
+ * The branch axes (which CONDITION each sibling card represents — heads/tails, storm/no-storm) live
+ * in the core as LOCAL_BRANCH_AXES. They supply conditions only, never words. */
+function adhocTextFor(entry, tagOverride) {
+  const axes = core.LOCAL_BRANCH_AXES[entry.id] || [null];
+  const axis = tagOverride
+    ? axes.find((a) => a && a.tag === tagOverride)
+    : (axes.find((a) => !a || !a.tag) || null);
+  const c = core.renderCardSafely(entry, core.renderAdhoc, axis || null);
+  if (c.error) return { current: null, proposed: [], note: c.error, error: c.error };
+  return {
+    current: c.neutral,
+    proposed: (c.variants || []).map((v) => ({ seat: v.seat, html: v.text })),
+    note: (c.notes || []).filter(Boolean).join(" "),
+    passThrough: !!c.passThrough,
+    silent: c.neutral == null,
+  };
+}
 // Every extra sibling branch this rebuild adds, beyond the inventory's one entry per call site.
-const ADHOC_EXTRA_TAGS = {
-  "src/ui/flow.js:111": ["tails"],
-  "src/ui/flow.js:516": ["finishTaunt"],
-  "src/ui/flow.js:613": ["noStorm"],
-};
+// Every extra sibling branch beyond the inventory's one entry per call site — DERIVED from the
+// core's own branch axes rather than hand-listed here, so a new branch cannot exist in the core
+// while this page silently fails to render a card for it.
+const ADHOC_EXTRA_TAGS = Object.fromEntries(Object.entries(core.LOCAL_BRANCH_AXES)
+  .map(([id, axes]) => [id, axes.filter((a) => a && a.tag).map((a) => a.tag)])
+  .filter(([, tags]) => tags.length));
+// Keyed by the STABLE copy id plus the core's own branch tag, so a source move cannot detach a
+// sibling card's label from the card it belongs to.
 const ADHOC_LABEL_OVERRIDE = {
-  "src/ui/flow.js:111~tails": "Coin-flip announcement — tails",
-  "src/ui/flow.js:516~finishTaunt": "Trade refusal — the human is one ingredient from finishing (taunt line)",
-  "src/ui/flow.js:613~noStorm": "Per-turn banner, no storm this round",
+  "adhoc.flip.announce~tails": "Coin-flip announcement — tails",
+  "adhoc.trade.refusalbot~finishTaunt": "Trade refusal — the human is one ingredient from finishing (taunt line)",
+  "adhoc.turn.banner~noStorm": "Per-turn banner, no storm this round",
 };
 
-const PASS_THROUGH = new Set([
-  "src/ui/flow.js:333", "src/ui/flow.js:352", "src/orchestrator.js:699",
-  "src/orchestrator.js:720", "src/ui/util.js:878",
-]);
+// Table pass-through sites (a flash() that re-renders whichever EVENT_NARRATION entry fired) are
+// identified by the core, keyed by stable id, and surfaced per card by adhocTextFor() above. This
+// page used to hold its own line-keyed copy of that list and every one of those keys had drifted.
 
 // D-40: "effectively dead" text — reachable IN PRINCIPLE, but a normal game never reaches it
 // because an upstream guard (here: a disabled button, so localAsk() never wires a click handler)
@@ -1218,11 +948,9 @@ function guardedNote(id) {
 // three ad-hoc sites whose `proposed` array carries more than one entry — confirmed by the same
 // proposed.length-derived logic buildAdhocCard uses below, never a separately hand-listed set of
 // ids; this map only supplies the WORDING for a count buildAdhocCard already computed.
-const ADHOC_TWO_PARTY_ROLE_LABELS = {
-  "src/orchestrator.js:391": ["the attacker", "the defender"],
-  "src/ui/flow.js:901": ["the bettor", "the called captain"],
-  "src/ui/flow.js:902": ["the bettor", "the called captain"],
-};
+// The role WORDING for the ad-hoc two-party sites lives in the core, keyed by stable id. The
+// COUNT that decides whether a card gets two role-labelled fields is still derived from this card own
+// proposed.length, never a hand-listed set of ids.
 function buildAdhocCard(entry, idOverride, labelOverride, group) {
   const { file, line, fn, mergeInto, siblingMerges, rawNeutral, rawVariants } = entry;
   const baseKey = `${file}:${line}`;
@@ -1234,25 +962,26 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
   // keeping). Currently a no-op for flow.js:582 (its own default is already "keep"), but this
   // guards any future guarded entry whose curated default happens to be "rewrite".
   const defaultTag = guarded && entry.defaultTag === "rewrite" ? "keep" : entry.defaultTag;
+  const result = adhocTextFor(entry, idOverride ? String(idOverride).split("~").pop() : null);
   let body;
   let addressedFields = null;
-  if (PASS_THROUGH.has(baseKey)) {
+  if (result.passThrough) {
     body = `<p class="passThroughNote">Table pass-through — renders whichever EVENT_NARRATION entry actually fired for that event (see its own card in the matching stage). Not counted as separate copy — tagged keep by default.</p>`;
   } else {
-    const renderer = ADHOC_RENDERERS[key];
-    const result = renderer ? renderer() : { current: "(no renderer defined for this line yet)", proposed: [] };
     if (RENDERED_TEXTS_ADHOC[baseKey] === undefined) RENDERED_TEXTS_ADHOC[baseKey] = new Set();
-    RENDERED_TEXTS_ADHOC[baseKey].add(finalize(result.current));
-    (result.proposed || []).forEach((v) => RENDERED_TEXTS_ADHOC[baseKey].add(finalize(v.html)));
-    body = msgBox(result.current, "neutral") + renderVariantsBlock(result.proposed);
+    if (result.current != null) RENDERED_TEXTS_ADHOC[baseKey].add(result.current);
+    (result.proposed || []).forEach((v) => RENDERED_TEXTS_ADHOC[baseKey].add(v.html));
+    body = (result.silent
+      ? `<p class="silentNote">Deliberately silent — this branch renders no text at all.</p>`
+      : msgBox(result.current, "neutral")) + renderVariantsBlock(result.proposed);
     if (result.note) body += `<p class="cardNote">${result.note}</p>`;
-    recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, finalize(result.current));
+    if (!result.silent) recordNeutralTextEntry(id, labelOverride || entry.label, baseKey, result.current);
     // D-54: derived from THIS card's own proposed.length (the exact array renderVariantsBlock
     // just rendered above) — never a hand-listed set of ids. The role WORDING for the (currently
     // three) sites that qualify is curated in ADHOC_TWO_PARTY_ROLE_LABELS above.
     const proposed = result.proposed || [];
     if (proposed.length >= 2) {
-      const roleLabels = ADHOC_TWO_PARTY_ROLE_LABELS[baseKey];
+      const roleLabels = core.ADHOC_TWO_PARTY_ROLE_LABELS[entry.id];
       addressedFields = proposed.slice(0, 2).map((v, i) => ({
         suffix: i === 0 ? "" : "2",
         label: `Addressed to ${roleLabels ? roleLabels[i] : `seat ${v.seat}`}`,
@@ -1288,10 +1017,10 @@ function buildAdhocKeyCards(rawEntry, group) {
   const pinned = LEGACY_CARD_ID_PIN[actualKey];
   const entry = pinned ? Object.assign({}, rawEntry, { line: Number(pinned.split(":").pop()) }) : rawEntry;
   const baseKey = `${entry.file}:${entry.line}`;
-  const extras = ADHOC_EXTRA_TAGS[baseKey] || [];
+  const extras = ADHOC_EXTRA_TAGS[entry.id] || [];
   const cards = [buildAdhocCard(entry, null, null, group)];
   extras.forEach((tag) => {
-    const idKey = `${baseKey}~${tag}`;
+    const idKey = `${entry.id}~${tag}`;
     cards.push(buildAdhocCard(entry, idKey, ADHOC_LABEL_OVERRIDE[idKey], group));
   });
   return cards;
@@ -1313,14 +1042,10 @@ const MERGE_TARGET_QUESTION_IDS = new Set(["table:newround~heldStorm", "table:ne
 // addressed field. Role-labelled, never by sample seat name ("Addressed to Davy Scones" tells him
 // nothing about which role ships that line): {label, label2} below name each party by ROLE. Keyed
 // by table KEY (the vocabulary is fixed per event type, regardless of which specific branch).
-const TWO_PARTY_ROLE_LABELS = {
-  battle: (ev, seat) => (seat === ev.a ? "the attacker" : "the defender"),
-  battleflee: (ev, seat) => (seat === ev.a ? "the attacker" : "the defender"),
-  parley: (ev, seat) => (seat === ev.a ? "the offerer" : "the other captain"),
-  trade: (ev, seat) => (seat === ev.a ? "the offerer" : "the other captain"),
-  blocked: (ev, seat) => (seat === ev.p ? "the blocked captain" : "the ship in the way"),
-  bakeoff: (ev, seat) => (seat === ev.a ? "the first finalist" : "the other finalist"),
-};
+// D-54: a TWO-PARTY event renders THREE boxes — neutral plus one per named subject, role-labelled
+// ("Addressed to Davy Scones" tells him nothing about which role ships that line). The role
+// vocabulary lives in the core, keyed by table key.
+const TWO_PARTY_ROLE_LABELS = core.TWO_PARTY_ROLE_LABELS;
 // Builds the cardShell() `addressedFields` array for a TABLE card from its own already-computed
 // `variants` (narrationVariants(ev), the SAME array that decides how many boxes render) — never a
 // hand-listed set of ids. 0 or 1 variant -> null (cardShell falls back to the single generic
@@ -1503,7 +1228,8 @@ function adhocCards(fileLine) {
  * so ~24 sites don't need 24 hand-written functions. A handful reference a
  * variable computed a few lines above the ask() call itself (promptMsg,
  * prompt) — those get a small hand-written PROMPT_RENDERERS entry instead,
- * same convention ADHOC_RENDERERS already uses for that exact situation.
+ * resolved the same way the core resolves every other local: by reading that variable own
+ * declaration out of the real source file, so nothing is hand-transcribed.
  * ==========================================================================*/
 const promptByLine = Object.fromEntries((inv.prompts || []).map((e) => [`${e.file}:${e.line}`, e]));
 
@@ -1518,36 +1244,19 @@ const PROMPT_PASS_THROUGH = new Set([
   "src/orchestrator.js:912",      // watchPrompt re-renders an already-captured p.msg (with buttons)
 ]);
 
-const PROMPT_CTX_BASE = {
-  pn, poss, ilabelImg, iconImg, fmtItem, DIRNAME, CHECKMARK_IMG, CANCEL_X_IMG, CUPCAKE_IMG, appState,
-  ns: pn, nm: pn,
-  p: { idx: 0 }, q: { idx: 1 }, s: { idx: 2 }, o: { idx: 1 },
-  att: { idx: 0 }, def: { idx: 1 }, win: { idx: 0 }, lose: { idx: 1 },
-  who: "a", ing: "wheat", want: "sugar", price: 6, askFor: 2, n: 3, port: "wheat",
-  offerDisplay: `${ilabelImg("wheat")}`,
-  st: { baseIng: "wheat", want: "sugar", q: { idx: 1 } },
-  label: null,
-};
 // A raw extracted source snippet is a genuine JS expression (guaranteed syntactically valid —
 // it compiled in the real file) — evaluated for real against PROMPT_CTX_BASE plus any per-site
 // override. Never a hand-transcription of what it would produce. Falls back to null (caller
 // shows the raw source instead) if evaluation genuinely fails (a free variable this shared
 // context doesn't cover).
-function evalSource(rawSrc, extraCtx) {
-  if (!rawSrc) return null;
-  const ctx = Object.assign({}, PROMPT_CTX_BASE, extraCtx || {});
-  const keys = Object.keys(ctx);
-  try {
-    const fn = new Function(...keys, `"use strict"; return (${rawSrc});`);
-    const result = fn(...keys.map((k) => ctx[k]));
-    return typeof result === "string" ? result : (result == null ? null : String(result));
-  } catch (err) {
-    return null;
-  }
-}
+// A raw extracted snippet is a genuine JS expression — it compiled in the real file — so it is
+// evaluated for real against the core's shared context, never hand-transcribed. The core also
+// resolves an identifier the context does not supply by reading that identifier's own declaration
+// out of the real source file, which is what let the hand-written renderer table go away.
+const evalSource = core.evalSource;
 // Sites whose prompt text is a pre-computed VARIABLE (not an inline literal) — the raw source is
 // just an identifier like `promptMsg`, which evalSource can't usefully evaluate on its own. Same
-// convention ADHOC_RENDERERS already uses for this exact situation (e.g. flow.js:613's
+// resolved by the core out of the real declaration (e.g. humanTurn's
 // addressedBanner) — reconstructed here using the SAME real helpers the source itself calls.
 const PROMPT_RENDERERS = {
   "src/ui/flow.js:261": () => ({
@@ -1766,7 +1475,7 @@ function requireMiscEntry(category, fileLine) {
  * matches the D-30 prompt/button pairing (this plan's own explicit instruction: "render each WITH
  * its button"). ---- */
 const INTRO_CTX = {
-  pn, iconImg, EYES_IMG, DICE_IMG,
+  pn, iconImg, DICE_IMG,
   i: 0,
   lead: pn(0),
   rest: `${pn(1)} (+1🌕), ${pn(2)} (+2🌕), ${pn(3)} (+3🌕)`,
@@ -1858,7 +1567,7 @@ function miscBattleLineCard(fileLine) {
 /* ---- draftWait: recipe-draft + "waiting"/"choosing" broadcasts — a genuinely heterogeneous
  * handful of call shapes (see scripts/extract_narration_lines.js's own header note on why these
  * are anchor-verified rather than call-arg-captured). Hand-reconstructed here using the real pn()
- * helper, same convention ADHOC_RENDERERS already uses for flash() lines that can't run in
+ * helper — these are the anchor-verified sites, the one shape with no single expression to run in
  * isolation — the extraction script's own anchor check is what catches this table going stale. ---- */
 const DRAFT_WAIT_RENDERERS = {
   "src/orchestrator.js:657": () => ([

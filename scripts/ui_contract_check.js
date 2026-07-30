@@ -195,11 +195,17 @@ function checkRetainedGlobalsAllowlist(root) {
 }
 
 /* ================= Assertion 5: the D-29 pirate register (standing) ================= */
-// The same word-boundary alternation art-review/narration-audit.html:636 uses, longest-first so
-// `you're`/`yours`/`your` match before bare `you` (the technique EMOJIFY_RE already uses for
-// multi-codepoint emoji). Case-insensitive: the audit page's pirateVoice() is case-preserving, so
-// `You` and `Your` are equally in scope.
-const PRONOUN_RE = /\b(?:yourself|you're|yours|your|you)\b/i;
+// IMPORTED, not re-declared. This assertion and the audit page's own pirateVoice() were expressing
+// the SAME word list two different ways — a substitution map here, a detector there — which is one
+// spec in two places, and this file's own header had to point at the page to say where the spec
+// lived. Both now come from art-review/narration-core.js, the single declaration site: PIRATE_RE /
+// PIRATE_MAP do the substitution, PRONOUN_RE is the detector. Case-insensitive, because
+// pirateVoice() is case-preserving, so `You` and `Your` are equally in scope.
+//
+// The core is REVIEW TOOLING and importing it here is safe in the one direction that matters: a
+// gate may read the review tool's spec, but nothing under src/ or in index.html may import the core
+// (narration_audit_check.js asserts that in both directions), so no player-facing code depends on it.
+const { PRONOUN_RE } = await import("../art-review/narration-core.js");
 
 // ---------------------------------------------------------------------------
 // EXCLUSIONS — explicit and individually justified. NEVER widen this list to make a run go green;

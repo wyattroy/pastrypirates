@@ -1,0 +1,591 @@
+{
+  "_provenance": "Pre-refactor capture of the EVENT_NARRATION table path, taken by importing src/ui/util.js's real describeFor()/narrationVariants() builders directly — no audit page, no render core. src/ui/util.js has a comment-only diff since ab98e04, so these are the ab98e04 builders. This is a PERMANENT REGRESSION PIN on the one surface that was never broken: art-review/narration-core.js must reproduce it byte-for-byte forever. Regenerate only with a deliberate, reviewed change to the shipped table wording.",
+  "cards": {
+    "table:newround~freshWind": {
+      "key": "newround",
+      "label": "Fresh wind, no storm",
+      "silent": false,
+      "neutral": "— Round 3: wind is blowin' north —",
+      "variants": []
+    },
+    "table:newround~heldWindGusting": {
+      "key": "newround",
+      "label": "Wind holds (2 rounds), no storm",
+      "silent": false,
+      "neutral": "— Round 3: wind still blows north, this northerly is gusting —",
+      "variants": []
+    },
+    "table:newround~heldWindWontQuit": {
+      "key": "newround",
+      "label": "Wind holds (≥3 rounds — “won't quit”), no storm",
+      "silent": false,
+      "neutral": "— Round 3: wind still to the north, this northerly won't quit —",
+      "variants": []
+    },
+    "table:newround": {
+      "key": "newround",
+      "label": "Fresh storm",
+      "silent": false,
+      "neutral": "Round 3: A <img class=\"narrIcon\" src=\"assets/icons/storm-cloud.png\" alt=\"\"> storm be ragin'! It'll blow yer ships north, then south.",
+      "variants": []
+    },
+    "table:newround~heldStorm": {
+      "key": "newround",
+      "label": "Storm + wind holds (streak < 2)",
+      "silent": false,
+      "neutral": "Round 3: A <img class=\"narrIcon\" src=\"assets/icons/storm-cloud.png\" alt=\"\"> storm be ragin'! It'll blow yer ships north, then south.",
+      "variants": []
+    },
+    "table:newround~streakStorm": {
+      "key": "newround",
+      "label": "Storm committed ≥2 rounds running, wind not held",
+      "silent": false,
+      "neutral": "— Round 3: <img class=\"narrIcon\" src=\"assets/icons/storm-cloud.png\" alt=\"\"> The storm's baked in and won't cool down! It's aiming north, then south. Batten down the hatches, ye scurvy lot! —",
+      "variants": []
+    },
+    "table:newround~streakStormHeldGusting": {
+      "key": "newround",
+      "label": "Storm committed ≥2 rounds + wind holds (2 rounds)",
+      "silent": false,
+      "neutral": "— Round 3: <img class=\"narrIcon\" src=\"assets/icons/storm-cloud.png\" alt=\"\"> The storm's baked in and won't cool down! It's still aiming north, then south. Fie, Poseidon! —",
+      "variants": []
+    },
+    "table:newround~streakStormHeldWontQuit": {
+      "key": "newround",
+      "label": "Storm committed ≥2 rounds + wind holds (≥3 — “won't quit”)",
+      "silent": false,
+      "neutral": "— Round 3: <img class=\"narrIcon\" src=\"assets/icons/storm-cloud.png\" alt=\"\"> The storm's baked in and won't cool down! It's still aiming north, then south. Fie, Poseidon! —",
+      "variants": []
+    },
+    "table:windmove": {
+      "key": "windmove",
+      "label": "EVENT_NARRATION.windmove",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is blown by the storm",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer blown by the storm"
+        }
+      ]
+    },
+    "table:blownOut": {
+      "key": "blownOut",
+      "label": "EVENT_NARRATION.blownOut",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/sailboat.png\" alt=\"\"> A gale blows <b style=\"color:#f2679e\">Crustbeard</b> off the dock!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/sailboat.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — a gale blows ye off the dock!"
+        }
+      ]
+    },
+    "table:sail": {
+      "key": "sail",
+      "label": "EVENT_NARRATION.sail",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> pays 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> and sails",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye pay 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> and sail"
+        }
+      ]
+    },
+    "table:dodge": {
+      "key": "dodge",
+      "label": "EVENT_NARRATION.dodge",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> pays 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> to anchor safely",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye pay 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> to anchor safely!"
+        }
+      ]
+    },
+    "table:anchor": {
+      "key": "anchor",
+      "label": "EVENT_NARRATION.anchor",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> flips <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\">HEADS and dodges the rocks!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\">HEADS and dodge the rocks!"
+        }
+      ]
+    },
+    "table:moored": {
+      "key": "moored",
+      "label": "Reason: just docked",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is still docked, so the storm can't run them aground.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer still docked, so the storm can't run ye aground."
+        }
+      ]
+    },
+    "table:moored~dockMoved": {
+      "key": "moored",
+      "label": "Reason: dock — storm shoved you onto it THIS turn",
+      "silent": false,
+      "neutral": "Lucky break! The gust shoves <b style=\"color:#f2679e\">Crustbeard</b> towards a dock, and the crew steadies her fast <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "Lucky break! The gust shoves ye towards a dock, <b style=\"color:#f2679e\">Crustbeard</b>, and yer crew steadies her fast <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:moored~dockStill": {
+      "key": "moored",
+      "label": "Reason: dock — already parked, storm-untouched",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is still docked, so the storm can't run them aground.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer still docked, so the storm can't run ye aground."
+        }
+      ]
+    },
+    "table:moored~home": {
+      "key": "moored",
+      "label": "Reason: home berth (Tortuga)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is still docked, so the storm can't run them aground.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer still docked, so the storm can't run ye aground."
+        }
+      ]
+    },
+    "table:moored~legacyFallback": {
+      "key": "moored",
+      "label": "Reason: unrecognized (legacy replay log with no reason field)",
+      "silent": false,
+      "neutral": "The dock steadies <b style=\"color:#f2679e\">Crustbeard</b> from running aground <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — the dock steadies ye from running aground <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:blocked": {
+      "key": "blocked",
+      "label": "EVENT_NARRATION.blocked",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> spots <b style=\"color:#1d96a6\">Davy Scones</b> dead ahead, so strikes sail and holds fast.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye spot <b style=\"color:#1d96a6\">Davy Scones</b> dead ahead, so ye strike sail and hold fast."
+        },
+        {
+          "seat": 1,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> spots ye dead ahead, so strikes sail and holds fast."
+        }
+      ]
+    },
+    "table:anchorHold": {
+      "key": "anchorHold",
+      "label": "EVENT_NARRATION.anchorHold",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b>'s anchor is already down — it holds fast <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer anchor's already down. It holds fast <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:tradewind": {
+      "key": "tradewind",
+      "label": "EVENT_NARRATION.tradewind",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/current-swirl.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> is blown into the trade winds and swept around the rim!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/current-swirl.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — yer blown into the trade winds and swept around the rim!"
+        }
+      ]
+    },
+    "table:parley": {
+      "key": "parley",
+      "label": "Deal struck",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> offered <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for <b style=\"color:#1d96a6\">Davy Scones</b>'s <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar — they refused.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye offered <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for <b style=\"color:#1d96a6\">Davy Scones</b>'s <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar — they refused."
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> offered <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for yer <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar — ye refused."
+        }
+      ]
+    },
+    "table:parley~refused": {
+      "key": "parley",
+      "label": "Refused",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> offered <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for <b style=\"color:#1d96a6\">Davy Scones</b>'s <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar — they refused.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye offered <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for <b style=\"color:#1d96a6\">Davy Scones</b>'s <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar — they refused."
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> offered <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for yer <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar — ye refused."
+        }
+      ]
+    },
+    "table:aground": {
+      "key": "aground",
+      "label": "No crate held — half the coin purse lost",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\">TAILS and runs aground! Loses half their coins doing repairs <img class=\"narrIcon\" src=\"assets/icons/warning.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\">TAILS and run aground! Ye lose half yer coins on repairs <img class=\"narrIcon\" src=\"assets/icons/warning.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:aground~crate": {
+      "key": "aground",
+      "label": "Crate lost — tumbles overboard",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\">TAILS and runs aground! A crate of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat tumbles overboard and floats back to its island <img class=\"narrIcon\" src=\"assets/icons/warning.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\">TAILS and run aground! A crate of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat tumbles overboard and floats back to its island <img class=\"narrIcon\" src=\"assets/icons/warning.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:shipwrecked": {
+      "key": "shipwrecked",
+      "label": "EVENT_NARRATION.shipwrecked",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is shipwrecked, and loses their turn making repairs.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer shipwrecked, and lose yer turn making repairs."
+        }
+      ]
+    },
+    "table:dock": {
+      "key": "dock",
+      "label": "Heads — hauls aboard a crate",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch and flips <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\"> HEADS — hauls aboard <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye haul aboard <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat!"
+        }
+      ]
+    },
+    "table:dock~empty": {
+      "key": "dock",
+      "label": "Empty island — grabs 3 coins, no flip (NARR-07)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch and finds no <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat, so grabs 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye find no <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat, so ye grab 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:dock~bought": {
+      "key": "dock",
+      "label": "Tails, buys the crate anyway",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch for <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat and flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS, but buys it anyway for 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS, but buy it anyway for 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:dock~coins": {
+      "key": "dock",
+      "label": "Tails, takes the 3 coins",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch for <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"\"> a sack of Toasty Wheat, but flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS and takes 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS and take 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:trade": {
+      "key": "trade",
+      "label": "Cooperation bonus ON (cfg.tradeBonus)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar <span class=\"nobrk\">— they each get +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> for cooperating like good friendly pirates</span>",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye trade <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar <span class=\"nobrk\">— ye each get +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> for cooperatin' like good friendly pirates</span>"
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to ye for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar <span class=\"nobrk\">— ye each get +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> for cooperatin' like good friendly pirates</span>"
+        }
+      ]
+    },
+    "table:trade~noBonus": {
+      "key": "trade",
+      "label": "Cooperation bonus OFF",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye trade <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar"
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to ye for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar"
+        }
+      ]
+    },
+    "table:sidebet": {
+      "key": "sidebet",
+      "label": "Won, backed with coin",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> called it! 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> + double their bet (+5<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)",
+      "variants": [
+        {
+          "seat": 2,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> — ye called it! 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> + double yer bet (+5<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)"
+        }
+      ]
+    },
+    "table:sidebet~wonNoAmt": {
+      "key": "sidebet",
+      "label": "Won, free call (no coin backed)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> called it! (+1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)",
+      "variants": [
+        {
+          "seat": 2,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> — ye called it! (+1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)"
+        }
+      ]
+    },
+    "table:sidebet~lostAmt": {
+      "key": "sidebet",
+      "label": "Lost, backed with coin",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/spoils-pouch.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> backed the wrong ship (−2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)",
+      "variants": [
+        {
+          "seat": 2,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/spoils-pouch.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b>, ye backed the wrong ship (−2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)"
+        }
+      ]
+    },
+    "table:sidebet~lostNoAmt": {
+      "key": "sidebet",
+      "label": "Lost, free call (no coin backed)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> backed the wrong ship — no bounty.",
+      "variants": [
+        {
+          "seat": 2,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> — ye backed the wrong ship. No bounty."
+        }
+      ]
+    },
+    "table:battle": {
+      "key": "battle",
+      "label": "Coin spoil — genuine bribe (a full 5-coin purse)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> wins 2–1. <b style=\"color:#1d96a6\">Davy Scones</b> bribes their way out of giving away a crate with 5 coins.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye win 2–1. <b style=\"color:#1d96a6\">Davy Scones</b> bribes their way out of giving away a crate with 5 coins."
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> wins 2–1 — ye bribe yer way out of givin' away a crate with 5 coins."
+        }
+      ]
+    },
+    "table:battle~cleaned": {
+      "key": "battle",
+      "label": "Coin spoil — cleaned out (under 5 coins)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> wins 2–1. <b style=\"color:#1d96a6\">Davy Scones</b> gives up all they have: 2 coins.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye win 2–1. Ye take all <b style=\"color:#1d96a6\">Davy Scones</b> has: 2 coins."
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> wins 2–1 — ye give up all ye have: 2 coins."
+        }
+      ]
+    },
+    "table:battle~crate": {
+      "key": "battle",
+      "label": "Ingredient spoil — a crate changes hands",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> wins 2–1. <b style=\"color:#f2679e\">Crustbeard</b> takes <img class=\"narrIcon\" src=\"assets/ingredients/cocoa.png\" alt=\"Cacao Pods\"> Cacao Pods.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye win 2–1. Ye take <img class=\"narrIcon\" src=\"assets/ingredients/cocoa.png\" alt=\"Cacao Pods\"> Cacao Pods."
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> wins 2–1 and takes yer <img class=\"narrIcon\" src=\"assets/ingredients/cocoa.png\" alt=\"Cacao Pods\"> Cacao Pods"
+        }
+      ]
+    },
+    "table:battleflee": {
+      "key": "battleflee",
+      "label": "EVENT_NARRATION.battleflee",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> attacks <b style=\"color:#1d96a6\">Davy Scones</b>, but both shots miss wildly and <b style=\"color:#1d96a6\">Davy Scones</b> slips away! <span class=\"nobrk\">(−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye attack <b style=\"color:#1d96a6\">Davy Scones</b>, but both shots miss wildly and <b style=\"color:#1d96a6\">Davy Scones</b> slips away! <span class=\"nobrk\">(−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>"
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> attacks ye, but both shots miss wildly and ye slip away! <span class=\"nobrk\">(−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>"
+        }
+      ]
+    },
+    "table:fish": {
+      "key": "fish",
+      "label": "Heads — sugarfish",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> casts a line, catches a <img class=\"narrIcon\" src=\"assets/icons/sugarfish.png\" alt=\"\"> sugarfish! <span class=\"nobrk\">(+2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye cast a line and catch a <img class=\"narrIcon\" src=\"assets/icons/sugarfish.png\" alt=\"\"> sugarfish! <span class=\"nobrk\">(+2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>"
+        }
+      ]
+    },
+    "table:fish~candycrab": {
+      "key": "fish",
+      "label": "Tails, sardine rule ON — candycrab",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> casts a line, nets a <img class=\"narrIcon\" src=\"assets/icons/candy-crab.png\" alt=\"\"> candycrab <span class=\"nobrk\">(+1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye cast a line and net a <img class=\"narrIcon\" src=\"assets/icons/candy-crab.png\" alt=\"\"> candycrab <span class=\"nobrk\">(+1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>"
+        }
+      ]
+    },
+    "table:fish~empty": {
+      "key": "fish",
+      "label": "Tails, sardine rule OFF — empty-handed",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> casts a line, comes up empty-handed",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye cast a line and come up empty-handed"
+        }
+      ]
+    },
+    "table:finish": {
+      "key": "finish",
+      "label": "EVENT_NARRATION.finish",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/finish-flag.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> returns to the Isle of Tortuga with a full recipe!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/finish-flag.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye return to the Isle of Tortuga with a full recipe!"
+        }
+      ]
+    },
+    "table:shotclock": {
+      "key": "shotclock",
+      "label": "EVENT_NARRATION.shotclock",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/stopwatch.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> was too slow — loses 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">, everyone else +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/stopwatch.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye were too slow and lose 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">; everyone else gets +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+        }
+      ]
+    },
+    "table:shotclockskip": {
+      "key": "shotclockskip",
+      "label": "No crate held — coins tumble overboard",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/alarm.png\" alt=\"\"> Snoozing pirates lose their treasure! <b style=\"color:#f2679e\">Crustbeard</b> loses their turn — 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> tumbles overboard!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/alarm.png\" alt=\"\"> Snoozing pirates lose their treasure! <b style=\"color:#f2679e\">Crustbeard</b> — ye lose yer turn and 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> tumbles overboard!"
+        }
+      ]
+    },
+    "table:shotclockskip~crate": {
+      "key": "shotclockskip",
+      "label": "Crate tumbles overboard",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/alarm.png\" alt=\"\"> Snoozing pirates lose their treasure! <b style=\"color:#f2679e\">Crustbeard</b> loses their turn — a crate of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat tumbles overboard and floats back to its island.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/alarm.png\" alt=\"\"> Snoozing pirates lose their treasure! <b style=\"color:#f2679e\">Crustbeard</b> — ye lose yer turn and a crate of <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat tumbles overboard and floats back to its island."
+        }
+      ]
+    },
+    "table:bakeoff": {
+      "key": "bakeoff",
+      "label": "EVENT_NARRATION.bakeoff",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/cupcake.png\" alt=\"\"> BAKEOFF! <b style=\"color:#f2679e\">Crustbeard</b> vs <b style=\"color:#1d96a6\">Davy Scones</b> — <b style=\"color:#f2679e\">Crustbeard</b> takes it!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/cupcake.png\" alt=\"\"> BAKEOFF! <b style=\"color:#f2679e\">Crustbeard</b> vs <b style=\"color:#1d96a6\">Davy Scones</b> — ye take it!"
+        }
+      ]
+    },
+    "table:end": {
+      "key": "end",
+      "label": "EVENT_NARRATION.end",
+      "silent": true,
+      "neutral": null,
+      "variants": []
+    },
+    "table:turn": {
+      "key": "turn",
+      "label": "EVENT_NARRATION.turn",
+      "silent": true,
+      "neutral": null,
+      "variants": []
+    }
+  }
+}
