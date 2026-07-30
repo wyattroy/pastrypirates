@@ -896,15 +896,49 @@ export function assignBadges(){
 // D-23 (Wyatt-approved 2026-07-29): this is now the ONLY narration hold curve — bot narration used
 // to run on its own, shorter curve (BOT_MSG_HOLD_MULTIPLIER/botMsgHoldMs below); that curve is
 // retired and every bot call site now holds on this exact formula, same as a human's own line.
-const MSG_HOLD_MULTIPLIER=0.72;
+// G28 (Wyatt-approved 2026-07-30, retuned live during the recorded playtest). THREE changes, and the
+// third is the one that matters most:
+//
+//   1. base 1000 -> 500, charTime 50 -> 20. He watched the long lines and said they "hold too long".
+//   2. CLAMP MOVED LAST. It used to wrap `raw` and THEN multiply, so the 1200/7000 written here were
+//      bounds on an intermediate number nobody ever sees — the real visible range was 864..5040ms.
+//      He spotted it: "the clamp should happen last. right? The idea is that nothing is visible for
+//      less than 1200 ms and nothing is visible for more than 7000 ms." It is now literally that.
+//   3. MSG_HOLD_MULTIPLIER (0.72) RETIRED, not re-applied on top. Keeping it would have made his
+//      3200 ceiling render as 2304 and his 1200 floor as 864 — recreating the exact defect item 2
+//      just fixed, one layer down. His numbers ARE the visible milliseconds. If the pacing wants
+//      changing again, change THESE numbers; do not reintroduce a scale factor over them.
+//
+// THE HOLD IS NOT THE WHOLE TIME ON SCREEN, and that matters for anyone retuning this. flash()
+// awaits the typewriter (`_revealDone`) and only THEN starts this hold, so a line's real life is
+//     reveal (REVEAL_MS_PER_CHAR x chars)  +  this hold  +  GHOST_FADE_MS
+// He deliberately left the reveal alone — "i like the reveal speed where it is, it looks good" — so
+// on a long line the typewriter and the hold contribute roughly equally, and THE CEILING IS THE ONLY
+// LEVER on the worst case. Without one, 500 + 20/char keeps climbing and a 200-char line ends up
+// longer than it was before this retune. That is why 2000 is a hard cap and not a formality.
+//
+// Measured against the pre-retune curve, total time on screen:
+//     25ch 2.5s -> 2.6s   80ch 5.6s -> 4.4s   120ch 7.6s -> 5.2s   160ch 8.4s -> 6.0s
+// Short lines hold steady, the long ones lose up to 2.4s, and the fade is now long enough to read as
+// a warning rather than a cut.
+//
+// Floor is 800, matching GHOST_FADE_MS: he lowered it himself once the fade grew — "i think the floor
+// can be lowered to 800ms if we have a 800ms fade" — because the fade now carries the "this is
+// leaving" signal that the floor used to have to guarantee on its own. It binds only under ~15
+// characters, and only for a line with no sentence punctuation.
+//
+// Known and accepted: at 20ms/char the ceiling binds from ~60 characters, so most full sentences share
+// the same 2000ms hold. Length still stretches the reveal, and the fade — not the hold — is what
+// signals "this is about to leave". That was his stated purpose for lengthening it.
+const HOLD_BASE_MS=500, HOLD_MS_PER_CHAR=20, HOLD_PAUSE_MS=300;
+export const HOLD_FLOOR_MS=800, HOLD_CEILING_MS=2000;
 export function msgHoldMs(text){
   text=text||"";
-  const base=1000,charTime=50;
-  let raw=base+text.length*charTime;
+  let raw=HOLD_BASE_MS+text.length*HOLD_MS_PER_CHAR;
   const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
   const pauses=(body.match(/[,!?.]/g)||[]).length;
-  raw+=pauses*300;
-  return Math.round(Math.min(Math.max(raw,1200),7000)*MSG_HOLD_MULTIPLIER);
+  raw+=pauses*HOLD_PAUSE_MS;
+  return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),HOLD_CEILING_MS));
 }
 // D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
 // snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);

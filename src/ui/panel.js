@@ -238,7 +238,7 @@ export function liveRender(){
 //   - F6 STANDS and is NOT reintroduced as fade-to-empty: the ghost is created only when the
 //     incoming html is non-empty, so a TRAILING line still never fades. An explicit clear (a caller
 //     passing empty content) still empties and hides the panel instantly, with no ghost.
-export const GHOST_FADE_MS=180;
+export const GHOST_FADE_MS=800;
 // ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
 // strict sequence is only strict while they are equal. It stays 180ms: the value Wyatt already
 // looked at this morning, so exactly one variable moves in this change. THIS NUMBER LIVES IN TWO

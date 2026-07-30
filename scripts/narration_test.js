@@ -220,10 +220,21 @@ for (const key of KEYS) {
 
   const sample40 = "x".repeat(40); // 40 code units, no punctuation — the plan's own pinned sample
 
-  /* ---- the numeric relationship: 0.9x the pre-change value, on the human cut curve ---- */
-  const oldHuman = holdFormula(sample40, 1200, 7000, 0.8); // msgHoldMs's PRE-Phase-15 multiplier
-  check("msgHoldMs: 40-code-unit sample is exactly 0.9x its pre-change value", msgHoldMs(sample40), Math.round(oldHuman * 0.9));
-  check("msgHoldMs: 40-code-unit sample returns 2160 (pinned literal)", msgHoldMs(sample40), 2160);
+  /* ---- G28 (Wyatt-approved 2026-07-30): the curve's numbers are now set DIRECTLY, so there is no
+     multiplier for the sample to be a ratio OF. The old pins asserted "0.9x the pre-change value",
+     a relationship NARR-06 expressed and G28 supersedes — he retuned live against a measured table
+     and the constants are the visible milliseconds. Pinned against the formula and as a literal, so
+     a silent drift in either the shape or the numbers still fails. ---- */
+  const HOLD_BASE = 500, HOLD_PER_CHAR = 20, HOLD_PAUSE = 300, HOLD_FLOOR = 800, HOLD_CEIL = 2000;
+  const holdG28 = (t) => {
+    const body = t.replace(/[.,!?]+$/, "");
+    const pauses = (body.match(/[,!?.]/g) || []).length;
+    return Math.round(Math.min(Math.max(HOLD_BASE + t.length * HOLD_PER_CHAR + pauses * HOLD_PAUSE, HOLD_FLOOR), HOLD_CEIL));
+  };
+  check("msgHoldMs: 40-code-unit sample matches the G28 curve", msgHoldMs(sample40), holdG28(sample40));
+  check("msgHoldMs: 40-code-unit sample returns 1300 (pinned literal)", msgHoldMs(sample40), 1300);
+  check("msgHoldMs: the G28 ceiling binds — a 200-char line is capped, not linear", msgHoldMs("x".repeat(200)), 2000);
+  check("msgHoldMs: the G28 floor binds on a short pauseless line", msgHoldMs("x".repeat(5)), 800);
   // D-23 (Wyatt-approved 2026-07-29): the separate, shorter bot curve is RETIRED — bot narration
   // now holds for exactly as long as an identical human line (D-18 parity), so botMsgHoldMs is a
   // pure alias for msgHoldMs and this asserts that equality rather than the old distinct formula.
@@ -238,7 +249,7 @@ for (const key of KEYS) {
   for (const input of ["", null, undefined]) {
     const label = input === "" ? '""' : String(input);
     const humanVal = msgHoldMs(input);
-    check(`msgHoldMs(${label}): clamped floor 1200 x 0.72`, humanVal, 864);
+    check(`msgHoldMs(${label}): G28 floor — a plain 800ms, no multiplier`, humanVal, 800);
     checkTrue(`msgHoldMs(${label}): positive integer, never NaN/zero/negative`, Number.isInteger(humanVal) && humanVal > 0);
     const botVal = botMsgHoldMs(input);
     check(`botMsgHoldMs(${label}): D-23 parity — equals msgHoldMs(${label})`, botVal, humanVal);
@@ -941,12 +952,14 @@ const DOCK_FLAVOR_BEFORE = {
   const fadeRule = (indexSrc.match(/\.apMsg\.fadeOut\s*\{[^}]*\}/) || [""])[0];
   checkTrue("G8: the ghost is out of flow (position:absolute) so resizePanel measures only the incoming message — the box still animates once per message", /position:\s*absolute/.test(fadeRule));
   checkTrue("G8: the ghost is pointer-events:none — panel() also renders prompt buttons, and a ghost swallowing the first click would be worse than the bug being fixed", /pointer-events:\s*none/.test(fadeRule));
-  checkTrue("G8: the fade runs at 180ms — the one taste-call number, and NOT the .5s that was rejected as draggy", /animation:\s*apMsgFadeOut\s+\.18s/.test(fadeRule));
+  checkTrue("G28: the fade runs at .8s — Wyatt lengthened it so it reads as a WARNING (\"hurry up and read it\"); .18s was too quick to notice and .5s was the earlier draggy reject", /animation:\s*apMsgFadeOut\s+\.8s/.test(fadeRule));
   check("G8: the rejected half-second is gone from the rule", /\.5s/.test(fadeRule), false);
 
   // the hold CURVES themselves are untouched — the pinned values above must still hold unchanged
   const utilSrc = readFileSync(new URL("../src/ui/util.js", import.meta.url), "utf8");
-  checkTrue("F6: MSG_HOLD_MULTIPLIER is still 0.72 — the curve is not what F6 changes", /MSG_HOLD_MULTIPLIER=0\.72/.test(utilSrc));
+  checkTrue("G28: MSG_HOLD_MULTIPLIER is RETIRED — a scale factor over Wyatt's numbers would make his 2000 ceiling render as 1440, the exact 'constants don't mean what they say' bug G28 fixed", !/MSG_HOLD_MULTIPLIER\s*=/.test(utilSrc));
+  checkTrue("G28: the hold curve's constants are named and are the VISIBLE milliseconds", /HOLD_FLOOR_MS=800/.test(utilSrc) && /HOLD_CEILING_MS=2000/.test(utilSrc));
+  checkTrue("G28: the clamp is applied LAST, not to a pre-multiplier intermediate", /Math\.min\(Math\.max\(raw,HOLD_FLOOR_MS\),HOLD_CEILING_MS\)/.test(utilSrc));
   checkTrue("F6: CHAT_BUBBLE_HOLD_MULTIPLIER is untouched at 0.8 (D-15)", /CHAT_BUBBLE_HOLD_MULTIPLIER=0\.8/.test(utilSrc));
 }
 
