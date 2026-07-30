@@ -762,7 +762,7 @@
           "backMarker": false,
           "flipMarker": false,
           "value": "\"flip\"",
-          "slot": "1"
+          "slot": "opt1"
         },
         {
           "raw": "\"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)\"",
@@ -770,7 +770,7 @@
           "backMarker": false,
           "flipMarker": false,
           "value": "\"flip\"",
-          "slot": "2"
+          "slot": "opt2"
         },
         {
           "raw": "`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))`",
@@ -778,7 +778,7 @@
           "backMarker": false,
           "flipMarker": false,
           "value": "\"flip\"",
-          "slot": "3"
+          "slot": "opt3"
         }
       ],
       "dynamicLabelCount": 0,
@@ -1080,7 +1080,7 @@
           "backMarker": true,
           "flipMarker": false,
           "value": "null",
-          "slot": "0"
+          "slot": "opt0"
         }
       ],
       "dynamicLabelCount": 1,
@@ -1142,7 +1142,7 @@
           "backMarker": false,
           "flipMarker": false,
           "value": "n",
-          "slot": "0"
+          "slot": "opt0"
         },
         {
           "raw": "\"Never mind\"",
@@ -1212,7 +1212,7 @@
           "backMarker": false,
           "flipMarker": false,
           "value": "n",
-          "slot": "1"
+          "slot": "opt1"
         },
         {
           "raw": "\"← Back\"",

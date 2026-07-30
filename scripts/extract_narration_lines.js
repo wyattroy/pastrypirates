@@ -1112,6 +1112,11 @@ function valueSlot(raw) {
   v = v.toLowerCase().replace(/^-/, "neg").replace(/[^a-z0-9]+/g, "");
   return v || null;
 }
+// The ordinal fallback is PREFIXED (`opt0`, `opt1`) rather than a bare index, because a bare index
+// can collide with a value-derived slot: botTurn's counter-offer prompt has options valued `n` and
+// `0`, so the second became slot "0" from its value while the first fell back to ordinal 0 — two
+// different buttons, one card id. Caught while authoring the alias map, which is the one place a
+// duplicate button id shows up as two review marks landing on the same card.
 let buttonSlotFallbacks = 0;
 for (const p of prompts) {
   const slots = (p.labels || []).map((l) => valueSlot(l.value));
@@ -1120,8 +1125,17 @@ for (const p of prompts) {
   (p.labels || []).forEach((l, i) => {
     const s = slots[i];
     if (s && counts[s] === 1) l.slot = s;
-    else { l.slot = String(i); buttonSlotFallbacks++; }
+    else { l.slot = `opt${i}`; buttonSlotFallbacks++; }
   });
+  // Uniqueness is the whole contract — a duplicate slot means two buttons share one card id, and
+  // whichever renders second silently inherits the other's review mark.
+  const seen = new Set();
+  for (const l of p.labels || []) {
+    if (seen.has(l.slot)) {
+      fail(`prompt ${p.id} (${p.file}:${p.line}) has two options with slot "${l.slot}" — a duplicate button card id would give two buttons one review mark`);
+    }
+    seen.add(l.slot);
+  }
 }
 
 /* ================= self cross-check (independent second pass) ================= */

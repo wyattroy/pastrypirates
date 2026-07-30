@@ -11,5 +11,12 @@
     "extraction rather than writing the inventory. Add an id here whenever a copy site is retired.",
     "Never remove one."
   ],
-  "ids": []
+  "ids": [
+    "adhoc:src/ui/flow.js:296",
+    "adhoc:src/ui/flow.js:571",
+    "adhoc:src/ui/flow.js:645",
+    "misc:battleLine:src/orchestrator.js:483",
+    "misc:battleLine:src/orchestrator.js:487",
+    "misc:battleLine:src/ui/flow.js:967"
+  ]
 }

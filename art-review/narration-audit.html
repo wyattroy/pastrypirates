@@ -237,7 +237,6 @@
   }
   /* D-47: the one-time migration summary — shown only on the load where a migration actually
      happened (naturally one-time: once a question is moved, nothing matches on the next reload). */
-  #migrationSummaryBanner:empty { display: none; }
   .dupWarning { font-size: 0.76rem; color: var(--warn); font-weight: 600; margin: 0; }
   .reviewedRow {
     display: flex; align-items: center; gap: 7px; font-size: 0.76rem; color: var(--muted);
@@ -565,7 +564,6 @@
 <div id="selfCheckBanner" class="selfCheckBanner">running self-check…</div>
 <div id="dupWarningBanner" class="selfCheckBanner">checking for duplicate rewrite text…</div>
 <div id="mergeCycleBanner" class="selfCheckBanner">checking for merge-target cycles (D-36)…</div>
-<div id="migrationSummaryBanner" class="selfCheckBanner"></div>
 <div id="flowCanvas">
   <svg id="edgeSvg"></svg>
   <div id="stages">loading…</div>
@@ -841,7 +839,7 @@ function buildTableKeyCards(key, group) {
 const TABLE_TAGS = {
   // D-19/D-27: Wyatt confirmed "treat the parley cuts as the merge" — parley folds into trade,
   // not a plain cut. Default recommendation updated to merge accordingly (the pass-2 file's own
-  // parley rows are in the stale, unreviewed range anyway — see PASS2_REVIEWED_CUTOFF below — so
+  // parley rows are reviewed in his 209-row export, so this default only decides what a NEW card
   // this default is what actually reaches the page for both parley branches).
   newround: "keep", windmove: "rewrite", blownOut: "rewrite", sail: "keep", dodge: "keep",
   anchor: "keep", moored: "keep", blocked: "keep", anchorHold: "keep", tradewind: "rewrite",
@@ -929,13 +927,12 @@ const ADHOC_LABEL_OVERRIDE = {
 // cross-function control-flow analysis, which a reliable static detector would need far more than
 // this page's existing text-scanning tools to establish safely. A curated list is what D-40's own
 // instruction sanctions when a general detector would be unreliable.
-const GUARDED_TEXT = {
-  "adhoc:src/ui/flow.js:582": {
-    guard: "the Attack option's own <code>disabled:!canAfford</code> flag (src/ui/flow.js:549) — localAsk() gives a disabled button no click handler at all, so a normal player cannot trigger this guard",
-    liveSibling: { id: "sub:src/ui/flow.js:563~poor", label: "Helper text (sub) — humanAct() [too-poor-to-attack branch]" },
-  },
-};
-function guardedNote(id) {
+// Keyed by STABLE card id, and held in the render core so the health gate checks the same table the
+// page renders from. Curated by hand, NOT a general detector: the shape requires proving that an
+// `if(<condition>)` guard around a flash() call is made unreachable by a `disabled:` flag on an
+// OPTION defined in a DIFFERENT function entirely — real cross-function control-flow analysis, which
+// is exactly what D-40 sanctions a curated list for.
+const GUARDED_TEXT = core.GUARDED_TEXT;function guardedNote(id) {
   const g = GUARDED_TEXT[id];
   if (!g) return "";
   const siblingLink = g.liveSibling
@@ -953,7 +950,7 @@ function guardedNote(id) {
 // proposed.length, never a hand-listed set of ids.
 function buildAdhocCard(entry, idOverride, labelOverride, group) {
   const { file, line, fn, mergeInto, siblingMerges, rawNeutral, rawVariants } = entry;
-  const baseKey = `${file}:${line}`;
+  const baseKey = entry.id;
   const key = idOverride || baseKey;
   const id = `adhoc:${key}`;
   const guarded = GUARDED_TEXT[id];
@@ -1003,20 +1000,13 @@ function buildAdhocCard(entry, idOverride, labelOverride, group) {
 }
 const RENDERED_TEXTS_ADHOC = {};
 
-// D-24 (commit 2480d7e) added comment lines above narrateCurrent(), shifting its two flash()
-// sites down 8 lines (:874/:878 -> :882/:886). Wyatt's pass-2 review already covers ids at the
-// ORIGINAL line numbers (rows 14-15 of PASS2_ROWS) — pin the card id to that original value here
-// (the one place every ad-hoc card's id gets constructed) so re-running the extraction script to
-// stay accurate about the true source location never silently drops his review history.
-const LEGACY_CARD_ID_PIN = {
-  "src/ui/util.js:882": "src/ui/util.js:874",
-  "src/ui/util.js:886": "src/ui/util.js:878",
-};
+// The legacy card-id pin is GONE. It existed because D-24 shifted narrateCurrent()'s two flash()
+// sites down 8 lines and Wyatt's review rows were keyed to the ORIGINAL numbers — the whole class of
+// problem stable ids remove. art-review/narration-id-aliases.json carries those two rows across by
+// name instead, once, and the ledger makes sure neither id is ever re-issued.
 function buildAdhocKeyCards(rawEntry, group) {
-  const actualKey = `${rawEntry.file}:${rawEntry.line}`;
-  const pinned = LEGACY_CARD_ID_PIN[actualKey];
-  const entry = pinned ? Object.assign({}, rawEntry, { line: Number(pinned.split(":").pop()) }) : rawEntry;
-  const baseKey = `${entry.file}:${entry.line}`;
+  const entry = rawEntry;
+  const baseKey = entry.id;
   const extras = ADHOC_EXTRA_TAGS[entry.id] || [];
   const cards = [buildAdhocCard(entry, null, null, group)];
   extras.forEach((tag) => {
@@ -1131,7 +1121,7 @@ function cardShell({ id, title, meta, body, defaultTag, silent, mergeInto, merge
 // cache:"no-store" is load-bearing, not belt-and-braces. The dev server sends no cache headers, so
 // Chrome heuristically caches this JSON — and it survived even a hard reload. When the extractor
 // regenerated the inventory (new line numbers after D-24's comment shift, plus D-30's `prompts`),
-// Wyatt's browser kept serving the OLD copy against the NEW page: every adhocByLine lookup for a
+// Wyatt's browser kept serving the OLD copy against the NEW page: every adhocById lookup for a
 // shifted line returned undefined and the whole render died on `rawEntry.file`, leaving the page
 // stuck on "loading..." with no cards. A stale sidecar must never be able to break the page again.
 const inv = await fetch("narration-inventory.json", { cache: "no-store" }).then((r) => r.json());
@@ -1140,7 +1130,53 @@ if (!inv || !Array.isArray(inv.adhoc) || !Array.isArray(inv.table) || !Array.isA
   throw new Error("narration-inventory.json is missing or stale (no `prompts`/`misc`/`awards`/`roundCfgFlags` key) — re-run `node scripts/extract_narration_lines.js`.");
 }
 const tableByKey = Object.fromEntries(inv.table.map((e) => [e.key, e]));
-const adhocByLine = Object.fromEntries(inv.adhoc.map((e) => [`${e.file}:${e.line}`, e]));
+// Keyed by STABLE ID. This map used to be keyed by `file:line`, which is what made the tool decay
+// into a blank screen: 80 of the page's 91 hardcoded locations had gone stale, and the very first
+// lookup threw, aborting the whole render.
+const adhocById = Object.fromEntries(inv.adhoc.map((e) => [e.id, e]));
+
+/* ============================================================================
+ * THE SEED OF RECORD IS THE REPO, NOT THIS BROWSER (15-07 Task 4).
+ *
+ * Wyatt's 209 reviewed dispositions used to exist in exactly one browser profile.
+ * They are now reconstructed on every load from three committed files, so a new
+ * machine, a cleared browser or a different laptop all rebuild his full review:
+ *
+ *   15-DISPOSITIONS-FINAL.json   his 209 rows, all reviewed
+ *   15-ADDRESSED2-APPROVED.json  the 11 second-party rows he approved after that export
+ *   narration-id-aliases.json    old frozen id -> new stable card id, or a retirement
+ *
+ * The alias file is what carries his work across the re-key. Six rows are retired
+ * because 15-06 deleted or merged the line away — and all six carry his OWN merge
+ * tag, so retiring them executes an instruction he wrote rather than discarding a
+ * mark he made. scripts/narration_audit_check.js asserts that arithmetic on every
+ * test run: 209 == aliased + retired, and the retired set equals a pinned six-id list.
+ * ==========================================================================*/
+const [dispositionsFile, addressed2File, aliasFile] = await Promise.all([
+  fetch("../.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json", { cache: "no-store" }).then((r) => r.json()),
+  fetch("../.planning/phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json", { cache: "no-store" }).then((r) => r.json()),
+  fetch("narration-id-aliases.json", { cache: "no-store" }).then((r) => r.json()),
+]);
+const ALIAS_TO_NEW = Object.fromEntries((aliasFile.entries || []).filter((e) => e.new).map((e) => [e.old, e.new]));
+const RETIRED_ROWS = (aliasFile.entries || []).filter((e) => e.retired);
+// His rows, re-keyed. A retired row contributes nothing — there is no card left to carry it.
+const SEED_BY_ID = {};
+for (const row of dispositionsFile.rows || []) {
+  const id = ALIAS_TO_NEW[row.id];
+  if (!id) continue;
+  SEED_BY_ID[id] = {
+    tag: row.tag, notes: row.notes || "",
+    addressedNotes: row.addressedNotes || "", addressedNotes2: row.addressedNotes2 || "",
+    question: row.question || "", mergeInto: row.mergeInto || "",
+    reviewed: row.reviewed !== false,
+  };
+}
+// The second-party overlay lands on top, since he approved it after that export.
+for (const row of addressed2File.rows || []) {
+  const id = ALIAS_TO_NEW[row.id];
+  if (!id || !SEED_BY_ID[id]) continue;
+  SEED_BY_ID[id].addressedNotes2 = row.addressedNotes2 || SEED_BY_ID[id].addressedNotes2;
+}
 
 /* ============================================================================
  * D-36: canonical merge-target registry. Every merge id used on this page is
@@ -1194,7 +1230,7 @@ function mergeCandidatesFor(id) {
   // D-49: a branch-specific target (TABLE_BRANCH_MERGE_TARGET) wins over the per-key default
   // (TABLE_MERGE_TARGET) when both could apply — checked first.
   const own = TABLE_BRANCH_MERGE_TARGET[id] || (id.startsWith("table:") ? TABLE_MERGE_TARGET[id.slice("table:".length).split("~")[0]]
-    : id.startsWith("adhoc:") ? (adhocByLine[id.slice("adhoc:".length)] || {}).mergeInto
+    : id.startsWith("adhoc:") ? (adhocById[id.slice("adhoc:".length)] || {}).mergeInto
     : null);
   push(own);
   // every DISTINCT target any sibling ad-hoc entry resolves to, so a card can be pointed at a
@@ -1210,8 +1246,8 @@ function tableCards(key) { return buildTableKeyCards(key, key); }
 // inventory was served: buildAdhocKeyCards read `rawEntry.file` off undefined, the exception escaped
 // the whole render, and every card vanished behind "loading..." with nothing naming the cause.
 // A bad key now names itself instead of taking the page down silently.
-function adhocCards(fileLine) {
-  const entry = adhocByLine[fileLine];
+function adhocCards(siteId) {
+  const entry = adhocById[siteId];
   if (!entry) throw new Error(`narration-inventory.json has no ad-hoc entry for "${fileLine}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
   return buildAdhocKeyCards(entry, fileLine);
 }
@@ -1231,17 +1267,17 @@ function adhocCards(fileLine) {
  * resolved the same way the core resolves every other local: by reading that variable own
  * declaration out of the real source file, so nothing is hand-transcribed.
  * ==========================================================================*/
-const promptByLine = Object.fromEntries((inv.prompts || []).map((e) => [`${e.file}:${e.line}`, e]));
+const promptById = Object.fromEntries((inv.prompts || []).map((e) => [e.id, e]));
 
 // panel() sites that only clear the panel, re-render an ALREADY-CAPTURED remote prompt's own
 // msg (no new copy of their own), or render a complex dynamic scoreboard (not fixed copy) —
 // pass-through, mirroring the flash() table-driven concept.
 const PROMPT_PASS_THROUGH = new Set([
-  "src/ui/flow.js:90",            // localAsk's own rendering plumbing — redundant with the ask() site itself
-  "src/orchestrator.js:306",      // renderBattle's live scoreboard HTML — dynamic rounds/score, not fixed copy
-  "src/orchestrator.js:844",      // watchDraftPrompt re-renders an already-captured p.msg
-  "src/orchestrator.js:901",      // watchPrompt re-renders an already-captured p.msg
-  "src/orchestrator.js:912",      // watchPrompt re-renders an already-captured p.msg (with buttons)
+  "prompt.plumbing.localask",            // localAsk's own rendering plumbing — redundant with the ask() site itself
+  "prompt.battle.scoreboard",      // renderBattle's live scoreboard HTML — dynamic rounds/score, not fixed copy
+  "prompt.net.draftrerender",      // watchDraftPrompt re-renders an already-captured p.msg
+  "prompt.net.promptrerender",      // watchPrompt re-renders an already-captured p.msg
+  "prompt.net.promptrerenderbuttons",      // watchPrompt re-renders an already-captured p.msg (with buttons)
 ]);
 
 // A raw extracted source snippet is a genuine JS expression (guaranteed syntactically valid —
@@ -1259,12 +1295,12 @@ const evalSource = core.evalSource;
 // resolved by the core out of the real declaration (e.g. humanTurn's
 // addressedBanner) — reconstructed here using the SAME real helpers the source itself calls.
 const PROMPT_RENDERERS = {
-  "src/ui/flow.js:261": () => ({
+  "prompt.storm.anchororflip": () => ({
     // windLeg's storm-anchor promptMsg — two branches (trueShipwreck / ordinary broke-or-not)
     current: `${pn(0)}: the storm blows ye toward an island! Anchor safely, or flip to take yer chances.`,
     note: "Shown: the ordinary branch. When truly shipwrecked (no coins AND no crates), the prompt instead reads: \"" + `${pn(0)}: the storm blows ye toward an island! Yer broke — if ye run aground, ye'll lose yer turn!` + "\"",
   }),
-  "src/ui/flow.js:563": () => ({
+  "prompt.act.menu": () => ({
     current: `${pn(0)}, choose your action:`,
     note: "Shown: the ordinary branch (can afford to act). When broke (0 coins), the prompt instead reads: \"" + `${pn(0)}, ye got nothin to pay yer crew, so they won't budge. Pick one:` + "\"",
   }),
@@ -1281,7 +1317,7 @@ const PROMPT_RENDERERS = {
  * trusting what's lexically at the call site. The old fallback card stays (so any disposition
  * Wyatt already recorded against it survives untouched — see task brief's "existing card ids
  * unchanged"), but is marked UNREACHABLE so it can never again be mistaken for shippable copy. */
-const PARAM_PROMPT_DECL = { "src/ui/flow.js:103": "humanFlip", "src/ui/flow.js:125": "fishCast" };
+const PARAM_PROMPT_DECL = { "prompt.flip.fallback": "humanFlip", "prompt.fish.fallback": "fishCast" };
 // A no-label caller that sits OUTSIDE the human-only gate around its function's own ask() call
 // (fishCast(p) at flow.js:781 is the bot path — botTurn() never reaches fishCast's `if
 // (p.strategy==="human")` block) cannot make the in-function fallback reachable no matter how
@@ -1289,18 +1325,21 @@ const PARAM_PROMPT_DECL = { "src/ui/flow.js:103": "humanFlip", "src/ui/flow.js:1
 // would need real control-flow analysis of WHERE inside the callee a no-label call's argument
 // actually lands) — recorded here, verified against source in this comment, same convention as
 // every other hand-curated judgment call already on this page (D-28's shared-string list, etc.).
-const PARAM_PROMPT_DEAD_CALLS = new Set(["src/ui/flow.js:781"]);
+const PARAM_PROMPT_DEAD_CALLS = new Set(["misc.paramprompt.botfishcast"]);
 function paramPromptFallbackReachable(calleeName) {
   const callers = (inv.misc || []).filter((e) => e.category === "paramPrompt" && e.callee === calleeName);
   return callers.some((c) => !c.hasLabel && !PARAM_PROMPT_DEAD_CALLS.has(`${c.file}:${c.line}`));
 }
 
-function promptCardId(file, line) { return `prompt:${file}:${line}`; }
-function buttonCardId(file, line, i) { return `button:${file}:${line}~${i}`; }
+// Card ids are keyed by the copy site's own declared id, and a button by its option's own `slot`
+// (derived from the option's `value:`, never from its label — the label is exactly what a wording
+// pass rewrites, so a label-derived id would lose every button's review mark on every pass).
+function promptCardId(entry) { return `prompt:${entry.id}`; }
+function buttonCardId(entry, slot) { return `button:${entry.id}~${slot}`; }
 
 function buildPromptCard(entry, group) {
   const key = `${entry.file}:${entry.line}`;
-  const id = promptCardId(entry.file, entry.line);
+  const id = promptCardId(entry);
   let current, note;
   const custom = PROMPT_RENDERERS[key];
   if (custom) {
@@ -1346,7 +1385,7 @@ function buildPromptCard(entry, group) {
  * above already handles), hand-reconstructed here using the SAME real ternary the source itself
  * evaluates, all three branches (including the deliberately silent "no target adjacent" one). ---- */
 const PROMPT_SUB_RENDERERS = {
-  "src/ui/flow.js:563": () => ([
+  "prompt.act.menu": () => ([
     { tag: "afford", current: `Attacking costs ye ${2}🌕 for powder. Fire downwind for the edge!`, note: "Shown under the action buttons when at least one target is adjacent AND the captain can afford powder (2🌕, cfg.powder)." },
     { tag: "poor", current: `Yer too poor to afford powder! Go fishin'`, note: "Shown under the action buttons when a target is adjacent but the captain can't afford powder." },
     { tag: "none", current: null, note: "Deliberately silent — no target is adjacent, so no powder-cost helper text renders at all." },
@@ -1357,7 +1396,7 @@ function buildSubCards(entry, group) {
   const renderer = entry.rawSub ? PROMPT_SUB_RENDERERS[key] : null;
   if (!renderer) return [];
   return renderer().map((b) => {
-    const id = `sub:${entry.file}:${entry.line}~${b.tag}`;
+    const id = `sub:${entry.id}~${b.tag}`;
     const silent = b.current == null;
     const bodyMain = silent
       ? `<p class="silentNote">Deliberately silent — this branch renders no text at all.</p>`
@@ -1395,13 +1434,13 @@ function deadLabelNote(labelEntry) {
 // as a GAIN (money the human receives for their crate) — Wyatt confirmed "+{n}🌕". Targeted to
 // this exact site AND this exact raw-text shape (never "Never mind", the same ask()'s other
 // option; never a price-only button elsewhere, which D-38's own scope discipline keeps unsigned).
-const SIGN_RULE_BUTTON_OVERRIDE = { "src/ui/flow.js:751": /^`\$\{n\}🌕`$/ };
+const SIGN_RULE_BUTTON_OVERRIDE = { "prompt.hail.counter": /^`\$\{n\}🌕`$/ };
 function buildButtonCards(entry, group) {
   return entry.labels.map((labelEntry, i) => {
     const rawLabel = labelEntry.raw;
     const condition = labelEntry.condition;
     const isDead = !!(labelEntry.backMarker || labelEntry.flipMarker);
-    const id = buttonCardId(entry.file, entry.line, i);
+    const id = buttonCardId(entry, labelEntry.slot);
     const overridePattern = SIGN_RULE_BUTTON_OVERRIDE[`${entry.file}:${entry.line}`];
     const needsSignOverride = overridePattern && overridePattern.test(rawLabel.trim());
     const evaluatedRaw = evalSource(rawLabel);
@@ -1438,15 +1477,15 @@ function buildButtonCards(entry, group) {
 // button labels is too many to hand-curate. Uses a DIFFERENT key space (`btn~`) than
 // computeSharedWordingGroups' baseKey so a button never gets misread as a moored-style
 // "one string, several branches" case — every button occurrence IS a separate call site.
-function promptCards(fileLine) {
-  const entry = promptByLine[fileLine];
+function promptCards(siteId) {
+  const entry = promptById[siteId];
   if (!entry) return [];
-  if (PROMPT_PASS_THROUGH.has(fileLine)) {
+  if (core.PROMPT_PASS_THROUGH.has(siteId)) {
     const id = promptCardId(entry.file, entry.line);
     const body = `<p class="passThroughNote">Rendering plumbing, or a live scoreboard/re-render of a message already captured elsewhere — not new copy on its own.</p>`;
-    return [{ id, group: fileLine, html: cardShell({ id, title: `Prompt (${entry.kind}) — pass-through`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false, cardClass: "promptCard" }) }];
+    return [{ id, group: siteId, html: cardShell({ id, title: `Prompt (${entry.kind}) — pass-through`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false, cardClass: "promptCard" }) }];
   }
-  return [buildPromptCard(entry, fileLine)].concat(buildSubCards(entry, fileLine), buildButtonCards(entry, fileLine));
+  return [buildPromptCard(entry, siteId)].concat(buildSubCards(entry, siteId), buildButtonCards(entry, siteId));
 }
 
 /* ============================================================================
@@ -1461,12 +1500,12 @@ function promptCards(fileLine) {
  * CONTEXT, same convention PROMPT_CTX_BASE already established for ask()/panel() prompts — never
  * hand-transcribed narration text.
  * ==========================================================================*/
-const miscByLine = Object.fromEntries((inv.misc || []).map((e) => [`${e.category}:${e.file}:${e.line}`, e]));
-function miscCardId(category, file, line, suffix) {
-  return `misc:${category}:${file}:${line}${suffix ? "~" + suffix : ""}`;
+const miscById = Object.fromEntries((inv.misc || []).map((e) => [`${e.category}:${e.id}`, e]));
+function miscCardId(category, entry, suffix) {
+  return `misc:${category}:${entry.id}${suffix ? "~" + suffix : ""}`;
 }
-function requireMiscEntry(category, fileLine) {
-  const entry = miscByLine[`${category}:${fileLine}`];
+function requireMiscEntry(category, siteId) {
+  const entry = miscById[`${category}:${siteId}`];
   if (!entry) throw new Error(`narration-inventory.json has no ${category} entry for "${fileLine}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
   return entry;
 }
@@ -1480,9 +1519,9 @@ const INTRO_CTX = {
   lead: pn(0),
   rest: `${pn(1)} (+1🌕), ${pn(2)} (+2🌕), ${pn(3)} (+3🌕)`,
 };
-function miscIntroBarrierCards(fileLine) {
-  const entry = requireMiscEntry("introBarrier", fileLine);
-  const bannerId = miscCardId("introBarrier", entry.file, entry.line);
+function miscIntroBarrierCards(siteId) {
+  const entry = requireMiscEntry("introBarrier", siteId);
+  const bannerId = miscCardId("introBarrier", entry);
   const msgEval = evalSource(entry.rawMsg, INTRO_CTX);
   const msgFailed = msgEval == null;
   const msgBody = (msgFailed
@@ -1492,7 +1531,7 @@ function miscIntroBarrierCards(fileLine) {
   if (!msgFailed) recordNeutralTextEntry(bannerId, `Intro banner — ${entry.fn}()`, `introBarrier:${entry.file}:${entry.line}`, finalize(msgEval));
   const bannerCard = { id: bannerId, group: "introBanners", html: cardShell({ id: bannerId, title: `Intro banner — ${entry.fn}()`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body: msgBody, defaultTag: "keep", silent: false, cardClass: "promptCard" }) };
 
-  const btnId = miscCardId("introBarrier", entry.file, entry.line, "btn");
+  const btnId = miscCardId("introBarrier", entry, "btn");
   const btnEval = evalSource(entry.rawButton, INTRO_CTX);
   const btnFailed = btnEval == null;
   const btnBody = (btnFailed
@@ -1508,9 +1547,9 @@ function miscIntroBarrierCards(fileLine) {
 /* ---- paramPrompt (D-33): the REAL text each caller of humanFlip()/fishCast() passes — see the
  * PARAM_PROMPT_DECL/paramPromptFallbackReachable machinery above (near PROMPT_RENDERERS) for why
  * the in-function ask() card at flow.js:103/:125 shows an unreachable fallback instead of this. ---- */
-function miscParamPromptCard(fileLine) {
-  const entry = requireMiscEntry("paramPrompt", fileLine);
-  const id = miscCardId("paramPrompt", entry.file, entry.line);
+function miscParamPromptCard(siteId) {
+  const entry = requireMiscEntry("paramPrompt", siteId);
+  const id = miscCardId("paramPrompt", entry);
   if (!entry.hasLabel) {
     // e.g. flow.js:781 fishCast(p) — the bot path, which never even reaches fishCast's own
     // `if(p.strategy==="human")` gate around its ask() call. Listed per NARR-01's "don't drop
@@ -1533,9 +1572,9 @@ function miscParamPromptCard(fileLine) {
 /* ---- mpError: multiplayer room-join/service alert() calls — a new pre-game group, since these
  * only ever fire before a live game exists. ---- */
 const MP_ERROR_CTX = { code: "AB12" };
-function miscMpErrorCard(fileLine) {
-  const entry = requireMiscEntry("mpError", fileLine);
-  const id = miscCardId("mpError", entry.file, entry.line);
+function miscMpErrorCard(siteId) {
+  const entry = requireMiscEntry("mpError", siteId);
+  const id = miscCardId("mpError", entry);
   const evaluated = evalSource(entry.rawMsg, MP_ERROR_CTX);
   const failed = evaluated == null;
   const body = (failed
@@ -1550,9 +1589,9 @@ function miscMpErrorCard(fileLine) {
  * own footer — never routed through flash()/EVENT_NARRATION, so no prior extraction pass could
  * have found them). ---- */
 const BATTLE_LINE_CTX = { nm: pn, att: { idx: 0 }, def: { idx: 1 }, A: { idx: 0 }, B: { idx: 1 } };
-function miscBattleLineCard(fileLine) {
-  const entry = requireMiscEntry("battleLine", fileLine);
-  const id = miscCardId("battleLine", entry.file, entry.line);
+function miscBattleLineCard(siteId) {
+  const entry = requireMiscEntry("battleLine", siteId);
+  const id = miscCardId("battleLine", entry);
   const evaluated = evalSource(entry.rawMsg, BATTLE_LINE_CTX);
   const failed = evaluated == null;
   const body = (failed
@@ -1570,27 +1609,27 @@ function miscBattleLineCard(fileLine) {
  * helper — these are the anchor-verified sites, the one shape with no single expression to run in
  * isolation — the extraction script's own anchor check is what catches this table going stale. ---- */
 const DRAFT_WAIT_RENDERERS = {
-  "src/orchestrator.js:657": () => ([
+  "misc.draftwait.recipechoosing": () => ([
     { tag: "multi", current: "⚓ Everyone's choosing their recipe…", note: "Shown when more than one human is drafting a recipe at once." },
     { tag: "single", current: `${pn(0)} is choosing a recipe…`, note: "Shown when exactly one human is drafting (the rest of the crew are bots)." },
   ]),
-  "src/orchestrator.js:663": () => ([
+  "misc.draftwait.recipechosen": () => ([
     { tag: null, current: "⚓ Recipe chosen! Waiting for the rest of the crew…" },
   ]),
-  "src/ui/flow.js:809": () => ([
+  "misc.draftwait.introwait": () => ([
     { tag: null, current: "⚓ Waiting for yer pirate mateys to continue…", note: "Shown to a human who has already clicked through an intro/barrier banner, while other humans are still reading it." },
   ]),
-  "src/ui/flow.js:176": () => ([
+  "misc.draftwait.sailchoosing": () => ([
     { tag: null, current: `${pn(1)} is choosing where to sail…`, note: "Shown to every OTHER seat while a captain picks their sail destination — deliberately silent on the actor's own screen (their own board highlighting is the feedback)." },
   ]),
 };
-function miscDraftWaitCard(fileLine) {
-  const entry = requireMiscEntry("draftWait", fileLine);
-  const renderer = DRAFT_WAIT_RENDERERS[fileLine];
+function miscDraftWaitCard(siteId) {
+  const entry = requireMiscEntry("draftWait", siteId);
+  const renderer = DRAFT_WAIT_RENDERERS[siteId];
   const branches = renderer ? renderer() : [{ tag: null, current: "(no renderer defined for this line yet)" }];
   const group = (entry.file === "src/ui/flow.js" && entry.line === 176) ? "sailDecision" : "introBanners";
   return branches.map((b) => {
-    const id = miscCardId("draftWait", entry.file, entry.line, b.tag);
+    const id = miscCardId("draftWait", entry, b.tag);
     const body = msgBox(b.current, "neutral")
       + (b.note ? `<p class="cardNote">${b.note}</p>` : "")
       + `<details class="rawSource"><summary>Anchor (extraction cross-check — confirms this line still exists at this file/line)</summary><pre>${escapeHtml(entry.anchor)}</pre></details>`;
@@ -1600,14 +1639,14 @@ function miscDraftWaitCard(fileLine) {
 }
 
 /* ---- timer: the shot-clock timer-off/on toggle's own tooltip (a two-branch ternary). ---- */
-function miscTimerCards(fileLine) {
-  const entry = requireMiscEntry("timer", fileLine);
+function miscTimerCards(siteId) {
+  const entry = requireMiscEntry("timer", siteId);
   const branches = [
     { tag: "off", ctx: { appState: { timerOff: true } }, note: "Shown while the timer is OFF — tapping the icon turns it back on." },
     { tag: "on", ctx: { appState: { timerOff: false } }, note: "Shown while the timer is ON — tapping the icon turns it off." },
   ];
   return branches.map((b) => {
-    const id = miscCardId("timer", entry.file, entry.line, b.tag);
+    const id = miscCardId("timer", entry, b.tag);
     const evaluated = evalSource(entry.rawMsg, b.ctx);
     const failed = evaluated == null;
     const body = (failed
@@ -1624,9 +1663,9 @@ function miscTimerCards(fileLine) {
  * "waiting for the crew" seat-list caption. ---- */
 const LOBBY_CTX_86 = { iconImg, DEVICE_IMG, HEXCOL, pname, seatIdx: 1 };
 const LOBBY_CTX_88 = { iconImg, ANCHOR_IMG, pname, seatIdx: 1 };
-function miscLobbyCard(fileLine) {
-  const entry = requireMiscEntry("lobby", fileLine);
-  const id = miscCardId("lobby", entry.file, entry.line);
+function miscLobbyCard(siteId) {
+  const entry = requireMiscEntry("lobby", siteId);
+  const id = miscCardId("lobby", entry);
   const ctx = entry.line === 86 ? LOBBY_CTX_86 : entry.line === 88 ? LOBBY_CTX_88 : {};
   const evaluated = evalSource(entry.rawMsg, ctx);
   const failed = evaluated == null;
@@ -1699,40 +1738,40 @@ const NODE_GROUPS = [
   {
     id: "preGameLobby", stage: -2, title: "Pre-game — lobby & room join", parents: [],
     via: "src/orchestrator.js createRoom()/joinRoom()/watchRoom()/startGame() (D-32) — every alert() a would-be host or guest can hit before a game exists, plus the online lobby's own seat-list caption",
-    cardsOf: () => ["src/orchestrator.js:945", "src/orchestrator.js:953", "src/orchestrator.js:956", "src/orchestrator.js:957", "src/orchestrator.js:963", "src/orchestrator.js:973", "src/orchestrator.js:982", "src/orchestrator.js:1012"]
-      .flatMap(miscMpErrorCard).concat(miscLobbyCard("src/ui/lobby.js:115")),
+    cardsOf: () => ["misc.mperror.createcapacity", "misc.mperror.entercode", "misc.mperror.joincapacity", "misc.mperror.nogamefound", "misc.mperror.alreadysailed", "misc.mperror.roomfull", "misc.mperror.gamegone", "misc.mperror.serviceunreachable"]
+      .flatMap(miscMpErrorCard).concat(miscLobbyCard("misc.lobby.waitcaption")),
   },
   {
     id: "introBanners", stage: -1, title: "Pre-game — intro & recipe draft", parents: [{ id: "preGameLobby", uncertain: true, label: "online multiplayer only — solo/pass-and-play skip straight here" }],
     via: "src/ui/flow.js:816 showAhoyIntro() -> :824 showTurnOrderIntro() -> src/orchestrator.js:689 recipeDraftNet() (D-32) — the first text every player reads, in every play mode",
-    cardsOf: () => miscIntroBarrierCards("src/ui/flow.js:818").concat(
-      miscIntroBarrierCards("src/ui/flow.js:829"),
-      miscDraftWaitCard("src/orchestrator.js:657"),
-      miscDraftWaitCard("src/orchestrator.js:663"),
-      miscDraftWaitCard("src/ui/flow.js:809"),
+    cardsOf: () => miscIntroBarrierCards("misc.introbarrier.ahoy").concat(
+      miscIntroBarrierCards("misc.introbarrier.turnorder"),
+      miscDraftWaitCard("misc.draftwait.recipechoosing"),
+      miscDraftWaitCard("misc.draftwait.recipechosen"),
+      miscDraftWaitCard("misc.draftwait.introwait"),
     ),
   },
   {
     id: "passAndPlayHandoff", stage: 1, title: "Pass & Play — hand the device", parents: [{ id: "introBanners" }],
     via: "src/ui/lobby.js:80 passGate() (D-32) — fires at EVERY turn hand-off in pass-and-play, including the very first turn right after recipe draft",
-    cardsOf: () => miscLobbyCard("src/ui/lobby.js:86").concat(miscLobbyCard("src/ui/lobby.js:88")),
+    cardsOf: () => miscLobbyCard("misc.lobby.passmessage").concat(miscLobbyCard("misc.lobby.passbutton")),
   },
   {
     id: "newround", stage: 0, title: "Round roll-over", parents: [{ id: "introBanners", label: "round 1, after recipe draft" }],
     via: "src/orchestrator.js:696 (runLiveNet, and the final-round re-roll at :719) — this.ev({t:\"newround\",...})",
-    cardsOf: () => tableCards("newround").concat(adhocCards("src/orchestrator.js:699"), adhocCards("src/orchestrator.js:720"), promptCards("src/orchestrator.js:1128")),
+    cardsOf: () => tableCards("newround").concat(adhocCards("adhoc.round.header"), adhocCards("adhoc.round.finalheader"), promptCards("prompt.net.reconnecting")),
   },
   {
     id: "humanTurnBanner", stage: 1, title: "Turn start — human", parents: [{ id: "newround" }],
     via: "src/ui/flow.js:597 humanTurn() — ev({t:\"turn\"}) (deliberately silent — see EVENT_NARRATION.turn below), then the turn banner flash() fires immediately after",
-    cardsOf: () => tableCards("turn").concat(adhocCards("src/ui/flow.js:613")),
+    cardsOf: () => tableCards("turn").concat(adhocCards("adhoc.turn.banner")),
   },
   {
     id: "botTurnBanner", stage: 1, title: "Turn start — bot", parents: [{ id: "newround" }],
     via: "src/ui/flow.js:690 botTurn() → src/ui/util.js:866 botBeat() → narrateCurrent(), which dispatches the turn-start banner AND (for every later bot event this same turn) the pass-through table-driven line below",
     // looked up by the CURRENT actual line (:882/:886, per D-24's comment shift) — buildAdhocKeyCards
     // pins the resulting card id back to :874/:878 so Wyatt's pass-2 review history survives
-    cardsOf: () => adhocCards("src/ui/util.js:882").concat(adhocCards("src/ui/util.js:886")),
+    cardsOf: () => adhocCards("adhoc.turn.botbanner").concat(adhocCards("adhoc.turn.boteventpassthrough")),
   },
   {
     id: "stormOutcomes", stage: 2, title: "Storm push — per-square outcomes", parents: [
@@ -1740,24 +1779,25 @@ const NODE_GROUPS = [
     ],
     via: "src/ui/flow.js:225 windLeg() / :313 botWindLeg() — one square at a time; each square can moor, hold anchor, get blocked, dodge/anchor/aground/shipwreck, or sweep to the rim",
     cardsOf: () => [].concat(
-      promptCards("src/ui/flow.js:261"),
+      promptCards("prompt.storm.anchororflip"),
       tableCards("moored"), tableCards("anchorHold"), tableCards("blocked"),
-      adhocCards("src/ui/flow.js:260"),
+      adhocCards("adhoc.storm.brokeanchor"),
       tableCards("dodge"), tableCards("anchor"), tableCards("aground"), tableCards("shipwrecked"),
       tableCards("windmove"), tableCards("blownOut"), tableCards("tradewind"),
-      adhocCards("src/ui/flow.js:296"),
-      promptCards("src/ui/flow.js:103"),
+      // The trade-wind rim-sweep card that sat here is RETIRED — Wyatt tagged it merge, and 15-06
+      // folded all three rim-sweep lines into the single EVENT_NARRATION.tradewind line above (D-36).
+      promptCards("prompt.flip.fallback"),
       // D-33: the REAL flip prompt this leg shows ("Flip to dodge!") — flow.js:103's own card
       // above is the humanFlip() fallback, unreachable from here (this caller always supplies it).
-      miscParamPromptCard("src/ui/flow.js:265"),
-      adhocCards("src/ui/flow.js:111"),
-      adhocCards("src/ui/flow.js:333"), adhocCards("src/ui/flow.js:352"),
+      miscParamPromptCard("misc.paramprompt.stormdodge"),
+      adhocCards("adhoc.flip.announce"),
+      adhocCards("adhoc.storm.botsquare"), adhocCards("adhoc.storm.botlegsummary"),
     ),
   },
   {
     id: "secondLeg", stage: 3, title: "Storm push — second leg direction", parents: [{ id: "stormOutcomes" }],
     via: "src/ui/flow.js:367 humanWind() (:373 flash) and src/ui/flow.js:690 botTurn() (:702 flash) — announces windNow2, then windLeg/botWindLeg runs again (loops back into the same per-square outcomes above)",
-    cardsOf: () => adhocCards("src/ui/flow.js:373").concat(adhocCards("src/ui/flow.js:702")),
+    cardsOf: () => adhocCards("adhoc.storm.secondleg").concat(adhocCards("adhoc.turn.botsecondleg")),
   },
   {
     id: "sailDecision", stage: 4, title: "Sail (or can't)", parents: [
@@ -1767,106 +1807,106 @@ const NODE_GROUPS = [
     ],
     via: "src/ui/flow.js:638 humanTurn()'s sail block and :690 botTurn()'s sail gate",
     cardsOf: () => tableCards("sail").concat(
-      promptCards("src/ui/flow.js:200"), promptCards("src/ui/flow.js:1044"),
-      adhocCards("src/ui/flow.js:640"), adhocCards("src/ui/flow.js:571"), adhocCards("src/ui/flow.js:645"),
-      adhocCards("src/ui/flow.js:646"), adhocCards("src/ui/flow.js:722"),
-      promptCards("src/ui/flow.js:563"),
+      promptCards("prompt.sail.pickpanel"), promptCards("prompt.sail.remotepickpanel"),
+      adhocCards("adhoc.turn.leeward"), // the two rim-sweep cards here are retired (merge -> tradewind, D-36)
+      adhocCards("adhoc.turn.brokesail"), adhocCards("adhoc.turn.botbrokesail"),
+      promptCards("prompt.act.menu"),
       // pass-through prompt-rendering plumbing (D-30) — no real copy of their own, still listed
       // so "every ask()/panel() site has a card" holds without exception
-      promptCards("src/ui/flow.js:90"), promptCards("src/orchestrator.js:844"),
-      promptCards("src/orchestrator.js:901"), promptCards("src/orchestrator.js:912"),
+      promptCards("prompt.plumbing.localask"), promptCards("prompt.net.draftrerender"),
+      promptCards("prompt.net.promptrerender"), promptCards("prompt.net.promptrerenderbuttons"),
       // D-32: "is choosing where to sail…" fires from pickCell(), the exact moment a captain is
       // deciding where to sail — not pre-game, despite living in the same misc "draftWait" bucket
       // as the recipe-draft broadcasts.
-      miscDraftWaitCard("src/ui/flow.js:176"),
+      miscDraftWaitCard("misc.draftwait.sailchoosing"),
     ),
   },
   {
     id: "dockOutcomes", stage: 5, title: "Action: Dock", parents: [{ id: "sailDecision", label: "chose Dock" }],
     via: "src/ui/flow.js:377 humanDock() — the coin flip (humanFlip, shared with the storm-anchor dodge above) then one of 4 outcomes",
-    cardsOf: () => promptCards("src/ui/flow.js:103").concat(
+    cardsOf: () => promptCards("prompt.flip.fallback").concat(
       // D-33: the REAL docking-flip prompt ("Docking at {ingredient} — flip!") — again, distinct
       // from flow.js:103's own unreachable humanFlip() fallback card above.
-      miscParamPromptCard("src/ui/flow.js:389"),
-      adhocCards("src/ui/flow.js:111"), tableCards("dock"), promptCards("src/ui/flow.js:396"), dockFlavorCards(),
+      miscParamPromptCard("misc.paramprompt.dockflip"),
+      adhocCards("adhoc.flip.announce"), tableCards("dock"), promptCards("prompt.dock.tailschoice"), dockFlavorCards(),
     ),
   },
   {
     id: "battleOpen", stage: 5, title: "Action: Attack — opening", parents: [{ id: "sailDecision", label: "chose Attack" }],
     via: "src/orchestrator.js:385 asyncBattle() (:391 flash); src/ui/flow.js:579 humanAct()'s attack branch (:582 the can't-afford-powder guard)",
-    cardsOf: () => promptCards("src/ui/flow.js:584").concat(adhocCards("src/orchestrator.js:391"), adhocCards("src/ui/flow.js:582")),
+    cardsOf: () => promptCards("prompt.act.attacktarget").concat(adhocCards("adhoc.battle.opening"), adhocCards("adhoc.act.nopowder")),
   },
   {
     id: "sideBetCalls", stage: 6, title: "Attack — side bets called", parents: [{ id: "battleOpen", uncertain: true, label: "spectating captains remain" }],
     via: "src/ui/flow.js:870 collectSideBets() — every non-combatant captain still in play calls it",
-    cardsOf: () => promptCards("src/ui/flow.js:880").concat(promptCards("src/ui/flow.js:889"), adhocCards("src/ui/flow.js:901"), adhocCards("src/ui/flow.js:902")),
+    cardsOf: () => promptCards("prompt.sidebet.call").concat(promptCards("prompt.sidebet.raise"), adhocCards("adhoc.sidebet.backed"), adhocCards("adhoc.sidebet.freecall")),
   },
   {
     id: "battleOutcomes", stage: 7, title: "Attack — outcome", parents: [{ id: "battleOpen" }],
     via: "src/orchestrator.js:385 asyncBattle()'s round loop resolves into src/ui/util.js's battle/battleflee builders",
-    cardsOf: () => promptCards("src/orchestrator.js:503").concat(
+    cardsOf: () => promptCards("prompt.battle.flee").concat(
       tableCards("battle"), tableCards("battleflee"),
-      promptCards("src/orchestrator.js:535"), promptCards("src/orchestrator.js:544"),
-      promptCards("src/orchestrator.js:306"),
+      promptCards("prompt.battle.loserpays"), promptCards("prompt.battle.winnerplunder"),
+      promptCards("prompt.battle.scoreboard"),
       // D-32: the live scoreboard's own round-result lines (renderBattle()'s footer) — never
       // routed through flash()/EVENT_NARRATION, so absent from every prior pass of this page.
-      miscBattleLineCard("src/orchestrator.js:482"), miscBattleLineCard("src/orchestrator.js:483"),
-      miscBattleLineCard("src/orchestrator.js:484"), miscBattleLineCard("src/orchestrator.js:486"),
-      miscBattleLineCard("src/orchestrator.js:487"), miscBattleLineCard("src/orchestrator.js:488"),
+      miscBattleLineCard("misc.battleline.bothheadsdownwind"), // :483, the defender-downwind duplicate, is retired (D-52)
+      miscBattleLineCard("misc.battleline.bothheadscrosswind"), miscBattleLineCard("misc.battleline.hitlands"),
+      miscBattleLineCard("misc.battleline.bothmiss"), // :487, the defender-hit duplicate, is retired (D-52)
     ),
   },
   {
     id: "sideBetSettle", stage: 8, title: "Attack — side bets settle", parents: [{ id: "battleOutcomes", uncertain: true, label: "only if bets were called" }],
     via: "src/ui/flow.js:913 settleSideBets() — skipped entirely when collectSideBets() returned no bets",
-    cardsOf: () => tableCards("sidebet").concat(adhocCards("src/ui/flow.js:928")),
+    cardsOf: () => tableCards("sidebet").concat(adhocCards("adhoc.sidebet.settle")),
   },
   {
     id: "tradeFlow", stage: 5, title: "Action: Parley / Trade", parents: [{ id: "sailDecision", label: "chose Parley" }],
     via: "src/ui/flow.js:407 humanTrade() — the parley step machine; bots also reach `trade`/`parley` via the hail flow (src/ui/flow.js:730, a separate entry point not modeled as its own stage here)",
-    cardsOf: () => adhocCards("src/ui/flow.js:410").concat(
-      promptCards("src/ui/flow.js:423"), promptCards("src/ui/flow.js:428"), promptCards("src/ui/flow.js:437"),
-      promptCards("src/ui/flow.js:446"), promptCards("src/ui/flow.js:451"), promptCards("src/ui/flow.js:465"),
-      promptCards("src/ui/flow.js:497"),
+    cardsOf: () => adhocCards("adhoc.trade.nocargo").concat(
+      promptCards("prompt.trade.partner"), promptCards("prompt.trade.want"), promptCards("prompt.trade.give"),
+      promptCards("prompt.trade.nothingtooffer"), promptCards("prompt.trade.addcoins"), promptCards("prompt.trade.accept"),
+      promptCards("prompt.trade.counter"),
       tableCards("trade"), tableCards("parley"),
-      adhocCards("src/ui/flow.js:516"), adhocCards("src/ui/flow.js:524"),
-      promptCards("src/ui/flow.js:745"), promptCards("src/ui/flow.js:751"),
+      adhocCards("adhoc.trade.refusalbot"), adhocCards("adhoc.trade.refusalhuman"),
+      promptCards("prompt.hail.offer"), promptCards("prompt.hail.counter"),
     ),
   },
   {
     id: "fishOutcomes", stage: 5, title: "Action: Fish", parents: [{ id: "sailDecision", label: "chose Fish" }],
     via: "src/ui/flow.js:117 fishCast()",
-    cardsOf: () => promptCards("src/ui/flow.js:125").concat(
+    cardsOf: () => promptCards("prompt.fish.fallback").concat(
       // D-33: the REAL fishing-flip prompt ("🎣 Cast your line — flip!") — distinct from
       // flow.js:125's own unreachable fishCast() fallback card above. The bot-path call (no label,
       // never reaches ask() at all) is listed too, right beside it, so the "no card" question
       // never needs asking again.
-      miscParamPromptCard("src/ui/flow.js:592"), miscParamPromptCard("src/ui/flow.js:781"),
+      miscParamPromptCard("misc.paramprompt.fishcast"), miscParamPromptCard("misc.paramprompt.botfishcast"),
       tableCards("fish"),
     ),
   },
   {
     id: "bakeryStart", stage: 5, title: "Action: Start the bakery", parents: [{ id: "sailDecision", label: "full recipe, adjacent to home", uncertain: true }],
     via: "src/ui/flow.js:574 humanAct()'s bakery branch; src/orchestrator.js:711 runLiveNet()'s own final-round barrier fires the FIRST time any captain reaches this branch (D-32)",
-    cardsOf: () => adhocCards("src/ui/flow.js:574").concat(miscIntroBarrierCards("src/orchestrator.js:714")),
+    cardsOf: () => adhocCards("adhoc.act.bakerystart").concat(miscIntroBarrierCards("misc.introbarrier.finalround")),
   },
   {
     id: "shotClock", stage: 9, title: "Shot clock", parents: [
       { id: "dockOutcomes" }, { id: "sideBetSettle" }, { id: "tradeFlow" }, { id: "fishOutcomes" }, { id: "bakeryStart" },
     ],
     via: "src/orchestrator.js:223 expireShotClock() — can fire on ANY decision point above if the timer runs out, not only at turn end",
-    cardsOf: () => tableCards("shotclock").concat(tableCards("shotclockskip"), miscTimerCards("src/ui/panel.js:88")),
+    cardsOf: () => tableCards("shotclock").concat(tableCards("shotclockskip"), miscTimerCards("misc.timer.toggletooltip")),
   },
   {
     id: "voyageEnd", stage: 10, title: "Voyage end", parents: [{ id: "shotClock", uncertain: true, label: "only once a recipe completes" }],
     via: "src/ui/flow.js:501 EVENT_NARRATION.finish; src/ui/flow.js:932 asyncBakeoff() → EVENT_NARRATION.bakeoff; src/orchestrator.js:737 liveResolveEndNet() → EVENT_NARRATION.end + :754/:758",
     cardsOf: () => tableCards("finish").concat(
       tableCards("bakeoff"), tableCards("end"),
-      adhocCards("src/orchestrator.js:754"), adhocCards("src/orchestrator.js:758"),
+      adhocCards("adhoc.voyageend.nobodyfinished"), adhocCards("adhoc.voyageend.victory"),
       // D-32: the bakeoff's own live round-result lines (same footer mechanism as battleOutcomes
       // above, different function) plus the end-of-voyage award names+bylines — the LAST text any
       // player reads, per this plan's own placement instruction.
-      miscBattleLineCard("src/ui/flow.js:965"), miscBattleLineCard("src/ui/flow.js:966"),
-      miscBattleLineCard("src/ui/flow.js:967"), miscBattleLineCard("src/ui/flow.js:968"),
+      miscBattleLineCard("misc.battleline.bakeoffbothheads"), miscBattleLineCard("misc.battleline.bakeoffscores"),
+      miscBattleLineCard("misc.battleline.bakeoffbothtails"), // :967, the bakeoff scorer duplicate, is retired (D-52)
       awardCards(),
     ),
   },
@@ -1876,106 +1916,29 @@ const NODE_GROUPS = [
 const LOOP_EDGES = [{ from: "shotClock", to: "newround", label: "next round", uncertain: false, loop: true }];
 
 /* ============================================================================
- * D-27: pass-2 is INCOMPLETE. Wyatt's committed in-progress export
- * (.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-PASS2.json) has
- * 81 rows in file order, but he only reviewed the first 17 (cutoff:
- * "table:moored~dockMoved", inclusive) before this correction landed — every
- * row after that is a pass-1 leftover the OLD (buggy) seeding pre-filled,
- * never something he actually decided. Only rows 1-17 seed as reviewed with
- * their real marks; every other id seeds UNREVIEWED with an EMPTY notes box
- * and its own default tag (never a stale pass-1/leftover tag) — see the
- * seeding loop below, in the Persistence section.
+ * The 81-row pass-2 seed table that used to live here is GONE, along with its
+ * "only the first 17 rows are real" cutoff constant.
+ *
+ * It existed because pass 2 was incomplete: only its first 17 rows were marks Wyatt
+ * had actually made, and everything after that was a pass-1 leftover the old seeding
+ * wrongly pre-filled (D-27). All of it is superseded by 15-DISPOSITIONS-FINAL.json —
+ * 209 rows, every one reviewed — which SEED_BY_ID above builds from directly. Keeping
+ * a partial, superseded copy alongside the complete one is how two sources of truth
+ * start disagreeing.
  * ==========================================================================*/
-const PASS2_ROWS = [
-  { id: "table:newround~freshWind", tag: "rewrite", notes: "\u2014 Round 3: wind blowin' north \u2014" },
-  { id: "table:newround~heldWindGusting", tag: "keep", notes: "" },
-  { id: "table:newround~heldWindWontQuit", tag: "rewrite", notes: "\u2014 Round 3: wind still to the north, this northerly won't quit \u2014" },
-  { id: "table:newround", tag: "rewrite", notes: "Round 3: A \u26c8\ufe0f storm be ragin'! It'll blow yer ships {dir1}, then {dir2}." },
-  { id: "table:newround~heldStorm", tag: "merge", notes: "" },
-  { id: "table:newround~streakStorm", tag: "keep", notes: "\u2014 Round 3:  The storm's baked in and refuses to cool down! It's aiming north, then south. Batten down the hatches, ye scurvy lot! \u2014" },
-  { id: "table:newround~streakStormHeldGusting", tag: "keep", notes: "\u2014 Round 3:  The storm's baked in and refuses to cool down! It's still aiming north, then south. Batten down the hatches, ye scurvy lot! \u2014" },
-  { id: "table:newround~streakStormHeldWontQuit", tag: "merge", notes: "" },
-  { id: "adhoc:src/orchestrator.js:699", tag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:720", tag: "keep", notes: "" },
-  { id: "table:turn", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:613", tag: "rewrite", notes: "\u26f5 Ahoy, Crustbeard -- your turn! First the \u26c8\ufe0f storm you blows 2 squares {dir1}." },
-  { id: "adhoc:src/ui/flow.js:613~noStorm", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/util.js:874", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/util.js:878", tag: "keep", notes: "" },
-  { id: "table:moored", tag: "keep", notes: "" },
-  { id: "table:moored~dockMoved", tag: "rewrite", notes: "Lucky break! The gust shoves Crustbeard towards a dock, and the crew steadies her fast." },
-  { id: "table:moored~dockStill", tag: "keep", notes: "" },
-  { id: "table:moored~home", tag: "keep", notes: "" },
-  { id: "table:moored~legacyFallback", tag: "keep", notes: "" },
-  { id: "table:anchorHold", tag: "rewrite", notes: "Crustbeard's anchor is already down \u2014 it holds fast." },
-  { id: "table:blocked", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:260", tag: "rewrite", notes: "Crustbeard's too broke to anchor \u2014 flips and takes their chances dodging the rocks." },
-  { id: "table:dodge", tag: "keep", notes: "" },
-  { id: "table:anchor", tag: "keep", notes: "" },
-  { id: "table:aground", tag: "keep", notes: "" },
-  { id: "table:aground~crate", tag: "keep", notes: "" },
-  { id: "table:shipwrecked", tag: "rewrite", notes: "Crustbeard is shipwrecked, and loses their turn making repairs." },
-  { id: "table:windmove", tag: "rewrite", notes: "Crustbeard is blown by the storm" },
-  { id: "table:blownOut", tag: "keep", notes: "" },
-  { id: "table:tradewind", tag: "rewrite", notes: "" },
-  { id: "adhoc:src/ui/flow.js:296", tag: "merge", notes: "Note for claude: i don't think this is called any more, but double-check -- I think it is from a past version of the game where normal wind could move players. It seems like the same use case as EVENT_NARRATION.tradewind\nsrc/ui/util.js:358 \u00b7 table" },
-  { id: "adhoc:src/ui/flow.js:111", tag: "rewrite", notes: "Use the coin heads icon instead of the emoji" },
-  { id: "adhoc:src/ui/flow.js:111~tails", tag: "rewrite", notes: "Use the coin heads icon instead of the emoji" },
-  { id: "adhoc:src/ui/flow.js:333", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:352", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:373", tag: "rewrite", notes: "Now the \u26c8\ufe0f storm blows you 2 squares south!\n" },
-  { id: "adhoc:src/ui/flow.js:702", tag: "merge", notes: "Note for Claude: this seems like the human-player addressed  version of the \"Second storm leg direction (human) \u2014 always renders \"you\" unconditionally, no viewer branch (discovered gap, 15-03 SUMMARY)\nsrc/ui/flow.js:373 \u00b7 humanWind()\" -- can we merge these, and use the same 3rd person form for viewers of humans or bots?" },
-  { id: "table:sail", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:640", tag: "keep", notes: "\ud83c\udfdd\ufe0f Land's blockin' Crustbeard's wind \u2014 can't sail as far here. It's slow as cold molasses in this lee." },
-  { id: "adhoc:src/ui/flow.js:571", tag: "merge", notes: "" },
-  { id: "adhoc:src/ui/flow.js:645", tag: "merge", notes: "" },
-  { id: "adhoc:src/ui/flow.js:646", tag: "keep", notes: "Crustbeard is too broke to pay the crew \u2014 no sailing this turn." },
-  { id: "adhoc:src/ui/flow.js:722", tag: "keep", notes: "Crustbeard is too broke to pay the crew \u2014 no sailing this turn." },
-  { id: "table:dock", tag: "keep", notes: "" },
-  { id: "table:dock~empty", tag: "keep", notes: "" },
-  { id: "table:dock~bought", tag: "keep", notes: "" },
-  { id: "table:dock~coins", tag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:391", tag: "rewrite", notes: "\u2694\ufe0f Crustbeard attacks Davy Scones! First to 2 hits wins\u2026" },
-  { id: "adhoc:src/ui/flow.js:582", tag: "rewrite", notes: "Yer too poor to afford powder (2{coin}) for a battle! Go fishin'." },
-  { id: "adhoc:src/ui/flow.js:410", tag: "keep", notes: "" },
-  { id: "table:trade", tag: "keep", notes: "" },
-  { id: "table:trade~noBonus", tag: "keep", notes: "" },
-  { id: "table:parley", tag: "cut", notes: "Where is this called? Is it called anywhere? It seems to serve the same function as EVENT_NARRATION.trade -- in which case we should remove it -- but make sure i'm right first." },
-  { id: "table:parley~refused", tag: "cut", notes: "Where is this called? Is it called anywhere? It seems to serve the same function as EVENT_NARRATION.trade -- in which case we should remove it -- but make sure i'm right first." },
-  { id: "adhoc:src/ui/flow.js:516", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:516~finishTaunt", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:524", tag: "keep", notes: "" },
-  { id: "table:fish", tag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
-  { id: "table:fish~candycrab", tag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
-  { id: "table:fish~empty", tag: "keep", notes: "Crustbeard catches a sugarfish! (+2)\n\nNote for claude: isn't there a candycrab line too? " },
-  { id: "adhoc:src/ui/flow.js:574", tag: "keep", notes: "" },
-  { id: "adhoc:src/ui/flow.js:901", tag: "keep", notes: "Note for claude: use the coin image, not the emoji. " },
-  { id: "adhoc:src/ui/flow.js:902", tag: "keep", notes: "" },
-  { id: "table:battle", tag: "rewrite", notes: " Crustbeard attacks Davy Scones \u2014 and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
-  { id: "table:battle~cleaned", tag: "rewrite", notes: " Crustbeard attacks Davy Scones \u2014 and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
-  { id: "table:battle~crate", tag: "rewrite", notes: " Crustbeard attacks Davy Scones \u2014 and wins! Davy Scones bribes their way out of giving away a crate with 5{coin}." },
-  { id: "table:battleflee", tag: "rewrite", notes: "When Crustbeard attacks Davy Scones, both shots miss wildly and Davy Scones slips away!" },
-  { id: "table:sidebet", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
-  { id: "table:sidebet~wonNoAmt", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
-  { id: "table:sidebet~lostAmt", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
-  { id: "table:sidebet~lostNoAmt", tag: "keep", notes: " Dough Hook called it and added 2 \u2014 Bounty +5" },
-  { id: "adhoc:src/ui/flow.js:928", tag: "rewrite", notes: "\ud83d\udd2d The Spotter's Bounty settles \u2014 Dough Hook +5\ud83c\udf15 \u00b7 Flaky Jack \u22122\ud83c\udf15" },
-  { id: "table:shotclock", tag: "keep", notes: "" },
-  { id: "table:shotclockskip", tag: "keep", notes: "" },
-  { id: "table:shotclockskip~crate", tag: "keep", notes: "" },
-  { id: "table:finish", tag: "keep", notes: " Crustbeard returns to the Isle of Tortuga with ingredients for their full recipe!" },
-  { id: "table:bakeoff", tag: "keep", notes: "" },
-  { id: "table:end", tag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:754", tag: "keep", notes: "" },
-  { id: "adhoc:src/orchestrator.js:758", tag: "keep", notes: "" },
-];
-const PASS2_REVIEWED_CUTOFF = 17; // rows[0..16] — "table:moored~dockMoved" is index 16
-const PASS2_REVIEWED_IDS = new Set(PASS2_ROWS.slice(0, PASS2_REVIEWED_CUTOFF).map((r) => r.id));
-const PASS2_BY_ID = Object.fromEntries(PASS2_ROWS.map((r) => [r.id, { tag: r.tag, notes: r.notes || "" }]));
 
 /* ============================================================================
  * Render: build every node-group's cards, lay out stages, draw edges.
  * ==========================================================================*/
+// A card that could not be built at all. Plain language, no jargon: it names which card is broken
+// and the one thing to do about it. Governing constraint 8 — anything that renders ON THE PAGE is
+// for a non-coder to read.
+function errorCard(id, message) {
+  const body = `<p class="deadCopyNote">This card could not be built, so it is showing this notice instead of its wording. Nothing else on the page is affected — every other card still works.</p>`
+    + `<p class="cardNote">What to do: re-run <code>npm run audit:extract</code>. If that does not fix it, a <code>// @copy</code> marker was probably deleted from the game's source — put it back.</p>`
+    + `<details class="rawSource"><summary>Technical detail (for Claude)</summary><pre>${escapeHtml(String(message))}</pre></details>`;
+  return { id, group: "error", html: cardShell({ id, title: `Broken card — ${escapeHtml(String(id))}`, meta: "could not be built", body, defaultTag: "keep", silent: false, cardClass: "errorCard" }) };
+}
 let stagesHtml = "";
 const stageNumbers = NODE_GROUPS.map((n) => n.stage);
 const maxStage = Math.max(...stageNumbers);
@@ -1986,7 +1949,14 @@ for (let s = minStage; s <= maxStage; s++) {
   const groups = NODE_GROUPS.filter((n) => n.stage === s);
   if (!groups.length) continue;
   const boxesHtml = groups.map((ng) => {
-    const built = ng.cardsOf();
+    // EVERY card goes through the core's safe-render boundary. One card that cannot be built
+    // becomes ONE visible error card naming the id and the fix in plain language; the other N−1
+    // still render. Before this, one stale key threw and the page showed its loading placeholder
+    // and nothing else — which is how the tool sat dead without anyone noticing (T-QT-04).
+    const attempt = core.renderCardSafely(ng, (n) => ({ id: n.id, cards: n.cardsOf() }));
+    const built = attempt.error
+      ? [errorCard(ng.id, attempt.error)]
+      : attempt.cards.map((c) => (c && c.error ? errorCard(c.id, c.error) : c));
     const uncertainParents = ng.parents.filter((p) => p.uncertain).map((p) => p.label || p.id);
     const metaBits = [`via ${ng.via}`];
     if (uncertainParents.length) metaBits.push(`<span class="uncertainTag">uncertain reach:</span> ${uncertainParents.join(", ")}`);
@@ -2431,7 +2401,7 @@ FABRICATED_EVENT_VIOLATIONS.forEach((msg) => probeFailures.push({ key: "fabricat
 // trade-offer summary is never parenthesised (its "+" means "and also"), so it would never match
 // either pattern below — SIGN_RULE_EXEMPT_IDS records the exception explicitly anyway, per
 // instruction, rather than relying on that being self-evident from the regex scope.
-const SIGN_RULE_EXEMPT_IDS = new Set(["prompt:src/ui/flow.js:465"]); // flow.js:461's offerDisplay, rendered inline in this prompt's own message
+const SIGN_RULE_EXEMPT_IDS = new Set(["prompt:prompt.trade.accept"]); // the composed trade-offer summary (offerDisplay), rendered inline in this prompt’s own message
 (function checkSignRule() {
   const UNSIGNED_PAREN_RE = new RegExp(`\\((?!\\+|−)\\d[^()]*${COIN_MARKER}\\)`);
   const ASCII_MINUS_PAREN_RE = new RegExp(`\\(-\\d[^()]*${COIN_MARKER}\\)`);
@@ -2560,16 +2530,17 @@ function renderAddressedDerivedLine2(card) { renderAddressedDerivedLineForSuffix
  * pass-2 export). Seeded fields never overwrite an id that already has its
  * own localStorage entry from an earlier session on this browser.
  * ==========================================================================*/
-// D-27 fix (bumped, not migrated): a browser that already ran the pre-D-27 build has an entry
-// under the OLD key for every one of the 81 current ids — that is literally where the corrupt
-// 15-DISPOSITIONS-PASS2.json export came from. The old seeding guard (`if (saved[id]) return;`)
-// would treat every one of those as "already has pass-2 progress" and never re-seed, so the
-// D-27 fix above would be unreachable in the one browser it exists for. Bumping the key makes
-// old state invisible wholesale rather than attempting a partial in-place migration (a half-
-// migrated schema — some entries fixed, some not — is worse than either a clean cutover or no
-// fix at all). No genuine work is lost: the real reviewed rows (1-17) live in the committed
-// PASS2_ROWS below, not only in the old localStorage entry.
-const STORAGE_KEY = "pastrypirates_narration_audit_v15_dispositions_v2";
+// The id scheme and the storage key move TOGETHER. Card ids just changed from a source line to
+// each site's own declared id, so an old-era entry would sit alongside a new one and quietly mix
+// two schemes. The gate asserts the two constants agree, so a future id change cannot ship
+// without a bump.
+//
+// This is safe ONLY because the state of record moved out of the browser and into the committed
+// export above: any browser, or a fresh machine, now reconstructs his full 209-row review from
+// the repo. That is strictly more durable than the old arrangement, where his work existed in
+// exactly one browser profile.
+const ID_SCHEME_VERSION = "v3-stable-copy-ids";
+const STORAGE_KEY = `pastrypirates_narration_audit_v15_dispositions_${ID_SCHEME_VERSION}`;
 function loadSaved() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; } }
 function saveAll(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function setStatus(t) { document.getElementById("fbStatus").textContent = t; }
@@ -2582,15 +2553,20 @@ document.querySelectorAll(".card").forEach((card) => {
   // localStorage entry" rule the rest of this seeding already follows.
   const defaultMergeInto = card.dataset.mergeIntoDefault || "";
   if (saved[id]) return; // this browser's own in-progress session already covers this id — never clobber
-  if (PASS2_REVIEWED_IDS.has(id)) {
-    // rows 1-17 of the committed pass-2 export — Wyatt's genuine, already-reviewed marks.
-    const row = PASS2_BY_ID[id];
-    saved[id] = { tag: row.tag, notes: row.notes, question: "", reviewed: true, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "", addressedNotes2: "" };
+  if (SEED_BY_ID[id]) {
+    // One of Wyatt's 209 reviewed rows, carried across the re-key by the alias file. Every copy
+    // field comes over verbatim — never reworded, never re-typed.
+    const row = SEED_BY_ID[id];
+    saved[id] = {
+      tag: row.tag, notes: row.notes, question: row.question, reviewed: row.reviewed,
+      mergeInto: row.mergeInto || defaultMergeInto, mergeIntoCustom: "",
+      addressedNotes: row.addressedNotes, addressedNotes2: row.addressedNotes2,
+    };
   } else {
-    // Everything else (rows 18-81, and any id the export doesn't cover) is a pass-1 leftover
-    // the OLD seeding wrongly pre-filled, never something Wyatt decided — D-27. Unreviewed,
-    // empty notes (never carry stale copy forward), tag falls back to the card's own default
-    // (never a stale pass-1/leftover tag).
+    // A card his export does not cover is genuinely NEW — the D-41 cargo reason, a branch this
+    // rebuild added. It seeds UNREVIEWED with an empty notes box and the card's own default tag,
+    // because an untouched default is not a decision (D-27). A larger denominator must never
+    // quietly reset a mark he made, and the health gate asserts his 209 survive it.
     const sel = card.querySelector(".tagSelect");
     const defaultTag = (sel && sel.dataset.default) || "keep";
     saved[id] = { tag: defaultTag, notes: "", question: "", reviewed: false, mergeInto: defaultMergeInto, mergeIntoCustom: "", addressedNotes: "", addressedNotes2: "" };
@@ -2599,65 +2575,20 @@ document.querySelectorAll(".card").forEach((card) => {
 saveAll(saved);
 
 /* ============================================================================
- * D-47: the Question field has been doing THREE jobs — genuine questions (its
- * intended use), addressed ("you") copy (which D-26 deliberately never ships,
- * so 15-06 would silently discard every one), and merge targets written as
- * prose (D-44's own warning against free-text-to-id guesswork). Run ONCE on
- * load, conservatively: naturally idempotent, since a migrated question is
- * CLEARED, so nothing matches again on the next reload — no separate
- * "already migrated" flag needed.
+ * The two one-time load-time migrations that used to run here are GONE.
+ *
+ * Both existed only to repair the pass-2 era: the D-47 pass moved addressed copy and
+ * prose merge targets out of the Question field, and the D-42 retro-fix corrected
+ * already-saved dropdowns. Both are already reflected in the 209-row export that
+ * SEED_BY_ID reads, so re-running them would edit data that is already correct — and a
+ * migration firing against already-migrated data is how a genuine question turns into
+ * shipped copy.
+ *
+ * D-42's LIVE behaviour is NOT part of this and is untouched below: typing in the notes
+ * box still auto-selects `rewrite`, still only when the current tag is `keep` or unset,
+ * and clearing the box still reverts an auto-set `rewrite` while leaving a manually-chosen
+ * one alone. The affordance census pins that on every run.
  * ==========================================================================*/
-// Matches ONLY where a question clearly SPECIFIES the addressed rendering — deliberately narrow
-// (D-47's own instruction: "leave everything else where it is"). A false-positive migration turns
-// a genuine question into shipped copy, the exact failure the Question field exists to prevent.
-const ADDRESSED_QUESTION_RE = /you[- ]version|the ["'“”]you["'“”]|addressed|^ye\s/i;
-const migrationLog = []; // { id, kind: "addressed"|"mergeTarget", moved } — shown once, below
-Object.keys(saved).forEach((id) => {
-  const row = saved[id];
-  if (!row) return;
-  const q = (row.question || "").trim();
-  if (!q) return;
-  if (MERGE_TARGET_QUESTION_IDS.has(id)) {
-    // D-49 CONFIRMED: these two questions' prose merge targets are now SET structurally via
-    // mergeInto (TABLE_BRANCH_MERGE_TARGET, above) — the prose instruction is cleared, never
-    // duplicated, so a stale note can't disagree with the selector (D-44's own concern).
-    row.question = "";
-    if (typeof row.addressedNotes !== "string") row.addressedNotes = "";
-    migrationLog.push({ id, kind: "mergeTarget", moved: q });
-    return;
-  }
-  if (ADDRESSED_QUESTION_RE.test(q)) {
-    row.addressedNotes = q; // move verbatim — never reworded, never re-typed
-    row.question = "";
-    migrationLog.push({ id, kind: "addressed", moved: q });
-  }
-});
-// D-42/D-47: a migrated addressed-copy question is new copy, exactly like typing it live would
-// be — run the SAME "keep + copy present -> rewrite" retro-fix once more, now that migration may
-// have just populated addressedNotes for cards the earlier D-42 retro-fix pass (above, which only
-// checked `notes`) had no way to know about yet. Pure data mutation (saved[id] directly) — the
-// DOM's own .tagSelect restore happens later and reads FROM this, so no DOM access needed here.
-migrationLog.filter((m) => m.kind === "addressed").forEach(({ id }) => {
-  const row = saved[id];
-  if (row && (row.tag === "keep" || !row.tag)) {
-    row.tag = "rewrite";
-    row.autoRewrite = true;
-  }
-});
-if (migrationLog.length) saveAll(saved);
-// One-time summary — visible so a wrong migration is caught immediately, not discovered at 15-06.
-(function renderMigrationSummary() {
-  const banner = document.getElementById("migrationSummaryBanner");
-  if (!banner || !migrationLog.length) return;
-  const addressedMoves = migrationLog.filter((m) => m.kind === "addressed");
-  const mergeMoves = migrationLog.filter((m) => m.kind === "mergeTarget");
-  const rows = migrationLog.map((m) => {
-    const label = m.kind === "addressed" ? "→ Addressed (\"you\") version" : "→ Question cleared (merge target now set via D-49)";
-    return `<div style="margin-top:4px;"><code>${escapeHtml(m.id)}</code> ${label}: "${escapeHtml(m.moved.length > 140 ? m.moved.slice(0, 140) + "…" : m.moved)}"</div>`;
-  }).join("");
-  banner.className = "selfCheckBanner pass";
-  banner.innerHTML = `✓ D-47 one-time migration: ${addressedMoves.length} question(s) moved to the new Addressed ("you") field, ${mergeMoves.length} merge-target question(s) cleared (now set via the mergeInto selector, D-49). Check these against what you meant:${rows}`;
-})();
 
 // D-42 (Wyatt: "I'm trying to remember to also select 'rewrite' but I'm worried I'm forgetting" —
 // measured against his live session: 33 reviewed cards carried notes, 14 still showed "keep",

@@ -53,9 +53,14 @@
 // it consumes the inventory the extractor writes) in the same commit that turns it green.
 
 import { readFileSync, mkdtempSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
+
+// The commit whose inventory Wyatt's review page actually consumed. 136 of his 141 line-keyed ids
+// resolve against it; the other 5 are the page-added exceptions pinned in assertion 8.
+const EXPORT_ERA_COMMIT = "ddefa8f";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -124,9 +129,13 @@ function toSiteKey(raw) {
   s = s.replace(/~[^~]*$/, "");
   return s;
 }
-// Deliberately NOT anchored on `src/`: assertion 2 must exercise identically against --drill's
-// `drill/`-pathed fixture. Assertion 5, whose subject IS a real source line, stays `src/`-anchored.
-function isSiteShaped(raw) { return /[A-Za-z0-9_/.]+\.js:\d+/.test(raw); }
+// A per-site table entry is now STABLE-ID shaped (`adhoc.turn.banner`, `misc.mperror.roomfull`,
+// optionally with a `~branch` suffix), and it may still be a legacy `file:line` key — which is the
+// point: a leftover line-keyed entry is exactly the orphan this assertion must catch, so both shapes
+// count as "a key that claims to name a site".
+function isSiteShaped(raw) {
+  return /[A-Za-z0-9_/.]+\.js:\d+/.test(raw) || /^(?:adhoc|prompt|misc|sub)\.[a-z0-9][a-z0-9.-]*(?:~[A-Za-z0-9]+)?$/.test(raw);
+}
 
 /* ================= the flow-chart lookup table ================= */
 
@@ -175,11 +184,14 @@ function collectLookups(page) {
   return { lookups: out, bulk };
 }
 
+// The key space is each site's own DECLARED id (`// @copy <id>` in the source), not `file:line`.
+// That is the whole repair: a lookup can now only break if somebody deletes the marker, which the
+// extractor fails on by name — rather than breaking silently every time a line moves.
 function liveKeySets(inv) {
   return {
-    adhoc: new Set((inv.adhoc || []).map((e) => `${e.file}:${e.line}`)),
-    prompt: new Set((inv.prompts || []).map((e) => `${e.file}:${e.line}`)),
-    misc: new Set((inv.misc || []).map((e) => `${e.category}:${e.file}:${e.line}`)),
+    adhoc: new Set((inv.adhoc || []).map((e) => e.id)),
+    prompt: new Set((inv.prompts || []).map((e) => e.id)),
+    misc: new Set((inv.misc || []).map((e) => `${e.category}:${e.id}`)),
   };
 }
 function resolves(spec, key, live) {
@@ -217,21 +229,17 @@ function checkResolvability(page, inv) {
 
 // The direction applyMeta() structurally cannot see. It fails only on a MISSING key, so a stale key
 // silently attaches the wrong metadata to a shifted site while the orphan sits unnoticed.
+// ADHOC_RENDERERS, PASS_THROUGH, PROMPT_RENDERERS, PROMPT_SUB_RENDERERS and LEGACY_CARD_ID_PIN are
+// deliberately absent from this list because they no longer exist: the hand-transcribed text layer is
+// gone (the render core evaluates the real expression), the pass-through sets moved into the core
+// keyed by stable id, and the legacy id pin was only ever needed because line numbers drifted. A
+// table that is absent is reported as skipped rather than silently passing.
 const PER_SITE_TABLES = [
-  { name: "ADHOC_RENDERERS", how: "objectKeys" },
   { name: "ADHOC_EXTRA_TAGS", how: "objectKeys" },
   { name: "ADHOC_LABEL_OVERRIDE", how: "objectKeys" },
-  { name: "PASS_THROUGH", how: "setMembers" },
   { name: "GUARDED_TEXT", how: "objectKeys" },
-  { name: "ADHOC_TWO_PARTY_ROLE_LABELS", how: "objectKeys" },
-  // LEGACY_CARD_ID_PIN's VALUES are deliberately dead ids (the pre-D-24 line numbers Wyatt's review
-  // history is keyed to) — only its keys name a live site, so only its keys are checked.
-  { name: "LEGACY_CARD_ID_PIN", how: "objectKeys" },
-  { name: "PROMPT_PASS_THROUGH", how: "setMembers" },
-  { name: "PROMPT_RENDERERS", how: "objectKeys" },
   { name: "PARAM_PROMPT_DECL", how: "objectKeys" },
   { name: "PARAM_PROMPT_DEAD_CALLS", how: "setMembers" },
-  { name: "PROMPT_SUB_RENDERERS", how: "objectKeys" },
   { name: "SIGN_RULE_BUTTON_OVERRIDE", how: "objectKeys" },
   { name: "SIGN_RULE_EXEMPT_IDS", how: "setMembers" },
   { name: "DRAFT_WAIT_RENDERERS", how: "objectKeys" },
@@ -244,6 +252,11 @@ function checkOrphans(page, inv) {
   for (const k of live.adhoc) allSites.add(k);
   for (const k of live.prompt) allSites.add(k);
   for (const k of live.misc) allSites.add(k.replace(/^[A-Za-z0-9]+:/, ""));
+  // a button's card id names its prompt plus an option slot; a sub names its prompt plus a branch
+  for (const e of inv.prompts || []) {
+    for (const l of e.labels || []) allSites.add(`${e.id}~${l.slot}`);
+    if (e.rawSub) allSites.add(e.id);
+  }
   let checked = 0, orphans = 0;
   for (const { name, how } of PER_SITE_TABLES) {
     const body = declBody(page, name);
@@ -270,8 +283,8 @@ function checkOrphans(page, inv) {
 // such placement is allowlisted BY NAME with its reason, and a stale allowlist entry (one whose
 // card is no longer multiply placed) FAILS — so the allowlist can never rot into blanket cover.
 const MULTI_PLACEMENT_ALLOWED = {
-  "prompt:src/ui/flow.js:103": "humanFlip()'s own prompt — the shared coin-flip helper fires at the storm-anchor dodge AND at docking; the page shows it in both stages deliberately (D-33 comments at both sites).",
-  "adhoc:src/ui/flow.js:111": "the coin-flip announcement — the same generic line the storm dodge and the docking flip both emit (AD_HOC_META: \"generic — used at docking/anchor moments\").",
+  "prompt:prompt.flip.fallback": "humanFlip()'s own prompt — the shared coin-flip helper fires at the storm-anchor dodge AND at docking; the page shows it in both stages deliberately (D-33 comments at both sites).",
+  "adhoc:adhoc.flip.announce": "the coin-flip announcement — the same generic line the storm dodge and the docking flip both emit (AD_HOC_META: \"generic — used at docking/anchor moments\").",
 };
 
 // `allowed` is injectable so --drill can run this exact function against a synthetic fixture with
@@ -292,9 +305,9 @@ function checkPlacement(page, inv, allowed = MULTI_PLACEMENT_ALLOWED) {
   const bulkCount = (name) => bulk.filter((b) => b.helper === name).length;
 
   const want = [];
-  for (const e of inv.adhoc || []) want.push(`adhoc:${e.file}:${e.line}`);
-  for (const e of inv.prompts || []) want.push(`prompt:${e.file}:${e.line}`);
-  for (const e of inv.misc || []) want.push(`misc:${e.category}:${e.file}:${e.line}`);
+  for (const e of inv.adhoc || []) want.push(`adhoc:${e.id}`);
+  for (const e of inv.prompts || []) want.push(`prompt:${e.id}`);
+  for (const e of inv.misc || []) want.push(`misc:${e.category}:${e.id}`);
 
   let zero = 0, multi = 0;
   for (const id of want) {
@@ -462,6 +475,159 @@ export function checkTableBaseline(core, baselineText) {
   return res;
 }
 
+/* ================= assertion 8: the 209-row migration ==============================
+ *
+ * Wyatt spent a day producing 209 reviewed dispositions and 130 of them pointed at cards that no
+ * longer existed under those names. This is the assertion that says none of them was lost.
+ *
+ * Every number below is an EQUALITY on purpose. A window of "209 minus at most 6" would let six of
+ * his rows vanish with the gate still green, which is the precise slack this assertion exists to
+ * remove — a 6-row tolerance was drafted once and taken out again for exactly that reason.
+ */
+// Not a count and not a reason string — the exact list. "Roughly six" is not a constraint: a
+// migration that retired forty rows with the reason "site gone" would satisfy every count-and-reason
+// check while silently discarding his work.
+const EXPECTED_RETIRED = [
+  "adhoc:src/ui/flow.js:296",
+  "adhoc:src/ui/flow.js:571",
+  "adhoc:src/ui/flow.js:645",
+  "misc:battleLine:src/orchestrator.js:483",
+  "misc:battleLine:src/orchestrator.js:487",
+  "misc:battleLine:src/ui/flow.js:967",
+];
+// Five ids the PAGE synthesised, so they have no export-era inventory entry to resolve against.
+const PAGE_ADDED = new Set([
+  "adhoc:src/ui/util.js:874", "adhoc:src/ui/util.js:878",
+  "sub:src/ui/flow.js:563~afford", "sub:src/ui/flow.js:563~poor", "sub:src/ui/flow.js:563~none",
+]);
+const EXPECTED_ROWS = 209;
+const EXPECTED_DRIFT = 104;
+
+/** D-26's rules, never the raw tag: cut/merge win outright, empty notes mean keep. */
+function derivedIntent(r) {
+  if (r.tag === "cut" || r.tag === "merge") return r.tag;
+  return (r.notes || "").trim() ? "rewrite" : "keep";
+}
+
+export function checkMigration({ rows, aliases, baseline, exportEraInventory, liveCardIds }) {
+  const res = mk("assertion 8 — migration: all 209 of Wyatt's reviewed dispositions are accounted for");
+  if (!rows || !aliases) { fail(res, "the disposition export or the alias file is missing — the migration cannot be verified at all"); return res; }
+  const list = Array.isArray(aliases) ? aliases : aliases.entries;
+
+  // every frozen id appears exactly once
+  const byOld = {};
+  for (const e of list) {
+    if (byOld[e.old]) fail(res, `duplicate alias entry for ${e.old} — one frozen id cannot map two ways`);
+    byOld[e.old] = e;
+  }
+  const missing = rows.filter((r) => !byOld[r.id]).map((r) => r.id);
+  if (missing.length) fail(res, `${missing.length} disposition row(s) have no alias entry, first: ${missing.slice(0, 5).join(", ")}`);
+  const extra = list.filter((e) => !rows.some((r) => r.id === e.old)).map((e) => e.old);
+  if (extra.length) fail(res, `alias entries for rows that are not in his export: ${extra.slice(0, 5).join(", ")}`);
+
+  // no live card is the target of two aliases
+  const targets = list.filter((e) => e.new).map((e) => e.new);
+  const dupT = [...new Set(targets.filter((x, i) => targets.indexOf(x) !== i))];
+  if (dupT.length) fail(res, `two aliases point at the same card: ${dupT.join(", ")} — whichever renders second would inherit the other's review mark`);
+
+  // the retirement set is the pinned LIST, and every retirement carries his own `merge` tag
+  const retired = list.filter((e) => e.retired).map((e) => e.old).sort();
+  const wantRetired = [...EXPECTED_RETIRED].sort();
+  if (JSON.stringify(retired) !== JSON.stringify(wantRetired)) {
+    fail(res, `the retirement set drifted from its pinned list\n        expected: ${wantRetired.join("\n                  ")}\n        actual:   ${retired.join("\n                  ")}`);
+  }
+  const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
+  for (const id of retired) {
+    const tag = byId[id] && byId[id].tag;
+    if (tag !== "merge") fail(res, `refusing to retire ${id} — his own tag is "${tag}", not merge. A keep or rewrite row can never be retired.`);
+  }
+
+  // the arithmetic
+  if (targets.length + retired.length !== EXPECTED_ROWS) {
+    fail(res, `${EXPECTED_ROWS} != ${targets.length} aliased + ${retired.length} retired`);
+  }
+
+  // every alias target is a LIVE card id
+  if (liveCardIds) {
+    const dead = targets.filter((id) => !liveCardIds.has(id));
+    if (dead.length) fail(res, `${dead.length} alias target(s) name no live card, first: ${dead.slice(0, 5).join(", ")}`);
+  }
+
+  // THE RECIPROCAL, which prose alone cannot enforce: without it an alias could point anywhere and
+  // nothing would notice. Every frozen line-keyed id must resolve against the export-era inventory
+  // his page actually consumed, or be on the pinned page-added list.
+  if (exportEraInventory) {
+    const known = new Set();
+    (exportEraInventory.adhoc || []).forEach((e) => known.add(`adhoc:${e.file}:${e.line}`));
+    (exportEraInventory.prompts || []).forEach((e) => {
+      known.add(`prompt:${e.file}:${e.line}`);
+      (e.labels || []).forEach((l, i) => known.add(`button:${e.file}:${e.line}~${i}`));
+    });
+    (exportEraInventory.misc || []).forEach((e) => known.add(`misc:${e.category}:${e.file}:${e.line}`));
+    const base = (id) => id.replace(/~[^~]*$/, "");
+    const unresolved = rows
+      .filter((r) => /:\d+/.test(r.id))
+      .filter((r) => !known.has(r.id) && !known.has(base(r.id)) && !PAGE_ADDED.has(r.id))
+      .map((r) => r.id);
+    if (unresolved.length) fail(res, `${unresolved.length} frozen id(s) resolve against NEITHER the export-era inventory NOR the pinned exception list: ${unresolved.join(", ")}`);
+  }
+
+  // the seed yields 209 reviewed rows, and no `keep` is degraded to unknown — an unreviewed row is
+  // not a keep, it is unknown, which is the specific regression D-27 exists to prevent
+  const seeded = rows.filter((r) => byOld[r.id] && byOld[r.id].new);
+  const reviewed = seeded.filter((r) => r.reviewed !== false).length;
+  note(res, `reviewed rows carried across: ${reviewed} of ${EXPECTED_ROWS} (${retired.length} retired against his own merge instruction)`);
+  if (reviewed + retired.length !== EXPECTED_ROWS) {
+    fail(res, `only ${reviewed} row(s) seed as reviewed; ${EXPECTED_ROWS - retired.length} expected — a keep that becomes unknown is a lost decision, not a keep`);
+  }
+  const keepLost = seeded.filter((r) => derivedIntent(r) === "keep" && r.reviewed === false);
+  if (keepLost.length) fail(res, `${keepLost.length} keep row(s) would seed unreviewed: ${keepLost.slice(0, 5).map((r) => r.id).join(", ")}`);
+
+  // the drift baseline covers EXACTLY the derived-keep rows — not "at most", not a window. No
+  // retirement is a derived-keep row (all six are merge-tagged), so this number cannot legitimately move.
+  const derivedKeep = rows.filter((r) => derivedIntent(r) === "keep").length;
+  if (derivedKeep !== EXPECTED_DRIFT) fail(res, `expected ${EXPECTED_DRIFT} derived-keep rows in his export, found ${derivedKeep}`);
+  if (!baseline) fail(res, "art-review/narration-approved-baseline.json is missing — the drift class has nothing to compare against");
+  else {
+    const n = Object.keys(baseline.cards || baseline).length;
+    if (n !== EXPECTED_DRIFT) fail(res, `the drift baseline covers ${n} card(s), expected exactly ${EXPECTED_DRIFT} — no retirement is a derived-keep row, so this count cannot move`);
+    if (!/drift pin/i.test(JSON.stringify(baseline._provenance || baseline.provenance || ""))) {
+      fail(res, "the drift baseline must state it is a DRIFT PIN, not evidence of approval — otherwise the next reader treats it as something Wyatt said");
+    }
+    note(res, `drift baseline: ${n} of ${EXPECTED_DRIFT} derived-keep cards pinned, provenance stated`);
+  }
+  return res;
+}
+
+/* ================= assertion 9: the safe-render boundary and the storage key ================= */
+
+export function checkPageBoundary(page) {
+  const res = mk("assertion 9 — safe-render: every card in the page's render loop goes through the boundary");
+  const stripped = stripCommentLines(page);
+  const wrapped = (stripped.match(/renderCardSafely\s*\(/g) || []).length;
+  // PRESENCE FIRST. A "no failures found" check prints nothing when the assertion was never written
+  // at all, so prove the wiring exists before proving it passes.
+  if (wrapped < 1) fail(res, "the page never calls renderCardSafely — the per-card boundary is not wired, so one bad card still blanks the whole page");
+  // and no direct per-category renderer call survives inside the render loop itself
+  const loop = declBody(page, "boxesHtml") || "";
+  const direct = (stripped.match(/const built = ng\.cardsOf\(\)/g) || []).length;
+  note(res, `safe-render: ${wrapped} boundary call site(s) in the page, ${direct} direct per-category renderer call(s) left in the render loop`);
+  if (direct !== 0) fail(res, `${direct} card-emitting call(s) in the render loop still bypass renderCardSafely`);
+
+  // the storage key and the id-scheme version must agree, so a future id change cannot ship
+  // without a bump — the ids just changed, and an old-era entry would quietly mix two schemes.
+  const schemeM = /const ID_SCHEME_VERSION = "([^"]+)"/.exec(stripped);
+  const keyM = /const STORAGE_KEY = [`"]([^`"]+)[`"]/.exec(stripped);
+  if (!schemeM) fail(res, "the page declares no ID_SCHEME_VERSION — nothing pins the storage key to the id scheme");
+  else if (!keyM) fail(res, "the page's STORAGE_KEY could not be parsed");
+  else {
+    const agrees = keyM[1].includes("${ID_SCHEME_VERSION}") || keyM[1].includes(schemeM[1]);
+    note(res, `storage key: ${keyM[1]} · id scheme: ${schemeM[1]}`);
+    if (!agrees) fail(res, `the storage key "${keyM[1]}" does not carry the id-scheme version "${schemeM[1]}" — an id change could ship without a bump, mixing two schemes in one browser`);
+  }
+  return res;
+}
+
 /* ================= the whole gate, as one callable function ================= */
 
 export function runChecks(page, inv, opts = {}) {
@@ -474,6 +640,8 @@ export function runChecks(page, inv, opts = {}) {
   ];
   if (opts.cards) results.push(checkCardText(opts.cards, opts.core));
   if (opts.core) results.push(checkTableBaseline(opts.core, opts.baselineText));
+  if (opts.migration) results.push(checkMigration(opts.migration));
+  if (opts.checkBoundary !== false) results.push(checkPageBoundary(page));
   return results;
 }
 
@@ -491,18 +659,22 @@ export function runChecks(page, inv, opts = {}) {
 function syntheticPair() {
   const inv = {
     table: [], awards: [{ key: "most", img: null, name: "N", byline: "B", line: 1 }], roundCfgFlags: { a: true },
-    adhoc: [{ file: "drill/flow.js", line: 10, fn: "f", label: "l", defaultTag: "keep", rawNeutral: "`x`", rawVariants: null, tableDriven: false, group: "g" }],
-    prompts: [{ file: "drill/flow.js", line: 20, fn: "g", kind: "ask", rawMsg: "`y`", labels: [], dynamicLabelCount: 0, dynamicBase: null, rawSub: null, isLiteral: true }],
-    misc: [{ category: "lobby", file: "drill/lobby.js", line: 30, fn: "h", rawMsg: "`z`" }],
+    adhoc: [{ id: "adhoc.drill.one", file: "drill/flow.js", line: 10, fn: "f", label: "l", defaultTag: "keep", rawNeutral: "`x`", rawVariants: null, tableDriven: false, group: "g" }],
+    prompts: [{ id: "prompt.drill.one", file: "drill/flow.js", line: 20, fn: "g", kind: "ask", rawMsg: "`y`", labels: [], dynamicLabelCount: 0, dynamicBase: null, rawSub: null, isLiteral: true }],
+    misc: [{ category: "lobby", id: "misc.drill.one", file: "drill/lobby.js", line: 30, fn: "h", rawMsg: "`z`" }],
   };
   const hooks = AFFORDANCES.flatMap((a) => a.hooks).map((h) => `/* hook ${h} */ ${h}`).join("\n");
   const page = [
     "const NODE_GROUPS = [",
-    '  { id: "one", stage: 0, cardsOf: () => adhocCards("drill/flow.js:10")',
-    '      .concat(promptCards("drill/flow.js:20"), miscLobbyCard("drill/lobby.js:30"), awardCards(), dockFlavorCards()) },',
+    '  { id: "one", stage: 0, cardsOf: () => adhocCards("adhoc.drill.one")',
+    '      .concat(promptCards("prompt.drill.one"), miscLobbyCard("misc.drill.one"), awardCards(), dockFlavorCards()) },',
     "];",
-    'const ADHOC_RENDERERS = { "drill/flow.js:10": 1 };',
-    'const PROMPT_RENDERERS = { "drill/flow.js:20": 1 };',
+    'const ADHOC_EXTRA_TAGS = { "adhoc.drill.one": ["b"] };',
+    'const ADHOC_LABEL_OVERRIDE = { "adhoc.drill.one~b": "a sibling branch" };',
+    // the safe-render boundary and the storage-key pin, so assertion 9 is exercised by the control
+    "const built = core.renderCardSafely(ng, (n) => n.cardsOf());",
+    'const ID_SCHEME_VERSION = "v3-stable-copy-ids";',
+    "const STORAGE_KEY = `drill_${ID_SCHEME_VERSION}`;",
     hooks,
   ].join("\n");
   return { page, inv };
@@ -531,18 +703,18 @@ function drill() {
 
   // assertion 1 — a lookup key with no inventory entry
   {
-    const page = base.page.replace('miscLobbyCard("drill/lobby.js:30")', 'miscLobbyCard("drill/lobby.js:999")');
+    const page = base.page.replace('miscLobbyCard("misc.drill.one")', 'miscLobbyCard("misc.drill.gone")');
     const r = run(page, base.inv).find((x) => idOf(x) === "1");
     say(!r.pass && r.lines.some((l) => /FATAL/.test(l)), "assertion 1 goes red on an unresolvable FATAL lookup");
   }
   {
-    const page = base.page.replace('promptCards("drill/flow.js:20")', 'promptCards("drill/flow.js:998")');
+    const page = base.page.replace('promptCards("prompt.drill.one")', 'promptCards("prompt.drill.gone")');
     const r = run(page, base.inv).find((x) => idOf(x) === "1");
     say(!r.pass && r.lines.some((l) => /SILENT/.test(l)), "assertion 1 goes red on an unresolvable SILENT lookup");
   }
   // assertion 2 — a per-site table entry keyed to a site that does not exist
   {
-    const page = base.page.replace('const ADHOC_RENDERERS = { "drill/flow.js:10": 1 };', 'const ADHOC_RENDERERS = { "drill/flow.js:10": 1, "drill/flow.js:777": 1 };');
+    const page = base.page.replace('const ADHOC_EXTRA_TAGS = { "adhoc.drill.one": ["b"] };', 'const ADHOC_EXTRA_TAGS = { "adhoc.drill.one": ["b"], "adhoc.drill.deleted": ["b"] };');
     const r = run(page, base.inv).find((x) => idOf(x) === "2");
     say(!r.pass && r.lines.some((l) => /orphan/.test(l)), "assertion 2 goes red on an orphaned per-site renderer entry");
   }
@@ -554,25 +726,25 @@ function drill() {
     say(!r.pass && r.lines.some((l) => /unplaced/.test(l)), "assertion 3 goes red on a live site with no flow-chart placement");
   }
   {
-    const page = base.page.replace('adhocCards("drill/flow.js:10")', 'adhocCards("drill/flow.js:10").concat(adhocCards("drill/flow.js:10"))');
+    const page = base.page.replace('adhocCards("adhoc.drill.one")', 'adhocCards("adhoc.drill.one").concat(adhocCards("adhoc.drill.one"))');
     const r = run(page, base.inv).find((x) => idOf(x) === "3");
     say(!r.pass && r.lines.some((l) => /placed 2 times/.test(l)), "assertion 3 goes red on an unreasoned duplicate placement");
   }
   {
     // a duplicate placement WITH a reason is allowed — the allowlist is a real escape hatch, not a
     // dead branch
-    const page = base.page.replace('adhocCards("drill/flow.js:10")', 'adhocCards("drill/flow.js:10").concat(adhocCards("drill/flow.js:10"))');
-    const r = run(page, base.inv, { "adhoc:drill/flow.js:10": "a shared helper that genuinely fires at two moments" }).find((x) => idOf(x) === "3");
+    const page = base.page.replace('adhocCards("adhoc.drill.one")', 'adhocCards("adhoc.drill.one").concat(adhocCards("adhoc.drill.one"))');
+    const r = run(page, base.inv, { "adhoc:adhoc.drill.one": "a shared helper that genuinely fires at two moments" }).find((x) => idOf(x) === "3");
     say(r.pass, "assertion 3 accepts a duplicate placement that carries a stated reason");
   }
   {
     // …and a reason for a card that is NOT multiply placed is stale cover, which must fail
-    const r = run(base.page, base.inv, { "adhoc:drill/flow.js:10": "no longer true" }).find((x) => idOf(x) === "3");
+    const r = run(base.page, base.inv, { "adhoc:adhoc.drill.one": "no longer true" }).find((x) => idOf(x) === "3");
     say(!r.pass && r.lines.some((l) => /STALE/.test(l)), "assertion 3 goes red on a STALE multi-placement allowlist entry");
   }
   {
     // …and an allowlist entry with an empty reason is not an exception, it is a hole
-    const r = run(base.page, base.inv, { "adhoc:drill/flow.js:10": "" }).find((x) => idOf(x) === "3");
+    const r = run(base.page, base.inv, { "adhoc:adhoc.drill.one": "" }).find((x) => idOf(x) === "3");
     say(!r.pass && r.lines.some((l) => /no reason/.test(l)), "assertion 3 goes red on an allowlist entry with no stated reason");
   }
   // assertion 4 — a dropped affordance hook
@@ -649,6 +821,114 @@ function drill() {
     say(!rm.pass && rm.lines.some((l) => /regression pin is gone/.test(l)), "assertion 7 goes red when the baseline fixture is deleted outright");
   }
 
+  /* ---- assertion 8 — the migration. Its subject is the alias map, so its fixtures are synthetic
+   * row/alias pairs. Every case below is about a way his 209 rows could be LOST while a laxer gate
+   * still reported green. ---- */
+  const migFixture = (over = {}) => {
+    // one row per pinned retirement (all merge-tagged) plus enough keep rows to hit the drift count
+    const rows = EXPECTED_RETIRED.map((id) => ({ id, tag: "merge", reviewed: true, notes: "" }));
+    for (let i = 0; i < EXPECTED_DRIFT; i++) rows.push({ id: `table:k${i}`, tag: "keep", reviewed: true, notes: "" });
+    while (rows.length < EXPECTED_ROWS) rows.push({ id: `table:r${rows.length}`, tag: "rewrite", reviewed: true, notes: "words" });
+    const entries = rows.map((r) => (EXPECTED_RETIRED.includes(r.id)
+      ? { old: r.id, retired: "merged away" }
+      : { old: r.id, new: r.id, evidence: "stable" }));
+    const cards = {};
+    rows.filter((r) => r.tag === "keep").forEach((r) => { cards[r.id] = { neutral: "t", variants: [] }; });
+    const baseline = { _provenance: "DRIFT PIN, not evidence of approval", cards };
+    const liveCardIds = new Set(entries.filter((e) => e.new).map((e) => e.new));
+    return Object.assign({ rows, aliases: { entries }, baseline, exportEraInventory: null, liveCardIds }, over);
+  };
+  {
+    const r = checkMigration(migFixture());
+    say(r.pass, "negative control: assertion 8 PASSES a complete, correctly-retired migration" + (r.pass ? "" : " (red: " + r.lines.join(" / ") + ")"));
+  }
+  {
+    // a row silently dropped from the alias map
+    const f = migFixture();
+    f.aliases.entries = f.aliases.entries.slice(1);
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /no alias entry/.test(l)), "assertion 8 goes red when a disposition row has no alias entry");
+  }
+  {
+    // a mass retirement dressed up with a reason — the failure mode the pinned LIST exists to stop
+    const f = migFixture();
+    f.aliases.entries = f.aliases.entries.map((e) => (e.new && /^table:k/.test(e.old) ? { old: e.old, retired: "site gone" } : e));
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /retirement set drifted/.test(l)), "assertion 8 goes red on a mass retirement, even though every entry carries a reason");
+  }
+  {
+    // retiring a row he tagged keep — never his instruction
+    const f = migFixture();
+    f.rows = f.rows.map((r) => (r.id === EXPECTED_RETIRED[0] ? Object.assign({}, r, { tag: "keep" }) : r));
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /refusing to retire/.test(l)), "assertion 8 refuses to retire a row whose own tag is keep, not merge");
+  }
+  {
+    // two aliases pointing at one card — the second review mark would land on the wrong card
+    const f = migFixture();
+    const live = f.aliases.entries.find((e) => e.new);
+    f.aliases.entries.push({ old: "table:extra", new: live.new });
+    f.rows.push({ id: "table:extra", tag: "keep", reviewed: true, notes: "" });
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /point at the same card/.test(l)), "assertion 8 goes red when two aliases point at the same card");
+  }
+  {
+    // the drift baseline narrowed — a 6-row window here would let six of his rows vanish green
+    const f = migFixture();
+    const keys = Object.keys(f.baseline.cards);
+    keys.slice(0, 6).forEach((k) => delete f.baseline.cards[k]);
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /this count cannot move/.test(l)), "assertion 8 goes red when the drift baseline loses even six rows");
+  }
+  {
+    // a baseline that does not say what it is would be read as something Wyatt approved
+    const f = migFixture({});
+    f.baseline = { _provenance: "the approved text", cards: f.baseline.cards };
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /DRIFT PIN/.test(l)), "assertion 8 goes red when the drift baseline does not state that it is a drift pin");
+  }
+  {
+    // an alias pointing at a card that does not exist
+    const f = migFixture();
+    f.aliases.entries.find((e) => e.new).new = "adhoc:does.not.exist";
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /name no live card/.test(l)), "assertion 8 goes red when an alias target names no live card");
+  }
+  {
+    // a frozen id that resolves against neither the export-era inventory nor the exception list
+    const f = migFixture({ exportEraInventory: { adhoc: [], prompts: [], misc: [] } });
+    f.rows.push({ id: "adhoc:src/ui/nowhere.js:1", tag: "keep", reviewed: true, notes: "" });
+    f.aliases.entries.push({ old: "adhoc:src/ui/nowhere.js:1", new: "adhoc:invented" });
+    f.liveCardIds.add("adhoc:invented");
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /resolve against NEITHER/.test(l)), "assertion 8 goes red on a frozen id that traces to neither the export-era inventory nor the pinned exceptions");
+  }
+  {
+    // a keep row degraded to unreviewed — an unreviewed row is not a keep, it is unknown (D-27)
+    const f = migFixture();
+    f.rows = f.rows.map((r) => (r.id === "table:k0" ? Object.assign({}, r, { reviewed: false }) : r));
+    const r = checkMigration(f);
+    say(!r.pass && r.lines.some((l) => /seed unreviewed|not a keep/.test(l)), "assertion 8 goes red when a keep row would seed unreviewed");
+  }
+
+  /* ---- assertion 9 — the safe-render boundary and the storage key. ---- */
+  {
+    const good = 'const built = core.renderCardSafely(ng, (n) => n.cardsOf());\nconst ID_SCHEME_VERSION = "v3-x";\nconst STORAGE_KEY = `k_${ID_SCHEME_VERSION}`;';
+    say(checkPageBoundary(good).pass, "negative control: assertion 9 PASSES a page that wires the boundary and pins the storage key");
+  }
+  {
+    const r = checkPageBoundary('const ID_SCHEME_VERSION = "v3-x";\nconst STORAGE_KEY = `k_${ID_SCHEME_VERSION}`;');
+    say(!r.pass && r.lines.some((l) => /never calls renderCardSafely/.test(l)), "assertion 9 goes red when the page never calls the safe-render boundary");
+  }
+  {
+    const r = checkPageBoundary('const built = ng.cardsOf();\nconst renderCardSafely = 1;\nconst ID_SCHEME_VERSION = "v3-x";\nconst STORAGE_KEY = `k_${ID_SCHEME_VERSION}`;');
+    say(!r.pass && r.lines.some((l) => /bypass renderCardSafely/.test(l)), "assertion 9 goes red on a direct renderer call left in the render loop");
+  }
+  {
+    const r = checkPageBoundary('renderCardSafely(x);\nconst ID_SCHEME_VERSION = "v3-x";\nconst STORAGE_KEY = "k_v2-old";');
+    say(!r.pass && r.lines.some((l) => /does not carry the id-scheme version/.test(l)), "assertion 9 goes red when the storage key does not carry the id-scheme version");
+  }
+
   // prove the drill never touched the real tree
   const d = mkdtempSync(join(tmpdir(), "narr-audit-drill-"));
   writeFileSync(join(d, "note.txt"), "drill scratch dir — the drill builds its fixtures in memory and never writes to the repo\n");
@@ -705,7 +985,28 @@ if (argv.includes("--print")) {
 let baselineText = null;
 try { baselineText = readFileSync(join(ROOT, BASELINE_REL), "utf8"); } catch (e) { baselineText = null; }
 const cards = core.renderAllCards(inv);
-const results = runChecks(page, inv, { cards, core, baselineText });
+
+// The migration inputs. The export-era inventory comes from git history, because that is the exact
+// inventory Wyatt's review page consumed — the only evidence that can tell a correct alias from a
+// plausible-looking guess.
+const readJson = (rel) => { try { return JSON.parse(readFileSync(join(ROOT, rel), "utf8")); } catch (e) { return null; } };
+const dispositions = readJson(".planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json");
+const aliases = readJson("art-review/narration-id-aliases.json");
+const approvedBaseline = readJson("art-review/narration-approved-baseline.json");
+let exportEraInventory = null;
+try {
+  exportEraInventory = JSON.parse(execFileSync("git", ["show", `${EXPORT_ERA_COMMIT}:art-review/narration-inventory.json`], { cwd: ROOT, maxBuffer: 1e8 }).toString());
+} catch (e) { exportEraInventory = null; }
+
+const migration = dispositions && aliases ? {
+  rows: dispositions.rows,
+  aliases,
+  baseline: approvedBaseline,
+  exportEraInventory,
+  liveCardIds: new Set(cards.map((c) => c.id)),
+} : null;
+
+const results = runChecks(page, inv, { cards, core, baselineText, migration });
 let failures = 0;
 for (const r of results) {
   console.log((r.pass ? "PASS" : "FAIL") + ": " + r.label);
