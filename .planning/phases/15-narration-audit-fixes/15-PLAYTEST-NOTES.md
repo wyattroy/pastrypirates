@@ -7,6 +7,68 @@
 Wyatt host on :8231, Claude guest seat 1 on :8232, 2 bots. Every narration line recorded on the guest
 with timings via a MutationObserver on `#actionPanel`. ~150 lines logged.
 
+## G29/G30 — STORM SHELTER LINES ARE LYING (found 2026-07-30 in the captain's log, NOT YET FIXED)
+
+Wyatt, reading the log after a storm: *"crustbeard's docking in storm was weird can you check log"*, then the
+decisive detail — *"also, he wasnt docked when it said he was"*.
+
+The log read:
+
+    ⛵ A gale blows Crustbeard off the dock!
+    Crustbeard is still docked, so the storm can't run them aground.
+
+Blown OFF the dock, then told he is STILL docked. And per Wyatt he was not docked at all. Compare Dough
+Hook in the same storm, which reads correctly (`is still docked` THEN `a gale blows … off the dock`).
+
+### G29 — the leg summary fires even when the ship never moved
+
+**The engine guards it. The two UI paths do not.**
+
+```js
+// src/engine/index.js:722 — headless, CORRECT
+if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
+
+// src/ui/flow.js:549 (windLeg) and :599 (botWindLeg) — the paths people actually play, UNGUARDED
+g.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
+```
+
+Both UI storm paths emit the leg summary at the END of every leg regardless of whether the ship moved a
+square. A sheltered, blocked or zero-push ship still announces *"A gale blows X off the dock!"*.
+
+**Third instance today of the same shape** — a guard that exists in one path and was never carried to the
+other, after G18 (boxed-in bot escape: engine had it, `botTurn` didn't) and G15 (paint-before-narrate:
+correct in `botWindLeg` and the rim branch, wrong in three `windLeg` siblings). The engine is right every
+time; it is the hand-copies that drift.
+
+**This also explains the second line.** Because the ship never really moved, `movedSinceTurnStart()`
+correctly returns false, so the following leg's shelter line takes the `stillDocked` branch instead of
+`Lucky break!`. G2's branch logic is right (`home:shoved?dockShove:stillDocked`, `src/ui/util.js`) — it is
+being fed a fiction.
+
+**Fix:** copy the engine's movement guard to both UI sites. No new copy, no engine change, no re-record.
+
+### G30 — `home` shelter is described as being "docked", and it need not be
+
+`mooredReason()` (`src/engine/index.js:254-259`) returns `"home"` for ANY square within 1 of Tortuga:
+
+```js
+if(p.justDocked)return "justDocked";
+if(this.cfg.singleDock&&this.adjPort(p)!==null)return "dock";
+if(man(p.pos,this.home)<=1)return "home";
+```
+
+and the `home` branch renders *"is still docked, so the storm can't run them aground."* Sitting in open
+water beside the centre island IS shelter, but it is NOT being docked. So the line can claim a berth the
+player does not have — which is exactly what Wyatt saw.
+
+**Needs a line from Wyatt** — this is new copy, and copy is his (PROJECT.md). Something naming the real
+cause: sheltered by Tortuga / in the lee of home, rather than "docked". The `justDocked` and `dock` reasons
+keep the existing wording, which is accurate for them.
+
+**Not yet fixed. G29 needs no decision; G30 needs his words.**
+
+---
+
 ## HUMAN-EYE CHECKS — all three cleared (2026-07-30)
 
 The three things no gate could answer, all confirmed by Wyatt in a browser:

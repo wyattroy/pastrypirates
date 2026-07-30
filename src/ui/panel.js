@@ -240,11 +240,15 @@ export function liveRender(){
 //     passing empty content) still empties and hides the panel instantly, with no ghost.
 export const GHOST_FADE_MS=800;
 // ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
-// strict sequence is only strict while they are equal. It stays 180ms: the value Wyatt already
-// looked at this morning, so exactly one variable moves in this change. THIS NUMBER LIVES IN TWO
-// PLACES AND ONLY TWO: here, and the `.18s` in index.html's `.apMsg.fadeOut` rule. Move them
-// together or the fade and the reveal disagree — that CSS rule carries the same warning pointing
-// back here.
+// strict sequence is only strict while they are equal.
+// G28 (Wyatt-approved 2026-07-30): 180 -> 800. He watched G17's strict sequence live and judged it
+// too quick to register, naming what the fade is actually FOR: "the point of it is to let the player
+// know that the text is about to leave, so they can hurry up and read it". A warning nobody notices
+// is not a warning. The hold was cut to pay for it (msgHoldMs, src/ui/util.js — ceiling 2000ms).
+// THIS NUMBER LIVES IN TWO PLACES AND ONLY TWO: here, and the `.8s` in index.html's `.apMsg.fadeOut`
+// rule. Move them together or the fade and the reveal disagree — that CSS rule carries the same
+// warning pointing back here, plus a note that `.8s`'s old value collided with #apGrid's unrelated
+// panel-height transition, so a find-and-replace on the duration is not safe.
 export function panel(html,needsAction=false){
   html=emojify(html);
   const inner=$("apGridInner");

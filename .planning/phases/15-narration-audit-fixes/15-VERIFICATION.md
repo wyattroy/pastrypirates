@@ -1,363 +1,376 @@
 ---
 phase: 15-narration-audit-fixes
-verified: 2026-07-29T19:19:18Z
-status: gaps_found
-score: 14/19 must-haves verified
-behavior_unverified: 2
+verified: 2026-07-30T22:26:27Z
+status: human_needed
+score: 19/19 must-haves verified
+behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "D-29 — 'you'→'ye' / 'your'→'yer' applied across ALL player-facing text"
-    status: failed
-    reason: >-
-      14 live player-facing string literals still read "you"/"your". At least 6 of them
-      belong to cards Wyatt tagged `keep` with empty notes, and the audit page applies
-      pirateVoice() LIVE at its msgBox chokepoint (art-review/narration-audit.html:633-643),
-      so the text he approved on those cards was the CONVERTED text. Under D-25 (`keep` =
-      "ship exactly what this card displays") what shipped differs from what he approved.
-      Root cause: 15-06 appears to have applied only rows carrying explicit replacement copy;
-      `keep` + empty-notes rows were treated as "no source change" rather than "ship the
-      converted rendering". D-29 is named in neither 15-06-PLAN.md nor 15-06-SUMMARY.md.
-    artifacts:
-      - path: "src/orchestrator.js:471"
-        issue: "`⚔️ ${nm(att.idx)} attacks you — defend! FLIP` — battle defend prompt"
-      - path: "src/orchestrator.js:545"
-        issue: "`${pn(lose.idx)}, you lost! Pay with…` — carded (prompt:src/orchestrator.js:544, tag=keep, reviewed)"
-      - path: "src/orchestrator.js:554"
-        issue: "`${pn(win.idx)}, choose your plunder!` — carded, tag=keep"
-      - path: "src/orchestrator.js:654"
-        issue: "`${pn(p.idx)}, choose your recipe — …` — recipe-draft prompt"
-      - path: "src/orchestrator.js:968"
-        issue: "alert(\"Enter the room code your host shared.\") — named verbatim in D-32's absent-copy table"
-      - path: "src/orchestrator.js:1143"
-        issue: "`⚓ Reconnecting to your voyage…` — carded (prompt:src/orchestrator.js:1128, tag=keep)"
-      - path: "src/ui/flow.js:266"
-        issue: "`the storm blows you toward an island! Yer broke — if ye run aground, ye'll lose yer turn!` — two registers in one sentence"
-      - path: "src/ui/flow.js:497"
-        issue: "`accept ${offerDisplay} for your ${ilabelImg(want)}?` — carded (prompt:src/ui/flow.js:497, tag=keep, reviewed)"
-      - path: "src/ui/flow.js:595"
-        issue: "button label `Start your bakery!`"
-      - path: "src/ui/flow.js:638"
-        issue: "`🎣 Cast your line — flip!` — the REAL fishing prompt (D-33's live sibling)"
-      - path: "src/ui/flow.js:813"
-        issue: "`Counter — how much for your ${ilabelImg(ing)}?`"
-      - path: "src/ui/util.js:91"
-        issue: "`${escHtml(s.name)} — that's you!` — seat list"
-      - path: "src/ui/lobby.js:108"
-        issue: "`escHtml(s.name)+(me?\" — you\":\"\")` — lobby seat list"
-      - path: "src/ui/panel.js:157"
-        issue: "`\"or lose your turn\"` — shot-clock sub-caption in the yellow action panel"
-    missing:
-      - "Apply pirateVoice() (word-boundary, longest-alternative-first, case-preserving) to the 14 sites above"
-      - "Decide with Wyatt whether src/ui/recipe.js's 3 recipe descriptions ('melt-in-your-mouth', 'run your thumb') are in scope — they are player-facing but read as baking prose, not pirate voice"
-      - "src/ui/flow.js:125's fishCast fallback is dead copy (D-33) — convert or leave, but record which"
-      - "Confirm `layout` was not corrupted — VERIFIED intact, no regression here"
-  - truth: "D-17 — fmtItem() renders ingredients with the custom art, not system emoji"
-    status: failed
-    reason: >-
-      fmtItem() is byte-for-byte unchanged and still emits `ING_EMOJI[x]`. The seven in-play
-      ingredient emoji (🌾🥛🍬🥚🍫🌶️🌼) are still absent from EMOJI_IMG, so emojify() cannot
-      rescue them either. Every trade/parley narration line therefore still renders a raw
-      system-emoji ingredient sitting next to custom coin art — the exact inconsistency
-      Wyatt reported. D-17's stated fix ("<img class=\"narrIcon\" src=\"${ING_IMG[x]}\">,
-      keeping its existing coin handling") was not applied, and D-17 is not mentioned in
-      15-06-PLAN.md or 15-06-SUMMARY.md.
-    artifacts:
-      - path: "src/ui/util.js:211"
-        issue: "`export function fmtItem(x){...(ING_EMOJI[x]||\"\")+\" \"+iname(x);}` — raw emoji, unchanged"
-      - path: "src/shared/index.js:77-94"
-        issue: "EMOJI_IMG still has no ingredient-emoji keys"
-      - path: "src/ui/util.js:382-384, 440-442"
-        issue: "the 6 parley/trade narration branches that consume fmtItem()"
-    missing:
-      - "Change fmtItem() to emit `<img class=\"narrIcon\" src=\"${ING_IMG[x]}\" alt=\"${iname(x)}\"> ${iname(x)}` for ingredients, keeping the /coin/ branch as-is"
-      - "Re-pin the affected literal expectations in scripts/narration_test.js"
-  - truth: "D-54 — Wyatt's 11 approved second-party addressed lines are applied to source"
-    status: partial
-    reason: >-
-      .planning/phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json was committed
-      (7db54cf) with the message "This file is the source of truth for the fix", but only
-      ONE of its 11 rows (bakeoff, 9ddd214) was actually applied. 7 of the remaining 10
-      coincidentally match the mechanically-derived text already in source; 4 do not.
-    artifacts:
-      - path: "src/ui/util.js:498-508 (table:battle)"
-        issue: "shipped defender line renders 'Davy Scones — ye lose 2–1. Ye bribe yer way out of giving away a crate with 5 coins.'; approved: 'Crustbeard wins 2–1 — ye bribe yer way out of givin' away a crate with 5🌕.'"
-      - path: "src/ui/util.js:498-508 (table:battle~cleaned)"
-        issue: "shipped 'Davy Scones — ye lose 2–1. Ye give up all ye have: 2 coins.'; approved 'Crustbeard wins 2–1 — ye give up all ye have: 2🌕.'"
-      - path: "src/ui/util.js:498-508 (table:battle~crate)"
-        issue: "shipped 'Davy Scones — ye lose 2–1. Crustbeard takes Cacao Pods.'; approved 'Crustbeard wins 2–1 and takes yer 🍫 Cacao Pods'"
-      - path: "src/ui/flow.js:971"
-        issue: "shipped '…calls ye to win and bets 2🌕!'; approved '…calls ye to win and bets 2🌕 on it!' — 'on it!' dropped"
-    missing:
-      - "Reconcile the 4 divergent rows against 15-ADDRESSED2-APPROVED.json, or record an explicit decision that the composed mainClause/spoilClause architecture supersedes his wording for the 3 battle rows"
-  - truth: "The narration extraction/coverage self-check runs green and art-review/narration-inventory.json matches the shipped tree"
-    status: failed
-    reason: >-
-      `node scripts/extract_narration_lines.js` exits 1 on HEAD. Its own coverage guard —
-      the mechanism enforcing D-21 (every branch rendered), D-31 (every prompt shows its
-      buttons), D-32 (every player-readable string has a card) and D-33 (no card shows
-      unreachable text) — is currently RED, and it refuses to write the inventory. The
-      committed art-review/narration-inventory.json is therefore stale relative to HEAD.
-      15-06-SUMMARY.md claims it was "regenerated and verified byte-identical across two
-      consecutive runs"; that is no longer true after the final commit (9ddd214) shifted
-      src/ui/util.js by 4 lines. The script is NOT part of `npm test`, so nothing caught it.
-    artifacts:
-      - path: "scripts/extract_narration_lines.js"
-        issue: "FAIL: no AD_HOC_META entry for src/ui/util.js:918 (enclosing fn \"narrateCurrent\") — stale hardcoded line-number table"
-      - path: "art-review/narration-inventory.json"
-        issue: "stale — cannot be regenerated while the self-check fails"
-    missing:
-      - "Update AD_HOC_META's line reference for narrateCurrent's onFlash site (src/ui/util.js:914→918) and regenerate the inventory"
-      - "Consider adding the extractor to `npm test` (or a line-number-free anchor) so this class of drift is caught by CI"
-  - truth: "D-25/D-52 — the battle round-result lines ship Wyatt's approved wording verbatim, icons included"
-    status: partial
-    reason: >-
-      D-52's structural merge landed correctly (six branches → four; 482/483 collapse on
-      `dwName`, 486/487 on `hitName`), but two of the four surviving lines dropped the ⚪️
-      icon Wyatt explicitly typed into his rewrite, and one dropped a word. The sibling
-      bakeoff lines in src/ui/flow.js DID keep their ⚪️/⚫️, so this reads as a miss rather
-      than a decision. The battle footer goes through panel() → emojify(), so the icon
-      would have rendered as custom art.
-    artifacts:
-      - path: "src/orchestrator.js:489"
-        issue: "shipped 'Both fire HEADS — but ${dwName}'s downwind and the shot hits!'; approved 'Both fire ⚪️ HEADS — but Crustbeard's firing downwind and the shot hits!' (missing ⚪️ and 'firing')"
-      - path: "src/orchestrator.js:490"
-        issue: "shipped 'Both fire HEADS — but in the crosswind…'; approved 'Both fire ⚪️ HEADS — but in the crosswind…' (missing ⚪️)"
-    missing:
-      - "Re-apply the ⚪️ and 'firing' from misc:battleLine:src/orchestrator.js:482 and :484 in 15-DISPOSITIONS-FINAL.json"
-deferred:
-  - truth: "Guest sail highlights get class:\"sailCell\" (animation, hover, reduced-motion parity)"
-    addressed_in: "Phase 16"
-    evidence: "D-55/D-56 explicitly scope this to Phase 16 (UI-01…07); src/ui/flow.js:1117-1119 carries the deferral comment in code"
-  - truth: "Host/guest render-parity regression test wired into npm test"
-    addressed_in: "Phase 16"
-    evidence: "15-CONTEXT.md D-56 'PHASE 16 TASK — host/guest render-parity test'"
-  - truth: "Narration stops blocking the host's game loop (27 awaited flash() call sites)"
-    addressed_in: "Phase 18"
-    evidence: "D-58 RESOLVED — 'do 1 now and scope 2 as a follow-up phase'; ROADMAP Phase 18 'Narration Pacing — commentary, not a gate' (NARR-07)"
-  - truth: "End-of-voyage narration box hidden/collapsed once the summary panel appears"
-    addressed_in: "Phase 16"
-    evidence: "ROADMAP Phase 16 UI-07; todo eov-narration-box-not-cleared, resolves_phase: 16"
-  - truth: "BOT_STORM_STEP_MS vs STORM_STEP_MS parity"
-    addressed_in: "Phase 18"
-    evidence: "D-23's 'Flagged, NOT auto-included' clause; 15-06-SUMMARY.md routes it to Phase 18"
-behavior_unverified_items:
-  - truth: "NARR-06 / SC5 — narration text stays fully visible 10% less time before it begins fading, FROM A GUEST SEAT"
-    test: "Two Chrome tabs, one host + one guest in the same room. Play until a narration line appears in the guest's yellow panel. Time how long the fully-opaque text sits before opacity starts dropping."
-    expected: "The guest's .apMsg gains class 'fadeOut' after msgHoldMs(renderedText) — i.e. 0.72 × (1000 + 50·len + 300·pauses), clamped 1200-7000 then × 0.72 — the same moment the host's copy of that line fades. Before this phase the guest NEVER faded at all."
-    why_human: "The hold is a wall-clock timer on a real DOM element behind a Firebase round-trip; no harness exercises showNarration(). D-57 states explicitly that NARR-06 'must be demonstrably true from a guest seat, not only a host seat'."
-  - truth: "D-57/D-58 — showNarration()'s hold+fade is CANCELLABLE and never blocks"
-    test: "On the guest tab, have the host fire two narration lines in quick succession (e.g. a storm push that produces back-to-back events). Also: while a guest narration line is still typing in, click a prompt button on the guest."
-    expected: "(a) The second line displays fully opaque and does NOT inherit the first line's pending fade — the stale _narrToken must discard it (src/ui/panel.js:302-316). (b) The click registers immediately; the guest never waits on its own narration. (c) NEW RISK, watch for it: on the HOST, flash() (src/ui/panel.js:407-427) and showNarration() (via netNarrate, src/orchestrator.js:272) now EACH schedule an independent hold+fade on the same .apMsg element. Both compute msgHoldMs(el.textContent) and every call site passes either undefined or msgHoldMs(...) as holdMs, so they should coincide — confirm the host's narration still fades exactly once, smoothly, with no premature or double fade, on both the shortest (1200ms-floor) and longest (7000ms-cap) lines."
-    why_human: "Cancellation and ordering invariants across an event-driven Firebase path. Static analysis confirms showNarration() is a non-async function with no awaiting caller (structurally non-blocking) and that the token guard is present, but neither the cancel nor the host double-schedule interaction is exercised by any test."
+re_verification:
+  previous_status: gaps_found
+  previous_score: 14/19
+  previous_verified: 2026-07-29T19:19:18Z
+  verified_at_commit: aec5e57
+  gaps_closed:
+    - "G1 — D-29 ye/yer conversion across ALL player-facing text (14 sites converted; 5 remaining reclassified as out-of-character chrome by Wyatt's own F1/G16 rulings, each individually anchored and freshness-checked)"
+    - "G2 — D-17 fmtItem() renders ingredients with custom art (ING_IMG branch added; confirmed visually in the recorded playtest)"
+    - "G3 — D-54 Wyatt's approved second-party addressed lines applied (battle spoils restructured to his wording; 'on it!' restored)"
+    - "G4 — the narration extraction/coverage self-check runs green AND is now inside npm test (gates 16→17), so this class of drift can no longer escape CI"
+    - "G5 — D-52 the ⚪️ icon and the dropped word 'firing' re-applied to the battle round-result lines"
+  regressions: []
+  notes: >-
+    Far more landed than gap closure. Five quick tasks (phase15-verification-gaps,
+    narration-audit-tool-hardening, playtest-bug-fixes, playtest-notes-fixes,
+    playtest-session2-fixes) plus two loose follow-ups (G27, G28) shipped between the
+    stale report and this one, driven by two recorded live playtests. The narration audit
+    page — which was DEAD at the time of the previous report's commit, rendering 61 of 212
+    cards while npm test reported all green — now executes headless inside npm test and
+    renders 226 cards across 19 moments with 0 unrendered builder texts.
+human_verification:
+  - test: >-
+      DECISION, not a test. Decide whether to accept sampled copy fidelity or build the
+      audit tool's Task 5 (the render-based shipped-vs-approved gate). F4's own measurement
+      hand-verified 19 of 144 reviewed approval fields; of the remaining 125, 84 have every
+      distinctive fragment present but word ORDER and line IDENTITY were never checked, and
+      41 are too placeholder-heavy to judge mechanically.
+    expected: >-
+      Either (a) Wyatt accepts that the copy is broadly-applied-and-live-playtested rather
+      than exhaustively proven, and Task 5 moves to Phase 16/backlog; or (b) Task 5 is built
+      before merge. Nothing is known to be wrong — this is unmeasured area, not a defect.
+    why_human: >-
+      The tool that would settle it does not exist. This is the exact mechanism whose absence
+      let four approved rewrites ship missing in the first place (F4), so the residual is
+      named rather than waved through.
+  - test: >-
+      Two of the four D-41 greyed dead-ends have never been seen on screen: "— coins only —"
+      (needs a 0-coin purse inside the trade flow) and the hail "Counter-offer" (needs a bot
+      that cannot afford a raise).
+    expected: >-
+      Each renders greyed and un-clickable with its own reason beneath the buttons —
+      "Ye don't have any coin to offer — pick a crate instead." and "{bot} can't afford to go
+      any higher." The other two (Attack, Trade) and the fifth (storm anchor at 0 coins, G10)
+      were all confirmed live.
+    why_human: >-
+      Both need a game state the bots kept closing during both recorded sessions. The
+      co-reachability gate (ui_contract_check assertion 6, red-proofed against the REAL
+      broken ab98e04 code) proves a reason is reachable in the state it explains, but no
+      harness renders these two.
+  - test: >-
+      Confirm the G28 narration pacing still reads right after a full night away from it —
+      the curve was retuned live, mid-session, against a measured table.
+    expected: >-
+      Hold 500ms base + 20ms/char + 300ms/pause, clamped 800-2000ms LAST, then an 800ms fade.
+      Long lines lose up to 2.4s of total screen time versus the pre-retune curve; short lines
+      hold steady. He judged this correct in the browser on 2026-07-30.
+    why_human: "Pacing is a taste call no gate can answer. Already cleared once; re-confirm only if it still feels off."
+known_open:
+  - item: "Audit tool Tasks 5, 6, 7 — no shipped-vs-approved copy comparison, no applier, no permanent scope rule"
+    status: deliberate
+    detail: >-
+      Verified genuinely absent: no script in scripts/ compares source text against
+      15-COPY-APPROVED.md or the approval fields of 15-DISPOSITIONS-FINAL.json. The two
+      files that reference the dispositions do so for ACCOUNTING (assertion 8, all 209 rows
+      carried across) and for hand-pinned literals in comments — not for text comparison.
+      src/ui/board.js copy is now in the inventory (6 sites) but has never been compared.
+      THE PHASE'S MOST SIGNIFICANT RESIDUAL.
+  - item: "D-57 residue — narration rendering still has two independent paths on one .apMsg element"
+    status: recorded, unenforced
+    detail: >-
+      .planning/todos/pending/narration-two-schedulers-unenforced.md. NOTE: that file and
+      .continue-here.md both describe showNarration() as a hold+fade scheduler. That is no
+      longer accurate after G17/F6 — showNarration() is now two lines with NO timer at all
+      (src/ui/panel.js:457-459); the outgoing line fades only when one replaces it, inside
+      panel(). The underlying concern (two code paths render narration, nothing asserts they
+      agree) survives; the description does not. See warning W2.
+  - item: "STORM-02 — guest storm-push parity"
+    status: backlogged
+    detail: "Explicitly NOT solved by G14's rim sweep; docs/DETERMINISM-RERECORD-NEXT.md §9 warns against treating it as such."
+  - item: "Queued gated re-record batch"
+    status: queued
+    detail: >-
+      docs/DETERMINISM-RERECORD-NEXT.md — engine purity (spoil/gave become data, drop
+      ilabelImg from the engine, delete the dead raider branch), bot intelligence, STORM-02.
+      ONE gated --capture pass, not three. The trade-wind animation is explicitly NO LONGER
+      in this batch (G14 shipped free of an engine change).
+  - item: "Two approved battle ADDRESSED variants (misc:battleLine orchestrator.js:482/:486)"
+    status: resolved by Wyatt's own merge instruction
+    detail: >-
+      F4 flagged these as unapplied and recommended defer. Superseded: Wyatt approved
+      retiring both on 2026-07-30 (commit 44261c8) as tag:"merge" twins that existed only
+      because the code branched on WHO rather than WHAT. Each pair now renders one line
+      naming whoever it applies to (orchestrator.js:532, :541). Not an outstanding item.
+  - item: "Phase 16 scope — UI-01…07, META, KOFI"
+    status: out of scope
+    detail: "UI-06 (lobby name doubling) and D-55 (sail-highlight parity) landed early via F1/F2 and G25."
+warnings:
+  - id: W1
+    file: "src/ui/panel.js:242-247"
+    detail: >-
+      Doc drift. The comment on GHOST_FADE_MS states "It stays 180ms" and points a future
+      editor at "the `.18s` in index.html's `.apMsg.fadeOut` rule". Both numbers are 800/.8s
+      as of G28 (panel.js:241 = 800; index.html:289 = .8s). Code and CSS agree; the comment
+      instructing the reader to keep them in sync names the wrong value. Additionally NOTHING
+      GATES the sync — grep for GHOST_FADE_MS across scripts/ returns zero hits; only the CSS
+      side is pinned (narration_test.js:955).
+    severity: warning
+  - id: W2
+    file: ".planning/todos/pending/narration-two-schedulers-unenforced.md, .continue-here.md:88-89"
+    detail: >-
+      Stale descriptions of already-changed code. The todo describes showNarration() as one of
+      "two independent hold-and-fade schedulers"; it no longer holds or fades. .continue-here.md
+      records D-55 as "never fixed" and D-35 as "nothing asserts it" — both are now fixed and
+      gated (G25/G26, host_guest_parity_check.js). A reader picking up the todo would work from
+      a wrong model of the code.
+    severity: warning
+  - id: W3
+    file: "src/ui/flow.js"
+    detail: >-
+      Pre-existing cosmetic, ruled and left: `🎣 Fish (+1-2🌕)` uses an ASCII hyphen as a RANGE
+      separator beside U+2212 minuses everywhere else. Outside D-38's rule by construction (F8).
+    severity: info
 ---
 
 # Phase 15: Narration Audit & Fixes — Verification Report
 
 **Phase Goal:** Narration reads naturally and consistently — repetitions are pruned per Wyatt's review, the local player is addressed directly, and the specific broken/missing lines are corrected.
-**Verified:** 2026-07-29T19:19:18Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Verified:** 2026-07-30T22:26:27Z, at `aec5e57`
+**Status:** human_needed — 19/19 must-haves verified; three items await Wyatt's eye or decision, **none of which blocks the merge**
+**Re-verification:** Yes — replaces the 2026-07-29 `gaps_found` (14/19) verdict. All five gaps closed.
+
+---
+
+## What changed since the stale report
+
+The previous verdict was accurate on 2026-07-29 and is now obsolete. Between then and `aec5e57`:
+
+| Wave | What it was | Effect here |
+|---|---|---|
+| `20260729-phase15-verification-gaps` | Closed all five gaps | G1-G5 below |
+| `20260729-narration-audit-tool-hardening` | The audit page was **dead** at the previous report's commit — 61 of 212 cards, 128 texts unrendered, while `npm test` reported all green | Page now executes **headless inside `npm test`**; 226 cards, 0 unrendered |
+| `20260729-playtest-bug-fixes` + `20260730-playtest-notes-fixes` | F1-F12, G1-G9 from two live playtests | Register exceptions, coin-debit safety, copy corrections |
+| `20260730-playtest-session2-fixes` | G10-G26, 13 tasks | Greyed anchor, rim-sweep animation, paint-before-narrate, seeded rain, sail-highlight parity, parity gate |
+| `6356db9`, `aec5e57` | G27 turn-order coin; G28 the hold/fade retune | NARR-06's final shape |
+
+64 files, +34,991 / −370 across the phase.
 
 ---
 
 ## Goal Achievement
 
-### Observable Truths
+### The governing constraint — checked first, and checked for vacuity
+
+| Check | Command | Result |
+|---|---|---|
+| Engine untouched since `9ddd214` | `git diff --stat 9ddd214..HEAD -- src/engine/` | **empty** |
+| Engine untouched across the **whole phase** | `git diff --stat de30047..HEAD -- src/engine/` | **empty** |
+| …and that check can actually fail | same command over an older range containing a real engine commit | `1 file changed, 17 insertions(+), 4 deletions(-)` — the path is live, not a typo silently matching nothing |
+| Determinism corpus | `node scripts/determinism_baseline.js --verify` | **31/31 seeds PASS** |
+| Full gate suite | `npm test` | **exit 0**, 17 gate scripts |
+
+This is why none of the last four days needed a determinism re-record. The invariant held byte-for-byte.
+
+> Correction to the brief's framing: `npm test` chains **17** scripts, not 21. The audit page's own check reports **23/23 assertion groups**, which is likely the source of the 21.
+
+### The five gaps — all closed, verified independently of any SUMMARY
+
+| # | Previous gap | Now | Evidence read in the codebase |
+|---|---|---|---|
+| G1 | **D-29** — 14 player-facing strings still read "you"/"your" | ✅ **CLOSED** | All 14 converted. Spot-verified at `orchestrator.js:509,602,612,717,1075,1257`, `flow.js:491,922,995`, `panel.js:167`. Five "you" occurrences remain and are **Wyatt's own rulings**, not misses: three `kind:"label"` (lobby seat suffix, player-row tooltip, name placeholder — F1: *"`Wyatt — ye` reads 'Wyatt — thou'"*), two `kind:"notice"` (privacy notice, credits — G16: *"the whole thing is written in normal english not pirate"*). `src/ui/recipe.js`'s cookbook prose is file-scoped out. **The one-time sweep is now a standing gate** (`ui_contract_check.js` assertion 5) with per-file content anchors and a staleness check that FAILS on an anchor matching nothing — "an exclusion that excuses nothing is cover, not an exclusion." |
+| G2 | **D-17** — `fmtItem()` still emitted raw system emoji | ✅ **CLOSED** | `src/ui/util.js:247` now reads `ING_IMG[x]?ilabelImg(x):(ING_EMOJI[x]||"")+" "+iname(x)`. Confirmed **visually in the recorded playtest**: *"`sugar.png` rendered inside both the flip prompt and the dock narration; no raw system-emoji ingredient appeared."* |
+| G3 | **D-54** — only 1 of 11 approved addressed lines applied | ✅ **CLOSED** | Battle spoils restructured to his wording (`util.js:629-632`: `⚔️ {winner} wins {a}–{d} and takes yer {spoil}` / `— ye bribe yer way out of givin' away a crate with {n}🌕.` / `— ye give up all ye have: …`). The dropped `on it!` restored at `flow.js:1397`, with the D-54/D-25 provenance in a comment directly above it. |
+| G4 | **The coverage self-check exits 1; the inventory is stale** | ✅ **CLOSED, and structurally** | `extract_narration_lines.js` runs green and **is now inside `npm test`** (gates 16→17), alongside `narration_audit_check.js`. It writes `art-review/narration-inventory.json` on every run. The previous report's own recommendation — "consider adding the extractor to `npm test` … so this class of drift is caught by CI" — was taken. |
+| G5 | **D-52** — two battle lines dropped the ⚪️ Wyatt typed | ✅ **CLOSED** | `orchestrator.js:532` — `Both fire ⚪️ HEADS — but ${dwName}'s **firing** downwind and the shot hits!` (icon **and** the dropped word restored); `:534` — `Both fire ⚪️ HEADS — but in the crosswind…`. |
+
+### Observable truths
+
+Carried forward from the previous report, with status updated. Truths 1-18 keep their original numbering so the two documents can be read against each other.
 
 | # | Truth | Source | Status | Evidence |
-|---|-------|--------|--------|----------|
-| 1 | Full narration-branch audit delivered to Wyatt; pruning applied only after his review | SC1 / NARR-01 | ✓ VERIFIED | `art-review/narration-audit.html` (flow-chart page, D-01/D-21/D-22/D-30/D-31/D-32 rebuilds), `15-DISPOSITIONS-FINAL.json` = 209 rows, all `reviewed: true`; `15-COPY-APPROVED.md` transcribes them; 15-06 lands after 15-05's gate. See gap G4 — the coverage self-check has since gone red. |
-| 2 | The missing "broke" line is restored; the storm intro names only the first leg | SC2 / NARR-02+03 | ✓ VERIFIED | `brokeSailLine()` `src/ui/flow.js:217-220` called from BOTH `humanTurn` and `botTurn` (D-11 case 1, human + bot); `brokeAnchorLine()` called at the storm-anchor gate (D-11 case 2); `stormIntroClause()` `src/ui/flow.js:374-376` → "First the ⛈️ storm blows ye 2 squares **{dir}**"; second leg announced separately by `humanWind`. All 6 assertions green in `scripts/narration_flow_test.js`. |
-| 3 | The bribe line is context-smart — genuine bribe vs cleaned-out | SC3 / NARR-04 | ✓ VERIFIED | `src/ui/util.js:487-488` `isBribe = spoilIng==null && spoilN>=5`; `:504` bribe branch, `:505-507` cleaned-out branch, each with addressed + neutral forms. Guarded so a non-numeric spoil falls through to the cleaned-out framing rather than rendering NaN. |
-| 4 | Narration addresses the local player in 2nd person, including "already anchored safely" | SC4 / NARR-05 | ✓ VERIFIED | D-13 fix present: `src/ui/flow.js:249` `ev({t:"anchorHold"}) → await narrateLastEvent() → liveRender()`, asserted by `narration_flow_test.js`. `anchorHold` copy at `src/ui/util.js:370` carries both renderings. `narrationVariants`/`pickNarrVariant` per-seat mechanism green across 14 assertions in `narration_test.js`. |
-| 5 | Narration text stays fully visible 10% less time before it begins fading | SC5 / NARR-06 | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | `MSG_HOLD_MULTIPLIER` 0.8→0.72 at `src/ui/util.js:773`; unit-pinned as "exactly 0.9x its pre-change value" (`narration_test.js:220`). Host side proven. D-57 requires the criterion be demonstrably true **from a guest seat**; the new guest path has no test. Routed to playtest. |
-| 6 | **Governing constraint** — nothing changes what `src/engine/index.js` records into the event stream; determinism stays green | 15-CONTEXT §domain | ✓ VERIFIED | `git diff --stat de30047..HEAD -- src/engine/index.js` → **empty output**. 31/31 determinism seeds PASS (`determinism_baseline.js --verify`). No `ok` field added to `trade` (D-19 SIMPLIFIED). All 14 `npm test` gates green, exit 0. |
-| 7 | D-57/D-58 — `showNarration()` has a cancellable hold + fade, reusing `msgHoldMs()`, measured from rendered `textContent`, awaiting the typewriter reveal, and never becoming blocking | brief | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | All five required properties present at `src/ui/panel.js:302-316`: `_narrToken` bump + two `if(token!==_narrToken)return` guards; `msgHoldMs(text)` (the shared curve, no second multiplier); `text = el.textContent`; `await el._revealDone` before the hold; function is **not** `async` and returns `undefined`, and `grep -rn "await showNarration" src/` → 0 hits, so no caller awaits it. The cancellation and the host's new double-schedule interaction are runtime invariants with no test. |
-| 8 | D-35 — one shared sail-prompt line across `localPickCell` and `remotePickHighlights` | brief | ✓ VERIFIED | `sailPickMsg(seat)` `src/ui/flow.js:175-177` is the single author. `localPickCell` renders it at `:208`; `pickCell` threads it into the remote payload at `:187` (`msg:sailPickMsg(p.idx)`); `watchPrompt` passes `p.msg` at `src/orchestrator.js:931`; `remotePickHighlights(cells,promptId,msg)` renders `msg` with a `sailPickMsg(appState.mySeat)` version-skew fallback (`:1126`). Guest-side code renders, never authors — the D-35 invariant is explicit in the comment. Wording matches Wyatt's approved `prompt:src/ui/flow.js:200` verbatim ("Crustbeard: click any yellow square to sail there (−1{coin})"); he left the addressed field empty, so one shared line IS the approved shape. |
-| 9 | D-41 (+EXTENDED, +EXTENDED AGAIN) — four options disabled-with-sub-helper-text, no dead ends | brief | ✓ VERIFIED | **Trade/Parley:** `canTrade` from `tradeOpp(p).filter(q=>q.ing.length>0)` `flow.js:584-585`, drives `disabled:!canTrade` `:592` AND the guard `:432-434`; `sub` at `:605`. **"— coins only —":** `canOfferCoins=p.coins>0` `:462`, `disabled:!canOfferCoins` `:464`, `offerSub` `:466`. **Hail Counter:** `raises` computed BEFORE the prompt `:805`, `canCounter` `:806`, `disabled:!canCounter` `:808`, `sub` `:809`. **Attack:** unchanged pattern `:592` + `sub` `:604`. Non-clickability is structural — `localAsk` `flow.js:93-96` emits the HTML `disabled` attribute and skips `onclick` for disabled buttons; `disabled` and `sub` are both threaded to guests (`util.js:874-877`, `orchestrator.js:922`). |
-| 10 | D-23 — bot and human narration hold the same duration; `CHAT_BUBBLE_HOLD_MULTIPLIER` untouched | brief | ✓ VERIFIED | `BOT_MSG_HOLD_MULTIPLIER` deleted; `botMsgHoldMs` is now `text=>msgHoldMs(text)` (`src/ui/util.js:810`). Every bot call site passes `msgHoldMs(...)` (`flow.js:343,362,759,779`). `CHAT_BUBBLE_HOLD_MULTIPLIER=0.8` unchanged (`util.js:819`). Asserted at `narration_test.js:225,239,260`. |
-| 11 | D-19 SIMPLIFIED — parley emitted only when `!dealt`; no `ok` field; "Parley" unreadable by players | brief | ✓ VERIFIED | `src/ui/flow.js:824` `if(!dealt)g.ev({t:"parley",…})` — accepted hail emits only the `trade` event at `:829`. No `ok` field at any of the three parley emits (`:546`, `:555`, `:824`) and none on `trade`. Player-facing text: button `"🤝 Trade"` `:592`, prompt `"Trade with whom?"` `:447`; every remaining `parley`/`Parley` token is an event type, a cfg flag, or a comment. |
-| 12 | D-29 — ye/yer conversion across ALL player-facing text, word-boundary matched, never identifiers/comments | brief | ✗ **FAILED** | `layout` intact (no `layet` corruption anywhere) and the converted lines that DID ship are correct. But **14 live player-facing strings still read "you"/"your"** — full list in the gap block. 9 of them are cards on the audit page, where `pirateVoice()` (`narration-audit.html:633-643`) renders the converted text, so what shipped ≠ what Wyatt approved (D-25). |
-| 13 | D-17 — `fmtItem()` renders ingredients with custom art, not system emoji | brief | ✗ **FAILED** | `src/ui/util.js:211` unchanged, still `(ING_EMOJI[x]||"")+" "+iname(x)`. Ingredient emoji still absent from `EMOJI_IMG` (`src/shared/index.js:77-94`), so `emojify()` cannot rescue them. Affects the 6 trade/parley narration branches. |
-| 14 | D-37 / D-37 RESOLVED — wind always "blows"; `shoves` permitted ONLY at the moored lucky-break branch | brief | ✓ VERIFIED | No player-facing string has wind/storm/gale/gust as subject of *carried*/*swept*/*whipped*/*moves*. `windmove` and the storm legs say "blows"; `EVENT_NARRATION.tradewind` `util.js:371` reads "is **blown** into the trade winds and **swept** around the rim" — matching Wyatt's own approved copy and his stated rule ("the trade winds themselves *sweep* you along, but the wind always *blows* you"). Only `shoves` occurrence in player-facing copy is `util.js:335`/`:347`, the `moored` lucky-break branch. |
-| 15 | D-38 RESOLVED — parenthesised amounts signed; no ASCII hyphen as a player-facing minus; `flow.js` trade-offer summary is the exception | brief | ✓ VERIFIED | Every parenthesised coin amount carries `+` or U+2212 `−`: `flow.js:176,252,421,592,596,814,938`; `util.js:399,433,451,452,454,455,519,520,521,528,529`; `orchestrator.js:513,514`. The one bare-amount composed string is the deliberate exception at `src/ui/flow.js:493` — `"{ingredient} + {n}🌕"`, untouched. Only remaining ASCII hyphen near a coin is `flow.js:596` `"🎣 Fish (+1-2🌕)"`, a *range* separator, not a minus. |
-| 16 | D-53 — no applied narration string contains `--`; every `–` sits between digits | brief | ✓ VERIFIED | Zero `--` in any string literal (all hits are `--` decrement operators, CSS custom properties, or comment rules). Every `–` in narration is a battle score `${aP}–${dP}` (`util.js:498-500`). Two non-digit `–` remain — `util.js:98` (the coin placeholder) and `panel.js:114` (the clock placeholder) — both pre-existing and explicitly counted in D-53's own audit ("one placeholder coin dash"); neither is narration prose. |
-| 17 | D-59 — the storm flip button shows the real coin loss, signed per D-38 | brief | ✓ VERIFIED | `src/ui/flow.js:263` — `` `Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−${Math.max(1,Math.floor(p.coins/2))}🌕))` ``. Same expression the engine uses, U+2212 minus, applied only to the ordinary branch; the broke and truly-shipwrecked branches keep naming a crate / the turn. |
-| 18 | D-16 — icon inventory of shipped narration is a superset of the pre-15-06 inventory | brief | ✓ VERIFIED (with warning) | Diffed the emoji-shorthand and `*_IMG` symbol multisets across `util.js`/`flow.js`/`orchestrator.js`/`panel.js`/`lobby.js`/`shared/index.js`/`board.js` between `ddefa8f` (pre-15-06) and HEAD: **zero icon KINDS lost, zero introduced.** Three occurrence-count drops (`🌀` 11→5, `⛈` 10→9, `🤝` 13→12) all trace to approved merges (D-36's three rim-sweep copies folding into one table entry, D-52's battle merges). **Warning:** two ⚪️ icons Wyatt *added* in his rewrites were not applied — see gap G5. |
-| 19 | D-54 — Wyatt's 11 approved second-party addressed lines are applied | brief | ✗ **FAILED** | Only 1 of 11 applied (`bakeoff`, commit 9ddd214). 7 coincidentally match the mechanically-derived text; **4 diverge** — `table:battle`, `table:battle~cleaned`, `table:battle~crate`, `adhoc:src/ui/flow.js:901`. Rendered comparison in the gap block. |
+|---|---|---|---|---|
+| 1 | Full narration-branch audit delivered; pruning applied only after Wyatt's review | SC1 / NARR-01 | ✓ VERIFIED | 209 reviewed dispositions; 203 carried across, **6 retired against his own written merge instruction and explicitly approved 2026-07-30** (`44261c8`). The G4 caveat that qualified this last time is gone. See the residual note below on copy-fidelity *coverage*. |
+| 2 | The "broke" line is restored; the storm intro names only the first leg | SC2 / NARR-02+03 | ✓ VERIFIED | Gate-asserted since 15-02 — and **first live sighting** on 2026-07-30: `Claude — ye can't afford to anchor. Flip and take yer chances.` Both halves of NARR-02 now confirmed in play. |
+| 3 | The bribe line is context-smart | SC3 / NARR-04 | ✓ VERIFIED | `util.js` bribe / cleaned-out split, now in Wyatt's approved one-sentence shape (G3). |
+| 4 | Narration addresses the local player in 2nd person | SC4 / NARR-05 | ✓ VERIFIED | Confirmed live both directions in the same round: `Now the storm blows **Wyatt** west!` (spectator) vs `Now the storm blows **ye** west!` (actor) — a line that used to hardcode "you" for everyone. |
+| 5 | **Non-prompt narration holds ~10% less time on screen** | SC5 / **NARR-06 as reworded 2026-07-30** | ✓ **VERIFIED** (was ⚠️ PRESENT_BEHAVIOR_UNVERIFIED) | See the dedicated section below. Measured on a guest seat with a MutationObserver, then retuned live by Wyatt and re-confirmed. |
+| 6 | **Governing constraint** — the engine event stream is untouched | 15-CONTEXT §domain | ✓ VERIFIED | Empty diff, 31/31 seeds, non-vacuity proven. |
+| 7 | Guest narration path holds/fades and never blocks | brief / D-57-58 | ✓ **VERIFIED** (was ⚠️) | Measured live: every line carried `apMsg fadeOut` after a length-proportional hold; `fades: 1` on every line — the previous report's double-fade risk found no evidence. Architecture has since simplified further (see below). |
+| 8 | D-35 — one shared sail-prompt line, host and guest | brief | ✓ VERIFIED | Confirmed live on the guest: `Claude: click any yellow square to sail there (−1🌕)` — the host-authored text, not the old hardcoded guest string. Now also **gated** (`host_guest_parity_check.js` assertion 1). |
+| 9 | D-41 — options grey out with a reason; no dead ends | brief | ✓ VERIFIED | Extended to a **sixth** site this week (G10, the storm anchor at 0 coins: `disabled:broke` + *"Yer too broke to anchor"*, plus the prompt text no longer offers the branch). F11's shadowed-reason bug found and fixed: reasons now collect into a list. Gated by assertion 6 (co-reachability), red-proofed **against the real broken `ab98e04` code**. Two of six states never eyeballed — human item 2. |
+| 10 | D-23 — bot and human narration hold the same duration | brief | ✓ VERIFIED | Measured live on the same event type two turns apart: bot 2990ms vs human 2810ms, within 6%, residual fully explained by name length. Under the old split the bot line would have shown ~38% shorter. |
+| 11 | D-19 — parley emitted only when `!dealt`; "Parley" unreadable | brief | ✓ VERIFIED | Confirmed live: action menu reads `🤝 Trade`. |
+| 12 | D-29 — ye/yer across all player-facing text | brief | ✓ **VERIFIED** (was ✗ FAILED) | G1 above. Confirmed live: `Claude, what'll ye do:`, `Claude, choose yer recipe`, `Cast yer line — flip!`, `Land's blockin' Wyatt's wind`. |
+| 13 | D-17 — `fmtItem()` renders custom art | brief | ✓ **VERIFIED** (was ✗ FAILED) | G2 above, confirmed visually. |
+| 14 | D-37 — wind always "blows" | brief | ✓ VERIFIED | Confirmed live: *"Flaky Jack is blown into the trade winds and swept around the rim!"* |
+| 15 | D-38 — parenthesised amounts signed | brief | ✓ VERIFIED | Held. G27 extended it: the turn-order consolation now reads `(+1🌕)`, not a bare `(+1)`. |
+| 16 | D-53 — no `--`; every `–` between digits | brief | ✓ VERIFIED | Held; G13's rewrite kept it. |
+| 17 | D-59 — the storm flip button shows the real coin loss | brief | ✓ VERIFIED | Refined by **G13** on Wyatt's word (*"the two coin emojis next to each other are confusing"*) → `lose half yer treasure (−N🌕)`. |
+| 18 | D-16 — the shipped icon inventory is a superset | brief | ✓ **VERIFIED** (warning removed) | The two ⚪️ that were missing are back (G5). |
+| 19 | D-54 — Wyatt's approved second-party addressed lines applied | brief | ✓ **VERIFIED** (was ✗ FAILED) | G3 above; and the two battle lines F4 later flagged were **retired by his own approved merge instruction**, not left unapplied. |
 
-**Score:** 14/19 truths verified (2 present, behavior-unverified; 3 failed)
-
----
-
-### Deferred Items
-
-Not gaps — explicitly scoped to a later phase by a recorded decision.
-
-| # | Item | Addressed In | Evidence |
-|---|------|-------------|----------|
-| 1 | Guest sail highlights get `class:"sailCell"` (animation, hover, reduced-motion parity) | Phase 16 | D-55/D-56; the deferral is written into the code at `src/ui/flow.js:1117-1119` |
-| 2 | Host/guest render-parity regression test in `npm test` | Phase 16 | D-56 "PHASE 16 TASK — host/guest render-parity test" |
-| 3 | Narration stops blocking the host's game loop (27 awaited `flash()` sites) | Phase 18 | D-58 RESOLVED ("do 1 now and scope 2 as a follow-up phase"); ROADMAP Phase 18 / NARR-07 |
-| 4 | Empty end-of-voyage narration box hidden | Phase 16 | ROADMAP UI-07; todo `eov-narration-box-not-cleared` |
-| 5 | `BOT_STORM_STEP_MS` vs `STORM_STEP_MS` parity | Phase 18 | D-23's "Flagged, NOT auto-included" clause |
-| 6 | Removing the dead `asym`/raider battle branch | Backlog | 15-CONTEXT §Deferred ("deliberately not in Phase 15") |
+**Score: 19/19 truths verified.** Zero behavior-unverified. Both truths the previous report could not settle (5 and 7) were settled by measurement in a running game.
 
 ---
 
-### Key Link Verification
+## NARR-06, verified against the **reworded** requirement
 
-| From | To | Via | Status | Details |
-|------|----|-----|--------|---------|
-| `flash()` `panel.js:412` | `netNarrate` `orchestrator.js:272` | `_nh.onBroadcast(msg,variants)` | ✓ WIRED | Not awaited; forwards `variants` |
-| `netNarrate` | `showNarration` + `netSetNarr` | direct call + Firebase write | ✓ WIRED | Host picks its own variant via `pickNarrVariant` before display |
-| `watchNarr` `orchestrator.js:942` | `showNarration` | `pickNarrVariant(v, appState.mySeat)` | ✓ WIRED | Guest selects its own addressed line |
-| `pickCell` `flow.js:187` | `remotePickHighlights` `flow.js:1113` | `onRemotePrompt({kind:"pick",msg})` → `watchPrompt` `orchestrator.js:931` | ✓ WIRED | D-35's single-author invariant |
-| `ask()` `util.js:873-877` | `localAsk` / `watchPrompt` | `disabled[]` + `sub` in the prompt payload | ✓ WIRED | D-41's greying + reason reaches guests too |
-| `humanAct` `flow.js:584` | `humanTrade` guard `flow.js:432` | shared `tradeOpp(p).filter(q=>q.ing.length>0)` | ✓ WIRED | One availability computation, two consumers |
-| `syncLogLines` `util.js:647` | `describeFor(e, NEUTRAL_VIEWER)` | explicit neutral viewer | ✓ WIRED | D-24: captain's log is third-person; `board.js:582` matches |
-| `renderBattle` `orchestrator.js:302` | `panel()` → `emojify()` | `panel.js:188` | ✓ WIRED | Battle-footer `⚪️`/`⚫️` do become custom art |
-| `EVENT_NARRATION` builders | `fmtItem()` `util.js:211` | ingredient rendering | ✗ **HOLLOW** | Wired, but the source emits raw system emoji — D-17 (gap G2) |
+The requirement was reworded by Wyatt on 2026-07-30 and now reads:
 
-### Data-Flow Trace (Level 4)
+> **NARR-06**: Non-prompt (blue-box) narration holds ~10% less time on screen before the next line comes in *(reworded 2026-07-30 at Wyatt's clarification — the criterion was always hold length, never fade)*
 
-| Artifact | Data Variable | Source | Produces Real Data | Status |
-|----------|---------------|--------|--------------------|--------|
-| `showNarration` `panel.js:303` | `el.textContent` | `panel()` → `typewriterReveal` → `_revealDone` | Yes — awaited before measuring | ✓ FLOWING |
-| `sailPickMsg` | `msg` in the remote prompt payload | `pickCell` → Firebase → `watchPrompt` | Yes, with `sailPickMsg(mySeat)` skew fallback | ✓ FLOWING |
-| Storm flip button `flow.js:263` | `p.coins` | live player object at prompt time | Yes — same expression as the engine's own | ✓ FLOWING |
-| `fmtItem(x)` | `ING_EMOJI[x]` | static map of system emoji | No custom art produced | ✗ per D-17 |
-| `art-review/narration-inventory.json` | whole file | `scripts/extract_narration_lines.js` | **No** — script exits 1, refuses to write | ✗ STALE |
+This is **not** the criterion the previous report verified, so it was re-derived from scratch.
 
----
+**What shipped (G28, retuned live during the recorded playtest):**
 
-### Behavioral Spot-Checks
+```js
+const HOLD_BASE_MS=500, HOLD_MS_PER_CHAR=20, HOLD_PAUSE_MS=300;
+export const HOLD_FLOOR_MS=800, HOLD_CEILING_MS=2000;
+export function msgHoldMs(text){ … return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),HOLD_CEILING_MS)); }
+```
 
-| Behavior | Command | Result | Status |
-|----------|---------|--------|--------|
-| Full gate suite (12 gates + determinism verify) | `npm test` | exit 0; all suites "PASSED — 0 failing check(s)" | ✓ PASS |
-| Determinism corpus | `node scripts/determinism_baseline.js --verify` | 31/31 seeds PASS, "All seeds passed." | ✓ PASS |
-| Engine event stream untouched across the whole phase | `git diff --stat de30047..HEAD -- src/engine/index.js` | empty output | ✓ PASS |
-| Narration builders render without throwing, all 25 keys | `node scripts/narration_test.js` | PASSED — 0 failing | ✓ PASS |
-| Turn-flow narration (D-11/D-13, broke lines, storm intro) | `node scripts/narration_flow_test.js` | PASSED — 0 failing | ✓ PASS |
-| Two-party addressed variants render per seat | ad-hoc `describeFor()` harness over 9 fabricated events | rendered; 4 diverge from `15-ADDRESSED2-APPROVED.json` | ✗ FAIL (gap G3) |
-| Narration coverage self-check + inventory regeneration | `node scripts/extract_narration_lines.js` | **exit 1** — "no AD_HOC_META entry for src/ui/util.js:918" | ✗ FAIL (gap G4) |
-| `showNarration` fade/cancel end to end | — | requires two browsers + Firebase | ? SKIP → playtest |
+Three changes, and the second is a real bug fix the previous verification did not catch:
 
-### Probe Execution
+1. base 1000→500, per-char 50→20 — he watched long lines and said they *"hold too long"*.
+2. **The clamp moved LAST.** It used to wrap `raw` and *then* multiply, so the 1200/7000 written in the source were bounds on an intermediate nobody ever saw; the real visible range was 864..5040ms. Wyatt spotted it himself: *"the clamp should happen last. right?"* It is now literally that.
+3. `MSG_HOLD_MULTIPLIER` (0.72) **retired**, not stacked. Keeping it would have rendered his 2000 ceiling as 1440 — recreating the exact defect item 2 just fixed, one layer down.
 
-| Probe | Command | Result | Status |
-|-------|---------|--------|--------|
-| — | — | No `scripts/*/tests/probe-*.sh` in this project; the gate suite is `npm test` | N/A |
+**Does it satisfy "~10% less"?** Yes, and by a wide margin for anything but the shortest line. Worked example, 40-code-unit sample: old curve `clamp(1000+40·50+pauses,1200,7000)·0.72`; new curve `clamp(500+40·20+pauses·300, 800, 2000)` = **1300ms**, pinned as a literal in `narration_test.js:235`. The commented measured table for *total* time on screen (reveal + hold + fade): 25ch 2.5→2.6s, 80ch 5.6→4.4s, 120ch 7.6→5.2s, 160ch 8.4→6.0s. Short lines are ~flat because the **fade** grew to 800ms at his request (*"the point of it is to let the player know that the text is about to leave, so they can hurry up and read it"*); the hold itself fell everywhere.
+
+**Verified from a guest seat**, which D-57 required and the previous report could not do — measured with a MutationObserver on `#actionPanel`:
+
+| Line | Hold |
+|---|---|
+| `— Round 1: wind is blowin' west —` | 1911 ms |
+| `Claude — ye flip ⚪ HEADS!` | 1585 ms |
+| `Claude — ye haul aboard 🍬 a jar of Crystal Sugar!` | 2450 ms |
+| `Land's blockin' Wyatt's wind — can't sail as far…` | 4249 ms |
+
+(Timings predate the G28 retune; they establish that the guest path **holds and fades at all**, which before this phase it never did — the guest path was `panel(html)` and nothing else.)
+
+**Test-pinned, not just present:** `narration_test.js` pins the literal 1300, the 2000 ceiling binding on a 200-char line, the 800 floor binding on a short pauseless line, `botMsgHoldMs` as a pure alias, `chatBubbleHoldMs` deliberately unchanged at 2400, the `.8s` CSS fade, the **absence** of `MSG_HOLD_MULTIPLIER`, and that the clamp is applied last.
+
+**Human-eye verdict on file:** *"Narration fade + hold (G17/G28) — **PASS after retune**."*
 
 ---
 
-### Requirements Coverage
+## Adversarial checks — do the gates actually fail?
 
-| Requirement | Description | Status | Evidence |
-|-------------|-------------|--------|----------|
-| NARR-01 | Full narration audit delivered with a pruning recommendation; pruning applied after review | ✓ SATISFIED (with G4 caveat) | `art-review/narration-audit.html`, 209/209 reviewed dispositions, D-16…D-60 addenda; the coverage self-check has since regressed |
-| NARR-02 | Missing "broke" line restored | ✓ SATISFIED | `brokeSailLine()` (human + bot) and `brokeAnchorLine()`, gate-asserted |
-| NARR-03 | Storm intro reads "First, the storm pushes you {dir1}" | ✓ SATISFIED | `stormIntroClause()` `flow.js:374-376`; verb is "blows" per D-37, register per D-29 — both approved supersessions of the requirement's literal phrasing |
-| NARR-04 | Context-smart bribe line | ✓ SATISFIED | bribe / cleaned-out split at `util.js:487-507` (follow D-12, not the requirement's mis-mapped literal amounts) |
-| NARR-05 | 2nd-person address, incl. "already anchored safely" | ✓ SATISFIED | per-seat variants mechanism + D-13's missing `narrateLastEvent()` at `flow.js:249` |
-| NARR-06 | Narration stays fully visible 10% less time before fading | ⚠️ NEEDS HUMAN | Host: 0.8→0.72, unit-pinned. Guest: new `showNarration` hold+fade, unexercised — D-57 requires it be demonstrated on a guest seat |
+The brief warns that four vacuous assertions were caught this week. Every load-bearing gate in this verdict was tested for non-vacuity.
 
-No orphaned requirements: REQUIREMENTS.md maps exactly NARR-01…06 to Phase 15, and all six are claimed across the phase's plans.
+| Check | Method | Result |
+|---|---|---|
+| Engine-diff invariant | Ran the same command over a range containing a real engine commit | Reports `17 insertions(+), 4 deletions(-)` — **the path is live** |
+| D-29 register gate | **Live mutation of real source**: `Cast yer line` → `Cast your line` in `src/ui/flow.js`, ran the gate, restored | `FAIL … D-29-REGISTER: src/ui/flow.js:995` — **genuinely fails**; `git status` clean after restore |
+| `ui_contract_check.js` | Its own `--drill` mode, 8 assertions | 24 drill cases, **all pass**, including negative controls and three anti-vacuity cases: a chrome exception must not widen, a **stale anchor is a FAILURE not a no-op**, and an exception is scoped per file |
+| `narration_audit_check.js` | Its own `--drill` mode, 10 assertions | All pass, including *"assertion 10 goes red on a junk card id — the one that silently satisfied the page's own probe"* and *"goes red when the page's module throws at all — the historic blank-page failure"* |
+| The audit page itself | Assertion 10 **executes** the page headless (`scripts/lib/audit_page_headless.mjs`, hand-rolled DOM, no dependency) and reads back its own numbers | Headless **reproduces the browser's failure exactly** — 61 cards and 128 self-check failures at the broken commit. Fidelity proven against a real browser observation, not asserted. |
 
----
+That last row is the direct answer to *"two agent reports this week claimed a page was fine when a browser showed otherwise."* The page-health gate is now calibrated against the browser reading that caught the lie.
 
-### Anti-Patterns Found
-
-| File | Line | Pattern | Severity | Impact |
-|------|------|---------|----------|--------|
-| `scripts/extract_narration_lines.js` | AD_HOC_META | Hardcoded line-number table drifts silently; not in `npm test` | 🛑 Blocker | The D-21/D-31/D-32/D-33 coverage guard is red and the committed inventory is stale (gap G4) |
-| `src/ui/util.js` | 211 | Helper unchanged while its stated fix was recorded as binding | 🛑 Blocker | D-17 — system emoji beside custom coin art in every trade line |
-| `src/ui/panel.js` | 302-316 + 407-427 | Two independent hold+fade schedulers on the same `.apMsg` element on the host | ⚠️ Warning | Benign today (both compute `msgHoldMs(el.textContent)`; no call site passes a divergent `holdMs`), but nothing enforces that they stay in step. Routed to playtest. |
-| `src/ui/flow.js` | 125 | Unreachable parameter fallback still present | ℹ️ Info | D-33 confirmed dead copy; harmless, but it is one of the 14 D-29 sites |
-| `src/ui/flow.js` | 596 | `"🎣 Fish (+1-2🌕)"` uses an ASCII hyphen | ℹ️ Info | It is a range separator, not a minus — outside D-38's rule, but visually inconsistent beside the U+2212 used everywhere else |
-
-No `TBD` / `FIXME` / `XXX` debt markers in any file this phase modified.
+Current live-render numbers, read from the gate output rather than any SUMMARY: **226 cards rendered (221 distinct) across 19 moments, 0 unrendered, 0 page self-check failures**, 91/91 flow-chart lookups resolve, 89 live sites each placed under exactly one node.
 
 ---
 
-## Statically Verified vs. Deferred-to-Playtest
+## Requirements Coverage
 
-### Verified statically (no browser needed)
+| Requirement | Status | Evidence |
+|---|---|---|
+| NARR-01 | ✓ SATISFIED | 209 reviewed dispositions; 203 carried, 6 retired **with his explicit approval** (`44261c8`); the audit page is live and gated. Coverage caveat below. |
+| NARR-02 | ✓ SATISFIED | Gate-asserted **and** first live sighting, 2026-07-30 |
+| NARR-03 | ✓ SATISFIED | `stormIntroClause()`; verb "blows" per D-37, register per D-29 — both approved supersessions of the requirement's literal phrasing. Confirmed live. |
+| NARR-04 | ✓ SATISFIED | bribe / cleaned-out split, in his approved one-sentence shape |
+| NARR-05 | ✓ SATISFIED | Confirmed live in both actor and spectator forms in the same round |
+| NARR-06 | ✓ SATISFIED **against the 2026-07-30 rewording** | Hold curve above; guest-seat measured; human-eye PASS |
 
-Truths 1, 2, 3, 4, 6, 8, 9, 10, 11, 14, 15, 16, 17, 18 above; the full `npm test` suite (12 gates + 31-seed determinism verify, exit 0); the empty `src/engine/index.js` diff across the entire phase; the icon-inventory superset diff; and the failure evidence for gaps G1-G5.
-
-### DEFERRED TO PLAYTEST — do not mark these pass or fail here
-
-A human two-tab (host + guest) Chrome session plus one solo Safari session must cover the following. Each item states the **exact observable**.
-
-**P1 — Guest narration fades (D-57, NARR-06's own criterion).**
-On the guest tab, a narration line in the yellow action panel must gain `class="apMsg fadeOut"` and animate to opacity 0 after a hold proportional to its length, matching the host's fade of the same line. *Before this phase the guest never faded at all — if it still doesn't, NARR-06 is only half-delivered.*
-
-**P2 — Guest fade is cancellable (D-57).**
-Trigger two narration lines back to back (a storm push that produces consecutive events works). The second line must stay fully opaque; it must NOT inherit the first line's pending fade. Watch for a line that fades within a fraction of a second of appearing.
-
-**P3 — Guest narration never gates play (D-58).**
-While a guest narration line is still typing in, click a prompt button on the guest. The click must register immediately. The guest must never feel like it is waiting on its own commentary.
-
-**P4 — NEW RISK: host double-fade.**
-`flash()` and `showNarration()` (reached via `netNarrate`) now *each* schedule a hold+fade on the same host `.apMsg`. Confirm host narration still fades **exactly once**, smoothly. Check both extremes: a very short line (hold clamps at the 1200ms floor × 0.72) and a very long battle-result line (clamps at the 7000ms cap × 0.72).
-
-**P5 — Four disabled options, no dead ends (D-41 + EXTENDED ×2).**
-- With 0 coins, in the trade flow: **"— coins only —"** renders greyed and un-clickable, with *"Ye don't have any coin to offer — pick a crate instead."* beneath the buttons.
-- With no opponent holding cargo: **"🤝 Trade"** renders greyed with *"No one's holding cargo to trade for yet."*
-- On a bot hail where the bot cannot afford a raise: **"Counter-offer"** renders greyed with *"{bot} can't afford to go any higher."*
-- **"⚔️ Attack"** with insufficient powder: greyed with *"Yer too poor to afford powder! Go fishin' 🎣"*.
-- Confirm none of the four dead-end messages (*"No one has cargo to trade for."*, *"Ye don't have any to offer!"*, and the silent Counter exit) can be reached by clicking a visibly-enabled control.
-- Repeat at least one of these **from the guest seat** — `disabled` and `sub` are threaded over Firebase and should render identically.
-
-**P6 — Storm flip button shows the real loss (D-59).**
-With 1, 2, 3 and 7 coins, the ordinary storm-flip button must read *"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer 🌕 (−M🌕))"* where M = 1, 1, 1, 3 respectively. Then actually flip tails and confirm the coins lost equal M.
-
-**P7 — Sail prompt is identical host vs guest (D-35).**
-Both must read *"{Name}: click any yellow square to sail there (−1🌕)"* with a *"Stay put"* button. **Expected difference, NOT a Phase 15 defect:** the guest's highlighted squares still lack the `sailCell` class, so they do not pulse or respond to hover — deliberately deferred to Phase 16 (D-55/D-56).
-
-**P8 — D-17 defect, visual confirmation (expected to FAIL).**
-Complete a trade and read the narration line. It will render a **system-emoji ingredient** (🌾 etc.) beside **custom coin art**. Confirm the visual so Wyatt can see the gap this verification reports — do not treat it as a new finding.
-
-**P9 — Trade/hail event hygiene (D-19).**
-An accepted bot hail must produce **exactly one** captain's-log line. A refused offer must still narrate. The word "Parley" must appear nowhere a player can read.
-
-**P10 — Docking sequence (D-46).**
-Button: *"⚓ 🌾 Dock at the Flour Patch"*. Flip prompt: *"Docking at 🌾 the Flour Patch — flip!"* (ingredient icon, **place** name). Heads narration, as the actor: *"{Name} — ye haul aboard 🌾 a sack of Toasty Wheat!"* (no place clause). Spectators still see the place.
-
-**P11 — Icons everywhere (D-16).**
-Every narration line, prompt, button and the battle-scoreboard footer must render icons as **custom art**, not system emoji, on host and guest alike. Pay particular attention to `⚪`/`⚫` in the battle round-result lines.
-
-**P12 — Register sweep (D-29 gap).**
-Wyatt should confirm the 14 remaining "you"/"your" strings listed in gap G1 are the complete set to convert, and rule on the 3 recipe-description occurrences in `src/ui/recipe.js`.
-
-**P13 — Captain's log stays third person (D-24).**
-While the message box addresses you directly ("ye"), the captain's log for the same event must read third person with your name.
-
-**P14 — Safari solo playthrough.**
-Per the standing STATE.md precedent, run a solo Safari game through at least one storm and one battle. Use a fresh server port rather than a `?cb=` query string (Safari caches ES modules).
+No orphaned requirements: REQUIREMENTS.md maps exactly NARR-01…06 to Phase 15; all six are claimed and all six verify.
 
 ---
 
-## Gaps Summary
+## Known-open — deliberate, recorded, not gaps
 
-Five gaps, three of them blocking.
+Stated plainly so nobody re-discovers them as failures.
 
-**The two blockers are both binding decisions that were never planned.** Neither D-17 nor D-29 appears anywhere in `15-06-PLAN.md` or `15-06-SUMMARY.md`. They were recorded in `15-CONTEXT.md`'s review addendum as explicit instructions from Wyatt and then dropped between planning and execution:
+### 1. Audit tool Tasks 5, 6, 7 — **the phase's most significant residual**
 
-- **D-17** — `fmtItem()` is byte-for-byte unchanged, so every trade/parley narration line still puts a raw system-emoji ingredient next to custom coin art. That is precisely the inconsistency Wyatt reported, and the fix was specified down to the exact markup.
-- **D-29** — 14 live player-facing strings still read "you"/"your". The failure has a clean root cause: the audit page applies `pirateVoice()` live at render time, so a card tagged `keep` with empty notes *displays* the converted text and, under D-25, ships it. 15-06 appears to have applied only rows carrying explicit replacement copy, treating `keep` + empty-notes as "no source change". Six of the affected sites are confirmed `keep`-tagged, reviewed cards, which makes this a D-25 contract breach as well as a D-29 scope miss.
+**Verified genuinely absent.** No script compares shipped source text against `15-COPY-APPROVED.md` or the approval fields of `15-DISPOSITIONS-FINAL.json`. The only two files that reference the dispositions do so for *accounting* (assertion 8: all 209 rows carried across) and for hand-pinned literals inside comments. There is no applier. `src/ui/board.js` copy is now in the inventory (6 sites) but the comparison has never run against it.
 
-**The third blocker is tooling.** `scripts/extract_narration_lines.js` now exits 1 on a stale hardcoded line reference, so the coverage guard enforcing D-21/D-31/D-32/D-33 is red and `art-review/narration-inventory.json` no longer matches the tree. `npm test` does not run it, so nothing caught the regression — introduced by the phase's own final commit.
+This matters because it is the mechanism whose absence let four approved rewrites ship missing. The phase's own honest measurement (F4) puts the exposure precisely:
 
-**Two partials are copy-fidelity misses.** Four of Wyatt's eleven approved second-party lines (`15-ADDRESSED2-APPROVED.json`, committed with the note "this file is the source of truth for the fix") were never applied — only `bakeoff` landed. And two battle round-result lines dropped the `⚪️` icon he explicitly typed into his rewrite, while their bakeoff siblings kept theirs.
+> 144 reviewed non-merge approval fields. Three passes: 37 unapplied → 19 → hand-verified **3** (plus F3's intro banner = 4). **But:** 84 fields have every distinctive fragment present while *word order and line identity were never checked*, and 41 are too placeholder-heavy to judge mechanically. *"This heuristic establishes that the copy is broadly applied, not that it is exactly right."*
 
-**What did land is substantial and correct.** The governing constraint held perfectly: `src/engine/index.js` has an *empty diff across the entire phase*, all 31 determinism fixtures verify, and every one of the 12 gates is green. The structural work Wyatt asked for is genuinely done — the host/guest sail-prompt fork is closed at a single author, the bot/human hold curves are one curve, the parley/trade double-narration is gone, all four dead-end options grey out with reasons that reach guests over the wire, the guest narration path has a real cancellable hold+fade that no caller awaits, and every wind verb, signed amount, em dash and dock place-name matches the approved record.
+So **19 of 144 are conclusively settled**; the rest rest on fragment matching plus two live playtests in which Wyatt read dozens of lines on screen and raised no copy objection. Nothing is known to be wrong. This is unmeasured area, not a defect — and it is human item 1.
 
-The behaviour that cannot be settled here — the guest fade, its cancellation, and the newly-introduced double-schedule on the host — is listed as P1-P4 with exact observables for the playtest.
+### 2. D-57 residue — two narration render paths, unenforced
+
+Recorded in `.planning/todos/pending/narration-two-schedulers-unenforced.md`, deliberately not fixed (G17 was changing the same code in the same pass). **See warning W2: the recorded description is now stale.** `showNarration()` is no longer a hold+fade scheduler — it is two lines with no timer (`src/ui/panel.js:457-459`), and the outgoing line fades only when one replaces it, inside `panel()` (F6/G17, Wyatt-approved: *"never fade the last line; fade ONLY when something replaces it"*). The concern that survives is narrower: two code paths render narration and nothing asserts they agree. The other three of the four host/guest drifts are now fixed **and** gated (`host_guest_parity_check.js`, `npm test` 16→17).
+
+### 3. STORM-02 — guest storm-push parity: backlogged
+
+`docs/DETERMINISM-RERECORD-NEXT.md` §9 explicitly warns against treating it as solved because G14 shipped: a rim sweep is geometry over a static ring, a storm push is simulation.
+
+### 4. Queued gated re-record batch
+
+`docs/DETERMINISM-RERECORD-NEXT.md` — engine purity (`spoil`/`gave` become data, drop `ilabelImg` from the engine, delete the dead raider branch), bot intelligence, STORM-02. **One** gated `--capture` pass, not three. The trade-wind animation is explicitly no longer in this batch.
+
+### 5. Phase 16 items — out of scope
+
+UI-01…07, META, KOFI. UI-06 (lobby name doubling) and D-55 (sail-highlight parity) landed early via F1/F2 and G25.
+
+### 6. Not open — the two battle ADDRESSED lines
+
+F4 flagged `misc:battleLine:orchestrator.js:482/:486` as unapplied and recommended defer. **Superseded and closed:** Wyatt approved retiring both on 2026-07-30 (`44261c8`) as `tag:"merge"` twins that existed only because the code branched on WHO rather than WHAT. Each pair now renders one line naming whoever it applies to (`orchestrator.js:532`, `:541`). Carrying this as an open item would be wrong.
 
 ---
 
-_Verified: 2026-07-29T19:19:18Z_
-_Verifier: Claude (gsd-verifier)_
+## Warnings
+
+| ID | File | Finding | Severity |
+|---|---|---|---|
+| **W1** | `src/ui/panel.js:242-247` | The `GHOST_FADE_MS` comment says *"It stays 180ms"* and points a future editor at *"the `.18s` in index.html"*. **Both are 800 / `.8s`** after G28 (`panel.js:241`, `index.html:289`). Code and CSS agree — the comment telling the reader to keep them in sync names the wrong number. Worse, **nothing gates the sync**: `grep GHOST_FADE_MS scripts/` returns zero hits; only the CSS side is pinned. A one-line comment fix, plus optionally a gate, before someone edits one number and not the other. | ⚠️ Warning |
+| **W2** | `.planning/todos/pending/narration-two-schedulers-unenforced.md`, `.continue-here.md:88-89` | Stale descriptions of already-changed code. The todo describes `showNarration()` as a hold-and-fade scheduler it no longer is. `.continue-here.md` records D-55 as *"never fixed"* and D-35 as *"nothing asserts it"* — both are now fixed **and** gated. A reader picking up the todo would work from a wrong model. | ⚠️ Warning |
+| **W3** | `src/ui/flow.js` | `🎣 Fish (+1-2🌕)` uses an ASCII hyphen as a **range** separator beside U+2212 minuses everywhere else. Outside D-38's rule by construction (F8); carried forward from the previous report unchanged. | ℹ️ Info |
+
+**No `TBD` / `FIXME` / `XXX` debt markers** in any of the 64 files this phase touched.
+
+---
+
+## Behavioral evidence
+
+| Behavior | Method | Result |
+|---|---|---|
+| Full gate suite | `npm test` | **exit 0**, 17 scripts; audit page 23/23 assertion groups |
+| Determinism corpus | `determinism_baseline.js --verify` | **31/31 seeds PASS** |
+| Engine invariant, both ranges | `git diff --stat` | **empty**, and proven non-vacuous |
+| D-29 gate fails on a broken tree | live mutation + restore | **FAIL, correctly named and located** |
+| `ui_contract_check` red-proof | `--drill` | 24 cases, all pass |
+| `narration_audit_check` red-proof | `--drill` | all cases pass, incl. 7 for assertion 10 |
+| Audit page renders | headless execution inside the gate | 226 cards, 0 unrendered, 0 self-check failures |
+| Guest narration hold + fade | MutationObserver, room XUDV | length-proportional hold, `fades: 1` per line |
+| Bot/human hold parity | same event type, two turns apart | 2990 vs 2810 ms — within 6% |
+| Storm rain in Safari | Wyatt, in Safari | *"stotm looks great in safari"* — the browser that matters (v1.0 BUG-01) |
+| Guest sail-highlight parity | measured on the guest | 13/13 squares attribute-identical to the host |
+
+### Probes
+
+No `scripts/*/tests/probe-*.sh` exist in this project; `npm test` is the probe surface and it was run in this process, not read from a SUMMARY.
+
+---
+
+## Verdict
+
+**The phase goal is achieved.** All five gaps from the 2026-07-29 verdict are closed and independently re-verified against the codebase rather than against any SUMMARY. All six requirements — including NARR-06 **as reworded on 2026-07-30**, which is a different criterion from the one previously checked — are satisfied. The governing constraint held byte-for-byte across the entire phase, and that check was proven capable of failing. Every gate this verdict leans on was either mutation-tested or has its own red-proof drills including anti-vacuity cases, and the audit page's health gate is calibrated against the exact browser reading that caught a previous false green.
+
+The strongest evidence is not static. Two recorded live playtests confirmed, on screen, in a running game: the restored broke line (first sighting ever), custom ingredient art inline, the ye/yer register, actor-vs-spectator storm phrasing, bot/human hold parity within 6%, the shared sail prompt on the guest, the shadowed-reason fix, zero prompt leaks in ~150 lines, and Safari storm performance.
+
+**Three things await Wyatt, none of which blocks the merge:**
+
+1. **A decision, not a defect** — accept sampled copy fidelity, or build the audit tool's Task 5 first. 19 of 144 approval fields are conclusively settled; 125 rest on fragment matching plus his own live reading. This is the phase's most significant residual and it is named rather than waved through, because it is precisely the mechanism whose absence let four approved rewrites ship missing.
+2. **Two of six D-41 greyed states** were never eyeballed — the bots kept closing the window in both sessions. Gate-covered, not screen-confirmed.
+3. **The G28 pacing** was retuned mid-session; worth one fresh look, though he already cleared it.
+
+Plus two small documentation corrections (W1, W2) that cost minutes and prevent a future reader from working off stale descriptions of code that has since changed.
+
+**On merging:** Wyatt's confirmed sequence is on file (`44261c8`) — finish the build, run the pipeline, merge Phase 15, start Phase 16. This verdict supports that. The remaining pipeline step never run is `/gsd-code-review` on the phase diff: two days of changes across narration, prompts, storm handling, coin paths and the audit tool, and nothing has yet read it *as code*. Everything caught so far came from playtesting or verification.
+
+---
+
+_Verified: 2026-07-30T22:26:27Z at `aec5e57`_
+_Verifier: Claude (gsd-verifier) — re-verification, replaces the 2026-07-29 `gaps_found` (14/19) verdict_
