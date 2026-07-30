@@ -39,7 +39,9 @@ import {
   iconImg, emojify,
 } from "../shared/index.js";
 import { pname, pn } from "./util.js";
-import { escHtml } from "./recipe.js";
+// F2/UI-06 (2026-07-29): escHtml's only use here was the duplicate seat-name rendering that this
+// task removed. The remaining name rendering escapes through pn() -> pname() -> escHtml, so the
+// escaping is preserved and this import is now dead — dropped rather than left (D-33/D-34/D-40).
 import { syncBoardSizing } from "./board.js";
 
 const $=id=>document.getElementById(id);
@@ -116,10 +118,28 @@ export function renderSeatList(seats){
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
     // of scope. scripts/ui_contract_check.js now gates this permanently.
-    if(s.id)label=escHtml(s.name)+(me?" — ye":"");
+    // F1 + UI-06 (Wyatt-approved 2026-07-29, 15-PLAYTEST-NOTES.md): two fixes in two lines.
+    //
+    // F1 — THE LABEL CLASS. The pirate register (D-29) applies to text the game SPEAKS. This is not
+    // speech: it is a demonstrative LABEL pointing at a seat to say "this row is the reader". No
+    // verb, no sentence, not the game's voice — UI chrome, so it takes plain "you". `name — ye` is
+    // not pirate, it is a grammar error: `ye` is a pronoun standing in for a person, so a bare
+    // `Wyatt — ye` reads "Wyatt — thou" rather than "Wyatt — that's the one that's you". The ~50
+    // in-sentence ADDRESS sites in this codebase are correct as ye/yer and none of them change.
+    // scripts/ui_contract_check.js carries a named, content-anchored, staleness-checked exception
+    // for exactly these three label sites, so a later pass cannot "fix" them back.
+    //
+    // F2/UI-06 — ONE NAME PER SEAT. `label` used to begin with the seated player's name while the
+    // template also rendered `pn(i)`, so a joined human printed twice ("Wyatt — Wyatt — ye", his
+    // screenshot). `label` is now the SUFFIX only, and `pn(i)` is the single name rendering — which
+    // also keeps the HTML escaping where it already was (pn -> pname -> escHtml), rather than
+    // re-implementing it here. The separator is suppressed when the suffix is empty, so another
+    // human's seat is the bare name. UI-06's three renderings exactly: `{name} — you` for the
+    // reader, `{name}` for another human, `{captain default} — 🤖 bot` for an empty seat.
+    if(s.id)label=me?"you":"";
     else label="🤖 bot";
     html+=`<div class="seat ${me?"me":""}"><span class="dot" style="background:${HEXCOL[i]}"></span>
-      <span class="nm">${pn(i)} — ${label}</span></div>`;
+      <span class="nm">${pn(i)}${label?` — ${label}`:""}</span></div>`;
   }
   $("seatList").innerHTML=emojify(html);
   if(appState.isHost){

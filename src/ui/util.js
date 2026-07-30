@@ -97,7 +97,10 @@ export function buildPlayerRows(){
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
     // of scope. scripts/ui_contract_check.js now gates this permanently.
-    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's ye!`:escHtml(s.name))
+    // F1 (Wyatt-approved 2026-07-29): the LABEL class — this tooltip points AT a row to say "this
+    // one is the reader", so it is UI chrome rather than the game speaking, and takes plain "you".
+    // See src/ui/lobby.js's renderSeatList for the full rule; ui_contract_check.js gates it.
+    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||appState.game.cfg.strategies[i]})`;
     const displayName=pname(i);
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
@@ -202,9 +205,16 @@ export function shipXY(pos,i,state,cellPx){
 /* ---------- event text ---------- */
 // a claimed seat (roster[i].id truthy) always speaks under the name its captain typed in;
 // the default Capt. NAMES are only ever shown for unclaimed bot seats
+// UI-06 (Wyatt-approved 2026-07-29, F2): a seated player who joined WITHOUT typing a name used to
+// render nameless everywhere pname() is used, not just in the lobby — `s.name` is "" for them, and
+// escHtml("") is "". rawName() two functions below already carried exactly the fallback UI-06 asks
+// for, so it is mirrored here: trim, escape, and fall back to the captain default when nothing is
+// left. The escaping is unchanged and still applies to every typed name (T-PB-02) — a non-blank
+// name renders byte-identically to before.
 export function pname(i){
   const s=(appState.roster&&appState.roster[i])||{};
-  return s.id?escHtml(s.name):NAMES[i].replace("Capt. ","");
+  const fallback=NAMES[i].replace("Capt. ","");
+  return s.id?(escHtml((s.name||"").trim())||fallback):fallback;
 }
 // plain (unescaped) display name for a seat — the same source pname() renders, minus the HTML
 // escaping. Used by writeGameLog so every finished game records who was playing, including

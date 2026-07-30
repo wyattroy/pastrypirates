@@ -671,7 +671,13 @@
       <button class="backLink" type="button" data-back>← back</button>
       <h3><img class="narrIcon" src="assets/icons/stool.png" alt=""> Pass & Play</h3>
       <div class="modalByline" style="margin-top:0">Everyone sitting at the table types their name below, then passes the device around when it's their turn. Leave a box blank to fill that seat with a bot captain instead.</div>
-      <div class="ppNameRow"><div class="ppSeatDot" style="background:#f2679e"></div><input type="text" id="ppName0" maxlength="40" placeholder="Player 1 (ye)"></div>
+      <!-- F1 (Wyatt-approved 2026-07-29): the LABEL class — this placeholder identifies WHICH field
+           belongs to the reader, so it is UI chrome rather than the game speaking, and takes the
+           plain second-person pronoun rather than D-29's ye/yer. src/ui/lobby.js's renderSeatList
+           carries the full rule; scripts/ui_contract_check.js anchors and gates this exact line.
+           (Worded without the pronoun on purpose: an HTML comment has no per-line marker, so the
+           register scan cannot tell a continuation line from real copy.) -->
+      <div class="ppNameRow"><div class="ppSeatDot" style="background:#f2679e"></div><input type="text" id="ppName0" maxlength="40" placeholder="Player 1 (you)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#1d96a6"></div><input type="text" id="ppName1" maxlength="40" placeholder="Player 2"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#27c78d"></div><input type="text" id="ppName2" maxlength="40" placeholder="Player 3 (or leave blank for a bot)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#f5a623"></div><input type="text" id="ppName3" maxlength="40" placeholder="Player 4 (or leave blank for a bot)"></div>

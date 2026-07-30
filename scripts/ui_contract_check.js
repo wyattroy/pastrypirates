@@ -249,6 +249,59 @@ const REGISTER_LINE_ANCHORS = [
 const REGISTER_IDENT_FILE = path.join("src", "ui", "util.js");
 const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you?`", ":(you?`", "txt:you"];
 
+// ---------------------------------------------------------------------------
+// THE LABEL CLASS (F1, Wyatt-approved 2026-07-29, .planning/phases/15-narration-audit-fixes/
+// 15-PLAYTEST-NOTES.md). Wyatt, reading his own lobby row "Wyatt — Wyatt — ye": *"this should say
+// 'you' not 'ye'."*
+//
+// The rule this list encodes: **D-29's pirate register applies to text the game SPEAKS.** "You" does
+// two different jobs in this game, and D-29's one-time sweep could not tell them apart:
+//   ADDRESS      — speaking TO the player inside a sentence: "ye pay 1🌕 and sail", "yer turn!".
+//                  ye/yer is CORRECT here. ~50 sites. None of them are excused by this list.
+//   LABEL        — pointing AT a seat/row/field to say "this one is the reader". No verb, not a
+//                  sentence, not the game's voice — UI chrome, and it takes plain "you".
+// `name — ye` is not pirate, it is a grammar error: `ye` is a pronoun standing in for a person, so a
+// bare `Wyatt — ye` reads "Wyatt — thou" rather than "Wyatt — that's the one that's you".
+//
+// Exactly three sites are in this class; all three are listed individually, each SCOPED TO ITS FILE
+// so a fragment can never excuse a spoken string somewhere else, and each ANCHORED ON CONTENT so a
+// line shift goes loud. checkLabelExceptionsFresh() below FAILS on an anchor that no longer matches
+// anything: an exclusion that excuses nothing is cover, not an exclusion.
+// ---------------------------------------------------------------------------
+const REGISTER_LABEL_EXCEPTIONS = [
+  {
+    rel: path.join("src", "ui", "lobby.js"),
+    anchor: `if(s.id)label=me?"you":"";`,
+    why: "renderSeatList's seat suffix — the LABEL that marks which seat is the reader's. UI-06 specifies this exact rendering (`{name} — you`). F1.",
+  },
+  {
+    rel: path.join("src", "ui", "util.js"),
+    anchor: `— that's you!`,
+    why: "buildPlayerRows' player-row tooltip — a LABEL identifying the reader's own row, not a sentence the game speaks. F1.",
+  },
+  {
+    rel: "index.html",
+    anchor: `placeholder="Player 1 (you)"`,
+    why: "the pass-and-play name field's placeholder — a LABEL identifying which input belongs to the reader. F1.",
+  },
+];
+
+// An exclusion that no longer matches anything is permanent cover for whatever drifts into its
+// place, so a stale anchor is a FAILURE rather than a no-op. Entries whose file is absent are
+// skipped: a synthetic --drill fixture tree contains only the fragments a given case needs, so
+// freshness is meaningless there (same convention as LAYOUT_WIDE_EXPECTED above).
+function checkLabelExceptionsFresh(root) {
+  const failures = [];
+  for (const e of REGISTER_LABEL_EXCEPTIONS) {
+    const full = path.join(root, e.rel);
+    if (!fs.existsSync(full)) continue;
+    if (!fs.readFileSync(full, "utf8").includes(e.anchor)) {
+      failures.push(`D-29-LABEL-STALE: the label-class exception for ${e.rel} anchored on ${JSON.stringify(e.anchor)} matches nothing in that file — either the site moved (re-anchor it) or the site is gone (DELETE the entry). Reason on file: ${e.why}`);
+    }
+  }
+  return failures;
+}
+
 // A leading-comment line, in either JS (`//`) or CSS/JSDoc (`/*`, `*`) form. index.html's two
 // excluded CSS comments — the shot-clock width reservation at :377 and the "you just lost treasure"
 // pop note at :425 — are both caught here by construction, not by a special case.
@@ -261,6 +314,9 @@ function scanRegisterFile(rel, content) {
     if (isLeadingComment(line)) return;
     if (REGISTER_LINE_ANCHORS.some((a) => line.includes(a))) return;
     if (rel === REGISTER_IDENT_FILE && REGISTER_IDENT_FRAGMENTS.some((f) => line.includes(f))) return;
+    // the LABEL class (F1) — scoped per file, so a label fragment can never excuse a spoken string
+    // in a different file, and never excuses any OTHER line in its own file either
+    if (REGISTER_LABEL_EXCEPTIONS.some((e) => e.rel === rel && line.includes(e.anchor))) return;
     failures.push(`D-29-REGISTER: ${rel}:${i + 1} — a player-facing string still reads the pre-conversion 2nd-person register; convert it to ye/yer (art-review/narration-audit.html's PIRATE_MAP is the spec)`);
   });
   return failures;
@@ -300,6 +356,9 @@ function checkPirateRegister(root) {
       }
     });
   }
+
+  // the label-class exceptions must still match something (F1) — see checkLabelExceptionsFresh
+  failures.push(...checkLabelExceptionsFresh(root));
 
   for (const { rel, count } of LAYOUT_WIDE_EXPECTED) {
     const full = path.join(root, rel);
@@ -750,13 +809,16 @@ function drill() {
     }
 
     // 5e: NEGATIVE control — a converted string, a leading comment carrying the old register, an
-    //     anchored comment, and the sidebet identifier must ALL pass. This proves 5a-5d fail for
-    //     the right reason rather than the check being unconditionally red.
+    //     anchored comment, the sidebet identifier and the three LABEL-class sites (F1) must ALL
+    //     pass. This proves 5a-5d fail for the right reason rather than the check being
+    //     unconditionally red, and doubles as the label exception's positive control: a fixture
+    //     carrying the real anchors passes, including checkLabelExceptionsFresh.
     resetFixture();
     fixture("src/ui/prompt.js", "export const msg = `Cast yer line — flip!`;\n// this comment mentions your pantry and is excluded because D-29 excludes comments\n");
     fixture("src/ui/flow.js", "if (onRim(c)) continue; // entering the trade winds ends your move\n");
     // the sidebet builder's real code shape, fragment-for-fragment — an unfaithful fixture here
-    // would let a broken exclusion pass this control unnoticed
+    // would let a broken exclusion pass this control unnoticed. The tooltip LABEL line is the third
+    // label-class anchor, and it must be present or checkLabelExceptionsFresh reports it stale.
     fixture("src/ui/util.js", [
       "    const you=isLocalTo(e.p,viewerSeat);",
       "    if(e.won)return {cls:\"trade\",txt:e.amt",
@@ -764,13 +826,53 @@ function drill() {
       "      :(you?`ye called it!`:`called it!`)};",
       "    return {cls:\"trade\",txt:you",
       "      ?`ye backed the wrong ship`:`backed the wrong ship`};",
+      "    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))",
       "",
     ].join("\n"));
     fixture("src/ui/recipe.js", "export const d = 'melt-in-your-mouth shortbread';\n");
+    fixture("src/ui/lobby.js", `    if(s.id)label=me?"you":"";\n    else label="🤖 bot";\n`);
+    fixture("index.html", `<html><body>\n<!-- layoutWide layoutWide layoutWide layoutWide -->\n<input id="ppName0" placeholder="Player 1 (you)">\n</body></html>\n`);
     {
       const r = checkPirateRegister(tmpRoot);
       const drillOk = r.ok;
-      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5e/5 (negative control — exclusions hold) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5e/8 (negative control — exclusions hold, incl. all three F1 LABEL anchors) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5f: the LABEL exception must NOT have widened into its file. A genuinely SPOKEN string in
+    //     src/ui/lobby.js using the plain pronoun still has to fail — this is the control that
+    //     proves the exception excuses three anchored lines and not a whole file.
+    resetFixture();
+    fixture("src/ui/lobby.js", `    if(s.id)label=me?"you":"";\n    $("waitMsg").textContent="Waiting for your mateys to join the voyage…";\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("D-29-REGISTER") && f.includes("lobby.js"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5f/8 (LABEL exception has not widened — a SPOKEN string in the same file still fails) — expected FAIL naming D-29-REGISTER, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5g: a STALE label anchor fails. The file is present but the anchored site is gone — e.g. a
+    //     later pass "fixed" the label back to ye and left the exception sitting there as cover.
+    resetFixture();
+    fixture("src/ui/lobby.js", `    if(s.id)label=me?"matey":"";\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("D-29-LABEL-STALE") && f.includes("lobby.js"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5g/8 (STALE LABEL anchor — an exclusion that excuses nothing is cover, not an exclusion) — expected FAIL naming D-29-LABEL-STALE, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5h: the LABEL exception is scoped PER FILE — the lobby's anchor must not excuse the same text
+    //     appearing in a different file, which is how a per-file list differs from a global one.
+    resetFixture();
+    fixture("src/ui/panel.js", `    const label=me?"you":"";\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("D-29-REGISTER") && f.includes("panel.js"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5h/8 (LABEL exception is scoped per file — the lobby anchor does not excuse panel.js) — expected FAIL naming D-29-REGISTER, got ${r.ok ? "PASS" : "FAIL"}`);
       for (const f of r.failures) console.log(`    ${f}`);
       if (!drillOk) allDrillsOk = false;
     }
