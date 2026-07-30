@@ -543,6 +543,32 @@ export const EVENT_NARRATION={
     const [x1,y1]=at(e.a),[x2,y2]=at(e.d);
     const sp=e.spoilIng?ING_EMOJI[e.spoilIng]:"💰"; // e.spoil is HTML (ilabelImg) now — never parse it for a pop icon
     const spImg=e.spoilIng?ING_IMG[e.spoilIng]:null; // #3: won ingredient rises from the boat as art, not emoji
+    // G3 (Wyatt-approved 2026-07-30): *"'Gives up all they have: 2 coins' should be 'gives up all
+    // they have: 2🌕'"*. And, on being told the string came from the engine: *"why does this need to
+    // touch the engine, but all our other narration doesn't? that seems badly designed, or worth
+    // rechecking."* He is right, and that anomaly is real — `spoil` is one of only two fields in the
+    // engine's whole event contract that carry RENDERED TEXT rather than data. Fixing it properly
+    // means changing what the engine emits, which invalidates all 31 determinism fixtures and needs
+    // a gated re-record; that work is specified in docs/DETERMINISM-RERECORD-NEXT.md and must ride
+    // along the next time a re-record happens anyway. THIS is the interim display-layer fix, and it
+    // leaves src/engine/index.js with an empty diff.
+    //
+    // ONE const, used at every site that interpolates the spoil. Three cases, in this order:
+    //   1. Crate win — render from the DATA field and ignore e.spoil entirely. `spoilIng` already
+    //      exists beside `spoil` as a proper data field, and art-review/narration-core.js:267-278
+    //      already asserts the paired invariant `spoil === ilabelImg(spoilIng)` at every real emit
+    //      site (D-51), so this renders byte-identically today while removing the crate half's
+    //      dependence on pre-rendered engine text.
+    //   2. Coin win — reuse fmtItem, the single place that already decides how a coin amount is
+    //      spelled (D-17), rather than inventing a rival regex here. "5 coins" -> "5🌕", and the
+    //      engine-only "2 coins (all they had)" -> "2🌕 (all they had)".
+    //   3. Anything else — pass through UNTOUCHED. Load-bearing, not defensive padding: the raider
+    //      spoil is `take+"c (raider)"` (src/engine/index.js:568), which contains no "coin"
+    //      substring at all, so a blanket fmtItem() would fall through its /coin/ test into the
+    //      INGREDIENT branch and render garbage. `asym` is hardcoded false in roundCfg and set
+    //      nowhere in the codebase, so that branch is config-dead — but a config-dead branch must
+    //      not be silently broken. Its deletion is queued in DETERMINISM-RERECORD-NEXT.md.
+    const spoilText=e.spoilIng?ilabelImg(e.spoilIng):(/ coins/.test(e.spoil)?fmtItem(e.spoil):e.spoil);
     // ingredient spoils read as the winner taking a crate — untouched by the split below.
     //
     // NARR-04/D-12 (Wyatt-approved 2026-07-29): a coin spoil used to read as a single "bribe"
@@ -562,6 +588,9 @@ export const EVENT_NARRATION={
     // falls through to the cleaned-out framing (the one that claims least) rather than ever
     // rendering `undefined`/NaN — the cleaned-out line also never mocks or piles on the loser
     // (T-15-08/the plan's own values prohibition), it just reports the outcome.
+    // G3: these two deliberately parse the RAW e.spoil, NOT spoilText. The bribe test asks "did the
+    // coin take reach the full 5" — a numeric question about the event, entirely unrelated to how
+    // the amount is spelled on screen. Do not tidy the two together.
     const spoilN=e.spoilIng?null:parseInt(e.spoil,10);
     const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5;
     // D-08 (Wyatt-approved 2026-07-29): the attacker and the defender each read the outcome
@@ -579,11 +608,13 @@ export const EVENT_NARRATION={
     else mainClause=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}.`;
     const viewerIsWinner=isLocalTo(e.winner,viewerSeat),viewerIsLoser=isLocalTo(loser,viewerSeat);
     let spoilClause;
-    if(e.spoilIng)spoilClause=viewerIsWinner?`Ye take ${e.spoil}.`:`${pn(e.winner)} takes ${e.spoil}.`;
-    else if(isBribe)spoilClause=viewerIsLoser?`Ye bribe yer way out of giving away a crate with ${e.spoil}.`:`${pn(loser)} bribes their way out of giving away a crate with ${e.spoil}.`;
-    else if(viewerIsLoser)spoilClause=`Ye give up all ye have${e.spoil?`: ${e.spoil}`:""}.`;
-    else if(viewerIsWinner)spoilClause=`Ye take all ${pn(loser)} has${e.spoil?`: ${e.spoil}`:""}.`;
-    else spoilClause=`${pn(loser)} gives up all they have${e.spoil?`: ${e.spoil}`:""}.`;
+    // G3: every ${e.spoil} below became ${spoilText}. Not one sentence, clause order or word
+    // changed — the only difference is how the spoil AMOUNT is spelled.
+    if(e.spoilIng)spoilClause=viewerIsWinner?`Ye take ${spoilText}.`:`${pn(e.winner)} takes ${spoilText}.`;
+    else if(isBribe)spoilClause=viewerIsLoser?`Ye bribe yer way out of giving away a crate with ${spoilText}.`:`${pn(loser)} bribes their way out of giving away a crate with ${spoilText}.`;
+    else if(viewerIsLoser)spoilClause=`Ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
+    else if(viewerIsWinner)spoilClause=`Ye take all ${pn(loser)} has${spoilText?`: ${spoilText}`:""}.`;
+    else spoilClause=`${pn(loser)} gives up all they have${spoilText?`: ${spoilText}`:""}.`;
     // D-54/D-25/D-16 (Wyatt-approved 2026-07-29): his three approved rewrites of the LOSER's own
     // view (table:battle / ~cleaned / ~crate in 15-ADDRESSED2-APPROVED.json) all restructure the
     // sentence, so the loser gets a composite of its own rather than the mainClause+spoilClause
@@ -596,13 +627,13 @@ export const EVENT_NARRATION={
     let txt;
     if(viewerIsLoser){
       const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
-      if(e.spoilIng)txt=`${head} and takes yer ${e.spoil}`;
-      else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${e.spoil}.`;
-      else txt=`${head} — ye give up all ye have${e.spoil?`: ${e.spoil}`:""}.`;
+      if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
+      else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${spoilText}.`;
+      else txt=`${head} — ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
     }else txt=`${mainClause} ${spoilClause}`;
     return {cls:"battle",
       txt,
-      caps:[[e.winner,`⚔️ wins! +${e.spoil}`],[loser,"⚔️ loses 💸"]],
+      caps:[[e.winner,`⚔️ wins! +${spoilText}`],[loser,"⚔️ loses 💸"]], // G3: the winner caption too
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cellPx*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
   },
   // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): signed flee cost, "they/pays" dropped as

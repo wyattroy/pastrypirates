@@ -295,9 +295,19 @@ for (const key of KEYS) {
     checkTrue("battle: 5-coin spoil does NOT render the cleaned-out framing", !isCleanedOut(txt));
   }
 
-  // ingredient spoils are UNTOUCHED by the split — pin the literal "{winner} takes {spoil}." clause
-  const ingTxt = f(mkEvent('<img class="ic" src="x">Wheat', "wheat"), at).txt;
-  checkTrue("battle: ingredient-spoil clause still reads '{winner} takes {spoil}.' (untouched by the split)", ingTxt.includes('takes <img class="ic" src="x">Wheat.'));
+  // ingredient spoils are UNTOUCHED by the split — pin the literal "{winner} takes {spoil}." clause.
+  //
+  // G3 (Wyatt-approved 2026-07-30) — FIXTURE REPAIRED, assertion not loosened. This event used to
+  // be built with a hand-written placeholder spoil ('<img class="ic" src="x">Wheat') alongside
+  // spoilIng:"wheat", which VIOLATES the paired-field invariant every real emit site upholds:
+  // src/orchestrator.js:586 and src/engine/index.js:572-573 both set `spoil=ilabelImg(pick)` and
+  // `spoilIng=pick` together, so the two fields always agree. That is the D-51 defect class in
+  // miniature — the right line rendered with values the game cannot produce — and it only surfaced
+  // because the crate branch now renders from the DATA field (spoilIng) rather than from the
+  // pre-rendered engine text. Pinning against ilabelImg() is STRICTER than the old placeholder:
+  // it asserts the clause carries the ingredient's real custom art (D-17), not an arbitrary stub.
+  const ingTxt = f(mkEvent(ilabelImg("wheat"), "wheat"), at).txt;
+  checkTrue("battle: ingredient-spoil clause still reads '{winner} takes {spoil}.' (untouched by the split, and rendered from the spoilIng DATA field)", ingTxt.includes(`takes ${ilabelImg("wheat")}.`));
 
   for (const [label, spoil] of [["absent", undefined], ["empty", ""], ["non-numeric", "abc coins"]]) {
     const txt = f(mkEvent(spoil), at).txt;
@@ -338,11 +348,17 @@ for (const key of KEYS) {
   check("D-54 battle~cleaned (loser's view): matches Wyatt's approved line",
     f(mk("2🌕"), at, 0, LOSER).txt,
     `⚔️ ${W} wins 2–1 — ye give up all ye have: 2🌕.`);
-  // ~crate: {ingredient} is e.spoil, which every real emit site sets to ilabelImg(pick) — so the
-  // possessive "takes yer" carries the custom art. Note the deliberate ABSENT trailing period.
+  // ~crate: the possessive "takes yer" carries the ingredient's custom art. Note the deliberate
+  // ABSENT trailing period.
+  //
+  // G3 (Wyatt-approved 2026-07-30) — FIXTURE REPAIRED, assertion not loosened, for the same reason
+  // as the ingredient-spoil check above: this event paired a hand-written placeholder spoil with
+  // spoilIng:"cacao", and "cacao" is not even an ingredient key the game has — the real one is
+  // "cocoa" (ING_ALL). So it fabricated a spoil the game cannot emit FOR a crate the game does not
+  // carry. Both halves are now real: a live key, and the spoil its emit sites actually produce.
   check("D-54 battle~crate (loser's view): matches Wyatt's approved line, no trailing period",
-    f(mk('<img class="ic" src="x">Cacao Pods', "cacao"), at, 0, LOSER).txt,
-    `⚔️ ${W} wins 2–1 and takes yer <img class="ic" src="x">Cacao Pods`);
+    f(mk(ilabelImg("cocoa"), "cocoa"), at, 0, LOSER).txt,
+    `⚔️ ${W} wins 2–1 and takes yer ${ilabelImg("cocoa")}`);
 
   // the other two viewers are deliberately NOT restructured — still two sentences, and the bribe
   // clause still keys on viewerIsLoser, so the winner reads the third-person form of it
