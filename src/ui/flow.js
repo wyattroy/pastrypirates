@@ -624,7 +624,11 @@ export async function humanAct(p,sailCtx){
   if(appState.game.tradeOpp(p).length)opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
   if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
-  opts.push({label:"🎣 Fish (+1-2🌕)",value:"fish"});
+  // D-38-adjacent (Wyatt-approved 2026-07-29, during the two-tab playtest): the separator here is a
+  // numeric RANGE, not a minus, so it correctly carries no sign — but it was an ASCII hyphen, which
+  // renders narrower and lighter than the U+2212 "−" on the Attack button directly above it in this
+  // same menu. An en dash (U+2013) is the correct character for a range, and it matches the weight.
+  opts.push({label:"🎣 Fish (+1–2🌕)",value:"fish"});
   // offered only if this player's sail step ended in "Stay put" (nothing spent/moved) and they
   // could still afford to sail — covers the reported "hit Stay put by accident" complaint
   const canMoveInstead=sailCtx&&p.coins>0&&p.coins===sailCtx.preSailCoins&&
