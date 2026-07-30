@@ -1248,8 +1248,8 @@ function tableCards(key) { return buildTableKeyCards(key, key); }
 // A bad key now names itself instead of taking the page down silently.
 function adhocCards(siteId) {
   const entry = adhocById[siteId];
-  if (!entry) throw new Error(`narration-inventory.json has no ad-hoc entry for "${fileLine}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
-  return buildAdhocKeyCards(entry, fileLine);
+  if (!entry) throw new Error(`narration-inventory.json has no ad-hoc entry for "${siteId}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
+  return buildAdhocKeyCards(entry, siteId);
 }
 
 /* ============================================================================
@@ -1272,13 +1272,13 @@ const promptById = Object.fromEntries((inv.prompts || []).map((e) => [e.id, e]))
 // panel() sites that only clear the panel, re-render an ALREADY-CAPTURED remote prompt's own
 // msg (no new copy of their own), or render a complex dynamic scoreboard (not fixed copy) —
 // pass-through, mirroring the flash() table-driven concept.
-const PROMPT_PASS_THROUGH = new Set([
-  "prompt.plumbing.localask",            // localAsk's own rendering plumbing — redundant with the ask() site itself
-  "prompt.battle.scoreboard",      // renderBattle's live scoreboard HTML — dynamic rounds/score, not fixed copy
-  "prompt.net.draftrerender",      // watchDraftPrompt re-renders an already-captured p.msg
-  "prompt.net.promptrerender",      // watchPrompt re-renders an already-captured p.msg
-  "prompt.net.promptrerenderbuttons",      // watchPrompt re-renders an already-captured p.msg (with buttons)
-]);
+//
+// The list itself lives in the render core, with the per-site reasons. It used to be declared here
+// TOO, and the two copies had already drifted: the core's carried the two sail pick-panel sites and
+// this one did not, so `promptCards()` (which asks the core) and the coverage probe below (which
+// asked this one) disagreed about what a pass-through even is. Same lesson as D-29's pirate register
+// — one declaration site, imported by every consumer.
+const PROMPT_PASS_THROUGH = core.PROMPT_PASS_THROUGH;
 
 // A raw extracted source snippet is a genuine JS expression (guaranteed syntactically valid —
 // it compiled in the real file) — evaluated for real against PROMPT_CTX_BASE plus any per-site
@@ -1290,21 +1290,12 @@ const PROMPT_PASS_THROUGH = new Set([
 // resolves an identifier the context does not supply by reading that identifier's own declaration
 // out of the real source file, which is what let the hand-written renderer table go away.
 const evalSource = core.evalSource;
-// Sites whose prompt text is a pre-computed VARIABLE (not an inline literal) — the raw source is
-// just an identifier like `promptMsg`, which evalSource can't usefully evaluate on its own. Same
-// resolved by the core out of the real declaration (e.g. humanTurn's
-// addressedBanner) — reconstructed here using the SAME real helpers the source itself calls.
-const PROMPT_RENDERERS = {
-  "prompt.storm.anchororflip": () => ({
-    // windLeg's storm-anchor promptMsg — two branches (trueShipwreck / ordinary broke-or-not)
-    current: `${pn(0)}: the storm blows ye toward an island! Anchor safely, or flip to take yer chances.`,
-    note: "Shown: the ordinary branch. When truly shipwrecked (no coins AND no crates), the prompt instead reads: \"" + `${pn(0)}: the storm blows ye toward an island! Yer broke — if ye run aground, ye'll lose yer turn!` + "\"",
-  }),
-  "prompt.act.menu": () => ({
-    current: `${pn(0)}, choose your action:`,
-    note: "Shown: the ordinary branch (can afford to act). When broke (0 coins), the prompt instead reads: \"" + `${pn(0)}, ye got nothin to pay yer crew, so they won't budge. Pick one:` + "\"",
-  }),
-};
+// A site whose prompt text is a pre-computed VARIABLE (the raw source is just an identifier like
+// `promptMsg`) needs no special case on this page any more: the core's resolveLocal() finds that
+// identifier's OWN declaration in the real file and evaluates it, and each of its branches is a card
+// of its own via core.LOCAL_BRANCH_AXES. The PROMPT_RENDERERS table that used to sit here held
+// hand-typed copy for the two such sites, with each site's SECOND branch described in prose instead
+// of being reviewable at all — both of which this page stopped doing everywhere else in Task 3.
 
 /* ---- D-33: for a prompt whose message is a FUNCTION PARAMETER (humanFlip(p,label,allowBack) /
  * fishCast(p,label,allowBack), each rendering ask(label||"<fallback>",opts)), the extractor can
@@ -1328,7 +1319,10 @@ const PARAM_PROMPT_DECL = { "prompt.flip.fallback": "humanFlip", "prompt.fish.fa
 const PARAM_PROMPT_DEAD_CALLS = new Set(["misc.paramprompt.botfishcast"]);
 function paramPromptFallbackReachable(calleeName) {
   const callers = (inv.misc || []).filter((e) => e.category === "paramPrompt" && e.callee === calleeName);
-  return callers.some((c) => !c.hasLabel && !PARAM_PROMPT_DEAD_CALLS.has(`${c.file}:${c.line}`));
+  // Keyed by the caller's declared copy id (PARAM_PROMPT_DEAD_CALLS holds ids, not file:line — it was
+  // still being probed with `${c.file}:${c.line}` after the Task 3 re-key, so the bot fishCast path
+  // read as a LIVE no-label caller and fishCast's fallback wrongly counted as reachable).
+  return callers.some((c) => !c.hasLabel && !PARAM_PROMPT_DEAD_CALLS.has(c.id));
 }
 
 // Card ids are keyed by the copy site's own declared id, and a button by its option's own `slot`
@@ -1337,21 +1331,24 @@ function paramPromptFallbackReachable(calleeName) {
 function promptCardId(entry) { return `prompt:${entry.id}`; }
 function buttonCardId(entry, slot) { return `button:${entry.id}~${slot}`; }
 
-function buildPromptCard(entry, group) {
+function buildPromptCard(entry, group, axis) {
   const key = `${entry.file}:${entry.line}`;
-  const id = promptCardId(entry);
-  let current, note;
-  const custom = PROMPT_RENDERERS[key];
-  if (custom) {
-    const r = custom();
-    current = r.current; note = r.note;
-  } else {
-    // Always attempt real evaluation, even for a non-"pure literal" expression like
-    // `label||"Flip the dubloon!"` or a ternary — evalSource's own try/catch is what
-    // correctly falls through to the raw-source fallback for a genuine bare variable
-    // reference (e.g. `promptMsg`) that PROMPT_RENDERERS doesn't already special-case.
-    current = evalSource(entry.rawMsg);
-  }
+  // The TEXT comes from the render core — the same renderPrompt() `npm test` calls, evaluating the
+  // real extracted expression against the real branch context (core.LOCAL_BRANCH_AXES), resolving a
+  // bare local like `promptMsg` out of its own declaration in the real file. The page owns the shell
+  // and nothing else.
+  //
+  // What used to be here instead: a PROMPT_RENDERERS table holding hand-typed copy for the two
+  // sites whose message is a pre-computed variable, with the OTHER branch of each described in prose
+  // in a `note:`. It was keyed by the copy id and looked up by `file:line`, so after the Task 3
+  // re-key it never fired at all — and its second branch was never a card in the first place, so
+  // `prompt:prompt.act.menu~broke` and `prompt:prompt.storm.anchororflip~shipwreck` had no card
+  // anywhere on this page.
+  const rendered = core.renderCardSafely(entry, core.renderPrompt, axis || null);
+  if (rendered.error) return errorCard(rendered.id || promptCardId(entry), rendered.error);
+  const id = rendered.id;
+  const current = rendered.neutral;
+  const note = (rendered.notes || []).filter(Boolean).map(escapeHtml).join(" ");
   const evalFailed = current == null;
   const displayText = evalFailed ? escapeHtml(entry.rawMsg) : current;
   recordNeutralTextEntry(id, `Prompt: ${entry.fn}()`, key, evalFailed ? null : finalize(displayText));
@@ -1365,9 +1362,14 @@ function buildPromptCard(entry, group) {
   // D-33: this exact site is a function-parameter fallback (`label||"..."`) whose EVERY real
   // caller supplies a label — the text this card shows can never reach a player. Loud, not subtle,
   // because a rewrite typed against this card would be wasted exactly like it already was once.
-  const calleeName = PARAM_PROMPT_DECL[key];
+  // Keyed by the prompt's own declared copy id, not file:line — the Task 3 re-key left this lookup
+  // on the old key, `calleeName` came back undefined, and the two fallback cards silently lost the
+  // badge that is the only thing stopping a rewrite being typed against text no player can reach
+  // (the page's own D-33 self-check was reporting exactly that, in the console, unread).
+  const calleeName = PARAM_PROMPT_DECL[entry.id];
+  const callerIds = (inv.misc || []).filter((e) => e.category === "paramPrompt" && e.callee === calleeName).map((e) => `misc:paramPrompt:${e.id}`);
   const unreachableNote = (calleeName && !paramPromptFallbackReachable(calleeName))
-    ? `<p class="deadCopyNote">⚠ UNREACHABLE (D-33) — every real caller of ${calleeName}() supplies its own label; this in-function fallback never renders to a player. Do NOT rewrite this card — see the real per-caller prompt cards (misc:paramPrompt:${entry.file}:${entry.line}) instead, placed where each caller actually fires.</p>`
+    ? `<p class="deadCopyNote">⚠ UNREACHABLE (D-33) — every real caller of ${calleeName}() supplies its own label; this in-function fallback never renders to a player. Do NOT rewrite this card — see the real per-caller prompt cards (${callerIds.join(", ") || "none found"}) instead, placed where each caller actually fires.</p>`
     : "";
   const body = (evalFailed
     ? `<p class="cardNote">Could not evaluate this prompt's live expression outside a real game — raw source shown as-is (not yet run through emojify/ye-yer conversion).</p><div class="msgBox neutral promptBox">${displayText}</div>`
@@ -1379,33 +1381,34 @@ function buildPromptCard(entry, group) {
   return { id, group, html: cardShell({ id, title: unreachableNote ? `Prompt (${entry.kind}) — ${entry.fn}() (unreachable — D-33)` : `Prompt (${entry.kind}) — ${entry.fn}()`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: unreachableNote ? "cut" : "keep", silent: false, cardClass: "promptCard" }) };
 }
 
-/* ---- D-33: ask()'s own 4th argument, `sub` — helper text rendered under the buttons. Only one
- * live call site passes it (humanAct, flow.js:563); never previously extracted at all. `sub` is a
- * bare local-variable identifier at the call site (same shape `prompt`'s own custom renderer
- * above already handles), hand-reconstructed here using the SAME real ternary the source itself
- * evaluates, all three branches (including the deliberately silent "no target adjacent" one). ---- */
-const PROMPT_SUB_RENDERERS = {
-  "prompt.act.menu": () => ([
-    { tag: "afford", current: `Attacking costs ye ${2}🌕 for powder. Fire downwind for the edge!`, note: "Shown under the action buttons when at least one target is adjacent AND the captain can afford powder (2🌕, cfg.powder)." },
-    { tag: "poor", current: `Yer too poor to afford powder! Go fishin'`, note: "Shown under the action buttons when a target is adjacent but the captain can't afford powder." },
-    { tag: "none", current: null, note: "Deliberately silent — no target is adjacent, so no powder-cost helper text renders at all." },
-  ]),
-};
+/* ---- D-33/D-41: ask()'s own 4th argument, `sub` — the helper text under the buttons that says WHY
+ * a greyed button is greyed. Four sites pass one (humanAct's action menu, humanTrade's give step,
+ * the hail counter-offer, and — new with F9 — humanDock's tails choice).
+ *
+ * THE COPY IS RENDERED FROM LIVE SOURCE, through the render core's renderSub() and its
+ * SUB_BRANCH_AXES. What was here before was a hand-typed PROMPT_SUB_RENDERERS table covering ONE of
+ * the four sites with THREE of its four branches, keyed by the copy id but looked up by `file:line`
+ * — so after the Task 3 re-key it returned nothing and `buildSubCards` returned [] for every site.
+ * All ten sub cards were missing from the page, including `sub:prompt.dock.tailschoice~default`,
+ * which carries the only new copy in the F9 pass ("Yer too broke to buy it — take the 3🌕 instead.")
+ * — approved, shipped, and invisible on the page that exists to review it. Its hand-typed text had
+ * also already gone stale against what src/ actually ships, which is the same rot Task 3 deleted
+ * everywhere else and is why nothing on this page hand-holds copy any more. ---- */
 function buildSubCards(entry, group) {
-  const key = `${entry.file}:${entry.line}`;
-  const renderer = entry.rawSub ? PROMPT_SUB_RENDERERS[key] : null;
-  if (!renderer) return [];
-  return renderer().map((b) => {
-    const id = `sub:${entry.id}~${b.tag}`;
-    const silent = b.current == null;
+  if (!entry.rawSub) return [];
+  const axes = core.SUB_BRANCH_AXES[entry.id] || [{ tag: null, ctx: {}, note: "" }];
+  return axes.map((axis) => {
+    const rendered = core.renderCardSafely(entry, core.renderSub, axis);
+    if (rendered.error) return errorCard(rendered.id || `sub:${entry.id}~${axis.tag || "default"}`, rendered.error);
+    const id = rendered.id;
+    const silent = rendered.neutral == null;
     const bodyMain = silent
       ? `<p class="silentNote">Deliberately silent — this branch renders no text at all.</p>`
-      : msgBox(b.current, "neutral");
-    if (!silent) recordNeutralTextEntry(id, `Helper text (sub) — ${entry.fn}()`, `sub:${entry.file}:${entry.line}`, finalize(b.current));
+      : msgBox(rendered.neutral, "neutral");
+    if (!silent) recordNeutralTextEntry(id, `Helper text (sub) — ${entry.fn}()`, `sub:${entry.id}`, finalize(rendered.neutral));
     const body = bodyMain
-      + `<p class="cardNote">${b.note}</p>`
-      + `<p class="cardNote">D-33: <code>ask()</code>'s own 4th argument (helper text under the buttons) — never previously captured by this page's extraction.</p>`
-      + `<details class="rawSource"><summary>Raw source (extracted identifier — hand-reconstructed using the real ternary)</summary><pre>${escapeHtml(entry.rawSub)}</pre></details>`;
+      + (rendered.notes || []).filter(Boolean).map((n) => `<p class="cardNote">${escapeHtml(n)}</p>`).join("")
+      + `<details class="rawSource"><summary>Raw source (extracted identifier — resolved out of its own declaration in the real file)</summary><pre>${escapeHtml(entry.rawSub)}</pre></details>`;
     return { id, group, html: cardShell({ id, title: `Helper text (sub) — ${entry.fn}()`, meta: `${entry.file}:${entry.line} · ${entry.fn}() sub`, body, defaultTag: "keep", silent, cardClass: "buttonCard" }) };
   });
 }
@@ -1481,11 +1484,16 @@ function promptCards(siteId) {
   const entry = promptById[siteId];
   if (!entry) return [];
   if (core.PROMPT_PASS_THROUGH.has(siteId)) {
-    const id = promptCardId(entry.file, entry.line);
+    const id = promptCardId(entry);
     const body = `<p class="passThroughNote">Rendering plumbing, or a live scoreboard/re-render of a message already captured elsewhere — not new copy on its own.</p>`;
     return [{ id, group: siteId, html: cardShell({ id, title: `Prompt (${entry.kind}) — pass-through`, meta: `${entry.file}:${entry.line} · ${entry.fn}()`, body, defaultTag: "keep", silent: false, cardClass: "promptCard" }) }];
   }
-  return [buildPromptCard(entry, siteId)].concat(buildSubCards(entry, siteId), buildButtonCards(entry, siteId));
+  // One card per branch the prompt's own message can take (core.LOCAL_BRANCH_AXES), then its helper
+  // text, then its buttons — the same expansion core.renderAllCards() performs, so what the page
+  // shows and what `npm test` counts cannot disagree about how many cards a prompt has.
+  const axes = core.LOCAL_BRANCH_AXES[siteId] || [null];
+  return axes.map((axis) => buildPromptCard(entry, siteId, axis))
+    .concat(buildSubCards(entry, siteId), buildButtonCards(entry, siteId));
 }
 
 /* ============================================================================
@@ -1506,7 +1514,7 @@ function miscCardId(category, entry, suffix) {
 }
 function requireMiscEntry(category, siteId) {
   const entry = miscById[`${category}:${siteId}`];
-  if (!entry) throw new Error(`narration-inventory.json has no ${category} entry for "${fileLine}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
+  if (!entry) throw new Error(`narration-inventory.json has no ${category} entry for "${siteId}" — the inventory is out of step with this page. Re-run \`node scripts/extract_narration_lines.js\` and hard-reload.`);
   return entry;
 }
 
@@ -2201,19 +2209,25 @@ FABRICATED_EVENT_VIOLATIONS.forEach((msg) => probeFailures.push({ key: "fabricat
 // card — the same blocking-defect framing D-21 already applies to narration branches. Checked
 // against the actual live DOM (post-render), not re-derived, so a card that silently failed to
 // mount would be caught the same way a missing branch would.
+// Every id below is built through the SAME promptCardId()/buttonCardId() helpers the cards
+// themselves use, with the same arguments. The 15-07 Task 3 re-key changed both signatures from
+// (file, line) to (entry) / (entry, slot) and this probe kept calling the old shape: promptCardId
+// took the file STRING as its entry, so `entry.id` was undefined and every lookup asked for
+// `prompt:undefined` — which a pass-through prompt card was ALSO being built under, so the check
+// passed for all 28 prompts while their 41 buttons all reported missing. A probe that constructs its
+// own idea of an id can always drift from the thing it is checking; it must ask the same function.
 (function checkPromptCoverage() {
   const renderedIds = new Set();
   document.querySelectorAll(".card").forEach((c) => renderedIds.add(c.dataset.id));
   (inv.prompts || []).forEach((entry) => {
-    const key = `${entry.file}:${entry.line}`;
-    const promptId = promptCardId(entry.file, entry.line);
+    const promptId = promptCardId(entry);
     if (!renderedIds.has(promptId)) {
       probeFailures.push({ key: "prompt", fields: { file: entry.file, line: entry.line, kind: entry.kind }, text: `MISSING CARD for ${promptId}` });
       return;
     }
-    if (PROMPT_PASS_THROUGH.has(key)) return;
+    if (PROMPT_PASS_THROUGH.has(entry.id)) return;
     entry.labels.forEach((label, i) => {
-      const btnId = buttonCardId(entry.file, entry.line, i);
+      const btnId = buttonCardId(entry, label.slot || String(i));
       if (!renderedIds.has(btnId)) {
         probeFailures.push({ key: "button", fields: { file: entry.file, line: entry.line, label }, text: `MISSING CARD for ${btnId}` });
       }
@@ -2241,7 +2255,11 @@ FABRICATED_EVENT_VIOLATIONS.forEach((msg) => probeFailures.push({ key: "fabricat
   document.querySelectorAll(".card").forEach((c) => renderedIds.add(c.dataset.id));
   const hasCardWithPrefix = (prefix) => Array.from(renderedIds).some((id) => id === prefix || id.startsWith(prefix + "~"));
   (inv.misc || []).forEach((entry) => {
-    const prefix = `misc:${entry.category}:${entry.file}:${entry.line}`;
+    // Built through miscCardId(), the same helper the cards use — not re-composed here. This line
+    // used to compose `misc:<category>:<file>:<line>` by hand, which the Task 3 re-key made
+    // impossible to match: all 30 misc entries reported MISSING while 23 of their cards were
+    // rendering perfectly well one id-scheme away.
+    const prefix = miscCardId(entry.category, entry);
     if (!hasCardWithPrefix(prefix)) {
       probeFailures.push({ key: "misc", fields: { category: entry.category, file: entry.file, line: entry.line }, text: `MISSING CARD for ${prefix}` });
     }
@@ -2278,18 +2296,18 @@ FABRICATED_EVENT_VIOLATIONS.forEach((msg) => probeFailures.push({ key: "fabricat
   }
   // D-33: humanFlip()/fishCast()'s own in-function ask() fallback, whenever every real caller
   // this page knows about supplies its own label (making the fallback provably unreachable).
-  Object.entries(PARAM_PROMPT_DECL).forEach(([fileLine, calleeName]) => {
+  // PARAM_PROMPT_DECL is keyed by the prompt's own declared copy id now (it was file:line before the
+  // Task 3 re-key, and this loop was still splitting it on ":" to rebuild a file and a line).
+  Object.entries(PARAM_PROMPT_DECL).forEach(([siteId, calleeName]) => {
     if (paramPromptFallbackReachable(calleeName)) return; // a genuinely reachable fallback needs no marker
-    const idx = fileLine.lastIndexOf(":");
-    const file = fileLine.slice(0, idx), line = Number(fileLine.slice(idx + 1));
-    requireDeadMarker(promptCardId(file, line), `${calleeName}() fallback`);
+    requireDeadMarker(promptCardId({ id: siteId }), `${calleeName}() fallback`);
   });
   // D-34: every button whose underlying option is flagged back:true/flip:true — localAsk()
   // excludes it from the rendered row and substitutes its own hardcoded control.
   (inv.prompts || []).forEach((entry) => {
     (entry.labels || []).forEach((l, i) => {
       if (l.backMarker || l.flipMarker) {
-        requireDeadMarker(buttonCardId(entry.file, entry.line, i), `${entry.file}:${entry.line} button ${i} (${l.backMarker ? "back" : "flip"}:true)`);
+        requireDeadMarker(buttonCardId(entry, l.slot || String(i)), `${entry.id} button ${l.slot || i} (${l.backMarker ? "back" : "flip"}:true)`);
       }
     });
   });
