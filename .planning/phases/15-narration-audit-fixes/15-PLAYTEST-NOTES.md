@@ -1,4 +1,71 @@
-# Phase 15 — two-tab playtest notes (2026-07-29)
+# Phase 15 — playtest notes
+
+---
+
+# SESSION 2 — recorded two-tab playtest (2026-07-30, room NAMF)
+
+Wyatt host on :8231, Claude guest seat 1 on :8232, 2 bots. Every narration line recorded on the guest
+with timings via a MutationObserver on `#actionPanel`. ~150 lines logged.
+
+## CONFIRMED FIXED — yesterday's and this morning's work, seen live
+
+| Fix | Evidence on screen |
+|---|---|
+| **F7 prompt leak / delivery** | `Wyatt is deciding…` ×2 and `Wyatt is choosing where to sail…` ×2 reached the guest; **zero** host prompts leaked in ~150 lines. Wyatt confirmed the mirror image (`Claude is deciding`) on his side. Yesterday: 0 of 2516 lines carried the spectator form. |
+| **F11 shadowed Trade reason** | Greyed `🤝 Trade` rendered with **its own** reason — *"No one's holding cargo to trade for yet."* — while `⚔️ Attack` sat enabled beside it. Yesterday this slot showed Attack's tip. |
+| **F1/F2/UI-06 lobby** | `Claude — you` · `Wyatt` · `Dough Hook — 🤖 bot`. Name once, plain "you". Yesterday: `Wyatt — Wyatt — ye`. |
+| **G4 intro + G5 reorder** | New intro wording; recipe draft now step TWO, before turn order, in multiplayer. |
+| **G4 recipe prompt** | `Claude, choose yer recipe:` |
+| **F5/G1 icon placement** | `Dock at 🥚 Clucker's Cove` · `Docking at 🥚 Clucker's Cove — flip!` · `buy a dozen 🥚 Sand-Speckled Eggs` — icon before the NOUN, inside the flavour phrase. |
+| **F10/G1 dangling "it"** | `Claude — ye flip ⚫ TAILS, but buy a dozen 🥚 Sand-Speckled Eggs anyway for 3🌕` — goods named, place dropped per Wyatt's Q4 ruling. |
+| **D-18 #2 storm second leg** | Same round, both forms correct: `Now the storm blows **Wyatt** west!` (spectator) vs `Now the storm blows **ye** west!` (actor). This line used to hardcode "you" for everyone. |
+| **NARR-02 broke-can't-anchor** | `Claude — ye can't afford to anchor. Flip and take yer chances.` **First live sighting** — gate-asserted since 15-02, never before seen in play. Both halves of NARR-02 now confirmed. |
+| **D-37 wind verb** | "blows" throughout; `Flaky Jack is blown into the trade winds and swept around the rim!` |
+| **D-50 windHoldPhrase** | `— Round 2: wind still blows north, this northerly is gusting —` (helper, not string concatenation). |
+| **G8 fade / F6** | Across ~150 lines **no live line ever carried `fadeOut`** — only the outgoing ghost. Panel height moved **0px** on every swap. Ghost CSS verified: `pointer-events:none`, `0.18s`, `position:absolute`. A sail click registered first time. |
+| **D-33 real flip label** | `Flip to dodge!` — the genuine label, not the unreachable `"Flip the dubloon!"` fallback. |
+
+## G10 — the storm anchor prompt offers a choice it cannot honour (NEW)
+
+**Wyatt:** *"oooh -- this should also have a greyed-out button because you can't anchor!"*
+
+Seen at 0 coins during a storm push into land. The prompt read:
+
+    Claude: the storm's blowin' ye into land! Anchor safely, or take yer chances dodging the rocks.
+    [ Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate) ]
+
+**Two faults, not one:**
+1. The `Pay 1🌕 to anchor` option **vanishes silently** when the purse is empty (`src/ui/flow.js:226` gates it on `p.coins>=1`) instead of greying out with its reason. Sixth instance of the D-41 family, after Attack, Trade, coins-only, hail-Counter and dock-buy.
+2. **Worse — the prompt text still advertises it.** *"Anchor safely, **or** take yer chances"* offers a branch with no button behind it.
+
+The information exists but lands on the wrong surface: the narration a beat earlier says *"ye can't afford to anchor"*, then the prompt contradicts it. Exactly D-40's finding — explanation on the commentary surface, decision on another.
+
+**Fix needs both halves:** grey the anchor option with its reason (D-41 pattern), AND make the prompt not offer the choice when it is unavailable.
+
+## G11 — coin-picker prompt reads oddly on a coins-only offer
+
+`Add any 🌕 to yer offer of nothing yet?` — Wyatt: *"this is a weird statement, for players who only offer coins! It should just say 'How many?' -- and i think it would work with all branches"*. Approved: **`How many?`** for both branches. Note the crate branch also carries a `No extra coins` button, so that screen reads "How many?" above a row ending in that option — clear, but he loses the reminder of which crate he is offering.
+
+## G12 — flip outcomes must be ALL CAPS in play
+
+Wyatt: *"in most places, we use all caps for HEADS and TAILS -- but here, I forgot to."* Swept: the ONLY in-play offender is `src/ui/flow.js:519`'s tails dock prompt, fixed by his rewrite below. Everything else lowercase is **explanatory prose** (the how-to-play modal) or **statistics** (award bylines, `heads-luck`), and he ruled those stay: *"just the in-play line is fine, leave the prose and stats"*.
+
+**Rule:** ALL CAPS when the game announces a flip outcome as it happens; lowercase when teaching or tallying. Same shape as the ye/you distinction.
+**Hazard:** a blanket replace would hit `e.heads`, `p.heads` and the `.coin.heads` CSS class — the `layout`→`layet` trap from D-29. Scope to string literals.
+
+## COPY QUEUE — approved 2026-07-30, not yet applied
+
+1. Tails dock prompt → `⚫️ TAILS! Take treasure instead? Or buy a bundle of 🌼 Velvety Vanilla Beans?` (amounts stay on the buttons, per his D-31 no-duplication principle)
+2. Coin picker → `How many?`
+3. Privacy notice → back to plain "you" (out-of-character chrome, like the labels)
+4. Fade → strict sequence: fade current line OUT, then show next. He explicitly waved off the drag concern: *"that's on me to decide"*
+5. Tortuga → **remove** the special case; it becomes a dock like any other. *"we're not adding another storm outcome -- we're actually removing one"*
+6. Dock addressed lines → drop the place
+7. G10, G11, G12 above
+
+---
+
+# SESSION 1 — two-tab playtest notes (2026-07-29)
 
 Wyatt hosting on `localhost:8911` (seat 0), Claude guest on `localhost:8912` (seat 1), 2 bots.
 Room XUDV. Both origins serve worktree `new-gsd-project-e18e9f` at `ab98e04`.

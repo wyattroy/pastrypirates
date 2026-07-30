@@ -23,11 +23,43 @@ per game — one can span nearly half the rim, so a single move can cross the wh
 **This is free travel. Always compare:**
 
 ```
-direct cost      = manhattan(me, dock)
-via-the-rim cost = manhattan(me, nearest cell of arc A) + manhattan(head(A), dock)
+direct cost      = waterRoute(me, dock)
+via-the-rim cost = waterRoute(me, nearest cell of arc A) + waterRoute(head(A), dock)
 ```
 
-Take the cheaper. In the 2026-07-29 game the arc heads were `1,10` · `0,5` · `11,1` · `10,13`, and
+Take the cheaper.
+
+> **CORRECTION (2026-07-30) — do NOT use Manhattan distance here.** This section originally said
+> `manhattan(...)`, and Wyatt caught me sailing a route that went the long way around an island
+> because of it. Straight-line grid distance happily measures a path straight *through* land, so it
+> under-estimates any route with an island between the two points and silently picks the wrong
+> target.
+>
+> **Use the board's own reachability instead.** The guest's frozen game object still exposes the
+> static board, so a plain BFS works and is cheap (177 valid cells):
+>
+> ```js
+> const K=c=>c[0]+','+c[1];
+> function waterRoute(from){                       // returns {"x,y": steps} for the whole board
+>   const dist={[K(from)]:0}, q=[from];
+>   while(q.length){
+>     const c=q.shift(), d=dist[K(c)];
+>     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+>       const n=[c[0]+dx,c[1]+dy], k=K(n);
+>       if(k in dist || !g.valid.has(k) || g.blocked(n)) continue;
+>       dist[k]=d+1; q.push(n);
+>     }
+>   }
+>   return dist;
+> }
+> ```
+>
+> `g.valid` is a 177-entry Set of playable cells and `g.blocked([x,y])` is true for land — both are
+> static board data, so they stay correct on a guest even though `players[]` is frozen.
+>
+> Sanity note: on one measured turn all seven options scored identically under both methods, so the
+> two agree often enough that the flaw hides. That is exactly why it needs replacing rather than
+> spot-checking. In the 2026-07-29 game the arc heads were `1,10` · `0,5` · `11,1` · `10,13`, and
 `10,13` sat 2 from cocoa and 5 from dairy — a huge shortcut into the south-east cluster.
 
 It fires after a normal sail (`humanTurn`/`humanAct` both call `tradewind(p)`), not just on storm
