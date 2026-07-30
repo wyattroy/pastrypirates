@@ -606,9 +606,18 @@ export async function humanTrade(p){
       }
       const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
       coinOpts.push({label:"← Back",back:true,value:-1});
-      const offerSoFar=st.baseIng?ilabelImg(st.baseIng):"nothing yet";
       // @copy prompt.trade.addcoins
-      const extraCoins=await ask(`Add any 🌕 to yer offer of ${offerSoFar}?`,coinOpts);
+      // G11 (Wyatt-approved 2026-07-30): was `Add any 🌕 to yer offer of <the crate, or a
+      // placeholder phrase when there was none>?`. His words: "this is a weird statement, for players
+      // who only offer coins! It should just say 'How many?' -- and i think it would work with all
+      // branches." BOTH branches, so the interpolation goes entirely and the local const that built
+      // it was DELETED — a const nothing reads is the dead code D-33/D-34/D-40 exist to prevent, and
+      // it stranded the coins-only placeholder phrase, which is the exact wording he called weird.
+      // WHAT HE GIVES UP, stated plainly so a later pass does not "restore context" and undo him: on
+      // the crate branch this screen now reads `How many?` above a row of coin options ending in
+      // `No extra coins`, with no reminder of WHICH crate is being offered. He has been told this and
+      // accepted it.
+      const extraCoins=await ask(`How many?`,coinOpts);
       if(extraCoins===-1){step=2;continue;}
       st.extraCoins=extraCoins;step=4;
     }
