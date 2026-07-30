@@ -459,16 +459,42 @@ export async function humanDock(p,port){
     appState.game.tokens[ing]--;p.ing.push(ing);appState.game.ev({t:"dock",p:p.idx,ing,heads:1,got:"ing"});
   }else{
     let got="coins";
-    if(appState.game.cfg.dockBuy&&p.coins>=3&&appState.game.tokens[ing]>0){
+    // F9 (Wyatt-approved 2026-07-29, D-41): the affordability test USED TO LIVE IN THIS CONDITION,
+    // so a captain with under 3 coins got no prompt at all — the turn resolved straight to taking
+    // the coins and they never learned that buying the crate was possible but unaffordable, which is
+    // exactly the information that teaches the dock-on-tails rule. Same family as D-41's dead-ends,
+    // inverted: instead of offering an option that cannot work, it removed the choice with no
+    // explanation. The prompt now shows whenever the buy rule is on and the island has stock;
+    // affordability decides only whether the buy option is CLICKABLE.
+    if(appState.game.cfg.dockBuy&&appState.game.tokens[ing]>0){
+      const canBuy=p.coins>=3;
       // @copy prompt.dock.tailschoice
       // F5 (Wyatt-approved 2026-07-29): SEVENTH site of the icon-before-the-clause shape — not in
       // the playtest notes' six-site audit table, found while implementing. Was
       // `${iconImg(ING_IMG[ing])} ${dockFlavor(ing)}`, which floated the icon to the front of the
       // whole flavour phrase; dockFlavorIcon() places it directly before the ingredient NAME using
       // the declared split. Same rule, same fix, no new copy — the sentence is unchanged.
+      //
+      // F9's reason is Wyatt's own copy, approved 2026-07-29 — shipped verbatim, and three things
+      // about it are load-bearing: the dash is a U+2014 em dash per D-53 and the house style; the
+      // coin stays as the 🌕 emoji shorthand because emojify() turns it into the coin artwork at the
+      // panel() chokepoint (D-50), so an image tag must NOT be hand-rolled here; and it is supplied
+      // ONLY when unaffordable, so a solvent captain sees no helper text at all. The prompt sentence
+      // itself is deliberately unchanged — it already names the alternative.
+      //
+      // This fix and scripts/ui_contract_check.js's co-reachability assertion hold each other up:
+      // that gate (added for F11) requires every `disabled:` option to have a reason reachable in
+      // the state it explains, so it now covers this option and would fail if the reason were ever
+      // removed or moved into a branch that cannot fire alongside the greying.
       const buy=await ask(`Tails! Take 3🌕 — or buy ${dockFlavorIcon(ing)} for 3🌕?`,[
-        {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true},{label:"Take 3🌕",value:false}]);
-      if(buy){p.coins-=3;appState.game.tokens[ing]--;p.ing.push(ing);got="bought";}
+        {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true,disabled:!canBuy},{label:"Take 3🌕",value:false}],
+        null,canBuy?null:`Yer too broke to buy it — take the 3🌕 instead.`);
+      // D-40 safety net: guard the purchase on affordability as well as on the returned choice, so a
+      // forced or edge selection of the greyed option can never spend coins that are not there.
+      // Deliberately re-reads p.coins rather than trusting `canBuy`, which was computed BEFORE the
+      // await: the shot-clock's 20-second penalty can take a coin WHILE this prompt is open (see
+      // COIN-AUDIT.md site 4), so a stale flag would leave that hole open while looking guarded.
+      if(buy&&p.coins>=3){p.coins-=3;appState.game.tokens[ing]--;p.ing.push(ing);got="bought";}
       else p.coins+=3;
     }else p.coins+=3;
     appState.game.ev({t:"dock",p:p.idx,ing,heads:0,got});

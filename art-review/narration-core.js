@@ -721,6 +721,14 @@ export const SUB_BRANCH_AXES = {
     { tag: null, ctx: { canCounter: false }, note: "Shown when the bot cannot afford to raise any further." },
     { tag: "cancounter", ctx: { canCounter: true }, note: "Deliberately silent — a counter-offer is still affordable." },
   ],
+  // F9 (2026-07-29) — humanDock's dock-on-tails choice. Without this axis the card renders SILENT
+  // under the default 4-coin context, so Wyatt's approved reason (the ONLY new copy in this pass)
+  // would never reach the review page at all: present in source, reachable at runtime, invisible to
+  // review. Same shape as the three siblings above.
+  "prompt.dock.tailschoice": [
+    { tag: null, ctx: { canBuy: false }, note: "Shown when the captain holds under 3 coins: the buy option renders greyed and this says why (F9/D-41). Before F9 the whole prompt did not appear at all in this state — the turn silently resolved to taking the coins." },
+    { tag: "canbuy", ctx: { canBuy: true }, note: "Deliberately silent — the captain can afford the crate, so nothing is greyed and no helper text renders." },
+  ],
 };
 
 /* ---- The ONE remaining curated renderer set, and why each survivor is here.

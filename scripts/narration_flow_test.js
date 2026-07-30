@@ -254,6 +254,47 @@ function lineOf(src, idx) {
     flipPrompt, "`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`");
 }
 
+/* ---------- F9: the unaffordable dock-buy option greys out with its reason, instead of vanishing ---------- */
+{
+  const liveCode = FLOW_SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+  const tailsIdx = liveCode.indexOf("Tails! Take");
+  checkTrue("F9: the dock-on-tails prompt located by content", tailsIdx > 0);
+
+  // 1. the coin test is OUT of the branch condition, so the prompt can no longer vanish. Extracted
+  //    by balancing the if(...) parens — slicing to the prompt instead would run past the condition
+  //    into the statement below it and read `const canBuy=p.coins>=3` as part of the guard.
+  const before = liveCode.slice(Math.max(0, tailsIdx - 420), tailsIdx);
+  const lastIf = before.lastIndexOf("if(");
+  let depth = 0, condEnd = -1;
+  for (let k = lastIf + 2; lastIf >= 0 && k < before.length; k++) {
+    if (before[k] === "(") depth++;
+    else if (before[k] === ")") { depth--; if (depth === 0) { condEnd = k; break; } }
+  }
+  const branchCond = condEnd < 0 ? "" : before.slice(lastIf, condEnd + 1);
+  checkTrue("F9: the enclosing branch condition was located", !!branchCond);
+  check(`F9: the coin test is OUT of the branch condition, so the prompt always shows — ${branchCond}`, /p\.coins/.test(branchCond), false);
+  checkTrue("F9: the buy-rule and remaining-stock tests DO remain in the condition", /dockBuy/.test(branchCond) && /tokens/.test(branchCond));
+
+  // 2. affordability now only decides whether the option is clickable
+  const callRegion = liveCode.slice(tailsIdx, tailsIdx + 900);
+  checkTrue("F9/D-41: the buy option carries a disabled flag", /disabled\s*:\s*!canBuy/.test(callRegion));
+  checkTrue("F9: canBuy is computed from the purse", /const canBuy=p\.coins>=3;/.test(liveCode));
+
+  // 3. Wyatt's approved reason ships BYTE-EXACT, with its U+2014 em dash and its coin shorthand
+  const REASON = "Yer too broke to buy it — take the 3\u{1F315} instead.";
+  checkTrue("F9: the approved reason is present byte-exact (U+2014 em dash, 🌕 emoji shorthand)", FLOW_SRC.includes(REASON));
+  check("F9/D-53: the dash is U+2014 — not an en dash, not a hyphen", /Yer too broke to buy it (–|-) /.test(FLOW_SRC), false);
+  check("F9/D-50: the coin stays as emoji shorthand — emojify() renders the art at the panel() chokepoint, so no hand-rolled img tag", /<img[^>]*coin[^>]*>\s*instead/i.test(FLOW_SRC), false);
+  checkTrue("F9: the reason is supplied CONDITIONALLY, so an affordable captain sees no helper text", /canBuy\?null:`Yer too broke to buy it/.test(liveCode));
+
+  // 4. D-40 safety net — and it re-reads the purse rather than trusting the pre-await flag, because
+  //    the shot clock's 20s penalty can take a coin WHILE this prompt is open (COIN-AUDIT.md site 4).
+  const buyGuard = (liveCode.slice(tailsIdx, tailsIdx + 900).match(/if\s*\(\s*buy[^)]*\)/) || [""])[0];
+  checkTrue("F9/D-40: the purchase branch was located", !!buyGuard);
+  checkTrue(`F9/D-40: the purchase is guarded on affordability as well as on the returned choice — ${buyGuard}`, /&&/.test(buyGuard));
+  check("F9/D-40: the guard re-reads p.coins rather than trusting the pre-await canBuy flag", /if\(buy&&p\.coins>=3\)/.test(liveCode), true);
+}
+
 /* ---------- D-09: the round-level lines this plan must NOT touch stay out of this file's diff surface ---------- */
 {
   checkTrue("D-09: this file never defines EVENT_NARRATION.newround (that table lives in src/ui/util.js, plan 15-04's territory)", !FLOW_SRC.includes("newround:"));
