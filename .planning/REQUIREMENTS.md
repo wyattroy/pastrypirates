@@ -37,7 +37,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 - [x] **NARR-03**: The storm intro line reads "First, the storm pushes you {dir1}" instead of the "pushes everyone 2 squares, then 2 more south" phrasing
 - [x] **NARR-04**: The bribe line is context-smart — "with 2 🪙" when a crate is given, and "paid 5 🪙" when the player has no crates to give
 - [x] **NARR-05**: Whenever the narration box describes an action *you* (the local player) took, it addresses you in 2nd person ("you") instead of 3rd person ("{your name}") — making the narration read more naturally. This includes the "already anchored safely" line (which currently only appears for other players/bots) and every other self-referential narration branch
-- [x] **NARR-06**: Narration text stays fully visible 10% less time before it begins fading
+- [x] **NARR-06**: Non-prompt (blue-box) narration holds ~10% less time on screen before the next line comes in *(reworded 2026-07-30 at Wyatt's clarification — the criterion was always hold length, never fade)*
 
 ### UI / UX Polish (UI)
 
