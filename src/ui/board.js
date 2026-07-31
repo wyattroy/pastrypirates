@@ -83,7 +83,7 @@ import {
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows,
+  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
 } from "./util.js";
 import { recipeTitle } from "./recipe.js";
 
@@ -252,7 +252,12 @@ export function drawBoard(){
   // ships
   shipEls=[];
   appState.game.players.forEach((p,i)=>{
-    const g=el("g",{style:"transition: transform .35s cubic-bezier(.42,0,.58,1)"},svg);
+    // DERIVED from SHIP_GLIDE_MS, not written as a literal `.35s`. util.js's constant carried the
+    // comment "must match drawBoard()'s ship `transition: transform .35s`" — two numbers kept in
+    // step by hand, in different files, one of them the pacing basis for every per-square animation
+    // in the game. setShipGlideMs() below now also has to restore this exact value, which would
+    // have made it three. Deriving it makes the coupling structural instead of a promise.
+    const g=el("g",{style:`transition: transform ${shipGlideCss(SHIP_GLIDE_MS)}`},svg);
     const boatSize=cell;
     el("image",{x:-boatSize/2,y:-boatSize/2,width:boatSize,height:boatSize,href:BOAT_IMG[i]},g);
     shipEls.push(g);
@@ -422,6 +427,61 @@ function activeTurnSeat(){
 // the shared-cell nudge on `events[evIdx].state` instead — the same snapshot render() draws from,
 // and the reason a guest can render at all — with just this seat's pos overridden. Correct on both
 // tiers by construction.
+// ONE spelling of the ship glide, used by drawBoard() to create it and by setShipGlideMs() to
+// retune and restore it. Only the duration and the easing ever vary.
+const SHIP_GLIDE_EASE="cubic-bezier(.42,0,.58,1)";
+function shipGlideCss(ms,ease){ return `${ms}ms ${ease||SHIP_GLIDE_EASE}`; }
+// Retune ONE ship's glide duration, or restore the default when `ms` is null.
+//
+// WHY THIS EXISTS (2026-07-31, from two trade-wind recordings): the default SHIP_GLIDE_MS (350ms)
+// is tuned for a ship moving ONE square at a time and is far too long for a sweep that re-aims the
+// ship many times a second. Left at 350ms the ship was still travelling toward one target when the
+// next arrived, so it lagged, and — chasing a target around a curve — took the chord instead of the
+// arc, cutting across the middle of the board.
+//
+// The sweep now drives the motion itself, tick by tick along a spline, so it wants a glide of about
+// ONE TICK and a LINEAR easing: just enough for the browser to bridge between successive targets
+// and absorb setTimeout's jitter, and not so much that the lag returns. See RIM_SWEEP_TICK_MS.
+//
+// Scoped to one seat because only the sweeping ship should be retuned — every other ship on the
+// board is still moving under ordinary rules and must keep the ordinary glide.
+// `ease` matters as much as `ms` here: the rim sweep drives its own motion tick by tick, so it wants
+// a LINEAR glide of about one tick — just enough for the browser to bridge between our targets and
+// absorb setTimeout's jitter. The default eased curve applied per-tick would ease in and out of
+// every single tick, which is a shimmer, not a smooth line.
+// THE RING MUST BE RETUNED WITH THE SHIP — 2026-07-31, third recording (`notes/tradewinds v5.mov`).
+// activeRing carries NO transition of its own, so it SNAPS to each target while the ship eases
+// toward it, leaving the ripple permanently ahead of the boat it is supposed to be marking. That is
+// how the very first bug was diagnosed (the ring ran ~2 squares ahead and was drawing the correct
+// path), and once the ship's own lag was fixed the same asymmetry became the remaining visible
+// defect — smaller, but now the only thing moving out of step. Wyatt: *"the rings now move ahead of
+// the boat."*
+//
+// The ring is only retuned while a sweep is in flight, and RESTORED to snapping afterwards. It must
+// keep snapping normally: `render()` repositions it whenever the turn passes, and a ring that
+// glided there would slide right across the board from the previous captain's boat to the next.
+export function setShipGlideMs(seat,ms,ease){
+  if(!shipEls.length||!shipEls[seat])return;
+  const css=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}`;
+  shipEls[seat].style.transition=css;
+  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=ms==null?"":css;
+}
+// Move one ship to an arbitrary FRACTIONAL cell position — the sub-square painter behind the smooth
+// trade-wind arc. paintShipAt() below can only address whole cells, which is precisely the
+// limitation that made the sweep a staircase.
+//
+// No shared-cell nudge here, deliberately: shipXY()'s ±0.18 offset exists so two ships PARKED on one
+// square stay both visible, and applying it to a ship in flight would make it twitch sideways every
+// time it passed over an occupied square. The resting nudge is restored by the final
+// paintShipAt(seat,to) when the sweep ends.
+export function paintShipAtPoint(seat,fx,fy){
+  if(appState.replaying)return;
+  if(!shipEls.length||!shipEls[seat])return;
+  const x=(fx+.5)*cell, y=(fy+.5)*cell;
+  shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
+  if(chatBubbles[seat])positionChatBubble(seat,x,y);
+  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transform=`translate(${x}px,${y}px)`;
+}
 export function paintShipAt(seat,c){
   if(appState.replaying)return;
   if(!shipEls.length||!shipEls[seat])return;

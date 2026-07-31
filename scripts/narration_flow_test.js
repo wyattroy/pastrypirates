@@ -34,7 +34,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom, coinShortfall, rimSweepPath } from "../src/ui/flow.js";
+import { brokeSailLine, brokeAnchorLine, stormIntroClause, counterHeadroom, coinShortfall, rimSweepPath, rimSweepCurve } from "../src/ui/flow.js";
 import { Game as EngineGame, roundCfg as engineRoundCfg } from "../src/engine/index.js";
 import { appState } from "../src/state/index.js";
 import { DIRS } from "../src/shared/index.js";
@@ -574,6 +574,94 @@ const stripLeadingComments = (src) => src.split("\n").filter((l) => !/^\s*(\/\/|
   const flat = new EngineGame({ ...engineRoundCfg(["balanced", "balanced", "balanced", "balanced"]), roundBoard: false }, 7, true);
   check("G14: a non-round board returns [] (no ring exists, so no sweep can be invented)", rimSweepPath(flat, [0, 0]).length, 0);
   check("G14: a null/absent `from` returns [] rather than throwing", rimSweepPath(flat, null).length, 0);
+}
+
+/* ---------- 2026-07-31: rimSweepCurve — the smooth arc's pure half ---------- */
+// The per-square stepper this replaces was CORRECT and looked wrong (Wyatt: "it moves according to
+// a step function instead of a smooth, rounded motion"). Correctness alone therefore proves nothing
+// here; what these check is that the curve is smooth, hugs the ring, and lands exactly where the
+// engine says the ship ended up. Run over real randomised boards for the same reason rimSweepPath's
+// tests are: arc layout and ring rotation are both RNG-derived per game.
+{
+  let curvesChecked = 0, worstGap = 0, worstDrift = 0, worstEven = 0;
+  const problems = [];
+  for (let seed = 1; seed <= 8; seed++) {
+    const g = new EngineGame(engineRoundCfg(["balanced", "balanced", "balanced", "balanced"]), seed, true);
+    const ring = g.rimCellInfo || [];
+    // `g.cfg.grid`, NOT `g.grid` — there is no `grid` property on Game, and the first draft of this
+    // test used one. cx/cy came out NaN, every radius came out NaN, and `r < rMin - 0.75` is false
+    // for NaN, so the ring-hugging assertion below silently checked NOTHING while printing PASS.
+    // That is the exact vacuous-check failure mode this project has now caught four times; the
+    // finite() guard underneath is here so it cannot recur silently a fifth.
+    const n = g.cfg.grid;
+    const cx = (n - 1) / 2, cy = (n - 1) / 2;
+    // the ring's own radius band, measured from the board — never hard-coded, so an island-redesign
+    // that moves the ring makes this test move with it instead of going quietly wrong
+    const radii = ring.map((c) => Math.hypot(c.x - cx, c.y - cy));
+    const rMin = Math.min(...radii), rMax = Math.max(...radii);
+    if (!Number.isFinite(rMin) || !Number.isFinite(rMax) || rMax <= 0) {
+      problems.push(`seed ${seed}: ANTI-VACUITY — the ring radius band is not finite (${rMin}..${rMax}); the hugs-the-ring assertion below would silently pass without testing anything`);
+      continue;
+    }
+    for (const rc of ring) {
+      const from = [rc.x, rc.y];
+      const path = rimSweepPath(g, from);
+      if (!path.length) continue;
+      const curve = rimSweepCurve([from, ...path]);
+      curvesChecked++;
+      if (curve.length < 2) { problems.push(`seed ${seed}: ${from} produced a degenerate curve`); continue; }
+
+      // 1. starts ON the square the player clicked, ends ON the whirlpool — no easing past either
+      const head = path[path.length - 1];
+      const d0 = Math.hypot(curve[0][0] - from[0], curve[0][1] - from[1]);
+      const d1 = Math.hypot(curve[curve.length - 1][0] - head[0], curve[curve.length - 1][1] - head[1]);
+      if (d0 > 1e-6) problems.push(`seed ${seed}: curve from ${from} starts ${d0.toFixed(3)} cells away from it`);
+      if (d1 > 1e-6) problems.push(`seed ${seed}: curve from ${from} ends ${d1.toFixed(3)} cells from the arc head ${head}`);
+
+      // 2. SMOOTH: no sample-to-sample jump anywhere near a whole cell. A staircase would show up
+      //    here as a gap of ~1.0 — this is the property the redesign exists to create.
+      // 3. EVENLY SPACED: constant spacing == constant speed. Uneven spacing would make the boat
+      //    slow through the curves and hurry the straights, the same class of artefact as before.
+      const gaps = [];
+      for (let i = 1; i < curve.length; i++) gaps.push(Math.hypot(curve[i][0] - curve[i - 1][0], curve[i][1] - curve[i - 1][1]));
+      const maxGap = Math.max(...gaps), minGap = Math.min(...gaps);
+      worstGap = Math.max(worstGap, maxGap);
+      worstEven = Math.max(worstEven, maxGap - minGap);
+      if (maxGap > 0.35) problems.push(`seed ${seed}: curve from ${from} jumps ${maxGap.toFixed(3)} cells between samples — that is a step, not a glide`);
+      if (maxGap - minGap > 0.05) problems.push(`seed ${seed}: curve from ${from} is unevenly spaced (${minGap.toFixed(3)}..${maxGap.toFixed(3)}) — speed would vary along the arc`);
+
+      // 4. HUGS THE RING: the whole point of the previous bug was a boat cutting across the middle
+      //    of the board. A spline can overshoot on tight turns, so allow a small band either side
+      //    of the ring's own radius — but nothing like the several cells a chord would cut.
+      for (const p of curve) {
+        const r = Math.hypot(p[0] - cx, p[1] - cy);
+        worstDrift = Math.max(worstDrift, Math.max(0, rMin - r, r - rMax));
+        if (r < rMin - 0.75 || r > rMax + 0.75) {
+          problems.push(`seed ${seed}: curve from ${from} strays to radius ${r.toFixed(2)}, outside the ring band ${rMin.toFixed(2)}..${rMax.toFixed(2)} — it is cutting across the board`);
+          break;
+        }
+      }
+    }
+  }
+  check(`SMOOTH-ARC: rimSweepCurve over 8 seeds and every rim cell — ${curvesChecked} curve(s); largest sample gap ${worstGap.toFixed(3)} cells, spacing spread ${worstEven.toFixed(4)}, max drift off the ring band ${worstDrift.toFixed(3)} cells${problems.length ? " — " + problems.slice(0, 4).join("; ") : ""}`, problems.length, 0);
+  check("SMOOTH-ARC: fewer than two cells cannot make a curve (returns [], never throws)", rimSweepCurve([[3, 3]]).length, 0);
+  check("SMOOTH-ARC: a null/garbage input returns [] rather than throwing", rimSweepCurve(null).length, 0);
+
+  // RED-PROOF for the smoothness threshold above. A PASS on "largest gap 0.088" only means
+  // something if a real staircase would FAIL it — otherwise the number is decoration. Feed the raw
+  // cell centres (exactly what the old per-square stepper visited) through the same measurement and
+  // confirm it lands where a step function must: at ~1.0 cells, far past the 0.35 threshold.
+  {
+    const stair = [[5, 0], [6, 0], [7, 0], [8, 0], [9, 0]];
+    let maxStep = 0;
+    for (let i = 1; i < stair.length; i++) maxStep = Math.max(maxStep, Math.hypot(stair[i][0] - stair[i - 1][0], stair[i][1] - stair[i - 1][1]));
+    checkTrue(`SMOOTH-ARC RED-PROOF: the per-square stepper's own gaps (${maxStep.toFixed(2)} cells) exceed the 0.35 smoothness threshold — the assertion above can fail`, maxStep > 0.35);
+    // and the curve through those same cells must come in UNDER it
+    const smoothed = rimSweepCurve(stair);
+    let maxSmooth = 0;
+    for (let i = 1; i < smoothed.length; i++) maxSmooth = Math.max(maxSmooth, Math.hypot(smoothed[i][0] - smoothed[i - 1][0], smoothed[i][1] - smoothed[i - 1][1]));
+    checkTrue(`SMOOTH-ARC RED-PROOF: the curve through the same cells stays under it (${maxSmooth.toFixed(3)} cells)`, maxSmooth < 0.35);
+  }
 }
 
 /* ---------- D-09: the round-level lines this plan must NOT touch stay out of this file's diff surface ---------- */

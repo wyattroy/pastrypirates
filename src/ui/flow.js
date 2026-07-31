@@ -51,7 +51,7 @@ import {
   DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt } from "./board.js";
+import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -59,7 +59,8 @@ import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
-  msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_STEP_MS,
+  msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
+  RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -389,6 +390,79 @@ export function rimSweepPath(game,from){
   if(headIdx<0)return [];
   return cells.slice(fromIdx+1,headIdx+1).map(c=>[c.x,c.y]);
 }
+// 2026-07-31: the PURE half of the smooth trade-wind arc — cell centres in, evenly-spaced curve
+// points out. Kept pure and exported for the same reason rimSweepPath is: it can then be tested
+// headlessly over real randomised boards, which is the only way this project has ever caught a
+// geometry mistake before a human saw it.
+//
+// WHY A CURVE AT ALL. The per-square stepper it replaces was correct and looked wrong — Wyatt:
+// *"it moves according to a step function instead of a smooth, rounded motion."* Landing on each
+// square is right for a storm push (1-2 squares, each one meant to be read) and wrong for a boat
+// carried by a current along a ring: walked one cell at a time, a ring is a staircase.
+//
+// Catmull-Rom through the cell centres, NOT a circular arc fitted to the ring. The rim IS very
+// nearly a circle today (every rim cell sits 7.0-7.3 cells from the board centre), so a fitted arc
+// would look identical and take less code — but it would bake in a board shape that the deferred
+// island-redesign milestone explicitly changes. A spline through whatever cells rimSweepPath
+// returns cannot go stale that way.
+//
+// The output is RESAMPLED to even spacing so that travelling it at a constant rate gives a constant
+// SPEED. Walking the raw spline samples instead would slow down through curves and speed up on the
+// straights, which is the same class of artefact this is replacing.
+// `perCell` is how finely the curve itself is sampled — 48 points per ring cell, comfortably finer
+// than any tick rate can consume, so the traversal is never quantised by the curve's own resolution.
+// It costs a few hundred array entries once per sweep and nothing per frame, so there is no reason
+// to be stingy with it. (Raised 16 -> 48 on 2026-07-31; the largest sample gap fell 0.088 -> 0.029
+// cells, measured by the SMOOTH-ARC test.)
+export function rimSweepCurve(cells,perCell=48){
+  if(!Array.isArray(cells)||cells.length<2)return [];
+  // duplicate both ends so the spline actually reaches the first and last cell rather than easing
+  // out of them — the boat must start ON the square the player clicked and finish ON the whirlpool
+  const P=[cells[0],...cells,cells[cells.length-1]];
+  const raw=[]; const SEG=12;
+  for(let i=1;i<P.length-2;i++){
+    const [x0,y0]=P[i-1],[x1,y1]=P[i],[x2,y2]=P[i+1],[x3,y3]=P[i+2];
+    for(let s=0;s<SEG;s++){
+      const t=s/SEG,t2=t*t,t3=t2*t;
+      raw.push([
+        .5*(2*x1+(x2-x0)*t+(2*x0-5*x1+4*x2-x3)*t2+(3*x1-x0-3*x2+x3)*t3),
+        .5*(2*y1+(y2-y0)*t+(2*y0-5*y1+4*y2-y3)*t2+(3*y1-y0-3*y2+y3)*t3),
+      ]);
+    }
+  }
+  raw.push([cells[cells.length-1][0],cells[cells.length-1][1]]);
+  const cum=[0];
+  for(let i=1;i<raw.length;i++)cum.push(cum[i-1]+Math.hypot(raw[i][0]-raw[i-1][0],raw[i][1]-raw[i-1][1]));
+  const total=cum[cum.length-1];
+  if(!(total>0))return [raw[0],raw[raw.length-1]];
+  const N=Math.max(2,Math.round(perCell*(cells.length-1)));
+  const out=[]; let j=0;
+  for(let k=0;k<=N;k++){
+    const d=total*k/N;
+    while(j<cum.length-2&&cum[j+1]<d)j++;
+    const span=cum[j+1]-cum[j], f=span>0?(d-cum[j])/span:0;
+    out.push([raw[j][0]+(raw[j+1][0]-raw[j][0])*f,raw[j][1]+(raw[j+1][1]-raw[j][1])*f]);
+  }
+  return out;
+}
+// eased 0..1 — the winds take hold, then the whirlpool receives the boat rather than snapping it
+const rimSweepEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+// ── THE TWO FUNCTIONS BELOW ARE THE SWEEP'S MOTION, AND THE ONLY COPY OF IT ────────────────────
+// Extracted 2026-07-31 so scripts/rim_sweep_trace_test.js can enumerate exactly what the live
+// animation will aim at, without a browser. That harness is only worth anything if it measures the
+// REAL motion rather than a re-implementation that can drift, so animateRimSweepIfAny below calls
+// these and does no position maths of its own — and host_guest_parity_check.js assertion 4 fails if
+// it ever stops doing so. Both are pure: no DOM, no clock, no state.
+export function rimSweepDurationMs(cellCount){
+  return Math.min(RIM_SWEEP_MAX_MS,Math.max(RIM_SWEEP_MIN_MS,Math.round(RIM_SWEEP_MS_PER_CELL*cellCount)));
+}
+// position at progress `t` (0..1) along an already-built curve, easing included
+export function rimSweepPointAt(curve,t){
+  if(!Array.isArray(curve)||curve.length<2)return null;
+  const u=rimSweepEase(Math.min(1,Math.max(0,t)))*(curve.length-1);
+  const i=Math.min(curve.length-2,Math.floor(u)), f=u-i;
+  return [curve[i][0]+(curve[i+1][0]-curve[i][0])*f,curve[i][1]+(curve[i+1][1]-curve[i][1])*f];
+}
 // G14 (Wyatt-approved 2026-07-30): THE ONE TRADE-WIND STEPPER, called identically by the host sites
 // and by the guest's watchEvents(). Takes NO PARAMETERS on purpose — no call site can pass something
 // a different call site doesn't, so the two tiers cannot be paced or aimed differently.
@@ -436,13 +510,57 @@ export async function animateRimSweepIfAny(){
   const end=path[path.length-1];
   if(end[0]!==to[0]||end[1]!==to[1])return;   // the derivation disagrees with the engine — do not guess
   try{
-    for(const c of path){
-      paintShipAt(seat,c);
-      await sleep(RIM_SWEEP_STEP_MS);
+    // ── PART A: ARRIVE IN THE TRADE WINDS FIRST ──────────────────────────────────────────────
+    // The square the player clicked was never drawn. liveRender() at the call site DOES write it,
+    // but the very next statement (this function, synchronously through to its first await) wrote
+    // path[0] over the top of it — and a browser paints once per task, so only path[0] ever
+    // reached the screen. The sweep therefore began with the boat still rendered INLAND, and
+    // dragged it diagonally out of the middle of the board.
+    //
+    // paintShipAt() rather than trusting that liveRender(): render() draws from
+    // events[appState.evIdx].state and evIdx is the NARRATION cursor, which can lag the emitted
+    // event. This targets `from` explicitly, and moves the activeRing with it.
+    //
+    // The await is the load-bearing half — it is the yield that lets the browser paint the arrival
+    // at all, and RIM_SWEEP_ARRIVE_MS is long enough for that glide to COMPLETE.
+    // The glide is set to the SAME value we are about to wait for, so the landing completes exactly
+    // as the wait ends. Leaving it at SHIP_GLIDE_MS (350) while waiting only 140 would re-create the
+    // very bug this function exists to fix: the sweep re-aiming a ship that is still in flight.
+    // Linear, because a 140ms ease-in-out over one square reads as a hesitation.
+    if(RIM_SWEEP_ARRIVE_MS>0){
+      setShipGlideMs(seat,RIM_SWEEP_ARRIVE_MS,"linear");
+      paintShipAt(seat,from);
+      await sleep(RIM_SWEEP_ARRIVE_MS);
+    }
+    // ── PART B: CARRY THE BOAT SMOOTHLY ALONG THE RING ───────────────────────────────────────
+    // Interpolated along a spline, NOT stepped cell by cell. See rimSweepCurve above, and
+    // RIM_SWEEP_TICK_MS in util.js, for why the per-square stepper this replaces looked wrong even
+    // though it was doing exactly what it was designed to do.
+    const curve=rimSweepCurve([from,...path]);
+    if(curve.length>1){
+      const total=rimSweepDurationMs(path.length);
+      // one tick's worth of LINEAR glide, so the browser bridges between our targets and soaks up
+      // setTimeout's jitter. Anything longer re-introduces the lag that made the boat cut corners.
+      setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
+      const began=Date.now();
+      for(;;){
+        // progress from ELAPSED TIME, never from a tick count. A throttled or late tick then
+        // advances further along the curve instead of stretching the sweep — and in a hidden tab,
+        // where setTimeout is clamped to ~1s, this reaches 1 and terminates rather than crawling.
+        // (rAF would not run at all there; see RIM_SWEEP_TICK_MS and src/ui/panel.js:334.)
+        const t=Math.min(1,(Date.now()-began)/total);
+        const p=rimSweepPointAt(curve,t);
+        if(p)paintShipAtPoint(seat,p[0],p[1]);
+        if(t>=1)break;
+        await sleep(RIM_SWEEP_TICK_MS);
+      }
     }
   }finally{
     // an interruption (turn expiry, a mid-sweep event, a thrown paint) must never strand the ship
-    // part-way round the arc
+    // part-way round the arc — nor leave it stuck on the sweep's short glide, which would make
+    // every ordinary move it makes for the rest of the game snap instead of glide. Restore BEFORE
+    // the corrective paint so that paint travels at the normal speed.
+    setShipGlideMs(seat,null);
     paintShipAt(seat,to);
   }
 }

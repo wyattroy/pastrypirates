@@ -433,6 +433,39 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 
+## Milestone Backlog
+
+Drafted 2026-07-31. Every open backlog item has exactly one home below — nothing is unassigned.
+Wyatt ruled on 2026-07-31 that **v1.2 finishes first** (Phases 16 and 17 stay in v1.2, with the two
+economy-corruption bugs added ahead of them as a new phase). Milestone *ordering* after v1.2 is not
+yet decided; the grouping is.
+
+**v1.2 tail — finish before anything below**
+
+| Phase | Content |
+|---|---|
+| **NEW: Economy Correctness** | CR-02 (a trade can delete the wrong crate and mint one that never existed), CR-03 (fleeing a battle mints coins), and extending G6's approved shared re-validation helper from coins to crates. Wyatt: *"ship it and fix those next."* Sequenced **ahead of** Phase 16 per his own note in STATE.md |
+| **Phase 16** | UI/UX polish, social preview + favicon, Ko-Fi (UI-01…07, META-01/03, KOFI-01). Two of its add-on notes are **already done**: the guest sail-highlight fix landed as G25, and the host/guest parity gate exists as `npm test` gate 17 |
+| **Phase 17** | Final Safari + Chrome two-window playtest (VERIFY-01) |
+
+**Candidate milestones after v1.2** — grouped by what must ship together, not by size:
+
+| Candidate | Contents | Why grouped this way |
+|---|---|---|
+| **Look & Feel** *(HIGH — Wyatt, 2026-07-31)* | WIND-01/02/03 board + trade-wind animation, ABOUT-01/02 About page, and META-01's Google thumbnail | All drawing-layer only, so **no determinism re-record** and the items can run in parallel. The About page's screenshot is what finally gives Google an in-page image to promote, so META-01 belongs with it |
+| **Fast to Load** | LOAD-01…04 — welcome screen paints instantly, heavy art loads only on play, ~18 MB → 3–5 MB | The single biggest thing a first-time visitor feels; independent of everything else |
+| **The Gated Re-Record** | Engine purity (`spoil`/`gave`/`ilabelImg`/the dead `asym` branch), STORM-02 guest storm animation, and the bot-intelligence improvements | **One-way door.** `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 is explicit: the 31-seed corpus is re-recorded exactly once, so every queued item must land before that single `--capture`. Landing any one alone spends the whole cost for a fraction of the benefit |
+| **Narration Pacing & Copy Integrity** | NARR-07 (Phase 18 below), the shipped-vs-approved copy gate, the two-scheduler unification, the two never-eyeballed D-41 greyed states | All four are the narration system's remaining debt, and three of them touch the same timing code |
+| **Fair Play Online** | Every-client-sees-every-recipe, human trade counter-offer | Both are about the negotiation being honest between players who cannot see each other |
+| **Welcome Aboard** | TUT-01…03 tutorial, AUDIO-01…03 sound effects | Both are first-ten-minutes content rather than fixes |
+| **Island Redesign** | ISLAND-01…04 | Needs its **own second re-record** — it cannot ride the batch above, so it stands alone |
+| **Platform Debt** | NETMOD-01, DX-01, DX-02, Phase 999.1 resume-mid-narration | No player sees any of it; do it when it starts costing us |
+
+**Carrying no work — protective rulings only.** `flee-not-offered-when-broke`,
+`flip-outcomes-all-caps-in-play-only` and `ships-stack-after-rim-sweep` are closed decisions. Their
+todo files exist specifically to stop a future sweep "fixing" them; read them before touching those
+branches.
+
 ## Backlog
 
 ### Phase 18: Narration Pacing — commentary, not a gate
