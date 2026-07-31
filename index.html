@@ -459,12 +459,17 @@
   .btl-prompt .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .btlBtn { font-size: 14px; }
   .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
-  /* Halved 1.8s -> 3.6s (Wyatt: "unstylishly frenetic ... should feel more calming, like a boat on
-     the water; while still moving enough to attract attention"). The three rings' stagger in
-     src/ui/board.js moves WITH it — 0.6s -> 1.2s — so they stay evenly spaced across the cycle at
-     one third each. Change one and the other must follow, or the rings bunch up. */
-  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 3.6s ease-out infinite; }
-  @keyframes rippleOut { 0% { transform: scale(.6); opacity: .85; } 100% { transform: scale(2.4); opacity: 0; } }
+  /* THE EASING IS THE WHOLE TRICK — do not put ease-out back. Wyatt, on the 3.6s ease-out version:
+     "the rings bunch up. and then they pause." That was not a timing problem. ease-out sprints then
+     crawls, so three rings spaced evenly in TIME arrive clumped in SPACE near the outer edge, and
+     the slow tail plus the gap before the next ring leaves the centre reads as a stall. LINEAR is
+     what makes a sonar ripple look evenly spaced and continuous.
+     Speed: 3.6s -> 2.7s (33% faster, his "re-increase 30%"), chosen over 2.77 so the stagger lands
+     on clean thirds. Travel widened .6->2.4 to .55->2.7 so the gaps between rings read larger, which
+     is the "more gap between them" half of the note.
+     The stagger in src/ui/board.js is duration/3 = 0.9s. CHANGE ONE AND THE OTHER MUST FOLLOW. */
+  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 2.7s linear infinite; }
+  @keyframes rippleOut { 0% { transform: scale(.55); opacity: .85; } 100% { transform: scale(2.7); opacity: 0; } }
   /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
      and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
   /* UI-06: sail-destination squares — juicy, bouncing, clearly clickable */
