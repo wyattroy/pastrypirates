@@ -126,6 +126,22 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   fixture corpus captures the engine only. Wyatt ruled the replacement copy 2026-07-31:
   **"they give up 5 🌕"** (rendering the actual amount, which is `min(5, coins)` and not always 5).
   *(Found in the v1.2 Phase 17 playtest.)*
+- **FIX-11**: **The final-round announcement reaches guests, not just the host.** Guests never see
+  *"{captain} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn"*
+  (`src/orchestrator.js:840`), so they play their last turn without knowing it is their last —
+  a fairness problem, not just a missing line. Every broadcast path is gated on `appState.isHost`
+  (`src/orchestrator.js:286`/`:289`); `netBroadcast` deliberately does not touch the local panel, so
+  `netIntroBarrier` depends on `localAsk`/`onRemoteDraftPrompt` to render it. **Reproduce before
+  fixing** — two candidate sites, and the copy itself is approved and must not change. Check whether
+  `npm test` gate 17 (host/guest parity) covers narration at all. *(Found in the v1.2 Phase 17
+  playtest.)*
+- **FIX-12**: **The 21 recipe images are re-masked with a soft, anti-aliased alpha edge.** They were
+  cut out with a threshold rather than a matte, so every silhouette is stair-stepped and light
+  subjects can carry a dark fringe from the near-black generation background. Not a scaling issue —
+  the 512px sources are downscaled by the 220px modal thumb. **Files must be replaced in place:**
+  `attachPastryArt()` maps recipes to art **by index**, so a rename or reorder silently attaches the
+  wrong picture to every recipe. **Sequence with LOAD-04** so the art is re-exported once, not twice,
+  and compression cannot undo the new soft alpha. *(Found in the v1.2 Phase 17 playtest.)*
 - **FIX-10**: **A narrow window never clips the action button.** `resizePanel()`
   (`src/ui/panel.js:308-318`) measures the message height **once** and pins `#apGrid` to that pixel
   value, while `#apGridInner` is `overflow:hidden` — so any later height growth is silently cut off.
