@@ -239,7 +239,7 @@
     {
       "id": "adhoc.storm.brokeanchor",
       "file": "src/ui/flow.js",
-      "line": 499,
+      "line": 522,
       "fn": "windLeg",
       "tableDriven": false,
       "group": "Storm",
@@ -253,7 +253,7 @@
     {
       "id": "adhoc.storm.botsquare",
       "file": "src/ui/flow.js",
-      "line": 583,
+      "line": 606,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -267,7 +267,7 @@
     {
       "id": "adhoc.storm.botlegsummary",
       "file": "src/ui/flow.js",
-      "line": 603,
+      "line": 626,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -281,7 +281,7 @@
     {
       "id": "adhoc.storm.secondleg",
       "file": "src/ui/flow.js",
-      "line": 637,
+      "line": 660,
       "fn": "humanWind",
       "tableDriven": false,
       "group": "Storm",
@@ -295,7 +295,7 @@
     {
       "id": "adhoc.trade.nocargo",
       "file": "src/ui/flow.js",
-      "line": 727,
+      "line": 750,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -309,7 +309,7 @@
     {
       "id": "adhoc.trade.refusalbot",
       "file": "src/ui/flow.js",
-      "line": 866,
+      "line": 889,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -323,7 +323,7 @@
     {
       "id": "adhoc.trade.refusalhuman",
       "file": "src/ui/flow.js",
-      "line": 883,
+      "line": 906,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -337,7 +337,7 @@
     {
       "id": "adhoc.act.bakerystart",
       "file": "src/ui/flow.js",
-      "line": 974,
+      "line": 997,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -351,7 +351,7 @@
     {
       "id": "adhoc.act.nopowder",
       "file": "src/ui/flow.js",
-      "line": 983,
+      "line": 1006,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Battle",
@@ -365,7 +365,7 @@
     {
       "id": "adhoc.turn.banner",
       "file": "src/ui/flow.js",
-      "line": 1026,
+      "line": 1049,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Round Header",
@@ -379,7 +379,7 @@
     {
       "id": "adhoc.turn.leeward",
       "file": "src/ui/flow.js",
-      "line": 1054,
+      "line": 1077,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -393,7 +393,7 @@
     {
       "id": "adhoc.turn.brokesail",
       "file": "src/ui/flow.js",
-      "line": 1064,
+      "line": 1087,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -407,7 +407,7 @@
     {
       "id": "adhoc.turn.botsecondleg",
       "file": "src/ui/flow.js",
-      "line": 1123,
+      "line": 1146,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Storm",
@@ -421,7 +421,7 @@
     {
       "id": "adhoc.turn.botbrokesail",
       "file": "src/ui/flow.js",
-      "line": 1167,
+      "line": 1190,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -435,7 +435,7 @@
     {
       "id": "adhoc.sidebet.backed",
       "file": "src/ui/flow.js",
-      "line": 1397,
+      "line": 1420,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -449,7 +449,7 @@
     {
       "id": "adhoc.sidebet.freecall",
       "file": "src/ui/flow.js",
-      "line": 1399,
+      "line": 1422,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -463,7 +463,7 @@
     {
       "id": "adhoc.sidebet.settle",
       "file": "src/ui/flow.js",
-      "line": 1437,
+      "line": 1460,
       "fn": "settleSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -477,7 +477,7 @@
     {
       "id": "adhoc.turn.botbanner",
       "file": "src/ui/util.js",
-      "line": 1102,
+      "line": 1137,
       "fn": "narrateCurrent",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -491,7 +491,7 @@
     {
       "id": "adhoc.turn.boteventpassthrough",
       "file": "src/ui/util.js",
-      "line": 1107,
+      "line": 1142,
       "fn": "narrateCurrent",
       "tableDriven": true,
       "group": "Sailing & Movement",
@@ -742,7 +742,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 501,
+      "line": 524,
       "fn": "windLeg",
       "kind": "ask",
       "rawMsg": "promptMsg",
@@ -789,7 +789,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 706,
+      "line": 729,
       "fn": "humanDock",
       "kind": "ask",
       "rawMsg": "`⚫️ TAILS! Take treasure instead? Or buy ${dockFlavorIcon(ing)}?`",
@@ -820,7 +820,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 743,
+      "line": 766,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Trade with whom?\"",
@@ -843,7 +843,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 749,
+      "line": 772,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`What do ye WANT from ${pn(st.q.idx)}?`",
@@ -866,7 +866,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 763,
+      "line": 786,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`What will ye GIVE ${pn(st.q.idx)} in exchange?`",
@@ -897,7 +897,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 774,
+      "line": 797,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Ye don't have any to offer!\"",
@@ -920,7 +920,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 790,
+      "line": 813,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`How many?`",
@@ -943,7 +943,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 805,
+      "line": 828,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)}: accept ${offerDisplay} for yer ${ilabelImg(want)}?`",
@@ -974,7 +974,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 839,
+      "line": 862,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)} scoffs — but counters: \"${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it.\"`",
@@ -1005,7 +1005,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 957,
+      "line": 980,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "prompt",
@@ -1068,7 +1068,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 986,
+      "line": 1009,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "\"Attack whom?\"",
@@ -1091,7 +1091,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1196,
+      "line": 1219,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`📯 ${pn(p.idx)} hails ye: \"Ahoy! Want ${price}🌕 for yer ${ilabelImg(ing)}?\"`",
@@ -1130,7 +1130,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1203,
+      "line": 1226,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`Counter — how much for yer ${ilabelImg(ing)}?`",
@@ -1161,7 +1161,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1370,
+      "line": 1393,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`",
@@ -1192,7 +1192,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1380,
+      "line": 1403,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`💰 Add to yer call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`",
@@ -1231,7 +1231,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1570,
+      "line": 1593,
       "fn": "remotePickHighlights",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${msg||sailPickMsg(appState.mySeat)}</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
@@ -1280,7 +1280,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1478,
+      "line": 1501,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"cancel\">Both ⚪️ HEADS — no score this round.</span>`",
       "id": "misc.battleline.bakeoffbothheads"
@@ -1288,7 +1288,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1483,
+      "line": 1506,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"score\">${ah?nm(A.idx):nm(B.idx)} scores!</span>`",
       "id": "misc.battleline.bakeoffscores"
@@ -1296,7 +1296,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1486,
+      "line": 1509,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"cancel\">Both ⚫️ TAILS — no score this round.</span>`",
       "id": "misc.battleline.bakeoffbothtails"
@@ -1304,7 +1304,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 475,
+      "line": 498,
       "fn": "render",
       "rawMsg": "hold.map(x2=>`<span class=\"chip extra\" title=\"surplus cargo: ${iname(x2)}\">${ingImg(x2)}</span>`)",
       "id": "misc.board.surplustooltip"
@@ -1312,7 +1312,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 477,
+      "line": 500,
       "fn": "render",
       "rawMsg": "chips.join(\"\")+(extras.length?`<span style=\"opacity:.4\">·</span>`:\"\")+extras.join(\"\")",
       "id": "misc.board.prowcargorow"
@@ -1320,7 +1320,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 481,
+      "line": 504,
       "fn": "render",
       "rawMsg": "`<button type=\"button\" class=\"checkRecipeBtn\" onclick=\"revealMyRecipe()\" style=\"background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}\">🔍 Check my recipe</button>`",
       "id": "misc.board.checkrecipebtn"
@@ -1328,7 +1328,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 488,
+      "line": 511,
       "fn": "render",
       "rawMsg": "held.join(\"\")||`<span style=\"opacity:.4\">empty hold</span>`",
       "id": "misc.board.emptyhold"
@@ -1336,7 +1336,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 644,
+      "line": 667,
       "fn": "showStats",
       "rawMsg": "w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`",
       "id": "misc.board.eovbanner"
@@ -1344,7 +1344,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 663,
+      "line": 686,
       "fn": "showStats",
       "rawMsg": "`<table>\n    <tr><td>Rounds</td><td>${appState.game.round}</td></tr>\n    <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>\n    <tr><td>Trades</td><td>${appState.game.trades}</td></tr>\n    <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?\"yes — \"+appState.game.finishOrder.length+\" finishers\":\"no\"}</td></tr>\n    ${appState.game.players.map((p,i)=>`<tr><td style=\"color:${HEXCOL[i]}\">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join(\"\")}\n    </table>`",
       "id": "misc.board.statsheadings"
@@ -1376,7 +1376,7 @@
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 1269,
+      "line": 1292,
       "fn": "netIntroBarrier",
       "anchor": "Waiting for yer mateys",
       "id": "misc.draftwait.introwait"
@@ -1393,7 +1393,7 @@
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 1300,
+      "line": 1323,
       "fn": "showAhoyIntro",
       "rawMsg": "`⚓ Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!`",
       "rawButton": "\"⚓ Arrgh!\"",
@@ -1402,7 +1402,7 @@
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 1318,
+      "line": 1341,
       "fn": "showTurnOrderIntro",
       "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+\n    `No fretting, patience pays — ${rest} all cast off with extra dubloons.`",
       "rawButton": "\"🦜 Start\"",
@@ -1499,7 +1499,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 511,
+      "line": 534,
       "fn": "windLeg",
       "callee": "humanFlip",
       "rawLabel": "\"Flip to dodge!\"",
@@ -1510,7 +1510,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 656,
+      "line": 679,
       "fn": "humanDock",
       "callee": "humanFlip",
       "rawLabel": "`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`",
@@ -1521,7 +1521,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 995,
+      "line": 1018,
       "fn": "humanAct",
       "callee": "fishCast",
       "rawLabel": "\"🎣 Cast yer line — flip!\"",
@@ -1532,7 +1532,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 1240,
+      "line": 1263,
       "fn": "botTurn",
       "callee": "fishCast",
       "rawLabel": "",

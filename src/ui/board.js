@@ -83,7 +83,7 @@ import {
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows,
+  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
 } from "./util.js";
 import { recipeTitle } from "./recipe.js";
 
@@ -252,7 +252,12 @@ export function drawBoard(){
   // ships
   shipEls=[];
   appState.game.players.forEach((p,i)=>{
-    const g=el("g",{style:"transition: transform .35s cubic-bezier(.42,0,.58,1)"},svg);
+    // DERIVED from SHIP_GLIDE_MS, not written as a literal `.35s`. util.js's constant carried the
+    // comment "must match drawBoard()'s ship `transition: transform .35s`" — two numbers kept in
+    // step by hand, in different files, one of them the pacing basis for every per-square animation
+    // in the game. setShipGlideMs() below now also has to restore this exact value, which would
+    // have made it three. Deriving it makes the coupling structural instead of a promise.
+    const g=el("g",{style:`transition: transform ${shipGlideCss(SHIP_GLIDE_MS)}`},svg);
     const boatSize=cell;
     el("image",{x:-boatSize/2,y:-boatSize/2,width:boatSize,height:boatSize,href:BOAT_IMG[i]},g);
     shipEls.push(g);
@@ -422,6 +427,24 @@ function activeTurnSeat(){
 // the shared-cell nudge on `events[evIdx].state` instead — the same snapshot render() draws from,
 // and the reason a guest can render at all — with just this seat's pos overridden. Correct on both
 // tiers by construction.
+// ONE spelling of the ship glide, used by drawBoard() to create it and by setShipGlideMs() to
+// retune and restore it. Same easing curve in every case — only the duration ever varies.
+function shipGlideCss(ms){ return `${ms}ms cubic-bezier(.42,0,.58,1)`; }
+// Retune ONE ship's glide duration, or restore the default when `ms` is null.
+//
+// WHY THIS EXISTS (2026-07-31, from the trade-winds recording): the rim sweep re-aims a ship every
+// RIM_SWEEP_STEP_MS (95ms) while its glide runs for SHIP_GLIDE_MS (350ms), so the ship never
+// reached any square before being sent to the next. Chasing a target around a curve, it took the
+// chord instead of the arc — cutting across the middle of the board. Shortening the glide FOR THE
+// DURATION OF THE SWEEP makes each hop land, so the ship traces the ring. The sweep's total
+// duration is unchanged; only whether the boat actually gets there is.
+//
+// Scoped to one seat because only the sweeping ship should be retuned — every other ship on the
+// board is still moving under ordinary rules and must keep the ordinary glide.
+export function setShipGlideMs(seat,ms){
+  if(!shipEls.length||!shipEls[seat])return;
+  shipEls[seat].style.transition=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms)}`;
+}
 export function paintShipAt(seat,c){
   if(appState.replaying)return;
   if(!shipEls.length||!shipEls[seat])return;

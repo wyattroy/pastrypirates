@@ -51,7 +51,7 @@ import {
   DIRS, DIRNAME, windStepCost, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt } from "./board.js";
+import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -59,7 +59,7 @@ import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
-  msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_STEP_MS,
+  msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_STEP_MS, RIM_SWEEP_GLIDE_MS, RIM_SWEEP_ARRIVE_MS,
 } from "./util.js";
 import { passGate, requireName, showStep } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
@@ -394,13 +394,36 @@ export async function animateRimSweepIfAny(){
   const end=path[path.length-1];
   if(end[0]!==to[0]||end[1]!==to[1])return;   // the derivation disagrees with the engine — do not guess
   try{
+    // ── PART A: ARRIVE IN THE TRADE WINDS FIRST ──────────────────────────────────────────────
+    // The square the player clicked was never drawn. liveRender() at the call site DOES write it,
+    // but the very next statement (this function, synchronously through to its first await) wrote
+    // path[0] over the top of it — and a browser paints once per task, so only path[0] ever
+    // reached the screen. The sweep therefore began with the boat still rendered INLAND, and
+    // dragged it diagonally out of the middle of the board.
+    //
+    // paintShipAt() rather than trusting that liveRender(): render() draws from
+    // events[appState.evIdx].state and evIdx is the NARRATION cursor, which can lag the emitted
+    // event. This targets `from` explicitly, and moves the activeRing with it.
+    //
+    // The await is the load-bearing half — it is the yield that lets the browser paint the arrival
+    // at all, and RIM_SWEEP_ARRIVE_MS is long enough for that glide to COMPLETE.
+    paintShipAt(seat,from);
+    await sleep(RIM_SWEEP_ARRIVE_MS);
+    // ── PART B: LET THE BOAT ACTUALLY FOLLOW THE RING ────────────────────────────────────────
+    // Shorten this ship's glide so each 95ms hop lands instead of being re-aimed at ~27% travelled.
+    // See RIM_SWEEP_GLIDE_MS in util.js for the recording that proved this necessary. Total sweep
+    // duration is unchanged — the beat is still RIM_SWEEP_STEP_MS per square.
+    setShipGlideMs(seat,RIM_SWEEP_GLIDE_MS);
     for(const c of path){
       paintShipAt(seat,c);
       await sleep(RIM_SWEEP_STEP_MS);
     }
   }finally{
     // an interruption (turn expiry, a mid-sweep event, a thrown paint) must never strand the ship
-    // part-way round the arc
+    // part-way round the arc — nor leave it stuck on the sweep's short glide, which would make
+    // every ordinary move it makes for the rest of the game snap instead of glide. Restore BEFORE
+    // the corrective paint so that paint travels at the normal speed.
+    setShipGlideMs(seat,null);
     paintShipAt(seat,to);
   }
 }

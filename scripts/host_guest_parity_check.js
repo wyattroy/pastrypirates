@@ -44,6 +44,16 @@
 //    enough to pass an empty tree). Exactly one rimSweepPath definition; src/orchestrator.js calls
 //    the shared animateRimSweepIfAny() and contains NEITHER rimCellInfo NOR rimHead — i.e. the
 //    guest tier does not reimplement the ring walk.
+// 4. THE RIM SWEEP ARRIVES BEFORE IT SWEEPS, AND RESTORES THE GLIDE (2026-07-31). Assertion 3 pins
+//    that ONE stepper exists and both tiers call it; it says nothing about whether that stepper
+//    draws the right thing. It didn't. The sweep painted only squares AFTER the one the player
+//    clicked, and did so in the same synchronous task as the board redraw that would have shown the
+//    arrival — so the browser never painted the clicked square at all, and the sweep began with the
+//    boat still rendered inland. With a 350ms glide re-aimed every 95ms the boat then took the
+//    CHORD instead of the ARC, drifting diagonally across the middle of the board. Since both tiers
+//    share the stepper, both tiers had it. Assertion 4 pins the two properties that fix it: the
+//    sweep paints `from` AND YIELDS before its loop, and it retunes the glide AND restores it in a
+//    `finally`. See `notes/trade winds animation bug.mov`.
 //
 // ============================================================================
 // Comment stripping, and why it is not optional here
@@ -173,6 +183,69 @@ export function checkOneRimSweepStepper(root) {
   return res;
 }
 
+// Added 2026-07-31 after a screen recording (`notes/trade winds animation bug.mov`) showed the
+// sweep dragging the boat diagonally across the middle of the board instead of round the ring.
+//
+// The two properties below are invisible in code review — both look like ordinary paint calls, and
+// the tree passed every other gate while the bug was live. What made it visible was that
+// `activeRing` carries no css transition and so ran ~2 squares AHEAD of the boat, drawing the path
+// the boat should have taken. Neither property can be asserted from the ring, so assert them from
+// the source instead:
+//
+//   1. The sweep PAINTS `from` AND AWAITS before the loop. The await is the load-bearing half: it
+//      is the yield that lets the browser paint the arrival at all. A paint with no await is
+//      exactly the no-op that caused the bug — same task, overwritten before any pixel moved.
+//   2. The sweep retunes the glide AND RESTORES IT. Failing to restore is worse than the original
+//      bug: the ship keeps a ~86ms glide for the rest of the game, so every ordinary move snaps.
+export function checkRimSweepArrivesAndRestores(root) {
+  const res = mk("assertion 4 — the rim sweep arrives before it sweeps, and restores the glide (2026-07-31)");
+  const flow = read(root, FLOW_REL);
+  if (flow === null) { fail(res, `${FLOW_REL} is missing`); return res; }
+  const live = stripComments(flow);
+
+  // Isolate animateRimSweepIfAny's body by brace matching — a regex over the whole file would
+  // happily match a paint in some unrelated function and report a green that means nothing.
+  const start = live.indexOf("export async function animateRimSweepIfAny");
+  if (start < 0) {
+    fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny is not in ${FLOW_REL} at all. ANTI-VACUITY: this assertion fails rather than passing over an absent function.`);
+    return res;
+  }
+  const open = live.indexOf("{", start);
+  let depth = 0, end = -1;
+  for (let i = open; i < live.length; i++) {
+    if (live[i] === "{") depth++;
+    else if (live[i] === "}") { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end < 0) { fail(res, `PARITY-SWEEPARRIVE: could not brace-match animateRimSweepIfAny's body`); return res; }
+  const body = live.slice(open, end);
+
+  const loopAt = body.indexOf("for(const c of path)");
+  if (loopAt < 0) { fail(res, `PARITY-SWEEPARRIVE: the per-square sweep loop is gone from animateRimSweepIfAny — this assertion no longer describes the code and must be rewritten, not deleted.`); return res; }
+  const beforeLoop = body.slice(0, loopAt);
+
+  // 1. arrival: paint `from`, then YIELD, both before the loop
+  if (!/paintShipAt\(\s*seat\s*,\s*from\s*\)/.test(beforeLoop)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep never paints the ship at \`from\` before its loop. The square the player clicked is then never drawn, and the sweep starts with the boat still rendered inland — the 2026-07-31 bug exactly.`);
+  }
+  if (!/await\s+sleep\(\s*RIM_SWEEP_ARRIVE_MS\s*\)/.test(beforeLoop)) {
+    fail(res, `PARITY-SWEEPARRIVE: no \`await sleep(RIM_SWEEP_ARRIVE_MS)\` before the sweep loop. Painting \`from\` WITHOUT yielding is a no-op — the browser paints once per task, so the next paint overwrites it before any pixel moves. The await IS the fix; the paint alone is not.`);
+  }
+
+  // 2. the glide is retuned for the sweep, and restored afterwards
+  if (!/setShipGlideMs\(\s*seat\s*,\s*RIM_SWEEP_GLIDE_MS\s*\)/.test(body)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep does not shorten the ship's glide to RIM_SWEEP_GLIDE_MS. Left at SHIP_GLIDE_MS the ship is re-aimed at ~27% travelled and takes the chord instead of the arc — it cuts across the board.`);
+  }
+  if (!/setShipGlideMs\(\s*seat\s*,\s*null\s*\)/.test(body)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep never restores the glide via setShipGlideMs(seat,null). The ship would keep the short sweep glide for the REST OF THE GAME, making every ordinary move snap instead of glide.`);
+  }
+  const fin = body.lastIndexOf("finally");
+  if (fin < 0 || !/setShipGlideMs\(\s*seat\s*,\s*null\s*\)/.test(body.slice(fin))) {
+    fail(res, `PARITY-SWEEPARRIVE: the glide restore is not inside the \`finally\`. A turn expiry or a thrown paint mid-sweep would then strand the ship on the short glide permanently.`);
+  }
+  note(res, `sweep arrives at \`from\` and yields before stepping; glide retuned and restored in finally`);
+  return res;
+}
+
 /* ================= Runner ================= */
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
@@ -192,6 +265,11 @@ function runAll(root, { quiet = false } = {}) {
   log(`${a3.ok ? "PASS" : "FAIL"} ${a3.name}`);
   for (const n of a3.notes) log(`      ${n}`);
   results.push(a3);
+
+  const a4 = checkRimSweepArrivesAndRestores(root);
+  log(`${a4.ok ? "PASS" : "FAIL"} ${a4.name}`);
+  for (const n of a4.notes) log(`      ${n}`);
+  results.push(a4);
 
   return results;
 }
@@ -333,18 +411,60 @@ function drill() {
   fixture(ORCH_REL, GOOD_SWEEP_ORCH);
   expect("drill 3d (negative control — one stepper, guest drives it)", checkOneRimSweepStepper(tmpRoot), false);
 
+  // --- assertion 4 fixtures ---
+  // 4a: THE REAL PRE-FIX SHAPE. Not invented — this is the body as it stood at 1ac3d10, the code
+  //     the recording was made against. An assertion that cannot fail against the actual bug it
+  //     was written for is decoration.
+  const PREFIX_SWEEP = `export async function animateRimSweepIfAny(){
+  const path=rimSweepPath(g,from);
+  try{
+    for(const c of path){
+      paintShipAt(seat,c);
+      await sleep(RIM_SWEEP_STEP_MS);
+    }
+  }finally{
+    paintShipAt(seat,to);
+  }
+}\n`;
+  resetFixture();
+  fixture(FLOW_REL, PREFIX_SWEEP);
+  expect("drill 4a (THE REAL PRE-FIX CODE — no arrival, no glide retune)", checkRimSweepArrivesAndRestores(tmpRoot), true, "never paints the ship at `from`");
+
+  // 4b: paints the arrival but does NOT yield — the subtle version, and the one most likely to be
+  //     written by someone "fixing" this from the summary alone. Must still FAIL.
+  resetFixture();
+  fixture(FLOW_REL, PREFIX_SWEEP.replace("  try{", "  try{\n    paintShipAt(seat,from);"));
+  expect("drill 4b (paints the arrival but never yields — still invisible)", checkRimSweepArrivesAndRestores(tmpRoot), true, "WITHOUT yielding is a no-op");
+
+  // 4c: retunes the glide but never restores it — every later move snaps for the rest of the game
+  resetFixture();
+  fixture(FLOW_REL, `export async function animateRimSweepIfAny(){
+  try{
+    paintShipAt(seat,from);
+    await sleep(RIM_SWEEP_ARRIVE_MS);
+    setShipGlideMs(seat,RIM_SWEEP_GLIDE_MS);
+    for(const c of path){ paintShipAt(seat,c); await sleep(RIM_SWEEP_STEP_MS); }
+  }finally{ paintShipAt(seat,to); }
+}\n`);
+  expect("drill 4c (glide retuned but never restored)", checkRimSweepArrivesAndRestores(tmpRoot), true, "never restores the glide");
+
+  // 4d: ANTI-VACUITY — the function is gone entirely. Must FAIL, not pass over an absent body.
+  resetFixture();
+  fixture(FLOW_REL, `export function rimSweepPath(){}\n`);
+  expect("drill 4d (anti-vacuity — no animateRimSweepIfAny at all must FAIL)", checkRimSweepArrivesAndRestores(tmpRoot), true, "not in");
+
   // --- final negative control: the REAL tree passes every assertion, which is what proves the
   //     fixes and the gate agree ---
   {
     const r = runAll(REAL_ROOT, { quiet: true });
     const ok = r.every((x) => x.ok);
-    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes all three) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
+    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes all four) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
     for (const x of r) for (const f of x.failures) console.log(`    ${f}`);
     if (!ok) allOk = false;
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "ALL 3 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "ALL 4 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 

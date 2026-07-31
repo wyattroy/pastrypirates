@@ -973,6 +973,41 @@ export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappi
 //     is what "square-by-square, quickly" should look like.
 // ONE constant, so host and guest are paced identically by construction.
 export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
+//
+// ────────────────────────────────────────────────────────────────────────────────────────────────
+// CORRECTION, 2026-07-31, FROM A SCREEN RECORDING (`notes/trade winds animation bug.mov`).
+//
+// The paragraph directly above is WRONG about what 95ms actually looks like, and it was believed
+// for a full day because it reasons about the code rather than about the screen. Retargeting a
+// 350ms glide every 95ms does NOT read as "continuous travel ALONG the ring". It makes the boat a
+// heavily damped FOLLOWER of its target, and a damped follower chasing a target around a curve
+// takes the CHORD, NOT THE ARC — so the boat cuts the corner and drifts diagonally across the
+// middle of the board, over the islands, arriving late and never touching the ring at all.
+//
+// THE PROOF IS IN THE RECORDING, and it is a detail nobody thought to look for: `activeRing` (the
+// white sonar ripple, src/ui/board.js) is moved by the SAME paintShipAt() call on the SAME beat,
+// but it carries NO css transition — so it snaps to each square exactly. Frame-stepping the
+// recording, the ring runs roughly TWO SQUARES AHEAD of the boat for the entire sweep. The ring was
+// drawing the correct path the whole time; the boat simply never went there.
+//
+// Wyatt: "the boat kind of gets dragged over the islands in a shorter version of the ark." The arc
+// looks short because the boat is cutting across the inside of it.
+//
+// So the sweep now shortens the ship's OWN glide for its duration (RIM_SWEEP_GLIDE_MS) instead of
+// leaving a 350ms glide to be perpetually re-aimed. Total sweep duration is unchanged — still
+// RIM_SWEEP_STEP_MS per square — so the "square-by-square, quickly" intent above still holds. What
+// changes is that each hop now LANDS, so the boat traces the ring instead of short-cutting it.
+// Kept just under the step so a hop is always complete before the next is issued; at exactly the
+// step, timer jitter can re-aim at 99% travelled and reintroduce a little of the same lag.
+export const RIM_SWEEP_GLIDE_MS=Math.round(RIM_SWEEP_STEP_MS*0.9); // 86
+// The beat the boat spends ARRIVING in the trade winds before the sweep pulls it away. The square
+// the player clicked was previously never drawn at all: the board redraw that would have shown it
+// and the sweep's first paint ran in one synchronous block with no yield between them, so the
+// browser only ever painted the second. Hence the sweep began with the boat still rendered inland.
+// A full SHIP_GLIDE_MS lets that arrival glide COMPLETE, so the sweep starts from the ring.
+// This is the feel knob for "arrive, then go" — raise it toward STORM_STEP_MS for a beat of rest at
+// the channel mouth before the winds take hold.
+export const RIM_SWEEP_ARRIVE_MS=SHIP_GLIDE_MS; // 350
 
 // D-23 (Wyatt-approved 2026-07-29): bot narration used to hold on screen for LESS time than the
 // identical human line (BOT_MSG_HOLD_MULTIPLIER 0.45 vs MSG_HOLD_MULTIPLIER 0.72) — a violation of
