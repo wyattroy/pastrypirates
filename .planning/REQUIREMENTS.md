@@ -116,6 +116,14 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   paid-anchor branch (`src/engine/index.js:280-287`), so this may be an economy bug wearing a copy
   bug's clothes. **Investigate before writing copy: if the fix is in the engine it forces a
   determinism re-record and belongs in the gated batch.**
+- **FIX-07**: The **bribe narration only fires when the loser actually had a crate to give up.** A
+  loser with an **empty hold** and 5+ coins currently reads *"bribes their way out of giving away a
+  crate"* — they had no crate, so nothing was bribed out of. `isBribe` (`src/ui/util.js:595`) tests
+  `spoilN>=5` as a proxy for "chose coins over a crate", and that proxy is wrong exactly in the
+  empty-hold case (`src/orchestrator.js:630` — `else mode="coins"`, not a choice). Needs a new
+  optional field on the battle event. **Verified this does not force a determinism re-record** as
+  long as the field is added in `src/orchestrator.js` and **not** `src/engine/index.js` — the
+  fixture corpus captures the engine only. *(Found in the v1.2 Phase 17 playtest.)*
 - **FIX-06**: The **12 solid-orange `button.primary` buttons** are restyled to the game's standard
   outline + faded-fill pattern (`index.html:125`, copying `.footerKofi` at `:135-151`). Scope ruled
   by Wyatt 2026-07-31: the "Host a Crew" choice card, the "Play again" gradient, and the
