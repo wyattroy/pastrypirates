@@ -798,6 +798,39 @@ export function checkFbInitBeforeSoloResume(root) {
   return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
 }
 
+// "We never connected" and "the server is busy" are different failures and must stay different
+// sentences. Both entry points to multiplayer — createRoom and joinRoom — must check for a null
+// database handle BEFORE attempting the call, because a missing handle is a precondition, not an
+// exception, and routing it into the catch is how both ended up sharing the capacity line.
+export function checkNoConnectionDistinctFromCapacity(root) {
+  const failures = [];
+  const rel = path.join("src", "orchestrator.js");
+  const full = path.join(root, rel);
+  if (!fs.existsSync(full)) return { ok: true, failures, stats: { scanned: 0 } };
+  const src = fs.readFileSync(full, "utf8");
+  const live = src.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+
+  // presence first: the shared constant must exist at all, or the two guards below mean nothing
+  if (!/const\s+NO_CONNECTION_MSG\s*=/.test(live)) {
+    failures.push(`MPERR-NOCONN: NO_CONNECTION_MSG is not defined in ${rel} — the "we never connected" case has no sentence of its own and would fall back to the capacity line, which blames the server for a local condition.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  // ...and it must be ONE constant, not a phrase copied to each site
+  const defs = (live.match(/const\s+NO_CONNECTION_MSG\s*=/g) || []).length;
+  if (defs !== 1) failures.push(`MPERR-NOCONN: ${defs} definitions of NO_CONNECTION_MSG in ${rel}, expected exactly 1 — one cause, one sentence (the same rule D-60 applies to the capacity line).`);
+
+  for (const fn of ["createRoom", "joinRoom"]) {
+    const at = live.indexOf(`export async function ${fn}(`);
+    if (at < 0) { failures.push(`MPERR-NOCONN-ANCHOR: ${fn}() not found in ${rel} — re-anchor this assertion rather than deleting it.`); continue; }
+    const end = live.indexOf("\nexport ", at + 10);
+    const body = live.slice(at, end < 0 ? live.length : end);
+    if (!/if\(!appState\.db\)\{alert\(NO_CONNECTION_MSG\);return;\}/.test(body)) {
+      failures.push(`MPERR-NOCONN: ${fn}() does not guard on a null appState.db before using it. Without that guard the call throws and the catch tells the player the server is at capacity — which is untrue when the real cause is being offline, an ad-blocker, or a script that failed to load.`);
+    }
+  }
+  return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
+}
+
 export function checkStormRainSeeded(root) {
   const failures = [];
   const rel = path.join("src", "ui", "board.js");
@@ -873,6 +906,10 @@ function runAll(root, { quiet = false } = {}) {
   const a9 = checkEovPanelCollapsed(root);
   log(`${a9.ok ? "PASS" : "FAIL"} the narration box is collapsed once the End of Voyage summary appears (UI-07)`);
   results.push({ name: "eov-panel-collapsed", ...a9 });
+
+  const a11 = checkNoConnectionDistinctFromCapacity(root);
+  log(`${a11.ok ? "PASS" : "FAIL"} "we never connected" is a different sentence from "the server is busy"`);
+  results.push({ name: "noconnection-distinct", ...a11 });
 
   const a10 = checkFbInitBeforeSoloResume(root);
   log(`${a10.ok ? "PASS" : "FAIL"} boot() initialises Firebase BEFORE the solo-resume early return`);

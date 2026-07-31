@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1286,
+      "line": 1307,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -1435,7 +1435,15 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1095,
+      "line": 1096,
+      "fn": "createRoom",
+      "rawMsg": "NO_CONNECTION_MSG",
+      "id": "misc.mperror.createnoconnection"
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 1110,
       "fn": "createRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.createcapacity"
@@ -1443,7 +1451,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1104,
+      "line": 1119,
       "fn": "joinRoom",
       "rawMsg": "\"Enter the room code yer host shared.\"",
       "id": "misc.mperror.entercode"
@@ -1451,7 +1459,15 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1108,
+      "line": 1125,
+      "fn": "joinRoom",
+      "rawMsg": "NO_CONNECTION_MSG",
+      "id": "misc.mperror.joinnoconnection"
+    },
+    {
+      "category": "mpError",
+      "file": "src/orchestrator.js",
+      "line": 1129,
       "fn": "joinRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.joincapacity"
@@ -1459,7 +1475,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1110,
+      "line": 1131,
       "fn": "joinRoom",
       "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`",
       "id": "misc.mperror.nogamefound"
@@ -1467,7 +1483,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1117,
+      "line": 1138,
       "fn": "joinRoom",
       "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\"",
       "id": "misc.mperror.alreadysailed"
@@ -1475,7 +1491,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1128,
+      "line": 1149,
       "fn": "joinRoom",
       "rawMsg": "\"Too many pirates already in that game.\"",
       "id": "misc.mperror.roomfull"
@@ -1483,7 +1499,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1138,
+      "line": 1159,
       "fn": "watchRoom",
       "rawMsg": "\"That game no longer exists.\"",
       "id": "misc.mperror.gamegone"
@@ -1491,7 +1507,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1169,
+      "line": 1190,
       "fn": "startGame",
       "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\"",
       "id": "misc.mperror.serviceunreachable"

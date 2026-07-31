@@ -962,7 +962,9 @@ const mpErrorSites = findNamedCallSites(src.orch, FILE_PATHS.orch, ["alert"]);
   const indep = independentCallCount(src.orch, "alert");
   if (indep !== mpErrorSites.length) fail(`mpError: structured extraction found ${mpErrorSites.length} alert() call(s) but the independent count found ${indep}`);
 }
-if (mpErrorSites.length !== 8) fail(`mpError: expected exactly 8 alert() call sites in ${FILE_PATHS.orch}, found ${mpErrorSites.length}`);
+// 8 -> 10 (2026-07-31): createRoom and joinRoom each gained a null-db guard whose alert says
+// "we never connected", which is a different failure from the capacity line they used to share.
+if (mpErrorSites.length !== 10) fail(`mpError: expected exactly 10 alert() call sites in ${FILE_PATHS.orch}, found ${mpErrorSites.length}`);
 const mpError = mpErrorSites.map((s) => ({ file: s.file, line: s.line, fn: s.fn, rawMsg: s.args[0] || "" }));
 
 /* ---- battleLine: the live-round-result `rmsg=` assignments in asyncBattle() (orchestrator.js)

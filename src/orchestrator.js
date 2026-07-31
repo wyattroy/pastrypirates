@@ -1078,7 +1078,22 @@ export function watchNarr(){
 
 /* ================= welcome modal ================= */
 /* ================= lobby / room ================= */
+// WYATT'S WORDING, 2026-07-31, verbatim. Shared by createRoom and joinRoom, the same way the
+// capacity line below is shared by both (D-60) — one cause, one sentence, wherever it surfaces.
+//
+// WHY THIS EXISTS, so nobody merges it back into the capacity line: `appState.db === null` means
+// this browser never established a connection at all — offline, an ad-blocker or extension eating
+// the request, or the multiplayer script failing to load. That is NOT the server being busy. Until
+// today both said "the server's got too many pirates baking right now", which sent a player with
+// their wi-fi off away to wait it out, and made a genuine capacity problem and a local one
+// indistinguishable in a bug report.
+//
+// A null db is checked BEFORE the try, not inside the catch, because it is not an exception — it is
+// a precondition that is knowable without attempting anything.
+const NO_CONNECTION_MSG="Can't reach the Sugar Seas — check yer connection, wifi, and ad blockers, then try again matey.";
 export async function createRoom(){
+  // @copy misc.mperror.createnoconnection
+  if(!appState.db){alert(NO_CONNECTION_MSG);return;}
   const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
   appState.numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
   const code=genCode();
@@ -1102,6 +1117,12 @@ export async function joinRoom(){
   const code=($("joinCode").value||"").toUpperCase().trim();
   // @copy misc.mperror.entercode
   if(code.length<4){alert("Enter the room code yer host shared.");return;}
+  // same precondition as createRoom — a null handle is "we never connected", not "the server is busy".
+  // Two ids for one shared sentence, exactly as createcapacity/joincapacity already do it: the id
+  // names the SITE so a review mark can follow it across a source move, the constant keeps the words
+  // identical so the two can never drift apart.
+  // @copy misc.mperror.joinnoconnection
+  if(!appState.db){alert(NO_CONNECTION_MSG);return;}
   let snap;
   try{snap=await netReadRoom(appState.db,code);}
   // @copy misc.mperror.joincapacity
