@@ -54,12 +54,26 @@ I hosted a real room and rendered its lobby, but never played a second seat thro
 Not observed in a networked game. The engine is unchanged and the gates are green, which is evidence
 about the code, not about what a storm looks like on two screens at once.
 
-### 4. UI-07 was gated, not watched
-The end-of-voyage panel collapse is pinned by `ui_contract_check` assertion 9, red-proofed against
-the real pre-change file. **I never saw it on screen.** Two autoplay attempts failed to reach an
-end-of-voyage — random play reached 1 of 5 ingredients in 256 moves — and the attempt that shortcut
-the route wedged the turn loop, which was my own doing, not a product fault. Worth one look when you
-next finish a game, since it is also the change that touches your F6 rule.
+### 4. UI-07 — CLOSED 2026-07-31, watched in a real finished game (Chrome)
+A full solo game was driven to completion: **16 rounds, Dough Hook won with a Caramel Slice.** State
+captured at the instant the summary appeared, not reconstructed afterwards:
+
+| Checked | Result |
+|---|---|
+| Blue narration box | `display: none` — **hidden**, and its contents empty |
+| Gold banner text | `Dough Hook wins!` + `Dough Hook baked a 📜 Caramel Slice and won Best Baker in the Caribbean!` |
+| Recipe picture in the gold box | present |
+| Best Baker sentence clipped? | no — measured against the banner's own bounds |
+
+This is the item that mattered most, because the previous UI-07 implementation was **provably
+inert**: `showStats()` hid the box and the very next `flash()` re-showed it, so assertion 9 passed
+while the feature did nothing. It now genuinely holds in a real finish.
+
+Earlier attempts failed for a reason now written down in `docs/DRIVING-THE-GAME.md`: the flippenator
+coin `#flipCoinWrap` IS the flip button and is not an `.apBtn`, so every driver stalled waiting for a
+coin toss nobody threw.
+
+**Still not watched in Safari** — see `17-SAFARI-CHECKLIST.md` check 5.
 
 ### 5. The two D-41 greyed states, still never eyeballed
 Carried from Phase 15. `— coins only —` and the hail Counter-offer remain unseen.
