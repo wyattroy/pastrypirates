@@ -467,17 +467,36 @@
     0%, 100% { transform: scale(1); opacity: .5; }
     50%      { transform: scale(1.11); opacity: .72; } }
   @media (prefers-reduced-motion: reduce) { .sailCell { animation: none; } }
-  /* UI-02: an icon rising out of a boat now holds FULL opacity for a whole second before it starts
-     to fade. It used to reach opacity 1 at 18% (450ms) and begin fading from that instant, so the
-     thing the player is meant to read was already disappearing as it arrived.
-     The percentages are tied to the 2.5s duration: 18% = 450ms (arrival), 58% = 1450ms — exactly
-     1000ms later — is where the fade starts. CHANGE THE DURATION AND THESE STOP MEANING 1s. */
-  .pop { animation: popfloat 2.5s ease-out forwards; pointer-events: none; }
+  /* UI-02, REWRITTEN 2026-07-31 to Wyatt's spec. The icon now APPEARS above the boat and then goes
+     INTO it: it pops into existence in the square north of the ship, scaling up from nothing with a
+     bounce, then travels down into the hull, shrinking and fading as it arrives.
+
+     WHAT WAS WRONG BEFORE, so it does not come back: the previous version rose UPWARD out of the
+     boat and, after an earlier pass added a 1-second full-opacity hold, sat motionless partway
+     through its travel. Wyatt: "the icons pause for a moment in the middle of their travel up."
+     That hold is gone — the motion is now continuous from spawn to landing, and the whole thing is
+     1.5s instead of 2.5s, which is what made it read as sluggish.
+
+     The two distances are CSS custom properties set per-element in popEmoji() (src/ui/board.js),
+     derived from the live cell size, so the travel scales with the board instead of being the
+     hardcoded -32px this used to use. --pop-rise is how far above the anchor it spawns;
+     --pop-sink is how far below the anchor the hull sits. Their sum is roughly one full square. */
+  .pop { animation: popfloat 1.5s cubic-bezier(.34,1.24,.64,1) forwards; pointer-events: none; }
   @keyframes popfloat {
-    0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
-    18% { opacity: 1; transform: translate(0, 0) scale(1); }
-    58% { opacity: 1; transform: translate(0, -14px) scale(1.13); }
-    100% { opacity: 0; transform: translate(0, -32px) scale(1.3); }
+    0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(0); }
+    16%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1.25); }
+    28%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+    100% { opacity: 0; transform: translateY(var(--pop-sink, 17px)) scale(0); }
+  }
+  /* the arrival bounce is the point of this animation; with motion reduced it simply appears and
+     goes, in the same place and the same time, so nothing is lost but the overshoot */
+  @media (prefers-reduced-motion: reduce) {
+    .pop { animation: popfade 1.5s ease-out forwards; }
+    @keyframes popfade {
+      0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      16%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      100% { opacity: 0; transform: translateY(var(--pop-sink, 17px)) scale(.6); }
+    }
   }
   /* a bigger, bouncier pop for "you just lost treasure" moments (#5/#6 — a slow or aground
      captain's crate tumbling overboard and splashing back onto its island), so the cause and
@@ -508,12 +527,37 @@
   .victoryRecipe { max-width: 160px; max-height: 130px; object-fit: contain;
     filter: drop-shadow(0 3px 10px rgba(0,0,0,.28)); animation: victoryPop .55s cubic-bezier(.25,1.5,.45,1) both; }
   .victoryText { font-weight: 700; line-height: 1.35; }
+  /* The banner is a centred flex column, which sizes each child to its CONTENT — so a long sentence
+     stays on one line, overflows the card, and the card's own `overflow:hidden` (there for the gold
+     shimmer) clips both ends of it. Caught in the browser: "Wyatt baked a" was cut off on the left
+     and "the Caribbean!" on the right. Constraining the children to the card's width lets the text
+     wrap instead of running past the edges. */
+  .winner-banner > * { max-width: 100%; }
+  /* width:100% is what lets it wrap; text-align re-centres it, because a full-width flex child no
+     longer inherits centring from `align-items` and would otherwise sit left while the crown, the
+     name and the picture above it are all centred. */
+  .winner-banner .victoryText { width: 100%; text-align: center; }
   @keyframes victoryPop { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; }
     60% { transform: scale(1.12) rotate(3deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .victoryRecipe { animation: none; } }
-  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
+  /* 2026-07-31: the gold banner now carries three stacked pieces — the "wins!" line, the winner's
+     recipe picture, and the Best Baker sentence — since the win moved in here out of the blue box.
+     A column flex keeps them centred and spaced; it was a single line of text before. */
+  .winner-banner { display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
     position: relative; overflow: hidden; border: 1.5px solid #c9971f; border-radius: 8px;
-    background: linear-gradient(120deg, #fff6d0 0%, #ffd76a 25%, #fff2c0 50%, #ffd76a 75%, #fff6d0 100%);
+    /* The hard vertical seam Wyatt spotted was a TILING artefact, not a bad colour stop. The
+       gradient ran at 120deg while `background-size: 220%` makes it repeat HORIZONTALLY, so every
+       tile boundary cut across the diagonal bands and showed as a straight vertical edge. It was
+       barely noticeable while this box held one line of text; growing it to hold the recipe picture
+       made the seam tall enough to read as a defect.
+       Fixed by running the gradient along the same axis it repeats on (`to right`). With the first
+       and last stops the same colour, each tile now joins its neighbour on an identical value and
+       the repeat is invisible. Extra intermediate stops soften the falloff so the sheen reads as a
+       gentle sweep rather than a band with edges. */
+    background: linear-gradient(to right,
+      #fff6d0 0%, #ffeaa6 12%, #ffd76a 25%, #ffe7a4 38%,
+      #fff2c0 50%, #ffe7a4 62%, #ffd76a 75%, #ffeaa6 88%, #fff6d0 100%);
     background-size: 220% 100%; animation: goldShimmer 3s linear infinite; }
   .winner-banner::before, .winner-banner::after {
     content: "✨"; position: absolute; font-size: 13px; opacity: 0;
@@ -759,6 +803,10 @@
 <!-- ===================== ROOM (pre-game) ===================== -->
 <div id="lobbyRoom" class="modalOverlay" style="display:none">
   <div style="max-width:420px;width:100%">
+    <!-- UI-05 follow-up: this screen had no way out. Since "Host a Crew" now creates the room on the
+         first click, backing out has to tear the room down as well as change screens — see
+         abandonRoom() in src/orchestrator.js. -->
+    <button class="backLink" type="button" id="btnRoomBack">← back</button>
     <div class="roomCard" style="text-align:center">
       <div class="muted">share this code with yer crew</div>
       <div id="roomCode">----</div>

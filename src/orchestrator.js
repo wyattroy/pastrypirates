@@ -74,7 +74,7 @@ import {
 } from "./shared/index.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
-  netSetPaused, netWatchPaused,
+  netSetPaused, netWatchPaused, netDeleteRoom,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
   netWatchConnected, netWatchPresence, netMarkPresence, netInit,
@@ -91,7 +91,7 @@ import {
   netLeaveRoom, netSetFeedback, netReadDlog, netReadEv,
 } from "./net/index.js";
 import {
-  showNarration, panel, setNeedsAction, flash, narrateLastEvent, liveRender, setClockUI,
+  showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   renderDecorativeBoard, syncBoardSizing, victoryConfetti, clearChatBubbles,
@@ -869,22 +869,38 @@ export async function liveResolveEndNet(){
     for(const idx of appState.game.finishOrder.slice(1))champ=await asyncBakeoff(champ,appState.game.players[idx]);
     appState.game.winner=champ.idx;
   }
-  appState.liveDone=true;
   appState.game.ev({t:"end",winner:appState.game.winner});
   await writeMeta();
   await writeGameLog();
+  // WYATT, 2026-07-31 — the drumroll, and why liveDone moved BELOW it.
+  //
+  // The blue box now plays one last line and then gets out of the way, and the win is revealed in
+  // the gold End of Voyage banner (see showStats). `liveDone` is what makes render() call
+  // showStats(), so setting it before this await would have revealed the winner FIRST and drum-
+  // rolled afterwards — suspense in the wrong order.
+  //
+  // flash() already waits the normal hold for the line's length before returning, which is exactly
+  // the interval he asked for: "when that text has been on screen for the amount of time that it
+  // would normally be faded out if there were another message coming after it." fadeOutPanel()
+  // then performs the same GHOST_FADE_MS fade a replaced line gets, and hides the box.
+  // @copy adhoc.voyageend.drumroll
+  await flash("Drumroll...");
+  await fadeOutPanel();
+  appState.liveDone=true;
   liveRender();
-  // notes/edits EOV-02/EOV-05: the win gets its OWN one-off celebratory box, with the winner's
-  // finished recipe pictured right in it (the recipe image lives here now, not in the End of Voyage
-  // summary — see showStats). EOV-01 already stripped the duplicate blue-box announcement.
+  // The victory box that used to be flashed here is GONE, deliberately — do not restore it. Its
+  // three pieces (the "wins!" line, the recipe picture, the Best Baker sentence) now render in the
+  // gold End of Voyage banner via showStats(), which liveRender() has just called. Flashing them
+  // here as well would announce the win twice AND re-show the blue box that the drumroll just
+  // faded away, which is the exact defeat UI-07 suffered before this change: showStats() hid the
+  // box and the very next flash() put it straight back.
+  //
+  // "Nobody finished" keeps its blue-box line: there is no winner, no recipe and no gold banner
+  // content to move, so the drumroll would otherwise fade into an unexplained empty screen.
   if(appState.game.winner==null){
     // @copy adhoc.voyageend.nobodyfinished
     await flash("⏳ Nobody finished the voyage.");
   }else{
-    const wi=recipeInfo(appState.game.players[appState.game.winner].recipe);
-    const pic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:"";
-    // @copy adhoc.voyageend.victory
-    await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
     victoryConfetti(appState.game.winner); // EOV-05: a burst of celebration over the board
   }
   if(appState.db&&appState.room&&!appState.replaying)netUpdateRoom(appState.db,appState.room,{status:"ended"},netFail("game end"));
@@ -1100,17 +1116,60 @@ export async function createRoom(){
   const seats={0:{name,id:appState.myId,bot:false}};
   for(let i=1;i<appState.numSeats;i++)seats[i]={name:"",id:"",bot:true,strat:seatStrat(i)}; // BOT-02
   appState.room=code;appState.mySeat=0;appState.isHost=true;
+  // UI-05 follow-up (Wyatt, 2026-07-31): show the room screen NOW, before the write, so the click
+  // has an immediate response.
+  //
+  // MEASURED, because "glitchy" turned out not to mean what it sounded like: the click handler
+  // blocks for 2ms, but the room screen did not appear for 1002ms — a full second in which the
+  // player clicked Host and the menu just sat there. Wyatt read that dead time as the old
+  // intermediate step "still loading". It was not; it was nothing at all.
+  //
+  // Before UI-05 this felt fine only by accident: clicking Host flipped to #stepHost instantly (a
+  // local display toggle) and the same ~1s network wait then hid behind the "Create the game"
+  // button. Removing that screen removed the feedback and left the wait exposed. The fix is to give
+  // the feedback back without the extra click — not to restore the screen.
+  //
+  // Nothing is faked by doing this early: genCode() generated the code LOCALLY a few lines up, so
+  // the six characters on screen are the real ones. Only their registration is still in flight. On
+  // failure everything is undone and we return to the menu (see the catch).
+  showRoom();
   try{
     await netCreateRoom(appState.db,code,{host:appState.myId,status:"lobby",numSeats:appState.numSeats,seats,createdAt:Date.now()});
   }catch(e){
     console.error("createRoom failed",e);appState.room=null;appState.isHost=false;
+    showHome(); // undo the optimistic screen — the room does not exist
     // NARR-01/D-25/D-60 (Wyatt-approved 2026-07-29): one line for every multiplayer-service
     // disruption — createRoom's own failure and joinRoom's below share it verbatim (D-60).
     // @copy misc.mperror.createcapacity
     alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");
     return;
   }
-  saveSession();showRoom();watchRoom();
+  // showRoom() already ran above, before the write — not repeated here.
+  saveSession();watchRoom();
+}
+// UI-05 follow-up (Wyatt, 2026-07-31): back out of the "share this code with yer crew" screen.
+//
+// This is NOT leaveGame(). leaveGame() reloads the page and calls clearSoloState(), which would
+// destroy an unrelated saved SOLO game just because someone changed their mind about hosting. Here
+// nothing has started: no game, no board, no turn order — only a lobby row in the database.
+//
+// Order matters. Detach the watchers FIRST: watchRoom() is live by now, and deleting the room while
+// it is still listening fires the "that game no longer exists" recovery path at the person who
+// deliberately left, which is the host telling themselves off.
+//
+// Only the HOST deletes, and only from the lobby. A guest backing out just stops watching — the
+// room is not theirs to remove — and a room that has already started playing is never deleted here,
+// because that would strand everyone else at the table.
+export async function abandonRoom(){
+  const room=appState.room, wasHost=appState.isHost;
+  netLeaveRoom();
+  if(room&&wasHost){
+    try{ await netDeleteRoom(appState.db,room); }
+    catch(e){ console.error("abandonRoom: could not delete room",e); } // best effort — leaving still works
+  }
+  appState.room=null;appState.mySeat=null;appState.isHost=false;appState.roster=[];
+  clearSession();
+  showHome();
 }
 export async function joinRoom(){
   const typedName=($("joinName").value||"").trim().slice(0,40);
@@ -1243,6 +1302,7 @@ export function wireLobby(){
   $("btnCancelStart").onclick=()=>{$("startConfirmModal").style.display="none";};
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
   wireRestoreFail();
+  $("btnRoomBack").onclick=()=>{abandonRoom();}; // UI-05 follow-up: leave the lobby, tear the room down
   $("btnLeave").onclick=()=>{$("leaveConfirmModal").style.display="flex";};
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};

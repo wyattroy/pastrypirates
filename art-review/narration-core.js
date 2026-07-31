@@ -939,6 +939,14 @@ export const MISC_BRANCH_AXES = {
   // context below is what makes that branch the one rendered. A second card for the other branch
   // would show crate icons with no copy in them — a card whose box holds nothing to review is the
   // D-33 mistake in a new place.
+  // MOVED HERE 2026-07-31 (Wyatt): the Best Baker sentence used to be flashed into the blue box from
+  // src/orchestrator.js; it now renders inside showStats()'s gold banner, directly under the recipe
+  // picture. The ID IS DELIBERATELY UNCHANGED so his review mark follows the copy across the move —
+  // that is the whole reason @copy ids exist. Only the winner branch carries words; with no winner
+  // the site renders an empty string, so there is no second card to show (same rule as emptyhold).
+  "adhoc.voyageend.victory": [
+    { tag: null, ctx: { w: 0 }, note: "Shown under the winner's recipe picture in the gold End of Voyage banner. With no winner this site renders nothing at all." },
+  ],
   "misc.board.emptyhold": [
     { tag: null, ctx: { held: [] }, note: "Rendered with an EMPTY hold, because the placeholder is the only wording this site has. With cargo aboard it renders the crate icons instead — no copy of its own; their tooltips are ingredient names, reviewable on the dock-flavour and ingredient cards." },
   ],
