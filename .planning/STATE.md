@@ -180,6 +180,12 @@ None yet.
 - Safari has stricter module behavior and a prior storm-crash precedent — explicit Safari re-verification at the UI boundary (Phase 11) and in final validation (Phase 12).
 - 09-03 Task 3 browser tripwire (window.__pp_module_ok/__pp_boot_count) unverified this session — no browser-automation tool available; recorded in WINDOWS.md, needs a Chrome session before phase gate
 
+## Quick Tasks Completed
+
+| Date | Task | Outcome |
+|------|------|---------|
+| 2026-07-31 | [archive-watercolour-board-art-spike](quick/260731-cdx-archive-watercolour-board-art-spike/SUMMARY.md) | Spike abandoned — watercolour style direction validated, but a human artist is being commissioned instead of AI generation. Artist brief written to `art-review/watercolour-spike/ART-BRIEF.md`. Branch `claude/test-game-new-board-77f669` pushed, not merged. No game file touched. |
+
 ## Deferred Items
 
 Items acknowledged and carried forward from previous milestone close:
