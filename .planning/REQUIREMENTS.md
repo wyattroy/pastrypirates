@@ -93,6 +93,34 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 Deferred to a later milestone. Tracked but not in this roadmap.
 
+### Playtest Punch List (FIX) — added 2026-07-31
+
+Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
+`.planning/todos/pending/` carrying the code references and the constraints that matter.
+
+- **FIX-01**: Players choose their name in a **new intermediary modal that appears after they pick a
+  play mode**, not from a field on the welcome screen that people are not seeing. *(Interacts with
+  UI-05, UI-06 and LOAD-03 — all touch the same mode-button handlers.)*
+- **FIX-02**: Solo play shows a **disabled turn-clock button** in the same position as multiplayer,
+  so the control is consistent across every play mode. *(AUDIO-02 anchors the mute button "to the
+  right of the turn clock" — this makes that placement well-defined in solo too.)*
+- **FIX-03**: In action prompts the **buttons appear only after the final character has been
+  typewriter'd out**. Today `panel()` paints buttons synchronously and only the message is revealed
+  (`src/ui/panel.js:301`). Must not change the measured panel height (BUG-01's Safari fix), must
+  respect reduced motion, and must account for the shot clock still running during the reveal.
+  *(Designed together with NARR-07 / Phase 18 — same timing coupling from the other direction.)*
+- **FIX-04**: The **"{captain} is blown by the storm" line is removed** (`src/ui/util.js:327`), both
+  the addressed and neutral variants together.
+- **FIX-05**: A player who **pays to anchor in a storm is narrated "anchored safely"**, not "is still
+  docked". **Root cause unconfirmed** — `windPush` returns on `mooredReason` before ever reaching the
+  paid-anchor branch (`src/engine/index.js:280-287`), so this may be an economy bug wearing a copy
+  bug's clothes. **Investigate before writing copy: if the fix is in the engine it forces a
+  determinism re-record and belongs in the gated batch.**
+- **FIX-06**: The **12 solid-orange `button.primary` buttons** are restyled to the game's standard
+  outline + faded-fill pattern (`index.html:125`, copying `.footerKofi` at `:135-151`). Scope ruled
+  by Wyatt 2026-07-31: the "Host a Crew" choice card, the "Play again" gradient, and the
+  `#flipCoinWrap.active` coin are **explicitly excluded**.
+
 ### Board Atmosphere (WIND) — added 2026-07-31, HIGH PRIORITY
 
 Requested by Wyatt 2026-07-31: *"more features that i want to add to the backlog, high in the
