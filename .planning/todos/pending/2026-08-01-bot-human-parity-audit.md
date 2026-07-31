@@ -60,13 +60,26 @@ exception must be written down with its reason**, or the next audit re-litigates
 
 ## Rules for the audit
 
-- **The human path is the reference.** The invariant is defined in terms of what a human may do, so
-  where paths differ, the human implementation is right by definition and the bot paths are wrong —
-  unless the human path is itself the bug, which is worth calling out separately.
+- **The human path is the reference for what the rules ARE — not for which side gets fixed.**
+  *(Corrected by Wyatt, 2026-08-01.)* An earlier version of this file said the human implementation
+  is "right by definition." **That is wrong and would produce bad fixes.** Parity is a symmetry
+  requirement, not a ceiling on bots. For every mismatch, record **both** the difference and a
+  recommendation for **which way to close it**:
+  - *level the bot down* — the bot has an affordance the game should not grant at all; or
+  - *level the human up* — **the human is the one missing something, and should get it.**
+
+  **The named example is the trade counter-offer** (`human-trade-counter-offer.md`): a bot that
+  dislikes an offer always counters with a named price, while a human can only Accept or Decline.
+  Wyatt, 2026-08-01: *"rather than remove the bot's ability, we want to add it to the human ability."*
+  **An asymmetry that runs against the player is the worse kind, so levelling up is often right.**
+  Where it is not obvious, the recommendation is Wyatt's to accept or overturn — but every finding
+  should arrive with one, not just a diff.
 - **Fix nothing in this phase.** This is v1.4's investigation phase. Findings that turn out to be
   engine-tier queue into the single gated re-record phase alongside FIX-18, so the determinism cost
-  is paid once. **A parity fix almost certainly changes bot behaviour and therefore the event stream
-  — expect most findings to land in that batch.**
+  is paid once. **A parity fix that changes bot behaviour changes the event stream — expect
+  those to land in that batch. A fix that only adds a human affordance (like the counter-offer) does
+  NOT touch bot decisions and may be free of the re-record entirely — sort findings by which kind
+  they are, since that decides where each one can ship.**
 - **Do not stop at the first finding.** Two breaches are already known; the value here is the
   complete set, so the re-record batch is assembled once with everything in it.
 

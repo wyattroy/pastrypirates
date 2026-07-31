@@ -101,8 +101,15 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
   Bots differ only in *how they choose*, never in *what they may do*.
 
   **This is a rule, not a preference, and it answers a whole class of question in advance.** Any
-  future "should bots be allowed to…?" is already answered: *whatever a human can do, and nothing
-  more.* **Do not raise it as an open design decision.** v1.2's AI-01 was framed as a question to be
+  future "should bots be allowed to…?" is already answered: *exactly what a human can do.* **Do not
+  raise it as an open design decision.**
+
+  **But parity is a symmetry requirement, not a ceiling on bots** *(Wyatt, 2026-08-01)*. When the two
+  sides differ, **which side moves is a separate design choice** — sometimes the bot loses an
+  affordance, sometimes the human *gains* one. His own example: bots can counter-offer in a trade and
+  humans cannot, and the fix there is to **give humans the counter-offer**, not to take it from bots.
+  Ask "which version makes the better game?", not "what do humans have today?". **Levelling the human
+  up is frequently the right answer** — an asymmetry running against the player is the worse kind. v1.2's AI-01 was framed as a question to be
   *"decided with Wyatt"* when this invariant had already settled it; FIX-18 (bots fishing *and*
   docking at Tortuga in one turn) repeated the mistake. Both should have been read straight off this
   rule.
