@@ -88,16 +88,35 @@ So the empty-hold loser gets a **third line of its own**, not the existing clean
 | Neutral / winner | `{loser} gives up 5🌕.` |
 | Loser (addressed) | `Ye give up 5🌕.` |
 
+**And when they hold fewer than 5 coins, it falls through to the existing "all they have" branch**
+— Wyatt, 2026-07-31: *"if they have less than 5, it should add on, 'all they have' — I think there's
+already a branch for this."* **He is right, it already exists** (`src/ui/util.js:615-617`):
+
+```js
+else if(viewerIsLoser)spoilClause=`Ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
+else if(viewerIsWinner)spoilClause=`Ye take all ${pn(loser)} has${spoilText?`: ${spoilText}`:""}.`;
+else spoilClause=`${pn(loser)} gives up all they have${spoilText?`: ${spoilText}`:""}.`;
+```
+
+### So the full decision table becomes
+
+| Loser's situation | Coin take | Line |
+|---|---|---|
+| Had a crate **and** 5+ coins, chose to pay | 5 | **bribe** — unchanged, exactly as approved |
+| **Empty hold**, 5+ coins | 5 | **NEW:** *"{loser} gives up 5🌕."* / *"Ye give up 5🌕."* |
+| **Empty hold**, fewer than 5 coins | all of them | **existing:** *"gives up all they have: 3🌕."* |
+
+That is a tidy outcome: **the new line is only needed for the exact-5 empty-hold case.** The
+under-5 case keeps already-approved copy, and the bribe wording is untouched. Nothing else moves.
+
 Two notes on applying it:
 
 - **The addressed variant is a mechanical person-swap of his own words, not new copy** — the
   D-07/NARR-05 contract is that these render as siblings, so shipping only the neutral form would
   show for some viewers and not others. It still gets confirmed at the copy gate rather than assumed.
-- **The amount is not always 5.** The take is `Math.min(5,lose.coins)`, so an empty-hold loser with
-  3 coins gives up 3. Render the actual `spoilText`, not a hardcoded 5 — his ruling is the sentence
-  shape, and 5 is the case he saw. A hardcoded 5 would be a lie in every other case.
-- Do **not** reuse the cleaned-out line (*"gives up all they have"*) here. It is a different
-  sentence for a different situation and both now need to exist.
+- The under-5 branch is reached today by the `spoilN>=5` test failing. Once `isBribe` also requires
+  "had a crate", make sure the under-5 empty-hold case still lands on the cleaned-out branch and does
+  not accidentally fall into the new exact-5 line.
 
 ## Gates
 

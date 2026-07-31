@@ -126,6 +126,12 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   fixture corpus captures the engine only. Wyatt ruled the replacement copy 2026-07-31:
   **"they give up 5 🌕"** (rendering the actual amount, which is `min(5, coins)` and not always 5).
   *(Found in the v1.2 Phase 17 playtest.)*
+- **FIX-09**: **On narrow mobile the ingredient chips stay readable instead of collapsing into a
+  single vertical column.** `.prowTop`'s fixed `14px 106px 40px 1fr` grid (`index.html:166`) leaves
+  the `1fr` chips column under the ~182px five fixed-size chips need, so the flex row wraps to one
+  chip per line and each captain's row becomes five chips tall. The existing `@media (max-width:
+  480px)` rule only relocates the recipe, not the chips. **Must preserve the documented
+  cross-captain alignment** of the dot/name/coins columns. *(Found in the v1.2 Phase 17 playtest.)*
 - **FIX-08**: **Every recipe name is singular.** The win banner hardcodes the article — *"baked a
   {recipe}"* (`src/orchestrator.js:887`) — so the 8 plural titles in `RECIPE_BOOK` render as "baked
   a Mexican Chocolate Pots". Eight renames in `src/ui/recipe.js`; final wording is Wyatt's call, and
