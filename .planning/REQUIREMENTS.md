@@ -126,6 +126,20 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   fixture corpus captures the engine only. Wyatt ruled the replacement copy 2026-07-31:
   **"they give up 5 🌕"** (rendering the actual amount, which is `min(5, coins)` and not always 5).
   *(Found in the v1.2 Phase 17 playtest.)*
+- **FIX-13**: **"A gale blows X off the dock!" only fires for a ship that was actually docked and
+  actually moved.** Two defects: `wasDocked` is derived from `adjPort(p)!==null` — *proximity* to a
+  port, not mooring (`src/ui/flow.js:792`) — and the three live paths emit `blownOut` unconditionally
+  while the engine guards it on movement (`src/engine/index.js:722` vs `src/ui/flow.js:704`/`:709`/`:759`).
+  **Recorded in Phase 15 as G29 but never tracked as an open bug.** The engine is correct; the live
+  UI drifted from it, so a UI-only fix should avoid a re-record — verify before committing.
+  **Investigate with FIX-05** — same family, both about the storm telling a player the wrong story
+  about their own ship. *(Wyatt, Phase 15 playtest and again 2026-07-31.)*
+- **FIX-14**: **The active-turn ring stays attached to the boat during storm pushes.** The ring-follow
+  fix shipped (`setShipGlideMs`, `src/ui/board.js:463-468`) but is called **only from the trade-wind
+  rim sweep** (`src/ui/flow.js:531`/`:544`/`:563`); the storm paths (`windLeg`/`botWindLeg`) never
+  retune it, so the ring snaps to the next square while the boat is still gliding. **The restore to
+  snapping is mandatory** — without it the ring slides across the board at every turn hand-off, a
+  worse artifact than the one being fixed. *(Found in the v1.2 Phase 17 playtest.)*
 - **FIX-11**: **The final-round announcement reaches guests, not just the host.** Guests never see
   *"{captain} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn"*
   (`src/orchestrator.js:840`), so they play their last turn without knowing it is their last —
