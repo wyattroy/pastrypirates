@@ -239,22 +239,34 @@ export async function expireShotClock(){
   else if(appState.shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",appState.shotClockStash.seat,"— auto-skip degraded");
   if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
   if(p){
-    let lost;
-    // NARR-01 audit finding: both branches used to hand-write text byte-identical to
+    // NARR-01 audit finding: this used to hand-write text byte-identical to
     // EVENT_NARRATION.shotclockskip (src/ui/util.js) — narrate through the table instead, exactly
     // as every other event in the codebase is narrated, so the duplicate can never drift again.
-    if(p.ing.length){
-      const idx=Math.floor(appState.game.r()*p.ing.length);
-      lost=p.ing.splice(idx,1)[0];
-      appState.game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
-      appState.game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      await narrateLastEvent();
-    }else{
-      const take=Math.min(5,p.coins);
-      p.coins-=take;
-      appState.game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      await narrateLastEvent();
-    }
+    //
+    // WYATT, 2026-07-30: **running out the 30s clock now costs the TURN AND NOTHING ELSE.**
+    // *"when the shot clock runs out, you just lose your turn, but you don't lose a crate. Let's
+    // get rid of that crate losing business altogether."* Asked whether the coin fallback went too,
+    // he chose both 30s penalties. DO NOT RESTORE EITHER. What used to be here:
+    //
+    //   - holding crates -> a RANDOM crate spliced out and returned to tokens[]
+    //   - holding none   -> up to 5🌕 taken
+    //
+    // The 20-second penalty (applyShotClockPenalty in src/ui/util.js — 1🌕 to each other captain) is
+    // a DIFFERENT mechanic at a different threshold and deliberately still runs. He was asked
+    // about it specifically and kept it.
+    //
+    // This also removes CR-02's root cause rather than guarding its symptom. The confiscation ran
+    // AFTER shotClockForce() had already resolved the pending `ask()` promise, and `ask()` forces
+    // default index 0 — Accept — so a partner who timed out auto-accepted a trade for a crate the
+    // clock had just taken, and the trade then spliced on indexOf === -1. With no confiscation
+    // there is no vanishing crate. The moveCrate() invariant and the turnExpired guard in
+    // humanTrade stay regardless: a timed-out partner must not auto-accept in the first place.
+    //
+    // Determinism: the crate branch consumed one appState.game.r() call (the random crate index).
+    // Removing it changes RNG draw counts in LIVE games only — the 31 fixtures are all-bot engine
+    // replays where no shot clock ever fires, and src/engine/index.js is untouched. Verified green.
+    appState.game.ev({t:"shotclockskip",p:p.idx});
+    await narrateLastEvent();
     liveRender();
     if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
   }
@@ -573,7 +585,23 @@ export async function asyncBattle(att,def){
           // the call site is here deliberately: if this path ever records the entry cell, the
           // square-by-square sweep starts working for free, on host and guest alike.
           if(dest){def.pos=dest;appState.game.tradewind(def);await animateRimSweepIfAny();}
-          for(const bet of bets)appState.game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
+          // CR-03 (15-REVIEW.md; PRE-EXISTING since Phase 11): a "refund" loop lived here —
+          // `for(const bet of bets) players[bet.idx].coins+=bet.amt`. DO NOT RESTORE IT. It refunded
+          // a stake that was never taken, so it was a pure credit: an all-in 5-coin bettor gained 5
+          // coins from nothing, with no event and no narration line.
+          //
+          // The stake is not debited at collection. collectSideBets only RECORDS the bet; the cost
+          // is taken inside settleSideBets' own `delta` (`won ? 1+2*amt : -amt` — the losing arm IS
+          // the stake). This path returns at `if(fled)return` below, BEFORE settleSideBets ever
+          // runs, so on a flee nothing has been debited and nothing ever will be.
+          //
+          // Therefore the correct behaviour is that NO coins move here at all. The only coin
+          // movement a flee causes is the 1🌕 toll charged above, which is the rule the how-to-play
+          // modal states ("the defender may pay 1🌕 to flee to safety").
+          //
+          // Deliberately NOT done: debiting the stake at collection to make a refund real. That
+          // would require rewriting settleSideBets' win/loss math, changing playtested economics —
+          // a balance change, not a bug fix. Wyatt's call, not a silent one.
           fled=true;
           appState.game.recordSkirmish(att,def,null); // fleeing settles nothing, but cools "rich" re-triggers
           appState.game.ev({t:"battleflee",a:att.idx,d:def.idx,rounds});

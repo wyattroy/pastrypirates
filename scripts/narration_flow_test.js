@@ -423,9 +423,17 @@ const stripLeadingComments = (src) => src.split("\n").filter((l) => !/^\s*(\/\/|
   checkTrue("G6: site 4 (dock buy) keeps its existing D-40 guard, re-reading p.coins rather than the pre-await flag", /buy&&p\.coins>=3/.test(liveCode));
   check("G6: site 4 is NOT double-guarded — one guard, not two doing the same job", /buy&&p\.coins>=3&&!coinShortfall/.test(liveCode), false);
 
-  // the sites the audit marked SAFE are arithmetically closed; guarding them would add noise
-  // without removing risk, so their existing clamps must still be the thing doing the work
-  checkTrue("G6: site 12 (shot-clock forfeit) keeps its arithmetic clamp rather than gaining a redundant guard", /Math\.min\(5,p\.coins\)/.test(orchCode));
+  // COIN-AUDIT site 12 (the shot-clock coin forfeit) used to be pinned here on its `Math.min(5,
+  // p.coins)` clamp — the audit marked it SAFE, arithmetically closed, needing no guard.
+  //
+  // RETIRED 2026-07-30: Wyatt removed BOTH 30-second penalties, so there is no forfeit left to
+  // clamp. The assertion is not weakened to keep it green — it is replaced by the stronger claim
+  // that the site is GONE, which is what actually shipped. (Never widen a pattern to make a gate
+  // pass; re-pin it with the reason, which is what this is.)
+  checkTrue("G6: site 12 (shot-clock forfeit) no longer exists — the 30s coin penalty was removed", !/Math\.min\(5,p\.coins\)/.test(orchCode));
+  checkTrue("...and no crate confiscation replaced it", !/p\.ing\.splice\(idx,1\)/.test(orchCode));
+  // presence-before-absence: the function those two absences are claims ABOUT must still be here
+  checkTrue("...anchor: expireShotClock still exists and still narrates a skip", /shotclockskip/.test(orchCode));
 }
 
 /* ---------- F5: an ingredient icon sits directly before the noun it names ---------- */
