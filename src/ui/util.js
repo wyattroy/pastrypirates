@@ -982,6 +982,84 @@ export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappi
 //     is what "square-by-square, quickly" should look like.
 // ONE constant, so host and guest are paced identically by construction.
 export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
+//
+// ────────────────────────────────────────────────────────────────────────────────────────────────
+// CORRECTION, 2026-07-31, FROM A SCREEN RECORDING (`notes/trade winds animation bug.mov`).
+//
+// The paragraph directly above is WRONG about what 95ms actually looks like, and it was believed
+// for a full day because it reasons about the code rather than about the screen. Retargeting a
+// 350ms glide every 95ms does NOT read as "continuous travel ALONG the ring". It makes the boat a
+// heavily damped FOLLOWER of its target, and a damped follower chasing a target around a curve
+// takes the CHORD, NOT THE ARC — so the boat cuts the corner and drifts diagonally across the
+// middle of the board, over the islands, arriving late and never touching the ring at all.
+//
+// THE PROOF IS IN THE RECORDING, and it is a detail nobody thought to look for: `activeRing` (the
+// white sonar ripple, src/ui/board.js) is moved by the SAME paintShipAt() call on the SAME beat,
+// but it carries NO css transition — so it snaps to each square exactly. Frame-stepping the
+// recording, the ring runs roughly TWO SQUARES AHEAD of the boat for the entire sweep. The ring was
+// drawing the correct path the whole time; the boat simply never went there.
+//
+// Wyatt: "the boat kind of gets dragged over the islands in a shorter version of the ark." The arc
+// looks short because the boat is cutting across the inside of it.
+//
+// ────────────────────────────────────────────────────────────────────────────────────────────────
+// SECOND CORRECTION, 2026-07-31 — AND THE END OF PER-SQUARE STEPPING ALTOGETHER.
+//
+// The square-by-square fix above WORKED, and that is exactly what was wrong with it. Wyatt, having
+// watched it: *"it works, technically, but it looks really jittery because it's working exactly as
+// we designed it… it moves according to a step function instead of a smooth, rounded motion."*
+//
+// Landing on each square is the correct behaviour for a STORM PUSH, where 1-2 discrete squares are
+// the thing being read. It is the wrong behaviour for a rim sweep, which is a boat being carried by
+// a current along a curve. A ring walked one cell at a time is a staircase, and no per-square beat
+// — however well tuned — can be a smooth arc. So the sweep no longer steps at all: it interpolates
+// along a spline through the ring cells and is driven by elapsed time.
+//
+// RIM_SWEEP_STEP_MS is kept ONLY as the basis for the duration below, so the new motion inherits
+// the pace the old one was tuned to rather than inventing a fresh number. Nothing steps by it now.
+//
+// TIMER-DRIVEN, NOT requestAnimationFrame — this is not a preference, it is the lesson already
+// written into src/ui/panel.js's typewriter: rAF callbacks are FULLY SUSPENDED (not throttled) in
+// a hidden tab, so an awaited rAF loop hangs forever and freezes the whole game loop the moment a
+// player switches tabs. This was reproduced live on 2026-07-31 while trying to instrument the bug:
+// the automation tab reported visibilityState "hidden", rAF returned zero frames, and the game
+// stalled mid-turn every time. setTimeout keeps firing (merely throttled) when hidden.
+//
+// The tick is paired with an equally short LINEAR css glide, so the browser interpolates between
+// our discrete targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not.
+// That pairing is what makes a setTimeout-driven motion look as smooth as an rAF one.
+// UNITS: milliseconds BETWEEN motion updates — so SMALLER is smoother, not larger. 16ms is ~60
+// updates a second, which is the display's own refresh rate and therefore the practical ceiling:
+// going lower buys nothing a screen can show. (Wyatt asked for "48" reading 24 as a frame rate;
+// 16ms is ~60/sec, i.e. more than the 48/sec he was after, in the direction he wanted.)
+export const RIM_SWEEP_TICK_MS=16;
+// Progress is always derived from ELAPSED TIME, never from a tick count — panel.js's other lesson:
+// a chain that counts ticks can never catch up, because each tick only schedules the next after its
+// own overhead, so one slow callback drifts every remaining one. Deriving from elapsed time means a
+// late tick simply advances further along the curve.
+export const RIM_SWEEP_MS_PER_CELL=RIM_SWEEP_STEP_MS+15; // 110 — inherits the tuned per-square pace
+// Arcs are randomised per game and can span nearly half the ring, so duration is clamped at both
+// ends: a 2-cell sweep should not be an instant flicker, and a 12-cell one should not be a journey.
+export const RIM_SWEEP_MIN_MS=420;
+export const RIM_SWEEP_MAX_MS=1500;
+// How long the boat takes to SAIL INTO the trade-wind square before the winds take hold. The square
+// the player clicked was previously never drawn at all: the board redraw that would have shown it
+// and the sweep's first paint ran in one synchronous block with no yield between them, so the
+// browser only ever painted the second. Hence the sweep began with the boat still rendered inland.
+// This value is BOTH the landing glide and the wait, so the landing always completes in exactly the
+// time we wait for it — the two can never drift apart and re-create the re-aimed-mid-glide bug.
+//
+// 2026-07-31, Wyatt: *"decrease the pause on arrival to 0 so it looks like it immediately gets
+// swept up once it lands in the trade wind square."* This is NOT dead time — it is the boat sailing
+// in, and at the previous SHIP_GLIDE_MS (350) the winds already took hold the very instant it
+// landed. So what read as a pause was the LANDING being slow, and the fix is to make the landing
+// quick rather than to remove it: at 140ms the boat visibly arrives and is carried off in what
+// reads as one continuous motion.
+//
+// 0 IS SUPPORTED AND MEANS SOMETHING DIFFERENT: skip the landing entirely, so the winds take the
+// boat while it is still sailing in. That re-creates the original complaint — the boat never
+// reaches the trade winds before moving — so it is deliberately not the default.
+export const RIM_SWEEP_ARRIVE_MS=140;
 
 // D-23 (Wyatt-approved 2026-07-29): bot narration used to hold on screen for LESS time than the
 // identical human line (BOT_MSG_HOLD_MULTIPLIER 0.45 vs MSG_HOLD_MULTIPLIER 0.72) — a violation of
