@@ -95,6 +95,21 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 - **Compatibility**: Must run correctly in Safari (the storm perf bug is Safari-specific) and Chrome
 - **Determinism**: The multiplayer deterministic engine + replay must remain intact — timer/pause fixes must not break lockstep state
 - **Approval gates**: End-of-voyage badge redesign and storm-text rewrite require Wyatt's explicit sign-off before/within implementation
+- **Bot/human parity** *(standing design invariant — Wyatt, 2026-08-01, "and it has been from the
+  beginning")*: **Bots play by exactly the same rules and have exactly the same affordances as human
+  players.** If a human cannot do a thing, a bot must not be able to do it either — and the reverse.
+  Bots differ only in *how they choose*, never in *what they may do*.
+
+  **This is a rule, not a preference, and it answers a whole class of question in advance.** Any
+  future "should bots be allowed to…?" is already answered: *whatever a human can do, and nothing
+  more.* **Do not raise it as an open design decision.** v1.2's AI-01 was framed as a question to be
+  *"decided with Wyatt"* when this invariant had already settled it; FIX-18 (bots fishing *and*
+  docking at Tortuga in one turn) repeated the mistake. Both should have been read straight off this
+  rule.
+
+  Practical consequence: the live bot path (`src/ui/flow.js`'s `botTurn`) and the headless engine
+  (`src/engine/index.js`'s `takeTurn`) must both enforce whatever the human path enforces. Divergence
+  between those three is where parity breaks silently.
 
 ## Key Decisions
 
@@ -108,6 +123,7 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 | Real Safari storm fix was pre-baked PNG rain, not the typewriter batch | First hypothesis (per-char DOM writes) helped but the compositing cost was the storm rain; PNG tile was the actual fix | ✓ Good — Safari-verified v1.0 |
 | v1.2 splits the second punch list: fixes/polish now, big features later | Tutorial, sound effects, and island redesign are large enough (and the island redesign touches deterministic board generation) to warrant their own milestone; keeps v1.2 a fast polish pass | Pending — v1.2 |
 | Ko-Fi button included in v1.2 despite a third-party ko-fi.com script embed | Small, self-contained monetization add Wyatt wants live now; approved with awareness of the external script | Pending — v1.2 |
+| **Bots have identical rules and affordances to humans** — they differ only in how they choose, never in what they may do | Wyatt's design intent from the start, stated explicitly 2026-08-01. Settles every "should bots be allowed to…" question in advance; two items (AI-01, FIX-18) were wrongly framed as open decisions | ✓ Standing invariant — see Constraints |
 | Multiplayer pause stays in sync by re-broadcasting the host-authoritative clock, not per-client math | Live UAT found guests desynced (froze at a different number, raced to 0 on resume) because the host recomputed the deadline locally but never re-broadcast it; guests must render frozen/running state from the broadcast payload, never host-only locals | ✓ Good — fixed + human-verified Phase 13 |
 
 ## Evolution

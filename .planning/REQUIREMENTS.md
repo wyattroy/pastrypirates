@@ -158,8 +158,9 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
 - **FIX-18**: **A bot cannot both fish and dock at Tortuga to start its bakery in one turn.** A turn
   is one action; a bot taking two is a fairness bug no human can match. Same class as **AI-01**
   (already fixed for the hail path and mirrored into the engine's `takeTurn`) — **the guard likely
-  exists and was not applied here.** Whether docking home consumes the action is **Wyatt's explicit
-  ruling**, as it was for AI-01. **Changes bot behaviour, so it changes the event stream — belongs in
+  exists and was not applied here.** **No ruling needed** — the standing bot/human parity invariant
+  (`.planning/PROJECT.md`) settles it: whatever a human can do after docking at Tortuga is exactly
+  what a bot may do. Read it off the human path and mirror it into **both** bot paths. **Changes bot behaviour, so it changes the event stream — belongs in
   the gated re-record phase.** *(Wyatt, 2026-08-01.)*
 - **FIX-19**: **The "movin' slow as cold molasses in this lee" sentence is removed** from the leeward
   line (`src/ui/flow.js:1236`), both viewer variants together. The first sentence carries the

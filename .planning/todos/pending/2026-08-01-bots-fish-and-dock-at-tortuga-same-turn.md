@@ -26,16 +26,26 @@ appears to take two actions in one turn (hail and fish/dock/etc.)"*. That fix de
 hail path and evidently not to the Tortuga/bakery path. **Look at how AI-01 closed the hail case
 first**; this is likely the same guard in a second place, not a new design problem.
 
-## The decision that has to be made explicitly
+## RESOLVED — no decision needed. The standing invariant already answers it.
 
-AI-01's own requirement text records that the rule was **decided with Wyatt**, not assumed. The same
-applies here — confirm before implementing:
+An earlier version of this file asked Wyatt to rule on whether docking home consumes the turn's
+action. **That was the wrong question**, and he said so directly on 2026-08-01:
 
-- Does docking at Tortuga to start the bakery **consume the turn's action**, so no fishing after?
-- Or is arriving home a free event, with the action still available?
+> *"Bots should have the exact same rules and affordances as human players! That's one of my design
+> intentions, and it has been from the beginning. **You know the answer to this question.** … if human
+> players can't do it, then the bots shouldn't be able to do it either."*
 
-Wyatt's phrasing (*"should not be able to fish as well as"*) points at the first, but it should be
-his explicit ruling, since it changes bot strategy and therefore game balance.
+**So the rule is: match the human path exactly.** Whatever a human player can or cannot do after
+docking at Tortuga is precisely what a bot can or cannot do. There is nothing to decide — only
+something to read off the human implementation and mirror.
+
+This is now recorded as a **standing design invariant** in `.planning/PROJECT.md` (Constraints and
+Key Decisions), specifically so this class of question stops being re-asked. **v1.2's AI-01 made the
+same mistake**, framing a bot-behaviour rule as an open decision when the invariant had already
+settled it.
+
+**Implementation reads as:** find what the human turn does after a Tortuga dock, and make both bot
+paths do the same.
 
 ## Determinism — this one probably DOES need the re-record
 
