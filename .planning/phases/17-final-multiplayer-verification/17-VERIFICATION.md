@@ -9,8 +9,16 @@ requirements: [VERIFY-01]
 # Phase 17 — Final Multiplayer Verification
 
 **Status is `human_needed`, and that is not a shortfall — it is what this phase is.** All three of
-its success criteria name Safari, two windows, and a human watching. None of them can be closed by a
-machine, and I have not marked any of them closed.
+its success criteria name Safari, two windows, and a human watching.
+
+**UPDATE 2026-07-31 — Wyatt ran the Safari pass: checks 1-5 of `17-SAFARI-CHECKLIST.md` all PASS.**
+That retires every engine-divergence risk, including the two that mattered most: the pop animation
+(a CSS variable inside an SVG transform, new risk I introduced that day) and the storm (BUG-01's
+original Safari-only crash surface). Solo play, the storm, the Ko-Fi embed, the gold banner and the
+full end-of-voyage sequence are all confirmed in WebKit.
+
+**What remains is exactly one thing: the two-window networked game (check 6).** It is no longer a
+rendering question — Safari renders this build correctly. It is whether two clients stay in step.
 
 What follows separates what I *did* verify overnight from what is still yours, so you are not asked
 to re-check things that are already settled.
@@ -45,14 +53,16 @@ false result — the trap that manufactured two phantom bugs during Phase 15.
 
 ### 1. Safari, two windows, no clock-stall workaround *(criterion 1)*
 I have no Safari automation here. This is the milestone's headline fix and its confirmation is the
-whole reason this phase exists.
+whole reason this phase exists. **Safari itself is now proven fine** (checks 1-5); what is unproven
+is two clients in step.
 
 ### 2. A full two-window game, start to end-of-voyage, across Safari and Chrome *(criterion 2)*
 I hosted a real room and rendered its lobby, but never played a second seat through to the end.
 
 ### 3. Storm movement and pause/resume observed live *(criterion 3)*
-Not observed in a networked game. The engine is unchanged and the gates are green, which is evidence
-about the code, not about what a storm looks like on two screens at once.
+**Partially closed:** the storm was observed in Safari and behaved (checklist check 2) — so the
+BUG-01 surface is clean. What is still unobserved is a storm and a pause/resume in a NETWORKED game,
+on two screens at once.
 
 ### 4. UI-07 — CLOSED 2026-07-31, watched in a real finished game (Chrome)
 A full solo game was driven to completion: **16 rounds, Dough Hook won with a Caramel Slice.** State

@@ -1,5 +1,28 @@
 # Safari checklist — v1.2, targeted
 
+## RESULTS — Wyatt, Safari, 2026-07-31
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Pop animation | **PASS** — the CSS-variable-inside-an-SVG-transform risk did not materialise in WebKit |
+| 2 | Storm | **PASS** — BUG-01's original crash surface, still clean |
+| 3 | Gold banner | **PASS** — seamless at 6s, no seam and no stutter |
+| 4 | Ko-Fi panel | **PASS** — Safari's tracking prevention does not block the embed |
+| 5 | End of voyage | **PASS** — drumroll, fade, blue box gone, gold reveal |
+| 6 | Two-window multiplayer | **not run** — the one remaining item |
+
+Checks 3 and 5 were reached using the console injection in `docs/DRIVING-THE-GAME.md` (fill one
+captain's recipe, sail home) rather than by playing a full game — the finish path is real, only the
+route to it was shortened. Note he could not reload afterwards: a solo resume replays the recorded
+decision log, and an injected inventory is not a recorded decision, so it does not survive.
+
+Every engine-divergence risk this file was written to cover is now retired. What remains is not a
+rendering question at all — it is the two-window networked game.
+
+---
+
+
+
 **~5 minutes for checks 1–5.** These are the places WebKit and Blink actually diverge, so they are
 the only places my Chrome verification proves nothing. Everything else in v1.2 is either engine
 logic (gated headlessly, 31/31 seeds) or DOM structure (identical across engines).
