@@ -46,17 +46,31 @@ Re-export from the highest-resolution originals available if they still exist; r
 -thresholded 512px PNGs recovers less, because the information at the boundary is already gone. Check
 `art-review/` and the art-generation notes for what sources are on hand before starting.
 
-## Do this together with LOAD-04
+## This is ONE pass with LOAD-04 — RULED by Wyatt, 2026-07-31
 
-**LOAD-04 is the asset-size pass** — shrink ~18 MB to 3–5 MB, and it names pastries (5.3 MB) as one
-of the three biggest wins. This item re-exports all 21 pastry PNGs; LOAD-04 re-exports them again for
-compression. **Doing them as two passes means processing the same 21 files twice and risks the second
-pass undoing the first's edge quality** (aggressive quantisation is itself a way to destroy a soft
-alpha ramp). One export pass that fixes the mask *and* hits the size target is strictly better.
+**LOAD-04 has been pulled forward into v1.3** so the art is exported exactly once. It is the
+asset-size pass — shrink ~18 MB to 3–5 MB — and it names pastries (5.3 MB) as one of the three
+biggest wins, i.e. the same 21 files this item re-masks.
 
-LOAD-04 currently sits in the **Fast to Load** candidate milestone, not v1.3. Either pull LOAD-04
-forward, or land the remask in v1.3 with an explicit note that LOAD-04 must preserve the new soft
-alpha — **do not let a later compression pass silently re-introduce the jaggies.**
+Run as two passes, LOAD-04's quantisation is itself a good way to **destroy the soft alpha ramp this
+item just created**, silently re-introducing the jaggies. So:
+
+> **Re-mask → compress → write, as a single pipeline per image. The compression step must be the one
+> that writes the final file.** Never re-mask, ship, then compress on top.
+
+Practical consequences for whoever plans this:
+
+- **Verify alpha quality *after* compression, not before.** A soft edge that survives the matte but
+  not the quantiser is the failure this ruling exists to prevent, and it will look fine at every
+  checkpoint except the shipped one.
+- **Palette/indexed PNG quantisation is the specific hazard** — an indexed format with binary
+  transparency cannot represent a soft alpha ramp at all. If the size target pushes toward indexed
+  PNG, that path is incompatible with this fix; prefer a format that keeps 8-bit alpha.
+- **If the export moves to WebP, Safari is a gate** — the project must run correctly in Safari, and
+  the emoji fallback path must stay intact.
+- **WIND-01 (Lane A) adds a new dot sprite.** If it lands after this export pass it becomes the one
+  unoptimised asset in the tree. Either hand it to this lane or hold the final export until it
+  exists.
 
 ## Constraints
 
