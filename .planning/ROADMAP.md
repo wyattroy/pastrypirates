@@ -449,7 +449,7 @@ About page, sound, and the five interface bugs that made playtesters hesitate.
 
 | In | Out |
 |---|---|
-| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06, FIX-07 | **FIX-05** (paid anchor narrates "still docked") |
+| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06, FIX-07, FIX-08 | **FIX-05** (paid anchor narrates "still docked") |
 
 **Why FIX-05 is excluded — Wyatt's call, 2026-07-31.** Its root cause is unconfirmed. `windPush()`
 returns on `mooredReason` *before* reaching the pay-to-anchor branch (`src/engine/index.js:280-287`),
@@ -467,7 +467,7 @@ collide, so they can be planned and executed concurrently.
 |---|---|---|
 | **A — Board comes alive** | WIND-01, WIND-02, WIND-03 | `src/ui/board.js` + new sprite assets |
 | **B — The front door** | FIX-01, ABOUT-01, ABOUT-02, META-01 | `index.html` (markup/head), `src/ui/lobby.js`, new About page |
-| **C — Prompts & polish** | FIX-03, FIX-06, FIX-04, FIX-07 | `src/ui/panel.js`, `index.html` (CSS block), `src/ui/util.js`, `src/orchestrator.js` (FIX-07's battle event only) |
+| **C — Prompts & polish** | FIX-03, FIX-06, FIX-04, FIX-07, FIX-08 | `src/ui/panel.js`, `index.html` (CSS block), `src/ui/util.js`, `src/orchestrator.js` (FIX-07's battle event + FIX-08's win banner), `src/ui/recipe.js` (FIX-08) |
 | **D — Sound** | FIX-02 **then** AUDIO-01, AUDIO-02, AUDIO-03 | new audio module, clock control |
 
 **Two ordering constraints inside the lanes:**
@@ -532,7 +532,7 @@ Continue phase numbering from v1.2 (which ends at 17). Four buildable phases plu
 |---|---|---|---|
 | 18 | Board comes alive | WIND-01/02/03 | A |
 | 19 | The front door | FIX-01, ABOUT-01/02, META-01 | B |
-| 20 | Prompts & polish | FIX-03, FIX-06, FIX-04, FIX-07 | C |
+| 20 | Prompts & polish | FIX-03, FIX-06, FIX-04, FIX-07, FIX-08 | C |
 | 21 | Sound | FIX-02 → AUDIO-01/02/03 | D |
 | 22 | Safari & cross-browser gate | (constraint 2) | — |
 

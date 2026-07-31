@@ -123,7 +123,14 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   empty-hold case (`src/orchestrator.js:630` — `else mode="coins"`, not a choice). Needs a new
   optional field on the battle event. **Verified this does not force a determinism re-record** as
   long as the field is added in `src/orchestrator.js` and **not** `src/engine/index.js` — the
-  fixture corpus captures the engine only. *(Found in the v1.2 Phase 17 playtest.)*
+  fixture corpus captures the engine only. Wyatt ruled the replacement copy 2026-07-31:
+  **"they give up 5 🌕"** (rendering the actual amount, which is `min(5, coins)` and not always 5).
+  *(Found in the v1.2 Phase 17 playtest.)*
+- **FIX-08**: **Every recipe name is singular.** The win banner hardcodes the article — *"baked a
+  {recipe}"* (`src/orchestrator.js:887`) — so the 8 plural titles in `RECIPE_BOOK` render as "baked
+  a Mexican Chocolate Pots". Eight renames in `src/ui/recipe.js`; final wording is Wyatt's call, and
+  `RECIPE_BOOK` must not be reordered (pastry art is index-matched). *(Found in the v1.2 Phase 17
+  playtest, with a screenshot.)*
 - **FIX-06**: The **12 solid-orange `button.primary` buttons** are restyled to the game's standard
   outline + faded-fill pattern (`index.html:125`, copying `.footerKofi` at `:135-151`). Scope ruled
   by Wyatt 2026-07-31: the "Host a Crew" choice card, the "Play again" gradient, and the

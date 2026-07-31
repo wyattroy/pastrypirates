@@ -77,15 +77,27 @@ simulator, the 31 fixtures) will not carry it. Choose the absent-field default d
 back to the **non-bribe** framing is the safer default, since it is the one that claims less, which is
 the same principle the existing guard already follows for absent/non-numeric spoils.
 
-## What the empty-hold case should say instead
+## What the empty-hold case says instead — RULED by Wyatt, 2026-07-31
 
-Currently it would fall through to the "cleaned out" branch:
-*"Ye give up all ye have: 5🌕"* / *"{loser} gives up all they have: 5🌕."*
+> **"they give up 5 🌕"**
 
-That is accurate — they had no crates, and 5 coins is what they had to give. **Confirm with Wyatt**
-whether that existing approved line is the right destination, or whether the empty-hold case wants
-wording of its own (something nearer his note: *"they give only money"*). Do not invent new
-player-facing copy without his ruling — D-16 and the copy-integrity inventory both apply.
+So the empty-hold loser gets a **third line of its own**, not the existing cleaned-out fallback:
+
+| Viewer | Line |
+|---|---|
+| Neutral / winner | `{loser} gives up 5🌕.` |
+| Loser (addressed) | `Ye give up 5🌕.` |
+
+Two notes on applying it:
+
+- **The addressed variant is a mechanical person-swap of his own words, not new copy** — the
+  D-07/NARR-05 contract is that these render as siblings, so shipping only the neutral form would
+  show for some viewers and not others. It still gets confirmed at the copy gate rather than assumed.
+- **The amount is not always 5.** The take is `Math.min(5,lose.coins)`, so an empty-hold loser with
+  3 coins gives up 3. Render the actual `spoilText`, not a hardcoded 5 — his ruling is the sentence
+  shape, and 5 is the case he saw. A hardcoded 5 would be a lie in every other case.
+- Do **not** reuse the cleaned-out line (*"gives up all they have"*) here. It is a different
+  sentence for a different situation and both now need to exist.
 
 ## Gates
 
