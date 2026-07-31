@@ -142,6 +142,49 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   UI drifted from it, so a UI-only fix should avoid a re-record — verify before committing.
   **Investigate with FIX-05** — same family, both about the storm telling a player the wrong story
   about their own ship. *(Wyatt, Phase 15 playtest and again 2026-07-31.)*
+- **FIX-16** *(urgent)*: **A fading narration line stays exactly where it was, and the box only
+  shrinks once the fade completes.** One cause, two symptoms: `.apMsg.fadeOut` sets
+  `position:absolute; inset:0` (`index.html:308`), which re-anchors the line (**jumps left**) and
+  hides it from `resizePanel()`'s measurement, so the box animates to the incoming line's height
+  while the old one is still fading and `overflow:hidden` **clips it**. The out-of-flow ghost is
+  deliberate (G17); its side effects were never handled. **Plan with FIX-03 and FIX-10** — same
+  function, same measurement. *(Wyatt, 2026-08-01.)*
+- **FIX-17**: **The coloured circle beside captain names is removed everywhere it appears**, and the
+  row shifts left. Widens **V13-17**, which deliberately spared the lobby's `.seat .dot`
+  (`index.html:576`) — **Wyatt's "everywhere" overrides that**; check first that lobby seats stay
+  distinguishable without it. The `dot` grid column and named area must be dropped from **both**
+  `.prowTop` layouts (`index.html:166`, `:173`) or a 14px hole remains. **Pairs with FIX-09** — frees
+  width in the same grid. *(Wyatt, 2026-08-01.)*
+- **FIX-18**: **A bot cannot both fish and dock at Tortuga to start its bakery in one turn.** A turn
+  is one action; a bot taking two is a fairness bug no human can match. Same class as **AI-01**
+  (already fixed for the hail path and mirrored into the engine's `takeTurn`) — **the guard likely
+  exists and was not applied here.** Whether docking home consumes the action is **Wyatt's explicit
+  ruling**, as it was for AI-01. **Changes bot behaviour, so it changes the event stream — belongs in
+  the gated re-record phase.** *(Wyatt, 2026-08-01.)*
+- **FIX-19**: **The "movin' slow as cold molasses in this lee" sentence is removed** from the leeward
+  line (`src/ui/flow.js:1236`), both viewer variants together. The first sentence carries the
+  mechanic; this one restates it and is what makes the line too long. *(Wyatt, 2026-08-01.)*
+- **FIX-20**: **The side-bet narration makes clear that losing costs you the coins you staked**, not
+  merely that you gain nothing. Exact wording is Wyatt's, in his batched copy session. **Verify the
+  stake is genuinely debited on every losing path first** — CR-03 was a confirmed bug where a flee
+  refunded bets that were never debited. Keep consistent with the how-to-play modal's
+  "double or nothing". *(Wyatt, 2026-08-01.)*
+- **FIX-21**: **Narration never orphans a trailing chunk** — a line ending `(+1🌕)` wraps as one
+  block, never a hanging parenthesis or stranded coin; and in the end-of-voyage awards a quantity
+  stays with its unit. **The mechanism already exists** (`.nobrk`, `index.html:281`) and its own
+  comment says to apply it "at the string-building level wherever it appears" — **it was simply never
+  applied everywhere**, which is why Wyatt saw a case he thought was fixed. **Sweep every site and
+  centralise it in a helper**, rather than patching the two visible cases. Never wrap whole sentences
+  — that forces horizontal overflow on a phone. *(Wyatt, 2026-08-01.)*
+- **WIND-04**: **On every wind DIRECTION CHANGE the round line carries a pastry scent**; when the
+  wind repeats a direction, the existing "still blows / gusting" line runs unchanged. Wyatt's
+  35-line library (7 categories × 5), shipped verbatim, varied without repeating a category
+  back-to-back. **Supersedes V13-63's open content question.** ⚠ **The line must be chosen from data
+  the `newround` event already records (`dir`/`round`/`windStreak`) — NOT from `this.r()`.** A new
+  RNG draw shifts every subsequent draw and invalidates all 31 fixtures; a derived lookup is
+  fixture-safe, keeps every client in sync with no broadcast, and **ships in the visual milestone
+  rather than the gated re-record.** The no-repeat rule must be derived too, not held in a variable
+  a late-joining guest would not share. *(Wyatt, 2026-08-01.)*
 - **FIX-14**: **The active-turn ring stays attached to the boat during storm pushes.** The ring-follow
   fix shipped (`setShipGlideMs`, `src/ui/board.js:463-468`) but is called **only from the trade-wind
   rim sweep** (`src/ui/flow.js:531`/`:544`/`:563`); the storm paths (`windLeg`/`botWindLeg`) never
