@@ -1,0 +1,78 @@
+---
+id: copy-shipped-vs-approved-gate
+title: Nothing compares shipped copy against Wyatt's 209 approved dispositions — 125 of 144 fields unmeasured
+status: pending
+type: gap
+severity: high
+area: narration
+created: 2026-07-30
+source: Phase 15 verification (audit tool Tasks 5/6/7) + F4's three measurement passes
+resolves_phase: null
+regression: false
+accepted_by: Wyatt, 2026-07-30, at the Phase 15 ship gate ("ship now, carry both")
+---
+
+## The gap
+
+Wyatt reviewed and approved **209 pieces of player-facing game text** on the narration audit page.
+Getting those words into the source was done by **a human retyping a list**. No script has ever
+compared the shipped text against `15-COPY-APPROVED.md` or the approval fields of
+`15-DISPOSITIONS-FINAL.json`.
+
+The Phase 15 verifier's words: **the phase's most significant residual.**
+
+This is not a hypothetical. **Four of his approved rewrites shipped missing**, and the only reason we
+know about those four is that someone went looking by hand.
+
+## The honest numbers
+
+F4 made three narrowing passes over 144 reviewed non-merge approval fields (37 unapplied → 19 → 3
+hand-verified, plus F3's intro banner = 4 genuinely missing, since fixed):
+
+| Bucket | Count | What is actually known |
+|---|---|---|
+| Conclusively settled | **19** | hand-verified, byte-level |
+| Fragments present, order unverified | **84** | every distinctive fragment appears in source; **word order and line identity were never checked** |
+| Unjudgeable mechanically | **41** | too placeholder-heavy for a fragment match to mean anything |
+
+So: **19 of 144 are proven.** The heuristic establishes that the copy is broadly applied. It does not
+establish that it is right. **Nothing is known to be wrong — this is unmeasured area, not a defect.**
+
+## Why the accepted-residual ruling is safe but not comfortable
+
+At the ship gate Wyatt chose to ship and carry this rather than build the gate first. Two things make
+that defensible: the copy has been through two recorded live playtests, and every known divergence
+found by hand has been fixed. One thing makes it uncomfortable: **the mechanism whose absence caused
+the original loss is still absent**, so a recurrence would be found the same way — by luck.
+
+## The chain that must not break
+
+`@copy` marker in source → extractor `id` → card id → alias map → Wyatt's 209 dispositions.
+
+## If it is taken up
+
+Three pieces, and they are separable:
+
+- **Task 5 — the comparison.** Assert shipped source literal == approved text, per row. The pattern
+  to copy already exists in the tree: for the `pirateVoice()` breach, each of 15 shipped literals was
+  asserted byte-equal to `pirateVoice(<the same literal at baseline 9ddd214>)`. That proves
+  **shipped == approved**, not "looks converted." Do the same at scale.
+- **Task 6 — the applier.** Remove the human from the transport.
+- **Task 7 — a permanent scope rule**, so a new copy site cannot be added outside the inventory.
+
+Two matching rules learned the hard way, both non-negotiable:
+
+- **Never re-match an approved row to source by line number.** The `AD_HOC_META` line-number keying
+  drifted twice. Match by label and by the literal text.
+- **D-16 is absolute:** Wyatt's notes are words only — the notes box could not carry inline icon
+  markup. **The absence of an icon from a note is never an instruction to remove it.**
+
+## The trap in the input
+
+Assertion 8 of `scripts/narration_audit_check.js` reads the dispositions file through
+`try { … } catch { return null }`, and `runChecks` only *pushes* the assertion when the input is
+non-null. Its input lives under `.planning/`, which this project's own `/gsd-cleanup` archives and
+`/gsd-pr-branch` strips. **Lose the file and the assertion does not fail — it vanishes**, while the
+totals line re-derives itself and prints a healthy `PASS`. Any new gate built on the dispositions
+must **refuse rather than skip** when its input is missing. `checkStormRainSeeded`
+(`scripts/ui_contract_check.js:718`) is the working example; copy it.

@@ -1,7 +1,22 @@
 ---
 phase: 15-narration-audit-fixes
 verified: 2026-07-30T22:26:27Z
-status: human_needed
+status: passed
+status_history:
+  - status: gaps_found
+    at: 2026-07-29T19:19:18Z
+  - status: human_needed
+    at: 2026-07-30T22:26:27Z
+  - status: passed
+    at: 2026-07-30
+    by: Wyatt
+    ruling: >-
+      Asked at the ship gate how to handle the two open human-verification items, both of
+      which are unmeasured area rather than known defects. His answer: "Ship now, carry
+      both." Both are therefore ACCEPTED RESIDUALS, not cleared checks — each is recorded
+      below with resolution: accepted-as-residual and carried into known_open, and neither
+      is claimed to have been verified. The third item (G28 pacing) was genuinely cleared
+      in the browser on 2026-07-30 and needs nothing further.
 score: 19/19 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
@@ -40,6 +55,13 @@ human_verification:
       The tool that would settle it does not exist. This is the exact mechanism whose absence
       let four approved rewrites ship missing in the first place (F4), so the residual is
       named rather than waved through.
+    resolution: accepted-as-residual
+    resolved_by: Wyatt, 2026-07-30, at the ship gate
+    resolution_detail: >-
+      Branch (a). The copy is accepted as broadly-applied-and-live-playtested rather than
+      exhaustively proven, and Task 5 moves to the backlog. NOT verified — 19 of 144
+      approval fields remain the conclusively-settled count, and 125 are unmeasured. Tracked
+      in .planning/todos/pending/copy-shipped-vs-approved-gate.md.
   - test: >-
       Two of the four D-41 greyed dead-ends have never been seen on screen: "— coins only —"
       (needs a 0-coin purse inside the trade flow) and the hail "Counter-offer" (needs a bot
@@ -54,6 +76,12 @@ human_verification:
       co-reachability gate (ui_contract_check assertion 6, red-proofed against the REAL
       broken ab98e04 code) proves a reason is reachable in the state it explains, but no
       harness renders these two.
+    resolution: accepted-as-residual
+    resolved_by: Wyatt, 2026-07-30, at the ship gate
+    resolution_detail: >-
+      Carried, not cleared. Neither state has been seen on screen; assertion 6 proves each
+      reason is co-reachable with the state it describes, which is weaker than an eyeball.
+      Tracked in .planning/todos/pending/d41-two-greyed-states-never-eyeballed.md.
   - test: >-
       Confirm the G28 narration pacing still reads right after a full night away from it —
       the curve was retuned live, mid-session, against a measured table.
@@ -62,6 +90,12 @@ human_verification:
       Long lines lose up to 2.4s of total screen time versus the pre-retune curve; short lines
       hold steady. He judged this correct in the browser on 2026-07-30.
     why_human: "Pacing is a taste call no gate can answer. Already cleared once; re-confirm only if it still feels off."
+    resolution: cleared
+    resolved_by: Wyatt, 2026-07-30, in the browser
+    resolution_detail: >-
+      Genuinely verified, unlike the two above. He watched the retuned curve live and judged
+      it correct. Note CR-01: the belt that was defeating the fade was fixed after that
+      viewing (8f76d5b), so the shipped fade is the one he approved, now actually running.
 known_open:
   - item: "Audit tool Tasks 5, 6, 7 — no shipped-vs-approved copy comparison, no applier, no permanent scope rule"
     status: deliberate
@@ -72,6 +106,16 @@ known_open:
       carried across) and for hand-pinned literals in comments — not for text comparison.
       src/ui/board.js copy is now in the inventory (6 sites) but has never been compared.
       THE PHASE'S MOST SIGNIFICANT RESIDUAL.
+      Accepted as a residual by Wyatt at the ship gate, 2026-07-30, and tracked in
+      .planning/todos/pending/copy-shipped-vs-approved-gate.md with the honest 19/84/41 split.
+  - item: "Two D-41 greyed dead-ends never rendered in front of a human — '— coins only —' and the hail Counter-offer"
+    status: accepted-as-residual
+    detail: >-
+      Accepted by Wyatt at the ship gate, 2026-07-30. Assertion 6 proves each reason is
+      co-reachable with the state it explains (red-proofed against the real broken ab98e04),
+      which is weaker than an eyeball. Tracked in
+      .planning/todos/pending/d41-two-greyed-states-never-eyeballed.md, which records how to
+      force both states rather than waiting for the bots to leave the window open.
   - item: "D-57 residue — narration rendering still has two independent paths on one .apMsg element"
     status: recorded, unenforced
     detail: >-
