@@ -67,6 +67,13 @@
 //      - NOT requestAnimationFrame — rAF is FULLY SUSPENDED in a hidden tab, so an awaited rAF
 //        loop never resolves and freezes the entire game loop the moment a player switches tabs.
 //        Reproduced live 2026-07-31 while instrumenting the first bug.
+// 5. THE ACTIVE RING MOVES IN LOCKSTEP WITH THE SHIP (2026-07-31, third recording). activeRing and
+//    the ship are set to the SAME coordinates by the SAME calls, so they look incapable of drifting.
+//    They drift on something neither call shows: the ship carries a css transition and the ring does
+//    not, so the ring SNAPS to each target while the ship eases toward it and ends up permanently
+//    AHEAD of the boat it marks. Same defect three times at shrinking amplitude — ~2 squares in the
+//    original bug, a fraction of a square once the ship's own glide was fixed. Every instance was
+//    caught by Wyatt from a recording and none was visible in review. See `notes/tradewinds v5.mov`.
 //
 // ============================================================================
 // Comment stripping, and why it is not optional here
@@ -87,6 +94,7 @@ const REAL_ROOT = path.join(__dirname, "..");
 
 const FLOW_REL = path.join("src", "ui", "flow.js");
 const ORCH_REL = path.join("src", "orchestrator.js");
+const BOARD_REL = path.join("src", "ui", "board.js");
 
 const mk = (name) => ({ name, ok: true, failures: [], notes: [] });
 const fail = (res, msg) => { res.ok = false; res.failures.push(msg); };
@@ -271,6 +279,50 @@ export function checkRimSweepArrivesAndRestores(root) {
   return res;
 }
 
+
+/* ========== Assertion 5: the active ring moves in lockstep with the ship it marks ========== */
+// Added 2026-07-31 after the THIRD recording of this animation (`notes/tradewinds v5.mov`).
+//
+// activeRing (the white sonar ripple) and the ship are moved to the SAME coordinates by the SAME
+// calls, so they look like they cannot drift. They drift because of something neither call shows:
+// the ship carries a css `transition` and the ring does not, so the ring SNAPS to each target while
+// the ship eases toward it. The ring therefore sits permanently AHEAD of the boat it is marking.
+//
+// This is the same defect three times over, at shrinking amplitude: ~2 squares in the original bug
+// (where the ring's lead is what made the diagnosis possible at all), then a fraction of a square
+// once the ship's glide was fixed — small, but by then the only thing on the board moving out of
+// step. Wyatt caught every one of them from a recording; none was visible in review.
+//
+// So: whenever setShipGlideMs retunes a ship it must retune that ship's ring too, and restoring must
+// restore BOTH. The restore half matters independently — a ring left with a transition would slide
+// across the whole board when the turn passes to another captain, instead of appearing on them.
+export function checkRingMovesWithShip(root) {
+  const res = mk("assertion 5 — the active ring is retuned and restored with the ship it marks (2026-07-31)");
+  const board = read(root, BOARD_REL);
+  if (board === null) { fail(res, `${BOARD_REL} is missing`); return res; }
+  const live = stripComments(board);
+
+  const fn = sliceFn(live, "export function setShipGlideMs(");
+  if (!fn) {
+    fail(res, `PARITY-RING: setShipGlideMs is not in ${BOARD_REL} at all. ANTI-VACUITY: this assertion fails rather than passing over an absent function.`);
+    return res;
+  }
+  if (!/activeRing/.test(fn)) {
+    fail(res, `PARITY-RING: setShipGlideMs retunes the ship's glide but never touches activeRing. The ring has no transition of its own, so it SNAPS to each target while the ship eases toward it — the ripple ends up permanently ahead of the boat it marks. Retune both, or neither.`);
+    return res;
+  }
+  // the restore branch must clear the ring's transition, not merely set some duration on it
+  if (!/activeRing\.style\.transition\s*=\s*ms\s*==\s*null\s*\?\s*""/.test(fn)) {
+    fail(res, `PARITY-RING: setShipGlideMs does not RESTORE activeRing's transition to "" when ms is null. A ring left carrying a transition slides right across the board from one captain's boat to the next when the turn passes, instead of simply appearing on them.`);
+  }
+  // and it must only ever move the ring belonging to the seat being retuned
+  if (!/activeTurnSeat\(\)\s*===\s*seat/.test(fn)) {
+    fail(res, `PARITY-RING: setShipGlideMs changes activeRing without checking activeTurnSeat() === seat — it would retune the ring while it is marking a DIFFERENT captain's boat.`);
+  }
+  note(res, `setShipGlideMs retunes and restores activeRing alongside the ship, scoped to the active seat`);
+  return res;
+}
+
 /* ================= Runner ================= */
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
@@ -295,6 +347,11 @@ function runAll(root, { quiet = false } = {}) {
   log(`${a4.ok ? "PASS" : "FAIL"} ${a4.name}`);
   for (const n of a4.notes) log(`      ${n}`);
   results.push(a4);
+
+  const a5 = checkRingMovesWithShip(root);
+  log(`${a5.ok ? "PASS" : "FAIL"} ${a5.name}`);
+  for (const n of a5.notes) log(`      ${n}`);
+  results.push(a5);
 
   return results;
 }
@@ -505,18 +562,53 @@ function drill() {
   fixture(FLOW_REL, `export function rimSweepPath(){}\n`);
   expect("drill 4d (anti-vacuity — no animateRimSweepIfAny at all must FAIL)", checkRimSweepArrivesAndRestores(tmpRoot), true, "not in");
 
+  // --- assertion 5 fixtures ---
+  const GOOD_RING = `export function setShipGlideMs(seat,ms,ease){
+  const css=\`transform \${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}\`;
+  shipEls[seat].style.transition=css;
+  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=ms==null?"":css;
+}
+`;
+  // 5a: THE REAL PRE-FIX SHAPE — the ship is retuned, the ring is not, so the ring runs ahead
+  resetFixture();
+  fixture(BOARD_REL, `export function setShipGlideMs(seat,ms,ease){
+  shipEls[seat].style.transition=\`transform \${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}\`;
+}
+`);
+  expect("drill 5a (THE REAL PRE-FIX CODE — ship retuned, ring left snapping)", checkRingMovesWithShip(tmpRoot), true, "never touches activeRing");
+
+  // 5b: retunes the ring but never restores it — the ring then slides across the board on turn change
+  resetFixture();
+  fixture(BOARD_REL, `export function setShipGlideMs(seat,ms,ease){
+  const css="transform 16ms linear";
+  shipEls[seat].style.transition=css;
+  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=css;
+}
+`);
+  expect("drill 5b (ring retuned but never restored — slides across the board on turn change)", checkRingMovesWithShip(tmpRoot), true, "does not RESTORE");
+
+  // 5c: ANTI-VACUITY — no setShipGlideMs at all must FAIL, not pass over an absent function
+  resetFixture();
+  fixture(BOARD_REL, `export function paintShipAt(){}\n`);
+  expect("drill 5c (anti-vacuity — no setShipGlideMs at all must FAIL)", checkRingMovesWithShip(tmpRoot), true, "not in");
+
+  // 5d: negative control
+  resetFixture();
+  fixture(BOARD_REL, GOOD_RING);
+  expect("drill 5d (negative control — ring retuned and restored with the ship)", checkRingMovesWithShip(tmpRoot), false);
+
   // --- final negative control: the REAL tree passes every assertion, which is what proves the
   //     fixes and the gate agree ---
   {
     const r = runAll(REAL_ROOT, { quiet: true });
     const ok = r.every((x) => x.ok);
-    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes all four) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
+    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes all five) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
     for (const x of r) for (const f of x.failures) console.log(`    ${f}`);
     if (!ok) allOk = false;
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "ALL 4 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "ALL 5 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 

@@ -449,9 +449,22 @@ function shipGlideCss(ms,ease){ return `${ms}ms ${ease||SHIP_GLIDE_EASE}`; }
 // a LINEAR glide of about one tick — just enough for the browser to bridge between our targets and
 // absorb setTimeout's jitter. The default eased curve applied per-tick would ease in and out of
 // every single tick, which is a shimmer, not a smooth line.
+// THE RING MUST BE RETUNED WITH THE SHIP — 2026-07-31, third recording (`notes/tradewinds v5.mov`).
+// activeRing carries NO transition of its own, so it SNAPS to each target while the ship eases
+// toward it, leaving the ripple permanently ahead of the boat it is supposed to be marking. That is
+// how the very first bug was diagnosed (the ring ran ~2 squares ahead and was drawing the correct
+// path), and once the ship's own lag was fixed the same asymmetry became the remaining visible
+// defect — smaller, but now the only thing moving out of step. Wyatt: *"the rings now move ahead of
+// the boat."*
+//
+// The ring is only retuned while a sweep is in flight, and RESTORED to snapping afterwards. It must
+// keep snapping normally: `render()` repositions it whenever the turn passes, and a ring that
+// glided there would slide right across the board from the previous captain's boat to the next.
 export function setShipGlideMs(seat,ms,ease){
   if(!shipEls.length||!shipEls[seat])return;
-  shipEls[seat].style.transition=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}`;
+  const css=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}`;
+  shipEls[seat].style.transition=css;
+  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=ms==null?"":css;
 }
 // Move one ship to an arbitrary FRACTIONAL cell position — the sub-square painter behind the smooth
 // trade-wind arc. paintShipAt() below can only address whole cells, which is precisely the
