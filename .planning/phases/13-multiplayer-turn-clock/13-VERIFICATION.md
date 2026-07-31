@@ -220,3 +220,103 @@ the guard rather than a blanket wipe.
 
 This also exercised the `resumeHostGame` path (BUG-03/04) incidentally — a host refresh mid-game
 rebuilt state without a "couldn't fully restore" dialog.
+
+## Checks 2 and 3 CLOSED 2026-07-31 — guest-initiated pause and click-to-resume, live in room SGZZ
+
+Live two-window game, room `SGZZ`, served at `http://localhost:8460`. Wyatt hosting in Safari
+(seat 0). Claude driving the guest seat in Chrome (seat 1, identity `claude-guest-430272`).
+
+### The timer had to be ON — a precondition, not a detail
+
+`timerOff` was `false` for these checks. In `src/ui/panel.js` the `if(appState.timerOff){ ... return; }`
+branch returns BEFORE any paused-state rendering. With the timer off the big paused symbol never
+renders and CLOCK-03's click handler is never armed — so **Check 3 is not merely awkward with the
+timer off, it is literally untestable.** The handoff note that preceded this session flagged
+`timerOff` as possibly needing re-enabling; this is the reason why.
+
+### Method — and why it changed
+
+The checks were NOT driven by hand. Hand-driving failed repeatedly: each browser round-trip costs
+1–2 seconds against a 30-second shot clock, and two of the guest's turns were lost to expiry while
+trying.
+
+The working approach was an in-page watcher installed in the guest tab that armed itself on a fresh
+clock for seat 1 and then fired the whole sequence at page speed, recording a timestamped trace of
+local state alongside live Firebase listeners on `rooms/SGZZ/paused` and `rooms/SGZZ/clock`. It was
+run twice.
+
+The method change is the reusable lesson: a future session driving this game should know that
+hand-clicking cannot hit a sub-second window.
+
+### Run 2 trace — deltas measured from the guest's pause click
+
+    +0ms       guest clicks #scPause (clock fresh, 30s on it)
+    +1ms       rooms/SGZZ/paused -> true
+    +116ms     rooms/SGZZ/clock -> seat1 paused=true      <-- host re-broadcast
+    +204ms     guest renders label "paused"; #shotClockNum onclick armed; #scPauseImg -> play.png
+    +8204ms    guest clicks #shotClockNum (pause deliberately held 8s so it was visible on both screens)
+    +8205ms    rooms/SGZZ/paused -> false
+    +8328ms    rooms/SGZZ/clock -> seat1 paused=false, clock re-armed
+    +11208ms   label back to "play in", counting down, turnExpired === false
+
+Run 1 was identical in shape: affordance armed after 200ms, resume re-armed the clock, `turnExpired`
+false throughout.
+
+### Why the +116ms line is the load-bearing evidence for Check 2
+
+`rooms/{room}/clock` is written ONLY by the host (`broadcastClock`, reached from the host branch of
+`watchPause`). **Its appearance carrying `paused=true` proves the guest's pause travelled to the
+host's browser and the host applied it.**
+
+This is emphatically not the guest setting a local flag and calling it a pass — that distinction is
+what made the earlier Check B inconclusive, and the same standard is being held here. Wyatt
+independently confirmed the host side visually: *"yes it froze and came back"*.
+
+### Check 3
+
+Its specific failure mode — a stuck clock, BUG-02's failure mode in miniature — did not occur. The
+clock re-armed and `turnExpired` stayed false.
+
+### NOT a defect: resume returned a full 30 seconds
+
+That is correct behaviour. The pause was taken at the very top of the turn, so `pauseElapsed` was
+~0, and `applyPauseState`'s `Date.now()+30000-pauseElapsed` therefore yields ~30s. **The
+remaining-time rule is upheld, not violated.**
+
+The rule is this file's own expectation for the CLOCK-02 check — *"resuming continues the countdown
+from the remaining time (not a fresh 30s)"* (frontmatter `human_verification` item 3; Observable
+Truth 5). The session that produced this evidence referred to it as **D-07**; that bare label is
+reused for unrelated decisions elsewhere in the project (v1.2 phase 14's hail-offer scaling, and the
+`ui`-must-never-import-`net` module-graph assertion cited in Truth 10 above), so cite the Truth 5
+wording rather than the ID.
+
+Recorded explicitly so a future reader does not re-open the full 30s as a false alarm.
+
+### Investigated and withdrawn — no defect filed
+
+It briefly appeared that `rooms/{room}/paused` could latch true while play continued
+(`startShotClock` clears the host's local `shotClockPaused`, but nothing writes the shared flag
+false). On review the observation was equally well explained by the game legitimately sitting paused
+from an earlier click until it was resumed, and no clean reproduction was obtained. **Investigated,
+not reproduced, no defect filed.** Recorded so a future session does not chase the same ghost.
+
+### One NEW finding, filed elsewhere
+
+Pausing in the final ~1 second of a turn does not save the turn. That is filed as tech debt in
+`.planning/v1.2-MILESTONE-AUDIT.md` under `phase: post-audit-findings`, with its cause marked
+suspected. It is not a phase-13 verification failure and is kept separate from these closures.
+
+### Numbering — this file uses two schemes
+
+- The `## CLOCK-01 CLOSED 2026-07-31` section above lists a still-open **trio**: localStorage
+  version-guard blobs, guest-initiated `#scPause`, click `#shotClockNum`. "Check 1" (already closed)
+  is the localStorage one; this section closes the **second and third** of that trio.
+- The `### Human Verification Required` list numbers **five** items 1–5. The two closed here are
+  items **3** and **5** of that list.
+
+### Caveat — item 4 was not re-exercised
+
+Item **4** of the Human Verification Required list — the solo pause/resume regression — was NOT
+exercised today. The v1.2 audit's own accounting ("3 of 5 never closed") counted it among the two
+already closed; nothing in this session re-tested it. Stated plainly so the arithmetic is auditable
+rather than assumed.
