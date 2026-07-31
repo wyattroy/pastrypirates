@@ -230,12 +230,48 @@ had, and an in-page image is what Google promotes into a result thumbnail. Plan 
 - **ISLAND-04**: Island art is placed on the square that has no ingredient
 - *(Note: touches deterministic board generation — must be re-baselined against the determinism oracle)*
 
+### Watercolor Restyle (ART) — added 2026-07-31, HIGH PRIORITY
+
+Wyatt has started this in a separate exploration (2026-07-31). Art direction and progress live there,
+not here — **this section records only the sequencing, which is the part that affects planning.**
+
+- **ART-01**: The board's play surface is restyled in a watercolor look. Scope, per Wyatt
+  2026-07-31: **`board.png`, the islands, the docks, the wind arrow, and the whirlpool.** Boats and
+  the compass are **not** in scope and keep their current art.
+
+**The dependency chain — this is the whole point of the entry:**
+
+> **ISLAND-01…04 → ART-01 → LOAD-04b**
+
+- **ART-01 comes after ISLAND-01…04.** Wyatt, 2026-07-31: *"all of the board game related asset art
+  should come after we make the islands four squares large, because we don't need to remake
+  three-square islands."* Painting 3-square islands that are about to become 4-square islands is
+  wasted work.
+- **LOAD-04b (the board-art compression) comes after ART-01**, so the new art is exported once.
+- **ISLAND-01…04 forces the project's SECOND determinism re-record** and stands alone for exactly
+  that reason (see ROADMAP's candidate table). So this whole chain sits behind an engine one-way
+  door and **cannot be in v1.3.**
+
+**Known interaction with WIND-02/03 (in v1.3):** those animate `wind-arrow.png` and
+`trade-swirl.png`, both of which ART-01 replaces. Animating a sprite does not care what the sprite
+depicts, so this is not a blocker — but if the watercolor versions change **dimensions, proportions
+or anchor point**, WIND-02/03's tuning will need revisiting. Keep the replacements
+dimensionally compatible, or budget a re-tune. WIND-01's new dot sprite has the same question: decide
+whether it is drawn in the current style now and repainted later, or drawn watercolor from the start.
+
 ### Asset Loading (LOAD) — deferred from v1.2 (found during Phase 13 discussion, 2026-07-25)
 
-> **LOAD-04 was pulled forward into v1.3 on 2026-07-31** (Wyatt's call). It re-exports the same 21
-> pastry PNGs that **FIX-12** re-masks, and running them as two passes would process the art twice
-> and risk compression undoing the new soft alpha. LOAD-01/02/03 stay deferred to **Fast to Load** —
-> they are loader/lazy-load behaviour, not an art pass, and do not share this constraint.
+> **LOAD-04 was split on 2026-07-31** (Wyatt's call), because the board art is being restyled and
+> must not be compressed twice. The split is by *"does this asset wait for the island redesign?"*:
+>
+> - **LOAD-04a — in v1.3, Lane E.** Everything ART-01 does not touch: pastries (5.3 MB), icons
+>   (3.4 MB), ingredients, badges, compass, boats, clock, logo. **≈10 MB of the 17 MB**, compressed
+>   in the same export pass as FIX-12's re-mask.
+> - **LOAD-04b — deferred, after ART-01.** `board.png` (4.5 MB), islands (2.5 MB), `dock.png`,
+>   `wind-arrow.png`, `trade-swirl.png`. **≈7.3 MB**, exported once when the watercolor art lands.
+>
+> LOAD-01/02/03 stay deferred to **Fast to Load** — they are loader/lazy-load behaviour, not an art
+> pass, and share none of this.
 
 - **LOAD-01**: On a slow internet connection the game must not reveal itself until its assets are ready — the boot loader should stay up until loading completes, instead of being hidden after a fixed 6s cap that a slow connection blows past. *(Observed live: game appeared with art still streaming in. Root cause: `Promise.race([preloadAssets(), setTimeout(…, 6000)])` at `src/orchestrator.js:1076` hides the loader after whichever comes first — the 6s escape hatch wins on slow connections. The 6s cap exists to avoid a hung loader on a dead image host, so any fix must preserve a bailout for genuinely failed/offline asset hosts, e.g. a longer/adaptive timeout or progress-based reveal rather than removing the cap.)*
 - **LOAD-02**: The preload set should cover all first-view art, not just the board cluster — `preloadAssets()` at `src/ui/util.js:707` currently waits only for board/dock/wind/trade/logo/boats/islands/ingredients and omits icons (3.4 MB), badges, compass, and clock, so those still pop in. *(Context: total initial download is ~18 MB of images — board.png alone is 4.5 MB, pastries 5.3 MB, icons 3.4 MB. Asset-size reduction/optimization is a separate, larger concern and is out of scope for this loading-gate fix.)*

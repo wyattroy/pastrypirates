@@ -449,7 +449,7 @@ About page, sound, and the five interface bugs that made playtesters hesitate.
 
 | In | Out |
 |---|---|
-| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-11, FIX-12, **LOAD-04** | **FIX-05** (paid anchor narrates "still docked") |
+| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-11, FIX-12, **LOAD-04a** | **FIX-05** (paid anchor narrates "still docked") · **ART-01 + LOAD-04b** (board art — waits on the island redesign) |
 
 **Why FIX-05 is excluded — Wyatt's call, 2026-07-31.** Its root cause is unconfirmed. `windPush()`
 returns on `mooredReason` *before* reaching the pay-to-anchor branch (`src/engine/index.js:280-287`),
@@ -474,28 +474,40 @@ see the note below.
 | **B — The front door** | FIX-01, ABOUT-01, ABOUT-02, META-01 | `index.html` (markup/head), `src/ui/lobby.js`, new About page |
 | **C — Prompts & polish** | FIX-03 + FIX-10 *(one piece of work)*, FIX-06, FIX-04, FIX-07, FIX-08, FIX-09 | `src/ui/panel.js`, `index.html` (CSS block), `src/ui/util.js`, `src/orchestrator.js` (FIX-07's battle event + FIX-08's win banner), `src/ui/recipe.js` (FIX-08) |
 | **D — Sound** | FIX-02 **then** AUDIO-01, AUDIO-02, AUDIO-03 | new audio module, clock control |
-| **E — Art & multiplayer** | **FIX-12 + LOAD-04 together (one export pass)**, FIX-11 (final-round narration reaches guests) | `assets/**` (all art); `src/orchestrator.js` narration seam |
+| **E — Art & multiplayer** | **FIX-12 + LOAD-04a together (one export pass)**, FIX-11 (final-round narration reaches guests) | `assets/` **minus** board/islands/dock/wind-arrow/trade-swirl; `src/orchestrator.js` narration seam |
 
 **Two ordering constraints inside the lanes:**
 
 - **Lane D is internally sequential.** FIX-02 must land **first**: AUDIO-02 places the mute button
   *"to the right of the turn clock"*, and solo mode has no turn clock today. Until FIX-02 renders the
   disabled clock, AUDIO-02's placement is undefined in solo.
-- **Lane E: FIX-12 and LOAD-04 are ONE export pass, not two.** LOAD-04 pulled forward from the
+- **Lane E: FIX-12 and LOAD-04a are ONE export pass, not two.** LOAD-04 pulled forward from the
   *Fast to Load* candidate on Wyatt's call, 2026-07-31, precisely so the art is processed once.
-  FIX-12 re-masks the 21 pastry PNGs with a soft alpha edge; LOAD-04 re-exports the whole ~18 MB
-  asset set down to a 3–5 MB target. Run separately, LOAD-04's quantisation is itself a good way to
-  destroy the soft alpha ramp FIX-12 just created — **the compression pass must be the one that
-  writes the final file.** Treat "re-mask, then compress, then write once" as a single pipeline per
-  image.
+  FIX-12 re-masks the 21 pastry PNGs with a soft alpha edge; LOAD-04a compresses everything ART-01
+  does not touch. Run separately, the quantisation is itself a good way to destroy the soft alpha
+  ramp FIX-12 just created — **the compression pass must be the one that writes the final file.**
+  Treat "re-mask, then compress, then write once" as a single pipeline per image.
+- **Lane E carries LOAD-04a ONLY — not the board art.** `board.png`, the islands, `dock.png`,
+  `wind-arrow.png` and `trade-swirl.png` are excluded because **ART-01 (the watercolor restyle) is
+  going to replace them**, and ART-01 itself waits on ISLAND-01…04 so that nobody paints a 3-square
+  island that is about to become 4 squares. That whole chain sits behind the project's second
+  determinism re-record and **must not be pulled into v1.3.** Compressing those five now would mean
+  compressing them again after the repaint — exactly the double work this split exists to avoid.
 - **Lane B: ABOUT-01 before META-01.** META-01 wants a large Google preview image; the About page's
   screenshot is the first in-page image the site has ever had for Google to promote. META-03 (Search
   Console verification) is **Wyatt's own action, not code**, and is the slowest-moving piece —
   crawl latency is days to weeks — so he should start it well before the code lands.
 
-**Lane A ↔ Lane E:** WIND-01 introduces a new dot sprite. If it lands after LOAD-04's export pass it
-will be the one unoptimised asset in the tree — hand it to Lane E, or hold LOAD-04's final export
-until the sprite exists.
+**Lane A ↔ Lane E:** WIND-01 introduces a new dot sprite. If it lands after LOAD-04a's export pass it
+will be the one unoptimised asset in the tree — hand it to Lane E, or hold the final export until the
+sprite exists.
+
+**Lane A ↔ ART-01 (deferred):** WIND-02 and WIND-03 animate `wind-arrow.png` and `trade-swirl.png`,
+and **ART-01 replaces both.** This is not a blocker — an animation does not care what its sprite
+depicts — but if the watercolor versions change **dimensions, proportions or anchor point**, the
+WIND-02/03 tuning will need revisiting. Keep the replacements dimensionally compatible, or budget a
+re-tune. WIND-01's dot sprite raises the same question: draw it in the current style now and repaint
+later, or draw it watercolor from the start. **Wyatt's call, not an implementation detail.**
 
 **Lane C's one shared-file risk:** FIX-06 edits the CSS block in `index.html` while Lane B edits
 markup in the same file. Different regions, but the same file — if both lanes run at once, expect
@@ -551,7 +563,7 @@ Continue phase numbering from v1.2 (which ends at 17). Four buildable phases plu
 | 19 | The front door | FIX-01, ABOUT-01/02, META-01 | B |
 | 20 | Prompts & polish | FIX-03+FIX-10, FIX-06, FIX-04, FIX-07, FIX-08, FIX-09 | C |
 | 21 | Sound | FIX-02 → AUDIO-01/02/03 | D |
-| 21b | Art & multiplayer | FIX-12+LOAD-04, FIX-11 | E |
+| 21b | Art & multiplayer | FIX-12+LOAD-04a, FIX-11 | E |
 | 22 | Safari & cross-browser gate | (constraint 2) | — |
 
 Phases 18–21b have **no dependency on each other** and are intended to be planned and executed
@@ -584,7 +596,7 @@ yet decided; the grouping is.
 | **Narration Pacing & Copy Integrity** | NARR-07 (Phase 18 below), the shipped-vs-approved copy gate, the two-scheduler unification, the two never-eyeballed D-41 greyed states | All four are the narration system's remaining debt, and three of them touch the same timing code |
 | **Fair Play Online** | Every-client-sees-every-recipe, human trade counter-offer | Both are about the negotiation being honest between players who cannot see each other |
 | **Welcome Aboard** | TUT-01…03 tutorial, AUDIO-01…03 sound effects | Both are first-ten-minutes content rather than fixes |
-| **Island Redesign** | ISLAND-01…04 | Needs its **own second re-record** — it cannot ride the batch above, so it stands alone |
+| **Island Redesign → Watercolor → Board compression** | ISLAND-01…04, then **ART-01** (watercolor restyle of board/islands/docks/wind/whirlpool), then **LOAD-04b** (compress those five, ≈7.3 MB) | Needs its **own second re-record** — it cannot ride the batch above, so it stands alone. **The order is now a hard chain** (Wyatt, 2026-07-31): no painting 3-square islands, and no compressing art that is about to be repainted |
 | **Platform Debt** | NETMOD-01, DX-01, DX-02, Phase 999.1 resume-mid-narration | No player sees any of it; do it when it starts costing us |
 
 **Carrying no work — protective rulings only.** `flee-not-offered-when-broke`,
