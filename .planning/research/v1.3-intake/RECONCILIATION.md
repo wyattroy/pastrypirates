@@ -104,7 +104,7 @@ Intake phase order, with the draft's lanes folded in where they fit. Numbering c
 | # | Phase | Source | Notes |
 |---|---|---|---|
 | 18 | Pass-and-play & clock bugs | Intake P1 + N-01/02/03/04 | **First — real players are blocked.** Absorbs the draft's FIX-02 |
-| 19 | Live repro & investigation spikes | Intake P2 + **FIX-05, FIX-13** | Anything found engine-tier queues to Phase 21 |
+| 19 | Live repro & investigation spikes | Intake P2 + **FIX-05, FIX-13, FIX-15 (urgent)** | Anything found engine-tier queues to Phase 21. **FIX-15 pairs with V13-59/60/61** — a minted ingredient and a vanished one are the same conservation invariant |
 | 20 | Narration review tool | Intake P3 (V13-62) | Makes the copy phase cheaper |
 | 21 | **Engine fixes & the single re-record** | Intake P4 + whatever P19 confirms | **The one-way door. Once only.** |
 | 22 | Prompts, polish & cosmetics | Intake P5 + draft **Lane C** | FIX-03+FIX-10, FIX-06, FIX-04, FIX-07, FIX-08, FIX-09 |

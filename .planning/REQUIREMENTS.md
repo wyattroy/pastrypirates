@@ -110,7 +110,9 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   respect reduced motion, and must account for the shot clock still running during the reveal.
   *(Designed together with NARR-07 / Phase 18 — same timing coupling from the other direction.)*
 - **FIX-04**: The **"{captain} is blown by the storm" line is removed** (`src/ui/util.js:327`), both
-  the addressed and neutral variants together.
+  the addressed and neutral variants together. Wyatt's reasoning, 2026-07-31: *"we all saw it happen,
+  so saying it again feels repetitive."* Confirmed twice — once on the punch list and again from the
+  Phase 17 captain's log, where it fires **twice per storm** (once per leg) per affected captain.
 - **FIX-05**: A player who **pays to anchor in a storm is narrated "anchored safely"**, not "is still
   docked". **Root cause unconfirmed** — `windPush` returns on `mooredReason` before ever reaching the
   paid-anchor branch (`src/engine/index.js:280-287`), so this may be an economy bug wearing a copy
@@ -126,6 +128,15 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   fixture corpus captures the engine only. Wyatt ruled the replacement copy 2026-07-31:
   **"they give up 5 🌕"** (rendering the actual amount, which is `min(5, coins)` and not always 5).
   *(Found in the v1.2 Phase 17 playtest.)*
+- **FIX-15** *(URGENT)*: **Ingredients are never minted — a player cannot end up holding more of an
+  ingredient than they legitimately acquired.** Wyatt: *"somehow I just got two wheat from docking
+  once"* (Snickerdoodle Bites lists wheat once). **The captain's log shows two separate legal
+  dockings at the Flour Patch, five rounds apart (R3 bought, R8 free) — so this may be two dockings
+  rather than a mint, but that must be settled by dumping `p.ing`, not by re-reading the log.** If it
+  is a mint it is the same class as the fixed CR-02 trade bug and breaks the token economy.
+  **Investigate with V13-59/60/61 (ingredients vanishing) — a mint and a vanish are the same
+  conservation invariant from opposite ends** — and build the supply-conservation assertion
+  feasibility already recommended. *(Found in the v1.2 Phase 17 playtest.)*
 - **FIX-13**: **"A gale blows X off the dock!" only fires for a ship that was actually docked and
   actually moved.** Two defects: `wasDocked` is derived from `adjPort(p)!==null` — *proximity* to a
   port, not mooring (`src/ui/flow.js:792`) — and the three live paths emit `blownOut` unconditionally
