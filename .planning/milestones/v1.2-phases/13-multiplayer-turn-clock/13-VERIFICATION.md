@@ -171,3 +171,52 @@ of voyage across 171 events. See `17-VERIFICATION.md`.
 
 Recorded rather than quietly marked done: the phase's requirements are satisfied, these specific
 checks are not.
+
+## Check 1 CLOSED 2026-07-31 — localStorage version guard, verified by Wyatt in Safari
+
+The `human_verification` test on the schema-version guard was run live. Four cases, each seeded then
+reloaded, with `pp_id` and `pp_timerOff` set beforehand to prove they survive:
+
+| Case | blob | after reload | home screen | game |
+|---|---|---|---|---|
+| A | `pp_sess`, no `v` | cleared | yes | no |
+| B | `pp_sess`, `v:1`, room `ABCD` | cleared | yes | no |
+| C | `pp_solo`, no `v` | cleared | yes | no |
+| D | `pp_solo`, `v:1` | **survived** | **no** | **resumed** |
+
+`pp_id` stayed `"KEEP-ME"` and `pp_timerOff` stayed `"1"` in all four — so a guard rejection never
+degrades into a blanket `localStorage.clear()`, which would cost a player their Firebase identity
+mid-session.
+
+**C vs D is the actual proof, and the only pair that is.** Identical blob differing by one field,
+opposite outcomes: the unversioned one cleared to the home screen, the versioned one resumed into a
+running game. A, B and C alone are indistinguishable from a boot that unconditionally wipes both
+keys — all three produce the same output.
+
+**Case B is INCONCLUSIVE by construction, and is not evidence.** With `v:1` the guard correctly keeps
+the blob; boot then reads room `ABCD` from Firebase, finds it absent, and hits
+`if(!snap.exists()){clearSession();showHome();}`. So a cleared blob is the CORRECT result for a
+versioned session pointing at a room that does not exist, and B cannot distinguish that from a guard
+failure. The test as originally written could not fail. A meaningful `pp_sess` case needs a room that
+really exists.
+
+## Check B RE-RUN and CLOSED 2026-07-31 — with a room that actually exists
+
+The original Case B used room `ABCD`, which does not exist, so a cleared blob was the CORRECT result
+and the test could not fail (see the note above). Re-run against the LIVE room `SGZZ` while a real
+two-window game was in progress:
+
+    localStorage.setItem('pp_sess', JSON.stringify({v:1,room:'SGZZ',mySeat:0,isHost:true}));
+    location.reload();
+
+**Result: the host reconnected into the running game** — Safari came back at the recipe draft, in the
+room, not on the home screen; the guest (Chrome, seat 1) was simultaneously prompted for its own
+recipe, which is the designed simultaneous-draft behaviour. The room was not disturbed by the
+host reload.
+
+Now distinguishable, which is the whole point: a versioned blob pointing at a REAL room reconnects; a
+versioned blob pointing at a FAKE room clears and goes home. Both correct, and only the pair proves
+the guard rather than a blanket wipe.
+
+This also exercised the `resumeHostGame` path (BUG-03/04) incidentally — a host refresh mid-game
+rebuilt state without a "couldn't fully restore" dialog.
