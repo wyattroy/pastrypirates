@@ -381,8 +381,9 @@
     },
     {
       "old": "table:shotclockskip~crate",
-      "new": "table:shotclockskip~crate",
-      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+      "evidence": "card removed because its MECHANIC was removed — not a merge, not redundant. His tag on this row is \"rewrite\" and is preserved in 15-DISPOSITIONS-FINAL.json untouched.",
+      "mechanicRemoved": true,
+      "ruling": "Wyatt, 2026-07-30: \"when the shot clock runs out, you just lose your turn, but you don't lose a crate. Let's get rid of that crate losing business altogether.\" Asked whether the coin fallback went too, he chose both 30s penalties. The branch this row reviewed can no longer reach a player."
     },
     {
       "old": "table:finish",

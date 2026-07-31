@@ -142,7 +142,37 @@ export function checkOneSailHighlightBuilder(root) {
   if (/fill:"#fdb63d"/.test(live)) {
     fail(res, `PARITY-SAILRECT: the guest's old #fdb63d fill survives in ${FLOW_REL} — the host's #ffc23a is the approved colour on both seats.`);
   }
-  note(res, `sail-highlight builders carrying the sailCell class: ${builders}`);
+
+  // GEOMETRY PARITY (added 2026-07-31, with UI-03's 10% shrink).
+  //
+  // Everything above proves the two paths call ONE builder. That is necessary and it is not
+  // sufficient: same builder + different arguments is still two different squares on two screens.
+  // A one-character edit — `sailHighlightRect(c,cellPx*0.9,svg)` in one caller — recreates D-55
+  // exactly while every assertion above stays green. WR-13 already recorded that this gate is
+  // symmetric-only; this closes that hole for the argument that decides SIZE.
+  const calls = [];
+  for (const fn of ["localPickCell", "remotePickHighlights"]) {
+    const body = sliceFn(live, `export function ${fn}(`);
+    if (!body) continue; // already failed loudly above
+    const m = body.match(/sailHighlightRect\(([^)]*)\)/);
+    if (!m) continue;    // already failed loudly above
+    // normalise whitespace only — never the argument names themselves
+    calls.push({ fn, args: m[1].replace(/\s+/g, "") });
+    if (!/const\s+cellPx\s*=\s*boardCell\(\)/.test(body)) {
+      fail(res, `PARITY-SAILRECT-GEOM: ${fn}() does not derive cellPx from boardCell() — both pick paths must size their squares from the same source, or host and guest render different-sized highlights from the same builder.`);
+    }
+  }
+  if (calls.length === 2 && calls[0].args !== calls[1].args) {
+    fail(res, `PARITY-SAILRECT-GEOM: the two pick paths pass DIFFERENT arguments to sailHighlightRect() — ${calls[0].fn}(${calls[0].args}) vs ${calls[1].fn}(${calls[1].args}). One shared builder does not help if it is fed different geometry.`);
+  }
+
+  // and the scale constant lives in exactly one place, so "10% smaller" cannot become two numbers
+  const scaleDefs = (live.match(/const\s+SAIL_HL_SCALE\s*=/g) || []).length;
+  if (scaleDefs !== 1) {
+    fail(res, `PARITY-SAILRECT-GEOM: ${scaleDefs} definition(s) of SAIL_HL_SCALE in ${FLOW_REL}, expected exactly 1 — the highlight's size must be decided in one place for both seats.`);
+  }
+
+  note(res, `sail-highlight builders carrying the sailCell class: ${builders}; call sites agreeing on geometry: ${calls.length}`);
   return res;
 }
 

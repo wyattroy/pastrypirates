@@ -120,8 +120,13 @@
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   button.primary:hover { filter: brightness(1.1); }
   button:disabled { opacity: .4; cursor: default; }
+  /* UI-01: top padding was 4px. #footerRow is a SIBLING of #layout, not a grid item, so the space
+     above it is #layout's own 14px bottom padding PLUS this — 18px, against the 14px rhythm every
+     other section keeps. Zero here makes that gap exactly 14px like all the others. The 14px sides
+     match #layout's horizontal padding so the buttons line up with the panels above them, and the
+     18px bottom is deliberate breathing room at the end of the page, not a rhythm step. */
   #footerRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; align-items: flex-start;
-    padding: 4px 14px 18px; }
+    padding: 0 14px 18px; }
   .footerBtn { font-family: inherit; font-size: 13px; padding: 6px 13px; border-radius: 7px; cursor: pointer;
     text-decoration: none; display: inline-block; border: 1.5px solid var(--teal); background: #fff;
     color: var(--ink); }
@@ -129,6 +134,12 @@
   .footerHow:hover, .footerCredits:hover, .footerLog:hover { background: #dcebf5; }
   .footerFeedback { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .footerFeedback:hover { background: #d9f1e5; }
+  /* KOFI-01. Wyatt's Ko-Fi brand colour is #e89827 (from the widget snippet he supplied); this
+     border/background/text trio is that hue carried through the SAME light-tint recipe every other
+     footer button uses, so "styled the same" means the same shape, size and weight as its
+     neighbours rather than Ko-Fi's own pill dropped into the row. */
+  .footerKofi { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
+  .footerKofi:hover { background: #fae7cb; }
   .recipeModalBtn { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .recipeModalBtn:hover { background: #d9f1e5; }
   .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
@@ -244,7 +255,10 @@
   .bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -5px;
     border: 5px solid transparent; border-top-color: inherit; border-bottom: none; }
   .bubble.fadeOut { opacity: 0; }
-  #actionPanel { margin: 8px auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
+  /* UI-01: was `margin: 8px auto`. #layout is a grid with `gap: 14px`, so that 8px was ADDED to the
+     gap and the narration box alone sat 22px from its neighbours while every other panel sat 14px.
+     The horizontal `auto` is kept — it is what centres the panel in the stacked layout. */
+  #actionPanel { margin: 0 auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
     border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
   /* notes/edits BUG-01: the narration box smoothly resizes to each message's height — but ONCE per
@@ -440,16 +454,29 @@
   .sailCell { opacity: .5; animation: sailBounce 1.15s ease-in-out infinite;
     transform-box: fill-box; transform-origin: center;
     transition: opacity .12s ease, filter .12s ease; }
-  .sailCell:hover { opacity: .85; filter: brightness(1.12) drop-shadow(0 0 4px rgba(255,178,40,.9));
+  /* UI-04: a more distinct hover. Was opacity .85 + brightness 1.12 + a 4px glow, which on an
+     already-pulsing square read as "slightly brighter" rather than "this one". Now the hovered
+     square goes FULLY opaque, gains a white outline, and throws a wider two-stage glow — three cues
+     instead of one, and the outline is the one that survives on a busy board. Hover cannot use a
+     transform: `animation-play-state: paused` freezes the bounce mid-frame and the frozen keyframe
+     transform would win over anything set here. */
+  .sailCell:hover { opacity: 1; stroke: #fff; stroke-width: 2;
+    filter: brightness(1.18) drop-shadow(0 0 6px rgba(255,178,40,1)) drop-shadow(0 0 14px rgba(255,178,40,.55));
     animation-play-state: paused; }
   @keyframes sailBounce {
     0%, 100% { transform: scale(1); opacity: .5; }
     50%      { transform: scale(1.11); opacity: .72; } }
   @media (prefers-reduced-motion: reduce) { .sailCell { animation: none; } }
+  /* UI-02: an icon rising out of a boat now holds FULL opacity for a whole second before it starts
+     to fade. It used to reach opacity 1 at 18% (450ms) and begin fading from that instant, so the
+     thing the player is meant to read was already disappearing as it arrived.
+     The percentages are tied to the 2.5s duration: 18% = 450ms (arrival), 58% = 1450ms — exactly
+     1000ms later — is where the fade starts. CHANGE THE DURATION AND THESE STOP MEANING 1s. */
   .pop { animation: popfloat 2.5s ease-out forwards; pointer-events: none; }
   @keyframes popfloat {
     0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
     18% { opacity: 1; transform: translate(0, 0) scale(1); }
+    58% { opacity: 1; transform: translate(0, -14px) scale(1.13); }
     100% { opacity: 0; transform: translate(0, -32px) scale(1.3); }
   }
   /* a bigger, bouncier pop for "you just lost treasure" moments (#5/#6 — a slow or aground
@@ -682,6 +709,11 @@
       <div id="busynote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Lots of crews out sailing right now — multiplayer may be slow to sync. <b>Play Solo</b> works instantly and never waits on the crowd!</div>
     </div>
 
+    <!-- UI-05: NO LONGER REACHABLE from "Host a Crew" — that card now calls createRoom() directly
+         (src/ui/flow.js wireWelcome). This step existed only to show a single "Create the game"
+         button, i.e. to ask the player to confirm the thing they had just clicked. Kept, not
+         deleted, because showStep() enumerates it by id and #btnCreate is still wired in
+         src/orchestrator.js; removing either is a separate cleanup, not part of UI-05. -->
     <div id="stepHost" class="modalStep" style="display:none">
       <button class="backLink" type="button" data-back>← back</button>
       <h3><img class="narrIcon" src="assets/icons/map.png" alt=""> Host a Crew</h3>
@@ -778,6 +810,9 @@
     <div class="modalByline" style="text-align:left">
       <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
     </div>
+    <!-- KOFI-01: Wyatt's own Ko-Fi widget, after the credits text per the requirement. Filled in by
+         mountKofi() (src/ui/lobby.js) the first time this modal opens. -->
+    <div id="kofiCredits" style="text-align:center;margin-top:16px"></div>
   </div>
 </div>
 
@@ -895,6 +930,10 @@
     <button id="btnShowCredits" class="footerBtn footerCredits" type="button">🎗️ Credits</button>
     <button id="btnShowLog" class="footerBtn footerLog" type="button">📜 Captain's log</button>
     <button id="btnShowFeedback" class="footerBtn footerFeedback" type="button">💬 Feedback</button>
+    <!-- KOFI-01: right of Feedback, per the requirement. A plain link rather than Ko-Fi's widget,
+         because the requirement asks for it "styled the same" as its neighbours and the widget
+         renders its own pill. Same destination as the Credits embed — one Ko-Fi page, two doors. -->
+    <a id="btnKofi" class="footerBtn footerKofi" href="https://ko-fi.com/T4P423RFHW" target="_blank" rel="noopener noreferrer">🍪 Buy me a cookie</a>
     <button id="btnLeave" class="footerBtn footerLeave" type="button">🚪 Leave game</button>
   </div>
   <!-- hidden helpers the renderer expects -->

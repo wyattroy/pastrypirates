@@ -319,7 +319,11 @@ export const BASE_EVENTS = {
   fish: () => ({ t: "fish", p: 0, heads: 1 }),
   finish: () => ({ t: "finish", p: 0 }),
   shotclock: () => ({ t: "shotclock", p: 0 }),
-  shotclockskip: () => ({ t: "shotclockskip", p: 0, ing: null, coins: 3 }),
+  // 2026-07-30: the event carries NO resource field any more — Wyatt removed both 30-second
+  // penalties, so there is nothing to lose but the turn. The fabricated event must match the real
+  // emit in expireShotClock exactly (`{t:"shotclockskip",p:p.idx}`), or the audit page would be
+  // reviewing a shape the game can no longer produce.
+  shotclockskip: () => ({ t: "shotclockskip", p: 0 }),
   bakeoff: () => ({ t: "bakeoff", a: 0, b: 1, winner: 0 }),
   end: () => ({ t: "end", winner: 0 }),
   turn: () => ({ t: "turn", p: 0 }),
@@ -401,9 +405,12 @@ export const TABLE_BRANCHES = {
     { tag: "candycrab", label: "Tails, sardine rule ON — candycrab", fields: { heads: 0 }, cfg: { sardine: true } },
     { tag: "empty", label: "Tails, sardine rule OFF — empty-handed", fields: { heads: 0 }, cfg: { sardine: false } },
   ],
+  // 2026-07-30: the two branches below rendered the crate-loss and coin-loss wordings. Both
+  // mechanics are gone, so both branches are gone — D-21 requires a card for every branch that can
+  // reach a player, and these two no longer can. Keeping them would have shown Wyatt two cards
+  // rendering IDENTICAL text (the builder ignores `ing` now), which is worse than showing one.
   shotclockskip: [
-    { tag: null, label: "No crate held — coins tumble overboard", fields: { ing: null } },
-    { tag: "crate", label: "Crate tumbles overboard", fields: { ing: "wheat" } },
+    { tag: null, label: "Clock ran out — the turn is lost, nothing else", fields: {} },
   ],
 };
 

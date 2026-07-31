@@ -663,10 +663,19 @@ export const EVENT_NARRATION={
   shotclock:(e,at,cellPx,viewerSeat)=>({cls:"trade",txt:isLocalTo(e.p,viewerSeat)?`⏱ ${pn(e.p)} — ye were too slow and lose 1🌕; everyone else gets +1🌕`:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): "loses the turn" → "loses their/yer turn" for
   // parallelism with the addressed form.
+  //
+  // WYATT, 2026-07-30 — HIS WORDING, chosen from three drafts: "Dozed at the helm!". The old
+  // headline was "Snoozing pirates lose their treasure!", which became untrue the moment the two
+  // 30-second resource penalties were removed (see expireShotClock in src/orchestrator.js). The
+  // event no longer carries `ing` or `coins` AT ALL, so there is one line per viewer instead of a
+  // four-way branch, and no `pops` — nothing goes overboard any more, so nothing splashes.
+  //
+  // If a resource penalty is ever reinstated, this line must change WITH it. That coupling is the
+  // whole reason the old wording survived being false: the text described a mechanic the code had
+  // moved on from. (15-LEARNINGS #6 — a constant, or a string, that does not mean what it says.)
   shotclockskip:(e,at,cellPx=0,viewerSeat)=>({cls:"roundhdr",txt:isLocalTo(e.p,viewerSeat)
-      ?(e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} — ye lose yer turn and a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} — ye lose yer turn and ${e.coins}🌕 tumbles overboard!`)
-      :(e.ing?`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses their turn — a crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island.`:`⏰ Snoozing pirates lose their treasure! ${pn(e.p)} loses their turn — ${e.coins}🌕 tumbles overboard!`),
-    pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💰",true,null,"splash"]]}),
+      ?`⏰ Dozed at the helm! ${pn(e.p)} — ye lose yer turn.`
+      :`⏰ Dozed at the helm! ${pn(e.p)} loses their turn.`}),
   // D-08/D-25: both finalists read the result addressed to themselves — the winner's own "ye take
   // it!", the loser's own commiseration; a third-party viewer (and NEUTRAL_VIEWER) reads today's
   // exact third-person text.

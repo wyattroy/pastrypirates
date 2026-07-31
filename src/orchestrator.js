@@ -107,6 +107,7 @@ import {
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
+  mountKofi, // KOFI-01: lazy Ko-Fi widget mount, reached through the barrel
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
 } from "./ui/index.js";
 
@@ -239,22 +240,34 @@ export async function expireShotClock(){
   else if(appState.shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",appState.shotClockStash.seat,"— auto-skip degraded");
   if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
   if(p){
-    let lost;
-    // NARR-01 audit finding: both branches used to hand-write text byte-identical to
+    // NARR-01 audit finding: this used to hand-write text byte-identical to
     // EVENT_NARRATION.shotclockskip (src/ui/util.js) — narrate through the table instead, exactly
     // as every other event in the codebase is narrated, so the duplicate can never drift again.
-    if(p.ing.length){
-      const idx=Math.floor(appState.game.r()*p.ing.length);
-      lost=p.ing.splice(idx,1)[0];
-      appState.game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
-      appState.game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      await narrateLastEvent();
-    }else{
-      const take=Math.min(5,p.coins);
-      p.coins-=take;
-      appState.game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      await narrateLastEvent();
-    }
+    //
+    // WYATT, 2026-07-30: **running out the 30s clock now costs the TURN AND NOTHING ELSE.**
+    // *"when the shot clock runs out, you just lose your turn, but you don't lose a crate. Let's
+    // get rid of that crate losing business altogether."* Asked whether the coin fallback went too,
+    // he chose both 30s penalties. DO NOT RESTORE EITHER. What used to be here:
+    //
+    //   - holding crates -> a RANDOM crate spliced out and returned to tokens[]
+    //   - holding none   -> up to 5🌕 taken
+    //
+    // The 20-second penalty (applyShotClockPenalty in src/ui/util.js — 1🌕 to each other captain) is
+    // a DIFFERENT mechanic at a different threshold and deliberately still runs. He was asked
+    // about it specifically and kept it.
+    //
+    // This also removes CR-02's root cause rather than guarding its symptom. The confiscation ran
+    // AFTER shotClockForce() had already resolved the pending `ask()` promise, and `ask()` forces
+    // default index 0 — Accept — so a partner who timed out auto-accepted a trade for a crate the
+    // clock had just taken, and the trade then spliced on indexOf === -1. With no confiscation
+    // there is no vanishing crate. The moveCrate() invariant and the turnExpired guard in
+    // humanTrade stay regardless: a timed-out partner must not auto-accept in the first place.
+    //
+    // Determinism: the crate branch consumed one appState.game.r() call (the random crate index).
+    // Removing it changes RNG draw counts in LIVE games only — the 31 fixtures are all-bot engine
+    // replays where no shot clock ever fires, and src/engine/index.js is untouched. Verified green.
+    appState.game.ev({t:"shotclockskip",p:p.idx});
+    await narrateLastEvent();
     liveRender();
     if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
   }
@@ -573,7 +586,23 @@ export async function asyncBattle(att,def){
           // the call site is here deliberately: if this path ever records the entry cell, the
           // square-by-square sweep starts working for free, on host and guest alike.
           if(dest){def.pos=dest;appState.game.tradewind(def);await animateRimSweepIfAny();}
-          for(const bet of bets)appState.game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
+          // CR-03 (15-REVIEW.md; PRE-EXISTING since Phase 11): a "refund" loop lived here —
+          // `for(const bet of bets) players[bet.idx].coins+=bet.amt`. DO NOT RESTORE IT. It refunded
+          // a stake that was never taken, so it was a pure credit: an all-in 5-coin bettor gained 5
+          // coins from nothing, with no event and no narration line.
+          //
+          // The stake is not debited at collection. collectSideBets only RECORDS the bet; the cost
+          // is taken inside settleSideBets' own `delta` (`won ? 1+2*amt : -amt` — the losing arm IS
+          // the stake). This path returns at `if(fled)return` below, BEFORE settleSideBets ever
+          // runs, so on a flee nothing has been debited and nothing ever will be.
+          //
+          // Therefore the correct behaviour is that NO coins move here at all. The only coin
+          // movement a flee causes is the 1🌕 toll charged above, which is the rule the how-to-play
+          // modal states ("the defender may pay 1🌕 to flee to safety").
+          //
+          // Deliberately NOT done: debiting the stake at collection to make a refund real. That
+          // would require rewriting settleSideBets' win/loss math, changing playtested economics —
+          // a balance change, not a bug fix. Wyatt's call, not a silent one.
           fled=true;
           appState.game.recordSkirmish(att,def,null); // fleeing settles nothing, but cools "rich" re-triggers
           appState.game.ev({t:"battleflee",a:att.idx,d:def.idx,rounds});
@@ -1049,7 +1078,22 @@ export function watchNarr(){
 
 /* ================= welcome modal ================= */
 /* ================= lobby / room ================= */
+// WYATT'S WORDING, 2026-07-31, verbatim. Shared by createRoom and joinRoom, the same way the
+// capacity line below is shared by both (D-60) — one cause, one sentence, wherever it surfaces.
+//
+// WHY THIS EXISTS, so nobody merges it back into the capacity line: `appState.db === null` means
+// this browser never established a connection at all — offline, an ad-blocker or extension eating
+// the request, or the multiplayer script failing to load. That is NOT the server being busy. Until
+// today both said "the server's got too many pirates baking right now", which sent a player with
+// their wi-fi off away to wait it out, and made a genuine capacity problem and a local one
+// indistinguishable in a bug report.
+//
+// A null db is checked BEFORE the try, not inside the catch, because it is not an exception — it is
+// a precondition that is knowable without attempting anything.
+const NO_CONNECTION_MSG="Can't reach the Sugar Seas — check yer connection, wifi, and ad blockers, then try again matey.";
 export async function createRoom(){
+  // @copy misc.mperror.createnoconnection
+  if(!appState.db){alert(NO_CONNECTION_MSG);return;}
   const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
   appState.numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
   const code=genCode();
@@ -1073,6 +1117,12 @@ export async function joinRoom(){
   const code=($("joinCode").value||"").toUpperCase().trim();
   // @copy misc.mperror.entercode
   if(code.length<4){alert("Enter the room code yer host shared.");return;}
+  // same precondition as createRoom — a null handle is "we never connected", not "the server is busy".
+  // Two ids for one shared sentence, exactly as createcapacity/joincapacity already do it: the id
+  // names the SITE so a review mark can follow it across a source move, the constant keeps the words
+  // identical so the two can never drift apart.
+  // @copy misc.mperror.joinnoconnection
+  if(!appState.db){alert(NO_CONNECTION_MSG);return;}
   let snap;
   try{snap=await netReadRoom(appState.db,code);}
   // @copy misc.mperror.joincapacity
@@ -1201,7 +1251,7 @@ export function wireLobby(){
   $("scTimerToggle").onclick=toggleTimer;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
-  $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
+  $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";mountKofi();};
   $("btnShowFeedback").onclick=()=>{$("feedbackModal").style.display="flex";};
   // #2: in-game modals get a top-right ✕ and close on outside-click (the bottom "Close" buttons
   // were removed). Pre-game/blocking modals (lobby, pass-device, room, start/leave confirms) are
@@ -1279,21 +1329,36 @@ export function boot(){
   // returning old-version player starts clean instead of stalling on an invalid resume attempt
   // (D-01/D-02). A current-version blob's v always matches and is never touched here.
   if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
-  if(!sess||!sess.room){
-    // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
-    // Checked before Firebase init so an offline refresh mid-solo-game still resumes.
-    let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
-    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
-    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
-    if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
-  }
+  // Firebase is initialised BEFORE any early return below, and the two cards are gated on the
+  // result immediately. Previously this whole block sat AFTER the solo-resume return, so a player
+  // resuming an interrupted solo game got `appState.db === null` while showHome() (above) had
+  // already put the welcome screen up with Host and Join still ENABLED. Clicking Host then reached
+  // createRoom() with a null handle, and its catch fired the capacity line — "the server's got too
+  // many pirates baking right now" — which was untrue, and is the very sentence a REAL capacity
+  // failure uses (D-60 shares it deliberately), so the two were indistinguishable to a player and
+  // in any bug report. It also blocks the renderer, because it is a native alert(), which is why it
+  // presented as a frozen tab rather than a failed call.
+  //
+  // NOTE the ordering constraint this must not break, and which the old comment here recorded:
+  // **an offline refresh mid-solo-game still has to resume.** So the failure branch no longer
+  // returns on the spot — it marks the UI and falls through, and the `return` for "no Firebase and
+  // nothing to resume" happens after the solo check instead. Moving fbInit() up is safe because
+  // netInit() is total: it returns null for a missing config and swallows its own init throw
+  // (src/net/index.js), so it can never break a boot that previously never called it.
   const fbOk=fbInit();
   if(!fbOk){
     $("choiceHost").classList.add("disabled");
     $("choiceJoin").classList.add("disabled");
     $("fbnote").style.display="";
-    return; // solo play still works fully offline
   }
+  if(!sess||!sess.room){
+    // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
+    let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
+    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
+    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
+    if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
+  }
+  if(!fbOk)return; // solo play still works fully offline; the welcome screen already says why
   if(sess&&sess.room){
     appState.room=sess.room;appState.mySeat=sess.mySeat;appState.isHost=!!sess.isHost;
     netReadRoom(appState.db,appState.room).then(snap=>{
