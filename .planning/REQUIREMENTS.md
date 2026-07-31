@@ -51,8 +51,34 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 ### Link & Social Preview (META)
 
-- [ ] **META-01**: Shared links and search results show a preview image (Open Graph / Twitter card metadata)
-- [ ] **META-02**: The site serves a favicon
+> **RE-SCOPED 2026-07-31.** Both original requirements were written as "add these"; both were already
+> shipped with v1.0 on 2026-07-24 and verified live this session. What is actually missing is
+> narrower and different. Evidence, all checked against `https://playpastrypirates.com`:
+>
+> | Asset | State |
+> |---|---|
+> | `og:image` + Twitter card tags (`index.html:11-21`) | present |
+> | `og-image.jpg` | HTTP 200, 1200×663, 171 KB |
+> | `favicon.ico` / `favicon.png` | HTTP 200; PNG is 256×256 square |
+> | `<link rel="icon">` (`index.html:5-7`) | present |
+> | `robots.txt` / `sitemap.xml` | crawlable, sitemap referenced |
+> | JSON-LD `VideoGame` schema (`index.html:22-24`) | present — **but carries no `image` field** |
+>
+> Wyatt's screenshot of a live `pastry pirates` Google search (2026-07-31) shows the site **indexed,
+> ranking, and rendering its favicon correctly** — the Fandom and IMDb results above it each carry a
+> square thumbnail and `playpastrypirates.com` carries none. So META-02 is satisfied in the wild, and
+> META-01's failure is specific to Google's result thumbnail, not to link previews.
+>
+> **`og:image` is not the lever.** Google largely ignores Open Graph for result thumbnails; that tag
+> serves iMessage/Slack/Facebook, which were never the complaint.
+
+- [ ] **META-01** *(revised)*: A Google search result for the site shows a large preview image. Requires two additions: a `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">` directive (**the page has no robots meta tag at all today**, so Google defaults to a small thumbnail or none), and an `image` field on the existing JSON-LD `VideoGame` block. Wyatt: *"we want pastry pirates to have as big an image as possible."*
+- [x] **META-02**: The site serves a favicon — **satisfied**; verified serving and confirmed rendering in a live Google result 2026-07-31. No code change required.
+- [ ] **META-03** *(new)*: The site is verified in Google Search Console with indexing requested, so favicon/thumbnail crawl state is observable rather than guessed at. **Not a code change — Wyatt's own action**, and the slowest-moving piece (crawl latency is days to weeks), so it should start well before the code lands.
+
+> **Depends on [ABOUT-01](#about-page-about--added-2026-07-31-high-priority) for its best outcome.** Google prefers a thumbnail it can find *in the page*.
+> The board is drawn in code and `og-image.jpg` is never displayed as an `<img>` anywhere, so today
+> there is no in-page image to promote. The About page's screenshot supplies exactly that.
 
 ### Support Button (KOFI)
 
@@ -66,6 +92,46 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 ## Future Requirements
 
 Deferred to a later milestone. Tracked but not in this roadmap.
+
+### Board Atmosphere (WIND) — added 2026-07-31, HIGH PRIORITY
+
+Requested by Wyatt 2026-07-31: *"more features that i want to add to the backlog, high in the
+priority list, ideally which can be done in parallel instead of series."*
+
+**All three are drawing-layer only — no engine change, so no determinism re-record.** That is the
+property that makes them genuinely parallelizable, and it must be preserved: nothing here may touch
+`src/engine/index.js` or what it emits into the event stream.
+
+- **WIND-01**: On every non-storm turn the board carries a wind animation — small dots fluttering slowly and jitterily across it, **with none of the storm's darkening**. Built by reusing the storm's existing four-layer tiled-PNG machinery (`stormLayerSpecs()` / `buildStormLayers()` / the `.rlayer` CSS, `src/ui/board.js:272-340`) with a new dot sprite in place of `rain-streaks.png`.
+- **WIND-02**: The trade-wind arrows flow along the rim channel into the whirlpool rather than sitting still. Today `src/ui/board.js:134-142` draws one static `WIND_ARROW_IMG` per channel square, rotated to the clockwise tangent.
+- **WIND-03**: Each whirlpool rotates, making it visually clear that it is what stops the wind. Today a static `TRADE_SWIRL_IMG` is drawn at each quadrant's drop-off square (same block).
+
+**Three constraints, each earned from a bug this project already paid for:**
+
+1. **Seed the jitter from a PRIVATE stream — `mulberry32(game.seed)`, never `game.r()`.** This is G19's rule verbatim. Storm rain was jittered with unseeded `Math.random()` and cached per browser, so two players in one room saw permanently different weather (measured 0.818s/200.5px against 0.534s/264.7px). Drawing from `game.r()` instead would be worse still — it advances the seeded game stream and desyncs every client *and* all 31 determinism fixtures. `ui_contract_check.js` assertion 8 already gates both failure modes for rain; the wind layer needs the same treatment.
+2. **Safari must be re-verified, and this is the largest such risk the project has taken.** BUG-01 was a Safari near-crash caused by storm-overlay compositing, and the real fix was a pre-baked PNG tile. WIND-01 puts a permanently-running animated layer on *every ordinary turn* — the same class of cost, on a far bigger surface than a storm that appears occasionally. A Safari pass is a gate here, not a courtesy.
+3. **The new sprite must tile seamlessly.** The existing machinery derives `--drop` from the tile period (`PERIOD*scale`) precisely so each layer loops without a seam; a sprite whose dimensions don't respect that coupling will visibly jump.
+
+**Already built — do NOT re-scope (checked 2026-07-31):** *"Move the boat quickly square by square
+along the trade winds"* was on Wyatt's 2026-07-31 list, but it shipped as **G14 on 2026-07-30** and is
+live on `main`. `animateRimSweepIfAny()` (`src/ui/flow.js:374`) steps the ship one square at a time
+along the arc at `RIM_SWEEP_STEP_MS` = 95 ms (`src/ui/util.js:975`), for host and guest alike, and it
+re-derives the path geometrically rather than adding to the event stream. Wyatt ruled **"drop it —
+already done"** on 2026-07-31. If the pacing is ever revisited, it is a one-constant tuning change,
+not a feature.
+
+### About Page (ABOUT) — added 2026-07-31, HIGH PRIORITY
+
+- **ABOUT-01**: A beautiful About page exists containing the rules, a screenshot of the game in action, the credits, and the Ko-Fi "buy me a coffee" button.
+- **ABOUT-02**: The About page is reachable by its own link from the homepage.
+
+**Two overlaps to resolve during planning, not during execution:**
+
+- **The rules already exist twice** — in the How-To-Play modal (`index.html`, the `<h4>`/`<p>` rules block around `:760`) and in `RULES.md` / `Rules_boardgame.md`. Decide deliberately whether the About page shares one source with the modal or deliberately duplicates it; a third divergent copy of the rules is the failure mode.
+- **The Ko-Fi button is already KOFI-01** (v1.2 Phase 16, footer + Credits modal). ABOUT-01 is a third placement of the same embed, not a new integration — sequence it after KOFI-01 or share the markup.
+
+**This is also the real fix for META-01.** The screenshot is the first in-page image the site has ever
+had, and an in-page image is what Google promotes into a result thumbnail. Plan the two together.
 
 ### Interactive Tutorial (TUT) — deferred from v1.2
 
