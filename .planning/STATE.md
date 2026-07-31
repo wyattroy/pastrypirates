@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Playtest Fixes & Polish
-current_phase: 17
-current_phase_name: final-multiplayer-verification
-status: "Phase 16 complete; CR-02/CR-03 fixed; Phase 17 awaiting Wyatt's Safari playtest"
-stopped_at: "Overnight run 2026-07-30/31: CR-02+CR-03 fixed, Phase 16 built and browser-verified. Outstanding: Wyatt's Safari two-window playtest (Phase 17) and his review of .planning/COPY-AND-TASTE-REVIEW.md."
+current_phase: —
+current_phase_name: between milestones
+status: "v1.2 SHIPPED 2026-07-31 and archived — ready for /gsd-new-milestone"
+stopped_at: "v1.2 complete: Phases 13-17 shipped and live; Phase 18 deferred to v1.3. Next: /gsd-new-milestone."
 last_updated: "2026-07-31T03:04:13.509Z"
 last_activity: 2026-07-31
 progress:
