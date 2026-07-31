@@ -68,7 +68,9 @@ temporary `cfg.storm=1` edit immediately per D-04).
 > **How to actually drive these steps: `docs/DRIVING-THE-GAME.md`.** It records the mechanics that
 > are not guessable from the source — chiefly that the flippenator coin `#flipCoinWrap` IS the flip
 > button (not an `.apBtn`), which stalls any driver that does not know it, and that random clicking
-> never reaches an end of voyage.
+> never reaches an end of voyage. For any check that has to land inside a *specific* second, §5d is
+> the one that matters — a hand-driven session cannot hit a window that narrow, and the armed
+> watcher there is how you do.
 
 ### Scenario steps (drive against a fresh local `127.0.0.1` server for this worktree — never `playpastrypirates.com`)
 
