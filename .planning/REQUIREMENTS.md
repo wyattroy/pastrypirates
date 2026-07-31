@@ -133,6 +133,23 @@ not a feature.
 **This is also the real fix for META-01.** The screenshot is the first in-page image the site has ever
 had, and an in-page image is what Google promotes into a result thumbnail. Plan the two together.
 
+### Narration Pacing (NARR) — deferred from v1.2 (2026-07-31)
+
+Phase 18 was scoped in v1.2's roadmap and cites NARR-07, but **NARR-07 was never written into this
+file** — the phase referenced a requirement that did not exist. Recorded here rather than invented
+retroactively into the v1 section, because it was not delivered in v1.2.
+
+- **NARR-07**: Narration reads as running commentary that never gates play. `flash()` is awaited at
+  **27 call sites** today, each blocking the game loop for `typewriter reveal + msgHoldMs(text) +
+  500ms`; after this work, narration timing is a display concern only. A player who acts before a
+  line finishes must not stall anyone else, the next line must replace the current one for every
+  player at once, and host and guest must share one timing source (`msgHoldMs`) so the D-57 failure
+  mode cannot recur. **Success is judged by a real two-player playtest before and after** — removing
+  the block must not make a busy round unreadable, and no unit test can settle that.
+
+Partially tracked already by `.planning/todos/pending/narration-two-schedulers-unenforced.md`
+(`flash()` and `showNarration()` are two schedulers on one element, recorded and unenforced).
+
 ### Interactive Tutorial (TUT) — deferred from v1.2
 
 - **TUT-01**: A 30–60s interactive tutorial that walks new players through the goal, board features (Tortuga, islands, ingredients, boats, rival boats, wind compass, click-to-move), the captains box (your row, needed ingredients red/green/yellow, dubloons), the flippenator, the turn clock, the narration box, and the steps of a turn — following best practices for games of this type
@@ -188,6 +205,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CLOCK-03 | Phase 13 | Complete |
 | STORM-01 | Phase 14 | Complete |
 | AI-01 | Phase 14 | Complete |
+| NARR-07 | Phase 18 | **Deferred to v1.3** — never planned; see Future Requirements |
 | NARR-01 | Phase 15 | Complete |
 | NARR-02 | Phase 15 | Complete |
 | NARR-03 | Phase 15 | Complete |

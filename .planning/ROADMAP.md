@@ -45,7 +45,7 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 - [x] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06) (completed 2026-07-30, merged as PR #8)
 - [x] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01) (completed 2026-07-31)
 - [x] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01) (completed 2026-07-31 — Safari hosting, Chrome guest, room KWPE, 3/3 criteria)
-- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07)
+- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — **DEFERRED TO v1.3 (2026-07-31, Wyatt's call at milestone close).** Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07). Never planned — no phase directory. Its requirement NARR-07 was missing from REQUIREMENTS.md entirely and is now recorded under Future Requirements.
 
 ## Phase Details
 
