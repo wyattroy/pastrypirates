@@ -126,17 +126,29 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
   fixture corpus captures the engine only. Wyatt ruled the replacement copy 2026-07-31:
   **"they give up 5 🌕"** (rendering the actual amount, which is `min(5, coins)` and not always 5).
   *(Found in the v1.2 Phase 17 playtest.)*
+- **FIX-10**: **A narrow window never clips the action button.** `resizePanel()`
+  (`src/ui/panel.js:308-318`) measures the message height **once** and pins `#apGrid` to that pixel
+  value, while `#apGridInner` is `overflow:hidden` — so any later height growth is silently cut off.
+  **Confirmed:** the resize listener (`src/main.js:161`) only calls `syncBoardSizing()` and never
+  re-runs `resizePanel()`, so narrowing the window after a prompt renders leaves the button under the
+  fold. Suspected second path: measuring before the inline coin icon loads. **The measure-once design
+  is BUG-01's Safari fix and must be preserved** — remeasure at the moments height can change, not
+  per reveal tick. **Plan together with FIX-03** — same function, same measurement, and each breaks
+  the other if done blind. *(Found in the v1.2 Phase 17 playtest.)*
 - **FIX-09**: **On narrow mobile the ingredient chips stay readable instead of collapsing into a
   single vertical column.** `.prowTop`'s fixed `14px 106px 40px 1fr` grid (`index.html:166`) leaves
   the `1fr` chips column under the ~182px five fixed-size chips need, so the flex row wraps to one
   chip per line and each captain's row becomes five chips tall. The existing `@media (max-width:
   480px)` rule only relocates the recipe, not the chips. **Must preserve the documented
   cross-captain alignment** of the dot/name/coins columns. *(Found in the v1.2 Phase 17 playtest.)*
-- **FIX-08**: **Every recipe name is singular.** The win banner hardcodes the article — *"baked a
-  {recipe}"* (`src/orchestrator.js:887`) — so the 8 plural titles in `RECIPE_BOOK` render as "baked
-  a Mexican Chocolate Pots". Eight renames in `src/ui/recipe.js`; final wording is Wyatt's call, and
-  `RECIPE_BOOK` must not be reordered (pastry art is index-matched). *(Found in the v1.2 Phase 17
-  playtest, with a screenshot.)*
+- **FIX-08**: **The win banner only prints "a" in front of a recipe name that takes one.** It
+  hardcodes the article (`src/orchestrator.js:887`), so the 8 plural titles read *"baked a Mexican
+  Chocolate Pots"*. Ruled by Wyatt 2026-07-31: **fix the article, not the names — no recipe is
+  renamed.** Carry an explicit per-recipe article field on `RECIPE_BOOK` rather than computing it
+  (pluralisation is not detectable from a string, and an explicit field also retires the latent
+  "baked a Espresso Torte" a/an bug in the same edit). Banner only — every other place the titles
+  render is untouched. `RECIPE_BOOK` must not be reordered (pastry art is index-matched).
+  *(Found in the v1.2 Phase 17 playtest, with a screenshot.)*
 - **FIX-06**: The **12 solid-orange `button.primary` buttons** are restyled to the game's standard
   outline + faded-fill pattern (`index.html:125`, copying `.footerKofi` at `:135-151`). Scope ruled
   by Wyatt 2026-07-31: the "Host a Crew" choice card, the "Play again" gradient, and the

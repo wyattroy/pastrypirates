@@ -1,12 +1,12 @@
 ---
 created: 2026-07-31T16:45:00.000Z
-title: All recipe names must be singular — plurals read wrong in the win banner
+title: The win banner's hardcoded "a" is wrong for plural recipe names
 area: copy
 severity: minor
 files:
+  - src/orchestrator.js:887 (the win banner — the hardcoded "a")
   - src/ui/recipe.js:52-260 (RECIPE_BOOK — 21 titles, 8 of them plural)
-  - src/orchestrator.js:887 (the win banner — "baked a {recipe}")
-  - src/ui/board.js:525 (captains-box prow label)
+  - src/ui/recipe.js:298-304 (recipeTitle + its fallback)
 ---
 
 ## Problem
@@ -15,73 +15,63 @@ Wyatt, from the v1.2 Phase 17 playtest (2026-07-31), with a screenshot of the en
 
 > **Davy Scones baked a 📜 Mexican Chocolate Pots and won Best Baker in the Caribbean!**
 
-*"All recipe names must be singular — Mexican Chocolate Pots is plural and reads wrong at the end
-sequence."*
-
-The win banner at `src/orchestrator.js:887` hardcodes the article **"a"**:
+"baked **a** Mexican Chocolate Pots" is ungrammatical. The banner hardcodes the article
+(`src/orchestrator.js:887`):
 
 ```js
 `${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b>`
 ```
 
-"baked a Mexican Chocolate Pots" is ungrammatical. Eight of the twenty-one recipes hit this.
+Eight of the twenty-one recipes are plural and hit this.
 
-## The eight plural titles
+## The fix — RULED by Wyatt, 2026-07-31
 
-All live in `RECIPE_BOOK`, `src/ui/recipe.js`:
+**Fix the article, not the names.** *"A simpler fix may simply be to change the wording at the end of
+the game to only add in the word 'a' in front of the recipe"* when the name takes one.
 
-| # | Current | Singular |
-|---|---|---|
-| 4 | Cinnamon-Sugar Churros | Cinnamon-Sugar Churro |
-| 6 | Spiced Fudge Brownies | Spiced Fudge Brownie |
-| 8 | Cinnamon Snaps | Cinnamon Snap |
-| 9 | Snickerdoodle Bites | Snickerdoodle Bite |
-| 11 | Crispy Cocoa Snaps | Crispy Cocoa Snap |
-| 12 | Dark Chocolate Cream Puffs | Dark Chocolate Cream Puff |
-| 14 | French Pots de Crème | French Pot de Crème |
-| 17 | Mexican Chocolate Pots | Mexican Chocolate Pot |
+**No recipe is renamed.** All 21 titles stay exactly as they are. The banner reads:
 
-The other thirteen are already singular and need no change.
+- `baked a Molten Chocolate Lava Cake` (singular — article kept)
+- `baked Mexican Chocolate Pots` (plural — **no article**)
 
-**These are suggestions, not a ruling — the wording is Wyatt's call.** Some singularize cleanly
-("Mexican Chocolate Pot", "Dark Chocolate Cream Puff", "French Pot de Crème"). Others read thinner as
-a single unit ("Cinnamon Snap", "Snickerdoodle Bite") because the real-world dessert is a plate of
-them. If any of those read badly to him, the alternative is a name that is singular by construction —
-a batch noun like "Snickerdoodle Batch" or "Plate of Cinnamon Snaps" — rather than forcing an awkward
-singular. Get his approval on the final eight before shipping.
+This was chosen over renaming the eight plurals. It is one flag per recipe instead of eight renames,
+it leaves names alone that read better plural ("Cinnamon Snaps", "Snickerdoodle Bites" — the real
+dessert is a plate of them), and it touches no other surface where the titles appear.
 
-## Also check — the article
+## How to carry the flag
 
-`recipeTitle()` also has a **fallback** path for non-standard ingredient sets
-(`src/ui/recipe.js:301-303`): `Captain's {X} & {Y} Bake`. That is already singular, so it is fine.
+Add a per-recipe field on `RECIPE_BOOK` (`src/ui/recipe.js`) — e.g. `article:"a"` / `article:""` —
+and have the banner emit `${article}${article?" ":""}${recipe}`.
 
-None of the current 21 titles begin with a vowel sound, so the hardcoded **"a"** is correct today and
-stays correct after singularizing. **It is still a latent trap:** a future recipe starting with a
-vowel ("Espresso…", "Almond…", "Orange…") would render "baked a Espresso…". Worth fixing the article
-properly at the same time, since the banner is already being touched — but note the honest edge case,
-that a/an cannot be decided by first letter alone ("an hour", "a unicorn"), so a simple vowel test is
-a heuristic, not a rule. For a fixed list of 21 curated names, an explicit per-recipe article field is
-more reliable than any heuristic.
+**Use an explicit per-recipe field, not a computed rule.** Two reasons, and the second is the real
+one:
 
-## Where else titles appear
+1. Pluralisation cannot be detected reliably from a string. "Pots de Crème" is plural; "Genoise" is
+   not; an `/s$/` test gets both wrong in opposite directions.
+2. **It also retires the latent a/an bug in the same edit.** No current title starts with a vowel
+   sound, so the hardcoded "a" happens to be correct today — but the day someone adds "Espresso
+   Torte" or "Almond Tart" the banner reads "baked a Espresso Torte". A vowel-letter test would not
+   save you either (compare "an hour", "a unicorn"). For a curated list of 21, an explicit field is
+   both simpler and strictly more correct than any heuristic. Setting it to `"an"` where needed makes
+   the whole class of bug impossible rather than merely absent.
 
-Singularizing is a data change in one array, but the titles render in several places — check each
-still reads correctly, especially anywhere an article or count precedes them:
+**Also cover the fallback.** `recipeTitle()` has a fallback for non-standard ingredient sets
+(`src/ui/recipe.js:301-303`) returning `Captain's {X} & {Y} Bake` — that has no `RECIPE_BOOK` entry
+and therefore no article field. It is singular, so it wants `"a"`; make sure the code path does not
+render `undefined` or drop the article for it.
 
-- Win banner (`src/orchestrator.js:887`) — the reported failure
-- Captains-box prow label (`src/ui/board.js:525`)
-- The recipe modal (`recipeCardHTML`, `src/ui/recipe.js:318`)
-- The share/email subject (`src/ui/recipe.js:374`)
+## Scope note
+
+This changes **only the win banner**. The titles themselves are untouched, so the other places they
+render — the captains-box prow label (`src/ui/board.js:525`), the recipe modal
+(`src/ui/recipe.js:318`), the share subject (`:374`) — need no change and should not be touched.
 
 ## Gates
 
-- Recipe titles are player-facing copy and fall inside the inventory tracked by
-  `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. Eight renames are eight inventory
-  changes — record them.
-- **Check whether any recipe title is keyed on elsewhere.** `RECIPE_LOOKUP` keys on the sorted
-  ingredient list, not the title (`src/ui/recipe.js:295`), so renaming looks safe — but confirm no
-  test, fixture, or saved game stores a title string before renaming.
-- Pastry art is index-matched (`PASTRY_FILES`, `attachPastryArt()` at `src/ui/recipe.js:290`), so
-  **do not reorder `RECIPE_BOOK` while editing it** — the art would silently detach from the names.
+- The banner sentence is player-facing copy and falls inside the inventory tracked by
+  `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. One sentence changes shape; record it.
+- **Do not reorder `RECIPE_BOOK` while adding the field.** Pastry art is index-matched via
+  `PASTRY_FILES` / `attachPastryArt()` (`src/ui/recipe.js:290`), so a reorder would silently detach
+  every image from its recipe.
 
-**Source:** Wyatt, 2026-07-31, v1.2 Phase 17 playtest.
+**Source:** Wyatt, 2026-07-31, v1.2 Phase 17 playtest; approach ruled by him the same day.
