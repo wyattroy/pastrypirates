@@ -30,27 +30,44 @@ Where it already appears:
   legs, each able to fire its own event. **Do not let that ruling be read as clearing this item** —
   it answers the duplicate question, not the never-docked one.
 
-## Two distinct defects, both live
+## Wyatt's evidence rules OUT the obvious explanation — treat this as an AUDIT, not a one-line fix
 
-### 1. `wasDocked` asks the wrong question — the likely cause of Wyatt's report
+**2026-07-31, Wyatt, correcting an earlier theory of mine:** *"What I saw was no dock anywhere near
+the player when the narration came up. So we need to audit the storm narration flows more closely
+because something clearly went a bit bad."*
 
-`src/ui/flow.js:792`:
+That matters, because the tidy explanation **does not survive it.** The proximity theory below
+requires a dock to be somewhere near the ship. There wasn't one. So whatever is wrong is either
+upstream of that test, or is not that test at all.
 
-```js
-const wasDocked=appState.game.adjPort(p)!==null;
-```
+**Do not open this as "change one condition."** Open it as an audit of the storm narration flow end
+to end, treating every step from event emission to rendered line as suspect. Candidate mechanisms,
+none yet ruled in or out:
 
-`adjPort` is **"is there a port adjacent to this ship"** — proximity, not mooring. Everywhere else
-that needs "is this ship actually sheltered" calls **`mooredReason(p)`**, which the codebase's own
-comments call *"the single source of truth for which of the three safe-harbor causes fired"*
-(`src/ui/flow.js:597-602`, `src/engine/index.js:280`).
+1. **`wasDocked` is stale or scoped too wide.** `src/ui/flow.js:792` computes
+   `adjPort(p)!==null` — *proximity to a port*, not mooring — **once, before both storm legs.** Even
+   with the right test, a ship that starts beside a dock and is blown far away still carries
+   `wasDocked=true` into a line rendered when it is mid-ocean. That alone could produce Wyatt's
+   sighting without any dock being visible at the moment the line appears.
+2. **The event is attributed to the wrong player.** `blownOut` carries `p:p.idx`; if the wrong seat
+   is named, the line describes a real event happening to somebody else's ship.
+3. **A stale event is being narrated.** `narrateLastEvent()` reads the last emitted event; if the
+   storm path emits and narrates out of step, an earlier leg's line can render against a later
+   position.
+4. **The emit is unconditional** (defect 2 below), so a leg where *nothing happened* still produces a
+   line — and a line with no real event behind it can describe anything.
 
-So a ship merely *passing beside* a dock is labelled as having been blown off it. **Confirm the
-distinction before changing it** — if `adjPort` is genuinely how docking works in this game, then the
-bug is elsewhere and this is correct as written. Read `mooredReason` and `adjPort` side by side
-first.
+`mooredReason(p)` is what the rest of the code calls *"the single source of truth for which of the
+three safe-harbor causes fired"* (`src/ui/flow.js:597-602`, `src/engine/index.js:280`), and
+`wasDocked` conspicuously does not use it. That inconsistency is worth resolving regardless of
+whether it turns out to be the cause here.
 
-### 2. The live paths emit `blownOut` even when the ship never moved
+**Get a live repro with the seed before changing anything.** Static reading already failed once on
+this bug — the Phase 15 pass looked at it and it still shipped.
+
+## The second defect, independently confirmed
+
+### The live paths emit `blownOut` even when the ship never moved
 
 The engine guards it (`src/engine/index.js:722`):
 

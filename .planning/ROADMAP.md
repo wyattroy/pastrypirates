@@ -433,7 +433,28 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 
-## Next Milestone: v1.3 "Look, Feel & Front Door" — DRAFTED, NOT YET ACTIVE
+## Next Milestone: v1.3 — DRAFTED, NOT YET ACTIVE
+
+> ## ⚠ READ `.planning/research/v1.3-intake/RECONCILIATION.md` BEFORE ACTING ON THIS SECTION
+>
+> **This section is roughly one fifth of v1.3's real scope.** It was written on 2026-07-31 without
+> knowledge of `.planning/research/v1.3-intake/` — a **63-item, feasibility-grounded intake from
+> 2026-07-27 whose eight open decisions Wyatt has already answered**. Nothing below is wrong, but a
+> great deal is missing: the pass-and-play bugs blocking real players, the recipe-duplication bug,
+> the confirmed-broken clock-disable control, the narration review tool, and ~45 more items.
+>
+> `RECONCILIATION.md` merges the two and proposes a phase order. **Three things it changes here:**
+> **FIX-02** is superseded by the intake's fuller N-03/N-04 (solo must actually *disable* the clock,
+> not show an inert button); **WIND-01** keeps the intake's Safari spike gate; and **FIX-05 is
+> un-exiled** — the intake schedules one gated determinism re-record inside v1.3, which is exactly
+> the batch FIX-05 and FIX-13 need if their causes turn out to be engine-tier.
+>
+> The lane structure below survives the merge. The "nothing may touch the engine" rule applies to the
+> **lanes**, not to the milestone — one isolated engine phase can coexist with lanes that stay clear
+> of it.
+
+### The original 2026-07-31 draft, retained below for its detail
+
 
 Drafted 2026-07-31 from Wyatt's punch list (4 features + 6 bugs). **Not started.** He ruled the same
 day that **v1.2 closes properly first** — Phase 17's manual Safari + Chrome two-window playtest runs
