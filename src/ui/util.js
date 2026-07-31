@@ -1019,7 +1019,11 @@ export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
 // The tick is paired with an equally short LINEAR css glide, so the browser interpolates between
 // our discrete targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not.
 // That pairing is what makes a setTimeout-driven motion look as smooth as an rAF one.
-export const RIM_SWEEP_TICK_MS=24;
+// UNITS: milliseconds BETWEEN motion updates — so SMALLER is smoother, not larger. 16ms is ~60
+// updates a second, which is the display's own refresh rate and therefore the practical ceiling:
+// going lower buys nothing a screen can show. (Wyatt asked for "48" reading 24 as a frame rate;
+// 16ms is ~60/sec, i.e. more than the 48/sec he was after, in the direction he wanted.)
+export const RIM_SWEEP_TICK_MS=16;
 // Progress is always derived from ELAPSED TIME, never from a tick count — panel.js's other lesson:
 // a chain that counts ticks can never catch up, because each tick only schedules the next after its
 // own overhead, so one slow callback drifts every remaining one. Deriving from elapsed time means a
@@ -1029,14 +1033,24 @@ export const RIM_SWEEP_MS_PER_CELL=RIM_SWEEP_STEP_MS+15; // 110 — inherits the
 // ends: a 2-cell sweep should not be an instant flicker, and a 12-cell one should not be a journey.
 export const RIM_SWEEP_MIN_MS=420;
 export const RIM_SWEEP_MAX_MS=1500;
-// The beat the boat spends ARRIVING in the trade winds before the sweep pulls it away. The square
+// How long the boat takes to SAIL INTO the trade-wind square before the winds take hold. The square
 // the player clicked was previously never drawn at all: the board redraw that would have shown it
 // and the sweep's first paint ran in one synchronous block with no yield between them, so the
 // browser only ever painted the second. Hence the sweep began with the boat still rendered inland.
-// A full SHIP_GLIDE_MS lets that arrival glide COMPLETE, so the sweep starts from the ring.
-// This is the feel knob for "arrive, then go" — raise it toward STORM_STEP_MS for a beat of rest at
-// the channel mouth before the winds take hold.
-export const RIM_SWEEP_ARRIVE_MS=SHIP_GLIDE_MS; // 350
+// This value is BOTH the landing glide and the wait, so the landing always completes in exactly the
+// time we wait for it — the two can never drift apart and re-create the re-aimed-mid-glide bug.
+//
+// 2026-07-31, Wyatt: *"decrease the pause on arrival to 0 so it looks like it immediately gets
+// swept up once it lands in the trade wind square."* This is NOT dead time — it is the boat sailing
+// in, and at the previous SHIP_GLIDE_MS (350) the winds already took hold the very instant it
+// landed. So what read as a pause was the LANDING being slow, and the fix is to make the landing
+// quick rather than to remove it: at 140ms the boat visibly arrives and is carried off in what
+// reads as one continuous motion.
+//
+// 0 IS SUPPORTED AND MEANS SOMETHING DIFFERENT: skip the landing entirely, so the winds take the
+// boat while it is still sailing in. That re-creates the original complaint — the boat never
+// reaches the trade winds before moving — so it is deliberately not the default.
+export const RIM_SWEEP_ARRIVE_MS=140;
 
 // D-23 (Wyatt-approved 2026-07-29): bot narration used to hold on screen for LESS time than the
 // identical human line (BOT_MSG_HOLD_MULTIPLIER 0.45 vs MSG_HOLD_MULTIPLIER 0.72) — a violation of

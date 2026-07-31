@@ -367,7 +367,12 @@ export function rimSweepPath(game,from){
 // The output is RESAMPLED to even spacing so that travelling it at a constant rate gives a constant
 // SPEED. Walking the raw spline samples instead would slow down through curves and speed up on the
 // straights, which is the same class of artefact this is replacing.
-export function rimSweepCurve(cells,perCell=16){
+// `perCell` is how finely the curve itself is sampled — 48 points per ring cell, comfortably finer
+// than any tick rate can consume, so the traversal is never quantised by the curve's own resolution.
+// It costs a few hundred array entries once per sweep and nothing per frame, so there is no reason
+// to be stingy with it. (Raised 16 -> 48 on 2026-07-31; the largest sample gap fell 0.088 -> 0.029
+// cells, measured by the SMOOTH-ARC test.)
+export function rimSweepCurve(cells,perCell=48){
   if(!Array.isArray(cells)||cells.length<2)return [];
   // duplicate both ends so the spline actually reaches the first and last cell rather than easing
   // out of them — the boat must start ON the square the player clicked and finish ON the whirlpool
@@ -460,8 +465,15 @@ export async function animateRimSweepIfAny(){
     //
     // The await is the load-bearing half — it is the yield that lets the browser paint the arrival
     // at all, and RIM_SWEEP_ARRIVE_MS is long enough for that glide to COMPLETE.
-    paintShipAt(seat,from);
-    await sleep(RIM_SWEEP_ARRIVE_MS);
+    // The glide is set to the SAME value we are about to wait for, so the landing completes exactly
+    // as the wait ends. Leaving it at SHIP_GLIDE_MS (350) while waiting only 140 would re-create the
+    // very bug this function exists to fix: the sweep re-aiming a ship that is still in flight.
+    // Linear, because a 140ms ease-in-out over one square reads as a hesitation.
+    if(RIM_SWEEP_ARRIVE_MS>0){
+      setShipGlideMs(seat,RIM_SWEEP_ARRIVE_MS,"linear");
+      paintShipAt(seat,from);
+      await sleep(RIM_SWEEP_ARRIVE_MS);
+    }
     // ── PART B: CARRY THE BOAT SMOOTHLY ALONG THE RING ───────────────────────────────────────
     // Interpolated along a spline, NOT stepped cell by cell. See rimSweepCurve above, and
     // RIM_SWEEP_TICK_MS in util.js, for why the per-square stepper this replaces looked wrong even
