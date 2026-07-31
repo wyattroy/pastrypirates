@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Playtest Fixes & Polish
-current_phase: 15
-current_phase_name: narration-audit-fixes
-status: "Phase 15 shipped — PR #8"
-stopped_at: Phase 15 shipped as PR #8 (Phases 13-15). Next work, in Wyatt's stated order — CR-02/CR-03 economy bugs, then Phase 16, then the queued gated re-record batch.
-last_updated: "2026-07-31T00:45:35.909Z"
-last_activity: 2026-07-30
+current_phase: 17
+current_phase_name: final-multiplayer-verification
+status: "Phase 16 complete; CR-02/CR-03 fixed; Phase 17 awaiting Wyatt's Safari playtest"
+stopped_at: "Overnight run 2026-07-30/31: CR-02+CR-03 fixed, Phase 16 built and browser-verified. Outstanding: Wyatt's Safari two-window playtest (Phase 17) and his review of .planning/COPY-AND-TASTE-REVIEW.md."
+last_updated: "2026-07-31T03:04:13.509Z"
+last_activity: 2026-07-31
 progress:
   total_phases: 12
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 15
   completed_plans: 15
   percent: 25
-last_activity_desc: "Phase 15 shipped — PR #8 opened against main, carrying Phases 13, 14 and 15"
+last_activity_desc: "Phase 16 complete (UI-01..07, META, KOFI) + CR-02/CR-03 economy fixes; Phase 17 automated+Chrome coverage done"
 ---
 
 # Project State
@@ -24,14 +24,14 @@ last_activity_desc: "Phase 15 shipped — PR #8 opened against main, carrying Ph
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 15 — narration-audit-fixes
+**Current focus:** Phase 17 — final-multiplayer-verification (Wyatt's Safari playtest)
 
 ## Current Position
 
-Phase: 15 (narration-audit-fixes) — SHIPPED
+Phase: 17 (final-multiplayer-verification) — AWAITING WYATT
 Plan: 6 of 6 (plus 6 quick tasks)
-Status: Phase 15 shipped — PR #8, awaiting review/merge
-Last activity: 2026-07-30
+Status: Phase 16 complete; CR-02/CR-03 fixed; Phase 17 awaiting Wyatt's Safari playtest
+Last activity: 2026-07-31
 
 PR #8 carries Phases 13, 14 and 15 against `main` — 403 commits, `.planning/` history
 kept in the merge per Wyatt's ruling. Two verification items ride along as accepted
