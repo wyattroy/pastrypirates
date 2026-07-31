@@ -101,12 +101,15 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
 - **FIX-01**: Players choose their name in a **new intermediary modal that appears after they pick a
   play mode**, not from a field on the welcome screen that people are not seeing. *(Interacts with
   UI-05, UI-06 and LOAD-03 — all touch the same mode-button handlers.)*
-- **FIX-02** *(superseded by N-03/N-04 — see the reconciliation)*: Solo is missing the timer on/off
-  **toggle** (`#scTimerToggle`, hidden by `!soloBotGame()`), not the clock — `#shotClockPanel` and
-  its pause button already render in every mode. Wyatt's later D-01 ruling asks for the disable to
-  **actually work** everywhere, so build N-03/N-04 rather than a greyed placeholder. **AUDIO-02 is
-  not blocked by this** — the clock panel is already on screen in solo, so the mute button has its
-  anchor today.
+- **FIX-02** *(absorbed into N-03; scheduled with AUDIO in Phase 4)*: **Solo gets the timer on/off
+  toggle, and it works.** `#scTimerToggle` is hidden by `!soloBotGame()`; the clock itself
+  (`#shotClockPanel` + its pause button) already renders in every mode. Not a greyed placeholder —
+  Wyatt's D-01 ruling asks for the disable to **actually work** everywhere, and he reaffirmed it
+  2026-07-31. **Built alongside AUDIO-01/02/03** for two reasons: the mute button sits directly
+  beside this toggle, and solo + pass-and-play are broken by the same cause (the control is driven
+  by `watchTimer()`'s Firebase `timerOff` node, `src/orchestrator.js:199-217`, which neither mode
+  has), so **one local code path fixes both**. N-04's wider parity sweep and N-02's urgency
+  animation stay in the bug phase.
 - **FIX-03**: In action prompts the **buttons appear only after the final character has been
   typewriter'd out**. Today `panel()` paints buttons synchronously and only the message is revealed
   (`src/ui/panel.js:301`). Must not change the measured panel height (BUG-01's Safari fix), must
