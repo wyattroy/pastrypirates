@@ -698,6 +698,20 @@ export function victoryConfetti(winner){
 }
 export function showStats(){
   $("statsWrap").style.display="";
+  // UI-07: collapse the narration/action box once the End of Voyage summary is up. By this point
+  // the box can only be in one of two states, and neither should stay on screen underneath the
+  // summary: EMPTY (EOV-01 removed the win announcement from it, and showNarration carries no timer
+  // of its own, so nothing replaces the last line), or holding a now-stale final line. A large
+  // empty panel between the board and the awards is the reported symptom.
+  //
+  // This does NOT contradict F6, Wyatt's "the blue box should never be empty" rule. F6 governs the
+  // box DURING PLAY, where an empty box means a dropped message. The voyage is over; the box has no
+  // further job, and the summary is the thing to look at.
+  //
+  // Safe to hide unconditionally: panel() sets display itself on any later call, so a new line
+  // re-shows the box without needing anything undone here.
+  const ap=$("actionPanel");
+  if(ap){$("apGridInner").innerHTML="";ap.style.display="none";ap.classList.remove("needsAction");}
   celebrateHomeDocks();
   const w=appState.game.winner;
   // @copy misc.board.eovbanner

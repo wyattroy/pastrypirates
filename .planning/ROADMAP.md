@@ -42,9 +42,9 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 
 - [x] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03) (completed 2026-07-26)
 - [x] **Phase 14: Engine-Adjacent Gameplay Fixes & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the bot hail/action turn follows a decided rule; the determinism harness stays green (STORM-01, AI-01, VERIFY-02) (completed 2026-07-26)
-- [ ] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06)
-- [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01)
-- [ ] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01)
+- [x] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06) (completed 2026-07-30, merged as PR #8)
+- [x] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01) (completed 2026-07-31)
+- [ ] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01) — **automated + Chrome coverage done 2026-07-31; the Safari two-window playtest is Wyatt's and is the only thing outstanding (17-VERIFICATION.md)**
 - [ ] **Phase 18: Narration Pacing — commentary, not a gate** — Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07)
 
 ## Phase Details

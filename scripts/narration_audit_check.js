@@ -520,6 +520,25 @@ const PAGE_ADDED = new Set([
   "adhoc:src/ui/util.js:874", "adhoc:src/ui/util.js:878",
   "sub:src/ui/flow.js:563~afford", "sub:src/ui/flow.js:563~poor", "sub:src/ui/flow.js:563~none",
 ]);
+// A SECOND, deliberately separate way a row can leave the live set — and it is not retirement.
+//
+// Retirement above means "two of his rows were twins and he merged them", which is why it demands
+// his own `merge` tag and refuses a `keep` or `rewrite`. That rule is correct and is NOT relaxed.
+//
+// This list means something different: **the game mechanic the row reviewed no longer exists**, by
+// Wyatt's own instruction. His words, 2026-07-30: *"when the shot clock runs out, you just lose
+// your turn, but you don't lose a crate. Let's get rid of that crate losing business altogether."*
+// The row is a genuine `rewrite` of his, and it is not being discarded as redundant — the sentence
+// it improved describes a confiscation the game no longer performs.
+//
+// The same anti-slack discipline applies as above: an exact LIST, never a count and never a reason
+// string, because "roughly one row, removed for a good reason" would let a later pass quietly drop
+// forty. And one extra condition retirement does not have — each id here must name a card that is
+// genuinely NOT live. That stops this list from ever becoming a way to hide a card that still
+// renders to players from his review.
+const EXPECTED_MECHANIC_REMOVED = [
+  "table:shotclockskip~crate",
+];
 const EXPECTED_ROWS = 209;
 const EXPECTED_DRIFT = 104;
 
@@ -562,9 +581,23 @@ export function checkMigration({ rows, aliases, baseline, exportEraInventory, li
     if (tag !== "merge") fail(res, `refusing to retire ${id} — his own tag is "${tag}", not merge. A keep or rewrite row can never be retired.`);
   }
 
-  // the arithmetic
-  if (targets.length + retired.length !== EXPECTED_ROWS) {
-    fail(res, `${EXPECTED_ROWS} != ${targets.length} aliased + ${retired.length} retired`);
+  // rows whose MECHANIC was removed — the pinned list, and each must name a genuinely dead card
+  const mechGone = list.filter((e) => e.mechanicRemoved).map((e) => e.old).sort();
+  const wantMechGone = [...EXPECTED_MECHANIC_REMOVED].sort();
+  if (JSON.stringify(mechGone) !== JSON.stringify(wantMechGone)) {
+    fail(res, `the mechanic-removed set drifted from its pinned list\n        expected: ${wantMechGone.join("\n                  ")}\n        actual:   ${mechGone.join("\n                  ")}`);
+  }
+  for (const e of list.filter((x) => x.mechanicRemoved)) {
+    // the whole justification is that the branch cannot reach a player. If the card is live, it
+    // must be reviewable, and this entry is hiding it.
+    if (liveCardIds && liveCardIds.has(e.old)) fail(res, `refusing to drop ${e.old} as mechanic-removed — that card is STILL LIVE and would vanish from his review`);
+    if (e.new) fail(res, `${e.old} is marked mechanicRemoved but still names a target (${e.new}) — it must be one or the other`);
+    if (!e.ruling) fail(res, `${e.old} is marked mechanicRemoved with no \`ruling\` recording who decided it and when`);
+  }
+
+  // the arithmetic — every one of his rows lands in exactly one of the three buckets
+  if (targets.length + retired.length + mechGone.length !== EXPECTED_ROWS) {
+    fail(res, `${EXPECTED_ROWS} != ${targets.length} aliased + ${retired.length} retired + ${mechGone.length} mechanic-removed`);
   }
 
   // every alias target is a LIVE card id
@@ -596,9 +629,11 @@ export function checkMigration({ rows, aliases, baseline, exportEraInventory, li
   // not a keep, it is unknown, which is the specific regression D-27 exists to prevent
   const seeded = rows.filter((r) => byOld[r.id] && byOld[r.id].new);
   const reviewed = seeded.filter((r) => r.reviewed !== false).length;
-  note(res, `reviewed rows carried across: ${reviewed} of ${EXPECTED_ROWS} (${retired.length} retired against his own merge instruction)`);
-  if (reviewed + retired.length !== EXPECTED_ROWS) {
-    fail(res, `only ${reviewed} row(s) seed as reviewed; ${EXPECTED_ROWS - retired.length} expected — a keep that becomes unknown is a lost decision, not a keep`);
+  note(res, `reviewed rows carried across: ${reviewed} of ${EXPECTED_ROWS} (${retired.length} retired against his own merge instruction, ${mechGone.length} whose mechanic he removed)`);
+  // The equality still covers every one of his 209 rows — the third bucket is ADDED to the sum, not
+  // subtracted from the requirement, so a row cannot go missing by being quietly reclassified.
+  if (reviewed + retired.length + mechGone.length !== EXPECTED_ROWS) {
+    fail(res, `only ${reviewed} row(s) seed as reviewed; ${EXPECTED_ROWS - retired.length - mechGone.length} expected — a keep that becomes unknown is a lost decision, not a keep`);
   }
   const keepLost = seeded.filter((r) => derivedIntent(r) === "keep" && r.reviewed === false);
   if (keepLost.length) fail(res, `${keepLost.length} keep row(s) would seed unreviewed: ${keepLost.slice(0, 5).map((r) => r.id).join(", ")}`);

@@ -213,8 +213,20 @@ export function sailPickMsg(seat){
 // dropping the inline fill would give BOTH boards default-black squares. If .sailCell ever gains a
 // fill, re-derive this — scripts/host_guest_parity_check.js and this comment are the only warning.
 // The guest's old opacity:.4 goes: .sailCell supplies .5 and the keyframes animate it.
+// UI-03: the highlight is 10% smaller than it was. The old geometry was a flat 2px inset
+// (width: cellPx-4); SAIL_HL_SCALE shrinks that square about its own centre, so the inset is
+// derived rather than a second hand-tuned number that could drift from the scale.
+//
+// Deliberately changed HERE and only here. This builder is G25's shared host/guest surface — the
+// entire reason it exists is that the two boards used to drift — so a size change made in one
+// renderer would recreate D-55 exactly. scripts/host_guest_parity_check.js asserts they stay one.
+//
+// The CSS bounce ratio (scale 1 -> 1.11) is left alone on purpose: "10% smaller" reads as the
+// resting size, and rescaling the animation too would flatten the bounce rather than shrink it.
+const SAIL_HL_SCALE=0.9;
 export function sailHighlightRect(c,cellPx,svg){
-  return el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:6,
+  const side=(cellPx-4)*SAIL_HL_SCALE, inset=(cellPx-side)/2;
+  return el("rect",{x:c[0]*cellPx+inset,y:c[1]*cellPx+inset,width:side,height:side,rx:6,
     fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
 }
 export function pickCell(p,cells){
@@ -312,6 +324,36 @@ export function counterHeadroom(shortfall,coins,offerCoins){
 export function coinShortfall(debit,purse){
   if(!Number.isFinite(debit)||debit<0)return Infinity;
   return Math.max(0,debit-purse);
+}
+// CR-02 (15-REVIEW.md; PRE-EXISTING since Phase 11): the CRATE half of what coinShortfall does for
+// coins. G6 gave coins re-validation after the await; crates were never given the same treatment.
+//
+// The defect this exists to make unwritable, in one line:
+//
+//     q.ing.splice(q.ing.indexOf(want),1);  // want absent -> -1 -> splice(-1,1) removes the LAST crate
+//     p.ing.push(want);                     // ...and mints a crate that is ALSO back in tokens[]
+//
+// It is REACHABLE, not theoretical. expireShotClock (src/orchestrator.js) resolves the pending
+// `ask()` promise BEFORE it confiscates a random crate, and `ask()` forces default index 0 — which
+// on the accept prompt is **Accept**. So a partner who times out auto-accepts a trade for a crate
+// the clock has just taken from them, and the trade then removes a different crate entirely.
+//
+// Why a helper rather than four guarded call sites: 15-LEARNINGS #3 — "the dominant failure mode
+// was the PARTIAL fix, not the missed one" — and its preferred remedy (a), one shared function both
+// paths call. Putting the lookup and the mutation inside the same function means they cannot drift
+// apart later, which is exactly how G18/G15/G29/CR-01 each happened.
+//
+// Returns TRUE when the crate moved, FALSE when `from` does not hold `ing` — and on false it
+// mutates NOTHING, so a caller that validates both legs before moving either can never leave a
+// half-completed trade behind. Defensive about junk input for the same reason coinShortfall reports
+// Infinity for a negative debit: a nonsensical value must never be coerced into a mutation.
+export function moveCrate(from,to,ing){
+  if(!Array.isArray(from)||!Array.isArray(to)||ing==null)return false;
+  const i=from.indexOf(ing);
+  if(i<0)return false;
+  from.splice(i,1);
+  to.push(ing);
+  return true;
 }
 // G14 (Wyatt-approved 2026-07-30): the ordered rim cells a trade-wind sweep passes THROUGH, from
 // just after `from` up to and including its arc head. PURE and DOM-free, so it is tested headlessly
@@ -854,6 +896,12 @@ export async function humanTrade(p){
   const firstStep=single?1:0; // step 0 partner · 1 want · 2 offer-ing · 3 sweeten-coins
   let step=firstStep;
   while(step<4){
+    // CR-02 layer 1: the shot clock can expire on ANY of the four prompts below. The bot-hail path
+    // has had this guard since 14-02 (`if(appState.turnExpired)return;` — "no partial trade, ever");
+    // humanTrade never got it. 15-LEARNINGS #3: the guard existed in one path and was never carried
+    // to the other. Returning false lands on the action menu, and expireShotClock has already
+    // narrated the skip, so nothing is said twice and no copy is invented.
+    if(appState.turnExpired)return false;
     if(step===0){
       // D-19 (Wyatt-approved 2026-07-29): "Trade", never "Parley" — the only two places the word
       // reached a player.
@@ -922,6 +970,11 @@ export async function humanTrade(p){
     // @copy prompt.trade.accept
     accept=await ask(`${pn(q.idx)}: accept ${offerDisplay} for yer ${ilabelImg(want)}?`,
       [{label:`${iconImg(CHECKMARK_IMG)} Accept`,value:true},{label:`${iconImg(CANCEL_X_IMG)} Decline`,value:false}]);
+    // CR-02 layer 1, THE important one. expireShotClock resolves this promise via shotClockForce(),
+    // and `ask()` forces default index 0 — which here is **Accept**. Without this guard a partner
+    // who simply ran out of time is recorded as having AGREED to the trade. Silence is correct: the
+    // skip has already been narrated.
+    if(appState.turnExpired)return false;
   }else{
     // bot valuation: a crate is ESSENTIAL if it's on their recipe and they hold no spare — unless
     // they're within one turn's sail of that crate's own dock and could just go re-flip for
@@ -961,9 +1014,15 @@ export async function humanTrade(p){
         // (give.coins+askFor — the same total debited below), not just the increment. A shortfall
         // falls through to the "Walk away" outcome: the parley event and the existing
         // @copy adhoc.trade.refusalbot line just below, which is exactly what declining renders.
-        if(deal&&!coinShortfall(give.coins+askFor,p.coins)){
-          q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
-          if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
+        if(appState.turnExpired)return false; // CR-02 layer 1 — see the accept prompt above
+        // CR-02 layer 2: BOTH legs are validated before EITHER mutates, so a trade is atomic. A
+        // crate that is no longer held routes into the existing decline path below rather than
+        // splicing on indexOf === -1. Same shape G6 used for a coin shortfall, and no new copy.
+        const canCounter=deal&&!coinShortfall(give.coins+askFor,p.coins)
+          &&p.ing!=null&&q.ing.includes(want)&&(!give.ing||p.ing.includes(give.ing));
+        if(canCounter){
+          moveCrate(q.ing,p.ing,want);
+          if(give.ing)moveCrate(p.ing,q.ing,give.ing);
           const totalCoins=give.coins+askFor;
           p.coins-=totalCoins;q.coins+=totalCoins;
           appState.game.trades++;
@@ -990,7 +1049,12 @@ export async function humanTrade(p){
   // await. A pledge the captain can no longer cover routes into the EXISTING decline path — the
   // trade simply does not happen, told in the already-approved @copy adhoc.trade.refusalhuman
   // wording. No new string, and no half-completed trade where crates move but coins cannot.
-  if(!accept||coinShortfall(give.coins,p.coins)){
+  // CR-02 layer 2: the crate legs join the same decline gate the coin leg already used, so BOTH
+  // legs are validated before EITHER mutates and the trade is atomic. Previously the settlement
+  // below spliced on an unchecked indexOf: a `-1` removed the holder's LAST crate and then minted
+  // the wanted one. Routes into the existing @copy adhoc.trade.refusalhuman wording — no new string.
+  const crateGone=!q.ing.includes(want)||(give.ing&&!p.ing.includes(give.ing));
+  if(!accept||coinShortfall(give.coins,p.coins)||crateGone){
     appState.game.ev({t:"parley",a:p.idx,b:q.idx,offer:offerLabel||"nothing",want});
     liveRender();
     // D-18/D-25 (Wyatt-approved 2026-07-29): merged with the bot-decline wording above — a human
@@ -1001,8 +1065,8 @@ export async function humanTrade(p){
     await flash(`${pn(q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:`${pn(q.idx)} declines yer offer!`}]);
     return true;
   }
-  q.ing.splice(q.ing.indexOf(want),1);p.ing.push(want);
-  if(give.ing){p.ing.splice(p.ing.indexOf(give.ing),1);q.ing.push(give.ing);}
+  moveCrate(q.ing,p.ing,want);
+  if(give.ing)moveCrate(p.ing,q.ing,give.ing);
   if(give.coins){p.coins-=give.coins;q.coins+=give.coins;}
   appState.game.trades++;
   if(appState.game.cfg.tradeBonus){p.coins++;q.coins++;}
@@ -1330,8 +1394,12 @@ export async function botTurn(p){
       // match. UI-tier only, does not touch src/engine/index.js — zero `parley` events across all
       // 31 determinism fixtures (Game.play()'s headless path never reaches this human-trade flow).
       if(!dealt)g.ev({t:"parley",a:p.idx,b:human.idx,offer:finalPrice+" coins",want:ing,kind:"hail"});
-      if(dealt){
-        human.ing.splice(human.ing.indexOf(ing),1);p.ing.push(ing);
+      // CR-02 (swept 2026-07-30): this path had the SAME bare `splice(indexOf(...))` as humanTrade.
+      // 15-LEARNINGS #3 — when you fix a behaviour the next question is "where else is this same
+      // idea written?", so the sweep found this one too rather than fixing only the reported site.
+      // moveCrate returns false and mutates nothing if the crate is gone, so `dealt` collapses to a
+      // refusal and the existing `parley` event above is what renders. No new copy.
+      if(dealt&&moveCrate(human.ing,p.ing,ing)){
         p.coins-=finalPrice;human.coins+=finalPrice;g.trades++;
         if(g.cfg.tradeBonus){p.coins++;human.coins++;}
         g.ev({t:"trade",a:p.idx,b:human.idx,gave:finalPrice+" coins",got:ing,kind:"hail"});
@@ -1618,7 +1686,15 @@ export async function asyncBakeoff(A,B){
 // lobby.js and is imported alongside the two names already pulled from there.
 export function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
-  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
+  // UI-05: "Host a Crew" now creates the room outright instead of showing #stepHost, whose entire
+  // content was one "Create the game" button — a screen that asked the player to confirm the thing
+  // they had just clicked. #stepHost's markup is kept (with a note) so nothing else that references
+  // it breaks; it is simply no longer reachable from here.
+  //
+  // createRoom() is main-tier (src/orchestrator.js), which src/ui/ may never import — hence the
+  // handlers seam, the same route 13-01 added for onTogglePause. The guards are unchanged and stay
+  // on THIS side, so a disabled card or a missing name still short-circuits before any room exists.
+  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;netHandlers().onCreateRoom();};
   $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
   $("choicePassPlay").onclick=()=>{$("ppName0").value=($("pname").value||"").trim();showStep("stepPassPlay");};
   $("btnStartPassPlay").onclick=()=>{

@@ -89,7 +89,7 @@ const FAB = {
   fish: { t: "fish", p: 0, heads: true },
   finish: { t: "finish", p: 0 },
   shotclock: { t: "shotclock", p: 0 },
-  shotclockskip: { t: "shotclockskip", p: 0, coins: 2 },
+  shotclockskip: { t: "shotclockskip", p: 0 },
   bakeoff: { t: "bakeoff", a: 0, b: 1, winner: 0 },
   end: { t: "end", winner: null },
   turn: { t: "turn", p: 0 },
@@ -451,18 +451,31 @@ for (const key of KEYS) {
 }
 
 /* ---------- Plan 15-04 Task 1 (NARR-01 audit finding): shotclockskip narrates from the table ----------
-   src/orchestrator.js's expireShotClock() no longer hand-writes text — both its branches now
-   await narrateLastEvent(), which reads through EVENT_NARRATION.shotclockskip. This block proves
-   the table entry itself (the single source of truth both branches now share) renders correctly
-   for both the ingredient-loss and coin-loss shapes. The dedup itself (no more hand-written
-   flash() strings in expireShotClock) is asserted at the shell level by this task's own <verify>
-   awk/grep commands against src/orchestrator.js. */
+   src/orchestrator.js's expireShotClock() no longer hand-writes text — it awaits
+   narrateLastEvent(), which reads through EVENT_NARRATION.shotclockskip.
+
+   REWRITTEN 2026-07-30 (Wyatt removed both 30-second resource penalties — see expireShotClock).
+   The old block pinned the two literal shapes this event used to carry, `ing` and `coins`. Those
+   shapes no longer exist, and a pin on a shape records BEHAVIOUR rather than INTENT — exactly the
+   trap 15-LEARNINGS #3 describes, where narration_flow_test.js:68-73 had frozen a bug in place and
+   went red when it was fixed. So this asserts the INVARIANT instead: the event carries no resource
+   field, and the rendered line must not claim a resource was lost. That stays true if the wording
+   is retuned again, and goes red the moment a penalty is reinstated without the copy following it. */
 {
   const f = EVENT_NARRATION.shotclockskip;
-  const ingTxt = f({ t: "shotclockskip", p: 0, ing: "wheat" }, at).txt;
-  checkTrue("shotclockskip: ingredient-loss wording is non-empty with no undefined token", !!ingTxt && !/undefined/.test(ingTxt));
-  const coinTxt = f({ t: "shotclockskip", p: 0, coins: 3 }, at).txt;
-  checkTrue("shotclockskip: coin-loss wording is non-empty with no undefined token", !!coinTxt && !/undefined/.test(coinTxt));
+  const e = { t: "shotclockskip", p: 0 };
+  const selfTxt = f(e, at, 0, 0).txt;      // the timed-out captain's own view
+  const otherTxt = f(e, at, 0, 1).txt;     // everyone else's view
+  checkTrue("shotclockskip: addressed wording is non-empty with no undefined token", !!selfTxt && !/undefined/.test(selfTxt));
+  checkTrue("shotclockskip: named wording is non-empty with no undefined token", !!otherTxt && !/undefined/.test(otherTxt));
+  checkTrue("shotclockskip: the two viewer variants actually differ (D-08)", selfTxt !== otherTxt);
+  // the penalty is gone, so the line must not say anything left the player
+  const claimsLoss = /overboard|treasure|tumbles|crate of|🌕/.test(selfTxt + otherTxt);
+  checkTrue("shotclockskip: no line claims a crate or coins were lost", !claimsLoss);
+  // ...and it must still say the turn was lost, which IS what happens
+  checkTrue("shotclockskip: both variants still name the lost turn", /turn/.test(selfTxt) && /turn/.test(otherTxt));
+  // nothing goes overboard any more, so nothing splashes
+  checkTrue("shotclockskip: no pops (nothing goes overboard)", !f(e, at, 0, 0).pops);
 }
 
 /* ---------- Plan 15-04 Task 2 (D-07/D-09): viewer-aware branches across the single-subject table ----------

@@ -46,6 +46,48 @@ import { syncBoardSizing } from "./board.js";
 
 const $=id=>document.getElementById(id);
 
+/* ================= KOFI-01 — the Ko-Fi widget in the Credits modal ================= */
+// Wyatt supplied the official snippet verbatim:
+//
+//   <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+//   <script>kofiwidget2.init('Buy me a cookie', '#e89827', 'T4P423RFHW');kofiwidget2.draw();</script>
+//
+// His three values are used EXACTLY as given. One deliberate change: `draw()` is not called.
+//
+// WHY, because it matters and is not a style preference: `draw()` is `document.writeln(...)`
+// (verified against the served CDN file). document.write after a document has finished loading
+// implicitly opens a new one — so the first time a player clicked Credits, the entire game page
+// would be replaced by a lone Ko-Fi button. The same script exposes `getHTML()`, which returns the
+// byte-identical markup as a string. Same widget, same branding, no page-blanking.
+//
+// Loading is deferred to first open rather than at boot for a second reason: the snippet is a
+// render-blocking third-party <script>, and the game already waits on two Firebase CDN scripts in
+// <head>. Nobody should wait on ko-fi.com to start a game they may never open Credits from.
+const KOFI_SRC="https://storage.ko-fi.com/cdn/widget/Widget_2.js";
+let kofiState="idle"; // idle -> loading -> done | failed
+export function mountKofi(){
+  const host=$("kofiCredits");
+  if(!host||kofiState==="loading"||kofiState==="done")return;
+  // A failed load is retried on a later open — the CDN being down once is not permanent.
+  kofiState="loading";
+  const paint=()=>{
+    try{
+      window.kofiwidget2.init("Buy me a cookie","#e89827","T4P423RFHW");
+      host.innerHTML=window.kofiwidget2.getHTML();
+      kofiState="done";
+    }catch(e){kofiState="failed";host.innerHTML="";}
+  };
+  if(window.kofiwidget2){paint();return;}
+  const s=document.createElement("script");
+  s.src=KOFI_SRC;s.async=true;
+  s.onload=paint;
+  // Silent on failure BY DESIGN: an ad-blocker eating this request is common and expected, and a
+  // broken-donation-button error message is worse than no button. The footer link is a plain <a>
+  // with no script at all, so the ability to support the game survives this failing entirely.
+  s.onerror=()=>{kofiState="failed";host.innerHTML="";};
+  document.head.appendChild(s);
+}
+
 /* ================= welcome modal ================= */
 export function showStep(id){
   ["stepChoose","stepHost","stepJoin","stepPassPlay"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
