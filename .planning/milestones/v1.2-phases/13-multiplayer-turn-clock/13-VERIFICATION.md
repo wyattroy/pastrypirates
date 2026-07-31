@@ -325,3 +325,55 @@ Item **4** of the Human Verification Required list — the solo pause/resume reg
 exercised today. The v1.2 audit's own accounting ("3 of 5 never closed") counted it among the two
 already closed; nothing in this session re-tested it. Stated plainly so the arithmetic is auditable
 rather than assumed.
+
+> **SUPERSEDED later the same day — item 4 was then exercised and passed.** See the section below.
+> The caveat above is left standing rather than edited, because this file is append-only by
+> convention (the same treatment CLOCK-01's stale markers got).
+
+## Item 4 CLOSED 2026-07-31 — solo pause/resume, with a baseline that could have failed
+
+Solo game, fresh boot, `localStorage` cleared, timer **ON**, served on port **8555** — a port never
+loaded before in that session (§1 of `docs/DRIVING-THE-GAME.md`). One human seat plus three bots
+(pirate, trader, rusher). Driven from Chrome with the §5b autoplay driver running throughout.
+
+### The measurement — three ~21-second windows, driver running in all three
+
+| Window | Events |
+|---|---|
+| Baseline, running normally | **5** |
+| **Paused** | **1** — and it landed at `t=1.4s`, then flat for the remaining 21s |
+| After resume | advancing again |
+
+During the paused window the driver ticked **~300 times** still trying to act, and the game did not
+move. The single event at `t=1.4s` is an action that was already in flight when the pause landed; it
+drained and then nothing followed. So this is a **true whole-game freeze including the bots** —
+which is what D-04 promises, not merely a stopped countdown.
+
+### Also confirmed in the same run
+
+- **Resume was driven by the big paused symbol (`#shotClockNum`)**, not the corner `#scPause`. That
+  is CLOCK-03's solo half — the solo leg of `human_verification` item **5**, which is therefore also
+  closed by this run.
+- **The big symbol is inert when not paused.** Clicked five times with the game running:
+  `shotClockPaused` stayed `false` and the `onclick` handler is genuinely `null`. The per-tick
+  defensive reset in `src/ui/panel.js` does what Truth 9 claims.
+- `turnExpired` never stuck true.
+
+### The methodological point — the first attempt was thrown away
+
+**The first run of this check was worthless and was discarded, not reported.** It paused during a
+lull, so the event count was *already* flat before the pause; it would have "passed" no matter what
+the pause button did. That is precisely the could-not-fail flaw that made the original Check B
+inconclusive — see the `## Check B RE-RUN` section above.
+
+The numbers in the table come from the re-run, which first established a baseline proving events
+genuinely advance when the game is *not* paused. **A freeze test without a baseline proves nothing**,
+because "nothing happened" is the expected reading of both a working pause and a dead one.
+
+Recorded because this is now the second time in this file that the same flaw had to be caught.
+
+### Phase 13's human_verification list is now fully closed, with no caveat
+
+All five items have been exercised live. Item 4 is no longer the outstanding remainder, and the
+"3 of 5" accounting no longer carries an untested item inside it. Wyatt's recollection that he had
+checked solo pause before was correct — it did work. It simply had no evidence behind it until now.
