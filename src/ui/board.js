@@ -85,7 +85,7 @@ import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
   describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
 } from "./util.js";
-import { recipeTitle } from "./recipe.js";
+import { recipeTitle, recipeInfo, winRecipeSpan } from "./recipe.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
 // see the file header's deviation note.
@@ -248,7 +248,20 @@ export function drawBoard(){
   activeRing=el("g",{opacity:0},svg);
   for(let i=0;i<3;i++)
     el("circle",{class:"ripple",r:cell*.4,fill:"none",stroke:"#fff","stroke-width":2,
-      style:`animation-delay:${i*.6}s`},activeRing);
+      // NEGATIVE delays, and the sign is the whole point — do not drop the minus.
+      //
+      // A POSITIVE animation-delay leaves the element in its UN-ANIMATED state until the delay
+      // elapses, and animation-fill-mode is `none` here. Measured: with +0.9s/+1.8s, rings 2 and 3
+      // rendered as static, fully opaque circles at scale 1 (no transform, opacity 1) parked on the
+      // boat for the first 0.9s and 1.8s. That is the first-cycle glitch Wyatt filmed — and it
+      // cleared itself once every ring had started, which is why it "looked really good after they
+      // have loaded".
+      //
+      // A negative delay instead starts the animation as if it had ALREADY been running that long,
+      // so all three rings are correctly distributed at 0%, 33% and 66% from the very first frame.
+      // One third of the 2.7s rippleOut cycle in index.html; if that duration changes, this must
+      // change with it or the rings bunch together.
+      style:`animation-delay:${-i*.9}s`},activeRing);
   // ships
   shipEls=[];
   appState.game.players.forEach((p,i)=>{
@@ -649,7 +662,17 @@ export function popEmoji(x,y,emo,big,imgHref,cls){
   // default (e.g. the tradewind pop's big board swirl, distinct from 🌀's usual pocket icon) —
   // otherwise this falls back to whatever's in EMOJI_IMG automatically.
   imgHref=imgHref||EMOJI_IMG[emo];
-  const g=el("g",{class:"pop"+(cls?" "+cls:""),style:`transform-origin:${x}px ${y}px`},$("board"));
+  // UI-02 (Wyatt, 2026-07-31): the two travel distances the popfloat keyframes use, derived from the
+  // LIVE cell size rather than hardcoded px, so the icon's flight scales with the board instead of
+  // being a fixed 32px that means different things on a phone and a desktop.
+  //   --pop-rise  how far ABOVE this anchor the icon appears. The anchor (spawnPops' at()) already
+  //               sits .42 of a cell above the ship, so .55 more puts the spawn point ~1 full square
+  //               up — the square north of the boat, which is where he asked for it.
+  //   --pop-sink  how far BELOW the anchor the hull is, so the icon lands IN the boat rather than
+  //               stopping short above it. .42 is exactly the anchor's own offset, inverted.
+  // The `.splash` variant does NOT read these — popsplash has its own choreography and is untouched.
+  const g=el("g",{class:"pop"+(cls?" "+cls:""),
+    style:`transform-origin:${x}px ${y}px;--pop-rise:${(cell*.55).toFixed(1)}px;--pop-sink:${(cell*.42).toFixed(1)}px`},$("board"));
   const size=cell*(big?.72:.55);
   if(imgHref){
     const im=el("image",{x:x-size*.43,y:y-size*.43,width:size*.86,height:size*.86,href:imgHref},g);
@@ -658,7 +681,10 @@ export function popEmoji(x,y,emo,big,imgHref,cls){
   }else{
     el("text",{x,y,"text-anchor":"middle","font-size":size},g).textContent=emo;
   }
-  setTimeout(()=>g.remove(),cls==="splash"?3900:2600); // UI-03: 2x the old 1950/1300, matching the doubled CSS
+  // Must OUTLAST the CSS animation or the node is ripped out mid-flight — the CR-01 failure, where a
+  // removal belt kept beating the animation it was supposed to follow. splash is 3.8s (popsplash),
+  // popfloat is 2s since the burst retune; +100ms of margin each.
+  setTimeout(()=>g.remove(),cls==="splash"?3900:2100);
 }
 
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
@@ -714,10 +740,38 @@ export function showStats(){
   if(ap){$("apGridInner").innerHTML="";ap.style.display="none";ap.classList.remove("needsAction");}
   celebrateHomeDocks();
   const w=appState.game.winner;
+  // WYATT, 2026-07-31 — THIS REVERSES EOV-02 ON HIS INSTRUCTION. Read this before "restoring"
+  // anything: EOV-02 moved the winner's recipe OUT of the End of Voyage summary and into a separate
+  // one-off victory box rendered through flash(), specifically so the summary would not double it
+  // up. He has now asked for the opposite, and for a reason that did not exist then — the blue box
+  // is hidden at the end of the voyage (UI-07), so the victory box was the one thing keeping it on
+  // screen. His words: "i want the golden victory box to say: 👑 {name} wins! {the recipe image} +
+  // {name} baked a {recipe} and won Best Baker in the Caribbean!"
+  //
+  // So all three pieces live here now, in the gold banner, and endLive no longer flashes a victory
+  // box at all — it plays "Drumroll..." in the blue box, fades it, and hides it. Nothing is
+  // duplicated: this is the ONLY place the win is announced.
+  //
+  // The two sentences are his existing approved copy, moved rather than rewritten — the banner line
+  // (@copy misc.board.eovbanner) and the victory line (formerly @copy adhoc.voyageend.victory in
+  // src/orchestrator.js, which is why that id now lives on this file's site).
+  // Two separate `const`s, each with its own @copy marker, because they are two separate approved
+  // strings with two separate ids — the extractor binds one marker per assignment site, and folding
+  // them into one template would make both ids point at the same site.
   // @copy misc.board.eovbanner
   const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
-  // notes/edits EOV-02: the winner's recipe image is NOT shown here anymore — it lives in the one-off
-  // victory box (see endLive), so the End of Voyage summary isn't doubling it up.
+  // The winner's recipe is read defensively, and that is NOT belt-and-braces — it is a guest-path
+  // requirement. This code used to live in endLive() (src/orchestrator.js), which only ever runs on
+  // the HOST after a real finished game, so a recipe was guaranteed. showStats() is different: the
+  // guest reaches it through applyEndMeta(), which sets game.winner straight from Firebase meta and
+  // renders. A guest whose local game has not drafted recipes — joined late, or an incomplete replay
+  // — would hit `undefined.slice()` inside recipeInfo() and throw, taking the ENTIRE End of Voyage
+  // screen down with it: no banner, no awards, no stats. Caught exactly that way in a browser.
+  const winRecipe=w===null?null:(appState.game.players[w]||{}).recipe;
+  // @copy adhoc.voyageend.victory
+  const victoryLine=!winRecipe?"":`<div class="victoryText">${pn(w)} baked a ${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`;
+  const wi=winRecipe?recipeInfo(winRecipe):null;
+  const victoryPic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:""; // art, not copy
   const luck=appState.game.players.map(p=>p.flips?(p.heads/p.flips):0);
   // notes/edits EOV-04: one keepsake per captain (see assignBadges) — emblem, pirate name + byline,
   // the captain (big, colored, no seat dot) filling the card above a rule, and the stat beneath it.
@@ -741,7 +795,7 @@ export function showStats(){
     <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?"yes — "+appState.game.finishOrder.length+" finishers":"no"}</td></tr>
     ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
     </table>`;
-  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
+  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}${victoryPic}${victoryLine}</div>
     <div class="awardsRow">${awards}</div>
     ${statsTable}`;
 }

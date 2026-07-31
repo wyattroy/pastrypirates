@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 Edit Pass** — Phases 1–6 (shipped 2026-07-24)
 - ✅ **v1.1 Monolith Refactor** — Phases 7–12 (shipped 2026-07-25)
-- 🚧 **v1.2 Playtest Fixes & Polish** — Phases 13–17 (in progress)
+- ✅ **v1.2 Playtest Fixes & Polish** — Phases 13–17 (shipped 2026-07-31)
 
 ## Phases
 
@@ -36,16 +36,8 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 
 </details>
 
-### 🚧 v1.2 Playtest Fixes & Polish (In Progress)
-
-**Milestone Goal:** Clear a second live-playtest punch list without regressing the core value (playable and fair in Safari and multiplayer). Front-load the critical multiplayer turn-clock stall so a multiplayer game is playable immediately, correct storm movement behind the determinism harness, complete a narration audit + fixes gated on Wyatt's review, and land low-risk UI/UX polish plus social-preview metadata and a Ko-Fi support button — closed out by a manual Safari + Chrome two-window playtest. The tutorial, sound effects, and island redesign from the same punch list are deferred to a later milestone.
-
-- [x] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03) (completed 2026-07-26)
-- [x] **Phase 14: Engine-Adjacent Gameplay Fixes & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the bot hail/action turn follows a decided rule; the determinism harness stays green (STORM-01, AI-01, VERIFY-02) (completed 2026-07-26)
-- [x] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06) (completed 2026-07-30, merged as PR #8)
-- [x] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01) (completed 2026-07-31)
-- [x] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01) — **PASSED 2026-08-01, Wyatt: *"everything worked."** Automated + Chrome coverage done 2026-07-31; the Safari two-window playtest cleared on 2026-08-01. Bugs observed during the session were logged forward to v1.3/v1.4, not treated as v1.2 failures*
-- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07)
+- ✅ **v1.2 Playtest Fixes & Polish** — Phases 13–17, shipped 2026-07-31. Multiplayer clock stall fixed and proven in a two-window game, storm movement corrected, the whole narration voice audited and applied, UI/UX polish + Ko-Fi, and a working end of voyage. Full detail: [`milestones/v1.2-ROADMAP.md`](milestones/v1.2-ROADMAP.md) · [`MILESTONES.md`](MILESTONES.md)
+- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — **DEFERRED TO v1.3 (2026-07-31, Wyatt's call at milestone close).** Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07). Never planned — no phase directory. Its requirement NARR-07 was missing from REQUIREMENTS.md entirely and is now recorded under Future Requirements.
 
 ## Phase Details
 
@@ -626,7 +618,7 @@ yet decided; the grouping is.
 | **Fast to Load** | LOAD-01…03 — welcome screen paints instantly, heavy art loads only on play. **LOAD-04 moved to v1.3** (2026-07-31) so the art is exported once alongside FIX-12's re-mask | The single biggest thing a first-time visitor feels; independent of everything else |
 | **The Gated Re-Record** | Engine purity (`spoil`/`gave`/`ilabelImg`/the dead `asym` branch), STORM-02 guest storm animation, the bot-intelligence improvements, **and FIX-05 (paid anchor narrates "still docked") *if* its investigation finds the cause in `windPush`'s moored-first precedence** | **One-way door.** `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 is explicit: the 31-seed corpus is re-recorded exactly once, so every queued item must land before that single `--capture`. Landing any one alone spends the whole cost for a fraction of the benefit |
 | **Narration Pacing & Copy Integrity** | NARR-07 (Phase 18 below), the shipped-vs-approved copy gate, the two-scheduler unification, the two never-eyeballed D-41 greyed states | All four are the narration system's remaining debt, and three of them touch the same timing code |
-| **Fair Play Online** | Every-client-sees-every-recipe, human trade counter-offer | Both are about the negotiation being honest between players who cannot see each other |
+| **Fair Play Online** | Every-client-sees-every-recipe, human trade counter-offer, `pause-cannot-beat-end-of-turn-expiry` | All are about the game staying honest between players who cannot see each other — the negotiation, and the shared turn clock they are both racing |
 | **Welcome Aboard** | TUT-01…03 tutorial, AUDIO-01…03 sound effects | Both are first-ten-minutes content rather than fixes |
 | **Island Redesign → Watercolor → Board compression** | ISLAND-01…04, then **ART-01** (watercolor restyle of board/islands/docks/wind/whirlpool), then **LOAD-04b** (compress those five, ≈7.3 MB) | Needs its **own second re-record** — it cannot ride the batch above, so it stands alone. **The order is now a hard chain** (Wyatt, 2026-07-31): no painting 3-square islands, and no compressing art that is about to be repainted |
 | **Platform Debt** | NETMOD-01, DX-01, DX-02, Phase 999.1 resume-mid-narration | No player sees any of it; do it when it starts costing us |

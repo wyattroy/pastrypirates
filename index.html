@@ -145,6 +145,10 @@
      neighbours rather than Ko-Fi's own pill dropped into the row. */
   .footerKofi { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
   .footerKofi:hover { background: #fae7cb; }
+  /* Ko-Fi's embed is a fixed-width panel; give it room without letting it push the modal wider than
+     its siblings. Height is theirs, not ours — too short and the donate form scrolls inside itself. */
+  .kofiPanel { margin-top: 12px; min-height: 560px; }
+  .kofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
   .recipeModalBtn { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .recipeModalBtn:hover { background: #d9f1e5; }
   .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
@@ -263,8 +267,12 @@
   /* UI-01: was `margin: 8px auto`. #layout is a grid with `gap: 14px`, so that 8px was ADDED to the
      gap and the narration box alone sat 22px from its neighbours while every other panel sat 14px.
      The horizontal `auto` is kept — it is what centres the panel in the stacked layout. */
+  /* The horizontal inset is DELIBERATELY SPLIT with #apGridInner below: 2px here, 10px there, so the
+     total is still 12px and nothing moves — but the 10px now sits INSIDE the clipping box, giving
+     .ahoyGlow's expanding ring somewhere to render. Wyatt: the orange rings were "cut off on the
+     left". Keep the two numbers summing to 12 if either is touched. */
   #actionPanel { margin: 0 auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
-    border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
+    border: 2px solid var(--teal); border-radius: 10px; padding: 8px 2px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
   /* notes/edits BUG-01: the narration box smoothly resizes to each message's height — but ONCE per
      message, not per character. panel() measures the finished message's full height and animates the
@@ -273,7 +281,12 @@
      hitch; the real cause was the rain overlay, now fixed — so the smooth resize is back, done the
      frame-safe way.) */
   #apGrid { display: grid; grid-template-rows: 0px; transition: grid-template-rows .18s ease; }
-  #apGridInner { overflow: hidden; min-height: 0; }
+  /* overflow:hidden is LOAD-BEARING — it is what keeps content from spilling while the grid row
+     animates to each message's height (BUG-01, and the Safari-sensitive path). It cannot simply be
+     removed, and overflow-x:visible is not an option either: mixing hidden and visible makes the
+     visible axis compute to auto and adds a scrollbar. So the ring is given room INSIDE the clip
+     instead, via padding — see #actionPanel above. */
+  #apGridInner { overflow: hidden; min-height: 0; padding: 0 10px; }
   @media (prefers-reduced-motion: reduce) { #apGrid { transition: none; } }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   /* notes/edits #4b: a parenthetical aside like "(1 broadside)" must never split across a line
@@ -451,8 +464,17 @@
   .btl-prompt .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .btlBtn { font-size: 14px; }
   .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
-  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 1.8s ease-out infinite; }
-  @keyframes rippleOut { 0% { transform: scale(.6); opacity: .85; } 100% { transform: scale(2.4); opacity: 0; } }
+  /* THE EASING IS THE WHOLE TRICK — do not put ease-out back. Wyatt, on the 3.6s ease-out version:
+     "the rings bunch up. and then they pause." That was not a timing problem. ease-out sprints then
+     crawls, so three rings spaced evenly in TIME arrive clumped in SPACE near the outer edge, and
+     the slow tail plus the gap before the next ring leaves the centre reads as a stall. LINEAR is
+     what makes a sonar ripple look evenly spaced and continuous.
+     Speed: 3.6s -> 2.7s (33% faster, his "re-increase 30%"), chosen over 2.77 so the stagger lands
+     on clean thirds. Travel widened .6->2.4 to .55->2.7 so the gaps between rings read larger, which
+     is the "more gap between them" half of the note.
+     The stagger in src/ui/board.js is duration/3 = 0.9s. CHANGE ONE AND THE OTHER MUST FOLLOW. */
+  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 2.7s linear infinite; }
+  @keyframes rippleOut { 0% { transform: scale(.55); opacity: .85; } 100% { transform: scale(2.7); opacity: 0; } }
   /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
      and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
   /* UI-06: sail-destination squares — juicy, bouncing, clearly clickable */
@@ -472,17 +494,64 @@
     0%, 100% { transform: scale(1); opacity: .5; }
     50%      { transform: scale(1.11); opacity: .72; } }
   @media (prefers-reduced-motion: reduce) { .sailCell { animation: none; } }
-  /* UI-02: an icon rising out of a boat now holds FULL opacity for a whole second before it starts
-     to fade. It used to reach opacity 1 at 18% (450ms) and begin fading from that instant, so the
-     thing the player is meant to read was already disappearing as it arrived.
-     The percentages are tied to the 2.5s duration: 18% = 450ms (arrival), 58% = 1450ms — exactly
-     1000ms later — is where the fade starts. CHANGE THE DURATION AND THESE STOP MEANING 1s. */
-  .pop { animation: popfloat 2.5s ease-out forwards; pointer-events: none; }
+  /* UI-02, REWRITTEN 2026-07-31 to Wyatt's spec. The icon now APPEARS above the boat and then goes
+     INTO it: it pops into existence in the square north of the ship, scaling up from nothing with a
+     bounce, then travels down into the hull, shrinking and fading as it arrives.
+
+     WHAT WAS WRONG BEFORE, so it does not come back: the previous version rose UPWARD out of the
+     boat and, after an earlier pass added a 1-second full-opacity hold, sat motionless partway
+     through its travel. Wyatt: "the icons pause for a moment in the middle of their travel up."
+     That hold is gone — the motion is now continuous from spawn to landing, and the whole thing is
+     1.5s instead of 2.5s, which is what made it read as sluggish.
+
+     The two distances are CSS custom properties set per-element in popEmoji() (src/ui/board.js),
+     derived from the live cell size, so the travel scales with the board instead of being the
+     hardcoded -32px this used to use. --pop-rise is how far above the anchor it spawns;
+     --pop-sink is how far below the anchor the hull sits. Their sum is roughly one full square. */
+  /* Wyatt's retune: "the icon should really BURST into existence — and then it should look like it
+     really has inertia when it shrinks into the boat."
+     Three acts across 2s. The TIMING FUNCTION IS PER-KEYFRAME (linear on the element, overridden at
+     each stop) — that is what buys the springiness; a single easing across the whole animation
+     cannot both overshoot on arrival and accelerate on departure.
+       BURST   0-31%   scale 0 -> 1.5 in ~140ms, then a damped bounce 0.86 / 1.12 / 0.96 -> 1.
+                       Overshoot then undershoot then settle is what reads as "sprung" rather than
+                       "grew"; a single overshoot reads as a wobble.
+       HOLD    31-62%  ~620ms at rest, the extra half-second he asked for.
+       INERTIA 62-100% a small anticipation lift (the classic wind-up — it pulls UP before it drops,
+                       which is what sells weight), then an ease-IN so it accelerates into the hull
+                       instead of drifting there, shrinking and fading as it lands.
+     Distances are the --pop-* custom properties set per element in popEmoji(), derived from the live
+     cell size. CHANGE THE 2s DURATION AND EVERY PERCENTAGE ABOVE SHIFTS WITH IT. */
+  .pop { animation: popfloat 2s linear forwards; pointer-events: none; }
   @keyframes popfloat {
-    0% { opacity: 0; transform: translate(0, 8px) scale(.6); }
-    18% { opacity: 1; transform: translate(0, 0) scale(1); }
-    58% { opacity: 1; transform: translate(0, -14px) scale(1.13); }
-    100% { opacity: 0; transform: translate(0, -32px) scale(1.3); }
+    0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(0);
+           animation-timing-function: cubic-bezier(.15,.85,.35,1.5); }
+    7%   { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1.5);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    14%  { transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(.86);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    20%  { transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1.12);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    26%  { transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(.96);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    31%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1);
+           animation-timing-function: linear; }
+    62%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1);
+           animation-timing-function: cubic-bezier(.3,-0.7,.7,.1); }
+    70%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px) - 7px)) scale(1.07);
+           animation-timing-function: cubic-bezier(.6,0,.85,.35); }
+    100% { opacity: 0; transform: translateY(var(--pop-sink, 17px)) scale(0); }
+  }
+  /* the arrival bounce is the point of this animation; with motion reduced it simply appears and
+     goes, in the same place and the same time, so nothing is lost but the overshoot */
+  @media (prefers-reduced-motion: reduce) {
+    .pop { animation: popfade 2s ease-out forwards; }
+    @keyframes popfade {
+      0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      12%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      62%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      100% { opacity: 0; transform: translateY(var(--pop-sink, 17px)) scale(.6); }
+    }
   }
   /* a bigger, bouncier pop for "you just lost treasure" moments (#5/#6 — a slow or aground
      captain's crate tumbling overboard and splashing back onto its island), so the cause and
@@ -513,19 +582,65 @@
   .victoryRecipe { max-width: 160px; max-height: 130px; object-fit: contain;
     filter: drop-shadow(0 3px 10px rgba(0,0,0,.28)); animation: victoryPop .55s cubic-bezier(.25,1.5,.45,1) both; }
   .victoryText { font-weight: 700; line-height: 1.35; }
+  /* The banner is a centred flex column, which sizes each child to its CONTENT — so a long sentence
+     stays on one line, overflows the card, and the card's own `overflow:hidden` (there for the gold
+     shimmer) clips both ends of it. Caught in the browser: "Wyatt baked a" was cut off on the left
+     and "the Caribbean!" on the right. Constraining the children to the card's width lets the text
+     wrap instead of running past the edges. */
+  .winner-banner > * { max-width: 100%; }
+  /* width:100% is what lets it wrap; text-align re-centres it, because a full-width flex child no
+     longer inherits centring from `align-items` and would otherwise sit left while the crown, the
+     name and the picture above it are all centred. */
+  .winner-banner .victoryText { width: 100%; text-align: center; }
   @keyframes victoryPop { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; }
     60% { transform: scale(1.12) rotate(3deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .victoryRecipe { animation: none; } }
-  .winner-banner { font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
+  /* 2026-07-31: the gold banner now carries three stacked pieces — the "wins!" line, the winner's
+     recipe picture, and the Best Baker sentence — since the win moved in here out of the blue box.
+     A column flex keeps them centred and spaced; it was a single line of text before. */
+  .winner-banner { display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
     position: relative; overflow: hidden; border: 1.5px solid #c9971f; border-radius: 8px;
-    background: linear-gradient(120deg, #fff6d0 0%, #ffd76a 25%, #fff2c0 50%, #ffd76a 75%, #fff6d0 100%);
-    background-size: 220% 100%; animation: goldShimmer 3s linear infinite; }
+    /* TWO problems have been fixed here, in two passes. Both were about SCROLLING A REPEATING
+       GRADIENT, which is seam-prone by construction — so the second pass stopped doing that.
+
+       Pass 1 (the vertical line): the gradient ran at 120deg while `background-size` made it repeat
+       horizontally, so every tile boundary cut across the diagonal bands as a straight vertical edge.
+
+       Pass 2 (the stutter Wyatt caught on video): the loop distance was not a whole number of tiles.
+       With `background-size: 220%` the tile is 2.2W wide, and animating background-position from 0%
+       to 220% shifts the image by (W - 2.2W) x 2.2 = -2.64W. 2.64 / 2.2 = 1.2 TILES — so every cycle
+       ended a fifth of a tile out of phase and snapped back to realign. One visible jump per period.
+
+       The fix is structural rather than arithmetic. The gold is now a STATIC base layer, and the
+       shimmer is a single soft highlight on its own `no-repeat` layer that travels from fully
+       off-screen on one side to fully off-screen on the other. At both ends of the animation the
+       highlight is outside the box, so the wrap has nothing to show and A SEAM CANNOT OCCUR — it is
+       seamless by construction, not because two numbers happen to divide evenly.
+
+       Speed halved (3s -> 6s) and the highlight softened to rgba .42, per Wyatt: "classier and more
+       subtle". If the duration changes again, nothing else needs to move — the endpoints are
+       off-screen at any speed. */
+    background:
+      linear-gradient(100deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.42) 50%, rgba(255,255,255,0) 62%),
+      linear-gradient(to right, #ffeec0 0%, #ffdd8c 50%, #ffeec0 100%);
+    background-size: 200% 100%, 100% 100%;
+    background-repeat: no-repeat, no-repeat;
+    animation: goldShimmer 6s linear infinite; }
   .winner-banner::before, .winner-banner::after {
     content: "✨"; position: absolute; font-size: 13px; opacity: 0;
     animation: winnerSparkle 1.8s ease-in-out infinite; }
   .winner-banner::before { top: 3px; left: 14%; animation-delay: .2s; }
   .winner-banner::after { bottom: 2px; right: 16%; animation-delay: .95s; }
-  @keyframes goldShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
+  /* Both endpoints put the highlight ENTIRELY outside the box, so the wrap is invisible whatever
+     the duration. With background-size 200%, offset = (W - 2W) x P = -W x P, so:
+       P = -100%  ->  offset +W   -> highlight spans [W, 3W]   — fully off the RIGHT edge
+       P = +200%  ->  offset -2W  -> highlight spans [-2W, 0]  — fully off the LEFT edge
+     The static gold layer is pinned at 0 in both frames so only the highlight moves. */
+  @keyframes goldShimmer {
+    0%   { background-position: -100% 0, 0 0; }
+    100% { background-position: 200% 0, 0 0; }
+  }
   @keyframes winnerSparkle { 0%, 100% { opacity: 0; transform: scale(.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(20deg); } }
   /* notes/edits EOV-04: the redesigned end-of-voyage honours — bigger emblem, pirate name, byline,
      then the winning captain's name (big, colored, no seat dot) filling the card above a rule, with
@@ -612,6 +727,11 @@
   .modalStep h3 { margin: 2px 0 14px; color: var(--teal); font-size: 17px; }
   .backLink { display:block; text-align:left; background:none; border:none; color: var(--teal); font-weight:700;
     font-size:12.5px; cursor:pointer; padding:0 0 12px; font-family:inherit; }
+  /* The room screen's back link sits inside the Captains card rather than floating over the board,
+     so it gets a little breathing room from the heading above and the first captain below, plus a
+     hover state — on a white card a bare teal word reads as a label rather than a control. */
+  .roomBack { padding: 2px 0 10px; }
+  .roomBack:hover { text-decoration: underline; }
   .fieldRow { margin: 6px 0 18px; font-size: 14px; }
   .fieldRow select, .fieldRow input[type=text] { font-size:16px; padding:6px 9px; border:1.5px solid var(--line);
     border-radius:8px; font-family:inherit; margin-left:4px; }
@@ -770,6 +890,13 @@
     </div>
     <div class="roomCard">
       <h3 style="margin-top:0;color:var(--teal)">Captains at the table</h3>
+      <!-- UI-05 follow-up: this screen had no way out. Since "Host a Crew" now creates the room on
+           the first click, backing out has to tear the room down as well as change screens — see
+           abandonRoom() in src/orchestrator.js.
+           It sits INSIDE this card, under the heading and above the first captain, because on the
+           card's white background it is legible; floated above the cards it sat on the blurred game
+           board and was, in Wyatt's words, "almost impossible to see". -->
+      <button class="backLink roomBack" type="button" id="btnRoomBack">← back</button>
       <div id="seatList"></div>
       <div id="waitMsg" class="muted" style="margin-top:10px"></div>
       <button class="primary big" id="btnStart" style="display:none" type="button"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Start the voyage!</button>
@@ -815,9 +942,11 @@
     <div class="modalByline" style="text-align:left">
       <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
     </div>
-    <!-- KOFI-01: Wyatt's own Ko-Fi widget, after the credits text per the requirement. Filled in by
-         mountKofi() (src/ui/lobby.js) the first time this modal opens. -->
-    <div id="kofiCredits" style="text-align:center;margin-top:16px"></div>
+    <!-- KOFI-01: after the credits text, per the requirement. A button onto the SAME #kofiModal the
+         footer opens — one embedded panel, two doors — so neither route leaves the game. -->
+    <div style="text-align:center;margin-top:16px">
+      <button id="btnKofiCredits" class="footerBtn footerKofi" type="button">🍪 Buy me a cookie</button>
+    </div>
   </div>
 </div>
 
@@ -830,6 +959,21 @@
 </div>
 
 <!-- ===================== FEEDBACK (modal) ===================== -->
+<!-- ===================== KO-FI (modal) ===================== -->
+<!-- KOFI-01, revised 2026-07-31 (Wyatt): the button must open the Ko-Fi WIDGET, not navigate to
+     ko-fi.com. His floating-chat snippet could not be reused for that — it draws its own permanent
+     button inside a CROSS-ORIGIN iframe, so nothing on our page can trigger it. This embeds the same
+     Ko-Fi panel in one of the game's own modals instead, which keeps the player in the game and
+     keeps the footer button exactly where the requirement asks for it.
+     The iframe src is filled in by mountKofi() on first open, not here, so the page never contacts
+     ko-fi.com for a player who does not open it. -->
+<div id="kofiModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalTitle">🍪 Buy me a cookie</div>
+    <div id="kofiPanel" class="kofiPanel"></div>
+  </div>
+</div>
+
 <div id="feedbackModal" class="modalOverlay" style="display:none">
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">💬 Feedback</div>
@@ -935,10 +1079,10 @@
     <button id="btnShowCredits" class="footerBtn footerCredits" type="button">🎗️ Credits</button>
     <button id="btnShowLog" class="footerBtn footerLog" type="button">📜 Captain's log</button>
     <button id="btnShowFeedback" class="footerBtn footerFeedback" type="button">💬 Feedback</button>
-    <!-- KOFI-01: right of Feedback, per the requirement. A plain link rather than Ko-Fi's widget,
-         because the requirement asks for it "styled the same" as its neighbours and the widget
-         renders its own pill. Same destination as the Credits embed — one Ko-Fi page, two doors. -->
-    <a id="btnKofi" class="footerBtn footerKofi" href="https://ko-fi.com/T4P423RFHW" target="_blank" rel="noopener noreferrer">🍪 Buy me a cookie</a>
+    <!-- KOFI-01: right of Feedback, per the requirement, and styled the same as its neighbours.
+         Opens #kofiModal rather than navigating — Wyatt, 2026-07-31: "i don't want this button to
+         open up the kofi website; ideally, i want it to open up the kofi widget." -->
+    <button id="btnKofi" class="footerBtn footerKofi" type="button">🍪 Buy me a cookie</button>
     <button id="btnLeave" class="footerBtn footerLeave" type="button">🚪 Leave game</button>
   </div>
   <!-- hidden helpers the renderer expects -->

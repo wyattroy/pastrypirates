@@ -431,7 +431,7 @@ const AD_HOC_META = {
   "adhoc.round.header": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Round-header flash — table pass-through, not new copy" },
   "adhoc.round.finalheader": { fn: "runLiveNet", group: "Round Header", tag: "keep", label: "Final-round header flash — table pass-through, not new copy" },
   "adhoc.voyageend.nobodyfinished": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)" },
-  "adhoc.voyageend.victory": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "keep", label: "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)" },
+  "adhoc.voyageend.drumroll": { fn: "liveResolveEndNet", group: "End of Voyage", tag: "rewrite", label: "Drumroll — the last blue-box line before the gold banner reveals the winner (Wyatt, 2026-07-31)" },
   "adhoc.turn.botbanner": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot turn-start banner (D-07)" },
   "adhoc.turn.boteventpassthrough": { fn: "narrateCurrent", group: "Sailing & Movement", tag: "keep", label: "Bot event narration — table pass-through, not new copy" },
 };
@@ -1075,19 +1075,21 @@ if (awards.length !== 11) fail(`awards: expected exactly 11 (10 BADGE_POOL entri
  * with nothing noticing. Each carries its own `// @copy` marker, so the marker sweep below holds them
  * to the same rule as every other site. ---- */
 const boardSites = findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst banner")
+  .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst victoryLine"))
   .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst statsTable"))
   .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bconst extras"))
   .concat(findAssignmentByLHS(src.board, FILE_PATHS.board, "\\bnewChipsHtml"))
   .sort((a, b) => a.line - b.line);
 // Independent cross-check, same convention as battleLine's: count the raw occurrences a second way.
 {
-  const want = { "const banner=": 1, "const statsTable=": 1, "const extras=": 1, "newChipsHtml=": 3 };
+  const want = { "const banner=": 1, "const victoryLine=": 1, "const statsTable=": 1, "const extras=": 1, "newChipsHtml=": 3 };
   for (const [needle, n] of Object.entries(want)) {
     const found = src.board.split(needle).length - 1;
     if (found !== n) fail(`board: expected ${n} "${needle}" site(s) in ${FILE_PATHS.board}, found ${found} — a copy site was added or removed; extend boardSites and this count together`);
   }
 }
-if (boardSites.length !== 6) fail(`board: expected exactly 6 copy sites in ${FILE_PATHS.board}, found ${boardSites.length}`);
+// 6 -> 7 (2026-07-31): the Best Baker sentence moved into this file from src/orchestrator.js.
+if (boardSites.length !== 7) fail(`board: expected exactly 7 copy sites in ${FILE_PATHS.board}, found ${boardSites.length}`);
 checkScopeCoverage();
 
 // Deterministic ordering: category (alphabetical), then file, then line — same convention the

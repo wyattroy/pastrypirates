@@ -1,93 +1,14 @@
-# Requirements: Pastry Pirates — v1.2 Playtest Fixes & Polish
+# Requirements
 
-**Defined:** 2026-07-25
-**Core Value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state. This milestone clears a second live-playtest punch list without regressing that value: the critical multiplayer clock stall is the headline fix, and all engine-adjacent changes (storm movement) must preserve deterministic replay.
+> **v1.2 shipped 2026-07-31.** Its requirements are archived verbatim in
+> [`milestones/v1.2-REQUIREMENTS.md`](milestones/v1.2-REQUIREMENTS.md). What remains below is
+> what is still OPEN — carried into v1.3 — plus the future/deferred backlog. A fresh set for the
+> next milestone comes from `/gsd-new-milestone`.
 
-**Source:** `notes/edits for pastry pirates-2.pdf` (live Safari multiplayer playtest). Large new features from that punch list — interactive tutorial, sound effects, island redesign — are intentionally deferred (see Future Requirements).
+## Carried into v1.3
 
-## v1 Requirements
-
-Requirements for the v1.2 milestone. Each maps to a roadmap phase.
-
-### Turn Clock (CLOCK)
-
-- [x] **CLOCK-01**: In a multiplayer game (2+ windows), the turn clock starts running normally so the first turn begins — the game no longer stalls "paused" before it starts, and no timer off/on toggle workaround is needed *(critical)*
-- [x] **CLOCK-02**: A play/pause control is available in multiplayer games so any player can pause without missing bot actions
-- [x] **CLOCK-03**: The large "PAUSED" image is itself a clickable button that resumes the clock when pressed
-
-### Storm Movement (STORM)
-
-- [x] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
-  - **Scope amended at Phase 14 close (2026-07-26, Wyatt's decision):** the square-by-square
-    animation is delivered for **solo play and the multiplayer host's own screen**. Multiplayer
-    *guests* still see the boat arrive at its final square, because a guest renders purely from the
-    broadcast event feed and the intermediate storm squares deliberately emit no event — adding one
-    would force another full re-record of the determinism corpus. The narration half of STORM-01
-    (correct square, no false "dock held fast") IS correct for guests too, since narration derives
-    from the event stream. Guest animation parity is logged as a backlog item, not a gap.
-
-### Bot Behavior (AI)
-
-- [x] **AI-01**: The bot "hail humans" turn structure follows an intended, decided rule — a bot that hails/parleys the human no longer appears to take two actions in one turn (hail *and* fish/dock/etc.) unless that is the deliberately chosen behavior. The rule (does a hail consume the bot's turn action, or is it a free pre-action negotiation?) is decided with Wyatt during Phase 14, then implemented; if the rule must also apply to bot-vs-bot it is mirrored in the deterministic engine's `takeTurn` so replay/determinism stays consistent *(design decision — pre-existing since v1.0; src/ui/flow.js:584-612)*
-
-### Narration (NARR)
-
-- [x] **NARR-01**: A full audit of every narration branch (storm, docking, battle, trade, bribe, etc.) is delivered to Wyatt, cataloguing thematic repetitions/inconsistencies with a pruning recommendation *(audit deliverable — pruning applied after Wyatt reviews)*
-- [x] **NARR-02**: The missing "broke" narration line is restored
-- [x] **NARR-03**: The storm intro line reads "First, the storm pushes you {dir1}" instead of the "pushes everyone 2 squares, then 2 more south" phrasing
-- [x] **NARR-04**: The bribe line is context-smart — "with 2 🪙" when a crate is given, and "paid 5 🪙" when the player has no crates to give
-- [x] **NARR-05**: Whenever the narration box describes an action *you* (the local player) took, it addresses you in 2nd person ("you") instead of 3rd person ("{your name}") — making the narration read more naturally. This includes the "already anchored safely" line (which currently only appears for other players/bots) and every other self-referential narration branch
-- [x] **NARR-06**: Non-prompt (blue-box) narration holds ~10% less time on screen before the next line comes in *(reworded 2026-07-30 at Wyatt's clarification — the criterion was always hold length, never fade)*
-
-### UI / UX Polish (UI)
-
-- [ ] **UI-01**: Padding between the flippenator row, gameboard, narrator, captains box, and footer is audited and normalized to consistent spacing
-- [ ] **UI-02**: Icons that rise out of boats stay fully opaque for 1 second, then begin fading at the current rate (fade starts later)
-- [ ] **UI-03**: The moveable-square orange highlight has its max size reduced by 10%
-- [ ] **UI-04**: Moveable squares have a more distinct mouse-hover effect
-- [ ] **UI-05**: Clicking "Host a Crew" goes straight to the lobby/seat screen, skipping the redundant intermediate "Create the game" screen
-- [ ] **UI-06**: The lobby shows each name once — your seat reads "{name} – you" (or "{captain} – you" when no name is typed), and joined players show their name once (no "Crustbeard – Crustbeard" doubling)
-- [ ] **UI-07**: At end-of-voyage the empty narration/action box (`#actionPanel`) is hidden/collapsed once the End-of-Voyage summary appears, instead of staying on screen large and empty *(pre-existing since v1.0; src/ui/panel.js `liveDone` branch)*
-
-### Link & Social Preview (META)
-
-> **RE-SCOPED 2026-07-31.** Both original requirements were written as "add these"; both were already
-> shipped with v1.0 on 2026-07-24 and verified live this session. What is actually missing is
-> narrower and different. Evidence, all checked against `https://playpastrypirates.com`:
->
-> | Asset | State |
-> |---|---|
-> | `og:image` + Twitter card tags (`index.html:11-21`) | present |
-> | `og-image.jpg` | HTTP 200, 1200×663, 171 KB |
-> | `favicon.ico` / `favicon.png` | HTTP 200; PNG is 256×256 square |
-> | `<link rel="icon">` (`index.html:5-7`) | present |
-> | `robots.txt` / `sitemap.xml` | crawlable, sitemap referenced |
-> | JSON-LD `VideoGame` schema (`index.html:22-24`) | present — **but carries no `image` field** |
->
-> Wyatt's screenshot of a live `pastry pirates` Google search (2026-07-31) shows the site **indexed,
-> ranking, and rendering its favicon correctly** — the Fandom and IMDb results above it each carry a
-> square thumbnail and `playpastrypirates.com` carries none. So META-02 is satisfied in the wild, and
-> META-01's failure is specific to Google's result thumbnail, not to link previews.
->
-> **`og:image` is not the lever.** Google largely ignores Open Graph for result thumbnails; that tag
-> serves iMessage/Slack/Facebook, which were never the complaint.
-
-- [ ] **META-01** *(revised)*: A Google search result for the site shows a large preview image. Requires two additions: a `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">` directive (**the page has no robots meta tag at all today**, so Google defaults to a small thumbnail or none), and an `image` field on the existing JSON-LD `VideoGame` block. Wyatt: *"we want pastry pirates to have as big an image as possible."*
-- [x] **META-02**: The site serves a favicon — **satisfied**; verified serving and confirmed rendering in a live Google result 2026-07-31. No code change required.
-- [ ] **META-03** *(new)*: The site is verified in Google Search Console with indexing requested, so favicon/thumbnail crawl state is observable rather than guessed at. **Not a code change — Wyatt's own action**, and the slowest-moving piece (crawl latency is days to weeks), so it should start well before the code lands.
-
-> **Depends on [ABOUT-01](#about-page-about--added-2026-07-31-high-priority) for its best outcome.** Google prefers a thumbnail it can find *in the page*.
-> The board is drawn in code and `og-image.jpg` is never displayed as an `<img>` anywhere, so today
-> there is no in-page image to promote. The About page's screenshot supplies exactly that.
-
-### Support Button (KOFI)
-
-- [ ] **KOFI-01**: A Ko-Fi "Buy me a cookie" button appears both in the footer (right of Feedback, styled the same) and in the Credits modal (after the credits text, at the bottom), using the provided Ko-Fi embed
-
-### Verification (VERIFY)
-
-- [x] **VERIFY-01**: A manual Safari + Chrome multiplayer playtest (two windows) confirms the critical clock stall is fixed and a game starts and plays through end-to-end — **PASSED, Wyatt, 2026-08-01: *"i'm done with the safari playtest, everything worked."*** Bugs found during the session were logged as new v1.3/v1.4 items (FIX-07…21, WIND-04), not as VERIFY-01 failures
-- [x] **VERIFY-02**: The determinism regression harness stays green (31/31) — storm-movement and any engine-adjacent changes do not break lockstep replay
+- [ ] **META-03**: The site is verified in Google Search Console with indexing requested, so favicon/thumbnail crawl state is observable rather than guessed at. **Not a code change — Wyatt's own action**, and the slowest-moving piece (crawl latency is days to weeks).
+- [ ] **NARR-07**: Narration reads as running commentary that never gates play — see Future Requirements below for the full statement. Phase 18, never planned.
 
 ## Future Requirements
 
@@ -276,6 +197,23 @@ not a feature.
 **This is also the real fix for META-01.** The screenshot is the first in-page image the site has ever
 had, and an in-page image is what Google promotes into a result thumbnail. Plan the two together.
 
+### Narration Pacing (NARR) — deferred from v1.2 (2026-07-31)
+
+Phase 18 was scoped in v1.2's roadmap and cites NARR-07, but **NARR-07 was never written into this
+file** — the phase referenced a requirement that did not exist. Recorded here rather than invented
+retroactively into the v1 section, because it was not delivered in v1.2.
+
+- **NARR-07**: Narration reads as running commentary that never gates play. `flash()` is awaited at
+  **27 call sites** today, each blocking the game loop for `typewriter reveal + msgHoldMs(text) +
+  500ms`; after this work, narration timing is a display concern only. A player who acts before a
+  line finishes must not stall anyone else, the next line must replace the current one for every
+  player at once, and host and guest must share one timing source (`msgHoldMs`) so the D-57 failure
+  mode cannot recur. **Success is judged by a real two-player playtest before and after** — removing
+  the block must not make a busy round unreadable, and no unit test can settle that.
+
+Partially tracked already by `.planning/todos/pending/narration-two-schedulers-unenforced.md`
+(`flash()` and `showNarration()` are two schedulers on one element, recorded and unenforced).
+
 ### Interactive Tutorial (TUT) — deferred from v1.2
 
 - **TUT-01**: A 30–60s interactive tutorial that walks new players through the goal, board features (Tortuga, islands, ingredients, boats, rival boats, wind compass, click-to-move), the captains box (your row, needed ingredients red/green/yellow, dubloons), the flippenator, the turn clock, the narration box, and the steps of a turn — following best practices for games of this type
@@ -386,6 +324,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CLOCK-03 | Phase 13 | Complete |
 | STORM-01 | Phase 14 | Complete |
 | AI-01 | Phase 14 | Complete |
+| NARR-07 | Phase 18 | **Deferred to v1.3** — never planned; see Future Requirements |
 | NARR-01 | Phase 15 | Complete |
 | NARR-02 | Phase 15 | Complete |
 | NARR-03 | Phase 15 | Complete |

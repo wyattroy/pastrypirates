@@ -407,8 +407,8 @@
     },
     {
       "old": "adhoc:src/orchestrator.js:758",
-      "new": "adhoc:adhoc.voyageend.victory",
-      "evidence": "liveResolveEndNet() · Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)"
+      "new": "misc:board:adhoc.voyageend.victory",
+      "evidence": "showStats() · Best Baker sentence. RE-TARGETED 2026-07-31: the copy moved from a flash() call in src/orchestrator.js into the gold End of Voyage banner in src/ui/board.js, which changes its CATEGORY and therefore its card id. The @copy id itself is unchanged — this alias is exactly the mechanism that carries Wyatt's review mark across such a move."
     },
     {
       "old": "prompt:src/orchestrator.js:1128",

@@ -4,6 +4,16 @@ found: 2026-07-30 (code review of the Phase 15 diff, 15-REVIEW.md CR-02/CR-03)
 severity: high — silent state corruption, no error, no narration
 origin: PRE-EXISTING since Phase 11 (1dc9374 / c8147a3), NOT introduced by Phase 15
 resolves_phase: next
+status: done
+resolved: 2026-07-31 (commit 9427de4, merged in PR #9)
+resolution: >-
+  CR-02 fixed at the ROOT rather than guarded: Wyatt removed both 30-second shot-clock penalties,
+  so no crate is confiscated and none can vanish mid-trade. turnExpired guards and a shared
+  moveCrate() kept anyway, because a timed-out partner must not auto-accept. The sweep found a
+  FIFTH splice(indexOf) site the review never reported, in the bot-hail settlement.
+  CR-03 fixed by DELETING the flee refund, not by debiting at collection as this file proposed —
+  settleSideBets already computes `won ? 1+2*amt : -amt`, so the losing arm IS the stake and
+  debiting would have rewritten playtested economics. Gated by scripts/economy_guard_test.js.
 wyatt_ruling: "ship it and fix those next" (2026-07-30)
 ---
 

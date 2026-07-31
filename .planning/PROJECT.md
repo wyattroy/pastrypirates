@@ -1,8 +1,32 @@
 # Pastry Pirates
 
+
+## Current State (updated 2026-07-31)
+
+**Shipped: v1.2 Playtest Fixes & Polish** — live on playpastrypirates.com.
+
+The critical multiplayer clock stall is fixed and proven in a two-window Safari/Chrome game played
+end to end. Storm movement is corrected with determinism intact (31/31 seeds). The entire
+player-facing voice was audited — 209 pieces of copy reviewed and applied — and the end of voyage
+now plays a drumroll before revealing the win in the gold banner. Ko-Fi support is in, opening
+in-page rather than navigating away.
+
+`src/engine/index.js` has been **byte-identical to `9ddd214` since before Phase 15**, which is why
+none of Phases 15–17 needed a determinism re-record. Keeping that true is worth real effort.
+
+**Next milestone goals (v1.3), carried forward:**
+
+- **NARR-07 / Phase 18** — narration stops blocking the game loop (27 awaited `flash()` call sites).
+  Deferred from v1.2 at close; never planned.
+- **META-03** — Google Search Console verification. Not code; Wyatt's own action.
+- **The shipped-vs-approved copy gate** — 19 of 144 approval fields conclusively settled. The most
+  valuable thing left to build, and the mechanism whose absence let four approved rewrites ship
+  missing.
+- **WIND / ABOUT** — both marked HIGH PRIORITY in the backlog, added 2026-07-31.
+
 ## What This Is
 
-Pastry Pirates is a browser-based, pirate-themed pastry board game playable solo (against AI captains) or in real-time multiplayer via Firebase sync. Players sail a grid of islands gathering ingredients, trading, battling, fishing, and racing to bake a winning recipe. The v1.0 edit-pass milestone (shipped 2026-07-24) cleared a 15-item playtesting punch list. The v1.1 milestone (complete) split the ~5,200-line `index.html` monolith into native ES modules with no build step, folding in the deferred debt cleanups. The v1.2 milestone (in progress) is a second playtesting punch list — a critical multiplayer clock bug plus narration, turn-clock, and UI/UX polish, plus a Ko-Fi support button.
+Pastry Pirates is a browser-based, pirate-themed pastry board game playable solo (against AI captains) or in real-time multiplayer via Firebase sync. Players sail a grid of islands gathering ingredients, trading, battling, fishing, and racing to bake a winning recipe. The v1.0 edit-pass milestone (shipped 2026-07-24) cleared a 15-item playtesting punch list. The v1.1 milestone (complete) split the ~5,200-line `index.html` monolith into native ES modules with no build step, folding in the deferred debt cleanups. The v1.2 milestone (**shipped 2026-07-31**) was a second playtesting punch list — a critical multiplayer clock bug plus narration, turn-clock, and UI/UX polish, plus a Ko-Fi support button.
 
 ## Current Milestone: v1.2 Playtest Fixes & Polish
 
