@@ -232,6 +232,67 @@ snap.state.map(s => s.pos.join(','));                  // the positions actually
 | `events[last].state[].pos` | both sides | the rendered board — **use this, not `game.players`** |
 | `game.players[].pos` / `.ing` / `round` | **HOST ONLY** | stale on a guest; never compare these across clients |
 
+## 5d. Hitting a sub-second window — arm a watcher, do not click
+
+Every browser-tool round-trip costs 1–2 seconds. The shot clock is 30 seconds, with the penalty at
+20 and expiry at 30. Any check that has to land inside a *specific* second — pausing at the top of a
+turn, or catching a state within a tick of a transition — **cannot be hand-driven.** One session lost
+**two turns to expiry** trying, and one of those two was lost *inside a read*: the state was read
+first to decide what to click, and by the time the read returned the window was gone. Reading first
+and acting second is the specific mistake. There is no amount of care that makes it work.
+
+Install a watcher that arms itself and fires the whole sequence in-page, at page speed. You are then
+reading a recording instead of racing a clock. Attach **live Firebase listeners** rather than polling,
+so the shared-state transitions are captured event-driven with no polling lag on top of the network.
+
+```js
+const S = () => window.__pp_app_state_debug();
+const T0 = Date.now(); const trace = [];
+const log = (k, x) => trace.push(Object.assign({ms: Date.now()-T0, kind:k}, x));
+
+// live listeners beat polling — no lag on the shared-state transitions
+const pRef = S().db.ref('rooms/'+S().room+'/paused');
+const pCb = s => log('fb.paused', {v: s.val()});
+pRef.on('value', pCb);
+
+let fired = false;
+const armIv = setInterval(() => {
+  if (fired) return;
+  const cs = S().clockState;
+  if (cs && cs.seat === S().mySeat && !cs.paused && (cs.deadline - Date.now()) > 24000) {
+    fired = true; clearInterval(armIv); run();      // a FRESH clock on my seat
+  }
+}, 100);
+
+window.__ppWatch = { trace, stop: () => { pRef.off('value', pCb); clearInterval(armIv); } };
+```
+
+Five things that cost real time to learn:
+
+1. **Detach the listeners when you are done** — `ref.off('value', cb)`, which is why the skeleton
+   exposes a `stop()`. Nothing will catch you if you skip it: `scripts/net_contract_check.js`
+   inventory-gates the watchers *declared* in `src/net/watchers.js` against the `registry.attach()`
+   calls in source, so a listener you attached from the console is invisible to that gate. The reason
+   to detach is tidiness — a leaked listener keeps firing into a page that otherwise accounts for
+   every watcher it owns. Do not assume a test is watching your back here, because it is not.
+2. **Hold a visible state longer than you think.** A 1.5s pause hold was too fast for the human on
+   the other browser to register at all; 8s was unambiguous. While paused the clock is frozen, so a
+   long hold costs nothing.
+3. **If your seat is on the clock during the run, have the watcher resolve the turn afterwards** —
+   click "Stay put" or equivalent. Otherwise you hand the turn straight back to expiry the moment the
+   check ends, and the run that proved your point also loses a turn.
+4. **Gate any general autoplay driver on a busy flag** while the check runs, or the two collide. The
+   §5b driver will happily click through the very prompt the check is sitting on.
+5. **Beware a shared toggle with two drivers.** `#scPause` is a blind toggle over one shared flag.
+   With a human and a script both clicking it, a click can land on an already-paused game and resume
+   it — which reads as *"the pause did not work"* when the pause worked fine. Agree in advance that
+   exactly one side drives it.
+
+This technique is what closed Phase 13's checks 2 and 3. The measured traces are in
+`.planning/phases/13-multiplayer-turn-clock/13-VERIFICATION.md`, with the durable copy at
+`.planning/milestones/v1.2-phases/13-multiplayer-turn-clock/13-VERIFICATION.md` — that archive copy
+is the one that survives a `/gsd-cleanup`. Read the numbers there; they are not restated here.
+
 ## 6. Inspecting state
 
 `window.__pp_app_state_debug()` returns a **shallow copy** of `appState` (`src/main.js`). Also

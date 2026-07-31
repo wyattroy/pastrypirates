@@ -151,3 +151,229 @@ One documentation-only inconsistency was found and flagged as Info-level (not a 
 
 _Verified: 2026-07-26T03:32:46Z_
 _Verifier: Claude (gsd-verifier)_
+
+## CLOCK-01 CLOSED 2026-07-31 by Phase 17 — appended by the v1.2 milestone audit
+
+This file recorded CLOCK-01 as `PRESENT_BEHAVIOR_UNVERIFIED`: the code was structurally correct but
+the live two-window behaviour could not be exercised in that session.
+
+**It was exercised on 2026-07-31.** A networked game (Wyatt hosting in Safari, Claude driving the
+guest seat in Chrome, room `KWPE`) started on its own with no clock-stall workaround —
+`gameStarted:true`, turn order `[3,0,1,2]` identical on both clients — and played through to an end
+of voyage across 171 events. See `17-VERIFICATION.md`.
+
+**Still open from this phase's human_verification list**, and NOT closed by that game:
+
+- the localStorage version-guard blobs (unversioned vs versioned `pp_sess` / `pp_solo`)
+- a **guest-initiated** `#scPause` (pause/resume was driven from the host; `timerOff` was confirmed
+  propagating to the guest, so the mechanism works, but the guest-initiated path was not exercised)
+- clicking `#shotClockNum` to resume — CLOCK-03's actual affordance
+
+Recorded rather than quietly marked done: the phase's requirements are satisfied, these specific
+checks are not.
+
+## Check 1 CLOSED 2026-07-31 — localStorage version guard, verified by Wyatt in Safari
+
+The `human_verification` test on the schema-version guard was run live. Four cases, each seeded then
+reloaded, with `pp_id` and `pp_timerOff` set beforehand to prove they survive:
+
+| Case | blob | after reload | home screen | game |
+|---|---|---|---|---|
+| A | `pp_sess`, no `v` | cleared | yes | no |
+| B | `pp_sess`, `v:1`, room `ABCD` | cleared | yes | no |
+| C | `pp_solo`, no `v` | cleared | yes | no |
+| D | `pp_solo`, `v:1` | **survived** | **no** | **resumed** |
+
+`pp_id` stayed `"KEEP-ME"` and `pp_timerOff` stayed `"1"` in all four — so a guard rejection never
+degrades into a blanket `localStorage.clear()`, which would cost a player their Firebase identity
+mid-session.
+
+**C vs D is the actual proof, and the only pair that is.** Identical blob differing by one field,
+opposite outcomes: the unversioned one cleared to the home screen, the versioned one resumed into a
+running game. A, B and C alone are indistinguishable from a boot that unconditionally wipes both
+keys — all three produce the same output.
+
+**Case B is INCONCLUSIVE by construction, and is not evidence.** With `v:1` the guard correctly keeps
+the blob; boot then reads room `ABCD` from Firebase, finds it absent, and hits
+`if(!snap.exists()){clearSession();showHome();}`. So a cleared blob is the CORRECT result for a
+versioned session pointing at a room that does not exist, and B cannot distinguish that from a guard
+failure. The test as originally written could not fail. A meaningful `pp_sess` case needs a room that
+really exists.
+
+## Check B RE-RUN and CLOSED 2026-07-31 — with a room that actually exists
+
+The original Case B used room `ABCD`, which does not exist, so a cleared blob was the CORRECT result
+and the test could not fail (see the note above). Re-run against the LIVE room `SGZZ` while a real
+two-window game was in progress:
+
+    localStorage.setItem('pp_sess', JSON.stringify({v:1,room:'SGZZ',mySeat:0,isHost:true}));
+    location.reload();
+
+**Result: the host reconnected into the running game** — Safari came back at the recipe draft, in the
+room, not on the home screen; the guest (Chrome, seat 1) was simultaneously prompted for its own
+recipe, which is the designed simultaneous-draft behaviour. The room was not disturbed by the
+host reload.
+
+Now distinguishable, which is the whole point: a versioned blob pointing at a REAL room reconnects; a
+versioned blob pointing at a FAKE room clears and goes home. Both correct, and only the pair proves
+the guard rather than a blanket wipe.
+
+This also exercised the `resumeHostGame` path (BUG-03/04) incidentally — a host refresh mid-game
+rebuilt state without a "couldn't fully restore" dialog.
+
+## Checks 2 and 3 CLOSED 2026-07-31 — guest-initiated pause and click-to-resume, live in room SGZZ
+
+Live two-window game, room `SGZZ`, served at `http://localhost:8460`. Wyatt hosting in Safari
+(seat 0). Claude driving the guest seat in Chrome (seat 1, identity `claude-guest-430272`).
+
+### The timer had to be ON — a precondition, not a detail
+
+`timerOff` was `false` for these checks. In `src/ui/panel.js` the `if(appState.timerOff){ ... return; }`
+branch returns BEFORE any paused-state rendering. With the timer off the big paused symbol never
+renders and CLOCK-03's click handler is never armed — so **Check 3 is not merely awkward with the
+timer off, it is literally untestable.** The handoff note that preceded this session flagged
+`timerOff` as possibly needing re-enabling; this is the reason why.
+
+### Method — and why it changed
+
+The checks were NOT driven by hand. Hand-driving failed repeatedly: each browser round-trip costs
+1–2 seconds against a 30-second shot clock, and two of the guest's turns were lost to expiry while
+trying.
+
+The working approach was an in-page watcher installed in the guest tab that armed itself on a fresh
+clock for seat 1 and then fired the whole sequence at page speed, recording a timestamped trace of
+local state alongside live Firebase listeners on `rooms/SGZZ/paused` and `rooms/SGZZ/clock`. It was
+run twice.
+
+The method change is the reusable lesson: a future session driving this game should know that
+hand-clicking cannot hit a sub-second window.
+
+### Run 2 trace — deltas measured from the guest's pause click
+
+    +0ms       guest clicks #scPause (clock fresh, 30s on it)
+    +1ms       rooms/SGZZ/paused -> true
+    +116ms     rooms/SGZZ/clock -> seat1 paused=true      <-- host re-broadcast
+    +204ms     guest renders label "paused"; #shotClockNum onclick armed; #scPauseImg -> play.png
+    +8204ms    guest clicks #shotClockNum (pause deliberately held 8s so it was visible on both screens)
+    +8205ms    rooms/SGZZ/paused -> false
+    +8328ms    rooms/SGZZ/clock -> seat1 paused=false, clock re-armed
+    +11208ms   label back to "play in", counting down, turnExpired === false
+
+Run 1 was identical in shape: affordance armed after 200ms, resume re-armed the clock, `turnExpired`
+false throughout.
+
+### Why the +116ms line is the load-bearing evidence for Check 2
+
+`rooms/{room}/clock` is written ONLY by the host (`broadcastClock`, reached from the host branch of
+`watchPause`). **Its appearance carrying `paused=true` proves the guest's pause travelled to the
+host's browser and the host applied it.**
+
+This is emphatically not the guest setting a local flag and calling it a pass — that distinction is
+what made the earlier Check B inconclusive, and the same standard is being held here. Wyatt
+independently confirmed the host side visually: *"yes it froze and came back"*.
+
+### Check 3
+
+Its specific failure mode — a stuck clock, BUG-02's failure mode in miniature — did not occur. The
+clock re-armed and `turnExpired` stayed false.
+
+### NOT a defect: resume returned a full 30 seconds
+
+That is correct behaviour. The pause was taken at the very top of the turn, so `pauseElapsed` was
+~0, and `applyPauseState`'s `Date.now()+30000-pauseElapsed` therefore yields ~30s. **The
+remaining-time rule is upheld, not violated.**
+
+The rule is this file's own expectation for the CLOCK-02 check — *"resuming continues the countdown
+from the remaining time (not a fresh 30s)"* (frontmatter `human_verification` item 3; Observable
+Truth 5). It is also **D-07** in the clock code itself: `src/ui/util.js:1260` annotates
+`applyPauseState`'s extraction with *"(D-07: resume continues from the remaining time, not a fresh
+30s)"*. That citation is correct and is the label the implementation uses.
+
+Note for future readers, since it cost this session a detour: the bare label `D-07` is **overloaded
+across the project** and does not resolve on its own. It also denotes the
+`ui`-must-never-import-`net` module-graph boundary (Truth 10 above, and `src/ui/util.js:10`), v1.2
+phase 14's hail-offer scaling, and others. Cite the Truth 5 wording alongside the ID rather than the
+ID alone.
+
+Recorded explicitly so a future reader does not re-open the full 30s as a false alarm.
+
+### Investigated and withdrawn — no defect filed
+
+It briefly appeared that `rooms/{room}/paused` could latch true while play continued
+(`startShotClock` clears the host's local `shotClockPaused`, but nothing writes the shared flag
+false). On review the observation was equally well explained by the game legitimately sitting paused
+from an earlier click until it was resumed, and no clean reproduction was obtained. **Investigated,
+not reproduced, no defect filed.** Recorded so a future session does not chase the same ghost.
+
+### One NEW finding, filed elsewhere
+
+Pausing in the final ~1 second of a turn does not save the turn. That is filed as tech debt in
+`.planning/v1.2-MILESTONE-AUDIT.md` under `phase: post-audit-findings`, with its cause marked
+suspected. It is not a phase-13 verification failure and is kept separate from these closures.
+
+### Numbering — this file uses two schemes
+
+- The `## CLOCK-01 CLOSED 2026-07-31` section above lists a still-open **trio**: localStorage
+  version-guard blobs, guest-initiated `#scPause`, click `#shotClockNum`. "Check 1" (already closed)
+  is the localStorage one; this section closes the **second and third** of that trio.
+- The `### Human Verification Required` list numbers **five** items 1–5. The two closed here are
+  items **3** and **5** of that list.
+
+### Caveat — item 4 was not re-exercised
+
+Item **4** of the Human Verification Required list — the solo pause/resume regression — was NOT
+exercised today. The v1.2 audit's own accounting ("3 of 5 never closed") counted it among the two
+already closed; nothing in this session re-tested it. Stated plainly so the arithmetic is auditable
+rather than assumed.
+
+> **SUPERSEDED later the same day — item 4 was then exercised and passed.** See the section below.
+> The caveat above is left standing rather than edited, because this file is append-only by
+> convention (the same treatment CLOCK-01's stale markers got).
+
+## Item 4 CLOSED 2026-07-31 — solo pause/resume, with a baseline that could have failed
+
+Solo game, fresh boot, `localStorage` cleared, timer **ON**, served on port **8555** — a port never
+loaded before in that session (§1 of `docs/DRIVING-THE-GAME.md`). One human seat plus three bots
+(pirate, trader, rusher). Driven from Chrome with the §5b autoplay driver running throughout.
+
+### The measurement — three ~21-second windows, driver running in all three
+
+| Window | Events |
+|---|---|
+| Baseline, running normally | **5** |
+| **Paused** | **1** — and it landed at `t=1.4s`, then flat for the remaining 21s |
+| After resume | advancing again |
+
+During the paused window the driver ticked **~300 times** still trying to act, and the game did not
+move. The single event at `t=1.4s` is an action that was already in flight when the pause landed; it
+drained and then nothing followed. So this is a **true whole-game freeze including the bots** —
+which is what D-04 promises, not merely a stopped countdown.
+
+### Also confirmed in the same run
+
+- **Resume was driven by the big paused symbol (`#shotClockNum`)**, not the corner `#scPause`. That
+  is CLOCK-03's solo half — the solo leg of `human_verification` item **5**, which is therefore also
+  closed by this run.
+- **The big symbol is inert when not paused.** Clicked five times with the game running:
+  `shotClockPaused` stayed `false` and the `onclick` handler is genuinely `null`. The per-tick
+  defensive reset in `src/ui/panel.js` does what Truth 9 claims.
+- `turnExpired` never stuck true.
+
+### The methodological point — the first attempt was thrown away
+
+**The first run of this check was worthless and was discarded, not reported.** It paused during a
+lull, so the event count was *already* flat before the pause; it would have "passed" no matter what
+the pause button did. That is precisely the could-not-fail flaw that made the original Check B
+inconclusive — see the `## Check B RE-RUN` section above.
+
+The numbers in the table come from the re-run, which first established a baseline proving events
+genuinely advance when the game is *not* paused. **A freeze test without a baseline proves nothing**,
+because "nothing happened" is the expected reading of both a working pause and a dead one.
+
+Recorded because this is now the second time in this file that the same flaw had to be caught.
+
+### Phase 13's human_verification list is now fully closed, with no caveat
+
+All five items have been exercised live. Item 4 is no longer the outstanding remainder, and the
+"3 of 5" accounting no longer carries an untested item inside it. Wyatt's recollection that he had
+checked solo pause before was correct — it did work. It simply had no evidence behind it until now.

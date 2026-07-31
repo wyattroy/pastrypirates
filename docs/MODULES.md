@@ -27,6 +27,12 @@ Both start the same static file server rooted at the repo root. Visit
 `http://localhost:8000/index.html` (or `http://localhost:8000/`) after starting
 either one.
 
+**One exception, for browser-verification passes only:** use a port you have
+never loaded in that session, not 8000. Both Chrome and Safari cache ES modules
+per URL, so reusing a port hands you the old `src/**/*.js` even after a hard
+reload — and you then "verify" code that is not on disk. See
+`docs/DRIVING-THE-GAME.md` §1. Port 8000 remains right for ordinary local dev.
+
 ## `file://` is unsupported, and why
 
 Opening `index.html` directly from the filesystem (`file:///path/to/index.html`)
