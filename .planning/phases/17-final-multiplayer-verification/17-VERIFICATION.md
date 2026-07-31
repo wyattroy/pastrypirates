@@ -1,8 +1,8 @@
 ---
 phase: 17-final-multiplayer-verification
 verified: 2026-07-31
-status: human_needed
-score: automated coverage complete; the phase's own success criteria are human-only
+status: passed
+score: 3/3 success criteria closed — Safari+Chrome two-window game played to end of voyage 2026-07-31
 requirements: [VERIFY-01]
 ---
 
@@ -11,7 +11,32 @@ requirements: [VERIFY-01]
 **Status is `human_needed`, and that is not a shortfall — it is what this phase is.** All three of
 its success criteria name Safari, two windows, and a human watching.
 
-**UPDATE 2026-07-31 — Wyatt ran the Safari pass: checks 1-5 of `17-SAFARI-CHECKLIST.md` all PASS.**
+## CLOSED 2026-07-31 — all three criteria met
+
+A two-window networked game was played end to end: **Wyatt hosting in Safari, Claude driving the
+guest seat in Chrome**, same build on port 8430, room `KWPE`. Winner: Wyatttt with a Vanilla Bean
+Crème Brûlée.
+
+| Criterion | Result |
+|---|---|
+| 1. Safari, two windows, starts on its own with no clock-stall workaround | **PASS** — `gameStarted:true`, turn order `[3,0,1,2]` drawn and identical on both clients. CLOCK-01, the bug this milestone is named for, confirmed across two browsers |
+| 2. Plays through from first turn to end of voyage across both windows | **PASS** — 171 events, finished on the host and rendered correctly on the guest |
+| 3. Storm movement and pause/resume observed live | **PASS** — storm forced via `cfg.storm=1` on the host and confirmed consistent on both screens; pause, resume and timer-off all exercised, with `timerOff` propagating to the guest and `turnExpired` NOT stuck afterwards (BUG-02's exact failure mode) |
+
+**Guest-side end of voyage, verified for the first time:** the End of Voyage panel rendered, the blue
+narration box was hidden, the gold banner carried the win line, the recipe picture and the Best Baker
+sentence, and all four award cards drew. UI-07 had only ever been checked on a host before this.
+
+**One correction recorded rather than buried.** Lockstep was initially asserted by comparing
+`game.players[].pos` across clients. That field is a render shell on a guest and goes stale — it read
+`7,6 · 7,8 · 8,7 · 6,7` with 0 ingredients while the board actually rendered `4,10 · 11,5 · 5,11 ·
+11,9` with 3,2,3,4. The results above rest on `turnOrder`, `timerOff`, `shotClockPaused`,
+`turnExpired` and the event count, which ARE shared state on both sides. `docs/DRIVING-THE-GAME.md`
+was corrected so nobody repeats the mistake.
+
+---
+
+**Safari pass: checks 1-5 of `17-SAFARI-CHECKLIST.md` all PASS.**
 That retires every engine-divergence risk, including the two that mattered most: the pop animation
 (a CSS variable inside an SVG transform, new risk I introduced that day) and the storm (BUG-01's
 original Safari-only crash surface). Solo play, the storm, the Ko-Fi embed, the gold banner and the
