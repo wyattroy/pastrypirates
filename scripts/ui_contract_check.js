@@ -745,6 +745,59 @@ export function checkEovPanelCollapsed(root) {
   return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
 }
 
+// boot() must call fbInit() BEFORE the solo-resume early return, so appState.db is never null while
+// showHome() has already put Host and Join on screen enabled. When it was the other way round,
+// clicking Host reached createRoom() with a null handle and fired the CAPACITY line — the same
+// sentence a genuine capacity failure uses — so a local setup condition and a real server problem
+// were indistinguishable.
+//
+// Ordering, not presence, is the whole assertion: both calls existed before the fix; they were
+// simply in the wrong order. So this compares indices rather than testing for a substring.
+//
+// It also pins the constraint the fix had to preserve: the `!fbOk` branch must NOT return before
+// the solo check, because an offline refresh mid-solo-game still has to resume.
+export function checkFbInitBeforeSoloResume(root) {
+  const failures = [];
+  const rel = path.join("src", "orchestrator.js");
+  const full = path.join(root, rel);
+  if (!fs.existsSync(full)) return { ok: true, failures, stats: { scanned: 0 } };
+  const src = fs.readFileSync(full, "utf8");
+  const live = src.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+
+  // Scope to boot()'s own body FIRST. A naive indexOf("fbInit()") over the whole file matches the
+  // `export function fbInit(){` DEFINITION (~line 705), which sits before resumeSoloGame's call
+  // regardless of the bug — so the ordering check passed against the real pre-fix file on its first
+  // red-proof. That is precisely the "luck dressed as proof" failure 15-LEARNINGS #2 records; the
+  // gate was corrected rather than the red-proof being accepted.
+  const bootAt = live.indexOf("export function boot(");
+  if (bootAt < 0) {
+    failures.push(`BOOT-FBINIT-ANCHOR: could not locate boot() in ${rel} — re-anchor this assertion; do NOT delete it.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  const bootEnd = live.indexOf("\nexport ", bootAt + 10);
+  const body = live.slice(bootAt, bootEnd < 0 ? live.length : bootEnd);
+
+  const fb = body.indexOf("fbInit()");
+  const resume = body.indexOf("resumeSoloGame(solo)");
+  // presence before absence: if either anchor is gone the ordering claim is meaningless, so refuse
+  if (fb < 0 || resume < 0) {
+    failures.push(`BOOT-FBINIT-ANCHOR: could not locate ${fb < 0 ? "the fbInit() CALL" : "resumeSoloGame(solo)"} inside boot() in ${rel} — re-anchor this assertion; do NOT delete it. It protects against Host being clickable with no database handle, which makes the game blame the server for a local condition.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  if (fb > resume) {
+    failures.push(`BOOT-FBINIT-ORDER: ${rel} calls fbInit() AFTER the solo-resume early return. A player resuming an interrupted solo game is then left with appState.db === null while the welcome screen shows Host and Join enabled; clicking Host fires the capacity alert, which is untrue and blocks the renderer.`);
+  }
+  // the offline-solo-resume property: the !fbOk branch must not return before the solo check
+  const gate = body.indexOf("$(\"fbnote\").style.display");
+  if (gate > -1 && gate < resume) {
+    const between = body.slice(gate, resume);
+    if (/\breturn\b/.test(between)) {
+      failures.push(`BOOT-FBINIT-OFFLINE: ${rel} returns from the !fbOk branch before reaching the solo resume — an offline refresh mid-solo-game would stop resuming. Mark the UI, then fall through; return after the solo check.`);
+    }
+  }
+  return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
+}
+
 export function checkStormRainSeeded(root) {
   const failures = [];
   const rel = path.join("src", "ui", "board.js");
@@ -820,6 +873,10 @@ function runAll(root, { quiet = false } = {}) {
   const a9 = checkEovPanelCollapsed(root);
   log(`${a9.ok ? "PASS" : "FAIL"} the narration box is collapsed once the End of Voyage summary appears (UI-07)`);
   results.push({ name: "eov-panel-collapsed", ...a9 });
+
+  const a10 = checkFbInitBeforeSoloResume(root);
+  log(`${a10.ok ? "PASS" : "FAIL"} boot() initialises Firebase BEFORE the solo-resume early return`);
+  results.push({ name: "fbinit-before-solo-resume", ...a10 });
 
   return results;
 }

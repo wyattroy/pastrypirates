@@ -1308,21 +1308,36 @@ export function boot(){
   // returning old-version player starts clean instead of stalling on an invalid resume attempt
   // (D-01/D-02). A current-version blob's v always matches and is never touched here.
   if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
-  if(!sess||!sess.room){
-    // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
-    // Checked before Firebase init so an offline refresh mid-solo-game still resumes.
-    let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
-    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
-    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
-    if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
-  }
+  // Firebase is initialised BEFORE any early return below, and the two cards are gated on the
+  // result immediately. Previously this whole block sat AFTER the solo-resume return, so a player
+  // resuming an interrupted solo game got `appState.db === null` while showHome() (above) had
+  // already put the welcome screen up with Host and Join still ENABLED. Clicking Host then reached
+  // createRoom() with a null handle, and its catch fired the capacity line — "the server's got too
+  // many pirates baking right now" — which was untrue, and is the very sentence a REAL capacity
+  // failure uses (D-60 shares it deliberately), so the two were indistinguishable to a player and
+  // in any bug report. It also blocks the renderer, because it is a native alert(), which is why it
+  // presented as a frozen tab rather than a failed call.
+  //
+  // NOTE the ordering constraint this must not break, and which the old comment here recorded:
+  // **an offline refresh mid-solo-game still has to resume.** So the failure branch no longer
+  // returns on the spot — it marks the UI and falls through, and the `return` for "no Firebase and
+  // nothing to resume" happens after the solo check instead. Moving fbInit() up is safe because
+  // netInit() is total: it returns null for a missing config and swallows its own init throw
+  // (src/net/index.js), so it can never break a boot that previously never called it.
   const fbOk=fbInit();
   if(!fbOk){
     $("choiceHost").classList.add("disabled");
     $("choiceJoin").classList.add("disabled");
     $("fbnote").style.display="";
-    return; // solo play still works fully offline
   }
+  if(!sess||!sess.room){
+    // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
+    let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
+    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
+    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
+    if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
+  }
+  if(!fbOk)return; // solo play still works fully offline; the welcome screen already says why
   if(sess&&sess.room){
     appState.room=sess.room;appState.mySeat=sess.mySeat;appState.isHost=!!sess.isHost;
     netReadRoom(appState.db,appState.room).then(snap=>{

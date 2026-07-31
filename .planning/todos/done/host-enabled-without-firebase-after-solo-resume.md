@@ -1,7 +1,7 @@
 ---
 id: host-enabled-without-firebase-after-solo-resume
 title: After a solo resume, boot() returns before fbInit() — Host/Join stay enabled with no Firebase, and Host then lies about why
-status: pending
+status: done
 type: bug
 severity: medium
 area: boot/multiplayer
@@ -11,7 +11,24 @@ origin: PRE-EXISTING — the early return predates Phase 16; UI-05 shortens the 
 regression: false
 ---
 
-## What happens
+## FIXED 2026-07-31
+
+`boot()` now calls `fbInit()` **before** the solo-resume early return, and the `!fbOk` branch marks
+the UI and falls through instead of returning — so an offline refresh mid-solo-game still resumes,
+which was the ordering constraint the original comment recorded.
+
+Verified on a fresh, never-loaded port (the first attempt on a reused port reported a false failure —
+Chrome caches ES modules per URL): with an interrupted solo game present, `appState.db` is now
+present, clicking Host creates a real room, and **no alert fires**.
+
+Gated by `ui_contract_check` assertion 10, red-proofed twice — against the real pre-fix file, and
+against a variant that returns early and would silently break offline solo resume.
+
+The copy half is deliberately still open: `createRoom` does not distinguish "no database handle" from
+"the write failed". That needs a second string, which is Wyatt's to write. The mechanical fix removes
+the reachable path, so nothing lies today.
+
+## What happened
 
 `boot()` (`src/orchestrator.js` ~1314) resumes an in-progress solo game and **returns early**:
 
