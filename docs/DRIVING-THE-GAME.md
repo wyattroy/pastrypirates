@@ -204,13 +204,33 @@ driver works unchanged on either side.
 **What to assert for lockstep** (this is the real value of driving the guest — drift shows up as a
 mismatch instead of a feeling):
 
-| Field | Meaning |
-|---|---|
-| `turnOrder` | must be identical on both clients |
-| `game.events.length` | the broadcast frontier — should track the host's |
-| `timerOff` / `shotClockPaused` | the host's clock changes must propagate here |
-| `turnExpired` | should NOT be stuck true after a pause/resume cycle (that was BUG-02) |
-| `game.players[].pos` | positions must match the host's board |
+**FIRST, the trap that makes this whole check meaningless if you get it wrong.** A guest does NOT
+simulate the game — it renders the `state` snapshot carried on each broadcast event. So
+`appState.game.players[].pos`, `.ing` and `game.round` on a guest are a **render shell** and go
+stale almost immediately. Measured mid-game on a real guest:
+
+| | `game.players[]` (STALE) | `events[last].state` (what is actually rendered) |
+|---|---|---|
+| positions | `7,6 · 7,8 · 8,7 · 6,7` | `4,10 · 11,5 · 5,11 · 11,9` |
+| ingredients | `0,0,0,0` | `3,2,3,4` |
+
+Comparing `game.players` across host and guest will therefore report drift that does not exist — or,
+worse, let you believe you checked something you did not. **On a guest, read the event state:**
+
+```js
+const evs = appState.game.events;
+const snap = [...evs].reverse().find(e => e.state);   // most recent event carrying a snapshot
+snap.state.map(s => s.pos.join(','));                  // the positions actually on screen
+```
+
+| Field | Where it is trustworthy | Meaning |
+|---|---|---|
+| `turnOrder` | both sides | must be identical on both clients |
+| `game.events.length` | both sides | the broadcast frontier — should track the host's |
+| `timerOff` / `shotClockPaused` | both sides | the host's clock changes must propagate to the guest |
+| `turnExpired` | both sides | must NOT be stuck true after a pause/resume cycle (that was BUG-02) |
+| `events[last].state[].pos` | both sides | the rendered board — **use this, not `game.players`** |
+| `game.players[].pos` / `.ing` / `round` | **HOST ONLY** | stale on a guest; never compare these across clients |
 
 ## 6. Inspecting state
 
