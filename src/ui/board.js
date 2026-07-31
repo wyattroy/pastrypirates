@@ -248,11 +248,20 @@ export function drawBoard(){
   activeRing=el("g",{opacity:0},svg);
   for(let i=0;i<3;i++)
     el("circle",{class:"ripple",r:cell*.4,fill:"none",stroke:"#fff","stroke-width":2,
-      // one third of the 2.7s rippleOut cycle in index.html, so the three rings stay evenly spaced.
-      // If that duration changes, this must change with it or they bunch together. The easing there
-      // is LINEAR on purpose — with ease-out the rings clump near the outer edge no matter what
-      // this value is, which is what Wyatt saw.
-      style:`animation-delay:${i*.9}s`},activeRing);
+      // NEGATIVE delays, and the sign is the whole point — do not drop the minus.
+      //
+      // A POSITIVE animation-delay leaves the element in its UN-ANIMATED state until the delay
+      // elapses, and animation-fill-mode is `none` here. Measured: with +0.9s/+1.8s, rings 2 and 3
+      // rendered as static, fully opaque circles at scale 1 (no transform, opacity 1) parked on the
+      // boat for the first 0.9s and 1.8s. That is the first-cycle glitch Wyatt filmed — and it
+      // cleared itself once every ring had started, which is why it "looked really good after they
+      // have loaded".
+      //
+      // A negative delay instead starts the animation as if it had ALREADY been running that long,
+      // so all three rings are correctly distributed at 0%, 33% and 66% from the very first frame.
+      // One third of the 2.7s rippleOut cycle in index.html; if that duration changes, this must
+      // change with it or the rings bunch together.
+      style:`animation-delay:${-i*.9}s`},activeRing);
   // ships
   shipEls=[];
   appState.game.players.forEach((p,i)=>{
