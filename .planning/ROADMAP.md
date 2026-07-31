@@ -433,6 +433,108 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 | 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
 | 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
 
+## Next Milestone: v1.3 "Look, Feel & Front Door" — DRAFTED, NOT YET ACTIVE
+
+Drafted 2026-07-31 from Wyatt's punch list (4 features + 6 bugs). **Not started.** He ruled the same
+day that **v1.2 closes properly first** — Phase 17's manual Safari + Chrome two-window playtest runs
+*before* this milestone is activated, so v1.2 is not archived with an open phase inside it.
+
+**To activate once Phase 17 passes:** `/gsd-new-milestone v1.3 Look, Feel & Front Door`
+(this section is the input — it is written to be handed straight to the roadmapper).
+
+**Goal:** The game *looks* alive and the front door stops losing people — a living board, a real
+About page, sound, and the five interface bugs that made playtesters hesitate.
+
+### Scope
+
+| In | Out |
+|---|---|
+| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06 | **FIX-05** (paid anchor narrates "still docked") |
+
+**Why FIX-05 is excluded — Wyatt's call, 2026-07-31.** Its root cause is unconfirmed. `windPush()`
+returns on `mooredReason` *before* reaching the pay-to-anchor branch (`src/engine/index.js:280-287`),
+so it may be an **economy bug** — a bot sheltering for free — wearing a copy bug's clothes. If the
+fix lands in the engine it forces the determinism re-record, which would drag this whole milestone
+through the one-way door. **Investigate it separately** (`/gsd-debug`); if it turns out to be wording
+only, it drops into Lane C for free. If it is the engine, it joins **The Gated Re-Record** batch.
+
+### The four lanes — built to run in parallel
+
+The lanes are drawn along **file boundaries**, not by size. That is the whole point: they do not
+collide, so they can be planned and executed concurrently.
+
+| Lane | Requirements | Owns these files |
+|---|---|---|
+| **A — Board comes alive** | WIND-01, WIND-02, WIND-03 | `src/ui/board.js` + new sprite assets |
+| **B — The front door** | FIX-01, ABOUT-01, ABOUT-02, META-01 | `index.html` (markup/head), `src/ui/lobby.js`, new About page |
+| **C — Prompts & polish** | FIX-03, FIX-06, FIX-04 | `src/ui/panel.js`, `index.html` (CSS block), `src/ui/util.js` |
+| **D — Sound** | FIX-02 **then** AUDIO-01, AUDIO-02, AUDIO-03 | new audio module, clock control |
+
+**Two ordering constraints inside the lanes:**
+
+- **Lane D is internally sequential.** FIX-02 must land **first**: AUDIO-02 places the mute button
+  *"to the right of the turn clock"*, and solo mode has no turn clock today. Until FIX-02 renders the
+  disabled clock, AUDIO-02's placement is undefined in solo.
+- **Lane B: ABOUT-01 before META-01.** META-01 wants a large Google preview image; the About page's
+  screenshot is the first in-page image the site has ever had for Google to promote. META-03 (Search
+  Console verification) is **Wyatt's own action, not code**, and is the slowest-moving piece —
+  crawl latency is days to weeks — so he should start it well before the code lands.
+
+**Lane C's one shared-file risk:** FIX-06 edits the CSS block in `index.html` while Lane B edits
+markup in the same file. Different regions, but the same file — if both lanes run at once, expect
+merge friction and sequence the `index.html` touches deliberately.
+
+### Hard constraints — these are gates, not preferences
+
+1. **Nothing in this milestone may touch `src/engine/index.js` or change what it emits.** This is
+   the property that keeps the lanes parallel and keeps the milestone clear of the determinism
+   re-record. `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 is explicit: the 31-seed corpus is re-recorded
+   **exactly once**, so anything that forces it must queue with the rest of that batch. If a lane
+   finds itself needing an engine change, **stop and re-scope** — do not spend the one-way door.
+2. **WIND-01 is the single largest Safari risk this project has taken.** BUG-01 was a Safari
+   near-crash caused by storm-overlay compositing, and the real fix was a pre-baked PNG tile.
+   WIND-01 puts a **permanently-running animated layer on every ordinary turn** — the same class of
+   cost, on a far bigger surface than a storm that appears occasionally. **A Safari performance pass
+   is a gate on this milestone, not a courtesy.** Reuse the pre-baked-tile approach
+   (`stormLayerSpecs()` / `buildStormLayers()` / `.rlayer`, `src/ui/board.js:272-340`) rather than
+   inventing a new animation path.
+3. **FIX-03 must not change the measured panel height.** BUG-01's Safari fix measures the finished
+   height exactly once per message so the box animates a single time instead of on every character.
+   Hiding the buttons with `display:none` would re-measure and reintroduce that cost — use
+   `visibility`/`opacity`. It must also respect `prefers-reduced-motion` (read in JS, per
+   `src/ui/panel.js:299`) and account for **the shot clock running during the reveal** — delaying
+   buttons shortens a player's window to act, which is a fairness cost on a long prompt.
+4. **Copy changes are inventory changes.** FIX-04 and any other player-facing text edit fall inside
+   the copy-integrity inventory tracked by `.planning/todos/pending/copy-shipped-vs-approved-gate.md`.
+   Record them. The failure mode this project has already lived through is silent divergence between
+   shipped source and Wyatt's approved dispositions.
+5. **The About page must not become a third copy of the rules.** They already exist twice — the
+   How-To-Play modal (`index.html` ~`:760`) and `RULES.md` / `Rules_boardgame.md`. Share one source
+   or duplicate deliberately and say so; a third divergent copy is the failure mode.
+
+### Sequencing
+
+**v1.2's Phase 17 playtest runs first** (Wyatt, 2026-07-31). v1.3 then has its **own** Safari gate
+per constraint 2, which re-covers the same ground against the finished, animated board — so the
+milestone ends where it needs to regardless.
+
+### Suggested phase shape for the roadmapper
+
+Continue phase numbering from v1.2 (which ends at 17). Four buildable phases plus a gate:
+
+| # | Phase | Requirements | Lane |
+|---|---|---|---|
+| 18 | Board comes alive | WIND-01/02/03 | A |
+| 19 | The front door | FIX-01, ABOUT-01/02, META-01 | B |
+| 20 | Prompts & polish | FIX-03, FIX-06, FIX-04 | C |
+| 21 | Sound | FIX-02 → AUDIO-01/02/03 | D |
+| 22 | Safari & cross-browser gate | (constraint 2) | — |
+
+Phases 18–21 have **no dependency on each other** and are intended to be planned and executed
+concurrently. Phase 22 gates all of them.
+
+---
+
 ## Milestone Backlog
 
 Drafted 2026-07-31. Every open backlog item has exactly one home below — nothing is unassigned.
@@ -452,9 +554,9 @@ yet decided; the grouping is.
 
 | Candidate | Contents | Why grouped this way |
 |---|---|---|
-| **Look & Feel** *(HIGH — Wyatt, 2026-07-31)* | WIND-01/02/03 board + trade-wind animation, ABOUT-01/02 About page, and META-01's Google thumbnail | All drawing-layer only, so **no determinism re-record** and the items can run in parallel. The About page's screenshot is what finally gives Google an in-page image to promote, so META-01 belongs with it |
+| **Look & Feel** → **now v1.3, drafted above** *(HIGH — Wyatt, 2026-07-31)* | WIND-01/02/03, ABOUT-01/02, META-01 — **plus** AUDIO-01/02/03 and FIX-01/02/03/04/06, folded in the same day | All drawing-layer only, so **no determinism re-record** and the items can run in parallel. The About page's screenshot is what finally gives Google an in-page image to promote, so META-01 belongs with it. Superseded by the v1.3 draft — see that section, not this row |
 | **Fast to Load** | LOAD-01…04 — welcome screen paints instantly, heavy art loads only on play, ~18 MB → 3–5 MB | The single biggest thing a first-time visitor feels; independent of everything else |
-| **The Gated Re-Record** | Engine purity (`spoil`/`gave`/`ilabelImg`/the dead `asym` branch), STORM-02 guest storm animation, and the bot-intelligence improvements | **One-way door.** `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 is explicit: the 31-seed corpus is re-recorded exactly once, so every queued item must land before that single `--capture`. Landing any one alone spends the whole cost for a fraction of the benefit |
+| **The Gated Re-Record** | Engine purity (`spoil`/`gave`/`ilabelImg`/the dead `asym` branch), STORM-02 guest storm animation, the bot-intelligence improvements, **and FIX-05 (paid anchor narrates "still docked") *if* its investigation finds the cause in `windPush`'s moored-first precedence** | **One-way door.** `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 is explicit: the 31-seed corpus is re-recorded exactly once, so every queued item must land before that single `--capture`. Landing any one alone spends the whole cost for a fraction of the benefit |
 | **Narration Pacing & Copy Integrity** | NARR-07 (Phase 18 below), the shipped-vs-approved copy gate, the two-scheduler unification, the two never-eyeballed D-41 greyed states | All four are the narration system's remaining debt, and three of them touch the same timing code |
 | **Fair Play Online** | Every-client-sees-every-recipe, human trade counter-offer | Both are about the negotiation being honest between players who cannot see each other |
 | **Welcome Aboard** | TUT-01…03 tutorial, AUDIO-01…03 sound effects | Both are first-ten-minutes content rather than fixes |
