@@ -28,17 +28,31 @@ none of Phases 15–17 needed a determinism re-record. Keeping that true is wort
 
 Pastry Pirates is a browser-based, pirate-themed pastry board game playable solo (against AI captains) or in real-time multiplayer via Firebase sync. Players sail a grid of islands gathering ingredients, trading, battling, fishing, and racing to bake a winning recipe. The v1.0 edit-pass milestone (shipped 2026-07-24) cleared a 15-item playtesting punch list. The v1.1 milestone (complete) split the ~5,200-line `index.html` monolith into native ES modules with no build step, folding in the deferred debt cleanups. The v1.2 milestone (**shipped 2026-07-31**) was a second playtesting punch list — a critical multiplayer clock bug plus narration, turn-clock, and UI/UX polish, plus a Ko-Fi support button.
 
-## Current Milestone: v1.2 Playtest Fixes & Polish
+## Current Milestone: v1.3 The Game Comes Alive
 
-**Goal:** Clear a second live-playtest punch list — fix the critical multiplayer turn-clock stall, complete a narration audit + fixes, correct storm movement, and polish the turn clock and UI/UX — plus add a Ko-Fi support button. Larger new features (tutorial, sound effects, island redesign) are deferred to a later milestone.
+**Goal:** Everything a player sees and hears. Ordered by Wyatt 2026-07-31 — the enjoyable work first,
+the grind after — and **nothing in this milestone touches the rules engine**, so it cannot break a
+multiplayer game and stays clear of the one-time determinism re-record (which happens in v1.4).
+
+**Full plan:** `.planning/V1.3-V1.4-PLAN.md` (v1.3 is its Phases 1–5). Provenance for how the
+63-item intake and the 2026-07-31 draft were merged: `.planning/research/v1.3-intake/RECONCILIATION.md`.
 
 **Target features:**
-- Critical fix: multiplayer turn clock no longer starts paused / stalls the game before it begins; play/pause stays available in multiplayer
-- Storm movement fix: the boat moves one square at a time across the full dir1+dir2 push (no more "dock held fast" while still a square away)
-- Narration audit + fixes: prune repetitions, restore the missing "broke" line, rewrite the storm intro, make bribe and "anchored safely" lines context-smart, tighten on-screen timing
-- Turn clock: the large PAUSED image becomes a clickable resume button
-- UI/UX polish: consistent element padding, moveable-square sizing + hover, welcome-flow shortcut, lobby name-doubling fix, boat-image opacity, Google/social preview image + favicon
-- Ko-Fi "Buy me a cookie" support button in the footer and credits modal
+- Prompts & polish — action buttons wait for the typewriter; a narrow window stops clipping the only
+  button that takes the action; narration stops jumping sideways as it fades and the box stops
+  shrinking under a still-fading line; orange buttons restyled; captain colour circles removed; no
+  orphaned coins or brackets at a line break
+- A Safari gate before any wind work — the always-on animated layer is the biggest Safari risk the
+  project has taken, and BUG-01 was a Safari near-crash on that same subsystem
+- The board comes alive — drifting wind dots, arrows flowing into a rotating whirlpool, a signal
+  before a ship is swept into the trade winds, and a pastry scent on every wind direction change
+- Sound effects with a mute button, plus the turn-clock on/off toggle finally working in solo and
+  pass-and-play
+- The front door — you name yourself after choosing how to play, a real About page, and a Google
+  preview image
+
+**Deferred to v1.4 "The Grind":** the pass-and-play bugs, the investigation spikes, the single gated
+determinism re-record, the copy batch, and the art/asset pass.
 
 ## Core Value
 

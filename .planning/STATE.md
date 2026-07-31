@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Playtest Fixes & Polish
-current_phase: —
-current_phase_name: between milestones
-status: "v1.2 SHIPPED 2026-07-31 and archived — ready for /gsd-new-milestone"
-stopped_at: "v1.2 complete: Phases 13-17 shipped and live; Phase 18 deferred to v1.3. Next: /gsd-new-milestone."
-last_updated: "2026-07-31T03:04:13.509Z"
+milestone: v1.3
+milestone_name: The Game Comes Alive
+status: planning
+last_updated: "2026-07-31T22:03:58.955Z"
 last_activity: 2026-07-31
 progress:
-  total_phases: 12
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
-  percent: 25
-last_activity_desc: "Phase 16 complete (UI-01..07, META, KOFI) + CR-02/CR-03 economy fixes; Phase 17 automated+Chrome coverage done"
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,18 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 ## Current Position
 
-Phase: 17 (final-multiplayer-verification) — AWAITING WYATT
-Plan: 6 of 6 (plus 6 quick tasks)
-Status: Phase 16 complete; CR-02/CR-03 fixed; Phase 17 awaiting Wyatt's Safari playtest
-Last activity: 2026-07-31
-
-PR #8 carries Phases 13, 14 and 15 against `main` — 403 commits, `.planning/` history
-kept in the merge per Wyatt's ruling. Two verification items ride along as accepted
-residuals, not cleared checks: the shipped-vs-approved copy comparison (19 of 144
-fields conclusively settled) and two D-41 greyed states never eyeballed. Both are
-recorded in `15-VERIFICATION.md` and have tracking todos.
-
-Progress: [██████████] 100% (v1.2)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-31 — Milestone v1.3 started
 
 ## Performance Metrics
 
