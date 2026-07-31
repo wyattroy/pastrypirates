@@ -285,10 +285,15 @@ remaining-time rule is upheld, not violated.**
 
 The rule is this file's own expectation for the CLOCK-02 check — *"resuming continues the countdown
 from the remaining time (not a fresh 30s)"* (frontmatter `human_verification` item 3; Observable
-Truth 5). The session that produced this evidence referred to it as **D-07**; that bare label is
-reused for unrelated decisions elsewhere in the project (v1.2 phase 14's hail-offer scaling, and the
-`ui`-must-never-import-`net` module-graph assertion cited in Truth 10 above), so cite the Truth 5
-wording rather than the ID.
+Truth 5). It is also **D-07** in the clock code itself: `src/ui/util.js:1260` annotates
+`applyPauseState`'s extraction with *"(D-07: resume continues from the remaining time, not a fresh
+30s)"*. That citation is correct and is the label the implementation uses.
+
+Note for future readers, since it cost this session a detour: the bare label `D-07` is **overloaded
+across the project** and does not resolve on its own. It also denotes the
+`ui`-must-never-import-`net` module-graph boundary (Truth 10 above, and `src/ui/util.js:10`), v1.2
+phase 14's hail-offer scaling, and others. Cite the Truth 5 wording alongside the ID rather than the
+ID alone.
 
 Recorded explicitly so a future reader does not re-open the full 30s as a false alarm.
 
