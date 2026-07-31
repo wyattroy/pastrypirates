@@ -1,7 +1,14 @@
 ---
 id: eov-narration-box-not-cleared
 title: End-of-voyage leaves the narration box visible but empty
-status: pending
+status: done
+resolved: 2026-07-31 (UI-07, commit 02f0262, merged in PR #9)
+resolution: >-
+  showStats() now clears #apGridInner and hides #actionPanel once the End of Voyage summary is up.
+  Gated by ui_contract_check assertion 9, red-proofed against the real pre-change board.js.
+  NOT yet watched on screen — two autoplay attempts failed to reach an end-of-voyage. Also flagged
+  for Wyatt as row B5 of COPY-AND-TASTE-REVIEW.md: it sits in tension with his own F6 rule that
+  "the blue box should never be empty", read here as governing play rather than the end of it.
 type: bug
 severity: low
 area: ui
