@@ -248,7 +248,9 @@ export function drawBoard(){
   activeRing=el("g",{opacity:0},svg);
   for(let i=0;i<3;i++)
     el("circle",{class:"ripple",r:cell*.4,fill:"none",stroke:"#fff","stroke-width":2,
-      style:`animation-delay:${i*.6}s`},activeRing);
+      // 0.6 -> 1.2: one third of the 3.6s rippleOut cycle in index.html, so the three rings stay
+      // evenly spaced. If that duration changes, this must change with it or they bunch together.
+      style:`animation-delay:${i*1.2}s`},activeRing);
   // ships
   shipEls=[];
   appState.game.players.forEach((p,i)=>{

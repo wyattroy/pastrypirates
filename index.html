@@ -262,8 +262,12 @@
   /* UI-01: was `margin: 8px auto`. #layout is a grid with `gap: 14px`, so that 8px was ADDED to the
      gap and the narration box alone sat 22px from its neighbours while every other panel sat 14px.
      The horizontal `auto` is kept — it is what centres the panel in the stacked layout. */
+  /* The horizontal inset is DELIBERATELY SPLIT with #apGridInner below: 2px here, 10px there, so the
+     total is still 12px and nothing moves — but the 10px now sits INSIDE the clipping box, giving
+     .ahoyGlow's expanding ring somewhere to render. Wyatt: the orange rings were "cut off on the
+     left". Keep the two numbers summing to 12 if either is touched. */
   #actionPanel { margin: 0 auto; background: linear-gradient(160deg, #eafaf3, #cdf0e2);
-    border: 2px solid var(--teal); border-radius: 10px; padding: 8px 12px; transition: background .25s; }
+    border: 2px solid var(--teal); border-radius: 10px; padding: 8px 2px; transition: background .25s; }
   #actionPanel.needsAction { background: linear-gradient(160deg, #fff6c2, #ffe066); }
   /* notes/edits BUG-01: the narration box smoothly resizes to each message's height — but ONCE per
      message, not per character. panel() measures the finished message's full height and animates the
@@ -272,7 +276,12 @@
      hitch; the real cause was the rain overlay, now fixed — so the smooth resize is back, done the
      frame-safe way.) */
   #apGrid { display: grid; grid-template-rows: 0px; transition: grid-template-rows .18s ease; }
-  #apGridInner { overflow: hidden; min-height: 0; }
+  /* overflow:hidden is LOAD-BEARING — it is what keeps content from spilling while the grid row
+     animates to each message's height (BUG-01, and the Safari-sensitive path). It cannot simply be
+     removed, and overflow-x:visible is not an option either: mixing hidden and visible makes the
+     visible axis compute to auto and adds a scrollbar. So the ring is given room INSIDE the clip
+     instead, via padding — see #actionPanel above. */
+  #apGridInner { overflow: hidden; min-height: 0; padding: 0 10px; }
   @media (prefers-reduced-motion: reduce) { #apGrid { transition: none; } }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
   /* notes/edits #4b: a parenthetical aside like "(1 broadside)" must never split across a line
@@ -450,7 +459,11 @@
   .btl-prompt .btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .btlBtn { font-size: 14px; }
   .btl-wait { margin-top: 11px; font-weight: 700; font-size: 13.5px; color: #8a8a8a; }
-  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 1.8s ease-out infinite; }
+  /* Halved 1.8s -> 3.6s (Wyatt: "unstylishly frenetic ... should feel more calming, like a boat on
+     the water; while still moving enough to attract attention"). The three rings' stagger in
+     src/ui/board.js moves WITH it — 0.6s -> 1.2s — so they stay evenly spaced across the cycle at
+     one third each. Change one and the other must follow, or the rings bunch up. */
+  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 3.6s ease-out infinite; }
   @keyframes rippleOut { 0% { transform: scale(.6); opacity: .85; } 100% { transform: scale(2.4); opacity: 0; } }
   /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
      and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
