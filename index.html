@@ -485,20 +485,48 @@
      derived from the live cell size, so the travel scales with the board instead of being the
      hardcoded -32px this used to use. --pop-rise is how far above the anchor it spawns;
      --pop-sink is how far below the anchor the hull sits. Their sum is roughly one full square. */
-  .pop { animation: popfloat 1.5s cubic-bezier(.34,1.24,.64,1) forwards; pointer-events: none; }
+  /* Wyatt's retune: "the icon should really BURST into existence — and then it should look like it
+     really has inertia when it shrinks into the boat."
+     Three acts across 2s. The TIMING FUNCTION IS PER-KEYFRAME (linear on the element, overridden at
+     each stop) — that is what buys the springiness; a single easing across the whole animation
+     cannot both overshoot on arrival and accelerate on departure.
+       BURST   0-31%   scale 0 -> 1.5 in ~140ms, then a damped bounce 0.86 / 1.12 / 0.96 -> 1.
+                       Overshoot then undershoot then settle is what reads as "sprung" rather than
+                       "grew"; a single overshoot reads as a wobble.
+       HOLD    31-62%  ~620ms at rest, the extra half-second he asked for.
+       INERTIA 62-100% a small anticipation lift (the classic wind-up — it pulls UP before it drops,
+                       which is what sells weight), then an ease-IN so it accelerates into the hull
+                       instead of drifting there, shrinking and fading as it lands.
+     Distances are the --pop-* custom properties set per element in popEmoji(), derived from the live
+     cell size. CHANGE THE 2s DURATION AND EVERY PERCENTAGE ABOVE SHIFTS WITH IT. */
+  .pop { animation: popfloat 2s linear forwards; pointer-events: none; }
   @keyframes popfloat {
-    0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(0); }
-    16%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1.25); }
-    28%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+    0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(0);
+           animation-timing-function: cubic-bezier(.15,.85,.35,1.5); }
+    7%   { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1.5);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    14%  { transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(.86);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    20%  { transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1.12);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    26%  { transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(.96);
+           animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    31%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1);
+           animation-timing-function: linear; }
+    62%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1);
+           animation-timing-function: cubic-bezier(.3,-0.7,.7,.1); }
+    70%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px) - 7px)) scale(1.07);
+           animation-timing-function: cubic-bezier(.6,0,.85,.35); }
     100% { opacity: 0; transform: translateY(var(--pop-sink, 17px)) scale(0); }
   }
   /* the arrival bounce is the point of this animation; with motion reduced it simply appears and
      goes, in the same place and the same time, so nothing is lost but the overshoot */
   @media (prefers-reduced-motion: reduce) {
-    .pop { animation: popfade 1.5s ease-out forwards; }
+    .pop { animation: popfade 2s ease-out forwards; }
     @keyframes popfade {
       0%   { opacity: 0; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
-      16%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      12%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
+      62%  { opacity: 1; transform: translateY(calc(-1 * var(--pop-rise, 22px))) scale(1); }
       100% { opacity: 0; transform: translateY(var(--pop-sink, 17px)) scale(.6); }
     }
   }
@@ -655,6 +683,11 @@
   .modalStep h3 { margin: 2px 0 14px; color: var(--teal); font-size: 17px; }
   .backLink { display:block; text-align:left; background:none; border:none; color: var(--teal); font-weight:700;
     font-size:12.5px; cursor:pointer; padding:0 0 12px; font-family:inherit; }
+  /* The room screen's back link sits inside the Captains card rather than floating over the board,
+     so it gets a little breathing room from the heading above and the first captain below, plus a
+     hover state — on a white card a bare teal word reads as a label rather than a control. */
+  .roomBack { padding: 2px 0 10px; }
+  .roomBack:hover { text-decoration: underline; }
   .fieldRow { margin: 6px 0 18px; font-size: 14px; }
   .fieldRow select, .fieldRow input[type=text] { font-size:16px; padding:6px 9px; border:1.5px solid var(--line);
     border-radius:8px; font-family:inherit; margin-left:4px; }
@@ -807,16 +840,19 @@
 <!-- ===================== ROOM (pre-game) ===================== -->
 <div id="lobbyRoom" class="modalOverlay" style="display:none">
   <div style="max-width:420px;width:100%">
-    <!-- UI-05 follow-up: this screen had no way out. Since "Host a Crew" now creates the room on the
-         first click, backing out has to tear the room down as well as change screens — see
-         abandonRoom() in src/orchestrator.js. -->
-    <button class="backLink" type="button" id="btnRoomBack">← back</button>
     <div class="roomCard" style="text-align:center">
       <div class="muted">share this code with yer crew</div>
       <div id="roomCode">----</div>
     </div>
     <div class="roomCard">
       <h3 style="margin-top:0;color:var(--teal)">Captains at the table</h3>
+      <!-- UI-05 follow-up: this screen had no way out. Since "Host a Crew" now creates the room on
+           the first click, backing out has to tear the room down as well as change screens — see
+           abandonRoom() in src/orchestrator.js.
+           It sits INSIDE this card, under the heading and above the first captain, because on the
+           card's white background it is legible; floated above the cards it sat on the blurred game
+           board and was, in Wyatt's words, "almost impossible to see". -->
+      <button class="backLink roomBack" type="button" id="btnRoomBack">← back</button>
       <div id="seatList"></div>
       <div id="waitMsg" class="muted" style="margin-top:10px"></div>
       <button class="primary big" id="btnStart" style="display:none" type="button"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Start the voyage!</button>

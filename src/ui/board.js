@@ -610,8 +610,8 @@ export function popEmoji(x,y,emo,big,imgHref,cls){
   }
   // Must OUTLAST the CSS animation or the node is ripped out mid-flight — the CR-01 failure, where a
   // removal belt kept beating the animation it was supposed to follow. splash is 3.8s (popsplash),
-  // popfloat is 1.5s since the UI-02 rewrite; +100ms of margin each.
-  setTimeout(()=>g.remove(),cls==="splash"?3900:1600);
+  // popfloat is 2s since the burst retune; +100ms of margin each.
+  setTimeout(()=>g.remove(),cls==="splash"?3900:2100);
 }
 
 // once the voyage is over, replace the Isle of Tortuga's 4 berths with dancing pastries —
