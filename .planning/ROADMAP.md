@@ -5,6 +5,7 @@
 - ✅ **v1.0 Edit Pass** — Phases 1–6 (shipped 2026-07-24)
 - ✅ **v1.1 Monolith Refactor** — Phases 7–12 (shipped 2026-07-25)
 - ✅ **v1.2 Playtest Fixes & Polish** — Phases 13–17 (shipped 2026-07-31)
+- 🚧 **v1.3 The Game Comes Alive** — Phases 18–22 (in progress)
 
 ## Phases
 
@@ -37,7 +38,42 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 </details>
 
 - ✅ **v1.2 Playtest Fixes & Polish** — Phases 13–17, shipped 2026-07-31. Multiplayer clock stall fixed and proven in a two-window game, storm movement corrected, the whole narration voice audited and applied, UI/UX polish + Ko-Fi, and a working end of voyage. Full detail: [`milestones/v1.2-ROADMAP.md`](milestones/v1.2-ROADMAP.md) · [`MILESTONES.md`](MILESTONES.md)
-- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — **DEFERRED TO v1.3 (2026-07-31, Wyatt's call at milestone close).** Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07). Never planned — no phase directory. Its requirement NARR-07 was missing from REQUIREMENTS.md entirely and is now recorded under Future Requirements.
+- [ ] **Narration Pacing (NARR-07) — RENUMBERED to v1.4 Phase 26 (2026-08-01)** — deferred at v1.2's close, then re-homed when v1.3 took phase numbers 18–22. It belongs with v1.4's copy work (`V1.3-V1.4-PLAN.md`, "Words"), not with v1.3's visual pass. See Backlog below.
+
+### 🚧 v1.3 The Game Comes Alive (In Progress)
+
+**Milestone Goal:** Everything a player sees and hears — the small moments stop feeling off, the sea
+stops looking like a still picture, the game gains sound, and the front door stops losing people.
+Ordered by Wyatt on 2026-07-31: the enjoyable work first, the grind (v1.4) after.
+
+**The property that defines this milestone: nothing in it touches the rules engine.** No change here
+can break a multiplayer game, and none of it goes near the one-time determinism re-record, which
+happens in v1.4. That is what lets Phases 18, 21 and 22 run concurrently.
+
+**Full plan (plain language):** [`V1.3-V1.4-PLAN.md`](V1.3-V1.4-PLAN.md) — v1.3 is its Phases 1–5.
+**Provenance:** [`research/v1.3-intake/RECONCILIATION.md`](research/v1.3-intake/RECONCILIATION.md).
+
+- [ ] **Phase 18: Prompts & Polish** — Buttons wait for the typewriter; a narrow window stops clipping the only button that takes the action; narration stops jumping sideways as it fades and the box stops shrinking under a still-fading line; orange buttons restyled; captain circles removed; no orphaned coins or brackets (FIX-03, FIX-04, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-16, FIX-17, FIX-21)
+- [ ] **Phase 19: Safari Check** — **GATE.** Prove an always-on wind layer is safe in real Safari, and learn the dot-count budget, before Phase 20 invests. Builds a throwaway-able prototype; ships nothing final (WIND-00)
+- [ ] **Phase 20: The Board Comes Alive** — Drifting wind dots, arrows flowing into a rotating whirlpool, a signal before a ship is swept into the trade winds, and a pastry scent on every wind direction change (WIND-01…05). **Depends on Phase 19 passing**
+- [ ] **Phase 21: Sound & the Clock Toggle** — Luis's sound effects on by default, a mute button, his credit — plus the timer on/off toggle finally working in solo and pass-and-play (AUDIO-01/02/03, FIX-02/N-03)
+- [ ] **Phase 22: The Front Door** — You name yourself after choosing how to play, a real About page, and a Google preview image (FIX-01, ABOUT-01/02, META-01)
+
+**Execution order:** Phases **18, 21 and 22 are mutually independent** and may be planned/executed
+concurrently. **Phase 20 gates on Phase 19.** The one shared-file risk is `index.html` — Phase 18
+edits its CSS block while Phase 22 edits markup; sequence those touches deliberately.
+
+**Hard constraints (all four are gates, not preferences):**
+
+1. **Nothing may touch `src/engine/index.js` or change what it emits.** `docs/DETERMINISM-RERECORD-NEXT.md` §7-8: the 31-seed corpus is re-recorded **exactly once**, in v1.4. If a phase finds it needs an engine change, **stop and re-scope** — do not spend the one-way door.
+2. **Phase 19's Safari gate is mandatory.** BUG-01 was a Safari near-crash from storm-overlay compositing; WIND-01 runs a comparable layer on **every ordinary turn**. Reuse the pre-baked-tile approach rather than inventing a new animation path.
+3. **FIX-03/10/16 are one piece of work** and must not change the measured panel height (BUG-01's fix measures once), must respect `prefers-reduced-motion`, and must account for the shot clock running during the reveal.
+4. **Copy changes are inventory changes** — record them against `todos/pending/copy-shipped-vs-approved-gate.md`.
+
+**Standing design invariant** (`PROJECT.md`): bots have exactly the same rules and affordances as
+humans. Never raise "should bots be allowed to…" as an open question; parity may be restored by
+levelling the **human up**, not only the bot down.
+
 
 ## Phase Details
 
@@ -630,10 +666,10 @@ branches.
 
 ## Backlog
 
-### Phase 18: Narration Pacing — commentary, not a gate
+### Phase 26 (v1.4): Narration Pacing — commentary, not a gate
 
 **Goal**: Narration reads as a running commentary that never gates play — in sync for every player, replaced cleanly by the next line, and never a reason the game feels slow.
-**Depends on**: Phase 15 (narration copy + the guest hold/fade from D-57 must land first).
+**Depends on**: Phase 15 (shipped). **Renumbered from 18 to 26 on 2026-08-01** — v1.3 claimed 18–22, and this belongs with v1.4's "Words" phase. **Plan it together with FIX-03/10/16 (v1.3 Phase 18)**: both change when narration timing gates play, from opposite directions.
 **Requirements**: NARR-07
 **Success Criteria** (what must be TRUE):
 

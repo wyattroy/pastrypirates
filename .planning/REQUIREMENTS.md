@@ -1,18 +1,89 @@
-# Requirements
+# Requirements: Pastry Pirates — v1.3 The Game Comes Alive
+
+**Defined:** 2026-08-01
+**Core Value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state. **v1.3 adds a second, milestone-specific guarantee: nothing here touches the rules engine**, so no change in this milestone can break a multiplayer game or force the determinism re-record.
+
+**Source:** Wyatt's 2026-07-31 punch list, the v1.2 Phase 17 Safari playtest (2026-07-31/2026-08-01), and the reconciled 63-item intake. Full plan: `.planning/V1.3-V1.4-PLAN.md`.
 
 > **v1.2 shipped 2026-07-31.** Its requirements are archived verbatim in
-> [`milestones/v1.2-REQUIREMENTS.md`](milestones/v1.2-REQUIREMENTS.md). What remains below is
-> what is still OPEN — carried into v1.3 — plus the future/deferred backlog. A fresh set for the
-> next milestone comes from `/gsd-new-milestone`.
+> [`milestones/v1.2-REQUIREMENTS.md`](milestones/v1.2-REQUIREMENTS.md).
 
-## Carried into v1.3
+## v1.3 Requirements
 
-- [ ] **META-03**: The site is verified in Google Search Console with indexing requested, so favicon/thumbnail crawl state is observable rather than guessed at. **Not a code change — Wyatt's own action**, and the slowest-moving piece (crawl latency is days to weeks).
-- [ ] **NARR-07**: Narration reads as running commentary that never gates play — see Future Requirements below for the full statement. Phase 18, never planned.
+Each maps to exactly one phase. Phase numbering continues from v1.2, which ended at 17.
+
+### Prompts & Polish — Phase 18
+
+- [ ] **FIX-03**: In an action prompt the buttons appear only after the final character has been typewriter'd out.
+- [ ] **FIX-10**: A narrow window never clips the action button — the box never pins itself shorter than its content.
+- [ ] **FIX-16**: A fading narration line stays exactly where it was, and the box only shrinks once the fade completes.
+- [ ] **FIX-06**: The 12 solid-orange `button.primary` buttons are restyled to the outline + faded-fill pattern.
+- [ ] **FIX-04**: The "{captain} is blown by the storm" line is removed, both viewer variants together.
+- [ ] **FIX-07**: A loser with an empty hold reads "they give up 5🌕", not the bribe framing; under 5 coins falls to the existing "all they have" line.
+- [ ] **FIX-08**: The win banner only prints "a" in front of a recipe name that takes one. No recipe is renamed.
+- [ ] **FIX-09**: On narrow mobile the ingredient chips stay readable instead of collapsing into one vertical column.
+- [ ] **FIX-17**: The coloured circle beside captain names is removed everywhere it appears, and the row shifts left.
+- [ ] **FIX-21**: Narration never orphans a trailing chunk — `(+1🌕)` wraps as one block; awards keep a quantity with its unit.
+
+> **FIX-03 + FIX-10 + FIX-16 are ONE piece of work** — same function (`resizePanel`), same measurement, and each breaks the others if done alone. The measure-once design is BUG-01's Safari fix and must survive. Must respect `prefers-reduced-motion` and account for the shot clock running during the reveal.
+
+### Safari Gate — Phase 19
+
+- [ ] **WIND-00**: A full game plays smoothly in real Safari with an always-on wind layer running, **and the safe dot-count budget is known** — the prototype ships a dial so the outcome is a number, not just pass/fail. Nothing final ships in this phase; if it passes, the prototype becomes Phase 20's starting point. **Wyatt runs the Safari verdict on his own machine.**
+
+### The Board Comes Alive — Phase 20
+
+- [ ] **WIND-01**: On every non-storm turn the board carries small dots fluttering across it, with none of the storm's darkening.
+- [ ] **WIND-02**: The trade-wind arrows flow along the rim channel into the whirlpool rather than sitting still.
+- [ ] **WIND-03**: Each whirlpool rotates, making it visually clear that it is what stops the wind.
+- [ ] **WIND-04**: On every wind **direction change** the round line carries a pastry scent from Wyatt's 35-line library; when the wind repeats a direction the existing "still blows / gusting" line runs unchanged.
+- [ ] **WIND-05** *(was V13-49/50)*: A ship approaching the rim gets a visual signal it is about to be swept into the trade winds, and once swept, roughly where the ride ends.
+
+> **WIND-04's line must be DERIVED from data the `newround` event already records** (`dir`, `round`, `windStreak`) — **never `this.r()`**. One new RNG draw shifts every subsequent draw and invalidates all 31 determinism fixtures. Derived, it is fixture-safe and keeps every client in sync with no broadcast.
+
+### Sound & the Clock Toggle — Phase 21
+
+- [ ] **AUDIO-01**: Luis's sound effects play at appropriate game moments, on by default.
+- [ ] **AUDIO-02**: A mute button sits to the right of the turn clock.
+- [ ] **AUDIO-03**: Luis is credited for the sound effects in the Credits modal.
+- [ ] **FIX-02 / N-03**: Solo gets the timer on/off toggle **and it works**; the same toggle starts working in pass-and-play. One local, non-Firebase code path fixes both — `watchTimer()` drives it from a Firebase node neither mode has.
+
+> N-02's urgency animation and N-04's wider parity sweep stay in v1.4. The clock panel already renders in solo, so **AUDIO-02's anchor exists today** and is not blocked by the toggle work.
+
+### The Front Door — Phase 22
+
+- [ ] **FIX-01**: Players choose their name in a new modal that appears **after** they pick a play mode.
+- [ ] **ABOUT-01**: A beautiful About page exists containing the rules, a screenshot of the game in action, the credits, and the Ko-Fi button.
+- [ ] **ABOUT-02**: The About page is reachable by its own link from the homepage.
+- [ ] **META-01**: A Google search result for the site shows a large preview image (robots meta + JSON-LD `image`).
+
+> **The About page must not become a third divergent copy of the rules** — they already exist in the How-To-Play modal and `RULES.md`. Share one source or duplicate deliberately and say so.
+> **META-03** (Google Search Console verification) is **Wyatt's own action, not code** — crawl latency is days to weeks, so it should start now. Not scheduled as build work.
+
+## Milestone-wide Constraints
+
+1. **NOTHING in v1.3 may touch `src/engine/index.js` or change what it emits.** This is what keeps the phases parallel and keeps v1.3 clear of the determinism re-record — `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 is explicit that the 31-seed corpus is re-recorded **exactly once**, and that happens in v1.4. **If a phase finds it needs an engine change, STOP and re-scope.**
+2. **WIND-01 is the largest Safari risk this project has taken.** BUG-01 was a Safari near-crash caused by storm-overlay compositing; this runs a comparable layer on **every ordinary turn**. Phase 19's gate is mandatory.
+3. **Copy changes are inventory changes** — record them against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. Silent divergence between shipped source and Wyatt's approved dispositions is the failure this project has already had.
+4. **Standing design invariant** (`.planning/PROJECT.md`): bots have exactly the same rules and affordances as humans. Never raise "should bots be allowed to…" as an open question; parity may be restored by levelling the **human up**, not only the bot down.
+
+## Parallelism
+
+Phases **18, 21 and 22 are mutually independent** and may be planned and executed concurrently. **Phase 20 depends only on Phase 19.** Lane boundaries are file boundaries — the one shared-file risk is `index.html`, where Phase 18 edits the CSS block and Phase 22 edits markup.
 
 ## Future Requirements
 
 Deferred to a later milestone. Tracked but not in this roadmap.
+
+> **⚠ SCHEDULED INTO v1.3 — do not double-count.** These IDs appear below in their original
+> capture form but are now **live v1.3 requirements above**: FIX-01, FIX-02, FIX-03, FIX-04,
+> FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-16, FIX-17, FIX-21, WIND-01/02/03/04,
+> ABOUT-01/02, AUDIO-01/02/03, META-01. The entries below are kept for their detail and
+> reasoning — treat the v1.3 section as authoritative for scope.
+>
+> **Everything else here is v1.4 "The Grind" or later**: FIX-05, FIX-11, FIX-12, FIX-13, FIX-14,
+> FIX-18, FIX-19, FIX-20, ART-01/02, LOAD-04a/b, NARR-07, the pass-and-play and clock-parity work,
+> the investigation spikes, the gated re-record, TUT, ISLAND, NETMOD, DX.
 
 ### Playtest Punch List (FIX) — added 2026-07-31
 
