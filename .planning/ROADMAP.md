@@ -435,7 +435,13 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 1
 
 ## Next Milestone: v1.3 — DRAFTED, NOT YET ACTIVE
 
-> ## ⚠ READ `.planning/research/v1.3-intake/RECONCILIATION.md` BEFORE ACTING ON THIS SECTION
+> ## ⚠ SUPERSEDED — the live plan is `.planning/V1.3-PLAN.md`
+>
+> **`.planning/V1.3-PLAN.md` is the current, Wyatt-ordered v1.3 plan** (2026-07-31): ten phases,
+> visual/audio work first, bugs last. `.planning/research/v1.3-intake/RECONCILIATION.md` shows how
+> the two source scopes were merged. Read the plan first; read the reconciliation for provenance.
+>
+> ## The original warning, retained
 >
 > **This section is roughly one fifth of v1.3's real scope.** It was written on 2026-07-31 without
 > knowledge of `.planning/research/v1.3-intake/` — a **63-item, feasibility-grounded intake from
