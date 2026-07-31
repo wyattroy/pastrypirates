@@ -2,11 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: The Game Comes Alive
-status: planning
+status: "v1.3 planned — Phases 18-22 roadmapped, none started"
 last_updated: "2026-07-31T22:03:58.955Z"
-last_activity: 2026-07-31
+last_activity: 2026-08-01
+stopped_at: "v1.3 opened 2026-08-01. Roadmap written from .planning/V1.3-V1.4-PLAN.md (Wyatt-ordered). Next: /gsd-plan-phase 18, or 21/22 in parallel. Phase 19 is a Safari gate Wyatt runs himself; Phase 20 waits on it."
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
