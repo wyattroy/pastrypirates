@@ -146,3 +146,13 @@ underlying engineering is sound and honestly documented; only the sign-off is mi
 
 _Verified: 2026-07-27T01:10:20Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Guest storm-push decision — located by the v1.2 milestone audit, 2026-07-31
+
+`human_verification` #1 asks for an explicit ruling on the guest storm-push visibility tradeoff.
+**That ruling exists**, as STORM-02, recorded in `PROJECT.md`, `ROADMAP.md` and `STATE.md`: guest
+storm-push parity is explicitly NOT solved and is backlogged — and `docs/DETERMINISM-RERECORD-NEXT.md`
+§9 warns specifically against treating it as solved because G14's rim sweep shipped.
+
+The decision was made; this file simply never learned of it. Item #2 (the 30/30 vs 31/31 ROADMAP
+wording drift) is resolved — no `30/30` remains in the roadmap.

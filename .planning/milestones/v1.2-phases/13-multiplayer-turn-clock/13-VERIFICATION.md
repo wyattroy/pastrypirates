@@ -151,3 +151,23 @@ One documentation-only inconsistency was found and flagged as Info-level (not a 
 
 _Verified: 2026-07-26T03:32:46Z_
 _Verifier: Claude (gsd-verifier)_
+
+## CLOCK-01 CLOSED 2026-07-31 by Phase 17 — appended by the v1.2 milestone audit
+
+This file recorded CLOCK-01 as `PRESENT_BEHAVIOR_UNVERIFIED`: the code was structurally correct but
+the live two-window behaviour could not be exercised in that session.
+
+**It was exercised on 2026-07-31.** A networked game (Wyatt hosting in Safari, Claude driving the
+guest seat in Chrome, room `KWPE`) started on its own with no clock-stall workaround —
+`gameStarted:true`, turn order `[3,0,1,2]` identical on both clients — and played through to an end
+of voyage across 171 events. See `17-VERIFICATION.md`.
+
+**Still open from this phase's human_verification list**, and NOT closed by that game:
+
+- the localStorage version-guard blobs (unversioned vs versioned `pp_sess` / `pp_solo`)
+- a **guest-initiated** `#scPause` (pause/resume was driven from the host; `timerOff` was confirmed
+  propagating to the guest, so the mechanism works, but the guest-initiated path was not exercised)
+- clicking `#shotClockNum` to resume — CLOCK-03's actual affordance
+
+Recorded rather than quietly marked done: the phase's requirements are satisfied, these specific
+checks are not.
