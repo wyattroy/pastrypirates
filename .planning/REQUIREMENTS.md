@@ -101,9 +101,12 @@ Six bugs from Wyatt's 2026-07-31 punch list. Each has a detailed todo file in
 - **FIX-01**: Players choose their name in a **new intermediary modal that appears after they pick a
   play mode**, not from a field on the welcome screen that people are not seeing. *(Interacts with
   UI-05, UI-06 and LOAD-03 — all touch the same mode-button handlers.)*
-- **FIX-02**: Solo play shows a **disabled turn-clock button** in the same position as multiplayer,
-  so the control is consistent across every play mode. *(AUDIO-02 anchors the mute button "to the
-  right of the turn clock" — this makes that placement well-defined in solo too.)*
+- **FIX-02** *(superseded by N-03/N-04 — see the reconciliation)*: Solo is missing the timer on/off
+  **toggle** (`#scTimerToggle`, hidden by `!soloBotGame()`), not the clock — `#shotClockPanel` and
+  its pause button already render in every mode. Wyatt's later D-01 ruling asks for the disable to
+  **actually work** everywhere, so build N-03/N-04 rather than a greyed placeholder. **AUDIO-02 is
+  not blocked by this** — the clock panel is already on screen in solo, so the mute button has its
+  anchor today.
 - **FIX-03**: In action prompts the **buttons appear only after the final character has been
   typewriter'd out**. Today `panel()` paints buttons synchronously and only the message is revealed
   (`src/ui/panel.js:301`). Must not change the measured panel height (BUG-01's Safari fix), must
