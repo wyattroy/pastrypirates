@@ -1703,6 +1703,7 @@ function miscLobbyCard(siteId) {
 const BOARD_GROUPS = {
   "misc.board.eovbanner": "voyageEnd",
   "misc.board.statsheadings": "voyageEnd",
+  "adhoc.voyageend.victory": "voyageEnd",
 };
 function miscBoardCards(siteId) {
   const entry = requireMiscEntry("board", siteId);
@@ -1953,7 +1954,7 @@ const NODE_GROUPS = [
     via: "src/ui/flow.js:501 EVENT_NARRATION.finish; src/ui/flow.js:932 asyncBakeoff() → EVENT_NARRATION.bakeoff; src/orchestrator.js:737 liveResolveEndNet() → EVENT_NARRATION.end + :754/:758",
     cardsOf: () => tableCards("finish").concat(
       tableCards("bakeoff"), tableCards("end"),
-      adhocCards("adhoc.voyageend.nobodyfinished"), adhocCards("adhoc.voyageend.victory"),
+      adhocCards("adhoc.voyageend.nobodyfinished"), adhocCards("adhoc.voyageend.drumroll"),
       // D-32: the bakeoff's own live round-result lines (same footer mechanism as battleOutcomes
       // above, different function) plus the end-of-voyage award names+bylines — the LAST text any
       // player reads, per this plan's own placement instruction.
@@ -1962,7 +1963,7 @@ const NODE_GROUPS = [
       awardCards(),
       // D-32/Task 7: showStats()'s own copy — the winner banner (two branches) and the stats table's
       // headings. Literally the last text a player reads, and never in this audit before now.
-      miscBoardCards("misc.board.eovbanner"), miscBoardCards("misc.board.statsheadings"),
+      miscBoardCards("misc.board.eovbanner"), miscBoardCards("adhoc.voyageend.victory"), miscBoardCards("misc.board.statsheadings"),
     ),
   },
 ];

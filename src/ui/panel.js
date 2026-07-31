@@ -563,6 +563,28 @@ export async function narrateLastEvent(){
 // array narrationVariants() built for `msg` — additive 4th parameter, same precedent as holdMs
 // immediately above. Every existing 1-/2-/3-argument call site keeps behaving exactly as before
 // (variants undefined forwards as undefined, which netSetNarr treats as "no variants field").
+// EOV (Wyatt, 2026-07-31): fade the line currently in the box, then empty and HIDE the box.
+//
+// flash() deliberately does not do this — F6 removed its trailing fade so a line stays readable
+// until something replaces it, and that rule stands for every line during play. The end of the
+// voyage is the one moment where nothing comes next and the box should get out of the way, so the
+// fade lives here, in its own function, rather than as a flag on flash() that could be switched on
+// mid-game and quietly undo F6.
+//
+// The timing is the SAME fade a replaced line gets — GHOST_FADE_MS, via the same `.fadeOut` class —
+// so the drumroll leaves exactly the way every other line leaves. His words: "when that text has
+// been on screen for the amount of time that it would normally be faded out if there were another
+// message coming after it". flash() already awaited that hold before this is called.
+export async function fadeOutPanel(){
+  const inner=$("apGridInner"), ap=$("actionPanel");
+  if(!inner||!ap)return;
+  const live=inner.querySelector(".apMsg:not(.fadeOut)");
+  if(live)live.classList.add("fadeOut");
+  await sleep(GHOST_FADE_MS);
+  inner.innerHTML="";
+  ap.style.display="none";
+  ap.classList.remove("needsAction");
+}
 export async function flash(msg,ms,holdMs,variants){
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate

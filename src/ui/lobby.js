@@ -46,46 +46,43 @@ import { syncBoardSizing } from "./board.js";
 
 const $=id=>document.getElementById(id);
 
-/* ================= KOFI-01 — the Ko-Fi widget in the Credits modal ================= */
-// Wyatt supplied the official snippet verbatim:
+/* ================= KOFI-01 — the Ko-Fi panel, embedded in our own modal ================= */
+// Wyatt, 2026-07-31: "i don't want this button to open up the kofi website; ideally, i want it to
+// open up the kofi widget." So the footer button and the Credits button both open #kofiModal, which
+// holds Ko-Fi's own embedded donation panel. The player never leaves the game.
 //
-//   <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-//   <script>kofiwidget2.init('Buy me a cookie', '#e89827', 'T4P423RFHW');kofiwidget2.draw();</script>
+// WHY NOT the floating-chat overlay snippet he sent first. That script draws its OWN permanent
+// button, and it lives inside a CROSS-ORIGIN iframe (verified in a browser: contentDocument threw).
+// Nothing on our page can click into it, so "our button opens their widget" is not achievable that
+// way at all — it would have meant accepting a second, always-on button floating over the board.
+// The embed URL below is the same widget, hosted in a frame we control the size and placement of.
 //
-// His three values are used EXACTLY as given. One deliberate change: `draw()` is not called.
-//
-// WHY, because it matters and is not a style preference: `draw()` is `document.writeln(...)`
-// (verified against the served CDN file). document.write after a document has finished loading
-// implicitly opens a new one — so the first time a player clicked Credits, the entire game page
-// would be replaced by a lone Ko-Fi button. The same script exposes `getHTML()`, which returns the
-// byte-identical markup as a string. Same widget, same branding, no page-blanking.
-//
-// Loading is deferred to first open rather than at boot for a second reason: the snippet is a
-// render-blocking third-party <script>, and the game already waits on two Firebase CDN scripts in
-// <head>. Nobody should wait on ko-fi.com to start a game they may never open Credits from.
-const KOFI_SRC="https://storage.ko-fi.com/cdn/widget/Widget_2.js";
-let kofiState="idle"; // idle -> loading -> done | failed
+// Loaded on FIRST OPEN, never at boot: a player who never opens it never contacts ko-fi.com. The
+// src is set here rather than in the markup precisely so that stays true.
+const KOFI_EMBED="https://ko-fi.com/wyattroy/?hidefeed=true&widget=true&embed=true&preview=true";
+let kofiMounted=false;
 export function mountKofi(){
-  const host=$("kofiCredits");
-  if(!host||kofiState==="loading"||kofiState==="done")return;
-  // A failed load is retried on a later open — the CDN being down once is not permanent.
-  kofiState="loading";
-  const paint=()=>{
-    try{
-      window.kofiwidget2.init("Buy me a cookie","#e89827","T4P423RFHW");
-      host.innerHTML=window.kofiwidget2.getHTML();
-      kofiState="done";
-    }catch(e){kofiState="failed";host.innerHTML="";}
-  };
-  if(window.kofiwidget2){paint();return;}
-  const s=document.createElement("script");
-  s.src=KOFI_SRC;s.async=true;
-  s.onload=paint;
-  // Silent on failure BY DESIGN: an ad-blocker eating this request is common and expected, and a
-  // broken-donation-button error message is worse than no button. The footer link is a plain <a>
-  // with no script at all, so the ability to support the game survives this failing entirely.
-  s.onerror=()=>{kofiState="failed";host.innerHTML="";};
-  document.head.appendChild(s);
+  const host=$("kofiPanel");
+  if(!host||kofiMounted)return;
+  kofiMounted=true;
+  const f=document.createElement("iframe");
+  f.src=KOFI_EMBED;
+  f.title="Support Pastry Pirates on Ko-fi";
+  f.setAttribute("loading","lazy");
+  // payments live in the frame, so it needs scripts, forms and same-origin to ko-fi.com; it gets
+  // nothing else, and top-navigation is NOT granted — a frame cannot yank the player out of a game.
+  f.setAttribute("sandbox","allow-scripts allow-forms allow-popups allow-same-origin");
+  // An ad-blocker eating this is common and expected. Say so plainly rather than leaving an empty
+  // box, and name ko-fi.com so the player can go there themselves if they want to.
+  f.onerror=()=>{kofiMounted=false;host.innerHTML='<div class="muted" style="padding:14px;text-align:center">Couldn\'t load the Ko-Fi panel — an ad blocker may be blocking it. ko-fi.com/wyattroy works directly.</div>';};
+  host.innerHTML="";
+  host.appendChild(f);
+}
+export function openKofi(){
+  const m=$("kofiModal");
+  if(!m)return;
+  m.style.display="flex";
+  mountKofi();
 }
 
 /* ================= welcome modal ================= */

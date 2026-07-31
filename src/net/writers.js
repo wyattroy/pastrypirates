@@ -142,6 +142,13 @@ export function netUpdateRoom(db, room, patch, onError) {
   return withReporter(db.ref("rooms/" + room).update(patch), onError);
 }
 
+// Delete a lobby the host backed out of, so abandoning "Host a Crew" does not leave an orphan room
+// sitting in the database advertising a code nobody is waiting on. Only ever called by the host, and
+// only from the lobby — a room that has started playing is left alone (see abandonRoom()).
+export function netDeleteRoom(db, room, onError) {
+  return withReporter(db.ref("rooms/" + room).remove(), onError);
+}
+
 /* ---------- end-of-voyage meta / voyage transcript log -------------------------------------------- */
 
 export function netSetMeta(db, room, meta, onError) {

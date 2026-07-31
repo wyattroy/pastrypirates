@@ -195,9 +195,23 @@
       "rawVariants": null
     },
     {
+      "id": "adhoc.voyageend.drumroll",
+      "file": "src/orchestrator.js",
+      "line": 887,
+      "fn": "liveResolveEndNet",
+      "tableDriven": false,
+      "group": "End of Voyage",
+      "label": "Drumroll — the last blue-box line before the gold banner reveals the winner (Wyatt, 2026-07-31)",
+      "defaultTag": "rewrite",
+      "mergeInto": null,
+      "siblingMerges": null,
+      "rawNeutral": "\"Drumroll...\"",
+      "rawVariants": null
+    },
+    {
       "id": "adhoc.voyageend.nobodyfinished",
       "file": "src/orchestrator.js",
-      "line": 882,
+      "line": 902,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -206,20 +220,6 @@
       "mergeInto": null,
       "siblingMerges": null,
       "rawNeutral": "\"⏳ Nobody finished the voyage.\"",
-      "rawVariants": null
-    },
-    {
-      "id": "adhoc.voyageend.victory",
-      "file": "src/orchestrator.js",
-      "line": 887,
-      "fn": "liveResolveEndNet",
-      "tableDriven": false,
-      "group": "End of Voyage",
-      "label": "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)",
-      "defaultTag": "keep",
-      "mergeInto": null,
-      "siblingMerges": null,
-      "rawNeutral": "`<div class=\"victoryBox\">${pic}<div class=\"victoryText\">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`",
       "rawVariants": null
     },
     {
@@ -596,7 +596,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 974,
+      "line": 990,
       "fn": "watchDraftPrompt",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
@@ -610,7 +610,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1045,
+      "line": 1061,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
@@ -624,7 +624,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1057,
+      "line": 1073,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1307,
+      "line": 1370,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -1304,7 +1304,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 535,
+      "line": 548,
       "fn": "render",
       "rawMsg": "hold.map(x2=>`<span class=\"chip extra\" title=\"surplus cargo: ${iname(x2)}\">${ingImg(x2)}</span>`)",
       "id": "misc.board.surplustooltip"
@@ -1312,7 +1312,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 537,
+      "line": 550,
       "fn": "render",
       "rawMsg": "chips.join(\"\")+(extras.length?`<span style=\"opacity:.4\">·</span>`:\"\")+extras.join(\"\")",
       "id": "misc.board.prowcargorow"
@@ -1320,7 +1320,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 541,
+      "line": 554,
       "fn": "render",
       "rawMsg": "`<button type=\"button\" class=\"checkRecipeBtn\" onclick=\"revealMyRecipe()\" style=\"background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}\">🔍 Check my recipe</button>`",
       "id": "misc.board.checkrecipebtn"
@@ -1328,7 +1328,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 548,
+      "line": 561,
       "fn": "render",
       "rawMsg": "held.join(\"\")||`<span style=\"opacity:.4\">empty hold</span>`",
       "id": "misc.board.emptyhold"
@@ -1336,7 +1336,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 718,
+      "line": 762,
       "fn": "showStats",
       "rawMsg": "w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`",
       "id": "misc.board.eovbanner"
@@ -1344,7 +1344,15 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 737,
+      "line": 772,
+      "fn": "showStats",
+      "rawMsg": "!winRecipe?\"\":`<div class=\"victoryText\">${pn(w)} baked a ${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`",
+      "id": "adhoc.voyageend.victory"
+    },
+    {
+      "category": "board",
+      "file": "src/ui/board.js",
+      "line": 791,
       "fn": "showStats",
       "rawMsg": "`<table>\n    <tr><td>Rounds</td><td>${appState.game.round}</td></tr>\n    <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>\n    <tr><td>Trades</td><td>${appState.game.trades}</td></tr>\n    <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?\"yes — \"+appState.game.finishOrder.length+\" finishers\":\"no\"}</td></tr>\n    ${appState.game.players.map((p,i)=>`<tr><td style=\"color:${HEXCOL[i]}\">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join(\"\")}\n    </table>`",
       "id": "misc.board.statsheadings"
@@ -1411,7 +1419,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 132,
+      "line": 129,
       "fn": "passGate",
       "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the board to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`",
       "id": "misc.lobby.passmessage"
@@ -1419,7 +1427,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 135,
+      "line": 132,
       "fn": "passGate",
       "rawMsg": "`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`",
       "id": "misc.lobby.passbutton"
@@ -1427,7 +1435,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 192,
+      "line": 189,
       "fn": "renderSeatList",
       "rawMsg": "`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`",
       "id": "misc.lobby.waitcaption"
@@ -1435,7 +1443,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1096,
+      "line": 1112,
       "fn": "createRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.createnoconnection"
@@ -1443,7 +1451,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1110,
+      "line": 1144,
       "fn": "createRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.createcapacity"
@@ -1451,7 +1459,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1119,
+      "line": 1178,
       "fn": "joinRoom",
       "rawMsg": "\"Enter the room code yer host shared.\"",
       "id": "misc.mperror.entercode"
@@ -1459,7 +1467,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1125,
+      "line": 1184,
       "fn": "joinRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.joinnoconnection"
@@ -1467,7 +1475,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1129,
+      "line": 1188,
       "fn": "joinRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.joincapacity"
@@ -1475,7 +1483,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1131,
+      "line": 1190,
       "fn": "joinRoom",
       "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`",
       "id": "misc.mperror.nogamefound"
@@ -1483,7 +1491,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1138,
+      "line": 1197,
       "fn": "joinRoom",
       "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\"",
       "id": "misc.mperror.alreadysailed"
@@ -1491,7 +1499,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1149,
+      "line": 1208,
       "fn": "joinRoom",
       "rawMsg": "\"Too many pirates already in that game.\"",
       "id": "misc.mperror.roomfull"
@@ -1499,7 +1507,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1159,
+      "line": 1218,
       "fn": "watchRoom",
       "rawMsg": "\"That game no longer exists.\"",
       "id": "misc.mperror.gamegone"
@@ -1507,7 +1515,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1190,
+      "line": 1249,
       "fn": "startGame",
       "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\"",
       "id": "misc.mperror.serviceunreachable"
