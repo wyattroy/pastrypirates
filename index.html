@@ -140,6 +140,10 @@
      neighbours rather than Ko-Fi's own pill dropped into the row. */
   .footerKofi { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
   .footerKofi:hover { background: #fae7cb; }
+  /* Ko-Fi's embed is a fixed-width panel; give it room without letting it push the modal wider than
+     its siblings. Height is theirs, not ours — too short and the donate form scrolls inside itself. */
+  .kofiPanel { margin-top: 12px; min-height: 560px; }
+  .kofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
   .recipeModalBtn { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .recipeModalBtn:hover { background: #d9f1e5; }
   .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
@@ -858,9 +862,11 @@
     <div class="modalByline" style="text-align:left">
       <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
     </div>
-    <!-- KOFI-01: Wyatt's own Ko-Fi widget, after the credits text per the requirement. Filled in by
-         mountKofi() (src/ui/lobby.js) the first time this modal opens. -->
-    <div id="kofiCredits" style="text-align:center;margin-top:16px"></div>
+    <!-- KOFI-01: after the credits text, per the requirement. A button onto the SAME #kofiModal the
+         footer opens — one embedded panel, two doors — so neither route leaves the game. -->
+    <div style="text-align:center;margin-top:16px">
+      <button id="btnKofiCredits" class="footerBtn footerKofi" type="button">🍪 Buy me a cookie</button>
+    </div>
   </div>
 </div>
 
@@ -873,6 +879,21 @@
 </div>
 
 <!-- ===================== FEEDBACK (modal) ===================== -->
+<!-- ===================== KO-FI (modal) ===================== -->
+<!-- KOFI-01, revised 2026-07-31 (Wyatt): the button must open the Ko-Fi WIDGET, not navigate to
+     ko-fi.com. His floating-chat snippet could not be reused for that — it draws its own permanent
+     button inside a CROSS-ORIGIN iframe, so nothing on our page can trigger it. This embeds the same
+     Ko-Fi panel in one of the game's own modals instead, which keeps the player in the game and
+     keeps the footer button exactly where the requirement asks for it.
+     The iframe src is filled in by mountKofi() on first open, not here, so the page never contacts
+     ko-fi.com for a player who does not open it. -->
+<div id="kofiModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalTitle">🍪 Buy me a cookie</div>
+    <div id="kofiPanel" class="kofiPanel"></div>
+  </div>
+</div>
+
 <div id="feedbackModal" class="modalOverlay" style="display:none">
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">💬 Feedback</div>
@@ -978,10 +999,10 @@
     <button id="btnShowCredits" class="footerBtn footerCredits" type="button">🎗️ Credits</button>
     <button id="btnShowLog" class="footerBtn footerLog" type="button">📜 Captain's log</button>
     <button id="btnShowFeedback" class="footerBtn footerFeedback" type="button">💬 Feedback</button>
-    <!-- KOFI-01: right of Feedback, per the requirement. A plain link rather than Ko-Fi's widget,
-         because the requirement asks for it "styled the same" as its neighbours and the widget
-         renders its own pill. Same destination as the Credits embed — one Ko-Fi page, two doors. -->
-    <a id="btnKofi" class="footerBtn footerKofi" href="https://ko-fi.com/T4P423RFHW" target="_blank" rel="noopener noreferrer">🍪 Buy me a cookie</a>
+    <!-- KOFI-01: right of Feedback, per the requirement, and styled the same as its neighbours.
+         Opens #kofiModal rather than navigating — Wyatt, 2026-07-31: "i don't want this button to
+         open up the kofi website; ideally, i want it to open up the kofi widget." -->
+    <button id="btnKofi" class="footerBtn footerKofi" type="button">🍪 Buy me a cookie</button>
     <button id="btnLeave" class="footerBtn footerLeave" type="button">🚪 Leave game</button>
   </div>
   <!-- hidden helpers the renderer expects -->

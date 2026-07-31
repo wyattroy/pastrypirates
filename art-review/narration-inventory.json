@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1367,
+      "line": 1370,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -1419,7 +1419,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 132,
+      "line": 129,
       "fn": "passGate",
       "rawMsg": "`${iconImg(DEVICE_IMG)} Pass the board to<br><span style=\"color:${HEXCOL[seatIdx]}\">${pname(seatIdx)}</span>`",
       "id": "misc.lobby.passmessage"
@@ -1427,7 +1427,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 135,
+      "line": 132,
       "fn": "passGate",
       "rawMsg": "`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`",
       "id": "misc.lobby.passbutton"
@@ -1435,7 +1435,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 192,
+      "line": 189,
       "fn": "renderSeatList",
       "rawMsg": "`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`",
       "id": "misc.lobby.waitcaption"
