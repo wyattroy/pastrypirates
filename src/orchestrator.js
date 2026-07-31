@@ -107,6 +107,7 @@ import {
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
+  mountKofi, // KOFI-01: lazy Ko-Fi widget mount, reached through the barrel
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
 } from "./ui/index.js";
 
@@ -1229,7 +1230,7 @@ export function wireLobby(){
   $("scTimerToggle").onclick=toggleTimer;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
-  $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
+  $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";mountKofi();};
   $("btnShowFeedback").onclick=()=>{$("feedbackModal").style.display="flex";};
   // #2: in-game modals get a top-right ✕ and close on outside-click (the bottom "Close" buttons
   // were removed). Pre-game/blocking modals (lobby, pass-device, room, start/leave confirms) are

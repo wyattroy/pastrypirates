@@ -212,8 +212,20 @@ export function sailPickMsg(seat){
 // dropping the inline fill would give BOTH boards default-black squares. If .sailCell ever gains a
 // fill, re-derive this — scripts/host_guest_parity_check.js and this comment are the only warning.
 // The guest's old opacity:.4 goes: .sailCell supplies .5 and the keyframes animate it.
+// UI-03: the highlight is 10% smaller than it was. The old geometry was a flat 2px inset
+// (width: cellPx-4); SAIL_HL_SCALE shrinks that square about its own centre, so the inset is
+// derived rather than a second hand-tuned number that could drift from the scale.
+//
+// Deliberately changed HERE and only here. This builder is G25's shared host/guest surface — the
+// entire reason it exists is that the two boards used to drift — so a size change made in one
+// renderer would recreate D-55 exactly. scripts/host_guest_parity_check.js asserts they stay one.
+//
+// The CSS bounce ratio (scale 1 -> 1.11) is left alone on purpose: "10% smaller" reads as the
+// resting size, and rescaling the animation too would flatten the bounce rather than shrink it.
+const SAIL_HL_SCALE=0.9;
 export function sailHighlightRect(c,cellPx,svg){
-  return el("rect",{x:c[0]*cellPx+2,y:c[1]*cellPx+2,width:cellPx-4,height:cellPx-4,rx:6,
+  const side=(cellPx-4)*SAIL_HL_SCALE, inset=(cellPx-side)/2;
+  return el("rect",{x:c[0]*cellPx+inset,y:c[1]*cellPx+inset,width:side,height:side,rx:6,
     fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
 }
 export function pickCell(p,cells){
@@ -1556,7 +1568,15 @@ export async function asyncBakeoff(A,B){
 // lobby.js and is imported alongside the two names already pulled from there.
 export function wireWelcome(){
   $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
-  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;showStep("stepHost");};
+  // UI-05: "Host a Crew" now creates the room outright instead of showing #stepHost, whose entire
+  // content was one "Create the game" button — a screen that asked the player to confirm the thing
+  // they had just clicked. #stepHost's markup is kept (with a note) so nothing else that references
+  // it breaks; it is simply no longer reachable from here.
+  //
+  // createRoom() is main-tier (src/orchestrator.js), which src/ui/ may never import — hence the
+  // handlers seam, the same route 13-01 added for onTogglePause. The guards are unchanged and stay
+  // on THIS side, so a disabled card or a missing name still short-circuits before any room exists.
+  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;netHandlers().onCreateRoom();};
   $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
   $("choicePassPlay").onclick=()=>{$("ppName0").value=($("pname").value||"").trim();showStep("stepPassPlay");};
   $("btnStartPassPlay").onclick=()=>{
