@@ -578,25 +578,46 @@
   .winner-banner { display: flex; flex-direction: column; align-items: center; gap: 6px;
     font-size: 16px; font-weight: bold; padding: 8px 10px; margin-bottom: 8px;
     position: relative; overflow: hidden; border: 1.5px solid #c9971f; border-radius: 8px;
-    /* The hard vertical seam Wyatt spotted was a TILING artefact, not a bad colour stop. The
-       gradient ran at 120deg while `background-size: 220%` makes it repeat HORIZONTALLY, so every
-       tile boundary cut across the diagonal bands and showed as a straight vertical edge. It was
-       barely noticeable while this box held one line of text; growing it to hold the recipe picture
-       made the seam tall enough to read as a defect.
-       Fixed by running the gradient along the same axis it repeats on (`to right`). With the first
-       and last stops the same colour, each tile now joins its neighbour on an identical value and
-       the repeat is invisible. Extra intermediate stops soften the falloff so the sheen reads as a
-       gentle sweep rather than a band with edges. */
-    background: linear-gradient(to right,
-      #fff6d0 0%, #ffeaa6 12%, #ffd76a 25%, #ffe7a4 38%,
-      #fff2c0 50%, #ffe7a4 62%, #ffd76a 75%, #ffeaa6 88%, #fff6d0 100%);
-    background-size: 220% 100%; animation: goldShimmer 3s linear infinite; }
+    /* TWO problems have been fixed here, in two passes. Both were about SCROLLING A REPEATING
+       GRADIENT, which is seam-prone by construction — so the second pass stopped doing that.
+
+       Pass 1 (the vertical line): the gradient ran at 120deg while `background-size` made it repeat
+       horizontally, so every tile boundary cut across the diagonal bands as a straight vertical edge.
+
+       Pass 2 (the stutter Wyatt caught on video): the loop distance was not a whole number of tiles.
+       With `background-size: 220%` the tile is 2.2W wide, and animating background-position from 0%
+       to 220% shifts the image by (W - 2.2W) x 2.2 = -2.64W. 2.64 / 2.2 = 1.2 TILES — so every cycle
+       ended a fifth of a tile out of phase and snapped back to realign. One visible jump per period.
+
+       The fix is structural rather than arithmetic. The gold is now a STATIC base layer, and the
+       shimmer is a single soft highlight on its own `no-repeat` layer that travels from fully
+       off-screen on one side to fully off-screen on the other. At both ends of the animation the
+       highlight is outside the box, so the wrap has nothing to show and A SEAM CANNOT OCCUR — it is
+       seamless by construction, not because two numbers happen to divide evenly.
+
+       Speed halved (3s -> 6s) and the highlight softened to rgba .42, per Wyatt: "classier and more
+       subtle". If the duration changes again, nothing else needs to move — the endpoints are
+       off-screen at any speed. */
+    background:
+      linear-gradient(100deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.42) 50%, rgba(255,255,255,0) 62%),
+      linear-gradient(to right, #ffeec0 0%, #ffdd8c 50%, #ffeec0 100%);
+    background-size: 200% 100%, 100% 100%;
+    background-repeat: no-repeat, no-repeat;
+    animation: goldShimmer 6s linear infinite; }
   .winner-banner::before, .winner-banner::after {
     content: "✨"; position: absolute; font-size: 13px; opacity: 0;
     animation: winnerSparkle 1.8s ease-in-out infinite; }
   .winner-banner::before { top: 3px; left: 14%; animation-delay: .2s; }
   .winner-banner::after { bottom: 2px; right: 16%; animation-delay: .95s; }
-  @keyframes goldShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 220% 50%; } }
+  /* Both endpoints put the highlight ENTIRELY outside the box, so the wrap is invisible whatever
+     the duration. With background-size 200%, offset = (W - 2W) x P = -W x P, so:
+       P = -100%  ->  offset +W   -> highlight spans [W, 3W]   — fully off the RIGHT edge
+       P = +200%  ->  offset -2W  -> highlight spans [-2W, 0]  — fully off the LEFT edge
+     The static gold layer is pinned at 0 in both frames so only the highlight moves. */
+  @keyframes goldShimmer {
+    0%   { background-position: -100% 0, 0 0; }
+    100% { background-position: 200% 0, 0 0; }
+  }
   @keyframes winnerSparkle { 0%, 100% { opacity: 0; transform: scale(.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(20deg); } }
   /* notes/edits EOV-04: the redesigned end-of-voyage honours — bigger emblem, pirate name, byline,
      then the winning captain's name (big, colored, no seat dot) filling the card above a rule, with
