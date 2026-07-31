@@ -86,7 +86,7 @@ Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
 ### Verification (VERIFY)
 
-- [ ] **VERIFY-01**: A manual Safari + Chrome multiplayer playtest (two windows) confirms the critical clock stall is fixed and a game starts and plays through end-to-end
+- [x] **VERIFY-01**: A manual Safari + Chrome multiplayer playtest (two windows) confirms the critical clock stall is fixed and a game starts and plays through end-to-end — **PASSED, Wyatt, 2026-08-01: *"i'm done with the safari playtest, everything worked."*** Bugs found during the session were logged as new v1.3/v1.4 items (FIX-07…21, WIND-04), not as VERIFY-01 failures
 - [x] **VERIFY-02**: The determinism regression harness stays green (31/31) — storm-movement and any engine-adjacent changes do not break lockstep replay
 
 ## Future Requirements
