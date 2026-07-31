@@ -4,17 +4,17 @@ milestone: v1.2
 milestone_name: Playtest Fixes & Polish
 current_phase: 15
 current_phase_name: narration-audit-fixes
-status: verifying
-stopped_at: Quick task 20260730-playtest-notes-fixes — all 9 tasks (G1-G9) committed; T8 fade at 180ms awaits Wyatt's eye in the recorded playthrough
-last_updated: "2026-07-30T00:00:00.000Z"
+status: "Phase 15 shipped — PR #8"
+stopped_at: Phase 15 shipped as PR #8 (Phases 13-15). Next work, in Wyatt's stated order — CR-02/CR-03 economy bugs, then Phase 16, then the queued gated re-record batch.
+last_updated: "2026-07-31T00:45:35.909Z"
 last_activity: 2026-07-30
-last_activity_desc: Quick task 20260730-playtest-notes-fixes — 9/9 tasks, G1-G9 from Wyatt's morning playtest notes
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 15
   completed_plans: 15
   percent: 25
+last_activity_desc: "Phase 15 shipped — PR #8 opened against main, carrying Phases 13, 14 and 15"
 ---
 
 # Project State
@@ -28,10 +28,16 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 ## Current Position
 
-Phase: 15 (narration-audit-fixes) — EXECUTING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-07-27 — Phase 15 execution started
+Phase: 15 (narration-audit-fixes) — SHIPPED
+Plan: 6 of 6 (plus 6 quick tasks)
+Status: Phase 15 shipped — PR #8, awaiting review/merge
+Last activity: 2026-07-30
+
+PR #8 carries Phases 13, 14 and 15 against `main` — 403 commits, `.planning/` history
+kept in the merge per Wyatt's ruling. Two verification items ride along as accepted
+residuals, not cleared checks: the shipped-vs-approved copy comparison (19 of 144
+fields conclusively settled) and two D-41 greyed states never eyeballed. Both are
+recorded in `15-VERIFICATION.md` and have tracking todos.
 
 Progress: [██████████] 100% (v1.2)
 
