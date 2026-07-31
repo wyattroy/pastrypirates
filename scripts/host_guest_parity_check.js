@@ -55,6 +55,19 @@
 //    sweep paints `from` AND YIELDS before its loop, and it retunes the glide AND restores it in a
 //    `finally`. See `notes/trade winds animation bug.mov`.
 //
+//    EXTENDED the same day, after a SECOND recording (`notes/tradewinds jitter.mov`). The fix above
+//    worked and still looked wrong — Wyatt: *"it works, technically, but it looks really jittery
+//    because it's working exactly as we designed it."* Per-square stepping is a staircase no matter
+//    how well the beat is tuned, so the sweep now interpolates along a spline (rimSweepCurve, whose
+//    geometry is proven separately in scripts/narration_flow_test.js). Assertion 4 gained the two
+//    properties that traversal must not lose, NEITHER of which is visible to a reader:
+//      - progress derived from ELAPSED TIME, not a tick count — a counted chain cannot catch up
+//        after a slow callback (src/ui/panel.js's typewriter learned this), and in a hidden tab,
+//        where setTimeout is clamped to ~1s, it would crawl instead of completing.
+//      - NOT requestAnimationFrame — rAF is FULLY SUSPENDED in a hidden tab, so an awaited rAF
+//        loop never resolves and freezes the entire game loop the moment a player switches tabs.
+//        Reproduced live 2026-07-31 while instrumenting the first bug.
+//
 // ============================================================================
 // Comment stripping, and why it is not optional here
 // ============================================================================
@@ -219,8 +232,8 @@ export function checkRimSweepArrivesAndRestores(root) {
   if (end < 0) { fail(res, `PARITY-SWEEPARRIVE: could not brace-match animateRimSweepIfAny's body`); return res; }
   const body = live.slice(open, end);
 
-  const loopAt = body.indexOf("for(const c of path)");
-  if (loopAt < 0) { fail(res, `PARITY-SWEEPARRIVE: the per-square sweep loop is gone from animateRimSweepIfAny — this assertion no longer describes the code and must be rewritten, not deleted.`); return res; }
+  const loopAt = body.indexOf("rimSweepCurve(");
+  if (loopAt < 0) { fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny no longer builds a rimSweepCurve — this assertion no longer describes the code and must be rewritten, not deleted.`); return res; }
   const beforeLoop = body.slice(0, loopAt);
 
   // 1. arrival: paint `from`, then YIELD, both before the loop
@@ -232,8 +245,20 @@ export function checkRimSweepArrivesAndRestores(root) {
   }
 
   // 2. the glide is retuned for the sweep, and restored afterwards
-  if (!/setShipGlideMs\(\s*seat\s*,\s*RIM_SWEEP_GLIDE_MS\s*\)/.test(body)) {
-    fail(res, `PARITY-SWEEPARRIVE: the sweep does not shorten the ship's glide to RIM_SWEEP_GLIDE_MS. Left at SHIP_GLIDE_MS the ship is re-aimed at ~27% travelled and takes the chord instead of the arc — it cuts across the board.`);
+  if (!/setShipGlideMs\(\s*seat\s*,\s*RIM_SWEEP_TICK_MS\s*,\s*"linear"\s*\)/.test(body)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep does not set a one-tick LINEAR glide. Left at SHIP_GLIDE_MS the ship is re-aimed mid-glide and takes the chord instead of the arc; left eased, every individual tick eases in and out and the line shimmers.`);
+  }
+
+  // 3. progress is derived from ELAPSED TIME, and the loop is NOT rAF-driven.
+  //    Both halves are load-bearing and neither is obvious to a reader:
+  //      - a tick-counting loop cannot catch up after a slow callback (panel.js's typewriter lesson)
+  //      - requestAnimationFrame is FULLY SUSPENDED in a hidden tab, so an awaited rAF loop hangs
+  //        the whole game loop the moment a player switches tabs. Reproduced live 2026-07-31.
+  if (!/Date\.now\(\)\s*-\s*began/.test(body)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep's progress is not derived from elapsed time (Date.now() - began). A tick-counting traversal cannot catch up after a slow callback, and in a hidden tab — where setTimeout is clamped to ~1s — it would crawl instead of completing.`);
+  }
+  if (/requestAnimationFrame/.test(body)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep is driven by requestAnimationFrame. rAF callbacks are FULLY SUSPENDED (not throttled) in a hidden tab, so this awaited loop would never resolve and would freeze the entire game loop the moment a player switched tabs — the same trap src/ui/panel.js:334 documents for the typewriter.`);
   }
   if (!/setShipGlideMs\(\s*seat\s*,\s*null\s*\)/.test(body)) {
     fail(res, `PARITY-SWEEPARRIVE: the sweep never restores the glide via setShipGlideMs(seat,null). The ship would keep the short sweep glide for the REST OF THE GAME, making every ordinary move snap instead of glide.`);
@@ -416,7 +441,7 @@ function drill() {
   //     the recording was made against. An assertion that cannot fail against the actual bug it
   //     was written for is decoration.
   const PREFIX_SWEEP = `export async function animateRimSweepIfAny(){
-  const path=rimSweepPath(g,from);
+  const curve=rimSweepCurve([from,...path]);
   try{
     for(const c of path){
       paintShipAt(seat,c);
@@ -442,11 +467,38 @@ function drill() {
   try{
     paintShipAt(seat,from);
     await sleep(RIM_SWEEP_ARRIVE_MS);
-    setShipGlideMs(seat,RIM_SWEEP_GLIDE_MS);
-    for(const c of path){ paintShipAt(seat,c); await sleep(RIM_SWEEP_STEP_MS); }
+    const curve=rimSweepCurve([from,...path]);
+    setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
+    for(;;){ const t=Math.min(1,(Date.now()-began)/total); paintShipAtPoint(seat,0,0); if(t>=1)break; await sleep(RIM_SWEEP_TICK_MS); }
   }finally{ paintShipAt(seat,to); }
 }\n`);
   expect("drill 4c (glide retuned but never restored)", checkRimSweepArrivesAndRestores(tmpRoot), true, "never restores the glide");
+
+  // 4e: rAF-driven traversal — looks smoother, hangs the game loop dead in a hidden tab. Must FAIL.
+  resetFixture();
+  fixture(FLOW_REL, `export async function animateRimSweepIfAny(){
+  try{
+    paintShipAt(seat,from);
+    await sleep(RIM_SWEEP_ARRIVE_MS);
+    const curve=rimSweepCurve([from,...path]);
+    setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
+    await new Promise(done=>{ const step=()=>{ const t=Math.min(1,(Date.now()-began)/total); paintShipAtPoint(seat,0,0); if(t>=1)return done(); requestAnimationFrame(step); }; requestAnimationFrame(step); });
+  }finally{ setShipGlideMs(seat,null); paintShipAt(seat,to); }
+}\n`);
+  expect("drill 4e (rAF-driven traversal — hangs the game loop in a hidden tab)", checkRimSweepArrivesAndRestores(tmpRoot), true, "FULLY SUSPENDED");
+
+  // 4f: tick-counting instead of elapsed time — cannot catch up, crawls when throttled. Must FAIL.
+  resetFixture();
+  fixture(FLOW_REL, `export async function animateRimSweepIfAny(){
+  try{
+    paintShipAt(seat,from);
+    await sleep(RIM_SWEEP_ARRIVE_MS);
+    const curve=rimSweepCurve([from,...path]);
+    setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
+    for(let k=0;k<=STEPS;k++){ paintShipAtPoint(seat,0,0); await sleep(RIM_SWEEP_TICK_MS); }
+  }finally{ setShipGlideMs(seat,null); paintShipAt(seat,to); }
+}\n`);
+  expect("drill 4f (tick-counted, not elapsed-time — crawls when throttled)", checkRimSweepArrivesAndRestores(tmpRoot), true, "not derived from elapsed time");
 
   // 4d: ANTI-VACUITY — the function is gone entirely. Must FAIL, not pass over an absent body.
   resetFixture();

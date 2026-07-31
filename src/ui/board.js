@@ -428,22 +428,46 @@ function activeTurnSeat(){
 // and the reason a guest can render at all — with just this seat's pos overridden. Correct on both
 // tiers by construction.
 // ONE spelling of the ship glide, used by drawBoard() to create it and by setShipGlideMs() to
-// retune and restore it. Same easing curve in every case — only the duration ever varies.
-function shipGlideCss(ms){ return `${ms}ms cubic-bezier(.42,0,.58,1)`; }
+// retune and restore it. Only the duration and the easing ever vary.
+const SHIP_GLIDE_EASE="cubic-bezier(.42,0,.58,1)";
+function shipGlideCss(ms,ease){ return `${ms}ms ${ease||SHIP_GLIDE_EASE}`; }
 // Retune ONE ship's glide duration, or restore the default when `ms` is null.
 //
-// WHY THIS EXISTS (2026-07-31, from the trade-winds recording): the rim sweep re-aims a ship every
-// RIM_SWEEP_STEP_MS (95ms) while its glide runs for SHIP_GLIDE_MS (350ms), so the ship never
-// reached any square before being sent to the next. Chasing a target around a curve, it took the
-// chord instead of the arc — cutting across the middle of the board. Shortening the glide FOR THE
-// DURATION OF THE SWEEP makes each hop land, so the ship traces the ring. The sweep's total
-// duration is unchanged; only whether the boat actually gets there is.
+// WHY THIS EXISTS (2026-07-31, from two trade-wind recordings): the default SHIP_GLIDE_MS (350ms)
+// is tuned for a ship moving ONE square at a time and is far too long for a sweep that re-aims the
+// ship many times a second. Left at 350ms the ship was still travelling toward one target when the
+// next arrived, so it lagged, and — chasing a target around a curve — took the chord instead of the
+// arc, cutting across the middle of the board.
+//
+// The sweep now drives the motion itself, tick by tick along a spline, so it wants a glide of about
+// ONE TICK and a LINEAR easing: just enough for the browser to bridge between successive targets
+// and absorb setTimeout's jitter, and not so much that the lag returns. See RIM_SWEEP_TICK_MS.
 //
 // Scoped to one seat because only the sweeping ship should be retuned — every other ship on the
 // board is still moving under ordinary rules and must keep the ordinary glide.
-export function setShipGlideMs(seat,ms){
+// `ease` matters as much as `ms` here: the rim sweep drives its own motion tick by tick, so it wants
+// a LINEAR glide of about one tick — just enough for the browser to bridge between our targets and
+// absorb setTimeout's jitter. The default eased curve applied per-tick would ease in and out of
+// every single tick, which is a shimmer, not a smooth line.
+export function setShipGlideMs(seat,ms,ease){
   if(!shipEls.length||!shipEls[seat])return;
-  shipEls[seat].style.transition=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms)}`;
+  shipEls[seat].style.transition=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}`;
+}
+// Move one ship to an arbitrary FRACTIONAL cell position — the sub-square painter behind the smooth
+// trade-wind arc. paintShipAt() below can only address whole cells, which is precisely the
+// limitation that made the sweep a staircase.
+//
+// No shared-cell nudge here, deliberately: shipXY()'s ±0.18 offset exists so two ships PARKED on one
+// square stay both visible, and applying it to a ship in flight would make it twitch sideways every
+// time it passed over an occupied square. The resting nudge is restored by the final
+// paintShipAt(seat,to) when the sweep ends.
+export function paintShipAtPoint(seat,fx,fy){
+  if(appState.replaying)return;
+  if(!shipEls.length||!shipEls[seat])return;
+  const x=(fx+.5)*cell, y=(fy+.5)*cell;
+  shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
+  if(chatBubbles[seat])positionChatBubble(seat,x,y);
+  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transform=`translate(${x}px,${y}px)`;
 }
 export function paintShipAt(seat,c){
   if(appState.replaying)return;

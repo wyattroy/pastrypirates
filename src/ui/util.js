@@ -993,13 +993,42 @@ export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
 // Wyatt: "the boat kind of gets dragged over the islands in a shorter version of the ark." The arc
 // looks short because the boat is cutting across the inside of it.
 //
-// So the sweep now shortens the ship's OWN glide for its duration (RIM_SWEEP_GLIDE_MS) instead of
-// leaving a 350ms glide to be perpetually re-aimed. Total sweep duration is unchanged — still
-// RIM_SWEEP_STEP_MS per square — so the "square-by-square, quickly" intent above still holds. What
-// changes is that each hop now LANDS, so the boat traces the ring instead of short-cutting it.
-// Kept just under the step so a hop is always complete before the next is issued; at exactly the
-// step, timer jitter can re-aim at 99% travelled and reintroduce a little of the same lag.
-export const RIM_SWEEP_GLIDE_MS=Math.round(RIM_SWEEP_STEP_MS*0.9); // 86
+// ────────────────────────────────────────────────────────────────────────────────────────────────
+// SECOND CORRECTION, 2026-07-31 — AND THE END OF PER-SQUARE STEPPING ALTOGETHER.
+//
+// The square-by-square fix above WORKED, and that is exactly what was wrong with it. Wyatt, having
+// watched it: *"it works, technically, but it looks really jittery because it's working exactly as
+// we designed it… it moves according to a step function instead of a smooth, rounded motion."*
+//
+// Landing on each square is the correct behaviour for a STORM PUSH, where 1-2 discrete squares are
+// the thing being read. It is the wrong behaviour for a rim sweep, which is a boat being carried by
+// a current along a curve. A ring walked one cell at a time is a staircase, and no per-square beat
+// — however well tuned — can be a smooth arc. So the sweep no longer steps at all: it interpolates
+// along a spline through the ring cells and is driven by elapsed time.
+//
+// RIM_SWEEP_STEP_MS is kept ONLY as the basis for the duration below, so the new motion inherits
+// the pace the old one was tuned to rather than inventing a fresh number. Nothing steps by it now.
+//
+// TIMER-DRIVEN, NOT requestAnimationFrame — this is not a preference, it is the lesson already
+// written into src/ui/panel.js's typewriter: rAF callbacks are FULLY SUSPENDED (not throttled) in
+// a hidden tab, so an awaited rAF loop hangs forever and freezes the whole game loop the moment a
+// player switches tabs. This was reproduced live on 2026-07-31 while trying to instrument the bug:
+// the automation tab reported visibilityState "hidden", rAF returned zero frames, and the game
+// stalled mid-turn every time. setTimeout keeps firing (merely throttled) when hidden.
+//
+// The tick is paired with an equally short LINEAR css glide, so the browser interpolates between
+// our discrete targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not.
+// That pairing is what makes a setTimeout-driven motion look as smooth as an rAF one.
+export const RIM_SWEEP_TICK_MS=24;
+// Progress is always derived from ELAPSED TIME, never from a tick count — panel.js's other lesson:
+// a chain that counts ticks can never catch up, because each tick only schedules the next after its
+// own overhead, so one slow callback drifts every remaining one. Deriving from elapsed time means a
+// late tick simply advances further along the curve.
+export const RIM_SWEEP_MS_PER_CELL=RIM_SWEEP_STEP_MS+15; // 110 — inherits the tuned per-square pace
+// Arcs are randomised per game and can span nearly half the ring, so duration is clamped at both
+// ends: a 2-cell sweep should not be an instant flicker, and a 12-cell one should not be a journey.
+export const RIM_SWEEP_MIN_MS=420;
+export const RIM_SWEEP_MAX_MS=1500;
 // The beat the boat spends ARRIVING in the trade winds before the sweep pulls it away. The square
 // the player clicked was previously never drawn at all: the board redraw that would have shown it
 // and the sweep's first paint ran in one synchronous block with no yield between them, so the
