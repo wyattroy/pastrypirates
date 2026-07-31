@@ -252,12 +252,26 @@ not here — **this section records only the sequencing, which is the part that 
   that reason (see ROADMAP's candidate table). So this whole chain sits behind an engine one-way
   door and **cannot be in v1.3.**
 
-**Known interaction with WIND-02/03 (in v1.3):** those animate `wind-arrow.png` and
-`trade-swirl.png`, both of which ART-01 replaces. Animating a sprite does not care what the sprite
-depicts, so this is not a blocker — but if the watercolor versions change **dimensions, proportions
-or anchor point**, WIND-02/03's tuning will need revisiting. Keep the replacements
-dimensionally compatible, or budget a re-tune. WIND-01's new dot sprite has the same question: decide
-whether it is drawn in the current style now and repainted later, or drawn watercolor from the start.
+- **ART-02** *(constraint, ruled by Wyatt 2026-07-31)*: **Every watercolor replacement is
+  dimensionally compatible with the sprite it replaces** — same pixel dimensions, same proportions,
+  same anchor point — so WIND-02/03's animation needs **no re-tune**.
+
+**Why ART-02 exists.** WIND-02 and WIND-03 (v1.3, Lane A) animate `wind-arrow.png` and
+`trade-swirl.png`, and ART-01 replaces both. An animation does not care what its sprite depicts, so
+a like-for-like swap is free — but a change in dimensions, proportions or anchor point would put the
+arrow arc and the whirlpool rotation out of alignment and force a re-tune of work that was already
+tuned by eye. **Wyatt chose dimensional compatibility over a re-tune**, so this is a hard constraint
+on the art, not a preference: if a watercolor piece wants different proportions to look right, that
+is a trade to raise with him explicitly — it is not a free change.
+
+Treat this as a **checkable hand-off condition**, not an intention: compare each replacement's
+dimensions against the file it replaces before it lands, so a mismatch is caught at swap time rather
+than as a mysterious animation drift later.
+
+**Still open (Wyatt's call, surfaces when Lane A is planned):** WIND-01's new dot sprite is *new*
+art, so ART-02 does not apply to it. Decide whether it is drawn in the current style now and
+repainted with the rest, or drawn watercolor from the start — the trade is how mid-transition the
+board looks while v1.3 is live.
 
 ### Asset Loading (LOAD) — deferred from v1.2 (found during Phase 13 discussion, 2026-07-25)
 

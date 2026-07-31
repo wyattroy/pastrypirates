@@ -502,12 +502,15 @@ see the note below.
 will be the one unoptimised asset in the tree — hand it to Lane E, or hold the final export until the
 sprite exists.
 
-**Lane A ↔ ART-01 (deferred):** WIND-02 and WIND-03 animate `wind-arrow.png` and `trade-swirl.png`,
-and **ART-01 replaces both.** This is not a blocker — an animation does not care what its sprite
-depicts — but if the watercolor versions change **dimensions, proportions or anchor point**, the
-WIND-02/03 tuning will need revisiting. Keep the replacements dimensionally compatible, or budget a
-re-tune. WIND-01's dot sprite raises the same question: draw it in the current style now and repaint
-later, or draw it watercolor from the start. **Wyatt's call, not an implementation detail.**
+**Lane A ↔ ART-01 (deferred) — SETTLED.** WIND-02 and WIND-03 animate `wind-arrow.png` and
+`trade-swirl.png`, and ART-01 replaces both. **Wyatt ruled 2026-07-31: the watercolor sprites stay
+dimensionally compatible so there is no re-tune** — same dimensions, proportions and anchor point.
+Recorded as **ART-02**. So Lane A can tune the arc and the rotation now and trust it survives the
+repaint; the constraint sits on the art, not on the animation. Verify dimensions at swap time rather
+than assuming — a mismatch would show up as unexplained animation drift, long after the cause.
+
+**Still open:** WIND-01's dot sprite is *new* art, so ART-02 does not cover it — current style now
+and repainted later, or watercolor from the start. Wyatt's call, surfaces when Lane A is planned.
 
 **Lane C's one shared-file risk:** FIX-06 edits the CSS block in `index.html` while Lane B edits
 markup in the same file. Different regions, but the same file — if both lanes run at once, expect
