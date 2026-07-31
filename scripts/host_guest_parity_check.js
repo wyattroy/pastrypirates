@@ -265,6 +265,15 @@ export function checkRimSweepArrivesAndRestores(root) {
   if (!/Date\.now\(\)\s*-\s*began/.test(body)) {
     fail(res, `PARITY-SWEEPARRIVE: the sweep's progress is not derived from elapsed time (Date.now() - began). A tick-counting traversal cannot catch up after a slow callback, and in a hidden tab — where setTimeout is clamped to ~1s — it would crawl instead of completing.`);
   }
+  // 3b. The traversal must delegate its position maths to the SHARED pure functions, because
+  //     scripts/rim_sweep_trace_test.js measures the animation by calling those same two functions.
+  //     If the live loop ever computes positions inline again, that harness silently becomes a test
+  //     of a parallel implementation — green while the real animation does something else entirely.
+  for (const fn of ["rimSweepDurationMs", "rimSweepPointAt"]) {
+    if (!new RegExp(`${fn}\\(`).test(body)) {
+      fail(res, `PARITY-SWEEPARRIVE: the sweep no longer calls ${fn}(). scripts/rim_sweep_trace_test.js measures the animation THROUGH that function; computing it inline here leaves the harness measuring a copy and passing while the real motion drifts.`);
+    }
+  }
   if (/requestAnimationFrame/.test(body)) {
     fail(res, `PARITY-SWEEPARRIVE: the sweep is driven by requestAnimationFrame. rAF callbacks are FULLY SUSPENDED (not throttled) in a hidden tab, so this awaited loop would never resolve and would freeze the entire game loop the moment a player switched tabs — the same trap src/ui/panel.js:334 documents for the typewriter.`);
   }
@@ -556,6 +565,21 @@ function drill() {
   }finally{ setShipGlideMs(seat,null); paintShipAt(seat,to); }
 }\n`);
   expect("drill 4f (tick-counted, not elapsed-time — crawls when throttled)", checkRimSweepArrivesAndRestores(tmpRoot), true, "not derived from elapsed time");
+
+  // 4g: computes positions inline instead of via the shared pure functions. The trace harness
+  //     would then be measuring a copy — green while the real animation drifts. Must FAIL.
+  resetFixture();
+  fixture(FLOW_REL, `export async function animateRimSweepIfAny(){
+  try{
+    paintShipAt(seat,from);
+    await sleep(RIM_SWEEP_ARRIVE_MS);
+    const curve=rimSweepCurve([from,...path]);
+    const total=Math.min(RIM_SWEEP_MAX_MS,Math.max(RIM_SWEEP_MIN_MS,RIM_SWEEP_MS_PER_CELL*path.length));
+    setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
+    for(;;){ const t=Math.min(1,(Date.now()-began)/total); const u=t*(curve.length-1); paintShipAtPoint(seat,curve[0][0],curve[0][1]); if(t>=1)break; await sleep(RIM_SWEEP_TICK_MS); }
+  }finally{ setShipGlideMs(seat,null); paintShipAt(seat,to); }
+}\n`);
+  expect("drill 4g (position maths inlined — trace harness would measure a copy)", checkRimSweepArrivesAndRestores(tmpRoot), true, "no longer calls rimSweepDurationMs");
 
   // 4d: ANTI-VACUITY — the function is gone entirely. Must FAIL, not pass over an absent body.
   resetFixture();

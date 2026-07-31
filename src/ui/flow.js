@@ -405,6 +405,22 @@ export function rimSweepCurve(cells,perCell=48){
 }
 // eased 0..1 — the winds take hold, then the whirlpool receives the boat rather than snapping it
 const rimSweepEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+// ── THE TWO FUNCTIONS BELOW ARE THE SWEEP'S MOTION, AND THE ONLY COPY OF IT ────────────────────
+// Extracted 2026-07-31 so scripts/rim_sweep_trace_test.js can enumerate exactly what the live
+// animation will aim at, without a browser. That harness is only worth anything if it measures the
+// REAL motion rather than a re-implementation that can drift, so animateRimSweepIfAny below calls
+// these and does no position maths of its own — and host_guest_parity_check.js assertion 4 fails if
+// it ever stops doing so. Both are pure: no DOM, no clock, no state.
+export function rimSweepDurationMs(cellCount){
+  return Math.min(RIM_SWEEP_MAX_MS,Math.max(RIM_SWEEP_MIN_MS,Math.round(RIM_SWEEP_MS_PER_CELL*cellCount)));
+}
+// position at progress `t` (0..1) along an already-built curve, easing included
+export function rimSweepPointAt(curve,t){
+  if(!Array.isArray(curve)||curve.length<2)return null;
+  const u=rimSweepEase(Math.min(1,Math.max(0,t)))*(curve.length-1);
+  const i=Math.min(curve.length-2,Math.floor(u)), f=u-i;
+  return [curve[i][0]+(curve[i+1][0]-curve[i][0])*f,curve[i][1]+(curve[i+1][1]-curve[i][1])*f];
+}
 // G14 (Wyatt-approved 2026-07-30): THE ONE TRADE-WIND STEPPER, called identically by the host sites
 // and by the guest's watchEvents(). Takes NO PARAMETERS on purpose — no call site can pass something
 // a different call site doesn't, so the two tiers cannot be paced or aimed differently.
@@ -480,7 +496,7 @@ export async function animateRimSweepIfAny(){
     // though it was doing exactly what it was designed to do.
     const curve=rimSweepCurve([from,...path]);
     if(curve.length>1){
-      const total=Math.min(RIM_SWEEP_MAX_MS,Math.max(RIM_SWEEP_MIN_MS,Math.round(RIM_SWEEP_MS_PER_CELL*path.length)));
+      const total=rimSweepDurationMs(path.length);
       // one tick's worth of LINEAR glide, so the browser bridges between our targets and soaks up
       // setTimeout's jitter. Anything longer re-introduces the lag that made the boat cut corners.
       setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
@@ -491,11 +507,8 @@ export async function animateRimSweepIfAny(){
         // where setTimeout is clamped to ~1s, this reaches 1 and terminates rather than crawling.
         // (rAF would not run at all there; see RIM_SWEEP_TICK_MS and src/ui/panel.js:334.)
         const t=Math.min(1,(Date.now()-began)/total);
-        const u=rimSweepEase(t)*(curve.length-1);
-        const i=Math.min(curve.length-2,Math.floor(u)), f=u-i;
-        paintShipAtPoint(seat,
-          curve[i][0]+(curve[i+1][0]-curve[i][0])*f,
-          curve[i][1]+(curve[i+1][1]-curve[i][1])*f);
+        const p=rimSweepPointAt(curve,t);
+        if(p)paintShipAtPoint(seat,p[0],p[1]);
         if(t>=1)break;
         await sleep(RIM_SWEEP_TICK_MS);
       }
