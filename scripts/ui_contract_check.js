@@ -704,6 +704,47 @@ function checkBroadcastDelivery(root) {
 // legitimate elsewhere under src/ui/ (session id, room code, pop jitter), so a broad ban would be
 // wrong and would be widened away the first time it fired — which is how a gate stops catching
 // anything real. Anchored, it can stay strict forever.
+// UI-07: once the End of Voyage summary is up, the narration/action box must be collapsed rather
+// than left as a large empty panel between the board and the awards.
+//
+// Static, and honest about why: reaching a real end-of-voyage needs a full game, and the one route
+// a headless harness has to it — driving the UI — is exactly the route that made this expensive to
+// confirm by hand. So this pins the CONTRACT at its single chokepoint: showStats() is the only
+// function that reveals #statsWrap, so it is the only place the collapse can correctly live.
+//
+// Anchored, and it REFUSES rather than skips when it cannot find its subject — checkStormRainSeeded
+// above is the pattern WR-06 named as the right one, and this copies it deliberately. A check that
+// cannot locate what it is checking must go loud, never quietly pass (15-LEARNINGS #2).
+export function checkEovPanelCollapsed(root) {
+  const failures = [];
+  const rel = path.join("src", "ui", "board.js");
+  const full = path.join(root, rel);
+  if (!fs.existsSync(full)) return { ok: true, failures, stats: { scanned: 0 } };
+  const src = fs.readFileSync(full, "utf8");
+
+  const i = src.indexOf("export function showStats");
+  if (i < 0) {
+    failures.push(`EOV-PANEL-ANCHOR: could not locate showStats() in ${rel} — re-anchor this assertion; do NOT delete it. It protects UI-07: the narration box must not be left on screen, empty, underneath the End of Voyage summary.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  const end = src.indexOf("\nexport ", i + 10);
+  const region = src.slice(i, end < 0 ? src.length : end);
+  // strip comments — this region explains the rule in prose and would otherwise satisfy its own gate
+  const live = region.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+
+  // presence first: prove the region is real code before asserting anything about its contents
+  if (!/statsWrap/.test(live)) {
+    failures.push(`EOV-PANEL-REGION: showStats() in ${rel} no longer references statsWrap — the region located is not the one this assertion describes; re-anchor it.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  if (!/actionPanel/.test(live)) {
+    failures.push(`EOV-PANEL: showStats() in ${rel} does not touch #actionPanel — UI-07 requires the narration box be collapsed once the summary appears, and showStats is the only function that reveals #statsWrap.`);
+  } else if (!/display\s*=\s*["']none["']/.test(live)) {
+    failures.push(`EOV-PANEL: showStats() in ${rel} references #actionPanel but never sets display:none on it — UI-07 needs it hidden, not merely emptied (an emptied panel still occupies its border and padding).`);
+  }
+  return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
+}
+
 export function checkStormRainSeeded(root) {
   const failures = [];
   const rel = path.join("src", "ui", "board.js");
@@ -775,6 +816,10 @@ function runAll(root, { quiet = false } = {}) {
   const a8 = checkStormRainSeeded(root);
   log(`${a8.ok ? "PASS" : "FAIL"} the storm rain is seeded from the game — no unseeded Math.random(), no GAME .r() (G19)`);
   results.push({ name: "storm-rain-seeded", ...a8 });
+
+  const a9 = checkEovPanelCollapsed(root);
+  log(`${a9.ok ? "PASS" : "FAIL"} the narration box is collapsed once the End of Voyage summary appears (UI-07)`);
+  results.push({ name: "eov-panel-collapsed", ...a9 });
 
   return results;
 }
