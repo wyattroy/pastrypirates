@@ -470,7 +470,7 @@ About page, sound, and the five interface bugs that made playtesters hesitate.
 
 | In | Out |
 |---|---|
-| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-11, FIX-12, FIX-13, FIX-14, **FIX-15 (urgent)**, **LOAD-04a** | **FIX-05** (paid anchor narrates "still docked") · **ART-01 + LOAD-04b** (board art — waits on the island redesign) |
+| WIND-01/02/03, ABOUT-01/02, META-01, AUDIO-01/02/03, FIX-01, FIX-02, FIX-03, FIX-04, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10, FIX-11, FIX-12, FIX-13, FIX-14, **LOAD-04a** | **FIX-05** (paid anchor narrates "still docked") · **ART-01 + LOAD-04b** (board art — waits on the island redesign) |
 
 **Why FIX-05 is excluded — Wyatt's call, 2026-07-31.** Its root cause is unconfirmed. `windPush()`
 returns on `mooredReason` *before* reaching the pay-to-anchor branch (`src/engine/index.js:280-287`),

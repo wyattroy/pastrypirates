@@ -90,6 +90,36 @@ already behaves correctly and is what the 31 fixtures captured. Changing only `s
 the corpus untouched. **Verify that before committing** — if a fix genuinely requires an engine
 change, it belongs in the gated re-record batch, not in v1.3.
 
+## Fresh evidence — the 2026-07-31 Phase 17 captain's log
+
+Two captains, two storms, same contradiction — **"still docked" immediately followed by "blown off
+the dock"**, which is the pair G29 predicts:
+
+```
+Round 4: A storm be ragin'! It'll blow yer ships west, then south.
+  A gale blows Crustbeard off the dock!          <-- x2, one per leg (ruled correct)
+  Flaky Jack is blown by the storm               <-- x2
+  Dough Hook is still docked, so the storm can't run them aground.
+  A gale blows Dough Hook off the dock!          <-- CONTRADICTION
+  A gale blows wy off the dock!                  <-- x2
+
+Round 7: A storm be ragin'! It'll blow yer ships west, then north.
+  Crustbeard is blown by the storm               <-- x2
+  Flaky Jack is still docked, so the storm can't run them aground.
+  A gale blows Flaky Jack off the dock!          <-- CONTRADICTION, second captain
+  Dough Hook spots Flaky Jack dead ahead, so strikes sail and holds fast.
+  Dough Hook is blown by the storm               <-- x1 only, blocked on the other leg
+```
+
+Note the **twice-per-storm** pattern on the non-contradictory lines: that is the two legs
+(`windNow` then `windNow2`), which feasibility ruled correct — do not "fix" it. **The contradiction
+is the defect**, and it reproduced for two different captains in one nine-round game, so it is not
+rare.
+
+Also visible: **Dough Hook in Round 7 gets only ONE "blown by the storm"** because the other leg was
+blocked (*"spots Flaky Jack dead ahead"*). That asymmetry is a useful signal — whatever emits these
+lines is at least partly movement-aware already, which narrows where the unconditional emit is.
+
 ## Relationship to FIX-05
 
 **Read these two together.** FIX-05 (paid anchor narrated as "still docked") is the *same family*:
