@@ -74,6 +74,7 @@ import {
 } from "./shared/index.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
+  netSetPaused, netWatchPaused,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
   netWatchConnected, netWatchPresence, netMarkPresence, netInit,
@@ -97,14 +98,16 @@ import {
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, asyncBakeoff, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, remotePickHighlights, wireRestoreFail,
-  endReplay,
+  endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
+  SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
-  rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, describe, seatLocal,
-  decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask,
+  rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
+  decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
+  coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
 } from "./ui/index.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
@@ -139,7 +142,21 @@ export function watchFlip(){
 
 export function broadcastClock(){
   setClockUI();
-  if(appState.db&&appState.room)netSetClock(appState.db,appState.room,appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline},netFail("clock"));
+  if(!appState.db||!appState.room)return;
+  // CLOCK-02 FIX (mp-pause-clock-desync): the payload now also carries the whole-table pause
+  // state, so a guest flips frozen<->running AND reads its frozen remaining from the SAME
+  // authoritative clock write that carries the deadline — never a round-trip apart from the
+  // /paused flag. That round-trip gap WAS the desync: guests rendered the stale pre-pause
+  // deadline and a host-only pauseElapsed they never received. `paused` rides every write (so a
+  // running broadcast clears it); `pauseElapsed` (the host's frozen elapsed, D-07) is only
+  // meaningful while paused, so it is included only then. Host stays the sole deadline writer.
+  const payload=appState.shotClockSeat==null?null:{
+    seat:appState.shotClockSeat,
+    deadline:appState.shotClockDeadline,
+    paused:!!appState.shotClockPaused,
+  };
+  if(payload&&appState.shotClockPaused)payload.pauseElapsed=appState.shotClockPauseElapsed;
+  netSetClock(appState.db,appState.room,payload,netFail("clock"));
 }
 // #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
 // table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
@@ -149,6 +166,36 @@ export function toggleTimer(){
   const next=!appState.timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
   netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
+}
+// CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
+// countdown AND bot captains — not just the ⏱ timer-off toggle above (D-05: the two coexist).
+// Multiplayer: write the flag; every client's watchPause() mirrors it, and only the host's
+// branch mutates shotClockDeadline/shotClockPauseElapsed (D-06/D-07 — see applyPauseState).
+// Solo/pass-and-play (no db/room): fall back to the local toggleShotClockPause() unchanged.
+export function togglePause(){
+  if(appState.db&&appState.room){
+    netSetPaused(appState.db,appState.room,!appState.shotClockPaused,netFail("pause"));
+  }else{
+    toggleShotClockPause();
+  }
+}
+// Structurally identical to watchTimer() below: every client (host and guest) attaches this so
+// the shared paused flag is tracked table-wide. Only the host branch runs applyPauseState (the
+// deadline/pauseElapsed math) — a guest just mirrors the boolean for rendering (D-06).
+export function watchPause(){
+  netWatchPaused(appState.db,appState.room,s=>{
+    const v=!!s.val();
+    if(appState.isHost){
+      applyPauseState(v);
+      // CLOCK-02 FIX (mp-pause-clock-desync): applyPauseState() recomputes the host-authoritative
+      // deadline (resume) / stashes pauseElapsed (pause) but is PURELY LOCAL. Without this
+      // re-broadcast the guests keep rendering the stale pre-pause deadline — freezing at a
+      // different number and racing to 0 on resume. broadcastClock() is the single deadline writer
+      // (host authority preserved) and now also carries the pause state for the guest render.
+      broadcastClock();
+    }else appState.shotClockPaused=v;
+    setClockUI();
+  });
 }
 export function watchTimer(){
   netWatchTimerOff(appState.db,appState.room,s=>{
@@ -193,17 +240,20 @@ export async function expireShotClock(){
   if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
   if(p){
     let lost;
+    // NARR-01 audit finding: both branches used to hand-write text byte-identical to
+    // EVENT_NARRATION.shotclockskip (src/ui/util.js) — narrate through the table instead, exactly
+    // as every other event in the codebase is narrated, so the duplicate can never drift again.
     if(p.ing.length){
       const idx=Math.floor(appState.game.r()*p.ing.length);
       lost=p.ing.splice(idx,1)[0];
       appState.game.tokens[lost]++;   // crate goes back into that island's supply, not lost forever
       appState.game.ev({t:"shotclockskip",p:p.idx,ing:lost});
-      await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — a crate of ${ilabelImg(lost)} tumbles overboard and floats back to its island.`);
+      await narrateLastEvent();
     }else{
       const take=Math.min(5,p.coins);
       p.coins-=take;
       appState.game.ev({t:"shotclockskip",p:p.idx,coins:take});
-      await flash(`⏰ Snoozing pirates lose their treasure! ${pn(p.idx)} loses the turn — ${take}🌕 tumbles overboard!`);
+      await narrateLastEvent();
     }
     liveRender();
     if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
@@ -215,10 +265,15 @@ export function watchClock(){
 }
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
-export function netNarrate(html){if(appState.replaying)return;showNarration(html);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"));}
+// D-10: `variants` is additive — the host's OWN screen now selects from the exact same payload
+// every other client selects from (pickNarrVariant), rather than always rendering the
+// viewer-neutral `html` verbatim. That's what lets a host who is themselves the subject of the
+// line read the addressed ("you...") form, while the broadcast `html` field stays neutral for
+// every other seat and for old clients that never read `variants` at all.
+export function netNarrate(html,variants){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat));if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-export function netBroadcast(html){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"));}
+export function netBroadcast(html,variants){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants);}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -249,6 +304,7 @@ export function renderBattle(o){
   if(appState.replaying)return;          // silent during reload-replay, like liveRender
   const nm=i=>pname(i),col=i=>HEXCOL[i];
   const A=o.att,D=o.def,need=o.need||3,title=o.title||"⚔️ Broadside Battle";
+  // @copy prompt.battle.scoreboard
   panel(`<div class="btl">
     <div class="btl-hd"><span>${title}</span><span class="rnd">Round ${o.round} · first to ${need}</span></div>
     <div class="btl-body">
@@ -302,7 +358,15 @@ export function battleAsk(p,o,msg,opts,colors){
     ?(seat===o.def.idx?`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)}! Waiting for ${pname(o.def.idx)} to defend…`
       :`⚔️ ${pn(o.att.idx)} attacks ${pn(o.def.idx)} — waiting for ${pname(seat)}…`)
     :`${pn(seat)} is deciding…`;
-  netBroadcast(seat===appState.mySeat?msg:spectMsg);
+  // D-10 DELIVERY (F7): the spectator line is the neutral broadcast, the asked seat's own prompt is
+  // that seat's variant, and each client selects for itself through the mechanism that already ships.
+  //
+  // THIS IS A NEW FINDING, NOT A REVERSAL. D-35's sweep listed this site as "the correct
+  // actor/spectator split (D-10), not a transport fork", and it was right about the question it
+  // asked: does guest-side code AUTHOR its own text? It does not. This gate asks a different
+  // question — does the broadcast REACH the right viewer? — which that sweep never examined. One
+  // message cannot express a per-viewer difference, however correctly it was authored.
+  netBroadcast(spectMsg,[{seat,html:msg}]);
   let idxP;
   if(decisionIsLocal(seat)){
     idxP=new Promise(res=>{
@@ -330,7 +394,30 @@ export function battleAsk(p,o,msg,opts,colors){
 // collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 export async function asyncBattle(att,def){
   const c=appState.game.cfg,need=2;
-  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} points wins…`,Math.max(900,stepDelay()));
+  // G6 (COIN-AUDIT.md site 13 — "the missing belt to go with the braces"). The engine's own
+  // battle() refuses outright rather than trusting its caller: src/engine/index.js:524 reads
+  // `if(c.powder){if(att.coins<c.powder)return null;att.coins-=c.powder;}`. asyncBattle carried no
+  // such check, relying entirely on both callers — and humanAct's D-40 net (src/ui/flow.js, the
+  // @copy adhoc.act.nopowder branch) runs BEFORE `await ask("Attack whom?")`, so the 20s penalty
+  // can still land between that check and the debit below.
+  //
+  // Placed HERE, at the very top and BEFORE the opening flash(), which is the specific answer to
+  // the audit's "NEEDS A SECOND PAIR OF EYES" concern that *"a `return null` mid-asyncBattle may
+  // not be safe for the network path (a battle snapshot may already be in flight)."* Guarding
+  // before the opening broadcast means NO snapshot can be in flight: nothing has been announced,
+  // no side bets collected, no battle counter incremented.
+  //
+  // Both callers handle a falsy return: humanAct awaits it and then narrateLastEvent() (which,
+  // with no new event emitted, re-narrates the previous line — cosmetic, never state-corrupting),
+  // and botTurn awaits it then ends the turn via botBeat(). Neither reads the return value, so the
+  // contract is unchanged for them.
+  if(c.powder&&coinShortfall(c.powder,att.coins))return null;
+  // D-08/D-25 (Wyatt-approved 2026-07-29): the opening announcement names both combatants — a
+  // neutral-plus-variants form so each combatant's own screen reads it addressed to themselves
+  // while every other viewer sees the third-person text. "Hits", not "points" (his approved copy).
+  const battleOpenVariants=[{seat:att.idx,html:`⚔️ ${pn(att.idx)} — ye attack ${pn(def.idx)}! First to ${need} hits wins…`},{seat:def.idx,html:`⚔️ ${pn(att.idx)} attacks ye! First to ${need} hits wins…`}];
+  // @copy adhoc.battle.opening
+  await flash(`⚔️ ${pn(att.idx)} attacks ${pn(def.idx)}! First to ${need} hits wins…`,Math.max(900,stepDelay()),undefined,battleOpenVariants);
   if(c.powder)att.coins-=c.powder;
   appState.game.battles++;
   const bets=await collectSideBets(att,def);
@@ -410,7 +497,16 @@ export async function asyncBattle(att,def){
     await sleep(beat);
     // ---- DEFENDER flips ----
     if(hD){
-      dh=await hFlip("d",def,round===1?`⚔️ ${nm(att.idx)} attacks you — defend! FLIP`:"⚔️ Defend! FLIP",{atState:ah?"H":"T",atBs:bs});
+    // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
+    // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
+    // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
+    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
+    // alike (the
+    // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
+    // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
+    // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
+    // of scope. scripts/ui_contract_check.js now gates this permanently.
+      dh=await hFlip("d",def,round===1?`⚔️ ${nm(att.idx)} attacks ye — defend! FLIP`:"⚔️ Defend! FLIP",{atState:ah?"H":"T",atBs:bs});
     }else{
       dh=await bFlip("d",def,{atState:ah?"H":"T",atBs:bs});
     }
@@ -418,16 +514,34 @@ export async function asyncBattle(att,def){
     // both-HEADS tiebreak resolved just below.
     // ---- resolve the round ----
     let scorer=null,rmsg;
-    // notes/edits #3: two HEADS no longer just cancel — the shot carries downwind. Whoever's
-    // firing with the wind lands the hit; if neither is downwind (crosswind), they still cancel.
+    // notes/edits #3/D-52 (Wyatt-approved 2026-07-29): two HEADS no longer just cancel — the shot
+    // hits downwind. D-52 merges the attacker-downwind/defender-downwind pair into one template
+    // naming whoever's downwind (Wyatt: "i dont know why this was its own branch?" — it was purely
+    // a name-slot difference, exactly what the D-10 mechanism already handles elsewhere), and
+    // likewise merges the attacker-hit/defender-hit pair into one template naming whoever landed it.
+    // D-52/D-25/D-16 (Wyatt-approved 2026-07-29): both surviving both-HEADS lines carry the ⚪️ coin
+    // he typed into his rewrite, matching the ⚫️ TAILS sibling below. The glyph is not shipped as a
+    // raw system emoji: this footer reaches emojify() via renderBattle -> panel(), which strips the
+    // U+FE0F selector and swaps in FLIP_HEADS_IMG. The word "firing" is likewise his, not ours.
     if(ah&&dh){
-      if(downwind==="a"){a++;scorer="a";rmsg=`<span class="score">Both fire HEADS — but ${nm(att.idx)}'s downwind and the shot carries! +1</span>`;}
-      else if(downwind==="d"){d++;scorer="d";rmsg=`<span class="score">Both fire HEADS — but ${nm(def.idx)}'s downwind and the shot carries! +1</span>`;}
-      else rmsg=`<span class="cancel">Both fire HEADS — crosswind, cannonballs collide, no damage.</span>`;
+      if(downwind){
+        scorer=downwind;
+        if(downwind==="a")a++;else d++;
+        const dwName=downwind==="a"?nm(att.idx):nm(def.idx);
+        // @copy misc.battleline.bothheadsdownwind
+        rmsg=`<span class="score">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`;
+      // @copy misc.battleline.bothheadscrosswind
+      }else rmsg=`<span class="cancel">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`;
     }
-    else if(ah){a++;scorer="a";rmsg=`<span class="score">${nm(att.idx)} lands a hit! +1</span>`;}
-    else if(dh){d++;scorer="d";rmsg=`<span class="score">${nm(def.idx)} lands a hit! +1</span>`;}
-    else{rmsg=`<span class="cancel">Both miss — TAILS all round.</span>`;}
+    else if(ah||dh){
+      scorer=ah?"a":"d";
+      if(ah)a++;else d++;
+      const hitName=ah?nm(att.idx):nm(def.idx);
+      // @copy misc.battleline.hitlands
+      rmsg=`<span class="score">${hitName} lands a hit!</span>`;
+    }
+    // @copy misc.battleline.bothmiss
+    else{rmsg=`<span class="cancel">Both miss — ⚫️ TAILS all round.</span>`;}
     // notes/edits #23: record who actually scored the round (not just the raw flip pattern) —
     // a both-heads downwind round scores a real point but doesn't fit the "a XOR d landed heads"
     // shape, so anything deriving the displayed score from raw flips alone undercounts it.
@@ -442,13 +556,23 @@ export async function asyncBattle(att,def){
       const cells=reachable(def,3);
       if(cells.length){
         let flee;
-        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Pay 1🌕 to slip away and flee the battle?`,
-          [{label:"🏃 Flee! (−1🌕)",value:true},{label:"Keep fighting",value:false}]);}
+        // @copy prompt.battle.flee
+        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`,
+          [{label:"🏃 Flee! (−1🌕)",value:true},{label:"⚔️ Keep fighting",value:false}]);}
         else flee=d<a; // bots flee a losing fight, press on if ahead or even
-        if(flee){
+        // G6 (COIN-AUDIT.md site 14): `def.coins>=1` gates the branch above, then a human defender
+        // sits on `await ask(...)` — the window. A shortfall falls through to flee=false, i.e. keep
+        // fighting; that path renders nothing and invents no copy. (OOS-2 records that a broke
+        // defender is deliberately never TOLD they cannot flee — that silence is Wyatt's ruling.)
+        if(flee&&!coinShortfall(1,def.coins)){
           def.coins--;
           const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
-          if(dest){def.pos=dest;appState.game.tradewind(def);}
+          // G14: the shared stepper, called here too. It NO-OPS today — `def.pos=dest` is not
+          // recorded as an event before tradewind() runs, so there is no `from` snapshot to derive
+          // a path from and the sweep falls back to today's instant render. That is correct, and
+          // the call site is here deliberately: if this path ever records the entry cell, the
+          // square-by-square sweep starts working for free, on host and guest alike.
+          if(dest){def.pos=dest;appState.game.tradewind(def);await animateRimSweepIfAny();}
           for(const bet of bets)appState.game.players[bet.idx].coins+=bet.amt; // no winner — refund side bets
           fled=true;
           appState.game.recordSkirmish(att,def,null); // fleeing settles nothing, but cools "rich" re-triggers
@@ -474,7 +598,8 @@ export async function asyncBattle(att,def){
     let mode;
     if(canCoins&&hasIng){
       if(lose.strategy==="human"){setActor(lose.idx);
-        mode=await ask(`${pn(lose.idx)}, you lost! Pay with…`,
+        // @copy prompt.battle.loserpays
+        mode=await ask(`${pn(lose.idx)}, ye lost! Pay with…`,
           [{label:"5🌕",value:"coins"},{label:"a crate (winner picks)",value:"ing"}]);}
       else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));mode=w2.length?"ing":"coins";}
     }else if(hasIng)mode="ing";else mode="coins";
@@ -483,7 +608,8 @@ export async function asyncBattle(att,def){
       let pick;
       const uniq=[...new Set(lose.ing)];
       if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
-        pick=await ask(`${pn(win.idx)}, choose your plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
+        // @copy prompt.battle.winnerplunder
+        pick=await ask(`${pn(win.idx)}, choose yer plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
       else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
       lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);spoil=ilabelImg(pick);spoilIng=pick;
     }
@@ -583,7 +709,12 @@ export async function recipeDraftNet(){
     pending.push(p);
   }
   if(pending.length){
-    const msgFor=p=>`${pn(p.idx)}, choose your recipe — bake it by gathering every ingredient, then sail home to win:`;
+    // G4 (Wyatt-approved 2026-07-30): one short line. The trailing clause explaining how to win
+    // duplicated the Ahoy intro that closed moments earlier (and, after G5, immediately before) —
+    // the prompt's job is to ask, not to re-teach. The two recipe cards below it carry the detail.
+    // Not an extracted @copy site: the message reaches localAsk/remoteDraftPrompt via a variable,
+    // so it drifts no baseline. D-29 (`yer`, not `your`) satisfied.
+    const msgFor=p=>`${pn(p.idx)}, choose yer recipe:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
     if(appState.passAndPlay){
@@ -596,12 +727,14 @@ export async function recipeDraftNet(){
         picks[p.idx]=i;logDecision(i);
       }
     }else{
+      // @copy misc.draftwait.recipechoosing
       netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`);
       const results={};
       const jobs=pending.map(p=>{
         setActor(p.idx);
         if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
           results[p.idx]=i;
+          // @copy misc.draftwait.recipechosen
           if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…");
         });
         return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
@@ -627,8 +760,27 @@ export async function runLiveNet(){
   order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
   appState.turnOrder=order.slice();buildPlayerRows();
   if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
-  await showTurnOrderIntro(order);
+  // G5 (Wyatt-approved 2026-07-30): *"Put the recipe selection step NEXT"* — immediately after the
+  // Ahoy intro, before the turn-order intro. The player is told to choose a recipe and then asked
+  // to choose one, with nothing in between.
+  //
+  // ONLY these two awaited calls were swapped. The invariant that made that safe is NOT turn order
+  // itself — it is the seeded RNG stream and the decision log, because a host-reload replay must
+  // reconstruct an identical game. Verified before swapping:
+  //   1. shuffle(order) above consumes game.r() (src/engine/index.js:228).
+  //   2. recipeDraftNet consumes game.r() for bot picks and calls logDecision for human picks.
+  //   3. showTurnOrderIntro -> netIntroBarrier (src/ui/flow.js:988) consumes NEITHER, and returns
+  //      immediately when appState.replaying. Nor do its callees: localAsk, remoteDraftPrompt and
+  //      passGate. logDecision lives only inside ask() (:391), which the barrier never calls.
+  //   4. recipeDraftNet reads nothing from appState.turnOrder and iterates in SEAT-index order.
+  // So r() consumption order (shuffle -> bot recipe picks) and logDecision order are both identical.
+  //
+  // The silent setup above (:727-734 — shuffle, staggered coins, turnOrder, buildPlayerRows,
+  // netSetTurnOrder) was deliberately NOT moved. Nothing is on screen for it, so from a player's
+  // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
+  // the RNG stream, which is the one thing this swap must not do.
   await recipeDraftNet();
+  await showTurnOrderIntro(order);
   let ended=false;
   while(appState.game.round<150&&!ended){
     appState.game.round++;
@@ -638,6 +790,7 @@ export async function runLiveNet(){
     appState.game.ev({t:"newround",dir:appState.game.windNow,dir2:appState.game.windNow2,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow)});liveRender(); // NARR-04
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
+    // @copy adhoc.round.header
     await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
     for(const i of order){
       const p=appState.game.players[i];
@@ -653,12 +806,15 @@ export async function runLiveNet(){
           // apparent turn order). netIntroBarrier self-skips during host-refresh replay, and the
           // wind re-spin's game.r() calls run identically live and on replay, so state stays
           // deterministic.
-          await netIntroBarrier(`🏁 ${pn(i)} reached the Isle of Tortuga and fired up the bakery! Last chance, crew — every other captain gets ONE final turn to race home!`,"🦜 Final round — set sail!");
+          // NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
+          // @copy misc.introbarrier.finalround
+          await netIntroBarrier(`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`,"🦜 Final round — set sail!");
           appState.game.round++;
           appState.game.windNow="NSEW"[Math.floor(appState.game.r()*4)];
           appState.game.stormNow=rollStorm(appState.game); // #1a
           appState.game.windNow2=appState.game.stormNow?PERP[appState.game.windNow][Math.floor(appState.game.r()*2)]:null;
           appState.game.ev({t:"newround",dir:appState.game.windNow,dir2:appState.game.windNow2,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow)});liveRender(); // NARR-04
+          // @copy adhoc.round.finalheader
           await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
           const startPos=order.indexOf(i);
           const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
@@ -693,10 +849,12 @@ export async function liveResolveEndNet(){
   // finished recipe pictured right in it (the recipe image lives here now, not in the End of Voyage
   // summary — see showStats). EOV-01 already stripped the duplicate blue-box announcement.
   if(appState.game.winner==null){
+    // @copy adhoc.voyageend.nobodyfinished
     await flash("⏳ Nobody finished the voyage.");
   }else{
     const wi=recipeInfo(appState.game.players[appState.game.winner].recipe);
     const pic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:"";
+    // @copy adhoc.voyageend.victory
     await flash(`<div class="victoryBox">${pic}<div class="victoryText">${iconImg(CROWN_IMG)} ${pn(appState.game.winner)} baked a ${winRecipeSpan(appState.game.winner)} and won <b>Best Baker in the Caribbean!</b></div></div>`);
     victoryConfetti(appState.game.winner); // EOV-05: a burst of celebration over the board
   }
@@ -783,6 +941,7 @@ export function watchDraftPrompt(){
     if(!p){return;}
     const cls=p.classes||[];
     const grid=cls.some(c=>c)?" recipes":"";
+    // @copy prompt.net.draftrerender
     panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
       (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
@@ -795,11 +954,24 @@ export function watchDraftPrompt(){
 }
 // remote: render the game purely from the broadcast event feed
 export function watchEvents(){
-  netWatchEvents(appState.db,appState.room,snap=>{
+  netWatchEvents(appState.db,appState.room,async snap=>{
+    // G14 (Wyatt-approved 2026-07-30): the guest half of the trade-wind sweep. THE PUSH AND THE
+    // evIdx ASSIGNMENT HAPPEN FIRST, BEFORE ANY await — so a second event arriving mid-sweep cannot
+    // reorder the feed. Everything after the await is presentation only.
     appState.game.events.push(fixEv(snap.val()));
     appState.evIdx=appState.game.events.length-1;
     syncLogLines();
     $("scrub").max=Math.max(0,appState.game.events.length-1);
+    // ANIMATE BEFORE render(), or the ship has already jumped to its destination and there is
+    // nothing left to watch. The same shared stepper the host calls — one function, both tiers, so
+    // they cannot be paced or aimed differently (that is what scripts/host_guest_parity_check.js
+    // assertion 3 pins). This tier does NOT read rimCellInfo or rimHead itself.
+    //
+    // KNOWN, ACCEPTED DEGRADATION, stated rather than discovered later: the guest's coin/crate
+    // panels lag by the sweep's duration (~95ms per square) because render() now runs after it, and
+    // an event arriving mid-sweep harmlessly snaps the ship to its true square on the next paint.
+    // Degradation, not breakage.
+    await animateRimSweepIfAny();
     render();
     const e=appState.game.events[appState.evIdx];
     spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
@@ -840,6 +1012,7 @@ export function watchPrompt(){
         setNeedsAction(true);
         setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,flipIdx);});
         if(backIdx>=0){
+          // @copy prompt.net.promptrerender
           panel(`${backHtml}<div class="apMsg">${p.msg}</div>`,true);
           $("actionPanel").querySelectorAll(".apBack").forEach(b=>{
             b.onclick=()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,+b.dataset.i);};});
@@ -851,13 +1024,16 @@ export function watchPrompt(){
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
       const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
+      // @copy prompt.net.promptrerenderbuttons
       panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
         rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?" disabled":""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
       $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{if(b.disabled)return;b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
     }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
-      remotePickHighlights(p.cells||[],p.id);
+      // D-35: thread the host-composed message through — remotePickHighlights renders it, never
+      // authors its own.
+      remotePickHighlights(p.cells||[],p.id,p.msg);
     }
   });
 }
@@ -866,7 +1042,9 @@ export function watchNarr(){
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
     // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
     // letting them overwrite the panel made the battle box flicker away between flips (#9)
-    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)showNarration(v.html);});
+    // D-10: pickNarrVariant degrades an old payload (no `variants` key at all) to `v.html`
+    // exactly as before — a new guest reading an old host's broadcast sees no behavior change.
+    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)showNarration(pickNarrVariant(v,appState.mySeat));});
 }
 
 /* ================= welcome modal ================= */
@@ -882,7 +1060,10 @@ export async function createRoom(){
     await netCreateRoom(appState.db,code,{host:appState.myId,status:"lobby",numSeats:appState.numSeats,seats,createdAt:Date.now()});
   }catch(e){
     console.error("createRoom failed",e);appState.room=null;appState.isHost=false;
-    alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");
+    // NARR-01/D-25/D-60 (Wyatt-approved 2026-07-29): one line for every multiplayer-service
+    // disruption — createRoom's own failure and joinRoom's below share it verbatim (D-60).
+    // @copy misc.mperror.createcapacity
+    alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");
     return;
   }
   saveSession();showRoom();watchRoom();
@@ -890,17 +1071,21 @@ export async function createRoom(){
 export async function joinRoom(){
   const typedName=($("joinName").value||"").trim().slice(0,40);
   const code=($("joinCode").value||"").toUpperCase().trim();
-  if(code.length<4){alert("Enter the room code your host shared.");return;}
+  // @copy misc.mperror.entercode
+  if(code.length<4){alert("Enter the room code yer host shared.");return;}
   let snap;
   try{snap=await netReadRoom(appState.db,code);}
-  catch(e){console.error("joinRoom failed",e);alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try Play Solo instead!");return;}
-  if(!snap.exists()){alert("No game found with code "+code+".");return;}
+  // @copy misc.mperror.joincapacity
+  catch(e){console.error("joinRoom failed",e);alert("Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?");return;}
+  // @copy misc.mperror.nogamefound
+  if(!snap.exists()){alert(`Arrgh, no game found with code ${code}. Try typin' again.`);return;}
   const r=snap.val();
   const seats=r.seats||{};
   let mine=null;
   for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===appState.myId)mine=i;
   if(mine!=null){appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;}
-  if(r.status!=="lobby"){alert("That game has already set sail.");return;}
+  // @copy misc.mperror.alreadysailed
+  if(r.status!=="lobby"){alert("⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.");return;}
   let claimed=null;
   await netClaimSeat(appState.db,code,s=>{
     if(!s)return s;
@@ -910,7 +1095,8 @@ export async function joinRoom(){
       s[i]={name:typedName||unusedDefaultName(s,i),id:appState.myId,bot:false};claimed=i;return s;}}
     return s;
   });
-  if(claimed==null){alert("That game is full.");return;}
+  // @copy misc.mperror.roomfull
+  if(claimed==null){alert("Too many pirates already in that game.");return;}
   appState.room=code;appState.mySeat=claimed;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();
 }
 // D-13: module-scope guard so a repeated watchRoom() call for the SAME room (a normal guest-join
@@ -919,6 +1105,7 @@ export async function joinRoom(){
 let _watchRoomAttachedFor=null;
 export async function watchRoom(){
   const r0=(await netReadRoom(appState.db,appState.room)).val();
+  // @copy misc.mperror.gamegone
   if(!r0){alert("That game no longer exists.");clearSession();showHome();return;}
   appState.numSeats=r0.numSeats;appState.isHost=(r0.host===appState.myId);
   if(r0.status==="lobby")showRoom();
@@ -949,6 +1136,7 @@ export async function startGame(){
       recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
   }catch(e){
     console.error("startGame failed",e);
+    // @copy misc.mperror.serviceunreachable
     alert("Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.");
   }
 }
@@ -970,6 +1158,7 @@ export function beginGame(cfg,seed){
   else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
+  watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
@@ -1008,7 +1197,7 @@ export function wireLobby(){
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};
   $("btnPlayAgain").onclick=leaveGame;
-  $("scPause").onclick=toggleShotClockPause;
+  $("scPause").onclick=togglePause;
   $("scTimerToggle").onclick=toggleTimer;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
@@ -1064,7 +1253,8 @@ export async function resumeHostGame(r){
   let evval={};try{evval=(await netReadEv(appState.db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume events")(e);}
   appState.resumeEvLen=evval?Object.keys(evval).length:0;
   showGameView();
-  panel('<div class="apMsg">⚓ Reconnecting to your voyage…</div>');
+  // @copy prompt.net.reconnecting
+  panel('<div class="apMsg">⚓ Reconnecting to yer voyage…</div>');
   appState.replaying=true;
   beginGame(r.cfg,r.seed);
 }
@@ -1084,10 +1274,17 @@ export function boot(){
   showHome();
   syncBoardSizing();
   let sess=null;try{sess=JSON.parse(localStorage.getItem("pp_sess"));}catch(e){}
+  // CLOCK-01: a blob with no v field (pre-refactor build) or a mismatched v (stale schema) is
+  // treated as absent — cleared via the existing clearSession(), never partially trusted — so a
+  // returning old-version player starts clean instead of stalling on an invalid resume attempt
+  // (D-01/D-02). A current-version blob's v always matches and is never touched here.
+  if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
   if(!sess||!sess.room){
     // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
     // Checked before Firebase init so an offline refresh mid-solo-game still resumes.
     let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
+    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
+    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
     if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
   }
   const fbOk=fbInit();

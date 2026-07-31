@@ -261,11 +261,41 @@
      break — wrap it in this class at the string-building level wherever it appears. */
   .nobrk { white-space: nowrap; }
   /* notes/edits #1: every narration/prompt message types in one character at a time (real DOM
-     text-node reveal via typewriterReveal() in panel() — see there for why). Only flash()'s
-     passive narration (no buttons to click through) ever gets the .fadeOut treatment — action
-     prompts stay until the player dismisses them. */
-  .apMsg.fadeOut { animation: apMsgFadeOut .5s ease both; }
+     text-node reveal via typewriterReveal() in panel() — see there for why).
+     G8 (Wyatt-approved 2026-07-30): this rule now dresses the GHOST — the clone panel() makes of
+     the OUTGOING message when, and only when, a new line replaces it. It is never applied to a
+     live message, so a trailing line still never fades (F6). History of this number: .5s -> .18s
+     (G8, "draggy") -> .8s (G28, below).
+     G17 (Wyatt-approved 2026-07-30, superseding G8's overlap): he asked for a STRICT sequence —
+     "please fade the current line, THEN show the next" — so the incoming line no longer types in
+     UNDERNEATH this fade; panel() delays the incoming reveal by exactly this duration.
+     G28 (Wyatt-approved 2026-07-30, watched live): .18s -> .8s. 180ms was too quick to register,
+     and he named the fade's actual JOB — "the point of it is to let the player know that the text
+     is about to leave, so they can hurry up and read it". A warning nobody notices is not a
+     warning. The hold was cut to pay for it (msgHoldMs, src/ui/util.js: ceiling 3200ms), so the
+     worst case on screen is 3200 + 800 = 4000ms rather than the old ~5040 + 180.
+     >>> THIS NUMBER LIVES IN EXACTLY TWO PLACES: this .8s, and GHOST_FADE_MS=800 in
+     src/ui/panel.js. MOVE THEM TOGETHER — a strict sequence is only strict while they agree; if
+     this one grows, the next line starts typing before the old one has finished fading.
+     >>> AND IT IS NOT THE ONLY .18s IN THIS FILE. #apGrid's grid-template-rows transition (the
+     panel-height animation, above) shares the value by coincidence and must NOT move with it —
+     a blind find-and-replace of ".18s" hits five sites including two comments. Change this rule
+     by hand.
+     position/inset take the ghost OUT OF FLOW, which is what keeps resizePanel's inner.offsetHeight
+     measuring only the incoming message — the panel height still animates exactly once per message.
+     pointer-events is load-bearing, not tidiness: panel() also renders action prompts with buttons,
+     and a ghost that swallowed the first click on a prompt would be a far worse bug than the one
+     this fixes. */
+  .apMsg.fadeOut { animation: apMsgFadeOut .8s ease both; position: absolute; inset: 0; pointer-events: none; }
   @keyframes apMsgFadeOut { to { opacity: 0; } }
+  /* the ghost is positioned against the inner box, not the page. No offsets, so flow is unchanged. */
+  #apGridInner { position: relative; }
+  /* with motion reduced there is no fade at all — an instant swap, not a ghost sitting opaque
+     over the new line for the belt's duration. panel()'s setTimeout still removes it.
+     G17: panel() ALSO reads this same media query in JS and zeroes the reveal delay when it
+     matches. It has to: a media query cannot reach a JS timer, so without that read a
+     reduced-motion user would get a blank 180ms gap AND no fade — the worst of both. */
+  @media (prefers-reduced-motion: reduce) { .apMsg.fadeOut { display: none; } }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
@@ -365,6 +395,15 @@
   #shotClockNum { font-size: clamp(16px,6cqw,30px); font-weight: 700; font-variant-numeric: tabular-nums; color: #ffe9b8;
     display: inline-block; min-width: 2ch; }
   #shotClockPanel.urgent #shotClockNum { color: #ff8f86; }
+  /* CLOCK-02 UX: while paused the frozen number is click-to-resume (setClockUI adds .tappable) —
+     the ⏸-symbol paused branch already reads as a button, but this numeric branch did not. Dotted
+     underline + hover lift signal it's tappable without disturbing the tabular-nums layout. */
+  #shotClockNum.tappable { cursor: pointer; text-decoration: underline dotted rgba(255,255,255,.65);
+    text-underline-offset: 3px; border-radius: 6px; padding: 0 2px;
+    transition: background .12s ease, transform .12s ease; }
+  #shotClockNum.tappable:hover { background: rgba(255,255,255,.2); transform: scale(1.05); }
+  @media (prefers-reduced-motion: reduce) { #shotClockNum.tappable { transition: none; }
+    #shotClockNum.tappable:hover { transform: none; } }
   /* reserve room for the widest label ("seconds"/"or lose your turn") so the panel doesn't
      narrow when the idle state clears these to shorter placeholder text */
   #scUnit { font-size: clamp(7px,2.2cqw,12px); color: #e0c58f; display: inline-block; min-width: 7ch; }
@@ -621,8 +660,8 @@
     <div class="modalTitle"><img src="assets/logo.jpg" alt="Pastry Pirates" class="modalLogo"></div>
 
     <div id="stepChoose" class="modalStep">
-      <div class="modalByline">You came to the sunny shores of Tortuga to start a bakery -- but your pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
-      <label class="nameLabel">Your captain name
+      <div class="modalByline">Ye came to the sunny shores of Tortuga to start a bakery — but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
+      <label class="nameLabel">Yer captain name
         <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
@@ -653,7 +692,7 @@
       <button class="backLink" type="button" data-back>← back</button>
       <h3><img class="narrIcon" src="assets/icons/key.png" alt=""> Join a Crew</h3>
       <div class="fieldRow"><input type="text" id="joinCode" maxlength="6" placeholder="CODE"></div>
-      <label class="nameLabel">Your captain name
+      <label class="nameLabel">Yer captain name
         <input type="text" id="joinName" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <button class="primary big" id="btnJoin" type="button">Join the voyage</button>
     </div>
@@ -662,6 +701,12 @@
       <button class="backLink" type="button" data-back>← back</button>
       <h3><img class="narrIcon" src="assets/icons/stool.png" alt=""> Pass & Play</h3>
       <div class="modalByline" style="margin-top:0">Everyone sitting at the table types their name below, then passes the device around when it's their turn. Leave a box blank to fill that seat with a bot captain instead.</div>
+      <!-- F1 (Wyatt-approved 2026-07-29): the LABEL class — this placeholder identifies WHICH field
+           belongs to the reader, so it is UI chrome rather than the game speaking, and takes the
+           plain second-person pronoun rather than D-29's ye/yer. src/ui/lobby.js's renderSeatList
+           carries the full rule; scripts/ui_contract_check.js anchors and gates this exact line.
+           (Worded without the pronoun on purpose: an HTML comment has no per-line marker, so the
+           register scan cannot tell a continuation line from real copy.) -->
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#f2679e"></div><input type="text" id="ppName0" maxlength="40" placeholder="Player 1 (you)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#1d96a6"></div><input type="text" id="ppName1" maxlength="40" placeholder="Player 2"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#27c78d"></div><input type="text" id="ppName2" maxlength="40" placeholder="Player 3 (or leave blank for a bot)"></div>
@@ -683,7 +728,7 @@
 <div id="lobbyRoom" class="modalOverlay" style="display:none">
   <div style="max-width:420px;width:100%">
     <div class="roomCard" style="text-align:center">
-      <div class="muted">share this code with your crew</div>
+      <div class="muted">share this code with yer crew</div>
       <div id="roomCode">----</div>
     </div>
     <div class="roomCard">
@@ -701,27 +746,27 @@
     <div class="modalTitle" style="text-align:center">📖 How to play</div>
     <div style="margin-top:14px;max-height:60vh;overflow-y:auto">
       <h4>🎯 The goal</h4>
-      <p>Collect every ingredient on your recipe map, then sail home and dock at the Isle of Tortuga. First baker home wins!</p>
+      <p>Collect every ingredient on yer recipe map, then sail home and dock at the Isle of Tortuga. First baker home wins!</p>
       <h4>⚓ Setting sail</h4>
       <p>Each captain gets a recipe map (5 ingredients), 3 gold coins, and a ship docked at the Isle of Tortuga. Each island holds only a few crates — when they're gone, they're gone.</p>
-      <h4>Your turn: sail → act</h4>
-      <p><b>🌬️ Wind.</b> Each round the wind picks a direction and holds it. It doesn't move you — it sets your sailing budget: cheap with the wind, dear against it, in between across it.</p>
-      <p><b>⛵ Sail.</b> Pay 1🌕 to move using a 9-point budget: 2 pts/square with the wind (up to 4 squares), 3 pts/square across it (up to 3), 4 pts/square against it (up to 2) — mix directions freely as long as you can afford the total. An island upwind of you cuts your budget to 7. Sail past other ships, but don't end on one. No coins? You can't sail this turn — better go fishing!</p>
+      <h4>Yer turn: sail → act</h4>
+      <p><b>🌬️ Wind.</b> Each round the wind picks a direction and holds it. It doesn't move ye — it sets yer sailing budget: cheap with the wind, dear against it, in between across it.</p>
+      <p><b>⛵ Sail.</b> Pay 1🌕 to move using a 9-point budget: 2 pts/square with the wind (up to 4 squares), 3 pts/square across it (up to 3), 4 pts/square against it (up to 2) — mix directions freely as long as ye can afford the total. An island upwind of ye cuts yer budget to 7. Sail past other ships, but don't end on one. No coins? Ye can't sail this turn — better go fishing!</p>
       <p><b>⚓ Act</b> — choose one:</p>
-      <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as you like and keep flipping. Ship's hold: you may take crates that aren't on your recipe — they make excellent trade bait...</p>
+      <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as ye like and keep flipping. Ship's hold: ye may take crates that aren't on yer recipe — they make excellent trade bait...</p>
       <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point). Both heads? The captain firing <b>downwind</b> lands the shot — that's the wind advantage; a crosswind clash cancels. On a double-miss (both tails) the defender may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Nobody changes squares — win or lose, every ship holds its position. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
       <p><b>Parley</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
       <p><b>Fish</b> — flip: heads nets 2🌕, tails... just a candycrab (1🌕).</p>
-      <p><b>Start your bakery!</b> — at the Isle of Tortuga with your whole recipe? Declare victory! <img class="narrIcon" src="assets/icons/cupcake.png" alt=""></p>
+      <p><b>Start yer bakery!</b> — at the Isle of Tortuga with yer whole recipe? Declare victory! <img class="narrIcon" src="assets/icons/cupcake.png" alt=""></p>
       <h4><img class="narrIcon" src="assets/icons/current-swirl.png" alt=""> The trade winds</h4>
-      <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and you're instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
+      <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and yer instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
       <h4>⛈️ Storms</h4>
-      <p>Roughly 3 in 20 rounds brews a storm — the only time the wind moves you without your say-so: it forcibly pushes everyone 2 squares, then spins and pushes 2 more. Moored ships are safe — if you docked last turn, sit at a berth, or are at the Isle of Tortuga, the storm can't push you into land. Otherwise, blown at an island you must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground — lose half your coins, or a crate if you're broke, or the whole turn to repairs if your hold's empty too! The wind never blows you onto a full dock.</p>
+      <p>Roughly 3 in 20 rounds brews a storm — the only time the wind moves ye without yer say-so: it forcibly pushes everyone 2 squares, then spins and pushes 2 more. Moored ships are safe — if ye docked last turn, sit at a berth, or are at the Isle of Tortuga, the storm can't push ye into land. Otherwise, blown at an island ye must pay 1🌕 to dodge or flip: heads drop anchor safely, tails run aground — lose half yer coins, or a crate if yer broke, or the whole turn to repairs if yer hold's empty too! The wind never blows ye onto a full dock.</p>
       <h4>⏰ The shot clock</h4>
-      <p>Take too long on your turn and you'll lose a random ingredient from your hold (or 5🌕 if you're out of ingredients) and miss the turn.</p>
+      <p>Take too long on yer turn and ye'll lose a random ingredient from yer hold (or 5🌕 if yer out of ingredients) and miss the turn.</p>
       <h4><img class="narrIcon" src="assets/icons/crown.png" alt=""> Winning</h4>
       <p>When the first baker docks home, everyone else gets one last turn. If more than one makes it: BAKEOFF! Flip head-to-head, first to 3 points takes the crown.</p>
-      <p><i>May your flips be heads and your rivals be broke.</i></p>
+      <p><i>May yer flips be heads and yer rivals be broke.</i></p>
     </div>
   </div>
 </div>
@@ -749,7 +794,7 @@
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">💬 Feedback</div>
     <div class="modalByline">What's working, what's confusing, what broke — this goes straight to Wyatt, the pirate-slash-dev who built this. Want to give him a cookie?</div>
-    <textarea id="feedbackText" rows="5" maxlength="2000" placeholder="Type your thoughts here..." style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;resize:vertical;margin-bottom:10px"></textarea>
+    <textarea id="feedbackText" rows="5" maxlength="2000" placeholder="Type yer thoughts here..." style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;resize:vertical;margin-bottom:10px"></textarea>
     <button class="primary big" id="btnSendFeedback" type="button">Send feedback</button>
   </div>
 </div>

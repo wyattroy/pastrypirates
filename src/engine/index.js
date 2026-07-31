@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_BUDGET, SAIL_BUDGET_LEEWARD, windStepCost, man, ilabelImg } from "../shared/index.js";
 
 // notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
 // exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
@@ -249,12 +249,22 @@ class Game{
     }
     return false;
   }
+  // D-21: the FIRST matching cause, same precedence moored()'s || chain already used — null when
+  // none match. moored() is now defined in terms of this, not a parallel rule.
+  mooredReason(p){
+    if(p.justDocked)return "justDocked";
+    if(this.cfg.singleDock&&this.adjPort(p)!==null)return "dock";
+    if(man(p.pos,this.home)<=1)return "home";
+    return null;
+  }
   moored(p){ // ships that DOCKED last turn (or sit at a berth / Isle of Tortuga) can't be wind-forced into land
-    return p.justDocked||(this.cfg.singleDock&&this.adjPort(p)!==null)||man(p.pos,this.home)<=1;
+    return this.mooredReason(p)!==null;
   }
   leeward(p){ // an island upwind of you blocks the wind — cuts your sail budget (see #7c)
-    const d=DIRS[OPPOSITE[this.windNow]];
-    return this.isIsland([p.pos[0]+d[0],p.pos[1]+d[1]]);
+    const d=DIRS[OPPOSITE[this.windNow]],up=[p.pos[0]+d[0],p.pos[1]+d[1]];
+    // D-18: Tortuga is land for wind purposes too, exactly like every other island — mirrors the
+    // isIsland(o)||isHome(o) blocking-movement parity already used by stepToward's pass() (:295).
+    return this.isIsland(up)||this.isHome(up);
   }
   sailBudget(p){return this.leeward(p)?SAIL_BUDGET_LEEWARD:SAIL_BUDGET;}
   windPush(p,d,dist,dodgedOnce){
@@ -262,9 +272,14 @@ class Game{
     for(let s=0;s<dist;s++){
       const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
       if(this.blocked(nx))return;
-      if(this.isHome(nx)){this.ev({t:"moored",p:p.idx});return;} // safe harbor
-      if(this.isIsland(nx)){
-        if(this.moored(p)){this.ev({t:"moored",p:p.idx});return;}
+      // D-19: Tortuga is a single square, so the only cells you can be pushed onto it FROM are
+      // its four orthogonal neighbours — which are exactly the berths — and a berth always
+      // satisfies mooredReason's "home" cause. So the aground ladder below is unreachable for the
+      // home square; the old separate isHome(nx) early return was redundant with moored(), not
+      // load-bearing, and folds into ordinary land handling here without changing any outcome.
+      if(this.isIsland(nx)||this.isHome(nx)){
+        const reason=this.mooredReason(p);
+        if(reason){this.ev({t:"moored",p:p.idx,reason});return;}
         // a storm only ever charges (coins or a coin flip) once per turn — a second leg that
         // also hits an island is a free pass, already-paid anchor holding fast
         if(dodgedOnce.v){this.ev({t:"anchorHold",p:p.idx});return;}
@@ -697,7 +712,12 @@ class Game{
     if(storm){
       const before=[...p.pos];
       const wasDocked=this.adjPort(p)!==null;
-      this.windPush(p,DIRS[windDir],2);
+      // D-15: mirrors src/ui/flow.js:556-567's live bot storm block exactly — both gusts, one
+      // shared dodgedOnce, so a second leg that also hits land is a free pass on an already-paid
+      // anchor rather than a fresh charge.
+      const dodgedOnce={v:false};
+      this.windPush(p,DIRS[windDir],2,dodgedOnce);
+      this.windPush(p,DIRS[this.windNow2],2,dodgedOnce);
       p.justDocked=false;
       if(p.pos[0]!==before[0]||p.pos[1]!==before[1])this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
       if(p.shipwrecked){p.shipwrecked=false;return;} // no coins, no crates, no move — repairs eat the turn
@@ -748,6 +768,11 @@ class Game{
       this.round++;
       const wind="NSEW"[Math.floor(this.r()*4)];
       const storm=rollStorm(this); // #1a
+      // D-15: roll the second gust's direction the instant the round knows it's stormy, at the
+      // exact point src/orchestrator.js:681-683 draws it — one extra RNG draw, right after
+      // rollStorm and before anything else touches the seed this round, so live play and the
+      // headless simulator consume it identically from here forward.
+      this.windNow2=storm?PERP[wind][Math.floor(this.r()*2)]:null;
       this.windNow=wind;this.stormNow=storm;
       this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind)}); // NARR-04
       for(const i of order){

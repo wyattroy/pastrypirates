@@ -39,8 +39,8 @@ import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, describe, pn, boatXY, msgHoldMs,
-  waitWhilePaused,
+  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
+  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -59,16 +59,33 @@ export function setClockUI(){
   }
   wrap.style.display="";
   $("btnPlayAgain").style.display="none";
-  const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline}):appState.clockState;
+  const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline,paused:appState.shotClockPaused,pauseElapsed:appState.shotClockPauseElapsed}):appState.clockState;
+  // CLOCK-02 FIX (mp-pause-clock-desync): on a GUEST the frozen<->running decision AND the frozen
+  // remaining it renders must both flip from the SAME authoritative clock broadcast. Driving the
+  // paused branch off appState.shotClockPaused alone (set by watchPause on the /paused flag) let
+  // the flag land a network round-trip BEFORE the fresh deadline (watchClock) and flash a stale
+  // countdown — the "guest races to 0 on resume". Prefer the broadcast's own paused bit; fall back
+  // to the mirrored flag only until the first clock write arrives. The host owns the clock, so its
+  // inline state.paused IS its live flag — no behavior change for host or solo.
+  const paused=(state&&typeof state.paused==="boolean")?state.paused:appState.shotClockPaused;
   const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
-  pauseEl.style.display=(appState.isHost&&soloBotGame()&&!appState.liveDone)?"":"none";
-  $("scPauseImg").src=appState.shotClockPaused?PLAY_IMG:PAUSE_IMG;
+  // CLOCK-03: defensive reset, once per tick, BEFORE any branch below. setClockUI() re-runs on
+  // the 500ms interval, so a click-to-resume handler set in a prior PAUSED tick must never
+  // survive into a later non-paused tick (RESEARCH Anti-Pattern 4) — only the two paused
+  // branches below re-arm it. The .tappable affordance class is reset here for the same reason.
+  numEl.onclick=null;numEl.style.cursor="";numEl.classList.remove("tappable");
+  // CLOCK-02/D-09: de-gated from appState.isHost&&soloBotGame() — the ▶/⏸ pause is now shown to
+  // every player in both solo and multiplayer (a guest's click reaches togglePause() via
+  // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
+  pauseEl.style.display=(!appState.liveDone)?"":"none";
+  $("scPauseImg").src=paused?PLAY_IMG:PAUSE_IMG;
   // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
   // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
   const toggleEl=$("scTimerToggle");
   if(toggleEl){
     toggleEl.style.display=(!soloBotGame()&&!appState.liveDone)?"":"none";
     toggleEl.innerHTML=appState.timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
+    // @copy misc.timer.toggletooltip
     toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
   }
   if(appState.timerOff){
@@ -79,9 +96,13 @@ export function setClockUI(){
     return;
   }
   if(!state){
-    if(appState.isHost&&appState.shotClockPaused){
+    if(paused){
       wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
       labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
+      // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
+      // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
+      // src/orchestrator.js (main-tier) directly.
+      numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
       return;
     }
     // notes/edits #5a: a bot's turn in solo mode never arms the shot clock, so `state` stays
@@ -95,14 +116,24 @@ export function setClockUI(){
     return;
   }
   wrap.classList.remove("idle");
-  if(appState.isHost&&appState.shotClockPaused){
-    const elapsed=appState.shotClockPauseElapsed/1000;
+  if(paused){
+    // CLOCK-02 FIX (mp-pause-clock-desync): the frozen remaining comes from the host's
+    // pauseElapsed carried in the clock broadcast (state.pauseElapsed) so host and guest show the
+    // IDENTICAL number — a guest never owns appState.shotClockPauseElapsed (it stays 0), which is
+    // why it used to freeze at 20s while the host showed 13s. Fall back to the live deadline only
+    // for the brief pre-broadcast window on a guest (self-corrects on the next clock write).
+    const peMs=(state.pauseElapsed!=null)?state.pauseElapsed:Math.max(0,30000-(state.deadline-Date.now()));
+    const elapsed=peMs/1000;
     const urgent=elapsed>=20;
     wrap.classList.remove("urgent");wrap.classList.add("paused");
     labelEl.textContent="paused";
     numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
     unitEl.textContent="seconds";
     subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
+    // CLOCK-03: same togglePause resume seam as the other paused branch above. UX (this phase):
+    // the frozen NUMBER didn't read as clickable (unlike the ⏸-symbol branch), so .tappable adds
+    // a dotted underline + hover lift making it obviously tap-to-resume on your own turn.
+    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();numEl.classList.add("tappable");
     return;
   }
   const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
@@ -124,7 +155,16 @@ export function setClockUI(){
     labelEl.textContent="play in";
     numEl.textContent=urgent?30-elapsed:20-elapsed;
     unitEl.textContent="seconds";
-    subEl.innerHTML=urgent?"or lose your turn":`or pay 1${iconImg(COIN_IMG)}`;
+    // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
+    // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
+    // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
+    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
+    // alike (the
+    // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
+    // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
+    // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
+    // of scope. scripts/ui_contract_check.js now gates this permanently.
+    subEl.innerHTML=urgent?"or lose yer turn":`or pay 1${iconImg(COIN_IMG)}`;
   }else{
     wrap.classList.remove("urgent");
     wrap.classList.add("idle");
@@ -154,9 +194,91 @@ export function liveRender(){
 }
 // needsAction=true turns the panel yellow (this seat must decide something);
 // false (the default) is pale blue — informational only, nothing to click.
+// G8 (Wyatt-approved 2026-07-30): *"I would like a gentle fade before the next line comes in,
+// triggered BY the next line coming in – the logic could be, if new line coming in, then fade
+// current line before displaying it; else keep the current line up."*
+//
+// F6's trailing-line behaviour is UNCHANGED and must stay so: a line with nothing following it
+// never fades, because the fade is created only when a replacement arrives. What changes is only
+// the REPLACEMENT, which until now was an instant swap.
+//
+// G17 (Wyatt-approved 2026-07-30) — OVERRULES G8's OVERLAP. He asked for a STRICT sequence:
+// *"please fade the current line, THEN show the next"* — and waved off the pacing objection
+// explicitly: *"if we need to shorten the 'hold' time to counteract that fade, we will do that
+// later… you can stop taking so much concern for 'dragging' — that's on me to decide."*
+//
+// G8 shipped a 180ms OVERLAP cross-fade: the ghost faded while the incoming line typed in
+// underneath. That was a real objection, honestly held — and he heard it and overruled it. The
+// cost, stated plainly so nobody has to rediscover it: 180ms of added latency per REPLACED line,
+// paid deliberately, his call. The rejection paragraph below is kept as history, not deleted.
+//
+// THE MECHANISM, which is the whole of the change. panel() stays fully SYNCHRONOUS — that is
+// REQUIRED, not a preference: flash() reads `.apMsg._revealDone` the instant panel() returns, so a
+// deferred swap would hand it the wrong element or none at all. So the DOM is still replaced
+// synchronously and only the REVEAL is delayed. typewriterReveal() already blanks every text node
+// and hides every <img> the moment it is called, so the incoming line is genuinely invisible in the
+// meantime; giving it a start delay equal to the ghost fade produces fade-out-then-type-in with no
+// overlap and no awaits anywhere.
+//
+// The cross-fade rejected on 2026-07-29 (see showNarration's own note) was turned down for two
+// named reasons. Both are still real, and here is where each now stands:
+//   - "it would delay every line by half a second" — the delay is now REAL but it is 180ms, not
+//     500ms, and it applies only to a line that REPLACES another. Wyatt accepted it above.
+//   - "two live lines in the box snap the panel height" — still fully answered: the ghost is
+//     `position:absolute` and so out of flow, meaning resizePanel's `inner.offsetHeight`
+//     measurement below still sees ONLY the incoming message. The box animates once, to the new
+//     height, exactly as it does today.
+//
+// EVERY PROPERTY MEASURED GOOD THIS MORNING IS PRESERVED, and each is load-bearing:
+//   - `pointer-events:none` on the ghost — panel() also renders prompts WITH BUTTONS, so a ghost
+//     that could take clicks would swallow a real decision.
+//   - `position:absolute; inset:0` — see the height argument above; the panel moves 0px per swap.
+//   - the `animationend` listener plus the 250ms setTimeout belt.
+//   - panel() synchronous, and flash()'s `_revealDone` contract intact.
+//   - F6 STANDS and is NOT reintroduced as fade-to-empty: the ghost is created only when the
+//     incoming html is non-empty, so a TRAILING line still never fades. An explicit clear (a caller
+//     passing empty content) still empties and hides the panel instantly, with no ghost.
+export const GHOST_FADE_MS=800;
+// ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
+// strict sequence is only strict while they are equal.
+// G28 (Wyatt-approved 2026-07-30): 180 -> 800. He watched G17's strict sequence live and judged it
+// too quick to register, naming what the fade is actually FOR: "the point of it is to let the player
+// know that the text is about to leave, so they can hurry up and read it". A warning nobody notices
+// is not a warning. The hold was cut to pay for it (msgHoldMs, src/ui/util.js — ceiling 2000ms).
+// THIS NUMBER LIVES IN TWO PLACES AND ONLY TWO: here, and the `.8s` in index.html's `.apMsg.fadeOut`
+// rule. Move them together or the fade and the reveal disagree — that CSS rule carries the same
+// warning pointing back here, plus a note that `.8s`'s old value collided with #apGrid's unrelated
+// panel-height transition, so a find-and-replace on the duration is not safe.
 export function panel(html,needsAction=false){
   html=emojify(html);
-  $("apGridInner").innerHTML=html;
+  const inner=$("apGridInner");
+  // Only when a line is actually being REPLACED: an explicit clear (empty html) still empties and
+  // hides the panel instantly with no ghost, which is the explicit-clear path F6 preserved.
+  const outgoing=html?inner.querySelector(".apMsg:not(.fadeOut)"):null;
+  const ghost=outgoing?outgoing.cloneNode(true):null;
+  inner.innerHTML=html;
+  if(ghost){
+    ghost.classList.add("fadeOut");
+    inner.appendChild(ghost); // appended AFTER the live content, so :not(.fadeOut) lookups below still find the new line first
+    const drop=()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);};
+    ghost.addEventListener("animationend",drop,{once:true});
+    // belt: animationend can be dropped entirely in a backgrounded tab, which would leak a ghost
+    // that then sits over every later line. Same reasoning typewriterReveal records for preferring
+    // setTimeout to requestAnimationFrame.
+    //
+    // CR-01 (found by code review, 2026-07-30): this was a HARDCODED 250 — "comfortably clear of the
+    // 180ms animation" — and G28 moved the animation to 800ms in three places without touching it.
+    // The belt then beat animationend every time, so the ghost was ripped out at 250ms while the
+    // incoming line still waited the full GHOST_FADE_MS to start revealing: the box sat EMPTY for
+    // 550ms per replaced line. That silently broke both G28's purpose (a fade long enough to read as
+    // a warning) and F6's rule, which is Wyatt's own — "the blue box should never be empty".
+    //
+    // DERIVED, never hardcoded again. The margin only has to outlast the animation, so tying it to
+    // the constant makes this correct for any future duration by construction rather than by anyone
+    // remembering a fourth site. The CSS rule and GHOST_FADE_MS still have to move together — that
+    // pair is genuinely irreducible — but this no longer joins them.
+    setTimeout(drop,GHOST_FADE_MS+70);
+  }
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
   resizePanel(!!html);
@@ -164,8 +286,19 @@ export function panel(html,needsAction=false){
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
   // so callers like flash() can wait for real completion instead of a guessed duration.
-  const msgEl=$("actionPanel").querySelector(".apMsg");
-  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);
+  // G8: `:not(.fadeOut)` so a lingering ghost can never be mistaken for the live message and get
+  // typed in a second time. The ghost is appended after the live content anyway, so this is a belt
+  // rather than a fix — but flash() depends on getting the RIGHT element back, so it is cheap.
+  const msgEl=$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
+  // G17: delay the reveal by exactly the ghost's fade, and only when there IS a ghost — a first
+  // line, or a line after an explicit clear, still types in immediately.
+  //
+  // REDUCED MOTION is read HERE, in JS, and that is not a stylistic choice: index.html's
+  // `@media (prefers-reduced-motion: reduce)` sets `.apMsg.fadeOut{display:none}`, so there is no
+  // fade to wait for — but a CSS media query cannot reach a JS timer. Without this read, a
+  // reduced-motion user would get a blank 180ms gap AND no fade, which is the worst of both.
+  const reduced=typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0);
 }
 // notes/edits BUG-01: smoothly resize the box to the CURRENT message's finished height, exactly
 // ONCE. Measure the natural content height (with the row briefly unconstrained and the transition
@@ -210,7 +343,15 @@ export function resizePanel(hasContent){
 // snapping the height. The typewriter reveal (this) is deliberately kept exactly as-is.
 // Characters are counted as CODE POINTS (`[...str]`, matching the original's `for...of`), not code
 // units — this text is full of emoji and slicing mid-surrogate-pair would render broken glyphs.
-export function typewriterReveal(msgEl,msPerChar){
+// G17 (Wyatt-approved 2026-07-30): the third parameter, `startDelayMs`. panel() passes the ghost
+// fade's duration so the incoming line does not begin revealing until the outgoing one has finished
+// fading — a STRICT sequence rather than G8's overlap. Nothing is deferred and nothing is awaited:
+// the DOM is still replaced synchronously, and this function still BLANKS every text node and sets
+// every <img> to opacity:0 the moment it is called, so the incoming line is genuinely invisible
+// until its first tick. The delay only moves that first tick.
+// The target is clamped at 0 below, so a negative elapsed reveals nothing while the poll loop keeps
+// scheduling — which is what makes the delay work without a separate timer.
+export function typewriterReveal(msgEl,msPerChar,startDelayMs=0){
   if(msgEl._revealTimer)clearTimeout(msgEl._revealTimer);
   const units=[],recs=[];
   const walker=document.createTreeWalker(msgEl,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
@@ -233,10 +374,13 @@ export function typewriterReveal(msgEl,msPerChar){
     const total=units.length;
     if(!total){resolve();return;}
     let revealed=0;
-    const start=performance.now();
+    const start=performance.now()+startDelayMs;
     const pollMs=Math.max(16,Math.min(msPerChar,32));
     const step=()=>{
-      const target=Math.min(total,Math.floor((performance.now()-start)/msPerChar));
+      // Math.max(0,…): before `start` the elapsed is negative, which would floor to a negative
+      // target and, without the clamp, leave `revealed<target` false — ending the poll loop and
+      // resolving an empty message. Clamped to 0 it reveals nothing and keeps scheduling.
+      const target=Math.min(total,Math.max(0,Math.floor((performance.now()-start)/msPerChar)));
       while(revealed<target){
         const u=units[revealed++];
         if(u.img)u.img.style.opacity="1";
@@ -260,7 +404,75 @@ const REVEAL_MS_PER_CHAR=20;
 export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.toggle("needsAction",!!v);}
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
-export function showNarration(html){panel(html?`<div class="apMsg">${html}</div>`:"");}
+// D-57/D-58 HISTORY, kept because it explains why this path exists at all: the host's own flash()
+// held and faded; showNarration() (the guest's — and the host's own echo's — display path) used to
+// just render and stop, so guest narration never faded and NARR-06's hold cut never reached a guest
+// seat. D-57 gave it render → await the typewriter reveal → hold msgHoldMs(text) → fade.
+//
+// F6 SUPERSEDES THE FADE HALF (Wyatt-approved 2026-07-29). His rule, verbatim: *"Never fade the last
+// line — only fade when something replaces it."* And the reasoning, which is the load-bearing part:
+// *"we want players to be able to see and think about each others' turns with them, as they think."*
+// Narration is SHARED ATTENTION. A line should persist until the next line needs the space. He put
+// the invariant plainly: **the blue box should never be empty.**
+//
+// So the timed hold-and-fade is gone from this path entirely. The next line's own render is what
+// removes the outgoing one — which IS "fade only when something replaces it", and means no timer can
+// ever leave the box empty. Nothing awaits showNarration() (it has never had a caller that awaits
+// it, and must not acquire one), so removing the internal wait changes no caller's pacing. The
+// typewriter reveal is unaffected: panel() owns it and stashes the promise on the element.
+//
+// `_narrToken` went with it. Its only job was cancelling the fade this function no longer schedules,
+// and a variable nothing reads is dead code — D-33/D-34/D-40 exist to prevent exactly that.
+//
+// A CROSS-FADE WAS CONSIDERED AND REJECTED, recorded here rather than left as an open question:
+// keeping the outgoing element alive to fade it over the existing half-second would delay every
+// guest line by that half-second (the opposite of D-58's anti-drag note) and would briefly put two
+// lines in the box, which snaps the panel height (see BUG-01's note in flash() below). Replacement
+// IS the transition.
+//
+// SUPERSEDED BY G8 (Wyatt-approved 2026-07-30) — kept, not deleted, because the next reader needs
+// to know the 500ms version was tried and why this one is different. He asked for *"a gentle fade
+// before the next line comes in, triggered BY the next line coming in"*. Both objections above are
+// answered rather than overridden, and the answer to each is what shapes the implementation (which
+// lives in panel(), NOT here — see its header):
+//   - the half-second delay: 180ms, and nothing is deferred or waited on. panel() stays synchronous.
+//   - the height snap: the outgoing line is an absolutely-positioned GHOST CLONE, out of flow, so
+//     resizePanel still measures only the incoming message. One height animation per message.
+// What is NOT superseded: "never fade the last line". The ghost exists only when a replacement
+// arrives, so a trailing line still never fades, and showNarration below still schedules nothing.
+//
+// SUPERSEDED IN TURN BY G17 (Wyatt-approved 2026-07-30, the SAME DAY, later) — and the correction
+// is to the paragraph directly above, so read them in order. G8 shipped an OVERLAP: the ghost faded
+// while the incoming line typed in underneath. He looked at it and asked for a STRICT sequence:
+// *"please fade the current line, THEN show the next."*
+//
+// The pacing objection recorded twice above — a delay per line — is now a REAL cost rather than an
+// avoided one: 180ms per REPLACED line. He was told, and overruled it in terms that leave nothing
+// to re-litigate: *"if we need to shorten the 'hold' time to counteract that fade, we will do that
+// later… you can stop taking so much concern for 'dragging' — that's on me to decide."* So the
+// objection was correct, was heard, and lost on the merits of whose call it is. Do not re-raise it
+// as a defect.
+//
+// The height answer is UNCHANGED and still holds — the ghost is still an out-of-flow clone, so the
+// box still animates once per message. And "never fade the last line" is STILL not superseded: the
+// ghost is created only when the incoming html is non-empty. Verified live over 200 lines this
+// session. The mechanism (a start delay on the typewriter reveal, panel() still synchronous) lives
+// in panel()'s header — the whole of it is there, deliberately, not split across two files.
+//
+// NARR-06, recorded honestly and NOT silently re-written: its criterion is "narration stays fully
+// visible 10% less time before it begins fading." Under F6 a TRAILING line never begins fading, so
+// that criterion is inapplicable to it. The hold still governs the gap between CONSECUTIVE lines
+// (flash() below), so the 10% cut still does real work. The requirement's literal wording is
+// superseded by this decision and should be RE-WORDED rather than re-verified — that is a change to
+// .planning/REQUIREMENTS.md only Wyatt can authorise, so it is noted here and on the morning brief,
+// and REQUIREMENTS.md is deliberately left untouched.
+//
+// The explicit-clear path is deliberately preserved: a caller passing empty content still empties
+// and hides the panel. A caller ASKING for an empty box is a different thing from a timer producing
+// one, and only the second is what F6 forbids.
+export function showNarration(html){
+  panel(html?`<div class="apMsg">${html}</div>`:"");
+}
 // netNarrate/netBroadcast remain classic-script globals this wave (they call showNarration bare,
 // which resolves fine via the PP bridge) — they call into src/net/'s netSetNarr directly and are
 // homed in main/orchestration in a later wave, not moved here (RESEARCH.md's battleAsk-style
@@ -302,7 +514,7 @@ export function showChatBubble(i,text){
       if(chatBubbles[i]!==b)return;
       b.classList.add("fadeOut");
       b._timer=setTimeout(()=>{if(chatBubbles[i]===b)removeChatBubble(i);},500);
-    },msgHoldMs(text));
+    },chatBubbleHoldMs(text)); // D-15: bubbles run on their own hold curve, pinned to today's timing
   })();
 }
 
@@ -318,14 +530,20 @@ export async function narrateLastEvent(){
   // every bettor — re-narrating the last individual sidebet event here would just duplicate it.
   if(e.t==="sidebet")return;
   if($("actionPanel").classList.contains("needsAction"))return;
-  const L=describe(e);if(!L)return;
+  // D-10: the BROADCAST payload is built from the viewer-NEUTRAL rendering (never the ambient
+  // appState.mySeat-flavored one) plus per-seat variants — netNarrate on the receiving end (the
+  // host's own screen) and watchNarr on every guest both select their own line via
+  // pickNarrVariant, so building this from anything OTHER than the neutral default would leak
+  // the host's own personalised phrasing into every other seat's broadcast.
+  const L=describeFor(e,NEUTRAL_VIEWER);if(!L)return;
+  const variants=narrationVariants(e);
   // notes/edits #1 follow-up: this used to be netNarrate()+a flat 3000ms sleep, a leftover from
   // before the typewriter/hold/fade system existed. That fixed window never accounted for reveal
   // time at all, so a long multi-sentence line (battle results especially — often 120-160+ chars)
   // could burn the ENTIRE 3s just typing itself in, leaving no time to actually read it before the
   // next event overwrote it. flash() awaits real reveal completion, then holds for length*80ms —
   // scaling with the text instead of a one-size-fits-all timer.
-  await flash(L.txt);
+  await flash(L.txt,undefined,undefined,variants);
 }
 
 // notes/edits #1: ms is no longer used to size the hold — the hold duration is derived purely
@@ -338,20 +556,34 @@ export async function narrateLastEvent(){
 // on screen — regardless of how fast or slow reveals run in a given browser. Held on screen
 // fully-visible for the hold period, then fades out over .5s before flash() resolves, so the next
 // narration/prompt never clobbers this one mid-transition.
-export async function flash(msg,ms){
+// D-10: `holdMs`, when a number, overrides the human msgHoldMs() hold — this is how botWindLeg
+// (src/ui/flow.js) gets its own, snappier bot pacing without a second flash() implementation.
+// Purely additive: `ms` and every existing two-argument call site behave exactly as before.
+// D-10 (widened narr payload): `variants`, when present, is the per-seat addressed-rendering
+// array narrationVariants() built for `msg` — additive 4th parameter, same precedent as holdMs
+// immediately above. Every existing 1-/2-/3-argument call site keeps behaving exactly as before
+// (variants undefined forwards as undefined, which netSetNarr treats as "no variants field").
+export async function flash(msg,ms,holdMs,variants){
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate
   // is itself still a classic-script global this wave, wired in through the still-present PP
   // bridge by src/main.js's setNetHandlers() call, formalized to a real src/net/ import in 11-06.
-  if(_nh.onBroadcast)_nh.onBroadcast(msg);
+  if(_nh.onBroadcast)_nh.onBroadcast(msg,variants);
   const el=$("actionPanel").querySelector(".apMsg");
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;
-  await sleep(msgHoldMs(text));
-  if(el&&el.isConnected){
-    el.classList.add("fadeOut"); // BUG-01: text fades via opacity only — no grid-row collapse, so
-                                 // nothing animates the box height (see #apGrid CSS). The box snaps
-                                 // to the next message's height when panel() replaces the content.
-  }
-  await sleep(500);
+  // F6 (Wyatt-approved 2026-07-29): THE HOLD IS DELIBERATELY PRESERVED. He narrowed the scope
+  // himself — this await is what paces CONSECUTIVE lines, flash() is awaited by its callers, and
+  // MSG_HOLD_MULTIPLIER (0.72) and the chat-bubble curve are not to be touched at all. Removing the
+  // hold would make lines race past each other, which is not what "never fade the last line" asks
+  // for.
+  await sleep(typeof holdMs==="number"?holdMs:msgHoldMs(text));
+  // F6: the two things that CLEARED the box at the end are gone — the fadeOut class, and the
+  // trailing sleep(500) that existed solely to let that fade finish. The next render replaces this
+  // line, so it stays fully readable until something takes its place and the box is never empty.
+  // Reclaims roughly half a second per line, which also serves D-58's standing anti-drag note for
+  // free — a benefit, not a risk.
+  // (BUG-01, for the next reader: the fade was opacity-only with no grid-row collapse, so nothing
+  // ever animated the box height — the box snaps to the next message's height when panel() replaces
+  // the content. That is still true, and it is now the ONLY transition, which is what F6 chose.)
 }

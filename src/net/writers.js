@@ -58,6 +58,14 @@ export function netSetTimerOff(db, room, val, onError) {
   return withReporter(db.ref("rooms/" + room + "/timerOff").set(val), onError);
 }
 
+// CLOCK-02: host-authoritative whole-table pause/resume flag, same
+// withReporter(db.ref(...).set(val), onError) shape as netSetTimerOff above —
+// any client (host or guest) may write it, but only the host's watchPause
+// branch reacts to it authoritatively (src/orchestrator.js).
+export function netSetPaused(db, room, val, onError) {
+  return withReporter(db.ref("rooms/" + room + "/paused").set(val), onError);
+}
+
 /* ---------- prompt / response (the shared singular prompt node) -------------------------------- */
 
 export function netSetPrompt(db, room, payload, onError) {
@@ -74,8 +82,13 @@ export function netSetResponse(db, room, payload, onError) {
 
 /* ---------- narration ------------------------------------------------------------------------- */
 
-export function netSetNarr(db, room, html, onError) {
-  return withReporter(db.ref("rooms/" + room + "/narr").set({ html, t: Date.now() }), onError);
+// D-10 (Phase 15 narration audit): additive 5th `variants` param — omitted from the written
+// payload entirely when absent/empty, so the common-case write stays byte-identical to before
+// this wave (an old client reading a new payload, or a new client reading an old one, both
+// degrade to the payload's own `html` — see src/ui/util.js's pickNarrVariant()).
+export function netSetNarr(db, room, html, onError, variants) {
+  const payload = variants && variants.length ? { html, t: Date.now(), variants } : { html, t: Date.now() };
+  return withReporter(db.ref("rooms/" + room + "/narr").set(payload), onError);
 }
 
 /* ---------- chat --------------------------------------------------------------------------------

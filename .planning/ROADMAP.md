@@ -3,7 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 Edit Pass** — Phases 1–6 (shipped 2026-07-24)
-- 🚧 **v1.1 Monolith Refactor** — Phases 7–12 (in progress)
+- ✅ **v1.1 Monolith Refactor** — Phases 7–12 (shipped 2026-07-25)
+- 🚧 **v1.2 Playtest Fixes & Polish** — Phases 13–17 (in progress)
 
 ## Phases
 
@@ -21,16 +22,30 @@ Full detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.m
 
 </details>
 
-### 🚧 v1.1 Monolith Refactor (In Progress)
+<details>
+<summary>✅ v1.1 Monolith Refactor (Phases 7–12) — SHIPPED 2026-07-25</summary>
 
-**Milestone Goal:** Split the ~5,200-line `index.html` monolith into native ES modules with no build step, preserving gameplay, Safari support, and deterministic multiplayer — while folding in the three approved debt cleanups (Firebase `.off()` teardown, de-globalization, engine/replay hardening). A strangler-fig sequence keeps the game runnable and determinism-verifiable at every phase boundary.
+**Milestone Goal:** Split the ~5,200-line `index.html` monolith into native ES modules with no build step, preserving gameplay, Safari support, and deterministic multiplayer — while folding in the three approved debt cleanups (Firebase `.off()` teardown, de-globalization, engine/replay hardening). A strangler-fig sequence kept the game runnable and determinism-verifiable at every phase boundary. Full phase detail retained below under **Phase Details**.
 
-- [ ] **Phase 7: Foundation & Determinism Baseline** - Zero-build module-loading contract + golden-fixture regression oracle, game unchanged
-- [ ] **Phase 8: Engine Extraction & Node Harness Migration** - Pure DOM-free engine module Node imports natively, byte-for-byte identical (critical path)
-- [ ] **Phase 9: Networking Layer & Watcher Cleanup** - Firebase sync in its own module with a registry and `.off()` teardown, zero leaked listeners
-- [ ] **Phase 10: App State & De-globalization** - 40+ globals encapsulated behind an app-state module, all inline handlers still work
-- [x] **Phase 11: UI Extraction, Orchestration & Bridge Removal** - UI module + `main` composition root, `index.html` reduced to markup, acyclic graph, bridge gone (completed 2026-07-25)
-- [x] **Phase 12: Verification & Validation** - Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests (completed 2026-07-25)
+- [x] **Phase 7: Foundation & Determinism Baseline** — Zero-build module-loading contract + golden-fixture regression oracle, game unchanged
+- [x] **Phase 8: Engine Extraction & Node Harness Migration** — Pure DOM-free engine module Node imports natively, byte-for-byte identical (critical path)
+- [x] **Phase 9: Networking Layer & Watcher Cleanup** — Firebase sync in its own module with a registry and `.off()` teardown, zero leaked listeners
+- [x] **Phase 10: App State & De-globalization** — 40+ globals encapsulated behind an app-state module, all inline handlers still work
+- [x] **Phase 11: UI Extraction, Orchestration & Bridge Removal** — UI module + `main` composition root, `index.html` reduced to markup, acyclic graph, bridge gone
+- [x] **Phase 12: Verification & Validation** — Expanded harness green + Chrome-MCP solo/MP E2E + manual Safari/Chrome playtests
+
+</details>
+
+### 🚧 v1.2 Playtest Fixes & Polish (In Progress)
+
+**Milestone Goal:** Clear a second live-playtest punch list without regressing the core value (playable and fair in Safari and multiplayer). Front-load the critical multiplayer turn-clock stall so a multiplayer game is playable immediately, correct storm movement behind the determinism harness, complete a narration audit + fixes gated on Wyatt's review, and land low-risk UI/UX polish plus social-preview metadata and a Ko-Fi support button — closed out by a manual Safari + Chrome two-window playtest. The tutorial, sound effects, and island redesign from the same punch list are deferred to a later milestone.
+
+- [x] **Phase 13: Multiplayer Turn Clock** — Critical: the MP clock no longer stalls the game before it starts; play/pause is available; the PAUSED image is a clickable resume button (CLOCK-01…03) (completed 2026-07-26)
+- [x] **Phase 14: Engine-Adjacent Gameplay Fixes & Determinism** — The boat moves one square at a time across the full storm push with docking checks at the correct square; the bot hail/action turn follows a decided rule; the determinism harness stays green (STORM-01, AI-01, VERIFY-02) (completed 2026-07-26)
+- [ ] **Phase 15: Narration Audit & Fixes** — Narration audit delivered to Wyatt, then pruning + fixes: restored "broke" line, storm intro, context-smart bribe, 2nd-person "you", timing (NARR-01…06)
+- [ ] **Phase 16: UI/UX Polish, Social Preview & Support** — Consistent padding, moveable-square sizing/hover, boat opacity, welcome-flow shortcut, name-doubling fix, empty EOV box hidden, Open Graph preview + favicon, Ko-Fi button (UI-01…07, META-01/02, KOFI-01)
+- [ ] **Phase 17: Final Multiplayer Verification** — Manual Safari + Chrome two-window playtest confirms the clock stall is fixed and a game plays through end-to-end (VERIFY-01)
+- [ ] **Phase 18: Narration Pacing — commentary, not a gate** — Narration stops blocking the game loop; lines stay in sync across players, replace cleanly, and never make the game drag (NARR-07)
 
 ## Phase Details
 
@@ -242,10 +257,161 @@ Plans:
 
 - [x] 12-04-PLAN.md — Wyatt's desktop-Safari solo playthrough (VERIFY-04, D-03) + `12-VALIDATION.md` closeout marking VERIFY-01..04 satisfied (blocking human checkpoint)
 
+### Phase 13: Multiplayer Turn Clock
+
+**Goal**: A multiplayer game starts cleanly on its own and the turn clock is fully controllable — closing the critical stall that blocks the game from beginning.
+**Depends on**: Nothing (first phase of v1.2; the critical fix, front-loaded so multiplayer is playable as early as possible)
+**Requirements**: CLOCK-01, CLOCK-02, CLOCK-03
+**Success Criteria** (what must be TRUE):
+
+  1. In a 2+ window multiplayer game, the turn clock starts running on its own and the first turn begins — the game no longer stalls "paused" before it starts and no timer off/on toggle workaround is needed. *(CLOCK-01, critical)*
+  2. Any player can pause and then resume the clock during a multiplayer game without missing bot actions. *(CLOCK-02)*
+  3. Clicking the large "PAUSED" image resumes the clock. *(CLOCK-03)*
+
+**Plans**: 3/3 plans executed
+**Wave 1**
+
+- [x] 13-01-PLAN.md — CLOCK-02 multiplayer pause: tracer sync path (net→state→ui) + surface the ▶/⏸ control [Wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 13-02-PLAN.md — CLOCK-01 boot hardening: localStorage schema-version guard for pp_sess/pp_solo [Wave 2]
+- [x] 13-03-PLAN.md — CLOCK-03 clickable large PAUSED symbol resumes (solo + multiplayer) [Wave 2]
+
+### Phase 14: Engine-Adjacent Gameplay Fixes & Determinism
+
+**Goal**: Storm pushes move the boat correctly one square at a time (with docking/aground checks at the right square), and the bot "hail humans" turn follows a decided rule — both without breaking deterministic multiplayer replay.
+**Depends on**: Nothing (independent of Phase 13 — these are the engine-adjacent gameplay changes; VERIFY-02's determinism harness gates them internally so the re-verification is deliberate)
+**Requirements**: STORM-01, AI-01, VERIFY-02
+**Success Criteria** (what must be TRUE):
+
+  1. During a storm the boat visibly moves one square at a time across the full dir1+dir2 push (up to 4 squares). *(STORM-01)*
+  2. Docking/aground checks evaluate at the correct square — the false "the dock held fast" message no longer appears when the boat is still a square away from the dock. *(STORM-01)*
+  3. The bot hail/parley turn follows the rule Wyatt decides during this phase — a hailing bot no longer *appears* to take two actions in one turn unless that is the deliberately chosen behavior; if the rule applies to bot-vs-bot it is mirrored in the engine's `takeTurn`. *(AI-01)*
+  4. The determinism regression harness stays green (31/31) after the storm-movement and bot-rule changes — lockstep replay is unaffected. *(VERIFY-02)*
+
+> **Note on criterion 4 (recorded during planning, 2026-07-26):** per CONTEXT.md D-15/D-18/D-21 the 30
+> golden fixtures are re-recorded exactly once during this phase, deliberately. "Green" means
+> green against the **new** baseline, after a blocking human decision and a full, attributed
+> divergence report. D-16's original "confirm the differences are storm-related only" test is replaced
+> by D-26's explainability test.
+>
+> **Updated at execution (2026-07-26):** the corpus is **31** seeds, not 30. After the phase's three
+> engine changes no seed produced a `shipwrecked` event any more, and the capture tool's coverage
+> guard refused to write a corpus blind to a required mechanic. Wyatt chose to add a 31st seed
+> (12379, first match over a bounded search) rather than accept the coverage gap, so the criterion
+> is 31/31. The original 30 keep their seed indices and personality rotation and stay directly
+> comparable.
+
+**Plans**: 6/6 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 14-01-PLAN.md — Tracer: full per-seed determinism diff tooling (D-26) + Tortuga's wind shadow (D-18), with the re-record record seeded [Wave 1]
+- [x] 14-02-PLAN.md — AI-01: the bot hail becomes a real action — ranked targets, scaled offers, and a turn that ends (D-02…D-08, D-24, D-25) [Wave 1]
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 14-03-PLAN.md — Engine: both storm gusts in the simulator (D-15) + `moored` gains a cause and Tortuga's berths stay safe (D-19, D-21) [Wave 2]
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 14-04-PLAN.md — The one-way door: enumerate, attribute, decide, re-record once, document (VERIFY-02, D-16, D-26) [Wave 3, blocking decision checkpoint]
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [x] 14-05-PLAN.md — STORM-01: per-square storm rendering for humans and bots, every outcome narrated, three honest moored lines (D-09…D-11, D-20, D-22) [Wave 4]
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [x] 14-06-PLAN.md — Wyatt's storm-copy approval (D-14, D-27), three new standing gates, Safari + Chrome playtest [Wave 5, blocking decision checkpoint]
+
+### Phase 15: Narration Audit & Fixes
+
+**Goal**: Narration reads naturally and consistently — repetitions are pruned per Wyatt's review, the local player is addressed directly, and the specific broken/missing lines are corrected.
+**Depends on**: Nothing (independent of Phases 13–14 — the NARR-01 audit is an approval-gate deliverable that lands first and gates the NARR-02…06 pruning/fixes)
+**Requirements**: NARR-01, NARR-02, NARR-03, NARR-04, NARR-05, NARR-06
+**Success Criteria** (what must be TRUE):
+
+  1. A full narration-branch audit (storm, docking, battle, trade, bribe, etc.) cataloguing thematic repetitions/inconsistencies with a pruning recommendation is delivered to Wyatt, and pruning is applied only after he reviews it. *(NARR-01)*
+  2. The missing "broke" line is restored, and the storm intro reads "First, the storm pushes you {dir1}" instead of the "pushes everyone 2 squares, then 2 more south" phrasing. *(NARR-02, NARR-03)*
+  3. The bribe line is context-smart — "with 2 🪙" when a crate is given, and "paid 5 🪙" when the player has no crate to give. *(NARR-04)*
+  4. Narration describing an action the local player took addresses them in 2nd person ("you") rather than 3rd person, including the "already anchored safely" line. *(NARR-05)*
+  5. Narration text stays fully visible 10% less time before it begins fading. *(NARR-06)*
+
+**Plans**: 6/6 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 15-01-PLAN.md — TRACER: viewer-aware narration proven end-to-end on one line, plus the DOM-free narration harness (NARR-05, D-07/D-08/D-10)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 15-02-PLAN.md — NARR-06 timing: 10% hold cut on both curves, chat bubbles separated onto their own multiplier (D-14/D-15)
+- [x] 15-03-PLAN.md — Turn-flow gaps in `src/ui/flow.js`: broke lines for both moments, storm intro, the missing anchor-hold narrate call, ad-hoc lines onto the variants form (NARR-02/03/05, D-11/D-13)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 15-04-PLAN.md — `EVENT_NARRATION` table: bribe-vs-cleaned-out split, second person across the table including two-party events, duplicate shot-clock line removed (NARR-01/04/05, D-12/D-12a)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 15-05-PLAN.md — The NARR-01 deliverable: line-inventory extraction script, the rendered audit page, and Wyatt's single review pass (blocking approval checkpoint, D-01…D-04/D-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 15-06-PLAN.md — Apply the approved pruning and final wording across both sources, then reconcile the shipped tree against the approved record (NARR-01…05)
+
+### Phase 16: UI/UX Polish, Social Preview & Support
+
+**Goal**: The interface feels consistent and polished, shared links preview well with a favicon, and players can support the game via Ko-Fi.
+**Depends on**: Nothing (independent low-risk polish and additions; can proceed in parallel with Phases 13–15). Explicitly does NOT gate on Wyatt's narration feedback in Phase 15 — start this work concurrently.
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, META-01, META-02, KOFI-01
+**Success Criteria** (what must be TRUE):
+
+  1. Padding between the flippenator row, gameboard, narrator, captains box, and footer is consistent. *(UI-01)*
+  2. Icons rising out of boats stay fully opaque for 1 second before fading; the moveable-square orange highlight is 10% smaller and has a more distinct mouse-hover effect. *(UI-02, UI-03, UI-04)*
+  3. Clicking "Host a Crew" goes straight to the lobby/seat screen (skipping the "Create the game" screen), and the lobby shows each name once — your seat reads "{name} – you" (or "{captain} – you"), with no "Crustbeard – Crustbeard" doubling. *(UI-05, UI-06)*
+  4. At end-of-voyage the empty narration/action box is hidden/collapsed once the End-of-Voyage summary appears (no large empty box left on screen). *(UI-07)*
+  5. Shared links and search results show a preview image (Open Graph / Twitter card), and the site serves a favicon. *(META-01, META-02)*
+  6. A Ko-Fi "Buy me a cookie" button appears in the footer (right of Feedback, styled the same) and in the Credits modal (after the credits text). *(KOFI-01)*
+
+**Plans**: TBD
+**UI hint**: yes
+
+**Added during Phase 15 (host/guest drift — see 15-CONTEXT D-55/D-56):**
+
+  - Give guest sail-highlights `class:"sailCell"` and drop the inline fill/opacity so host and guest
+    take the same CSS. Today the guest board has no pulse animation, no hover feedback, and a
+    dimmer/different orange — the affordance that says "clickable" is missing for anyone who joined
+    rather than hosted. One line in `remotePickHighlights()` (`src/ui/flow.js:1040`). Do it in the
+    same sitting as 15-06's D-35 wording fix, which touches the same two functions.
+
+  - **Host/guest render-parity test** (`scripts/`, wired into `npm test`): assert `localAsk` and
+    `watchPrompt` emit the same CSS class set (`apBack`, `apMsg`, `apBtns`, `apBtn`, `apDisabled`,
+    `apSub`, `recipes`), and that both sail-highlight paths agree on `sailCell`. Static source
+    scanning is fine — matches the existing `scripts/*_check.js` gates. The two prompt renderers
+    currently match by discipline, not structure; nothing would notice if they drifted.
+
+### Phase 17: Final Multiplayer Verification
+
+**Goal**: Confirm the milestone is playable end-to-end in the target browsers — the critical clock stall is fixed and a multiplayer game plays through from start to finish.
+**Depends on**: Phases 13, 14, 15, 16 (final end-to-end gate over the full milestone)
+**Requirements**: VERIFY-01
+**Success Criteria** (what must be TRUE):
+
+  1. In Safari, a two-window multiplayer game starts on its own with no clock-stall workaround. *(VERIFY-01)*
+  2. The game plays through from the first turn to end-of-voyage across both Safari and Chrome windows. *(VERIFY-01)*
+  3. Storm movement and pause/resume observed during the playtest behave as fixed — no lost game state and no false "dock held fast" message. *(VERIFY-01)*
+
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
+Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17. Within v1.2, Phases 13–16 are independent and may be planned/executed in parallel; Phase 17 gates on all four.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
@@ -255,11 +421,41 @@ Phases execute in numeric order: 7 → 8 → 9 → 10 → 11 → 12
 | 4. UI/UX Polish | v1.0 | — | Complete | 2026-07-24 |
 | 5. Bot Personalities | v1.0 | — | Complete | 2026-07-24 |
 | 6. End of Voyage Celebration | v1.0 | — | Complete | 2026-07-24 |
-| 7. Foundation & Determinism Baseline | v1.1 | 3/3 | In Progress|  |
-| 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | In Progress|  |
-| 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | In Progress|  |
-| 10. App State & De-globalization | v1.1 | 7/7 | In Progress|  |
-| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete    | 2026-07-25 |
-| 12. Verification & Validation | v1.1 | 4/4 | Complete    | 2026-07-25 |
-</content>
-</invoke>
+| 7. Foundation & Determinism Baseline | v1.1 | 3/3 | Complete | 2026-07-25 |
+| 8. Engine Extraction & Node Harness Migration | v1.1 | 5/5 | Complete | 2026-07-25 |
+| 9. Networking Layer & Watcher Cleanup | v1.1 | 5/5 | Complete | 2026-07-25 |
+| 10. App State & De-globalization | v1.1 | 7/7 | Complete | 2026-07-25 |
+| 11. UI Extraction, Orchestration & Bridge Removal | v1.1 | 8/8 | Complete | 2026-07-25 |
+| 12. Verification & Validation | v1.1 | 4/4 | Complete | 2026-07-25 |
+| 13. Multiplayer Turn Clock | v1.2 | 3/3 | Complete    | 2026-07-26 |
+| 14. Engine-Adjacent Gameplay Fixes & Determinism | v1.2 | 6/6 | Complete    | 2026-07-26 |
+| 15. Narration Audit & Fixes | v1.2 | 6/6 | In Progress|  |
+| 16. UI/UX Polish, Social Preview & Support | v1.2 | 0/TBD | Not started | - |
+| 17. Final Multiplayer Verification | v1.2 | 0/TBD | Not started | - |
+
+## Backlog
+
+### Phase 18: Narration Pacing — commentary, not a gate
+
+**Goal**: Narration reads as a running commentary that never gates play — in sync for every player, replaced cleanly by the next line, and never a reason the game feels slow.
+**Depends on**: Phase 15 (narration copy + the guest hold/fade from D-57 must land first).
+**Requirements**: NARR-07
+**Success Criteria** (what must be TRUE):
+
+  1. The game loop does not wait on narration. `flash()` is awaited at **27 call sites** today, each blocking for `typewriter reveal + msgHoldMs(text) + 500ms`; after this phase, narration timing is a display concern only. *(NARR-07)*
+  2. A player who acts before a line has finished appearing does not stall anyone else; the next line replaces the current one for every player at once. *(NARR-07)*
+  3. Nothing blurs past unread — removing the block must not make a busy round unreadable. Judged by a real two-player playtest, before and after, not by a unit test.
+  4. Host and guest share one timing source (`msgHoldMs`), so a future change to the hold applies to both — the D-57 failure mode cannot recur.
+
+**Origin**: Phase 15 playtest, 2026-07-29 (15-CONTEXT D-58). Wyatt: *"everyone's narration should stay in sync… what we *don't* want is for the game to drag."*
+**Plans**: TBD
+
+### Phase 999.1: Resume restores exact narration step on reload (BACKLOG)
+
+**Goal:** [Captured for future planning] On page reload mid-game, resume rebuilds state by replaying the recorded decision log with narration suppressed (`appState.replaying`), landing the player back at their own next turn with all already-decided bot turns silently re-applied — no narration shown for them. The player expects to return exactly where they left off, so it feels confusing. Ideal: resume restores the exact narration/animation step that was on screen at reload time. NOT a Phase 13 regression (pre-existing v1.1 host-reload/solo-resume replay contract; 13-02 only added the schema-version guard in front of resume) and NOT a fairness exploit (replay only re-runs already-made decisions). Implementation note: would require persisting the transient narration cursor / current-turn display position in the save blob (`pp_solo`/`pp_sess`), which the decision-log model deliberately does not capture today. Relevant code: `src/orchestrator.js` `resumeSoloGame`/`resumeHostGame` + the `appState.replaying` suppression in `netNarrate`/`showNarration`/`sleep`. Surfaced during Phase 13 CLOCK-01 UAT (test 1, Part A).
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (promote with /gsd-review-backlog when ready)

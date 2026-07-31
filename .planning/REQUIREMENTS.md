@@ -1,80 +1,115 @@
-# Requirements: Pastry Pirates — v1.1 Monolith Refactor
+# Requirements: Pastry Pirates — v1.2 Playtest Fixes & Polish
 
-**Defined:** 2026-07-24
-**Core Value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state. This refactor must preserve that value: gameplay and deterministic multiplayer stay intact while the monolith becomes modular.
+**Defined:** 2026-07-25
+**Core Value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state. This milestone clears a second live-playtest punch list without regressing that value: the critical multiplayer clock stall is the headline fix, and all engine-adjacent changes (storm movement) must preserve deterministic replay.
+
+**Source:** `notes/edits for pastry pirates-2.pdf` (live Safari multiplayer playtest). Large new features from that punch list — interactive tutorial, sound effects, island redesign — are intentionally deferred (see Future Requirements).
 
 ## v1 Requirements
 
-Requirements for the v1.1 milestone. Each maps to a roadmap phase. Behavior may change **only** via the three approved cleanups (Firebase `.off()`, de-globalization, engine/replay hardening); all other gameplay stays identical.
+Requirements for the v1.2 milestone. Each maps to a roadmap phase.
 
-### Foundation & Zero-Build (FOUND)
+### Turn Clock (CLOCK)
 
-- [x] **FOUND-01**: Repo has a root `package.json` with `"type": "module"` so engine modules import identically in the browser and in Node
-- [x] **FOUND-02**: The game loads and plays from a static HTTP server via `<script type="module">` with no bundler/build step
-- [x] **FOUND-03**: Firebase compat SDK v12.15.0 stays as classic (non-module) script tags loaded before the module entry point (no init race)
-- [x] **FOUND-04**: A golden-fixture determinism baseline (seeded replay corpus) is captured from the pre-refactor monolith to serve as the regression oracle
-- [x] **FOUND-05**: The module-loading + local-dev contract is documented (HTTP server required, `file://` unsupported, `.js` MIME expectations for production)
+- [x] **CLOCK-01**: In a multiplayer game (2+ windows), the turn clock starts running normally so the first turn begins — the game no longer stalls "paused" before it starts, and no timer off/on toggle workaround is needed *(critical)*
+- [x] **CLOCK-02**: A play/pause control is available in multiplayer games so any player can pause without missing bot actions
+- [x] **CLOCK-03**: The large "PAUSED" image is itself a clickable button that resumes the clock when pressed
 
-### Module Split (SPLIT)
+### Storm Movement (STORM)
 
-- [x] **SPLIT-01**: The deterministic engine (Game class, roundCfg, bot strategies, RNG, replay) lives in its own DOM-free, Firebase-free ES module(s)
-- [x] **SPLIT-02**: Shared constants and pure helpers (ING_ALL, DIRS, `man`, `shuffle`, `mulberry32`, image maps) live in leaf modules importable by engine, UI, net, and Node harnesses
-- [x] **SPLIT-03**: UI rendering (render/board/DOM/modals/narration) lives in its own module(s) that read game state and never import the networking layer
-- [x] **SPLIT-04**: Firebase multiplayer sync lives in its own networking module(s) that never import the UI layer
-- [x] **SPLIT-05**: A `main` entry module orchestrates engine + UI + networking; `index.html` is reduced to markup + a single module entry point
-- [x] **SPLIT-06**: The module dependency graph is acyclic, verified by a cycle-detection scan (`madge` or equivalent)
+- [x] **STORM-01**: During a storm the boat moves one square at a time across the full dir1+dir2 push (up to 4 squares), and docking/aground checks evaluate at the correct square — fixing the false "the dock held fast" message when the boat is still a square away from the dock
+  - **Scope amended at Phase 14 close (2026-07-26, Wyatt's decision):** the square-by-square
+    animation is delivered for **solo play and the multiplayer host's own screen**. Multiplayer
+    *guests* still see the boat arrive at its final square, because a guest renders purely from the
+    broadcast event feed and the intermediate storm squares deliberately emit no event — adding one
+    would force another full re-record of the determinism corpus. The narration half of STORM-01
+    (correct square, no false "dock held fast") IS correct for guests too, since narration derives
+    from the event stream. Guest animation parity is logged as a backlog item, not a gap.
 
-### Engine & Replay Hardening (ENGINE)
+### Bot Behavior (AI)
 
-- [x] **ENGINE-01**: The engine module is pure — no DOM, `window`, Firebase, or wall-clock/unseeded-random access; the 3 asset/DOM bootstrapping touches currently inside the engine region are relocated out
-- [x] **ENGINE-02**: Node test harnesses import the engine module natively (retiring the current `vm`/string-slice extraction of `index.html`), landing in the same commit as engine extraction
-- [x] **ENGINE-03**: Seeded gameplay + replay output is byte-for-byte identical to the pre-refactor baseline across the regression corpus
-- [x] **ENGINE-04**: Order-load-bearing constants (DIRS/PERP/OPPOSITE and any object literal feeding `this.r()`) are preserved and annotated so iteration order cannot silently change
+- [x] **AI-01**: The bot "hail humans" turn structure follows an intended, decided rule — a bot that hails/parleys the human no longer appears to take two actions in one turn (hail *and* fish/dock/etc.) unless that is the deliberately chosen behavior. The rule (does a hail consume the bot's turn action, or is it a free pre-action negotiation?) is decided with Wyatt during Phase 14, then implemented; if the rule must also apply to bot-vs-bot it is mirrored in the deterministic engine's `takeTurn` so replay/determinism stays consistent *(design decision — pre-existing since v1.0; src/ui/flow.js:584-612)*
 
-### Networking Cleanup (NET)
+### Narration (NARR)
 
-- [x] **NET-01**: Every Firebase `.on()` watcher has a matching `.off()` teardown — no leaked or stale listeners across the game/room lifecycle (all 18 watchers now route through the single registry in `src/net/`; verified 2026-07-24 by `scripts/net_contract_check.js`'s watcher-inventory-completeness assertion and independent grep confirmation, plus 09-05's behavioral NET-03 probe)
-- [x] **NET-02**: Watchers are registered and torn down through a single registry so cleanup is consistent and callback references match exactly
-- [x] **NET-03**: A guest reconnect / leave-and-rejoin cycle leaves zero dangling listeners, verified behaviorally (reconnect-and-count), not just by code review (09-05's full 18-watcher same-tab attach/detach/re-attach probe against live Firebase — see `09-05-SUMMARY.md` Transcript A)
+- [x] **NARR-01**: A full audit of every narration branch (storm, docking, battle, trade, bribe, etc.) is delivered to Wyatt, cataloguing thematic repetitions/inconsistencies with a pruning recommendation *(audit deliverable — pruning applied after Wyatt reviews)*
+- [x] **NARR-02**: The missing "broke" narration line is restored
+- [x] **NARR-03**: The storm intro line reads "First, the storm pushes you {dir1}" instead of the "pushes everyone 2 squares, then 2 more south" phrasing
+- [x] **NARR-04**: The bribe line is context-smart — "with 2 🪙" when a crate is given, and "paid 5 🪙" when the player has no crates to give
+- [x] **NARR-05**: Whenever the narration box describes an action *you* (the local player) took, it addresses you in 2nd person ("you") instead of 3rd person ("{your name}") — making the narration read more naturally. This includes the "already anchored safely" line (which currently only appears for other players/bots) and every other self-referential narration branch
+- [x] **NARR-06**: Non-prompt (blue-box) narration holds ~10% less time on screen before the next line comes in *(reworded 2026-07-30 at Wyatt's clarification — the criterion was always hold length, never fade)*
 
-### De-globalization (GLOBAL)
+### UI / UX Polish (UI)
 
-- [x] **GLOBAL-01**: The 40+ implicit globals (`game`, `myId`, `room`, `db`, …) are encapsulated behind module exports / an app-state module instead of `window` globals (10-05: all 46 of 46 names now migrated — `state_contract_check.js` 5/5 PASS; 10-06 remains to wire the contract check into `npm test`'s chain, D-11)
-- [x] **GLOBAL-02**: Every `onclick` handler continues to work after de-globalization (verified count 2026-07-24: **1** inline HTML `onclick="…"` attribute — `revealMyRecipe()` at `index.html:1731`, template-generated, resolves globally — and **40** JS `.onclick=` closure assignments that capture scope and are inherently safe. The "41 inline" figure was a conflation. The real GLOBAL-02 risk is the 1 global-resolving inline attribute plus any bare app-state identifiers the closures read. 10-04 confirmed `revealMyRecipe` stays a reachable `function` declaration with a byte-identical inline attribute — the inline-handler risk is closed; not marked complete until the remaining 3 app-state names are migrated so no closure can read a stale bare identifier.)
-- [x] **GLOBAL-03**: A single documented mechanism exists for test/debug state access — if any `window` bridge is retained (e.g. `window.__pp_debug` for the Chrome MCP harness), it is intentional and named
+- [ ] **UI-01**: Padding between the flippenator row, gameboard, narrator, captains box, and footer is audited and normalized to consistent spacing
+- [ ] **UI-02**: Icons that rise out of boats stay fully opaque for 1 second, then begin fading at the current rate (fade starts later)
+- [ ] **UI-03**: The moveable-square orange highlight has its max size reduced by 10%
+- [ ] **UI-04**: Moveable squares have a more distinct mouse-hover effect
+- [ ] **UI-05**: Clicking "Host a Crew" goes straight to the lobby/seat screen, skipping the redundant intermediate "Create the game" screen
+- [ ] **UI-06**: The lobby shows each name once — your seat reads "{name} – you" (or "{captain} – you" when no name is typed), and joined players show their name once (no "Crustbeard – Crustbeard" doubling)
+- [ ] **UI-07**: At end-of-voyage the empty narration/action box (`#actionPanel`) is hidden/collapsed once the End-of-Voyage summary appears, instead of staying on screen large and empty *(pre-existing since v1.0; src/ui/panel.js `liveDone` branch)*
+
+### Link & Social Preview (META)
+
+- [ ] **META-01**: Shared links and search results show a preview image (Open Graph / Twitter card metadata)
+- [ ] **META-02**: The site serves a favicon
+
+### Support Button (KOFI)
+
+- [ ] **KOFI-01**: A Ko-Fi "Buy me a cookie" button appears both in the footer (right of Feedback, styled the same) and in the Credits modal (after the credits text, at the bottom), using the provided Ko-Fi embed
 
 ### Verification (VERIFY)
 
-- [x] **VERIFY-01**: The headless replay/determinism harness is expanded to cover the regression corpus and runs green post-refactor
-- [x] **VERIFY-02**: Claude-driven Chrome MCP end-to-end tests exercise the full solo gameplay loop (sail, dock, trade, battle, fish, storm, end-of-voyage)
-- [x] **VERIFY-03**: Claude-driven Chrome MCP end-to-end tests exercise a full multiplayer game across two browser tabs (host + guest) with deterministic sync intact
-- [x] **VERIFY-04**: Manual Safari + Chrome playtests confirm no perf/compat regressions — including storm rendering and multiplayer pause/refresh state
+- [ ] **VERIFY-01**: A manual Safari + Chrome multiplayer playtest (two windows) confirms the critical clock stall is fixed and a game starts and plays through end-to-end
+- [x] **VERIFY-02**: The determinism regression harness stays green (31/31) — storm-movement and any engine-adjacent changes do not break lockstep replay
 
-## v2 Requirements
+## Future Requirements
 
-Deferred to a future milestone. Tracked but not in this roadmap.
+Deferred to a later milestone. Tracked but not in this roadmap.
 
-### Networking Modernization
+### Interactive Tutorial (TUT) — deferred from v1.2
 
-- **NETMOD-01**: Migrate from Firebase compat SDK to the modular v9+ SDK (cleaner `.off()`/unsubscribe story via `onValue()`)
+- **TUT-01**: A 30–60s interactive tutorial that walks new players through the goal, board features (Tortuga, islands, ingredients, boats, rival boats, wind compass, click-to-move), the captains box (your row, needed ingredients red/green/yellow, dubloons), the flippenator, the turn clock, the narration box, and the steps of a turn — following best practices for games of this type
+- **TUT-02**: When the tutorial finishes, the player is automatically dropped into a solo game continuing with the choices they made during the tutorial
+- **TUT-03**: A thin yellow "How To Play" button sits above the four play-mode buttons, beneath the Player Name field, to launch the tutorial
 
-### Developer Ergonomics
+### Sound Effects (AUDIO) — deferred from v1.2
 
-- **DX-01**: JSDoc typedefs for event objects (`{t, a, d, …}`) to reduce loosely-typed event bugs
-- **DX-02**: Isolated pure replay-runner function extracted proactively (pursue only if the replay seam surfaces bugs during extraction)
+- **AUDIO-01**: Luis's sound effects (staged in `sfx/`) play at appropriate game moments, on by default (e.g., `fishing.mp3` also plays when dropping anchor in a storm)
+- **AUDIO-02**: A mute button sits to the right of the turn clock
+- **AUDIO-03**: Luis is credited for the sound effects in the Credits modal
+
+### Island Redesign (ISLAND) — deferred from v1.2
+
+- **ISLAND-01**: Every island is 4 squares (not 3)
+- **ISLAND-02**: Each island has a unique shape/orientation
+- **ISLAND-03**: An island's ingredients are placed on adjacent squares
+- **ISLAND-04**: Island art is placed on the square that has no ingredient
+- *(Note: touches deterministic board generation — must be re-baselined against the determinism oracle)*
+
+### Asset Loading (LOAD) — deferred from v1.2 (found during Phase 13 discussion, 2026-07-25)
+
+- **LOAD-01**: On a slow internet connection the game must not reveal itself until its assets are ready — the boot loader should stay up until loading completes, instead of being hidden after a fixed 6s cap that a slow connection blows past. *(Observed live: game appeared with art still streaming in. Root cause: `Promise.race([preloadAssets(), setTimeout(…, 6000)])` at `src/orchestrator.js:1076` hides the loader after whichever comes first — the 6s escape hatch wins on slow connections. The 6s cap exists to avoid a hung loader on a dead image host, so any fix must preserve a bailout for genuinely failed/offline asset hosts, e.g. a longer/adaptive timeout or progress-based reveal rather than removing the cap.)*
+- **LOAD-02**: The preload set should cover all first-view art, not just the board cluster — `preloadAssets()` at `src/ui/util.js:707` currently waits only for board/dock/wind/trade/logo/boats/islands/ingredients and omits icons (3.4 MB), badges, compass, and clock, so those still pop in. *(Context: total initial download is ~18 MB of images — board.png alone is 4.5 MB, pastries 5.3 MB, icons 3.4 MB. Asset-size reduction/optimization is a separate, larger concern and is out of scope for this loading-gate fix.)*
+- **LOAD-03**: `playpastrypirates.com` must load fast for every visitor without forcing the full ~18 MB game download up front. The **welcome screen is the default first screen** for anyone who has never visited — the "hoisting the sails" boot loader must NOT appear before it. Heavy game assets are downloaded **only after the player chooses to play** (e.g., clicks a play-mode button), and the "hoisting the sails" load screen is shown at THAT point — gating entry into the game itself, not the initial site visit. *(Wyatt, 2026-07-25. This supersedes the current boot flow where `preloadAssets()` + boot loader run at page load in `boot()` — LOAD-01/02's "keep the loader up until assets are ready" applies to this post-play load gate, not the initial welcome paint. Lazy-loading the 18 MB is the core win; also complements any future asset-size reduction.)*
+- **LOAD-04**: Optimize the game's image assets to shrink the total package from ~18 MB down to a target of **~3–5 MB**, without a visible quality drop in-game. This is the asset-size-reduction concern LOAD-02 explicitly deferred (distinct from the loading-gate/lazy-load fixes): compress and right-size the heavy art — board.png (~4.5 MB), pastries (~5.3 MB), icons (~3.4 MB) are the biggest wins — via e.g. PNG→optimized-PNG/WebP conversion, resolution/dimension trimming to actual on-screen size, and stripping metadata. Complements LOAD-01/02/03 (a 3–5 MB package makes the load gate near-instant on most connections) and any future work, but stands alone as its own optimization pass. *(Wyatt, 2026-07-25. Keep the emoji fallback path intact; must still run correctly in Safari and Chrome.)*
+
+### Carried forward from v1.1 (still deferred)
+
+- **NETMOD-01**: Migrate from Firebase compat SDK to the modular v9+ SDK (cleaner unsubscribe story)
+- **DX-01**: JSDoc typedefs for event objects to reduce loosely-typed event bugs
+- **DX-02**: Isolated pure replay-runner function extracted proactively (only if the replay seam surfaces bugs)
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
+Explicitly excluded for v1.2. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Bundler / minifier toolchain (Vite/esbuild/rollup) | Native ES modules preserve the "no build step" principle; a bundler is a separate, revisitable decision |
-| TypeScript migration | Out of scope for a structural pass; would multiply blast radius |
-| New game modes, mechanics, or content | Still expansion, not this refactor milestone |
-| Renaming / style normalization during code motion | Riding cleanups on the move obscures byte-for-byte diffs and risks determinism regressions |
-| `file://` local-play support | Dropped intentionally — module scripts require an HTTP origin; local dev uses the test server |
-| Modular Firebase SDK migration | Deferred to v2 (NETMOD-01) — full networking rewrite, incompatible with byte-for-byte determinism gate this milestone |
+| Interactive tutorial, sound effects, island redesign | Large features split out of v1.2 by decision (2026-07-25); each warrants its own milestone slice — island redesign additionally touches deterministic board generation |
+| Bundler / minifier toolchain (Vite/esbuild/rollup) | Native ES modules preserve the "no build step" principle |
+| TypeScript migration | Out of scope; multiplies blast radius |
+| New game modes or mechanics beyond the deferred features | Still expansion, not this polish pass |
 
 ## Traceability
 
@@ -82,41 +117,39 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 7 | Complete |
-| FOUND-02 | Phase 7 | Complete |
-| FOUND-03 | Phase 7 | Complete |
-| FOUND-04 | Phase 7 | Complete |
-| FOUND-05 | Phase 7 | Complete |
-| SPLIT-01 | Phase 8 | Complete |
-| SPLIT-02 | Phase 8 | Complete |
-| SPLIT-03 | Phase 11 | Complete |
-| SPLIT-04 | Phase 9 | Complete |
-| SPLIT-05 | Phase 11 | Complete |
-| SPLIT-06 | Phase 11 | Complete |
-| ENGINE-01 | Phase 8 | Complete |
-| ENGINE-02 | Phase 8 | Complete |
-| ENGINE-03 | Phase 8 | Complete |
-| ENGINE-04 | Phase 8 | Complete |
-| NET-01 | Phase 9 | Complete |
-| NET-02 | Phase 9 | Complete |
-| NET-03 | Phase 9 | Complete |
-| GLOBAL-01 | Phase 10 | Complete |
-| GLOBAL-02 | Phase 10 | Complete |
-| GLOBAL-03 | Phase 10 | Complete |
-| VERIFY-01 | Phase 12 | Complete |
-| VERIFY-02 | Phase 12 | Complete |
-| VERIFY-03 | Phase 12 | Complete |
-| VERIFY-04 | Phase 12 | Complete |
+| CLOCK-01 | Phase 13 | Complete |
+| CLOCK-02 | Phase 13 | Complete |
+| CLOCK-03 | Phase 13 | Complete |
+| STORM-01 | Phase 14 | Complete |
+| AI-01 | Phase 14 | Complete |
+| NARR-01 | Phase 15 | Complete |
+| NARR-02 | Phase 15 | Complete |
+| NARR-03 | Phase 15 | Complete |
+| NARR-04 | Phase 15 | Complete |
+| NARR-05 | Phase 15 | Complete |
+| NARR-06 | Phase 15 | Complete |
+| UI-01 | Phase 16 | Pending |
+| UI-02 | Phase 16 | Pending |
+| UI-03 | Phase 16 | Pending |
+| UI-04 | Phase 16 | Pending |
+| UI-05 | Phase 16 | Pending |
+| UI-06 | Phase 16 | Pending |
+| UI-07 | Phase 16 | Pending |
+| META-01 | Phase 16 | Pending |
+| META-02 | Phase 16 | Pending |
+| KOFI-01 | Phase 16 | Pending |
+| VERIFY-01 | Phase 17 | Pending |
+| VERIFY-02 | Phase 14 | Complete |
 
 **Coverage:**
 
-- v1 requirements: 25 total
-- Mapped to phases: 25 ✓
+- v1 requirements: 23 total
+- Mapped to phases: 23 (Phases 13–17)
 - Unmapped: 0
 
-**Per-phase counts:** Phase 7 (5) · Phase 8 (6) · Phase 9 (4) · Phase 10 (3) · Phase 11 (3) · Phase 12 (4) = 25
+**Per-phase counts:** Phase 13 (3) · Phase 14 (3) · Phase 15 (6) · Phase 16 (10) · Phase 17 (1) = 23
 
 ---
-*Requirements defined: 2026-07-24*
-*Last updated: 2026-07-24 — traceability populated during v1.1 roadmap creation*
-</content>
+*Requirements defined: 2026-07-25*
+*Traceability populated: 2026-07-25 (roadmap created — Phases 13–17)*
+*Updated 2026-07-25 — folded two backlog bugs into scope: AI-01 (bot hail/action rule → Phase 14) and UI-07 (EOV empty narration box → Phase 16)*

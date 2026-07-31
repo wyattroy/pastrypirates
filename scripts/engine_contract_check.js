@@ -206,7 +206,10 @@ const SHARED_MOVED_SYMBOLS = [
   "STOOL_IMG", "STOPWATCH_IMG", "STORM_CLOUD_IMG", "STORYBOOK_IMG", "SUGARFISH_IMG", "TARGET_IMG",
   "TRADE_SWIRL_IMG", "WARNING_IMG", "WAVE_IMG", "WIND_ARROW_IMG", "WIND_GUST_IMG", "EMOJIFY_RE",
   "emojify", "TET", "ING_NAME", "ING_PLAIN", "DOCK_PLACE", "DOCK_FLAVOR", "dockPlace",
-  "dockFlavor", "iname", "ilabel", "ingImg", "ilabelImg", "iconImg", "DIRS", "DIRNAME", "PERP",
+  "dockFlavor",
+  // F5 (2026-07-29): the declared {prefix,name} split's renderer — the ONE place that decides
+  // where a dock-flavour icon goes. Added to this pin deliberately; that is what the pin is for.
+  "dockFlavorIcon", "iname", "ilabel", "ingImg", "ilabelImg", "iconImg", "DIRS", "DIRNAME", "PERP",
   "STORM_DIAG", "OPPOSITE", "SAIL_BUDGET", "SAIL_BUDGET_LEEWARD", "windStepCost", "NAMES",
   "DEFAULT_NAMES", "unusedDefaultName", "COLORS", "HEXCOL", "man",
 ];

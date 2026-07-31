@@ -12,6 +12,23 @@
 // anything inside them; a structural regression here is the milestone's known Safari risk
 // (11-CONTEXT.md D-12, re-verified live on Safari in 11-08).
 //
+// SCOPED EXCEPTION TO THE ABOVE — G19 (Wyatt-approved 2026-07-30), recorded here so the next reader
+// is not entitled to revert it. buildStormLayers() WAS changed, deliberately and narrowly, in two
+// ways: (a) its RNG source swapped from unseeded Math.random() to a private mulberry32 seeded from
+// the game, so every client in a room sees the same rain, and (b) two tuning constants retuned to
+// the midpoint of two screens measured live (baseSpeed 0.75 -> 0.676, a new BASE_SCALE 0.969). The
+// pure spec-building half was lifted into stormLayerSpecs() so it can be tested headlessly; the
+// DOM-writing half applies those specs in exactly the order and with exactly the properties it
+// always did.
+//
+// WHY THAT IS SAFE, stated in terms of what BUG-01 actually fixed. The Safari crash was caused by a
+// LIVE CSS GRADIENT plus a MASK being composited every frame, and by the narration box's height
+// animating on every typewriter tick. The fix was to pre-bake the rain into a PNG tile, animate
+// only background-position, and snap the height. NONE of that changes here: no gradient, no mask,
+// no per-frame work, no extra layers (LAYERS is still 4), and the layers are still built ONCE and
+// cached by the childElementCount guard. Different numbers into the same four static properties.
+// The Safari eyeball check is on this task's human-verify list regardless.
+//
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
 // scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
 //
@@ -56,6 +73,7 @@
 import { appState } from "../state/index.js";
 import { Game, roundCfg } from "../engine/index.js";
 import {
+  mulberry32,
   DIRS, STORM_DIAG, HEXCOL, ASSET_BASE, EMOJI_IMG,
   BOARD_IMG, DOCK_IMG, BOAT_IMG, ING_IMG, ING_HOLE_IMG, ANCHOR_IMG, TRADE_SWIRL_IMG,
   WIND_ARROW_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, COIN_IMG, SCROLL_IMG, CROWN_IMG,
@@ -65,7 +83,7 @@ import {
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describe, assignBadges, pname, pn, buildPlayerRows,
+  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows,
 } from "./util.js";
 import { recipeTitle } from "./recipe.js";
 
@@ -251,25 +269,70 @@ export function drawBoard(){
 // are free to composite — tile scale (depth), fall speed, start offset/phase, and opacity — never
 // a live gradient/mask. rotate + translate do the rest on the GPU. 3 layers give depth without
 // stacking the texture so heavily it reads as fog.
-export function buildStormLayers(ov){
-  if(ov.childElementCount)return; // already built
-  // Same 4 layers / 0.86 jitter / 0.75s base speed as the original CSS rain. Per-layer spacing (which
-  // the old build set via a --spacing gradient var) is now reproduced by SCALING the tiled PNG — the
-  // tile bakes spacing 60 / period 113, so scale factor = jittered-spacing / 60. --drop (the fall
-  // distance) scales with it so every layer still loops seamlessly.
-  const LAYERS=4, JIT=0.86, baseSpeed=0.75, TILE_W=240, TILE_H=226, PERIOD=113;
+// G19 (Wyatt-approved 2026-07-30): the PURE half of buildStormLayers — same seed in, byte-identical
+// specs out, in any browser. Extracted so it can be tested headlessly and, more importantly, so the
+// randomness has ONE source that is not the machine.
+//
+// WHY. Measured live this session on two screens in the same room: Wyatt's rain averaged 0.818s /
+// 200.5px, Claude's 0.534s / 264.7px. This function used to jitter four layers with UNSEEDED
+// Math.random() and cache the result per browser, so every player in a room got permanently
+// different weather. His fix, option 1: seed it from the game.
+//
+// mulberry32(seed), NEVER appState.game.r(). THIS IS THE MOST IMPORTANT LINE IN THIS FUNCTION.
+// game.r() is the seeded GAME stream; drawing four extra numbers from it would advance that stream
+// and desync every client AND all 31 determinism fixtures. A PRIVATE RNG seeded from the same
+// number gives identical rain in every browser in the room while consuming nothing from the game.
+//
+// The per-layer jitter is KEPT (LAYERS=4, JIT=0.86 — his words were to keep it; it is what gives
+// the rain depth). What changes is where the variation lives: it used to vary between PLAYERS, and
+// now it varies between GAMES.
+export function stormLayerSpecs(seed){
+  // Same 4 layers / 0.86 jitter as the original CSS rain. Per-layer spacing (which the old build set
+  // via a --spacing gradient var) is reproduced by SCALING the tiled PNG — the tile bakes spacing 60
+  // / period 113, so scale factor = jittered-spacing / 60. --drop (the fall distance) scales with it
+  // so every layer still loops seamlessly; that coupling is easy to break later, so: --drop derives
+  // from `scale` (PERIOD*scale) and therefore follows the new base for free.
+  //
+  // G19 RETUNE (his option 3): "let's split the difference between our two screens' settings right
+  // now to use as the new target setting."
+  //   baseSpeed 0.75 -> 0.676 — the midpoint of the two measured means, (0.818+0.534)/2 = 0.676.
+  //   BASE_SCALE 0.969 — 240 x 0.969 = 232.6px, the midpoint of 200.5 and 264.7 ((200.5+264.7)/2
+  //   = 232.6; 232.6/240 = 0.969).
+  const LAYERS=4, JIT=0.86, baseSpeed=0.676, BASE_SCALE=0.969, TILE_W=240, TILE_H=226, PERIOD=113;
+  const rnd=mulberry32(seed);
+  const specs=[];
   for(let i=0;i<LAYERS;i++){
-    const ox=Math.random(), sp=Math.random()*2-1, spd=Math.random()*2-1, ph=Math.random(), op=Math.random()*2-1;
-    const scale=1+sp*0.4*JIT;                       // matches old spacing jitter (60 → ~39..81px)
+    const ox=rnd(), sp=rnd()*2-1, spd=rnd()*2-1, ph=rnd(), op=rnd()*2-1;
+    const scale=BASE_SCALE*(1+sp*0.4*JIT);          // matches old spacing jitter (60 → ~39..81px)
     const dur=baseSpeed*(1+spd*0.5*JIT);
+    specs.push({
+      scale,
+      dur,
+      bgSize:(TILE_W*scale).toFixed(1)+"px "+(TILE_H*scale).toFixed(1)+"px",
+      drop:(PERIOD*scale).toFixed(2)+"px",          // one dash period at this scale → seamless
+      duration:dur.toFixed(3)+"s",
+      delay:(-ph*dur).toFixed(3)+"s",               // desync so layers don't fall in lockstep
+      bgPosX:(ox*TILE_W).toFixed(1)+"px",
+      opacity:Math.max(0,Math.min(1,1+op*0.35*JIT)).toFixed(3), // same opacity jitter as before
+    });
+  }
+  return specs;
+}
+// G19: the decorative demo board has no game, so it has no seed. Fall back to a FIXED literal rather
+// than Math.random() — a demo board that looks the same every load is fine, and it keeps "nothing in
+// the rain path draws unseeded randomness" absolute rather than nearly-true.
+const DEMO_RAIN_SEED=1337;
+export function buildStormLayers(ov,seed){
+  if(ov.childElementCount)return; // already built
+  for(const s of stormLayerSpecs(seed==null?DEMO_RAIN_SEED:seed)){
     const d=document.createElement("div");
     d.className="rlayer";
-    d.style.backgroundSize=(TILE_W*scale).toFixed(1)+"px "+(TILE_H*scale).toFixed(1)+"px";
-    d.style.setProperty("--drop",(PERIOD*scale).toFixed(2)+"px"); // one dash period at this scale → seamless
-    d.style.animationDuration=dur.toFixed(3)+"s";
-    d.style.animationDelay=(-ph*dur).toFixed(3)+"s";              // desync so layers don't fall in lockstep
-    d.style.backgroundPositionX=(ox*TILE_W).toFixed(1)+"px";
-    d.style.opacity=Math.max(0,Math.min(1,1+op*0.35*JIT)).toFixed(3); // same opacity jitter as before
+    d.style.backgroundSize=s.bgSize;
+    d.style.setProperty("--drop",s.drop);
+    d.style.animationDuration=s.duration;
+    d.style.animationDelay=s.delay;
+    d.style.backgroundPositionX=s.bgPosX;
+    d.style.opacity=s.opacity;
     ov.appendChild(d);
   }
 }
@@ -304,6 +367,75 @@ function removeChatBubble(i){
 export function clearChatBubbles(){Object.keys(chatBubbles).map(Number).forEach(removeChatBubble);}
 export { positionChatBubble, removeChatBubble };
 
+// D-22 fix (storm push not rendered): render() below draws every ship from the position SNAPSHOT
+// that Game.ev() bakes into each event (events[evIdx].state), NOT from the live player objects. So
+// a move that emits no event — which is exactly what an ordinary per-square storm step is, see
+// windPush's `p.pos=nx` fall-through — repaints the identical square and the boat never appears to
+// budge; it only jumps once the leg's own outcome event finally lands. This paints the ships from
+// their LIVE positions instead, and is the per-square storm beat's redraw (windLeg/botWindLeg).
+//
+// Positions only, deliberately: coins, crates, the captain's log, the scrub bar and the host's
+// event broadcast all belong to the event stream, and every storm outcome that changes any of them
+// emits its own event and goes through the full liveRender()/render() path exactly as before. The
+// live-players-as-a-seat-array idiom is the same one drawBoard() already uses at :244.
+export function renderLiveShips(){
+  if(appState.replaying)return;      // reload-replay rebuilds state silently — same guard liveRender() uses
+  if(!shipEls.length)return;         // board not built yet
+  const live=appState.game.players;  // shipXY() only reads .pos off each entry
+  live.forEach((p,i)=>{
+    const [x,y]=shipXY(p.pos,i,live,cell);
+    shipEls[i].style.transform=`translate(${x}px,${y}px)`;
+    if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
+  });
+  // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
+  // G14: the whose-turn-is-it scan now lives in activeTurnSeat() below, shared with paintShipAt().
+  // It was previously duplicated inline here because this file's header forbids touching render()'s
+  // body ("moved BYTE-IDENTICAL... do not refactor... anything inside them" — the v1.0 BUG-01
+  // Safari storm-crash fix). render() KEEPS its own copy and is still NOT touched; extracting the
+  // duplicate out of THIS function removes the second copy rather than adding a third.
+  if(activeRing){
+    const a=activeTurnSeat();
+    if(a!=null&&live[a]&&!live[a].done){
+      const [ax,ay]=shipXY(live[a].pos,a,live,cell);
+      activeRing.style.transform=`translate(${ax}px,${ay}px)`;
+    }
+  }
+}
+// G14: which seat currently owns the turn, by walking back from the current event to the nearest
+// `turn` (stopping at a round boundary). Extracted from renderLiveShips so paintShipAt can ring the
+// right ship too. render() has an identical inline copy which is deliberately LEFT ALONE — see the
+// file header's BYTE-IDENTICAL rule.
+function activeTurnSeat(){
+  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
+    const t=appState.game.events[i].t;
+    if(t==="turn")return appState.game.events[i].p;
+    if(t==="newround")break;
+  }
+  return null;
+}
+// G14 (Wyatt-approved 2026-07-30): move ONE ship element to an arbitrary cell, without touching game
+// state or the event stream. The per-square painter behind the trade-wind rim sweep.
+//
+// WHY THIS EXISTS AT ALL — and it is the reason the stepper can be SHARED: renderLiveShips() above
+// reads `appState.game.players[i].pos`, which on a GUEST NEVER UPDATES (a guest's authority is the
+// broadcast event feed, not a local simulation), so it cannot be reused here. This function bases
+// the shared-cell nudge on `events[evIdx].state` instead — the same snapshot render() draws from,
+// and the reason a guest can render at all — with just this seat's pos overridden. Correct on both
+// tiers by construction.
+export function paintShipAt(seat,c){
+  if(appState.replaying)return;
+  if(!shipEls.length||!shipEls[seat])return;
+  const ev=appState.game.events[appState.evIdx];
+  // fall back to the live players array when there is no event yet (first paint of a fresh game)
+  const base=(ev&&ev.state)?ev.state:appState.game.players;
+  const st=base.map((s,i)=>i===seat?{...s,pos:c}:s);
+  const [x,y]=shipXY(c,seat,st,cell);
+  shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
+  if(chatBubbles[seat])positionChatBubble(seat,x,y); // the bubble rides along, as renderLiveShips does
+  if(activeRing&&activeTurnSeat()===seat){
+    activeRing.style.transform=`translate(${x}px,${y}px)`;
+  }
+}
 export function render(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
   const st=e.state;
@@ -339,16 +471,20 @@ export function render(){
         if(have)hold.splice(k,1);
         return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ingImg(ing)}</span>`;
       });
+      // @copy misc.board.surplustooltip
       const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ingImg(x2)}</span>`);
+      // @copy misc.board.prowcargorow
       newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else if(offerCheckBtn){
       $("prowRecipe"+i).classList.remove("hasRecipe");
+      // @copy misc.board.checkrecipebtn
       newChipsHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">🔍 Check my recipe</button>`;
     }else{
       // other captains' recipe maps are private — only the crates visibly aboard their ship are shown.
       // sorted so duplicate ingredients sit next to each other — easier to spot a tradeable double
       $("prowRecipe"+i).classList.remove("hasRecipe");
       const held=hold.slice().sort().map(x2=>`<span class="chip have" title="${iname(x2)}">${ingImg(x2)}</span>`);
+      // @copy misc.board.emptyhold
       newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
     if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
@@ -407,7 +543,10 @@ export function render(){
     const bw=$("boardwrap");if(bw)bw.classList.toggle("storming",storming);
     const ov=$("stormOverlay");
     if(ov&&storming){
-      buildStormLayers(ov); // lazily create the jittered rain layers (once)
+      // G19: pass the GAME seed so every client in a room renders identical rain. appState.game may
+      // be absent on the decorative demo board — stormLayerSpecs falls back to a fixed literal seed,
+      // never Math.random().
+      buildStormLayers(ov,appState.game&&appState.game.seed); // lazily create the jittered rain layers (once)
       ov.style.setProperty("--slant",(angle+180)+"deg");
     }
   }
@@ -501,6 +640,7 @@ export function showStats(){
   $("statsWrap").style.display="";
   celebrateHomeDocks();
   const w=appState.game.winner;
+  // @copy misc.board.eovbanner
   const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
   // notes/edits EOV-02: the winner's recipe image is NOT shown here anymore — it lives in the one-off
   // victory box (see endLive), so the End of Voyage summary isn't doubling it up.
@@ -516,15 +656,20 @@ export function showStats(){
       <hr class="awardRule">
       <div class="awardStat">${b.def.stat}${b.value!=null?` — <b>${b.value}${b.def.unit||""}</b>`:""}</div>
     </div>`).join("");
-  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
-    <div class="awardsRow">${awards}</div>
-    <table>
+  // NARR-01: the stats table is hoisted into its own local purely so the wording audit can review it
+  // as one unit of copy (art-review/narration-audit.html, `// @copy` below). Pure string hoist — the
+  // rendered HTML is byte-identical to the inline version it replaced.
+  // @copy misc.board.statsheadings
+  const statsTable=`<table>
     <tr><td>Rounds</td><td>${appState.game.round}</td></tr>
     <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
     <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
     <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?"yes — "+appState.game.finishOrder.length+" finishers":"no"}</td></tr>
     ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
     </table>`;
+  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}</div>
+    <div class="awardsRow">${awards}</div>
+    ${statsTable}`;
 }
 
 // a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
@@ -538,7 +683,10 @@ export function renderDecorativeBoard(){
     drawBoard();buildPlayerRows();
     appState.game.round=1;appState.game.windNow="NSEW"[Math.floor(Math.random()*4)];appState.game.stormNow=false;
     appState.game.ev({t:"newround",dir:appState.game.windNow});
-    appState.evIdx=0;appState.logLines=[describe(appState.game.events[0])];
+    // D-24: seed the demo log third-person like syncLogLines() does. Behaviourally identical here
+    // (mySeat is null above, so describe() already resolves neutral) — made explicit so the two
+    // log-building paths cannot drift if this preview ever runs with a seat assigned.
+    appState.evIdx=0;appState.logLines=[describeFor(appState.game.events[0],NEUTRAL_VIEWER)];
     render();
     $("statsWrap").style.display="none";
     $("actionPanel").style.display="none";

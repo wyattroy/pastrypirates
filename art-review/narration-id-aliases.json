@@ -1,0 +1,1053 @@
+{
+  "_provenance": "Carries Wyatt's 209 reviewed dispositions across the line-number-to-stable-id re-key. Authored from EVIDENCE IN GIT, not proximity: ddefa8f's inventory is the exact one his review page consumed, so every frozen id resolves there to an enclosing function and a curated role label. Old and new are matched on function plus position in file order, with the six pinned retirements removed from the old side first — never on copy text, because 15-06's D-29 conversion reworded the mpError and introBarrier lines and text matching would fail silently exactly where it looks like it is working (D-44). A row may be retired ONLY if its own export tag is `merge` — so a silent mass retirement is structurally impossible rather than merely unlikely.",
+  "count": 209,
+  "aliased": 203,
+  "retired": 6,
+  "entries": [
+    {
+      "old": "table:newround~freshWind",
+      "new": "table:newround~freshWind",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround~heldWindGusting",
+      "new": "table:newround~heldWindGusting",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround~heldWindWontQuit",
+      "new": "table:newround~heldWindWontQuit",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround",
+      "new": "table:newround",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround~heldStorm",
+      "new": "table:newround~heldStorm",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround~streakStorm",
+      "new": "table:newround~streakStorm",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround~streakStormHeldGusting",
+      "new": "table:newround~streakStormHeldGusting",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:newround~streakStormHeldWontQuit",
+      "new": "table:newround~streakStormHeldWontQuit",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/orchestrator.js:699",
+      "new": "adhoc:adhoc.round.header",
+      "evidence": "runLiveNet() · Round-header flash — table pass-through, not new copy"
+    },
+    {
+      "old": "adhoc:src/orchestrator.js:720",
+      "new": "adhoc:adhoc.round.finalheader",
+      "evidence": "runLiveNet() · Final-round header flash — table pass-through, not new copy"
+    },
+    {
+      "old": "table:turn",
+      "new": "table:turn",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:613",
+      "new": "adhoc:adhoc.turn.banner",
+      "evidence": "humanTurn() · Per-turn banner + storm intro (NARR-03)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:613~noStorm",
+      "new": "adhoc:adhoc.turn.banner~noStorm",
+      "evidence": "humanTurn() · Per-turn banner + storm intro (NARR-03)"
+    },
+    {
+      "old": "adhoc:src/ui/util.js:874",
+      "new": "adhoc:adhoc.turn.botbanner",
+      "evidence": "narrateCurrent() bot turn-start banner — the page pinned this id to the pre-D-24 line (LEGACY_CARD_ID_PIN), so it never appeared in the export-era inventory at 874"
+    },
+    {
+      "old": "adhoc:src/ui/util.js:878",
+      "new": "adhoc:adhoc.turn.boteventpassthrough",
+      "evidence": "narrateCurrent() bot event pass-through — same legacy id pin"
+    },
+    {
+      "old": "table:moored",
+      "new": "table:moored",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:moored~dockMoved",
+      "new": "table:moored~dockMoved",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:moored~dockStill",
+      "new": "table:moored~dockStill",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:moored~home",
+      "new": "table:moored~home",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:moored~legacyFallback",
+      "new": "table:moored~legacyFallback",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:anchorHold",
+      "new": "table:anchorHold",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:blocked",
+      "new": "table:blocked",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:260",
+      "new": "adhoc:adhoc.storm.brokeanchor",
+      "evidence": "windLeg() · Broke — can't afford to anchor (D-11/NARR-02)"
+    },
+    {
+      "old": "table:dodge",
+      "new": "table:dodge",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:anchor",
+      "new": "table:anchor",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:aground",
+      "new": "table:aground",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:aground~crate",
+      "new": "table:aground~crate",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:shipwrecked",
+      "new": "table:shipwrecked",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:windmove",
+      "new": "table:windmove",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:blownOut",
+      "new": "table:blownOut",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:tradewind",
+      "new": "table:tradewind",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:296",
+      "retired": "Trade-wind rim sweep (windLeg leg) — folded into the single EVENT_NARRATION.tradewind line (D-36), which is the merge he asked for",
+      "tag": "merge"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:111",
+      "new": "adhoc:adhoc.flip.announce",
+      "evidence": "humanFlip() · Coin-flip announcement (generic — used at docking/anchor moments)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:111~tails",
+      "new": "adhoc:adhoc.flip.announce~tails",
+      "evidence": "humanFlip() · Coin-flip announcement (generic — used at docking/anchor moments)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:333",
+      "new": "adhoc:adhoc.storm.botsquare",
+      "evidence": "botWindLeg() · Bot per-square storm outcome — table pass-through, not new copy"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:352",
+      "new": "adhoc:adhoc.storm.botlegsummary",
+      "evidence": "botWindLeg() · Bot storm-leg summary — table pass-through, not new copy"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:373",
+      "new": "adhoc:adhoc.storm.secondleg",
+      "evidence": "humanWind() · Second storm leg direction — shared secondLegLine() helper (D-18/D-23/D-37), also used by botTurn"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:702",
+      "new": "adhoc:adhoc.turn.botsecondleg",
+      "evidence": "botTurn() · Second storm leg direction, bot — shared secondLegLine() helper"
+    },
+    {
+      "old": "table:sail",
+      "new": "table:sail",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:640",
+      "new": "adhoc:adhoc.turn.leeward",
+      "evidence": "humanTurn() · Leeward warning"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:571",
+      "retired": "Trade-wind rim sweep (move-instead path) — same merge into EVENT_NARRATION.tradewind (D-36)",
+      "tag": "merge"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:645",
+      "retired": "Trade-wind rim sweep (post-sail) — same merge into EVENT_NARRATION.tradewind (D-36)",
+      "tag": "merge"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:646",
+      "new": "adhoc:adhoc.turn.brokesail",
+      "evidence": "humanTurn() · Broke — can't afford to sail, human (D-11/NARR-02) — shared brokeSailLine() helper, also used by botTurn"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:722",
+      "new": "adhoc:adhoc.turn.botbrokesail",
+      "evidence": "botTurn() · Broke — can't afford to sail, bot — shared brokeSailLine() helper"
+    },
+    {
+      "old": "table:dock",
+      "new": "table:dock",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:dock~empty",
+      "new": "table:dock~empty",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:dock~bought",
+      "new": "table:dock~bought",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:dock~coins",
+      "new": "table:dock~coins",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/orchestrator.js:391",
+      "new": "adhoc:adhoc.battle.opening",
+      "evidence": "asyncBattle() · Battle opening announcement (D-08)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:582",
+      "new": "adhoc:adhoc.act.nopowder",
+      "evidence": "humanAct() · Can't afford powder, action guard (guarded safety net)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:410",
+      "new": "adhoc:adhoc.trade.nocargo",
+      "evidence": "humanTrade() · No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)"
+    },
+    {
+      "old": "table:trade",
+      "new": "table:trade",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:trade~noBonus",
+      "new": "table:trade~noBonus",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:parley",
+      "new": "table:parley",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:parley~refused",
+      "new": "table:parley~refused",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:516",
+      "new": "adhoc:adhoc.trade.refusalbot",
+      "evidence": "humanTrade() · Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:516~finishTaunt",
+      "new": "adhoc:adhoc.trade.refusalbot~finishTaunt",
+      "evidence": "humanTrade() · Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:524",
+      "new": "adhoc:adhoc.trade.refusalhuman",
+      "evidence": "humanTrade() · Trade refusal, human-declines branch (D-08/D-18 — merged wording, same template as the bot branch above)"
+    },
+    {
+      "old": "table:fish",
+      "new": "table:fish",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:fish~candycrab",
+      "new": "table:fish~candycrab",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:fish~empty",
+      "new": "table:fish~empty",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:574",
+      "new": "adhoc:adhoc.act.bakerystart",
+      "evidence": "humanAct() · Start the bakery"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:901",
+      "new": "adhoc:adhoc.sidebet.backed",
+      "evidence": "collectSideBets() · Side bet — backed with coin (D-08)"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:902",
+      "new": "adhoc:adhoc.sidebet.freecall",
+      "evidence": "collectSideBets() · Side bet — free call (D-08)"
+    },
+    {
+      "old": "table:battle",
+      "new": "table:battle",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:battle~cleaned",
+      "new": "table:battle~cleaned",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:battle~crate",
+      "new": "table:battle~crate",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:battleflee",
+      "new": "table:battleflee",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:sidebet",
+      "new": "table:sidebet",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:sidebet~wonNoAmt",
+      "new": "table:sidebet~wonNoAmt",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:sidebet~lostAmt",
+      "new": "table:sidebet~lostAmt",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:sidebet~lostNoAmt",
+      "new": "table:sidebet~lostNoAmt",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/ui/flow.js:928",
+      "new": "adhoc:adhoc.sidebet.settle",
+      "evidence": "settleSideBets() · Side-bet settlement (aggregate line covering every bettor — no per-viewer variant)"
+    },
+    {
+      "old": "table:shotclock",
+      "new": "table:shotclock",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:shotclockskip",
+      "new": "table:shotclockskip",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:shotclockskip~crate",
+      "new": "table:shotclockskip~crate",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:finish",
+      "new": "table:finish",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:bakeoff",
+      "new": "table:bakeoff",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "table:end",
+      "new": "table:end",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "adhoc:src/orchestrator.js:754",
+      "new": "adhoc:adhoc.voyageend.nobodyfinished",
+      "evidence": "liveResolveEndNet() · Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)"
+    },
+    {
+      "old": "adhoc:src/orchestrator.js:758",
+      "new": "adhoc:adhoc.voyageend.victory",
+      "evidence": "liveResolveEndNet() · Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:1128",
+      "new": "prompt:prompt.net.reconnecting",
+      "evidence": "resumeHostGame() · panel prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:261",
+      "new": "prompt:prompt.storm.anchororflip",
+      "evidence": "windLeg() · ask prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:103",
+      "new": "prompt:prompt.flip.fallback",
+      "evidence": "humanFlip() · ask prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:200",
+      "new": "prompt:prompt.sail.pickpanel",
+      "evidence": "localPickCell() · panel prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:1044",
+      "new": "prompt:prompt.sail.remotepickpanel",
+      "evidence": "remotePickHighlights() · panel prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:563",
+      "new": "prompt:prompt.act.menu",
+      "evidence": "humanAct() · ask prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:90",
+      "new": "prompt:prompt.plumbing.localask",
+      "evidence": "localAsk() · panel prompt"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:844",
+      "new": "prompt:prompt.net.draftrerender",
+      "evidence": "watchDraftPrompt() · panel prompt"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:901",
+      "new": "prompt:prompt.net.promptrerender",
+      "evidence": "watchPrompt() · panel prompt"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:912",
+      "new": "prompt:prompt.net.promptrerenderbuttons",
+      "evidence": "watchPrompt() · panel prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:396",
+      "new": "prompt:prompt.dock.tailschoice",
+      "evidence": "humanDock() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:396~0",
+      "new": "button:prompt.dock.tailschoice~true",
+      "evidence": "humanDock() option \"true\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:396~1",
+      "new": "button:prompt.dock.tailschoice~false",
+      "evidence": "humanDock() option \"false\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:584",
+      "new": "prompt:prompt.act.attacktarget",
+      "evidence": "humanAct() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:584~0",
+      "new": "button:prompt.act.attacktarget~opt0",
+      "evidence": "humanAct() option \"opt0\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:423",
+      "new": "prompt:prompt.trade.partner",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:423~0",
+      "new": "button:prompt.trade.partner~back",
+      "evidence": "humanTrade() option \"back\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:428",
+      "new": "prompt:prompt.trade.want",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:428~0",
+      "new": "button:prompt.trade.want~back",
+      "evidence": "humanTrade() option \"back\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:437",
+      "new": "prompt:prompt.trade.give",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:446",
+      "new": "prompt:prompt.trade.nothingtooffer",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:446~0",
+      "new": "button:prompt.trade.nothingtooffer~neg1",
+      "evidence": "humanTrade() option \"neg1\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:451",
+      "new": "prompt:prompt.trade.addcoins",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:465",
+      "new": "prompt:prompt.trade.accept",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:465~0",
+      "new": "button:prompt.trade.accept~true",
+      "evidence": "humanTrade() option \"true\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:465~1",
+      "new": "button:prompt.trade.accept~false",
+      "evidence": "humanTrade() option \"false\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:497",
+      "new": "prompt:prompt.trade.counter",
+      "evidence": "humanTrade() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:497~0",
+      "new": "button:prompt.trade.counter~true",
+      "evidence": "humanTrade() option \"true\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:497~1",
+      "new": "button:prompt.trade.counter~false",
+      "evidence": "humanTrade() option \"false\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:745",
+      "new": "prompt:prompt.hail.offer",
+      "evidence": "botTurn() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:745~0",
+      "new": "button:prompt.hail.offer~sell",
+      "evidence": "botTurn() option \"sell\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:745~1",
+      "new": "button:prompt.hail.offer~counter",
+      "evidence": "botTurn() option \"counter\" — matched by ordinal 1 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:745~2",
+      "new": "button:prompt.hail.offer~refuse",
+      "evidence": "botTurn() option \"refuse\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:751",
+      "new": "prompt:prompt.hail.counter",
+      "evidence": "botTurn() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:751~0",
+      "new": "button:prompt.hail.counter~opt0",
+      "evidence": "botTurn() option \"opt0\" — matched by ordinal 0 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:751~1",
+      "new": "button:prompt.hail.counter~0",
+      "evidence": "botTurn() option \"0\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:125",
+      "new": "prompt:prompt.fish.fallback",
+      "evidence": "fishCast() · ask prompt"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:880",
+      "new": "prompt:prompt.sidebet.call",
+      "evidence": "collectSideBets() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:880~0",
+      "new": "button:prompt.sidebet.call~a",
+      "evidence": "collectSideBets() option \"a\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:880~1",
+      "new": "button:prompt.sidebet.call~d",
+      "evidence": "collectSideBets() option \"d\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/ui/flow.js:889",
+      "new": "prompt:prompt.sidebet.raise",
+      "evidence": "collectSideBets() · ask prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:889~0",
+      "new": "button:prompt.sidebet.raise~0",
+      "evidence": "collectSideBets() option \"0\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:889~1",
+      "new": "button:prompt.sidebet.raise~opt1",
+      "evidence": "collectSideBets() option \"opt1\" — matched by ordinal 1 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:889~2",
+      "new": "button:prompt.sidebet.raise~back",
+      "evidence": "collectSideBets() option \"back\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:503",
+      "new": "prompt:prompt.battle.flee",
+      "evidence": "asyncBattle() · ask prompt"
+    },
+    {
+      "old": "button:src/orchestrator.js:503~0",
+      "new": "button:prompt.battle.flee~true",
+      "evidence": "asyncBattle() option \"true\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/orchestrator.js:503~1",
+      "new": "button:prompt.battle.flee~false",
+      "evidence": "asyncBattle() option \"false\" — matched by ordinal 1 (the label text was rewritten)"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:535",
+      "new": "prompt:prompt.battle.loserpays",
+      "evidence": "asyncBattle() · ask prompt"
+    },
+    {
+      "old": "button:src/orchestrator.js:535~0",
+      "new": "button:prompt.battle.loserpays~coins",
+      "evidence": "asyncBattle() option \"coins\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/orchestrator.js:535~1",
+      "new": "button:prompt.battle.loserpays~ing",
+      "evidence": "asyncBattle() option \"ing\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:544",
+      "new": "prompt:prompt.battle.winnerplunder",
+      "evidence": "asyncBattle() · ask prompt"
+    },
+    {
+      "old": "prompt:src/orchestrator.js:306",
+      "new": "prompt:prompt.battle.scoreboard",
+      "evidence": "renderBattle() · panel prompt"
+    },
+    {
+      "old": "button:src/ui/flow.js:261~0",
+      "new": "button:prompt.storm.anchororflip~pay",
+      "evidence": "windLeg() option \"pay\" — matched by ordinal 0 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:261~1",
+      "new": "button:prompt.storm.anchororflip~opt1",
+      "evidence": "windLeg() option \"opt1\" — matched by ordinal 1 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:261~2",
+      "new": "button:prompt.storm.anchororflip~opt2",
+      "evidence": "windLeg() option \"opt2\" — matched by ordinal 2 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:261~3",
+      "new": "button:prompt.storm.anchororflip~opt3",
+      "evidence": "windLeg() option \"opt3\" — matched by ordinal 3 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:103~0",
+      "new": "button:prompt.flip.fallback~1",
+      "evidence": "humanFlip() option \"1\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:103~1",
+      "new": "button:prompt.flip.fallback~back",
+      "evidence": "humanFlip() option \"back\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:563~0",
+      "new": "button:prompt.act.menu~dock",
+      "evidence": "humanAct() option \"dock\" — matched by ordinal 0 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:563~1",
+      "new": "button:prompt.act.menu~attack",
+      "evidence": "humanAct() option \"attack\" — matched by ordinal 1 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:563~2",
+      "new": "button:prompt.act.menu~trade",
+      "evidence": "humanAct() option \"trade\" — matched by ordinal 2 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:563~3",
+      "new": "button:prompt.act.menu~bakery",
+      "evidence": "humanAct() option \"bakery\" — matched by ordinal 3 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:563~4",
+      "new": "button:prompt.act.menu~fish",
+      "evidence": "humanAct() option \"fish\" — matched by ordinal 4 (the label text was rewritten)"
+    },
+    {
+      "old": "button:src/ui/flow.js:563~5",
+      "new": "button:prompt.act.menu~moveinstead",
+      "evidence": "humanAct() option \"moveinstead\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:437~0",
+      "new": "button:prompt.trade.give~coinsonly",
+      "evidence": "humanTrade() option \"coinsonly\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:437~1",
+      "new": "button:prompt.trade.give~back",
+      "evidence": "humanTrade() option \"back\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:451~0",
+      "new": "button:prompt.trade.addcoins~neg1",
+      "evidence": "humanTrade() option \"neg1\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:125~0",
+      "new": "button:prompt.fish.fallback~1",
+      "evidence": "fishCast() option \"1\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "button:src/ui/flow.js:125~1",
+      "new": "button:prompt.fish.fallback~back",
+      "evidence": "fishCast() option \"back\" — matched by raw label text unchanged"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:945",
+      "new": "misc:mpError:misc.mperror.createcapacity",
+      "evidence": "createRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:953",
+      "new": "misc:mpError:misc.mperror.entercode",
+      "evidence": "joinRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:956",
+      "new": "misc:mpError:misc.mperror.joincapacity",
+      "evidence": "joinRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:957",
+      "new": "misc:mpError:misc.mperror.nogamefound",
+      "evidence": "joinRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:963",
+      "new": "misc:mpError:misc.mperror.alreadysailed",
+      "evidence": "joinRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:973",
+      "new": "misc:mpError:misc.mperror.roomfull",
+      "evidence": "joinRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:982",
+      "new": "misc:mpError:misc.mperror.gamegone",
+      "evidence": "watchRoom() · mpError"
+    },
+    {
+      "old": "misc:mpError:src/orchestrator.js:1012",
+      "new": "misc:mpError:misc.mperror.serviceunreachable",
+      "evidence": "startGame() · mpError"
+    },
+    {
+      "old": "misc:lobby:src/ui/lobby.js:115",
+      "new": "misc:lobby:misc.lobby.waitcaption",
+      "evidence": "renderSeatList() · lobby"
+    },
+    {
+      "old": "misc:introBarrier:src/ui/flow.js:818",
+      "new": "misc:introBarrier:misc.introbarrier.ahoy",
+      "evidence": "showAhoyIntro() · introBarrier"
+    },
+    {
+      "old": "misc:introBarrier:src/ui/flow.js:818~btn",
+      "new": "misc:introBarrier:misc.introbarrier.ahoy~btn",
+      "evidence": "showAhoyIntro() · introBarrier"
+    },
+    {
+      "old": "misc:introBarrier:src/ui/flow.js:829",
+      "new": "misc:introBarrier:misc.introbarrier.turnorder",
+      "evidence": "showTurnOrderIntro() · introBarrier"
+    },
+    {
+      "old": "misc:introBarrier:src/ui/flow.js:829~btn",
+      "new": "misc:introBarrier:misc.introbarrier.turnorder~btn",
+      "evidence": "showTurnOrderIntro() · introBarrier"
+    },
+    {
+      "old": "misc:draftWait:src/orchestrator.js:657~multi",
+      "new": "misc:draftWait:misc.draftwait.recipechoosing~multi",
+      "evidence": "recipeDraftNet() · draftWait"
+    },
+    {
+      "old": "misc:draftWait:src/orchestrator.js:657~single",
+      "new": "misc:draftWait:misc.draftwait.recipechoosing~single",
+      "evidence": "recipeDraftNet() · draftWait"
+    },
+    {
+      "old": "misc:draftWait:src/orchestrator.js:663",
+      "new": "misc:draftWait:misc.draftwait.recipechosen",
+      "evidence": "recipeDraftNet() · draftWait"
+    },
+    {
+      "old": "misc:draftWait:src/ui/flow.js:809",
+      "new": "misc:draftWait:misc.draftwait.introwait",
+      "evidence": "netIntroBarrier() · draftWait"
+    },
+    {
+      "old": "misc:lobby:src/ui/lobby.js:86",
+      "new": "misc:lobby:misc.lobby.passmessage",
+      "evidence": "passGate() · lobby"
+    },
+    {
+      "old": "misc:lobby:src/ui/lobby.js:88",
+      "new": "misc:lobby:misc.lobby.passbutton",
+      "evidence": "passGate() · lobby"
+    },
+    {
+      "old": "misc:paramPrompt:src/ui/flow.js:265",
+      "new": "misc:paramPrompt:misc.paramprompt.stormdodge",
+      "evidence": "windLeg() · paramPrompt"
+    },
+    {
+      "old": "sub:src/ui/flow.js:563~afford",
+      "new": "sub:prompt.act.menu~afford",
+      "evidence": "humanAct() helper text, can-afford-powder branch — synthesised by the page's own sub-renderer table"
+    },
+    {
+      "old": "sub:src/ui/flow.js:563~poor",
+      "new": "sub:prompt.act.menu~poor",
+      "evidence": "humanAct() helper text, too-poor branch — same"
+    },
+    {
+      "old": "sub:src/ui/flow.js:563~none",
+      "new": "sub:prompt.act.menu~none",
+      "evidence": "humanAct() helper text, nothing-greyed branch — same"
+    },
+    {
+      "old": "misc:draftWait:src/ui/flow.js:176",
+      "new": "misc:draftWait:misc.draftwait.sailchoosing",
+      "evidence": "pickCell() · draftWait"
+    },
+    {
+      "old": "misc:paramPrompt:src/ui/flow.js:389",
+      "new": "misc:paramPrompt:misc.paramprompt.dockflip",
+      "evidence": "humanDock() · paramPrompt"
+    },
+    {
+      "old": "misc:dockFlavor:wheat",
+      "new": "misc:dockFlavor:wheat",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:dockFlavor:dairy",
+      "new": "misc:dockFlavor:dairy",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:dockFlavor:sugar",
+      "new": "misc:dockFlavor:sugar",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:dockFlavor:eggs",
+      "new": "misc:dockFlavor:eggs",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:dockFlavor:cocoa",
+      "new": "misc:dockFlavor:cocoa",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:dockFlavor:spice",
+      "new": "misc:dockFlavor:spice",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:dockFlavor:vanilla",
+      "new": "misc:dockFlavor:vanilla",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:paramPrompt:src/ui/flow.js:592",
+      "new": "misc:paramPrompt:misc.paramprompt.fishcast",
+      "evidence": "humanAct() · paramPrompt"
+    },
+    {
+      "old": "misc:paramPrompt:src/ui/flow.js:781",
+      "new": "misc:paramPrompt:misc.paramprompt.botfishcast",
+      "evidence": "botTurn() · paramPrompt"
+    },
+    {
+      "old": "misc:introBarrier:src/orchestrator.js:714",
+      "new": "misc:introBarrier:misc.introbarrier.finalround",
+      "evidence": "runLiveNet() · introBarrier"
+    },
+    {
+      "old": "misc:introBarrier:src/orchestrator.js:714~btn",
+      "new": "misc:introBarrier:misc.introbarrier.finalround~btn",
+      "evidence": "runLiveNet() · introBarrier"
+    },
+    {
+      "old": "misc:battleLine:src/orchestrator.js:482",
+      "new": "misc:battleLine:misc.battleline.bothheadsdownwind",
+      "evidence": "asyncBattle() · battleLine"
+    },
+    {
+      "old": "misc:battleLine:src/orchestrator.js:483",
+      "retired": "Defender-downwind duplicate of :482 — the two collapsed into one dwName-driven line (D-52)",
+      "tag": "merge"
+    },
+    {
+      "old": "misc:battleLine:src/orchestrator.js:484",
+      "new": "misc:battleLine:misc.battleline.bothheadscrosswind",
+      "evidence": "asyncBattle() · battleLine"
+    },
+    {
+      "old": "misc:battleLine:src/orchestrator.js:486",
+      "new": "misc:battleLine:misc.battleline.hitlands",
+      "evidence": "asyncBattle() · battleLine"
+    },
+    {
+      "old": "misc:battleLine:src/orchestrator.js:487",
+      "retired": "Defender-hit duplicate of :486 — the two collapsed into one hitName-driven line (D-52)",
+      "tag": "merge"
+    },
+    {
+      "old": "misc:battleLine:src/orchestrator.js:488",
+      "new": "misc:battleLine:misc.battleline.bothmiss",
+      "evidence": "asyncBattle() · battleLine"
+    },
+    {
+      "old": "misc:timer:src/ui/panel.js:88~off",
+      "new": "misc:timer:misc.timer.toggletooltip~off",
+      "evidence": "setClockUI() · timer"
+    },
+    {
+      "old": "misc:timer:src/ui/panel.js:88~on",
+      "new": "misc:timer:misc.timer.toggletooltip~on",
+      "evidence": "setClockUI() · timer"
+    },
+    {
+      "old": "misc:battleLine:src/ui/flow.js:965",
+      "new": "misc:battleLine:misc.battleline.bakeoffbothheads",
+      "evidence": "asyncBakeoff() · battleLine"
+    },
+    {
+      "old": "misc:battleLine:src/ui/flow.js:966",
+      "new": "misc:battleLine:misc.battleline.bakeoffscores",
+      "evidence": "asyncBakeoff() · battleLine"
+    },
+    {
+      "old": "misc:battleLine:src/ui/flow.js:967",
+      "retired": "Bakeoff scorer duplicate of :966 — the two collapsed into one ah-driven line (D-52)",
+      "tag": "merge"
+    },
+    {
+      "old": "misc:battleLine:src/ui/flow.js:968",
+      "new": "misc:battleLine:misc.battleline.bakeoffbothtails",
+      "evidence": "asyncBakeoff() · battleLine"
+    },
+    {
+      "old": "misc:awards:battlesWon",
+      "new": "misc:awards:battlesWon",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:fishCount",
+      "new": "misc:awards:fishCount",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:dist",
+      "new": "misc:awards:dist",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:longestBattle",
+      "new": "misc:awards:longestBattle",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:tails",
+      "new": "misc:awards:tails",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:hottestStreak",
+      "new": "misc:awards:hottestStreak",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:trades",
+      "new": "misc:awards:trades",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:timesAttacked",
+      "new": "misc:awards:timesAttacked",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:battlesLost",
+      "new": "misc:awards:battlesLost",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:shotClockCount",
+      "new": "misc:awards:shotClockCount",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    },
+    {
+      "old": "misc:awards:fallback",
+      "new": "misc:awards:fallback",
+      "evidence": "already content-stable — event/branch key, badge key or ingredient key; never keyed by a source line"
+    }
+  ]
+}

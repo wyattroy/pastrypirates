@@ -1,0 +1,965 @@
+{
+  "_provenance": "DRIFT PIN, NOT EVIDENCE OF APPROVAL. Read this before trusting any of it as something Wyatt said.\n\nThese are the 104 rows where Wyatt stored NO neutral copy — he tagged them keep (or, for two rows,\ntagged rewrite and left the box empty, which D-26 rule 2 resolves to keep). D-25 makes keep mean\n'ship exactly what this card displayed', and what it displayed was the pirate-converted rendering\nthe page produced live. That rendering was never persisted anywhere.\n\nSo this file is the text AS SHIPPED AT THE MIGRATION COMMIT, after 15-06 and the gap-closure pass\napplied his approvals. It is the best available reconstruction of what his card displayed. A\nfailure against it means 'the wording changed since the migration and nobody said so' — it does\nNOT mean 'this differs from what he approved'. scripts/narration_copy_check.js reports this class\nas DRIFT for exactly that reason, and never as an approval.\n\nRegenerating requires an explicit flag and prints a diff, so it can never be silently\nre-baselined to whatever the code happens to say.\n\nG11 RE-PIN (Wyatt, 2026-07-30): one card moved — prompt:prompt.trade.addcoins. Its text was\n\"Add any 🌕 to yer offer of <crate>?\"; he called it \"a weird statement, for players who only offer\ncoins! It should just say 'How many?' -- and i think it would work with all branches.\" So the\ninterpolation went entirely and the card now reads \"How many?\". This is a TEXT UPDATE to a single\npinned row, not a re-baseline: the card COUNT is still exactly 104, no pattern was widened and no\nequality was loosened. Everything above still applies to every row including this one.",
+  "capturedFrom": "art-review/narration-core.js at the 209-row migration commit",
+  "count": 104,
+  "cards": {
+    "adhoc:adhoc.round.header": {
+      "from": "adhoc:src/orchestrator.js:699",
+      "label": "Round-header flash — table pass-through, not new copy",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "adhoc:adhoc.round.finalheader": {
+      "from": "adhoc:src/orchestrator.js:720",
+      "label": "Final-round header flash — table pass-through, not new copy",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "table:turn": {
+      "from": "table:turn",
+      "label": "EVENT_NARRATION.turn",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "adhoc:adhoc.turn.botbanner": {
+      "from": "adhoc:src/ui/util.js:874",
+      "label": "Bot turn-start banner (D-07)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/pocket-compass.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> takes the wheel…",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/pocket-compass.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye take the wheel…"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.turn.boteventpassthrough": {
+      "from": "adhoc:src/ui/util.js:878",
+      "label": "Bot event narration — table pass-through, not new copy",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "table:moored": {
+      "from": "table:moored",
+      "label": "Reason: just docked",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is still docked, so the storm can't run them aground.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer still docked, so the storm can't run ye aground."
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:moored~dockStill": {
+      "from": "table:moored~dockStill",
+      "label": "Reason: dock — already parked, storm-untouched",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is still docked, so the storm can't run them aground.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer still docked, so the storm can't run ye aground."
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:moored~home": {
+      "from": "table:moored~home",
+      "label": "Reason: home berth (Tortuga)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> is still docked, so the storm can't run them aground.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — yer still docked, so the storm can't run ye aground."
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:moored~legacyFallback": {
+      "from": "table:moored~legacyFallback",
+      "label": "Reason: unrecognized (legacy replay log with no reason field)",
+      "silent": false,
+      "neutral": "The dock steadies <b style=\"color:#f2679e\">Crustbeard</b> from running aground <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — the dock steadies ye from running aground <img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\">"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.storm.brokeanchor": {
+      "from": "adhoc:src/ui/flow.js:260",
+      "label": "Broke — can't afford to anchor (D-11/NARR-02)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> can't afford to anchor — flips and takes their chances.",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye can't afford to anchor. Flip and take yer chances."
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:dodge": {
+      "from": "table:dodge",
+      "label": "EVENT_NARRATION.dodge",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> pays 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> to anchor safely",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye pay 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> to anchor safely!"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:blownOut": {
+      "from": "table:blownOut",
+      "label": "EVENT_NARRATION.blownOut",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/sailboat.png\" alt=\"\"> A gale blows <b style=\"color:#f2679e\">Crustbeard</b> off the dock!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/sailboat.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — a gale blows ye off the dock!"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.flip.announce": {
+      "from": "adhoc:src/ui/flow.js:111",
+      "label": "Coin-flip announcement (generic — used at docking/anchor moments)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> flips <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\"> HEADS!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-heads.png\" alt=\"\"> HEADS!"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.flip.announce~tails": {
+      "from": "adhoc:src/ui/flow.js:111~tails",
+      "label": "Coin-flip announcement (generic — used at docking/anchor moments)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> flips <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye flip <img class=\"narrIcon\" src=\"assets/icons/flip-tails.png\" alt=\"\"> TAILS"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.storm.botsquare": {
+      "from": "adhoc:src/ui/flow.js:333",
+      "label": "Bot per-square storm outcome — table pass-through, not new copy",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "adhoc:adhoc.storm.botlegsummary": {
+      "from": "adhoc:src/ui/flow.js:352",
+      "label": "Bot storm-leg summary — table pass-through, not new copy",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "table:sail": {
+      "from": "table:sail",
+      "label": "EVENT_NARRATION.sail",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> pays 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> and sails",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye pay 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> and sail"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:dock~empty": {
+      "from": "table:dock~empty",
+      "label": "Empty island — grabs 3 coins, no flip (NARR-07)",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> docks at the Flour Patch and finds no <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat, so grabs 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye find no <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat, so ye grab 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.trade.nocargo": {
+      "from": "adhoc:src/ui/flow.js:410",
+      "label": "No cargo to trade for (guarded safety net — Trade button is disabled first, D-41)",
+      "silent": false,
+      "neutral": "No one has cargo to trade for.",
+      "variants": [],
+      "addressed": null
+    },
+    "table:trade": {
+      "from": "table:trade",
+      "label": "Cooperation bonus ON (cfg.tradeBonus)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar <span class=\"nobrk\">— they each get +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> for cooperating like good friendly pirates</span>",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye trade <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar <span class=\"nobrk\">— ye each get +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> for cooperatin' like good friendly pirates</span>"
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to ye for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar <span class=\"nobrk\">— ye each get +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> for cooperatin' like good friendly pirates</span>"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:trade~noBonus": {
+      "from": "table:trade~noBonus",
+      "label": "Cooperation bonus OFF",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye trade <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to <b style=\"color:#1d96a6\">Davy Scones</b> for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar"
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/handshake.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> trades <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat to ye for <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.trade.refusalbot": {
+      "from": "adhoc:src/ui/flow.js:516",
+      "label": "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)",
+      "silent": false,
+      "neutral": "<b style=\"color:#1d96a6\">Davy Scones</b> declines <b style=\"color:#f2679e\">Crustbeard</b>'s offer!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#1d96a6\">Davy Scones</b> declines yer offer!"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.trade.refusalbot~finishTaunt": {
+      "from": "adhoc:src/ui/flow.js:516~finishTaunt",
+      "label": "Trade refusal, bot logic branch (D-08/D-18 — merged wording with the plain-decline branch below)",
+      "silent": false,
+      "neutral": "<b style=\"color:#1d96a6\">Davy Scones</b> refuses — \"Not lettin' <b style=\"color:#f2679e\">Crustbeard</b> finish their recipe that easy!\"",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#1d96a6\">Davy Scones</b> refuses — \"Not lettin' ye finish yer recipe that easy!\""
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:fish~empty": {
+      "from": "table:fish~empty",
+      "label": "Tails, sardine rule OFF — empty-handed",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b> casts a line, comes up empty-handed",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<b style=\"color:#f2679e\">Crustbeard</b> — ye cast a line and come up empty-handed"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "adhoc:adhoc.act.bakerystart": {
+      "from": "adhoc:src/ui/flow.js:574",
+      "label": "Start the bakery",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/cupcake.png\" alt=\"\"> Firing up the ovens on the Isle of Tortuga!",
+      "variants": [],
+      "addressed": null
+    },
+    "adhoc:adhoc.sidebet.freecall": {
+      "from": "adhoc:src/ui/flow.js:902",
+      "label": "Side bet — free call (D-08)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> calls <b style=\"color:#f2679e\">Crustbeard</b> from the crow's nest.",
+      "variants": [
+        {
+          "seat": 2,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> — ye call <b style=\"color:#f2679e\">Crustbeard</b> from the crow's nest."
+        },
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/spyglass.png\" alt=\"\"> <b style=\"color:#27c78d\">Dough Hook</b> calls ye to win from the crow's nest."
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:battleflee": {
+      "from": "table:battleflee",
+      "label": "EVENT_NARRATION.battleflee",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> attacks <b style=\"color:#1d96a6\">Davy Scones</b>, but both shots miss wildly and <b style=\"color:#1d96a6\">Davy Scones</b> slips away! <span class=\"nobrk\">(−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye attack <b style=\"color:#1d96a6\">Davy Scones</b>, but both shots miss wildly and <b style=\"color:#1d96a6\">Davy Scones</b> slips away! <span class=\"nobrk\">(−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>"
+        },
+        {
+          "seat": 1,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> attacks ye, but both shots miss wildly and ye slip away! <span class=\"nobrk\">(−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)</span>"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:shotclock": {
+      "from": "table:shotclock",
+      "label": "EVENT_NARRATION.shotclock",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/stopwatch.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> was too slow — loses 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">, everyone else +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/stopwatch.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye were too slow and lose 1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">; everyone else gets +1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:finish": {
+      "from": "table:finish",
+      "label": "EVENT_NARRATION.finish",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/finish-flag.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> returns to the Isle of Tortuga with a full recipe!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/finish-flag.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> — ye return to the Isle of Tortuga with a full recipe!"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:bakeoff": {
+      "from": "table:bakeoff",
+      "label": "EVENT_NARRATION.bakeoff",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/cupcake.png\" alt=\"\"> BAKEOFF! <b style=\"color:#f2679e\">Crustbeard</b> vs <b style=\"color:#1d96a6\">Davy Scones</b> — <b style=\"color:#f2679e\">Crustbeard</b> takes it!",
+      "variants": [
+        {
+          "seat": 0,
+          "text": "<img class=\"narrIcon\" src=\"assets/icons/cupcake.png\" alt=\"\"> BAKEOFF! <b style=\"color:#f2679e\">Crustbeard</b> vs <b style=\"color:#1d96a6\">Davy Scones</b> — ye take it!"
+        }
+      ],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "table:end": {
+      "from": "table:end",
+      "label": "EVENT_NARRATION.end",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "adhoc:adhoc.voyageend.nobodyfinished": {
+      "from": "adhoc:src/orchestrator.js:754",
+      "label": "Nobody finished the voyage — no changes this phase (Phase 16's UI-07 owns box visibility)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/hourglass.png\" alt=\"\"> Nobody finished the voyage.",
+      "variants": [],
+      "addressed": null
+    },
+    "adhoc:adhoc.voyageend.victory": {
+      "from": "adhoc:src/orchestrator.js:758",
+      "label": "Victory box — no changes this phase (Phase 16's UI-07 owns box visibility)",
+      "silent": false,
+      "neutral": "<div class=\"victoryBox\"><div class=\"victoryText\"><img class=\"narrIcon\" src=\"assets/icons/crown.png\" alt=\"\"> <b style=\"color:#f2679e\">Crustbeard</b> baked a <span class=\"narrRecipeLink\" data-idx=\"0\"><img class=\"narrIcon\" src=\"assets/icons/scroll.png\" alt=\"\"> Captain's Wheat &amp; Sugar Bake</span> and won <b>Best Baker in the Caribbean!</b></div></div>",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.net.reconnecting": {
+      "from": "prompt:src/orchestrator.js:1128",
+      "label": "Prompt (panel) — resumeHostGame()",
+      "silent": false,
+      "neutral": "<div class=\"apMsg\"><img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\"> Reconnecting to yer voyage…</div>",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.plumbing.localask": {
+      "from": "prompt:src/ui/flow.js:90",
+      "label": "Prompt (panel) — pass-through",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.net.draftrerender": {
+      "from": "prompt:src/orchestrator.js:844",
+      "label": "Prompt (panel) — pass-through",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.net.promptrerender": {
+      "from": "prompt:src/orchestrator.js:901",
+      "label": "Prompt (panel) — pass-through",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.net.promptrerenderbuttons": {
+      "from": "prompt:src/orchestrator.js:912",
+      "label": "Prompt (panel) — pass-through",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.dock.tailschoice~true": {
+      "from": "button:src/ui/flow.js:396~0",
+      "label": "Button — humanDock() [true]",
+      "silent": false,
+      "neutral": "Buy <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat (−3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.dock.tailschoice~false": {
+      "from": "button:src/ui/flow.js:396~1",
+      "label": "Button — humanDock() [false]",
+      "silent": false,
+      "neutral": "Take 3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.act.attacktarget": {
+      "from": "prompt:src/ui/flow.js:584",
+      "label": "Prompt (ask) — humanAct()",
+      "silent": false,
+      "neutral": "Attack whom?",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.act.attacktarget~opt0": {
+      "from": "button:src/ui/flow.js:584~0",
+      "label": "Button — humanAct() [opt0]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.partner~back": {
+      "from": "button:src/ui/flow.js:423~0",
+      "label": "Button — humanTrade() [back]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.want~back": {
+      "from": "button:src/ui/flow.js:428~0",
+      "label": "Button — humanTrade() [back]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.trade.nothingtooffer": {
+      "from": "prompt:src/ui/flow.js:446",
+      "label": "Prompt (ask) — humanTrade()",
+      "silent": false,
+      "neutral": "Ye don't have any to offer!",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.nothingtooffer~neg1": {
+      "from": "button:src/ui/flow.js:446~0",
+      "label": "Button — humanTrade() [neg1]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.trade.addcoins": {
+      "from": "prompt:src/ui/flow.js:451",
+      "label": "Prompt (ask) — humanTrade()",
+      "silent": false,
+      "neutral": "How many?",
+      "variants": [],
+      "addressed": "row also carries an addressed approval, compared as an APPROVAL not as drift"
+    },
+    "prompt:prompt.trade.accept": {
+      "from": "prompt:src/ui/flow.js:465",
+      "label": "Prompt (ask) — humanTrade()",
+      "silent": false,
+      "neutral": "<b style=\"color:#1d96a6\">Davy Scones</b>: accept <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat for yer <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar?",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.accept~true": {
+      "from": "button:src/ui/flow.js:465~0",
+      "label": "Button — humanTrade() [true]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/checkmark.png\" alt=\"\"> Accept",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.accept~false": {
+      "from": "button:src/ui/flow.js:465~1",
+      "label": "Button — humanTrade() [false]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/cancel-x.png\" alt=\"\"> Decline",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.trade.counter": {
+      "from": "prompt:src/ui/flow.js:497",
+      "label": "Prompt (ask) — humanTrade()",
+      "silent": false,
+      "neutral": "<b style=\"color:#1d96a6\">Davy Scones</b> scoffs — but counters: \"2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> more for my <img class=\"narrIcon\" src=\"assets/ingredients/sugar.png\" alt=\"Crystal Sugar\"> Crystal Sugar, take it or leave it.\"",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.counter~true": {
+      "from": "button:src/ui/flow.js:497~0",
+      "label": "Button — humanTrade() [true]",
+      "silent": false,
+      "neutral": "Pay 2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> more",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.counter~false": {
+      "from": "button:src/ui/flow.js:497~1",
+      "label": "Button — humanTrade() [false]",
+      "silent": false,
+      "neutral": "Walk away",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.hail.offer~sell": {
+      "from": "button:src/ui/flow.js:745~0",
+      "label": "Button — botTurn() [sell]",
+      "silent": false,
+      "neutral": "Sell for 6<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.hail.offer~refuse": {
+      "from": "button:src/ui/flow.js:745~2",
+      "label": "Button — botTurn() [refuse]",
+      "silent": false,
+      "neutral": "Refuse",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.hail.counter": {
+      "from": "prompt:src/ui/flow.js:751",
+      "label": "Prompt (ask) — botTurn()",
+      "silent": false,
+      "neutral": "Counter — how much for yer <img class=\"narrIcon\" src=\"assets/ingredients/wheat.png\" alt=\"Toasty Wheat\"> Toasty Wheat?",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.hail.counter~opt0": {
+      "from": "button:src/ui/flow.js:751~0",
+      "label": "Button — botTurn() [opt0]",
+      "silent": false,
+      "neutral": "+3<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.hail.counter~0": {
+      "from": "button:src/ui/flow.js:751~1",
+      "label": "Button — botTurn() [0]",
+      "silent": false,
+      "neutral": "Never mind",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.fish.fallback": {
+      "from": "prompt:src/ui/flow.js:125",
+      "label": "Prompt (ask) — fishCast()",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b>: cast yer line — flip!",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.sidebet.call~a": {
+      "from": "button:src/ui/flow.js:880~0",
+      "label": "Button — collectSideBets() [a]",
+      "silent": false,
+      "neutral": "Call <b style=\"color:#f2679e\">Crustbeard</b>",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.sidebet.call~d": {
+      "from": "button:src/ui/flow.js:880~1",
+      "label": "Button — collectSideBets() [d]",
+      "silent": false,
+      "neutral": "Call <b style=\"color:#1d96a6\">Davy Scones</b>",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.sidebet.raise~0": {
+      "from": "button:src/ui/flow.js:889~0",
+      "label": "Button — collectSideBets() [0]",
+      "silent": false,
+      "neutral": "Just the free call",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.sidebet.raise~back": {
+      "from": "button:src/ui/flow.js:889~2",
+      "label": "Button — collectSideBets() [back]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.battle.flee~true": {
+      "from": "button:src/orchestrator.js:503~0",
+      "label": "Button — asyncBattle() [true]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/flee-boot.png\" alt=\"\"> Flee! (−1<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.battle.loserpays": {
+      "from": "prompt:src/orchestrator.js:535",
+      "label": "Prompt (ask) — asyncBattle()",
+      "silent": false,
+      "neutral": "<b style=\"color:#1d96a6\">Davy Scones</b>, ye lost! Pay with…",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.battle.loserpays~coins": {
+      "from": "button:src/orchestrator.js:535~0",
+      "label": "Button — asyncBattle() [coins]",
+      "silent": false,
+      "neutral": "5<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.battle.loserpays~ing": {
+      "from": "button:src/orchestrator.js:535~1",
+      "label": "Button — asyncBattle() [ing]",
+      "silent": false,
+      "neutral": "a crate (winner picks)",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.battle.winnerplunder": {
+      "from": "prompt:src/orchestrator.js:544",
+      "label": "Prompt (ask) — asyncBattle()",
+      "silent": false,
+      "neutral": "<b style=\"color:#f2679e\">Crustbeard</b>, choose yer plunder!",
+      "variants": [],
+      "addressed": null
+    },
+    "prompt:prompt.battle.scoreboard": {
+      "from": "prompt:src/orchestrator.js:306",
+      "label": "Prompt (panel) — pass-through",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.flip.fallback~1": {
+      "from": "button:src/ui/flow.js:103~0",
+      "label": "Button — humanFlip() [1]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\"> FLIP!",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.flip.fallback~back": {
+      "from": "button:src/ui/flow.js:103~1",
+      "label": "Button — humanFlip() [back]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.act.menu~attack": {
+      "from": "button:src/ui/flow.js:563~1",
+      "label": "Button — humanAct() [attack]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/battle.png\" alt=\"\"> Attack (−2<img class=\"narrIcon\" src=\"assets/icons/coin-emoji.png\" alt=\"\">)",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.act.menu~bakery": {
+      "from": "button:src/ui/flow.js:563~3",
+      "label": "Button — humanAct() [bakery]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/cupcake.png\" alt=\"\"> Start yer bakery!",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.act.menu~moveinstead": {
+      "from": "button:src/ui/flow.js:563~5",
+      "label": "Button — humanAct() [moveinstead]",
+      "silent": false,
+      "neutral": "← Actually, move instead",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.give~coinsonly": {
+      "from": "button:src/ui/flow.js:437~0",
+      "label": "Button — humanTrade() [coinsonly]",
+      "silent": false,
+      "neutral": "— coins only —",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.give~back": {
+      "from": "button:src/ui/flow.js:437~1",
+      "label": "Button — humanTrade() [back]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.trade.addcoins~neg1": {
+      "from": "button:src/ui/flow.js:451~0",
+      "label": "Button — humanTrade() [neg1]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.fish.fallback~1": {
+      "from": "button:src/ui/flow.js:125~0",
+      "label": "Button — fishCast() [1]",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/fishing-rod.png\" alt=\"\"> CAST!",
+      "variants": [],
+      "addressed": null
+    },
+    "button:prompt.fish.fallback~back": {
+      "from": "button:src/ui/flow.js:125~1",
+      "label": "Button — fishCast() [back]",
+      "silent": false,
+      "neutral": "← Back",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:mpError:misc.mperror.entercode": {
+      "from": "misc:mpError:src/orchestrator.js:953",
+      "label": "Alert — joinRoom()",
+      "silent": false,
+      "neutral": "Enter the room code yer host shared.",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:mpError:misc.mperror.gamegone": {
+      "from": "misc:mpError:src/orchestrator.js:982",
+      "label": "Alert — watchRoom()",
+      "silent": false,
+      "neutral": "That game no longer exists.",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:draftWait:misc.draftwait.recipechoosing~multi": {
+      "from": "misc:draftWait:src/orchestrator.js:657~multi",
+      "label": "Broadcast — recipeDraftNet()",
+      "silent": false,
+      "neutral": "choosing their recipe",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:draftWait:misc.draftwait.recipechoosing~single": {
+      "from": "misc:draftWait:src/orchestrator.js:657~single",
+      "label": "Broadcast — recipeDraftNet()",
+      "silent": false,
+      "neutral": "choosing their recipe",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:draftWait:misc.draftwait.recipechosen": {
+      "from": "misc:draftWait:src/orchestrator.js:663",
+      "label": "Broadcast — recipeDraftNet()",
+      "silent": false,
+      "neutral": "Recipe chosen! Waiting for the rest of the crew",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:lobby:misc.lobby.passbutton": {
+      "from": "misc:lobby:src/ui/lobby.js:88",
+      "label": "Lobby — passGate()",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/anchor.png\" alt=\"\"> Davy Scones at the helm!",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:paramPrompt:misc.paramprompt.stormdodge": {
+      "from": "misc:paramPrompt:src/ui/flow.js:265",
+      "label": "humanFlip() prompt — windLeg()",
+      "silent": false,
+      "neutral": "Flip to dodge!",
+      "variants": [],
+      "addressed": null
+    },
+    "sub:prompt.act.menu~none": {
+      "from": "sub:src/ui/flow.js:563~none",
+      "label": "Helper text (sub) — humanAct()",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "misc:draftWait:misc.draftwait.sailchoosing": {
+      "from": "misc:draftWait:src/ui/flow.js:176",
+      "label": "Broadcast — pickCell()",
+      "silent": false,
+      "neutral": "is choosing where to sail",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:paramPrompt:misc.paramprompt.fishcast": {
+      "from": "misc:paramPrompt:src/ui/flow.js:592",
+      "label": "fishCast() prompt — humanAct()",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/fishing-rod.png\" alt=\"\"> Cast yer line — flip!",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:paramPrompt:misc.paramprompt.botfishcast": {
+      "from": "misc:paramPrompt:src/ui/flow.js:781",
+      "label": "fishCast() call — botTurn() (no prompt reached)",
+      "silent": true,
+      "neutral": null,
+      "variants": [],
+      "addressed": null
+    },
+    "misc:introBarrier:misc.introbarrier.finalround~btn": {
+      "from": "misc:introBarrier:src/orchestrator.js:714~btn",
+      "label": "Button (dismiss)",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/icons/parrot.png\" alt=\"\"> Final round — set sail!",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:timer:misc.timer.toggletooltip~off": {
+      "from": "misc:timer:src/ui/panel.js:88~off",
+      "label": "Timer toggle tooltip — setClockUI()",
+      "silent": false,
+      "neutral": "Turn the timer back on",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:timer:misc.timer.toggletooltip~on": {
+      "from": "misc:timer:src/ui/panel.js:88~on",
+      "label": "Timer toggle tooltip — setClockUI()",
+      "silent": false,
+      "neutral": "Turn the timer off",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:battlesWon": {
+      "from": "misc:awards:battlesWon",
+      "label": "Award — The Cutlass of a Thousand Notches",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/cutlass.png\" alt=\"\"> <b>The Cutlass of a Thousand Notches</b><br><i>One notch per fallen foe, carved into the hilt.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:fishCount": {
+      "from": "misc:awards:fishCount",
+      "label": "Award — The Golden Herring",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/herring.png\" alt=\"\"> <b>The Golden Herring</b><br><i>For the sweetest rod in the ocean.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:dist": {
+      "from": "misc:awards:dist",
+      "label": "Award — The Horizon-Chaser's Compass",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/compass.png\" alt=\"\"> <b>The Horizon-Chaser's Compass</b><br><i>For the salt-crusted soul who sailed further than sense allowed.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:longestBattle": {
+      "from": "misc:awards:longestBattle",
+      "label": "Award — The Iron Gut Medal",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/medal.png\" alt=\"\"> <b>The Iron Gut Medal</b><br><i>For the crew that refused to sink.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:tails": {
+      "from": "misc:awards:tails",
+      "label": "Award — The Black Spot of Bad Tides",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/blackspot.png\" alt=\"\"> <b>The Black Spot of Bad Tides</b><br><i>Survived the curse — worst luck on the Sugar Seas.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:hottestStreak": {
+      "from": "misc:awards:hottestStreak",
+      "label": "Award — The Lucky Doubloon",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/doubloon.png\" alt=\"\"> <b>The Lucky Doubloon</b><br><i>Heads, then heads, then heads again — Lady Luck rode on their shoulder.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:trades": {
+      "from": "misc:awards:trades",
+      "label": "Award — The Silver-Tongued Ledger",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/ledger.png\" alt=\"\"> <b>The Silver-Tongued Ledger</b><br><i>Struck more deals than a Tortuga fishmonger on market day.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:timesAttacked": {
+      "from": "misc:awards:timesAttacked",
+      "label": "Award — The Painted Target",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/target.png\" alt=\"\"> <b>The Painted Target</b><br><i>Somehow every cannon in the Caribbean swung their way.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:battlesLost": {
+      "from": "misc:awards:battlesLost",
+      "label": "Award — The Splintered Timbers",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/timbers.png\" alt=\"\"> <b>The Splintered Timbers</b><br><i>Took a right drubbing and lived to grumble about it.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:shotClockCount": {
+      "from": "misc:awards:shotClockCount",
+      "label": "Award — The Barnacle Brain",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/barnacle.png\" alt=\"\"> <b>The Barnacle Brain</b><br><i>Pondered each move till the barnacles grew — no rush in these waters.</i>",
+      "variants": [],
+      "addressed": null
+    },
+    "misc:awards:fallback": {
+      "from": "misc:awards:fallback",
+      "label": "Award — Good Mate",
+      "silent": false,
+      "neutral": "<img class=\"narrIcon\" src=\"assets/badges/anchor.png\" alt=\"\"> <b>Good Mate</b><br><i>Pirated for the love of the game.</i>",
+      "variants": [],
+      "addressed": null
+    }
+  }
+}

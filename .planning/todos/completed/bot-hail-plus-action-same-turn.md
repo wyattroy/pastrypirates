@@ -1,13 +1,13 @@
 ---
 id: bot-hail-plus-action-same-turn
 title: A bot can "hail" (parley) the human AND take a normal action in one turn
-status: pending
+status: completed
 type: design-question
 severity: low
 area: gameplay
 created: 2026-07-25
 source: Phase 12 UAT (Wyatt's Safari playthrough)
-resolves_phase:
+resolves_phase: 14
 regression: false
 ---
 

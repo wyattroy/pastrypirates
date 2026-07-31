@@ -43,6 +43,28 @@
 //    src/ is `window.revealMyRecipe`. The four debug hooks (`__pp_module_ok`/`MODULE_OK_FLAG`,
 //    `__pp_boot_count`, `__pp_net_debug`, `__pp_app_state_debug`) are exempt by name — they are
 //    documented, permanent observation surfaces, not part of the deleted bridge.
+// 5. The D-29 pirate register (added 2026-07-29) — no player-facing string under src/ or in
+//    index.html reads the pre-conversion 2nd-person pronouns, plus the `layout` intactness probe
+//    that conversion's own hazard demands. See the block below for why this is a STANDING gate.
+//
+// ============================================================================
+// Assertion 5 — why the D-29 register is gated rather than swept (2026-07-29)
+// ============================================================================
+// D-29 was originally a one-time manual sweep with nothing enforcing it afterwards. Half of it
+// silently did not happen: 15 strings under src/ and 17 lines in index.html kept the old register
+// for a full phase, and no gate noticed. 15-VERIFICATION.md's Gap 2 is that miss. A one-time sweep
+// is not a contract; this assertion makes it one.
+//
+// The conversion itself is NOT shipped as runtime code. art-review/narration-audit.html's own
+// PIRATE_RE/PIRATE_MAP/pirateVoice() applied the substitution LIVE at render, so it is the
+// specification — but exporting a pirateVoice() from src/ that nothing calls would ship dead code,
+// which D-33/D-34/D-40 spent three decisions stamping out. The source literals are plain, and this
+// assertion is what proves they stay converted.
+//
+// The `layout` probe rides along in the same assertion because it is the hazard that makes this
+// conversion dangerous: a bare substring replace of the 3-letter pronoun turns `layout` into
+// `layet`, and `layoutWide`, `youIdx`, `stillDockedYou`, `bonusYou` and `outcomeYou` are all in
+// the tree. Word-boundary matching rejects every one, and this probe proves it stayed that way.
 //
 // Every check function below takes an explicit root path (defaulting to the real repo ROOT) so
 // `--drill` can re-run the exact same logic against synthetic fixture trees under a temp
@@ -51,6 +73,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { locateClassicScriptRegion } from "./lib/js_region_tokenizer.js";
 
@@ -172,7 +195,551 @@ function checkRetainedGlobalsAllowlist(root) {
   return { ok: failures.length === 0, failures };
 }
 
+/* ================= Assertion 5: the D-29 pirate register (standing) ================= */
+// IMPORTED, not re-declared. This assertion and the audit page's own pirateVoice() were expressing
+// the SAME word list two different ways — a substitution map here, a detector there — which is one
+// spec in two places, and this file's own header had to point at the page to say where the spec
+// lived. Both now come from art-review/narration-core.js, the single declaration site: PIRATE_RE /
+// PIRATE_MAP do the substitution, PRONOUN_RE is the detector. Case-insensitive, because
+// pirateVoice() is case-preserving, so `You` and `Your` are equally in scope.
+//
+// The core is REVIEW TOOLING and importing it here is safe in the one direction that matters: a
+// gate may read the review tool's spec, but nothing under src/ or in index.html may import the core
+// (narration_audit_check.js asserts that in both directions), so no player-facing code depends on it.
+const { PRONOUN_RE } = await import("../art-review/narration-core.js");
+
+// ---------------------------------------------------------------------------
+// EXCLUSIONS — explicit and individually justified. NEVER widen this list to make a run go green;
+// that is the "weaken the check until it stops catching anything real" trap this file's own header
+// warns about. Every entry is anchored on CONTENT, never on a line number, so a line shift makes
+// the gate go loud rather than silently letting a new site through (the drift mechanism that broke
+// scripts/extract_narration_lines.js's AD_HOC_META twice).
+// ---------------------------------------------------------------------------
+const REGISTER_SKIP_FILES = [
+  // comments only, and the file must keep an EMPTY diff — it is the determinism fixture corpus's
+  // single source of truth (docs/DETERMINISM-RERECORD.md). Touching it invalidates all 31 seeds.
+  path.join("src", "engine", "index.js"),
+  // cookbook prose — recipe descriptions and cooking-method text ("melt-in-your-mouth shortbread",
+  // "run your thumb around the inside rim"). A diegetic object with its own register: the recipe
+  // card the captain is HOLDING, not the game's narrator speaking.
+  // >>> RULED 2026-07-30 (G16, Wyatt). He has now decided: recipe prose is OUT-OF-CHARACTER CHROME
+  // and stays plain English — the same rule REGISTER_CHROME_EXCEPTIONS below encodes. This was a
+  // pending copy judgment; it is now a decision, so the note records the ruling rather than the
+  // deferral. The file-level skip stays exactly as it was; only its justification changed.
+  path.join("src", "ui", "recipe.js"),
+];
+
+// Whole-line content anchors: the line is excluded wherever it appears in the tree.
+const REGISTER_LINE_ANCHORS = [
+  // src/orchestrator.js — a block-comment CONTINUATION line, so it does not start with a comment
+  // marker and the leading-comment filter cannot see it. D-29 excludes comments.
+  "ONLINE_SETUP.md",
+  // src/ui/flow.js — a TRAILING comment on a line of real code, likewise invisible to the
+  // leading-comment filter. Also a comment.
+  "entering the trade winds",
+  // G16 (2026-07-30): the credits paragraph ("overly enthusiastic noodle") USED TO LIVE HERE, where
+  // it excused that line ANYWHERE in the tree alongside two unrelated comment anchors. It has moved
+  // into REGISTER_CHROME_EXCEPTIONS below as kind:"notice", scoped to index.html and freshness-
+  // checked — a strictly TIGHTER gate, and it files his personal thank-yous under a named rule
+  // instead of a bag of leftovers. Do not move it back.
+];
+
+// src/ui/util.js's `sidebet` builder uses `you` as a LOCAL VARIABLE NAME (D-08's viewer flag), not
+// as copy. These are the only four places it appears as an identifier; each is a read, none is
+// player-facing text. Scoped to that one file so the fragments can never excuse a real string
+// somewhere else, and anchored on the exact code shape so a reformat goes loud.
+const REGISTER_IDENT_FILE = path.join("src", "ui", "util.js");
+const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you?`", ":(you?`", "txt:you"];
+
+// ---------------------------------------------------------------------------
+// OUT-OF-CHARACTER CHROME (F1 2026-07-29 + G16 2026-07-30, both Wyatt-approved;
+// .planning/phases/15-narration-audit-fixes/15-PLAYTEST-NOTES.md).
+//
+// THE GENERAL RULE, which is what his rulings actually say:
+//
+//   **D-29's pirate register applies to text the GAME SPEAKS.** Text that is not the game speaking
+//   — a label identifying which row is yours, a legal/privacy notice, the credits, the recipe card
+//   the captain is holding — is OUT-OF-CHARACTER CHROME and stays plain English.
+//
+// "You" does two different jobs in this game, and D-29's one-time sweep could not tell them apart:
+//   ADDRESS      — speaking TO the player inside a sentence: "ye pay 1🌕 and sail", "yer turn!".
+//                  ye/yer is CORRECT here. ~50 sites. None of them are excused by this list.
+//   CHROME       — the game is not speaking at all. Two sub-kinds are on file:
+//     kind:"label"  — pointing AT a seat/row/field to say "this one is the reader". No verb, not a
+//                     sentence. `name — ye` is not pirate, it is a grammar error: `ye` stands in
+//                     for a person, so `Wyatt — ye` reads "Wyatt — thou" rather than "Wyatt —
+//                     that's the one that's you". F1, three sites.
+//     kind:"notice" — the page addressing the reader as a HUMAN rather than a captain: the
+//                     playtesting/privacy notice, the credits. G16. Wyatt on the privacy line:
+//                     *"the whole thing is written in normal english not pirate, so the 'ye' feels
+//                     weird and out of place."*
+//   (The recipe card is the same rule at file scope — see REGISTER_SKIP_FILES above.)
+//
+// Every entry is listed individually, SCOPED TO ITS FILE so a fragment can never excuse a spoken
+// string somewhere else, and ANCHORED ON CONTENT so a line shift goes loud.
+// checkChromeExceptionsFresh() below FAILS on an anchor that no longer matches anything: an
+// exclusion that excuses nothing is cover, not an exclusion. NEVER add an entry to make a run go
+// green — if a new line trips this gate, decide whether the game is speaking, and say so here.
+// ---------------------------------------------------------------------------
+const REGISTER_CHROME_EXCEPTIONS = [
+  {
+    kind: "label",
+    rel: path.join("src", "ui", "lobby.js"),
+    anchor: `if(s.id)label=me?"you":"";`,
+    why: "renderSeatList's seat suffix — the LABEL that marks which seat is the reader's. UI-06 specifies this exact rendering (`{name} — you`). F1.",
+  },
+  {
+    kind: "label",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: `— that's you!`,
+    why: "buildPlayerRows' player-row tooltip — a LABEL identifying the reader's own row, not a sentence the game speaks. F1.",
+  },
+  {
+    kind: "label",
+    rel: "index.html",
+    anchor: `placeholder="Player 1 (you)"`,
+    why: "the pass-and-play name field's placeholder — a LABEL identifying which input belongs to the reader. F1.",
+  },
+  {
+    kind: "notice",
+    rel: "index.html",
+    anchor: `nothing beyond the name you type above is collected`,
+    why: "the playtesting/privacy NOTICE. Wyatt, 2026-07-30: \"the whole thing is written in normal english not pirate, so the 'ye' feels weird and out of place.\" The surrounding paragraph is plain English throughout — one pirate pronoun inside it is a register mismatch, not pirate voice. G16.",
+  },
+  {
+    kind: "notice",
+    rel: "index.html",
+    anchor: `overly enthusiastic noodle`,
+    why: "the credits / acknowledgements paragraph — Wyatt's own authorial prose about real people (Luca, Amelia, Nick Lesko, Luis Zanforlin, his parents, Xavaar, Juju), not the game addressing a player. Converting it would put pirate voice in his personal thank-yous. He ruled LEAVE it. MOVED HERE from REGISTER_LINE_ANCHORS by G16: it is now scoped to this one file and freshness-checked, a strictly tighter exclusion than the tree-wide anchor it replaces.",
+  },
+];
+
+// An exclusion that no longer matches anything is permanent cover for whatever drifts into its
+// place, so a stale anchor is a FAILURE rather than a no-op. Entries whose file is absent are
+// skipped: a synthetic --drill fixture tree contains only the fragments a given case needs, so
+// freshness is meaningless there (same convention as LAYOUT_WIDE_EXPECTED above).
+function checkChromeExceptionsFresh(root) {
+  const failures = [];
+  for (const e of REGISTER_CHROME_EXCEPTIONS) {
+    const full = path.join(root, e.rel);
+    if (!fs.existsSync(full)) continue;
+    if (!fs.readFileSync(full, "utf8").includes(e.anchor)) {
+      failures.push(`D-29-CHROME-STALE: the ${e.kind}-kind chrome exception for ${e.rel} anchored on ${JSON.stringify(e.anchor)} matches nothing in that file — either the site moved (re-anchor it) or the site is gone (DELETE the entry). Reason on file: ${e.why}`);
+    }
+  }
+  return failures;
+}
+
+// A leading-comment line, in either JS (`//`) or CSS/JSDoc (`/*`, `*`) form. index.html's two
+// excluded CSS comments — the shot-clock width reservation at :377 and the "you just lost treasure"
+// pop note at :425 — are both caught here by construction, not by a special case.
+const isLeadingComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+
+function scanRegisterFile(rel, content) {
+  const failures = [];
+  content.split("\n").forEach((line, i) => {
+    if (!PRONOUN_RE.test(line)) return;
+    if (isLeadingComment(line)) return;
+    if (REGISTER_LINE_ANCHORS.some((a) => line.includes(a))) return;
+    if (rel === REGISTER_IDENT_FILE && REGISTER_IDENT_FRAGMENTS.some((f) => line.includes(f))) return;
+    // out-of-character chrome (F1 labels, G16 notices) — scoped per file, so a chrome fragment can
+    // never excuse a spoken string in a different file, and never excuses any OTHER line in its own
+    // file either
+    if (REGISTER_CHROME_EXCEPTIONS.some((e) => e.rel === rel && line.includes(e.anchor))) return;
+    failures.push(`D-29-REGISTER: ${rel}:${i + 1} — a player-facing string still reads the pre-conversion 2nd-person register; convert it to ye/yer (art-review/narration-audit.html's PIRATE_MAP is the spec)`);
+  });
+  return failures;
+}
+
+// The `layout` landmine probe. Two parts, deliberately different in kind:
+//   - the corruption marker (`layet`) is checked wherever it can appear — a bare substring replace
+//     of the pronoun is the only thing that produces it, so any hit is proof of exactly that bug.
+//   - the `layoutWide` counts are pinned per file. If a future change legitimately adds or removes
+//     a usage, UPDATE THE EXPECTED COUNT — do not delete the probe.
+const LAYOUT_WIDE_EXPECTED = [
+  { rel: "index.html", count: 4 },
+  { rel: path.join("src", "ui", "board.js"), count: 1 },
+];
+
+function checkPirateRegister(root) {
+  const failures = [];
+  const skip = new Set(REGISTER_SKIP_FILES);
+  const targets = [];
+
+  for (const file of jsFilesRecursive(path.join(root, "src"))) {
+    const rel = path.relative(root, file);
+    if (skip.has(rel)) continue;
+    targets.push([rel, file]);
+  }
+  const indexHtml = path.join(root, "index.html");
+  if (fs.existsSync(indexHtml)) targets.push(["index.html", indexHtml]);
+
+  for (const [rel, full] of targets) {
+    const content = fs.readFileSync(full, "utf8");
+    failures.push(...scanRegisterFile(rel, content));
+    // corruption marker — checked on the SAME set of files, comments included (a `layet` in a
+    // comment is still evidence the bare replace ran)
+    content.split("\n").forEach((line, i) => {
+      if (line.includes("layet")) {
+        failures.push(`LAYOUT-CORRUPTION: ${rel}:${i + 1} contains "layet" — a bare substring replace of the 2nd-person pronoun corrupted the word "layout"`);
+      }
+    });
+  }
+
+  // the chrome exceptions must still match something (F1 labels, G16 notices) — see
+  // checkChromeExceptionsFresh
+  failures.push(...checkChromeExceptionsFresh(root));
+
+  for (const { rel, count } of LAYOUT_WIDE_EXPECTED) {
+    const full = path.join(root, rel);
+    if (!fs.existsSync(full)) continue; // absent in a synthetic drill fixture; nothing to pin
+    const actual = (fs.readFileSync(full, "utf8").match(/layoutWide/g) || []).length;
+    if (actual !== count) {
+      failures.push(`LAYOUT-WIDE-COUNT: ${rel} has ${actual} "layoutWide" occurrence(s), expected ${count} — if this change was intentional, update LAYOUT_WIDE_EXPECTED in scripts/ui_contract_check.js; if it was not, the word-boundary rule was violated`);
+    }
+  }
+
+  return { ok: failures.length === 0, failures };
+}
+
+/* ================= Assertion 6: CO-REACHABILITY — a reason must be reachable in the state it explains
+ *
+ * "Is this string right?" has four independent answers, and this repo only ever asked two:
+ *   1 PROVENANCE            does the shipped text match what Wyatt approved?     (the copy gate)
+ *   2 STRUCTURAL REACH      can this string ever render at all?                  (the audit page's badges)
+ *   3 CO-REACHABILITY       does it render in the STATE IT DESCRIBES?            <-- this assertion
+ *   4 DELIVERY              does it reach the INTENDED VIEWER?                   (assertion 7)
+ *
+ * Dimension 3 is why a string can be provably present, provably reachable and byte-identical to its
+ * approval — and still never do its job. The live instance (F11, 2026-07-29 two-tab playtest):
+ * humanAct() assigned its helper text across an if/else-if chain whose two conditions were
+ * INDEPENDENT (is an enemy adjacent? / is anyone holding cargo?). Wyatt's approved reason for the
+ * greyed Trade button sat in the `else` arm, so it was unreachable whenever an attack target happened
+ * to be adjacent — the greyed Trade button rendered with ATTACK's helper text beneath it while Attack
+ * was enabled.
+ *
+ * Two halves, both static — no DOM needed, which is this repo's convention for a *_check.js gate:
+ *   6a  INDEPENDENT-CONDITION SUPPRESSION. For each explanation variable (assigned a string, then
+ *       passed as ask()'s 4th argument), examine the if/else-if chain that assigns it and flag the
+ *       chain when its arms test DISJOINT sets of identifiers, so two can hold at once while only the
+ *       first assigns. A chain testing the SAME variable against different values is a genuine ladder
+ *       and is NOT flagged — that is the negative control.
+ *   6b  DISABLED WITHOUT A REACHABLE REASON. Every option carrying `disabled:<expr>` must have some
+ *       reason string reachable in the state where `<expr>` is true.
+ * ==========================================================================*/
+
+// ask()'s 4th argument is the helper text under the buttons. A call may span lines, so the scan is
+// over the whole file text rather than line by line.
+const ASK_CALL_RE = /\bask\s*\(([^;]*?)\)\s*;/gs;
+
+/** Identifiers a condition expression tests, ignoring property names, literals and keywords. */
+function conditionIdents(expr) {
+  const KEYWORDS = new Set(["true", "false", "null", "undefined", "length", "filter", "some", "every", "map", "includes", "Boolean", "String", "Number", "Math", "typeof", "await", "return"]);
+  const out = new Set();
+  // drop property accesses (`.length`, `.ing`) so `a.length` and `b.length` do not look related
+  for (const m of String(expr).replace(/\.[A-Za-z_$][A-Za-z0-9_$]*/g, "").matchAll(/[A-Za-z_$][A-Za-z0-9_$]*/g)) {
+    if (!KEYWORDS.has(m[0])) out.add(m[0]);
+  }
+  return out;
+}
+
+/** The `sub`-style explanation variables a file passes to ask() as its 4th argument. */
+function explanationVars(content) {
+  const names = new Set();
+  for (const m of content.matchAll(ASK_CALL_RE)) {
+    // split the argument list at top level (depth 0) so a nested call's commas do not confuse it
+    const args = [];
+    let depth = 0, cur = "", inStr = null;
+    for (const ch of m[1]) {
+      if (inStr) { cur += ch; if (ch === inStr) inStr = null; continue; }
+      if (ch === '"' || ch === "'" || ch === "`") { inStr = ch; cur += ch; continue; }
+      if ("([{".includes(ch)) depth++;
+      if (")]}".includes(ch)) depth--;
+      if (ch === "," && depth === 0) { args.push(cur); cur = ""; continue; }
+      cur += ch;
+    }
+    args.push(cur);
+    const fourth = (args[3] || "").trim();
+    const bare = fourth.match(/^([A-Za-z_$][A-Za-z0-9_$]*)$/);
+    if (bare) names.add(bare[1]);
+  }
+  return [...names];
+}
+
+function checkCoReachableExplanations(root) {
+  const failures = [];
+  const files = jsFilesRecursive(path.join(root, "src"));
+  let chainsChecked = 0, disabledChecked = 0, varsFound = 0;
+
+  for (const full of files) {
+    const rel = path.relative(root, full);
+    const content = fs.readFileSync(full, "utf8");
+    const lines = content.split("\n");
+
+    /* ---- 6a: an if/else-if chain assigning an explanation variable ---- */
+    for (const name of explanationVars(content)) {
+      varsFound++;
+      // collect the arms assigning this variable, and whether each is an `else if`
+      const arms = [];
+      const armRe = new RegExp(`^\\s*(\\}?\\s*else\\s+)?if\\s*\\((.+?)\\)\\s*${name}\\s*=(?!=)`);
+      lines.forEach((line, i) => {
+        if (/^\s*\/\//.test(line)) return;
+        const m = armRe.exec(line);
+        if (m) arms.push({ line: i + 1, isElse: !!m[1], cond: m[2] });
+      });
+      // a chain is an `if` followed by one or more `else if`s
+      const chain = arms.filter((a) => a.isElse);
+      if (!chain.length) continue;
+      chainsChecked++;
+      const first = arms.find((a) => !a.isElse);
+      if (!first) continue;
+      for (const arm of chain) {
+        const a = conditionIdents(first.cond), b = conditionIdents(arm.cond);
+        const shared = [...a].filter((x) => b.has(x));
+        if (shared.length === 0) {
+          failures.push(
+            `${rel}:${arm.line} — the explanation variable \`${name}\` is assigned across an if/else-if chain whose conditions are INDEPENDENT ` +
+            `(\`${first.cond.trim()}\` at :${first.line} tests {${[...a].join(", ")}}, \`${arm.cond.trim()}\` tests {${[...b].join(", ")}} — no shared identifier). ` +
+            `Both can hold at once, so the later arm's reason is unreachable whenever the earlier one fires. ` +
+            `FIX: give independent conditions independent \`if\`s, compose both reasons where both apply, and let a GREYED control's reason outrank an ENABLED control's informational tip.`
+          );
+        }
+      }
+    }
+
+    /* ---- 6b: every `disabled:` option must have a reachable reason ----
+     * A reason counts as reachable when the SAME guard flag the `disabled:` flag tests also decides
+     * an explanation string somewhere in the file. Two shapes both count, because both ship today:
+     *   an `if` arm      —  if(targets.length&&!canAfford)sub=`Yer too poor...`
+     *   a ternary        —  const offerSub=canOfferCoins?null:`Ye don't have any coin...`
+     * The flag name is matched WITHOUT a leading \b, because the character before `!` is usually
+     * `&` or `(` and \b never matches between two non-word characters — a subtlety that made this
+     * check report every greyed button as unexplained on its first run. */
+    const explVars = new Set(explanationVars(content));
+    const nonComment = lines.filter((l) => !/^\s*\/\//.test(l));
+    lines.forEach((line, i) => {
+      if (/^\s*\/\//.test(line)) return;
+      for (const m of line.matchAll(/disabled\s*:\s*!([A-Za-z_$][A-Za-z0-9_$]*)/g)) {
+        disabledChecked++;
+        const flagName = m[1];                    // e.g. "canAfford"
+        const guard = `!${flagName}`;
+        const flagRe = new RegExp(`\\b${flagName}\\b`);
+        const assignsExplanation = (l) => {
+          // an assignment to a variable this file passes to ask() as helper text …
+          for (const v of explVars) if (new RegExp(`\\b${v}\\s*=(?!=)`).test(l)) return true;
+          // … or a `<name>Sub`/`sub` declaration whose other ternary branch is null, which is the
+          // established shape for "there is nothing to explain in this state" …
+          if (/\b(?:sub|[A-Za-z_$][A-Za-z0-9_$]*Sub)\s*=(?!=)/.test(l)) return true;
+          // … or the reason passed INLINE as ask()'s 4th argument: `canCounter?null:` + a string.
+          // That ships today (the hail prompt) and is a perfectly good reason — it is simply never
+          // stored in a variable, so an assignment-only test would report it missing.
+          return new RegExp(`\\b${flagName}\\b\\s*\\?[^?]*:[^?]*[\`"']`).test(l) || new RegExp(`!\\s*${flagName}\\b\\s*\\?[^?]*[\`"']`).test(l);
+        };
+        const hasReason = nonComment.some((l) => flagRe.test(l) && assignsExplanation(l) && /[`"']/.test(l));
+        if (!hasReason) {
+          // the label of the option that actually carries this `disabled:` flag — the NEAREST
+          // preceding `label:` on the line, not the first one, since a line can hold several options
+          const before = line.slice(0, m.index);
+          const labels = [...before.matchAll(/label\s*:\s*(`[^`]*`|"[^"]*"|'[^']*')/g)];
+          const label = labels.length ? labels[labels.length - 1][1] : "(label not parsed)";
+          failures.push(
+            `${rel}:${i + 1} — option ${label} is greyed out by \`${guard}\` but no reason string anywhere in this file is decided by \`${flagName}\`, ` +
+            `so a player sees a dead button with no explanation. FIX: assign the helper text under \`if(...${guard}...)\` — in its own \`if\`, never an \`else if\`, so an independent condition cannot suppress it.`
+          );
+        }
+      }
+    });
+  }
+  return { ok: failures.length === 0, failures, stats: { varsFound, chainsChecked, disabledChecked } };
+}
+
+/* ================= Assertion 7: DELIVERY — a broadcast reaches everyone, so its content must not
+ *                                branch on the local viewer
+ *
+ * Dimension 4 of the four (see assertion 6's header). The rule, stated generally because that is
+ * what makes this a gate rather than three patches: A SINGLE BROADCAST REACHES EVERY CLIENT, so
+ * content that branches on the LOCAL viewer is always a defect. One message cannot express a
+ * per-viewer difference, however correctly it was authored.
+ *
+ * The live instance (F7, 2026-07-29 playtest): ask() sent
+ * `onBroadcast(seat===appState.mySeat?msg:spectatorLine)`. ask() runs on the HOST, so `mySeat` is
+ * the host's seat, and whichever branch the host took went to the whole table. Measured on a guest:
+ * the host's raw prompts arrived verbatim, and of 2516 recorded narration lines ZERO contained "is
+ * deciding" — the spectator line never reached any client. Two sibling sites had the same shape.
+ *
+ * The correct shape already ships: broadcast neutral content plus per-seat `variants`, and let each
+ * client select. netNarrate forwards variants to pickNarrVariant on the host and through netSetNarr
+ * to watchNarr on every guest.
+ *
+ * DELIVERY IS THE SHARED ROOT OF FOUR RECORDED DECISIONS. D-35 (sail wording), D-55 (highlight DOM
+ * contract), D-57 (guest fade) and now F7 are all one host path and one guest path for a single
+ * concept, drifting independently. D-56 concluded "host/guest drift is ONE path, not a pattern" —
+ * that answered a narrower question (does guest-side code author its own text?) and was right about
+ * it. This catches a different failure: not who writes the string, but WHO RECEIVES IT.
+ *
+ * TWO PRECISION REQUIREMENTS, both load-bearing:
+ *  - EXAMINE THE CONTENT ARGUMENT ONLY. netNarrate's own definition references the local seat inside
+ *    pickNarrVariant(...) — that is the SELECTION, which is the correct mechanism. Flagging it would
+ *    make the gate unsatisfiable, and an unsatisfiable gate gets loosened. The mechanism's definition
+ *    sites are exempt BY NAME, with the reason written next to the exemption.
+ *  - FAIL WITH THE FIX IN THE MESSAGE, naming the neutral-plus-variants shape, so the next person
+ *    hits a signpost rather than a puzzle.
+ * ==========================================================================*/
+const BROADCAST_SINKS = ["onBroadcast", "netNarrate", "netSetNarr", "netBroadcast"];
+// A reference to the LOCAL viewer's seat. `mySeat` is the ambient one; the three helpers each
+// resolve "is this seat the local one?" and are equally wrong in a broadcast's content.
+const LOCAL_VIEWER_RE = /\bmySeat\b|\bseatLocal\s*\(|\bdecisionIsLocal\s*\(|\bisLocalTo\s*\(/;
+// The MECHANISM's own definitions. These reference the local seat precisely in order to SELECT a
+// variant from a payload that is already neutral — the correct thing, and the thing this rule exists
+// to route everything through. Exempt by function NAME rather than by line, so the exemption cannot
+// silently migrate onto a different site when the file moves.
+const DELIVERY_MECHANISM_DEFINITIONS = [
+  "netNarrate",   // selects the local seat's variant for the host's own panel, then broadcasts neutral
+  "netBroadcast", // broadcasts only; its signature carries variants through untouched
+  "watchNarr",    // the guest side of the same selection
+  "pickNarrVariant",
+];
+
+/** Split a call's argument list at top level, so a nested call's commas do not confuse it. */
+function topLevelArgs(inner) {
+  const args = [];
+  let depth = 0, cur = "", inStr = null;
+  for (const ch of inner) {
+    if (inStr) { cur += ch; if (ch === inStr) inStr = null; continue; }
+    if (ch === '"' || ch === "'" || ch === "`") { inStr = ch; cur += ch; continue; }
+    if ("([{".includes(ch)) depth++;
+    if (")]}".includes(ch)) depth--;
+    if (ch === "," && depth === 0) { args.push(cur); cur = ""; continue; }
+    cur += ch;
+  }
+  args.push(cur);
+  return args;
+}
+
+/** Extract a call's argument text starting at the open paren index, balanced. */
+function callArgs(text, openIdx) {
+  let depth = 0, inStr = null;
+  for (let i = openIdx; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) { if (ch === inStr) inStr = null; continue; }
+    if (ch === '"' || ch === "'" || ch === "`") { inStr = ch; continue; }
+    if (ch === "(") depth++;
+    else if (ch === ")") { depth--; if (depth === 0) return text.slice(openIdx + 1, i); }
+  }
+  return null;
+}
+
+function checkBroadcastDelivery(root) {
+  const failures = [];
+  const files = jsFilesRecursive(path.join(root, "src"));
+  let callsChecked = 0, exempted = 0;
+
+  for (const full of files) {
+    const rel = path.relative(root, full);
+    const content = fs.readFileSync(full, "utf8");
+    // the byte offset each line starts at, so a match can be reported as file:line
+    const lineStarts = [0];
+    for (let i = 0; i < content.length; i++) if (content[i] === "\n") lineStarts.push(i + 1);
+    const lineOf = (idx) => { let lo = 0, hi = lineStarts.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (lineStarts[mid] <= idx) lo = mid; else hi = mid - 1; } return lo + 1; };
+
+    // the byte ranges belonging to a mechanism definition, so its own selection call is exempt
+    const exemptRanges = [];
+    for (const name of DELIVERY_MECHANISM_DEFINITIONS) {
+      const re = new RegExp(`(?:export\\s+)?function\\s+${name}\\s*\\(`, "g");
+      let dm;
+      while ((dm = re.exec(content))) {
+        // to the end of that line for a one-liner, or the end of the statement — a generous window,
+        // deliberately: the point is to exempt the MECHANISM, not to police its internals
+        const nl = content.indexOf("\n", dm.index);
+        exemptRanges.push([dm.index, nl < 0 ? content.length : nl]);
+      }
+    }
+    const isExempt = (idx) => exemptRanges.some(([a, b]) => idx >= a && idx <= b);
+
+    for (const sink of BROADCAST_SINKS) {
+      const re = new RegExp(`\\b${sink}\\s*\\(`, "g");
+      let m;
+      while ((m = re.exec(content))) {
+        const openIdx = m.index + m[0].length - 1;
+        // skip the sink's own definition and the mechanism sites
+        if (isExempt(m.index)) { exempted++; continue; }
+        const lineIdx = lineOf(m.index);
+        const lineText = content.split("\n")[lineIdx - 1] || "";
+        if (/^\s*\/\//.test(lineText)) continue;
+        const inner = callArgs(content, openIdx);
+        if (inner == null) continue;
+        const args = topLevelArgs(inner);
+        callsChecked++;
+        // THE CONTENT ARGUMENT ONLY. For netSetNarr the content is the 3rd argument (db, room, html);
+        // for every other sink it is the 1st. The variants argument is deliberately NOT examined —
+        // a per-seat variant list is the mechanism, and flagging it would make the rule unsatisfiable.
+        const contentArg = sink === "netSetNarr" ? (args[2] || "") : (args[0] || "");
+        if (LOCAL_VIEWER_RE.test(contentArg)) {
+          failures.push(
+            `${rel}:${lineIdx} — ${sink}()'s CONTENT argument branches on the local viewer: \`${contentArg.trim().slice(0, 110)}\`. ` +
+            `A single broadcast reaches EVERY client, so one message cannot express a per-viewer difference — whichever branch the host takes is what the whole table receives. ` +
+            `FIX: broadcast the neutral (spectator) content and pass the per-seat difference as variants — ${sink}(spectatorLine, [{ seat, html: actorLine }]) — and let each client select via pickNarrVariant/watchNarr.`
+          );
+        }
+      }
+    }
+  }
+  return { ok: failures.length === 0, failures, stats: { callsChecked, exempted } };
+}
+
 /* ================= Runner (real tree) ================= */
+/* ================= Assertion 8: the storm rain draws no unseeded and no GAME randomness ================= */
+// G19 (Wyatt-approved 2026-07-30). buildStormLayers() used to jitter four rain layers with unseeded
+// Math.random() and cache them per browser, so two players in the same room saw permanently
+// different weather (measured: 0.818s/200.5px vs 0.534s/264.7px). It now derives every layer from
+// mulberry32(game.seed) — a PRIVATE stream seeded from a number every client already shares.
+//
+// TWO WAYS THIS CAN REGRESS, and both are failures here:
+//   Math.random( — back to per-client weather, the bug itself.
+//   .r()         — FAR worse: appState.game.r() is the seeded GAME stream, and drawing four extra
+//                  numbers from it would advance that stream, desyncing every client in the room
+//                  AND every one of the 31 determinism fixtures. This is the one to catch.
+//
+// SCOPED BY CONTENT ANCHOR to those two functions, never file-wide or tree-wide. Math.random() is
+// legitimate elsewhere under src/ui/ (session id, room code, pop jitter), so a broad ban would be
+// wrong and would be widened away the first time it fired — which is how a gate stops catching
+// anything real. Anchored, it can stay strict forever.
+export function checkStormRainSeeded(root) {
+  const failures = [];
+  const rel = path.join("src", "ui", "board.js");
+  const full = path.join(root, rel);
+  // a synthetic --drill tree contains only the fixtures a given case needs; an absent file there is
+  // meaningless, the same convention LAYOUT_WIDE_EXPECTED and the chrome list already use
+  if (!fs.existsSync(full)) return { ok: true, failures, stats: { scanned: 0 } };
+  const src = fs.readFileSync(full, "utf8");
+
+  const i = src.indexOf("export function stormLayerSpecs");
+  const j = src.indexOf("export function buildStormLayers");
+  if (i < 0 || j < 0) {
+    // NOT a silent skip: if the anchors are gone the region cannot be located, and a check that
+    // cannot find its subject must go loud rather than pass.
+    failures.push(`RAIN-SEED-ANCHOR: could not locate stormLayerSpecs()/buildStormLayers() in ${rel} — re-anchor this assertion; do NOT delete it. The rule it protects (no unseeded and no game-rng randomness in the rain) is what keeps every client in a room seeing the same weather and all 31 determinism fixtures intact.`);
+    return { ok: false, failures, stats: { scanned: 1 } };
+  }
+  const lo = Math.min(i, j), hi = Math.max(i, j);
+  const after = src.indexOf("\nexport ", hi + 10);
+  const region = src.slice(lo, after < 0 ? src.length : after);
+  // comments in this region deliberately NAME both banned calls to explain the rule, so strip
+  // full-line comments before testing — otherwise the documentation trips its own gate
+  const live = region.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+
+  if (/Math\.random\(/.test(live)) {
+    failures.push(`RAIN-UNSEEDED: the storm-rain region of ${rel} calls Math.random() — every browser would get permanently different weather again, which is exactly what G19 fixed. Seed it from appState.game.seed via mulberry32.`);
+  }
+  if (/\.r\(\)/.test(live)) {
+    failures.push(`RAIN-GAME-RNG: the storm-rain region of ${rel} draws from the GAME rng (.r()) — this advances the seeded game stream, desyncing every client in the room AND all 31 determinism fixtures. Use a PRIVATE mulberry32(seed) instead; it consumes nothing.`);
+  }
+  if (!/mulberry32\(/.test(live)) {
+    failures.push(`RAIN-NO-RNG: the storm-rain region of ${rel} no longer calls mulberry32() — if the seeding was removed, the rain is either constant or unseeded; neither is what Wyatt approved.`);
+  }
+  return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
+}
+
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
   const results = [];
@@ -192,6 +759,22 @@ function runAll(root, { quiet = false } = {}) {
   const a4 = checkRetainedGlobalsAllowlist(root);
   log(`${a4.ok ? "PASS" : "FAIL"} retained-globals allowlist — only window.revealMyRecipe (+ the 4 debug hooks) permitted under src/`);
   results.push({ name: "retained-globals-allowlist", ...a4 });
+
+  const a5 = checkPirateRegister(root);
+  log(`${a5.ok ? "PASS" : "FAIL"} the D-29 pirate register holds across src/ and index.html (+ the layout intactness probe)`);
+  results.push({ name: "pirate-register", ...a5 });
+
+  const a6 = checkCoReachableExplanations(root);
+  log(`${a6.ok ? "PASS" : "FAIL"} co-reachability — a greyed control's reason is reachable in the state it explains (D-41/F11) [${a6.stats.varsFound} explanation var(s), ${a6.stats.chainsChecked} chain(s), ${a6.stats.disabledChecked} disabled option(s)]`);
+  results.push({ name: "co-reachable-explanations", ...a6 });
+
+  const a7 = checkBroadcastDelivery(root);
+  log(`${a7.ok ? "PASS" : "FAIL"} delivery — no broadcast's content branches on the local viewer (D-10/F7) [${a7.stats.callsChecked} broadcast call(s) checked, ${a7.stats.exempted} mechanism site(s) exempt]`);
+  results.push({ name: "broadcast-delivery", ...a7 });
+
+  const a8 = checkStormRainSeeded(root);
+  log(`${a8.ok ? "PASS" : "FAIL"} the storm rain is seeded from the game — no unseeded Math.random(), no GAME .r() (G19)`);
+  results.push({ name: "storm-rain-seeded", ...a8 });
 
   return results;
 }
@@ -263,9 +846,309 @@ function drill() {
     if (!drillOk) allDrillsOk = false;
   }
 
+  // --- Drill 5: the D-29 register. Three distinct failure modes, so three synthetic violations,
+  //     plus one NEGATIVE fixture proving the exclusions do not simply swallow everything (an
+  //     assertion that can only ever pass is not a gate either).
+  {
+    // 5a: an unconverted player-facing string under src/
+    resetFixture();
+    fixture("src/ui/prompt.js", "export const msg = `Cast your line — flip!`;\n");
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok;
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5a/5 (unconverted-register-in-src) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5b: an unconverted player-facing line in index.html
+    resetFixture();
+    fixture("index.html", `<html><body>\n<label>Your captain name</label>\n</body></html>\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok;
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5b/5 (unconverted-register-in-index-html) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5c: the layout landmine detonated — a bare substring replace produced "layet"
+    resetFixture();
+    fixture("src/ui/board.js", "const layetWide = 1; // was layoutWide before a bare replace\n");
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("LAYOUT-CORRUPTION"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5c/5 (layout-corruption) — expected FAIL naming LAYOUT-CORRUPTION, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5d: the layoutWide count drifted (index.html present, but with 3 occurrences instead of 4)
+    resetFixture();
+    fixture("index.html", `<html><body>\n<!-- layoutWide layoutWide layoutWide -->\n</body></html>\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("LAYOUT-WIDE-COUNT"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5d/5 (layoutWide-count-drift) — expected FAIL naming LAYOUT-WIDE-COUNT, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5e: NEGATIVE control — a converted string, a leading comment carrying the old register, an
+    //     anchored comment, the sidebet identifier and the three LABEL-class sites (F1) must ALL
+    //     pass. This proves 5a-5d fail for the right reason rather than the check being
+    //     unconditionally red, and doubles as the label exception's positive control: a fixture
+    //     carrying the real anchors passes, including checkChromeExceptionsFresh.
+    resetFixture();
+    fixture("src/ui/prompt.js", "export const msg = `Cast yer line — flip!`;\n// this comment mentions your pantry and is excluded because D-29 excludes comments\n");
+    fixture("src/ui/flow.js", "if (onRim(c)) continue; // entering the trade winds ends your move\n");
+    // the sidebet builder's real code shape, fragment-for-fragment — an unfaithful fixture here
+    // would let a broken exclusion pass this control unnoticed. The tooltip LABEL line is the third
+    // label-kind anchor, and it must be present or checkChromeExceptionsFresh reports it stale.
+    fixture("src/ui/util.js", [
+      "    const you=isLocalTo(e.p,viewerSeat);",
+      "    if(e.won)return {cls:\"trade\",txt:e.amt",
+      "      ?(you?`ye called it! (+${e.delta})`:`called it! (+${e.delta})`)",
+      "      :(you?`ye called it!`:`called it!`)};",
+      "    return {cls:\"trade\",txt:you",
+      "      ?`ye backed the wrong ship`:`backed the wrong ship`};",
+      "    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))",
+      "",
+    ].join("\n"));
+    fixture("src/ui/recipe.js", "export const d = 'melt-in-your-mouth shortbread';\n");
+    fixture("src/ui/lobby.js", `    if(s.id)label=me?"you":"";\n    else label="🤖 bot";\n`);
+    // G16: the fixture now also carries the two kind:"notice" anchors — the privacy line and the
+    // credits paragraph. Both are real player-visible index.html text using the plain pronoun, so
+    // they are the notice kind's positive control AND satisfy checkChromeExceptionsFresh.
+    fixture("index.html", `<html><body>\n<!-- layoutWide layoutWide layoutWide layoutWide -->\n<input id="ppName0" placeholder="Player 1 (you)">\n<div>Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>\n<div>and to Juju, our overly enthusiastic noodle, for keeping your feet warm through every late night</div>\n</body></html>\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = r.ok;
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5e/8 (negative control — exclusions hold, incl. all three F1 LABEL anchors and both G16 NOTICE anchors) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5f: the CHROME exception must NOT have widened into its file. A genuinely SPOKEN string in
+    //     src/ui/lobby.js using the plain pronoun still has to fail — this is the control that
+    //     proves the exception excuses three anchored lines and not a whole file.
+    resetFixture();
+    fixture("src/ui/lobby.js", `    if(s.id)label=me?"you":"";\n    $("waitMsg").textContent="Waiting for your mateys to join the voyage…";\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("D-29-REGISTER") && f.includes("lobby.js"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5f/8 (CHROME exception has not widened — a SPOKEN string in the same file still fails) — expected FAIL naming D-29-REGISTER, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5g: a STALE chrome anchor fails. The file is present but the anchored site is gone — e.g. a
+    //     later pass "fixed" the label back to ye and left the exception sitting there as cover.
+    resetFixture();
+    fixture("src/ui/lobby.js", `    if(s.id)label=me?"matey":"";\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("D-29-CHROME-STALE") && f.includes("lobby.js"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5g/8 (STALE CHROME anchor — an exclusion that excuses nothing is cover, not an exclusion) — expected FAIL naming D-29-CHROME-STALE, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+
+    // 5h: the CHROME exception is scoped PER FILE — the lobby's anchor must not excuse the same text
+    //     appearing in a different file, which is how a per-file list differs from a global one.
+    resetFixture();
+    fixture("src/ui/panel.js", `    const label=me?"you":"";\n`);
+    {
+      const r = checkPirateRegister(tmpRoot);
+      const drillOk = !r.ok && r.failures.some((f) => f.startsWith("D-29-REGISTER") && f.includes("panel.js"));
+      console.log(`${drillOk ? "PASS" : "FAIL"} drill 5h/8 (CHROME exception is scoped per file — the lobby anchor does not excuse panel.js) — expected FAIL naming D-29-REGISTER, got ${r.ok ? "PASS" : "FAIL"}`);
+      for (const f of r.failures) console.log(`    ${f}`);
+      if (!drillOk) allDrillsOk = false;
+    }
+  }
+
+  /* ---- Assertion 6: CO-REACHABILITY, red-proofed against the REAL broken code ----
+   * The fixture is `git show ab98e04:src/ui/flow.js` — the genuine tree where the greyed Trade
+   * reason sat in an `else` arm — not a synthetic approximation. A gate written loosely enough to
+   * pass that tree therefore fails its own drill, which is the whole point of using real code here.
+   */
+  {
+    resetFixture();
+    const realBroken = execFileSync("git", ["show", "ab98e04:src/ui/flow.js"], { cwd: REAL_ROOT, maxBuffer: 1e8 }).toString();
+    fixture("src/ui/flow.js", realBroken);
+    const r = checkCoReachableExplanations(tmpRoot);
+    const namesSuppression = r.failures.some((f) => /explanation variable `sub`.*INDEPENDENT/s.test(f));
+    const ok = !r.ok && namesSuppression;
+    console.log(`${ok ? "PASS" : "FAIL"} drill 6a (co-reachability, against the REAL ab98e04 code) — expected FAIL naming the suppressed reason, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!ok) allDrillsOk = false;
+  }
+  {
+    // 6b: a greyed option with NO reason anywhere is a dead button with no explanation
+    resetFixture();
+    fixture("src/ui/flow.js", [
+      "export async function f(p){",
+      "  const canAfford=p.coins>=2;",
+      "  const opts=[{label:\"Attack\",value:\"attack\",disabled:!canAfford}];",
+      "  let sub=null;",
+      "  const v=await ask(`pick`,opts,null,sub);",
+      "  return v;",
+      "}",
+    ].join("\n"));
+    const r = checkCoReachableExplanations(tmpRoot);
+    const ok = !r.ok && r.failures.some((f) => /no reason string anywhere in this file is decided by `canAfford`/.test(f));
+    console.log(`${ok ? "PASS" : "FAIL"} drill 6b (a greyed option with no reason) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 1 — an EXCLUSIVE LADDER. A chain whose arms test the SAME variable against
+    // different values is genuinely exclusive and must NOT be flagged. Without this control the
+    // check would flag every switch-like chain in the codebase and would then get loosened.
+    resetFixture();
+    fixture("src/ui/flow.js", [
+      "export async function f(p){",
+      "  const reason=p.reason;",
+      "  let sub=null;",
+      "  if(reason===\"justDocked\")sub=`ye just docked`;",
+      "  else if(reason===\"home\")sub=`ye be home`;",
+      "  else if(reason===\"dock\")sub=`already parked`;",
+      "  const v=await ask(`pick`,[],null,sub);",
+      "  return v;",
+      "}",
+    ].join("\n"));
+    const r = checkCoReachableExplanations(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 6c (negative control — an exclusive value ladder on ONE variable is not flagged) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 2 — the FIXED tree must pass. This is what proves the fix and the gate agree,
+    // rather than the gate being satisfiable only by deleting the helper text altogether.
+    resetFixture();
+    fixture("src/ui/flow.js", fs.readFileSync(path.join(REAL_ROOT, "src/ui/flow.js"), "utf8"));
+    const r = checkCoReachableExplanations(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 6d (negative control — the FIXED src/ui/flow.js passes) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+
+  /* ---- Assertion 7: DELIVERY, red-proofed against the REAL broken code at ab98e04 ----
+   * All three converted sites must be NAMED. A gate that caught only the one the finding mentioned
+   * would have left the other two shipping the same defect.
+   */
+  {
+    resetFixture();
+    for (const rel of ["src/ui/util.js", "src/ui/flow.js", "src/orchestrator.js"]) {
+      fixture(rel, execFileSync("git", ["show", `ab98e04:${rel}`], { cwd: REAL_ROOT, maxBuffer: 1e8 }).toString());
+    }
+    const r = checkBroadcastDelivery(tmpRoot);
+    const named = ["util.js", "flow.js", "orchestrator.js"].filter((f) => r.failures.some((x) => x.includes(f)));
+    const hasFix = r.failures.some((f) => /\[\{ seat, html: actorLine \}\]/.test(f));
+    const ok = !r.ok && named.length === 3 && hasFix;
+    console.log(`${ok ? "PASS" : "FAIL"} drill 7a (delivery, against the REAL ab98e04 code) — expected FAIL naming all 3 sites with the fix in the message, got ${r.ok ? "PASS" : "FAIL"} naming [${named.join(", ")}]${hasFix ? " with the fix" : " WITHOUT the fix in the message"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 1 — the MECHANISM's own definition references the local seat in order to
+    // SELECT a variant. That is the correct thing and must NOT be flagged; flagging it would make the
+    // rule unsatisfiable, and an unsatisfiable rule gets loosened rather than obeyed.
+    resetFixture();
+    fixture("src/orchestrator.js", [
+      "export function netNarrate(html,variants){showNarration(pickNarrVariant({html,variants},appState.mySeat));if(appState.isHost)netSetNarr(appState.db,appState.room,html,cb,variants);}",
+      "export function netBroadcast(html,variants){if(appState.isHost)netSetNarr(appState.db,appState.room,html,cb,variants);}",
+    ].join("\n"));
+    const r = checkBroadcastDelivery(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 7b (negative control — the mechanism's own selection site is not flagged) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 2 — a correctly converted CALL, neutral content plus per-seat variants. If
+    // this were flagged, the gate would be demanding something no correct code could satisfy.
+    resetFixture();
+    fixture("src/ui/util.js", "export function ask(msg){const seat=appState.curSeat;netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);}");
+    const r = checkBroadcastDelivery(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 7c (negative control — a correctly converted call passes) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+  {
+    // NEGATIVE CONTROL 3 — the FIXED tree must pass, which is what proves the fix and the gate agree.
+    resetFixture();
+    for (const rel of ["src/ui/util.js", "src/ui/flow.js", "src/orchestrator.js"]) {
+      fixture(rel, fs.readFileSync(path.join(REAL_ROOT, rel), "utf8"));
+    }
+    const r = checkBroadcastDelivery(tmpRoot);
+    console.log(`${r.ok ? "PASS" : "FAIL"} drill 7d (negative control — the FIXED tree passes) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!r.ok) allDrillsOk = false;
+  }
+
+  /* ---- assertion 8 (G19): the storm rain draws no unseeded and no GAME randomness ---- */
+  const RAIN_GOOD = [
+    'export function stormLayerSpecs(seed){',
+    '  const rnd=mulberry32(seed);',
+    '  return [{dur:0.676*rnd(),scale:0.969*rnd()}];',
+    '}',
+    'export function buildStormLayers(ov,seed){',
+    '  for(const s of stormLayerSpecs(seed))ov.appendChild(mk(s));',
+    '}',
+    'export function somethingElse(){ return Math.random(); }',
+    '',
+  ].join("\n");
+
+  // 8a: back to per-client weather — the bug G19 fixed
+  {
+    resetFixture();
+    fixture("src/ui/board.js", RAIN_GOOD.replace("const rnd=mulberry32(seed);", "const rnd=Math.random;"));
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("RAIN-NO-RNG") || f.startsWith("RAIN-UNSEEDED"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8a (rain re-seeded from unseeded Math.random) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 8b: THE ONE THAT MATTERS — drawing from the GAME rng. This would desync every client in the
+  //     room and all 31 determinism fixtures, and it looks superficially like a correct "seeded" fix.
+  {
+    resetFixture();
+    fixture("src/ui/board.js", RAIN_GOOD.replace("0.676*rnd()", "0.676*appState.game.r()"));
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("RAIN-GAME-RNG"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8b (rain drawn from the GAME rng — desyncs clients AND fixtures) — expected FAIL naming RAIN-GAME-RNG, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 8c: the region cannot be located — an anchored check whose subject vanished must go LOUD, not
+  //     pass because it found nothing. This is the vacuous-check trap, drilled.
+  {
+    resetFixture();
+    fixture("src/ui/board.js", "export function drawBoard(){}\n");
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("RAIN-SEED-ANCHOR"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8c (anti-vacuity — a lost anchor FAILS rather than silently passing) — expected FAIL naming RAIN-SEED-ANCHOR, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 8d: NEGATIVE CONTROL — a correctly seeded region passes, AND a legitimate Math.random() OUTSIDE
+  //     the two anchored functions is not flagged. That scoping is why this can stay strict.
+  {
+    resetFixture();
+    fixture("src/ui/board.js", RAIN_GOOD);
+    const r = checkStormRainSeeded(tmpRoot);
+    const drillOk = r.ok;
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 8d (negative control — seeded rain passes, and Math.random() elsewhere in the file is untouched) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 
-  console.log(`\n${allDrillsOk ? "ALL 4 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allDrillsOk ? "ALL 8 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allDrillsOk ? 0 : 1);
 }
 

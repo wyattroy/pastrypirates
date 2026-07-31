@@ -11,10 +11,16 @@
 // --verify    (default when no flag is given) replays every seed fresh, hashes the result, and
 //             compares against the committed manifest — the behavior oracle.
 //
-// Corpus: 30 seeds, 12345-12374 (D-03), rotating the 5 bot personalities across the 4 seats per
-// seed so composition varies across the range. Each seed file ends with one extra "__final__"
-// line (D-05) so the final-state snapshot participates in that seed's single SHA-256, rather than
-// splitting the oracle across two files with two comparison mechanisms.
+// Corpus: 30 base seeds, 12345-12374 (D-03), PLUS one explicit extra seed (14-04, EXTRA_SEEDS
+// below) added to restore REQUIRED_EVENT_TYPES coverage for `shipwrecked` under the post-14-03
+// engine (D-15/D-18/D-21 shifted the RNG stream and routing enough that none of the original 30
+// seeds produces it any more — see docs/DETERMINISM-RERECORD.md Section 6a). The base 30 keep
+// their original seedIndex (0..29) and personality rotation unchanged; the extra seed gets the
+// next seedIndex (30) so its rotation is deterministic and documented by the same rule. Both
+// `capture()` and `verify()` iterate base-range-then-extras in this fixed order. Each seed file
+// ends with one extra "__final__" line (D-05) so the final-state snapshot participates in that
+// seed's single SHA-256, rather than splitting the oracle across two files with two comparison
+// mechanisms.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -34,7 +40,25 @@ export const MANIFEST_PATH = path.join(FIXTURES_DIR, "manifest.json");
 // same personality roster / seeding convention real_game_test.js established
 const SEED_BASE = 12345;
 const BOT_STRATS = ["pirate", "trader", "balanced", "rusher", "monopolist"];
-const SEED_COUNT = 30; // D-03: seeds 12345-12374 inclusive
+const SEED_COUNT = 30; // D-03: seeds 12345-12374 inclusive — the base contiguous range, unchanged
+
+// 14-04 — one explicit extra seed appended after the base range to restore `shipwrecked`
+// coverage under the post-14-03 engine. First-match over a bounded search (seeds 12375-12379,
+// evaluated at seedIndex 30, the FIXED_SEED_INDEX every extra seed after the first would also
+// use if more were ever added) — see docs/DETERMINISM-RERECORD.md Section 6a/6b for the search
+// log. Not part of the base contiguous range; appended, never inserted, so the base 30's
+// seedIndex (0..29) and personality rotation never shift.
+const EXTRA_SEEDS = [12379];
+
+// Every seed this corpus captures/verifies, in the fixed order capture()/verify() both use:
+// base range first (seedIndex 0..SEED_COUNT-1), then EXTRA_SEEDS in array order (seedIndex
+// SEED_COUNT, SEED_COUNT+1, ...).
+function allSeedsWithIndex() {
+  const out = [];
+  for (let i = 0; i < SEED_COUNT; i++) out.push({ seed: SEED_BASE + i, seedIndex: i });
+  EXTRA_SEEDS.forEach((seed, k) => out.push({ seed, seedIndex: SEED_COUNT + k }));
+  return out;
+}
 
 // D-04 — mapped from the mechanics D-04 names to the engine's actual event-type strings. Do not
 // remove an entry to make a capture pass; if one is genuinely absent, that's a finding to surface.
@@ -106,9 +130,8 @@ async function capture() {
 
   const perSeed = [];
   const coverage = {};
-  for (let i = 0; i < SEED_COUNT; i++) {
-    const seed = SEED_BASE + i;
-    const g = playSeed(Game, roundCfg, i, seed);
+  for (const { seed, seedIndex } of allSeedsWithIndex()) {
+    const g = playSeed(Game, roundCfg, seedIndex, seed);
     if (!g.events.length) {
       console.error(`FAIL capture: seed ${seed} produced zero events — record flag or extraction is suspect.`);
       process.exit(1);
@@ -135,8 +158,9 @@ async function capture() {
     capturedAt: new Date().toISOString(),
     seedBase: SEED_BASE,
     seedCount: SEED_COUNT,
+    extraSeeds: EXTRA_SEEDS, // 14-04: appended after the base range, see file header comment
     botStrategies: BOT_STRATS,
-    seatRotation: "BOT_STRATS[(seedIndex + seat) % BOT_STRATS.length] for seat in 0..3",
+    seatRotation: "BOT_STRATS[(seedIndex + seat) % BOT_STRATS.length] for seat in 0..3; base range is seedIndex 0..seedCount-1, extraSeeds continue the same index from seedCount",
     engineSourceHash: sourceHash,
     requiredEventTypes: REQUIRED_EVENT_TYPES,
     coverage,
