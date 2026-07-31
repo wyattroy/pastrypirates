@@ -103,6 +103,115 @@ bot turns and narration holds dominate the wall clock, so poll rather than block
 while the loop is running wedges it — tried, and it cost a run. If you must shortcut, call the real
 render functions directly (below) instead of editing state the loop is mid-way through reading.
 
+## 5b. The autoplay driver — the loop that actually plays
+
+One `setInterval` that answers whatever the game is currently asking. **Priority order matters** —
+the flip coin must be checked before the action buttons, or the loop sits on a dock/fish flip
+forever (see 4a).
+
+```js
+const st = (await import('/src/state/index.js')).appState;   // LIVE appState
+window.__g = { n:0, acts:[], err:null, timer:null };
+const G = window.__g;
+
+// invert sailHighlightRect() to get board coords from a highlight rect
+const cellOf = r => { const s=parseFloat(r.getAttribute('width')), px=(s/0.9)+4, i=(px-s)/2;
+  return [Math.round((parseFloat(r.getAttribute('x'))-i)/px),
+          Math.round((parseFloat(r.getAttribute('y'))-i)/px)]; };
+
+// sail toward the island holding what MY seat still needs; once the recipe is done, toward home
+const target = () => { const g=st.game, me=g.players[st.mySeat], n=g.needs(me);
+  return n.length ? (g.islandOf[n[0]] || g.home) : g.home; };
+
+G.timer = setInterval(() => {
+  try {
+    G.n++;
+    // 1. the flippenator coin IS a button when armed — CHECK THIS FIRST
+    const coin = document.getElementById('flipCoinWrap');
+    if (coin && coin.classList.contains('active') && coin.onclick) { coin.onclick(); return; }
+
+    // 2. a sail prompt: pick the highlighted square closest to the target
+    const cells = [...document.querySelectorAll('.sailCell')];
+    if (cells.length) { const T = target(); let b = cells[0], bd = 1e9;
+      for (const c of cells) { const [x,y] = cellOf(c);
+        const d = Math.abs(x-T[0]) + Math.abs(y-T[1]); if (d < bd) { bd = d; b = c; } }
+      b.dispatchEvent(new MouseEvent('click', {bubbles:true})); return; }
+
+    // 3. any other prompt. NEVER "back" (the side-bet Back loops forever).
+    const btns = [...document.querySelectorAll('#actionPanel .apBtn')]
+      .filter(b => !/back|←|‹/i.test(b.textContent));
+    if (!btns.length) return;
+    // paying to anchor every storm bankrupts the captain, and being broke blocks sailing entirely
+    const noAnchor = btns.filter(b => !/anchor/i.test(b.textContent));
+    const pool = noAnchor.length ? noAnchor : btns;
+    // docking is the only action that advances a recipe, so prefer it
+    const pick = pool.find(b => /dock/i.test(b.textContent))
+              || pool.find(b => /fish/i.test(b.textContent))
+              || pool[0];
+    G.acts.push(pick.textContent.trim().slice(0,16));
+    if (G.acts.length > 25) G.acts.shift();
+    pick.click();
+  } catch (e) { G.err = String(e.message).slice(0,80); }
+}, 600);
+```
+
+Stop it with `clearInterval(window.__g.timer)`. Watch it with `window.__g` — `n` (ticks), `acts`
+(recent actions), `err`. **A rising `n` with a flat event count means it is waiting, not stuck** —
+usually a bot turn with narration holds.
+
+To stop automatically at the end of a voyage, add this as the first line of the interval:
+
+```js
+const sw = document.getElementById('statsWrap');
+if (sw && getComputedStyle(sw).display !== 'none') { /* snapshot here */ clearInterval(G.timer); return; }
+```
+
+Snapshot **inside** that branch, not afterwards — the End of Voyage state is what you came for and a
+later read can miss it.
+
+## 5c. Driving a GUEST seat while a human hosts
+
+This is the setup for verifying multiplayer without a second person. The human hosts in one browser;
+this drives the other seat.
+
+**Use a different BROWSER, not a second tab.** Tabs share `localStorage` and therefore one `pp_id`,
+so the guest would rejoin as the host. Different browsers have separate storage. If you must use the
+same browser, set a distinct id before the page boots:
+
+```js
+localStorage.clear();
+localStorage.setItem('pp_id', 'claude-guest-' + Math.floor(Math.random()*1e6));
+location.reload();
+```
+
+Then join:
+
+```js
+document.getElementById('pname').value = 'Claude';
+document.getElementById('choiceJoin').click();
+await new Promise(r => setTimeout(r, 600));
+document.getElementById('joinCode').value = 'ABCD';       // the host's code
+document.getElementById('joinName').value = 'Claude';
+document.getElementById('btnJoin').click();
+```
+
+Confirm with `__pp_app_state_debug()`: `room` set, `isHost:false`, and `mySeat` is YOUR seat — the
+driver above reads `st.mySeat`, so it targets the right captain's needs rather than seat 0's.
+
+**Guest prompts arrive through `watchPrompt` but render into the same `#actionPanel`**, so the same
+driver works unchanged on either side.
+
+**What to assert for lockstep** (this is the real value of driving the guest — drift shows up as a
+mismatch instead of a feeling):
+
+| Field | Meaning |
+|---|---|
+| `turnOrder` | must be identical on both clients |
+| `game.events.length` | the broadcast frontier — should track the host's |
+| `timerOff` / `shotClockPaused` | the host's clock changes must propagate here |
+| `turnExpired` | should NOT be stuck true after a pause/resume cycle (that was BUG-02) |
+| `game.players[].pos` | positions must match the host's board |
+
 ## 6. Inspecting state
 
 `window.__pp_app_state_debug()` returns a **shallow copy** of `appState` (`src/main.js`). Also
