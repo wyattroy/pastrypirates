@@ -160,14 +160,22 @@ export function broadcastClock(){
   if(payload&&appState.shotClockPaused)payload.pauseElapsed=appState.shotClockPauseElapsed;
   netSetClock(appState.db,appState.room,payload,netFail("clock"));
 }
-// #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
-// table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
-// any running clock at once (so the current player is un-timed the moment anyone flips it off).
+// #7 / FIX-02/N-03 (phase 21): any player may switch the turn timer off/on, in EVERY mode — the
+// early return that used to make this a silent no-op with no Firebase connection (the D-20 "dead
+// control" bug) is gone. Persisted locally FIRST, before either branch, so solo and pass-and-play
+// (which never used to reach this line at all) actually remember the preference too (D-19). Then,
+// exactly like togglePause() immediately below: multiplayer (db && room) writes Firebase so the
+// whole table stays in sync via watchTimer(); solo/pass-and-play calls applyTimerOff() directly —
+// the SAME body watchTimer() calls, carrying the BUG-02 re-arm fix verbatim (D-17/D-18), so neither
+// direction can drift between the networked and local path.
 export function toggleTimer(){
-  if(!appState.db||!appState.room)return;
   const next=!appState.timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
-  netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
+  if(appState.db&&appState.room){
+    netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
+  }else{
+    applyTimerOff(next);
+  }
 }
 // CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
 // countdown AND bot captains — not just the ⏱ timer-off toggle above (D-05: the two coexist).
@@ -1258,6 +1266,14 @@ export function beginGame(cfg,seed){
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
   watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
+  // D-19 (phase 21): this used to be read ONLY inside the isHost&&db&&room branch below, which
+  // never runs in solo or pass-and-play — so appState.timerOff silently kept its `false` default
+  // there and a player who switched the timer off last game got it back on every new game. Read
+  // unconditionally, in every mode, before that branch — guarded by !appState.replaying so a
+  // reload-replay keeps whatever the live game already had, exactly like the dlog reset above.
+  if(!appState.replaying){
+    try{appState.timerOff=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
+  }
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){

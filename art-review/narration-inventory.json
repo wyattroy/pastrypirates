@@ -155,7 +155,7 @@
     {
       "id": "adhoc.battle.opening",
       "file": "src/orchestrator.js",
-      "line": 421,
+      "line": 429,
       "fn": "asyncBattle",
       "tableDriven": false,
       "group": "Battle",
@@ -169,7 +169,7 @@
     {
       "id": "adhoc.round.header",
       "file": "src/orchestrator.js",
-      "line": 811,
+      "line": 819,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -183,7 +183,7 @@
     {
       "id": "adhoc.round.finalheader",
       "file": "src/orchestrator.js",
-      "line": 835,
+      "line": 843,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -197,7 +197,7 @@
     {
       "id": "adhoc.voyageend.drumroll",
       "file": "src/orchestrator.js",
-      "line": 875,
+      "line": 883,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -211,7 +211,7 @@
     {
       "id": "adhoc.voyageend.nobodyfinished",
       "file": "src/orchestrator.js",
-      "line": 891,
+      "line": 899,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -506,7 +506,7 @@
   "prompts": [
     {
       "file": "src/orchestrator.js",
-      "line": 309,
+      "line": 317,
       "fn": "renderBattle",
       "kind": "panel",
       "rawMsg": "`<div class=\"btl\">\n    <div class=\"btl-hd\"><span>${title}</span><span class=\"rnd\">Round ${o.round} · first to ${need}</span></div>\n    <div class=\"btl-body\">\n      <div class=\"btl-col${o.live===\"a\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(A.idx)}\">${nm(A.idx)}</div>\n        <div class=\"role\">${o.roleA||\"Attacker\"}</div>\n        ${coinHTML(o.atState,o.atBs,o.winCoin===\"a\")}\n        ${pipsHTML(o.a,col(A.idx),need)}\n      </div>\n      <div class=\"btl-mid\">VS</div>\n      <div class=\"btl-col${o.live===\"d\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(D.idx)}\">${nm(D.idx)}</div>\n        <div class=\"role\">${o.roleD||\"Defender\"}</div>\n        ${coinHTML(o.dfState,o.dfBs,o.winCoin===\"d\")}\n        ${pipsHTML(o.d,col(D.idx),need)}\n      </div>\n    </div>\n    ${battleFooter(o)}\n  </div>`",
@@ -520,7 +520,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 561,
+      "line": 569,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`",
@@ -551,7 +551,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 619,
+      "line": 627,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(lose.idx)}, ye lost! Pay with…`",
@@ -582,7 +582,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 629,
+      "line": 637,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(win.idx)}, choose yer plunder!`",
@@ -596,7 +596,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 979,
+      "line": 987,
       "fn": "watchDraftPrompt",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
@@ -610,7 +610,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1051,
+      "line": 1059,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
@@ -624,7 +624,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1063,
+      "line": 1071,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1372,
+      "line": 1388,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -1248,7 +1248,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 533,
+      "line": 541,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"score\">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`",
       "id": "misc.battleline.bothheadsdownwind"
@@ -1256,7 +1256,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 535,
+      "line": 543,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"cancel\">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`",
       "id": "misc.battleline.bothheadscrosswind"
@@ -1264,7 +1264,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 542,
+      "line": 550,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"score\">${hitName} lands a hit!</span>`",
       "id": "misc.battleline.hitlands"
@@ -1272,7 +1272,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 545,
+      "line": 553,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"cancel\">Both miss — ⚫️ TAILS all round.</span>`",
       "id": "misc.battleline.bothmiss"
@@ -1360,7 +1360,7 @@
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 748,
+      "line": 756,
       "fn": "recipeDraftNet",
       "anchor": "choosing their recipe",
       "id": "misc.draftwait.recipechoosing"
@@ -1368,7 +1368,7 @@
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 755,
+      "line": 763,
       "fn": "recipeDraftNet",
       "anchor": "Recipe chosen! Waiting for the rest of the crew",
       "id": "misc.draftwait.recipechosen"
@@ -1392,7 +1392,7 @@
     {
       "category": "introBarrier",
       "file": "src/orchestrator.js",
-      "line": 828,
+      "line": 836,
       "fn": "runLiveNet",
       "rawMsg": "`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`",
       "rawButton": "\"🦜 Final round — set sail!\"",
@@ -1443,7 +1443,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1102,
+      "line": 1110,
       "fn": "createRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.createnoconnection"
@@ -1451,7 +1451,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1134,
+      "line": 1142,
       "fn": "createRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.createcapacity"
@@ -1459,7 +1459,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1168,
+      "line": 1176,
       "fn": "joinRoom",
       "rawMsg": "\"Enter the room code yer host shared.\"",
       "id": "misc.mperror.entercode"
@@ -1467,7 +1467,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1174,
+      "line": 1182,
       "fn": "joinRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.joinnoconnection"
@@ -1475,7 +1475,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1178,
+      "line": 1186,
       "fn": "joinRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.joincapacity"
@@ -1483,7 +1483,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1180,
+      "line": 1188,
       "fn": "joinRoom",
       "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`",
       "id": "misc.mperror.nogamefound"
@@ -1491,7 +1491,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1187,
+      "line": 1195,
       "fn": "joinRoom",
       "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\"",
       "id": "misc.mperror.alreadysailed"
@@ -1499,7 +1499,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1198,
+      "line": 1206,
       "fn": "joinRoom",
       "rawMsg": "\"Too many pirates already in that game.\"",
       "id": "misc.mperror.roomfull"
@@ -1507,7 +1507,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1208,
+      "line": 1216,
       "fn": "watchRoom",
       "rawMsg": "\"That game no longer exists.\"",
       "id": "misc.mperror.gamegone"
@@ -1515,7 +1515,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1239,
+      "line": 1247,
       "fn": "startGame",
       "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\"",
       "id": "misc.mperror.serviceunreachable"
