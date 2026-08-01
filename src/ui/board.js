@@ -571,6 +571,14 @@ function windEnsureLayer(){
 // live readout at most every WIND_READOUT_MS (19-RESEARCH.md Pitfall 4: the instrument must not
 // become the stutter). Then, if the switch is on and the count is nonzero, writes each dot's
 // transform as a single translate3d(...) string plus its opacity, and re-arms itself.
+//
+// AT A CLAMPED COUNT OF 0 (or with the switch off), windDotEls is empty (or the transform-writing
+// branch is skipped) — no dot transform is written on that frame, and buildWindDots has already
+// removed every `.wdot` node from the DOM, so there is zero residue. The loop itself DOES NOT
+// STOP in that case — it keeps re-arming via requestAnimationFrame every frame regardless of the
+// dot count, on purpose: the readout must still be able to sample the board's own behaviour with
+// the dots off, which is what makes the off-state baseline measurable in 19-05. Do not "fix" this
+// by cancelling the loop when the count reaches 0 — that would make the off-state unmeasurable.
 export function windDotLoop(now){
   const delta=windLastFrameMs==null?null:now-windLastFrameMs;
   windLastFrameMs=now;
@@ -661,6 +669,35 @@ export function buildWindHud(){
   num.textContent=String(windDotCount);
   dialRow.appendChild(num);
   hud.appendChild(dialRow);
+
+  // Finger-friendly stepping (D-04): a slider alone is hard to land on an exact value with a
+  // thumb. #windDialMinus/#windDialPlus step the count by WIND_DIAL_STEP; #windDial10 jumps
+  // straight to WIND_DOT_DEFAULT (10), making run 2's "lock it to exactly 10" one tap. All three
+  // route through windSetDotCount so they inherit its clamp — the visible control and the tap
+  // target are the same real `button` node, per docs/DRIVING-THE-GAME.md's #flipCoinWrap warning.
+  const WIND_DIAL_STEP=5;
+  const stepRow=document.createElement("div");
+  stepRow.style.display="flex";
+  stepRow.style.gap="6px";
+  stepRow.style.marginTop="6px";
+  function windStepButton(id,label,onClick){
+    const b=document.createElement("button");
+    b.id=id;
+    b.textContent=label;
+    b.style.flex="1";
+    b.style.minHeight="44px";
+    b.style.minWidth="44px";
+    b.style.touchAction="manipulation";
+    b.onclick=onClick;
+    return b;
+  }
+  const minusBtn=windStepButton("windDialMinus","-5",function(){ windSetDotCount(windDotCount-WIND_DIAL_STEP); });
+  const plusBtn=windStepButton("windDialPlus","+5",function(){ windSetDotCount(windDotCount+WIND_DIAL_STEP); });
+  const tenBtn=windStepButton("windDial10","="+WIND_DOT_DEFAULT,function(){ windSetDotCount(WIND_DOT_DEFAULT); });
+  stepRow.appendChild(minusBtn);
+  stepRow.appendChild(plusBtn);
+  stepRow.appendChild(tenBtn);
+  hud.appendChild(stepRow);
 
   const readout=document.createElement("div");
   readout.id="windReadout";
