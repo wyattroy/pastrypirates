@@ -602,7 +602,18 @@ export const EVENT_NARRATION={
     // coin take reach the full 5" — a numeric question about the event, entirely unrelated to how
     // the amount is spelled on screen. Do not tidy the two together.
     const spoilN=e.spoilIng?null:parseInt(e.spoil,10);
-    const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5;
+    // FIX-07 (Wyatt-ruled 2026-07-31): spoilN>=5 alone can't tell a genuine bribe (had a crate AND
+    // 5+ coins, chose to pay) apart from an empty-hold loser who never had a choice — both clamp to
+    // the same "5 coins"/spoilIng:null shape. src/orchestrator.js now carries the real signal as
+    // e.spoilChosen, set true ONLY inside its canCoins&&hasIng branch. Engine-generated events
+    // (replays, the simulator, all 31 determinism fixtures) carry no such key at all — hasChoice is
+    // the fork that keeps every one of THOSE rendering byte-identically to before this change,
+    // falling back to the old coin-count proxy exactly as it did before spoilChosen existed.
+    const hasChoice=typeof e.spoilChosen==="boolean";
+    const isBribe=e.spoilIng==null&&(hasChoice?e.spoilChosen===true:(Number.isFinite(spoilN)&&spoilN>=5));
+    // the empty-hold case: a real choice existed (hasChoice), the loser did NOT choose coins over a
+    // crate (they had none to choose from), and the coin take still reached the clamp ceiling.
+    const isEmptyHoldFive=e.spoilIng==null&&hasChoice&&e.spoilChosen===false&&Number.isFinite(spoilN)&&spoilN>=5;
     // D-08 (Wyatt-approved 2026-07-29): the attacker and the defender each read the outcome
     // addressed to themselves — a third-party viewer (including NEUTRAL_VIEWER) reads the
     // third-person text. Only ever one of aAddr/dAddr can be true (distinct seats), so the spoil
@@ -622,6 +633,9 @@ export const EVENT_NARRATION={
     // changed — the only difference is how the spoil AMOUNT is spelled.
     if(e.spoilIng)spoilClause=viewerIsWinner?`Ye take ${spoilText}.`:`${pn(e.winner)} takes ${spoilText}.`;
     else if(isBribe)spoilClause=viewerIsLoser?`Ye bribe yer way out of giving away a crate with ${spoilText}.`:`${pn(loser)} bribes their way out of giving away a crate with ${spoilText}.`;
+    // FIX-07 (ruled 2026-07-31, verbatim): an empty-hold loser reads this third line, not the bribe
+    // wording and not the all-they-have fallback below.
+    else if(isEmptyHoldFive)spoilClause=viewerIsLoser?`Ye give up ${spoilText}.`:`${pn(loser)} gives up ${spoilText}.`;
     else if(viewerIsLoser)spoilClause=`Ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
     else if(viewerIsWinner)spoilClause=`Ye take all ${pn(loser)} has${spoilText?`: ${spoilText}`:""}.`;
     else spoilClause=`${pn(loser)} gives up all they have${spoilText?`: ${spoilText}`:""}.`;
@@ -639,6 +653,10 @@ export const EVENT_NARRATION={
       const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
       if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
       else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${spoilText}.`;
+      // FIX-07: mechanical person-swap of the ruled "Ye give up {spoil}." line into this composite's
+      // own em-dash-continuation shape, matching the pattern the bribe/all-they-have branches above
+      // already use in this same chain.
+      else if(isEmptyHoldFive)txt=`${head} — ye give up ${spoilText}.`;
       else txt=`${head} — ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
     }else txt=`${mainClause} ${spoilClause}`;
     return {cls:"battle",

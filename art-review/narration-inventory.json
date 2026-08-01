@@ -105,49 +105,49 @@
     {
       "key": "battleflee",
       "file": "src/ui/util.js",
-      "line": 652,
+      "line": 670,
       "group": "Battle"
     },
     {
       "key": "fish",
       "file": "src/ui/util.js",
-      "line": 663,
+      "line": 681,
       "group": "Fishing"
     },
     {
       "key": "finish",
       "file": "src/ui/util.js",
-      "line": 671,
+      "line": 689,
       "group": "End of Voyage"
     },
     {
       "key": "shotclock",
       "file": "src/ui/util.js",
-      "line": 673,
+      "line": 691,
       "group": "Shot Clock"
     },
     {
       "key": "shotclockskip",
       "file": "src/ui/util.js",
-      "line": 686,
+      "line": 704,
       "group": "Shot Clock"
     },
     {
       "key": "bakeoff",
       "file": "src/ui/util.js",
-      "line": 692,
+      "line": 710,
       "group": "End of Voyage"
     },
     {
       "key": "end",
       "file": "src/ui/util.js",
-      "line": 708,
+      "line": 726,
       "group": "End of Voyage"
     },
     {
       "key": "turn",
       "file": "src/ui/util.js",
-      "line": 709,
+      "line": 727,
       "group": "Sailing & Movement"
     }
   ],
@@ -169,7 +169,7 @@
     {
       "id": "adhoc.round.header",
       "file": "src/orchestrator.js",
-      "line": 823,
+      "line": 831,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -183,7 +183,7 @@
     {
       "id": "adhoc.round.finalheader",
       "file": "src/orchestrator.js",
-      "line": 847,
+      "line": 855,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -197,7 +197,7 @@
     {
       "id": "adhoc.voyageend.drumroll",
       "file": "src/orchestrator.js",
-      "line": 887,
+      "line": 895,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -211,7 +211,7 @@
     {
       "id": "adhoc.voyageend.nobodyfinished",
       "file": "src/orchestrator.js",
-      "line": 902,
+      "line": 910,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -477,7 +477,7 @@
     {
       "id": "adhoc.turn.botbanner",
       "file": "src/ui/util.js",
-      "line": 1199,
+      "line": 1217,
       "fn": "narrateCurrent",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -491,7 +491,7 @@
     {
       "id": "adhoc.turn.boteventpassthrough",
       "file": "src/ui/util.js",
-      "line": 1204,
+      "line": 1222,
       "fn": "narrateCurrent",
       "tableDriven": true,
       "group": "Sailing & Movement",
@@ -551,7 +551,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 631,
+      "line": 635,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(lose.idx)}, ye lost! Pay with…`",
@@ -582,7 +582,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 641,
+      "line": 645,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(win.idx)}, choose yer plunder!`",
@@ -596,7 +596,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 990,
+      "line": 998,
       "fn": "watchDraftPrompt",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
@@ -610,7 +610,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1061,
+      "line": 1069,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
@@ -624,7 +624,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1073,
+      "line": 1081,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1370,
+      "line": 1378,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -1360,7 +1360,7 @@
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 760,
+      "line": 768,
       "fn": "recipeDraftNet",
       "anchor": "choosing their recipe",
       "id": "misc.draftwait.recipechoosing"
@@ -1368,7 +1368,7 @@
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 767,
+      "line": 775,
       "fn": "recipeDraftNet",
       "anchor": "Recipe chosen! Waiting for the rest of the crew",
       "id": "misc.draftwait.recipechosen"
@@ -1392,7 +1392,7 @@
     {
       "category": "introBarrier",
       "file": "src/orchestrator.js",
-      "line": 840,
+      "line": 848,
       "fn": "runLiveNet",
       "rawMsg": "`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`",
       "rawButton": "\"🦜 Final round — set sail!\"",
@@ -1443,7 +1443,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1112,
+      "line": 1120,
       "fn": "createRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.createnoconnection"
@@ -1451,7 +1451,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1144,
+      "line": 1152,
       "fn": "createRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.createcapacity"
@@ -1459,7 +1459,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1178,
+      "line": 1186,
       "fn": "joinRoom",
       "rawMsg": "\"Enter the room code yer host shared.\"",
       "id": "misc.mperror.entercode"
@@ -1467,7 +1467,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1184,
+      "line": 1192,
       "fn": "joinRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.joinnoconnection"
@@ -1475,7 +1475,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1188,
+      "line": 1196,
       "fn": "joinRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.joincapacity"
@@ -1483,7 +1483,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1190,
+      "line": 1198,
       "fn": "joinRoom",
       "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`",
       "id": "misc.mperror.nogamefound"
@@ -1491,7 +1491,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1197,
+      "line": 1205,
       "fn": "joinRoom",
       "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\"",
       "id": "misc.mperror.alreadysailed"
@@ -1499,7 +1499,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1208,
+      "line": 1216,
       "fn": "joinRoom",
       "rawMsg": "\"Too many pirates already in that game.\"",
       "id": "misc.mperror.roomfull"
@@ -1507,7 +1507,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1218,
+      "line": 1226,
       "fn": "watchRoom",
       "rawMsg": "\"That game no longer exists.\"",
       "id": "misc.mperror.gamegone"
@@ -1515,7 +1515,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1249,
+      "line": 1257,
       "fn": "startGame",
       "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\"",
       "id": "misc.mperror.serviceunreachable"
@@ -1579,77 +1579,77 @@
       "img": "cutlass",
       "name": "The Cutlass of a Thousand Notches",
       "byline": "One notch per fallen foe, carved into the hilt.",
-      "line": 865
+      "line": 883
     },
     {
       "key": "fishCount",
       "img": "herring",
       "name": "The Golden Herring",
       "byline": "For the sweetest rod in the ocean.",
-      "line": 866
+      "line": 884
     },
     {
       "key": "dist",
       "img": "compass",
       "name": "The Horizon-Chaser's Compass",
       "byline": "For the salt-crusted soul who sailed further than sense allowed.",
-      "line": 867
+      "line": 885
     },
     {
       "key": "longestBattle",
       "img": "medal",
       "name": "The Iron Gut Medal",
       "byline": "For the crew that refused to sink.",
-      "line": 868
+      "line": 886
     },
     {
       "key": "tails",
       "img": "blackspot",
       "name": "The Black Spot of Bad Tides",
       "byline": "Survived the curse — worst luck on the Sugar Seas.",
-      "line": 869
+      "line": 887
     },
     {
       "key": "hottestStreak",
       "img": "doubloon",
       "name": "The Lucky Doubloon",
       "byline": "Heads, then heads, then heads again — Lady Luck rode on their shoulder.",
-      "line": 870
+      "line": 888
     },
     {
       "key": "trades",
       "img": "ledger",
       "name": "The Silver-Tongued Ledger",
       "byline": "Struck more deals than a Tortuga fishmonger on market day.",
-      "line": 871
+      "line": 889
     },
     {
       "key": "timesAttacked",
       "img": "target",
       "name": "The Painted Target",
       "byline": "Somehow every cannon in the Caribbean swung their way.",
-      "line": 872
+      "line": 890
     },
     {
       "key": "battlesLost",
       "img": "timbers",
       "name": "The Splintered Timbers",
       "byline": "Took a right drubbing and lived to grumble about it.",
-      "line": 873
+      "line": 891
     },
     {
       "key": "shotClockCount",
       "img": "barnacle",
       "name": "The Barnacle Brain",
       "byline": "Pondered each move till the barnacles grew — no rush in these waters.",
-      "line": 874
+      "line": 892
     },
     {
       "key": "fallback",
       "img": "anchor",
       "name": "Good Mate",
       "byline": "Pirated for the love of the game.",
-      "line": 879
+      "line": 897
     }
   ],
   "roundCfgFlags": {
