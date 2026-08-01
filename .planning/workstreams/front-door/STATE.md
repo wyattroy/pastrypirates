@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 22
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-08-01T04:58:33.731Z"
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-08-01T05:15:00.000Z"
 last_activity: 2026-08-01
-last_activity_desc: Phase 22 Plan 01 (name modal, FIX-01) executed and committed — code and all automated gates green
+last_activity_desc: "Plan 22-02 executed: about.html (ABOUT-01) — head block, own stylesheet, two-column hero, stranger-facing rules naming the Isle of Tortuga, credits, and a duplicated lazily-mounted Ko-Fi embed with byte-identical sandbox attribute, plus a sitemap.xml entry. Both tasks committed atomically. Two visual human-check items unrun (no browser-automation tool available) — logged to WINDOWS.md."
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
-  percent: 20
+  completed_plans: 2
+  percent: 40
 workstream: front-door
 created: 2026-07-31
 ---
@@ -25,19 +25,19 @@ created: 2026-07-31
 
 **Status:** Executing Phase 22
 **Current Phase:** 22
-**Last Activity:** 2026-08-01 — Plan 22-01 (name modal, FIX-01) complete
-**Last Activity Description:** Plan 22-01 executed: `#nameModal` replaces the welcome-screen name field for all four mode cards, `pp_lastName` delivers durable persistence (D-04), and dismiss-equals-confirm (D-02) is wired. Code and all automated gates green (`no_undef_check`, `module_graph_check`, `ui_contract_check` incl. `--drill`, `state_contract_check`, `determinism_baseline --verify`). One verification item unrun — see Known-red/Blocked notes below.
+**Last Activity:** 2026-08-01 — Plan 22-02 (About page, ABOUT-01) complete
+**Last Activity Description:** Plan 22-02 executed: `about.html` built as a standalone page (own head block, own stylesheet, no shared JS) with a two-column hero, stranger-facing rules naming the Isle of Tortuga (D-08), a rewritten credits list, and a duplicated lazily-mounted Ko-Fi embed carrying the byte-identical `sandbox` attribute from `src/ui/lobby.js:74`. `sitemap.xml` gained a second `<url>` entry. Both tasks committed atomically; all static acceptance criteria pass. Two visual `<human-check>` items (hero-row layout, content-stacking/network-behavior) not run — no browser-automation tool available this session — logged to `.planning/WINDOWS.md` as unrun-verify.
 
 ## Progress
 
 **Phases Complete:** 0
-**Current Plan:** 2 of 5 (22-01 complete)
+**Current Plan:** 3 of 5 (22-02 complete)
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T04:58:33.725Z
+**Last session:** 2026-08-01T05:15:00.000Z
 
-**Stopped At:** Completed 22-01-PLAN.md
+**Stopped At:** Completed 22-02-PLAN.md
 
 1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
 2. ~~`/gsd-ui-phase 22 --ws front-door`~~ — **done 2026-07-31**, UI-SPEC approved 6/6 dimensions
@@ -66,10 +66,13 @@ created: 2026-07-31
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 22 P01 | 35min | 2 tasks | 7 files |
+| Phase 22 P02 | ~25min | 2 tasks | 2 files |
 
 ## Decisions
 
 - [Phase 22]: Added durable pp_lastName localStorage key (never cleared by leaveGame) to deliver D-04's persistence intent, superseding CONTEXT.md's cited pp_sess/pp_solo source which does not survive that path.
+- [Phase 22]: about.html (22-02) split across two commits despite writing one new file, so per-task atomicity held even for a brand-new file — Task 1 (head/stylesheet/hero) verified and committed before Task 2 (rules/credits/Ko-Fi/sitemap) was added.
+- [Phase 22]: about.html's own stylesheet corrected two spacing values (6px, 11px) that mirrored index.html's non-4-multiple originals, to satisfy the plan's own multiple-of-4 acceptance gate for new About-page surface.
 
 ## Verification status (Phase 22 Plan 01) — CLOSED 2026-08-01
 

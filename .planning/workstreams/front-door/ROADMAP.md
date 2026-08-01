@@ -23,13 +23,13 @@
   5. The About page is reachable by its own link from the homepage. *(ABOUT-02)*
   6. The site serves an in-page image — the About page screenshot — which is what Google can promote into a result thumbnail; the already-shipped `max-image-preview:large` robots meta and JSON-LD `image` field are verified still present in `index.html`. *(META-01)*
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 22-01-PLAN.md — The naming moment: name modal after mode pick, one read chokepoint, durable last-used name (FIX-01) *(wave 1)*
-- [ ] 22-02-PLAN.md — `about.html`: head block, own stylesheet, hero, rules, credits, Ko-Fi embed, sitemap entry (ABOUT-01) *(wave 1)*
+- [x] 22-02-PLAN.md — `about.html`: head block, own stylesheet, hero, rules, credits, Ko-Fi embed, sitemap entry (ABOUT-01) *(wave 1)*
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
