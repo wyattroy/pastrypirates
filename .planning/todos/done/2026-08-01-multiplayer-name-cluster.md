@@ -51,3 +51,29 @@ two tabs share `localStorage` and therefore one `pp_id`, so use two browsers or 
 the name/seat behaviour under test will not be the real one.
 
 **Source:** Wyatt, 2026-08-01, multiplayer playtest.
+
+---
+
+## DISPOSITION — 2026-08-01, commit `1a5b339`
+
+Reproduced first in a real two-browser headless session (`docs/DRIVING-THE-GAME.md` §8a). That
+measurement corrected the diagnosis above on all three counts.
+
+- **A — FIXED, but not a race.** `netClaimSeat` is a genuine Firebase `transaction()`
+  (`src/net/readers.js:44`), so the seat map is authoritative. The real cause: the name modal
+  prefilled `unusedDefaultName(null, 0)` — computed against a **null** seat map, so identical in
+  every browser — and a player who accepted it sent a *truthy* name, which made
+  `typedName||unusedDefaultName(s,i)` dead code. The helper was never broken; it never ran.
+- **B — NOT A BUG, no change made.** Measured on all three dismissal routes from a fresh boot:
+  `cancelName()` → `showHome()` lands on `stepChoose`, the screen the modal opened over, and the
+  player can re-enter immediately. The modal only ever opens from the mode-choice screen; nothing
+  opens it over the join or room screen. **The self-attributed regression was not one.** The thing
+  that actually "dumps you home" is `#btnRoomBack` — labelled "← back", wired to `abandonRoom()`.
+  Left alone as a labelling/UX call for Wyatt.
+- **C — FIXED.** Confirmed exactly as described; the orphaned seat comes from `netLeaveRoom()`
+  detaching watchers without releasing the record. Name is now written on re-entry, lobby-only.
+- **Fourth fault, unreported, found while proving C:** `abandonRoom()` left `_watchRoomAttachedFor`
+  set, so a rejoin to the same room tripped D-13's guard and never re-attached `netWatchSeats()` —
+  the rename landed on every client except the one that made it.
+
+Full detail: `.planning/quick/20260801-multiplayer-name-cluster/SUMMARY.md`
