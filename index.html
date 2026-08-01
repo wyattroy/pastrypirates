@@ -15,14 +15,14 @@
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Pastry Pirates on the Sugar Seas">
-<meta property="og:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 2-4 players.">
+<meta property="og:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 1-4 players.">
 <meta property="og:url" content="https://playpastrypirates.com/">
 <meta property="og:image" content="https://playpastrypirates.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="663">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Pastry Pirates on the Sugar Seas">
-<meta name="twitter:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 2-4 players.">
+<meta name="twitter:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 1-4 players.">
 <meta name="twitter:image" content="https://playpastrypirates.com/og-image.jpg">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"VideoGame","name":"Pastry Pirates on the Sugar Seas","url":"https://playpastrypirates.com/","description":"A free browser pirate board game — sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker.","image":"https://playpastrypirates.com/og-image.jpg","genre":"Board Game","gamePlatform":"Web Browser","numberOfPlayers":"2-4","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
@@ -874,12 +874,10 @@
 <!-- ===================== WELCOME MODAL ===================== -->
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
-    <div class="modalTitle"><img src="assets/logo.jpg" alt="Pastry Pirates" class="modalLogo"></div>
+    <div class="modalTitle"><a id="lnkAboutLogo" href="about.html" target="_blank" rel="noopener" aria-label="About Pastry Pirates (opens in a new tab)" style="display:block"><img src="assets/logo.jpg" alt="Pastry Pirates" class="modalLogo"></a></div>
 
     <div id="stepChoose" class="modalStep">
       <div class="modalByline">Ye came to the sunny shores of Tortuga to start a bakery — but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
-      <label class="nameLabel">Yer captain name
-        <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
           <div class="ccIcon"><img src="assets/icons/anchor.png" alt=""></div><div class="ccTitle">Play Solo</div><div class="ccSub">vs. bot captains</div>
@@ -894,7 +892,8 @@
           <div class="ccIcon"><img src="assets/icons/key.png" alt=""></div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
         </button>
       </div>
-      <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px"><img class="narrIcon" src="assets/icons/magnifying-glass.png" alt=""> Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>
+      <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px"><img class="narrIcon" src="assets/icons/magnifying-glass.png" alt=""> Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you confirm after picking how to play is collected.</div>
+      <div style="text-align:center;margin-bottom:8px"><a id="lnkAboutWelcome" href="about.html" style="font-size:12px;color:var(--teal);text-decoration:underline">About Pastry Pirates</a></div>
       <div id="fbnote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/gear.png" alt=""> Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
       <div id="busynote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Lots of crews out sailing right now — multiplayer may be slow to sync. <b>Play Solo</b> works instantly and never waits on the crowd!</div>
     </div>
@@ -934,6 +933,23 @@
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#27c78d"></div><input type="text" id="ppName2" maxlength="40" placeholder="Player 3 (or leave blank for a bot)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#f5a623"></div><input type="text" id="ppName3" maxlength="40" placeholder="Player 4 (or leave blank for a bot)"></div>
       <button class="primary big" id="btnStartPassPlay" type="button"><img class="narrIcon" src="assets/icons/anchor.png" alt=""> Start the voyage</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== NAME MODAL (FIX-01) ===================== -->
+<!-- D-01/D-02/D-03: the ONLY place a player names themself, opened after picking a mode (not
+     before). Dismissing it — the X, Escape, or a backdrop click, all wired in wireNameModal()
+     (src/ui/lobby.js) — counts as CONFIRMING the name shown, same as the button. This is the
+     first modal in the codebase that is both dismissible and gates a flow; it is deliberately NOT
+     added to src/orchestrator.js's close-only .modalX injection array. -->
+<div id="nameModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalStep">
+      <h3>What do they call ye, captain?</h3>
+      <label class="nameLabel">Yer captain name
+        <input type="text" id="nameModalInput" maxlength="40" placeholder="e.g. Davy Scones"></label>
+      <button class="primary big" id="btnNameConfirm" type="button">Aye, that's me name</button>
     </div>
   </div>
 </div>
@@ -984,7 +1000,7 @@
       <p><b>⚓ Act</b> — choose one:</p>
       <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip: heads take a crate; tails take 3🌕 — or pay 3🌕 to buy the crate anyway. Stay as long as ye like and keep flipping. Ship's hold: ye may take crates that aren't on yer recipe — they make excellent trade bait...</p>
       <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 powder, then flip head-to-head: heads beats tails (1 point). Both heads? The captain firing <b>downwind</b> lands the shot — that's the wind advantage; a crosswind clash cancels. On a double-miss (both tails) the defender may pay 1🌕 to flee to safety instead of fighting on. First to 2 points wins; loser hands over a crate (winner picks) or 5🌕 — loser's choice. Can't pay in full? Winner takes everything. Nobody changes squares — win or lose, every ship holds its position. Spectators can call the winner for a free dubloon at the Lookout's Call — or back their call with coin for double or nothing.</p>
-      <p><b>Parley</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
+      <p><b>Trade</b> — hail any captain, anywhere, and make a deal: crates, coins, or both together. When a trade is struck, both captains collect +1🌕 from the bank.</p>
       <p><b>Fish</b> — flip: heads nets 2🌕, tails... just a candycrab (1🌕).</p>
       <p><b>Start yer bakery!</b> — at the Isle of Tortuga with yer whole recipe? Declare victory! <img class="narrIcon" src="assets/icons/cupcake.png" alt=""></p>
       <h4><img class="narrIcon" src="assets/icons/current-swirl.png" alt=""> The trade winds</h4>
@@ -1160,6 +1176,7 @@
          Opens #kofiModal rather than navigating — Wyatt, 2026-07-31: "i don't want this button to
          open up the kofi website; ideally, i want it to open up the kofi widget." -->
     <button id="btnKofi" class="footerBtn footerKofi" type="button">🍪 Buy me a cookie</button>
+    <a id="lnkAboutFooter" class="footerBtn footerAbout" href="about.html">ℹ️ About</a>
     <button id="btnLeave" class="footerBtn footerLeave" type="button">🚪 Leave game</button>
   </div>
   <!-- hidden helpers the renderer expects -->

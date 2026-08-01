@@ -98,7 +98,7 @@ but costs you a whole extra visit to that island.
 2. Your turn banner
 3. Storm legs, if any — outcomes resolve per square
 4. Sail (pick a highlighted square, or Stay put)
-5. Action: Dock / Attack / Parley / Fish / Start bakery
+5. Action: Dock / Attack / Trade / Fish / Start bakery
 
 ## Strategy that follows from all this
 
@@ -148,7 +148,7 @@ but costs you a whole extra visit to that island.
 3. Matching the player name in a half-typed prompt.
 4. Acting only when a tool call happens, rather than on a timer.
 
-## Coins beat movement — parley has NO distance limit
+## Coins beat movement — trade has NO distance limit
 
 The single biggest thing I got wrong. `Game.tradeOpp()`:
 
@@ -172,7 +172,7 @@ Consequences:
   a poor player's is a coin flip.** Wealth converts a gamble into a purchase.
 
 **Revised priority each action turn:**
-1. Parley if anyone holds something you need and you can outbid — costs no movement at all.
+1. Trade if anyone holds something you need and you can outbid — costs no movement at all.
 2. Dock if you are standing on a needed island (and always BUY on tails if you can afford it).
 3. Sail toward the nearest needed island, using the rim as free travel.
 4. Fish — never a wasted turn; it is the engine that funds 1 and 2.

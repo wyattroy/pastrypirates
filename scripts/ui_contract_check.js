@@ -307,8 +307,8 @@ const REGISTER_CHROME_EXCEPTIONS = [
   {
     kind: "notice",
     rel: "index.html",
-    anchor: `nothing beyond the name you type above is collected`,
-    why: "the playtesting/privacy NOTICE. Wyatt, 2026-07-30: \"the whole thing is written in normal english not pirate, so the 'ye' feels weird and out of place.\" The surrounding paragraph is plain English throughout — one pirate pronoun inside it is a register mismatch, not pirate voice. G16.",
+    anchor: `nothing beyond the name you confirm after picking how to play is collected`,
+    why: "the playtesting/privacy NOTICE. Wyatt, 2026-07-30: \"the whole thing is written in normal english not pirate, so the 'ye' feels weird and out of place.\" The surrounding paragraph is plain English throughout — one pirate pronoun inside it is a register mismatch, not pirate voice. G16. Reworded in Phase 22 (22-01, Task 2): the captain-name field it pointed at moved off the welcome screen into the #nameModal that opens after a mode card is picked (D-01), so \"the name you type above\" no longer describes where the name is entered.",
   },
   {
     kind: "notice",
@@ -1197,7 +1197,7 @@ function drill() {
     // G16: the fixture now also carries the two kind:"notice" anchors — the privacy line and the
     // credits paragraph. Both are real player-visible index.html text using the plain pronoun, so
     // they are the notice kind's positive control AND satisfy checkChromeExceptionsFresh.
-    fixture("index.html", `<html><body>\n<!-- layoutWide layoutWide layoutWide layoutWide -->\n<input id="ppName0" placeholder="Player 1 (you)">\n<div>Anonymized move data is recorded to help improve the game — nothing beyond the name you type above is collected.</div>\n<div>and to Juju, our overly enthusiastic noodle, for keeping your feet warm through every late night</div>\n</body></html>\n`);
+    fixture("index.html", `<html><body>\n<!-- layoutWide layoutWide layoutWide layoutWide -->\n<input id="ppName0" placeholder="Player 1 (you)">\n<div>Anonymized move data is recorded to help improve the game — nothing beyond the name you confirm after picking how to play is collected.</div>\n<div>and to Juju, our overly enthusiastic noodle, for keeping your feet warm through every late night</div>\n</body></html>\n`);
     {
       const r = checkPirateRegister(tmpRoot);
       const drillOk = r.ok;
