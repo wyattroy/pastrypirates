@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="favicon.png">
+<title>About — Pastry Pirates on the Sugar Seas</title>
+<meta name="description" content="What Pastry Pirates is, how a round plays, who made it, and a look at a game in progress — before you set sail.">
+<link rel="canonical" href="https://playpastrypirates.com/about.html">
+<!-- The large-image-preview permission below is a per-URL directive — this page carries the
+     in-page screenshot META-01 exists to let Google promote, so it needs the same permission
+     index.html already has. -->
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="About — Pastry Pirates on the Sugar Seas">
+<meta property="og:description" content="What Pastry Pirates is, how a round plays, who made it, and a look at a game in progress — before you set sail.">
+<meta property="og:url" content="https://playpastrypirates.com/about.html">
+<meta property="og:image" content="https://playpastrypirates.com/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="663">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About — Pastry Pirates on the Sugar Seas">
+<meta name="twitter:description" content="What Pastry Pirates is, how a round plays, who made it, and a look at a game in progress — before you set sail.">
+<meta name="twitter:image" content="https://playpastrypirates.com/og-image.jpg">
+<!-- No Firebase SDK — no game logic runs on this page (D-07). -->
+<!-- No JSON-LD VideoGame block — the game already has one canonical URL, the homepage. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Own stylesheet (D-07) — re-declares the colours/font it needs by eye. Never links or
+     @imports index.html's inline <style> block, and index.html is not touched by this file. */
+  :root {
+    --teal: #29a3b2; --ink: #1f4249; --accent: #fdb63d; --parch2: #fff6c0; --line: #cfe7eb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%); background-attachment: fixed;
+    color: var(--ink); }
+  .abtPage { max-width: 960px; margin: 48px auto; padding: 0 24px 48px; }
+
+  /* -------- hero row (the page's focal point) -------- */
+  .abtHero { display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; }
+  .abtHeroText { flex: 1 1 320px; min-width: 0; }
+  .abtHeroShot { flex: 1 1 320px; min-width: 0; }
+  .abtHeroText h1 { font-size: 28px; font-weight: 700; line-height: 1.2; margin: 0 0 16px; color: var(--ink); }
+  .abtHeroText p { font-size: 14px; line-height: 1.5; margin: 0; }
+  .abtHeroShot img { width: 100%; height: auto; max-width: 100%; display: block;
+    border-radius: 16px; border: 3px solid var(--teal); box-shadow: 0 12px 30px rgba(10,35,40,.25); }
+
+  /* -------- card + prose treatment, mirroring .modalCard / .rules by eye -------- */
+  .abtCard { background: linear-gradient(175deg, #ffffff, var(--parch2) 250%); border: 3px solid var(--teal);
+    border-radius: 20px; padding: 24px 28px; margin-bottom: 32px; }
+  .abtCard:last-of-type { margin-bottom: 0; }
+  .abtCard h2 { margin: 0 0 16px; color: var(--teal); font-size: 17px; font-weight: 700; line-height: 1.25; }
+
+  .abtRules { font-size: 13.5px; line-height: 1.55; }
+  .abtRules h3 { margin: 16px 0 4px; color: var(--teal); font-size: 14px; }
+  .abtRules h3:first-child { margin-top: 0; }
+  .abtRules p { margin: 8px 0; }
+  .abtRules .abtRulesNote { margin-top: 16px; font-size: 12.5px; opacity: .75; }
+
+  .abtCredits { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.5; }
+  .abtCredits li { margin: 0 0 8px; }
+  .abtCredits li:last-child { margin-bottom: 0; }
+  .abtCredits a { color: var(--teal); }
+
+  /* Ko-Fi — the page's single primary CTA, the only place accent orange appears here. */
+  #aboutKofiBtn { display: inline-block; font-family: inherit; font-size: 14px; font-weight: 700;
+    padding: 12px 20px; border-radius: 10px; border: 1.5px solid var(--accent); cursor: pointer;
+    background: var(--accent); color: #fff; }
+  #aboutKofiBtn:hover { filter: brightness(1.08); }
+  #aboutKofiPanel { margin-top: 16px; min-height: 0; }
+  #aboutKofiPanel.abtKofiOpen { min-height: 560px; }
+  #aboutKofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
+
+  @media (max-width: 480px) {
+    .abtPage { margin: 32px auto; padding: 0 16px 32px; }
+    .abtHero { flex-direction: column; gap: 24px; margin-bottom: 24px; }
+    .abtCard { padding: 20px; margin-bottom: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="abtPage">
+
+  <!-- TODO(D-09): draft copy — pending Wyatt's sign-off -->
+  <div class="abtHero">
+    <div class="abtHeroText">
+      <h1>About Pastry Pirates</h1>
+      <p>Pastry Pirates is a free browser pirate board game — sail a grid of islands, gather baking
+      ingredients, trade and battle rival captains, and race home to become the Best Baker on the
+      Sugar Seas. Play solo against AI captains, pass the wheel around one screen, or sail with
+      friends online — no login, no download, 2 to 4 players.</p>
+    </div>
+    <div class="abtHeroShot">
+      <!-- TODO(D-11): placeholder — Wyatt picks the mid-game capture in Plan 04 -->
+      <img id="aboutShot" src="og-image.jpg" width="1200" height="663" alt="A mid-game view of the Pastry Pirates board, with ships scattered among the islands, cargo crates on the docks, and the wind spinner showing the round's direction.">
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
