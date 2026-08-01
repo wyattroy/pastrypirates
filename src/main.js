@@ -158,14 +158,30 @@ if (typeof window !== "undefined") {
   // interval is the one exception, kept here since it is not itself a DOM-resize concern).
   setInterval(ui.setClockUI, 500);
 
+  // FIX-10 (18-01 Task 3): both listeners now also re-measure the narration panel, not just the
+  // board — that re-measurement never ran on resize/orientationchange before, which is the
+  // confirmed cause of a clipped action button on a narrow window or after a rotation — a
+  // resize/rotation never re-triggered the height measurement panel()'s own message-swap path
+  // already had. `minHeight` is deliberately OMITTED from both calls below so the panel-height
+  // helper inherits activeGhostFloor from its own default parameter (src/ui/panel.js, 18-01 Task
+  // 2) — a rotation that lands mid-fade must not re-clip a still-fading ghost through this door.
   window.addEventListener("resize", () => {
     if (stateNs.appState.syncBoardRAF) return;
     stateNs.appState.syncBoardRAF = requestAnimationFrame(() => {
       stateNs.appState.syncBoardRAF = null;
       ui.syncBoardSizing();
+      const inner = document.getElementById("apGridInner");
+      if (inner) ui.resizePanel(!!inner.innerHTML);
     });
   });
-  window.addEventListener("orientationchange", ui.syncBoardSizing);
+  // Deliberately NOT routed through the rAF `syncBoardRAF` flag above: orientationchange fires
+  // once, not in a burst like resize, so sharing that flag would let a coincident resize win the
+  // race and swallow this event entirely.
+  window.addEventListener("orientationchange", () => {
+    ui.syncBoardSizing();
+    const inner = document.getElementById("apGridInner");
+    if (inner) ui.resizePanel(!!inner.innerHTML);
+  });
 
   // 08-02: the relocated D-06 impurities and the ASSET_BASE top-level hazard
   // must run before boot()'s element-lookup/event-wiring (wireWelcome,
