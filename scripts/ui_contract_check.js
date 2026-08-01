@@ -248,8 +248,12 @@ const REGISTER_LINE_ANCHORS = [
 // as copy. These are the only four places it appears as an identifier; each is a read, none is
 // player-facing text. Scoped to that one file so the fragments can never excuse a real string
 // somewhere else, and anchored on the exact code shape so a reformat goes loud.
+// FIX-21 (2026-08-01) reformatted the `?(you?...` / `:(you?...` ternaries onto their own lines (to
+// give each new nobrk-wrapped signed-coin parenthetical its own line) — the `you` read now sits on
+// a line with no trailing backtick, so the anchors below were re-shaped to match, per this file's
+// own rule: a reformat must re-anchor, not silently pass on a stale fragment.
 const REGISTER_IDENT_FILE = path.join("src", "ui", "util.js");
-const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you?`", ":(you?`", "txt:you"];
+const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you", ":(you", "txt:you"];
 
 // ---------------------------------------------------------------------------
 // OUT-OF-CHARACTER CHROME (F1 2026-07-29 + G16 2026-07-30, both Wyatt-approved;
@@ -867,6 +871,132 @@ export function checkStormRainSeeded(root) {
   return { ok: failures.length === 0, failures, stats: { scanned: 1 } };
 }
 
+// FIX-21 (18-03): a trailing signed-coin parenthetical — "(+1🌕)", "(−5🌕)" — must never orphan
+// across a line wrap. .nobrk (index.html's `white-space:nowrap` class) already existed and already
+// worked at 2 of 6 sites when this gate was written; it was never applied everywhere because each
+// narration site hand-builds its own string, and the same defect class has now recurred THREE
+// times (RESEARCH pitfall 3, .planning/todos/pending/copy-shipped-vs-approved-gate.md). This gate
+// is the permanent fix for the recurrence, not just the fifth-and-sixth sites: it is ANCHORED to
+// the specific narration sites (never a file-wide sweep — button labels in src/ui/flow.js and
+// prose in code comments legitimately contain a coin-close-paren shape with no narration nearby),
+// and it REFUSES rather than skips when an anchor cannot be found, per checkStormRainSeeded's own
+// pattern and the copy-gate todo's non-negotiable rule.
+//
+// Each entry below names ONE narration-building region by a literal, content-based anchor (never a
+// line number), the exact coin parenthetical(s) that region must produce wrapped, and the expected
+// count. A region is bounded from its anchor to the next `\n  },\n` (the 2-space-indented closing
+// brace every EVENT_NARRATION/showTurnOrderIntro-style entry in this codebase ends with) so the
+// check reads real source text, never a rendered/evaluated string.
+const COIN_PARENTHETICAL_SITES = [
+  {
+    name: "aground (util.js) — half-coins-lost repairs clause",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "const lossTag=lost!=null?",
+    wraps: ['<span class="nobrk">(−${lost}🌕)</span>'],
+  },
+  {
+    name: "sidebet won, backed with coin — you/other",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "double yer bet ",
+    wraps: ['double yer bet <span class="nobrk">(+${e.delta}🌕)</span>'],
+  },
+  {
+    name: "sidebet won, backed with coin — third person",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "double their bet ",
+    wraps: ['double their bet <span class="nobrk">(+${e.delta}🌕)</span>'],
+  },
+  {
+    name: "sidebet won, free call (no coin backed) — you",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "— ye called it! <span",
+    wraps: ['— ye called it! <span class="nobrk">(+${e.delta}🌕)</span>'],
+  },
+  {
+    name: "sidebet won, free call (no coin backed) — third person",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "🔭 ${pn(e.p)} called it! <span",
+    wraps: ['🔭 ${pn(e.p)} called it! <span class="nobrk">(+${e.delta}🌕)</span>'],
+  },
+  {
+    name: "sidebet lost, backed with coin — you",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "💰 ${pn(e.p)}, ye backed the wrong ship <span",
+    wraps: ['💰 ${pn(e.p)}, ye backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>'],
+  },
+  {
+    name: "sidebet lost, backed with coin — third person",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "💰 ${pn(e.p)} backed the wrong ship <span",
+    wraps: ['💰 ${pn(e.p)} backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>'],
+  },
+  {
+    name: "battleflee — flee cost, all three viewer branches",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "battleflee:(e,at,cellPx,viewerSeat)=>{",
+    wraps: [
+      '${pn(e.d)} slips away! <span class="nobrk">(−1🌕)</span>',
+      'ye slip away! <span class="nobrk">(−1🌕)</span>',
+    ],
+    // both the aAddr and the else branch produce the IDENTICAL third-person "slips away!" clause
+    // (one addressed to the attacker, one neutral) — count, don't just test presence, so a
+    // regression that drops ONE of the two identical-text branches cannot hide behind the other.
+    counts: { '${pn(e.d)} slips away! <span class="nobrk">(−1🌕)</span>': 2 },
+  },
+  {
+    name: "fish — catch amount, both the neutral and the addressed const",
+    rel: path.join("src", "ui", "util.js"),
+    anchor: "fish:(e,at,cellPx,viewerSeat)=>{",
+    wraps: [],
+    counts: {
+      'sugarfish! <span class="nobrk">(+2🌕)</span>': 2,
+      'candycrab <span class="nobrk">(+1🌕)</span>': 2,
+    },
+  },
+  {
+    name: "turn-order draw — waiting captains' consolation coin",
+    rel: path.join("src", "ui", "flow.js"),
+    anchor: "const rest=order.slice(1).map(",
+    wraps: ['<span class="nobrk">(+${k+1}🌕)</span>'],
+  },
+];
+
+export function checkCoinParentheticalNobrk(root) {
+  const failures = [];
+  const bySrc = {};
+  let scanned = 0;
+  for (const site of COIN_PARENTHETICAL_SITES) {
+    const full = path.join(root, site.rel);
+    if (!fs.existsSync(full)) continue; // synthetic --drill fixture trees carry only what a case needs
+    if (!bySrc[site.rel]) bySrc[site.rel] = fs.readFileSync(full, "utf8");
+    const src = bySrc[site.rel];
+
+    const at = src.indexOf(site.anchor);
+    if (at < 0) {
+      // NOT a silent skip: an anchor this gate cannot locate must go loud, never quietly pass —
+      // the exact failure mode narration_audit_check.js's own assertion 8 already has (D-21).
+      failures.push(`COIN-NOBRK-ANCHOR: could not locate "${site.anchor}" (${site.name}) in ${site.rel} — re-anchor this assertion; do NOT delete it. It protects FIX-21: a trailing signed-coin parenthetical must never be free to orphan across a line wrap.`);
+      continue;
+    }
+    scanned++;
+    const end = src.indexOf("\n  },\n", at);
+    const region = src.slice(at, end < 0 ? Math.min(src.length, at + 800) : end);
+
+    for (const w of site.wraps || []) {
+      if (!region.includes(w)) {
+        failures.push(`COIN-NOBRK: ${site.rel} — ${site.name} no longer wraps its coin parenthetical in a nobrk span (expected to find ${JSON.stringify(w)} near "${site.anchor}"). A trailing "(+N🌕)"/"(−N🌕)" outside a nobrk span can orphan across a line wrap.`);
+      }
+    }
+    for (const [w, expected] of Object.entries(site.counts || {})) {
+      const got = region.split(w).length - 1;
+      if (got !== expected) {
+        failures.push(`COIN-NOBRK-COUNT: ${site.rel} — ${site.name} expected ${expected} occurrence(s) of ${JSON.stringify(w)} near "${site.anchor}", found ${got}. Every viewer branch that produces this text must wrap it, not just one of them.`);
+      }
+    }
+  }
+  return { ok: failures.length === 0, failures, stats: { scanned } };
+}
+
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
   const results = [];
@@ -914,6 +1044,10 @@ function runAll(root, { quiet = false } = {}) {
   const a10 = checkFbInitBeforeSoloResume(root);
   log(`${a10.ok ? "PASS" : "FAIL"} boot() initialises Firebase BEFORE the solo-resume early return`);
   results.push({ name: "fbinit-before-solo-resume", ...a10 });
+
+  const a12 = checkCoinParentheticalNobrk(root);
+  log(`${a12.ok ? "PASS" : "FAIL"} coin-parenthetical-nobrk — every trailing signed-coin parenthetical is wrapped in a nobrk span (FIX-21) [${a12.stats.scanned} of ${COIN_PARENTHETICAL_SITES.length} site(s) scanned]`);
+  results.push({ name: "coin-parenthetical-nobrk", ...a12 });
 
   return results;
 }
@@ -1047,8 +1181,12 @@ function drill() {
     fixture("src/ui/util.js", [
       "    const you=isLocalTo(e.p,viewerSeat);",
       "    if(e.won)return {cls:\"trade\",txt:e.amt",
-      "      ?(you?`ye called it! (+${e.delta})`:`called it! (+${e.delta})`)",
-      "      :(you?`ye called it!`:`called it!`)};",
+      "      ?(you",
+      "        ?`ye called it! (+${e.delta})`",
+      "        :`called it! (+${e.delta})`)",
+      "      :(you",
+      "        ?`ye called it!`",
+      "        :`called it!`)};",
       "    return {cls:\"trade\",txt:you",
       "      ?`ye backed the wrong ship`:`backed the wrong ship`};",
       "    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))",
@@ -1285,9 +1423,59 @@ function drill() {
     if (!drillOk) allDrillsOk = false;
   }
 
+  /* ---- assertion 12 (FIX-21): every trailing signed-coin parenthetical is nobrk-wrapped ---- */
+
+  // 9a: an unwrapped coin parenthetical at an anchor that IS found must FAIL naming COIN-NOBRK.
+  {
+    resetFixture();
+    fixture("src/ui/util.js", [
+      '  aground:(e,at,cellPx=0,viewerSeat)=>{',
+      '    const lossTag=lost!=null?` (−${lost}🌕)`:"";', // unwrapped — the pre-fix shape
+      '    return {txt:`...${lossTag}`};',
+      '  },',
+    ].join("\n"));
+    const r = checkCoinParentheticalNobrk(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("COIN-NOBRK:") && f.includes("aground"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 9a (an unwrapped coin parenthetical FAILS naming COIN-NOBRK) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 9b: renaming the anchor itself must REFUSE (FAIL naming COIN-NOBRK-ANCHOR), never silently pass
+  //     — the exact anti-vacuity property checkStormRainSeeded's own drill 8c proves, applied here.
+  {
+    resetFixture();
+    fixture("src/ui/util.js", [
+      '  aground:(e,at,cellPx=0,viewerSeat)=>{',
+      '    const lossTagRENAMED=lost!=null?` <span class="nobrk">(−${lost}🌕)</span>`:"";',
+      '    return {txt:`...`};',
+      '  },',
+    ].join("\n"));
+    const r = checkCoinParentheticalNobrk(tmpRoot);
+    const drillOk = !r.ok && r.failures.some((f) => f.startsWith("COIN-NOBRK-ANCHOR") && f.includes("aground"));
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 9b (anti-vacuity — a renamed/lost anchor FAILS naming COIN-NOBRK-ANCHOR rather than silently passing) — expected FAIL, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
+  // 9c: NEGATIVE CONTROL — the real, fixed src/ui/util.js and src/ui/flow.js pass in full: every one
+  //     of the 10 anchored sites is found AND wrapped. This is the drill that proves the fix and the
+  //     gate agree, mirroring drill 7d's own "copy the FIXED tree in" technique.
+  {
+    resetFixture();
+    for (const rel of ["src/ui/util.js", "src/ui/flow.js"]) {
+      fixture(rel, fs.readFileSync(path.join(REAL_ROOT, rel), "utf8"));
+    }
+    const r = checkCoinParentheticalNobrk(tmpRoot);
+    const drillOk = r.ok && r.stats.scanned === COIN_PARENTHETICAL_SITES.length;
+    console.log(`${drillOk ? "PASS" : "FAIL"} drill 9c (negative control — the FIXED tree passes, all ${COIN_PARENTHETICAL_SITES.length} sites found and wrapped) — expected PASS, got ${r.ok ? "PASS" : "FAIL"}`);
+    for (const f of r.failures) console.log(`    ${f}`);
+    if (!drillOk) allDrillsOk = false;
+  }
+
   fs.rmSync(tmpRoot, { recursive: true, force: true });
 
-  console.log(`\n${allDrillsOk ? "ALL 8 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allDrillsOk ? "ALL 9 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allDrillsOk ? 0 : 1);
 }
 

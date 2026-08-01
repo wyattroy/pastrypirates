@@ -619,13 +619,17 @@ export async function asyncBattle(att,def){
   if(fled)return;
   const win=a>=need?att:def,lose=a>=need?def:att;
   if(win===att)appState.game.attWins++;
-  let spoil,spoilIng=null;
+  let spoil,spoilIng=null,spoilChosen=false;
   if(c.asym&&lose===att){
     const take=Math.min(2,lose.coins);lose.coins-=take;win.coins+=take;spoil=take+"c (raider)";
   }else{
     const canCoins=lose.coins>=5,hasIng=lose.ing.length>0;
     let mode;
     if(canCoins&&hasIng){
+      spoilChosen=true; // FIX-07: the ONLY reachable point where the loser genuinely chose coins
+      // over a crate — human via the prompt below, bot via its needs filter. Left false everywhere
+      // else (the asymmetric-raider branch above, and the hasIng/coins fallbacks below), so an
+      // empty-hold loser who never had this choice can be told apart from a genuine bribe.
       if(lose.strategy==="human"){setActor(lose.idx);
         // @copy prompt.battle.loserpays
         mode=await ask(`${pn(lose.idx)}, ye lost! Pay with…`,
@@ -647,7 +651,11 @@ export async function asyncBattle(att,def){
   // defender is no longer dumped into the prime re-attack square in front of them. With nobody
   // changing berth there's also no post-battle re-dock. Kept in step with Game.battle.
   appState.game.recordSkirmish(att,def,lose,spoilIng);
-  appState.game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng});
+  // FIX-07: the new field below is orchestrator-tier only — never added to src/engine/index.js's own
+  // battle event (milestone constraint 1). Engine-generated events (replays, the simulator, all 31
+  // determinism fixtures) carry no such key; src/ui/util.js's hasChoice fork treats that absence as
+  // "preserve today's shipped rendering", not as "false".
+  appState.game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,spoilChosen});
   liveRender();
   // narrate the battle's outcome (who took what from whom) right now — side-bet settlement pushes
   // further events right after this, and every caller only narrates the *last* event once

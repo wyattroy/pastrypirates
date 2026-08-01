@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: The Game Comes Alive
-status: "v1.3 in progress — Phase 19 complete; 18, 20, 21, 22 outstanding"
-last_updated: "2026-07-31T22:03:58.955Z"
+status: "v1.3 in progress — Phase 19 complete and merged; 18, 21, 22 executed and staged for integration; 20 unblocked"
+last_updated: "2026-08-01T10:00:00.000Z"
 last_activity: 2026-08-01
-stopped_at: "v1.3 opened 2026-08-01. Roadmap written from .planning/V1.3-V1.4-PLAN.md (Wyatt-ordered). Next: /gsd-plan-phase 18, or 21/22 in parallel. Phase 19 is a Safari gate Wyatt runs himself; Phase 20 waits on it."
+last_activity_desc: "Phases 18, 21 and 22 executed in parallel workstreams and merged into integration/v1.3-phases-18-21-22. Phase 19 (Safari gate) already on main — so Phase 20 is unblocked. Outstanding human gates: 18-07 browser pass, Phase 21's two blockers, Phase 22's browser verification."
+stopped_at: "Integration branch built from origin/main + phases 18/21/22. Not merged to main — main deploys the live site and two phases still owe a browser check."
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 22
+  completed_plans: 22
   percent: 20
 ---
 
@@ -88,6 +89,9 @@ Safari work, which covered wind-dot smoothness only, not multiplayer verificatio
 | Phase 15 P03 | 25min | 3 tasks | 3 files |
 | Phase 15 P04 | 15min | 3 tasks | 3 files |
 | Phase 15 P06 | large-session | 2 tasks | 9 files |
+| Phase 18 P02 | 35min | 3 tasks | 6 files |
+| Phase 18 P03 | 75min | 3 tasks | 8 files |
+| Phase 18 P06 | 15min | 3 tasks | 5 files |
 
 ## Quick Tasks Completed
 
@@ -191,9 +195,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-30T00:00:00.000Z
-Stopped at: Quick task 20260730-playtest-session2-fixes COMPLETE — all 13 tasks, 13 commits. Seventeen items (G10–G26) from the recorded two-tab playtest of room NAMF. `npm test` 17 gates, exit 0; `src/engine/index.js` byte-identical throughout; 31/31 determinism. THREE BROWSER CHECKS ARE OUTSTANDING and are Wyatt's: the G17 strict fade, the G19 storm rain (incl. a Safari pass), and a G25+G14 guest-seat parity pass.
-Resume file: .planning/quick/20260730-playtest-session2-fixes/SUMMARY.md
+Last session: 2026-08-01T09:31:21.408Z
+Stopped at: Completed 18-06-PLAN.md (FIX-06/FIX-09/FIX-17) — button restyle, captain circles removed everywhere, both FIX-09 chip treatments live pending D-03. Six D-03 renders blocked (WINDOWS.md #9), folds into 18-07's checkpoint.
+Resume file: .planning/workstreams/prompts-polish/phases/18-prompts-polish/18-06-SUMMARY.md
 
 ## Operator Next Steps
 

@@ -177,7 +177,7 @@ export function renderSeatList(seats){
     // reader, `{name}` for another human, `{captain default} — 🤖 bot` for an empty seat.
     if(s.id)label=me?"you":"";
     else label="🤖 bot";
-    html+=`<div class="seat ${me?"me":""}"><span class="dot" style="background:${HEXCOL[i]}"></span>
+    html+=`<div class="seat ${me?"me":""}">
       <span class="nm">${pn(i)}${label?` — ${label}`:""}</span></div>`;
   }
   $("seatList").innerHTML=emojify(html);

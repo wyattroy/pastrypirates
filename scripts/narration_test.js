@@ -28,6 +28,7 @@ import {
 import { ilabelImg, ING_IMG, ING_ALL, iconImg, dockFlavor, dockFlavorIcon, dockPlace, iname, HEXCOL } from "../src/shared/index.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
+import { RECIPE_BOOK, recipeArticle, recipeTitle } from "../src/ui/recipe.js";
 // D-54: src/ui/flow.js's flash() sites are not table-driven, so the one approved ad-hoc line there
 // is pinned by reading the shipped source rather than by importing it (this harness deliberately
 // never imports src/ui/flow.js — see the header note above).
@@ -277,33 +278,81 @@ for (const key of KEYS) {
   }
 }
 
-/* ---------- Plan 15-04 Task 1 (NARR-04/D-12): battle spoil bribe-vs-cleaned-out split ----------
+/* ---------- Plan 15-04 Task 1 (NARR-04/D-12), extended by Plan 18-04 Task 2 (FIX-07) ----------
    Direct-table-call style (mirrors scripts/bot_storm_narration_test.js's own EVENT_NARRATION.
    moored assertions) — fabricated battle events, no engine/DOM needed. Asserts the boundary sits
-   exactly between 4 and 5 coins, ingredient spoils are untouched, and an absent/empty/non-numeric
-   spoil always falls through to the cleaned-out (least-claiming) framing with no undefined/NaN. */
+   exactly between 4 and 5 coins, ingredient spoils are untouched, an absent/empty/non-numeric
+   spoil always falls through to the cleaned-out (least-claiming) framing with no undefined/NaN,
+   AND (FIX-07) that the real spoilChosen signal — not the coin amount alone — decides whether a
+   5-coin spoil reads as a genuine bribe or as an empty-hold give-up. */
 {
   const f = EVENT_NARRATION.battle;
-  const mkEvent = (spoil, spoilIng = null) => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[true, false, false, "a"]], spoil, spoilIng });
+  // FIX-07: spoilChosen is an optional 3rd arg — omitted entirely (not just `undefined`-valued)
+  // when the caller passes nothing, so the "absent field" case fabricates the exact shape every
+  // engine/replay/simulator/fixture event actually has: no key at all.
+  const mkEvent = (spoil, spoilIng = null, spoilChosen) => {
+    const e = { t: "battle", a: 0, d: 1, winner: 0, rounds: [[true, false, false, "a"]], spoil, spoilIng };
+    if (spoilChosen !== undefined) e.spoilChosen = spoilChosen;
+    return e;
+  };
   const isBribe = txt => /bribes their way out of giving away a crate/.test(txt);
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): the cleaned-out framing's wording changed to
   // "gives up all they have" (was "has nothing left to give") — same invariant, new literal.
   const isCleanedOut = txt => /gives up all they have/.test(txt);
+  // FIX-07 (ruled 2026-07-31): the new give-up line is "gives up {spoil}."/"give up {spoil}." with
+  // NO "all" following — the negative lookahead is what keeps this from also matching the
+  // cleaned-out phrase above ("gives up all they have"), which always has "all" immediately after.
+  const isGiveUp = txt => /\bgives? up (?!all\b)/i.test(txt);
 
   const genuine = f(mkEvent("5 coins"), at).txt;
   const cleaned = f(mkEvent("2 coins"), at).txt;
   checkTrue("battle: 5-coin (bribe) wording differs from 2-coin (cleaned-out) wording", genuine !== cleaned);
   checkTrue("battle: both renderings non-empty with no undefined/NaN token", !!genuine && !!cleaned && !/undefined|NaN/.test(genuine) && !/undefined|NaN/.test(cleaned));
 
-  for (const n of [0, 1, 2, 4]) {
-    const txt = f(mkEvent(`${n} coins`), at).txt;
-    checkTrue(`battle: ${n}-coin spoil renders the cleaned-out framing`, isCleanedOut(txt));
-    checkTrue(`battle: ${n}-coin spoil does NOT render the bribe framing`, !isBribe(txt));
+  // FIX-07: the 0/1/2/4-coin cleaned-out assertions, extended across all three spoilChosen states
+  // (genuinely chosen, genuinely not chosen, and unknown/absent) — pinning that the under-5 path is
+  // independent of the new field, exactly as the plan's own behavior spec requires ("a 2-coin spoil
+  // renders the all-they-have framing regardless of spoilChosen").
+  for (const spoilChosen of [true, false, undefined]) {
+    for (const n of [0, 1, 2, 4]) {
+      const txt = f(mkEvent(`${n} coins`, null, spoilChosen), at).txt;
+      checkTrue(`battle: ${n}-coin spoil (spoilChosen=${spoilChosen}) renders the cleaned-out framing`, isCleanedOut(txt));
+      checkTrue(`battle: ${n}-coin spoil (spoilChosen=${spoilChosen}) does NOT render the bribe framing`, !isBribe(txt));
+      checkTrue(`battle: ${n}-coin spoil (spoilChosen=${spoilChosen}) does NOT render the give-up framing`, !isGiveUp(txt));
+    }
+  }
+
+  // FIX-07: the 5-coin block, split into three labelled cases per the copy-gate rule (re-pointed,
+  // never deleted) — this is the exact assertion that used to encode the bug, since a 5-coin spoil
+  // with spoilIng:null was always read as a bribe regardless of whether the loser ever had a crate
+  // to forgo. Each case asserts mutual exclusivity: exactly one of the three framings is present.
+  {
+    // Case A — genuine-bribe: the loser HAD a crate and genuinely chose coins over it.
+    const txt = f(mkEvent("5 coins", null, true), at).txt;
+    checkTrue("battle FIX-07 [genuine-bribe case]: 5-coin spoil with spoilChosen:true renders the bribe framing", isBribe(txt));
+    checkTrue("battle FIX-07 [genuine-bribe case]: does NOT render the give-up framing", !isGiveUp(txt));
+    checkTrue("battle FIX-07 [genuine-bribe case]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [genuine-bribe case]: exactly one framing present", [isBribe(txt), isGiveUp(txt), isCleanedOut(txt)].filter(Boolean).length === 1);
   }
   {
+    // Case B — empty-hold: the loser had NO crate; the coin take still reached the 5-coin clamp
+    // ceiling. This is the case that used to render bribe framing before this plan's fix (FIX-07).
+    const txt = f(mkEvent("5 coins", null, false), at).txt;
+    checkTrue("battle FIX-07 [empty-hold case]: 5-coin spoil with spoilChosen:false renders the give-up framing", isGiveUp(txt));
+    checkTrue("battle FIX-07 [empty-hold case]: does NOT render the bribe framing", !isBribe(txt));
+    checkTrue("battle FIX-07 [empty-hold case]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [empty-hold case]: exactly one framing present", [isBribe(txt), isGiveUp(txt), isCleanedOut(txt)].filter(Boolean).length === 1);
+    checkTrue("battle FIX-07 [empty-hold case]: the ruled literal 'gives up 5🌕.' appears verbatim (neutral viewer)", txt.includes("gives up 5🌕."));
+  }
+  {
+    // Case C — absent-field regression: no spoilChosen key at all, exactly the shape every
+    // engine-generated, replayed, and fixture battle event has and always will have (hard
+    // constraint 2). Must render the shipped-history bribe framing, byte-unchanged.
     const txt = f(mkEvent("5 coins"), at).txt;
-    checkTrue("battle: 5-coin spoil renders the bribe framing", isBribe(txt));
-    checkTrue("battle: 5-coin spoil does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [absent-field case]: 5-coin spoil with no spoilChosen key renders the bribe framing (shipped-history default)", isBribe(txt));
+    checkTrue("battle FIX-07 [absent-field case]: does NOT render the give-up framing", !isGiveUp(txt));
+    checkTrue("battle FIX-07 [absent-field case]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [absent-field case]: exactly one framing present", [isBribe(txt), isGiveUp(txt), isCleanedOut(txt)].filter(Boolean).length === 1);
   }
 
   // ingredient spoils are UNTOUCHED by the split — pin the literal "{winner} takes {spoil}." clause.
@@ -317,13 +366,29 @@ for (const key of KEYS) {
   // because the crate branch now renders from the DATA field (spoilIng) rather than from the
   // pre-rendered engine text. Pinning against ilabelImg() is STRICTER than the old placeholder:
   // it asserts the clause carries the ingredient's real custom art (D-17), not an arbitrary stub.
+  //
+  // FIX-07: also asserted for spoilChosen:true — an ingredient spoil (spoilIng set) is unaffected
+  // by the new field in all three states, per the plan's own behavior spec.
   const ingTxt = f(mkEvent(ilabelImg("wheat"), "wheat"), at).txt;
   checkTrue("battle: ingredient-spoil clause still reads '{winner} takes {spoil}.' (untouched by the split, and rendered from the spoilIng DATA field)", ingTxt.includes(`takes ${ilabelImg("wheat")}.`));
+  const ingTxtChosen = f(mkEvent(ilabelImg("wheat"), "wheat", true), at).txt;
+  checkTrue("battle FIX-07: an ingredient spoil is unaffected by spoilChosen:true (still '{winner} takes {spoil}.')", ingTxtChosen.includes(`takes ${ilabelImg("wheat")}.`));
 
   for (const [label, spoil] of [["absent", undefined], ["empty", ""], ["non-numeric", "abc coins"]]) {
     const txt = f(mkEvent(spoil), at).txt;
     checkTrue(`battle: ${label} spoil still renders a non-empty line with no undefined/NaN token`, !!txt && !/undefined|NaN/.test(txt));
     checkTrue(`battle: ${label} spoil falls through to the cleaned-out (least-claiming) framing`, isCleanedOut(txt));
+  }
+
+  // FIX-07: the loser-addressed composite rendering (the SEPARATE if/else chain further down in
+  // src/ui/util.js) gets its own coverage for the empty-hold case, so it cannot regress silently.
+  {
+    const LOSER = 1; // e.a=0/e.d=1/winner=0 -> seat 1 is the loser
+    const txt = f(mkEvent("5 coins", null, false), at, 0, LOSER).txt;
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: renders the give-up framing", isGiveUp(txt));
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: does NOT render the bribe framing", !isBribe(txt));
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: the ruled literal 'ye give up 5🌕.' appears verbatim", txt.includes("ye give up 5🌕."));
   }
 }
 
@@ -486,11 +551,13 @@ for (const key of KEYS) {
    (D-09) is pinned identical with and without a viewer seat — it never gains a branch. */
 {
   const COVERED_SINGLE_SUBJECT = [
-    "windmove", "blownOut", "sail", "anchor", "moored", "blocked", "anchorHold", "tradewind",
+    "blownOut", "sail", "anchor", "moored", "blocked", "anchorHold", "tradewind",
     "aground", "shipwrecked", "dock", "sidebet", "fish", "finish", "shotclock", "shotclockskip",
   ];
-  check("COVERED_SINGLE_SUBJECT has exactly 16 keys (the plan's own covered-key count)", COVERED_SINGLE_SUBJECT.length, 16);
-  const SILENT_KEYS = new Set(["turn", "end"]); // documented as producing no captain's-log line (or none in this fabricated shape)
+  check("COVERED_SINGLE_SUBJECT has exactly 15 keys (FIX-04 moved windmove to SILENT_KEYS, dropping this from 16)", COVERED_SINGLE_SUBJECT.length, 15);
+  // FIX-04: windmove joins turn/end as silent — describeFor() returns null for it on every viewer,
+  // per D-07/NARR-05 (both addressed and neutral variants removed together).
+  const SILENT_KEYS = new Set(["turn", "end", "windmove"]); // documented as producing no captain's-log line (or none in this fabricated shape)
 
   for (const key of KEYS) {
     const fab = FAB[key];
@@ -512,6 +579,18 @@ for (const key of KEYS) {
     checkTrue(`${key}: addressed rendering differs from the viewer-neutral rendering`, addressedTxt !== neutralTxt);
     checkTrue(`${key}: addressed rendering is non-empty with no JS undefined token`, !!addressedTxt && !/undefined/.test(addressedTxt));
     checkTrue(`${key}: viewer-neutral rendering is non-empty with no JS undefined token`, !!neutralTxt && !/undefined/.test(neutralTxt));
+  }
+
+  // FIX-04: the windmove builder is silenced (no txt), but the Captains-box capsule survives, and
+  // describeFor() returns null for BOTH the neutral and the addressed viewer — the addressed variant
+  // is gone too, not just the third-person one (D-07/NARR-05 requires both together).
+  {
+    const windmoveFab = FAB.windmove;
+    const raw = EVENT_NARRATION.windmove(windmoveFab, at);
+    checkTrue("windmove: the builder produces no narration text", !raw.txt);
+    check("windmove: the builder's caps array has exactly one entry", (raw.caps || []).length, 1);
+    checkTrue("windmove: describeFor(e, NEUTRAL_VIEWER) is null", describeFor(windmoveFab, NEUTRAL_VIEWER) === null);
+    checkTrue("windmove: describeFor(e, addressedSeat) is null too — both variants gone together", describeFor(windmoveFab, windmoveFab.p) === null);
   }
 
   // D-09: newround gets NO viewer branch at all — identical with and without a viewer seat
@@ -979,6 +1058,49 @@ const DOCK_FLAVOR_BEFORE = {
   checkTrue("G28: the hold curve's constants are named and are the VISIBLE milliseconds", /HOLD_FLOOR_MS=800/.test(utilSrc) && /HOLD_CEILING_MS=2000/.test(utilSrc));
   checkTrue("G28: the clamp is applied LAST, not to a pre-multiplier intermediate", /Math\.min\(Math\.max\(raw,HOLD_FLOOR_MS\),HOLD_CEILING_MS\)/.test(utilSrc));
   checkTrue("F6: CHAT_BUBBLE_HOLD_MULTIPLIER is untouched at 0.8 (D-15)", /CHAT_BUBBLE_HOLD_MULTIPLIER=0\.8/.test(utilSrc));
+}
+
+/* ============================================================================
+ * Phase 18-02 (FIX-08): the win banner's article — "baked a Pound Cake" but
+ * "baked Cinnamon-Sugar Churros" — covering all 21 RECIPE_BOOK entries plus the
+ * recipeTitle() fallback branch.
+ *
+ * The expected mapping (which 8 titles take no article) is hardcoded here, INDEPENDENTLY of
+ * RECIPE_BOOK's own `article` field, and matched by TITLE TEXT (never array index/position) —
+ * so a mistake in the source data's article assignment, or a future reordering of RECIPE_BOOK,
+ * both still fail this block rather than the test tautologically re-deriving its own answer key
+ * from the thing it is checking. ==========================================================*/
+{
+  console.log("\nFIX-08 — recipeArticle(): the win banner prints an article only where one belongs:");
+  check("RECIPE_BOOK has exactly 21 entries", RECIPE_BOOK.length, 21);
+
+  // the 8 plural titles that take NO article — Wyatt's punch list item, curated per-title (no
+  // pluralisation heuristic: "Pots de Crème" is plural with no trailing s, "Chocolate Genoise
+  // Sponge Cake" is singular — see RESEARCH "Don't Hand-Roll")
+  const NO_ARTICLE_TITLES = new Set([
+    "Cinnamon-Sugar Churros", "Spiced Fudge Brownies", "Cinnamon Snaps", "Snickerdoodle Bites",
+    "Crispy Cocoa Snaps", "Dark Chocolate Cream Puffs", "French Pots de Crème", "Mexican Chocolate Pots",
+  ]);
+  check("the curated no-article title set has exactly 8 entries (Wyatt's punch list count)", NO_ARTICLE_TITLES.size, 8);
+
+  let emptyArticleCount = 0;
+  for (const entry of RECIPE_BOOK) {
+    const expected = NO_ARTICLE_TITLES.has(entry.title) ? "" : "a";
+    check(`recipeArticle(): "${entry.title}" resolves to ${JSON.stringify(expected)}`, recipeArticle(entry.ings), expected);
+    check(`RECIPE_BOOK data: "${entry.title}"'s own article field matches the expected mapping`, entry.article, expected);
+    // sanity: the ings actually round-trip to this same title (proves the lookup used the right entry)
+    check(`recipeTitle(): "${entry.title}"'s ings round-trip to its own title`, recipeTitle(entry.ings), entry.title);
+    if (recipeArticle(entry.ings) === "") emptyArticleCount++;
+  }
+  check("exactly 8 of the 21 entries resolve to an empty (no-article) string", emptyArticleCount, 8);
+  check("the remaining 13 entries resolve to \"a\"", RECIPE_BOOK.length - emptyArticleCount, 13);
+
+  // the fallback branch: an ingredient set with no RECIPE_LOOKUP match drives recipeTitle()'s
+  // "Captain's X & Y Bake" fallback, which is always singular — recipeArticle() must return "a"
+  const fabricatedRecipe = ["dairy", "vanilla", "wheat", "cocoa", "sugar", "spice"]; // 6 ings: no 21-entry 5-combo matches this set
+  checkTrue("the fabricated non-standard ingredient set has no RECIPE_LOOKUP match (drives the fallback branch)",
+    recipeTitle(fabricatedRecipe).startsWith("Captain's"));
+  check("recipeArticle(): a non-standard ingredient set (recipeTitle() fallback) resolves to \"a\"", recipeArticle(fabricatedRecipe), "a");
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);

@@ -122,8 +122,10 @@
   #controls { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button { font-family: inherit; font-size: 14px; padding: 6px 14px; border: 1.5px solid var(--teal); border-radius: 7px; background: var(--lemon); cursor: pointer; color: var(--ink); }
   button:hover { background: #fdea6d; }
-  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  button.primary:hover { filter: brightness(1.1); }
+  /* FIX-06: outline + faded-fill recipe, borrowed VERBATIM from .footerKofi/.footerKofi:hover
+     (index.html ~146-147) so every primary button reads as one house pattern, not a fourth orange. */
+  button.primary { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
+  button.primary:hover { background: #fae7cb; }
   button:disabled { opacity: .4; cursor: default; }
   /* UI-01: top padding was 4px. #footerRow is a SIBLING of #layout, not a grid item, so the space
      above it is #layout's own 14px bottom padding PLUS this — 18px, against the 14px rhythm every
@@ -151,8 +153,12 @@
   .kofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
   .recipeModalBtn { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .recipeModalBtn:hover { background: #d9f1e5; }
-  .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
-  .footerLeave:hover { background: #f2dada; }
+  /* FIX-06: the `button.` prefix (not a bare class selector) ties this rule's specificity with
+     `button.primary` above so the leave-game confirm button — which keeps its existing primary
+     class, see the markup comment there — resolves to this red recipe by source order (this rule
+     is declared later), with no change to the primary-button count. */
+  button.footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
+  button.footerLeave:hover { background: #f2dada; }
   input[type=range] { accent-color: var(--accent); }
   #scrub { width: 100%; margin-top: 8px; }
   select, input[type=number] { font-family: inherit; font-size: 13px; padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
@@ -166,17 +172,35 @@
      inside the same .prowTop grid (not a separate row/div) so its placement — above the chips
      on wide/medium screens, tucked under the name on narrow ones — is a pure CSS/media-query
      concern with zero extra DOM height beyond the one text line it actually needs. */
-  .prowTop { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px 6px;
-    grid-template-areas: ".   .    .     recipe" "dot name coins chips"; align-items: center; }
+  /* FIX-17: the swatch column is gone (name/coins/chips only, 3 columns) — the recipe row's
+     leading empty cell that used to skip past the swatch column is gone with it; recipe now
+     simply starts at the first (name) column, which is exactly where it already tucked to. */
+  .prowTop { display: grid; grid-template-columns: 106px 40px 1fr; gap: 6px 6px;
+    grid-template-areas: ".    .     recipe" "name coins chips"; align-items: center; }
   @media (max-width: 480px) {
     /* PDF item 3c / notes/edits #11: on very narrow screens the recipe sits underneath the
-       captain's name, left-aligned with the name text (not the dot), spanning the
-       name/coins/chips columns so a long title doesn't wrap and cost extra vertical space —
-       just not starting under the dot. Row order matters here: recipe must come SECOND in
-       grid-template-areas so it renders below the dot/name/coins/chips row, not above it. */
-    .prowTop { grid-template-areas: "dot name coins chips" ".   recipe recipe recipe"; }
+       captain's name, left-aligned with the name text, spanning the name/coins/chips columns
+       so a long title doesn't wrap and cost extra vertical space. Row order matters here:
+       recipe must come SECOND in grid-template-areas so it renders below the name/coins/chips
+       row, not above it. */
+    .prowTop { grid-template-areas: "name coins chips" "recipe recipe recipe"; }
+    /* FIX-09 D-03: two candidate narrow-screen chip treatments, both live, toggled by a body
+       class so neither ships as dead CSS. Exactly ONE survives plan 18-07's checkpoint; the
+       other is deleted there — do not let both linger past that decision. */
+    /* Treatment A (live default): shrink the chip square so a hold fits on one line instead of
+       wrapping into a column, without changing the grid it already sits in. 26px (down from the
+       default 34px) is chosen from the existing footprint of the chips column at this width
+       (bounded by --boardW, itself JS-computed — see #captainsPanel's max-width comment above),
+       staying comfortably above the 20px legibility floor while shrinking meaningfully; the exact
+       fit for the widest realistic hold at 320px could not be confirmed from this session (no live
+       render available — see 18-06-SUMMARY.md) and is part of what 18-07's checkpoint decides. */
+    .chip { width: 26px; height: 26px; }
+    /* Treatment B: give the chips their own full-width row, matching the precedent the recipe
+       row already set above, and leave .chip at its full (default, non-shrunk) size. Toggle with
+       document.body.classList.toggle('chipsOwnRow'). */
+    body.chipsOwnRow .prowTop { grid-template-areas: "name coins ." "recipe recipe recipe" "chips chips chips"; }
+    body.chipsOwnRow .chip { width: 34px; height: 34px; }
   }
-  .prowTop .dot { grid-area: dot; }
   .prowTop .pname { grid-area: name; }
   .prowTop .coinsWrap { grid-area: coins; }
   .prowTop .chips { grid-area: chips; }
@@ -185,7 +209,6 @@
      re-evaluate after a purely textContent-driven mutation, leaving the recipe stuck hidden even
      once the text is set (only reproduces via file:// in Safari, not over http/in Chrome) */
   .prowRecipe:not(.hasRecipe) { display: none; }
-  .player-row .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35); }
   .player-row .pname { font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
   .pnameInner { display: inline-block; }
   .pname.marquee .pnameInner { animation: pnamescroll 9s ease-in-out infinite; }
@@ -313,12 +336,22 @@
      panel-height animation, above) shares the value by coincidence and must NOT move with it —
      a blind find-and-replace of ".18s" hits five sites including two comments. Change this rule
      by hand.
-     position/inset take the ghost OUT OF FLOW, which is what keeps resizePanel's inner.offsetHeight
-     measuring only the incoming message — the panel height still animates exactly once per message.
+     position:absolute takes the ghost OUT OF FLOW, which is what keeps resizePanel's
+     inner.offsetHeight measuring only the incoming message — the panel height still animates
+     exactly once per message. Being out of flow is also why it needs its own top/left/width: with
+     no inset shorthand it would otherwise collapse to #apGridInner's padding-box corner (0,0),
+     which is FIX-16's "jump left" bug. panel() (src/ui/panel.js, 18-01 Task 2) now sets
+     top/left/width per-instance from a snapshot taken while the ghost was still live in flow,
+     BEFORE inner.innerHTML wiped it — pinning width too, not just position, so the
+     out-of-flow ghost doesn't re-wrap and change line count mid-fade. Because the ghost is out of
+     flow, resizePanel()'s own measurement never sees it either — so panel() also passes an
+     explicit activeGhostFloor height as resizePanel()'s minHeight, holding the row at the taller
+     of the two until the ghost's own drop() clears the floor and re-measures (still ONE
+     max-content probe per resizePanel() call — see resizePanel()'s own comment).
      pointer-events is load-bearing, not tidiness: panel() also renders action prompts with buttons,
      and a ghost that swallowed the first click on a prompt would be a far worse bug than the one
      this fixes. */
-  .apMsg.fadeOut { animation: apMsgFadeOut .8s ease both; position: absolute; inset: 0; pointer-events: none; }
+  .apMsg.fadeOut { animation: apMsgFadeOut .8s ease both; position: absolute; pointer-events: none; }
   @keyframes apMsgFadeOut { to { opacity: 0; } }
   /* the ghost is positioned against the inner box, not the page. No offsets, so flow is unchanged. */
   #apGridInner { position: relative; }
@@ -331,7 +364,9 @@
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
-  .apBtn.primary:hover { background: var(--accent); filter: brightness(1.1); }
+  /* FIX-06: was re-flooding to solid accent + brightness filter on hover, undoing the pale-fill
+     recipe above for every in-panel primary button (items 10-12 of the enumerated sites). */
+  .apBtn.primary:hover { background: #fae7cb; }
   /* #5d: a too-poor Attack shows greyed and non-clickable rather than vanishing */
   .apBtn.apDisabled, .apBtn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
   .apBtn.apDisabled:hover, .apBtn:disabled:hover { background: #fff; }
@@ -344,6 +379,13 @@
     padding: 0; margin-bottom: 6px; border-radius: 50%; background: #fff; font-size: 17px;
     font-weight: 800; line-height: 1; }
   .apBack:hover { background: #eafbf4; }
+  /* FIX-03/D-01: buttons wait for the typewriter to finish. visibility:hidden — never
+     display:none — because a hidden box must still occupy its layout space, which is what keeps
+     resizePanel()'s inner.offsetHeight measuring the buttons' full space whether this class is
+     present or not (18-01 Task 1). Toggled from panel() itself in src/ui/panel.js, off a .then()
+     on the same _revealDone promise flash() already awaits. Under prefers-reduced-motion the class
+     is never added at all — see panel()'s `reduced` read. */
+  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apBack { visibility: hidden; }
   .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
   @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */
@@ -656,7 +698,9 @@
     letter-spacing: -.2px; text-wrap: balance; }
   .awardRule { width: 100%; height: 0; border: 0; border-top: 1px solid rgba(0,0,0,.14); margin: 0; }
   .awardStat { font-size: 11px; opacity: .72; padding-top: 4px; }
-  .awardStat b { font-weight: 700; opacity: .95; }
+  /* FIX-21: def.unit carries a LEADING space (" sq", " rounds", " tails", " heads"), so the value
+     and its unit are two separately-breakable words inside this <b> unless pinned together. */
+  .awardStat b { font-weight: 700; opacity: .95; white-space: nowrap; }
   .windbox { font-size: 14px; display: flex; align-items: center; gap: 6px; }
   .muted { opacity: .6; font-size: 12px; }
   .rules { font-size: 13.5px; line-height: 1.55; }
@@ -755,7 +799,6 @@
   .big { display:block; width:100%; margin:8px 0; padding:10px; font-size:15px; }
   #roomCode { font-size:30px; letter-spacing:6px; color:var(--accent); font-weight:bold; }
   .seat { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; margin:5px 0; border:1.5px solid var(--line); }
-  .seat .dot { width:16px; height:16px; border-radius:50%; border:1.5px solid rgba(0,0,0,.3); flex:0 0 auto; }
   .seat .nm { flex:1; font-weight:600; }
   .seat.me { background:var(--lemon); border-color:var(--accent); }
   .who { font-size:11px; font-weight:normal; opacity:.7; }
@@ -1012,7 +1055,10 @@
     <!-- notes/edits UI-10(list #10): the safe choice reads first and quietly (faded blue), the
          irreversible one sits below styled like the old "Stay aboard" primary so it's a deliberate tap. -->
     <button class="big" id="btnCancelLeave" type="button" style="border-color:#8fb3d9;background:#eef4fb;color:#3f6690">Nope, stay aboard</button>
-    <button class="primary big" id="btnConfirmLeave" type="button">🚪 Aye, leave the game</button>
+    <!-- FIX-06: keeps its existing primary class (see the CSS rule above for why) and gains a
+         second class for the red destructive-action recipe, per the UI-10 comment above (styled
+         as the deliberate/weighty tap) — label unchanged. -->
+    <button class="primary big footerLeave" id="btnConfirmLeave" type="button">🚪 Aye, leave the game</button>
   </div>
 </div>
 

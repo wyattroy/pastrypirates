@@ -108,7 +108,7 @@ import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
   describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
 } from "./util.js";
-import { recipeTitle, recipeInfo, winRecipeSpan } from "./recipe.js";
+import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
 // see the file header's deviation note.
@@ -1446,7 +1446,7 @@ export function showStats(){
   // screen down with it: no banner, no awards, no stats. Caught exactly that way in a browser.
   const winRecipe=w===null?null:(appState.game.players[w]||{}).recipe;
   // @copy adhoc.voyageend.victory
-  const victoryLine=!winRecipe?"":`<div class="victoryText">${pn(w)} baked a ${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`;
+  const victoryLine=!winRecipe?"":`<div class="victoryText">${pn(w)} baked ${(a=>a?a+" ":"")(recipeArticle(winRecipe))}${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`;
   const wi=winRecipe?recipeInfo(winRecipe):null;
   const victoryPic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:""; // art, not copy
   const luck=appState.game.players.map(p=>p.flips?(p.heads/p.flips):0);

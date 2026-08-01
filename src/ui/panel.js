@@ -40,7 +40,7 @@ import {
 } from "./board.js";
 import {
   soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
-  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER,
+  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -103,6 +103,25 @@ export function setClockUI(){
       // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
       // src/orchestrator.js (main-tier) directly.
       numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
+      return;
+    }
+    // D-02 (18-05) UI obligation: a decision's own reveal is gating the button row right now
+    // (clockPendingSeat, set by panel() the instant it gates a real button row — see the D-02
+    // comment there), so there is genuinely no live clock state yet — the arm itself is what's
+    // deferred. Show a frozen full-window value instead of falling through to the idle "–" below,
+    // so a player never sees a blank or ticking clock during the 0-2.8s reveal. Derived from the
+    // SAME elapsed=0 expression the active/waiting branch further down uses, rather than a literal
+    // duplicate, so a future change to the 20/30 split can't desync the two.
+    if(appState.clockPendingSeat!=null){
+      const elapsed=0,urgent=elapsed>=20;
+      const num=urgent?30-elapsed:20-elapsed;
+      const activeViewer=appState.clockPendingSeat===appState.mySeat;
+      wrap.classList.remove("urgent","paused");
+      wrap.classList.toggle("idle",!activeViewer);
+      labelEl.textContent=activeViewer?"play in":"waiting";
+      numEl.textContent=num;
+      unitEl.textContent="seconds";
+      subEl.innerHTML=activeViewer?`or pay 1${iconImg(COIN_IMG)}`:`or gain 1${iconImg(COIN_IMG)}`;
       return;
     }
     // notes/edits #5a: a bot's turn in solo mode never arms the shot clock, so `state` stays
@@ -238,6 +257,11 @@ export function liveRender(){
 //   - F6 STANDS and is NOT reintroduced as fade-to-empty: the ghost is created only when the
 //     incoming html is non-empty, so a TRAILING line still never fades. An explicit clear (a caller
 //     passing empty content) still empties and hides the panel instantly, with no ghost.
+// FIX-16 (18-01 Task 2): the outgoing ghost's own measured height, shared as a floor between the
+// swap path (panel()'s own resizePanel() call) and the resize/orientationchange path (18-01 Task
+// 3, via resizePanel()'s default parameter) so neither can re-clip a still-fading ghost. Set when
+// a ghost is created, cleared as the first statement inside drop() before the node is removed.
+let activeGhostFloor=0;
 export const GHOST_FADE_MS=800;
 // ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
 // strict sequence is only strict while they are equal.
@@ -249,18 +273,79 @@ export const GHOST_FADE_MS=800;
 // rule. Move them together or the fade and the reveal disagree — that CSS rule carries the same
 // warning pointing back here, plus a note that `.8s`'s old value collided with #apGrid's unrelated
 // panel-height transition, so a find-and-replace on the duration is not safe.
+// FIX-03/D-01 (18-01 Task 1): monotonically increasing per-panel()-call sequence, stamped onto
+// #actionPanel's dataset at gate time and compared inside the reveal .then() below. Closes the
+// stale-reveal race RESEARCH flags: typewriterReveal() only clears `_revealTimer` for the NEW
+// element it is walking, never an interrupted earlier one, so an old reveal can resolve LATE. A
+// seq mismatch means a newer panel() call already replaced this gate — removing the class then
+// would be wrong. #actionPanel is a singleton element, so this guards against TIME (a late
+// .then()), not against which node to unhide.
+let panelSeq=0;
+// D-02 (18-05): sizes a REMOTE decision's host-side arm-defer window from the ACTOR's own prompt
+// text (never this browser's own shorter spectator line — see panel()'s clock-defer block below).
+// Derived from REVEAL_MS_PER_CHAR and GHOST_FADE_MS rather than a literal duplicate of either, so
+// a future change to the reveal pacing can't silently desync this estimate from the reveal it is
+// approximating — see CR-01's comment on GHOST_FADE_MS above for what a hardcoded companion
+// constant cost last time. Strips tags and counts CODE POINTS, not `.length` — narration text is
+// full of emoji/surrogate pairs `.length` would double-count. GHOST_FADE_MS is added
+// UNCONDITIONALLY (even though a real reveal only pays it when replacing a prior line): this
+// estimate can only ever grant the acting player MORE of their window, never less (hard
+// constraint 8) — erring long here is deliberate, not an oversight.
+function estimateRevealMs(html){
+  const codePoints=[...String(html||"").replace(/<[^>]*>/g,"")];
+  return codePoints.length*REVEAL_MS_PER_CHAR+GHOST_FADE_MS;
+}
 export function panel(html,needsAction=false){
   html=emojify(html);
   const inner=$("apGridInner");
+  // REDUCED MOTION is read HERE, in JS, and that is not a stylistic choice: index.html's
+  // `@media (prefers-reduced-motion: reduce)` sets `.apMsg.fadeOut{display:none}`, so there is no
+  // fade to wait for — but a CSS media query cannot reach a JS timer. Without this read, a
+  // reduced-motion user would get a blank 180ms gap AND no fade, which is the worst of both.
+  // Read up-front (moved ahead of the pendingReveal gate decision below, 18-01 Task 1) — ordering
+  // vs. resizePanel() doesn't matter for correctness (visibility:hidden never changes
+  // offsetHeight), but `reduced` must be known before that gate decision is made.
+  const reduced=typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   // Only when a line is actually being REPLACED: an explicit clear (empty html) still empties and
   // hides the panel instantly with no ghost, which is the explicit-clear path F6 preserved.
   const outgoing=html?inner.querySelector(".apMsg:not(.fadeOut)"):null;
   const ghost=outgoing?outgoing.cloneNode(true):null;
+  // FIX-16 (18-01 Task 2): capture the outgoing message's REAL position and size while it is
+  // still live in flow — offsets are relative to #apGridInner, which is already
+  // position:relative (index.html) — BEFORE inner.innerHTML wipes it out of the DOM below.
+  const ghostRect=outgoing?{top:outgoing.offsetTop,left:outgoing.offsetLeft,width:outgoing.offsetWidth,height:outgoing.offsetHeight}:null;
   inner.innerHTML=html;
   if(ghost){
     ghost.classList.add("fadeOut");
+    // Pin the ghost to exactly where it sat and how wide it wrapped — position:absolute alone
+    // would otherwise snap it to #apGridInner's padding-box corner (the FIX-16 "jump left" bug).
+    // Pinning width matters as much as position: without it the now out-of-flow ghost re-wraps
+    // and changes line count mid-fade.
+    ghost.style.top=ghostRect.top+"px";
+    ghost.style.left=ghostRect.left+"px";
+    ghost.style.width=ghostRect.width+"px";
+    // The ghost is out of flow, so resizePanel()'s own inner.offsetHeight measurement can never
+    // see it — this floor is how the row is held at the taller of the two heights until the ghost
+    // actually leaves (drop(), below).
+    activeGhostFloor=ghostRect.height;
     inner.appendChild(ghost); // appended AFTER the live content, so :not(.fadeOut) lookups below still find the new line first
-    const drop=()=>{if(ghost.parentNode)ghost.parentNode.removeChild(ghost);};
+    // dropped guard: drop() can fire twice (animationend AND the setTimeout belt racing on a
+    // backgrounded tab) — without this guard the second call would run a SECOND reflow-probe
+    // per ghost (see resizePanel()'s own comment on the single-probe contract), for no reason —
+    // the first drop already did everything there is to do.
+    let dropped=false;
+    const drop=()=>{
+      if(dropped)return;
+      dropped=true;
+      // Clear the floor BEFORE removing the node — a resize/orientationchange (18-01 Task 3) that
+      // lands in the gap between "ghost gone" and "floor cleared" must never read a stale floor.
+      activeGhostFloor=0;
+      if(ghost.parentNode)ghost.parentNode.removeChild(ghost);
+      // Cheap: re-derive the box height with the ghost already gone — this IS the "one deferred
+      // shrink" resizePanel()'s own measure-once comment allows (a real timer/animationend event,
+      // never a tick/frame), not a second probe against a moving target.
+      resizePanel(!!inner.innerHTML);
+    };
     ghost.addEventListener("animationend",drop,{once:true});
     // belt: animationend can be dropped entirely in a backgrounded tab, which would leak a ghost
     // that then sits over every later line. Same reasoning typewriterReveal records for preferring
@@ -279,6 +364,15 @@ export function panel(html,needsAction=false){
     // pair is genuinely irreducible — but this no longer joins them.
     setTimeout(drop,GHOST_FADE_MS+70);
   }
+  // FIX-03/D-01 (18-01 Task 1): gate the action buttons behind #actionPanel.pendingReveal until
+  // THIS prompt's own reveal resolves. Captured before resizePanel() runs so the buttons' full
+  // markup is already in the DOM either way (visibility:hidden still occupies its box in layout,
+  // which is exactly what keeps resizePanel()'s inner.offsetHeight measurement honest whether the
+  // class is present or not). hasButtons is false/null for battle prompts — renderBattle()'s HTML
+  // has no .apMsg/.apBtns/.apBack at all, so they are correctly untouched by this gate.
+  const gateEl=needsAction?$("actionPanel"):null;
+  const hasButtons=!!(gateEl&&gateEl.querySelector(".apBtns, .apBack"));
+  if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal");
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
   resizePanel(!!html);
@@ -292,26 +386,80 @@ export function panel(html,needsAction=false){
   const msgEl=$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
   // G17: delay the reveal by exactly the ghost's fade, and only when there IS a ghost — a first
   // line, or a line after an explicit clear, still types in immediately.
-  //
-  // REDUCED MOTION is read HERE, in JS, and that is not a stylistic choice: index.html's
-  // `@media (prefers-reduced-motion: reduce)` sets `.apMsg.fadeOut{display:none}`, so there is no
-  // fade to wait for — but a CSS media query cannot reach a JS timer. Without this read, a
-  // reduced-motion user would get a blank 180ms gap AND no fade, which is the worst of both.
-  const reduced=typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0);
+  const revealDone=msgEl?typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0):Promise.resolve();
+  if(msgEl)msgEl._revealDone=revealDone;
+  // FIX-03: unhide the gated buttons only once THIS prompt's own reveal resolves. The seq compare
+  // (declared above panel()) is what keeps a late-resolving EARLIER reveal from unhiding a NEWER
+  // prompt's still-hidden buttons — see panelSeq's own comment.
+  if(hasButtons&&!reduced){
+    const seq=++panelSeq;
+    gateEl.dataset.revealSeq=String(seq);
+    // D-02 (18-05): THIS is the button row becoming clickable — the seam armClock defers onto.
+    // clockPendingSeat drives setClockUI()'s frozen pending display on whichever browser renders
+    // it: the host's own screen for a local decision, or the deciding guest's own screen for a
+    // remote one (the ONLY place a remote seat's own button row ever renders — see the host-side
+    // spectator-narration branch below for how the host defers without ever seeing hasButtons here).
+    appState.clockPendingSeat=currentTurnSeat();
+    // Ownership of clockPendingArm is taken SYNCHRONOUSLY here (read-and-null), not inside the
+    // .then() below — this is what lets ask()'s no-panel belt (checked synchronously right after
+    // onLocalAsk/onRemotePrompt returns) tell "a button row WILL arm, just not yet" apart from
+    // "nothing will ever arm this decision" (a pure flip prompt, which never reaches panel() at
+    // all). clockPendingLocal gates it to LOCAL decisions only — a guest rendering its own remote
+    // decision always finds clockPendingArm null here (ask() only ever runs host-side), a correct
+    // no-op: arming is the host's job, and the guest's own clock mirrors clockState once the
+    // host's deferred arm (below) broadcasts it.
+    const armFn=(appState.clockPendingLocal&&appState.clockPendingArm)?appState.clockPendingArm:null;
+    if(armFn){appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";}
+    revealDone.then(()=>{
+      // T-18-15: reuse the SAME seq stamp the unhide above is gated by — a late-resolving EARLIER
+      // reveal must never clear a NEWER prompt's clockPendingSeat or arm a stale seat's clock.
+      if(gateEl.dataset.revealSeq!==String(seq))return;
+      gateEl.classList.remove("pendingReveal");
+      appState.clockPendingSeat=null;
+      // armFn() marks the continuation claimed (unblocking ask()'s withShotClock chain) and hands
+      // back the REAL asked seat — armClock(seat) is what actually starts the 30s window.
+      if(armFn)armClock(armFn());
+    });
+  }
+  // D-02 (18-05): a REMOTE decision's own button row never renders on the HOST's screen — the
+  // deciding seat is a different browser. This panel() call is the host's spectator "<seat> is
+  // deciding…" narration instead (hasButtons is false here, so the block above never runs on this
+  // browser for this decision). Claim the arm right here — a hasButtons render that would
+  // otherwise claim it is never coming on the host's own screen for a remote seat — and defer the
+  // actual arm by the ACTOR's own estimated reveal length (from their real prompt text via
+  // estimateRevealMs, not this shorter spectator line's own reveal): erring long by construction,
+  // never short (hard constraint 8, T-18-14).
+  if(!appState.clockPendingLocal&&appState.clockPendingArm){
+    const fn=appState.clockPendingArm,text=appState.clockPendingText;
+    appState.clockPendingArm=null;appState.clockPendingText="";
+    setTimeout(()=>armClock(fn()),estimateRevealMs(text));
+  }
+}
+// FIX-03 (18-01 Task 1): the live prompt's own reveal-completion promise, exported so a later
+// caller (18-05's armClock chain) has exactly one seam to hook rather than re-deriving this
+// lookup itself. Returns an already-resolved promise when there is no live .apMsg (nothing to
+// wait for) rather than null, so every caller can `.then()` unconditionally.
+export function panelRevealDone(){
+  const m=$("actionPanel")&&$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
+  return (m&&m._revealDone)||Promise.resolve();
 }
 // notes/edits BUG-01: smoothly resize the box to the CURRENT message's finished height, exactly
 // ONCE. Measure the natural content height (with the row briefly unconstrained and the transition
 // suppressed so the measurement itself never animates), snap the row back to where it was, then let
 // the transition animate to the measured height. The typewriter then fills a box that's already the
 // right size — so the height animates a single time per message instead of on every character.
-export function resizePanel(hasContent){
+// FIX-16 (18-01 Task 2): `minHeight` defaults to `activeGhostFloor` so the swap path (panel()'s
+// own call, below), the ghost's own drop() call, and 18-01 Task 3's resize/orientationchange path
+// all share ONE floor with no caller changes required — a resize mid-fade reads the same live
+// floor a swap or a drop would. Everything else here — the single reflow-probe below, the snap-
+// back, the suppressed transition, the `void grid.offsetHeight` commit — stays byte-identical.
+export function resizePanel(hasContent,minHeight=activeGhostFloor){
   const grid=$("apGrid"),inner=$("apGridInner");if(!grid)return;
   if(!hasContent){grid.style.gridTemplateRows="0px";return;}
   const from=getComputedStyle(grid).gridTemplateRows; // resolved px of the current height
   grid.style.transition="none";
   grid.style.gridTemplateRows="max-content";
-  const h=inner.offsetHeight;                          // natural height of the finished message
+  const h=Math.max(inner.offsetHeight,minHeight);       // natural height, floored at the still-fading ghost's own height
   grid.style.gridTemplateRows=from;                    // back to the start value…
   void grid.offsetHeight;                              // …committed as the transition's from
   grid.style.transition="";

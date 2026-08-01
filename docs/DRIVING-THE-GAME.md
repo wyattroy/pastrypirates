@@ -333,6 +333,42 @@ window.__alerts = []; window.alert = m => window.__alerts.push(String(m));
 An `alert()` on a failure path cost real time here once, presenting as a frozen tab when it was a
 failed Firebase call.
 
+## 8b. A HIDDEN tab is the other fake freeze — and it silently corrupts layout readings
+
+Check this **first**, before trusting any timing or layout number:
+
+```js
+({ hidden: document.hidden, focus: document.hasFocus(), outer: window.outerWidth })
+```
+
+`hidden: true` / `outerWidth: 0` means the tab is backgrounded (the MCP browser session commonly
+opens tabs this way). Chrome then throttles it, and three separate things break — each of which
+reads as a bug in the game rather than an artifact of the harness:
+
+1. **`requestAnimationFrame` never fires.** So `await new Promise(r => requestAnimationFrame(r))`
+   never resolves and the tool call dies with *"the renderer may be frozen or unresponsive"* after
+   its timeout. The renderer is fine. This is the §8 symptom with a completely different cause, and
+   it cost most of a session before it was spotted.
+2. **`setInterval`/`setTimeout` are clamped to ~1/sec.** A 100ms sampling loop silently becomes a
+   1000ms one. A typewriter reveal that really takes ~500ms measures as ~1000ms, and a sampler that
+   should catch 25 frames catches one. Do not quote any duration measured in a hidden tab.
+3. **rAF-driven layout never settles.** `resizePanel()` pins the panel height through a rAF/reflow
+   sequence, so in a hidden tab `#apGrid`'s `grid-template-rows` sits at `0px` forever and every
+   `.apBtn` measures as overflowing its container by its full height. That looks exactly like the
+   FIX-10 clipping bug. It is not. Take a screenshot — the act of screenshotting activates the tab,
+   the panel expands, and the "bug" evaporates.
+
+**MutationObserver still fires** in a hidden tab and is not timer-throttled, so it is the right
+instrument for proving *ordering* (did X happen before Y) when the tab cannot be foregrounded.
+Callbacks coalesce, so you get an event per batch rather than per character — enough for ordering,
+never enough for a per-frame record.
+
+**What a hidden tab cannot do at all:** anything keyed to real viewport width. `resize_window`
+returns success but does not move `window.innerWidth` when `outerWidth` is 0, so the
+`@media (max-width: 480px)` breakpoints and any 320/375/390 sweep are **not testable** from a hidden
+tab. That work needs a real visible window — or Wyatt's own browser. Say so rather than reporting a
+width-dependent check as passed.
+
 ## 9. Never verify against production
 
 `playpastrypirates.com` serves whatever last merged to `main`. It can never prove anything about

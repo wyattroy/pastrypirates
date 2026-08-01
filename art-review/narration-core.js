@@ -87,7 +87,7 @@ export const {
   DIRNAME, emojify, ilabelImg, iconImg, ING_IMG, EMOJI_IMG, ASSET_BASE, HEXCOL,
   DOCK_FLAVOR, DOCK_PLACE, ING_ALL, dockPlace, dockFlavor, dockFlavorIcon, man,
 } = shared;
-const { recipeInfo, winRecipeSpan } = await import("../src/ui/recipe.js");
+const { recipeInfo, winRecipeSpan, recipeArticle } = await import("../src/ui/recipe.js");
 
 /* ============================================================================
  * Injected configuration
@@ -493,7 +493,7 @@ const CTX_BASE = {
   // and the file's local-variable resolution is poisoned, not just the one card that uses it.
   dockFlavorIcon,
   describeFor, narrationVariants, NEUTRAL_VIEWER, brokeSailLine, brokeAnchorLine,
-  stormIntroClause, secondLegLine, recipeInfo, winRecipeSpan,
+  stormIntroClause, secondLegLine, recipeInfo, winRecipeSpan, recipeArticle,
   ns: pn, nm: pn, ny: pn,
   p: { idx: 0, coins: 4, ing: ["wheat", "sugar"], pos: [2, 2] },
   q: { idx: 1, coins: 4, ing: ["cocoa"], pos: [3, 2] },

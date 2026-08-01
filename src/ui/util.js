@@ -107,7 +107,6 @@ export function buildPlayerRows(){
     const displayName=pname(i);
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
       <div class="prowTop">
-        <span class="dot" style="background:${HEXCOL[i]}"></span>
         <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
         <span class="coinsWrap"><span class="coins" id="coins${i}">${iconImg(COIN_IMG)} –</span><span class="crown" id="crown${i}"></span></span>
         <span class="chips" id="chips${i}"></span>
@@ -324,7 +323,9 @@ export const EVENT_NARRATION={
     return {cls:"roundhdr",txt:`— Round ${e.round}: wind is blowin' ${D} —`};
   },
   // D-25/D-37 (Wyatt-approved 2026-07-29): wind always BLOWS a player — never carries/sweeps/moves.
-  windmove:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — yer blown by the storm`:`${pn(e.p)} is blown by the storm`,caps:[[e.p,"🌬️ drifts"]]}),
+  // FIX-04 (Wyatt, 2026-07-31): the narration line itself is gone — both viewer variants together,
+  // per D-07/NARR-05. The Captains-box capsule stays; it's the only remaining marker of the drift.
+  windmove:(e,at,cellPx,viewerSeat)=>({caps:[[e.p,"🌬️ drifts"]]}),
   blownOut:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`⛵ ${pn(e.p)} — a gale blows ye off the dock!`:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
   sail:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ye pay 1🌕 and sail`:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
   // D-07/NARR-05/D-10 (Wyatt-approved 2026-07-29): the tracer line for viewer-aware narration. The
@@ -449,7 +450,7 @@ export const EVENT_NARRATION={
     const before=(prev&&prev.state&&prev.state[e.p])?prev.state[e.p].coins:null;
     const after=(e.state&&e.state[e.p])?e.state[e.p].coins:null;
     const lost=(before!=null&&after!=null)?Math.max(0,before-after):null;
-    const lossTag=lost!=null?` (−${lost}🌕)`:"";
+    const lossTag=lost!=null?` <span class="nobrk">(−${lost}🌕)</span>`:"";
     return {txt:isLocalTo(e.p,viewerSeat)
         ?(e.ing?`${pn(e.p)} — ye flip ⚫TAILS and run aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} — ye flip ⚫TAILS and run aground! Ye lose half yer coins on repairs${lossTag} ⚠️`)
         :(e.ing?`${pn(e.p)} flips ⚫TAILS and runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS and runs aground! Loses half their coins doing repairs${lossTag} ⚠️`),
@@ -527,11 +528,19 @@ export const EVENT_NARRATION={
   sidebet:(e,at,cellPx,viewerSeat)=>{
     const you=isLocalTo(e.p,viewerSeat);
     if(e.won)return {cls:"trade",txt:e.amt
-      ?(you?`🔭 ${pn(e.p)} — ye called it! 1🌕 + double yer bet (+${e.delta}🌕)`:`🔭 ${pn(e.p)} called it! 1🌕 + double their bet (+${e.delta}🌕)`)
-      :(you?`🔭 ${pn(e.p)} — ye called it! (+${e.delta}🌕)`:`🔭 ${pn(e.p)} called it! (+${e.delta}🌕)`)};
+      ?(you
+        ?`🔭 ${pn(e.p)} — ye called it! 1🌕 + double yer bet <span class="nobrk">(+${e.delta}🌕)</span>`
+        :`🔭 ${pn(e.p)} called it! 1🌕 + double their bet <span class="nobrk">(+${e.delta}🌕)</span>`)
+      :(you
+        ?`🔭 ${pn(e.p)} — ye called it! <span class="nobrk">(+${e.delta}🌕)</span>`
+        :`🔭 ${pn(e.p)} called it! <span class="nobrk">(+${e.delta}🌕)</span>`)};
     return {cls:"trade",txt:you
-      ?(e.amt?`💰 ${pn(e.p)}, ye backed the wrong ship (−${e.amt}🌕)`:`🔭 ${pn(e.p)} — ye backed the wrong ship. No bounty.`)
-      :(e.amt?`💰 ${pn(e.p)} backed the wrong ship (−${e.amt}🌕)`:`🔭 ${pn(e.p)} backed the wrong ship — no bounty.`)};
+      ?(e.amt
+        ?`💰 ${pn(e.p)}, ye backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>`
+        :`🔭 ${pn(e.p)} — ye backed the wrong ship. No bounty.`)
+      :(e.amt
+        ?`💰 ${pn(e.p)} backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>`
+        :`🔭 ${pn(e.p)} backed the wrong ship — no bounty.`)};
   },
   battle:(e,at,cellPx=0,viewerSeat)=>{
     // count by who actually scored (r[3]) rather than the raw flip pattern — a both-heads
@@ -592,7 +601,23 @@ export const EVENT_NARRATION={
     // coin take reach the full 5" — a numeric question about the event, entirely unrelated to how
     // the amount is spelled on screen. Do not tidy the two together.
     const spoilN=e.spoilIng?null:parseInt(e.spoil,10);
-    const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5;
+    // FIX-07 (Wyatt-ruled 2026-07-31): spoilN>=5 alone can't tell a genuine bribe (had a crate AND
+    // 5+ coins, chose to pay) apart from an empty-hold loser who never had a choice — both clamp to
+    // the same "5 coins"/spoilIng:null shape. src/orchestrator.js now carries the real signal as
+    // e.spoilChosen, set true ONLY inside its canCoins&&hasIng branch. Engine-generated events
+    // (replays, the simulator, all 31 determinism fixtures) carry no such key at all — hasChoice is
+    // the fork that keeps every one of THOSE rendering byte-identically to before this change,
+    // falling back to the old coin-count proxy exactly as it did before spoilChosen existed.
+    const hasChoice=typeof e.spoilChosen==="boolean";
+    // the amount gate (spoilN>=5) stays load-bearing in BOTH forks — a fabricated sub-5 event with
+    // spoilChosen:true is not a shape the real game ever produces (canCoins&&hasIng only sets
+    // spoilChosen true when lose.coins>=5, which clamps the take to exactly 5), but the fix must not
+    // depend on that never happening: a sub-5 spoil always falls to the all-they-have framing,
+    // regardless of spoilChosen.
+    const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5&&(hasChoice?e.spoilChosen===true:true);
+    // the empty-hold case: a real choice existed (hasChoice), the loser did NOT choose coins over a
+    // crate (they had none to choose from), and the coin take still reached the clamp ceiling.
+    const isEmptyHoldFive=e.spoilIng==null&&hasChoice&&e.spoilChosen===false&&Number.isFinite(spoilN)&&spoilN>=5;
     // D-08 (Wyatt-approved 2026-07-29): the attacker and the defender each read the outcome
     // addressed to themselves — a third-party viewer (including NEUTRAL_VIEWER) reads the
     // third-person text. Only ever one of aAddr/dAddr can be true (distinct seats), so the spoil
@@ -612,6 +637,9 @@ export const EVENT_NARRATION={
     // changed — the only difference is how the spoil AMOUNT is spelled.
     if(e.spoilIng)spoilClause=viewerIsWinner?`Ye take ${spoilText}.`:`${pn(e.winner)} takes ${spoilText}.`;
     else if(isBribe)spoilClause=viewerIsLoser?`Ye bribe yer way out of giving away a crate with ${spoilText}.`:`${pn(loser)} bribes their way out of giving away a crate with ${spoilText}.`;
+    // FIX-07 (ruled 2026-07-31, verbatim): an empty-hold loser reads this third line, not the bribe
+    // wording and not the all-they-have fallback below.
+    else if(isEmptyHoldFive)spoilClause=viewerIsLoser?`Ye give up ${spoilText}.`:`${pn(loser)} gives up ${spoilText}.`;
     else if(viewerIsLoser)spoilClause=`Ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
     else if(viewerIsWinner)spoilClause=`Ye take all ${pn(loser)} has${spoilText?`: ${spoilText}`:""}.`;
     else spoilClause=`${pn(loser)} gives up all they have${spoilText?`: ${spoilText}`:""}.`;
@@ -629,6 +657,10 @@ export const EVENT_NARRATION={
       const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
       if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
       else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${spoilText}.`;
+      // FIX-07: mechanical person-swap of the ruled "Ye give up {spoil}." line into this composite's
+      // own em-dash-continuation shape, matching the pattern the bribe/all-they-have branches above
+      // already use in this same chain.
+      else if(isEmptyHoldFive)txt=`${head} — ye give up ${spoilText}.`;
       else txt=`${head} — ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
     }else txt=`${mainClause} ${spoilClause}`;
     return {cls:"battle",
@@ -1126,6 +1158,31 @@ export function ask(msg,opts,colors,sub){
     netHandlers().onEndReplay();
   }
   const seat=appState.curSeat;
+  // D-02 (18-05): the shot clock used to arm HERE, before the prompt's own buttons were even in
+  // the DOM — a player on a long prompt lost up to ~2.8s of their 30s window to the typewriter
+  // reveal before they could act at all (D-01 now holds the buttons hidden until it resolves).
+  // Publish a one-shot continuation instead: whichever panel() render actually gates the button
+  // row (18-01's pendingReveal seam) claims it and fires it once the buttons are truly clickable.
+  // Deliberately does NOT itself call the arming function defined below — this file's only mention
+  // of that identifier is its own declaration line (a hard gate on this task's own diff); panel.js
+  // is the sole caller, since it already imports it and is where every claim of this continuation
+  // actually happens (both the deferred-reveal path and the remote estimate path). The closure
+  // below just marks the arm claimed and hands the real seat back to whoever calls it, since
+  // panel()'s own currentTurnSeat() derivation is a display-only approximation (it can drift from
+  // the actual asked seat during a nested battle sub-decision) and must never be the value that
+  // actually gets armed.
+  //
+  // Published BEFORE onBroadcast() below, not just before onLocalAsk/onRemotePrompt — netNarrate
+  // (onBroadcast's target) calls showNarration() synchronously on THIS (host) browser before it
+  // ever reaches Firebase, so it is the FIRST panel() render this call produces on either branch:
+  // the actor's own line for a local seat, or the neutral spectator line for a remote one — and
+  // for a remote seat that spectator render is the ONLY panel() call this browser ever makes for
+  // this decision (the real button row renders on the deciding guest's own browser instead).
+  let resolveArmed;
+  const armed=new Promise(res=>{resolveArmed=res;});
+  appState.clockPendingLocal=decisionIsLocal(seat);
+  appState.clockPendingText=msg;
+  appState.clockPendingArm=()=>{resolveArmed();return seat;};
   // D-10 DELIVERY (F7, found in the 2026-07-29 two-tab playtest): ONE broadcast reaches EVERY
   // client, so content that branches on the local viewer can never be right. This line used to read
   // `seat===appState.mySeat?msg:spectatorLine` — but ask() runs on the HOST, so `mySeat` is the
@@ -1140,7 +1197,6 @@ export function ask(msg,opts,colors,sub){
   // selects for itself. No new copy — both strings already existed.
   // scripts/ui_contract_check.js assertion 7 gates the rule.
   netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);
-  armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
@@ -1149,7 +1205,22 @@ export function ask(msg,opts,colors,sub){
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
        disabled:opts.map(o=>!!o.disabled),sub:sub||null,flip:isFlip,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
-  const idxP=withShotClock(seat,base,0);
+  // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip
+  // prompt (opts.length===1 with a `flip`) never calls panel() at all (see localAsk()), so there
+  // is no reveal to defer onto. Arm right now so this decision is never left unclocked; identical
+  // to today's timing for exactly this case (T-18-13). Inlines the same two-line body the arming
+  // function below performs (host guard, then start the clock for this seat) rather than naming
+  // it a second time in this file, for the same reason the closure above doesn't.
+  if(appState.clockPendingArm){
+    appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";
+    resolveArmed();
+    if(appState.isHost){const p=appState.game.players[seat];if(p)startShotClock(p);}
+  }
+  // Hard constraint 1: withShotClock() bails out and returns `base` unwrapped unless
+  // seat===appState.shotClockSeat — chaining it onto `armed` guarantees the seat has already been
+  // armed (shotClockSeat is already set) before withShotClock ever inspects it, so the 30s
+  // auto-skip resolver is installed for every clocked decision, never skipped (T-18-12).
+  const idxP=armed.then(()=>withShotClock(seat,base,0));
   return idxP.then(i=>{const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
 }
 // re-arms the shot clock with a fresh 30s window right before a new decision is shown to

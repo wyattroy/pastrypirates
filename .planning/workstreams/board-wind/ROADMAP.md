@@ -25,6 +25,13 @@
 **Runs concurrently with:** the other v1.3 workstreams — `prompts-polish`, `board-wind`,
 `sound-clock`, `front-door` — except where noted below.
 
+**⚠ Incoming touch from `prompts-polish` — one line of `src/ui/board.js`.** Phase 18's FIX-08 (the
+win banner must only print "a" in front of a recipe name that takes one) needs the victory line at
+**`src/ui/board.js:772`** — `` `${pn(w)} baked a ${winRecipeSpan(w)} …` ``. It is a **single line**
+and the only reach `prompts-polish` has into this file; the rest of FIX-08 is in `src/ui/recipe.js`.
+Coordinate before either session edits `board.js`: either `board-wind` takes this one line as a
+favour, or the two sessions sequence their `board.js` edits. Raised 2026-07-31 while scoping Phase 18.
+
 **Internal ordering — sequential, not parallel.** Phase 20 gates on **Phase 19's verdict**, not
 merely its completion. Whether Safari survives an always-on wind layer, and how many dots it can
 carry, is what Phase 20 gets designed around. **Do not plan Phase 20 before Phase 19 answers.**
