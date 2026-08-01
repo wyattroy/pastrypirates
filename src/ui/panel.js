@@ -105,6 +105,25 @@ export function setClockUI(){
       numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
       return;
     }
+    // D-02 (18-05) UI obligation: a decision's own reveal is gating the button row right now
+    // (clockPendingSeat, set by panel() the instant it gates a real button row — see the D-02
+    // comment there), so there is genuinely no live clock state yet — the arm itself is what's
+    // deferred. Show a frozen full-window value instead of falling through to the idle "–" below,
+    // so a player never sees a blank or ticking clock during the 0-2.8s reveal. Derived from the
+    // SAME elapsed=0 expression the active/waiting branch further down uses, rather than a literal
+    // duplicate, so a future change to the 20/30 split can't desync the two.
+    if(appState.clockPendingSeat!=null){
+      const elapsed=0,urgent=elapsed>=20;
+      const num=urgent?30-elapsed:20-elapsed;
+      const activeViewer=appState.clockPendingSeat===appState.mySeat;
+      wrap.classList.remove("urgent","paused");
+      wrap.classList.toggle("idle",!activeViewer);
+      labelEl.textContent=activeViewer?"play in":"waiting";
+      numEl.textContent=num;
+      unitEl.textContent="seconds";
+      subEl.innerHTML=activeViewer?`or pay 1${iconImg(COIN_IMG)}`:`or gain 1${iconImg(COIN_IMG)}`;
+      return;
+    }
     // notes/edits #5a: a bot's turn in solo mode never arms the shot clock, so `state` stays
     // null the whole time it's playing — that used to fall through to the idle "turn clock"
     // label even while a bot is actively moving. Show the same "waiting" copy multiplayer
