@@ -1,3 +1,39 @@
+## Git: always fetch before you read git state
+
+**`git fetch` FIRST — before reading, comparing, or concluding anything about a branch.** Not once
+per task; once per time you are about to trust what git tells you.
+
+Both `main` and `origin/main` are **local caches**. `origin/main` is not the remote — it is this
+machine's last-downloaded snapshot of it, and it is stale until you fetch. Reading either one without
+fetching can be arbitrarily wrong.
+
+```bash
+git fetch origin
+```
+
+**This has cost real time on this project, twice.** On 2026-08-01 the local `main` ref was parked at
+a v1.0 snapshot — 457 commits behind, no `src/` directory at all — because nobody had pulled after
+merging on GitHub. Reading it produced a confident and completely wrong conclusion ("main is a dead
+v1.0 snapshot; ignore it"), which was then handed to four parallel sessions as instructions. GitHub
+was healthy the entire time. Only the local copy was frozen.
+
+**Tells that you are reading a stale ref — stop and fetch before concluding:**
+
+- A diff against the base is absurdly large (hundreds of commits).
+- `src/` appears as *newly added* — it has existed since the v1.1 refactor.
+- A milestone you know shipped looks unfinished or absent.
+- A branch appears wildly behind for no reason anyone can explain.
+
+**After merging a pull request on GitHub, pull locally.** The merge happens on GitHub's servers; this
+machine does not know until told. Missing this step is what caused the above, across two milestones.
+
+```bash
+git pull
+```
+
+**Never report git state from memory or from earlier in the session.** Re-run the command. Refs move —
+including because of something you did yourself.
+
 <!-- GSD:project-start source:PROJECT.md -->
 
 ## Project
