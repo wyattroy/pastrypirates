@@ -4,3 +4,9 @@ ONLINE_SETUP.md
 DESIGN_REPORT.md
 notes/
 node_modules/
+
+# Raw Gemini art-generation output and review galleries. Disposable staging —
+# see notes/art-generation-process.md §6. NOTE: 116 files under art-review/ were
+# already committed before this line existed and stay tracked; git does not
+# untrack what it already tracks. Only NEW output is ignored.
+art-review/

@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: The Game Comes Alive
-status: "v1.3 planned — Phases 18-22 roadmapped, none started"
+status: "v1.3 in progress — Phase 19 complete; 18, 20, 21, 22 outstanding"
 last_updated: "2026-07-31T22:03:58.955Z"
 last_activity: 2026-08-01
 stopped_at: "v1.3 opened 2026-08-01. Roadmap written from .planning/V1.3-V1.4-PLAN.md (Wyatt-ordered). Next: /gsd-plan-phase 18, or 21/22 in parallel. Phase 19 is a Safari gate Wyatt runs himself; Phase 20 waits on it."
@@ -21,14 +21,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** Phase 17 — final-multiplayer-verification (Wyatt's Safari playtest)
+**Current focus:** v1.3 — Phase 19 complete (board-wind); Phase 20 unblocked, 18/21/22 unplanned
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-31 — Milestone v1.3 started
+Milestone: v1.3 "The Game Comes Alive" — in progress, work split across four workstreams
+Last activity: 2026-08-01 — Phase 19 (Safari Check) complete in the `board-wind` workstream
+
+| Workstream | Phase | Status |
+|---|---|---|
+| board-wind | 19 Safari Check | ✓ Complete — PASS, smooth at 100 dots, no dot budget needed |
+| board-wind | 20 The Board Comes Alive | Unblocked by 19, not yet planned |
+| prompts-polish | 18 Prompts & Polish | Roadmapped, no plans yet |
+| sound-clock | 21 Sound & the Clock Toggle | Roadmapped, no plans yet |
+| front-door | 22 The Front Door | Roadmapped, no plans yet |
+
+Progress: [██░░░░░░░░] 1 of 5 phases complete (v1.3)
+
+### Carried over from v1.2 — still open
+
+PR #8 carries Phases 13, 14 and 15 against `main` — 403 commits, `.planning/` history
+kept in the merge per Wyatt's ruling. Two verification items ride along as accepted
+residuals, not cleared checks: the shipped-vs-approved copy comparison (19 of 144
+fields conclusively settled) and two D-41 greyed states never eyeballed. Both are
+recorded in `15-VERIFICATION.md` and have tracking todos.
+
+Phase 17 (final-multiplayer-verification) was left AWAITING WYATT at the v1.2/v1.3
+rollover — his Safari playtest was never run. It is not superseded by Phase 19's
+Safari work, which covered wind-dot smoothness only, not multiplayer verification.
 
 ## Performance Metrics
 
@@ -79,6 +99,7 @@ Last activity: 2026-07-31 — Milestone v1.3 started
 | 2026-07-31 | `20260731-tradewind-arrival-animation` — the sweep dragged the boat across the board instead of round the ring | 2 of 2 | 1 | **COMPLETE.** **Found by a screen recording after TWO code readings got it wrong** (`notes/trade winds animation bug.mov`). The tell nobody thought to look for: `activeRing` carries no css transition, so it snapped to each square and ran **~2 squares AHEAD of the boat** the whole sweep — it was drawing the correct path all along. Cause: the clicked square was never painted (the redraw and the sweep's first paint shared one synchronous task, so the browser only ever painted the second), so the sweep began with the boat **inland**; then a 350ms glide re-aimed every 95ms made the boat a damped follower, and **a damped follower on a curve takes the chord, not the arc** — it cut across the middle of the board. Fix: (A) paint `from` **and await** before the loop; (B) shorten the ship's glide to `RIM_SWEEP_GLIDE_MS` for the sweep, restored in `finally` **before** the corrective paint. Sweep duration unchanged. `rimSweepPath` and the 95ms step deliberately untouched. New gate: `host_guest_parity_check.js` **assertion 4**, red-proofed with 4 drills — **4a is the real pre-fix body from `1ac3d10`**, 4b is the paints-but-never-yields trap. `npm test` 17 gates exit 0; engine byte-identical; 31/31. **OPEN for Wyatt: the pacing is a feel call** — `RIM_SWEEP_ARRIVE_MS` (350) and `RIM_SWEEP_GLIDE_MS` (86); needs a second recording. Never verifiable from the automated browser — the tab is `visibilityState:"hidden"` and Chrome suspends animation frames there. |
 | 2026-07-31 | `20260731-google-preview-logo` — make the logo Google's result preview image | 2 of 2 | 1 | **COMPLETE.** Two lines in `index.html`'s `<head>`: a `robots` meta with `max-image-preview:large` (**the page had none at all**, so Google defaulted to a small thumbnail or none), and an `image` field on the existing JSON-LD `VideoGame` block. **Key finding: `og-image.jpg` was already the logo** — same artwork as `assets/logo.jpg` at 1200x663 vs 900x502 — so no asset was made. **`og:image` was never the lever**; Google largely ignores Open Graph for result thumbnails. Favicon, `og:image`, `twitter:image` deliberately untouched, all verified working. `npm test` exit 0, 23/23; JSON-LD re-parsed valid. **LIMIT: this permits the image, it does not display it** — that needs a Google re-crawl (days to weeks) and cannot be forced from the repo. Next move is META-03 (Search Console), not code. |
 | 2026-07-31 | `260731-m5b-record-phase-13-checks-2-and-3-closed-gu` — close Phase 13's last two human_verification checks | 2 of 2 | 3 (`c20ec59`..`eeb7b41`) | **COMPLETE. Documentation only — no `src/` file touched.** Checks 2 and 3 (guest-initiated `#scPause`; click `#shotClockNum` to resume) exercised live in room `SGZZ`, Wyatt hosting in Safari, Claude on the guest seat in Chrome. Both pass, run twice. **The load-bearing evidence is the host's clock re-broadcast at `+116ms` carrying `paused=true`** — `rooms/{room}/clock` is host-written only, so it proves the guest's pause reached and was applied by the host, not a local flag read back; Wyatt confirmed the freeze visually. **Method finding worth keeping: hand-driving cannot hit a sub-second window** — MCP round-trips cost 1-2s against a 30s clock and lost two turns; what worked was an in-page watcher firing the whole sequence at page speed against live Firebase listeners. **Precondition: `timerOff` must be `false`** — `panel.js` returns before any paused-state render, so Check 3 is literally untestable with the timer off. Archive copy `diff` clean, both verification files append-only (0 removed lines). **NEW FINDING FILED (`phase: post-audit-findings`): pausing in the final ~1s does not save the turn** — Wyatt paused at ~1s left, turn expired and penalized anyway; cause **suspected** not established (round-trip vs. the local 500ms tick). **Open for Wyatt: accept that race or make the host pause optimistically; and promote the finding to `.planning/todos/pending/` at next triage.** Two non-defects recorded so they are not re-opened: the full-30s resume is correct (paused at turn top, `pauseElapsed` ~0), and the `paused`-latch suspicion was investigated, not reproduced, no defect filed. **Item 4 (solo pause/resume regression) was initially NOT re-exercised and was flagged as such rather than absorbed into "fully closed" — then it was closed later the same day.** Live solo run (3 bots, timer on, fresh port 8555): **baseline 5 events in a 21s window, 1 in the same window paused** — and that one already in flight at `t=1.4s` — **while the autoplay driver ticked ~300 times and the game did not move.** A true whole-game freeze incl. bots, per D-04. Resume driven by the big symbol `#shotClockNum`, which also closes item 5's solo leg; symbol confirmed inert when not paused (5 clicks, handler genuinely null). **The FIRST attempt at this check was discarded as worthless — it paused during a lull, so the count was already flat beforehand and it could not have failed; the same could-not-fail flaw as the original Check B.** A freeze test without a baseline proves nothing. **All 5 of Phase 13's human_verification items are now exercised live — the list is closed with no caveat.** |
+| 2026-08-01 | `260801-84s-integrate-brass-sound-mute-icons-into-as` — ship the brass 🔊/🔇 icons | 2 of 2 | 1 (`0072ec7`) | **COMPLETE. Assets only — `index.html`, `src/`, `scripts/`, `package.json` all byte-unchanged.** `assets/icons/sound-on.png` and `sound-off.png`, 128×99 RGBA, generated by executing `notes/art-audit.md` against Gemini (new batch `icons-sound`) and processed per `art-generation-process.md` §7. **Brass on Wyatt's call** — the first pass came back in the standard teal/parchment/coral palette and he asked for it to match the flippenator coin; the teal originals are kept at `art-review/icons-sound/v1-teal/`. **Two constraints that will silently break if a future pass ignores them: (1) the mute image is an in-thread Gemini *edit* of the sound-on image, not a separate prompt — that is the only reason the megaphone is pixel-identical across the pair, and regenerating either from scratch breaks it; (2) both are cropped to a shared union box, a deliberate departure from §7's "no buffer space" rule, because cropping each to its own tight bbox put the horn 3px apart vertically and made it twitch on toggle.** Both recorded in the new `notes/art-audit.md` §5.7. Verified by compositing at 5× on near-black *and* white plus an alpha map (§7 warns one background colour hides interior keying holes): no holes, no watermark fragment, clean 1px feather; also checked at 24/48px against `stopwatch`/`anchor`/`gear`/`flip-heads`/`spyglass`. **NOT WIRED, on purpose: there is no 🔊/🔇 anywhere in `index.html` or `src/` and the game has no sound, mute, or volume control** — these are assets ahead of a feature, and inventing a toggle to house them was out of scope. **Open for Wyatt: the horn is a modern bullhorn with a pistol grip, not a period ship's speaking trumpet** (the prompt asked for one; Gemini didn't) — accepted, flagged in the gallery and §5.7, one regenerate away if it reads wrong next to the rope-and-timber flippenator. Chrome's download Location still points at `art-review/pastries` from an old batch and will misfile the next art run. |
 | 2026-07-30 | `20260730-playtest-notes-fixes` — G1-G9 from Wyatt's morning playtest notes | 9 of 9 | 9 (`de29b07`..`3d559df`) | **COMPLETE.** Two urgent correctness fixes (G2 the mis-told Tortuga storm rescue; G6 seven coin-debit paths that could drive a purse negative), three copy corrections (G1, G3, G4), one flow reorder (G5), one narration-timing refinement (G8, 180ms), one requirements reword (G7), and one queued engine-purity spec (G9, `docs/DETERMINISM-RERECORD-NEXT.md`). `npm test` exit 0 at every commit; **`src/engine/index.js` byte-identical to `9dd36c0`**; `package.json` untouched; all determinism seeds pass. Three fixtures re-pinned with reasons in their own provenance (table baseline 50->51 for G2, 3 addressed dock cards for G1, 2 battle cards for G3) — no pattern widened, no equality loosened, no disposition file touched. No player-facing string invented. **Open for Wyatt: the G8 fade duration (180ms) is a taste call no gate can answer.** |
 
 ## Accumulated Context
