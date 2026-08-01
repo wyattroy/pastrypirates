@@ -178,28 +178,19 @@
   .prowTop { display: grid; grid-template-columns: 106px 40px 1fr; gap: 6px 6px;
     grid-template-areas: ".    .     recipe" "name coins chips"; align-items: center; }
   @media (max-width: 480px) {
-    /* PDF item 3c / notes/edits #11: on very narrow screens the recipe sits underneath the
-       captain's name, left-aligned with the name text, spanning the name/coins/chips columns
-       so a long title doesn't wrap and cost extra vertical space. Row order matters here:
-       recipe must come SECOND in grid-template-areas so it renders below the name/coins/chips
-       row, not above it. */
-    .prowTop { grid-template-areas: "name coins chips" "recipe recipe recipe"; }
-    /* FIX-09 D-03: two candidate narrow-screen chip treatments, both live, toggled by a body
-       class so neither ships as dead CSS. Exactly ONE survives plan 18-07's checkpoint; the
-       other is deleted there — do not let both linger past that decision. */
-    /* Treatment A (live default): shrink the chip square so a hold fits on one line instead of
-       wrapping into a column, without changing the grid it already sits in. 26px (down from the
-       default 34px) is chosen from the existing footprint of the chips column at this width
-       (bounded by --boardW, itself JS-computed — see #captainsPanel's max-width comment above),
-       staying comfortably above the 20px legibility floor while shrinking meaningfully; the exact
-       fit for the widest realistic hold at 320px could not be confirmed from this session (no live
-       render available — see 18-06-SUMMARY.md) and is part of what 18-07's checkpoint decides. */
-    .chip { width: 26px; height: 26px; }
-    /* Treatment B: give the chips their own full-width row, matching the precedent the recipe
-       row already set above, and leave .chip at its full (default, non-shrunk) size. Toggle with
-       document.body.classList.toggle('chipsOwnRow'). */
-    body.chipsOwnRow .prowTop { grid-template-areas: "name coins ." "recipe recipe recipe" "chips chips chips"; }
-    body.chipsOwnRow .chip { width: 34px; height: 34px; }
+    /* PDF item 3c / notes/edits #11 + FIX-09 D-03: on narrow screens the recipe sits underneath
+       the captain's name, and the ingredient chips get their OWN full-width row beneath that —
+       matching the precedent the recipe row already set. Chips stay at their full 34px; they no
+       longer wrap into a tall column beside the name.
+
+       D-03 RESOLVED — Wyatt chose Treatment B, 2026-08-01: "I LOVE true — it's so much better."
+       ("true" was the console toggle's return when body.chipsOwnRow was ON.) Treatment A (shrink
+       the chip to 26px inside the existing grid) is deleted per plan 18-06's own instruction that
+       exactly one survives and the other must not linger. Do not reintroduce a shrunk .chip here.
+
+       Row order matters: name/coins first, then recipe, then chips — so each renders below the
+       last rather than above it. */
+    .prowTop { grid-template-areas: "name coins ." "recipe recipe recipe" "chips chips chips"; }
   }
   .prowTop .pname { grid-area: name; }
   .prowTop .coinsWrap { grid-area: coins; }
