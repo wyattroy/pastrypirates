@@ -285,26 +285,12 @@ export function liveRender(){
 // swap path (panel()'s own resizePanel() call) and the resize/orientationchange path (18-01 Task
 // 3, via resizePanel()'s default parameter) so neither can re-clip a still-fading ghost. Set when
 // a ghost is created, cleared as the first statement inside drop() before the node is removed.
-let activeGhostFloor=0;
-// P3/P5 (Wyatt, 2026-08-01, second pass). THE REAL CAUSE, and it is drop(), not the measurement.
-//
-// typewriterReveal() BLANKS every text node and refills it progressively — so a message that will
-// end up three lines tall occupies ONE line while it is still typing. drop() (the ghost's
-// animationend / belt) calls resizePanel() to shrink the box now that the ghost has left. If the
-// reveal is STILL RUNNING at that moment, that re-measure reads the PARTIAL text, pins the row to
-// a one-line height, and #apGridInner's overflow:hidden then clips every line that types in after.
-//
-// This explains every symptom he reported and the 18-01 image theory did not:
-//   - "cut off DURING writing" — the shrink lands mid-reveal, by construction
-//   - "only sometimes" — only when the reveal outlasts the 800ms ghost fade, i.e. long messages
-//   - "sometimes the box adjusts to the correct size during fade-out" — the reveal happened to
-//     finish first, so drop()'s measure read the full text and was correct
-//   - it needs a ghost to happen at all, i.e. only on a line that REPLACES another
-//
-// So: drop() must not shrink while a reveal is in flight. The reveal's own completion re-measures
-// instead. Still measure-once-per-event (BUG-01's rule) — this moves one probe, it does not add a
-// per-frame one.
-let revealsInFlight=0;
+// The height animation's own duration. MUST equal index.html's `#apGrid { transition:
+// grid-template-rows .18s }` — the swap sequence waits this long for phase 2 before starting
+// phase 3, so if the CSS and this disagree the text starts typing while the box is still moving,
+// which is the exact fault the sequence exists to remove. Declared beside GHOST_FADE_MS because
+// the two are the sequence's only two clocks.
+const RESIZE_MS=180;
 export const GHOST_FADE_MS=800;
 // ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
 // strict sequence is only strict while they are equal.
@@ -336,7 +322,11 @@ let panelSeq=0;
 // constraint 8) — erring long here is deliberate, not an oversight.
 function estimateRevealMs(html){
   const codePoints=[...String(html||"").replace(/<[^>]*>/g,"")];
-  return codePoints.length*REVEAL_MS_PER_CHAR+GHOST_FADE_MS;
+  // + RESIZE_MS (2026-08-01): the swap sequence now waits for the height animation as well as the
+  // fade before the first character lands, so an estimate that stopped at GHOST_FADE_MS would run
+  // 180ms SHORT — and running short is the one thing hard constraint 8 forbids, because it would
+  // arm the acting player's clock before their prompt is readable. Erring long stays deliberate.
+  return codePoints.length*REVEAL_MS_PER_CHAR+GHOST_FADE_MS+RESIZE_MS;
 }
 export function panel(html,needsAction=false){
   html=emojify(html);
@@ -367,10 +357,9 @@ export function panel(html,needsAction=false){
     ghost.style.top=ghostRect.top+"px";
     ghost.style.left=ghostRect.left+"px";
     ghost.style.width=ghostRect.width+"px";
-    // The ghost is out of flow, so resizePanel()'s own inner.offsetHeight measurement can never
-    // see it — this floor is how the row is held at the taller of the two heights until the ghost
-    // actually leaves (drop(), below).
-    activeGhostFloor=ghostRect.height;
+    // No height FLOOR any more: phase 1 of the sequence holds the row exactly where it is for the
+    // whole fade, so there is no window in which a shorter incoming message could pull the box down
+    // under a still-fading ghost. The floor existed to paper over a resize that no longer happens.
     inner.appendChild(ghost); // appended AFTER the live content, so :not(.fadeOut) lookups below still find the new line first
     // dropped guard: drop() can fire twice (animationend AND the setTimeout belt racing on a
     // backgrounded tab) — without this guard the second call would run a SECOND reflow-probe
@@ -380,18 +369,10 @@ export function panel(html,needsAction=false){
     const drop=()=>{
       if(dropped)return;
       dropped=true;
-      // Clear the floor BEFORE removing the node — a resize/orientationchange (18-01 Task 3) that
-      // lands in the gap between "ghost gone" and "floor cleared" must never read a stale floor.
-      activeGhostFloor=0;
       if(ghost.parentNode)ghost.parentNode.removeChild(ghost);
-      // Cheap: re-derive the box height with the ghost already gone — this IS the "one deferred
-      // shrink" resizePanel()'s own measure-once comment allows (a real timer/animationend event,
-      // never a tick/frame), not a second probe against a moving target.
-      //
-      // ...but ONLY if no reveal is running. A mid-reveal message is shorter than its final self,
-      // so shrinking to it pins the row too low and the rest of the text is clipped as it types
-      // (see revealsInFlight's note above). When one is in flight, its own completion re-measures.
-      if(revealsInFlight===0)resizePanel(!!inner.innerHTML);
+      // drop() REMOVES THE NODE AND NOTHING ELSE. It used to re-measure here, which is what made
+      // the height change twice per message (and, when it landed mid-reveal, clipped the text).
+      // Phase 2 of the sequence owns the height now — see resizePanel()'s header.
     };
     ghost.addEventListener("animationend",drop,{once:true});
     // belt: animationend can be dropped entirely in a backgrounded tab, which would leak a ghost
@@ -444,7 +425,16 @@ export function panel(html,needsAction=false){
   }
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
-  resizePanel(!!html);
+  // PHASE 1 -> PHASE 2. When a line is being REPLACED, the box HOLDS its current height for the
+  // whole fade and only then animates, exactly once, to the new message's height. Measuring is
+  // still done inside resizePanel() with the full text present (the reveal blanks it afterwards),
+  // so this defers WHEN the height moves, never HOW it is measured.
+  //
+  // With no ghost — a first line, or a line after an explicit clear — there is nothing to hold for,
+  // so it resizes immediately, exactly as before.
+  const fadeMs=(ghost&&!reduced)?GHOST_FADE_MS:0;
+  if(fadeMs)setTimeout(()=>resizePanel(!!inner.innerHTML),fadeMs);
+  else resizePanel(!!html);
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
@@ -453,18 +443,17 @@ export function panel(html,needsAction=false){
   // typed in a second time. The ghost is appended after the live content anyway, so this is a belt
   // rather than a fix — but flash() depends on getting the RIGHT element back, so it is cheap.
   const msgEl=$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
-  // G17: delay the reveal by exactly the ghost's fade, and only when there IS a ghost — a first
-  // line, or a line after an explicit clear, still types in immediately.
-  const revealDone=msgEl?typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0):Promise.resolve();
-  // P3/P5: the box's final size is only knowable once the text is fully on screen. One probe per
-  // reveal, at its end — the deferred counterpart to drop()'s skipped shrink above.
-  if(msgEl){
-    revealsInFlight++;
-    revealDone.then(()=>{
-      revealsInFlight=Math.max(0,revealsInFlight-1);
-      if(revealsInFlight===0)resizePanel(!!inner.innerHTML);
-    });
-  }
+  // PHASE 3. G17's strict sequence, now genuinely strict: the reveal waits for the fade AND for
+  // the height animation that follows it, so the first character lands in a box that is already the
+  // right size. Previously it waited only the fade, and the box was still moving underneath it.
+  //
+  // RESIZE_MS is added only when there IS a resize to wait for. This is the one place the sequence
+  // costs more than before — 180ms per REPLACED line — and it buys the thing the recording showed
+  // missing: text never arrives while the box is mid-move.
+  //
+  // Still handed to typewriterReveal()'s existing startDelay, so `_revealDone` is assigned before
+  // panel() returns and flash()'s contract is untouched.
+  const revealDone=msgEl?typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,fadeMs?fadeMs+RESIZE_MS:0):Promise.resolve();
   if(msgEl)msgEl._revealDone=revealDone;
   // FIX-03: unhide the gated buttons only once THIS prompt's own reveal resolves. The seq compare
   // (declared above panel()) is what keeps a late-resolving EARLIER reveal from unhiding a NEWER
@@ -526,28 +515,53 @@ export function panelRevealDone(){
 // suppressed so the measurement itself never animates), snap the row back to where it was, then let
 // the transition animate to the measured height. The typewriter then fills a box that's already the
 // right size — so the height animates a single time per message instead of on every character.
-// FIX-16 (18-01 Task 2): `minHeight` defaults to `activeGhostFloor` so the swap path (panel()'s
-// own call, below), the ghost's own drop() call, and 18-01 Task 3's resize/orientationchange path
-// all share ONE floor with no caller changes required — a resize mid-fade reads the same live
-// floor a swap or a drop would. Everything else here — the single reflow-probe below, the snap-
-// back, the suppressed transition, the `void grid.offsetHeight` commit — stays byte-identical.
-export function resizePanel(hasContent,minHeight=activeGhostFloor){
+// FIX-16's ghost-height FLOOR is gone (2026-08-01). It existed so a resize landing mid-fade could
+// not pull the box down under a still-fading ghost — but phase 1 now holds the height for the whole
+// fade, so that window no longer exists. `minHeight` is kept as an explicit parameter for the
+// resize/orientationchange path, defaulting to 0.
+// THE SWAP SEQUENCE (rewritten 2026-08-01 after Wyatt's frame-by-frame recording).
+//
+// What the recording proved, measured at 20fps rather than eyeballed:
+//   - the box overshot then snapped (H 88 -> 21 -> 109 -> 90, and 109 -> 95 -> 73 -> 68): the
+//     height was being changed two or three times per message
+//   - the outgoing text vanished in ONE frame (ink 433 -> 123) instead of fading
+//   - the box then sat empty for ~850ms — GHOST_FADE_MS — before the new line began typing
+//
+// The cause was structural, not any one of those three: the fade, the height change and the
+// type-in were three INDEPENDENT timers, each free to land whenever. Patching them one at a time
+// is what produced the sequence above.
+//
+// They are now ONE owned sequence, in the only order that is coherent:
+//
+//   phase 1  fade the outgoing line          — the box HOLDS its current height, so nothing moves
+//                                              under text the player is still reading
+//   phase 2  animate the height, exactly once — old text is gone, new text is blanked, so the box
+//                                              is free to move and nothing can be clipped by it
+//   phase 3  type the new line in            — into a box that is already the right size
+//
+// Consequences that matter, so nobody "optimises" them back:
+//   - resizePanel() no longer needs a ghost-height FLOOR: the height does not change while a ghost
+//     exists, so there is nothing to floor against.
+//   - drop() no longer re-measures. It only removes the node.
+//   - measurement still happens ONCE per message (BUG-01's Safari rule), and still with the full
+//     text present — the reveal blanks the text only after we have measured it.
+//   - panel() stays synchronous and `_revealDone` is still assigned before it returns: the delay is
+//     handed to typewriterReveal()'s existing startDelay parameter, which is what made this
+//     restructure possible without touching flash()'s contract.
+export function resizePanel(hasContent,minHeight=0){
   const grid=$("apGrid"),inner=$("apGridInner");if(!grid)return;
   if(!hasContent){grid.style.gridTemplateRows="0px";return;}
   const from=getComputedStyle(grid).gridTemplateRows; // resolved px of the current height
   grid.style.transition="none";
   grid.style.gridTemplateRows="max-content";
-  const h=Math.max(inner.offsetHeight,minHeight);       // natural height, floored at the still-fading ghost's own height
+  const h=Math.max(inner.offsetHeight,minHeight);      // natural height of the finished message
   grid.style.gridTemplateRows=from;                    // back to the start value…
   void grid.offsetHeight;                              // …committed as the transition's from
   grid.style.transition="";
   grid.style.gridTemplateRows=h+"px";                  // one smooth animation to the real height
-  // SAFETY NET (Wyatt reported clipping twice, 2026-08-01). Once the animation has landed, release
-  // the row to max-content. No visual change when the measurement was right — the computed height
-  // is already h — but it makes clipping IMPOSSIBLE afterwards: if anything later grows the content
-  // (a late icon, a font swap, a re-wrap on resize), the box grows with it instead of hiding it.
-  // The measure-once animation is untouched; this only governs the resting state after it ends.
-  // A failure here should look like a slightly-too-tall box, never an unreachable button.
+  // SAFETY NET: once the animation lands, release the row to max-content. No visual change when the
+  // measurement was right — the computed height already IS h — but it makes clipping impossible
+  // afterwards. A future mis-measure then shows as a slightly tall box, never a lost button.
   grid.addEventListener("transitionend",function done(e){
     if(e.propertyName!=="grid-template-rows")return;
     grid.removeEventListener("transitionend",done);
