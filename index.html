@@ -122,8 +122,10 @@
   #controls { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button { font-family: inherit; font-size: 14px; padding: 6px 14px; border: 1.5px solid var(--teal); border-radius: 7px; background: var(--lemon); cursor: pointer; color: var(--ink); }
   button:hover { background: #fdea6d; }
-  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  button.primary:hover { filter: brightness(1.1); }
+  /* FIX-06: outline + faded-fill recipe, borrowed VERBATIM from .footerKofi/.footerKofi:hover
+     (index.html ~146-147) so every primary button reads as one house pattern, not a fourth orange. */
+  button.primary { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
+  button.primary:hover { background: #fae7cb; }
   button:disabled { opacity: .4; cursor: default; }
   /* UI-01: top padding was 4px. #footerRow is a SIBLING of #layout, not a grid item, so the space
      above it is #layout's own 14px bottom padding PLUS this — 18px, against the 14px rhythm every
@@ -151,8 +153,12 @@
   .kofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
   .recipeModalBtn { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .recipeModalBtn:hover { background: #d9f1e5; }
-  .footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
-  .footerLeave:hover { background: #f2dada; }
+  /* FIX-06: the `button.` prefix (not a bare class selector) ties this rule's specificity with
+     `button.primary` above so the leave-game confirm button — which keeps its existing primary
+     class, see the markup comment there — resolves to this red recipe by source order (this rule
+     is declared later), with no change to the primary-button count. */
+  button.footerLeave { border: 1.5px solid #b56464; background: #f8eaea; color: #7e3535; }
+  button.footerLeave:hover { background: #f2dada; }
   input[type=range] { accent-color: var(--accent); }
   #scrub { width: 100%; margin-top: 8px; }
   select, input[type=number] { font-family: inherit; font-size: 13px; padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
@@ -341,7 +347,9 @@
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
-  .apBtn.primary:hover { background: var(--accent); filter: brightness(1.1); }
+  /* FIX-06: was re-flooding to solid accent + brightness filter on hover, undoing the pale-fill
+     recipe above for every in-panel primary button (items 10-12 of the enumerated sites). */
+  .apBtn.primary:hover { background: #fae7cb; }
   /* #5d: a too-poor Attack shows greyed and non-clickable rather than vanishing */
   .apBtn.apDisabled, .apBtn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
   .apBtn.apDisabled:hover, .apBtn:disabled:hover { background: #fff; }
@@ -1031,7 +1039,10 @@
     <!-- notes/edits UI-10(list #10): the safe choice reads first and quietly (faded blue), the
          irreversible one sits below styled like the old "Stay aboard" primary so it's a deliberate tap. -->
     <button class="big" id="btnCancelLeave" type="button" style="border-color:#8fb3d9;background:#eef4fb;color:#3f6690">Nope, stay aboard</button>
-    <button class="primary big" id="btnConfirmLeave" type="button">🚪 Aye, leave the game</button>
+    <!-- FIX-06: keeps its existing primary class (see the CSS rule above for why) and gains a
+         second class for the red destructive-action recipe, per the UI-10 comment above (styled
+         as the deliberate/weighty tap) — label unchanged. -->
+    <button class="primary big footerLeave" id="btnConfirmLeave" type="button">🚪 Aye, leave the game</button>
   </div>
 </div>
 
