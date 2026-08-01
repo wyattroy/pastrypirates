@@ -52,18 +52,26 @@ sequence the `index.html` touches deliberately rather than assuming they are ind
 
 ## Staying current — this project's demonstrated failure mode
 
-> **⚠ The trunk of this project is `claude/backlog-milestone-planning-93eb10`, NOT `main`.**
-> `main` is a stale v1.0 snapshot — 489 commits behind as of 2026-07-31, with **no `src/` folder at
-> all** (it predates the v1.1 refactor that split `index.html` into ES modules). **Never branch,
-> merge, rebase, or diff against `main`.** A diff against it shows the entire module refactor as if
-> it were new uncommitted work, and a worktree cut from it cannot see the v1.3 planning at all —
-> `/gsd-plan-phase N --ws <name>` will report the phase as not found. Below, **trunk** means the
-> branch named above.
+> **⚠ Compare against `origin/main`, not a bare local `main` ref.** `main` **is** this project's
+> trunk and is healthy — it carries the full `src/` module tree and serves the live site at
+> playpastrypirates.com. But on 2026-07-31 a local `main` ref was found parked at `2ddbf97`, a v1.0
+> snapshot predating the v1.1 module refactor, with no `src/` at all. Reading it produced a
+> confident and entirely wrong conclusion ("main is a dead v1.0 snapshot") that cost most of a
+> session. **Tell:** if a diff against the base looks absurdly large, or shows `src/` as newly
+> added, you are reading a stale ref — run `git rev-parse origin/main` before concluding anything.
+
+> **Where the v1.3 planning lives.** `.planning/workstreams/` and phases 18–22 are **not on
+> `origin/main` yet** — as of 2026-07-31 they sat 32 commits ahead, on
+> `claude/backlog-milestone-planning-93eb10`. A worktree cut from `main` cannot see these phases,
+> and `/gsd-plan-phase N --ws <name>` will report the phase as not found. Fast-forward such a
+> worktree to that branch. Being *ahead* of `main` is the normal state for v1.3 work — do not
+> "fix" it. And pass `--ws <name>` explicitly on every GSD command rather than relying on an
+> active-workstream setting.
 
 **Staleness, not conflicts, is what has actually cost this project time.** A branch drifted 34
-commits behind trunk and made a shipped milestone look unfinished; the repo already carries several
+commits behind and made a shipped milestone look unfinished; the repo already carries several
 stale worktrees. So:
 
-1. **Branch from current trunk** when you start.
+1. **Branch from the current v1.3 planning branch** when you start.
 2. **Merge back promptly** when a phase completes — do not let a workstream sit.
-3. **Pull trunk in before planning a new phase**, so you are planning against what actually shipped.
+3. **Pull in before planning a new phase**, so you are planning against what actually shipped.
