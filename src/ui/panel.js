@@ -40,7 +40,7 @@ import {
 } from "./board.js";
 import {
   soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
-  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER,
+  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -262,6 +262,20 @@ export const GHOST_FADE_MS=800;
 // would be wrong. #actionPanel is a singleton element, so this guards against TIME (a late
 // .then()), not against which node to unhide.
 let panelSeq=0;
+// D-02 (18-05): sizes a REMOTE decision's host-side arm-defer window from the ACTOR's own prompt
+// text (never this browser's own shorter spectator line — see panel()'s clock-defer block below).
+// Derived from REVEAL_MS_PER_CHAR and GHOST_FADE_MS rather than a literal duplicate of either, so
+// a future change to the reveal pacing can't silently desync this estimate from the reveal it is
+// approximating — see CR-01's comment on GHOST_FADE_MS above for what a hardcoded companion
+// constant cost last time. Strips tags and counts CODE POINTS, not `.length` — narration text is
+// full of emoji/surrogate pairs `.length` would double-count. GHOST_FADE_MS is added
+// UNCONDITIONALLY (even though a real reveal only pays it when replacing a prior line): this
+// estimate can only ever grant the acting player MORE of their window, never less (hard
+// constraint 8) — erring long here is deliberate, not an oversight.
+function estimateRevealMs(html){
+  const codePoints=[...String(html||"").replace(/<[^>]*>/g,"")];
+  return codePoints.length*REVEAL_MS_PER_CHAR+GHOST_FADE_MS;
+}
 export function panel(html,needsAction=false){
   html=emojify(html);
   const inner=$("apGridInner");
@@ -361,9 +375,45 @@ export function panel(html,needsAction=false){
   if(hasButtons&&!reduced){
     const seq=++panelSeq;
     gateEl.dataset.revealSeq=String(seq);
+    // D-02 (18-05): THIS is the button row becoming clickable — the seam armClock defers onto.
+    // clockPendingSeat drives setClockUI()'s frozen pending display on whichever browser renders
+    // it: the host's own screen for a local decision, or the deciding guest's own screen for a
+    // remote one (the ONLY place a remote seat's own button row ever renders — see the host-side
+    // spectator-narration branch below for how the host defers without ever seeing hasButtons here).
+    appState.clockPendingSeat=currentTurnSeat();
+    // Ownership of clockPendingArm is taken SYNCHRONOUSLY here (read-and-null), not inside the
+    // .then() below — this is what lets ask()'s no-panel belt (checked synchronously right after
+    // onLocalAsk/onRemotePrompt returns) tell "a button row WILL arm, just not yet" apart from
+    // "nothing will ever arm this decision" (a pure flip prompt, which never reaches panel() at
+    // all). clockPendingLocal gates it to LOCAL decisions only — a guest rendering its own remote
+    // decision always finds clockPendingArm null here (ask() only ever runs host-side), a correct
+    // no-op: arming is the host's job, and the guest's own clock mirrors clockState once the
+    // host's deferred arm (below) broadcasts it.
+    const armFn=(appState.clockPendingLocal&&appState.clockPendingArm)?appState.clockPendingArm:null;
+    if(armFn){appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";}
     revealDone.then(()=>{
-      if(gateEl.dataset.revealSeq===String(seq))gateEl.classList.remove("pendingReveal");
+      // T-18-15: reuse the SAME seq stamp the unhide above is gated by — a late-resolving EARLIER
+      // reveal must never clear a NEWER prompt's clockPendingSeat or arm a stale seat's clock.
+      if(gateEl.dataset.revealSeq!==String(seq))return;
+      gateEl.classList.remove("pendingReveal");
+      appState.clockPendingSeat=null;
+      // armFn() marks the continuation claimed (unblocking ask()'s withShotClock chain) and hands
+      // back the REAL asked seat — armClock(seat) is what actually starts the 30s window.
+      if(armFn)armClock(armFn());
     });
+  }
+  // D-02 (18-05): a REMOTE decision's own button row never renders on the HOST's screen — the
+  // deciding seat is a different browser. This panel() call is the host's spectator "<seat> is
+  // deciding…" narration instead (hasButtons is false here, so the block above never runs on this
+  // browser for this decision). Claim the arm right here — a hasButtons render that would
+  // otherwise claim it is never coming on the host's own screen for a remote seat — and defer the
+  // actual arm by the ACTOR's own estimated reveal length (from their real prompt text via
+  // estimateRevealMs, not this shorter spectator line's own reveal): erring long by construction,
+  // never short (hard constraint 8, T-18-14).
+  if(!appState.clockPendingLocal&&appState.clockPendingArm){
+    const fn=appState.clockPendingArm,text=appState.clockPendingText;
+    appState.clockPendingArm=null;appState.clockPendingText="";
+    setTimeout(()=>armClock(fn()),estimateRevealMs(text));
   }
 }
 // FIX-03 (18-01 Task 1): the live prompt's own reveal-completion promise, exported so a later

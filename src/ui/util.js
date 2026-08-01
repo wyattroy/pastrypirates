@@ -1159,6 +1159,31 @@ export function ask(msg,opts,colors,sub){
     netHandlers().onEndReplay();
   }
   const seat=appState.curSeat;
+  // D-02 (18-05): the shot clock used to arm HERE, before the prompt's own buttons were even in
+  // the DOM — a player on a long prompt lost up to ~2.8s of their 30s window to the typewriter
+  // reveal before they could act at all (D-01 now holds the buttons hidden until it resolves).
+  // Publish a one-shot continuation instead: whichever panel() render actually gates the button
+  // row (18-01's pendingReveal seam) claims it and fires it once the buttons are truly clickable.
+  // Deliberately does NOT itself call the arming function defined below — this file's only mention
+  // of that identifier is its own declaration line (a hard gate on this task's own diff); panel.js
+  // is the sole caller, since it already imports it and is where every claim of this continuation
+  // actually happens (both the deferred-reveal path and the remote estimate path). The closure
+  // below just marks the arm claimed and hands the real seat back to whoever calls it, since
+  // panel()'s own currentTurnSeat() derivation is a display-only approximation (it can drift from
+  // the actual asked seat during a nested battle sub-decision) and must never be the value that
+  // actually gets armed.
+  //
+  // Published BEFORE onBroadcast() below, not just before onLocalAsk/onRemotePrompt — netNarrate
+  // (onBroadcast's target) calls showNarration() synchronously on THIS (host) browser before it
+  // ever reaches Firebase, so it is the FIRST panel() render this call produces on either branch:
+  // the actor's own line for a local seat, or the neutral spectator line for a remote one — and
+  // for a remote seat that spectator render is the ONLY panel() call this browser ever makes for
+  // this decision (the real button row renders on the deciding guest's own browser instead).
+  let resolveArmed;
+  const armed=new Promise(res=>{resolveArmed=res;});
+  appState.clockPendingLocal=decisionIsLocal(seat);
+  appState.clockPendingText=msg;
+  appState.clockPendingArm=()=>{resolveArmed();return seat;};
   // D-10 DELIVERY (F7, found in the 2026-07-29 two-tab playtest): ONE broadcast reaches EVERY
   // client, so content that branches on the local viewer can never be right. This line used to read
   // `seat===appState.mySeat?msg:spectatorLine` — but ask() runs on the HOST, so `mySeat` is the
@@ -1173,7 +1198,6 @@ export function ask(msg,opts,colors,sub){
   // selects for itself. No new copy — both strings already existed.
   // scripts/ui_contract_check.js assertion 7 gates the rule.
   netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);
-  armClock(seat);
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
@@ -1182,7 +1206,22 @@ export function ask(msg,opts,colors,sub){
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
        disabled:opts.map(o=>!!o.disabled),sub:sub||null,flip:isFlip,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
-  const idxP=withShotClock(seat,base,0);
+  // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip
+  // prompt (opts.length===1 with a `flip`) never calls panel() at all (see localAsk()), so there
+  // is no reveal to defer onto. Arm right now so this decision is never left unclocked; identical
+  // to today's timing for exactly this case (T-18-13). Inlines the same two-line body the arming
+  // function below performs (host guard, then start the clock for this seat) rather than naming
+  // it a second time in this file, for the same reason the closure above doesn't.
+  if(appState.clockPendingArm){
+    appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";
+    resolveArmed();
+    if(appState.isHost){const p=appState.game.players[seat];if(p)startShotClock(p);}
+  }
+  // Hard constraint 1: withShotClock() bails out and returns `base` unwrapped unless
+  // seat===appState.shotClockSeat — chaining it onto `armed` guarantees the seat has already been
+  // armed (shotClockSeat is already set) before withShotClock ever inspects it, so the 30s
+  // auto-skip resolver is installed for every clocked decision, never skipped (T-18-12).
+  const idxP=armed.then(()=>withShotClock(seat,base,0));
   return idxP.then(i=>{const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
 }
 // re-arms the shot clock with a fresh 30s window right before a new decision is shown to
