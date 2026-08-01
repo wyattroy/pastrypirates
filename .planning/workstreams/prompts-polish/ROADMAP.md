@@ -37,7 +37,7 @@ are small and independent.
 
 **Origin**: Wyatt's 2026-07-31 punch list + the v1.2 Phase 17 playtest (screenshot), plus the
 2026-08-01 batch (FIX-16, FIX-17, FIX-21). Plain-language overview: [`../../V1.3-V1.4-PLAN.md`](../../V1.3-V1.4-PLAN.md) "Phase 1 — Prompts & Polish".
-**Plans**: 5/7 plans executed
+**Plans**: 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -59,7 +59,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 18-06-PLAN.md — wave 5 — button restyle, captain circles removed everywhere, and BOTH narrow-screen chip treatments rendered for D-03 (FIX-06, FIX-09, FIX-17)
+- [x] 18-06-PLAN.md — wave 5 — button restyle, captain circles removed everywhere, and BOTH narrow-screen chip treatments rendered for D-03 (FIX-06, FIX-09, FIX-17)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 

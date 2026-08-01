@@ -4,8 +4,8 @@ milestone: v1.3
 milestone_name: The Game Comes Alive
 current_phase_name: defining requirements
 status: v1.3 planned — Phases 18-22 roadmapped, none started
-stopped_at: "v1.3 opened 2026-08-01. Roadmap written from .planning/V1.3-V1.4-PLAN.md (Wyatt-ordered). Next: /gsd-plan-phase 18, or 21/22 in parallel. Phase 19 is a Safari gate Wyatt runs himself; Phase 20 waits on it."
-last_updated: "2026-08-01T05:10:21.760Z"
+stopped_at: "Completed 18-06-PLAN.md (FIX-06/FIX-09/FIX-17) — button restyle, captain circles removed everywhere, both FIX-09 chip treatments live pending D-03. Six D-03 renders blocked (WINDOWS.md #9), folds into 18-07's checkpoint."
+last_updated: "2026-08-01T09:31:21.424Z"
 last_activity: 2026-07-31
 last_activity_desc: Milestone v1.3 started
 progress:
@@ -72,6 +72,7 @@ Last activity: 2026-07-31 — Milestone v1.3 started
 | Phase 15 P06 | large-session | 2 tasks | 9 files |
 | Phase 18 P02 | 35min | 3 tasks | 6 files |
 | Phase 18 P03 | 75min | 3 tasks | 8 files |
+| Phase 18 P06 | 15min | 3 tasks | 5 files |
 
 ## Quick Tasks Completed
 
@@ -174,9 +175,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-30T00:00:00.000Z
-Stopped at: Quick task 20260730-playtest-session2-fixes COMPLETE — all 13 tasks, 13 commits. Seventeen items (G10–G26) from the recorded two-tab playtest of room NAMF. `npm test` 17 gates, exit 0; `src/engine/index.js` byte-identical throughout; 31/31 determinism. THREE BROWSER CHECKS ARE OUTSTANDING and are Wyatt's: the G17 strict fade, the G19 storm rain (incl. a Safari pass), and a G25+G14 guest-seat parity pass.
-Resume file: .planning/quick/20260730-playtest-session2-fixes/SUMMARY.md
+Last session: 2026-08-01T09:31:21.408Z
+Stopped at: Completed 18-06-PLAN.md (FIX-06/FIX-09/FIX-17) — button restyle, captain circles removed everywhere, both FIX-09 chip treatments live pending D-03. Six D-03 renders blocked (WINDOWS.md #9), folds into 18-07's checkpoint.
+Resume file: .planning/workstreams/prompts-polish/phases/18-prompts-polish/18-06-SUMMARY.md
 
 ## Operator Next Steps
 
