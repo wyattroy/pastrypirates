@@ -510,6 +510,9 @@ export function buildWindDots(container,seed,count){
     d.style.borderRadius="50%";
     d.style.background="rgba(255,255,255,.72)";
     d.style.pointerEvents="none";
+    // Inherit the CURRENT will-change setting (19-RESEARCH.md Anti-Patterns / Open Question 1) —
+    // a dot created after the toggle must not silently start off-hint just because it's new.
+    d.style.willChange=windWillChangeOn?"transform":"";
     container.appendChild(d);
     windDotEls.push(d);
   }
@@ -525,8 +528,26 @@ export function buildWindDots(container,seed,count){
 // compass angle, updated the same place --slant is; windRafId is the shared rAF handle (0 = not
 // running); windLayer is the lazily-created `.wlayer` element; windHudBuilt guards the HUD's
 // one-time construction; windLastReadoutMs/windLastFrameMs drive the readout throttle and the frame
-// delta sample.
-let windDotEls=[],windSpecs=[],windDotsOn=true,windDotCount=WIND_DOT_DEFAULT,windAngle=0,windRafId=0,windLayer=null,windHudBuilt=false,windLastReadoutMs=0,windLastFrameMs=null;
+// delta sample; windWillChangeOn is #windWillChange's live value (default OFF, 19-RESEARCH.md
+// Anti-Patterns / Open Question 1 — the headroom run isolates this variable rather than guessing).
+let windDotEls=[],windSpecs=[],windDotsOn=true,windDotCount=WIND_DOT_DEFAULT,windAngle=0,windRafId=0,windLayer=null,windHudBuilt=false,windLastReadoutMs=0,windLastFrameMs=null,windWillChangeOn=false;
+
+// windReducedMotion (D-13) — read ONCE at module init via the JS `matchMedia` pattern
+// (src/ui/panel.js:300), not the pure-CSS `animation-play-state` pattern the storm rain uses,
+// because the dots' motion is written by windDotLoop's own transform/opacity assignments — a CSS
+// rule has nothing to pause. Guarded exactly like panel.js's read so a context without
+// `matchMedia` (or without `window` at all) falls back to `false` instead of throwing. A `change`
+// listener keeps this live so a mid-session OS preference flip is picked up with no reload.
+let windReducedMotion=false;
+try{
+  if(typeof window!=="undefined"&&window.matchMedia){
+    const windMotionQuery=window.matchMedia("(prefers-reduced-motion: reduce)");
+    windReducedMotion=windMotionQuery.matches;
+    const windMotionChange=function(e){ windReducedMotion=e.matches; };
+    if(windMotionQuery.addEventListener)windMotionQuery.addEventListener("change",windMotionChange);
+    else if(windMotionQuery.addListener)windMotionQuery.addListener(windMotionChange); // older WebKit
+  }
+}catch(err){}
 
 // windEnsureLayer() — lazily creates the layer structure inside #boardwrap: direction lives OUTSIDE
 // the animated portion, mirroring `.rlayer`'s exact structure (19-PATTERNS.md Pattern 1). #windDots
@@ -579,11 +600,17 @@ function windEnsureLayer(){
 // dot count, on purpose: the readout must still be able to sample the board's own behaviour with
 // the dots off, which is what makes the off-state baseline measurable in 19-05. Do not "fix" this
 // by cancelling the loop when the count reaches 0 — that would make the off-state unmeasurable.
+//
+// REDUCED MOTION (D-13): when windReducedMotion is true, this ALSO skips the transform-writing
+// branch — dots stay exactly where they last were, on screen and still, mirroring how the storm
+// rain freezes (`animation-play-state:paused`) rather than vanishing. The loop still keeps running
+// (same reasoning as the count-0 case above) so the readout still reports, which is what lets a
+// pre-flight check confirm the branch actually took effect.
 export function windDotLoop(now){
   const delta=windLastFrameMs==null?null:now-windLastFrameMs;
   windLastFrameMs=now;
   const layer=windLayer;
-  if(windDotsOn&&windDotCount>0&&layer){
+  if(!windReducedMotion&&windDotsOn&&windDotCount>0&&layer){
     const w=layer.clientWidth||layer.offsetWidth||1;
     const h=layer.clientHeight||layer.offsetHeight||1;
     for(let i=0;i<windDotEls.length;i++){
@@ -704,6 +731,29 @@ export function buildWindHud(){
   readout.style.marginTop="6px";
   readout.textContent="—";
   hud.appendChild(readout);
+
+  // #windWillChange (19-RESEARCH.md Anti-Patterns / Open Question 1): a blanket static
+  // `will-change:transform` promotion of up to 100 elements is a documented double-edged tool at
+  // exactly this scale — it can increase memory pressure and DEGRADE performance rather than help
+  // it, rather than being an unambiguous win. Defaults OFF so the headroom run measures its own
+  // baseline first; toggling it on/off lets Wyatt isolate this one variable on screen instead of
+  // guessing whether it helped or hurt after the fact.
+  const wc=document.createElement("button");
+  wc.id="windWillChange";
+  wc.textContent=windWillChangeOn?"HINT: ON":"HINT: OFF";
+  wc.style.display="block";
+  wc.style.width="100%";
+  wc.style.minHeight="44px";
+  wc.style.marginTop="6px";
+  wc.style.touchAction="manipulation";
+  wc.onclick=function(){
+    windWillChangeOn=!windWillChangeOn;
+    wc.textContent=windWillChangeOn?"HINT: ON":"HINT: OFF";
+    for(let i=0;i<windDotEls.length;i++){
+      windDotEls[i].style.willChange=windWillChangeOn?"transform":"";
+    }
+  };
+  hud.appendChild(wc);
 
   game.appendChild(hud);
   windHudBuilt=true;
