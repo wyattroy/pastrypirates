@@ -15,14 +15,14 @@
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Pastry Pirates on the Sugar Seas">
-<meta property="og:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 2-4 players.">
+<meta property="og:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 1-4 players.">
 <meta property="og:url" content="https://playpastrypirates.com/">
 <meta property="og:image" content="https://playpastrypirates.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="663">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Pastry Pirates on the Sugar Seas">
-<meta name="twitter:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 2-4 players.">
+<meta name="twitter:description" content="Sail the Sugar Seas, plunder ingredients, and out-bake rival pirate captains — free, no login, 1-4 players.">
 <meta name="twitter:image" content="https://playpastrypirates.com/og-image.jpg">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"VideoGame","name":"Pastry Pirates on the Sugar Seas","url":"https://playpastrypirates.com/","description":"A free browser pirate board game — sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker.","image":"https://playpastrypirates.com/og-image.jpg","genre":"Board Game","gamePlatform":"Web Browser","numberOfPlayers":"2-4","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
@@ -809,7 +809,7 @@
 <!-- ===================== WELCOME MODAL ===================== -->
 <div id="lobby" class="modalOverlay" style="display:none">
   <div class="modalCard">
-    <div class="modalTitle"><img src="assets/logo.jpg" alt="Pastry Pirates" class="modalLogo"></div>
+    <div class="modalTitle"><a id="lnkAboutLogo" href="about.html" target="_blank" rel="noopener" aria-label="About Pastry Pirates (opens in a new tab)" style="display:block"><img src="assets/logo.jpg" alt="Pastry Pirates" class="modalLogo"></a></div>
 
     <div id="stepChoose" class="modalStep">
       <div class="modalByline">Ye came to the sunny shores of Tortuga to start a bakery — but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
@@ -827,8 +827,8 @@
           <div class="ccIcon"><img src="assets/icons/key.png" alt=""></div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
         </button>
       </div>
-      <div style="text-align:center;margin-top:10px"><a id="lnkAboutWelcome" class="footerBtn footerAbout" href="about.html">ℹ️ About</a></div>
       <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px"><img class="narrIcon" src="assets/icons/magnifying-glass.png" alt=""> Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you confirm after picking how to play is collected.</div>
+      <div style="text-align:center;margin-bottom:8px"><a id="lnkAboutWelcome" href="about.html" style="font-size:12px;color:var(--teal);text-decoration:underline">About Pastry Pirates</a></div>
       <div id="fbnote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/gear.png" alt=""> Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
       <div id="busynote" class="fbnote" style="display:none"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Lots of crews out sailing right now — multiplayer may be slow to sync. <b>Play Solo</b> works instantly and never waits on the crowd!</div>
     </div>
