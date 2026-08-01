@@ -174,9 +174,9 @@ if (typeof window !== "undefined") {
       if (inner) ui.resizePanel(!!inner.innerHTML);
     });
   });
-  // Deliberately NOT routed through the rAF `syncBoardRAF` flag above: orientationchange fires
-  // once, not in a burst like resize, so sharing that flag would let a coincident resize win the
-  // race and swallow this event entirely.
+  // Deliberately NOT routed through the rAF debounce flag above: orientationchange fires once,
+  // not in a burst like resize, so sharing that flag would let a coincident resize win the race
+  // and swallow this event entirely.
   window.addEventListener("orientationchange", () => {
     ui.syncBoardSizing();
     const inner = document.getElementById("apGridInner");
