@@ -67,6 +67,27 @@ Two matching rules learned the hard way, both non-negotiable:
 - **D-16 is absolute:** Wyatt's notes are words only — the notes box could not carry inline icon
   markup. **The absence of an icon from a note is never an instruction to remove it.**
 
+## Phase 21 addition — 2026-08-01
+
+Per milestone constraint 3 ("copy changes are inventory changes"), phase 21 (`sound-clock`
+workstream, plan 21-04) shipped three new player-facing strings. None of these has yet been
+through a disposition review — recorded here so they do not silently diverge the way the four
+approved rewrites above did.
+
+| String | File | Status |
+|---|---|---|
+| "Mute the sound" (unmuted-state tooltip on `#btnMute`) | `src/ui/panel.js`, `setClockUI()` | not yet reviewed |
+| "Turn the sound back on" (muted-state tooltip on `#btnMute`) | `src/ui/panel.js`, `setClockUI()` | not yet reviewed |
+| ", and who later wrote every sound effect ye hear" (Luis Zanforlin's sound-effects credit clause) | `index.html`, `#creditsModal` | not yet reviewed |
+
+**No `@copy` marker on the two mute tooltips, deliberately.** The `@copy` id space is bound to
+`art-review/`'s node-group table through `scripts/narration_audit_check.js`; a new `misc.sound.*`
+category would need registering there before a marker could be added without reddening `npm test`.
+That registration is real work outside this phase's scope — filed here as a named follow-up
+(wire `misc.sound.mutetooltip.on`/`misc.sound.mutetooltip.off` into the node-group table and add
+the matching `@copy` markers above the two tooltip assignments in `setClockUI()`), not an
+oversight or a silent gap.
+
 ## The trap in the input
 
 Assertion 8 of `scripts/narration_audit_check.js` reads the dispositions file through

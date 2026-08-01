@@ -72,6 +72,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
+import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
   netSetPaused, netWatchPaused, netDeleteRoom,
@@ -106,7 +107,7 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
-  stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
+  stopShotClock, waitWhilePaused, applyTimerOff,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
 } from "./ui/index.js";
@@ -159,14 +160,22 @@ export function broadcastClock(){
   if(payload&&appState.shotClockPaused)payload.pauseElapsed=appState.shotClockPauseElapsed;
   netSetClock(appState.db,appState.room,payload,netFail("clock"));
 }
-// #7: any player may switch the turn timer off/on. The choice is written to Firebase so the whole
-// table stays in sync; persisted locally so it sticks across games. The host reacts by stopping
-// any running clock at once (so the current player is un-timed the moment anyone flips it off).
+// #7 / FIX-02/N-03 (phase 21): any player may switch the turn timer off/on, in EVERY mode — the
+// early return that used to make this a silent no-op with no Firebase connection (the D-20 "dead
+// control" bug) is gone. Persisted locally FIRST, before either branch, so solo and pass-and-play
+// (which never used to reach this line at all) actually remember the preference too (D-19). Then,
+// exactly like togglePause() immediately below: multiplayer (db && room) writes Firebase so the
+// whole table stays in sync via watchTimer(); solo/pass-and-play calls applyTimerOff() directly —
+// the SAME body watchTimer() calls, carrying the BUG-02 re-arm fix verbatim (D-17/D-18), so neither
+// direction can drift between the networked and local path.
 export function toggleTimer(){
-  if(!appState.db||!appState.room)return;
   const next=!appState.timerOff;
   try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
-  netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
+  if(appState.db&&appState.room){
+    netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
+  }else{
+    applyTimerOff(next);
+  }
 }
 // CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
 // countdown AND bot captains — not just the ⏱ timer-off toggle above (D-05: the two coexist).
@@ -179,6 +188,15 @@ export function togglePause(){
   }else{
     toggleShotClockPause();
   }
+}
+// AUDIO-02 (phase 21): the mute button beside the clock. Pure client-side state — isMuted()/
+// setMuted() (src/ui/audio.js) are the whole store, backed by their own localStorage key; no
+// Firebase write, no net* writer, no appState field, so muting never reaches another player's
+// browser (D-13, T-21-12). setClockUI() is called directly (main tier may call it, unlike ui-tier
+// code) so the icon/tooltip refresh immediately rather than waiting for the next 500ms tick.
+export function toggleMute(){
+  setMuted(!isMuted());
+  setClockUI();
 }
 // Structurally identical to watchTimer() below: every client (host and guest) attaches this so
 // the shared paused flag is tracked table-wide. Only the host branch runs applyPauseState (the
@@ -198,24 +216,11 @@ export function watchPause(){
     setClockUI();
   });
 }
+// notes/edits BUG-02 / D-18 (phase 21): the state-mutation body (including the re-arm fix) now
+// lives in src/ui/util.js's applyTimerOff(), shared verbatim with toggleTimer()'s new local
+// branch below — this callback is reduced to just the Firebase wiring.
 export function watchTimer(){
-  netWatchTimerOff(appState.db,appState.room,s=>{
-    // notes/edits BUG-02: this callback only ever handled the on→off direction. Switching the
-    // timer back on left the in-flight turn with no armed clock at all — startShotClock() is
-    // only called at the START of a turn (armClock), so nothing re-armed the turn already in
-    // progress. That is the "I paused the timer and then the game wouldn't continue" report.
-    const was=appState.timerOff;
-    appState.timerOff=!!s.val();
-    if(appState.isHost&&appState.timerOff)stopShotClock();
-    else if(appState.isHost&&was&&!appState.timerOff&&appState.shotClockSeat==null&&!appState.turnExpired){
-      // shotClockSeat==null is what prevents double-arming: this callback fires on EVERY client
-      // for every write, so the host also runs it for a write a guest originated.
-      const seat=currentTurnSeat();
-      const p=seat!=null?appState.game.players[seat]:null;
-      if(p&&!p.done)rearmShotClock(p);
-    }
-    setClockUI();
-  });
+  netWatchTimerOff(appState.db,appState.room,s=>applyTimerOff(!!s.val()));
 }
 // notes/edits #1 audit: this was a bare netNarrate() with no hold/fade at all — the shot-clock
 // penalty text could get clobbered the instant the next event fires, with no guaranteed read
@@ -345,7 +350,22 @@ export function renderBattle(o){
 export function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
-    if(v){appState.spectatingBattle=true;if(!appState.inBattlePrompt)renderBattleFromSnap(v);}
+    if(v){
+      // 260801-7f4 (guest tier): reading spectatingBattle BEFORE assigning it true IS the edge
+      // trigger — this callback fires on every write to the battle node (many times per fight,
+      // once per renderBattle()), so without the read-then-assign order the clash would re-fire
+      // on every scoreboard update instead of once per battle. The `!v.title` half of the guard is
+      // the bakeoff exclusion: battleSnapshot only carries a `title` for a bakeoff snapshot
+      // (asyncBakeoff's base() is the only producer of one anywhere in the repo), and un-silencing
+      // the bakeoff is a design call belonging to Wyatt, not a side effect of this timing fix — the
+      // bakeoff stays exactly as silent as it is today. Known, accepted variance: this lands on the
+      // first battle-node write (the scoreboard appearing), which trails the host's own clash on
+      // the announcement by a few seconds when a human spectator is put through side-bet prompts —
+      // still before the first flip, still fixing the "end of fight" complaint on this tier too.
+      if(!appState.spectatingBattle&&!v.title)playBattleEngage();
+      appState.spectatingBattle=true;
+      if(!appState.inBattlePrompt)renderBattleFromSnap(v);
+    }
     else appState.spectatingBattle=false; // battle node cleared at battle end — narration may take over again
   });
 }
@@ -425,6 +445,13 @@ export async function asyncBattle(att,def){
   // and botTurn awaits it then ends the turn via botBeat(). Neither reads the return value, so the
   // contract is unchanged for them.
   if(c.powder&&coinShortfall(c.powder,att.coins))return null;
+  // 260801-7f4 (host tier): the clash, at the moment the fight is actually joined — after the
+  // powder guard above (a battle refused for want of powder never happens and must not announce
+  // itself), before the awaited flash() below. flash() awaits the PREVIOUS line's reveal and then
+  // sleeps the message hold, so a call placed after it would land seconds late and re-create the
+  // exact "sounds too late" complaint this task exists to fix. flash() fires its onBroadcast
+  // synchronously on entry, so this clash and the host's own announcement land together.
+  playBattleEngage();
   // D-08/D-25 (Wyatt-approved 2026-07-29): the opening announcement names both combatants — a
   // neutral-plus-variants form so each combatant's own screen reads it addressed to themselves
   // while every other viewer sees the third-person text. "Hits", not "points" (his approved copy).
@@ -725,7 +752,7 @@ export async function applyEndMeta(){
   appState.game.round=m.round;appState.game.battles=m.battles;appState.game.trades=m.trades;appState.game.attWins=m.attWins;
   appState.game.finishOrder=m.finishOrder||[];appState.game.winner=m.winner;
   (m.flips||[]).forEach((f,i)=>{if(appState.game.players[i]){appState.game.players[i].flips=f;appState.game.players[i].heads=(m.heads||[])[i]||0;}});
-  appState.liveDone=true;render();
+  appState.liveDone=true;playWinScreen();render(); // D-05: the guest's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
 }
 
 /* ================= host game loop (networked) ================= */
@@ -895,6 +922,7 @@ export async function liveResolveEndNet(){
   await flash("Drumroll...");
   await fadeOutPanel();
   appState.liveDone=true;
+  playWinScreen(); // D-05: the host's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
   liveRender();
   // The victory box that used to be flashed here is GONE, deliberately — do not restore it. Its
   // three pieces (the "wins!" line, the recipe picture, the Best Baker sentence) now render in the
@@ -1028,6 +1056,7 @@ export function watchEvents(){
     render();
     const e=appState.game.events[appState.evIdx];
     spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
+    playForEvent(e); // AUDIO-01/D-07: the guest's mirror of the host's per-event sound moment — rival and bot captains audible here too, no isLocalTo gate
     if(e.t==="end")applyEndMeta();
   });
 }
@@ -1276,6 +1305,14 @@ export function beginGame(cfg,seed){
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
   watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
+  // D-19 (phase 21): this used to be read ONLY inside the isHost&&db&&room branch below, which
+  // never runs in solo or pass-and-play — so appState.timerOff silently kept its `false` default
+  // there and a player who switched the timer off last game got it back on every new game. Read
+  // unconditionally, in every mode, before that branch — guarded by !appState.replaying so a
+  // reload-replay keeps whatever the live game already had, exactly like the dlog reset above.
+  if(!appState.replaying){
+    try{appState.timerOff=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
+  }
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
@@ -1303,7 +1340,19 @@ export function watchRecipes(){
 export function leaveGame(){netLeaveRoom();clearSession();clearSoloState();location.reload();}
 
 /* ================= boot ================= */
+// AUDIO-01: the one-shot AudioContext unlock. A document-level, capture-any-gesture listener is
+// chosen over binding one specific button deliberately — it survives future welcome-screen
+// changes and never has to know that #flipCoinWrap is not an .apBtn (docs/DRIVING-THE-GAME.md
+// §4a). Fire-and-forget with a .catch() (T-21-04) — never awaited here, and never called from
+// playFlip()/any per-play path: unlock is a once-per-page-session concern, not a per-play one.
+function unlockAudioOnce(){
+  initAudio().catch(()=>{});
+  document.removeEventListener("pointerdown",unlockAudioOnce);
+  document.removeEventListener("keydown",unlockAudioOnce);
+}
 export function wireLobby(){
+  document.addEventListener("pointerdown",unlockAudioOnce,{once:true});
+  document.addEventListener("keydown",unlockAudioOnce,{once:true});
   $("btnCreate").onclick=()=>{createRoom();};
   $("btnJoin").onclick=()=>{joinRoom();};
   $("btnStart").onclick=()=>{$("startConfirmModal").style.display="flex";};
@@ -1317,6 +1366,7 @@ export function wireLobby(){
   $("btnPlayAgain").onclick=leaveGame;
   $("scPause").onclick=togglePause;
   $("scTimerToggle").onclick=toggleTimer;
+  $("btnMute").onclick=toggleMute;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
   $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};

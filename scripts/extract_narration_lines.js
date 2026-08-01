@@ -121,6 +121,13 @@ const SCOPE_EXCLUSIONS = {
     + "a baking instruction, the sign rule has no meaning in a quantity, and a wording pass over the game's "
     + "narration must not put 400 lines of culinary copy in front of the reviewer. Excluded deliberately, "
     + "and stated here rather than absent — reviewing recipe text is a separate job with different rules.",
+  "src/ui/audio.js":
+    "SOUND, not text. Phase 21's audio module: an AudioContext graph, a decoded-buffer pool and the "
+    + "event->sfx-stem mapping table. Its only string literals are sfx filenames (\"battle-swords\", "
+    + "\"storm\") and the localStorage key \"pp_muted\" — none of which a player ever reads. The mute "
+    + "button's actual player-facing copy (its tooltips) lives in src/ui/panel.js and index.html and is "
+    + "swept there, and is recorded in the copy-shipped-vs-approved gate. Excluded deliberately: a "
+    + "wording pass over this file would only offer the reviewer a list of mp3 stems.",
 };
 // (the assertion that enforces this runs below, once fail() has its counter — checkScopeCoverage())
 function checkScopeCoverage() {

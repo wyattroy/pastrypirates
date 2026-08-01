@@ -33,7 +33,7 @@
 
 import { appState } from "../state/index.js";
 import {
-  PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, BLOCKED_SLASH_IMG, STOPWATCH_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
+  PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, BLOCKED_SLASH_IMG, STOPWATCH_IMG, SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
 } from "../shared/index.js";
 import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
@@ -44,12 +44,32 @@ import {
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
+import { playForEvent, isMuted } from "./audio.js";
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
 
 export function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
+  // AUDIO-02/D-15/D-16 (phase 21): #btnMute is a #controlsRow sibling (index.html), not a third
+  // corner icon on the clock face — rendered here, above the end-of-voyage early return below,
+  // so the same tick that hides #shotClockPanel at the win screen also hides #btnMute (D-16),
+  // one code path, no second branch. Its click is bound exactly once in wireLobby()
+  // (src/orchestrator.js) — this block only ever writes display/innerHTML/title, exactly like
+  // the #scTimerToggle block below, and must never touch that binding (CLOCK-03 discipline:
+  // setClockUI() re-runs on the 500ms interval).
+  const muteEl=$("btnMute");
+  if(muteEl){
+    muteEl.style.display=appState.liveDone?"none":"";
+    // D-14: Wyatt's megaphone pair replaces 21-04's 🔊/🔇 emoji scaffold. #btnMute img in
+    // index.html sizes these to 60% of the button (~29px), overriding .narrIcon's inline 18px —
+    // id+element beats class, so no extra rule is needed.
+    muteEl.innerHTML=isMuted()?iconImg(SOUND_OFF_IMG):iconImg(SOUND_ON_IMG);
+    // Tooltip copy recorded in .planning/todos/pending/copy-shipped-vs-approved-gate.md — no
+    // @copy marker (a new misc.sound.* id would need registering in art-review's node-group
+    // table, out of scope for this phase; see that file's phase-21 entry for the follow-up).
+    muteEl.title=isMuted()?"Turn the sound back on":"Mute the sound";
+  }
   wrap.classList.remove("warming"); // UI-02: only the active countdown branch below re-adds it
   if(appState.liveDone){
     wrap.classList.remove("idle","urgent","paused");
@@ -79,11 +99,14 @@ export function setClockUI(){
   // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
   pauseEl.style.display=(!appState.liveDone)?"":"none";
   $("scPauseImg").src=paused?PLAY_IMG:PAUSE_IMG;
-  // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
-  // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
+  // #7 / D-20 (phase 21): the timer off/on toggle is offered to EVERY player in EVERY mode —
+  // the soloBotGame() gate that used to hide it in solo/pass-and-play is gone. It used to be a
+  // dead control there (toggleTimer() early-returned with no Firebase connection); Task 2 gave
+  // every mode a working code path behind it, so there is no longer a reason to hide it anywhere
+  // but end of voyage. Its icon reflects the current state.
   const toggleEl=$("scTimerToggle");
   if(toggleEl){
-    toggleEl.style.display=(!soloBotGame()&&!appState.liveDone)?"":"none";
+    toggleEl.style.display=appState.liveDone?"none":"";
     toggleEl.innerHTML=appState.timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
     // @copy misc.timer.toggletooltip
     toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
@@ -203,6 +226,7 @@ export function liveRender(){
   render();
   const e=appState.game.events[appState.evIdx];
   spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
+  playForEvent(e); // AUDIO-01/D-07: the host's per-event sound moment — fires once per game.ev() call, whole table audible, no isLocalTo gate
   if(appState.isHost){
     const _nh=netHandlers();
     // seam (D-07/criterion 1, RESEARCH Q1b edge 2): was a direct pushEvents() call — pushEvents
