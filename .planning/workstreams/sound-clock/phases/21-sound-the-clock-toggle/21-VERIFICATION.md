@@ -2,7 +2,7 @@
 phase: 21-sound-the-clock-toggle
 verified: 2026-08-01T12:00:00Z
 status: gaps_found
-score: 20/22 decisions verified in code; 1 decision (D-14) not yet delivered; 1 decision (D-20) verified live by Wyatt
+score: 22/22 decisions delivered — D-14 closed 2026-08-01 when Wyatt supplied the artwork (see amendment at the foot of this file)
 behavior_unverified: 15
 overrides_applied: 0
 gaps:
@@ -62,7 +62,7 @@ button beside the turn clock and Luis credited for them in the Credits modal —
 on/off toggle finally working in solo and pass-and-play via one local, non-Firebase code path.
 
 **Verified:** 2026-08-01
-**Status:** gaps_found (one undelivered artifact: D-14's real speaker icon) — everything else that is
+**Status:** RESOLVED 2026-08-01 — the sole gap (D-14's real speaker icon) is now delivered. Original finding preserved below unchanged; see the amendment at the foot of the file. Everything else that is
 code-checkable is genuinely done; everything audible/visual beyond what you already drove live remains
 correctly flagged as outstanding, not overclaimed.
 **Re-verification:** No — initial verification.
@@ -96,7 +96,7 @@ one of the 22 locked decisions and the phase cannot be called fully complete whi
 | D-11 | Storm quieter underneath, short sounds uncapped | ✓ VERIFIED | `STORM_VOLUME = 0.35` (in `(0,1)`, asserted by `audio_mapping_test.js`); `stormGain` is a separate bus from `masterGain` for short sounds, with no cap anywhere in `play()` |
 | D-12 | Tab-blur goes quiet, resumes on focus | ✓ VERIFIED (code) | `applyMasterGain()` targets `0` when `document.hidden`; `visibilitychange` handler calls `ctx.resume().catch(()=>{})` (required for iOS Safari's interrupted-state) then `applyMasterGain()`. Structurally sound; audible confirmation is Row 6 |
 | D-13 | Mute remembered per browser | ✓ VERIFIED | `pp_muted` follows `pp_timerOff`'s exact try/catch, `"1"`/`"0"` idiom (`isMuted`/`setMuted`, `audio.js:121-144`); `grep -rn "pp_muted" src/` shows it touched only inside `src/shared/audio.js` — never Firebase, never `net*`, never `appState` |
-| D-14 | New speaker icon, slash overlay when muted | ✗ **NOT DELIVERED** | `assets/icons/speaker.png` does not exist. `#btnMute` still renders the 🔊/🔇 emoji scaffold. Correctly, honestly documented as blocked-on-Wyatt (art runbook is gitignored, interactive, needs his live session) — but genuinely not built. See Gaps. |
+| D-14 | New speaker icon, slash overlay when muted | ✓ **DELIVERED 2026-08-01** (was ✗ at time of audit) | `assets/icons/speaker.png` does not exist. `#btnMute` still renders the 🔊/🔇 emoji scaffold. Correctly, honestly documented as blocked-on-Wyatt (art runbook is gitignored, interactive, needs his live session) — but genuinely not built. See Gaps. |
 | D-15 | Mute button visible beside clock, every mode, whole game | ✓ VERIFIED (code) + confirmed live by you in solo | `setClockUI()`'s mute block keys `display` only on `appState.liveDone` — no mode gate anywhere; `#btnMute` is a `#controlsRow` sibling in `index.html:1082`. You've already confirmed this live in solo. |
 | D-16 | Disappears at win screen, mute state still holds | ✓ VERIFIED (code) | The mute render block (`panel.js:61-69`) sits *above* the `liveDone` early-return, so it hides in the same tick as `#shotClockPanel`. Critically, `isMuted()` reads `mutedCache`/`localStorage` — entirely independent of the button's DOM state — so a muted player structurally stays muted through the celebration even with the control gone. Not yet observed live at an actual end-of-voyage screen (Row 5) |
 | D-17 | Timer off stops immediately | ✓ VERIFIED (code) | `applyTimerOff(off)` (`src/ui/util.js:1289-1306`) — `if(appState.isHost&&appState.timerOff)stopShotClock();` unconditionally on the off branch |
@@ -194,3 +194,47 @@ was and was not run.
 
 _Verified: 2026-08-01_
 _Verifier: Claude (gsd-verifier)_
+
+
+---
+
+## Amendment — 2026-08-01: D-14 closed
+
+The single gap this audit found is resolved. Wyatt drew the artwork himself and supplied it at
+`art-review/icons-sound/` (`sound-on.png` / `sound-off.png`).
+
+**What shipped:** `assets/icons/sound-on.png` (167x128) and `assets/icons/sound-off.png` (173x128) —
+a gold megaphone with teal sound waves for unmuted, the same megaphone with a red X for muted.
+Wired through `SOUND_ON_IMG` / `SOUND_OFF_IMG` in `src/shared/index.js` and rendered by
+`setClockUI()`'s `#btnMute` block. Commit `ec12892`.
+
+**Deviation from D-14 as written, and it is an improvement.** D-14 specified "a new speaker icon,
+shown with `blocked-slash.png` over it when muted — mirroring exactly how the timer toggle shows its
+on/off states". Wyatt supplied **two fully drawn states** instead. That is better than the pattern it
+was mirroring: the timer toggle swaps to a *bare* `blocked-slash.png`, which says "off" without
+saying off *what*. A drawn red X on the megaphone reads correctly at the button's 30px render size.
+`blocked-slash.png` is untouched and still serves the timer toggle.
+
+**Asset prep performed before install** (the source art was not drop-in ready):
+- The Gemini sparkle watermark was erased. It occupies 1760–1852 on both axes; the artwork ends at
+  y=1656, so the cut had ~100px of clearance and could not clip the art.
+- The near-black background was opaque (alpha 255 throughout), not transparent. Knocked out by
+  flood-filling from the image borders rather than thresholding on brightness — a brightness
+  threshold would have made the dark teal outline around the megaphone semi-transparent.
+- Trimmed to content and resized to the project's 128px icon height.
+
+**A latent layout bug surfaced and was fixed in the same commit.** `#btnMute img` carried
+`width: 60%; height: 60%`. On a `flex: 0 0 auto` button — which is sized by its content — a
+percentage on that content is circular. Text resolved it harmlessly via `font-size`, so the emoji
+scaffold never exposed it; a 167x128 `<img>` resolved it with its intrinsic size and expanded the
+button from 49x43 to **200x101**, wider than the clock panel beside it. Changed to `1.5em`, which
+keeps the icon tied to the button's own `clamp()`ed font-size so the narrow-viewport bump still
+applies. **This was caught by looking at the rendered page, not by the test suite** — no gate in
+this project asserts layout, and none of the 20 scripts went red.
+
+**Verified in Chrome on a fresh port** (module cache): 61x53 button, 30x30 icon, byte-identical
+geometry in both states so the button does not jump on toggle, no overlap with `#scPause` or
+`#scTimerToggle`, page overflow unchanged at its pre-existing 5px. `npm test` 20 scripts green.
+
+**Still outstanding, unchanged by this amendment:** the audible checks, and this icon's appearance
+in Safari specifically.
