@@ -120,9 +120,19 @@ grew past 165. Correct.
 
 **Still open (logged in `.planning/WINDOWS.md` as windows #3 and #4):** the driven-browser
 acceptance criteria for FIX-16 (ghost first-frame rect) and FIX-10 (`.apBtn` containment at
-320/375/390 + rotation). I attempted #4 and could not complete it — `resize_window` doesn't change
-the page viewport in this setup, and my attempt to simulate it by resizing the container mid-flight
-froze the renderer. These fold naturally into your 18-07 checkpoint.
+320/375/390 + rotation).
+
+**These cannot be closed by automation from this setup, and I confirmed why rather than guessing.**
+The MCP browser tab is *hidden* (`document.hidden: true`, `outerWidth: 0`). That means:
+
+- `requestAnimationFrame` never fires — and `resizePanel`'s re-measure runs inside a rAF debounce, so
+  the FIX-10 fix physically cannot demonstrate itself there
+- `resize_window` returns success but does **not** move `window.innerWidth`, so a 320/375/390 sweep is
+  impossible
+
+They need a real visible browser window, or your own. They fold into your 18-07 checkpoint, which is
+the right place for them. I wrote the whole trap up as §8b of `docs/DRIVING-THE-GAME.md` so the next
+session doesn't lose the time I did.
 
 ---
 
@@ -133,10 +143,17 @@ froze the renderer. These fold naturally into your 18-07 checkpoint.
    nothing. **No work was lost** — all commits were already on the branch, and restoring the worktree
    at the same path let the still-running executor finish and commit its SUMMARY. Your other seven
    worktrees were untouched, which was luck: the loop died on the first removal when the cwd vanished.
-2. **I froze the browser** firing a synchronous resize storm during verification. Recovered by reload;
-   no repo impact.
+2. **I misdiagnosed a browser hang as my own fault.** I reported freezing the renderer with a resize
+   storm. I hadn't — the call awaited `requestAnimationFrame` in a hidden tab, where rAF never fires,
+   so the promise never resolved and the tool timed out at 45s. The renderer was never frozen and
+   nothing was damaged. Root cause was the same hidden-tab throttling behind everything else above.
 
-I also told you mid-session that the 18-01 SUMMARY was lost. It wasn't — correcting that here.
+I also told you mid-session that the 18-01 SUMMARY was lost. It wasn't — the executor was still
+running, and restoring the worktree let it finish and commit. Correcting both here.
+
+**The through-line:** one environment fact — the MCP browser tab is hidden — produced four separate
+false conclusions tonight (a phantom clipping bug, two wrong duration measurements, and a phantom
+renderer freeze). It is now documented as §8b of `docs/DRIVING-THE-GAME.md`.
 
 ---
 
