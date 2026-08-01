@@ -72,6 +72,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
+import { initAudio } from "./shared/audio.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
   netSetPaused, netWatchPaused, netDeleteRoom,
@@ -1295,7 +1296,19 @@ export function watchRecipes(){
 export function leaveGame(){netLeaveRoom();clearSession();clearSoloState();location.reload();}
 
 /* ================= boot ================= */
+// AUDIO-01: the one-shot AudioContext unlock. A document-level, capture-any-gesture listener is
+// chosen over binding one specific button deliberately — it survives future welcome-screen
+// changes and never has to know that #flipCoinWrap is not an .apBtn (docs/DRIVING-THE-GAME.md
+// §4a). Fire-and-forget with a .catch() (T-21-04) — never awaited here, and never called from
+// playFlip()/any per-play path: unlock is a once-per-page-session concern, not a per-play one.
+function unlockAudioOnce(){
+  initAudio().catch(()=>{});
+  document.removeEventListener("pointerdown",unlockAudioOnce);
+  document.removeEventListener("keydown",unlockAudioOnce);
+}
 export function wireLobby(){
+  document.addEventListener("pointerdown",unlockAudioOnce,{once:true});
+  document.addEventListener("keydown",unlockAudioOnce,{once:true});
   $("btnCreate").onclick=()=>{createRoom();};
   $("btnJoin").onclick=()=>{joinRoom();};
   $("btnStart").onclick=()=>{$("startConfirmModal").style.display="flex";};

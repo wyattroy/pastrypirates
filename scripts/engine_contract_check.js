@@ -47,6 +47,19 @@ const sharedFiles = jsFilesIn(SHARED_DIR);
 const engineFiles = jsFilesIn(ENGINE_DIR);
 const allFiles = [...sharedFiles, ...engineFiles];
 
+// Phase 21 (AUDIO-01): src/shared/audio.js is the first second file this gate has ever had to
+// scan in src/shared/ — every pattern above was written in Phase 8 against a directory holding
+// only index.js. audio.js is a NAMED, DOCUMENTED exception to the purity bar (its own header
+// states it plainly): it constructs an AudioContext and reads document.hidden/localStorage
+// because the Web Audio API and D-12/D-13 (tab-blur quieting, persisted mute) require it. It is
+// never imported by src/engine/ — confirmed no engine file references it — so it is structurally
+// incapable of reaching the determinism corpus this gate exists to protect (ENGINE-01, D-08).
+// Excluded from the PURITY assertion only; it stays in `allFiles`/`sharedFiles` for every other
+// assertion below (annotation count, shared->engine DAG direction, moved-symbol completeness),
+// none of which this file's presence weakens.
+const PURITY_EXEMPT = new Set([path.join(SHARED_DIR, "audio.js")]);
+const purityScanFiles = allFiles.filter((f) => !PURITY_EXEMPT.has(f));
+
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -77,7 +90,7 @@ const PURITY_PATTERNS = [
 
 function checkPurity() {
   let ok = true;
-  for (const file of allFiles) {
+  for (const file of purityScanFiles) {
     const rel = path.relative(ROOT, file);
     const lines = fs.readFileSync(file, "utf8").split("\n");
     lines.forEach((raw, i) => {
