@@ -432,9 +432,18 @@ export function panel(html,needsAction=false){
   //
   // With no ghost — a first line, or a line after an explicit clear — there is nothing to hold for,
   // so it resizes immediately, exactly as before.
+  // MEASURE NOW, APPLY LATER. The measurement MUST happen here, synchronously, while the full text
+  // is still in the DOM — typewriterReveal() below blanks every text node the instant it is called,
+  // so anything measured after it reads an empty box. (That is exactly the regression the first
+  // version of this sequence shipped: the whole resize was deferred, it measured the blank, and the
+  // buttons were clipped at 316px.)
   const fadeMs=(ghost&&!reduced)?GHOST_FADE_MS:0;
-  if(fadeMs)setTimeout(()=>resizePanel(!!inner.innerHTML),fadeMs);
-  else resizePanel(!!html);
+  if(!html){resizePanel(false);}
+  else{
+    const targetH=measurePanelHeight();
+    if(fadeMs)setTimeout(()=>applyPanelHeight(targetH),fadeMs); // phase 2, after the fade
+    else applyPanelHeight(targetH);                             // no ghost: nothing to wait for
+  }
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
   // promise (stashed on the element) resolves only once every character is actually on screen,
@@ -548,17 +557,29 @@ export function panelRevealDone(){
 //   - panel() stays synchronous and `_revealDone` is still assigned before it returns: the delay is
 //     handed to typewriterReveal()'s existing startDelay parameter, which is what made this
 //     restructure possible without touching flash()'s contract.
-export function resizePanel(hasContent,minHeight=0){
-  const grid=$("apGrid"),inner=$("apGridInner");if(!grid)return;
-  if(!hasContent){grid.style.gridTemplateRows="0px";return;}
-  const from=getComputedStyle(grid).gridTemplateRows; // resolved px of the current height
+// MEASURE and APPLY are separate, and that separation is load-bearing (2026-08-01, second pass).
+//
+// The first version of the swap sequence deferred the WHOLE of resizePanel() to the end of the
+// fade — which silently broke it, because typewriterReveal() BLANKS every text node the moment it
+// is called, synchronously inside panel(). Measuring 800ms later therefore measured an EMPTY box,
+// pinned the row to that height, and clipped the buttons. Wyatt caught it immediately at 316px.
+//
+// So: measure SYNCHRONOUSLY, while the full text is still in the DOM, and apply that number later.
+// Height is still set exactly once per message; only the moment of application moves.
+export function measurePanelHeight(minHeight=0){
+  const grid=$("apGrid"),inner=$("apGridInner");if(!grid)return 0;
+  const from=getComputedStyle(grid).gridTemplateRows;
   grid.style.transition="none";
   grid.style.gridTemplateRows="max-content";
-  const h=Math.max(inner.offsetHeight,minHeight);      // natural height of the finished message
-  grid.style.gridTemplateRows=from;                    // back to the start value…
-  void grid.offsetHeight;                              // …committed as the transition's from
+  const h=Math.max(inner.offsetHeight,minHeight); // natural height of the FINISHED message
+  grid.style.gridTemplateRows=from;               // snap back; nothing animates from this probe
+  void grid.offsetHeight;
   grid.style.transition="";
-  grid.style.gridTemplateRows=h+"px";                  // one smooth animation to the real height
+  return h;
+}
+export function applyPanelHeight(h){
+  const grid=$("apGrid");if(!grid)return;
+  grid.style.gridTemplateRows=h+"px";             // one smooth animation to the measured height
   // SAFETY NET: once the animation lands, release the row to max-content. No visual change when the
   // measurement was right — the computed height already IS h — but it makes clipping impossible
   // afterwards. A future mis-measure then shows as a slightly tall box, never a lost button.
@@ -567,6 +588,17 @@ export function resizePanel(hasContent,minHeight=0){
     grid.removeEventListener("transitionend",done);
     if(grid.style.gridTemplateRows===h+"px")grid.style.gridTemplateRows="max-content";
   });
+  // Belt: if the height did not actually change, no transition fires and transitionend never
+  // arrives — so release the row on a timer too. Without this a box that happens to keep its
+  // height stays pinned in px forever, and the safety net above would never engage.
+  setTimeout(()=>{
+    if(grid.style.gridTemplateRows===h+"px")grid.style.gridTemplateRows="max-content";
+  },RESIZE_MS+40);
+}
+export function resizePanel(hasContent,minHeight=0){
+  const grid=$("apGrid");if(!grid)return;
+  if(!hasContent){grid.style.gridTemplateRows="0px";return;}
+  applyPanelHeight(measurePanelHeight(minHeight));
 }
 // Walks msgEl's real DOM in document order and reveals it character-by-character (text nodes)
 // and unit-by-unit (atomic elements like <img>), instead of faking a type-in with a CSS wipe — a
