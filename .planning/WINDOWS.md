@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 5
+open_count: 6
 waived_count: 0
 fixed_count: 3
-total_count: 8
-last_updated: 2026-08-01T09:16:59.527Z
+total_count: 9
+last_updated: 2026-08-01T09:29:11.744Z
 ---
 
 # Broken Windows Ledger
@@ -23,6 +23,7 @@ last_updated: 2026-08-01T09:16:59.527Z
 | 6 | 18 | unrun-verify | src/ui/util.js |  | 18-05 Task 1 human-check unrun: driven-Chrome sampling of shotClockSeat/shotClockForce from prompt render to 1s after buttons appear — browser verification disallowed this session (see PLAN.md's <environment>). | open |  | 2026-08-01T09:16:59.347Z |  |
 | 7 | 18 | unrun-verify | src/ui/panel.js |  | 18-05 Task 2 human-check unrun: driven-Chrome sampling of #shotClockNum/#scLabel text content across the reveal window, host and guest — browser verification disallowed this session (see PLAN.md's <environment>). | open |  | 2026-08-01T09:16:59.437Z |  |
 | 8 | 18 | deviation | src/ui/panel.js |  | 18-05 known display gap: appState.clockPendingSeat is only set on the browser rendering the actual button row, so HOST/spectator screens fall back to the pre-existing idle dash (not the new frozen display) during a REMOTE decision's reveal window until the deferred arm fires — never shortens anyone's 30s window, cosmetic only. Flagged for 18-07's checkpoint. | open |  | 2026-08-01T09:16:59.527Z |  |
+| 9 | 18 | unrun-verify | index.html |  | 18-06 Task 3 (FIX-09) six D-03 renders (treatment A/B at 320/375/390) not produced this session - browser verification disallowed (MCP tab hidden, rAF/timers dead, matchMedia never matches at innerWidth 950; see docs/DRIVING-THE-GAME.md 8b). Both chip treatments are implemented as live, toggleable CSS (body.chipsOwnRow) and statically verified; only the six by-eye renders and the D-03 choice itself remain, folding into 18-07's checkpoint. | open |  | 2026-08-01T09:29:11.744Z |  |
 
 ````json
 [
@@ -120,6 +121,18 @@ last_updated: 2026-08-01T09:16:59.527Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-01T09:16:59.527Z",
+    "resolved_at": null
+  },
+  {
+    "id": 9,
+    "kind": "unrun-verify",
+    "phase": "18",
+    "file": "index.html",
+    "line": null,
+    "description": "18-06 Task 3 (FIX-09) six D-03 renders (treatment A/B at 320/375/390) not produced this session - browser verification disallowed (MCP tab hidden, rAF/timers dead, matchMedia never matches at innerWidth 950; see docs/DRIVING-THE-GAME.md 8b). Both chip treatments are implemented as live, toggleable CSS (body.chipsOwnRow) and statically verified; only the six by-eye renders and the D-03 choice itself remain, folding into 18-07's checkpoint.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-01T09:29:11.744Z",
     "resolved_at": null
   }
 ]
