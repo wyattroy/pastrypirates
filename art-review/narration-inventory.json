@@ -1567,7 +1567,7 @@
     {
       "category": "timer",
       "file": "src/ui/panel.js",
-      "line": 109,
+      "line": 112,
       "fn": "setClockUI",
       "rawMsg": "appState.timerOff?\"Turn the timer back on\":\"Turn the timer off\"",
       "id": "misc.timer.toggletooltip"

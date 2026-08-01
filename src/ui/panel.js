@@ -33,7 +33,7 @@
 
 import { appState } from "../state/index.js";
 import {
-  PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, BLOCKED_SLASH_IMG, STOPWATCH_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
+  PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, BLOCKED_SLASH_IMG, STOPWATCH_IMG, SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
 } from "../shared/index.js";
 import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
@@ -61,7 +61,10 @@ export function setClockUI(){
   const muteEl=$("btnMute");
   if(muteEl){
     muteEl.style.display=appState.liveDone?"none":"";
-    muteEl.innerHTML=isMuted()?"🔇":"🔊";
+    // D-14: Wyatt's megaphone pair replaces 21-04's 🔊/🔇 emoji scaffold. #btnMute img in
+    // index.html sizes these to 60% of the button (~29px), overriding .narrIcon's inline 18px —
+    // id+element beats class, so no extra rule is needed.
+    muteEl.innerHTML=isMuted()?iconImg(SOUND_OFF_IMG):iconImg(SOUND_ON_IMG);
     // Tooltip copy recorded in .planning/todos/pending/copy-shipped-vs-approved-gate.md — no
     // @copy marker (a new misc.sound.* id would need registering in art-review's node-group
     // table, out of scope for this phase; see that file's phase-21 entry for the follow-up).

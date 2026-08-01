@@ -453,7 +453,12 @@
     background: linear-gradient(160deg, rgba(138,95,47,.6), rgba(92,61,28,.6));
     color: #ffe9b8; cursor: pointer; }
   #btnMute:hover { filter: brightness(1.15); }
-  #btnMute img { width: 60%; height: 60%; object-fit: contain; }
+  /* D-14: em, NOT %. The button is flex:0 0 auto so it is content-sized; a percentage on its own
+     content is circular and an <img> resolves it with its intrinsic size — the 167x128 megaphone
+     blew the button from 49x43 to 200x101, wider than the clock panel beside it. The emoji
+     scaffold never exposed this because text is sized by font-size. em keeps the icon tied to the
+     button's own clamp()ed font-size, so the narrow-viewport bump below still works. */
+  #btnMute img { width: 1.5em; height: 1.5em; object-fit: contain; vertical-align: middle; }
   /* standalone, matches #shotClockPanel's footprint (min-width/padding/border-radius) so it
      drops into the same #controlsRow slot without the layout jumping */
   #btnPlayAgain { flex: 0 0 auto; min-width: clamp(70px,26cqw,118px);
