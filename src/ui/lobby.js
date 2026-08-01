@@ -107,9 +107,27 @@ export function requireName(){
 // with a continuation (`next`) carrying that mode's remaining body; confirmName() resolves the
 // name, persists it, and invokes the stored continuation with the resolved name as its argument.
 let pendingNameAction=null;
+// NAME-01 (2026-08-01, measured): the name a player was SHOWN is not the same thing as a name they
+// CHOSE, and multiplayer needs to tell them apart. The modal prefills requireName(), which for a
+// player with no saved name is unusedDefaultName(null,0) — computed against a NULL seat map, so it
+// is the identical string ("Davy Scones") in every browser on earth. A player who accepts the
+// prefill without typing was therefore sending a truthy `typedName` into joinRoom, which made
+// `typedName||unusedDefaultName(s,i)` (src/orchestrator.js) skip the collision-safe fallback
+// entirely. Reproduced in a two-browser session: host and guest both seated as "Davy Scones". The
+// helper was never broken — it simply never ran.
+//
+// So: remember the exact string that was auto-offered. If the player confirms it untouched, the
+// name is UNCHOSEN, and the seat-claim path resolves it against the live transaction seat map
+// instead. `null` means the player typed something of their own, which is always honoured verbatim.
+let autoOfferedName=null;
+export function pendingAutoName(){return autoOfferedName;}
 export function openNameModal(next){
   pendingNameAction=next;
-  $("nameModalInput").value=requireName();
+  const saved=(getLastName()||"").trim();
+  // Only a name the player has actually chosen before counts as chosen now; a blank store means the
+  // value below is ours, not theirs.
+  autoOfferedName=saved?null:unusedDefaultName(null,0);
+  $("nameModalInput").value=saved?saved.slice(0,40):autoOfferedName;
   $("nameModal").style.display="flex";
   $("nameModalInput").focus();
   $("nameModalInput").select();
@@ -119,11 +137,20 @@ export function confirmName(){
   // is a no-op, not a throw.
   if(!pendingNameAction)return;
   const raw=($("nameModalInput").value||"").trim().slice(0,40);
+  // Unchosen == left blank, or confirmed exactly as offered. Either way the displayed name stays
+  // the friendly default so the player still sees a captain rather than an empty field — it is only
+  // the DOWNSTREAM treatment that differs.
+  const auto=(!raw)||(autoOfferedName!==null&&raw===autoOfferedName);
   const name=raw||unusedDefaultName(null,0);
+  autoOfferedName=auto?name:null;
   // RAW trimmed string, NOT HTML-escaped here — escaping already happens once at render time
   // inside pname() (./util.js), which reads appState.roster[i].name. A second escape at this write
   // site would double-escape legitimate names containing "&" or "<".
-  saveLastName(name);
+  //
+  // NAME-01: an auto default is NOT persisted. Writing it to pp_lastName would harden a name the
+  // player never picked into one that looks chosen on the next boot — and every later join would
+  // then duplicate it again, which is the bug returning by the back door.
+  if(!auto)saveLastName(name);
   $("nameModal").style.display="none";
   const next=pendingNameAction;
   pendingNameAction=null;

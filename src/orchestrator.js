@@ -104,6 +104,7 @@ import {
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
   requireName, getLastName, // FIX-01: the one read chokepoint (createRoom) and the raw persisted read (Feedback)
+  pendingAutoName, // NAME-01: was the resolved name CHOSEN by the player, or merely offered to them?
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
@@ -1201,6 +1202,13 @@ export async function createRoom(){
 export async function abandonRoom(){
   const room=appState.room, wasHost=appState.isHost;
   netLeaveRoom();
+  // NAME-01 (2026-08-01, measured): netLeaveRoom() tears the room-scoped watchers down, which breaks
+  // the invariant _watchRoomAttachedFor stands for ("the seat/status watchers are live for this
+  // room"). Left set, a player who leaves and rejoins the SAME room trips D-13's guard, watchRoom()
+  // returns before re-attaching netWatchSeats(), and their lobby freezes on the last seat list they
+  // saw — the rename they just made lands on every other client but not their own. Clearing it here
+  // keeps the guard honest: it must mean "attached", not "was attached once".
+  _watchRoomAttachedFor=null;
   if(room&&wasHost){
     try{ await netDeleteRoom(appState.db,room); }
     catch(e){ console.error("abandonRoom: could not delete room",e); } // best effort — leaving still works
@@ -1228,9 +1236,42 @@ export async function joinRoom(){
   if(!snap.exists()){alert(`Arrgh, no game found with code ${code}. Try typin' again.`);return;}
   const r=snap.val();
   const seats=r.seats||{};
+  // NAME-01 (2026-08-01): a name the player was OFFERED is not one they chose. #joinName is prefilled
+  // from the modal and stays editable, so "unchosen" means the field still holds the exact string we
+  // put there; any edit — even retyping the same letters — counts as a choice and is honoured
+  // verbatim. An unchosen name goes in blank so the collision-safe fallback below actually runs.
+  // Before this, every fresh player confirmed the same prefilled "Davy Scones", which was truthy and
+  // therefore skipped that fallback entirely — two captains, one name.
+  const auto=pendingAutoName();
+  const chosen=(auto&&typedName===auto)?"":typedName;
+  // unusedDefaultName() counts EVERY seat in the map as taking a name, including the one being
+  // claimed — so a rejoining player would see their own old name as taken and drift to a different
+  // default on each pass. Hiding the seat under claim from the tally makes `preferIdx` reliably
+  // return that seat's own captain, which is both stable and collision-free.
+  const withoutSeat=(s,i)=>{const o={};Object.keys(s||{}).forEach(k=>{if(+k!==i)o[k]=s[k];});return o;};
   let mine=null;
   for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===appState.myId)mine=i;
-  if(mine!=null){appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;}
+  if(mine!=null){
+    // NAME-01/C: a seat keyed to this pp_id OUTLIVES leaving the room — abandonRoom() calls
+    // netLeaveRoom(), which only detaches watchers (src/net/index.js) and never releases the record.
+    // So "back out, come back with a different name" used to reuse the stale record verbatim and
+    // silently discard what was just typed. Measured: guest joins as ALPHA, backs out via the room
+    // screen's "← back", rejoins typing BRAVO — both clients still showed ALPHA.
+    //
+    // Write the name on the way back in, but ONLY while the room is still in the lobby. A rejoin
+    // into a voyage already under way must keep the seat's existing name: narration has already gone
+    // out under it, and renaming mid-game would desync the roster against events guests have shown.
+    if(r.status==="lobby"){
+      await netClaimSeat(appState.db,code,s=>{
+        if(!s)return s;
+        const cur=s[mine]||{};
+        if(cur.id!==appState.myId)return s; // someone else holds it now — never stomp their seat
+        s[mine]={...cur,name:chosen||unusedDefaultName(withoutSeat(s,mine),mine),id:appState.myId,bot:false};
+        return s;
+      });
+    }
+    appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;
+  }
   // @copy misc.mperror.alreadysailed
   if(r.status!=="lobby"){alert("⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.");return;}
   let claimed=null;
@@ -1239,7 +1280,7 @@ export async function joinRoom(){
     for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){
       // #2: blank name → an unused default captain name computed against the live seat map, so a
       // late joiner never duplicates a name already in the room.
-      s[i]={name:typedName||unusedDefaultName(s,i),id:appState.myId,bot:false};claimed=i;return s;}}
+      s[i]={name:chosen||unusedDefaultName(withoutSeat(s,i),i),id:appState.myId,bot:false};claimed=i;return s;}}
     return s;
   });
   // @copy misc.mperror.roomfull
