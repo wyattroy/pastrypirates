@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 19
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: 19-02 complete (Wave 0 guard wired into npm test); 19-01 still open on Wyatt's checkpoint
-last_updated: "2026-08-01T04:06:17.000Z"
+stopped_at: 19-01 complete (both human gates cleared — phone reachability and RNG-door go-ahead); wave 1 done, wave 2 (19-03) cleared to start
+last_updated: "2026-08-01T04:38:35.000Z"
 last_activity: 2026-08-01
-last_activity_desc: 19-02 (wind_dot_contract_check.js) executed and wired into npm test
+last_activity_desc: 19-01 checkpoint resumed and completed — Wyatt confirmed phone reachability and the wind-dot RNG-source go-ahead
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 workstream: board-wind
 created: 2026-07-31
 ---
@@ -25,17 +25,17 @@ created: 2026-07-31
 
 **Status:** Executing Phase 19
 **Current Phase:** 19
-**Last Activity:** 2026-08-01 — 19-02 (wind_dot_contract_check.js) executed and wired into npm test
-**Last Activity Description:** 19-02 (wind_dot_contract_check.js) executed and wired into npm test
+**Last Activity:** 2026-08-01 — 19-01 checkpoint resumed and completed — Wyatt confirmed phone reachability and the wind-dot RNG-source go-ahead
+**Last Activity Description:** 19-01 checkpoint resumed and completed — Wyatt confirmed phone reachability and the wind-dot RNG-source go-ahead
 
 ## Progress
 
 **Phases Complete:** 0
-**Current Plan:** 2 (19-02 complete; 19-01 — same wave — still open awaiting Wyatt's checkpoint response)
+**Current Plan:** 3 (wave 1 — 19-01 and 19-02 — both complete; wave 2 (19-03) cleared to start on the recorded go-ahead)
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T04:06:17.000Z
+**Last session:** 2026-08-01T04:38:35.000Z
 
-**Stopped At:** 19-02-SUMMARY.md written and committed; `npm test` green (23/23) with the new guard wired in and zero fixture changes. Precondition blocker (pre-existing narration_audit_check.js archive-path break) was resolved by the orchestrator in commit `4546c82`, recorded fixed in `.planning/WINDOWS.md` (id 3). 19-01 is still awaiting Wyatt's checkpoint before wave 2 (19-03) can start.
-**Resume File:** .planning/workstreams/board-wind/phases/19-safari-check/19-02-SUMMARY.md
+**Stopped At:** 19-01-SUMMARY.md written and committed. Wyatt's checkpoint answered: his iPhone reached the branch build over wifi at `http://192.168.1.3:8934/index.html`, and he confirmed the wind-dot RNG source is a private seeded stream (D-12), never drawing from the shared game RNG. `19-SAFARI-RUN.md` §5 filled in. `npm test` green (23/23), zero fixture changes. Both wave-1 plans (19-01, 19-02) are now complete; wave 2 (19-03, the tracer) is cleared to begin. The dev server on port 8934 remains running per standing instruction.
+**Resume File:** .planning/workstreams/board-wind/phases/19-safari-check/19-01-SUMMARY.md
