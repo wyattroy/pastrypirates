@@ -48,7 +48,7 @@ Storms are the exception — the only time the wind moves you without asking. Ro
 - First to **3 points** wins. The loser hands over a crate (winner picks which) or 5 coins — loser's choice. If they can't pay in full, the winner takes everything they've got.
 - Then the two ships **swap places**!
 
-**Parley** — Hail *any* captain, anywhere on the sea, and make a deal: crates, coins, promises — anything you can negotiate. When a trade is struck, **both** captains collect 1 bonus coin from the bank (the harbor tax refund).
+**Trade** — Hail *any* captain, anywhere on the sea, and make a deal: crates, coins, promises — anything you can negotiate. When a trade is struck, **both** captains collect 1 bonus coin from the bank (the harbor tax refund).
 
 **Fish** — Flip the bullion: **heads** nets 2 coins, **tails**... just a candycrab (worth 1 coin).
 

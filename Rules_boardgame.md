@@ -160,7 +160,7 @@ Pick a fight with a ship that is **orthogonally adjacent** to you. First, **pay 
 
 **After the battle: swap places.** The two ships **exchange squares.** (This is how you take an occupied berth — beat the ship in it and you swap right into the dock.) If either ship lands on a trade-wind square as a result, the current sweeps it (§8). And if the swap leaves a captain **sitting in a berth they have never flipped at before**, that captain immediately gets a **free dock flip** there (resolve it like a normal Dock).
 
-#### 🤝 Parley
+#### 🤝 Trade
 Hail **any captain, anywhere on the sea** — adjacency is **not** required for talk (only for battle). Negotiate any deal you like: crates for crates, coins for crates, promises, alliances, favors — whatever the two of you agree to. When a **trade actually completes**, **both captains collect 1 bonus coin** from the bank (the harbor tax refund), so trading is never a pure loss of tempo. Promises and threats are free; only an actual exchange triggers the refund.
 
 #### 🎣 Fish
@@ -178,7 +178,7 @@ You may always simply pass and do nothing.
 
 Each island begins with only **(players − 1)** crates. When an island's crates are gone, **they're gone** — a heads-dock there pays 3 coins instead of a crate, and Buy-on-Tails is impossible.
 
-Because almost every captain needs almost every ingredient, at least one captain will be **shut out** of an island they need. Their only paths to that last ingredient are **Parley** (buy or trade for it) and **Attack** (plunder it). This is intentional: scarcity is what turns the late game from a peaceful shopping trip into a scramble.
+Because almost every captain needs almost every ingredient, at least one captain will be **shut out** of an island they need. Their only paths to that last ingredient are **Trade** (buy or barter for it) and **Attack** (plunder it). This is intentional: scarcity is what turns the late game from a peaceful shopping trip into a scramble.
 
 You may carry **crates you don't need** (from a lucky heads, or won in battle, or taken in trade). These are pure trade goods — worth nothing toward your own recipe, but valuable to whoever *does* need them.
 
@@ -230,7 +230,7 @@ The situations most likely to come up mid-game, gathered in one place:
 - **Buy on Tails only works for crates you need** — the island must still have crates, the ingredient must be **on your recipe and still missing**, and you must have **3+ coins.** You can't buy surplus crates on a tails.
 - **Attacking is orthogonal-only** and always costs the **2-coin powder up front** (lost win or lose). The broadside reflip costs **1 more coin** and is the **attacker's** privilege, **once per battle.**
 - **Losing a battle with empty pockets** is fine: you hand over whatever you have (a crate, or your last coins), and owe no debt.
-- **Parley reaches anyone, anywhere;** battle needs adjacency. A completed trade pays **both** parties **+1 coin.**
+- **Trade reaches anyone, anywhere;** battle needs adjacency. A completed trade pays **both** parties **+1 coin.**
 - **Fishing always pays** — 2 coins on heads, 1 (a candycrab) on tails.
 - **Barbados is home base, not a shop.** You don't collect ingredients there; you start there, shelter there from the wind, and win there.
 - **Trade winds end your movement.** Entering the rim by sail *or* by wind sweeps you to that arc's clockwise corner and stops you for the turn.
@@ -243,7 +243,7 @@ The situations most likely to come up mid-game, gathered in one place:
 >
 > **On your turn:**
 > 1. **⛵ Sail** — pay 1 coin, move using a 9-point budget (2/sq with wind, 3/sq across, 4/sq against; upwind island = 7-point budget). Past ships okay, not onto them; around islands. No coin, no sail. *(Storm round? The wind force-pushes you first: 2 squares, then 2 more. Moored? Safe. Toward rocks? Pay 1 to dodge or flip — heads anchor, tails lose half your coins (min 1), a crate if broke, or the turn if empty-handed too. Into the rim? Sweep to the clockwise corner.)*
-> 2. **⚓ Act (one):** **Dock** (flip: heads crate / tails 3 coins or buy) · **Attack** (pay 2, race to 3, broadside costs 1, swap after) · **Parley** (deal with anyone, +1 each) · **Fish** (heads 2 / tails 1) · **Start Bakery** (home + full recipe = win) · **Pass.**
+> 2. **⚓ Act (one):** **Dock** (flip: heads crate / tails 3 coins or buy) · **Attack** (pay 2, race to 3, broadside costs 1, swap after) · **Trade** (deal with anyone, +1 each) · **Fish** (heads 2 / tails 1) · **Start Bakery** (home + full recipe = win) · **Pass.**
 >
 > **Someone declares a bakery?** Everyone else gets **one last turn**, then the game ends — one winner, or a **first-to-5 Bakeoff.** 👑
 
