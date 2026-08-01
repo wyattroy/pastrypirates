@@ -37,7 +37,7 @@ are small and independent.
 
 **Origin**: Wyatt's 2026-07-31 punch list + the v1.2 Phase 17 playtest (screenshot), plus the
 2026-08-01 batch (FIX-16, FIX-17, FIX-21). Plain-language overview: [`../../V1.3-V1.4-PLAN.md`](../../V1.3-V1.4-PLAN.md) "Phase 1 — Prompts & Polish".
-**Plans**: 3/7 plans executed
+**Plans**: 4/7 plans executed
 
 Plans:
 **Wave 1**
@@ -51,7 +51,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 18-04-PLAN.md — wave 3 — an empty hold is not a bribe: `spoilChosen` on the orchestrator's battle event, engine untouched (FIX-07)
+- [x] 18-04-PLAN.md — wave 3 — an empty hold is not a bribe: `spoilChosen` on the orchestrator's battle event, engine untouched (FIX-07)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

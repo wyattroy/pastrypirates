@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 18
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: "18-03 complete (FIX-04/FIX-21 — storm-drift line removal, orphan-chunk wrapping, permanent anchored gate). Next: 18-04, wave 3 (FIX-07 — empty hold is not a bribe)."
-last_updated: "2026-08-01T06:10:00.000Z"
+stopped_at: "18-04 complete (FIX-07 — empty hold is not a bribe: spoilChosen carried on the orchestrator's battle event, src/engine/index.js untouched). Next: 18-05, wave 4 (FIX-03 — shot clock starts when buttons become clickable)."
+last_updated: "2026-08-01T07:20:00.000Z"
 last_activity: 2026-08-01
-last_activity_desc: 18-03 executed — windmove reduced to caps-only (FIX-04), 7 signed-coin narration sites + award CSS nobrk-wrapped, checkCoinParentheticalNobrk permanent gate added (FIX-21)
+last_activity_desc: 18-04 executed — spoilChosen added to the orchestrator's battle event only, three-state hasChoice/isBribe/isEmptyHoldFive derivation in src/ui/util.js, the bug-encoding 5-coin test assertion split into three labelled cases (FIX-07)
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 7
-  completed_plans: 3
-  percent: 43
+  completed_plans: 4
+  percent: 57
 workstream: prompts-polish
 created: 2026-07-31
 ---
@@ -25,14 +25,14 @@ created: 2026-07-31
 
 **Status:** Executing Phase 18
 **Current Phase:** 18
-**Last Activity:** 2026-08-01 — 18-03 executed (FIX-04/FIX-21, storm-drift removal + orphan-chunk wrapping)
-**Last Activity Description:** 18-03 executed — `EVENT_NARRATION.windmove` reduced to its `caps`-only capsule form (FIX-04); 7 signed-coin narration sites plus `.awardStat b` CSS nowrap-wrapped, and a permanent anchored `checkCoinParentheticalNobrk` gate added to `ui_contract_check.js` (FIX-21)
+**Last Activity:** 2026-08-01 — 18-04 executed (FIX-07, empty-hold loser no longer reads the bribe framing)
+**Last Activity Description:** 18-04 executed — `src/orchestrator.js`'s battle event gained an orchestrator-tier-only `spoilChosen` boolean (set true ONLY inside the `canCoins&&hasIng` genuine-choice branch); `src/ui/util.js` replaced the coin-count-only bribe proxy with a three-state `hasChoice`/`isBribe`/`isEmptyHoldFive` derivation that preserves every field-less (engine/replay/simulator/fixture) event's rendering byte-for-byte; the give-up line was added to both the neutral/winner `spoilClause` chain and the separate loser-addressed composite chain; `scripts/narration_test.js`'s bug-encoding 5-coin assertion was split into three labelled cases (genuine-bribe, empty-hold, absent-field) plus loser-composite coverage. `src/engine/index.js` confirmed byte-identical to pre-plan HEAD; `npm test` 23/23.
 
 ## Progress
 
 **Phases Complete:** 0
-**Plans Complete:** 3 of 7
-**Current Plan:** 4 (18-04, wave 3 — an empty hold is not a bribe, FIX-07) — blocked on wave 2 completion, which this plan closes out
+**Plans Complete:** 4 of 7
+**Current Plan:** 5 (18-05, wave 4 — D-02: shot clock starts when buttons become clickable, FIX-03) — blocked on wave 3 completion, which this plan closes out
 
 ## Accumulated Context
 
@@ -48,6 +48,9 @@ created: 2026-07-31
 - 18-03: `art-review/narration-table-baseline.json`'s re-pin convention (a `_provenance` note per change, `table:<key>` cards updated via `narration-core.js`'s own `tableCards()` rather than hand-transcribed) is the pattern any future plan touching `EVENT_NARRATION` text or markup must follow, or `narration_audit_check.js` assertion 7 will fail.
 - 18-03: a source reformat that changes a ternary's on-line shape can break `scripts/ui_contract_check.js`'s D-29 pirate-register identifier allowlist if the allowlist is anchored to the old shape (it is anchored on content, deliberately, so this "goes loud" by design) — any future reformat of `src/ui/util.js`'s `sidebet` builder must re-check `REGISTER_IDENT_FRAGMENTS`.
 - 18-03: `checkCoinParentheticalNobrk` (new, `scripts/ui_contract_check.js`) is now a standing gate on every `npm test` run — a future narration site with an unwrapped trailing `(±N🌕)` will only be caught if it matches one of the gate's 10 anchors; a genuinely NEW site (an 11th) will not be caught automatically and should add its own anchor.
+- 18-04: this plan deliberately DEVIATED from RESEARCH's `isBribe = spoilIng==null && spoilChosen===true` sketch — that formula flips EVERY field-less event to the give-up framing, which is a text change to already-shipped history. Used a three-state `hasChoice` fork instead: when the event carries no `spoilChosen` key at all (every engine/replay/simulator/fixture event), fall back to the pre-existing coin-count proxy byte-for-byte.
+- 18-04: `isBribe`'s `hasChoice` fork needed the `spoilN>=5` amount gate even when `spoilChosen:true` is present — a fabricated sub-5 + `spoilChosen:true` event is not a shape the real game produces (canCoins&&hasIng only fires when `lose.coins>=5`), but the plan's own behavior spec required "a 2-coin spoil renders the all-they-have framing regardless of spoilChosen," so the amount gate stays load-bearing in both forks, not just the no-choice fallback.
+- 18-04: `spoilChosen` is orchestrator-tier only (`src/orchestrator.js`) — deliberately never added to `src/engine/index.js`'s parallel simulator-only spoil branch (milestone constraint 1). That branch's same flaw is left for the gated determinism re-record batch (`docs/DETERMINISM-RERECORD-NEXT.md`) when the door is opened anyway.
 
 ### Open Items Carried Forward
 
@@ -60,5 +63,5 @@ created: 2026-07-31
 
 ## Session Continuity
 
-**Stopped At:** 18-03 complete (FIX-04/FIX-21). Next: 18-04, wave 3 (FIX-07 — empty hold is not a bribe).
-**Resume File:** .planning/workstreams/prompts-polish/phases/18-prompts-polish/18-03-SUMMARY.md
+**Stopped At:** 18-04 complete (FIX-07 — empty hold is not a bribe). Next: 18-05, wave 4 (FIX-03 — shot clock starts when buttons become clickable).
+**Resume File:** .planning/workstreams/prompts-polish/phases/18-prompts-polish/18-04-SUMMARY.md

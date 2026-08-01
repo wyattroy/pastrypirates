@@ -15,7 +15,7 @@
 - [x] **FIX-16**: A fading narration line stays exactly where it was, and the box only shrinks once the fade completes.
 - [ ] **FIX-06**: The 12 solid-orange `button.primary` buttons are restyled to the outline + faded-fill pattern.
 - [x] **FIX-04**: The "{captain} is blown by the storm" line is removed, both viewer variants together.
-- [ ] **FIX-07**: A loser with an empty hold reads "they give up 5🌕", not the bribe framing; under 5 coins falls to the existing "all they have" line.
+- [x] **FIX-07**: A loser with an empty hold reads "they give up 5🌕", not the bribe framing; under 5 coins falls to the existing "all they have" line.
 - [x] **FIX-08**: The win banner only prints "a" in front of a recipe name that takes one. No recipe is renamed.
 - [ ] **FIX-09**: On narrow mobile the ingredient chips stay readable instead of collapsing into one vertical column.
 - [ ] **FIX-17**: The coloured circle beside captain names is removed everywhere it appears, and the row shifts left.
