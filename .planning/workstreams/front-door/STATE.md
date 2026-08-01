@@ -40,7 +40,7 @@ created: 2026-07-31
 **Stopped At:** Phase 22 UI-SPEC approved
 
 1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
-2. `/gsd-ui-phase 22 --ws front-door` — design contract for the About page and the name modal
+2. ~~`/gsd-ui-phase 22 --ws front-door`~~ — **done 2026-07-31**, UI-SPEC approved 6/6 dimensions; `ui-plan-gate` now unblocked
 3. `/gsd-plan-phase 22 --ws front-door` — plan
 
 **Resume File:** .planning/workstreams/front-door/phases/22-the-front-door/22-UI-SPEC.md
