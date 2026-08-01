@@ -65,6 +65,14 @@ const SHOTCLOCK_SOUND_PLACEHOLDER = "battle-swords";
 // purpose-made victory sound. Swapping it is a one-constant change.
 const WIN_SOUND_PLACEHOLDER = "store-ingredient";
 
+// 260801-7f4 — a REAL choice, not a placeholder like the two above. Unlike WIN_SOUND_PLACEHOLDER
+// and SHOTCLOCK_SOUND_PLACEHOLDER, this stem literally is a sword clash; it is not on any shopping
+// list for Luis. Named as a constant (not inlined) so the DOM-free harness can assert it by name.
+// This is the moment cue for a battle being JOINED — see playBattleEngage() below — fired from the
+// orchestrator's own battle-opening seams, never from the `battle` event, because that event does
+// not exist until the whole fight has already resolved.
+const BATTLE_ENGAGE_SOUND = "battle-swords";
+
 // D-01/D-03/D-04/D-06/D-21: the 25-key event->sound mapping, mirroring EVENT_NARRATION's exact
 // shape (src/ui/util.js) and register — a plain object literal, never a Map needing .get() with a
 // default, never a switch with no default, never a .find() that can throw on a miss. An absent
@@ -75,8 +83,9 @@ const EVENT_SOUND = {
   sail: "ship-move", windmove: "ship-move", blownOut: "ship-move",
   // D-01/D-04: a crate changing hands, whether docking or trading
   dock: "store-ingredient", trade: "store-ingredient",
-  // D-01; D-04 (fleeing/dodging — the clash happened, you just left it)
-  battle: "battle-swords", battleflee: "battle-swords", dodge: "battle-swords",
+  // D-01; D-04 (fleeing/dodging — the clash happened, you just left it). NOT the battle's own
+  // start/end — see the `battle: null` entry below.
+  battleflee: "battle-swords", dodge: "battle-swords",
   // D-01 (fishing); D-03 (dropping anchor in a storm); D-21 (the anchor holding — same family)
   fish: "fishing", anchor: "fishing", anchorHold: "fishing",
   // D-04: running aground / shipwrecked both borrow storm
@@ -86,6 +95,11 @@ const EVENT_SOUND = {
   // D-06 — explicit silence, not merely absent from the table
   blocked: null, moored: null, turn: null, newround: null, tradewind: null, bakeoff: null,
   end: null, finish: null,
+  // 260801-7f4 — explicit silence, not an oversight. The `battle` event only fires once the whole
+  // fight has resolved (src/engine/index.js:581), which is exactly why the clash used to land at
+  // the end instead of the start. The clash moved to engage time — see playBattleEngage() and its
+  // two call sites in src/orchestrator.js (asyncBattle and watchBattle).
+  battle: null,
   // D-21 — explicit silence: an offer is not a deal; sidebet is already narration-suppressed
   parley: null, sidebet: null,
 };
@@ -264,8 +278,20 @@ function playWinScreen() {
   play(WIN_SOUND_PLACEHOLDER, { bus: masterGain });
 }
 
+// 260801-7f4 — the moment a fight is JOINED, not the `battle` event (which only exists once the
+// fight is already over, spoils moved and all — see the `battle: null` comment above). Called
+// directly from the orchestrator's own battle-opening seams: once on the host tier (asyncBattle,
+// after the powder guard, before the opening announcement) and once on the guest tier (watchBattle,
+// on the false->true edge of appState.spectatingBattle). A named moment cue, built the same way as
+// playWinScreen() — calls the private play() primitive with a fixed stem and the master bus, and
+// nothing else.
+function playBattleEngage() {
+  play(BATTLE_ENGAGE_SOUND, { bus: masterGain });
+}
+
 export {
   SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, initAudio, playFlip, isMuted, setMuted,
   EVENT_SOUND, soundForEvent, playForEvent, playWinScreen, fadeStorm,
   STORM_VOLUME, STORM_FADE_SEC, WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER,
+  BATTLE_ENGAGE_SOUND, playBattleEngage,
 };

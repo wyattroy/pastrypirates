@@ -24,7 +24,7 @@
 import {
   SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, isMuted, setMuted,
   EVENT_SOUND, soundForEvent, STORM_VOLUME, STORM_FADE_SEC,
-  WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER,
+  WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER, BATTLE_ENGAGE_SOUND,
 } from "../src/ui/audio.js";
 // EVENT_NARRATION import style matches scripts/narration_test.js:24-27 exactly — proof that
 // importing the narration surface headlessly (no DOM, no src/ui/flow.js or src/ui/panel.js)
@@ -136,6 +136,19 @@ for (const k of soundKeys) {
     checkTrue(`EVENT_SOUND.${k} ("${v}") is a member of SFX_FILES`, SFX_FILES.includes(v));
   }
 }
+
+/* ================= 260801-7f4: the clash moved to engage time — named assertions, not accidental =================
+   The generic loop directly above already passes on `EVENT_SOUND.battle === null` with no assertion
+   naming WHY — any explicit null satisfies its "explicit null" arm, silence included. That means
+   this behaviour change would pass green with the harness left unedited, which is exactly the
+   failure mode being closed here: a future edit that restores a stem to `battle` (re-creating the
+   double-clash this task exists to remove) would slip through silently too. These four checks name
+   the intent out loud instead of leaving it to fall out of a generic loop by accident. */
+
+check("EVENT_SOUND.battle is explicit null - the clash moved to engage time", EVENT_SOUND.battle, null);
+check("EVENT_SOUND.battleflee still maps to battle-swords", EVENT_SOUND.battleflee, "battle-swords");
+check("EVENT_SOUND.dodge still maps to battle-swords", EVENT_SOUND.dodge, "battle-swords");
+checkTrue("BATTLE_ENGAGE_SOUND is a member of SFX_FILES", SFX_FILES.includes(BATTLE_ENGAGE_SOUND));
 
 /* ================= soundForEvent(e): per-key no-throw dispatch, exercised with fabricated events ================= */
 // Mirrors scripts/narration_test.js's fabricated-event-per-key idiom for the object shapes.
