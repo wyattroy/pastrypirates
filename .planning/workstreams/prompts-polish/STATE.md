@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 18
-current_plan: 5
+current_plan: 6
 status: executing
-stopped_at: "18-04 complete (FIX-07 — empty hold is not a bribe: spoilChosen carried on the orchestrator's battle event, src/engine/index.js untouched). Next: 18-05, wave 4 (FIX-03 — shot clock starts when buttons become clickable)."
-last_updated: "2026-08-01T07:20:00.000Z"
+stopped_at: "18-05 complete (FIX-03/D-02 — the shot clock arms when the button row unhides, not at prompt-render; frozen 20s display during the reveal). Next: 18-06, wave 5 (button restyle, captain circles removed, FIX-09 chip treatment)."
+last_updated: "2026-08-01T09:20:00.000Z"
 last_activity: 2026-08-01
-last_activity_desc: 18-04 executed — spoilChosen added to the orchestrator's battle event only, three-state hasChoice/isBribe/isEmptyHoldFive derivation in src/ui/util.js, the bug-encoding 5-coin test assertion split into three labelled cases (FIX-07)
+last_activity_desc: 18-05 executed — ask() publishes a one-shot arm continuation instead of arming at prompt-render; panel()'s existing reveal gate (18-01) claims and fires it for local decisions, a new estimateRevealMs() defers the remote path by the actor's own prompt length; withShotClock is chained onto the arm so the 30s auto-skip resolver is provably still installed (proven with a recorded negative experiment); setClockUI() gains a frozen full-window pending display so the clock never ticks or blanks during the reveal
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 workstream: prompts-polish
 created: 2026-07-31
 ---
@@ -25,14 +25,14 @@ created: 2026-07-31
 
 **Status:** Executing Phase 18
 **Current Phase:** 18
-**Last Activity:** 2026-08-01 — 18-04 executed (FIX-07, empty-hold loser no longer reads the bribe framing)
-**Last Activity Description:** 18-04 executed — `src/orchestrator.js`'s battle event gained an orchestrator-tier-only `spoilChosen` boolean (set true ONLY inside the `canCoins&&hasIng` genuine-choice branch); `src/ui/util.js` replaced the coin-count-only bribe proxy with a three-state `hasChoice`/`isBribe`/`isEmptyHoldFive` derivation that preserves every field-less (engine/replay/simulator/fixture) event's rendering byte-for-byte; the give-up line was added to both the neutral/winner `spoilClause` chain and the separate loser-addressed composite chain; `scripts/narration_test.js`'s bug-encoding 5-coin assertion was split into three labelled cases (genuine-bribe, empty-hold, absent-field) plus loser-composite coverage. `src/engine/index.js` confirmed byte-identical to pre-plan HEAD; `npm test` 23/23.
+**Last Activity:** 2026-08-01 — 18-05 executed (FIX-03/D-02, the shot clock arms at button-reveal, not prompt-render)
+**Last Activity Description:** 18-05 executed — `src/state/index.js` gained 4 new `appState` fields (`clockPendingSeat`/`clockPendingArm`/`clockPendingLocal`/`clockPendingText`); `ask()` (`src/ui/util.js`) now publishes a one-shot continuation instead of arming the shot clock directly, with a synchronous no-panel belt for prompts that never render (pure flip decisions) and `withShotClock()` chained onto the SAME continuation's promise so the 30s auto-skip resolver is provably installed only after the real arm; `panel()` (`src/ui/panel.js`) claims and fires that continuation from 18-01's existing reveal-completion gate for a local decision, and from a new `estimateRevealMs(actorPromptText)`-sized `setTimeout` for a remote one (erring long, never short); `setClockUI()` gained a frozen full-window (20s) pending display for the reveal window, host and guest alike, reusing existing copy verbatim. Hard constraint 1 (the `withShotClock` ordering trap) proven with a recorded negative experiment, not just asserted. `npm test` 23/23; no browser verification possible this session (documented, flagged for 18-07).
 
 ## Progress
 
 **Phases Complete:** 0
-**Plans Complete:** 4 of 7
-**Current Plan:** 5 (18-05, wave 4 — D-02: shot clock starts when buttons become clickable, FIX-03) — blocked on wave 3 completion, which this plan closes out
+**Plans Complete:** 5 of 7
+**Current Plan:** 6 (18-06, wave 5 — button restyle, captain circles removed everywhere, FIX-09 chip treatment for D-03) — blocked on wave 4 completion, which this plan closes out
 
 ## Accumulated Context
 
@@ -51,6 +51,9 @@ created: 2026-07-31
 - 18-04: this plan deliberately DEVIATED from RESEARCH's `isBribe = spoilIng==null && spoilChosen===true` sketch — that formula flips EVERY field-less event to the give-up framing, which is a text change to already-shipped history. Used a three-state `hasChoice` fork instead: when the event carries no `spoilChosen` key at all (every engine/replay/simulator/fixture event), fall back to the pre-existing coin-count proxy byte-for-byte.
 - 18-04: `isBribe`'s `hasChoice` fork needed the `spoilN>=5` amount gate even when `spoilChosen:true` is present — a fabricated sub-5 + `spoilChosen:true` event is not a shape the real game produces (canCoins&&hasIng only fires when `lose.coins>=5`), but the plan's own behavior spec required "a 2-coin spoil renders the all-they-have framing regardless of spoilChosen," so the amount gate stays load-bearing in both forks, not just the no-choice fallback.
 - 18-04: `spoilChosen` is orchestrator-tier only (`src/orchestrator.js`) — deliberately never added to `src/engine/index.js`'s parallel simulator-only spoil branch (milestone constraint 1). That branch's same flaw is left for the gated determinism re-record batch (`docs/DETERMINISM-RERECORD-NEXT.md`) when the door is opened anyway.
+- 18-05: deviated from the plan's own action-text description of the arm continuation — the plan says the closure should call `armClock(seat)` directly, but that would leave TWO mentions of that name in `src/ui/util.js`, contradicting this task's own `grep -c 'armClock' src/ui/util.js === 1` acceptance criterion. The closure instead only marks itself claimed and returns the real seat; `armClock(seat)` is called exclusively from `src/ui/panel.js` (which the plan already required to import it) on both the local and remote defer paths. Functionally identical outcome, documented in `18-05-SUMMARY.md`'s Deviations section.
+- 18-05: `appState.clockPendingSeat` (the frozen-display trigger) is derived from `currentTurnSeat()`, a display-only approximation — the ACTUAL arm instead uses the real seat `ask()` captured by closure, since a battle sub-decision (side bet, defender flee) can ask a seat that isn't the current turn's owner. Using `currentTurnSeat()` for the real arm would have risked arming the wrong seat's clock.
+- 18-05: known cosmetic gap carried to 18-07 — the HOST's own screen (and other spectators) does not show the new frozen display during a REMOTE seat's reveal window, because `clockPendingSeat` is only set on whichever browser renders the real button row (the deciding guest's own screen, for a remote decision). Never shortens anyone's actual 30s window; logged as `.planning/WINDOWS.md` entry 8.
 
 ### Open Items Carried Forward
 
@@ -60,8 +63,9 @@ created: 2026-07-31
 - FIX-08's plan-level `<human-check>` (driving a solo game to end of voyage and reading the rendered `.victoryText` for both a plural-title and a singular-title winner) was declared OPTIONAL for 18-02 by this session's explicit instructions and was not performed. See `18-02-SUMMARY.md` coverage D4 for what automated verification substituted for it.
 - **Shared-worktree concurrency hazard (18-02):** this plan ran on the non-isolated main working tree (worktree-base-check reported `shouldDegrade: true`), and a concurrently-running coordinator session's own `git commit` swept this plan's already-staged Task 3 files (`src/ui/board.js`, `art-review/narration-core.js`, `art-review/narration-inventory.json`, the copy-shipped-vs-approved-gate.md ledger entry) into its own unrelated commit `ff27b12`. Content verified correct and complete at that commit; only the commit-message/authorship attribution is misleading. See `18-02-SUMMARY.md`'s "Issues Encountered" section for the full trace. This session (18-03) ran sequentially with no concurrent coordinator process and hit no equivalent hazard.
 - **18-03's award-stat visual check was NOT run.** The plan's `<human-check>` (a driven 320px-wide Chrome session confirming no award card splits and no narration line orphans a parenthetical) and the `getClientRects().length === 1` acceptance criterion for `.awardStat b` could not be performed — this session's `<environment>` block explicitly stated the MCP browser tab was measured unusable (0 rAF frames in 3s, 10x-clamped timers, viewport pinned at 950px) and instructed against attempting it. The CSS fix (`white-space: nowrap` on `.awardStat b`) is correct by inspection. Carry this into 18-07's phase-gate checkpoint alongside 18-01's already-logged FIX-16/FIX-10 driven-browser gaps.
+- **18-05's driven-browser checks were NOT run** — same environment restriction (browser verification explicitly disallowed this session, per `docs/DRIVING-THE-GAME.md` §8b). Both tasks' `<human-check>` items (sampling `shotClockSeat`/`shotClockForce` and `#shotClockNum`/`#scLabel` across the reveal window) are unverified by execution; substituted with a Node harness against the real, non-DOM `util.js` functions (proves the ordering mechanism, including a recorded negative experiment for the `withShotClock` trap) plus the full static/contract-check gate suite. Logged to `.planning/WINDOWS.md` entries 6-7 (unrun-verify) and 8 (the host/spectator display-gap deviation). All three carry into 18-07's checkpoint.
 
 ## Session Continuity
 
-**Stopped At:** 18-04 complete (FIX-07 — empty hold is not a bribe). Next: 18-05, wave 4 (FIX-03 — shot clock starts when buttons become clickable).
-**Resume File:** .planning/workstreams/prompts-polish/phases/18-prompts-polish/18-04-SUMMARY.md
+**Stopped At:** 18-05 complete (FIX-03/D-02 — shot clock arms at button-reveal, frozen display during the reveal). Next: 18-06, wave 5 (button restyle, captain circles removed, FIX-09 chip treatment).
+**Resume File:** .planning/workstreams/prompts-polish/phases/18-prompts-polish/18-05-SUMMARY.md

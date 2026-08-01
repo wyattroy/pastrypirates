@@ -37,7 +37,7 @@ are small and independent.
 
 **Origin**: Wyatt's 2026-07-31 punch list + the v1.2 Phase 17 playtest (screenshot), plus the
 2026-08-01 batch (FIX-16, FIX-17, FIX-21). Plain-language overview: [`../../V1.3-V1.4-PLAN.md`](../../V1.3-V1.4-PLAN.md) "Phase 1 — Prompts & Polish".
-**Plans**: 4/7 plans executed
+**Plans**: 5/7 plans executed
 
 Plans:
 **Wave 1**
@@ -55,7 +55,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 18-05-PLAN.md — wave 4 — D-02: the shot clock starts when the buttons become clickable, with a frozen clock during the reveal (FIX-03)
+- [x] 18-05-PLAN.md — wave 4 — D-02: the shot clock starts when the buttons become clickable, with a frozen clock during the reveal (FIX-03)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
