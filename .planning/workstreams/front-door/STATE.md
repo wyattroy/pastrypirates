@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
-current_phase: 22 (The Front Door) — pre-planning
-current_plan: N/A — CONTEXT.md done (11 decisions); planning still gated on UI-SPEC.md
-status: paused
-stopped_at: Phase 22 UI-SPEC approved
-last_updated: "2026-08-01T03:41:45.119Z"
-last_activity: 2026-07-31
-last_activity_desc: "`/gsd-plan-phase 22 --ws front-door` run. Three things happened. (1) **Roadmap repaired** — this file's ROADMAP.md listed Phase 22 in its summary but had no `### Phase 22:` detail section, so `roadmap.get-phase` returned `malformed_roadmap` and the phase read as not found. Detail section written from REQUIREMENTS.md + the todo notes + `V1.3-V1.4-PLAN.md` (commit `a8e7c53`). **The other three v1.3 workstream roadmaps have the same gap and will block identically.** (2) **CONTEXT.md gathered** — `/gsd-discuss-phase 22 --ws front-door` captured 11 decisions (D-01…D-11) across four areas: the naming moment, what the About page is, where the rules live, and the screenshot. Both previously-open questions are now answered — the welcome-screen name field is removed (D-01), and the About page gets deliberately different rules copy written for strangers (D-08). Two approval gates were created: D-09 (Wyatt signs off the About copy before ship) and D-11 (Wyatt picks the screenshot). (3) **Still gated on missing UI-SPEC** — `ui-plan-gate` returned `frontend: true, hasUiSpec: false, block: true`; `workflow.ui_safety_gate` is on. Wyatt chose to settle decisions and design before planning."
+current_phase: 22 (The Front Door) — planned, ready to execute
+current_plan: N/A — 5 plans in 3 waves; waves 1–2 autonomous, 22-04 and 22-05 gated on Wyatt (D-11, D-09)
+status: ready to execute
+stopped_at: Phase 22 planned
+last_updated: "2026-08-01T04:29:20.017Z"
+last_activity: 2026-08-01
+last_activity_desc: Phase 22 planning complete — 5 plans ready
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 workstream: front-door
@@ -23,27 +23,37 @@ created: 2026-07-31
 
 ## Current Position
 
-**Status:** Not started — owns Phase 22 of v1.3. Planning attempted 2026-07-31, stopped at two gates.
-**Current Phase:** 22 (The Front Door) — pre-planning
-**Last Activity:** 2026-07-31
-**Last Activity Description:** `/gsd-plan-phase 22 --ws front-door` run. Three things happened. (1) **Roadmap repaired** — this file's ROADMAP.md listed Phase 22 in its summary but had no `### Phase 22:` detail section, so `roadmap.get-phase` returned `malformed_roadmap` and the phase read as not found. Detail section written from REQUIREMENTS.md + the todo notes + `V1.3-V1.4-PLAN.md` (commit `a8e7c53`). **The other three v1.3 workstream roadmaps have the same gap and will block identically.** (2) **CONTEXT.md gathered** — `/gsd-discuss-phase 22 --ws front-door` captured 11 decisions (D-01…D-11) across four areas: the naming moment, what the About page is, where the rules live, and the screenshot. Both previously-open questions are now answered — the welcome-screen name field is removed (D-01), and the About page gets deliberately different rules copy written for strangers (D-08). Two approval gates were created: D-09 (Wyatt signs off the About copy before ship) and D-11 (Wyatt picks the screenshot). (3) **Still gated on missing UI-SPEC** — `ui-plan-gate` returned `frontend: true, hasUiSpec: false, block: true`; `workflow.ui_safety_gate` is on. Wyatt chose to settle decisions and design before planning.
+**Status:** Planned — owns Phase 22 of v1.3. 5 plans in 3 waves, ready to execute.
+**Current Phase:** 22 (The Front Door) — planned
+**Last Activity:** 2026-08-01 — Phase 22 planning complete
+**Last Activity Description:** `/gsd-plan-phase 22 --ws front-door` completed end to end. Research (HIGH confidence), pattern map, VALIDATION.md, spec-less edge probe, planner, and plan-checker all ran; plan-checker returned VERIFICATION PASSED with zero issues. Coverage gates: 4/4 requirements, 11/11 CONTEXT.md decisions. 5 plans in 3 waves — 22-01 (name modal) and 22-02 (about.html) autonomous in wave 1; 22-03 (About links + META-01 close-out) autonomous in wave 2; 22-04 (screenshot, gated on D-11) and 22-05 (copy sign-off, gated on D-09) marked `autonomous: false`.
 
 ## Progress
 
 **Phases Complete:** 0
-**Current Plan:** N/A — CONTEXT.md done (11 decisions); planning still gated on UI-SPEC.md
+**Current Plan:** N/A — 5 plans ready; waves 1–2 runnable unattended, 22-04/22-05 need Wyatt
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T03:41:45.114Z
+**Last session:** 2026-08-01T04:29:20Z
 
-**Stopped At:** Phase 22 UI-SPEC approved
+**Stopped At:** Phase 22 planned
 
 1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
-2. ~~`/gsd-ui-phase 22 --ws front-door`~~ — **done 2026-07-31**, UI-SPEC approved 6/6 dimensions; `ui-plan-gate` now unblocked
-3. `/gsd-plan-phase 22 --ws front-door` — plan
+2. ~~`/gsd-ui-phase 22 --ws front-door`~~ — **done 2026-07-31**, UI-SPEC approved 6/6 dimensions
+3. ~~`/gsd-plan-phase 22 --ws front-door`~~ — **done 2026-08-01**, 5 plans, checker passed
+4. `/gsd-execute-phase 22 --ws front-door` — execute
 
-**Resume File:** .planning/workstreams/front-door/phases/22-the-front-door/22-UI-SPEC.md
+**Resume File:** .planning/workstreams/front-door/phases/22-the-front-door/22-01-PLAN.md
+
+## Blocked on Wyatt
+
+- **D-11 — pick the screenshot.** Plan 22-04 drives a real game, captures mid-game candidates, and stops at a `checkpoint:decision`. Nothing after it can proceed until a frame is chosen.
+- **D-09 — sign off the About-page copy.** Plan 22-05 is the last wave; it swaps placeholder copy for approved copy and records it against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`.
+
+## Known-red before this phase started (NOT caused by Phase 22)
+
+- **`npm test` already exits 1 on this worktree.** `scripts/narration_audit_check.js` assertion 10 fails because `scripts/lib/audit_page_headless.mjs` reads `.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json`, which was archived to `.planning/milestones/v1.2-phases/`. 21 of 22 assertion groups pass. Every Phase 22 plan therefore gates on a named script subset (`no_undef_check`, `module_graph_check`, `ui_contract_check`, `state_contract_check`, `determinism_baseline --verify`), all confirmed exit-0 at plan time. Captured as a separate todo.
 
 ## Notes carried into planning
 

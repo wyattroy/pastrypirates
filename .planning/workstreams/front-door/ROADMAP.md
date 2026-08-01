@@ -26,10 +26,18 @@
 **Plans**: 5 plans in 3 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 22-01-PLAN.md — The naming moment: name modal after mode pick, one read chokepoint, durable last-used name (FIX-01) *(wave 1)*
 - [ ] 22-02-PLAN.md — `about.html`: head block, own stylesheet, hero, rules, credits, Ko-Fi embed, sitemap entry (ABOUT-01) *(wave 1)*
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 22-03-PLAN.md — Both About links on the homepage, and the META-01 head-block close-out (ABOUT-02, META-01) *(wave 2)*
 - [ ] 22-04-PLAN.md — Capture mid-game screenshot candidates, Wyatt picks, install the chosen frame (ABOUT-01, META-01) *(wave 2, has a blocking checkpoint)*
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 22-05-PLAN.md — Copy sign-off gate: Wyatt approves every player-visible string, recorded against the copy gate (ABOUT-01) *(wave 3, has a blocking checkpoint)*
 
 **UI hint**: yes
