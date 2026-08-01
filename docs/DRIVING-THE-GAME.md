@@ -36,9 +36,14 @@ For a two-seat multiplayer test use a separate Chrome profile or an incognito wi
 
 ## 3. Start a solo game
 
+As of Phase 22 (FIX-01), the captain name is confirmed in a modal that opens AFTER you click a mode
+card, not before — click the card first, then set the modal's input. Dismissing that modal (✕,
+Escape, or a click outside the card) confirms the name shown rather than cancelling.
+
 ```js
-document.getElementById('pname').value = 'Wyatt';
 document.getElementById('choiceSolo').click();
+document.getElementById('nameModalInput').value = 'Wyatt';
+document.getElementById('btnNameConfirm').click();
 ```
 
 Hosting instead: `document.getElementById('choiceHost').click()` creates a real Firebase room on the
@@ -184,11 +189,12 @@ localStorage.setItem('pp_id', 'claude-guest-' + Math.floor(Math.random()*1e6));
 location.reload();
 ```
 
-Then join:
+Then join (the name modal opens on the `choiceJoin` click, same as solo — see §3):
 
 ```js
-document.getElementById('pname').value = 'Claude';
 document.getElementById('choiceJoin').click();
+document.getElementById('nameModalInput').value = 'Claude';
+document.getElementById('btnNameConfirm').click();
 await new Promise(r => setTimeout(r, 600));
 document.getElementById('joinCode').value = 'ABCD';       // the host's code
 document.getElementById('joinName').value = 'Claude';

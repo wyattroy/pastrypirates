@@ -1385,6 +1385,8 @@ export function preloadAssets(){
 // a blob (via the existing clearSession()/clearSoloState()) whenever its stamp doesn't match,
 // treating an unstamped pre-refactor blob or a stale mismatched one as "no resume" (D-01/D-02).
 // pp_id/pp_timerOff are structurally excluded from this mechanism (D-03) — never versioned/cleared.
+// pp_lastName joins that exclusion in FIX-01 (Phase 22): it carries a display name, not resumable
+// game state, so it is never cleared by leaveGame() either — that is precisely the point, per D-04.
 export const SESSION_SCHEMA_V=1;
 export const SOLO_SCHEMA_V=1;
 export function getMyId(){
@@ -1392,6 +1394,17 @@ export function getMyId(){
   if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}
   return id;
 }
+// FIX-01/D-04: the durable "last-used captain name," pre-filling the name modal across separate
+// games. Deliberately NOT pp_sess/pp_solo — both are wiped by leaveGame() (clearSession()/
+// clearSoloState()), which fires on the two commonest ways a session ends (Play again, Leave game).
+// Follows getMyId()'s exact try/catch-swallow shape: silent failure, no logging, plain string (not
+// a JSON blob), never stamped with SESSION_SCHEMA_V/SOLO_SCHEMA_V and never cleared — same
+// structural exclusion as pp_id, see the comment block above.
+export function getLastName(){
+  let n=null;try{n=localStorage.getItem("pp_lastName");}catch(e){}
+  return n||"";
+}
+export function saveLastName(v){try{localStorage.setItem("pp_lastName",v);}catch(e){}}
 export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
 export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
 export function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}

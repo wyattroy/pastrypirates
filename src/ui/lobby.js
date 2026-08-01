@@ -35,10 +35,10 @@
 
 import { appState } from "../state/index.js";
 import {
-  HEXCOL, DEFAULT_NAMES, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG, HOURGLASS_IMG,
-  iconImg, emojify,
+  HEXCOL, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG, HOURGLASS_IMG,
+  iconImg, emojify, unusedDefaultName,
 } from "../shared/index.js";
-import { pname, pn } from "./util.js";
+import { pname, pn, getLastName, saveLastName } from "./util.js";
 // F2/UI-06 (2026-07-29): escHtml's only use here was the duplicate seat-name rendering that this
 // task removed. The remaining name rendering escapes through pn() -> pname() -> escHtml, so the
 // escaping is preserved and this import is now dead — dropped rather than left (D-33/D-34/D-40).
@@ -89,11 +89,45 @@ export function openKofi(){
 export function showStep(id){
   ["stepChoose","stepHost","stepJoin","stepPassPlay"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
 }
+// FIX-01: the single read chokepoint every caller goes through. Was a direct read of the
+// welcome-screen input's value — that field is gone (D-01); the persisted last-used name
+// (pp_lastName, via getLastName()) is now the source of truth, confirmed/updated by the name
+// modal's confirmName().
 export function requireName(){
-  const v=($("pname").value||"").trim();
-  // solo/host player always sits at seat 0, so a blank name defaults to seat 0's captain ("Davy
-  // Scones") — deterministic, and can't clash with the bots that fill seats 1-3.
-  return v?v.slice(0,40):DEFAULT_NAMES[0];
+  const v=(getLastName()||"").trim();
+  // solo/host player always sits at seat 0, so an unset/blank persisted name defaults to seat 0's
+  // captain via unusedDefaultName(null,0) rather than DEFAULT_NAMES[0] directly, so the
+  // collision-safe helper stays the single source of default names — deterministic, and can't
+  // clash with the bots that fill seats 1-3.
+  return v?v.slice(0,40):unusedDefaultName(null,0);
+}
+
+/* ================= name modal (FIX-01) ================= */
+// D-03: the same modal appears before all four mode cards. Each caller in wireWelcome() opens it
+// with a continuation (`next`) carrying that mode's remaining body; confirmName() resolves the
+// name, persists it, and invokes the stored continuation with the resolved name as its argument.
+let pendingNameAction=null;
+export function openNameModal(next){
+  pendingNameAction=next;
+  $("nameModalInput").value=requireName();
+  $("nameModal").style.display="flex";
+  $("nameModalInput").focus();
+  $("nameModalInput").select();
+}
+export function confirmName(){
+  // guard: a second invocation with no pending action (e.g. a stray dismiss handler firing twice)
+  // is a no-op, not a throw.
+  if(!pendingNameAction)return;
+  const raw=($("nameModalInput").value||"").trim().slice(0,40);
+  const name=raw||unusedDefaultName(null,0);
+  // RAW trimmed string, NOT HTML-escaped here — escaping already happens once at render time
+  // inside pname() (./util.js), which reads appState.roster[i].name. A second escape at this write
+  // site would double-escape legitimate names containing "&" or "<".
+  saveLastName(name);
+  $("nameModal").style.display="none";
+  const next=pendingNameAction;
+  pendingNameAction=null;
+  next(name);
 }
 
 /* ================= lobby / room ================= */

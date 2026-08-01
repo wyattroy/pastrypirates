@@ -62,7 +62,7 @@ import {
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS,
 } from "./util.js";
-import { passGate, requireName, showStep } from "./lobby.js";
+import { passGate, requireName, showStep, openNameModal, confirmName } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
 
 const $=id=>document.getElementById(id);
@@ -1685,18 +1685,28 @@ export async function asyncBakeoff(A,B){
 // module_graph_check.js's "no import cycle" assertion forbids that. `showStep` stays in
 // lobby.js and is imported alongside the two names already pulled from there.
 export function wireWelcome(){
-  $("choiceSolo").onclick=()=>{if(!requireName())return;startSinglePlayer();};
+  // FIX-01/D-01/D-03: every mode card now opens the name modal first; each continuation is that
+  // mode's remaining body, run by confirmName() once the player confirms (or dismisses — D-02
+  // makes dismissal confirm too, wired in wireNameModal()). The two dead pre-modal name guards
+  // that used to gate Solo/Host are gone — that read never returned falsy, so both were
+  // unreachable branches even before this change.
+  $("choiceSolo").onclick=()=>{openNameModal(()=>{startSinglePlayer();});};
   // UI-05: "Host a Crew" now creates the room outright instead of showing #stepHost, whose entire
   // content was one "Create the game" button — a screen that asked the player to confirm the thing
   // they had just clicked. #stepHost's markup is kept (with a note) so nothing else that references
   // it breaks; it is simply no longer reachable from here.
   //
   // createRoom() is main-tier (src/orchestrator.js), which src/ui/ may never import — hence the
-  // handlers seam, the same route 13-01 added for onTogglePause. The guards are unchanged and stay
-  // on THIS side, so a disabled card or a missing name still short-circuits before any room exists.
-  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;if(!requireName())return;netHandlers().onCreateRoom();};
-  $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;$("joinName").value=$("pname").value;showStep("stepJoin");};
-  $("choicePassPlay").onclick=()=>{$("ppName0").value=($("pname").value||"").trim();showStep("stepPassPlay");};
+  // handlers seam, the same route 13-01 added for onTogglePause. The disabled-card guard stays on
+  // THIS side, before the modal opens, so a disabled card still short-circuits before any room
+  // exists.
+  $("choiceHost").onclick=()=>{if($("choiceHost").classList.contains("disabled"))return;openNameModal(()=>{netHandlers().onCreateRoom();});};
+  $("choiceJoin").onclick=()=>{if($("choiceJoin").classList.contains("disabled"))return;openNameModal(name=>{$("joinName").value=name;showStep("stepJoin");});};
+  // D-03 decision (22-01-PLAN.md): #ppName0 stays visible on stepPassPlay, pre-filled and editable
+  // — Pass & Play still has to name seats 1-3, so consistency (same modal, same position in the
+  // flow) was chosen over saving a click.
+  $("choicePassPlay").onclick=()=>{openNameModal(name=>{$("ppName0").value=name;showStep("stepPassPlay");});};
+  $("btnNameConfirm").onclick=()=>{confirmName();};
   $("btnStartPassPlay").onclick=()=>{
     const names=[0,1,2,3].map(i=>($("ppName"+i).value||"").trim().slice(0,40)).filter(n=>n);
     // pass & play always needs at least two humans sharing the device — nobody typing

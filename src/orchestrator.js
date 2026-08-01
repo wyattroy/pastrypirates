@@ -69,7 +69,7 @@
 import { appState } from "./state/index.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import {
-  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
+  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
 import {
@@ -102,6 +102,7 @@ import {
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
+  requireName, getLastName, // FIX-01: the one read chokepoint (createRoom) and the raw persisted read (Feedback)
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
@@ -1110,7 +1111,7 @@ const NO_CONNECTION_MSG="Can't reach the Sugar Seas — check yer connection, wi
 export async function createRoom(){
   // @copy misc.mperror.createnoconnection
   if(!appState.db){alert(NO_CONNECTION_MSG);return;}
-  const name=($("pname").value||"").trim().slice(0,40)||DEFAULT_NAMES[0];
+  const name=requireName(); // FIX-01: the removed welcome-screen field's read, repointed at the chokepoint
   appState.numSeats=4; // online hosted games are always 4 seats — bots fill any unfilled slot
   const code=genCode();
   const seats={0:{name,id:appState.myId,bot:false}};
@@ -1334,7 +1335,10 @@ export function wireLobby(){
   $("btnSendFeedback").onclick=()=>{
     const text=($("feedbackText").value||"").trim();
     if(!text)return;
-    if(appState.db)netSetFeedback(appState.db,Date.now(),{text,room:appState.room||null,name:($("pname").value||"").trim()||null,t:Date.now()},e=>console.error("feedback write failed",e));
+    // FIX-01: getLastName() (raw persisted read), NOT requireName() — a player who has never named
+    // themself must keep writing name:null to this record. requireName() would substitute a
+    // default captain name and silently change what gets attributed to Firebase.
+    if(appState.db)netSetFeedback(appState.db,Date.now(),{text,room:appState.room||null,name:getLastName().trim()||null,t:Date.now()},e=>console.error("feedback write failed",e));
     $("feedbackText").value="";
     $("feedbackModal").style.display="none";
   };

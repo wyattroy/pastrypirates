@@ -813,8 +813,6 @@
 
     <div id="stepChoose" class="modalStep">
       <div class="modalByline">Ye came to the sunny shores of Tortuga to start a bakery — but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
-      <label class="nameLabel">Yer captain name
-        <input type="text" id="pname" maxlength="40" placeholder="e.g. Davy Scones"></label>
       <div class="choiceRow">
         <button class="choiceCard solo" id="choiceSolo" type="button">
           <div class="ccIcon"><img src="assets/icons/anchor.png" alt=""></div><div class="ccTitle">Play Solo</div><div class="ccSub">vs. bot captains</div>
@@ -869,6 +867,23 @@
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#27c78d"></div><input type="text" id="ppName2" maxlength="40" placeholder="Player 3 (or leave blank for a bot)"></div>
       <div class="ppNameRow"><div class="ppSeatDot" style="background:#f5a623"></div><input type="text" id="ppName3" maxlength="40" placeholder="Player 4 (or leave blank for a bot)"></div>
       <button class="primary big" id="btnStartPassPlay" type="button"><img class="narrIcon" src="assets/icons/anchor.png" alt=""> Start the voyage</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== NAME MODAL (FIX-01) ===================== -->
+<!-- D-01/D-02/D-03: the ONLY place a player names themself, opened after picking a mode (not
+     before). Dismissing it — the X, Escape, or a backdrop click, all wired in wireNameModal()
+     (src/ui/lobby.js) — counts as CONFIRMING the name shown, same as the button. This is the
+     first modal in the codebase that is both dismissible and gates a flow; it is deliberately NOT
+     added to src/orchestrator.js's close-only .modalX injection array. -->
+<div id="nameModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <div class="modalStep">
+      <h3>What do they call ye, captain?</h3>
+      <label class="nameLabel">Yer captain name
+        <input type="text" id="nameModalInput" maxlength="40" placeholder="e.g. Davy Scones"></label>
+      <button class="primary big" id="btnNameConfirm" type="button">Aye, that's me name</button>
     </div>
   </div>
 </div>
