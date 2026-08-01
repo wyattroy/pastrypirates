@@ -324,7 +324,9 @@ export const EVENT_NARRATION={
     return {cls:"roundhdr",txt:`— Round ${e.round}: wind is blowin' ${D} —`};
   },
   // D-25/D-37 (Wyatt-approved 2026-07-29): wind always BLOWS a player — never carries/sweeps/moves.
-  windmove:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — yer blown by the storm`:`${pn(e.p)} is blown by the storm`,caps:[[e.p,"🌬️ drifts"]]}),
+  // FIX-04 (Wyatt, 2026-07-31): the narration line itself is gone — both viewer variants together,
+  // per D-07/NARR-05. The Captains-box capsule stays; it's the only remaining marker of the drift.
+  windmove:(e,at,cellPx,viewerSeat)=>({caps:[[e.p,"🌬️ drifts"]]}),
   blownOut:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`⛵ ${pn(e.p)} — a gale blows ye off the dock!`:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
   sail:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ye pay 1🌕 and sail`:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
   // D-07/NARR-05/D-10 (Wyatt-approved 2026-07-29): the tracer line for viewer-aware narration. The

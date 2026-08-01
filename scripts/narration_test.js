@@ -487,11 +487,13 @@ for (const key of KEYS) {
    (D-09) is pinned identical with and without a viewer seat — it never gains a branch. */
 {
   const COVERED_SINGLE_SUBJECT = [
-    "windmove", "blownOut", "sail", "anchor", "moored", "blocked", "anchorHold", "tradewind",
+    "blownOut", "sail", "anchor", "moored", "blocked", "anchorHold", "tradewind",
     "aground", "shipwrecked", "dock", "sidebet", "fish", "finish", "shotclock", "shotclockskip",
   ];
-  check("COVERED_SINGLE_SUBJECT has exactly 16 keys (the plan's own covered-key count)", COVERED_SINGLE_SUBJECT.length, 16);
-  const SILENT_KEYS = new Set(["turn", "end"]); // documented as producing no captain's-log line (or none in this fabricated shape)
+  check("COVERED_SINGLE_SUBJECT has exactly 15 keys (FIX-04 moved windmove to SILENT_KEYS, dropping this from 16)", COVERED_SINGLE_SUBJECT.length, 15);
+  // FIX-04: windmove joins turn/end as silent — describeFor() returns null for it on every viewer,
+  // per D-07/NARR-05 (both addressed and neutral variants removed together).
+  const SILENT_KEYS = new Set(["turn", "end", "windmove"]); // documented as producing no captain's-log line (or none in this fabricated shape)
 
   for (const key of KEYS) {
     const fab = FAB[key];
@@ -513,6 +515,18 @@ for (const key of KEYS) {
     checkTrue(`${key}: addressed rendering differs from the viewer-neutral rendering`, addressedTxt !== neutralTxt);
     checkTrue(`${key}: addressed rendering is non-empty with no JS undefined token`, !!addressedTxt && !/undefined/.test(addressedTxt));
     checkTrue(`${key}: viewer-neutral rendering is non-empty with no JS undefined token`, !!neutralTxt && !/undefined/.test(neutralTxt));
+  }
+
+  // FIX-04: the windmove builder is silenced (no txt), but the Captains-box capsule survives, and
+  // describeFor() returns null for BOTH the neutral and the addressed viewer — the addressed variant
+  // is gone too, not just the third-person one (D-07/NARR-05 requires both together).
+  {
+    const windmoveFab = FAB.windmove;
+    const raw = EVENT_NARRATION.windmove(windmoveFab, at);
+    checkTrue("windmove: the builder produces no narration text", !raw.txt);
+    check("windmove: the builder's caps array has exactly one entry", (raw.caps || []).length, 1);
+    checkTrue("windmove: describeFor(e, NEUTRAL_VIEWER) is null", describeFor(windmoveFab, NEUTRAL_VIEWER) === null);
+    checkTrue("windmove: describeFor(e, addressedSeat) is null too — both variants gone together", describeFor(windmoveFab, windmoveFab.p) === null);
   }
 
   // D-09: newround gets NO viewer branch at all — identical with and without a viewer seat
