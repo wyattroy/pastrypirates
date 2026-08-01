@@ -5,6 +5,70 @@ pushed.**
 
 ---
 
+## FINAL STATUS — all six autonomous plans are done
+
+**18-01 through 18-06 complete. 18-07 is yours** — it's the phase gate and holds the blocking human
+checkpoint, so I stopped there deliberately rather than running out of steam.
+
+| Check | Result |
+|---|---|
+| Plans complete | 6 of 7 (18-07 reserved for you) |
+| All 10 FIX items | Implemented |
+| `npm test` | **green, exit 0** |
+| `src/engine/index.js` | **byte-identical** to before Phase 18 — no determinism re-record triggered |
+| `src/ui/board.js` | one line only (FIX-08), as agreed |
+| Working tree | clean |
+| Open broken windows | 6 — all browser-verification gaps, all yours (see below) |
+
+### What each plan shipped
+
+- **18-01** — buttons wait for the typewriter; the fading line stays where it sat; the box re-measures on resize *(FIX-03/10/16)*
+- **18-02** — win banner only prints "a" when the recipe name takes one; no recipe renamed *(FIX-08)*
+- **18-03** — storm-drift line gone; **7** unwrapped coin sites fixed (research found 4 your notes missed) + a permanent anchored gate so an 8th can't sneak in *(FIX-04/21)*
+- **18-04** — an empty hold is no longer described as a bribe; fixed in the orchestrator so the engine stays untouched *(FIX-07)*
+- **18-05** — the shot clock now starts when the buttons become clickable, with a frozen clock during the reveal *(D-02)*
+- **18-06** — primary buttons restyled; captain circles gone everywhere; **both** chip treatments built and toggleable *(FIX-06/09/17)*
+
+### Three things the executors caught that the plans got wrong
+
+Worth knowing, because they're the kind of thing that silently ships broken:
+
+1. **18-04** found `isBribe` was missing the `spoilN>=5` amount gate its own spec required — a 2-coin
+   spoil would have rendered the wrong framing. Self-caught and fixed before committing.
+2. **18-05** found a contradiction *inside its own plan*: the action text said to call `armClock(seat)`
+   in the closure, but the acceptance criterion demanded `grep -c 'armClock' == 1`. Both couldn't be
+   true. It resolved it and documented the deviation.
+3. **18-05** also caught that arming by `currentTurnSeat()` would be a real regression — a battle
+   sub-decision (side bet, defender flee) can ask a seat that isn't the turn owner. The plan didn't
+   flag it.
+
+It also **proved** the `withShotClock` trap rather than asserting it: temporarily reverted the fix,
+confirmed `shotClockForce` stays `null` forever after the arm (which would hang the table on a
+non-responding seat), then restored and re-verified green.
+
+### FIX-06: the count is 10, not 12
+
+Confirmed by enumeration — **9 static `class="primary"` sites + 1 dynamic**. Your roadmap's success
+criterion 8 says 12. It's one CSS rule either way, so no work changed, but **criterion 8 should be
+corrected to 10 or verification will fail on a technicality.** Say the word and I'll fix it.
+
+### The 6 open items — all yours, all browser-dependent
+
+None of these are blocked by code; they're blocked by needing a real browser I couldn't get.
+
+| # | What |
+|---|---|
+| 3 | FIX-16 ghost first-frame rect |
+| 4 | FIX-10 `.apBtn` containment at 320/375/390 + rotation |
+| 6, 7 | 18-05's clock sampling on host and guest |
+| 8 | A **real** minor display gap 18-05 found: during a *remote* seat's reveal, your screen shows the old idle dash instead of the frozen clock. Cosmetic only — it never shortens anyone's window — and flagged rather than guessed at |
+| 9 | The six FIX-09 renders (treatments A/B × 320/375/390) for your D-03 choice |
+
+**Nothing was faked.** Every executor was told not to claim a browser check it couldn't run, and none
+did.
+
+---
+
 ## Read this first — three things need you
 
 ### 1. Other sessions were running all night, and one collided with me
