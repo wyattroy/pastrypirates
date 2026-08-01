@@ -130,15 +130,30 @@ export function confirmName(){
   next(name);
 }
 
-// D-02: this modal's three dismissal routes (the ✕, Escape, backdrop click) all CONFIRM the name
-// currently shown rather than cancel — the opposite of the six close-only .modalX modals
-// src/orchestrator.js's wireLobby() injection loop wires (howToPlayModal, creditsModal, logModal,
-// feedbackModal, recipeModal, kofiModal), all of whose handlers only ever hide the overlay. This
-// modal is deliberately left OUT of that array; it gets its own wiring here instead, because "just
-// close" would silently strand a player mid-mode-pick with no captain name resolved.
+// P10 — D-02 REVERSED by Wyatt, 2026-08-01: "the x close button doesn't take you back to home, it
+// starts the game onwards."
+//
+// D-02 originally made all three dismissal routes (✕, Escape, backdrop) CONFIRM the shown name,
+// reasoning that "just close" would strand a player mid-mode-pick with no captain resolved. That
+// reasoning holds against a bare close — but the answer is not to proceed. It is to CANCEL back to
+// the home screen, which resolves the stranding just as completely (no half-entered state survives)
+// while doing what a ✕ universally means. A close control must never advance.
+//
+// All three routes are changed together, deliberately: D-02 made them identical on purpose, and
+// leaving ✕ cancelling while Escape and the backdrop still confirmed would be worse than either
+// rule applied consistently.
 //
 // There is no Escape handling anywhere else in this codebase (RESEARCH.md, confirmed at plan
 // time) — the document-level keydown listener below is new machinery, not reuse.
+// P10: dismissing the name modal returns to the mode-choice screen instead of proceeding. Hides the
+// overlay first so showHome() paints over a closed modal, and drops the pending continuation so no
+// half-started mode is left armed behind it.
+function cancelName(){
+  const overlay=$("nameModal");
+  if(overlay)overlay.style.display="none";
+  pendingNameAction=null;
+  showHome();
+}
 let nameModalWired=false;
 export function wireNameModal(){
   if(nameModalWired)return; // idempotent: a second call adds no second button, no duplicate listener
@@ -150,15 +165,15 @@ export function wireNameModal(){
     card.style.position="relative";
     const x=document.createElement("button");
     x.className="modalX";x.type="button";x.innerHTML=iconImg(CLOSE_X_IMG);x.setAttribute("aria-label","Close");
-    x.onclick=()=>{confirmName();};
+    x.onclick=()=>{cancelName();};
     card.insertBefore(x,card.firstChild);
   }
   // backdrop click: only when the click lands on the overlay itself, not a click that bubbles up
   // from inside the card.
-  overlay.addEventListener("click",e=>{if(e.target===overlay)confirmName();});
+  overlay.addEventListener("click",e=>{if(e.target===overlay)cancelName();});
   // Escape: only while this overlay is the one currently visible, so Escape pressed elsewhere
   // (e.g. inside another modal) does nothing here.
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&overlay.style.display!=="none")confirmName();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&overlay.style.display!=="none")cancelName();});
 }
 
 /* ================= lobby / room ================= */

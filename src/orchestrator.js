@@ -1311,7 +1311,18 @@ export function beginGame(cfg,seed){
   // there and a player who switched the timer off last game got it back on every new game. Read
   // unconditionally, in every mode, before that branch — guarded by !appState.replaying so a
   // reload-replay keeps whatever the live game already had, exactly like the dlog reset above.
-  if(!appState.replaying){
+  // P8 (Wyatt, 2026-08-01: "i turned the timer off, refreshed the page, and the timer was turned
+  // on"). D-19 above fixed the fresh-game case; a RELOAD still lost it, because a solo/pass-and-play
+  // reload resumes through replay, `appState.replaying` is true, and this read was skipped — so
+  // appState.timerOff fell back to its `false` default in src/state/index.js.
+  //
+  // pp_timerOff is a PER-DEVICE preference, not game state (see src/ui/util.js's note that it is
+  // structurally excluded from the versioned-blob mechanism, and never cleared) — confirmed by
+  // Wyatt 2026-08-01: "per-device in local storage". So on replay it should still be honoured.
+  // The !replaying guard is kept ONLY for networked games, where the room's shared flag is the
+  // authority and watchTimer() delivers it; overriding that from one device's localStorage mid-
+  // replay is what the original guard was protecting against.
+  if(!appState.replaying||!(appState.db&&appState.room)){
     try{appState.timerOff=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
   }
   // host seeds the shared flag from its own last choice so the preference carries across games

@@ -57,10 +57,11 @@
   @keyframes bootSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
   @media (prefers-reduced-motion: reduce) { #bootLoader .bootShip, #bootLoader .bootBarFill { animation: none; } }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "controls" "narration" "stats" "captains" "chat"; }
+    grid-template-areas: "board" "controls" "narration" "stats" "captains" "mute" "chat"; }
   #left { grid-area: board; min-width: 0; }
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
     container-type: inline-size; }
+  #btnMute { grid-area: mute; justify-self: start; }
   #actionPanel { grid-area: narration; }
   /* container for the chip-row query below — the captains box responds to ITS OWN width,
      not the viewport's, so the layout switches wherever the box is actually too narrow. */
@@ -80,7 +81,7 @@
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
      5 ingredient chips, which is a function of the computed board size, not raw viewport width. */
   #game.layoutWide #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
-      grid-template-areas: "board captains" "board controls" "board narration" "board chat" "board stats";
+      grid-template-areas: "board captains" "board controls" "board mute" "board narration" "board chat" "board stats";
       width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto;
       align-items: start; }
   #game.layoutWide #boardwrap { max-width: none !important; width: 100%; }
@@ -136,8 +137,14 @@
      18px bottom is deliberate breathing room at the end of the page, not a rhythm step. */
   #footerRow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; align-items: flex-start;
     padding: 0 14px 18px; }
+  /* P12 (Wyatt, 2026-08-01): every button in this row must be the SAME height. They already shared
+     padding and font-size, but each one leads with a different emoji and emoji glyph boxes are not
+     uniform — 🍪 is taller than 📖/🎗️/📜, so "Buy me a cookie" stood proud of its neighbours.
+     inline-flex + a fixed line-height makes the box height depend on the declared line-height
+     rather than on whichever glyph happens to be inside it. */
   .footerBtn { font-family: inherit; font-size: 13px; padding: 6px 13px; border-radius: 7px; cursor: pointer;
-    text-decoration: none; display: inline-block; border: 1.5px solid var(--teal); background: #fff;
+    text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+    line-height: 20px; border: 1.5px solid var(--teal); background: #fff;
     color: var(--ink); }
   .footerHow, .footerCredits, .footerLog { border: 1.5px solid #4a7fa6; background: #eaf2f8; color: #355e7e; }
   .footerHow:hover, .footerCredits:hover, .footerLog:hover { background: #dcebf5; }
@@ -1026,7 +1033,7 @@
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">🎗️ Credits</div>
     <div class="modalByline" style="text-align:left">
-      <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, and who later wrote every sound effect ye hear, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
+      <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, and who later wrote every sound effect you hear, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
     </div>
     <!-- KOFI-01: after the credits text, per the requirement. A button onto the SAME #kofiModal the
          footer opens — one embedded panel, two doors — so neither route leaves the game. -->
@@ -1151,7 +1158,6 @@
            Wave 5's job and needs Wyatt's art pipeline; this ships behaviour complete now with no
            broken image and no borrowed icon (horn.png already carries the 📯 meaning). Visible
            content set every tick by setClockUI(); click bound once in wireLobby(). -->
-      <button id="btnMute" type="button" style="display:none">🔊</button>
       <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
     <div id="actionPanel" style="display:none"><div id="apGrid"><div id="apGridInner"></div></div></div>
@@ -1159,6 +1165,12 @@
       <h3>Captains</h3>
       <div id="players"></div>
     </div>
+    <!-- P6 (Wyatt, 2026-08-01: "on narrow screens the mute button can go off-screen. fix: on narrow
+         screens, put mute button below captain's box"). Moved OUT of #controlsRow to be a direct
+         #layout child so the page grid can place it: below the captains box in the stacked layout,
+         and on its own row under the controls in the wide/sidebar layout. It cannot sit inside the
+         controls flex row AND be grid-placed elsewhere — one element, one home. -->
+    <button id="btnMute" type="button" style="display:none">🔊</button>
     <div class="panel" id="statsWrap" style="display:none">
       <h3>End of voyage</h3>
       <div id="statsPanel"></div>
