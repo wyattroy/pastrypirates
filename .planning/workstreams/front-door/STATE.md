@@ -1,4 +1,20 @@
 ---
+gsd_state_version: 1.0
+milestone: v1.3
+milestone_name: milestone
+current_phase: 22 (The Front Door) — pre-planning
+current_plan: N/A — CONTEXT.md done (11 decisions); planning still gated on UI-SPEC.md
+status: paused
+stopped_at: Phase 22 context gathered
+last_updated: "2026-08-01T02:46:24.010Z"
+last_activity: 2026-07-31
+last_activity_desc: "`/gsd-plan-phase 22 --ws front-door` run. Three things happened. (1) **Roadmap repaired** — this file's ROADMAP.md listed Phase 22 in its summary but had no `### Phase 22:` detail section, so `roadmap.get-phase` returned `malformed_roadmap` and the phase read as not found. Detail section written from REQUIREMENTS.md + the todo notes + `V1.3-V1.4-PLAN.md` (commit `a8e7c53`). **The other three v1.3 workstream roadmaps have the same gap and will block identically.** (2) **CONTEXT.md gathered** — `/gsd-discuss-phase 22 --ws front-door` captured 11 decisions (D-01…D-11) across four areas: the naming moment, what the About page is, where the rules live, and the screenshot. Both previously-open questions are now answered — the welcome-screen name field is removed (D-01), and the About page gets deliberately different rules copy written for strangers (D-08). Two approval gates were created: D-09 (Wyatt signs off the About copy before ship) and D-11 (Wyatt picks the screenshot). (3) **Still gated on missing UI-SPEC** — `ui-plan-gate` returned `frontend: true, hasUiSpec: false, block: true`; `workflow.ui_safety_gate` is on. Wyatt chose to settle decisions and design before planning."
+progress:
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 workstream: front-door
 created: 2026-07-31
 ---
@@ -10,21 +26,24 @@ created: 2026-07-31
 **Status:** Not started — owns Phase 22 of v1.3. Planning attempted 2026-07-31, stopped at two gates.
 **Current Phase:** 22 (The Front Door) — pre-planning
 **Last Activity:** 2026-07-31
-**Last Activity Description:** `/gsd-plan-phase 22 --ws front-door` run. Three things happened. (1) **Roadmap repaired** — this file's ROADMAP.md listed Phase 22 in its summary but had no `### Phase 22:` detail section, so `roadmap.get-phase` returned `malformed_roadmap` and the phase read as not found. Detail section written from REQUIREMENTS.md + the todo notes + `V1.3-V1.4-PLAN.md` (commit `a8e7c53`). **The other three v1.3 workstream roadmaps have the same gap and will block identically.** (2) **Gated on missing CONTEXT.md** — two open decisions are Wyatt's: whether the welcome-screen name field is removed once the modal exists, and whether the About page shares the rules with the How-To-Play modal or copies them deliberately. (3) **Gated on missing UI-SPEC** — `ui-plan-gate` returned `frontend: true, hasUiSpec: false, block: true`; `workflow.ui_safety_gate` is on. Wyatt chose to settle decisions and design before planning.
+**Last Activity Description:** `/gsd-plan-phase 22 --ws front-door` run. Three things happened. (1) **Roadmap repaired** — this file's ROADMAP.md listed Phase 22 in its summary but had no `### Phase 22:` detail section, so `roadmap.get-phase` returned `malformed_roadmap` and the phase read as not found. Detail section written from REQUIREMENTS.md + the todo notes + `V1.3-V1.4-PLAN.md` (commit `a8e7c53`). **The other three v1.3 workstream roadmaps have the same gap and will block identically.** (2) **CONTEXT.md gathered** — `/gsd-discuss-phase 22 --ws front-door` captured 11 decisions (D-01…D-11) across four areas: the naming moment, what the About page is, where the rules live, and the screenshot. Both previously-open questions are now answered — the welcome-screen name field is removed (D-01), and the About page gets deliberately different rules copy written for strangers (D-08). Two approval gates were created: D-09 (Wyatt signs off the About copy before ship) and D-11 (Wyatt picks the screenshot). (3) **Still gated on missing UI-SPEC** — `ui-plan-gate` returned `frontend: true, hasUiSpec: false, block: true`; `workflow.ui_safety_gate` is on. Wyatt chose to settle decisions and design before planning.
 
 ## Progress
 
 **Phases Complete:** 0
-**Current Plan:** N/A — planning blocked pending CONTEXT.md and UI-SPEC.md
+**Current Plan:** N/A — CONTEXT.md done (11 decisions); planning still gated on UI-SPEC.md
 
 ## Session Continuity
 
-**Stopped At:** Phase 22 pre-planning. Next, in order:
-1. `/gsd-discuss-phase 22 --ws front-door` — settle the name-field and rules-source calls
+**Last session:** 2026-08-01T02:46:24.000Z
+
+**Stopped At:** Phase 22 context gathered
+
+1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
 2. `/gsd-ui-phase 22 --ws front-door` — design contract for the About page and the name modal
 3. `/gsd-plan-phase 22 --ws front-door` — plan
 
-**Resume File:** None
+**Resume File:** .planning/workstreams/front-door/phases/22-the-front-door/22-CONTEXT.md
 
 ## Notes carried into planning
 
