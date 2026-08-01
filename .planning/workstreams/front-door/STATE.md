@@ -3,18 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 22
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: Completed 22-03-PLAN.md
-last_updated: "2026-08-01T05:23:00.000Z"
+stopped_at: Completed 22-05-PLAN.md
+last_updated: "2026-08-01T09:20:00.000Z"
 last_activity: 2026-08-01
-last_activity_desc: "Plan 22-03 executed: both About links (ABOUT-02) — #lnkAboutWelcome under the welcome-screen mode cards, #lnkAboutFooter in the in-game footer row — plus verified META-01's already-shipped robots meta and JSON-LD image field survived byte-identical. Zero CSS added. One task committed. Consolidated browser pass unrun (no browser-automation tool available) — logged to WINDOWS.md entry #7."
+last_activity_desc: "Plans 22-04 (Task 3) and 22-05 executed together: Wyatt supplied the shipped hero screenshot directly (assets/about-screenshot.jpg, 1320x888, superseding the five 1200x663 candidates from the earlier capture session — deviation recorded in 22-04-SUMMARY.md) and gave inline nine-item playtesting feedback covering the whole About page, resolving both remaining human gates (D-11 screenshot pick, D-09 copy sign-off). Applied: top 'Play Pastry Pirates' primary CTA (Ko-Fi restyled secondary), hero swap, cocoa-island/flippenator images interspersed through the rules, example-recipes section, testimonials section (four bot-captain quotes), .abtRulesNote paragraph deleted, both TODO(D-09)/TODO(D-11) markers removed, and 'Parley' renamed to 'Trade' across every player-visible rules surface (about.html, index.html's How-To-Play modal, RULES.md, Rules_boardgame.md, .planning/how-to-play-pastry-pirates.md prose) while engine cfg.parley and the narration event key t:'parley' were left untouched. Copy recorded against .planning/todos/pending/copy-shipped-vs-approved-gate.md (Phase 22 approvals section). All five named script gates pass; index.html's <style> block confirmed byte-identical to HEAD. Consolidated browser pass unrun (no browser-automation tool available) — logged to WINDOWS.md entry #8."
+
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 5
+  percent: 100
 workstream: front-door
 created: 2026-07-31
 ---
@@ -23,21 +24,21 @@ created: 2026-07-31
 
 ## Current Position
 
-**Status:** Executing Phase 22
+**Status:** Executing Phase 22 — all 5 plans executed, browser verification pass outstanding
 **Current Phase:** 22
-**Last Activity:** 2026-08-01 — Plan 22-03 (Both About links, ABOUT-02/META-01) complete
-**Last Activity Description:** Plan 22-03 executed: `#lnkAboutWelcome` added under the welcome-screen mode cards (reachable before any game starts) and `#lnkAboutFooter` added in `#footerRow` (after Ko-Fi, before Leave game), both `<a class="footerBtn footerAbout" href="about.html">` with zero new CSS — the `.footerAbout` modifier carries no rule of its own. Verified META-01's `robots` meta and JSON-LD `image` field are byte-identical to `22-RESEARCH.md`'s baseline and to `HEAD` (lines 1-32 diff clean); confirmed `robots.txt`/`sitemap.xml` unmodified. All named script gates passed. Consolidated browser pass (link click-through, mode-card modals, narrow-width wrap in Safari/Chrome) not run — no browser-automation tool available this session — logged to `.planning/WINDOWS.md` entry #7 as unrun-verify.
+**Last Activity:** 2026-08-01 — Plans 22-04/22-05 (About-page screenshot install + Wyatt's full copy/feedback pass) complete
+**Last Activity Description:** See `last_activity_desc` in frontmatter above for the full account. In short: both of Phase 22's human approval gates (D-11 screenshot pick, D-09 copy sign-off) are now resolved, and Wyatt's nine-item playtesting review of the About page has been implemented and committed across four atomic commits (`b2395ec`, `f7972ff`, `1b42931`, `882019b`). See `22-04-SUMMARY.md` and `22-05-SUMMARY.md` for full detail.
 
 ## Progress
 
 **Phases Complete:** 0
-**Current Plan:** 4 of 5 (22-03 complete)
+**Current Plan:** 5 of 5 (all plans complete; phase-level browser verification still outstanding)
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T05:23:00.000Z
+**Last session:** 2026-08-01T09:20:00.000Z
 
-**Stopped At:** Completed 22-03-PLAN.md
+**Stopped At:** Completed 22-05-PLAN.md
 
 1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
 2. ~~`/gsd-ui-phase 22 --ws front-door`~~ — **done 2026-07-31**, UI-SPEC approved 6/6 dimensions
@@ -48,8 +49,12 @@ created: 2026-07-31
 
 ## Blocked on Wyatt
 
-- **D-11 — pick the screenshot.** Plan 22-04 drives a real game, captures mid-game candidates, and stops at a `checkpoint:decision`. Nothing after it can proceed until a frame is chosen.
-- **D-09 — sign off the About-page copy.** Plan 22-05 is the last wave; it swaps placeholder copy for approved copy and records it against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`.
+Both resolved 2026-08-01:
+
+- **D-11 — pick the screenshot. RESOLVED.** Wyatt supplied `assets/about-screenshot.jpg` (1320x888) directly rather than choosing among the five candidates captured by the earlier session — see the deviation entry in `22-04-SUMMARY.md`.
+- **D-09 — sign off the About-page copy. RESOLVED.** Wyatt gave nine items of inline playtesting feedback covering the whole About page; applied and recorded against `.planning/todos/pending/copy-shipped-vs-approved-gate.md` (Phase 22 approvals section, dated 2026-08-01).
+
+**Still outstanding (not a Wyatt-blocker, a tooling gap):** the consolidated browser verification pass over the reworked About page and the final approved copy — no browser-automation tool was available in the 22-04/22-05 executor session. Logged to `.planning/WINDOWS.md` entry #8 for the coordinator to run.
 
 ## Known-red before this phase started (NOT caused by Phase 22)
 
@@ -68,6 +73,8 @@ created: 2026-07-31
 | Phase 22 P01 | 35min | 2 tasks | 7 files |
 | Phase 22 P02 | ~25min | 2 tasks | 2 files |
 | Phase 22 P03 | 12min | 1 task | 1 file |
+| Phase 22 P04 | ~20min | 1 task | 2 files (combined session, see P05) |
+| Phase 22 P05 | ~90min | 1 task | 6 files |
 
 ## Decisions
 
@@ -75,6 +82,9 @@ created: 2026-07-31
 - [Phase 22]: about.html (22-02) split across two commits despite writing one new file, so per-task atomicity held even for a brand-new file — Task 1 (head/stylesheet/hero) verified and committed before Task 2 (rules/credits/Ko-Fi/sitemap) was added.
 - [Phase 22]: about.html's own stylesheet corrected two spacing values (6px, 11px) that mirrored index.html's non-4-multiple originals, to satisfy the plan's own multiple-of-4 acceptance gate for new About-page surface.
 - [Phase 22]: Both About links (22-03) added with zero new CSS — the `.footerAbout` modifier class exists in markup only, riding on the base `.footerBtn` rule, to respect Phase 18's concurrent ownership of the `<style>` block.
+- [Phase 22]: Wyatt supplied the shipped hero screenshot (assets/about-screenshot.jpg, 1320x888) directly rather than picking among the five 1200x663 candidates from the earlier capture session — his choice supersedes the plan's 1.81:1 reference ratio; width-floor and attribute-accuracy must-haves still hold.
+- [Phase 22]: UI-SPEC's accent-orange assignment (previously "the Ko-Fi button, if it's the page's one primary CTA") reassigned to a new top-of-page "Play Pastry Pirates" link per Wyatt's explicit instruction that it is now the page's primary action; Ko-Fi restyled as a teal-outline secondary CTA.
+- [Phase 22]: "Parley" renamed to "Trade" across every player-visible rules surface (about.html, index.html's How-To-Play modal, RULES.md, Rules_boardgame.md, .planning/how-to-play-pastry-pirates.md prose) per Wyatt's direct instruction; engine cfg.parley config flag and the narration event-type key t:"parley" deliberately left untouched (renaming either breaks src/engine/index.js or the narration/replay contract).
 
 ## Verification status (Phase 22 Plan 01) — CLOSED 2026-08-01
 

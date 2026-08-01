@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 0
+open_count: 1
 waived_count: 0
 fixed_count: 7
-total_count: 7
-last_updated: 2026-08-01T05:40:00.000Z
+total_count: 8
+last_updated: 2026-08-01T09:14:56.919Z
 ---
 
 # Broken Windows Ledger
@@ -22,6 +22,7 @@ last_updated: 2026-08-01T05:40:00.000Z
 | 5 | 22 | unrun-verify | about.html |  | Task 1 human-check: live browser pass of the hero row (two-up at 1440px, stacked at 480px, over-long blurb wrap test) not run — no browser-automation tool available in this session | fixed | Coordinator ran the hero-row pass in Chrome. At 1440px the hero is two-up (text left, image right); at a real 476px viewport (measured inside a width-pinned iframe, since Chrome clamps windows to ~500px) the media query matches and the hero stacks to flex-direction:column with no horizontal overflow. THIS CHECK FOUND A REAL BUG: '.abtHeroText/.abtHeroShot { flex: 1 1 320px }' resolves against the main axis, so in column direction the 320px basis became a minimum HEIGHT — the text block rendered 165px taller than its content and the visible copy-to-image gap was 189px instead of the intended 24px. Fixed in commit 8208bc4 by resetting both halves to 'flex: 0 0 auto' inside the breakpoint; gap is now exactly 24px and hero height dropped 664px -> 427px. Desktop row layout re-verified unchanged at 1100px (side-by-side, equal 440px columns, no overflow). Named gate subset all green after the fix. | 2026-08-01T05:09:40.344Z | 2026-08-01T05:24:00.000Z |
 | 6 | 22 | unrun-verify | about.html |  | Task 2 human-check: live browser pass of rules/credits/Ko-Fi stacking, ko-fi.com network-request-on-click confirmation, and side-by-side rules-copy comparison not run — no browser-automation tool available in this session | fixed | Coordinator ran the pass in Chrome. Rules card, credits card and the 'Support the game' card render and stack in order. Clicking '🍪 Buy me a cookie' lazily mounts the iframe on first open (panel display block, iframe loading='lazy', host ko-fi.com) and its sandbox attribute reads exactly 'allow-scripts allow-forms allow-popups allow-same-origin' — an exact string match with src/ui/lobby.js:74, confirming the security-relevant parity claim (both are setAttribute calls, not HTML attributes, so an HTML-attribute grep will falsely report zero — verify with the JS call form). Rules-copy comparison: About uses stranger-facing plain English and names the Isle of Tortuga, never Barbados, and is not a copy of the How-To-Play modal text — D-08 satisfied. | 2026-08-01T05:09:40.437Z | 2026-08-01T05:24:00.000Z |
 | 7 | 22 | unrun-verify | index.html |  | 22-03 consolidated browser pass not run: no browser-automation tool available in this session. Covers About-link click-through navigation (welcome + footer), all four mode-card modal flows, and narrow-width wrap check (320/375/480px) in Safari and Chrome. | fixed | Coordinator ran the pass in Chrome on a fresh server (:8557). BOTH About links click through to about.html: #lnkAboutWelcome on the welcome screen (renders centred under the four mode cards) and #lnkAboutFooter in the in-game footer between 'Buy me a cookie' and 'Leave game' — the footer needs a game started to be reachable, as expected. Narrow-width wrap check at real 320/375/480px viewports (width-pinned iframes, since Chrome clamps windows to ~500px): the About link is 82x33 and single-line at every width, fully within the viewport, and the four mode cards reflow cleanly (single column at 320, two-up at 375/480). index.html's style block verified byte-identical to HEAD, so no Phase 18 collision. TWO TEST ARTIFACTS worth recording so they are not mistaken for defects next time: (1) a first probe measured the About link at 0x0 because #lobby was display:none — boot had RESUMED a solo game left in localStorage by an earlier probe in the same origin; clearing localStorage before each iframe load fixed it (this is the shared-localStorage gotcha in docs/DRIVING-THE-GAME.md). (2) documentElement.scrollWidth exceeds the viewport by ~3px at every width, but the overflowing element is #game, the pre-existing board container — not anything 22-03 added. Safari not exercised; only Chrome was driven. | 2026-08-01T05:20:52.532Z | 2026-08-01T05:40:00.000Z |
+| 8 | 22 | unrun-verify | about.html |  | 22-04/22-05 combined session: human-check browser passes not run (About page's new top CTA, interspersed rule-row images, example recipes, testimonials, and the final approved copy/name-modal wording) — no browser-automation tool available in this session. Coordinator has Chrome tools and should run the visual pass. | open |  | 2026-08-01T09:14:56.919Z |  |
 
 ````json
 [
@@ -108,6 +109,18 @@ last_updated: 2026-08-01T05:40:00.000Z
     "reason": "Coordinator ran the pass in Chrome on a fresh server (:8557). BOTH About links click through to about.html: #lnkAboutWelcome on the welcome screen (renders centred under the four mode cards) and #lnkAboutFooter in the in-game footer between 'Buy me a cookie' and 'Leave game' — the footer needs a game started to be reachable, as expected. Narrow-width wrap check at real 320/375/480px viewports (width-pinned iframes, since Chrome clamps windows to ~500px): the About link is 82x33 and single-line at every width, fully within the viewport, and the four mode cards reflow cleanly (single column at 320, two-up at 375/480). index.html's style block verified byte-identical to HEAD, so no Phase 18 collision. TWO TEST ARTIFACTS worth recording so they are not mistaken for defects next time: (1) a first probe measured the About link at 0x0 because #lobby was display:none — boot had RESUMED a solo game left in localStorage by an earlier probe in the same origin; clearing localStorage before each iframe load fixed it (this is the shared-localStorage gotcha in docs/DRIVING-THE-GAME.md). (2) documentElement.scrollWidth exceeds the viewport by ~3px at every width, but the overflowing element is #game, the pre-existing board container — not anything 22-03 added. Safari not exercised; only Chrome was driven.",
     "recorded_at": "2026-08-01T05:20:52.532Z",
     "resolved_at": "2026-08-01T05:40:00.000Z"
+  },
+  {
+    "id": 8,
+    "kind": "unrun-verify",
+    "phase": "22",
+    "file": "about.html",
+    "line": null,
+    "description": "22-04/22-05 combined session: human-check browser passes not run (About page's new top CTA, interspersed rule-row images, example recipes, testimonials, and the final approved copy/name-modal wording) — no browser-automation tool available in this session. Coordinator has Chrome tools and should run the visual pass.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-01T09:14:56.919Z",
+    "resolved_at": null
   }
 ]
 ````
