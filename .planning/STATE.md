@@ -8,10 +8,10 @@ last_activity: 2026-08-01
 stopped_at: "v1.3 opened 2026-08-01. Roadmap written from .planning/V1.3-V1.4-PLAN.md (Wyatt-ordered). Next: /gsd-plan-phase 18, or 21/22 in parallel. Phase 19 is a Safari gate Wyatt runs himself; Phase 20 waits on it."
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 6
+  percent: 20
 ---
 
 # Project State
