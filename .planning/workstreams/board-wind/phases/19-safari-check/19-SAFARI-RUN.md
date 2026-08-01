@@ -59,11 +59,30 @@ there.
 
 ## 5. Phone reachability and go-ahead
 
-**Date:** 2026-07-31
+**Date:** 2026-08-01
 **Port used:** 8934
-**Observed iOS Safari behaviour:** _(pending — filled in once Wyatt confirms the phone link opens
-the page and the two questions in the checkpoint are answered)_
-**Selected option:** _(pending)_
+**LAN address:** 192.168.1.3
+**Phone link used:** http://192.168.1.3:8934/index.html
+
+**What happened:** Wyatt's iPhone opened the phone link above over wifi and the page loaded
+successfully. Separately, on the Mac side, the same address was checked and confirmed to answer
+with a normal "page found" response, and the build was driven in a desktop browser at that exact
+address to confirm it boots cleanly end to end — the board renders, the lobby renders, and nothing
+odd shows up in the background diagnostics across a reload. The `?wind=1` link was also checked and,
+as expected at this stage, it changes nothing yet — no dots, no dial, no switch — because building
+those is the next step (plan 19-03), not this one.
+
+**The randomness question:** Wyatt was asked where the wind dots should get their random numbers
+from — the game's own shared stream (the one that keeps every player's game in sync) or a separate,
+private stream that starts from the game's number but never touches the shared one. He confirmed
+the separate private stream — the same approach the storm rain already uses safely today. This means
+the game's own numbers are never touched by the dots, every player in a room still sees the same
+weather, and the 31 saved test games that check the game's numbers keep matching. It's also the
+answer that goes with the standing promise that nothing in this phase changes the game engine
+itself.
+
+**Selected option:** go-ahead — the phone opened the page, and the separate-private-stream approach
+is confirmed. The prototype (plan 19-03) is cleared to begin.
 
 ## 6. Chrome pre-flight checklist
 
