@@ -1153,8 +1153,8 @@ const adhocById = Object.fromEntries(inv.adhoc.map((e) => [e.id, e]));
  * test run: 209 == aliased + retired, and the retired set equals a pinned six-id list.
  * ==========================================================================*/
 const [dispositionsFile, addressed2File, aliasFile] = await Promise.all([
-  fetch("../.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json", { cache: "no-store" }).then((r) => r.json()),
-  fetch("../.planning/phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json", { cache: "no-store" }).then((r) => r.json()),
+  fetch("../.planning/milestones/v1.2-phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json", { cache: "no-store" }).then((r) => r.json()),
+  fetch("../.planning/milestones/v1.2-phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json", { cache: "no-store" }).then((r) => r.json()),
   fetch("narration-id-aliases.json", { cache: "no-store" }).then((r) => r.json()),
 ]);
 const ALIAS_TO_NEW = Object.fromEntries((aliasFile.entries || []).filter((e) => e.new).map((e) => [e.old, e.new]));
