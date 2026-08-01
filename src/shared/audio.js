@@ -44,10 +44,75 @@ const SFX_VOLUME = {
 // (src/orchestrator.js:168) — mute follows it exactly, same key-naming shape.
 const MUTE_KEY = "pp_muted";
 
+// D-11 — Claude's discretion (21-CONTEXT.md): the storm sits quieter underneath the short sounds
+// so flips, clashes and dockings stay clear on top of it. Opening value; a by-ear browser pass
+// tunes this one number, never the graph shape.
+const STORM_VOLUME = 0.35;
+// D-09 — Claude's discretion: the fade duration once the storm moment resolves (the next
+// `newround`/`end`). Opening value, same tuning-point discipline as STORM_VOLUME.
+const STORM_FADE_SEC = 1.2;
+
+// D-22 EXPLICIT PLACEHOLDER — not a final choice. Running out of time must make a noise so you
+// notice even if you looked away (Wyatt's call), but none of Luis's six is an alarm. This is a
+// stand-in: short, percussive, unambiguously adverse. On the shopping list for Luis: a
+// purpose-made time-out alert. `EVENT_SOUND.shotclock`/`.shotclockskip` reference this constant
+// rather than repeating the stem string, so a later edit cannot quietly de-flag it by inlining it.
+const SHOTCLOCK_SOUND_PLACEHOLDER = "battle-swords";
+
+// D-05 EXPLICIT PLACEHOLDER — not a final choice. The win screen gets a sound rather than
+// silence; nothing in the six actually sounds like victory, so Claude selected the short, bright
+// one — closest of the six to a chime — as a stand-in. On the shopping list for Luis: a
+// purpose-made victory sound. Swapping it is a one-constant change.
+const WIN_SOUND_PLACEHOLDER = "store-ingredient";
+
+// D-01/D-03/D-04/D-06/D-21: the 25-key event->sound mapping, mirroring EVENT_NARRATION's exact
+// shape (src/ui/util.js) and register — a plain object literal, never a Map needing .get() with a
+// default, never a switch with no default, never a .find() that can throw on a miss. An absent
+// key reads as `undefined` and dispatches to silence with no throw and no console warning.
+const EVENT_SOUND = {
+  // D-01 (sailing); D-04 (wind pushes your boat — your ship moved, just not by choice); D-21 (a
+  // gale blows you off the dock — the identical case as windmove)
+  sail: "ship-move", windmove: "ship-move", blownOut: "ship-move",
+  // D-01/D-04: a crate changing hands, whether docking or trading
+  dock: "store-ingredient", trade: "store-ingredient",
+  // D-01; D-04 (fleeing/dodging — the clash happened, you just left it)
+  battle: "battle-swords", battleflee: "battle-swords", dodge: "battle-swords",
+  // D-01 (fishing); D-03 (dropping anchor in a storm); D-21 (the anchor holding — same family)
+  fish: "fishing", anchor: "fishing", anchorHold: "fishing",
+  // D-04: running aground / shipwrecked both borrow storm
+  aground: "storm", shipwrecked: "storm",
+  // D-22 — see SHOTCLOCK_SOUND_PLACEHOLDER above. Referenced by constant, never repeated inline.
+  shotclock: SHOTCLOCK_SOUND_PLACEHOLDER, shotclockskip: SHOTCLOCK_SOUND_PLACEHOLDER,
+  // D-06 — explicit silence, not merely absent from the table
+  blocked: null, moored: null, turn: null, newround: null, tradewind: null, bakeoff: null,
+  end: null, finish: null,
+  // D-21 — explicit silence: an offer is not a deal; sidebet is already narration-suppressed
+  parley: null, sidebet: null,
+};
+
+// PURE — no ctx, no DOM, no side effect, safe to call under plain Node. Returns null, or an
+// object naming the stem and the bus to route it through.
+//
+// THE TRAP (see 21-CONTEXT.md/21-02-PLAN.md): Game.ev() (src/engine/index.js:233) stamps
+// `o.storm=this.stormNow` onto EVERY event it records, so during a stormy round every single
+// event of every captain carries `storm:true`. Keying the storm cue on `e.storm` alone would fire
+// storm.mp3 on every action of every captain for the whole round — the exact opposite of D-08
+// ("storm.mp3 fires once when the storm arrives, not once per captain the storm affects"). Keying
+// it on the PAIR (e.t is "newround" AND e.storm) is correct, and because `newround` is emitted
+// exactly once per round (src/orchestrator.js's two live `newround` emissions), D-08's fires-once
+// falls out of this pure lookup with no dedup state needed at all.
+function soundForEvent(e) {
+  if (e.t === "newround" && e.storm) return { name: "storm", bus: "storm" };
+  const name = EVENT_SOUND[e.t];
+  return name ? { name, bus: "master" } : null;
+}
+
 /* ================= Lazy audio graph — built ONLY by initAudio(), nothing at module load ================= */
 
 let ctx = null;
 let masterGain = null;
+let stormGain = null; // D-11: storm's own quieter bus, still connected into masterGain
+let stormNode = null; // { src, gain } of the in-flight storm sound, or null — fadeStorm()'s target
 const buffers = {}; // stem name -> decoded AudioBuffer
 let visibilityHandlerAttached = false;
 // Seeded lazily, on first isMuted()/setMuted() call — never read at module load.
@@ -106,6 +171,9 @@ async function initAudio() {
   ctx = new AC();
   masterGain = ctx.createGain();
   masterGain.connect(ctx.destination);
+  stormGain = ctx.createGain();          // D-11: storm sits quieter underneath the short sounds
+  stormGain.gain.value = STORM_VOLUME;
+  stormGain.connect(masterGain);         // still governed by the one master mute/blur ramp
   applyMasterGain();
   // Fire-and-forget: a freshly-constructed AudioContext starts "suspended" under browser
   // autoplay policy even when construction itself happened inside a real user gesture's call
@@ -149,4 +217,55 @@ function playFlip() {
   play("coin-flip");
 }
 
-export { SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, initAudio, playFlip, isMuted, setMuted };
+// D-09: a no-op when no storm node is in flight. Otherwise ramps the CURRENT gain value down to a
+// small epsilon over STORM_FADE_SEC — never to literal zero, which can throw or hitch in some
+// engines — then stops the source shortly after the ramp lands. Never stops the source without the
+// ramp: D-09 forbids both a hard cut and droning past the moment.
+function fadeStorm() {
+  if (!stormNode) return;
+  const node = stormNode;
+  stormNode = null; // clear the held reference immediately, so a second call is a true no-op
+  if (!ctx) return;
+  const g = node.gain.gain;
+  const now = ctx.currentTime;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(g.value, now); // anchor the ramp at the CURRENT value, not a stale target
+  g.linearRampToValueAtTime(0.0001, now + STORM_FADE_SEC);
+  try {
+    node.src.stop(now + STORM_FADE_SEC + 0.05);
+  } catch (e) {
+    // a source already stopped/ended on its own is not an error worth surfacing
+  }
+}
+
+// The impure dispatcher — called once per event that just arrived, on both host (liveRender())
+// and guest (watchEvents()). D-07: no appState.mySeat/isLocalTo gate anywhere on this path, ever —
+// the whole table is audible. Never writes a field onto the event object to communicate with this
+// module: all dedup/fade state (stormNode above) lives in this file's own module-locals, never on
+// an object game.ev() produced or that netPushEvent carries — that risks drifting the determinism
+// corpus the v1.3 engine fence exists to protect.
+function playForEvent(e) {
+  // The arrival of the next round header or the voyage's end is the exact game-state signal that
+  // the storm moment has resolved — fade whatever storm sound is in flight BEFORE possibly
+  // starting a fresh one for THIS event, so a freshly-started storm cue is never immediately
+  // faded by its own newround.
+  if (e.t === "newround" || e.t === "end") fadeStorm();
+  const s = soundForEvent(e);
+  if (!s) return;
+  const bus = s.bus === "storm" ? stormGain : masterGain;
+  const node = play(s.name, { bus });
+  if (s.bus === "storm") stormNode = node || null;
+}
+
+// D-05's placeholder cue, tied to the win screen APPEARING, not to the `end`/`finish` events —
+// those stay silent as events per D-06. Called from both places appState.liveDone is set true
+// (host and guest).
+function playWinScreen() {
+  play(WIN_SOUND_PLACEHOLDER, { bus: masterGain });
+}
+
+export {
+  SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, initAudio, playFlip, isMuted, setMuted,
+  EVENT_SOUND, soundForEvent, playForEvent, playWinScreen, fadeStorm,
+  STORM_VOLUME, STORM_FADE_SEC, WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER,
+};
