@@ -1,8 +1,8 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 2
 waived_count: 0
-fixed_count: 2
+fixed_count: 3
 total_count: 5
 last_updated: 2026-08-01T04:27:28.139Z
 ---
@@ -19,7 +19,7 @@ last_updated: 2026-08-01T04:27:28.139Z
 | 2 | 09 | unmet-truth | index.html |  | ROADMAP Phase 9 criterion 4 (two-tab multiplayer sync) only partially demonstrated in 09-05: bidirectional lobby-state/seats sync proven across two real tabs with distinct identities, but the full in-game turn-propagation leg (narr/ev/prompt/flip/battle watchers observed live host->guest) was not cleanly completed — the coordinator's own defensive UI click during voyage start misrouted the host tab into pass-and-play mode. Not a code regression; a test-driving artifact. Needs a clean re-run before criterion 4 is fully satisfied — closed by Phase 12 VERIFY-03 (Chrome-MCP two-tab E2E). | fixed | Clean two-tab re-run completed by coordinator in Chrome (server :8777, distinct pp_id per tab, sequential load per the shared-localStorage gotcha). Proven live host<->guest through the extracted src/net/ module: room create/join round-trip (seats watcher), bidirectional lobby sync, game-start broadcast + board render on guest, sailing-order narration broadcast, chat host->guest with a unique marker (chat child_added watcher), acknowledgement + recipe prompt/response gating synced both ways, full turn loop cycling host->bots->guest (ev event stream climbing 16->29), guest move -> host turn advanced (response watcher), and host move -> guest CAPTAINS panel synced. Same-moment authoritative-state match host vs guest: HostCap 1/1, Dough Hook 7/7, Flaky Jack 13/13, GuestMate 0/0. Watcher counts scaled 4 (lobby) -> 8 (host in-game) -> 16 (guest in-game) via window.__pp_net_debug. NOTE: reading game.players[].pos on the GUEST is the wrong probe — guests are render-only (host-authority model), so their local game object is intentionally stale; the rendered CAPTAINS panel is the sync source of truth. Criterion 4 fully satisfied. | 2026-07-24T18:55:19.013Z | 2026-07-24T20:29:14.093Z |
 | 3 | 18 | unrun-verify | src/ui/panel.js |  | FIX-16 driven-browser acceptance criteria (ghost first-frame rect, gridTemplateRows floor sweep) not run - no browser-automation tool available to the executor | open |  | 2026-08-01T04:27:27.970Z |  |
 | 4 | 18 | unrun-verify | src/main.js |  | FIX-10 driven-browser acceptance criteria (.apBtn containment at 320/375/390, rotation round-trip) not run - no browser-automation tool available to the executor | open |  | 2026-08-01T04:27:28.054Z |  |
-| 5 | 18 | deviation | scripts/lib/audit_page_headless.mjs |  | npm test narration_audit_check.js assertion 10 fails on a stale pre-v1.2-archive path (15-DISPOSITIONS-FINAL.json); confirmed pre-existing/unrelated to plan 18-01, not fixed (out of scope) | open |  | 2026-08-01T04:27:28.139Z |  |
+| 5 | 18 | deviation | scripts/lib/audit_page_headless.mjs |  | npm test narration_audit_check.js assertion 10 fails on a stale pre-v1.2-archive path (15-DISPOSITIONS-FINAL.json); confirmed pre-existing/unrelated to plan 18-01, not fixed (out of scope) | fixed | Coordinator fixed in a637266, outside the plan. Cause: a63e194 (archive v1.2) moved the phase dir under .planning/milestones/v1.2-phases/ but art-review/narration-audit.html still fetched the live path, so both 15-DISPOSITIONS-FINAL.json and 15-ADDRESSED2-APPROVED.json 404'd. Pre-existence proven by reproducing the identical failure at f07a474. Also silently broke Wyatt's live narration review page (zero cards), not just CI. Page + checker now fall back to the archive. npm test 23/23, exit 0. | 2026-08-01T04:27:28.139Z | 2026-08-01T04:40:00.000Z |
 
 ````json
 [
@@ -78,10 +78,10 @@ last_updated: 2026-08-01T04:27:28.139Z
     "file": "scripts/lib/audit_page_headless.mjs",
     "line": null,
     "description": "npm test narration_audit_check.js assertion 10 fails on a stale pre-v1.2-archive path (15-DISPOSITIONS-FINAL.json); confirmed pre-existing/unrelated to plan 18-01, not fixed (out of scope)",
-    "status": "open",
-    "reason": "",
+    "status": "fixed",
+    "reason": "Coordinator fixed it in a637266, outside the plan. Root cause confirmed as a63e194 (archive v1.2) moving .planning/phases/15-narration-audit-fixes/ to .planning/milestones/v1.2-phases/; art-review/narration-audit.html still fetched the live path so BOTH 15-DISPOSITIONS-FINAL.json and 15-ADDRESSED2-APPROVED.json 404'd. Pre-existence proven by reproducing the identical failure at f07a474 in a detached worktree. This also silently broke Wyatt's live narration review page (zero cards rendered), not just CI. Page and checker now try the live phase dir then fall back to the v1.2 archive. npm test: 23/23 groups, exit 0.",
     "recorded_at": "2026-08-01T04:27:28.139Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-01T04:40:00.000Z"
   }
 ]
 ````
