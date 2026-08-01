@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pastry Pirates — Island Scene Art Review</title>
+<style>
+  :root { --teal:#1d96a6; --ink:#1f4249; --parch:#fff6c0; --gold:#f5a623; --coral:#f2679e; --mint:#27c78d; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:#f4faf9; }
+  header { position:sticky; top:0; z-index:10; background:var(--ink); color:var(--parch); padding:14px 20px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+  header h1 { font-size:18px; margin:0; flex:1 1 auto; }
+  header button { font-size:13px; padding:8px 12px; border:0; border-radius:8px; cursor:pointer; font-weight:600; }
+  .b-export { background:var(--gold); color:#1f4249; }
+  .b-copy { background:var(--mint); color:#0c2b23; }
+  .b-clear { background:var(--coral); color:#3a0a22; }
+  .saved { font-size:12px; opacity:.85; flex-basis:100%; }
+  main { max-width:1180px; margin:0 auto; padding:20px; }
+  .intro { background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .intro p { margin:.4em 0; font-size:14px; line-height:1.5; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; }
+  .card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.08); display:flex; flex-direction:column; }
+  .imgwrap { background:#000; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; }
+  .imgwrap img { width:100%; height:100%; object-fit:contain; display:block; }
+  .meta { padding:14px 16px 16px; display:flex; flex-direction:column; gap:8px; }
+  .meta h2 { font-size:16px; margin:0; }
+  .ing { font-size:12px; color:#5a726f; margin:0; }
+  code { background:#eef6f5; padding:1px 5px; border-radius:4px; font-size:11px; }
+  .flag { background:#fff4e0; border-left:3px solid var(--gold); padding:6px 10px; margin:2px 0; font-size:12.5px; border-radius:4px; }
+  .flag.ok { background:#e6f8f0; border-left-color:var(--mint); font-weight:600; }
+  details { font-size:12.5px; }
+  summary { cursor:pointer; color:var(--teal); font-weight:600; }
+  .prompt { color:#40514f; line-height:1.45; margin:6px 0 0; }
+  textarea { width:100%; min-height:70px; margin-top:4px; padding:8px; border:1.5px solid #cfe3e0; border-radius:8px; font-family:inherit; font-size:13px; resize:vertical; }
+  textarea:focus { outline:none; border-color:var(--teal); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏴‍☠️ Island Scene Art Review — 7 tile overlays</h1>
+  <button class="b-export" onclick="exportFeedback()">Export feedback (JSON)</button>
+  <button class="b-copy" onclick="copyFeedback()">Copy to clipboard</button>
+  <button class="b-clear" onclick="clearFeedback()">Clear all feedback</button>
+  <div class="saved" id="savedNote">Autosaves as you type.</div>
+</header>
+<main>
+  <div class="intro">
+    <p><strong>These are staged only</strong> — raw, uncropped Gemini generations in <code>art-review/islands/</code>. Nothing is cropped, keyed, or wired into the game until you approve each one.</p>
+    <p>Each is a little scene meant to be drawn over one square of its island. <strong>Whole set is back to one hand-painted style now.</strong> This round: #2 → wooden pirate-crest toaster, #3 → chocolate volcano, #4 → grass removed, #5 → green circle removed, #6 → pirate flag in the custard, #7 → spice stall on a Persian rug. Only #1 is a prior approval. <strong>⚠️ Three came out on WHITE instead of near-black (#3, #5, #7)</strong> — flagged on each card; white is easy to key, but flagging so you can decide. The tiny <code>v1</code> link opens the very first version. Per-card feedback autosaves; use <em>Export</em> or <em>Copy</em> to hand it back.</p>
+  </div>
+  <div class="grid">
+    
+    <div class="card">
+      <div class="imgwrap"><img src="islands/1-egg-chicken-coop.png?v=2" alt="Egg Island — Pirate Chicken Coop" loading="lazy"></div>
+      <div class="meta">
+        <h2>1. Egg Island — Pirate Chicken Coop</h2>
+        <p class="ing">ingredient: <code>eggs</code> &middot; <code>1-egg-chicken-coop.png</code> &middot; <a href="islands/v1/1-egg-chicken-coop.png" target="_blank">v1</a></p>
+        <p class="flag ok">✅ Approved (v2).</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a pirate-themed chicken coop flying a skull flag on a round fenced green patch, with three big plump hens (creamy white, reddish-brown in a red bandana, grey speckled) and a small treasure chest. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/1-egg-chicken-coop.png" placeholder="Feedback for Egg Island — Pirate Chicken Coop — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="imgwrap"><img src="islands/2-wheat-toaster-mill.png?v=6" alt="Wheat Island — Pirate Toaster" loading="lazy"></div>
+      <div class="meta">
+        <h2>2. Wheat Island — Pirate Toaster</h2>
+        <p class="ing">ingredient: <code>wheat</code> &middot; <code>2-wheat-toaster-mill.png</code> &middot; <a href="islands/v1/2-wheat-toaster-mill.png" target="_blank">v1</a></p>
+        <p class="flag">✏️ v6 — brand-new hand-painted concept: a wooden toaster with a pirate crest on the side (back in the set&#x27;s hand-painted style).</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a chunky wooden toaster with brass fittings and a bold round pirate-skull crest on its front, with two golden slices of toast popping up. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/2-wheat-toaster-mill.png" placeholder="Feedback for Wheat Island — Pirate Toaster — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="imgwrap"><img src="islands/3-chocolate-whirlpool.png?v=3" alt="Chocolate Island — Chocolate Volcano" loading="lazy"></div>
+      <div class="meta">
+        <h2>3. Chocolate Island — Chocolate Volcano</h2>
+        <p class="ing">ingredient: <code>cocoa</code> &middot; <code>3-chocolate-whirlpool.png</code> &middot; <a href="islands/v1/3-chocolate-whirlpool.png" target="_blank">v1</a></p>
+        <p class="flag">✏️ ⚠️ v3 — brand-new concept: a volcano of different chocolates. NOTE: rendered on WHITE, not near-black — easy to key, flagging it.</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a chocolate volcano — a cone of layered chocolate (dark base, milk middle, white-chocolate top) erupting glossy molten-chocolate lava from its crater. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/3-chocolate-whirlpool.png" placeholder="Feedback for Chocolate Island — Chocolate Volcano — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="imgwrap"><img src="islands/4-sugar-candyland.png?v=3" alt="Sugar Island — Candies" loading="lazy"></div>
+      <div class="meta">
+        <h2>4. Sugar Island — Candies</h2>
+        <p class="ing">ingredient: <code>sugar</code> &middot; <code>4-sugar-candyland.png</code> &middot; <a href="islands/v1/4-sugar-candyland.png" target="_blank">v1</a></p>
+        <p class="flag">✏️ v3 — removed the grass/green-mound background; candies now sit directly on near-black.</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a bold cluster of just a few BIG candies — one oversized swirl lollipop and a handful of large chunky gumdrops in pink, teal and gold — floating directly on the background, no ground. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/4-sugar-candyland.png" placeholder="Feedback for Sugar Island — Candies — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="imgwrap"><img src="islands/5-milk-dairy-farm.png?v=3" alt="Milk Island — Pirate Dairy Farm" loading="lazy"></div>
+      <div class="meta">
+        <h2>5. Milk Island — Pirate Dairy Farm</h2>
+        <p class="ing">ingredient: <code>dairy</code> &middot; <code>5-milk-dairy-farm.png</code> &middot; <a href="islands/v1/5-milk-dairy-farm.png" target="_blank">v1</a></p>
+        <p class="flag">✏️ ⚠️ v3 — removed the green circle; barn + cow now sit directly on the background. NOTE: rendered on WHITE this time, not near-black — easy to key, flagging it.</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a red-roofed barn flying a skull flag with a big black-and-white spotted cow in an eyepatch and a milk churn, grouped together with no ground beneath them. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/5-milk-dairy-farm.png" placeholder="Feedback for Milk Island — Pirate Dairy Farm — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="imgwrap"><img src="islands/6-vanilla-custard-tub.png?v=6" alt="Vanilla Island — Custard Barrel" loading="lazy"></div>
+      <div class="meta">
+        <h2>6. Vanilla Island — Custard Barrel</h2>
+        <p class="ing">ingredient: <code>vanilla</code> &middot; <code>6-vanilla-custard-tub.png</code> &middot; <a href="islands/v1/6-vanilla-custard-tub.png" target="_blank">v1</a></p>
+        <p class="flag">✏️ v6 — added a pirate flag planted in the custard barrel.</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a wooden barrel of glossy speckled vanilla custard with a swirled peak and a small black skull pirate flag planted upright in the top. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/6-vanilla-custard-tub.png" placeholder="Feedback for Vanilla Island — Custard Barrel — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="imgwrap"><img src="islands/7-spice-market-stall.png?v=6" alt="Spice Island — Spice Stall" loading="lazy"></div>
+      <div class="meta">
+        <h2>7. Spice Island — Spice Stall</h2>
+        <p class="ing">ingredient: <code>spice</code> &middot; <code>7-spice-market-stall.png</code> &middot; <a href="islands/v1/7-spice-market-stall.png" target="_blank">v1</a></p>
+        <p class="flag">✏️ ⚠️ v6 — brand-new hand-painted concept: a market spice stall with a Persian rug underneath (back in the set&#x27;s hand-painted style). NOTE: rendered on WHITE, not near-black — easy to key, flagging it.</p>
+        <details><summary>Prompt used</summary><p class="prompt">Generate an image. Hand-illustrated storybook game art, warm and playful pirate-nautical theme. Soft rounded shapes, gentle dark-teal outlines, hand-painted texture, cheerful saturated palette (sea teal #1d96a6, warm parchment #fff6c0, gold #f5a623, coral pink #f2679e, mint #27c78d, deep ink #1f4249). Friendly, kid-appropriate, slightly chunky proportions like a mobile board game. Even soft lighting from top-left, subtle painterly shading, no harsh photorealism. Mostly top-down bird&#x27;s-eye aerial view, a small compact self-contained scene designed to sit inside a single square game-board tile, filling the frame. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), Subject: a hand-painted spice stall with a teal-and-coral striped awning over a counter of colorful spice bowls &amp; sacks and cinnamon sticks, with a patterned red-and-teal Persian rug on the ground under it. 1:1 square, centered, on a solid flat chroma-key near-black background (hex #000001, no gradient, no shadow, no vignette), no text or lettering anywhere in the image.</p></details>
+        <textarea data-file="islands/7-spice-market-stall.png" placeholder="Feedback for Spice Island — Spice Stall — approve / tweak / redo…"></textarea>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  const KEY = "pastrypirates_art_review_islands_feedback";
+  const areas = () => Array.from(document.querySelectorAll('textarea[data-file]'));
+  function load() {
+    let data = {};
+    try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) {}
+    areas().forEach(t => { if (data[t.dataset.file]) t.value = data[t.dataset.file]; });
+  }
+  function collect() {
+    const out = {};
+    areas().forEach(t => { if (t.value.trim()) out[t.dataset.file] = t.value.trim(); });
+    return out;
+  }
+  function save() {
+    localStorage.setItem(KEY, JSON.stringify(collect()));
+    const n = document.getElementById('savedNote');
+    n.textContent = 'Saved ✓ ' + new Date().toLocaleTimeString();
+  }
+  function exportFeedback() {
+    const blob = new Blob([JSON.stringify(collect(), null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'island-art-review-feedback.json';
+    a.click();
+  }
+  async function copyFeedback() {
+    try { await navigator.clipboard.writeText(JSON.stringify(collect(), null, 2));
+      document.getElementById('savedNote').textContent = 'Copied to clipboard ✓'; }
+    catch(e) { alert('Copy failed — use Export instead.'); }
+  }
+  function clearFeedback() {
+    if (!confirm('Clear all feedback in every box? This cannot be undone.')) return;
+    areas().forEach(t => t.value = '');
+    localStorage.removeItem(KEY);
+    document.getElementById('savedNote').textContent = 'Cleared.';
+  }
+  areas().forEach(t => t.addEventListener('input', save));
+  load();
+</script>
+</body>
+</html>
