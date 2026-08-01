@@ -76,6 +76,11 @@
   @media (max-width: 480px) {
     .abtPage { margin: 32px auto; padding: 0 16px 32px; }
     .abtHero { flex-direction: column; gap: 24px; margin-bottom: 24px; }
+    /* flex-basis resolves against the MAIN axis — once the hero flips to column, the 320px
+       basis above becomes a minimum *height*, padding both halves out with dead space (the
+       text block rendered 165px taller than its own content). Reset to content height so the
+       24px gap above is the actual gap the reader sees. */
+    .abtHeroText, .abtHeroShot { flex: 0 0 auto; }
     .abtCard { padding: 20px; margin-bottom: 24px; }
   }
 </style>
