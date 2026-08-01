@@ -310,6 +310,8 @@ export const GHOST_FADE_MS=800;
 // would be wrong. #actionPanel is a singleton element, so this guards against TIME (a late
 // .then()), not against which node to unhide.
 let panelSeq=0;
+// Resolver for the CURRENT message's height release — see applyPanelHeight's `settled`.
+let panelRevealSettle=null;
 // D-02 (18-05): sizes a REMOTE decision's host-side arm-defer window from the ACTOR's own prompt
 // text (never this browser's own shorter spectator line — see panel()'s clock-defer block below).
 // Derived from REVEAL_MS_PER_CHAR and GHOST_FADE_MS rather than a literal duplicate of either, so
@@ -441,8 +443,12 @@ export function panel(html,needsAction=false){
   if(!html){resizePanel(false);}
   else{
     const targetH=measurePanelHeight();
-    if(fadeMs)setTimeout(()=>applyPanelHeight(targetH),fadeMs); // phase 2, after the fade
-    else applyPanelHeight(targetH);                             // no ghost: nothing to wait for
+    // `revealSettled` is resolved by the reveal below — the row stays pinned at targetH for the
+    // whole type-in and is only released to max-content once the text has finished arriving.
+    let settleReveal; const revealSettled=new Promise(res=>{settleReveal=res;});
+    panelRevealSettle=settleReveal;
+    if(fadeMs)setTimeout(()=>applyPanelHeight(targetH,revealSettled),fadeMs); // phase 2, after the fade
+    else applyPanelHeight(targetH,revealSettled);                             // no ghost: nothing to wait for
   }
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
@@ -464,6 +470,10 @@ export function panel(html,needsAction=false){
   // panel() returns and flash()'s contract is untouched.
   const revealDone=msgEl?typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,fadeMs?fadeMs+RESIZE_MS:0):Promise.resolve();
   if(msgEl)msgEl._revealDone=revealDone;
+  // Release the pinned height only once this message's text has fully arrived (or immediately if
+  // there is no message to reveal). Captured locally so a NEWER panel() call cannot resolve an
+  // older message's release.
+  if(panelRevealSettle){const settle=panelRevealSettle;panelRevealSettle=null;revealDone.then(settle,settle);}
   // FIX-03: unhide the gated buttons only once THIS prompt's own reveal resolves. The seq compare
   // (declared above panel()) is what keeps a late-resolving EARLIER reveal from unhiding a NEWER
   // prompt's still-hidden buttons — see panelSeq's own comment.
@@ -577,23 +587,32 @@ export function measurePanelHeight(minHeight=0){
   grid.style.transition="";
   return h;
 }
-export function applyPanelHeight(h){
+export function applyPanelHeight(h,settled){
   const grid=$("apGrid");if(!grid)return;
   grid.style.gridTemplateRows=h+"px";             // one smooth animation to the measured height
-  // SAFETY NET: once the animation lands, release the row to max-content. No visual change when the
-  // measurement was right — the computed height already IS h — but it makes clipping impossible
-  // afterwards. A future mis-measure then shows as a slightly tall box, never a lost button.
-  grid.addEventListener("transitionend",function done(e){
-    if(e.propertyName!=="grid-template-rows")return;
-    grid.removeEventListener("transitionend",done);
-    if(grid.style.gridTemplateRows===h+"px")grid.style.gridTemplateRows="max-content";
-  });
-  // Belt: if the height did not actually change, no transition fires and transitionend never
-  // arrives — so release the row on a timer too. Without this a box that happens to keep its
-  // height stays pinned in px forever, and the safety net above would never engage.
-  setTimeout(()=>{
-    if(grid.style.gridTemplateRows===h+"px")grid.style.gridTemplateRows="max-content";
-  },RESIZE_MS+40);
+  // SAFETY NET — but NOT until the content has actually arrived.
+  //
+  // Releasing the row to max-content is what makes clipping impossible afterwards: if anything
+  // later grows the content (a resize re-wrap, a late icon, a font swap) the box grows with it.
+  // The catch, measured in Wyatt's second recording: released on a plain 180ms timer it fires while
+  // the typewriter has the text BLANKED, so max-content reads a nearly-empty box, collapses the row
+  // (202 -> 162 in one frame), and the box then STEPS back up line by line as the text types —
+  // eight height changes across one message.
+  //
+  // So the release waits for `settled`: the reveal's own completion promise. At that moment the
+  // content is at its final size, so max-content equals h and the swap is invisible — while every
+  // LATER growth is still protected. Without a promise (the resize/orientationchange path, where
+  // no reveal is running) a short timer is correct and is used instead.
+  const release=()=>{ if(grid.style.gridTemplateRows===h+"px")grid.style.gridTemplateRows="max-content"; };
+  if(settled&&typeof settled.then==="function"){
+    settled.then(release,release);
+    // Backstop: a reveal that is interrupted (a newer panel() call replacing this message
+    // mid-type) may never resolve this particular promise. Without a timer the row would stay
+    // pinned in px forever and the safety net would never engage. Generous — it must not beat a
+    // legitimately long reveal, only rescue a dead one.
+    setTimeout(release,15000);
+  }
+  else setTimeout(release,RESIZE_MS+40);
 }
 export function resizePanel(hasContent,minHeight=0){
   const grid=$("apGrid");if(!grid)return;
