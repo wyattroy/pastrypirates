@@ -72,7 +72,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
-import { initAudio } from "./shared/audio.js";
+import { initAudio, playForEvent, playWinScreen } from "./shared/audio.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
   netSetPaused, netWatchPaused, netDeleteRoom,
@@ -718,7 +718,7 @@ export async function applyEndMeta(){
   appState.game.round=m.round;appState.game.battles=m.battles;appState.game.trades=m.trades;appState.game.attWins=m.attWins;
   appState.game.finishOrder=m.finishOrder||[];appState.game.winner=m.winner;
   (m.flips||[]).forEach((f,i)=>{if(appState.game.players[i]){appState.game.players[i].flips=f;appState.game.players[i].heads=(m.heads||[])[i]||0;}});
-  appState.liveDone=true;render();
+  appState.liveDone=true;playWinScreen();render(); // D-05: the guest's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
 }
 
 /* ================= host game loop (networked) ================= */
@@ -888,6 +888,7 @@ export async function liveResolveEndNet(){
   await flash("Drumroll...");
   await fadeOutPanel();
   appState.liveDone=true;
+  playWinScreen(); // D-05: the host's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
   liveRender();
   // The victory box that used to be flashed here is GONE, deliberately — do not restore it. Its
   // three pieces (the "wins!" line, the recipe picture, the Best Baker sentence) now render in the
@@ -1021,6 +1022,7 @@ export function watchEvents(){
     render();
     const e=appState.game.events[appState.evIdx];
     spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
+    playForEvent(e); // AUDIO-01/D-07: the guest's mirror of the host's per-event sound moment — rival and bot captains audible here too, no isLocalTo gate
     if(e.t==="end")applyEndMeta();
   });
 }

@@ -44,6 +44,7 @@ import {
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
+import { playForEvent } from "../shared/audio.js";
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
@@ -184,6 +185,7 @@ export function liveRender(){
   render();
   const e=appState.game.events[appState.evIdx];
   spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
+  playForEvent(e); // AUDIO-01/D-07: the host's per-event sound moment — fires once per game.ev() call, whole table audible, no isLocalTo gate
   if(appState.isHost){
     const _nh=netHandlers();
     // seam (D-07/criterion 1, RESEARCH Q1b edge 2): was a direct pushEvents() call — pushEvents
