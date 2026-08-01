@@ -10,9 +10,9 @@
 
 ### Prompts & Polish — Phase 18
 
-- [ ] **FIX-03**: In an action prompt the buttons appear only after the final character has been typewriter'd out.
-- [ ] **FIX-10**: A narrow window never clips the action button — the box never pins itself shorter than its content.
-- [ ] **FIX-16**: A fading narration line stays exactly where it was, and the box only shrinks once the fade completes.
+- [x] **FIX-03**: In an action prompt the buttons appear only after the final character has been typewriter'd out.
+- [x] **FIX-10**: A narrow window never clips the action button — the box never pins itself shorter than its content.
+- [x] **FIX-16**: A fading narration line stays exactly where it was, and the box only shrinks once the fade completes.
 - [ ] **FIX-06**: The 12 solid-orange `button.primary` buttons are restyled to the outline + faded-fill pattern.
 - [ ] **FIX-04**: The "{captain} is blown by the storm" line is removed, both viewer variants together.
 - [ ] **FIX-07**: A loser with an empty hold reads "they give up 5🌕", not the bribe framing; under 5 coins falls to the existing "all they have" line.
@@ -29,4 +29,3 @@
 2. **WIND-01 is the largest Safari risk this project has taken.** BUG-01 was a Safari near-crash caused by storm-overlay compositing; this runs a comparable layer on **every ordinary turn**. Phase 19's gate is mandatory.
 3. **Copy changes are inventory changes** — record them against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. Silent divergence between shipped source and Wyatt's approved dispositions is the failure this project has already had.
 4. **Standing design invariant** (`.planning/PROJECT.md`): bots have exactly the same rules and affordances as humans. Never raise "should bots be allowed to…" as an open question; parity may be restored by levelling the **human up**, not only the bot down.
-

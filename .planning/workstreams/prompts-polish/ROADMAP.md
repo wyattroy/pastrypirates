@@ -37,12 +37,12 @@ are small and independent.
 
 **Origin**: Wyatt's 2026-07-31 punch list + the v1.2 Phase 17 playtest (screenshot), plus the
 2026-08-01 batch (FIX-16, FIX-17, FIX-21). Plain-language overview: [`../../V1.3-V1.4-PLAN.md`](../../V1.3-V1.4-PLAN.md) "Phase 1 — Prompts & Polish".
-**Plans**: 7 plans, 6 waves
+**Plans**: 1/7 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 18-01-PLAN.md — wave 1 — the interlocking panel group: buttons wait for the typewriter, the ghost fades where it sat, the box re-measures on resize (FIX-03, FIX-10, FIX-16)
+- [x] 18-01-PLAN.md — wave 1 — the interlocking panel group: buttons wait for the typewriter, the ghost fades where it sat, the box re-measures on resize (FIX-03, FIX-10, FIX-16)
 - [ ] 18-02-PLAN.md — wave 1 — win-banner article: a per-recipe `article` field, `recipeArticle()`, and the one coordinated `src/ui/board.js` line (FIX-08)
 
 **Wave 2** *(blocked on Wave 1 completion)*
