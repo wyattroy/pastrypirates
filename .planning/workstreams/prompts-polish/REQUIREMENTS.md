@@ -14,12 +14,12 @@
 - [x] **FIX-10**: A narrow window never clips the action button — the box never pins itself shorter than its content.
 - [x] **FIX-16**: A fading narration line stays exactly where it was, and the box only shrinks once the fade completes.
 - [ ] **FIX-06**: The 12 solid-orange `button.primary` buttons are restyled to the outline + faded-fill pattern.
-- [ ] **FIX-04**: The "{captain} is blown by the storm" line is removed, both viewer variants together.
+- [x] **FIX-04**: The "{captain} is blown by the storm" line is removed, both viewer variants together.
 - [ ] **FIX-07**: A loser with an empty hold reads "they give up 5🌕", not the bribe framing; under 5 coins falls to the existing "all they have" line.
 - [x] **FIX-08**: The win banner only prints "a" in front of a recipe name that takes one. No recipe is renamed.
 - [ ] **FIX-09**: On narrow mobile the ingredient chips stay readable instead of collapsing into one vertical column.
 - [ ] **FIX-17**: The coloured circle beside captain names is removed everywhere it appears, and the row shifts left.
-- [ ] **FIX-21**: Narration never orphans a trailing chunk — `(+1🌕)` wraps as one block; awards keep a quantity with its unit.
+- [x] **FIX-21**: Narration never orphans a trailing chunk — `(+1🌕)` wraps as one block; awards keep a quantity with its unit.
 
 > **FIX-03 + FIX-10 + FIX-16 are ONE piece of work** — same function (`resizePanel`), same measurement, and each breaks the others if done alone. The measure-once design is BUG-01's Safari fix and must survive. Must respect `prefers-reduced-motion` and account for the shot clock running during the reveal.
 

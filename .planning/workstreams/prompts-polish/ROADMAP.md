@@ -37,7 +37,7 @@ are small and independent.
 
 **Origin**: Wyatt's 2026-07-31 punch list + the v1.2 Phase 17 playtest (screenshot), plus the
 2026-08-01 batch (FIX-16, FIX-17, FIX-21). Plain-language overview: [`../../V1.3-V1.4-PLAN.md`](../../V1.3-V1.4-PLAN.md) "Phase 1 — Prompts & Polish".
-**Plans**: 2/7 plans executed
+**Plans**: 3/7 plans executed
 
 Plans:
 **Wave 1**
@@ -47,7 +47,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 18-03-PLAN.md — wave 2 — remove the storm-drift line; wrap every orphan-prone trailing chunk, plus a permanent anchored gate (FIX-04, FIX-21)
+- [x] 18-03-PLAN.md — wave 2 — remove the storm-drift line; wrap every orphan-prone trailing chunk, plus a permanent anchored gate (FIX-04, FIX-21)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
