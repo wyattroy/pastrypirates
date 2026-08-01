@@ -10,7 +10,7 @@
 
 ### The Front Door — Phase 22
 
-- [ ] **FIX-01**: Players choose their name in a new modal that appears **after** they pick a play mode.
+- [x] **FIX-01**: Players choose their name in a new modal that appears **after** they pick a play mode.
 - [ ] **ABOUT-01**: A beautiful About page exists containing the rules, a screenshot of the game in action, the credits, and the Ko-Fi button.
 - [ ] **ABOUT-02**: The About page is reachable by its own link from the homepage.
 - [ ] **META-01**: A Google search result for the site shows a large preview image (robots meta + JSON-LD `image`).
@@ -24,4 +24,3 @@
 2. **WIND-01 is the largest Safari risk this project has taken.** BUG-01 was a Safari near-crash caused by storm-overlay compositing; this runs a comparable layer on **every ordinary turn**. Phase 19's gate is mandatory.
 3. **Copy changes are inventory changes** — record them against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. Silent divergence between shipped source and Wyatt's approved dispositions is the failure this project has already had.
 4. **Standing design invariant** (`.planning/PROJECT.md`): bots have exactly the same rules and affordances as humans. Never raise "should bots be allowed to…" as an open question; parity may be restored by levelling the **human up**, not only the bot down.
-
