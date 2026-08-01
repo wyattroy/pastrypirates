@@ -39,7 +39,7 @@ import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
+  currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
   waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
@@ -80,11 +80,14 @@ export function setClockUI(){
   // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
   pauseEl.style.display=(!appState.liveDone)?"":"none";
   $("scPauseImg").src=paused?PLAY_IMG:PAUSE_IMG;
-  // #7: the timer off/on toggle is offered to EVERY player in a real multiplayer game (2+ humans);
-  // solo games keep the ▶/⏸ pause instead. Its icon reflects the current state.
+  // #7 / D-20 (phase 21): the timer off/on toggle is offered to EVERY player in EVERY mode —
+  // the soloBotGame() gate that used to hide it in solo/pass-and-play is gone. It used to be a
+  // dead control there (toggleTimer() early-returned with no Firebase connection); Task 2 gave
+  // every mode a working code path behind it, so there is no longer a reason to hide it anywhere
+  // but end of voyage. Its icon reflects the current state.
   const toggleEl=$("scTimerToggle");
   if(toggleEl){
-    toggleEl.style.display=(!soloBotGame()&&!appState.liveDone)?"":"none";
+    toggleEl.style.display=appState.liveDone?"none":"";
     toggleEl.innerHTML=appState.timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG);
     // @copy misc.timer.toggletooltip
     toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
