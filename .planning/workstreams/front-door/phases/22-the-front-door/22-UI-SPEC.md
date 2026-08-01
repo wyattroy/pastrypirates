@@ -1,7 +1,7 @@
 ---
 phase: 22
 slug: the-front-door
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-31
@@ -90,6 +90,33 @@ page's primary action.
 
 ---
 
+## Layout & Visual Hierarchy
+
+> Added at the post-verification probe gate to close the checker's one FLAG (Dimension 2 — the
+> About page had no declared focal point). Decided by Wyatt, 2026-07-31.
+
+**Name modal:** focal point is the pre-filled name input. Hierarchy is the shipped `.modalCard`
+order — prompt heading (Heading, 17px/700) → name input (16px, the iOS-zoom exception) → confirm
+button (`button.primary`, the one accent-orange element on screen). Nothing else competes.
+
+**About page — hero row (the focal point):** on desktop the page title (Display, 28px/700) and the
+short "what this is" blurb (Body) sit in a **left column**, with the **screenshot in a right
+column** beside them. This two-up hero is the page's focal point: a stranger sees the name and the
+game in the same glance, and the SEO asset (META-01) is above the fold rather than buried.
+
+- Columns share a top alignment; the blurb wraps within its column and must not shove the
+  screenshot down or out of its column.
+- At ≤480px (the project's existing breakpoint) the row **stacks** in reading order: title →
+  blurb → screenshot.
+- Column gap: `xl` 32px desktop, collapsing to `lg` 24px stacked.
+
+**About page — below the hero,** stacked full-width in this order, `xl` 32px between top-level
+blocks and `lg` 24px between sections within one: **rules → credits → Ko-Fi button**. The Ko-Fi
+button is the page's single primary CTA and therefore the only place accent orange may appear on
+`about.html`; the About/nav links stay teal.
+
+---
+
 ## Copywriting Contract
 
 > **All copy below is a DRAFT starting point, not locked text.** D-09 (name-modal prompt is
@@ -114,16 +141,85 @@ page's primary action.
 
 ## UI Considerations
 
-Applicable state considerations resolved: 4 covered, 1 backstop, 1 unresolved
+> Produced by the post-verification UI-consideration probe (`ui-consideration-probe.cjs`) over the
+> five surfaces this phase touches. **38 applicable considerations — 22 covered, 5 backstop,
+> 11 dismissed, 0 unresolved.** Detected element kinds were checked against the real surfaces and
+> are a *superset* of what exists (the classifier reads "form"/"media" cues on the static About
+> page), so nothing is under-covered; the over-detections are the dismissed rows below.
+> State **copy** lives in `## Copywriting Contract` — the rows here reference it rather than
+> restating it.
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| empty | Name modal input | ✅ covered | Never empty — pre-filled per D-04 from last-used name (`localStorage`) or `unusedDefaultName()`/`DEFAULT_NAMES[0]` fallback; this is the row referenced in the Copywriting Contract's "Empty state" entry. |
-| zero-one-many | Name modal across 4 entry points (Solo / Pass & Play / Host / Join) | ✅ covered | D-03 — one modal instance, four callers, identical position in each flow; Join alone continues to its existing `#stepJoin` code screen afterward. |
-| long-text | Name modal input (captain name, up to 40 chars) | ✅ covered | Existing `maxlength="40"` truncation is unchanged (`index.html:817` pattern carries to the modal); downstream display already truncates/marquees via `.pname.marquee` — out of this phase's scope to touch, confirmed unaffected. |
-| loading | About page screenshot (`assets/*.png` or `.jpg`, the SEO/META-01 asset) | ✅ covered | Load eagerly with explicit `width`/`height` attributes (no `loading="lazy"`) — it is the page's largest content asset and the thing META-01 exists to let Google promote; lazy-loading it risks it not being ready when Google's crawler renders, and explicit dimensions prevent layout shift. |
-| overflow | About page screenshot at narrow viewports | 🧪 backstop | `width:100%; height:auto` with the explicit intrinsic `width`/`height` attributes reserving aspect ratio (same technique as `.modalLogo`, `index.html:707`). Visual check on a narrow viewport (≤480px, matching the project's existing breakpoint) is the backstop test — no automated check for this in a build-less project. |
-| populated | About page (rules copy, credits, screenshot, Ko-Fi button) | ⚠ unresolved | Final wording is Claude-drafted, Wyatt-approved per D-09 — a **blocking checkpoint** before the phase can be marked complete. The planner must not treat any About-page copy in this contract as shippable without that sign-off recorded against `copy-shipped-vs-approved-gate.md`. |
+**Surfaces probed:** E1 name modal · E2 welcome screen · E3 About page · E4 About screenshot ·
+E5 About link.
+
+### E1 — Name modal (form, interactive-control, static-content)
+
+| Category | Status | Resolution / Reason |
+|----------|--------|---------------------|
+| empty | ✅ covered | Never empty. Pre-filled per D-04 from `localStorage` last-used name (`pp_sess`/`pp_solo`/`pp_id`) or, first visit, `unusedDefaultName()`/`DEFAULT_NAMES[0]` (`src/shared/index.js:194–207`). If the player clears the field and confirms, the existing `(value||"").trim() || DEFAULT_NAMES[0]` fallback in `requireName()` applies — blank is never submitted. See Copywriting Contract → "Empty state". |
+| loading | ✅ covered | No async work. The modal opens synchronously on click and reads the name from `localStorage`; no skeleton or spinner exists or is added. Join mode's downstream `#stepJoin` keeps its own existing connect-state handling, untouched by this phase. |
+| error | ✅ covered | No new validation and no network call at confirm. The input keeps `maxlength="40"`, any name is accepted, and confirm hands off to the picked mode's existing flow, which owns its own errors. No error surface is added. See Copywriting Contract → "Error state". |
+| partial | ✅ covered | Exactly one field — there is no partially-filled state. |
+| overflow | ✅ covered | Single-line input inside the shipped `.modalCard` shell; text scrolls within the input (browser default) and cannot push the card wider. |
+| long-text | ✅ covered | `maxlength="40"` caps entry; downstream seat display already truncates/marquees via `.pname.marquee`, confirmed unaffected and out of scope to change. |
+
+### E2 — Welcome screen (form, list-collection, nav, interactive-control, static-content)
+
+| Category | Status | Resolution / Reason |
+|----------|--------|---------------------|
+| loading | ✅ covered | The welcome screen is the boot surface, already gated by the existing `preloadAssets()` progress. Adding the About link introduces nothing async. |
+| populated | ✅ covered | Normal state is the four `.choiceCard` mode buttons in `.choiceRow` plus the footer `.footerBtn` row, now carrying one added About link. Removing `#pname` (D-01) shortens the screen; no element reflows into a new shape. |
+| long-text | ✅ covered | Every label here is a hard-coded English string of known length; the About link's label is held short by the Copywriting Contract. |
+| overflow | 🧪 backstop | **Statement:** the footer `.footerBtn` row gains one more button and must *wrap* at narrow widths rather than clip or scroll off-screen. **Verification: backstop** — visual check of the footer row at 320px, 375px and 480px in both Safari and Chrome. No automated layout check exists in this build-less project. |
+| empty | ⊘ dismissed | Over-detection. The four mode cards are static markup, always rendered; the screen has no data source that can be empty. (The `form` cue came from `#pname`, which D-01 removes.) |
+| error | ⊘ dismissed | Once `#pname` is removed there is no submit and no fetch on this screen; the mode buttons hand off to flows that own their own errors. |
+| partial | ⊘ dismissed | No multi-field form remains after D-01. |
+| zero-one-many | ⊘ dismissed | The mode-card count is fixed at four in markup; there is no variable-count case. |
+
+### E3 — About page (list-collection, media, interactive-control, static-content)
+
+| Category | Status | Resolution / Reason |
+|----------|--------|---------------------|
+| loading | ✅ covered | Plain static HTML with its own stylesheet (D-07). The only asset that can be in flight is the screenshot, resolved under E4. No spinner, no skeleton. |
+| error | ✅ covered | The only failure mode is the screenshot failing to load, handled at E4 via required `alt` text. The Ko-Fi button opens the same embed as the footer and inherits that flow's existing behaviour. No new error surface. |
+| populated | ✅ covered | Per `## Layout & Visual Hierarchy`: desktop hero row = title + blurb left, screenshot right; below it, stacked, rules → credits → Ko-Fi. At ≤480px the hero stacks in reading order. `xl` 32px between top-level blocks, `lg` 24px between sections. |
+| zero-one-many | ✅ covered | The credits list is hand-authored and has no zero case (it always contains at least Wyatt). It renders as a plain vertical list at `sm` 8px between entries and stays readable at any length. |
+| overflow | 🧪 backstop | **Statement:** long rules copy simply extends the page via normal document scroll — no fixed-height container clips content. **Verification: backstop** — read the page top to bottom at 320px and at 1440px. |
+| long-text | 🧪 backstop | **Statement:** an over-long hero blurb must wrap within its own column and must not shove the screenshot down or out of the right column; the two columns keep equal top alignment. **Verification: backstop** — visual check with a deliberately over-long blurb before locking the final copy at D-09. |
+| empty | ⊘ dismissed | Fully static hand-authored content; no data source that can be absent. |
+| partial | ⊘ dismissed | Over-detection — no form and no data-backed fields on this page. |
+
+### E4 — About screenshot (media, static-content)
+
+| Category | Status | Resolution / Reason |
+|----------|--------|---------------------|
+| empty | ✅ covered | Exactly one screenshot, committed to the repo — it cannot be absent at runtime. If the file were ever missing, the `alt` text carries the meaning. |
+| loading | ✅ covered | Loaded **eagerly** (no `loading="lazy"`) with explicit `width`/`height` attributes. It is the page's largest content asset and the thing META-01 exists to let Google promote — lazy-loading risks it not being rendered when Google's crawler samples the page — and explicit dimensions prevent layout shift while it decodes. |
+| error | ✅ covered | `alt` text is **required** and must be a full descriptive sentence (it doubles as the accessibility text and an SEO signal), so a failed load degrades to meaningful text rather than a contextless broken-image icon. |
+| populated | ✅ covered | Displayed at ~1200×663 intrinsic (1.81:1), matching `og-image.jpg` so it stays reusable as a direct swap later (see Implementation Note 4). Sits in the right hero column on desktop, full-width when stacked. |
+| long-text | ✅ covered | Applies to the `alt` string only — a single sentence, never rendered as layout text. |
+| overflow | 🧪 backstop | **Statement:** `width:100%; height:auto` with the explicit intrinsic `width`/`height` attributes reserving aspect ratio (same technique as `.modalLogo`, `index.html:707`); in the desktop hero row it is additionally capped so it never exceeds its column. **Verification: backstop** — visual check at ≤480px and at 1440px. |
+| partial | ⊘ dismissed | A single image has no partial state — it decodes or falls back to `alt`. |
+| zero-one-many | ⊘ dismissed | Exactly one screenshot, fixed in markup. |
+
+### E5 — About link (nav, interactive-control, static-content)
+
+| Category | Status | Resolution / Reason |
+|----------|--------|---------------------|
+| loading | ✅ covered | A plain `<a href="about.html">`. Navigation is a full page load with the browser's own progress indicator; there is no in-app loading state to design. |
+| error | ✅ covered | `about.html` is a committed static file on the same origin; the only failure is a 404 if it is not deployed, which is a deploy check rather than a UI state. D-05 also adds it to `sitemap.xml`. |
+| populated | ✅ covered | Rendered in exactly two places — beside the mode cards on the welcome screen, and in the footer `.footerBtn` row — both using the teal footer-link treatment with the icon-prefix label convention (e.g. `ℹ️ About`), never the orange accent. |
+| long-text | ✅ covered | A short hard-coded label, held to one or two words by the Copywriting Contract. |
+| overflow | 🧪 backstop | **Statement:** this is the button that makes the footer row seven wide — it must wrap with the row, not clip it. **Verification: backstop** — covered by E2's footer-row wrap check at 320/375/480px. |
+| empty | ⊘ dismissed | Static markup, always present. |
+| partial | ⊘ dismissed | No data, so no partial state. |
+| zero-one-many | ⊘ dismissed | Exactly two fixed placements. |
+
+### Carried-forward blocking gate (not a probe row)
+
+| Item | Status | Detail |
+|------|--------|--------|
+| D-09 — About-page copy sign-off | ⚠ unresolved — **planner must treat as an assumption** | Every copy string in `## Copywriting Contract` is a DRAFT. Final About-page wording is Claude-drafted, **Wyatt-approved**, and that approval is a blocking checkpoint before this phase can be marked complete, recorded against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. The *shape* of the page is settled above; the *words* are not. |
 
 ---
 
@@ -164,11 +260,12 @@ and were surfaced by reading the actual code, not asked of the user (already ans
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS (checker returned FLAG — About page had no declared focal point; **resolved** at the probe gate by Wyatt's side-by-side hero decision, now recorded in `## Layout & Visual Hierarchy`)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (gsd-ui-checker, 2026-07-31) — 6/6 dimensions, 1 FLAG raised and since closed.
+**UI-consideration probe:** run post-verification — 38 applicable, 22 covered, 5 backstop, 11 dismissed, 0 unresolved, plus the D-09 copy gate carried forward as a blocking assumption.
