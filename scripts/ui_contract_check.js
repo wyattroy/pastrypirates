@@ -248,8 +248,12 @@ const REGISTER_LINE_ANCHORS = [
 // as copy. These are the only four places it appears as an identifier; each is a read, none is
 // player-facing text. Scoped to that one file so the fragments can never excuse a real string
 // somewhere else, and anchored on the exact code shape so a reformat goes loud.
+// FIX-21 (2026-08-01) reformatted the `?(you?...` / `:(you?...` ternaries onto their own lines (to
+// give each new nobrk-wrapped signed-coin parenthetical its own line) — the `you` read now sits on
+// a line with no trailing backtick, so the anchors below were re-shaped to match, per this file's
+// own rule: a reformat must re-anchor, not silently pass on a stale fragment.
 const REGISTER_IDENT_FILE = path.join("src", "ui", "util.js");
-const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you?`", ":(you?`", "txt:you"];
+const REGISTER_IDENT_FRAGMENTS = ["const you=isLocalTo(", "?(you", ":(you", "txt:you"];
 
 // ---------------------------------------------------------------------------
 // OUT-OF-CHARACTER CHROME (F1 2026-07-29 + G16 2026-07-30, both Wyatt-approved;
@@ -1047,8 +1051,12 @@ function drill() {
     fixture("src/ui/util.js", [
       "    const you=isLocalTo(e.p,viewerSeat);",
       "    if(e.won)return {cls:\"trade\",txt:e.amt",
-      "      ?(you?`ye called it! (+${e.delta})`:`called it! (+${e.delta})`)",
-      "      :(you?`ye called it!`:`called it!`)};",
+      "      ?(you",
+      "        ?`ye called it! (+${e.delta})`",
+      "        :`called it! (+${e.delta})`)",
+      "      :(you",
+      "        ?`ye called it!`",
+      "        :`called it!`)};",
       "    return {cls:\"trade\",txt:you",
       "      ?`ye backed the wrong ship`:`backed the wrong ship`};",
       "    const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))",

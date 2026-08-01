@@ -451,7 +451,7 @@ export const EVENT_NARRATION={
     const before=(prev&&prev.state&&prev.state[e.p])?prev.state[e.p].coins:null;
     const after=(e.state&&e.state[e.p])?e.state[e.p].coins:null;
     const lost=(before!=null&&after!=null)?Math.max(0,before-after):null;
-    const lossTag=lost!=null?` (−${lost}🌕)`:"";
+    const lossTag=lost!=null?` <span class="nobrk">(−${lost}🌕)</span>`:"";
     return {txt:isLocalTo(e.p,viewerSeat)
         ?(e.ing?`${pn(e.p)} — ye flip ⚫TAILS and run aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} — ye flip ⚫TAILS and run aground! Ye lose half yer coins on repairs${lossTag} ⚠️`)
         :(e.ing?`${pn(e.p)} flips ⚫TAILS and runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS and runs aground! Loses half their coins doing repairs${lossTag} ⚠️`),
@@ -529,11 +529,19 @@ export const EVENT_NARRATION={
   sidebet:(e,at,cellPx,viewerSeat)=>{
     const you=isLocalTo(e.p,viewerSeat);
     if(e.won)return {cls:"trade",txt:e.amt
-      ?(you?`🔭 ${pn(e.p)} — ye called it! 1🌕 + double yer bet (+${e.delta}🌕)`:`🔭 ${pn(e.p)} called it! 1🌕 + double their bet (+${e.delta}🌕)`)
-      :(you?`🔭 ${pn(e.p)} — ye called it! (+${e.delta}🌕)`:`🔭 ${pn(e.p)} called it! (+${e.delta}🌕)`)};
+      ?(you
+        ?`🔭 ${pn(e.p)} — ye called it! 1🌕 + double yer bet <span class="nobrk">(+${e.delta}🌕)</span>`
+        :`🔭 ${pn(e.p)} called it! 1🌕 + double their bet <span class="nobrk">(+${e.delta}🌕)</span>`)
+      :(you
+        ?`🔭 ${pn(e.p)} — ye called it! <span class="nobrk">(+${e.delta}🌕)</span>`
+        :`🔭 ${pn(e.p)} called it! <span class="nobrk">(+${e.delta}🌕)</span>`)};
     return {cls:"trade",txt:you
-      ?(e.amt?`💰 ${pn(e.p)}, ye backed the wrong ship (−${e.amt}🌕)`:`🔭 ${pn(e.p)} — ye backed the wrong ship. No bounty.`)
-      :(e.amt?`💰 ${pn(e.p)} backed the wrong ship (−${e.amt}🌕)`:`🔭 ${pn(e.p)} backed the wrong ship — no bounty.`)};
+      ?(e.amt
+        ?`💰 ${pn(e.p)}, ye backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>`
+        :`🔭 ${pn(e.p)} — ye backed the wrong ship. No bounty.`)
+      :(e.amt
+        ?`💰 ${pn(e.p)} backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>`
+        :`🔭 ${pn(e.p)} backed the wrong ship — no bounty.`)};
   },
   battle:(e,at,cellPx=0,viewerSeat)=>{
     // count by who actually scored (r[3]) rather than the raw flip pattern — a both-heads

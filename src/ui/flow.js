@@ -1497,7 +1497,7 @@ export async function showTurnOrderIntro(order){
   // "(+1)". Emoji shorthand, not hand-rolled markup: emojify() swaps it for COIN_IMG at panel()'s
   // chokepoint (D-50), the same path every other 🌕 in this file takes. No sign change — D-38 already
   // has this one right, it is a gain and it was already signed.
-  const rest=order.slice(1).map((i,k)=>`${pn(i)} (+${k+1}🌕)`).join(", ");
+  const rest=order.slice(1).map((i,k)=>`${pn(i)} <span class="nobrk">(+${k+1}🌕)</span>`).join(", ");
   const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+
     `No fretting, patience pays — ${rest} all cast off with extra dubloons.`;
   // @copy misc.introbarrier.turnorder
