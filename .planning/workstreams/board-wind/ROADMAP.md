@@ -13,7 +13,7 @@
   - [x] 19-02-PLAN.md — The Wave 0 mechanical guard: `scripts/wind_dot_contract_check.js`, wired into `npm test` (wave 1)
   - [x] 19-03-PLAN.md — Tracer: one dot drifts on the live wind, with an on-screen switch, dial and readout, off by default (wave 2, gated on 19-01's recorded go-ahead)
   - [x] 19-04-PLAN.md — Wyatt's full motion spec, the correct 0–100 dial, reduced motion, and the `will-change` toggle (wave 3)
-  - [ ] 19-05-PLAN.md — The calibrated smoothness meter and the plain end-of-voyage summary (wave 4)
+  - [x] 19-05-PLAN.md — The calibrated smoothness meter and the plain end-of-voyage summary (wave 4)
   - [ ] 19-06-PLAN.md — Chrome pre-flight, Wyatt's two Safari runs on both devices, and the verdict (wave 5)
 
 - [ ] **Phase 20: The Board Comes Alive** — Drifting wind dots, arrows flowing into a rotating whirlpool, a signal before a ship is swept into the trade winds, and a pastry scent on every wind direction change (WIND-01…05). **Depends on Phase 19 passing**
