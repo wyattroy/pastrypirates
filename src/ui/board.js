@@ -32,8 +32,11 @@
 // SCOPED EXCEPTION — PHASE 19 / WIND-00 (Wyatt-approved 2026-07-31, the "go-ahead" recorded in
 // 19-01-SUMMARY.md), recorded here so the next reader is not entitled to revert it. render() gained
 // exactly ONE appended call to windDotsTick inside its existing `if(spinNeedle&&e.wind)` block,
-// passing the same live `angle` — nothing already there was reordered or removed. Everything else
-// this exception covers lives in a new, clearly-marked region between the
+// passing the same live `angle` — nothing already there was reordered or removed. showStats() (19-05)
+// gained a SECOND appended call, to renderWindSummary, as the very last statement of its existing
+// body — same pattern, same rule: nothing already there was reordered or removed, and the call is a
+// no-op unless the prototype is enabled. Everything else this exception covers lives in a new,
+// clearly-marked region between the
 // "WIND DOT PROTOTYPE (Phase 19 / WIND-00) BEGIN" and "... END" markers below (after
 // buildStormLayers()), inert unless explicitly enabled (WIND_PROTOTYPE_ENABLED_DEFAULT=false,
 // flipped only by the `?wind=1` URL flag or the `pp_wind_proto` localStorage key).
@@ -711,6 +714,55 @@ export function windMeterSummary(){
   };
 }
 
+// windFormatElapsed(ms) — D-05's "roughly when it happened": elapsed time floored to whole seconds
+// (Math.floor, never rounding upward past a boundary — 4m 12.9s in must read "4m 12s", not "4m 13s")
+// and always rendered as BOTH whole minutes and whole seconds (e.g. "0m 12s", "4m 12s"), never
+// minutes alone or seconds alone, so the figure's shape never depends on how long the voyage ran.
+function windFormatElapsed(ms){
+  const totalSec=Math.floor(Math.max(0,ms)/1000);
+  const m=Math.floor(totalSec/60);
+  const s=totalSec%60;
+  return `${m}m ${s}s`;
+}
+
+// renderWindSummary() — the plain-English end-of-voyage read Wyatt uses to judge the verdict
+// (D-05, D-09). Returns immediately when the prototype is off, so a normal build's End of Voyage
+// screen is byte-identical to before this plan. Builds/reuses one #windSummary block appended to
+// #statsPanel and writes plain sentences, not a table of jargon — this is the text Wyatt reads to
+// decide whether Phase 20 goes ahead, not a metrics dump.
+export function renderWindSummary(){
+  if(!windPrototypeEnabled())return;
+  const panel=$("statsPanel");
+  if(!panel)return;
+  let box=$("windSummary");
+  if(!box){
+    box=document.createElement("div");
+    box.id="windSummary";
+    box.style.marginTop="10px";
+    box.style.padding="8px 10px";
+    box.style.border="1.5px dashed #29a3b2";
+    box.style.borderRadius="8px";
+    box.style.fontSize="12px";
+    box.style.textAlign="left";
+    panel.appendChild(box);
+  }
+  const s=windMeterSummary();
+  const lines=[`<div><b>Wind-dot smoothness check (Phase 19 prototype)</b></div>`];
+  if(s.samples===0){
+    lines.push(`<div>No frames were measured this voyage.</div>`);
+  }else{
+    lines.push(`<div>Typical: about ${s.typicalFps} frames a second.</div>`);
+    lines.push(`<div>Worst moment: about ${s.worstFps} frames a second, roughly ${windFormatElapsed(s.worstAtMs)} in.</div>`);
+    lines.push(`<div>${s.dips} rough moment${s.dips===1?"":"s"} noticed, out of ${s.samples} frames measured.</div>`);
+    lines.push(`<div>Dial ended at ${windDotCount} dot${windDotCount===1?"":"s"}, with the will-change hint ${windWillChangeOn?"ON":"OFF"}.</div>`);
+    lines.push(`<div>${s.discarded} pause${s.discarded===1?"":"s"} ignored — the screen was off or the tab was hidden, not a stutter.</div>`);
+    if(s.lowPowerSuspected){
+      lines.push(`<div>This device looked like it was in a power-saving mode for this run — read the numbers above in that light.</div>`);
+    }
+  }
+  box.innerHTML=lines.join("\n");
+}
+
 // windDotLoop(now) — the ONE shared requestAnimationFrame loop for every dot, never one per dot.
 // Samples the frame delta first (now-windLastFrameMs, when a previous frame exists), hands it to
 // windMeterSample (the calibrated instrument above) so measuring costs one call and no extra loop,
@@ -1373,6 +1425,7 @@ export function showStats(){
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}${victoryPic}${victoryLine}</div>
     <div class="awardsRow">${awards}</div>
     ${statsTable}`;
+  renderWindSummary();
 }
 
 // a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
