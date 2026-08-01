@@ -52,10 +52,10 @@ last_updated: 2026-08-01T04:01:09.551Z
     "file": "scripts/narration_audit_check.js",
     "line": 1214,
     "description": "npm test is red pre-existing: narration_audit_check.js reads .planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json, but that file was relocated to .planning/milestones/v1.2-phases/15-narration-audit-fixes/ by the v1.2 milestone archive commit; the hardcoded path was never updated. Blocks 19-02 Task 2's precondition (npm test green before wiring in the new guard).",
-    "status": "open",
-    "reason": "",
+    "status": "fixed",
+    "reason": "Orchestrator fix, out of the board-wind workstream's declared file scope (D-14) and taken because it blocked the npm-test verification gate every plan in phase 19 depends on. The live break was art-review/narration-audit.html:1156-1157, which fetches both of phase 15's review files; scripts/narration_audit_check.js:1214 read the same stale path but swallowed the miss via readJson's catch, which had been silently skipping assertion 8 (the 209-disposition migration check) since the archive. Both call sites now read the archived home first and the pre-archive home second rather than being re-pinned to the new path, because branches in this repo sit on both sides of d5189c2 and a single hardcoded path is only ever correct on one side. npm test now exits 0 with 23/23 assertion groups passing (was 22 groups, 1 failing) and zero determinism-fixture changes. FLAGGED FOR WYATT in the phase-19 morning briefing: this touched another workstream's files while he was asleep.",
     "recorded_at": "2026-08-01T04:01:09.551Z",
-    "resolved_at": null
+    "resolved_at": "2026-08-01T04:40:00.000Z"
   }
 ]
 ````

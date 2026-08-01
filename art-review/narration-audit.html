@@ -1152,9 +1152,24 @@ const adhocById = Object.fromEntries(inv.adhoc.map((e) => [e.id, e]));
  * mark he made. scripts/narration_audit_check.js asserts that arithmetic on every
  * test run: 209 == aliased + retired, and the retired set equals a pinned six-id list.
  * ==========================================================================*/
+// NOTE: phase 15's two review files were relocated under .planning/milestones/v1.2-phases/ by the
+// v1.3 milestone archive (d5189c2) and the paths here were never updated, which took the page — and
+// npm test through it — red. Branches in this repo sit on BOTH sides of that archive, so each file
+// is read from its archived home first and its pre-archive home second rather than re-pinned to one
+// path: a single hardcoded path is only ever correct on one side of the move.
+const REVIEW_FILE_HOMES = ["../.planning/milestones/v1.2-phases/", "../.planning/phases/"];
+const readReviewFile = async (rel) => {
+  for (const base of REVIEW_FILE_HOMES) {
+    try {
+      const r = await fetch(base + rel, { cache: "no-store" });
+      if (r.ok) return await r.json();
+    } catch (e) { /* not at this home — fall through and try the next */ }
+  }
+  throw new Error(`${rel}: readable at neither ${REVIEW_FILE_HOMES.join(" nor ")}`);
+};
 const [dispositionsFile, addressed2File, aliasFile] = await Promise.all([
-  fetch("../.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json", { cache: "no-store" }).then((r) => r.json()),
-  fetch("../.planning/phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json", { cache: "no-store" }).then((r) => r.json()),
+  readReviewFile("15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json"),
+  readReviewFile("15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json"),
   fetch("narration-id-aliases.json", { cache: "no-store" }).then((r) => r.json()),
 ]);
 const ALIAS_TO_NEW = Object.fromEntries((aliasFile.entries || []).filter((e) => e.new).map((e) => [e.old, e.new]));
