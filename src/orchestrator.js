@@ -107,7 +107,7 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
-  stopShotClock, currentTurnSeat, rearmShotClock, waitWhilePaused,
+  stopShotClock, waitWhilePaused, applyTimerOff,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
 } from "./ui/index.js";
@@ -199,24 +199,11 @@ export function watchPause(){
     setClockUI();
   });
 }
+// notes/edits BUG-02 / D-18 (phase 21): the state-mutation body (including the re-arm fix) now
+// lives in src/ui/util.js's applyTimerOff(), shared verbatim with toggleTimer()'s new local
+// branch below — this callback is reduced to just the Firebase wiring.
 export function watchTimer(){
-  netWatchTimerOff(appState.db,appState.room,s=>{
-    // notes/edits BUG-02: this callback only ever handled the on→off direction. Switching the
-    // timer back on left the in-flight turn with no armed clock at all — startShotClock() is
-    // only called at the START of a turn (armClock), so nothing re-armed the turn already in
-    // progress. That is the "I paused the timer and then the game wouldn't continue" report.
-    const was=appState.timerOff;
-    appState.timerOff=!!s.val();
-    if(appState.isHost&&appState.timerOff)stopShotClock();
-    else if(appState.isHost&&was&&!appState.timerOff&&appState.shotClockSeat==null&&!appState.turnExpired){
-      // shotClockSeat==null is what prevents double-arming: this callback fires on EVERY client
-      // for every write, so the host also runs it for a write a guest originated.
-      const seat=currentTurnSeat();
-      const p=seat!=null?appState.game.players[seat]:null;
-      if(p&&!p.done)rearmShotClock(p);
-    }
-    setClockUI();
-  });
+  netWatchTimerOff(appState.db,appState.room,s=>applyTimerOff(!!s.val()));
 }
 // notes/edits #1 audit: this was a bare netNarrate() with no hold/fade at all — the shot-clock
 // penalty text could get clobbered the instant the next event fires, with no guaranteed read

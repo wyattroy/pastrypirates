@@ -1277,6 +1277,33 @@ export function applyPauseState(nowPaused){
     }
   }
 }
+// notes/edits BUG-02 / D-18 (phase 21): the timer-off state-mutation body, extracted VERBATIM out
+// of src/orchestrator.js's watchTimer() Firebase-listener callback so BOTH the networked path
+// (watchTimer(), unchanged below other than calling this) and the new local path (toggleTimer()'s
+// solo/pass-and-play branch) share this ONE body — the whole point being that the re-arm fix below
+// (BUG-02: switching the timer off then back on mid-turn must re-arm the clock for the player
+// whose turn is in progress, or the game freezes) cannot drift between the networked and local code
+// paths. Mirrors applyPauseState()'s own no-gate discipline immediately above: every appState.isHost
+// gate already lived INSIDE this body before the move and stays exactly where it was — the caller
+// decides who may call this, not this function.
+export function applyTimerOff(off){
+  const was=appState.timerOff;
+  appState.timerOff=off;
+  if(appState.isHost&&appState.timerOff)stopShotClock();
+  else if(appState.isHost&&was&&!appState.timerOff&&appState.shotClockSeat==null&&!appState.turnExpired){
+    // shotClockSeat==null is what prevents double-arming: this fires on EVERY client for every
+    // write (networked path) or the one local browser (solo/pass-and-play), so the host also runs
+    // it for a write a guest originated.
+    const seat=currentTurnSeat();
+    const p=seat!=null?appState.game.players[seat]:null;
+    if(p&&!p.done)rearmShotClock(p);
+  }
+  // src/ui/util.js is imported by src/ui/panel.js (setClockUI() lives there) — calling setClockUI()
+  // directly here would close an import cycle scripts/module_graph_check.js forbids outright, so
+  // this reaches it through the same netHandlers() render seam toggleShotClockPause() uses one
+  // function below.
+  netHandlers().onSetClockUI();
+}
 // works any time in solo play, not just on your own turn — shotClockPaused doubles as the
 // whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
 // actually freezes the bots instead of just a countdown that isn't running yet.
