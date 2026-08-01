@@ -44,13 +44,29 @@ import {
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
-import { playForEvent } from "../shared/audio.js";
+import { playForEvent, isMuted } from "../shared/audio.js";
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
 
 export function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
+  // AUDIO-02/D-15/D-16 (phase 21): #btnMute is a #controlsRow sibling (index.html), not a third
+  // corner icon on the clock face — rendered here, above the end-of-voyage early return below,
+  // so the same tick that hides #shotClockPanel at the win screen also hides #btnMute (D-16),
+  // one code path, no second branch. Its click is bound exactly once in wireLobby()
+  // (src/orchestrator.js) — this block only ever writes display/innerHTML/title, exactly like
+  // the #scTimerToggle block below, and must never touch that binding (CLOCK-03 discipline:
+  // setClockUI() re-runs on the 500ms interval).
+  const muteEl=$("btnMute");
+  if(muteEl){
+    muteEl.style.display=appState.liveDone?"none":"";
+    muteEl.innerHTML=isMuted()?"🔇":"🔊";
+    // Tooltip copy recorded in .planning/todos/pending/copy-shipped-vs-approved-gate.md — no
+    // @copy marker (a new misc.sound.* id would need registering in art-review's node-group
+    // table, out of scope for this phase; see that file's phase-21 entry for the follow-up).
+    muteEl.title=isMuted()?"Turn the sound back on":"Mute the sound";
+  }
   wrap.classList.remove("warming"); // UI-02: only the active countdown branch below re-adds it
   if(appState.liveDone){
     wrap.classList.remove("idle","urgent","paused");
