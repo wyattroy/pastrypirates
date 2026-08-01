@@ -36,6 +36,18 @@ Luis Zanforlin's six sound effects play at the right game moments, on by default
 
 - **D-05:** The win screen gets a sound rather than silence, but **as an explicit placeholder**. Claude selected `store-ingredient.mp3` (5 KB — the short, bright one, closest to a chime). This MUST be marked in code and in the summary as a stand-in for a purpose-made victory sound from Luis. Nothing in the six actually sounds like victory. — **Reversibility:** reversible — one constant swaps when a real file arrives.
 - **D-06:** Remaining moments stay silent: `blocked`, `moored`, `turn`, `newround`, `tradewind`, `bakeoff`, `end`, `finish`.
+- **D-21:** *(Added after research, 2026-07-31.)* **The live event stream carries 25 types, not 19.** The original count came from grepping the engine only; six further events are emitted from the UI tier (`src/ui/flow.js`) and were therefore missing from D-01..D-06. Research cross-verified 25 against `EVENT_NARRATION`'s key list and `scripts/narration_test.js`. Wyatt ruled on all six:
+
+  | Moment | Sound | Rationale |
+  |---|---|---|
+  | `blownOut` (a gale blows you off the dock) | `ship-move` | Same case as `windmove` — your ship moved, not by choice |
+  | `anchorHold` (your anchor holds in a storm) | `fishing` | Belongs to the anchor-in-a-storm family already mapped to `fishing` at D-03 |
+  | `parley` (a captain makes an offer) | *silent* | An offer is not a deal; every bot haggle making noise would wear thin |
+  | `sidebet` (Lookout's Call) | *silent* | Already deliberately suppressed in narration to avoid duplicate lines (`narrateLastEvent` returns early on it) |
+  | `shotclock` (your turn timer runs out) | `battle-swords` — **placeholder** | See D-22 |
+  | `shotclockskip` (a turn is skipped on time) | `battle-swords` — **placeholder** | See D-22 |
+
+- **D-22:** Running out of time **makes a noise** — Wyatt's call, so you notice even if you looked away, rather than relying on the clock going red on screen alone. None of the six sounds is an alarm, so this is an **explicit placeholder**: Claude selected `battle-swords.mp3` (short, percussive, unambiguously adverse). It MUST be marked as a stand-in in code and in the summary, and joins the shopping list for Luis. — **Reversibility:** reversible — one constant swaps when a real alert sound arrives.
 
 ### How sounds behave together
 
@@ -89,7 +101,7 @@ Luis Zanforlin's six sound effects play at the right game moments, on by default
 - `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 — why the engine is untouchable for the whole of v1.3
 
 ### Art
-- `notes/art-generation-process.md` — the runbook for producing the new speaker icon (D-14)
+- `notes/art-generation-process.md` — the runbook for producing the new speaker icon (D-14). **Note:** this file exists on disk in Wyatt's main project folder but `notes/` is in `.gitignore`, so it is NOT in git and NOT visible from a worktree. Research flagged it as missing; it is not missing, only untracked. Ask Wyatt for it rather than concluding it does not exist.
 - `assets/icons/blocked-slash.png` — the established "switched off" overlay, already used by the timer toggle
 
 </canonical_refs>
@@ -129,7 +141,8 @@ Luis Zanforlin's six sound effects play at the right game moments, on by default
 ## Deferred Ideas
 
 - **A purpose-made victory sound from Luis.** `store-ingredient.mp3` at the win screen is a flagged placeholder (D-05), not a decision to keep it.
-- **Sound files for the moments still borrowing or silent** — a shopping list for Luis: shipwreck, running aground, fleeing, and the win.
+- **A purpose-made time-out alert from Luis.** `battle-swords.mp3` on the shot clock expiring is likewise a flagged placeholder (D-22).
+- **Sound files for the moments still borrowing or silent** — a shopping list for Luis: shipwreck, running aground, fleeing, the win, and a turn-timer alarm.
 - **N-02 red urgency animation** and **N-04 the wider parity/testing sweep** — already assigned to v1.4, out of scope here per the workstream roadmap.
 - **Muting before a game starts** (a welcome-screen control) — considered and rejected for this phase at D-15; would need a second home outside the clock panel.
 - **A "your turn" cue that survives a background tab** — considered and rejected at D-12.
