@@ -20,7 +20,7 @@
   - [x] 21-02-PLAN.md — The 25-key event→sound mapping, storm fires-once + fade, both placeholder sounds, host/guest/win-screen wiring [AUDIO-01]
   - [x] 21-03-PLAN.md — The timer toggle: `applyTimerOff()` extraction, the local non-Firebase path, per-browser seed in every mode, visible everywhere [FIX-02/N-03]
   - [x] 21-04-PLAN.md — The mute button beside the clock, Luis's sound credit, and the copy-inventory entry [AUDIO-02, AUDIO-03]
-  - [ ] 21-05-PLAN.md — The real speaker icon, and the phase verification matrix in Chrome and Safari [all four]
+  - [~] 21-05-PLAN.md — The real speaker icon, and the phase verification matrix in Chrome and Safari [all four] *(Task 2 complete — 11-row matrix produced, all machine fences green; Task 1 halted cleanly on its own precondition — the art runbook needs Wyatt's live session and did not run overnight. See 21-05-SUMMARY.md.)*
 
 ## Boundaries
 

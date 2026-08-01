@@ -10,7 +10,7 @@
 
 ### Sound & the Clock Toggle — Phase 21
 
-- [ ] **AUDIO-01**: Luis's sound effects play at appropriate game moments, on by default.
+- [ ] **AUDIO-01**: Luis's sound effects play at appropriate game moments, on by default. *(Code-complete since 21-02; the 11-row human verification matrix in 21-05-SUMMARY.md is the only thing outstanding — Wyatt's ears, not more engineering.)*
 - [x] **AUDIO-02**: A mute button sits to the right of the turn clock.
 - [x] **AUDIO-03**: Luis is credited for the sound effects in the Credits modal.
 - [x] **FIX-02 / N-03**: Solo gets the timer on/off toggle **and it works**; the same toggle starts working in pass-and-play. One local, non-Firebase code path fixes both — `watchTimer()` drives it from a Firebase node neither mode has. *(21-03: code-level complete; D-18 full-turn both-ways manual check outstanding — see 21-03-SUMMARY.md.)*
