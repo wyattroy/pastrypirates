@@ -2,12 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: The Game Comes Alive
-status: "v1.3 planned — Phases 18-22 roadmapped, none started"
-last_updated: "2026-07-31T22:03:58.955Z"
-last_activity: 2026-08-01
-stopped_at: "v1.3 opened 2026-08-01. Roadmap written from .planning/V1.3-V1.4-PLAN.md (Wyatt-ordered). Next: /gsd-plan-phase 18, or 21/22 in parallel. Phase 19 is a Safari gate Wyatt runs himself; Phase 20 waits on it."
+current_phase_name: defining requirements
+status: v1.3 planned — Phases 18-22 roadmapped, none started
+stopped_at: Completed 21-03-PLAN.md — timer toggle now works in every mode via local applyTimerOff() path; D-18/D-19 manual checks outstanding for Wyatt
+last_updated: "2026-08-01T04:36:51.642Z"
+last_activity: 2026-07-31
+last_activity_desc: Milestone v1.3 started
 progress:
-  total_phases: 5
+  total_phases: 11
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -68,6 +70,7 @@ Last activity: 2026-07-31 — Milestone v1.3 started
 | Phase 15 P03 | 25min | 3 tasks | 3 files |
 | Phase 15 P04 | 15min | 3 tasks | 3 files |
 | Phase 15 P06 | large-session | 2 tasks | 9 files |
+| Phase 21 P03 | ~10min | 3 tasks | 4 files |
 
 ## Quick Tasks Completed
 
@@ -129,6 +132,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Quick 2026-07-29 playtest-bug-fixes]: **a sub (helper text) card needs a `SUB_BRANCH_AXES` entry or the copy is invisible to review.** F9's new reason rendered SILENT under the review tool's default 4-coin context — present in source, reachable at runtime, never on the page. A sub reuses its ask's `@copy` id, so no new marker and no page edit were needed; the missing piece was the branch axis. Cards 210 → 212, silent 6 → 7, errors 0.
 - [Quick 2026-07-29 playtest-bug-fixes]: **F6 narrowed by Wyatt to a DISPLAY-only change.** "Never fade the last line — only fade when something replaces it… the blue box should never be empty." The HOLD is preserved (`flash()` still awaits `msgHoldMs(text)`, `MSG_HOLD_MULTIPLIER` 0.72 and the chat-bubble curve untouched); only the trailing fade-to-empty and its `sleep(500)` are gone, and `_narrToken` died with them as dead code. NARR-06's "10% less time before it begins fading" is now inapplicable to a trailing line and needs RE-WORDING, not re-verifying — `REQUIREMENTS.md` deliberately untouched.
 - [Quick 2026-07-29 playtest-bug-fixes]: **three plan-supplied source assertions were themselves buggy and had to be corrected rather than satisfied.** (1) `indexOf("renderSeatList")` matched the file-header comment, not the function; (2) a flip-prompt check filtered on `"Dock at"`, which never matches `"Docking at"`; (3) an "is the coin test out of the branch condition" check sliced from `if(` to the prompt and so read the NEXT statement's `const canBuy=p.coins>=3` as part of the condition. Each was replaced with a precise locator (balanced-paren extraction for the third). A green assertion that cannot fail is worse than none.
+- [Phase ?]: 21-03: applyTimerOff() extracted beside applyPauseState() in src/ui/util.js, carrying the BUG-02 re-arm verbatim; toggleTimer() gets togglePause()'s db/room-vs-local branch shape; beginGame() seeds appState.timerOff from pp_timerOff unconditionally in every mode (D-19); #scTimerToggle visibility now keys only on appState.liveDone, no mode gate (D-20). D-18 full-turn both-ways check across all three modes is outstanding — human-only, not run tonight.
 
 ### Pending Todos
 
@@ -170,9 +174,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-30T00:00:00.000Z
-Stopped at: Quick task 20260730-playtest-session2-fixes COMPLETE — all 13 tasks, 13 commits. Seventeen items (G10–G26) from the recorded two-tab playtest of room NAMF. `npm test` 17 gates, exit 0; `src/engine/index.js` byte-identical throughout; 31/31 determinism. THREE BROWSER CHECKS ARE OUTSTANDING and are Wyatt's: the G17 strict fade, the G19 storm rain (incl. a Safari pass), and a G25+G14 guest-seat parity pass.
-Resume file: .planning/quick/20260730-playtest-session2-fixes/SUMMARY.md
+Last session: 2026-08-01T04:36:51.633Z
+Stopped at: Completed 21-03-PLAN.md — timer toggle now works in every mode via local applyTimerOff() path; D-18/D-19 manual checks outstanding for Wyatt
+Resume file: None
 
 ## Operator Next Steps
 

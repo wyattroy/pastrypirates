@@ -13,7 +13,7 @@
 - [ ] **AUDIO-01**: Luis's sound effects play at appropriate game moments, on by default.
 - [ ] **AUDIO-02**: A mute button sits to the right of the turn clock.
 - [ ] **AUDIO-03**: Luis is credited for the sound effects in the Credits modal.
-- [ ] **FIX-02 / N-03**: Solo gets the timer on/off toggle **and it works**; the same toggle starts working in pass-and-play. One local, non-Firebase code path fixes both — `watchTimer()` drives it from a Firebase node neither mode has.
+- [x] **FIX-02 / N-03**: Solo gets the timer on/off toggle **and it works**; the same toggle starts working in pass-and-play. One local, non-Firebase code path fixes both — `watchTimer()` drives it from a Firebase node neither mode has. *(21-03: code-level complete; D-18 full-turn both-ways manual check outstanding — see 21-03-SUMMARY.md.)*
 
 > N-02's urgency animation and N-04's wider parity sweep stay in v1.4. The clock panel already renders in solo, so **AUDIO-02's anchor exists today** and is not blocked by the toggle work.
 
