@@ -38,6 +38,13 @@
     color: var(--ink); }
   .abtPage { max-width: 960px; margin: 48px auto; padding: 0 24px 48px; }
 
+  /* -------- top CTA (the page's primary action — start a game) -------- */
+  .abtTopCta { text-align: center; margin-bottom: 32px; }
+  .abtPlayBtn { display: inline-block; font-family: inherit; font-size: 14px; font-weight: 700;
+    padding: 16px 32px; border-radius: 12px; border: 1.5px solid var(--accent); cursor: pointer;
+    background: var(--accent); color: #fff; text-decoration: none; box-shadow: 0 8px 24px rgba(253,182,61,.35); }
+  .abtPlayBtn:hover { filter: brightness(1.08); }
+
   /* -------- hero row (the page's focal point) -------- */
   .abtHero { display: flex; align-items: flex-start; gap: 32px; margin-bottom: 32px; }
   .abtHeroText { flex: 1 1 320px; min-width: 0; }
@@ -57,24 +64,44 @@
   .abtRules h3 { margin: 16px 0 4px; color: var(--teal); font-size: 14px; }
   .abtRules h3:first-child { margin-top: 0; }
   .abtRules p { margin: 8px 0; }
-  .abtRules .abtRulesNote { margin-top: 16px; font-size: 12.5px; opacity: .75; }
+
+  /* -------- rule rows: an in-game screenshot beside its explanation, so the page feels alive -------- */
+  .abtRuleRow { display: flex; align-items: center; gap: 16px; margin: 16px 0; }
+  .abtRuleRow.reverse { flex-direction: row-reverse; }
+  .abtRuleRow img { width: 100%; max-width: 180px; height: auto; flex-shrink: 0; display: block;
+    border-radius: 12px; border: 2px solid var(--teal); }
+  .abtRuleRow p { margin: 0; flex: 1 1 240px; min-width: 0; }
+
+  /* -------- example recipes -------- */
+  .abtRecipesImg { width: 100%; height: auto; max-width: 100%; display: block; margin-top: 16px;
+    border-radius: 16px; border: 3px solid var(--teal); box-shadow: 0 12px 30px rgba(10,35,40,.2); }
+
+  /* -------- testimonials (the four default bot captains reviewing the game — a light touch) -------- */
+  .abtTestimonials { list-style: none; margin: 0; padding: 0; display: grid;
+    grid-template-columns: 1fr 1fr; gap: 16px; }
+  .abtTestimonials li { margin: 0; font-size: 13.5px; line-height: 1.55; font-style: italic; }
+  .abtTestimonials li span { display: block; margin-top: 4px; font-style: normal; font-weight: 700; color: var(--teal); }
 
   .abtCredits { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.5; }
   .abtCredits li { margin: 0 0 8px; }
   .abtCredits li:last-child { margin-bottom: 0; }
   .abtCredits a { color: var(--teal); }
 
-  /* Ko-Fi — the page's single primary CTA, the only place accent orange appears here. */
+  /* Ko-Fi — secondary CTA. The page's primary CTA is the "⚓ Play Pastry Pirates" link at the top
+     of the page (added per Wyatt's playtesting feedback, 2026-08-01) — accent orange is reserved
+     for that button now, not this one. Styled as a lighter outline treatment so the two read as
+     primary/secondary at a glance. */
   #aboutKofiBtn { display: inline-block; font-family: inherit; font-size: 14px; font-weight: 700;
-    padding: 12px 20px; border-radius: 10px; border: 1.5px solid var(--accent); cursor: pointer;
-    background: var(--accent); color: #fff; }
-  #aboutKofiBtn:hover { filter: brightness(1.08); }
+    padding: 12px 20px; border-radius: 10px; border: 1.5px solid var(--teal); cursor: pointer;
+    background: #ffffff; color: var(--teal); }
+  #aboutKofiBtn:hover { background: var(--teal); color: #fff; }
   #aboutKofiPanel { margin-top: 16px; min-height: 0; }
   #aboutKofiPanel.abtKofiOpen { min-height: 560px; }
   #aboutKofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
 
   @media (max-width: 480px) {
     .abtPage { margin: 32px auto; padding: 0 16px 32px; }
+    .abtTopCta { margin-bottom: 24px; }
     .abtHero { flex-direction: column; gap: 24px; margin-bottom: 24px; }
     /* flex-basis resolves against the MAIN axis — once the hero flips to column, the 320px
        basis above becomes a minimum *height*, padding both halves out with dead space (the
@@ -82,13 +109,19 @@
        24px gap above is the actual gap the reader sees. */
     .abtHeroText, .abtHeroShot { flex: 0 0 auto; }
     .abtCard { padding: 20px; margin-bottom: 24px; }
+    .abtRuleRow, .abtRuleRow.reverse { flex-direction: column; }
+    .abtRuleRow img { max-width: 160px; }
+    .abtTestimonials { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="abtPage">
 
-  <!-- TODO(D-09): draft copy — pending Wyatt's sign-off -->
+  <div class="abtTopCta">
+    <a id="lnkAboutPlay" class="abtPlayBtn" href="index.html">⚓ Play Pastry Pirates</a>
+  </div>
+
   <div class="abtHero">
     <div class="abtHeroText">
       <h1>About Pastry Pirates</h1>
@@ -98,31 +131,48 @@
       friends online — no login, no download, 2 to 4 players.</p>
     </div>
     <div class="abtHeroShot">
-      <!-- TODO(D-11): placeholder — Wyatt picks the mid-game capture in Plan 04 -->
-      <img id="aboutShot" src="og-image.jpg" width="1200" height="663" alt="A mid-game view of the Pastry Pirates board, with ships scattered among the islands, cargo crates on the docks, and the wind spinner showing the round's direction.">
+      <img id="aboutShot" src="assets/about-screenshot.jpg" width="1320" height="888" alt="A mid-game view of the Pastry Pirates board, with ships scattered among the islands, cargo crates on the docks, and the wind compass showing the round's direction.">
     </div>
   </div>
 
-  <!-- TODO(D-09): draft copy — pending Wyatt's sign-off -->
   <div class="abtCard">
     <h2>How it plays</h2>
     <div class="abtRules">
       <h3>The goal</h3>
-      <p>Every captain starts with a secret recipe of five ingredients. Collect them all, sail home
-      to the Isle of Tortuga, and declare victory — first baker home wins.</p>
+      <div class="abtRuleRow">
+        <img class="abtRuleImg" src="assets/about-cocoa-island.jpg" width="252" height="302" alt="A cocoa island tile, one of the ingredient islands captains dock at to fill their hold.">
+        <p>Every captain starts with a secret recipe of five ingredients. Collect them all, sail home
+        to the Isle of Tortuga, and declare victory — first baker home wins.</p>
+      </div>
       <h3>Your turn</h3>
-      <p>Each round the wind sets your sailing budget for the turn — cheap with it, dear against it.
-      Once you've sailed, you take one action: <b>dock</b> at an island and flip a coin for a crate,
-      <b>attack</b> a nearby ship for a shot at their cargo, <b>parley</b> a trade with any other
-      captain, or <b>fish</b> for a quick coin. Storms roll in occasionally and shove every ship a
-      few squares, so keep an eye on the sky.</p>
+      <div class="abtRuleRow reverse">
+        <img class="abtRuleImg" src="assets/about-flippenator.jpg" width="554" height="226" alt="The Flippenator — the coin captains flip for every action, with the turn clock counting down beside it.">
+        <p>Each round the wind sets your sailing budget for the turn — cheap with it, dear against it.
+        Once you've sailed, you take one action: <b>dock</b> at an island and flip a coin for a crate,
+        <b>attack</b> a nearby ship for a shot at their cargo, <b>trade</b> with any other captain,
+        or <b>fish</b> for a quick coin. Storms roll in occasionally and shove every ship a few
+        squares, so keep an eye on the sky.</p>
+      </div>
       <h3>Coming home</h3>
       <p>Once you've gathered every ingredient on your map, race back to the Isle of Tortuga. If more
       than one captain makes it home the same round, it comes down to a head-to-head bake-off.</p>
-      <p class="abtRulesNote">This is the short version, for deciding whether to set sail. The full
-      rules — every detail of battles, trades, and storms — live in the game's own How to play
-      screen once you're aboard.</p>
     </div>
+  </div>
+
+  <div class="abtCard">
+    <h2>Example recipes</h2>
+    <p>Every captain sails with a random five-ingredient recipe — here's what two of them look like.</p>
+    <img class="abtRecipesImg" src="assets/about-recipes.jpg" width="1328" height="1000" alt="Two example recipe cards, a Mexican Chocolate Torte and a Cinnamon Sponge Cake, each listing its five required ingredients.">
+  </div>
+
+  <div class="abtCard">
+    <h2>What the captains are saying</h2>
+    <ul class="abtTestimonials">
+      <li>"This game made me hungry"<span>— Davy Scones</span></li>
+      <li>"I'm going to actually bake my recipe in real life"<span>— Crustbeard</span></li>
+      <li>"YARRRRRGH I always be flippin' tails."<span>— Flaky Jack</span></li>
+      <li>"Have ye met me pet candycrab?"<span>— Dough Hook</span></li>
+    </ul>
   </div>
 
   <div class="abtCard">
