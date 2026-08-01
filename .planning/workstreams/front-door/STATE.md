@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 22 (The Front Door) — pre-planning
 current_plan: N/A — CONTEXT.md done (11 decisions); planning still gated on UI-SPEC.md
 status: paused
-stopped_at: Phase 22 context gathered
-last_updated: "2026-08-01T02:46:24.010Z"
+stopped_at: Phase 22 UI-SPEC approved
+last_updated: "2026-08-01T03:41:45.119Z"
 last_activity: 2026-07-31
 last_activity_desc: "`/gsd-plan-phase 22 --ws front-door` run. Three things happened. (1) **Roadmap repaired** — this file's ROADMAP.md listed Phase 22 in its summary but had no `### Phase 22:` detail section, so `roadmap.get-phase` returned `malformed_roadmap` and the phase read as not found. Detail section written from REQUIREMENTS.md + the todo notes + `V1.3-V1.4-PLAN.md` (commit `a8e7c53`). **The other three v1.3 workstream roadmaps have the same gap and will block identically.** (2) **CONTEXT.md gathered** — `/gsd-discuss-phase 22 --ws front-door` captured 11 decisions (D-01…D-11) across four areas: the naming moment, what the About page is, where the rules live, and the screenshot. Both previously-open questions are now answered — the welcome-screen name field is removed (D-01), and the About page gets deliberately different rules copy written for strangers (D-08). Two approval gates were created: D-09 (Wyatt signs off the About copy before ship) and D-11 (Wyatt picks the screenshot). (3) **Still gated on missing UI-SPEC** — `ui-plan-gate` returned `frontend: true, hasUiSpec: false, block: true`; `workflow.ui_safety_gate` is on. Wyatt chose to settle decisions and design before planning."
 progress:
@@ -35,15 +35,15 @@ created: 2026-07-31
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T02:46:24.000Z
+**Last session:** 2026-08-01T03:41:45.114Z
 
-**Stopped At:** Phase 22 context gathered
+**Stopped At:** Phase 22 UI-SPEC approved
 
 1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
 2. `/gsd-ui-phase 22 --ws front-door` — design contract for the About page and the name modal
 3. `/gsd-plan-phase 22 --ws front-door` — plan
 
-**Resume File:** .planning/workstreams/front-door/phases/22-the-front-door/22-CONTEXT.md
+**Resume File:** .planning/workstreams/front-door/phases/22-the-front-door/22-UI-SPEC.md
 
 ## Notes carried into planning
 
