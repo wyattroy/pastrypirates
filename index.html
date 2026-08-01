@@ -313,12 +313,22 @@
      panel-height animation, above) shares the value by coincidence and must NOT move with it —
      a blind find-and-replace of ".18s" hits five sites including two comments. Change this rule
      by hand.
-     position/inset take the ghost OUT OF FLOW, which is what keeps resizePanel's inner.offsetHeight
-     measuring only the incoming message — the panel height still animates exactly once per message.
+     position:absolute takes the ghost OUT OF FLOW, which is what keeps resizePanel's
+     inner.offsetHeight measuring only the incoming message — the panel height still animates
+     exactly once per message. Being out of flow is also why it needs its own top/left/width: with
+     no inset shorthand it would otherwise collapse to #apGridInner's padding-box corner (0,0),
+     which is FIX-16's "jump left" bug. panel() (src/ui/panel.js, 18-01 Task 2) now sets
+     top/left/width per-instance from a snapshot taken while the ghost was still live in flow,
+     BEFORE inner.innerHTML wiped it — pinning width too, not just position, so the
+     out-of-flow ghost doesn't re-wrap and change line count mid-fade. Because the ghost is out of
+     flow, resizePanel()'s own measurement never sees it either — so panel() also passes an
+     explicit activeGhostFloor height as resizePanel()'s minHeight, holding the row at the taller
+     of the two until the ghost's own drop() clears the floor and re-measures (still ONE
+     max-content probe per resizePanel() call — see resizePanel()'s own comment).
      pointer-events is load-bearing, not tidiness: panel() also renders action prompts with buttons,
      and a ghost that swallowed the first click on a prompt would be a far worse bug than the one
      this fixes. */
-  .apMsg.fadeOut { animation: apMsgFadeOut .8s ease both; position: absolute; inset: 0; pointer-events: none; }
+  .apMsg.fadeOut { animation: apMsgFadeOut .8s ease both; position: absolute; pointer-events: none; }
   @keyframes apMsgFadeOut { to { opacity: 0; } }
   /* the ghost is positioned against the inner box, not the page. No offsets, so flow is unchanged. */
   #apGridInner { position: relative; }
