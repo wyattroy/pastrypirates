@@ -528,6 +528,7 @@ export function buildWindDots(container,seed,count){
   const n=Math.max(0,Math.min(WIND_DOT_MAX,Math.floor(Number(count))||0));
   windSpecs=windDotSpecs(seed,n);
   if(!container)return;
+  const created=[];
   while(windDotEls.length<n){
     const d=document.createElement("div");
     d.className="wdot";
@@ -544,10 +545,40 @@ export function buildWindDots(container,seed,count){
     d.style.willChange=windWillChangeOn?"transform":"";
     container.appendChild(d);
     windDotEls.push(d);
+    created.push(d);
   }
   while(windDotEls.length>n){
     const d=windDotEls.pop();
     if(d.parentNode)d.parentNode.removeChild(d);
+  }
+  // Initial-frame paint (19-06 pre-flight finding, item 11): a freshly-created dot's transform/
+  // opacity is otherwise ONLY ever written by windDotLoop's transform-writing branch — but that
+  // branch is unconditionally SKIPPED whenever windReducedMotion is true (D-13), and also skipped
+  // whenever windDotsOn is false (the switch). Either way, a dot created in that state would sit at
+  // its untouched CSS default (left/top:0, no transform, opacity unset -> 1) forever — that default
+  // position is the LAYER's own local origin, which sits well outside #windDots' clipped, oversized
+  // (220%, -60%/-60%) viewport, so reduced-motion players (and anyone toggling the switch off right
+  // as the dial grows) saw NO dots at all rather than D-13's promised "hold still, on screen."
+  // Painted via ONE requestAnimationFrame rather than a synchronous clientWidth read right after
+  // appendChild — a synchronous read here can still observe a 0-sized ancestor mid-layout-flush,
+  // which collapses windDotFrame's math toward the layer's local origin; one frame later, layout is
+  // guaranteed settled. Deliberately unconditional on windReducedMotion/windDotsOn, because giving a
+  // fresh dot its first real position is exactly the case those two branches would otherwise skip.
+  // windDotFrame(spec,0,w,h) is pure and deterministic (D-12); windDotLoop's own per-frame write (if
+  // running) simply overwrites this moments later, so the extra paint costs nothing in the common case.
+  if(created.length){
+    requestAnimationFrame(function(){
+      const w=container.clientWidth||container.offsetWidth||1;
+      const h=container.clientHeight||container.offsetHeight||1;
+      for(const d of created){
+        const idx=windDotEls.indexOf(d);
+        const spec=idx>=0?windSpecs[idx]:null;
+        if(!spec)continue; // dial dropped again before this frame ran; nothing to paint
+        const f=windDotFrame(spec,0,w,h);
+        d.style.transform=`translate3d(${f.x}px,${f.y}px,0)`;
+        d.style.opacity=f.opacity;
+      }
+    });
   }
 }
 
@@ -773,6 +804,19 @@ export function renderWindSummary(){
 // was null), so "roughly when it happened" is always relative to the current measuring window, not
 // to some earlier session.
 //
+// HIDDEN-TAB SAMPLING GUARD (19-06 pre-flight finding, item 8): the visibilitychange listener above
+// discards only the ONE frame immediately after becoming visible again — that alone assumed rAF
+// fully PAUSES while hidden. Driven-Chrome testing showed that's false for an ordinary backgrounded
+// tab (as opposed to a fully-suspended one): Chrome keeps firing rAF at a throttled cadence for a
+// hidden document, each individual delta comfortably UNDER WIND_METER_OUTLIER_MS, so those frames
+// were sailing straight past the outlier filter and corrupting the worst-moment slot with throttle
+// artifacts, not real jank — exactly the lie 19-RESEARCH.md Pitfall 3 and this plan's own truth
+// ("a tab hidden and restored mid-run produces a discarded pause, not a worst moment") forbid.
+// windDotLoop now skips windMeterSample entirely whenever `document.visibilityState` is not
+// "visible" (the delta is still consumed into windLastFrameMs so the FIRST frame after returning is
+// a normal, small, real delta rather than a leftover gap) — the guard fails safe to "sample" (true)
+// if `document` is unavailable, matching every other DOM-optional guard in this region.
+//
 // AT A CLAMPED COUNT OF 0 (or with the switch off), windDotEls is empty (or the transform-writing
 // branch is skipped) — no dot transform is written on that frame, and buildWindDots has already
 // removed every `.wdot` node from the DOM, so there is zero residue. The loop itself DOES NOT
@@ -786,6 +830,12 @@ export function renderWindSummary(){
 // rain freezes (`animation-play-state:paused`) rather than vanishing. The loop still keeps running
 // (same reasoning as the count-0 case above) so the readout still reports, which is what lets a
 // pre-flight check confirm the branch actually took effect.
+function windDocVisible(){
+  try{
+    if(typeof document==="undefined")return true; // headless/non-browser context: sample, as before
+    return document.visibilityState==="visible";
+  }catch(err){ return true; }
+}
 export function windDotLoop(now){
   const delta=windLastFrameMs==null?null:now-windLastFrameMs;
   if(windLastFrameMs==null)windMeterStartMs=now;
@@ -802,7 +852,7 @@ export function windDotLoop(now){
       windDotEls[i].style.opacity=f.opacity;
     }
   }
-  if(delta!=null&&delta>0){
+  if(delta!=null&&delta>0&&windDocVisible()){
     windMeterSample(delta,now);
     if(now-windLastReadoutMs>=WIND_READOUT_MS){
       windLastReadoutMs=now;
