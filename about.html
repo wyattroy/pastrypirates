@@ -98,6 +98,76 @@
     </div>
   </div>
 
+  <!-- TODO(D-09): draft copy — pending Wyatt's sign-off -->
+  <div class="abtCard">
+    <h2>How it plays</h2>
+    <div class="abtRules">
+      <h3>The goal</h3>
+      <p>Every captain starts with a secret recipe of five ingredients. Collect them all, sail home
+      to the Isle of Tortuga, and declare victory — first baker home wins.</p>
+      <h3>Your turn</h3>
+      <p>Each round the wind sets your sailing budget for the turn — cheap with it, dear against it.
+      Once you've sailed, you take one action: <b>dock</b> at an island and flip a coin for a crate,
+      <b>attack</b> a nearby ship for a shot at their cargo, <b>parley</b> a trade with any other
+      captain, or <b>fish</b> for a quick coin. Storms roll in occasionally and shove every ship a
+      few squares, so keep an eye on the sky.</p>
+      <h3>Coming home</h3>
+      <p>Once you've gathered every ingredient on your map, race back to the Isle of Tortuga. If more
+      than one captain makes it home the same round, it comes down to a head-to-head bake-off.</p>
+      <p class="abtRulesNote">This is the short version, for deciding whether to set sail. The full
+      rules — every detail of battles, trades, and storms — live in the game's own How to play
+      screen once you're aboard.</p>
+    </div>
+  </div>
+
+  <div class="abtCard">
+    <h2>Credits</h2>
+    <ul class="abtCredits">
+      <li>Pastry Pirates was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle.</li>
+      <li>It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. Seeing their bridge-building game <i>Seafarers</i> is what started this one.</li>
+      <li><a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a> spent his entire last day in Boston imagining mechanics for it in his head.</li>
+      <li>Robin and Cathy, two of its first multiplayer testers.</li>
+      <li><a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who worked out how wind should affect movement based on real sailing, helped make battles genuinely strategic, and playtested with an obsession that matched the author's own.</li>
+      <li>Juju, who has tolerated every conversation turning toward Pastry Pirates with the patience of a Buddhist monk.</li>
+    </ul>
+  </div>
+
+  <div class="abtCard" style="text-align:center">
+    <h2>Support the game</h2>
+    <button id="aboutKofiBtn" type="button">🍪 Buy me a cookie</button>
+    <div id="aboutKofiPanel"></div>
+  </div>
+
 </div>
+<script>
+(function(){
+  "use strict";
+  // Mirrors src/ui/lobby.js's mountKofi()/KOFI_EMBED — duplicated per D-07 (about.html shares no
+  // JS with index.html). The sandbox attribute below is byte-identical to src/ui/lobby.js:74 and
+  // must never be loosened. The src is assigned only on first button press, so a visitor who never
+  // presses the button never contacts ko-fi.com.
+  var KOFI_EMBED = "https://ko-fi.com/wyattroy/?hidefeed=true&widget=true&embed=true&preview=true";
+  var mounted = false;
+  var btn = document.getElementById("aboutKofiBtn");
+  var panel = document.getElementById("aboutKofiPanel");
+  btn.addEventListener("click", function(){
+    if (mounted) return;
+    mounted = true;
+    panel.classList.add("abtKofiOpen");
+    var f = document.createElement("iframe");
+    f.src = KOFI_EMBED;
+    f.title = "Support Pastry Pirates on Ko-fi";
+    f.setAttribute("loading", "lazy");
+    f.setAttribute("sandbox", "allow-scripts allow-forms allow-popups allow-same-origin");
+    f.onerror = function(){
+      mounted = false;
+      panel.classList.remove("abtKofiOpen");
+      panel.innerHTML = '<div style="padding:14px;text-align:center;opacity:.6;font-size:12px">Couldn\'t load the Ko-Fi panel — an ad blocker may be blocking it. ko-fi.com/wyattroy works directly.</div>';
+    };
+    panel.innerHTML = "";
+    panel.appendChild(f);
+  });
+})();
+</script>
 </body>
 </html>
