@@ -72,7 +72,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen } from "./shared/audio.js";
+import { initAudio, playForEvent, playWinScreen, isMuted, setMuted } from "./shared/audio.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
   netSetPaused, netWatchPaused, netDeleteRoom,
@@ -188,6 +188,15 @@ export function togglePause(){
   }else{
     toggleShotClockPause();
   }
+}
+// AUDIO-02 (phase 21): the mute button beside the clock. Pure client-side state — isMuted()/
+// setMuted() (src/shared/audio.js) are the whole store, backed by their own localStorage key; no
+// Firebase write, no net* writer, no appState field, so muting never reaches another player's
+// browser (D-13, T-21-12). setClockUI() is called directly (main tier may call it, unlike ui-tier
+// code) so the icon/tooltip refresh immediately rather than waiting for the next 500ms tick.
+export function toggleMute(){
+  setMuted(!isMuted());
+  setClockUI();
 }
 // Structurally identical to watchTimer() below: every client (host and guest) attaches this so
 // the shared paused flag is tracked table-wide. Only the host branch runs applyPauseState (the
@@ -1327,6 +1336,7 @@ export function wireLobby(){
   $("btnPlayAgain").onclick=leaveGame;
   $("scPause").onclick=togglePause;
   $("scTimerToggle").onclick=toggleTimer;
+  $("btnMute").onclick=toggleMute;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
   $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};

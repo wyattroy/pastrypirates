@@ -443,6 +443,17 @@
   #shotClockSub { font-size: clamp(7px,2.2cqw,11px); color: #e0c58f; line-height: 1.2; min-width: 18ch; }
   #shotClockPanel.urgent #shotClockSub { color: #ff9b93; }
   @keyframes clockurgent { 0%, 100% { box-shadow: 0 0 0 0 rgba(226,75,74,.65); } 50% { box-shadow: 0 0 0 9px rgba(226,75,74,0); } }
+  /* AUDIO-02/D-15 (phase 21): standalone #controlsRow sibling, right of the clock — narrow
+     (no min-width clamp, unlike #btnPlayAgain), so it reads as a control beside the clock rather
+     than a second panel. Same border-radius/padding clamp idiom as #btnPlayAgain so it drops into
+     the row without the layout jumping. */
+  #btnMute { flex: 0 0 auto; align-self: center;
+    border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(7px,2.5cqw,12px);
+    border: 2px solid #d9a84e; font-size: clamp(14px,4.5cqw,20px); line-height: 1;
+    background: linear-gradient(160deg, rgba(138,95,47,.6), rgba(92,61,28,.6));
+    color: #ffe9b8; cursor: pointer; }
+  #btnMute:hover { filter: brightness(1.15); }
+  #btnMute img { width: 60%; height: 60%; object-fit: contain; }
   /* standalone, matches #shotClockPanel's footprint (min-width/padding/border-radius) so it
      drops into the same #controlsRow slot without the layout jumping */
   #btnPlayAgain { flex: 0 0 auto; min-width: clamp(70px,26cqw,118px);
@@ -696,6 +707,12 @@
       min-width: clamp(105px,39cqw,177px); }
     #scPause { width: 24px; height: 24px; }
     #scTimerToggle { width: 24px; height: 24px; line-height: 20px; font-size: 13.5px; }
+    /* AUDIO-02 (phase 21): #btnMute joins the same narrow-viewport bump — 21-03 made the timer
+       toggle visible in solo for the first time, so this row now carries one more control than
+       it ever has at this width. */
+    #btnMute { font-size: clamp(21px,6.75cqw,30px);
+      padding: clamp(7.5px,3cqw,13.5px) clamp(10.5px,3.75cqw,18px);
+      border-radius: clamp(12px,4.5cqw,21px); }
     #scLabel { font-size: clamp(10.5px,3cqw,15px); }
     #shotClockNum { font-size: clamp(24px,9cqw,45px); }
     #scUnit { font-size: clamp(10.5px,3.3cqw,18px); }
@@ -1054,6 +1071,15 @@
         <div id="scRow"><span id="shotClockNum">–</span><span id="scUnit"></span></div>
         <div id="shotClockSub">&nbsp;</div>
       </div>
+      <!-- AUDIO-02/D-15 (phase 21): a #controlsRow sibling to the right of #shotClockPanel, NOT a
+           third corner icon on the clock face — #scPause/#scTimerToggle already occupy both
+           corners, and 21-03's D-20 change makes the timer toggle visible in solo for the first
+           time, so a third icon there would newly crowd a panel that already clamps to 70-118px.
+           Bare 🔊/🔇 emoji scaffold (D-14): the real speaker icon + blocked-slash overlay is
+           Wave 5's job and needs Wyatt's art pipeline; this ships behaviour complete now with no
+           broken image and no borrowed icon (horn.png already carries the 📯 meaning). Visible
+           content set every tick by setClockUI(); click bound once in wireLobby(). -->
+      <button id="btnMute" type="button" style="display:none">🔊</button>
       <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
     <div id="actionPanel" style="display:none"><div id="apGrid"><div id="apGridInner"></div></div></div>
