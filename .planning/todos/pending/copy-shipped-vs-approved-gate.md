@@ -76,3 +76,13 @@ non-null. Its input lives under `.planning/`, which this project's own `/gsd-cle
 totals line re-derives itself and prints a healthy `PASS`. Any new gate built on the dispositions
 must **refuse rather than skip** when its input is missing. `checkStormRainSeeded`
 (`scripts/ui_contract_check.js:718`) is the working example; copy it.
+
+## Copy changes logged against this gate (milestone constraint 3)
+
+Per v1.3's milestone constraint 3, every copy change made while this gate remains unbuilt is
+recorded here by hand, since nothing yet compares shipped text to approved dispositions
+automatically.
+
+| Date | Plan | Site (`@copy` id) | File | Change | Note |
+|------|------|--------------------|------|--------|------|
+| 2026-08-01 | 18-02 (FIX-08) | `adhoc.voyageend.victory` | `src/ui/board.js:772` | The win banner's hardcoded `"baked a "` is now `"baked "` + a per-recipe article (`""` or `"a "`) derived from `recipeArticle(winRecipe)` (`src/ui/recipe.js`). Wording is unchanged for the 13 singular-title recipes; for the 8 plural-title recipes (Cinnamon-Sugar Churros, Spiced Fudge Brownies, Cinnamon Snaps, Snickerdoodle Bites, Crispy Cocoa Snaps, Dark Chocolate Cream Puffs, French Pots de Crème, Mexican Chocolate Pots) the banner no longer prints "a" in front of the title. | Not a rewrite of Wyatt-approved prose — a grammar-correctness fix to an existing approved line, scoped to FIX-08. The `@copy adhoc.voyageend.victory` id is unchanged, so his prior approval mark still traces to this site. |

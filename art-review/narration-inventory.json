@@ -1346,7 +1346,7 @@
       "file": "src/ui/board.js",
       "line": 772,
       "fn": "showStats",
-      "rawMsg": "!winRecipe?\"\":`<div class=\"victoryText\">${pn(w)} baked a ${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`",
+      "rawMsg": "!winRecipe?\"\":`<div class=\"victoryText\">${pn(w)} baked ${(a=>a?a+\" \":\"\")(recipeArticle(winRecipe))}${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`",
       "id": "adhoc.voyageend.victory"
     },
     {
