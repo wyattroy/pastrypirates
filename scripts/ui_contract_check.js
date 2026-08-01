@@ -361,7 +361,10 @@ function scanRegisterFile(rel, content) {
 //   - the `layoutWide` counts are pinned per file. If a future change legitimately adds or removes
 //     a usage, UPDATE THE EXPECTED COUNT — do not delete the probe.
 const LAYOUT_WIDE_EXPECTED = [
-  { rel: "index.html", count: 4 },
+  // 4 -> 5 (P6, Wyatt 2026-08-01): #btnMute moved out of #controlsRow to a direct #layout child
+  // so the page grid can place it — below the captains box when stacked, and back inline beside the
+  // clock in the wide layout. That wide-layout override is the 5th usage. Deliberate, not drift.
+  { rel: "index.html", count: 5 },
   { rel: path.join("src", "ui", "board.js"), count: 1 },
 ];
 
@@ -957,7 +960,12 @@ const COIN_PARENTHETICAL_SITES = [
     name: "turn-order draw — waiting captains' consolation coin",
     rel: path.join("src", "ui", "flow.js"),
     anchor: "const rest=order.slice(1).map(",
-    wraps: ['<span class="nobrk">(+${k+1}🌕)</span>'],
+    // P7 (Wyatt, 2026-08-01, second pass): the span used to cover the parenthetical ALONE, which
+    // kept "(+2🌕)" intact but let it detach from the captain it belongs to across a line break —
+    // "…Davy Scones" / "(+2🌕), Dough Hook…". The expectation is now the STRONGER form: the name
+    // and its amount inside one span, as a single readable unit. Tightened deliberately, not
+    // relaxed — this still fails if the wrapper disappears entirely.
+    wraps: ['<span class="nobrk">${pn(i)} (+${k+1}🌕)</span>'],
   },
 ];
 

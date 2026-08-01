@@ -1497,7 +1497,11 @@ export async function showTurnOrderIntro(order){
   // "(+1)". Emoji shorthand, not hand-rolled markup: emojify() swaps it for COIN_IMG at panel()'s
   // chokepoint (D-50), the same path every other 🌕 in this file takes. No sign change — D-38 already
   // has this one right, it is a gain and it was already signed.
-  const rest=order.slice(1).map((i,k)=>`${pn(i)} <span class="nobrk">(+${k+1}🌕)</span>`).join(", ");
+  // P7 (Wyatt, 2026-08-01, second pass): "other numbers and coin combos do split, which they
+  // shouldn't." The nobrk span covered only the parenthetical, so the amount stayed intact but
+  // detached from the captain it belongs to — "…Davy Scones" / "(+2🌕), Dough Hook…" across a
+  // line break. A name and its amount are ONE readable unit; the span wraps both.
+  const rest=order.slice(1).map((i,k)=>`<span class="nobrk">${pn(i)} (+${k+1}🌕)</span>`).join(", ");
   const msg=`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+
     `No fretting, patience pays — ${rest} all cast off with extra dubloons.`;
   // @copy misc.introbarrier.turnorder

@@ -286,6 +286,25 @@ export function liveRender(){
 // 3, via resizePanel()'s default parameter) so neither can re-clip a still-fading ghost. Set when
 // a ghost is created, cleared as the first statement inside drop() before the node is removed.
 let activeGhostFloor=0;
+// P3/P5 (Wyatt, 2026-08-01, second pass). THE REAL CAUSE, and it is drop(), not the measurement.
+//
+// typewriterReveal() BLANKS every text node and refills it progressively — so a message that will
+// end up three lines tall occupies ONE line while it is still typing. drop() (the ghost's
+// animationend / belt) calls resizePanel() to shrink the box now that the ghost has left. If the
+// reveal is STILL RUNNING at that moment, that re-measure reads the PARTIAL text, pins the row to
+// a one-line height, and #apGridInner's overflow:hidden then clips every line that types in after.
+//
+// This explains every symptom he reported and the 18-01 image theory did not:
+//   - "cut off DURING writing" — the shrink lands mid-reveal, by construction
+//   - "only sometimes" — only when the reveal outlasts the 800ms ghost fade, i.e. long messages
+//   - "sometimes the box adjusts to the correct size during fade-out" — the reveal happened to
+//     finish first, so drop()'s measure read the full text and was correct
+//   - it needs a ghost to happen at all, i.e. only on a line that REPLACES another
+//
+// So: drop() must not shrink while a reveal is in flight. The reveal's own completion re-measures
+// instead. Still measure-once-per-event (BUG-01's rule) — this moves one probe, it does not add a
+// per-frame one.
+let revealsInFlight=0;
 export const GHOST_FADE_MS=800;
 // ^ G17: the ghost fade's duration, and the incoming line's reveal delay — ONE number, because a
 // strict sequence is only strict while they are equal.
@@ -368,7 +387,11 @@ export function panel(html,needsAction=false){
       // Cheap: re-derive the box height with the ghost already gone — this IS the "one deferred
       // shrink" resizePanel()'s own measure-once comment allows (a real timer/animationend event,
       // never a tick/frame), not a second probe against a moving target.
-      resizePanel(!!inner.innerHTML);
+      //
+      // ...but ONLY if no reveal is running. A mid-reveal message is shorter than its final self,
+      // so shrinking to it pins the row too low and the rest of the text is clipped as it types
+      // (see revealsInFlight's note above). When one is in flight, its own completion re-measures.
+      if(revealsInFlight===0)resizePanel(!!inner.innerHTML);
     };
     ghost.addEventListener("animationend",drop,{once:true});
     // belt: animationend can be dropped entirely in a backgrounded tab, which would leak a ghost
@@ -433,6 +456,15 @@ export function panel(html,needsAction=false){
   // G17: delay the reveal by exactly the ghost's fade, and only when there IS a ghost — a first
   // line, or a line after an explicit clear, still types in immediately.
   const revealDone=msgEl?typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0):Promise.resolve();
+  // P3/P5: the box's final size is only knowable once the text is fully on screen. One probe per
+  // reveal, at its end — the deferred counterpart to drop()'s skipped shrink above.
+  if(msgEl){
+    revealsInFlight++;
+    revealDone.then(()=>{
+      revealsInFlight=Math.max(0,revealsInFlight-1);
+      if(revealsInFlight===0)resizePanel(!!inner.innerHTML);
+    });
+  }
   if(msgEl)msgEl._revealDone=revealDone;
   // FIX-03: unhide the gated buttons only once THIS prompt's own reveal resolves. The seq compare
   // (declared above panel()) is what keeps a late-resolving EARLIER reveal from unhiding a NEWER
@@ -510,6 +542,17 @@ export function resizePanel(hasContent,minHeight=activeGhostFloor){
   void grid.offsetHeight;                              // …committed as the transition's from
   grid.style.transition="";
   grid.style.gridTemplateRows=h+"px";                  // one smooth animation to the real height
+  // SAFETY NET (Wyatt reported clipping twice, 2026-08-01). Once the animation has landed, release
+  // the row to max-content. No visual change when the measurement was right — the computed height
+  // is already h — but it makes clipping IMPOSSIBLE afterwards: if anything later grows the content
+  // (a late icon, a font swap, a re-wrap on resize), the box grows with it instead of hiding it.
+  // The measure-once animation is untouched; this only governs the resting state after it ends.
+  // A failure here should look like a slightly-too-tall box, never an unreachable button.
+  grid.addEventListener("transitionend",function done(e){
+    if(e.propertyName!=="grid-template-rows")return;
+    grid.removeEventListener("transitionend",done);
+    if(grid.style.gridTemplateRows===h+"px")grid.style.gridTemplateRows="max-content";
+  });
 }
 // Walks msgEl's real DOM in document order and reveals it character-by-character (text nodes)
 // and unit-by-unit (atomic elements like <img>), instead of faking a type-in with a CSS wipe — a

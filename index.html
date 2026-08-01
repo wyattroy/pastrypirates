@@ -61,7 +61,12 @@
   #left { grid-area: board; min-width: 0; }
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
     container-type: inline-size; }
+  /* P6 (Wyatt, 2026-08-01, second pass): "it does sit below on narrow, but it should sit inline on
+     widescreen." Stacked layout -> its own row under the captains box. Wide/sidebar layout -> back
+     up beside the clock, which is where it always belonged there and where it never overflowed.
+     The wide layout has no `mute` area at all, so the override below is what places it. */
   #btnMute { grid-area: mute; justify-self: start; }
+  #game.layoutWide #btnMute { grid-area: controls; justify-self: start; align-self: end; }
   #actionPanel { grid-area: narration; }
   /* container for the chip-row query below — the captains box responds to ITS OWN width,
      not the viewport's, so the layout switches wherever the box is actually too narrow. */
@@ -81,7 +86,7 @@
      board+sidebar sit side by side depends on the sidebar actually having room for a full row of
      5 ingredient chips, which is a function of the computed board size, not raw viewport width. */
   #game.layoutWide #layout { grid-template-columns: var(--boardW, 1fr) var(--sideW, 300px);
-      grid-template-areas: "board captains" "board controls" "board mute" "board narration" "board chat" "board stats";
+      grid-template-areas: "board captains" "board controls" "board narration" "board chat" "board stats";
       width: calc(var(--boardW, 820px) + 14px + var(--sideW, 300px)); max-width: 100%; margin: 0 auto;
       align-items: start; }
   #game.layoutWide #boardwrap { max-width: none !important; width: 100%; }
