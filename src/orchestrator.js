@@ -72,7 +72,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen, isMuted, setMuted } from "./ui/audio.js";
+import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
   netSetPaused, netWatchPaused, netDeleteRoom,
@@ -350,7 +350,22 @@ export function renderBattle(o){
 export function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
-    if(v){appState.spectatingBattle=true;if(!appState.inBattlePrompt)renderBattleFromSnap(v);}
+    if(v){
+      // 260801-7f4 (guest tier): reading spectatingBattle BEFORE assigning it true IS the edge
+      // trigger — this callback fires on every write to the battle node (many times per fight,
+      // once per renderBattle()), so without the read-then-assign order the clash would re-fire
+      // on every scoreboard update instead of once per battle. The `!v.title` half of the guard is
+      // the bakeoff exclusion: battleSnapshot only carries a `title` for a bakeoff snapshot
+      // (asyncBakeoff's base() is the only producer of one anywhere in the repo), and un-silencing
+      // the bakeoff is a design call belonging to Wyatt, not a side effect of this timing fix — the
+      // bakeoff stays exactly as silent as it is today. Known, accepted variance: this lands on the
+      // first battle-node write (the scoreboard appearing), which trails the host's own clash on
+      // the announcement by a few seconds when a human spectator is put through side-bet prompts —
+      // still before the first flip, still fixing the "end of fight" complaint on this tier too.
+      if(!appState.spectatingBattle&&!v.title)playBattleEngage();
+      appState.spectatingBattle=true;
+      if(!appState.inBattlePrompt)renderBattleFromSnap(v);
+    }
     else appState.spectatingBattle=false; // battle node cleared at battle end — narration may take over again
   });
 }
@@ -430,6 +445,13 @@ export async function asyncBattle(att,def){
   // and botTurn awaits it then ends the turn via botBeat(). Neither reads the return value, so the
   // contract is unchanged for them.
   if(c.powder&&coinShortfall(c.powder,att.coins))return null;
+  // 260801-7f4 (host tier): the clash, at the moment the fight is actually joined — after the
+  // powder guard above (a battle refused for want of powder never happens and must not announce
+  // itself), before the awaited flash() below. flash() awaits the PREVIOUS line's reveal and then
+  // sleeps the message hold, so a call placed after it would land seconds late and re-create the
+  // exact "sounds too late" complaint this task exists to fix. flash() fires its onBroadcast
+  // synchronously on entry, so this clash and the host's own announcement land together.
+  playBattleEngage();
   // D-08/D-25 (Wyatt-approved 2026-07-29): the opening announcement names both combatants — a
   // neutral-plus-variants form so each combatant's own screen reads it addressed to themselves
   // while every other viewer sees the third-person text. "Hits", not "points" (his approved copy).
