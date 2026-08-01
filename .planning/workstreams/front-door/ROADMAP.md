@@ -23,7 +23,15 @@
   5. The About page is reachable by its own link from the homepage. *(ABOUT-02)*
   6. The site serves an in-page image — the About page screenshot — which is what Google can promote into a result thumbnail; the already-shipped `max-image-preview:large` robots meta and JSON-LD `image` field are verified still present in `index.html`. *(META-01)*
 
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves
+
+Plans:
+- [ ] 22-01-PLAN.md — The naming moment: name modal after mode pick, one read chokepoint, durable last-used name (FIX-01) *(wave 1)*
+- [ ] 22-02-PLAN.md — `about.html`: head block, own stylesheet, hero, rules, credits, Ko-Fi embed, sitemap entry (ABOUT-01) *(wave 1)*
+- [ ] 22-03-PLAN.md — Both About links on the homepage, and the META-01 head-block close-out (ABOUT-02, META-01) *(wave 2)*
+- [ ] 22-04-PLAN.md — Capture mid-game screenshot candidates, Wyatt picks, install the chosen frame (ABOUT-01, META-01) *(wave 2, has a blocking checkpoint)*
+- [ ] 22-05-PLAN.md — Copy sign-off gate: Wyatt approves every player-visible string, recorded against the copy gate (ABOUT-01) *(wave 3, has a blocking checkpoint)*
+
 **UI hint**: yes
 
 > **META-01 is already half-shipped.** Quick task `20260731-google-preview-logo` (2026-07-31) added
