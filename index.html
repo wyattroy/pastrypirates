@@ -962,6 +962,9 @@ const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);
 // 7 base island footprints (see TET below); art is authored once per shape in its canonical
 // orientation — the game applies the same rotate/mirror it used to place the shape on the board.
 const ISLAND_SHAPE_IMG=[1,2,3,4,5,6,7].map(i=>`${ASSET_BASE}islands/${i}.png`);
+// per-ingredient hand-drawn scene vignette, drawn over one square of each island (renderBoard).
+// keyed by ingredient id; salt/honey aren't in the standard 7-island game and have no scene.
+const ISLAND_SCENE_IMG=Object.fromEntries(["eggs","wheat","cocoa","sugar","dairy","vanilla","spice"].map(k=>[k,`${ASSET_BASE}islands/scenes/${k}.png`]));
 // 3–4 block island shapes: lines, Ls, corner, square, S, T. Shared by board generation
 // (Game constructor, below) and by island art placement (renderBoard) — index into this array
 // is the canonical shape id baked into each islands/N.png filename (1-based) via ISLAND_SHAPE_IMG.
@@ -2406,6 +2409,17 @@ function drawBoard(){
       for(const c of cells){const dd=(c[0]-mx)**2+(c[1]-my)**2;if(dd<bd){bd=dd;best=c;}}
       const cx=(best[0]+.5)*cell,cy=(best[1]+.5)*cell;
       iconAt(svg,cx,cy,cell*.8,ING_IMG[ing]);
+    }
+    // per-ingredient scene vignette on ONE fixed square. The index is a static function of the
+    // island's cell list and crate count only — no RNG, no turn/player state, no game.* mutation —
+    // so it lands identically across replay and host/guest and can't affect lockstep. min(crates,…)
+    // prefers the first crate-FREE cell when the island has a spare one (so the scene sits on open
+    // ground), falling back to the last cell only when crates fill every square. Drawn AFTER the
+    // crates so every island's scene is always visible (on the full-island case it overlays that
+    // square's crate token).
+    if(ISLAND_SCENE_IMG[ing]&&cells.length){
+      const sc=cells[Math.min(game.cfg.crates,cells.length-1)];
+      iconAt(svg,(sc[0]+.5)*cell,(sc[1]+.5)*cell,cell*.9,ISLAND_SCENE_IMG[ing]);
     }
   }
   // wind spinner HUD (bottom-right corner) — sized off `cell` rather than fixed pixels, so it
@@ -5576,7 +5590,7 @@ window.addEventListener("orientationchange",syncBoardSizing);
 // rejects), and boot() caps the whole wait with a timeout, so the loader can never hang the game.
 function preloadAssets(){
   const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
-    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
+    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...Object.values(ISLAND_SCENE_IMG),...ING_ALL.map(i=>ING_IMG[i])];
   return Promise.all(urls.map(u=>new Promise(res=>{
     const img=new Image();
     img.onload=img.onerror=()=>res();
