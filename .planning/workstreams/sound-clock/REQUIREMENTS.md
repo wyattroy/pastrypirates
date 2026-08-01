@@ -11,8 +11,8 @@
 ### Sound & the Clock Toggle — Phase 21
 
 - [ ] **AUDIO-01**: Luis's sound effects play at appropriate game moments, on by default.
-- [ ] **AUDIO-02**: A mute button sits to the right of the turn clock.
-- [ ] **AUDIO-03**: Luis is credited for the sound effects in the Credits modal.
+- [x] **AUDIO-02**: A mute button sits to the right of the turn clock.
+- [x] **AUDIO-03**: Luis is credited for the sound effects in the Credits modal.
 - [x] **FIX-02 / N-03**: Solo gets the timer on/off toggle **and it works**; the same toggle starts working in pass-and-play. One local, non-Firebase code path fixes both — `watchTimer()` drives it from a Firebase node neither mode has. *(21-03: code-level complete; D-18 full-turn both-ways manual check outstanding — see 21-03-SUMMARY.md.)*
 
 > N-02's urgency animation and N-04's wider parity sweep stay in v1.4. The clock panel already renders in solo, so **AUDIO-02's anchor exists today** and is not blocked by the toggle work.
@@ -23,4 +23,3 @@
 2. **WIND-01 is the largest Safari risk this project has taken.** BUG-01 was a Safari near-crash caused by storm-overlay compositing; this runs a comparable layer on **every ordinary turn**. Phase 19's gate is mandatory.
 3. **Copy changes are inventory changes** — record them against `.planning/todos/pending/copy-shipped-vs-approved-gate.md`. Silent divergence between shipped source and Wyatt's approved dispositions is the failure this project has already had.
 4. **Standing design invariant** (`.planning/PROJECT.md`): bots have exactly the same rules and affordances as humans. Never raise "should bots be allowed to…" as an open question; parity may be restored by levelling the **human up**, not only the bot down.
-
