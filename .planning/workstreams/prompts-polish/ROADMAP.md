@@ -40,12 +40,29 @@ are small and independent.
 **Plans**: 7 plans, 6 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 18-01-PLAN.md — wave 1 — the interlocking panel group: buttons wait for the typewriter, the ghost fades where it sat, the box re-measures on resize (FIX-03, FIX-10, FIX-16)
 - [ ] 18-02-PLAN.md — wave 1 — win-banner article: a per-recipe `article` field, `recipeArticle()`, and the one coordinated `src/ui/board.js` line (FIX-08)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 18-03-PLAN.md — wave 2 — remove the storm-drift line; wrap every orphan-prone trailing chunk, plus a permanent anchored gate (FIX-04, FIX-21)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 18-04-PLAN.md — wave 3 — an empty hold is not a bribe: `spoilChosen` on the orchestrator's battle event, engine untouched (FIX-07)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 18-05-PLAN.md — wave 4 — D-02: the shot clock starts when the buttons become clickable, with a frozen clock during the reveal (FIX-03)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 18-06-PLAN.md — wave 5 — button restyle, captain circles removed everywhere, and BOTH narrow-screen chip treatments rendered for D-03 (FIX-06, FIX-09, FIX-17)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 18-07-PLAN.md — wave 6 — phase gate: copy-change ledger, Wyatt's Safari + by-eye checkpoint, the FIX-09 choice applied
 
 **Note on waves**: several plans sit in a later wave only because they share `index.html`'s CSS block
@@ -63,9 +80,11 @@ these, so the widening takes nothing from anyone. Why each is needed:
   and the fix adds a `spoilChosen` field to the orchestrator's battle event. **Deliberately NOT
   `src/engine/index.js`** — an engine field would change every fixture hash and force the one-time
   determinism re-record that v1.3 must stay clear of (milestone constraint 1).
+
 - `src/main.js:161-168` — FIX-10. The `resize`/`orientationchange` listener calls only
   `syncBoardSizing()` and never re-runs `resizePanel()`, which is the confirmed cause of the clipped
   action button after a resize.
+
 - `src/ui/flow.js:96` — FIX-03. Where the `.apBtn` markup is built and handed to `panel()`.
 
 **Runs concurrently with:** the other v1.3 workstreams — `prompts-polish`, `board-wind`,
