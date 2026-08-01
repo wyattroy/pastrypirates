@@ -3,151 +3,151 @@
     {
       "key": "newround",
       "file": "src/ui/util.js",
-      "line": 311,
+      "line": 310,
       "group": "Round Header"
     },
     {
       "key": "windmove",
       "file": "src/ui/util.js",
-      "line": 329,
+      "line": 328,
       "group": "Storm"
     },
     {
       "key": "blownOut",
       "file": "src/ui/util.js",
-      "line": 330,
+      "line": 329,
       "group": "Storm"
     },
     {
       "key": "sail",
       "file": "src/ui/util.js",
-      "line": 331,
+      "line": 330,
       "group": "Sailing & Movement"
     },
     {
       "key": "dodge",
       "file": "src/ui/util.js",
-      "line": 336,
+      "line": 335,
       "group": "Storm"
     },
     {
       "key": "anchor",
       "file": "src/ui/util.js",
-      "line": 341,
+      "line": 340,
       "group": "Storm"
     },
     {
       "key": "moored",
       "file": "src/ui/util.js",
-      "line": 363,
+      "line": 362,
       "group": "Storm"
     },
     {
       "key": "blocked",
       "file": "src/ui/util.js",
-      "line": 418,
+      "line": 417,
       "group": "Sailing & Movement"
     },
     {
       "key": "anchorHold",
       "file": "src/ui/util.js",
-      "line": 425,
+      "line": 424,
       "group": "Storm"
     },
     {
       "key": "tradewind",
       "file": "src/ui/util.js",
-      "line": 426,
+      "line": 425,
       "group": "Storm"
     },
     {
       "key": "parley",
       "file": "src/ui/util.js",
-      "line": 433,
+      "line": 432,
       "group": "Trade & Parley"
     },
     {
       "key": "aground",
       "file": "src/ui/util.js",
-      "line": 447,
+      "line": 446,
       "group": "Storm"
     },
     {
       "key": "shipwrecked",
       "file": "src/ui/util.js",
-      "line": 461,
+      "line": 460,
       "group": "Storm"
     },
     {
       "key": "dock",
       "file": "src/ui/util.js",
-      "line": 491,
+      "line": 490,
       "group": "Docking"
     },
     {
       "key": "trade",
       "file": "src/ui/util.js",
-      "line": 515,
+      "line": 514,
       "group": "Trade & Parley"
     },
     {
       "key": "sidebet",
       "file": "src/ui/util.js",
-      "line": 529,
+      "line": 528,
       "group": "Battle"
     },
     {
       "key": "battle",
       "file": "src/ui/util.js",
-      "line": 546,
+      "line": 545,
       "group": "Battle"
     },
     {
       "key": "battleflee",
       "file": "src/ui/util.js",
-      "line": 675,
+      "line": 674,
       "group": "Battle"
     },
     {
       "key": "fish",
       "file": "src/ui/util.js",
-      "line": 686,
+      "line": 685,
       "group": "Fishing"
     },
     {
       "key": "finish",
       "file": "src/ui/util.js",
-      "line": 694,
+      "line": 693,
       "group": "End of Voyage"
     },
     {
       "key": "shotclock",
       "file": "src/ui/util.js",
-      "line": 696,
+      "line": 695,
       "group": "Shot Clock"
     },
     {
       "key": "shotclockskip",
       "file": "src/ui/util.js",
-      "line": 709,
+      "line": 708,
       "group": "Shot Clock"
     },
     {
       "key": "bakeoff",
       "file": "src/ui/util.js",
-      "line": 715,
+      "line": 714,
       "group": "End of Voyage"
     },
     {
       "key": "end",
       "file": "src/ui/util.js",
-      "line": 731,
+      "line": 730,
       "group": "End of Voyage"
     },
     {
       "key": "turn",
       "file": "src/ui/util.js",
-      "line": 732,
+      "line": 731,
       "group": "Sailing & Movement"
     }
   ],
@@ -477,7 +477,7 @@
     {
       "id": "adhoc.turn.botbanner",
       "file": "src/ui/util.js",
-      "line": 1261,
+      "line": 1260,
       "fn": "narrateCurrent",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -491,7 +491,7 @@
     {
       "id": "adhoc.turn.boteventpassthrough",
       "file": "src/ui/util.js",
-      "line": 1266,
+      "line": 1265,
       "fn": "narrateCurrent",
       "tableDriven": true,
       "group": "Sailing & Movement",
@@ -1579,77 +1579,77 @@
       "img": "cutlass",
       "name": "The Cutlass of a Thousand Notches",
       "byline": "One notch per fallen foe, carved into the hilt.",
-      "line": 888
+      "line": 887
     },
     {
       "key": "fishCount",
       "img": "herring",
       "name": "The Golden Herring",
       "byline": "For the sweetest rod in the ocean.",
-      "line": 889
+      "line": 888
     },
     {
       "key": "dist",
       "img": "compass",
       "name": "The Horizon-Chaser's Compass",
       "byline": "For the salt-crusted soul who sailed further than sense allowed.",
-      "line": 890
+      "line": 889
     },
     {
       "key": "longestBattle",
       "img": "medal",
       "name": "The Iron Gut Medal",
       "byline": "For the crew that refused to sink.",
-      "line": 891
+      "line": 890
     },
     {
       "key": "tails",
       "img": "blackspot",
       "name": "The Black Spot of Bad Tides",
       "byline": "Survived the curse — worst luck on the Sugar Seas.",
-      "line": 892
+      "line": 891
     },
     {
       "key": "hottestStreak",
       "img": "doubloon",
       "name": "The Lucky Doubloon",
       "byline": "Heads, then heads, then heads again — Lady Luck rode on their shoulder.",
-      "line": 893
+      "line": 892
     },
     {
       "key": "trades",
       "img": "ledger",
       "name": "The Silver-Tongued Ledger",
       "byline": "Struck more deals than a Tortuga fishmonger on market day.",
-      "line": 894
+      "line": 893
     },
     {
       "key": "timesAttacked",
       "img": "target",
       "name": "The Painted Target",
       "byline": "Somehow every cannon in the Caribbean swung their way.",
-      "line": 895
+      "line": 894
     },
     {
       "key": "battlesLost",
       "img": "timbers",
       "name": "The Splintered Timbers",
       "byline": "Took a right drubbing and lived to grumble about it.",
-      "line": 896
+      "line": 895
     },
     {
       "key": "shotClockCount",
       "img": "barnacle",
       "name": "The Barnacle Brain",
       "byline": "Pondered each move till the barnacles grew — no rush in these waters.",
-      "line": 897
+      "line": 896
     },
     {
       "key": "fallback",
       "img": "anchor",
       "name": "Good Mate",
       "byline": "Pirated for the love of the game.",
-      "line": 902
+      "line": 901
     }
   ],
   "roundCfgFlags": {

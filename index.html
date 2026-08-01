@@ -172,17 +172,19 @@
      inside the same .prowTop grid (not a separate row/div) so its placement — above the chips
      on wide/medium screens, tucked under the name on narrow ones — is a pure CSS/media-query
      concern with zero extra DOM height beyond the one text line it actually needs. */
-  .prowTop { display: grid; grid-template-columns: 14px 106px 40px 1fr; gap: 6px 6px;
-    grid-template-areas: ".   .    .     recipe" "dot name coins chips"; align-items: center; }
+  /* FIX-17: the swatch column is gone (name/coins/chips only, 3 columns) — the recipe row's
+     leading empty cell that used to skip past the swatch column is gone with it; recipe now
+     simply starts at the first (name) column, which is exactly where it already tucked to. */
+  .prowTop { display: grid; grid-template-columns: 106px 40px 1fr; gap: 6px 6px;
+    grid-template-areas: ".    .     recipe" "name coins chips"; align-items: center; }
   @media (max-width: 480px) {
     /* PDF item 3c / notes/edits #11: on very narrow screens the recipe sits underneath the
-       captain's name, left-aligned with the name text (not the dot), spanning the
-       name/coins/chips columns so a long title doesn't wrap and cost extra vertical space —
-       just not starting under the dot. Row order matters here: recipe must come SECOND in
-       grid-template-areas so it renders below the dot/name/coins/chips row, not above it. */
-    .prowTop { grid-template-areas: "dot name coins chips" ".   recipe recipe recipe"; }
+       captain's name, left-aligned with the name text, spanning the name/coins/chips columns
+       so a long title doesn't wrap and cost extra vertical space. Row order matters here:
+       recipe must come SECOND in grid-template-areas so it renders below the name/coins/chips
+       row, not above it. */
+    .prowTop { grid-template-areas: "name coins chips" "recipe recipe recipe"; }
   }
-  .prowTop .dot { grid-area: dot; }
   .prowTop .pname { grid-area: name; }
   .prowTop .coinsWrap { grid-area: coins; }
   .prowTop .chips { grid-area: chips; }
@@ -191,7 +193,6 @@
      re-evaluate after a purely textContent-driven mutation, leaving the recipe stuck hidden even
      once the text is set (only reproduces via file:// in Safari, not over http/in Chrome) */
   .prowRecipe:not(.hasRecipe) { display: none; }
-  .player-row .dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.35); }
   .player-row .pname { font-weight: bold; overflow: hidden; white-space: nowrap; position: relative; }
   .pnameInner { display: inline-block; }
   .pname.marquee .pnameInner { animation: pnamescroll 9s ease-in-out infinite; }
@@ -782,7 +783,6 @@
   .big { display:block; width:100%; margin:8px 0; padding:10px; font-size:15px; }
   #roomCode { font-size:30px; letter-spacing:6px; color:var(--accent); font-weight:bold; }
   .seat { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; margin:5px 0; border:1.5px solid var(--line); }
-  .seat .dot { width:16px; height:16px; border-radius:50%; border:1.5px solid rgba(0,0,0,.3); flex:0 0 auto; }
   .seat .nm { flex:1; font-weight:600; }
   .seat.me { background:var(--lemon); border-color:var(--accent); }
   .who { font-size:11px; font-weight:normal; opacity:.7; }

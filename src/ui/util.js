@@ -107,7 +107,6 @@ export function buildPlayerRows(){
     const displayName=pname(i);
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
       <div class="prowTop">
-        <span class="dot" style="background:${HEXCOL[i]}"></span>
         <span class="pname" id="pname${i}" style="color:${HEXCOL[i]}"><span class="pnameInner">${displayName}</span></span>
         <span class="coinsWrap"><span class="coins" id="coins${i}">${iconImg(COIN_IMG)} –</span><span class="crown" id="crown${i}"></span></span>
         <span class="chips" id="chips${i}"></span>
