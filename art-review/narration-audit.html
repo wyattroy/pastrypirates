@@ -1152,9 +1152,21 @@ const adhocById = Object.fromEntries(inv.adhoc.map((e) => [e.id, e]));
  * mark he made. scripts/narration_audit_check.js asserts that arithmetic on every
  * test run: 209 == aliased + retired, and the retired set equals a pinned six-id list.
  * ==========================================================================*/
+// Phase 15's inputs move when a milestone is archived: /gsd-cleanup relocates
+// .planning/phases/<phase>/ to .planning/milestones/<version>-phases/<phase>/. Fetching only the
+// live path meant that archiving v1.2 silently 404'd both files and the page rendered zero cards
+// ("stuck on loading"), which is also what failed assertion 10 in narration_audit_check.js. Try the
+// live path first, fall back to the archive, so the page survives this archive and the next one.
+const fetchPhase15 = async (name) => {
+  for (const base of ["../.planning/phases", "../.planning/milestones/v1.2-phases"]) {
+    const r = await fetch(`${base}/15-narration-audit-fixes/${name}`, { cache: "no-store" });
+    if (r.ok) return r.json();
+  }
+  throw new Error(`narration-audit: ${name} not found in either the live phase directory or the v1.2 archive`);
+};
 const [dispositionsFile, addressed2File, aliasFile] = await Promise.all([
-  fetch("../.planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json", { cache: "no-store" }).then((r) => r.json()),
-  fetch("../.planning/phases/15-narration-audit-fixes/15-ADDRESSED2-APPROVED.json", { cache: "no-store" }).then((r) => r.json()),
+  fetchPhase15("15-DISPOSITIONS-FINAL.json"),
+  fetchPhase15("15-ADDRESSED2-APPROVED.json"),
   fetch("narration-id-aliases.json", { cache: "no-store" }).then((r) => r.json()),
 ]);
 const ALIAS_TO_NEW = Object.fromEntries((aliasFile.entries || []).filter((e) => e.new).map((e) => [e.old, e.new]));

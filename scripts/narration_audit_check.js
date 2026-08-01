@@ -1211,7 +1211,13 @@ const cards = core.renderAllCards(inv);
 // inventory Wyatt's review page consumed — the only evidence that can tell a correct alias from a
 // plausible-looking guess.
 const readJson = (rel) => { try { return JSON.parse(readFileSync(join(ROOT, rel), "utf8")); } catch (e) { return null; } };
-const dispositions = readJson(".planning/phases/15-narration-audit-fixes/15-DISPOSITIONS-FINAL.json");
+// Mirrors the page's fetchPhase15 fallback: /gsd-cleanup moves .planning/phases/<phase>/ into
+// .planning/milestones/<version>-phases/<phase>/ when a milestone is archived. Live path first,
+// then the v1.2 archive.
+const readPhase15 = (name) =>
+  readJson(`.planning/phases/15-narration-audit-fixes/${name}`) ??
+  readJson(`.planning/milestones/v1.2-phases/15-narration-audit-fixes/${name}`);
+const dispositions = readPhase15("15-DISPOSITIONS-FINAL.json");
 const aliases = readJson("art-review/narration-id-aliases.json");
 const approvedBaseline = readJson("art-review/narration-approved-baseline.json");
 let exportEraInventory = null;
