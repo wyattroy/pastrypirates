@@ -29,8 +29,12 @@ export function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&
 // notes/pastry_pirates_recipes.md — shown in the in-game recipe modal (see openRecipeModal).
 // Ingredient list entries prefixed "## " render as a sub-header (for recipes with parts, e.g.
 // a base + filling) instead of a bullet.
-const RECIPE_BOOK=[
+// exported (rather than kept module-private, as it was before FIX-08) so scripts/narration_test.js
+// can enumerate every entry's {ings,title,article} and match its assertions by title text, never
+// by array index — the same discipline recipeInfo()'s ings-based lookup already keys on.
+export const RECIPE_BOOK=[
   {ings:["dairy","wheat","cocoa","sugar","spice"], title:"Spiced Cocoa Shortbread",
+    article:"a",
     desc:"Buttery, melt-in-your-mouth shortbread biscuits infused with warm cinnamon and rich cocoa.",
     real:{yield:"about 24 cookies",
       ingredients:["225 g (1 cup / 2 sticks) unsalted butter, softened","100 g (½ cup) granulated sugar, plus 2 tbsp extra for rolling",
@@ -43,6 +47,7 @@ const RECIPE_BOOK=[
         "Bake 15–18 minutes until set but not browned. Cool completely on the pan.",
         "Optional: melt the chopped chocolate and dip half of each cookie, then let set on parchment."]}},
   {ings:["dairy","wheat","cocoa","sugar","eggs"], title:"Molten Chocolate Lava Cake",
+    article:"a",
     desc:"A decadent, warm chocolate cake with an oozing, liquid fudge center.",
     real:{yield:"4 individual cakes",
       ingredients:["115 g (½ cup / 1 stick) unsalted butter, plus extra for greasing","115 g (4 oz) bittersweet or dark chocolate (60–70%), chopped",
@@ -55,6 +60,7 @@ const RECIPE_BOOK=[
         "Divide batter among the ramekins and bake 12–14 minutes, until the sides are set but the center still jiggles slightly.",
         "Let rest 1 minute, then run a knife around the edge and invert onto plates. Dust with powdered sugar and serve immediately."]}},
   {ings:["dairy","wheat","cocoa","spice","eggs"], title:"Mayan Cocoa Soufflé",
+    article:"a",
     desc:"A soaring, dramatic chocolate soufflé highlighting the dark, complex notes of pure cocoa and cinnamon.",
     real:{yield:"4 ramekins",
       ingredients:["Softened butter and granulated sugar, for coating ramekins","250 ml (1 cup) whole milk","30 g (2 tbsp) unsalted butter",
@@ -68,6 +74,7 @@ const RECIPE_BOOK=[
         "Fold a third of the egg whites into the chocolate base to lighten it, then gently fold in the rest.",
         "Divide among ramekins, run your thumb around the inside rim to help it rise evenly, and bake 16–18 minutes until puffed and just set. Serve immediately."]}},
   {ings:["dairy","wheat","sugar","spice","eggs"], title:"Cinnamon-Sugar Churros",
+    article:"",
     desc:"Crispy, golden pastry dough tossed in a sweet, crackly cinnamon-sugar shell.",
     real:{yield:"about 20 churros, serves 4–6",
       ingredients:["240 ml (1 cup) water","60 ml (¼ cup) whole milk","60 g (4 tbsp) unsalted butter","2 tbsp granulated sugar",
@@ -80,6 +87,7 @@ const RECIPE_BOOK=[
         "Fry 2–3 minutes per side until deep golden. Drain on paper towels.",
         "While still warm, toss the churros in the cinnamon-sugar mixture until fully coated. Serve with warm chocolate or dulce de leche for dipping, if desired."]}},
   {ings:["dairy","cocoa","sugar","spice","eggs"], title:"Mexican Chocolate Torte",
+    article:"a",
     desc:"An ultra-fudgy, dense chocolate cake whipped with eggs and spiced with sweet cinnamon.",
     real:{yield:"one 23 cm (9 in) cake, 10–12 slices",
       ingredients:["225 g (8 oz) dark chocolate (60–70%), chopped","225 g (1 cup / 2 sticks) unsalted butter, plus extra for the pan",
@@ -92,6 +100,7 @@ const RECIPE_BOOK=[
         "Pour into the prepared pan and bake 30–35 minutes, until the top is set and the center jiggles only slightly. Cool completely in the pan — the torte will sink a little and become dense and fudgy as it cools.",
         "Warm the milk and pour over the chopped milk chocolate; let sit 2 minutes, then stir until smooth. Pour the glaze over the cooled torte and let set before slicing."]}},
   {ings:["wheat","cocoa","sugar","spice","eggs"], title:"Spiced Fudge Brownies",
+    article:"",
     desc:"Deep, dark brownies with a gorgeous shiny crust and a dense, chewy center.",
     real:{yield:"16 brownies (20 cm / 8 in square pan)",
       ingredients:["170 g (¾ cup / 1½ sticks) unsalted butter","200 g (7 oz) dark chocolate, chopped","300 g (1½ cups) granulated sugar",
@@ -103,6 +112,7 @@ const RECIPE_BOOK=[
         "Pour into the pan and spread evenly. Bake 25–30 minutes, until a toothpick comes out with a few moist crumbs.",
         "Cool completely in the pan before lifting out and cutting into 16 squares."]}},
   {ings:["dairy","vanilla","wheat","cocoa","sugar"], title:"Caramel Slice",
+    article:"a",
     desc:"A toasted-coconut shortbread base, a thick layer of chewy milk caramel, and a clean snap of chocolate on top — the classic Aussie tearoom treat.",
     real:{yield:"one 20 x 30 cm (8 x 12 in) pan, about 24 squares",
       ingredients:["## Coconut shortbread base","150 g (1 cup) all-purpose flour","90 g (1 cup) shredded coconut, toasted",
@@ -119,6 +129,7 @@ const RECIPE_BOOK=[
         "Melt the chocolate and coconut oil together until smooth, then pour over the chilled caramel layer and spread evenly. Chill until fully set, at least 30–60 minutes.",
         "To cut clean squares, let the slice sit at room temperature for 5 minutes, then use a knife warmed under hot water and wiped dry between each cut."]}},
   {ings:["dairy","vanilla","wheat","cocoa","spice"], title:"Cinnamon Snaps",
+    article:"",
     desc:"Crisp, rustic butter biscuits celebrating aromatic vanilla and warming cinnamon.",
     real:{yield:"about 30 cookies",
       ingredients:["170 g (¾ cup / 1½ sticks) unsalted butter, softened","150 g (¾ cup) granulated sugar (added — even a \"snap\" cookie needs sugar to caramelize)",
@@ -130,6 +141,7 @@ const RECIPE_BOOK=[
         "Preheat oven to 175°C (350°F). Slice the logs into thin, 3 mm (⅛ in) rounds.",
         "Bake 10–12 minutes until the edges are golden brown. Cool completely on the pan — they crisp up fully as they cool, giving that signature snap."]}},
   {ings:["dairy","vanilla","wheat","sugar","spice"], title:"Snickerdoodle Bites",
+    article:"",
     desc:"Pillowy-soft butter cookies rolled in sweet cinnamon-sugar and pure vanilla.",
     real:{yield:"about 30 mini cookies",
       ingredients:["170 g (¾ cup / 1½ sticks) unsalted butter, softened","200 g (1 cup) granulated sugar",
@@ -143,6 +155,7 @@ const RECIPE_BOOK=[
         "Bake 8–9 minutes — they'll look slightly underdone but will firm up as they cool. Cool completely.",
         "Whisk the powdered sugar, milk, and vanilla into a smooth glaze and drizzle over the cooled cookies."]}},
   {ings:["dairy","vanilla","cocoa","sugar","spice"], title:"Cinnamon-Chocolate Fudge",
+    article:"a",
     desc:"A quick-set, melt-in-your-mouth chocolate fudge layered with warm spice and vanilla.",
     real:{yield:"36 pieces (20 cm / 8 in square pan)",
       ingredients:["400 g (14 oz) sweetened condensed milk","340 g (12 oz / 2 cups) semisweet or dark chocolate chips",
@@ -154,6 +167,7 @@ const RECIPE_BOOK=[
         "Pour into the prepared pan, smooth the top, and chill at least 2–3 hours until firm.",
         "Lift out using the parchment overhang and cut into 3 cm (1¼ in) squares."]}},
   {ings:["vanilla","wheat","cocoa","sugar","spice"], title:"Crispy Cocoa Snaps",
+    article:"",
     desc:"Thin, highly satisfying cookies with a loud snap and deep spiced chocolate notes.",
     real:{yield:"about 30 wafers",
       ingredients:["170 g (¾ cup / 1½ sticks) unsalted butter, softened","150 g (¾ cup) granulated sugar","1 tsp vanilla extract",
@@ -164,6 +178,7 @@ const RECIPE_BOOK=[
         "Preheat oven to 165°C (325°F). Slice into 3 mm (⅛ in) thin rounds and place on a lined baking sheet.",
         "Bake 12–14 minutes until just set. Cool completely on the pan before handling — the snap develops fully as they cool."]}},
   {ings:["dairy","vanilla","wheat","cocoa","eggs"], title:"Dark Chocolate Cream Puffs",
+    article:"",
     desc:"Golden choux pastry puffs filled with an elegant, bittersweet vanilla-chocolate pastry cream.",
     real:{yield:"12 puffs",
       ingredients:["## Choux pastry","120 ml (½ cup) whole milk","120 ml (½ cup) water","115 g (½ cup / 1 stick) unsalted butter",
@@ -177,6 +192,7 @@ const RECIPE_BOOK=[
         "Off heat, stir in the chocolate, vanilla, and salt until smooth. Press plastic wrap directly onto the surface and chill at least 2 hours.",
         "Pipe the chilled pastry cream into the puffs through the poked hole. Dust with cocoa or powdered sugar before serving."]}},
   {ings:["dairy","vanilla","wheat","sugar","eggs"], title:"Pound Cake",
+    article:"a",
     desc:"A dense, rich, buttery cake with a fine, tight crumb and a golden crust — the original \"one pound of everything\" cake, finished with a simple vanilla-milk glaze.",
     real:{yield:"one 25 cm (10 in) tube or bundt cake, 12–14 slices",
       ingredients:["340 g (1½ cups / 3 sticks) unsalted butter, softened, plus extra for the pan","400 g (2 cups) granulated sugar",
@@ -192,6 +208,7 @@ const RECIPE_BOOK=[
         "Cool in the pan 15 minutes, then turn out onto a wire rack to cool completely.",
         "Whisk the glaze ingredients together and drizzle over the cooled cake before slicing."]}},
   {ings:["dairy","vanilla","cocoa","sugar","eggs"], title:"French Pots de Crème",
+    article:"",
     desc:"Luxurious, spoonable baked custards highlighting premium chocolate and smooth vanilla.",
     real:{yield:"6 ramekins",
       ingredients:["350 ml (1½ cups) whole milk","240 ml (1 cup) heavy cream","170 g (6 oz) dark chocolate (60–70%), chopped",
@@ -203,6 +220,7 @@ const RECIPE_BOOK=[
         "Place ramekins in a deep baking dish, add hot water halfway up the sides, and bake 30–35 minutes until the edges are set but the centers still jiggle slightly.",
         "Cool, then chill at least 4 hours before serving."]}},
   {ings:["vanilla","wheat","cocoa","sugar","eggs"], title:"Chocolate Genoise Sponge Cake",
+    article:"a",
     desc:"A feather-light, delicate sponge cake relying on whipped eggs for its airy lift.",
     real:{yield:"one 20 cm (8 in) cake",
       ingredients:["4 large eggs, room temperature","130 g (⅔ cup) granulated sugar","1 tsp vanilla extract",
@@ -214,6 +232,7 @@ const RECIPE_BOOK=[
         "Fold in the melted butter just until incorporated. Pour into the prepared pan and bake 30–35 minutes, until a toothpick comes out clean.",
         "Cool in the pan 10 minutes, then turn out onto a rack. Best served with whipped cream or a light chocolate glaze."]}},
   {ings:["dairy","vanilla","wheat","spice","eggs"], title:"Cinnamon Dutch Baby",
+    article:"a",
     desc:"A dramatic skillet pancake that puffs up in the oven, featuring a custardy center of vanilla and spice.",
     real:{yield:"one 25 cm (10 in) skillet, serves 4",
       ingredients:["3 large eggs, room temperature","120 ml (½ cup) whole milk, room temperature","65 g (½ cup) all-purpose flour",
@@ -225,6 +244,7 @@ const RECIPE_BOOK=[
         "Immediately pour in the batter and return to the oven. Bake 20–22 minutes, without opening the oven, until dramatically puffed and deep golden brown.",
         "Serve immediately (it will deflate within minutes), dusted with powdered sugar and cinnamon sugar, with lemon wedges alongside."]}},
   {ings:["dairy","vanilla","cocoa","spice","eggs"], title:"Mexican Chocolate Pots",
+    article:"",
     desc:"Silky-smooth custard cups naturally sweetened by vanilla bean and cinnamon.",
     real:{yield:"6 ramekins",
       ingredients:["350 ml (1½ cups) whole milk","240 ml (1 cup) heavy cream","1½ tsp ground cinnamon","Pinch of cayenne pepper (optional)",
@@ -236,6 +256,7 @@ const RECIPE_BOOK=[
         "Bake in a water bath (hot water halfway up the ramekin sides) for 30–35 minutes, until set at the edges with a slight jiggle in the center.",
         "Chill at least 4 hours before serving."]}},
   {ings:["vanilla","wheat","cocoa","spice","eggs"], title:"Cocoa Cloud Soufflé",
+    article:"a",
     desc:"An airy, intensely rich whipped soufflé celebrating pure, dark chocolate.",
     real:{yield:"4 ramekins",
       ingredients:["Softened butter and granulated sugar, for coating ramekins","150 g (5 oz) dark chocolate, chopped",
@@ -249,6 +270,7 @@ const RECIPE_BOOK=[
         "Fold a third of the whites into the chocolate base to lighten, then gently fold in the rest, keeping as much air as possible.",
         "Divide among ramekins and bake 16–18 minutes until puffed and set with a slight wobble in the center. Serve immediately."]}},
   {ings:["dairy","vanilla","sugar","spice","eggs"], title:"Vanilla Bean Crème Brûlée",
+    article:"a",
     desc:"Velvety baked custard topped with a satisfying, blowtorched glass-like caramelized sugar crust.",
     real:{yield:"6 ramekins",
       ingredients:["500 ml (2 cups) heavy cream","200 ml (¾ cup + 2 tbsp) whole milk","1 vanilla bean, split and scraped (or 2 tsp vanilla bean paste/extract)",
@@ -259,6 +281,7 @@ const RECIPE_BOOK=[
         "Bake 35–40 minutes until set at the edges but still slightly jiggly in the center. Cool, then chill at least 4 hours (overnight is best).",
         "Before serving, blot any surface moisture, sprinkle an even, thin layer of sugar over each custard, and caramelize with a kitchen torch until deep amber and crackly. Let sit 1–2 minutes for the sugar to harden before serving."]}},
   {ings:["vanilla","wheat","sugar","spice","eggs"], title:"Cinnamon Sponge Cake",
+    article:"a",
     desc:"A fluffy, golden cake scented with sweet vanilla and coated in a crisp cinnamon-sugar crust.",
     real:{yield:"one 23 cm (9 in) cake",
       ingredients:["4 large eggs, room temperature","150 g (¾ cup) granulated sugar","1 tsp vanilla extract","120 g (1 cup) all-purpose flour",
@@ -270,6 +293,7 @@ const RECIPE_BOOK=[
         "Fold in the melted butter just until incorporated. Pour into the pan and bake 25 minutes, until golden and a toothpick comes out clean.",
         "While the cake is still warm, brush lightly with a little extra melted butter and dust generously with the cinnamon-sugar coating, pressing gently so it adheres."]}},
   {ings:["vanilla","cocoa","sugar","spice","eggs"], title:"Chocolate Fudge Torte",
+    article:"a",
     desc:"A premium, dense cake utilizing whipped eggs to achieve a velvety, chocolatey mouthfeel.",
     real:{yield:"one 23 cm (9 in) cake, 10–12 slices",
       ingredients:["225 g (8 oz) dark chocolate (60–70%), chopped","225 g (1 cup / 2 sticks) unsalted butter, plus extra for the pan",
@@ -301,6 +325,14 @@ export function recipeTitle(recipe){
   // fallback for any non-standard ingredient set: a simple ingredient-led name
   const lead=recipe.filter(i=>ING_NAME[i]).slice(0,2).map(i=>iname(i).split(" ").pop());
   return `Captain's ${lead.join(" & ")} Bake`.replace(/\s+/g," ").trim();
+}
+// FIX-08: the article ("a"/"") that belongs in front of this recipe's title in prose — e.g. the
+// win banner's "baked {article }{title}". Each RECIPE_BOOK entry carries its own curated article
+// (no pluralisation heuristic — see RESEARCH "Don't Hand-Roll"); recipeTitle()'s own fallback name
+// ("Captain's X & Y Bake") is always singular, so an unmatched ingredient set also gets "a".
+export function recipeArticle(recipe){
+  const info=recipeInfo(recipe);
+  return info ? info.article : "a";
 }
 // clickable recipe name for narration/log text (win banner) — opens the same recipe modal as
 // the .prowRecipe row click, via a document-level delegated handler (see wireRecipeModal) since

@@ -28,6 +28,7 @@ import {
 import { ilabelImg, ING_IMG, ING_ALL, iconImg, dockFlavor, dockFlavorIcon, dockPlace, iname, HEXCOL } from "../src/shared/index.js";
 import { netSetNarr } from "../src/net/writers.js";
 import { appState } from "../src/state/index.js";
+import { RECIPE_BOOK, recipeArticle, recipeTitle } from "../src/ui/recipe.js";
 // D-54: src/ui/flow.js's flash() sites are not table-driven, so the one approved ad-hoc line there
 // is pinned by reading the shipped source rather than by importing it (this harness deliberately
 // never imports src/ui/flow.js — see the header note above).
@@ -979,6 +980,49 @@ const DOCK_FLAVOR_BEFORE = {
   checkTrue("G28: the hold curve's constants are named and are the VISIBLE milliseconds", /HOLD_FLOOR_MS=800/.test(utilSrc) && /HOLD_CEILING_MS=2000/.test(utilSrc));
   checkTrue("G28: the clamp is applied LAST, not to a pre-multiplier intermediate", /Math\.min\(Math\.max\(raw,HOLD_FLOOR_MS\),HOLD_CEILING_MS\)/.test(utilSrc));
   checkTrue("F6: CHAT_BUBBLE_HOLD_MULTIPLIER is untouched at 0.8 (D-15)", /CHAT_BUBBLE_HOLD_MULTIPLIER=0\.8/.test(utilSrc));
+}
+
+/* ============================================================================
+ * Phase 18-02 (FIX-08): the win banner's article — "baked a Pound Cake" but
+ * "baked Cinnamon-Sugar Churros" — covering all 21 RECIPE_BOOK entries plus the
+ * recipeTitle() fallback branch.
+ *
+ * The expected mapping (which 8 titles take no article) is hardcoded here, INDEPENDENTLY of
+ * RECIPE_BOOK's own `article` field, and matched by TITLE TEXT (never array index/position) —
+ * so a mistake in the source data's article assignment, or a future reordering of RECIPE_BOOK,
+ * both still fail this block rather than the test tautologically re-deriving its own answer key
+ * from the thing it is checking. ==========================================================*/
+{
+  console.log("\nFIX-08 — recipeArticle(): the win banner prints an article only where one belongs:");
+  check("RECIPE_BOOK has exactly 21 entries", RECIPE_BOOK.length, 21);
+
+  // the 8 plural titles that take NO article — Wyatt's punch list item, curated per-title (no
+  // pluralisation heuristic: "Pots de Crème" is plural with no trailing s, "Chocolate Genoise
+  // Sponge Cake" is singular — see RESEARCH "Don't Hand-Roll")
+  const NO_ARTICLE_TITLES = new Set([
+    "Cinnamon-Sugar Churros", "Spiced Fudge Brownies", "Cinnamon Snaps", "Snickerdoodle Bites",
+    "Crispy Cocoa Snaps", "Dark Chocolate Cream Puffs", "French Pots de Crème", "Mexican Chocolate Pots",
+  ]);
+  check("the curated no-article title set has exactly 8 entries (Wyatt's punch list count)", NO_ARTICLE_TITLES.size, 8);
+
+  let emptyArticleCount = 0;
+  for (const entry of RECIPE_BOOK) {
+    const expected = NO_ARTICLE_TITLES.has(entry.title) ? "" : "a";
+    check(`recipeArticle(): "${entry.title}" resolves to ${JSON.stringify(expected)}`, recipeArticle(entry.ings), expected);
+    check(`RECIPE_BOOK data: "${entry.title}"'s own article field matches the expected mapping`, entry.article, expected);
+    // sanity: the ings actually round-trip to this same title (proves the lookup used the right entry)
+    check(`recipeTitle(): "${entry.title}"'s ings round-trip to its own title`, recipeTitle(entry.ings), entry.title);
+    if (recipeArticle(entry.ings) === "") emptyArticleCount++;
+  }
+  check("exactly 8 of the 21 entries resolve to an empty (no-article) string", emptyArticleCount, 8);
+  check("the remaining 13 entries resolve to \"a\"", RECIPE_BOOK.length - emptyArticleCount, 13);
+
+  // the fallback branch: an ingredient set with no RECIPE_LOOKUP match drives recipeTitle()'s
+  // "Captain's X & Y Bake" fallback, which is always singular — recipeArticle() must return "a"
+  const fabricatedRecipe = ["dairy", "vanilla", "wheat", "cocoa", "sugar", "spice"]; // 6 ings: no 21-entry 5-combo matches this set
+  checkTrue("the fabricated non-standard ingredient set has no RECIPE_LOOKUP match (drives the fallback branch)",
+    recipeTitle(fabricatedRecipe).startsWith("Captain's"));
+  check("recipeArticle(): a non-standard ingredient set (recipeTitle() fallback) resolves to \"a\"", recipeArticle(fabricatedRecipe), "a");
 }
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
