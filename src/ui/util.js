@@ -610,7 +610,12 @@ export const EVENT_NARRATION={
     // the fork that keeps every one of THOSE rendering byte-identically to before this change,
     // falling back to the old coin-count proxy exactly as it did before spoilChosen existed.
     const hasChoice=typeof e.spoilChosen==="boolean";
-    const isBribe=e.spoilIng==null&&(hasChoice?e.spoilChosen===true:(Number.isFinite(spoilN)&&spoilN>=5));
+    // the amount gate (spoilN>=5) stays load-bearing in BOTH forks — a fabricated sub-5 event with
+    // spoilChosen:true is not a shape the real game ever produces (canCoins&&hasIng only sets
+    // spoilChosen true when lose.coins>=5, which clamps the take to exactly 5), but the fix must not
+    // depend on that never happening: a sub-5 spoil always falls to the all-they-have framing,
+    // regardless of spoilChosen.
+    const isBribe=e.spoilIng==null&&Number.isFinite(spoilN)&&spoilN>=5&&(hasChoice?e.spoilChosen===true:true);
     // the empty-hold case: a real choice existed (hasChoice), the loser did NOT choose coins over a
     // crate (they had none to choose from), and the coin take still reached the clamp ceiling.
     const isEmptyHoldFive=e.spoilIng==null&&hasChoice&&e.spoilChosen===false&&Number.isFinite(spoilN)&&spoilN>=5;

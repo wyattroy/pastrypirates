@@ -278,33 +278,81 @@ for (const key of KEYS) {
   }
 }
 
-/* ---------- Plan 15-04 Task 1 (NARR-04/D-12): battle spoil bribe-vs-cleaned-out split ----------
+/* ---------- Plan 15-04 Task 1 (NARR-04/D-12), extended by Plan 18-04 Task 2 (FIX-07) ----------
    Direct-table-call style (mirrors scripts/bot_storm_narration_test.js's own EVENT_NARRATION.
    moored assertions) — fabricated battle events, no engine/DOM needed. Asserts the boundary sits
-   exactly between 4 and 5 coins, ingredient spoils are untouched, and an absent/empty/non-numeric
-   spoil always falls through to the cleaned-out (least-claiming) framing with no undefined/NaN. */
+   exactly between 4 and 5 coins, ingredient spoils are untouched, an absent/empty/non-numeric
+   spoil always falls through to the cleaned-out (least-claiming) framing with no undefined/NaN,
+   AND (FIX-07) that the real spoilChosen signal — not the coin amount alone — decides whether a
+   5-coin spoil reads as a genuine bribe or as an empty-hold give-up. */
 {
   const f = EVENT_NARRATION.battle;
-  const mkEvent = (spoil, spoilIng = null) => ({ t: "battle", a: 0, d: 1, winner: 0, rounds: [[true, false, false, "a"]], spoil, spoilIng });
+  // FIX-07: spoilChosen is an optional 3rd arg — omitted entirely (not just `undefined`-valued)
+  // when the caller passes nothing, so the "absent field" case fabricates the exact shape every
+  // engine/replay/simulator/fixture event actually has: no key at all.
+  const mkEvent = (spoil, spoilIng = null, spoilChosen) => {
+    const e = { t: "battle", a: 0, d: 1, winner: 0, rounds: [[true, false, false, "a"]], spoil, spoilIng };
+    if (spoilChosen !== undefined) e.spoilChosen = spoilChosen;
+    return e;
+  };
   const isBribe = txt => /bribes their way out of giving away a crate/.test(txt);
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): the cleaned-out framing's wording changed to
   // "gives up all they have" (was "has nothing left to give") — same invariant, new literal.
   const isCleanedOut = txt => /gives up all they have/.test(txt);
+  // FIX-07 (ruled 2026-07-31): the new give-up line is "gives up {spoil}."/"give up {spoil}." with
+  // NO "all" following — the negative lookahead is what keeps this from also matching the
+  // cleaned-out phrase above ("gives up all they have"), which always has "all" immediately after.
+  const isGiveUp = txt => /\bgives? up (?!all\b)/i.test(txt);
 
   const genuine = f(mkEvent("5 coins"), at).txt;
   const cleaned = f(mkEvent("2 coins"), at).txt;
   checkTrue("battle: 5-coin (bribe) wording differs from 2-coin (cleaned-out) wording", genuine !== cleaned);
   checkTrue("battle: both renderings non-empty with no undefined/NaN token", !!genuine && !!cleaned && !/undefined|NaN/.test(genuine) && !/undefined|NaN/.test(cleaned));
 
-  for (const n of [0, 1, 2, 4]) {
-    const txt = f(mkEvent(`${n} coins`), at).txt;
-    checkTrue(`battle: ${n}-coin spoil renders the cleaned-out framing`, isCleanedOut(txt));
-    checkTrue(`battle: ${n}-coin spoil does NOT render the bribe framing`, !isBribe(txt));
+  // FIX-07: the 0/1/2/4-coin cleaned-out assertions, extended across all three spoilChosen states
+  // (genuinely chosen, genuinely not chosen, and unknown/absent) — pinning that the under-5 path is
+  // independent of the new field, exactly as the plan's own behavior spec requires ("a 2-coin spoil
+  // renders the all-they-have framing regardless of spoilChosen").
+  for (const spoilChosen of [true, false, undefined]) {
+    for (const n of [0, 1, 2, 4]) {
+      const txt = f(mkEvent(`${n} coins`, null, spoilChosen), at).txt;
+      checkTrue(`battle: ${n}-coin spoil (spoilChosen=${spoilChosen}) renders the cleaned-out framing`, isCleanedOut(txt));
+      checkTrue(`battle: ${n}-coin spoil (spoilChosen=${spoilChosen}) does NOT render the bribe framing`, !isBribe(txt));
+      checkTrue(`battle: ${n}-coin spoil (spoilChosen=${spoilChosen}) does NOT render the give-up framing`, !isGiveUp(txt));
+    }
+  }
+
+  // FIX-07: the 5-coin block, split into three labelled cases per the copy-gate rule (re-pointed,
+  // never deleted) — this is the exact assertion that used to encode the bug, since a 5-coin spoil
+  // with spoilIng:null was always read as a bribe regardless of whether the loser ever had a crate
+  // to forgo. Each case asserts mutual exclusivity: exactly one of the three framings is present.
+  {
+    // Case A — genuine-bribe: the loser HAD a crate and genuinely chose coins over it.
+    const txt = f(mkEvent("5 coins", null, true), at).txt;
+    checkTrue("battle FIX-07 [genuine-bribe case]: 5-coin spoil with spoilChosen:true renders the bribe framing", isBribe(txt));
+    checkTrue("battle FIX-07 [genuine-bribe case]: does NOT render the give-up framing", !isGiveUp(txt));
+    checkTrue("battle FIX-07 [genuine-bribe case]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [genuine-bribe case]: exactly one framing present", [isBribe(txt), isGiveUp(txt), isCleanedOut(txt)].filter(Boolean).length === 1);
   }
   {
+    // Case B — empty-hold: the loser had NO crate; the coin take still reached the 5-coin clamp
+    // ceiling. This is the case that used to render bribe framing before this plan's fix (FIX-07).
+    const txt = f(mkEvent("5 coins", null, false), at).txt;
+    checkTrue("battle FIX-07 [empty-hold case]: 5-coin spoil with spoilChosen:false renders the give-up framing", isGiveUp(txt));
+    checkTrue("battle FIX-07 [empty-hold case]: does NOT render the bribe framing", !isBribe(txt));
+    checkTrue("battle FIX-07 [empty-hold case]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [empty-hold case]: exactly one framing present", [isBribe(txt), isGiveUp(txt), isCleanedOut(txt)].filter(Boolean).length === 1);
+    checkTrue("battle FIX-07 [empty-hold case]: the ruled literal 'gives up 5🌕.' appears verbatim (neutral viewer)", txt.includes("gives up 5🌕."));
+  }
+  {
+    // Case C — absent-field regression: no spoilChosen key at all, exactly the shape every
+    // engine-generated, replayed, and fixture battle event has and always will have (hard
+    // constraint 2). Must render the shipped-history bribe framing, byte-unchanged.
     const txt = f(mkEvent("5 coins"), at).txt;
-    checkTrue("battle: 5-coin spoil renders the bribe framing", isBribe(txt));
-    checkTrue("battle: 5-coin spoil does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [absent-field case]: 5-coin spoil with no spoilChosen key renders the bribe framing (shipped-history default)", isBribe(txt));
+    checkTrue("battle FIX-07 [absent-field case]: does NOT render the give-up framing", !isGiveUp(txt));
+    checkTrue("battle FIX-07 [absent-field case]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [absent-field case]: exactly one framing present", [isBribe(txt), isGiveUp(txt), isCleanedOut(txt)].filter(Boolean).length === 1);
   }
 
   // ingredient spoils are UNTOUCHED by the split — pin the literal "{winner} takes {spoil}." clause.
@@ -318,13 +366,29 @@ for (const key of KEYS) {
   // because the crate branch now renders from the DATA field (spoilIng) rather than from the
   // pre-rendered engine text. Pinning against ilabelImg() is STRICTER than the old placeholder:
   // it asserts the clause carries the ingredient's real custom art (D-17), not an arbitrary stub.
+  //
+  // FIX-07: also asserted for spoilChosen:true — an ingredient spoil (spoilIng set) is unaffected
+  // by the new field in all three states, per the plan's own behavior spec.
   const ingTxt = f(mkEvent(ilabelImg("wheat"), "wheat"), at).txt;
   checkTrue("battle: ingredient-spoil clause still reads '{winner} takes {spoil}.' (untouched by the split, and rendered from the spoilIng DATA field)", ingTxt.includes(`takes ${ilabelImg("wheat")}.`));
+  const ingTxtChosen = f(mkEvent(ilabelImg("wheat"), "wheat", true), at).txt;
+  checkTrue("battle FIX-07: an ingredient spoil is unaffected by spoilChosen:true (still '{winner} takes {spoil}.')", ingTxtChosen.includes(`takes ${ilabelImg("wheat")}.`));
 
   for (const [label, spoil] of [["absent", undefined], ["empty", ""], ["non-numeric", "abc coins"]]) {
     const txt = f(mkEvent(spoil), at).txt;
     checkTrue(`battle: ${label} spoil still renders a non-empty line with no undefined/NaN token`, !!txt && !/undefined|NaN/.test(txt));
     checkTrue(`battle: ${label} spoil falls through to the cleaned-out (least-claiming) framing`, isCleanedOut(txt));
+  }
+
+  // FIX-07: the loser-addressed composite rendering (the SEPARATE if/else chain further down in
+  // src/ui/util.js) gets its own coverage for the empty-hold case, so it cannot regress silently.
+  {
+    const LOSER = 1; // e.a=0/e.d=1/winner=0 -> seat 1 is the loser
+    const txt = f(mkEvent("5 coins", null, false), at, 0, LOSER).txt;
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: renders the give-up framing", isGiveUp(txt));
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: does NOT render the bribe framing", !isBribe(txt));
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: does NOT render the cleaned-out framing", !isCleanedOut(txt));
+    checkTrue("battle FIX-07 [empty-hold case, loser-addressed composite]: the ruled literal 'ye give up 5🌕.' appears verbatim", txt.includes("ye give up 5🌕."));
   }
 }
 
