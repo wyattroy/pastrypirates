@@ -410,6 +410,13 @@ export function windPrototypeEnabled(){
 // part of the frame cost it measures.
 const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=10, WIND_DOT_SEED_SALT=0x57494e44, WIND_LAYER_OVERSIZE=2.2, WIND_READOUT_MS=250;
 
+// WIND_WOBBLE_MAX_PX/WIND_WOBBLE_PERIOD_MS (D-02.2) and WIND_FADE_FRAC (D-02.1) are 19-04's two
+// named fill-in points' constants. WIND_WOBBLE_MAX_PX caps the lateral sway's amplitude in the
+// layer's LOCAL space (px); WIND_WOBBLE_PERIOD_MS is that sway's period. WIND_FADE_FRAC is the
+// fraction of one travel cycle spent rising from 0 to the plateau (and, mirrored, falling back to
+// 0) — "roughly the first/last fifth" per 19-04-PLAN.md Task 1.
+const WIND_WOBBLE_MAX_PX=14, WIND_WOBBLE_PERIOD_MS=2600, WIND_FADE_FRAC=0.2;
+
 // windDotSpecs(seed,count) — the PURE seeded-spec half, direct sibling of stormLayerSpecs() above.
 // mulberry32(seed), NEVER appState.game.r() — see src/ui/board.js:299-302 for why the private
 // stream is non-negotiable (D-12): drawing from the game's own seeded stream would advance it and
@@ -432,21 +439,51 @@ export function windDotSpecs(seed,count){
 // `now`-relative state (every input arrives as a parameter) so it can be exercised headlessly.
 // Returns {x,y,opacity} in the LAYER's own local, unrotated space — the outer rotate() applied by
 // windEnsureLayer/windDotsTick supplies the live wind direction; it is never baked in here, which
-// is exactly why a direction change re-aims every dot with no restart. This tracer travels along
-// local +Y only, wrapped into [-margin,layerH+margin] with margin=16, at
-// (0.35+spec.speed*0.5) layer-heights per second, phase-offset by spec.startT. `x` is a fixed lane
-// (spec.lane*layerW); `opacity` is a constant 0.72. The wobble term (spec.wobbleAmp) and the fade
-// envelope are 19-04's two named fill-in points onto this SAME return shape — no caller needs to
-// change to complete D-02.
+// is exactly why a direction change re-aims every dot with no restart. `y` travels along local +Y
+// only, wrapped into [-margin,layerH+margin] with margin=16, at (0.35+spec.speed*0.5)
+// layer-heights per second, phase-offset by spec.startT — unchanged by D-02's fade/wobble below,
+// since neither touches `y`.
+//
+// D-02.1 (fade): `u` is the SAME travel term as `y`, renormalized to a cycle position in [0,1).
+// `opacity` rises from 0 to the PLATEAU (0.72, the tracer's original constant) across the first
+// WIND_FADE_FRAC of the cycle, holds at the plateau across the middle, and falls back to 0 across
+// the last WIND_FADE_FRAC — eased with sin() (a quarter-cosine ease) rather than a linear ramp, so
+// the appear/disappear reads as a smooth breath. A dot therefore appears and disappears mid-board
+// and never has to traverse the whole layer at full opacity, which is what keeps the on-screen
+// count roughly constant per D-02.3's density target.
+//
+// D-02.2 (wobble): a lateral term added to `x` ONLY — `y` (and therefore the direction of travel)
+// is untouched. Because `x` is the layer's own LOCAL horizontal axis and the whole `.wlayer`
+// carries the live compass rotation (windEnsureLayer/windDotsTick), this local-only sway becomes,
+// in screen space, automatically ACROSS whatever direction the wind is currently blowing — a
+// north-bound dot sways west and east — with no per-dot trigonometry against the wind angle.
+// Phase-seeded by spec.startT so dots don't sway in lockstep; amplitude scaled by spec.wobbleAmp
+// (drawn in [0,1) by windDotSpecs) so no dot's deviation from its lane can exceed WIND_WOBBLE_MAX_PX.
 export function windDotFrame(spec,tMs,layerW,layerH){
   const margin=16;
   const rate=0.35+spec.speed*0.5; // layer-heights per second
   const span=layerH+margin*2;
-  let y=(spec.startT*span+(tMs/1000)*rate*layerH)%span;
-  if(y<0)y+=span;
-  y-=margin;
-  const x=spec.lane*layerW;
-  return {x,y,opacity:0.72};
+  let raw=(spec.startT*span+(tMs/1000)*rate*layerH)%span;
+  if(raw<0)raw+=span;
+  const y=raw-margin;
+  const u=raw/span; // cycle position in [0,1) — drives the fade envelope only
+
+  const PLATEAU=0.72;
+  let opacity;
+  if(u<WIND_FADE_FRAC){
+    opacity=PLATEAU*Math.sin((u/WIND_FADE_FRAC)*(Math.PI/2));
+  }else if(u<1-WIND_FADE_FRAC){
+    opacity=PLATEAU;
+  }else{
+    const v=(1-u)/WIND_FADE_FRAC;
+    opacity=PLATEAU*Math.sin(v*(Math.PI/2));
+  }
+  opacity=Math.max(0,Math.min(1,opacity));
+
+  const wobble=Math.sin(tMs/WIND_WOBBLE_PERIOD_MS*Math.PI*2+spec.startT*Math.PI*2)*spec.wobbleAmp*WIND_WOBBLE_MAX_PX;
+  const x=spec.lane*layerW+wobble;
+
+  return {x,y,opacity};
 }
 
 // buildWindDots(container,seed,count) — NOT idempotent, unlike buildStormLayers()'s
