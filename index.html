@@ -62,7 +62,9 @@
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
     container-type: inline-size; }
   #actionPanel { grid-area: narration; }
-  #captainsPanel { grid-area: captains; }
+  /* container for the chip-row query below — the captains box responds to ITS OWN width,
+     not the viewport's, so the layout switches wherever the box is actually too narrow. */
+  #captainsPanel { grid-area: captains; container-type: inline-size; container-name: captains; }
   #statsWrap { grid-area: stats; }
   #chatPanel { grid-area: chat; }
   /* below-the-board panels track the board's own rendered width; in the stacked/narrow layout they
@@ -177,19 +179,31 @@
      simply starts at the first (name) column, which is exactly where it already tucked to. */
   .prowTop { display: grid; grid-template-columns: 106px 40px 1fr; gap: 6px 6px;
     grid-template-areas: ".    .     recipe" "name coins chips"; align-items: center; }
-  @media (max-width: 480px) {
-    /* PDF item 3c / notes/edits #11 + FIX-09 D-03: on narrow screens the recipe sits underneath
-       the captain's name, and the ingredient chips get their OWN full-width row beneath that —
-       matching the precedent the recipe row already set. Chips stay at their full 34px; they no
-       longer wrap into a tall column beside the name.
+  /* PDF item 3c / notes/edits #11 + FIX-09 D-03: when the captains box is too narrow to lay the
+     hold out on one line, the recipe drops under the captain's name and the ingredient chips take
+     their OWN full-width row beneath that. Chips keep their full 34px — they never wrap into a
+     tall column beside the name.
 
-       D-03 RESOLVED — Wyatt chose Treatment B, 2026-08-01: "I LOVE true — it's so much better."
-       ("true" was the console toggle's return when body.chipsOwnRow was ON.) Treatment A (shrink
-       the chip to 26px inside the existing grid) is deleted per plan 18-06's own instruction that
-       exactly one survives and the other must not linger. Do not reintroduce a shrunk .chip here.
+     D-03 RESOLVED — Wyatt chose Treatment B, 2026-08-01: "I LOVE true — it's so much better."
+     Treatment A (26px shrunk chips inside the existing grid) is deleted per plan 18-06's own
+     instruction that exactly one treatment survives. Do not reintroduce a shrunk .chip here.
 
-       Row order matters: name/coins first, then recipe, then chips — so each renders below the
-       last rather than above it. */
+     WHY A CONTAINER QUERY, NOT @media (Wyatt, 2026-08-01: "use it whenever the captains box would
+     have the ingredients stacking vertically"). The old rule fired at viewport <=480px, but the
+     chips stack whenever the BOX is short of room — which happens at far wider viewports, because
+     the box is sized from the board (--boardW) or sits in the narrow sidebar column (--sideW).
+     Wyatt hit exactly that: chips stacked on screen while the fix sat switched off. A container
+     query asks the right question.
+
+     THE 460px THRESHOLD, derived not guessed:
+       name 106px + coins 40px + two 6px gaps        = 158px before the chips start
+       one chip 34px, 3px gap  ->  N chips need 37N-3
+       5 chips (a full recipe) = 182  -> 340px    7 chips = 256 -> 414px
+       6 chips                 = 219  -> 377px    8 chips = 293 -> 451px
+     460px clears 8 chips, so a hold carrying three extras beyond the five-ingredient recipe still
+     lays out inline above the threshold. Raise this number if `.chip.extra` holds ever run longer;
+     the arithmetic above is the whole story. */
+  @container captains (max-width: 460px) {
     .prowTop { grid-template-areas: "name coins ." "recipe recipe recipe" "chips chips chips"; }
   }
   .prowTop .pname { grid-area: name; }
