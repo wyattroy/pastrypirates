@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // scripts/audio_mapping_test.js
 //
-// Phase 21 (AUDIO-01/21-VALIDATION.md § Wave 0): the DOM-free harness every later task in this
-// phase's plans asserts through. This wave (21-01) gates src/shared/audio.js's pure surface only
-// — the sfx file table, the per-stem volume table, the mute key, and mute get/set's no-audio-
-// graph-required safety. 21-02 extends this same file with the 25-key EVENT_SOUND mapping
-// assertions (storm dedup, borrow table, silent set) — the header comment stays accurate to that
-// plan once it lands.
+// Phase 21 (AUDIO-01/21-VALIDATION.md § Wave 0): the DOM-free harness every task in this phase's
+// plans asserts through. 21-01 gated src/shared/audio.js's pure surface only — the sfx file
+// table, the per-stem volume table, the mute key, and mute get/set's no-audio-graph-required
+// safety. 21-02 (this wave) extends the same file with the 25-key EVENT_SOUND mapping: the
+// key-set-matches-EVENT_NARRATION assertions, the per-key no-throw dispatch, the storm-stamp
+// guard (D-08's fires-once pinned against Game.ev()'s habit of stamping `storm` onto every event
+// of a stormy round), and the two flagged placeholder constants.
 //
 // Convention (matches scripts/narration_test.js): no assertion library, a local
 // check(name, actual, expected) counter, plain console.log, process.exit(failures?1:0). Direct
@@ -20,7 +21,15 @@
 // (Wave 0 Requirements: "factor the mapping table and dispatch lookup so they are importable
 // without constructing a live AudioContext"), made load-bearing by this harness's own existence.
 
-import { SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, isMuted, setMuted } from "../src/shared/audio.js";
+import {
+  SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, isMuted, setMuted,
+  EVENT_SOUND, soundForEvent, STORM_VOLUME, STORM_FADE_SEC,
+  WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER,
+} from "../src/shared/audio.js";
+// EVENT_NARRATION import style matches scripts/narration_test.js:24-27 exactly — proof that
+// importing the narration surface headlessly (no DOM, no src/ui/flow.js or src/ui/panel.js)
+// works, and the load-bearing baseline this script's own mapping-completeness checks pin against.
+import { EVENT_NARRATION } from "../src/ui/util.js";
 import { statSync } from "node:fs";
 
 let failures = 0;
@@ -98,6 +107,103 @@ try {
 }
 checkTrue("setMuted(false) does not throw with no audio graph built", !setMutedFalseThrew);
 check("isMuted() returns false after setMuted(false)", isMuted(), false);
+
+/* ================= EVENT_SOUND: key-set matches EVENT_NARRATION's 25-key inventory, both ways ================= */
+// Checking the two tables against each other is stronger and more future-proof than hardcoding
+// the number 25 a second time — a silent shrink of BOTH tables together is still caught below.
+
+const narrationKeys = Object.keys(EVENT_NARRATION);
+const soundKeys = Object.keys(EVENT_SOUND);
+
+checkTrue(
+  "every EVENT_NARRATION key has an EVENT_SOUND disposition",
+  narrationKeys.every((k) => k in EVENT_SOUND)
+);
+checkTrue(
+  "EVENT_SOUND invents no key of its own (every key is also in EVENT_NARRATION)",
+  soundKeys.every((k) => k in EVENT_NARRATION)
+);
+check("EVENT_NARRATION has exactly 25 keys (the shared inventory size)", narrationKeys.length, 25);
+check("EVENT_SOUND has exactly 25 keys (matches EVENT_NARRATION)", soundKeys.length, 25);
+
+/* ================= EVENT_SOUND values: every non-null a real stem, every silent entry strictly null ================= */
+
+for (const k of soundKeys) {
+  const v = EVENT_SOUND[k];
+  if (v === null) {
+    checkTrue(`EVENT_SOUND.${k} is explicit null (not merely absent/undefined)`, v === null);
+  } else {
+    checkTrue(`EVENT_SOUND.${k} ("${v}") is a member of SFX_FILES`, SFX_FILES.includes(v));
+  }
+}
+
+/* ================= soundForEvent(e): per-key no-throw dispatch, exercised with fabricated events ================= */
+// Mirrors scripts/narration_test.js's fabricated-event-per-key idiom for the object shapes.
+
+for (const k of narrationKeys) {
+  let threw = false;
+  let result;
+  try {
+    result = soundForEvent({ t: k });
+  } catch (e) {
+    threw = true;
+  }
+  checkTrue(`soundForEvent({t:"${k}"}) does not throw`, !threw);
+  const shapeOk = result === null || (result && typeof result.name === "string" && SFX_FILES.includes(result.name));
+  checkTrue(`soundForEvent({t:"${k}"}) returns null or a valid {name,bus}`, !!shapeOk);
+}
+
+/* ================= The storm-stamp guard — the assertion that actually pins D-08 =================
+   Game.ev() (src/engine/index.js:233) stamps o.storm=this.stormNow onto EVERY event it records,
+   so during a stormy round every one of the 25 event types can carry storm:true. The storm cue
+   must fire for "newround" and ONLY "newround" — never leak onto any other event just because the
+   engine's storm stamp happened to be true when that event was recorded. */
+
+let stormStampLeak = false;
+for (const k of narrationKeys) {
+  const r = soundForEvent({ t: k, storm: true });
+  const isStormCue = !!(r && r.bus === "storm");
+  const shouldBeStormCue = k === "newround";
+  if (isStormCue !== shouldBeStormCue) stormStampLeak = true;
+  checkTrue(
+    `soundForEvent({t:"${k}", storm:true}) storm-cue-only-for-newround`,
+    isStormCue === shouldBeStormCue
+  );
+}
+checkTrue("storm-stamp guard: no non-newround key ever resolves to the storm cue", !stormStampLeak);
+
+// Direct cases, named explicitly per the plan's own acceptance criteria.
+{
+  const r = soundForEvent({ t: "newround", storm: true });
+  checkTrue("soundForEvent({t:\"newround\", storm:true}) returns the storm cue", !!(r && r.bus === "storm" && r.name === "storm"));
+}
+check("soundForEvent({t:\"newround\"}) with no storm returns null", soundForEvent({ t: "newround" }), null);
+
+/* ================= Unknown event type: silence, never a throw ================= */
+
+let unknownThrew = false;
+let unknownResult;
+try {
+  unknownResult = soundForEvent({ t: "never-seen-before" });
+} catch (e) {
+  unknownThrew = true;
+}
+checkTrue("soundForEvent with an unknown t does not throw", !unknownThrew);
+check("soundForEvent with an unknown t returns null", unknownResult, null);
+
+/* ================= The two flagged placeholders ================= */
+
+checkTrue("WIN_SOUND_PLACEHOLDER is exported", typeof WIN_SOUND_PLACEHOLDER === "string");
+checkTrue("WIN_SOUND_PLACEHOLDER is a member of SFX_FILES", SFX_FILES.includes(WIN_SOUND_PLACEHOLDER));
+checkTrue("SHOTCLOCK_SOUND_PLACEHOLDER is exported", typeof SHOTCLOCK_SOUND_PLACEHOLDER === "string");
+checkTrue("SHOTCLOCK_SOUND_PLACEHOLDER is a member of SFX_FILES", SFX_FILES.includes(SHOTCLOCK_SOUND_PLACEHOLDER));
+check("EVENT_SOUND.shotclock is strictly the SHOTCLOCK_SOUND_PLACEHOLDER constant", EVENT_SOUND.shotclock, SHOTCLOCK_SOUND_PLACEHOLDER);
+check("EVENT_SOUND.shotclockskip is strictly the SHOTCLOCK_SOUND_PLACEHOLDER constant", EVENT_SOUND.shotclockskip, SHOTCLOCK_SOUND_PLACEHOLDER);
+
+/* ================= STORM_VOLUME / STORM_FADE_SEC: numeric ranges, not exact values (Claude's discretion) ================= */
+
+checkTrue(`STORM_VOLUME (${STORM_VOLUME}) is greater than 0 and less than 1`, STORM_VOLUME > 0 && STORM_VOLUME < 1);
+checkTrue(`STORM_FADE_SEC (${STORM_FADE_SEC}) is greater than 0`, STORM_FADE_SEC > 0);
 
 console.log(`\n${failures ? "FAILED" : "PASSED"} — ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);
