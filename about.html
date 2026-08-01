@@ -52,7 +52,11 @@
   .abtHeroText h1 { font-size: 28px; font-weight: 700; line-height: 1.2; margin: 0 0 16px; color: var(--ink); }
   .abtHeroText p { font-size: 14px; line-height: 1.5; margin: 0; }
   .abtHeroShot img { width: 100%; height: auto; max-width: 100%; display: block;
-    border-radius: 16px; border: 3px solid var(--teal); box-shadow: 0 12px 30px rgba(10,35,40,.25); }
+    border-radius: 16px; box-shadow: 0 12px 30px rgba(10,35,40,.25); }
+
+  /* Inline game art, copied verbatim from index.html's .narrIcon rule so a cocoa crate or a coin
+     sits in a sentence here exactly the size it does in the game's own narration. */
+  .narrIcon { width: 18px; height: 18px; vertical-align: -4px; object-fit: contain; margin: 0 1px; }
 
   /* -------- card + prose treatment, mirroring .modalCard / .rules by eye -------- */
   .abtCard { background: linear-gradient(175deg, #ffffff, var(--parch2) 250%); border: 3px solid var(--teal);
@@ -65,39 +69,56 @@
   .abtRules h3:first-child { margin-top: 0; }
   .abtRules p { margin: 8px 0; }
 
-  /* -------- rule rows: an in-game screenshot beside its explanation, so the page feels alive -------- */
-  .abtRuleRow { display: flex; align-items: center; gap: 16px; margin: 16px 0; }
-  .abtRuleRow.reverse { flex-direction: row-reverse; }
-  .abtRuleRow img { width: 100%; max-width: 180px; height: auto; flex-shrink: 0; display: block;
-    border-radius: 12px; border: 2px solid var(--teal); }
-  .abtRuleRow p { margin: 0; flex: 1 1 240px; min-width: 0; }
+  /* -------- rule rows: text left, game art right at a consistent half-width -------- */
+  .abtRuleRow { display: flex; align-items: flex-start; gap: 24px; margin: 12px 0 20px; }
+  .abtRuleRow p { margin: 0; flex: 1 1 50%; min-width: 0; }
+  /* DIRECT child only — the inline .narrIcon art lives inside the <p>, and an unscoped
+     `.abtRuleRow img` would size those to 50% too (it did: a wheat sheaf rendered 200px tall). */
+  .abtRuleRow > img { flex: 0 0 50%; width: 50%; height: auto; display: block; border-radius: 12px; }
 
-  /* -------- example recipes -------- */
-  .abtRecipesImg { width: 100%; height: auto; max-width: 100%; display: block; margin-top: 16px;
-    border-radius: 16px; border: 3px solid var(--teal); box-shadow: 0 12px 30px rgba(10,35,40,.2); }
-
-  /* -------- testimonials (the four default bot captains reviewing the game — a light touch) -------- */
+  /* -------- testimonials: each in its captain's own seat colour (HEXCOL, src/shared/index.js) -------- */
   .abtTestimonials { list-style: none; margin: 0; padding: 0; display: grid;
     grid-template-columns: 1fr 1fr; gap: 16px; }
-  .abtTestimonials li { margin: 0; font-size: 13.5px; line-height: 1.55; font-style: italic; }
-  .abtTestimonials li span { display: block; margin-top: 4px; font-style: normal; font-weight: 700; color: var(--teal); }
+  .abtTestimonials li { margin: 0; font-size: 13.5px; line-height: 1.55; font-style: italic;
+    padding: 16px 20px; border-radius: 14px; border: 2px solid var(--cap); background: var(--capBg); }
+  .abtTestimonials li span { display: block; margin-top: 8px; font-style: normal; font-weight: 700; color: var(--cap); }
+  /* seat order matches NAMES/HEXCOL: Davy Scones, Crustbeard, Dough Hook, Flaky Jack */
+  .capDavy      { --cap: #f2679e; --capBg: #fdeef4; }
+  .capCrustbeard{ --cap: #1d96a6; --capBg: #e8f6f8; }
+  .capDough     { --cap: #27c78d; --capBg: #e7f9f1; }
+  .capFlaky     { --cap: #f5a623; --capBg: #fef4e4; }
 
   .abtCredits { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.5; }
   .abtCredits li { margin: 0 0 8px; }
   .abtCredits li:last-child { margin-bottom: 0; }
   .abtCredits a { color: var(--teal); }
 
-  /* Ko-Fi — secondary CTA. The page's primary CTA is the "⚓ Play Pastry Pirates" link at the top
-     of the page (added per Wyatt's playtesting feedback, 2026-08-01) — accent orange is reserved
-     for that button now, not this one. Styled as a lighter outline treatment so the two read as
-     primary/secondary at a glance. */
-  #aboutKofiBtn { display: inline-block; font-family: inherit; font-size: 14px; font-weight: 700;
-    padding: 12px 20px; border-radius: 10px; border: 1.5px solid var(--teal); cursor: pointer;
-    background: #ffffff; color: var(--teal); }
-  #aboutKofiBtn:hover { background: var(--teal); color: #fff; }
-  #aboutKofiPanel { margin-top: 16px; min-height: 0; }
-  #aboutKofiPanel.abtKofiOpen { min-height: 560px; }
-  #aboutKofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
+  /* Ko-Fi — the game's own footer button and modal, mirrored byte-for-byte from index.html's
+     .footerBtn/.footerKofi and .modalOverlay/.modalCard/.kofiPanel rules so this reads as the
+     same control the player already knows, not a lookalike. */
+  .footerBtn { font-family: inherit; font-size: 13px; padding: 6px 13px; border-radius: 7px; cursor: pointer;
+    text-decoration: none; display: inline-block; border: 1.5px solid var(--teal); background: #fff;
+    color: var(--ink); }
+  .footerKofi { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
+  .footerKofi:hover { background: #fae7cb; }
+  .modalOverlay { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center;
+    padding: 24px; overflow-y: auto;
+    background: radial-gradient(ellipse at 50% 12%, rgba(69,223,166,.22), rgba(41,163,178,.40) 68%); }
+  .modalCard { position: relative; background: linear-gradient(175deg, #ffffff, var(--parch2) 250%);
+    border: 3px solid var(--teal); border-radius: 20px; padding: 26px 28px 22px; max-width: 440px;
+    width: 100%; text-align: center;
+    box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18); }
+  .modalTitle { line-height: 1.25; font-weight: 700; font-size: 17px; color: var(--ink); }
+  .modalX { position: absolute; top: 10px; right: 12px; width: 30px; height: 30px; padding: 0;
+    border: none; background: transparent; color: var(--ink); font-size: 19px; line-height: 1;
+    cursor: pointer; opacity: .45; border-radius: 50%; z-index: 2; }
+  .modalX:hover { opacity: 1; background: rgba(0,0,0,.08); }
+  .kofiPanel { margin-top: 12px; min-height: 560px; }
+  .kofiPanel iframe { width: 100%; height: 560px; border: none; display: block; background: transparent; }
+  .modalX img { width: 60%; height: 60%; object-fit: contain; vertical-align: middle; }
+  /* Left-aligned like every other block on the page — the old centred "Support the game" card was
+     the only centred thing here and read as a different page. */
+  .abtKofiFooter { margin-top: 32px; }
 
   @media (max-width: 480px) {
     .abtPage { margin: 32px auto; padding: 0 16px 32px; }
@@ -109,8 +130,8 @@
        24px gap above is the actual gap the reader sees. */
     .abtHeroText, .abtHeroShot { flex: 0 0 auto; }
     .abtCard { padding: 20px; margin-bottom: 24px; }
-    .abtRuleRow, .abtRuleRow.reverse { flex-direction: column; }
-    .abtRuleRow img { max-width: 160px; }
+    .abtRuleRow { flex-direction: column; gap: 16px; }
+    .abtRuleRow > img, .abtRuleRow p { flex: 0 0 auto; width: 100%; }
     .abtTestimonials { grid-template-columns: 1fr; }
   }
 </style>
@@ -119,16 +140,20 @@
 <div class="abtPage">
 
   <div class="abtTopCta">
-    <a id="lnkAboutPlay" class="abtPlayBtn" href="index.html">⚓ Play Pastry Pirates</a>
+    <a id="lnkAboutPlay" class="abtPlayBtn" href="index.html"><img class="narrIcon" src="assets/icons/anchor.png" alt=""> Play Pastry Pirates</a>
   </div>
 
   <div class="abtHero">
     <div class="abtHeroText">
       <h1>About Pastry Pirates</h1>
-      <p>Pastry Pirates is a free browser pirate board game — sail a grid of islands, gather baking
-      ingredients, trade and battle rival captains, and race home to become the Best Baker on the
-      Sugar Seas. Play solo against AI captains, pass the wheel around one screen, or sail with
-      friends online — no login, no download, 2 to 4 players.</p>
+      <p>Pastry Pirates is a free browser pirate board game — sail
+      <img class="narrIcon" src="assets/icons/sailboat.png" alt=""> a grid of islands, gather baking
+      ingredients <img class="narrIcon" src="assets/ingredients/cocoa.png" alt="cocoa"><img class="narrIcon" src="assets/ingredients/sugar.png" alt="sugar"><img class="narrIcon" src="assets/ingredients/vanilla.png" alt="vanilla">,
+      trade <img class="narrIcon" src="assets/icons/handshake.png" alt=""> and battle
+      <img class="narrIcon" src="assets/icons/dagger.png" alt=""> rival captains, and race home to become
+      the Best Baker on the Sugar Seas <img class="narrIcon" src="assets/icons/crown.png" alt="">.
+      Play solo against AI captains, pass the wheel around one screen, or sail with friends online —
+      no login, no download, 2 to 4 players.</p>
     </div>
     <div class="abtHeroShot">
       <img id="aboutShot" src="assets/about-screenshot.jpg" width="1320" height="888" alt="A mid-game view of the Pastry Pirates board, with ships scattered among the islands, cargo crates on the docks, and the wind compass showing the round's direction.">
@@ -140,38 +165,46 @@
     <div class="abtRules">
       <h3>The goal</h3>
       <div class="abtRuleRow">
-        <img class="abtRuleImg" src="assets/about-cocoa-island.jpg" width="252" height="302" alt="A cocoa island tile, one of the ingredient islands captains dock at to fill their hold.">
-        <p>Every captain starts with a secret recipe of five ingredients. Collect them all, sail home
-        to the Isle of Tortuga, and declare victory — first baker home wins.</p>
+        <p>Every captain starts with a secret recipe of five ingredients —
+        <img class="narrIcon" src="assets/ingredients/wheat.png" alt="wheat"><img class="narrIcon" src="assets/ingredients/dairy.png" alt="dairy"><img class="narrIcon" src="assets/ingredients/sugar.png" alt="sugar"><img class="narrIcon" src="assets/ingredients/eggs.png" alt="eggs"><img class="narrIcon" src="assets/ingredients/cocoa.png" alt="cocoa"><img class="narrIcon" src="assets/ingredients/spice.png" alt="spice"><img class="narrIcon" src="assets/ingredients/vanilla.png" alt="vanilla">
+        — drawn fresh each voyage. Collect them all, sail home to the Isle of Tortuga
+        <img class="narrIcon" src="assets/icons/anchor.png" alt="">, and declare victory: first baker
+        home wins <img class="narrIcon" src="assets/icons/crown.png" alt="">.</p>
+        <img src="assets/about-recipes.jpg" width="1328" height="1000" alt="Two example recipe cards, a Mexican Chocolate Torte and a Cinnamon Sponge Cake, each listing its five required ingredients.">
       </div>
       <h3>Your turn</h3>
-      <div class="abtRuleRow reverse">
-        <img class="abtRuleImg" src="assets/about-flippenator.jpg" width="554" height="226" alt="The Flippenator — the coin captains flip for every action, with the turn clock counting down beside it.">
-        <p>Each round the wind sets your sailing budget for the turn — cheap with it, dear against it.
-        Once you've sailed, you take one action: <b>dock</b> at an island and flip a coin for a crate,
-        <b>attack</b> a nearby ship for a shot at their cargo, <b>trade</b> with any other captain,
-        or <b>fish</b> for a quick coin. Storms roll in occasionally and shove every ship a few
-        squares, so keep an eye on the sky.</p>
+      <div class="abtRuleRow">
+        <p>Each round the wind <img class="narrIcon" src="assets/icons/wind-gust.png" alt=""> sets your
+        sailing budget for the turn — cheap with it, dear against it. Once you've sailed, you take one
+        action: <b>dock</b> <img class="narrIcon" src="assets/icons/anchor.png" alt=""> at an island and
+        flip a coin <img class="narrIcon" src="assets/icons/flip-heads.png" alt=""> for a crate,
+        <b>attack</b> <img class="narrIcon" src="assets/icons/dagger.png" alt=""> a nearby ship for a shot
+        at their cargo, <b>trade</b> <img class="narrIcon" src="assets/icons/handshake.png" alt=""> with any
+        other captain, or <b>fish</b> <img class="narrIcon" src="assets/icons/fish.png" alt=""> for a quick
+        coin <img class="narrIcon" src="assets/icons/coin-emoji.png" alt="">. Storms
+        <img class="narrIcon" src="assets/icons/storm-cloud.png" alt=""> roll in occasionally and shove
+        every ship a few squares, so keep an eye on the sky.</p>
+        <img src="assets/about-flippenator.jpg" width="554" height="226" alt="The Flippenator — the coin captains flip for every action, with the turn clock counting down beside it.">
       </div>
       <h3>Coming home</h3>
-      <p>Once you've gathered every ingredient on your map, race back to the Isle of Tortuga. If more
-      than one captain makes it home the same round, it comes down to a head-to-head bake-off.</p>
+      <div class="abtRuleRow">
+        <p>Every island you raid <img class="narrIcon" src="assets/icons/island-silhouette.png" alt=""> fills
+        another slot in your hold. Once you've gathered every ingredient on your map, race back to the
+        Isle of Tortuga <img class="narrIcon" src="assets/icons/anchor.png" alt="">. If more than one
+        captain makes it home the same round, it comes down to a head-to-head bake-off
+        <img class="narrIcon" src="assets/icons/cupcake.png" alt="">.</p>
+        <img src="assets/about-cocoa-island.jpg" width="252" height="302" alt="A cocoa island, one of the ingredient islands captains dock at to fill their hold.">
+      </div>
     </div>
-  </div>
-
-  <div class="abtCard">
-    <h2>Example recipes</h2>
-    <p>Every captain sails with a random five-ingredient recipe — here's what two of them look like.</p>
-    <img class="abtRecipesImg" src="assets/about-recipes.jpg" width="1328" height="1000" alt="Two example recipe cards, a Mexican Chocolate Torte and a Cinnamon Sponge Cake, each listing its five required ingredients.">
   </div>
 
   <div class="abtCard">
     <h2>What the captains are saying</h2>
     <ul class="abtTestimonials">
-      <li>"This game made me hungry"<span>— Davy Scones</span></li>
-      <li>"I'm going to actually bake my recipe in real life"<span>— Crustbeard</span></li>
-      <li>"YARRRRRGH I always be flippin' tails."<span>— Flaky Jack</span></li>
-      <li>"Have ye met me pet candycrab?"<span>— Dough Hook</span></li>
+      <li class="capDavy">"This game made me hungry"<span>— Davy Scones</span></li>
+      <li class="capCrustbeard">"I'm going to actually bake my recipe in real life"<span>— Crustbeard</span></li>
+      <li class="capFlaky">"YARRRRRGH I always be flippin' tails."<span>— Flaky Jack</span></li>
+      <li class="capDough">"Have ye met me pet candycrab?"<span>— Dough Hook</span></li>
     </ul>
   </div>
 
@@ -187,12 +220,19 @@
     </ul>
   </div>
 
-  <div class="abtCard" style="text-align:center">
-    <h2>Support the game</h2>
-    <button id="aboutKofiBtn" type="button">🍪 Buy me a cookie</button>
-    <div id="aboutKofiPanel"></div>
+  <div class="abtKofiFooter">
+    <button id="aboutKofiBtn" class="footerBtn footerKofi" type="button">🍪 Buy me a cookie</button>
   </div>
 
+</div>
+
+<!-- Same shape as index.html's #kofiModal, so the panel opens exactly where the player expects. -->
+<div id="aboutKofiModal" class="modalOverlay" style="display:none">
+  <div class="modalCard" style="max-width:420px">
+    <button class="modalX" id="aboutKofiClose" type="button" aria-label="Close"><img src="assets/icons/close-x.png" alt=""></button>
+    <div class="modalTitle">🍪 Buy me a cookie</div>
+    <div id="aboutKofiPanel" class="kofiPanel"></div>
+  </div>
 </div>
 <script>
 (function(){
@@ -204,11 +244,12 @@
   var KOFI_EMBED = "https://ko-fi.com/wyattroy/?hidefeed=true&widget=true&embed=true&preview=true";
   var mounted = false;
   var btn = document.getElementById("aboutKofiBtn");
+  var modal = document.getElementById("aboutKofiModal");
   var panel = document.getElementById("aboutKofiPanel");
-  btn.addEventListener("click", function(){
+
+  function mountKofi(){
     if (mounted) return;
     mounted = true;
-    panel.classList.add("abtKofiOpen");
     var f = document.createElement("iframe");
     f.src = KOFI_EMBED;
     f.title = "Support Pastry Pirates on Ko-fi";
@@ -216,11 +257,22 @@
     f.setAttribute("sandbox", "allow-scripts allow-forms allow-popups allow-same-origin");
     f.onerror = function(){
       mounted = false;
-      panel.classList.remove("abtKofiOpen");
       panel.innerHTML = '<div style="padding:14px;text-align:center;opacity:.6;font-size:12px">Couldn\'t load the Ko-Fi panel — an ad blocker may be blocking it. ko-fi.com/wyattroy works directly.</div>';
     };
     panel.innerHTML = "";
     panel.appendChild(f);
+  }
+  function openKofi(){ modal.style.display = "flex"; mountKofi(); }
+  function closeKofi(){ modal.style.display = "none"; }
+
+  btn.addEventListener("click", openKofi);
+  // Close-only, matching every other modal in the game: the ✕, a backdrop click, or Escape.
+  // (The name modal's dismiss-equals-confirm behaviour is deliberately NOT copied here — this
+  // modal gates nothing.)
+  document.getElementById("aboutKofiClose").addEventListener("click", closeKofi);
+  modal.addEventListener("click", function(e){ if (e.target === modal) closeKofi(); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && modal.style.display !== "none") closeKofi();
   });
 })();
 </script>
