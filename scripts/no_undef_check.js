@@ -114,6 +114,11 @@ const GLOBAL_ALLOWLIST = new Set([
   "Object", "Array", "Function", "Boolean", "Number", "String", "Symbol", "BigInt",
   "Math", "JSON", "Date", "RegExp", "Map", "Set", "WeakMap", "WeakSet", "WeakRef",
   "FinalizationRegistry", "Promise", "Proxy", "Reflect",
+  // typed arrays / binary data (19-05 — src/ui/board.js's preallocated windHist histogram is the
+  // first caller under src/; this whole family was simply missing before, not scoped to wind-dot)
+  "ArrayBuffer", "SharedArrayBuffer", "DataView",
+  "Int8Array", "Uint8Array", "Uint8ClampedArray", "Int16Array", "Uint16Array",
+  "Int32Array", "Uint32Array", "Float32Array", "Float64Array", "BigInt64Array", "BigUint64Array",
   "Error", "TypeError", "RangeError", "SyntaxError", "ReferenceError", "EvalError", "URIError",
   "isNaN", "isFinite", "parseInt", "parseFloat", "encodeURIComponent", "decodeURIComponent",
   "encodeURI", "decodeURI", "eval", "NaN", "Infinity",

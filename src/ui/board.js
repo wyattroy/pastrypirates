@@ -417,6 +417,32 @@ const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=10, WIND_DOT_SEED_SALT=0x57494e44, WIND
 // 0) — "roughly the first/last fifth" per 19-04-PLAN.md Task 1.
 const WIND_WOBBLE_MAX_PX=14, WIND_WOBBLE_PERIOD_MS=2600, WIND_FADE_FRAC=0.2;
 
+// WIND_METER_* (19-05, D-05) — the calibrated frame-timing meter's constants. This is what turns
+// the tracer's raw last-frame-delta readout into a number Phase 20 can trust: everything below is
+// classified against a baseline MEASURED on this device in this session, never a hardcoded 60fps
+// assumption (19-RESEARCH.md Pitfall 2 — a Low Power Mode iPhone throttled to ~30fps would
+// otherwise be misreported as constant stutter, and a historical ProMotion/60fps rAF cap would make
+// a hardcoded target wrong in the other direction).
+//  - WIND_METER_OUTLIER_MS: a delta ABOVE this is background time (a backgrounded tab, a phone
+//    auto-lock), never a rendering stutter (19-RESEARCH.md Pitfall 3) — discarded, not measured.
+//  - WIND_METER_HIST_MAX: the histogram's top bucket index; that index is an INCLUSIVE overflow
+//    bucket covering 100ms up to (but not including) WIND_METER_OUTLIER_MS.
+//  - WIND_METER_BASELINE_SAMPLES: how many accepted deltas establish the one-time baseline.
+//  - WIND_METER_DIP_FACTOR: how far above baseline a frame must be to count as a dip.
+//  - WIND_METER_LOWPOWER_MS: the low end of the "looks like Low Power Mode" baseline band —
+//    19-RESEARCH.md Pitfall 2's ~33ms signature, paired with a fixed 40ms upper bound in
+//    windMeterSummary().
+const WIND_METER_OUTLIER_MS=500, WIND_METER_HIST_MAX=100, WIND_METER_BASELINE_SAMPLES=120, WIND_METER_DIP_FACTOR=1.5, WIND_METER_LOWPOWER_MS=30;
+
+// windHist is preallocated ONCE — sampling allocates nothing per frame (19-RESEARCH.md Pitfall 4:
+// the instrument must not become the stutter it is measuring). windHist[i] counts accepted deltas
+// rounded half-up (Math.round) to i whole milliseconds; index WIND_METER_HIST_MAX is the inclusive
+// overflow bucket described above. windSamples/windBaselineMs/windWorstMs/windWorstAtMs/windDips/
+// windDiscarded/windMeterStartMs are windMeterSample's plain-number state — see windMeterSample and
+// windMeterSummary below for what each one means.
+const windHist=new Int32Array(WIND_METER_HIST_MAX+1);
+let windSamples=0, windBaselineMs=null, windWorstMs=0, windWorstAtMs=0, windDips=0, windDiscarded=0, windMeterStartMs=0;
+
 // windDotSpecs(seed,count) — the PURE seeded-spec half, direct sibling of stormLayerSpecs() above.
 // mulberry32(seed), NEVER appState.game.r() — see src/ui/board.js:299-302 for why the private
 // stream is non-negotiable (D-12): drawing from the game's own seeded stream would advance it and
@@ -587,11 +613,113 @@ function windEnsureLayer(){
   return windLayer;
 }
 
+// windHistMedian() — the histogram's TRUE median (not a rolling average): the smallest bucket whose
+// cumulative count reaches Math.ceil(windSamples/2). This is the exact tie-breaking contract for an
+// even sample count — it resolves to the LOWER of the two middle values, the conservative direction
+// for a smoothness figure (a figure that undersells "typical" is safer than one that oversells it).
+// Returns null when no samples have been accepted yet. Not exported — an internal half shared by
+// windMeterSample (baseline) and windMeterSummary (the live "typical" figure).
+function windHistMedian(){
+  if(windSamples===0)return null;
+  const need=Math.ceil(windSamples/2);
+  let cum=0;
+  for(let i=0;i<windHist.length;i++){
+    cum+=windHist[i];
+    if(cum>=need)return i;
+  }
+  return WIND_METER_HIST_MAX;
+}
+
+// windMeterSample(deltaMs,nowMs) — the calibrated half of the smoothness instrument (19-05, D-05).
+// Called once per frame from windDotLoop below, in this exact order:
+//  1. A delta ABOVE WIND_METER_OUTLIER_MS is background time, not jank (19-RESEARCH.md Pitfall 3) —
+//     count it as a discarded pause and touch nothing else. This is what stops a phone auto-lock
+//     from swamping the worst-moment slot with a multi-second "stutter" that never happened.
+//  2. Bucket it into the preallocated histogram. Math.round is half-up for positive values, and that
+//     is the stated rounding contract for every figure this meter reports (D-05). The final bucket
+//     is an inclusive overflow bucket for 100ms up to (but not including) WIND_METER_OUTLIER_MS.
+//  3. The first WIND_METER_BASELINE_SAMPLES accepted deltas establish the baseline as the
+//     histogram's median. Never recomputed afterwards — a baseline that drifts with the load being
+//     measured could not classify that load (19-RESEARCH.md Pitfall 2 — a Low Power Mode iPhone's
+//     ~33ms baseline must be read as "this device", not chased downward as more slow frames arrive).
+//  4. Once a baseline exists, a delta more than WIND_METER_DIP_FACTOR times the baseline counts as
+//     a dip.
+//  5. The worst accepted delta (and elapsed time since windMeterStartMs when it happened) is tracked.
+// Allocates nothing — windHist is preallocated, no object/array is created here (19-RESEARCH.md
+// Pitfall 4: the instrument must not become the stutter it measures).
+export function windMeterSample(deltaMs,nowMs){
+  if(deltaMs>WIND_METER_OUTLIER_MS){
+    windDiscarded++;
+    return;
+  }
+  windHist[Math.min(WIND_METER_HIST_MAX,Math.round(deltaMs))]++;
+  windSamples++;
+  if(windBaselineMs===null&&windSamples>=WIND_METER_BASELINE_SAMPLES){
+    windBaselineMs=windHistMedian();
+  }
+  if(windBaselineMs!==null&&deltaMs>windBaselineMs*WIND_METER_DIP_FACTOR){
+    windDips++;
+  }
+  if(deltaMs>windWorstMs){
+    windWorstMs=deltaMs;
+    windWorstAtMs=nowMs-windMeterStartMs;
+  }
+}
+
+// windMeterReset() — clears ONLY the frame reference (windLastFrameMs), never the histogram, the
+// worst-moment slot, the discarded count or the baseline. Wired to `visibilitychange`: on becoming
+// visible again after a hidden interval, the very next rAF tick must not be allowed to sample the
+// hidden gap as a single catastrophic delta (19-RESEARCH.md Pitfall 3) — the gap is counted as a
+// discarded pause here instead, so it is visible in the summary rather than silently vanishing OR
+// corrupting the worst-moment slot.
+export function windMeterReset(){
+  windLastFrameMs=null;
+}
+try{
+  if(typeof document!=="undefined"&&document.addEventListener){
+    document.addEventListener("visibilitychange",function(){
+      if(document.visibilityState==="visible"){
+        windMeterReset();
+        windDiscarded++;
+      }
+    });
+  }
+}catch(err){}
+
+// windMeterSummary() — a plain object summarizing what the meter measured (D-05). Every
+// frames-per-second figure is Math.round(1000/ms) — D-05's stated half-up rounding contract, applied
+// identically to typicalFps and worstFps. lowPowerSuspected mirrors 19-RESEARCH.md Pitfall 2's Low
+// Power Mode signature: a baseline at or above WIND_METER_LOWPOWER_MS (30ms) but still below 40ms.
+// Exported here (Task 1) rather than deferred to Task 2, because Task 1's own acceptance criteria
+// (19-05-PLAN.md) exercises windMeterSummary() directly to prove the baseline/outlier/median
+// behavior headlessly — Task 2 (renderWindSummary) only formats this object's fields into sentences,
+// it does not need to touch this function's own definition.
+export function windMeterSummary(){
+  const typicalMs=windHistMedian();
+  const toFps=(ms)=>(ms==null||ms<=0)?null:Math.round(1000/ms);
+  return {
+    baselineMs:windBaselineMs,
+    typicalMs,
+    typicalFps:toFps(typicalMs),
+    worstMs:windWorstMs,
+    worstFps:toFps(windWorstMs),
+    worstAtMs:windWorstAtMs,
+    samples:windSamples,
+    dips:windDips,
+    discarded:windDiscarded,
+    lowPowerSuspected:windBaselineMs!==null&&windBaselineMs>=WIND_METER_LOWPOWER_MS&&windBaselineMs<40,
+  };
+}
+
 // windDotLoop(now) — the ONE shared requestAnimationFrame loop for every dot, never one per dot.
-// Samples the frame delta first (now-windLastFrameMs, when a previous frame exists) and updates the
-// live readout at most every WIND_READOUT_MS (19-RESEARCH.md Pitfall 4: the instrument must not
-// become the stutter). Then, if the switch is on and the count is nonzero, writes each dot's
-// transform as a single translate3d(...) string plus its opacity, and re-arms itself.
+// Samples the frame delta first (now-windLastFrameMs, when a previous frame exists), hands it to
+// windMeterSample (the calibrated instrument above) so measuring costs one call and no extra loop,
+// and updates the live readout text at most every WIND_READOUT_MS (19-RESEARCH.md Pitfall 4: the
+// instrument must not become the stutter). Then, if the switch is on and the count is nonzero,
+// writes each dot's transform as a single translate3d(...) string plus its opacity, and re-arms
+// itself. windMeterStartMs is (re)established on the FIRST frame seen after a gap (windLastFrameMs
+// was null), so "roughly when it happened" is always relative to the current measuring window, not
+// to some earlier session.
 //
 // AT A CLAMPED COUNT OF 0 (or with the switch off), windDotEls is empty (or the transform-writing
 // branch is skipped) — no dot transform is written on that frame, and buildWindDots has already
@@ -608,6 +736,7 @@ function windEnsureLayer(){
 // pre-flight check confirm the branch actually took effect.
 export function windDotLoop(now){
   const delta=windLastFrameMs==null?null:now-windLastFrameMs;
+  if(windLastFrameMs==null)windMeterStartMs=now;
   windLastFrameMs=now;
   const layer=windLayer;
   if(!windReducedMotion&&windDotsOn&&windDotCount>0&&layer){
@@ -621,10 +750,17 @@ export function windDotLoop(now){
       windDotEls[i].style.opacity=f.opacity;
     }
   }
-  if(delta!=null&&delta>0&&now-windLastReadoutMs>=WIND_READOUT_MS){
-    windLastReadoutMs=now;
-    const r=$("windReadout");
-    if(r)r.textContent=Math.round(1000/delta)+" fps";
+  if(delta!=null&&delta>0){
+    windMeterSample(delta,now);
+    if(now-windLastReadoutMs>=WIND_READOUT_MS){
+      windLastReadoutMs=now;
+      const r=$("windReadout");
+      if(r){
+        const fps=Math.round(1000/delta);
+        const word=windBaselineMs===null?"warming up":(delta<=windBaselineMs*WIND_METER_DIP_FACTOR?"smooth":"rough");
+        r.textContent=fps+" fps — "+word;
+      }
+    }
   }
   windRafId=requestAnimationFrame(windDotLoop);
 }
