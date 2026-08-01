@@ -1,3 +1,17 @@
+## Narration box: content appears TOP TO BOTTOM, in that order
+
+**Standing design rule — Wyatt, 2026-08-01:** *"Everything in the narration box should appear from
+top to bottom, in that order. Remember this intent."*
+
+Whatever sits highest in the box is revealed first, then the next thing down. Concretely:
+
+> **back button → message text → helper text → action buttons**
+
+This is not a per-bug preference. It governs anything added to `#actionPanel` in future — a new
+element's reveal order follows its visual position, and does not need re-deciding each time. Three
+separate playtest findings on 2026-08-01 traced back to violating it (italic helper text painting
+first; the back button appearing after the message).
+
 ## Git: always fetch before you read git state
 
 **`git fetch` FIRST — before reading, comparing, or concluding anything about a branch.** Not once
