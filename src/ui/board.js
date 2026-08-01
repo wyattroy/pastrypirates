@@ -29,6 +29,26 @@
 // cached by the childElementCount guard. Different numbers into the same four static properties.
 // The Safari eyeball check is on this task's human-verify list regardless.
 //
+// SCOPED EXCEPTION — PHASE 19 / WIND-00 (Wyatt-approved 2026-07-31, the "go-ahead" recorded in
+// 19-01-SUMMARY.md), recorded here so the next reader is not entitled to revert it. render() gained
+// exactly ONE appended call to windDotsTick inside its existing `if(spinNeedle&&e.wind)` block,
+// passing the same live `angle` — nothing already there was reordered or removed. Everything else
+// this exception covers lives in a new, clearly-marked region between the
+// "WIND DOT PROTOTYPE (Phase 19 / WIND-00) BEGIN" and "... END" markers below (after
+// buildStormLayers()), inert unless explicitly enabled (WIND_PROTOTYPE_ENABLED_DEFAULT=false,
+// flipped only by the `?wind=1` URL flag or the `pp_wind_proto` localStorage key).
+//
+// WHY THAT IS SAFE, in BUG-01's own terms. BUG-01 was a LIVE CSS GRADIENT plus a MASK, animated via
+// an animated mask-position and a blur filter, composited every frame over a 220%-sized layer. None
+// of that appears anywhere in the wind-dot region: only the two compositor-safe properties the
+// post-mortem at index.html:97-105 endorses — `transform` and `opacity` — are ever animated, via a
+// single shared requestAnimationFrame loop writing `translate3d(...)` plus an outer `rotate(...)`
+// exactly the way `.rlayer` already does above. No live gradient, no mask, no blur, no filter, no
+// box-shadow, no backdrop appear in the region, and scripts/wind_dot_contract_check.js greps for
+// exactly those substrings on every `npm test` — a mechanically enforced promise, not a hopeful one.
+// This gate deliberately runs the dots through storms as well as calm turns (D-06 run 2 proves the
+// layer holds while storms arrive and leave); a non-storm-only rule is WIND-01's, and Phase 20's.
+//
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
 // scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
 //
@@ -355,6 +375,300 @@ export function buildStormLayers(ov,seed){
   }
 }
 
+// ============================================================================
+// WIND DOT PROTOTYPE (Phase 19 / WIND-00) — the Safari verdict tracer
+// ============================================================================
+// This region is the whole prototype: seeded per-dot randomness -> a DOM dot layer over the board
+// -> a single shared requestAnimationFrame loop that moves the dots and samples frame timing -> an
+// on-screen touch panel (switch, 0-100 dial, live readout) -> one call from render(), which already
+// knows the live wind direction at exactly the right moment (see the wind block below). Off by
+// default (D-08, D-10); enabled only by `?wind=1` or `localStorage.pp_wind_proto==="1"`. See the
+// file header's Phase 19 / WIND-00 scoped exception above for the full BUG-01 safety argument.
+export const WIND_PROTOTYPE_ENABLED_DEFAULT=false;
+/* ===== WIND DOT PROTOTYPE (Phase 19 / WIND-00) BEGIN ===== */
+
+// windPrototypeEnabled() — the on/off switch (D-08, D-10). Memoized into module-scope
+// `windProtoEnabled` so a normal build costs exactly one boolean read per render() and touches no
+// DOM at all. Both reads are wrapped in try/catch so a `file://` page or a storage-blocked context
+// (Safari private mode) falls back to the default instead of throwing.
+let windProtoEnabled=null;
+export function windPrototypeEnabled(){
+  if(windProtoEnabled!==null)return windProtoEnabled;
+  let on=WIND_PROTOTYPE_ENABLED_DEFAULT;
+  try{ if(location.search.indexOf("wind=1")!==-1)on=true; }catch(err){}
+  try{ if(localStorage.getItem("pp_wind_proto")==="1")on=true; }catch(err){}
+  windProtoEnabled=on;
+  return windProtoEnabled;
+}
+
+// WIND_DOT_MAX is D-04's 0-100 dial ceiling. WIND_DOT_DEFAULT is D-02's 5-10 target density and
+// D-06's locked run-2 value. WIND_DOT_SEED_SALT keeps this stream from correlating with the rain's
+// (stormLayerSpecs, above) even though both derive from the same game seed — its hex spells "WIND"
+// byte-for-byte (0x57=W,0x49=I,0x4e=N,0x44=D). WIND_LAYER_OVERSIZE mirrors .rlayer's 220% oversize
+// so a live rotation never exposes a layer corner. WIND_READOUT_MS is 19-RESEARCH.md Pitfall 4's
+// throttle: the readout text updates at most this often, so measuring the frame rate never becomes
+// part of the frame cost it measures.
+const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=10, WIND_DOT_SEED_SALT=0x57494e44, WIND_LAYER_OVERSIZE=2.2, WIND_READOUT_MS=250;
+
+// windDotSpecs(seed,count) — the PURE seeded-spec half, direct sibling of stormLayerSpecs() above.
+// mulberry32(seed), NEVER appState.game.r() — see src/ui/board.js:299-302 for why the private
+// stream is non-negotiable (D-12): drawing from the game's own seeded stream would advance it and
+// desync every client in a multiplayer room AND all 31 determinism fixtures. A private RNG instance
+// is created fresh on every call, salted so the dot stream never correlates with the rain's. Count
+// is clamped to [0,WIND_DOT_MAX] first. Exactly four values are drawn per dot in a fixed order —
+// startT, wobbleAmp, speed, lane — matching 19-RESEARCH.md's sketch, so re-reading this function
+// later reproduces the same field order.
+export function windDotSpecs(seed,count){
+  const n=Math.max(0,Math.min(WIND_DOT_MAX,Math.floor(Number(count))||0));
+  const rnd=mulberry32(((seed==null?DEMO_RAIN_SEED:seed)^WIND_DOT_SEED_SALT)>>>0);
+  const specs=[];
+  for(let i=0;i<n;i++){
+    specs.push({startT:rnd(),wobbleAmp:rnd(),speed:rnd(),lane:rnd()});
+  }
+  return specs;
+}
+
+// windDotFrame(spec,tMs,layerW,layerH) — the PURE per-dot motion half. Free of DOM and of
+// `now`-relative state (every input arrives as a parameter) so it can be exercised headlessly.
+// Returns {x,y,opacity} in the LAYER's own local, unrotated space — the outer rotate() applied by
+// windEnsureLayer/windDotsTick supplies the live wind direction; it is never baked in here, which
+// is exactly why a direction change re-aims every dot with no restart. This tracer travels along
+// local +Y only, wrapped into [-margin,layerH+margin] with margin=16, at
+// (0.35+spec.speed*0.5) layer-heights per second, phase-offset by spec.startT. `x` is a fixed lane
+// (spec.lane*layerW); `opacity` is a constant 0.72. The wobble term (spec.wobbleAmp) and the fade
+// envelope are 19-04's two named fill-in points onto this SAME return shape — no caller needs to
+// change to complete D-02.
+export function windDotFrame(spec,tMs,layerW,layerH){
+  const margin=16;
+  const rate=0.35+spec.speed*0.5; // layer-heights per second
+  const span=layerH+margin*2;
+  let y=(spec.startT*span+(tMs/1000)*rate*layerH)%span;
+  if(y<0)y+=span;
+  y-=margin;
+  const x=spec.lane*layerW;
+  return {x,y,opacity:0.72};
+}
+
+// buildWindDots(container,seed,count) — NOT idempotent, unlike buildStormLayers()'s
+// childElementCount guard above: D-04 requires the dial's count to change live, mid-voyage, without
+// a reload, so this grows or shrinks the pool to exactly `count` on every call — creating missing
+// `div.wdot` elements and REMOVING surplus ones from the DOM entirely (never just hiding them).
+// Regenerates the module-scope `windSpecs` cache from windDotSpecs(seed,count) in the SAME call so
+// specs and elements can never disagree in length. Every dot is styled inline via element.style
+// only (D-14 — index.html is never touched): absolute position at left/top 0, a 7px circle, a flat
+// translucent white fill, and pointerEvents:"none". The dot is a drawn shape, not a baked image —
+// no new asset is loaded.
+export function buildWindDots(container,seed,count){
+  const n=Math.max(0,Math.min(WIND_DOT_MAX,Math.floor(Number(count))||0));
+  windSpecs=windDotSpecs(seed,n);
+  if(!container)return;
+  while(windDotEls.length<n){
+    const d=document.createElement("div");
+    d.className="wdot";
+    d.style.position="absolute";
+    d.style.left="0";
+    d.style.top="0";
+    d.style.width="7px";
+    d.style.height="7px";
+    d.style.borderRadius="50%";
+    d.style.background="rgba(255,255,255,.72)";
+    d.style.pointerEvents="none";
+    container.appendChild(d);
+    windDotEls.push(d);
+  }
+  while(windDotEls.length>n){
+    const d=windDotEls.pop();
+    if(d.parentNode)d.parentNode.removeChild(d);
+  }
+}
+
+// Module state (mirrors the file header's precedent for module-private render-owned `let`s):
+// windDotEls/windSpecs are the DOM/spec pools built by buildWindDots, kept in lockstep; windDotsOn
+// is the switch's live value; windDotCount is the dial's live value; windAngle is the live wind
+// compass angle, updated the same place --slant is; windRafId is the shared rAF handle (0 = not
+// running); windLayer is the lazily-created `.wlayer` element; windHudBuilt guards the HUD's
+// one-time construction; windLastReadoutMs/windLastFrameMs drive the readout throttle and the frame
+// delta sample.
+let windDotEls=[],windSpecs=[],windDotsOn=true,windDotCount=WIND_DOT_DEFAULT,windAngle=0,windRafId=0,windLayer=null,windHudBuilt=false,windLastReadoutMs=0,windLastFrameMs=null;
+
+// windEnsureLayer() — lazily creates the layer structure inside #boardwrap: direction lives OUTSIDE
+// the animated portion, mirroring `.rlayer`'s exact structure (19-PATTERNS.md Pattern 1). #windDots
+// sits one z-index above #stormOverlay (6 vs 5), pointer-events:none, aria-hidden. Inside it, ONE
+// `.wlayer` sized WIND_LAYER_OVERSIZE (220%) at left/top -60%, carrying ONLY a live rotate() —
+// dots live inside it and move only in its local space, so a wind-direction change re-aims every
+// dot by rewriting one transform on one element, with no per-dot trigonometry and no restart.
+function windEnsureLayer(){
+  if(windLayer)return windLayer;
+  const bw=$("boardwrap");
+  if(!bw)return null;
+  let dots=$("windDots");
+  if(!dots){
+    dots=document.createElement("div");
+    dots.id="windDots";
+    dots.setAttribute("aria-hidden","true");
+    dots.style.position="absolute";
+    dots.style.inset="0";
+    dots.style.pointerEvents="none";
+    dots.style.borderRadius="10px";
+    dots.style.overflow="hidden";
+    dots.style.zIndex="6";
+    bw.appendChild(dots);
+  }
+  let layer=dots.querySelector(".wlayer");
+  if(!layer){
+    layer=document.createElement("div");
+    layer.className="wlayer";
+    layer.style.position="absolute";
+    layer.style.left="-60%";
+    layer.style.top="-60%";
+    layer.style.width=(WIND_LAYER_OVERSIZE*100)+"%";
+    layer.style.height=(WIND_LAYER_OVERSIZE*100)+"%";
+    dots.appendChild(layer);
+  }
+  windLayer=layer;
+  return windLayer;
+}
+
+// windDotLoop(now) — the ONE shared requestAnimationFrame loop for every dot, never one per dot.
+// Samples the frame delta first (now-windLastFrameMs, when a previous frame exists) and updates the
+// live readout at most every WIND_READOUT_MS (19-RESEARCH.md Pitfall 4: the instrument must not
+// become the stutter). Then, if the switch is on and the count is nonzero, writes each dot's
+// transform as a single translate3d(...) string plus its opacity, and re-arms itself.
+export function windDotLoop(now){
+  const delta=windLastFrameMs==null?null:now-windLastFrameMs;
+  windLastFrameMs=now;
+  const layer=windLayer;
+  if(windDotsOn&&windDotCount>0&&layer){
+    const w=layer.clientWidth||layer.offsetWidth||1;
+    const h=layer.clientHeight||layer.offsetHeight||1;
+    for(let i=0;i<windDotEls.length;i++){
+      const spec=windSpecs[i];
+      if(!spec)continue;
+      const f=windDotFrame(spec,now,w,h);
+      windDotEls[i].style.transform=`translate3d(${f.x}px,${f.y}px,0)`;
+      windDotEls[i].style.opacity=f.opacity;
+    }
+  }
+  if(delta!=null&&delta>0&&now-windLastReadoutMs>=WIND_READOUT_MS){
+    windLastReadoutMs=now;
+    const r=$("windReadout");
+    if(r)r.textContent=Math.round(1000/delta)+" fps";
+  }
+  windRafId=requestAnimationFrame(windDotLoop);
+}
+export function startWindDots(){
+  if(windRafId)return;
+  windRafId=requestAnimationFrame(windDotLoop);
+}
+export function stopWindDots(){
+  if(windRafId)cancelAnimationFrame(windRafId);
+  windRafId=0;
+  windLastFrameMs=null; // next start must not sample a stale gap
+}
+
+// buildWindHud() — the touch HUD (D-04, D-05). Builds #windHud once and appends it to #game, a
+// fixed panel pinned bottom-right so it stays reachable by thumb mid-voyage on the phone without
+// scrolling. Styled inline with this project's existing .panel conventions (white background, the
+// teal border, 10px radius) rather than a new design language (D-14 — index.html is never touched).
+// #windSwitch is the SAME node as its visible label, deliberately — see docs/DRIVING-THE-GAME.md
+// §4a's #flipCoinWrap trap, which this must not repeat.
+export function buildWindHud(){
+  if(windHudBuilt)return;
+  const game=$("game");
+  if(!game)return;
+  const hud=document.createElement("div");
+  hud.id="windHud";
+  hud.style.position="fixed";
+  hud.style.right="8px";
+  hud.style.bottom="8px";
+  hud.style.zIndex="60";
+  hud.style.background="#fff";
+  hud.style.border="1.5px solid #29a3b2";
+  hud.style.borderRadius="10px";
+  hud.style.padding="10px 12px";
+  hud.style.boxShadow="0 1px 3px rgba(41,163,178,.08)";
+  hud.style.fontSize="12px";
+  hud.style.minWidth="170px";
+
+  const sw=document.createElement("button");
+  sw.id="windSwitch";
+  sw.textContent="WIND: ON";
+  sw.style.display="block";
+  sw.style.width="100%";
+  sw.style.minHeight="44px";
+  sw.style.marginBottom="6px";
+  sw.onclick=function(){
+    windDotsOn=!windDotsOn;
+    sw.textContent=windDotsOn?"WIND: ON":"WIND: OFF";
+  };
+  hud.appendChild(sw);
+
+  const dialRow=document.createElement("div");
+  dialRow.style.display="flex";
+  dialRow.style.alignItems="center";
+  dialRow.style.gap="6px";
+  const dial=document.createElement("input");
+  dial.id="windDial";
+  dial.type="range";
+  dial.min="0";
+  dial.max=String(WIND_DOT_MAX);
+  dial.step="1";
+  dial.value=String(windDotCount);
+  dial.style.flex="1";
+  dial.style.height="44px";
+  dial.style.touchAction="manipulation";
+  dial.oninput=function(){ windSetDotCount(dial.value); };
+  dialRow.appendChild(dial);
+  const num=document.createElement("span");
+  num.id="windDialNum";
+  num.textContent=String(windDotCount);
+  dialRow.appendChild(num);
+  hud.appendChild(dialRow);
+
+  const readout=document.createElement("div");
+  readout.id="windReadout";
+  readout.style.marginTop="6px";
+  readout.textContent="—";
+  hud.appendChild(readout);
+
+  game.appendChild(hud);
+  windHudBuilt=true;
+}
+
+// windSetDotCount(n) — the dial's `input` handler. Clamps to [0,WIND_DOT_MAX]; non-finite input
+// (an empty/invalid field) is ignored, retaining the previous value. Rebuilds the pool via
+// buildWindDots so specs/elements stay in lockstep, then syncs #windDialNum and #windDial.value
+// (so a programmatic set — e.g. the headroom run stepping) keeps the visible dial in agreement).
+export function windSetDotCount(n){
+  const num=Number(n);
+  const clamped=Number.isFinite(num)?Math.max(0,Math.min(WIND_DOT_MAX,Math.floor(num))):windDotCount;
+  windDotCount=clamped;
+  buildWindDots(windLayer,appState.game&&appState.game.seed,windDotCount);
+  const numEl=$("windDialNum");
+  if(numEl)numEl.textContent=String(windDotCount);
+  const dialEl=$("windDial");
+  if(dialEl)dialEl.value=String(windDotCount);
+}
+
+// windDotsTick(angle) — the ONE call render() makes into this region (see the wind block below).
+// Returns immediately when the prototype is disabled, touching no DOM at all in a normal build.
+// Otherwise: stores the live angle, ensures the layer + HUD exist, writes the SAME `angle+180`
+// convention --slant uses as a live transform (zero restart), builds the dot pool on first run, and
+// starts the shared loop if it is not already running.
+export function windDotsTick(angle){
+  if(!windPrototypeEnabled())return;
+  windAngle=angle;
+  const layer=windEnsureLayer();
+  buildWindHud();
+  if(layer)layer.style.transform=`rotate(${windAngle+180}deg)`;
+  if(!windRafId){
+    buildWindDots(layer,appState.game&&appState.game.seed,windDotCount);
+    startWindDots();
+  }
+}
+
+/* ===== WIND DOT PROTOTYPE (Phase 19 / WIND-00) END ===== */
+
 // see the file header's chatBubbles deviation note: moved (exported) alongside render(), the
 // only cluster function that reads it.
 export const chatBubbles={};
@@ -622,6 +936,7 @@ export function render(){
       buildStormLayers(ov,appState.game&&appState.game.seed); // lazily create the jittered rain layers (once)
       ov.style.setProperty("--slant",(angle+180)+"deg");
     }
+    windDotsTick(angle);
   }
   $("scrub").value=appState.evIdx;
   renderLog();
