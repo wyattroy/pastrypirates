@@ -23,7 +23,7 @@
   5. The About page is reachable by its own link from the homepage. *(ABOUT-02)*
   6. The site serves an in-page image — the About page screenshot — which is what Google can promote into a result thumbnail; the already-shipped `max-image-preview:large` robots meta and JSON-LD `image` field are verified still present in `index.html`. *(META-01)*
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -33,7 +33,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 22-03-PLAN.md — Both About links on the homepage, and the META-01 head-block close-out (ABOUT-02, META-01) *(wave 2)*
+- [x] 22-03-PLAN.md — Both About links on the homepage, and the META-01 head-block close-out (ABOUT-02, META-01) *(wave 2)*
 - [ ] 22-04-PLAN.md — Capture mid-game screenshot candidates, Wyatt picks, install the chosen frame (ABOUT-01, META-01) *(wave 2, has a blocking checkpoint)*
 
 **Wave 3** *(blocked on Wave 2 completion)*

@@ -12,8 +12,8 @@
 
 - [x] **FIX-01**: Players choose their name in a new modal that appears **after** they pick a play mode.
 - [x] **ABOUT-01**: A beautiful About page exists containing the rules, a screenshot of the game in action, the credits, and the Ko-Fi button.
-- [ ] **ABOUT-02**: The About page is reachable by its own link from the homepage.
-- [ ] **META-01**: A Google search result for the site shows a large preview image (robots meta + JSON-LD `image`).
+- [x] **ABOUT-02**: The About page is reachable by its own link from the homepage.
+- [x] **META-01**: A Google search result for the site shows a large preview image (robots meta + JSON-LD `image`).
 
 > **The About page must not become a third divergent copy of the rules** — they already exist in the How-To-Play modal and `RULES.md`. Share one source or duplicate deliberately and say so.
 > **META-03** (Google Search Console verification) is **Wyatt's own action, not code** — crawl latency is days to weeks, so it should start now. Not scheduled as build work.

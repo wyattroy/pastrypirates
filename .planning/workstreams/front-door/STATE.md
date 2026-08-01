@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 22
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 22-02-PLAN.md
-last_updated: "2026-08-01T05:15:00.000Z"
+stopped_at: Completed 22-03-PLAN.md
+last_updated: "2026-08-01T05:23:00.000Z"
 last_activity: 2026-08-01
-last_activity_desc: "Plan 22-02 executed: about.html (ABOUT-01) — head block, own stylesheet, two-column hero, stranger-facing rules naming the Isle of Tortuga, credits, and a duplicated lazily-mounted Ko-Fi embed with byte-identical sandbox attribute, plus a sitemap.xml entry. Both tasks committed atomically. Two visual human-check items unrun (no browser-automation tool available) — logged to WINDOWS.md."
+last_activity_desc: "Plan 22-03 executed: both About links (ABOUT-02) — #lnkAboutWelcome under the welcome-screen mode cards, #lnkAboutFooter in the in-game footer row — plus verified META-01's already-shipped robots meta and JSON-LD image field survived byte-identical. Zero CSS added. One task committed. Consolidated browser pass unrun (no browser-automation tool available) — logged to WINDOWS.md entry #7."
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
-  percent: 40
+  completed_plans: 3
+  percent: 60
 workstream: front-door
 created: 2026-07-31
 ---
@@ -25,19 +25,19 @@ created: 2026-07-31
 
 **Status:** Executing Phase 22
 **Current Phase:** 22
-**Last Activity:** 2026-08-01 — Plan 22-02 (About page, ABOUT-01) complete
-**Last Activity Description:** Plan 22-02 executed: `about.html` built as a standalone page (own head block, own stylesheet, no shared JS) with a two-column hero, stranger-facing rules naming the Isle of Tortuga (D-08), a rewritten credits list, and a duplicated lazily-mounted Ko-Fi embed carrying the byte-identical `sandbox` attribute from `src/ui/lobby.js:74`. `sitemap.xml` gained a second `<url>` entry. Both tasks committed atomically; all static acceptance criteria pass. Two visual `<human-check>` items (hero-row layout, content-stacking/network-behavior) not run — no browser-automation tool available this session — logged to `.planning/WINDOWS.md` as unrun-verify.
+**Last Activity:** 2026-08-01 — Plan 22-03 (Both About links, ABOUT-02/META-01) complete
+**Last Activity Description:** Plan 22-03 executed: `#lnkAboutWelcome` added under the welcome-screen mode cards (reachable before any game starts) and `#lnkAboutFooter` added in `#footerRow` (after Ko-Fi, before Leave game), both `<a class="footerBtn footerAbout" href="about.html">` with zero new CSS — the `.footerAbout` modifier carries no rule of its own. Verified META-01's `robots` meta and JSON-LD `image` field are byte-identical to `22-RESEARCH.md`'s baseline and to `HEAD` (lines 1-32 diff clean); confirmed `robots.txt`/`sitemap.xml` unmodified. All named script gates passed. Consolidated browser pass (link click-through, mode-card modals, narrow-width wrap in Safari/Chrome) not run — no browser-automation tool available this session — logged to `.planning/WINDOWS.md` entry #7 as unrun-verify.
 
 ## Progress
 
 **Phases Complete:** 0
-**Current Plan:** 3 of 5 (22-02 complete)
+**Current Plan:** 4 of 5 (22-03 complete)
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T05:15:00.000Z
+**Last session:** 2026-08-01T05:23:00.000Z
 
-**Stopped At:** Completed 22-02-PLAN.md
+**Stopped At:** Completed 22-03-PLAN.md
 
 1. ~~`/gsd-discuss-phase 22 --ws front-door`~~ — **done 2026-07-31**, 11 decisions captured
 2. ~~`/gsd-ui-phase 22 --ws front-door`~~ — **done 2026-07-31**, UI-SPEC approved 6/6 dimensions
@@ -67,12 +67,14 @@ created: 2026-07-31
 |------|----------|-------|-------|
 | Phase 22 P01 | 35min | 2 tasks | 7 files |
 | Phase 22 P02 | ~25min | 2 tasks | 2 files |
+| Phase 22 P03 | 12min | 1 task | 1 file |
 
 ## Decisions
 
 - [Phase 22]: Added durable pp_lastName localStorage key (never cleared by leaveGame) to deliver D-04's persistence intent, superseding CONTEXT.md's cited pp_sess/pp_solo source which does not survive that path.
 - [Phase 22]: about.html (22-02) split across two commits despite writing one new file, so per-task atomicity held even for a brand-new file — Task 1 (head/stylesheet/hero) verified and committed before Task 2 (rules/credits/Ko-Fi/sitemap) was added.
 - [Phase 22]: about.html's own stylesheet corrected two spacing values (6px, 11px) that mirrored index.html's non-4-multiple originals, to satisfy the plan's own multiple-of-4 acceptance gate for new About-page surface.
+- [Phase 22]: Both About links (22-03) added with zero new CSS — the `.footerAbout` modifier class exists in markup only, riding on the base `.footerBtn` rule, to respect Phase 18's concurrent ownership of the `<style>` block.
 
 ## Verification status (Phase 22 Plan 01) — CLOSED 2026-08-01
 
