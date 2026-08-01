@@ -36,7 +36,7 @@
 import { appState } from "../state/index.js";
 import {
   HEXCOL, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG, HOURGLASS_IMG,
-  iconImg, emojify, unusedDefaultName,
+  CLOSE_X_IMG, iconImg, emojify, unusedDefaultName,
 } from "../shared/index.js";
 import { pname, pn, getLastName, saveLastName } from "./util.js";
 // F2/UI-06 (2026-07-29): escHtml's only use here was the duplicate seat-name rendering that this
@@ -128,6 +128,37 @@ export function confirmName(){
   const next=pendingNameAction;
   pendingNameAction=null;
   next(name);
+}
+
+// D-02: this modal's three dismissal routes (the ✕, Escape, backdrop click) all CONFIRM the name
+// currently shown rather than cancel — the opposite of the six close-only .modalX modals
+// src/orchestrator.js's wireLobby() injection loop wires (howToPlayModal, creditsModal, logModal,
+// feedbackModal, recipeModal, kofiModal), all of whose handlers only ever hide the overlay. This
+// modal is deliberately left OUT of that array; it gets its own wiring here instead, because "just
+// close" would silently strand a player mid-mode-pick with no captain name resolved.
+//
+// There is no Escape handling anywhere else in this codebase (RESEARCH.md, confirmed at plan
+// time) — the document-level keydown listener below is new machinery, not reuse.
+let nameModalWired=false;
+export function wireNameModal(){
+  if(nameModalWired)return; // idempotent: a second call adds no second button, no duplicate listener
+  nameModalWired=true;
+  const overlay=$("nameModal");
+  if(!overlay)return;
+  const card=overlay.querySelector(".modalCard");
+  if(card&&!card.querySelector(".modalX")){
+    card.style.position="relative";
+    const x=document.createElement("button");
+    x.className="modalX";x.type="button";x.innerHTML=iconImg(CLOSE_X_IMG);x.setAttribute("aria-label","Close");
+    x.onclick=()=>{confirmName();};
+    card.insertBefore(x,card.firstChild);
+  }
+  // backdrop click: only when the click lands on the overlay itself, not a click that bubbles up
+  // from inside the card.
+  overlay.addEventListener("click",e=>{if(e.target===overlay)confirmName();});
+  // Escape: only while this overlay is the one currently visible, so Escape pressed elsewhere
+  // (e.g. inside another modal) does nothing here.
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&overlay.style.display!=="none")confirmName();});
 }
 
 /* ================= lobby / room ================= */

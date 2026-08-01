@@ -62,7 +62,7 @@ import {
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS,
 } from "./util.js";
-import { passGate, requireName, showStep, openNameModal, confirmName } from "./lobby.js";
+import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
 import { netHandlers } from "./handlers.js";
 
 const $=id=>document.getElementById(id);
@@ -1707,6 +1707,9 @@ export function wireWelcome(){
   // flow) was chosen over saving a click.
   $("choicePassPlay").onclick=()=>{openNameModal(name=>{$("ppName0").value=name;showStep("stepPassPlay");});};
   $("btnNameConfirm").onclick=()=>{confirmName();};
+  // D-02: wires the modal's other three dismissal routes (✕, Escape, backdrop click) to also
+  // confirm rather than cancel. Idempotent — safe even though wireWelcome() only runs once.
+  wireNameModal();
   $("btnStartPassPlay").onclick=()=>{
     const names=[0,1,2,3].map(i=>($("ppName"+i).value||"").trim().slice(0,40)).filter(n=>n);
     // pass & play always needs at least two humans sharing the device — nobody typing
