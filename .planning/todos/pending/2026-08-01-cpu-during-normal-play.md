@@ -71,3 +71,80 @@ game even starts (a live board built and composited only to be blurred behind a 
 backdrop proposal fixes that half; this item is the in-play half.
 
 **Source:** Wyatt, 2026-08-01.
+
+---
+
+## MEASURED 2026-08-01 — the ranking above is wrong, and suspect 2 is the whole story
+
+Measured with the §8a harness in headless Chrome, **GPU enabled**, phone viewport (390×900), solo
+game, with a rAF loop running so the page genuinely animates. Attribution is by **ablation** — each
+suspect removed, then re-measured — not by inspection.
+
+### The result
+
+| Condition | CPU | task | layouts | fps |
+|---|---|---|---|---|
+| idle at a human prompt, as shipped | 7.6% | 605ms/8s | **508** | 58 |
+| idle, ripple off | 5.1% | 408ms/8s | **17** | 60 |
+| active play (autoplay driver), as shipped | 7.6% | 607ms/8s | **592** | 55 |
+| active play, ripple off | 3.7% | 294ms/8s | **156** | 60 |
+
+**The ripple is 97% of all layout work while idle and just over half the main-thread cost during
+active play.** It forces **~62 layouts per second** — from an animation that touches only `transform`
+and `opacity` and should therefore cost zero. Turning it off takes active-play CPU from 7.6% to 3.7%
+and restores a locked 60fps.
+
+**The board teardown (suspect 1) is not the problem.** With the ripple off, active play sits at
+156 layouts / 8s including all real gameplay animation. Do **not** rewrite `drawBoard()` — the
+expensive, risky change is the one that was not going to pay.
+
+### Why it costs layout — and what does NOT fix it
+
+The cause is not `transform-box: fill-box`. Three CSS candidates were measured and **all four
+conditions came back identical at 62 layouts/s**:
+
+| Candidate | layouts/s |
+|---|---|
+| as shipped (`fill-box` / `center`) | 62 |
+| `+ will-change: transform, opacity` | 62 |
+| `transform-box: view-box; transform-origin: 0 0` | 62 |
+| both | 62 |
+
+**Chrome does not composite SVG transform animations at all**, and `will-change` will not promote an
+SVG child to its own layer. No CSS tweak on the existing element can fix this.
+
+### The fix, proven before recommending
+
+Same three rings, same keyframes, same negative-delay stagger — drawn as **HTML divs over the board**
+instead of SVG circles:
+
+| | layouts / 6s | task |
+|---|---|---|
+| SVG rings (shipped) | 373 | 543ms |
+| HTML divs, identical animation | **12** | 396ms |
+| no ripple at all | 12 | 333ms |
+
+**The HTML version costs zero layouts — 100% of the ripple's layout cost removed**, at 60fps, with
+the animation visibly unchanged (ring width swept 25→46px, opacity .04→.51, matching shipped).
+
+### Doing it — the one real complication
+
+`activeRing` is already positioned by `style.transform = translate(Xpx,Ypx)` (board.js:1095, 1173,
+1186, 1256), so the positioning calls port almost unchanged, and `opacity` moves from an attribute to
+a style. **But those coordinates are SVG user units, not screen pixels** — the board is scaled by its
+viewBox via `syncBoardSizing()`. An HTML overlay must convert user units → CSS px with the board's
+live scale and re-apply on resize.
+
+That is the whole job, and it is why this was not just done: it lands in the code that
+`board.js:1143` records as having already shipped a bug where **the ring ran ahead of the boat**, and
+its acceptance test is how the sweep *looks* — in Safari, which no headless harness can stand in for.
+
+**Recommendation:** do it, ripple-only, leaving `drawBoard()` alone; verify with a screen recording
+of a rim sweep, as `20260731-tradewind-arrival-animation` had to.
+
+### Caveat on the absolute numbers
+
+7.6% here is not Wyatt's 80%. This is headless Chrome on a desktop Mac at a 390px viewport; he is in
+Safari at full window. **The attribution transfers, the percentages do not** — and Safari is where
+this project's rendering bugs have historically lived, so a Safari re-measure after the change is
+part of the job, not a nicety.
