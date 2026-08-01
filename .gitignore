@@ -5,8 +5,10 @@ DESIGN_REPORT.md
 notes/
 node_modules/
 
-# Raw Gemini art-generation output and review galleries. Disposable staging —
-# see notes/art-generation-process.md §6. NOTE: 116 files under art-review/ were
-# already committed before this line existed and stay tracked; git does not
-# untrack what it already tracks. Only NEW output is ignored.
-art-review/
+# art-review/ is deliberately NOT ignored, despite what
+# notes/art-generation-process.md §6 says. Gemini output is not reproducible —
+# the same prompt gives a different image — so the repo is the only backup of
+# art that cannot be remade, and ignored files are one `git clean -xdf` from
+# gone. Revisit when the tracked total passes ~700 MB (Pages caps a published
+# site at 1 GB): at that point move the whole folder to an orphan
+# `art-archive` branch rather than ignoring it.
