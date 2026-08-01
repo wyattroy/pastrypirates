@@ -598,8 +598,8 @@ export async function asyncBattle(att,def){
       if(cells.length){
         let flee;
         // @copy prompt.battle.flee
-        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Flee the battle (−1🌕)?`,
-          [{label:"🏃 Flee! (−1🌕)",value:true},{label:"⚔️ Keep fighting",value:false}]);}
+        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Flee the battle <span class="nobrk">(−1🌕)</span>?`,
+          [{label:'🏃 Flee! <span class="nobrk">(−1🌕)</span>',value:true},{label:"⚔️ Keep fighting",value:false}]);}
         else flee=d<a; // bots flee a losing fight, press on if ahead or even
         // G6 (COIN-AUDIT.md site 14): `def.coins>=1` gates the branch above, then a human defender
         // sits on `await ask(...)` — the window. A shortfall falls through to flee=false, i.e. keep

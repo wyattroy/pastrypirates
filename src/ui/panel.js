@@ -397,6 +397,28 @@ export function panel(html,needsAction=false){
   const gateEl=needsAction?$("actionPanel"):null;
   const hasButtons=!!(gateEl&&gateEl.querySelector(".apBtns, .apBack"));
   if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal");
+  // P3 + P5 (Wyatt, 2026-08-01): "the 2nd line is cut off during writing, but only sometimes" and
+  // "narrow window action button: fail". Both are the SAME cause, and the intermittency is the tell
+  // — he also noticed "sometimes the box adjusts to the correct size during fade-out", i.e. the
+  // correct height IS reachable, just not at measure time.
+  //
+  // resizePanel() measures once, synchronously, immediately below. Narration is full of inline
+  // <img> icons (coins, ingredients, narrIcon). An <img> with no intrinsic size contributes ZERO
+  // height and ZERO width until it decodes — so a message measured before its icons load comes out
+  // one line short, and #apGridInner's overflow:hidden then CLIPS the line that appears when they
+  // arrive. On a warm cache the icons are instant and nothing goes wrong, which is exactly why it
+  // reproduces "only sometimes"; and drop()'s later resizePanel() is what silently corrects it
+  // during the fade.
+  //
+  // So: re-measure once per image that was still loading. NOT a per-frame or per-tick re-measure —
+  // that is the Safari near-crash BUG-01's measure-once rule exists to prevent. One extra probe per
+  // late image, only for images that were not already complete, each firing at most once.
+  for(const img of inner.querySelectorAll("img")){
+    if(img.complete)continue;
+    const remeasure=()=>resizePanel(!!inner.innerHTML);
+    img.addEventListener("load",remeasure,{once:true});
+    img.addEventListener("error",remeasure,{once:true}); // a broken icon changes the layout too
+  }
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
   resizePanel(!!html);

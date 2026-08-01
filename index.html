@@ -364,7 +364,12 @@
      and a ghost that swallowed the first click on a prompt would be a far worse bug than the one
      this fixes. */
   .apMsg.fadeOut { animation: apMsgFadeOut .8s ease both; position: absolute; pointer-events: none; }
-  @keyframes apMsgFadeOut { to { opacity: 0; } }
+  /* P2 (Wyatt, 2026-08-01): "the text flashes before the fade starts — as if it disappears
+     completely, then comes back at full opacity in order to start its fade." With only a `to`
+     keyframe the start value is whatever the computed style happens to be when the animation is
+     picked up, one frame after the ghost is appended and positioned. An explicit `from` removes
+     that ambiguity — the fade provably begins at full opacity. */
+  @keyframes apMsgFadeOut { from { opacity: 1; } to { opacity: 0; } }
   /* the ghost is positioned against the inner box, not the page. No offsets, so flow is unchanged. */
   #apGridInner { position: relative; }
   /* with motion reduced there is no fade at all — an instant swap, not a ghost sitting opaque
@@ -397,7 +402,14 @@
      present or not (18-01 Task 1). Toggled from panel() itself in src/ui/panel.js, off a .then()
      on the same _revealDone promise flash() already awaits. Under prefers-reduced-motion the class
      is never added at all — see panel()'s `reduced` read. */
-  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apBack { visibility: hidden; }
+  /* P1 + P4 (Wyatt, 2026-08-01) — the box reveals TOP TO BOTTOM, in visual order:
+       back button -> message text -> helper text -> action buttons.
+     .apBack LEAVES this gate: it sits at the very top, so it must be there before the message
+       types in, not after ("the Back button should appear first ... this is not arbitrary").
+     .apSub JOINS it: the italic helper line sits under the message and above the buttons, and was
+       painting instantly, ahead of the text it explains ("it should honestly appear with the
+       buttons"). */
+  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apSub { visibility: hidden; }
   .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
   @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */

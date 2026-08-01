@@ -190,7 +190,7 @@ export function reachable(p){
 // player read two different prompts depending on whether they happened to be the host or a guest
 // (D-35's sweep finding: guest-side code must render text, never author it).
 export function sailPickMsg(seat){
-  return `${pn(seat)}: click any yellow square to sail there (−1🌕)`;
+  return `${pn(seat)}: click any yellow square to sail there <span class="nobrk">(−1🌕)</span>`;
 }
 // G25 (Wyatt-approved 2026-07-30, D-55 PULLED FORWARD): THE ONE PLACE that decides what a sail
 // square looks like. Asked whether the four host/guest drifts were structurally fixed so they
@@ -622,7 +622,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // The reason is supplied ONLY when broke — ui_contract_check.js assertion 6 requires a
       // disabled option's reason to be reachable in the state it explains and absent in states it
       // does not.
-      opts.push({label:"Anchor safely (−1🌕)",value:"pay",disabled:broke});
+      opts.push({label:'Anchor safely <span class="nobrk">(−1🌕)</span>',value:"pay",disabled:broke});
       // D-59 (Wyatt-approved 2026-07-29): the ordinary branch shows the REAL coin loss — the same
       // Math.max(1,Math.floor(p.coins/2)) expression the engine uses below, so the button can never
       // disagree with the outcome, and the rounding-down is visible before the decision is made.
@@ -638,7 +638,7 @@ export async function windLeg(p,dirKey,dist,dodgedOnce,wasDocked){
       // index.html's .narrIcon rule) into a wording fix at this site.
       const flipLabel=trueShipwreck?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose turn)"
         :broke?"Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose a crate)"
-        :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer treasure (−${Math.max(1,Math.floor(p.coins/2))}🌕))`;
+        :`Flip (⚪ HEADS: dodge safely. ⚫ TAILS: lose half yer treasure <span class="nobrk">(−${Math.max(1,Math.floor(p.coins/2))}🌕)</span>)`;
       opts.push({label:flipLabel,value:"flip"});
       // G10 second half (2026-07-30): the prompt used to OFFER a branch it could not honour — a
       // broke captain read "Anchor safely, or take yer chances…" above a button he could not press.
@@ -864,7 +864,7 @@ export async function humanDock(p,port){
       // The flavour phrase is still dockFlavorIcon(ing) — F5's one-place-decides rule, icon before
       // the NOUN. Never hand-roll it here.
       const buy=await ask(`⚫️ TAILS! Take treasure instead? Or buy ${dockFlavorIcon(ing)}?`,[
-        {label:`Buy ${ilabelImg(ing)} (−3🌕)`,value:true,disabled:!canBuy},{label:"Take 3🌕",value:false}],
+        {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−3🌕)</span>`,value:true,disabled:!canBuy},{label:"Take 3🌕",value:false}],
         null,canBuy?null:`Yer too broke to buy it — take the 3🌕 instead.`);
       // D-40 safety net: guard the purchase on affordability as well as on the returned choice, so a
       // forced or edge selection of the greyed option can never spend coins that are not there.
@@ -1098,7 +1098,7 @@ export async function humanAct(p,sailCtx){
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   if(targets.length)
-    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` (−${appState.game.cfg.powder}🌕)`:""}`,value:"attack",disabled:!canAfford});
+    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">(−${appState.game.cfg.powder}🌕)</span>`:""}`,value:"attack",disabled:!canAfford});
   if(appState.game.tradeOpp(p).length)opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
   if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
@@ -1106,7 +1106,7 @@ export async function humanAct(p,sailCtx){
   // numeric RANGE, not a minus, so it correctly carries no sign — but it was an ASCII hyphen, which
   // renders narrower and lighter than the U+2212 "−" on the Attack button directly above it in this
   // same menu. An en dash (U+2013) is the correct character for a range, and it matches the weight.
-  opts.push({label:"🎣 Fish (+1–2🌕)",value:"fish"});
+  opts.push({label:'🎣 Fish <span class="nobrk">(+1–2🌕)</span>',value:"fish"});
   // offered only if this player's sail step ended in "Stay put" (nothing spent/moved) and they
   // could still afford to sail — covers the reported "hit Stay put by accident" complaint
   const canMoveInstead=sailCtx&&p.coins>0&&p.coins===sailCtx.preSailCoins&&

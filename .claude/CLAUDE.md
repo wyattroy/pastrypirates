@@ -5,12 +5,16 @@ top to bottom, in that order. Remember this intent."*
 
 Whatever sits highest in the box is revealed first, then the next thing down. Concretely:
 
-> **back button → message text → helper text → action buttons**
+> **back button → message text → action buttons → italic helper text**
+
+That is the DOM order `localAsk()` builds in `src/ui/flow.js` — `.apBack`, `.apMsg`, `.apBtns`,
+`.apSub` — and the reveal must follow it.
 
 This is not a per-bug preference. It governs anything added to `#actionPanel` in future — a new
-element's reveal order follows its visual position, and does not need re-deciding each time. Three
-separate playtest findings on 2026-08-01 traced back to violating it (italic helper text painting
-first; the back button appearing after the message).
+element's reveal order follows its visual position, and does not need re-deciding each time. Two
+separate playtest findings on 2026-08-01 traced back to violating it: the italic helper text painted
+instantly, ahead of the message it explains, and the back button appeared after the message instead
+of before it.
 
 ## Git: always fetch before you read git state
 
