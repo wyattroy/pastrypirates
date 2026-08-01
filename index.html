@@ -344,6 +344,13 @@
     padding: 0; margin-bottom: 6px; border-radius: 50%; background: #fff; font-size: 17px;
     font-weight: 800; line-height: 1; }
   .apBack:hover { background: #eafbf4; }
+  /* FIX-03/D-01: buttons wait for the typewriter to finish. visibility:hidden — never
+     display:none — because a hidden box must still occupy its layout space, which is what keeps
+     resizePanel()'s inner.offsetHeight measuring the buttons' full space whether this class is
+     present or not (18-01 Task 1). Toggled from panel() itself in src/ui/panel.js, off a .then()
+     on the same _revealDone promise flash() already awaits. Under prefers-reduced-motion the class
+     is never added at all — see panel()'s `reduced` read. */
+  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apBack { visibility: hidden; }
   .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
   @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */

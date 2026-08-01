@@ -249,9 +249,25 @@ export const GHOST_FADE_MS=800;
 // rule. Move them together or the fade and the reveal disagree — that CSS rule carries the same
 // warning pointing back here, plus a note that `.8s`'s old value collided with #apGrid's unrelated
 // panel-height transition, so a find-and-replace on the duration is not safe.
+// FIX-03/D-01 (18-01 Task 1): monotonically increasing per-panel()-call sequence, stamped onto
+// #actionPanel's dataset at gate time and compared inside the reveal .then() below. Closes the
+// stale-reveal race RESEARCH flags: typewriterReveal() only clears `_revealTimer` for the NEW
+// element it is walking, never an interrupted earlier one, so an old reveal can resolve LATE. A
+// seq mismatch means a newer panel() call already replaced this gate — removing the class then
+// would be wrong. #actionPanel is a singleton element, so this guards against TIME (a late
+// .then()), not against which node to unhide.
+let panelSeq=0;
 export function panel(html,needsAction=false){
   html=emojify(html);
   const inner=$("apGridInner");
+  // REDUCED MOTION is read HERE, in JS, and that is not a stylistic choice: index.html's
+  // `@media (prefers-reduced-motion: reduce)` sets `.apMsg.fadeOut{display:none}`, so there is no
+  // fade to wait for — but a CSS media query cannot reach a JS timer. Without this read, a
+  // reduced-motion user would get a blank 180ms gap AND no fade, which is the worst of both.
+  // Read up-front (moved ahead of the pendingReveal gate decision below, 18-01 Task 1) — ordering
+  // vs. resizePanel() doesn't matter for correctness (visibility:hidden never changes
+  // offsetHeight), but `reduced` must be known before that gate decision is made.
+  const reduced=typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   // Only when a line is actually being REPLACED: an explicit clear (empty html) still empties and
   // hides the panel instantly with no ghost, which is the explicit-clear path F6 preserved.
   const outgoing=html?inner.querySelector(".apMsg:not(.fadeOut)"):null;
@@ -279,6 +295,15 @@ export function panel(html,needsAction=false){
     // pair is genuinely irreducible — but this no longer joins them.
     setTimeout(drop,GHOST_FADE_MS+70);
   }
+  // FIX-03/D-01 (18-01 Task 1): gate the action buttons behind #actionPanel.pendingReveal until
+  // THIS prompt's own reveal resolves. Captured before resizePanel() runs so the buttons' full
+  // markup is already in the DOM either way (visibility:hidden still occupies its box in layout,
+  // which is exactly what keeps resizePanel()'s inner.offsetHeight measurement honest whether the
+  // class is present or not). hasButtons is false/null for battle prompts — renderBattle()'s HTML
+  // has no .apMsg/.apBtns/.apBack at all, so they are correctly untouched by this gate.
+  const gateEl=needsAction?$("actionPanel"):null;
+  const hasButtons=!!(gateEl&&gateEl.querySelector(".apBtns, .apBack"));
+  if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal");
   $("actionPanel").style.display=html?"":"none";
   $("actionPanel").classList.toggle("needsAction",!!needsAction);
   resizePanel(!!html);
@@ -292,13 +317,26 @@ export function panel(html,needsAction=false){
   const msgEl=$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
   // G17: delay the reveal by exactly the ghost's fade, and only when there IS a ghost — a first
   // line, or a line after an explicit clear, still types in immediately.
-  //
-  // REDUCED MOTION is read HERE, in JS, and that is not a stylistic choice: index.html's
-  // `@media (prefers-reduced-motion: reduce)` sets `.apMsg.fadeOut{display:none}`, so there is no
-  // fade to wait for — but a CSS media query cannot reach a JS timer. Without this read, a
-  // reduced-motion user would get a blank 180ms gap AND no fade, which is the worst of both.
-  const reduced=typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(msgEl)msgEl._revealDone=typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0);
+  const revealDone=msgEl?typewriterReveal(msgEl,REVEAL_MS_PER_CHAR,(ghost&&!reduced)?GHOST_FADE_MS:0):Promise.resolve();
+  if(msgEl)msgEl._revealDone=revealDone;
+  // FIX-03: unhide the gated buttons only once THIS prompt's own reveal resolves. The seq compare
+  // (declared above panel()) is what keeps a late-resolving EARLIER reveal from unhiding a NEWER
+  // prompt's still-hidden buttons — see panelSeq's own comment.
+  if(hasButtons&&!reduced){
+    const seq=++panelSeq;
+    gateEl.dataset.revealSeq=String(seq);
+    revealDone.then(()=>{
+      if(gateEl.dataset.revealSeq===String(seq))gateEl.classList.remove("pendingReveal");
+    });
+  }
+}
+// FIX-03 (18-01 Task 1): the live prompt's own reveal-completion promise, exported so a later
+// caller (18-05's armClock chain) has exactly one seam to hook rather than re-deriving this
+// lookup itself. Returns an already-resolved promise when there is no live .apMsg (nothing to
+// wait for) rather than null, so every caller can `.then()` unconditionally.
+export function panelRevealDone(){
+  const m=$("actionPanel")&&$("actionPanel").querySelector(".apMsg:not(.fadeOut)");
+  return (m&&m._revealDone)||Promise.resolve();
 }
 // notes/edits BUG-01: smoothly resize the box to the CURRENT message's finished height, exactly
 // ONCE. Measure the natural content height (with the row briefly unconstrained and the transition
