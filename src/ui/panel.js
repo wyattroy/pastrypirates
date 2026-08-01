@@ -44,7 +44,7 @@ import {
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
-import { playForEvent, isMuted } from "../shared/audio.js";
+import { playForEvent, isMuted } from "./audio.js";
 
 const $=id=>document.getElementById(id);
 const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));

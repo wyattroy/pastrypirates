@@ -2,7 +2,7 @@
 // scripts/audio_mapping_test.js
 //
 // Phase 21 (AUDIO-01/21-VALIDATION.md § Wave 0): the DOM-free harness every task in this phase's
-// plans asserts through. 21-01 gated src/shared/audio.js's pure surface only — the sfx file
+// plans asserts through. 21-01 gated src/ui/audio.js's pure surface only — the sfx file
 // table, the per-stem volume table, the mute key, and mute get/set's no-audio-graph-required
 // safety. 21-02 (this wave) extends the same file with the 25-key EVENT_SOUND mapping: the
 // key-set-matches-EVENT_NARRATION assertions, the per-key no-throw dispatch, the storm-stamp
@@ -11,10 +11,10 @@
 //
 // Convention (matches scripts/narration_test.js): no assertion library, a local
 // check(name, actual, expected) counter, plain console.log, process.exit(failures?1:0). Direct
-// `import` of the audio surface from src/shared/audio.js — no DOM reference, no import of
+// `import` of the audio surface from src/ui/audio.js — no DOM reference, no import of
 // src/ui/board.js or src/orchestrator.js.
 //
-// The bare `import` of ../src/shared/audio.js immediately below is itself the first, unnamed
+// The bare `import` of ../src/ui/audio.js immediately below is itself the first, unnamed
 // assertion this script makes: if that module ever starts constructing an AudioContext, reading
 // document, or reading localStorage at module load, this script throws before its first check
 // line ever prints. That is the design constraint 21-VALIDATION.md imposes on the implementation
@@ -25,7 +25,7 @@ import {
   SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, isMuted, setMuted,
   EVENT_SOUND, soundForEvent, STORM_VOLUME, STORM_FADE_SEC,
   WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER,
-} from "../src/shared/audio.js";
+} from "../src/ui/audio.js";
 // EVENT_NARRATION import style matches scripts/narration_test.js:24-27 exactly — proof that
 // importing the narration surface headlessly (no DOM, no src/ui/flow.js or src/ui/panel.js)
 // works, and the load-bearing baseline this script's own mapping-completeness checks pin against.

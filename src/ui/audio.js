@@ -1,4 +1,4 @@
-// src/shared/audio.js
+// src/ui/audio.js
 //
 // Phase 21 (AUDIO-01/D-02/D-07/D-09/D-10/D-11/D-12/D-13). A new `shared` leaf-tier module — the
 // only file in this tier besides src/shared/index.js. src/shared/index.js's own header (lines

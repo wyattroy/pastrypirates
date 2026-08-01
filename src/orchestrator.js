@@ -72,7 +72,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, DEFAULT_NAMES, unusedDefaultName, iconImg, man,
   ilabelImg,
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen, isMuted, setMuted } from "./shared/audio.js";
+import { initAudio, playForEvent, playWinScreen, isMuted, setMuted } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
   netSetPaused, netWatchPaused, netDeleteRoom,
@@ -190,7 +190,7 @@ export function togglePause(){
   }
 }
 // AUDIO-02 (phase 21): the mute button beside the clock. Pure client-side state — isMuted()/
-// setMuted() (src/shared/audio.js) are the whole store, backed by their own localStorage key; no
+// setMuted() (src/ui/audio.js) are the whole store, backed by their own localStorage key; no
 // Firebase write, no net* writer, no appState field, so muting never reaches another player's
 // browser (D-13, T-21-12). setClockUI() is called directly (main tier may call it, unlike ui-tier
 // code) so the icon/tooltip refresh immediately rather than waiting for the next 500ms tick.

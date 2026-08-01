@@ -86,7 +86,7 @@ import {
   describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
 } from "./util.js";
 import { recipeTitle, recipeInfo, winRecipeSpan } from "./recipe.js";
-import { playFlip } from "../shared/audio.js";
+import { playFlip } from "./audio.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
 // see the file header's deviation note.
