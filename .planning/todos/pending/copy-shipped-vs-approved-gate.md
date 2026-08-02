@@ -78,7 +78,7 @@ approved rewrites above did.
 |---|---|---|
 | "Mute the sound" (unmuted-state tooltip on `#btnMute`) | `src/ui/panel.js`, `setClockUI()` | not yet reviewed |
 | "Turn the sound back on" (muted-state tooltip on `#btnMute`) | `src/ui/panel.js`, `setClockUI()` | not yet reviewed |
-| ", and who later wrote every sound effect ye hear" (Luis Zanforlin's sound-effects credit clause) | `index.html`, `#creditsModal` | not yet reviewed |
+| ", and who later wrote every sound effect ye hear" (Luis Zanforlin's sound-effects credit clause) | `index.html`, `#creditsModal` | not yet reviewed — **and no longer the shipped text: `ye` became `you` in playtest commit `10b3bbc`. See the 2026-08-02 correction row in the ledger below.** |
 
 **No `@copy` marker on the two mute tooltips, deliberately.** The `@copy` id space is bound to
 `art-review/`'s node-group table through `scripts/narration_audit_check.js`; a new `misc.sound.*`
@@ -112,7 +112,44 @@ automatically.
 | 2026-08-01 | 18-04 (FIX-07) | new `battle` spoil clause, no prior `@copy` adhoc id (table-driven; sits beside `table:battle`'s existing bribe/cleaned-out clauses) | `src/ui/util.js` (both the neutral/winner `spoilClause` chain and the separate loser-addressed composite chain) | A genuinely NEW line, not a rewrite of an existing approved string: `{loser} gives up {spoil}.` (neutral/winner) and `Ye give up {spoil}.` (loser-addressed), ruled verbatim by Wyatt 2026-07-31. It fires only when the loser's hold was empty AND the coin take reached the 5-coin clamp ceiling — a case that previously, incorrectly, rendered the existing bribe wording (`{loser} bribes their way out of giving away a crate with {spoil}.`). The bribe wording itself is unchanged and still ships for genuine bribes (`spoilChosen:true`). No prior Phase 15 disposition covered this case since it never had its own line before. | Root cause: `src/orchestrator.js`'s battle event gained a new `spoilChosen` boolean (orchestrator-tier only, never added to `src/engine/index.js` — milestone constraint 1), so `src/ui/util.js` can now tell "loser genuinely chose coins over a crate" apart from "loser had no crate to choose from." See `.planning/todos/pending/2026-07-31-bribe-narration-fires-with-an-empty-hold.md` for the full root-cause note and `18-04-SUMMARY.md` for verification. |
 | 2026-08-01 | 18-06 (FIX-06) | every `button.primary` site (9 static `class="primary"` sites + 1 dynamic `.apBtn` site in `src/ui/flow.js`) plus `#btnConfirmLeave` | `index.html` (CSS block + `#btnConfirmLeave` markup) | Visual only, no word changed: `button.primary`/`button.primary:hover`/`.apBtn.primary:hover` restyled from a solid orange fill to the outline + pale-fill recipe taken verbatim from `.footerKofi`/`.footerKofi:hover`. `#btnConfirmLeave` additionally gains the `.footerLeave` red destructive recipe (label unchanged, `class="primary big footerLeave"` — kept `primary` so the enumerated button count doesn't move) via a `button.footerLeave` specificity bump over `button.primary`. | Not a copy change under this gate's own definition (no text differs on any of the 10 sites) — logged anyway per the same abundance-of-caution precedent 18-03's FIX-21 row set for a structural-only CSS/markup change. |
 | 2026-08-01 | 18-06 (FIX-17) | captain colour swatch, player rows + lobby seat list | `src/ui/util.js` (`buildPlayerRows`), `src/ui/lobby.js` (`renderSeatList`), `index.html` (CSS) | Visual only, no word changed: the `<span class="dot">` swatch is deleted from both templates; every other `HEXCOL[i]` consumer (row tint, `--rowcol` border, `.pname` colour) is untouched. `.prowTop`'s grid drops its 14px dot column; `.player-row .dot`/`.seat .dot` rules deleted. | Not a copy change (no text at either site) — logged for the same abundance-of-caution reason as the FIX-06 row above. |
-| 2026-08-01 | 18-06 (FIX-09) | ingredient chips, narrow-screen (`@media (max-width: 480px)`) | `index.html` (CSS) | Visual only, no word changed: two candidate narrow-screen chip treatments (shrink vs. own row), both live and toggleable via `body.chipsOwnRow`, per D-03. Neither chosen yet — 18-07 deletes the loser. | Not a copy change (no text anywhere in this fix) — logged for the same abundance-of-caution reason as the two rows above. |
+| 2026-08-01 | 18-06 (FIX-09) | ingredient chips, narrow captains box (container query, 460px) | `index.html` (CSS) | Visual only, no word changed. **RESOLVED 2026-08-01; this row corrected 2026-08-02.** 18-06 built two candidate treatments toggleable via `body.chipsOwnRow` per D-03; Wyatt chose **Treatment B** (*"I LOVE true — it's so much better"*) and Treatment A was deleted in commit `2438aa3`. Exactly one treatment ships, so no unreachable CSS remains. | Not a copy change (no text anywhere in this fix) — logged for the same abundance-of-caution reason as the two rows above. **Until 2026-08-02 this row still read "Neither chosen yet — 18-07 deletes the loser," which went stale the moment the decision landed: the choice was made and the loser deleted, but 18-07 never ran to update the record.** |
+| 2026-08-02 | playtest batch `10b3bbc` (P6/P8–P12) | `#creditsModal` credit clause — **no `@copy` id**; static `index.html` markup, a known extractor blind spot (see DESIGN INTENT above) | `index.html` | **A one-word text change, logged retroactively.** `"who later wrote every sound effect **ye** hear"` → `"…every sound effect **you** hear"`. Shipped during the post-plan Safari playtest batch and never recorded at the time. | **RESOLVED — Wyatt confirmed 2026-08-02 that `you` is deliberate:** the credits page is not in the game world, so it is not written in pirate speak. The shipped text was correct all along; **the inventory was wrong to have recorded a `ye` form.** The deeper problem was that this rule was unwritten — he had told an earlier session the same thing and it was lost. Now captured as THE VOICE BOUNDARY below. |
+
+---
+
+## DESIGN INTENT — THE VOICE BOUNDARY (Wyatt, stated at least twice; written down 2026-08-02)
+
+> "the design intent is that the credits page is not 'in the game world' so it isn't written in
+> pirate speak."
+
+**Player-facing text has two registers, and the divide is diegetic — whether the words come from
+inside the game world or from outside it.**
+
+| Register | Voice | Where |
+|---|---|---|
+| **Inside the game world** | Pirate speak — `ye`, `yer`, `blowin'`, captain-address | Narration, battle/trade/dock lines, prompts, buttons, the board, the lobby, End of Voyage |
+| **Outside the game world** | Wyatt's own plain first-person voice | Credits, the About page, and anywhere he speaks as himself to a real person |
+
+The credits thank real people — Luis, Nick Lesko, Xavaar, his parents, Juju — in his own voice ("a
+designer and overly enthusiastic noodle", "my sweet partner Juju"). Pirate speak there would put a
+costume on a genuine thank-you.
+
+### What this means for the gate
+
+1. **A `ye`/`you` difference between credits-or-About copy and the rest of the game is CORRECT.** Any
+   check that flags it is emitting a false positive.
+2. **Any disposition recording credits copy in pirate voice has recorded it wrong.** This file's own
+   Phase 21 entry did exactly that (`", and who later wrote every sound effect ye hear"`), which is
+   how a correct shipped string came to look like drift.
+3. **When the gate is eventually built, register must be an attribute of a copy site**, not something
+   inferred from the words — otherwise a well-meaning consistency pass will pirate-ify the credits.
+
+### Why this is written here rather than remembered
+
+**Wyatt had already told a previous session this exact rule, and it was lost.** An unwritten voice
+rule cannot survive a context reset: each new session re-derives it from surrounding text, and one of
+them eventually "fixes" `you` back to `ye` in perfect good faith. Also written into
+`.claude/CLAUDE.md` so it is inherited without anyone having to find this file.
 
 ---
 

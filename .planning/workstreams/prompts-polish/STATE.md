@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 18
-current_plan: 6
-status: shipped
-stopped_at: "Phase 18 MERGED TO MAIN AND LIVE (2026-08-02). All 12 items from Wyatt's Safari playtest passed."
-last_updated: "2026-08-02T14:45:00.000Z"
+current_plan: 7
+status: complete
+stopped_at: "Phase 18 COMPLETE AND CLOSED, NOTHING OPEN. Merged to main and live; all 12 Safari playtest items passed; 18-07 closed retroactively 2026-08-02 with the copy ledger, VERIFICATION.md and SUMMARY written. The credits ye/you question was resolved by Wyatt the same day — 'you' is deliberate because the credits page is not in the game world, so it is not written in pirate speak. That voice rule is now recorded in .claude/CLAUDE.md and the copy gate."
+last_updated: "2026-08-02T00:00:00.000Z"
 last_activity: 2026-08-02
-last_activity_desc: "SHIPPED. Phase 18 merged to main and live on playpastrypirates.com. All twelve items from Wyatt's 2026-08-01 Safari playtest (P1-P12) verified, and the narration box was rebuilt as one owned phase machine after four failed patch rounds — measured with the headless harness: swaps that actually fade 1-of-9 -> 10-of-11, fades where the box moved 4-of-4 -> 0-of-8, messages whose text reflowed 'every multi-line one' -> 0-of-10, frames where content overflowed 0-of-1476."
+last_activity_desc: "CLOSED. 18-07 (the phase-closing copy-ledger plan) never ran at ship time — the phase shipped on Wyatt's Safari playtest instead. Closed retroactively 2026-08-02: wrote 18-COPY-CHANGES.md (8 rows), 18-VERIFICATION.md (status passed) and 18-07-SUMMARY.md; re-ran the full verification (npm test 21/21 green incl. determinism --verify; src/engine/index.js untouched since Phase 14; exactly one FIX-09 chip treatment in the tree). The retroactive audit found two record-level defects, both now fixed: (1) an UNLOGGED copy change — the credits clause shipped 'you hear' while the gate recorded 'ye hear', changed in playtest commit 10b3bbc, now logged and flagged for Wyatt; (2) a STALE gate row — FIX-09 still claimed both chip treatments were live and undecided, six commits after Wyatt picked Treatment B and the loser was deleted in 2438aa3. Lesson worth carrying: per-plan copy logging caught six plans' changes in real time, but could not catch a change made AFTER the plans finished during the playtest batch — which is the one thing a phase-closing pass is uniquely for."
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 7
+  percent: 100
 workstream: prompts-polish
 created: 2026-07-31
 ---
@@ -23,16 +23,16 @@ created: 2026-07-31
 
 ## Current Position
 
-**Status:** Executing Phase 18
-**Current Phase:** 18
+**Status:** Complete — Phase 18 shipped, live, and formally closed 2026-08-02
+**Current Phase:** 18 (done; this workstream owns no further phases in v1.3)
 **Last Activity:** 2026-08-01 — 18-05 executed (FIX-03/D-02, the shot clock arms at button-reveal, not prompt-render)
 **Last Activity Description:** 18-05 executed — `src/state/index.js` gained 4 new `appState` fields (`clockPendingSeat`/`clockPendingArm`/`clockPendingLocal`/`clockPendingText`); `ask()` (`src/ui/util.js`) now publishes a one-shot continuation instead of arming the shot clock directly, with a synchronous no-panel belt for prompts that never render (pure flip decisions) and `withShotClock()` chained onto the SAME continuation's promise so the 30s auto-skip resolver is provably installed only after the real arm; `panel()` (`src/ui/panel.js`) claims and fires that continuation from 18-01's existing reveal-completion gate for a local decision, and from a new `estimateRevealMs(actorPromptText)`-sized `setTimeout` for a remote one (erring long, never short); `setClockUI()` gained a frozen full-window (20s) pending display for the reveal window, host and guest alike, reusing existing copy verbatim. Hard constraint 1 (the `withShotClock` ordering trap) proven with a recorded negative experiment, not just asserted. `npm test` 23/23; no browser verification possible this session (documented, flagged for 18-07).
 
 ## Progress
 
-**Phases Complete:** 0
-**Plans Complete:** 5 of 7
-**Current Plan:** 6 (18-06, wave 5 — button restyle, captain circles removed everywhere, FIX-09 chip treatment for D-03) — blocked on wave 4 completion, which this plan closes out
+**Phases Complete:** 1 of 1
+**Plans Complete:** 7 of 7
+**Current Plan:** none — 18-07 was the last, closed retroactively 2026-08-02
 
 ## Accumulated Context
 

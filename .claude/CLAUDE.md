@@ -500,12 +500,23 @@ with `run_in_background` outlives the tool call that started it, so nothing forc
 - **Never leave a probe running across a reply.** If you are writing a message to Wyatt, either the
   probe is done or you kill it first — he is at the keyboard, on the machine it is heating.
 
-## After EVERY merge, pull origin main back down into local main
+## Keep local main and origin/main in sync — ALWAYS, not just after merges
 
 Wyatt, 2026-08-02: *"we are going to pull origin main back down into local main after every merge so
-that we can keep our local main synced."*
+that we can keep our local main synced."* Restated 2026-08-02 as a standing rule: **always keep main
+in sync with origin/main.**
 
-The merge is not finished when the push succeeds. Finish it:
+**Three moments, not one.** The original rule said "after every merge"; that was too narrow once
+worktrees were retired and commits began landing directly on `main`. Sync:
+
+1. **At the start of any session that will read or write `main`** — `git fetch origin` before you
+   trust any ref, then pull if behind. Reading a stale ref is how this project lost a whole session.
+2. **Immediately after anything that changes `main`** — a merge, a direct commit, a push. Not "at
+   the end."
+3. **Before reporting project status.** `.planning/` lives in the repo, so an out-of-date checkout
+   reports an out-of-date project.
+
+The work is not finished when the push succeeds. Finish it:
 
 ```bash
 git push origin main && git pull origin main
@@ -526,6 +537,57 @@ does not update this clone. Pulling immediately means the stale ref never exists
 rather than being something you have to remember to distrust later.
 
 Applies to any merge that reaches `main`, including one you did locally: push, pull, verify zero.
+
+## The voice boundary — the credits and About page are NOT in pirate speak
+
+**Player-facing text has two registers, and the divide is diegetic — whether the words come from
+inside the game world or from outside it.**
+
+| Register | Voice | Where |
+|---|---|---|
+| **Inside the game world** | Pirate speak — `ye`, `yer`, `blowin'`, captain-address | Narration, battle/trade/dock lines, prompts, buttons, the board, the lobby, End of Voyage |
+| **Outside the game world** | Wyatt's own plain first-person voice | Credits, the About page, and anywhere he speaks as himself to a real person |
+
+Wyatt, 2026-08-02: *"the design intent is that the credits page is not 'in the game world' so it
+isn't written in pirate speak."*
+
+The credits thank real people — Luis Zanforlin, Nick Lesko, Xavaar, his parents, his partner Juju —
+in his own voice ("a designer and overly enthusiastic noodle", "my sweet partner Juju"). Pirate
+speak there would put a costume on a genuine thank-you.
+
+**So a `ye`/`you` difference between the credits-and-About copy and the rest of the game is correct
+and expected. Never "fix" it.** In 2026-08-02 a retroactive copy audit flagged the credits line
+`"every sound effect you hear"` as drift, because the copy inventory had recorded it in a `ye` form
+it should never have had. The shipped text was right; the record was wrong.
+
+**He had already told an earlier session this rule and it was lost** — which is the whole reason it
+is written here. Full detail in `.planning/todos/pending/copy-shipped-vs-approved-gate.md` under
+"THE VOICE BOUNDARY".
+
+## Work in the main checkout — git worktrees are retired
+
+**The only working directory is `/Users/wyattroy/Documents/Projects/pastrypirates`.** Wyatt retired
+worktrees on 2026-08-02; ten stale ones were removed that day. Do not create new ones, and do not
+assume the directory you woke up in is the main checkout.
+
+**`.planning/` is a tracked directory, so it is branch-scoped.** A worktree sitting on a stale branch
+shows that branch's frozen snapshot of `STATE.md`, `ROADMAP.md` and every workstream file — with no
+error and no warning. It simply reports an older project.
+
+This is not hypothetical. On 2026-08-02 a `/gsd-progress` run inside
+`.claude/worktrees/gsd-skill-persistence-3252ba` reported v1.3 as **"0 of 5 phases, nothing
+started."** The truth on `main` was **four of five phases shipped and live**, with only Phase 20
+left. Wyatt believed he was in the main checkout, and was handed a confident, entirely wrong status
+report — the same failure mode as the stale-`main` incident above, one level further out.
+
+**Before reading any `.planning/` file or answering "where are we":**
+
+```bash
+cd /Users/wyattroy/Documents/Projects/pastrypirates && git rev-parse --show-toplevel
+```
+
+If that is not where you are, `cd` there first. **The tell that you got this wrong:** a workstream
+`STATE.md` reading "Not started" for work you know shipped.
 
 ## NEVER copy CNAME into another repo — it can take the live game down
 

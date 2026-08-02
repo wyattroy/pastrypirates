@@ -6,14 +6,34 @@ status: "v1.3 — 18, 19, 21, 22 SHIPPED AND LIVE with every known item closed; 
 last_updated: "2026-08-02T18:30:00.000Z"
 last_activity: 2026-08-02
 last_activity_desc: "v1.3 SHIPPED TO PLAYERS and every known open item closed. Morning: the integration branch fast-forwarded into main (144 commits) after the multiplayer name cluster was fixed. Afternoon, all merged and live: the active-turn ripple moved out of SVG (62 layouts/sec -> 2) with the boats split into their own #boardShips SVG above it; the welcome screen stopped running the End of Voyage celebration; LOAD-03 finished (static blurred backdrop, boot() decides the journey before painting, and seedIdleGameState() replaced renderDecorativeBoard() so the welcome screen builds NO board at all — 11.1% CPU / 60 layouts-per-sec down to 1.7% / 0); the mute button fixed (placement now MEASURED by placeMuteButton() rather than thresholded, halved in size, 44px tap area, aria-label/aria-pressed, and a rebuilt sound-off.png whose X is legible at 21px). Wyatt Safari-verified the ripple work. Also moved art-audit.md and art-generation-process.md out of gitignored notes/ into .planning/ so they are shared."
-stopped_at: "main is live and local main is synced. PHASE 20 (The Board Comes Alive) IS THE ONLY REMAINING v1.3 WORK — nothing else in the milestone is open. Two proposals await Wyatt's go-ahead, neither started: .planning/REPO-STRUCTURE-AUDIT.md and the audit-tool coverage note in todos/pending/copy-shipped-vs-approved-gate.md."
+stopped_at: "main is live and local main is synced. PHASE 20 (The Board Comes Alive) IS THE ONLY REMAINING v1.3 WORK — nothing else in the milestone is open. Phase 18 was formally closed 2026-08-02 (18-07 written retroactively; see its VERIFICATION) and has nothing open. Two proposals await Wyatt's go-ahead, neither started: .planning/REPO-STRUCTURE-AUDIT.md and the audit-tool coverage note in todos/pending/copy-shipped-vs-approved-gate.md. New standing rule recorded 2026-08-02: THE VOICE BOUNDARY — the credits and About page are outside the game world and are NOT written in pirate speak, so a ye/you difference there is correct and must never be 'fixed' (.claude/CLAUDE.md + the copy gate)."
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 22
-  completed_plans: 22
-  percent: 20
+  completed_phases: 4
+  total_plans: 23
+  completed_plans: 23
+  percent: 80
 ---
+
+<!-- ============================================================================
+     READ THIS BEFORE REPORTING PROJECT STATUS — 2026-08-02
+
+     GIT WORKTREES ARE RETIRED. All work happens in the main checkout:
+         /Users/wyattroy/Documents/Projects/pastrypirates
+
+     WHY THIS WARNING EXISTS. On 2026-08-02 a /gsd-progress run inside the worktree
+     .claude/worktrees/gsd-skill-persistence-3252ba reported v1.3 as "0 of 5 phases,
+     nothing started." The truth on main was four phases shipped and live. Nothing was
+     broken — .planning/ is a TRACKED directory, so a worktree on a stale branch shows
+     that branch's frozen snapshot of this file. Wyatt believed he was in the main
+     checkout and was handed a confidently wrong report.
+
+     THE TELL: a workstream STATE.md reading "Not started" for work you know shipped.
+
+     IF YOU ARE NOT IN THE PATH ABOVE, STOP and cd there before reading any .planning/
+     file or answering "where are we". Ten stale worktrees were removed on 2026-08-02.
+     ============================================================================ -->
+
 
 # Project State
 
@@ -33,11 +53,11 @@ Last activity: 2026-08-02 — v1.3 shipped and every known open item closed; **P
 |---|---|---|
 | board-wind | 19 Safari Check | ✓ Complete — PASS, smooth at 100 dots, no dot budget needed |
 | board-wind | 20 The Board Comes Alive | **Unblocked, NOT STARTED — the only v1.3 phase with no work done** |
-| prompts-polish | 18 Prompts & Polish | ✓ Built, merged to main, live |
+| prompts-polish | 18 Prompts & Polish | ✅ **COMPLETE AND FORMALLY CLOSED — no open items.** Merged and live; 18-07 written retroactively 2026-08-02 (copy ledger + VERIFICATION passed). The credits ye/you question resolved same day: "you" is deliberate, credits are outside the game world — see THE VOICE BOUNDARY |
 | sound-clock | 21 Sound & the Clock Toggle | ✅ **COMPLETE — no open items.** The mute button's placement, size, icon legibility and touch labelling were all fixed and shipped 2026-08-02 (`todos/done/2026-08-01-mute-button-alignment-and-tooltips.md`) |
 | front-door | 22 The Front Door | ✅ **COMPLETE — no open items.** LOAD-03 finished 2026-08-02: the welcome screen no longer constructs a game at all (`todos/done/2026-08-02-welcome-should-not-construct-a-game.md`) |
 
-Progress: [██░░░░░░░░] 1 of 5 phases complete (v1.3)
+Progress: [████████░░] 4 of 5 phases complete (v1.3) — only Phase 20 remains
 
 ### Carried over from v1.2 — still open
 
