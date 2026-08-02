@@ -559,8 +559,21 @@
      Speed: 3.6s -> 2.7s (33% faster, his "re-increase 30%"), chosen over 2.77 so the stagger lands
      on clean thirds. Travel widened .6->2.4 to .55->2.7 so the gaps between rings read larger, which
      is the "more gap between them" half of the note.
-     The stagger in src/ui/board.js is duration/3 = 0.9s. CHANGE ONE AND THE OTHER MUST FOLLOW. */
-  .ripple { transform-box: fill-box; transform-origin: center; animation: rippleOut 2.7s linear infinite; }
+     The stagger in src/ui/board.js is duration/3 = 0.9s. CHANGE ONE AND THE OTHER MUST FOLLOW.
+
+     PERF-01 (2026-08-02): these rings are now HTML divs (#rippleHost in #boardwrap), not SVG
+     circles — see that markup for the measurement. The TIMING NOTES ABOVE ARE UNCHANGED AND STILL
+     BINDING: 2.7s linear, and the stagger is still duration/3 = 0.9s. Only the element type
+     changed; do not re-tune either number on the strength of that. */
+  #rippleHost { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+  /* the thing that MOVES — carries the same translate() the SVG <g> used to, and the same
+     transition the trade-wind sweep retunes (src/ui/board.js setShipGlideMs). */
+  #rippleRing { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; }
+  /* size, border width and the negative centring margin are all set from board.js in cqw, because
+     they derive from `cell` (640/grid) and must scale with the board exactly as stroke-width:2 and
+     r=cell*.4 did. will-change is what keeps each ring on its own compositor layer. */
+  .hrip { position: absolute; left: 0; top: 0; border-style: solid; border-color: #fff;
+    border-radius: 50%; animation: rippleOut 2.7s linear infinite; will-change: transform, opacity; }
   @keyframes rippleOut { 0% { transform: scale(.55); opacity: .85; } 100% { transform: scale(2.7); opacity: 0; } }
   /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
      and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
@@ -1171,6 +1184,15 @@
         <svg id="board" viewBox="0 0 640 640"></svg>
         <!-- #1b: storm overlay — darkens the board + animated rain/wind, fades in/out via CSS -->
         <div id="stormOverlay" aria-hidden="true"></div>
+        <!-- PERF-01 (2026-08-02): the active-turn sonar ripple, moved OUT of the board SVG.
+             Measured, GPU on, phone viewport: as three SVG <circle>s animating only transform and
+             opacity it forced ~62 layouts PER SECOND — 97% of all layout work while the game sat
+             idle, and just over half the main-thread cost during play. Chrome does not composite
+             SVG transform animations at all, and will-change cannot promote an SVG child to its own
+             layer; transform-box/transform-origin candidates all measured identical. As HTML it
+             costs ZERO layouts. Positions come in `cqw` against #boardwrap (container-type:
+             inline-size), so board user units still map 1:1 and every call site keeps its numbers. -->
+        <div id="rippleHost" aria-hidden="true"><div id="rippleRing"></div></div>
         <!-- chat speech bubbles, one per seat, positioned over that seat's boat -->
         <div id="chatBubbles"></div>
       </div>
