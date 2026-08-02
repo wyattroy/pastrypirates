@@ -142,6 +142,11 @@ export function boardShipEls(){return shipEls;}
 
 export function drawBoard(){
   const svg=$("board");svg.innerHTML="";
+  // PERF-01 (2026-08-02): the boats live in their own SVG overlaying #board so they paint ABOVE the
+  // ripple rings, which are HTML now and would otherwise cover them. Cleared in lockstep with
+  // #board — emptying one and not the other would strand ghost boats from the previous board.
+  // Same viewBox and same box, so ship coordinates are unchanged. See index.html's paint-order note.
+  const shipsSvg=$("boardShips");if(shipsSvg)shipsSvg.innerHTML="";
   const n=appState.game.cfg.grid,W=640;cell=W/n;
   // custom board art (ocean + Isle of Tortuga + its docks baked in) sits behind everything.
   // `grid` draws the functional cell boundaries on top of it: open water is outline-only
@@ -329,7 +334,10 @@ export function drawBoard(){
     // step by hand, in different files, one of them the pacing basis for every per-square animation
     // in the game. setShipGlideMs() below now also has to restore this exact value, which would
     // have made it three. Deriving it makes the coupling structural instead of a promise.
-    const g=el("g",{style:`transition: transform ${shipGlideCss(SHIP_GLIDE_MS)}`},svg);
+    // PERF-01: appended to shipsSvg, not svg — the boats' whole reason for being a separate layer.
+    // Falls back to #board if the overlay is somehow absent, so a stale cached index.html degrades
+    // to the old (rings-over-boats) look rather than a board with no ships on it.
+    const g=el("g",{style:`transition: transform ${shipGlideCss(SHIP_GLIDE_MS)}`},shipsSvg||svg);
     const boatSize=cell;
     el("image",{x:-boatSize/2,y:-boatSize/2,width:boatSize,height:boatSize,href:BOAT_IMG[i]},g);
     shipEls.push(g);

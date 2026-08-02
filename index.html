@@ -565,7 +565,27 @@
      circles — see that markup for the measurement. The TIMING NOTES ABOVE ARE UNCHANGED AND STILL
      BINDING: 2.7s linear, and the stagger is still duration/3 = 0.9s. Only the element type
      changed; do not re-tune either number on the strength of that. */
-  #rippleHost { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+  /* THE BOARD'S PAINT ORDER, and it is deliberate at every step (PERF-01, 2026-08-02):
+   *
+   *   #board        (static)  ocean art, grid, islands, docks, compass HUD
+   *                           ...plus everything appended at RUNTIME: sail highlights
+   *                           (src/ui/flow.js) and emoji pops (src/ui/board.js popEmoji).
+   *                           Wyatt, 2026-08-02: "i like the fact that the sail highlights and
+   *                           emoji pops are below the ships -- that makes sense to me
+   *                           graphically." So they stay here, under the boats, on purpose.
+   *   #rippleHost   z 3       the active-turn sonar rings
+   *   #boardShips   z 4       the boats — ABOVE the rings, which is the whole point of the split
+   *   #stormOverlay z 5       rain falls over everything on the water
+   *   #chatBubbles  z 6       speech sits on top of all of it
+   *
+   * The two SVGs share `viewBox="0 0 640 640"` and #boardwrap's box, so a ship's coordinates mean
+   * the same thing in either one and nothing had to be recomputed when the ships moved out.
+   *
+   * #rippleHost was briefly z-index 5, which tied with #stormOverlay and won on DOM order — so the
+   * rings drew over the rain, which the SVG original never did. Fixed by this ordering too. */
+  #rippleHost { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #boardShips { position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    width: 100%; height: 100%; overflow: visible; }
   /* the thing that MOVES — carries the same translate() the SVG <g> used to, and the same
      transition the trade-wind sweep retunes (src/ui/board.js setShipGlideMs). */
   #rippleRing { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; }
@@ -574,17 +594,15 @@
      r=cell*.4 did. will-change is what keeps each ring on its own compositor layer. */
   .hrip { position: absolute; left: 0; top: 0; border-style: solid; border-color: #fff;
     border-radius: 50%; animation: rippleOut 2.7s linear infinite; will-change: transform, opacity; }
-  /* PERF-01 follow-up (Wyatt, 2026-08-02): "the css rings are smooth, but they look weird on top of
-     the boats" — asking for a bigger smallest ring so there is less overlap. (His note is trimmed
-     rather than quoted whole: the D-29 register gate scans this file for 2nd-person pronouns and
-     cannot tell a quoted message from player-facing copy.)
-     START .55 -> 1.25, and 1.25 is DERIVED, not taste: the ring's base diameter is cell*0.8
-     (r=cell*.4 in the SVG original) and the boat <image> is exactly one cell square (boatSize=cell
-     in drawBoard), so a ring clears the boat's whole image box when 0.8*s >= 1 — i.e. s >= 1.25. At
-     the old .55 the innermost ring was 0.44 of a cell, sitting ENTIRELY INSIDE the boat, which is
-     why it read as painted across it. The 2.7 end and the 2.7s linear timing are untouched, so the
-     rings still finish exactly where they always did; only the innermost one moved out. */
-  @keyframes rippleOut { 0% { transform: scale(1.25); opacity: .85; } 100% { transform: scale(2.7); opacity: 0; } }
+  /* PERF-01 follow-up (Wyatt, 2026-08-02). The start briefly went .55 -> 1.25 to hold the smallest
+     ring clear of the boat; that is REVERTED here, back to the original .55.
+     Widening it was treating a symptom. The innermost ring is 0.44 of a cell and has ALWAYS begun
+     inside the boat — invisible only because the SVG rings drew BEHIND the ships, so the boat hid
+     the small ring's full-opacity first frames. Moving to an HTML overlay put it on top and exposed
+     them, and that is what he actually objected to: the smallest ring appearing at full opacity.
+     Restoring the paint order (#boardShips, below) hides it again for exactly the reason it was
+     always hidden, so his tuned .55 -> 2.7 travel above stands untouched. */
+  @keyframes rippleOut { 0% { transform: scale(.55); opacity: .85; } 100% { transform: scale(2.7); opacity: 0; } }
   /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
      and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
   /* UI-06: sail-destination squares — juicy, bouncing, clearly clickable */
@@ -1203,6 +1221,13 @@
              costs ZERO layouts. Positions come in `cqw` against #boardwrap (container-type:
              inline-size), so board user units still map 1:1 and every call site keeps its numbers. -->
         <div id="rippleHost" aria-hidden="true"><div id="rippleRing"></div></div>
+        <!-- PERF-01 (2026-08-02): the boats, split out of #board into their own SVG so they paint
+             ABOVE the ripple rings. Moving the rings to HTML had put them over the boats, which
+             read wrong. Same viewBox as #board and the same box, so every ship coordinate means
+             exactly what it did before — drawBoard() simply appends the ship groups here instead.
+             Only the ships live here: sail highlights and emoji pops stay in #board, below the
+             boats, which is where Wyatt wants them. -->
+        <svg id="boardShips" viewBox="0 0 640 640" aria-hidden="true"></svg>
         <!-- chat speech bubbles, one per seat, positioned over that seat's boat -->
         <div id="chatBubbles"></div>
       </div>
