@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: The Game Comes Alive
-status: "v1.3 in progress — 18, 19, 21, 22 MERGED TO MAIN AND LIVE; 20 unblocked and not started"
-last_updated: "2026-08-02T14:40:00.000Z"
+status: "v1.3 — 18, 19, 21, 22 SHIPPED AND LIVE with every known item closed; 20 is the only phase left"
+last_updated: "2026-08-02T18:30:00.000Z"
 last_activity: 2026-08-02
-last_activity_desc: "v1.3 SHIPPED TO PLAYERS. integration/v1.3-phases-18-21-22 fast-forwarded into main (144 commits) once the multiplayer name cluster was fixed, then a day of follow-on work also merged: the multiplayer name fixes + rename-in-place, the active-turn ripple moved out of SVG (62 layouts/sec -> 2) with the boats split into their own SVG above it, the welcome screen stopped running the End of Voyage celebration, and LOAD-03's front-door speed work. All Safari-verified by Wyatt."
-stopped_at: "main is live and local main is synced (0 ahead, 0 behind). Phase 20 (The Board Comes Alive) is the only v1.3 phase not started. Phase 21 has one known open item — the mute button's alignment and tooltips."
+last_activity_desc: "v1.3 SHIPPED TO PLAYERS and every known open item closed. Morning: the integration branch fast-forwarded into main (144 commits) after the multiplayer name cluster was fixed. Afternoon, all merged and live: the active-turn ripple moved out of SVG (62 layouts/sec -> 2) with the boats split into their own #boardShips SVG above it; the welcome screen stopped running the End of Voyage celebration; LOAD-03 finished (static blurred backdrop, boot() decides the journey before painting, and seedIdleGameState() replaced renderDecorativeBoard() so the welcome screen builds NO board at all — 11.1% CPU / 60 layouts-per-sec down to 1.7% / 0); the mute button fixed (placement now MEASURED by placeMuteButton() rather than thresholded, halved in size, 44px tap area, aria-label/aria-pressed, and a rebuilt sound-off.png whose X is legible at 21px). Wyatt Safari-verified the ripple work. Also moved art-audit.md and art-generation-process.md out of gitignored notes/ into .planning/ so they are shared."
+stopped_at: "main is live and local main is synced. PHASE 20 (The Board Comes Alive) IS THE ONLY REMAINING v1.3 WORK — nothing else in the milestone is open. Two proposals await Wyatt's go-ahead, neither started: .planning/REPO-STRUCTURE-AUDIT.md and the audit-tool coverage note in todos/pending/copy-shipped-vs-approved-gate.md."
 progress:
   total_phases: 5
   completed_phases: 1
@@ -22,20 +22,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
-**Current focus:** v1.3 — Phase 19 complete (board-wind); Phase 20 unblocked, 18/21/22 unplanned
+**Current focus:** v1.3 — Phases 18, 19, 21 and 22 are SHIPPED AND LIVE with no open items. **Phase 20 (The Board Comes Alive) is the only remaining work.**
 
 ## Current Position
 
-Milestone: v1.3 "The Game Comes Alive" — in progress, work split across four workstreams
-Last activity: 2026-08-01 — Phase 19 (Safari Check) complete in the `board-wind` workstream
+Milestone: v1.3 "The Game Comes Alive" — 4 of 5 phases shipped and live; only Phase 20 remains
+Last activity: 2026-08-02 — v1.3 shipped and every known open item closed; **Phase 20 is all that remains**
 
 | Workstream | Phase | Status |
 |---|---|---|
 | board-wind | 19 Safari Check | ✓ Complete — PASS, smooth at 100 dots, no dot budget needed |
 | board-wind | 20 The Board Comes Alive | **Unblocked, NOT STARTED — the only v1.3 phase with no work done** |
 | prompts-polish | 18 Prompts & Polish | ✓ Built, merged to main, live |
-| sound-clock | 21 Sound & the Clock Toggle | ✓ Built, merged, live — **one open item: the mute button's alignment + tooltips** (`todos/pending/2026-08-01-mute-button-alignment-and-tooltips.md`, severity minor, diagnosed not fixed) |
-| front-door | 22 The Front Door | ✓ Built, merged, live — plus LOAD-03's speed work. **One open item:** the welcome screen still constructs a game it never shows (`todos/pending/2026-08-02-welcome-should-not-construct-a-game.md`) |
+| sound-clock | 21 Sound & the Clock Toggle | ✅ **COMPLETE — no open items.** The mute button's placement, size, icon legibility and touch labelling were all fixed and shipped 2026-08-02 (`todos/done/2026-08-01-mute-button-alignment-and-tooltips.md`) |
+| front-door | 22 The Front Door | ✅ **COMPLETE — no open items.** LOAD-03 finished 2026-08-02: the welcome screen no longer constructs a game at all (`todos/done/2026-08-02-welcome-should-not-construct-a-game.md`) |
 
 Progress: [██░░░░░░░░] 1 of 5 phases complete (v1.3)
 

@@ -7,7 +7,7 @@
 
 - [x] **Phase 22: The Front Door** — SHIPPED 2026-08-02, live on playpastrypirates.com. You name yourself after choosing how to play, a real About page, and a Google preview image (FIX-01, ABOUT-01/02, META-01).
   **Plus LOAD-03, the front door's speed** (also shipped): a static blurred backdrop instead of a live game rendered only to be hidden, and a boot that decides the journey before painting — first-time visitor sees the home screen at ~170ms; a mid-game refresh never sees the welcome screen at all.
-  - [ ] **STILL OPEN — the last third of LOAD-03:** `boot()` still CONSTRUCTS a decorative game it never shows. See `.planning/todos/pending/2026-08-02-welcome-should-not-construct-a-game.md`. Blocked on unguarded `appState.game` reads in `src/ui/panel.js` (`:178`, `:245`, `:246`, `:248`, `:250`) which `setClockUI` hits on a 500ms interval — removing the decorative board without guarding those turns the front door into a TypeError on a timer.
+  - [x] **DONE 2026-08-02 — LOAD-03 complete.** `renderDecorativeBoard()` is gone, replaced by `seedIdleGameState()`: the welcome screen now builds NO board, NO ship elements and NO captain rows, while still satisfying the codebase-wide invariant that `appState.game` always exists (269 reads, only 52 guarded — the reason it could not simply be deleted). The `appState.decorative` flag added earlier the same day went with it, since nothing could reach the End-of-Voyage heuristic before a real game any more. Welcome screen idle: 11.1% CPU / 60 layouts-per-sec -> 1.7% / 0. See `.planning/todos/done/2026-08-02-welcome-should-not-construct-a-game.md`. **This workstream has no open items.**
 
 ## Phase Details
 

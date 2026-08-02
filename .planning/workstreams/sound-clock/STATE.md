@@ -4,11 +4,11 @@ milestone: v1.3
 milestone_name: milestone
 current_phase: 21
 current_plan: 5
-status: shipped-with-open-item
-stopped_at: "Phase 21 MERGED TO MAIN AND LIVE (2026-08-02); the speaker icon that blocked it shipped 2026-08-01. ONE ITEM STILL OPEN — the mute button's alignment and tooltips."
+status: complete
+stopped_at: "Phase 21 COMPLETE — merged, live, and NO OPEN ITEMS. The mute button (the last one) was fixed and shipped 2026-08-02."
 last_updated: "2026-08-02T14:45:00.000Z"
 last_activity: 2026-08-02
-last_activity_desc: "SHIPPED. Phase 21 merged to main and live. Its blocker (the real speaker icon, D-14) shipped 2026-08-01, and Wyatt's full verification matrix passed including the Safari storm-with-sound regression check and the timer toggle across all three modes. OPEN, scoped to this workstream: the MUTE BUTTON is misaligned in a wide-but-stacked window and its tooltips are invisible — .planning/todos/pending/2026-08-01-mute-button-alignment-and-tooltips.md. Diagnosed, not fixed: the CSS rule keys on .layoutWide, which syncBoardSizing() toggles on whether the SIDEBAR has room, not on viewport width — so a wide stacked window drops the button to its own row. A container query on the controls row is the right instrument. The tooltips are native `title` attributes, which never appear on touch at all. Severity minor. Wyatt noticed it again on 2026-08-02 and asked when it gets fixed — it is the only known open item in this workstream."
+last_activity_desc: "SHIPPED. Phase 21 merged to main and live. Its blocker (the real speaker icon, D-14) shipped 2026-08-01, and Wyatt's full verification matrix passed including the Safari storm-with-sound regression check and the timer toggle across all three modes. OPEN, scoped to this workstream: the MUTE BUTTON is misaligned in a wide-but-stacked window and its tooltips are invisible — .planning/todos/done/2026-08-01-mute-button-alignment-and-tooltips.md. Diagnosed, not fixed: the CSS rule keys on .layoutWide, which syncBoardSizing() toggles on whether the SIDEBAR has room, not on viewport width — so a wide stacked window drops the button to its own row. A container query on the controls row is the right instrument. The tooltips are native `title` attributes, which never appear on touch at all. Severity minor. Wyatt noticed it again on 2026-08-02 and asked when it gets fixed — it is the only known open item in this workstream."
 progress:
   total_phases: 1
   completed_phases: 0
