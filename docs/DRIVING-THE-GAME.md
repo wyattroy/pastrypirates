@@ -299,6 +299,87 @@ This technique is what closed Phase 13's checks 2 and 3. The measured traces are
 `.planning/milestones/v1.2-phases/13-multiplayer-turn-clock/13-VERIFICATION.md` — that archive copy
 is the one that survives a `/gsd-cleanup`. Read the numbers there; they are not restated here.
 
+## 5e. INJECT THE STATE YOU WANT TO TEST — do not play your way to it
+
+**This is the first thing to reach for when a feature only appears in a rare or late game state.**
+Wyatt, 2026-08-02, after watching a session burn five minutes waiting for a voyage to end and then
+report a FAIL: *"we already have a process for triggering storms and end-of-game full recipes using
+code injections."* Sessions have used the recipe fill routinely; it had simply never been written
+down here, which is the only reason it got re-derived the hard way.
+
+A full solo voyage takes **many minutes** — four captains, narration holds, and per-square animation
+on every move. Almost nothing worth testing needs the whole voyage; it needs the *state*. Reach into
+the live engine and put the game there.
+
+The live `appState` (and through it the live `Game`) is reachable from any page context:
+
+```js
+const st = (await import('/src/state/index.js')).appState;
+```
+
+### End of Voyage — fill the recipe
+
+`checkFinish(p)` (`src/engine/index.js`) is `!this.needs(p).length && man(p.pos, this.home) <= 1`,
+and `needs(p)` is `p.recipe.filter(i => !p.ing.includes(i))`. So handing a seat its own recipe ends
+its hunt immediately:
+
+```js
+const st = (await import('/src/state/index.js')).appState;
+const me = st.game.players[st.mySeat];
+me.ing = [...me.recipe];          // needs(me) is now empty
+```
+
+Then let the §5b driver run. Its `target()` already returns `g.home` the moment `needs` is empty, so
+it beelines for Tortuga, and `checkFinish` fires after your next turn. Rounds still take real time —
+budget minutes, not seconds.
+
+**Do NOT also set `p.pos`.** Tried and rejected: the sail prompt's highlighted cells come from the
+engine's own position, so a hand-set `pos` and the cells the driver clicks disagree, and the ship
+sails back out of the finish zone. Fill the recipe and let it steer.
+
+### Storms — raise the probability on the LIVE cfg
+
+`rollStorm(g)` is `g.r() < g.cfg.storm`, so:
+
+```js
+(await import('/src/state/index.js')).appState.game.cfg.storm = 1;   // set back to 0.125 after
+```
+
+**Prefer this to the old method.** Earlier sessions forced storms by editing `roundCfg` in
+`src/engine/index.js` and reverting — scaffolding so dangerous to ship that Phase 14 carries a
+dedicated verification row proving it did not (`14-VERIFICATION.md` row 8: *"The forced-storm test
+scaffolding (`cfg.storm=1`) does not ship"*). A live mutation cannot ship, needs no revert, and
+leaves `git status` clean.
+
+Two things that will make it look broken when it is not: the storm rolls **at a round boundary**, so
+nothing happens until the next round starts (minutes); and `rollStorm` refuses a third consecutive
+storm (`stormStreak >= 2`), so you get storms, not every round.
+
+### RED-PROOF THE INJECTION — get to a known-negative state first
+
+The first storm check written for this section **passed without proving anything**: it set
+`cfg.storm = 1`, saw `stormNow === true`, and reported success — but `stormNow` was *already* true
+before the injection. It could not have failed. Force the negative first (`cfg.storm = 0`, wait for
+`stormNow === false`), *then* inject. Same flaw the original Check B had (§5d) and the same fix.
+
+### Where injection is and is not safe
+
+| | |
+|---|---|
+| **Solo / decorative** | Safe. Nothing else is watching the state. |
+| **Multiplayer** | **No.** The host is the sole authority (D-06); mutating a guest desyncs it, and mutating the host desyncs the broadcast against the `dlog`. |
+| **Replay / determinism** | **No.** Injection changes state without consuming the RNG the fixtures recorded. Never inject while capturing a determinism baseline. |
+| **Shipping** | Never. That is the point of doing it live rather than in source. |
+
+### Generalise it
+
+The pattern is: find the predicate the feature keys on, then set its inputs directly. `needs()` and
+`man(pos, home)` gate the End of Voyage; `cfg.storm` gates the weather; `p.coins` gates every
+can-I-afford-it branch; `p.done` and `finishOrder` gate the final round. Anything reachable from
+`st.game` can be posed. **Ask "what state does this feature read?" before "how do I play until it
+happens?"** — and when a check fails, first establish whether the state you meant to create actually
+exists, rather than concluding the feature is broken.
+
 ## 6. Inspecting state
 
 `window.__pp_app_state_debug()` returns a **shallow copy** of `appState` (`src/main.js`). Also
