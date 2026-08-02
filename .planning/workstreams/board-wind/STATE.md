@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 current_phase: 20 — the board comes alive
-current_plan: Not started
+current_plan: none — Phase 20 has not been planned yet
 status: ready-to-plan
-stopped_at: "Phase 19 (the Safari GATE) is COMPLETE and PASSED — smooth at 100 dots, no dot budget needed. Phase 20 'The Board Comes Alive' is UNBLOCKED and NOT STARTED. It is the only v1.3 phase with no work done."
-last_updated: "2026-08-02T14:45:00.000Z"
+stopped_at: "Phase 20 context gathered — WIND-01..05 decisions locked (D-01..D-27). Dots must fade out on a direction change (correction to prototype behaviour), each dot needs its own sway period, and a throwaway tuning page is a GATE: dots do not ship until Wyatt approves the numbers in it."
+last_updated: "2026-08-02T22:25:53.174Z"
 last_activity: 2026-08-02
-last_activity_desc: "Phase 19's gate passed and is merged to main. PHASE 20 IS THE REMAINING v1.3 WORK: drifting wind dots, arrows flowing into a rotating whirlpool, a signal before a ship is swept into the trade winds, and a pastry scent on every wind direction change (WIND-01..05). Not planned yet. NOTE for whoever plans it — two findings from 2026-08-02 that change how animation is built in this codebase: Chrome does NOT composite SVG transform animations at all (will-change cannot promote an SVG child), so an animated SVG layer forces layout EVERY FRAME — the active-turn ripple was costing ~62 layouts/sec until it moved to HTML divs positioned in cqw, which cost zero. Wind dots are exactly that shape of feature, so build them as HTML over #boardwrap, not as SVG children. And measure per docs/DRIVING-THE-GAME.md §8a: GPU ON and a rAF loop driving frames, or animation cost measures as zero."
+last_activity_desc: "Phase 20 discussed and CONTEXT.md written — 27 decisions locked across WIND-01..05. Ready to plan. Two things a planner must not miss: (1) the shipped wind-dot prototype PIVOTS the whole dot field on a wind direction change; Wyatt requires it to FADE OUT instead, timed to the round line — that is a correction, not an addition. (2) A throwaway tuning page is a GATE on WIND-01: it must import the real windDotSpecs/windDotFrame from src/ui/board.js (lab.html does NOT load that file), and dots do not ship until Wyatt approves the numbers in it. Details: 20-CONTEXT.md"
 progress:
-  total_phases: 1
+  total_phases: 2
   completed_phases: 1
   total_plans: 6
   completed_plans: 6
-  percent: 100
+  percent: 50
 workstream: board-wind
 created: 2026-07-31
 ---
@@ -25,17 +25,20 @@ created: 2026-07-31
 
 **Status:** Ready to plan
 **Current Phase:** 20 — the board comes alive
-**Last Activity:** 2026-08-01
-**Last Activity Description:** Phase 19 complete, transitioned to Phase 20
+**Last Activity:** 2026-08-02
+**Last Activity Description:** Phase 20 discussed; see
+[`20-CONTEXT.md`](phases/20-the-board-comes-alive/20-CONTEXT.md) for the locked decisions and
+[`20-DISCUSSION-LOG.md`](phases/20-the-board-comes-alive/20-DISCUSSION-LOG.md) for the alternatives
+considered.
 
 ## Progress
 
-**Phases Complete:** 1 of 2 — Phase 19 (the Safari GATE) PASSED; Phase 20 not started
-**Current Plan:** none — Phase 20 has not been planned yet
+**Phases Complete:** 1 of 2 — Phase 19 (the Safari GATE) PASSED; Phase 20 discussed, not yet planned
+**Current Plan:** none — Phase 20 has context but no plans
 
 ## Session Continuity
 
-**Last session:** 2026-08-01T09:19:36.000Z
+**Last session:** 2026-08-02T22:25:53.161Z
 
-**Stopped At:** 19-05-SUMMARY.md written and committed. Task 1 built the calibrated meter: `windMeterSample` classifies each frame delta against a baseline MEASURED on-device this session (never a hardcoded 60fps assumption), discards deltas above `WIND_METER_OUTLIER_MS` as backgrounding rather than stutter, buckets accepted deltas into a preallocated `Int32Array` histogram with zero per-frame allocation, and `windMeterReset` is wired to `visibilitychange` so a phone auto-lock's hidden interval is discarded, not sampled as a catastrophic worst moment. Task 2 added `renderWindSummary`, appended once to `showStats()`, writing plain sentences (typical fps, worst moment as an "Xm Ys" elapsed figure, dip/discarded-pause counts, dial/will-change state, and a suspected-Low-Power-Mode sentence when warranted) into a `#windSummary` block — no-op unless the prototype is enabled. Both verified headlessly (synthetic `node -e` streams proving the exact baseline/outlier/median/rounding contracts) and in a real driven-Chrome solo game (~2 minutes of autoplay, 3076 real frame samples, actual rendered summary text captured and quoted in the SUMMARY). `npm test` stayed green (23/23) throughout, zero fixture changes. One project-wide mechanical-guard gap fixed along the way (`scripts/no_undef_check.js`'s missing typed-array globals). The dev server on port 8934 remains running per standing instruction. Wave 4 (19-05) is now complete; wave 5 (19-06 — Chrome pre-flight, Wyatt's two real Safari runs on desktop and phone, and the verdict) is cleared to begin. `WIND-00` stays open until 19-06 completes.
-**Resume File:** .planning/workstreams/board-wind/phases/19-safari-check/19-05-SUMMARY.md
+**Stopped At:** Phase 20 context gathered — WIND-01..05 decisions locked (D-01..D-27). Dots must fade out on a direction change (correction to prototype behaviour), each dot needs its own sway period, and a throwaway tuning page is a GATE: dots do not ship until Wyatt approves the numbers in it.
+**Resume File:** .planning/workstreams/board-wind/phases/20-the-board-comes-alive/20-CONTEXT.md
