@@ -148,3 +148,30 @@ of a rim sweep, as `20260731-tradewind-arrival-animation` had to.
 Safari at full window. **The attribution transfers, the percentages do not** — and Safari is where
 this project's rendering bugs have historically lived, so a Safari re-measure after the change is
 part of the job, not a nicety.
+
+---
+
+## FOLLOW-UP still open — the victory pastries cost the same 60 layouts/sec on the REAL End of Voyage screen
+
+Fixed 2026-08-02: the welcome screen no longer runs `showStats()` (PERF-02), so those four
+`.dancingPastry` groups no longer exist there. **But they are unchanged on the screen they were
+written for.** `celebrateHomeDocks()` (`src/ui/board.js`) still creates four SVG `<g>` elements with
+`transform-box: fill-box` running `animation: pastrydance 1s ease-in-out infinite`, and **nothing
+ever removes them** — compare `popEmoji()` immediately above it, which cleans itself up with
+`setTimeout(() => g.remove(), …)`.
+
+That is the identical trap the ripple was: Chrome does not composite SVG transform animations, so
+each frame forces layout. Measured on the welcome screen, where the same four elements accounted for
+**60 layouts/sec and 6.9 points of CPU** (11.1% -> 4.2%). The End of Voyage screen is not a
+throwaway moment — a player sits on it reading the summary, deciding whether to play again — so it
+plausibly costs the same there, on the screen where the animation is actually visible.
+
+**Not yet measured on the End of Voyage screen itself.** Do that before fixing, same as everything
+else in this file: reaching a real end of voyage with the autoplay driver takes longer than 5
+minutes, which is why it was deferred rather than assumed.
+
+**Likely fix, once measured:** the same move the ripple took — HTML divs positioned in `cqw` over
+`#boardwrap`, which cost zero layouts. `celebrateHomeDocks()` already computes each berth's centre
+from the `#homeDock` rect, so the coordinates are in hand. A cheaper partial would be capping the
+iteration count, but that changes a deliberate looping flourish into a one-shot and is Wyatt's call,
+not a mechanical one.
