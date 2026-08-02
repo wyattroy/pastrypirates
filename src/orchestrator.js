@@ -105,6 +105,7 @@ import {
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
   requireName, getLastName, // FIX-01: the one read chokepoint (createRoom) and the raw persisted read (Feedback)
   pendingAutoName, // NAME-01: was the resolved name CHOSEN by the player, or merely offered to them?
+  openNameModal, // NAME-02: the room screen's "Change yer name" reuses the one naming modal
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
@@ -1217,6 +1218,38 @@ export async function abandonRoom(){
   clearSession();
   showHome();
 }
+// unusedDefaultName() counts EVERY seat in the map as taking a name, including the one being
+// claimed — so a player re-resolving their own seat would see their own old name as taken and drift
+// to a different default each pass. Hiding the seat under claim from the tally makes `preferIdx`
+// reliably return that seat's own captain, which is both stable and collision-free. Shared by
+// joinRoom() and renameMySeat().
+const withoutSeat=(s,i)=>{const o={};Object.keys(s||{}).forEach(k=>{if(+k!==i)o[k]=s[k];});return o;};
+// NAME-02 (Wyatt, 2026-08-01): "the player may just want to change their name." Rewrites this
+// player's OWN seat in place, so renaming never costs them the room. Deliberately narrow — it
+// touches one seat, only its owner's, and only in the lobby: once the voyage is under way narration
+// has already gone out under the old name, and renaming would desync the roster against events
+// guests have already been shown (the same guard joinRoom's rejoin path uses).
+export async function renameMySeat(newName){
+  if(!appState.db||!appState.room||appState.mySeat==null||appState.gameStarted)return;
+  const seat=appState.mySeat;
+  const auto=pendingAutoName();
+  const chosen=(auto&&newName===auto)?"":newName;
+  try{
+    await netClaimSeat(appState.db,appState.room,s=>{
+      if(!s)return s;
+      const cur=s[seat]||{};
+      if(cur.id!==appState.myId)return s; // not mine any more — never stomp another captain's seat
+      s[seat]={...cur,name:chosen||unusedDefaultName(withoutSeat(s,seat),seat),id:appState.myId,bot:false};
+      return s;
+    });
+  }catch(e){
+    console.error("renameMySeat failed",e);
+    // @copy misc.mperror.renamefailed
+    alert("Couldn't change yer name just now — the seas are choppy. Try again in a moment.");
+  }
+  // no re-render here: netWatchSeats() is already live for this room and repaints every client,
+  // this one included, the moment the write lands.
+}
 export async function joinRoom(){
   const typedName=($("joinName").value||"").trim().slice(0,40);
   const code=($("joinCode").value||"").toUpperCase().trim();
@@ -1244,11 +1277,6 @@ export async function joinRoom(){
   // therefore skipped that fallback entirely — two captains, one name.
   const auto=pendingAutoName();
   const chosen=(auto&&typedName===auto)?"":typedName;
-  // unusedDefaultName() counts EVERY seat in the map as taking a name, including the one being
-  // claimed — so a rejoining player would see their own old name as taken and drift to a different
-  // default on each pass. Hiding the seat under claim from the tally makes `preferIdx` reliably
-  // return that seat's own captain, which is both stable and collision-free.
-  const withoutSeat=(s,i)=>{const o={};Object.keys(s||{}).forEach(k=>{if(+k!==i)o[k]=s[k];});return o;};
   let mine=null;
   for(let i=0;i<r.numSeats;i++)if(seats[i]&&seats[i].id===appState.myId)mine=i;
   if(mine!=null){
@@ -1413,6 +1441,10 @@ export function wireLobby(){
   $("btnConfirmStart").onclick=()=>{$("startConfirmModal").style.display="none";startGame();};
   wireRestoreFail();
   $("btnRoomBack").onclick=()=>{abandonRoom();}; // UI-05 follow-up: leave the lobby, tear the room down
+  // NAME-02: same modal as every other name entry, so there is one place a captain is named. The
+  // continuation writes the seat instead of starting a mode; dismissing it cancels and changes
+  // nothing, which is what a ✕ should do here too.
+  $("btnChangeName").onclick=()=>{openNameModal(name=>{renameMySeat(name);});};
   $("btnLeave").onclick=()=>{$("leaveConfirmModal").style.display="flex";};
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};

@@ -1008,6 +1008,14 @@
            board and was, in Wyatt's words, "almost impossible to see". -->
       <button class="backLink roomBack" type="button" id="btnRoomBack">← back</button>
       <div id="seatList"></div>
+      <!-- NAME-02 (Wyatt, 2026-08-01): "back should go back one step, not exit out entirely. the
+           player may just want to change their name." Renaming is the goal behind that note, and
+           this serves it directly — it reopens the name modal and rewrites this player's seat in
+           place, so nobody has to leave a room to fix a name. "← back" above is deliberately left
+           alone: it is the only way out of a room, and for a host it must keep tearing the room down
+           (abandonRoom()). Sits under the captains list so it reads against the row showing the
+           player their own name. -->
+      <button class="backLink roomBack" type="button" id="btnChangeName">Change yer name</button>
       <div id="waitMsg" class="muted" style="margin-top:10px"></div>
       <button class="primary big" id="btnStart" style="display:none" type="button"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Start the voyage!</button>
     </div>

@@ -175,11 +175,22 @@ export function confirmName(){
 // P10: dismissing the name modal returns to the mode-choice screen instead of proceeding. Hides the
 // overlay first so showHome() paints over a closed modal, and drops the pending continuation so no
 // half-started mode is left armed behind it.
+// NAME-02 (Wyatt, 2026-08-01): "back should go back one step, not exit out entirely."
+//
+// Cancel returns to the screen the modal opened OVER, which is not always home. Until the room
+// screen gained "Change yer name" the modal could only be opened from the mode-choice screen, so an
+// unconditional showHome() happened to be right and this was invisible. It is not invisible now:
+// measured, a host who opened the modal from the room screen and pressed ✕ was dropped onto the
+// mode-choice screen while `appState.room` still pointed at a live room they were still hosting —
+// visually ejected from a game that had not ended.
+//
+// Keyed on being seated rather than on a remembered screen id, because that is the condition that
+// actually makes home the wrong destination, and it stays true however the modal was reached.
 function cancelName(){
   const overlay=$("nameModal");
   if(overlay)overlay.style.display="none";
   pendingNameAction=null;
-  showHome();
+  if(appState.room&&!appState.gameStarted)showRoom(); else showHome();
 }
 let nameModalWired=false;
 export function wireNameModal(){

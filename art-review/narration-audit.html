@@ -1798,8 +1798,8 @@ function dockFlavorCards() {
 const NODE_GROUPS = [
   {
     id: "preGameLobby", stage: -2, title: "Pre-game — lobby & room join", parents: [],
-    via: "src/orchestrator.js createRoom()/joinRoom()/watchRoom()/startGame() (D-32) — every alert() a would-be host or guest can hit before a game exists, plus the online lobby's own seat-list caption",
-    cardsOf: () => ["misc.mperror.createcapacity", "misc.mperror.createnoconnection", "misc.mperror.entercode", "misc.mperror.joincapacity", "misc.mperror.joinnoconnection", "misc.mperror.nogamefound", "misc.mperror.alreadysailed", "misc.mperror.roomfull", "misc.mperror.gamegone", "misc.mperror.serviceunreachable"]
+    via: "src/orchestrator.js createRoom()/joinRoom()/watchRoom()/startGame()/renameMySeat() (D-32) — every alert() a would-be host or guest can hit before a game exists, plus the online lobby's own seat-list caption",
+    cardsOf: () => ["misc.mperror.createcapacity", "misc.mperror.createnoconnection", "misc.mperror.entercode", "misc.mperror.joincapacity", "misc.mperror.joinnoconnection", "misc.mperror.nogamefound", "misc.mperror.alreadysailed", "misc.mperror.roomfull", "misc.mperror.gamegone", "misc.mperror.serviceunreachable", "misc.mperror.renamefailed"]
       .flatMap(miscMpErrorCard).concat(miscLobbyCard("misc.lobby.waitcaption")),
   },
   {
