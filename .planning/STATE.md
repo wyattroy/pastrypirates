@@ -67,9 +67,17 @@ residuals, not cleared checks: the shipped-vs-approved copy comparison (19 of 14
 fields conclusively settled) and two D-41 greyed states never eyeballed. Both are
 recorded in `15-VERIFICATION.md` and have tracking todos.
 
-Phase 17 (final-multiplayer-verification) was left AWAITING WYATT at the v1.2/v1.3
-rollover — his Safari playtest was never run. It is not superseded by Phase 19's
-Safari work, which covered wind-dot smoothness only, not multiplayer verification.
+Phase 17 (final-multiplayer-verification) is **CLOSED — PASSED**. Wyatt ran the
+two-window Safari/Chrome playtest and confirmed the pass (re-confirmed 2026-08-02).
+`17-VERIFICATION.md` carries the detail: room `KWPE`, played end to end, 171 events,
+turn order identical on both clients, storm and pause/resume exercised live, and the
+guest-side End of Voyage panel verified for the first time.
+
+This paragraph previously said his playtest "was never run," which was wrong and
+carried Phase 17 into v1.3 as open scope for two days. The cause was a duplicate
+record: `17-SAFARI-CHECKLIST.md` row 6 still said "not run" while
+`17-VERIFICATION.md` beside it already said `status: passed`. Both corrected
+2026-08-02.
 
 ## Performance Metrics
 

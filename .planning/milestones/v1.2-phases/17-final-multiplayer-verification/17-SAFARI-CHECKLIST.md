@@ -9,7 +9,14 @@
 | 3 | Gold banner | **PASS** — seamless at 6s, no seam and no stutter |
 | 4 | Ko-Fi panel | **PASS** — Safari's tracking prevention does not block the embed |
 | 5 | End of voyage | **PASS** — drumroll, fade, blue box gone, gold reveal |
-| 6 | Two-window multiplayer | **not run** — the one remaining item |
+| 6 | Two-window multiplayer | **PASS** — Wyatt ran it and confirmed the pass (re-confirmed 2026-08-02). Detail in `17-VERIFICATION.md`: Safari hosting, Chrome guesting, room `KWPE`, played end to end — 171 events, turn order identical on both clients, storm and pause/resume exercised live |
+
+> **This row read "not run — the one remaining item" until 2026-08-02**, while `17-VERIFICATION.md`
+> beside it had already recorded `status: passed` with all three criteria met. The two documents
+> disagreed, and the stale one was the more visible — which is how root `STATE.md` came to say the
+> playtest "was never run" and carried Phase 17 as open scope into v1.3. Corrected on Wyatt's
+> confirmation. **Lesson: a checklist row is a duplicate of the verification report, and duplicates
+> drift. Update both in the same commit or the checklist stops being evidence.**
 
 Checks 3 and 5 were reached using the console injection in `docs/DRIVING-THE-GAME.md` (fill one
 captain's recipe, sail home) rather than by playing a full game — the finish path is real, only the

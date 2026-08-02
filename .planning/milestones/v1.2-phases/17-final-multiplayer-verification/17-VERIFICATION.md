@@ -8,8 +8,14 @@ requirements: [VERIFY-01]
 
 # Phase 17 — Final Multiplayer Verification
 
-**Status is `human_needed`, and that is not a shortfall — it is what this phase is.** All three of
-its success criteria name Safari, two windows, and a human watching.
+**Status is `passed`.** This phase was always going to end in a human verdict rather than a green
+test run — all three of its success criteria name Safari, two windows, and a person watching — and
+that verdict is now in: Wyatt ran the playtest and it passed, re-confirmed by him on 2026-08-02.
+
+> The line above previously read *"Status is `human_needed`, and that is not a shortfall — it is what
+> this phase is."* True while the playtest was outstanding, misleading once it was not: the
+> frontmatter said `passed` while the first line of the body said `human_needed`, and readers
+> (including a `/gsd-progress` run on 2026-08-02) believed the body.
 
 ## CLOSED 2026-07-31 — all three criteria met
 
