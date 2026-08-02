@@ -477,6 +477,14 @@ The same care applies to any repo, gist, artifact, bucket or deploy target that 
 **`CNAME` never leaves.** If you are ever copying this repo wholesale anywhere, stop and either use
 the script or write down explicitly why the destination cannot contest the domain.
 
+**`CNAME` is not the only one.** `robots.txt` and `sitemap.xml` are the same hazard in different
+clothes — every one of them asserts *"this deployment is playpastrypirates.com"*, which is false
+anywhere else and harmful. The very first run of the deploy script proved the point: it republished
+this repo's live `robots.txt` (`Allow: /`) over the preview's `Disallow: /` and added a sitemap of
+live URLs, which would have invited Google to index the preview as duplicate content against the
+real game. Caught only by reading the deploy diff. All three are excluded now — **when you add a
+file that identifies the live site, add it to `EXCLUDES` in the same commit.**
+
 <!-- GSD:profile-start -->
 
 ## Developer Profile
