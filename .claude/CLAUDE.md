@@ -455,6 +455,33 @@ sessions, on a machine he was reporting as overheating. He was debugging a perfo
 the tooling sent to investigate it was the thing heating his laptop.
 `pkill -f remote-debugging-port` and `pkill -f http.server` before you finish.
 
+## After EVERY merge, pull origin main back down into local main
+
+Wyatt, 2026-08-02: *"we are going to pull origin main back down into local main after every merge so
+that we can keep our local main synced."*
+
+The merge is not finished when the push succeeds. Finish it:
+
+```bash
+git push origin main && git pull origin main
+```
+
+Then confirm both directions are zero before saying it is done:
+
+```bash
+git rev-list --count origin/main..main   # 0
+git rev-list --count main..origin/main   # 0
+```
+
+This is the same wound that already cost a whole session. Local `main` once sat **457 commits
+behind** — a v1.0 snapshot with no `src/` at all — because nobody pulled after merging on GitHub,
+and reading it produced a confident, entirely wrong conclusion that was then handed to four parallel
+sessions as instructions. A merge landed through the GitHub UI, or pushed from another worktree,
+does not update this clone. Pulling immediately means the stale ref never exists in the first place,
+rather than being something you have to remember to distrust later.
+
+Applies to any merge that reaches `main`, including one you did locally: push, pull, verify zero.
+
 ## NEVER copy CNAME into another repo — it can take the live game down
 
 **Deploy to the preview site with `scripts/deploy-preview.sh` only. Do not hand-roll the sync.**
