@@ -95,7 +95,7 @@ import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
-  seedIdleGameState, syncBoardSizing, victoryConfetti, clearChatBubbles,
+  seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, asyncBakeoff, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, remotePickHighlights, wireRestoreFail,
@@ -1560,6 +1560,10 @@ export function boot(){
   seedIdleGameState(); // holds up the "appState.game always exists" invariant; draws nothing
   wireWelcome();
   wireRecipeModal(); // wired unconditionally (not inside wireLobby) so it works in solo/offline play too
+  // MUTE-01: unconditional, like the wiring above — BOTH journeys need it. A mid-game refresh goes
+  // straight to showGameView() without passing the fresh-visit branch, and it is the journey most
+  // likely to land on a phone. Idempotent: it installs one ResizeObserver and no more.
+  watchMutePlacement();
   wireLobby(); // wired unconditionally, before any early-return resume path (solo or offline), so
   // footer/pause buttons are never left unwired — previously this ran after the Firebase-init
   // check below, which the solo-resume branch's early `return` skipped entirely, leaving every

@@ -57,9 +57,7 @@
   @keyframes bootSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
   @media (prefers-reduced-motion: reduce) { #bootLoader .bootShip, #bootLoader .bootBarFill { animation: none; } }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "controls" "narration" "stats" "captains" "mute" "chat";
-    /* the container #muteSlot's query below measures — see that rule */
-    container-type: inline-size; container-name: gamelayout; }
+    grid-template-areas: "board" "controls" "narration" "stats" "captains" "mute" "chat"; }
   #left { grid-area: board; min-width: 0; }
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
     container-type: inline-size; container-name: controls; }
@@ -82,36 +80,41 @@
    * written for this row and never updated when it left: as a grid child of #layout there was no
    * container ancestor, so those cqw units had been silently resolving against the VIEWPORT.
    *
-   * FIRST ATTEMPT, AND WHY IT WAS NOT ENOUGH (Wyatt, 2026-08-02, screenshots at 327 and 300px):
-   * putting the button inside #controlsRow and letting flex-wrap decide got the inline case right at
-   * every width, but the WRAP case landed it in a stranded gap directly under the clock — right
-   * aligned, floating between the clock and the recipe card. "this is exactly why i wanted this work
-   * to be done properly." He is right, and the miss was mine: I asserted "inline at every size" and
-   * never looked at what wrapping actually produced.
-   *
-   * His ruling: too narrow for the clock row -> UNDER THE CAPTAINS BOX, just above the footer links.
-   * That is P6's original placement with P6's broken CONDITION replaced.
-   *
-   * WHY A WRAPPER. The button must be a #layout GRID item to sit under the captains box, and must
-   * share #controlsRow's exact box to align with the clock — and one element cannot be a flex child
-   * of the row and a grid item elsewhere. #muteSlot is that seam: it carries the identical
-   * `width/max-width/margin` trio #controlsRow uses, so when both occupy the `controls` cell their
-   * boxes coincide exactly and the button's right edge lands on the row's right edge, at any width
-   * and in either layout. The button keeps its own styling; the slot only positions it.
-   *
-   * WHY A THRESHOLD after all. A container query on #controlsRow cannot reach a non-descendant, and
-   * flex-wrap — the only instrument that answers "does it fit" without a number — is what produced
-   * the stranded gap. So the query is on #layout, and 460px is chosen to clear the measured need
-   * (313-333px for flippenator + clock + button + gaps) with real margin rather than the 1px the
-   * exact fit left at 390. Every phone width therefore lands under the captains box, which is what
-   * he asked for; tablets and up go inline.
+   * TWO EARLIER ATTEMPTS, kept because each named a real constraint:
+   *   - flex-wrap inside #controlsRow got the inline case right at every width, but the WRAP case
+   *     stranded the button in a gap under the clock. Wyatt, with screenshots at 327 and 300px:
+   *     "this is exactly why i wanted this work to be done properly."
+   *   - A 460px container query then fixed the fallback but broke the condition, pushing the button
+   *     down at 391px where he could see 11px of room. The number came from a stale measurement.
+   * See the #muteSlot rule below for what replaced them, and why it is measured rather than guessed.
    */
+  /* WHERE THE MUTE BUTTON LIVES. Wyatt's rule, verbatim (2026-08-02): "if there is room ON THE SAME
+   * LINE as the turn clock, put it there. if not, move it down."
+   *
+   * It is measured, not guessed. placeMuteButton() (src/ui/board.js) asks whether the button plus
+   * the row's standard gap fits in what is left of #controlsRow, and MOVES the button between the
+   * two homes below. Two earlier attempts got this wrong and both failures are worth keeping:
+   *
+   *   - Keying on the sidebar-layout class asked "does the SIDEBAR fit ingredient chips", a
+   *     different question, so a wide-but-stacked window sent the button to its own row.
+   *   - Then a 460px container query — a number derived from a stale measurement, taken while the
+   *     button sat OUTSIDE the row where its cqw units resolved against the viewport and reported
+   *     75px instead of ~60px. It pushed the button down at 391px where 11px of room was visible on
+   *     screen. A guessed threshold cannot track content that clamps with its container; only
+   *     measurement can.
+   *
+   * #muteSlot is `container-type: inline-size` and carries #controlsRow's exact width/max-width/
+   * margin trio ON PURPOSE: the button's own sizing is in cqw, so without this its width would
+   * depend on which home it currently occupies — and "does it fit" would depend on where it already
+   * is. Matching the boxes makes the button the same size in both places and breaks that circle. */
   #muteSlot { grid-area: mute; width: 100%; max-width: var(--boardW, 100%);
-    margin-left: auto; margin-right: auto; display: flex; justify-content: flex-start; }
-  @container gamelayout (min-width: 460px) {
-    /* wide enough for the clock row: same cell as #controlsRow, same box, pinned to its right edge */
-    #muteSlot { grid-area: controls; justify-content: flex-end; align-self: center; }
-  }
+    margin-left: auto; margin-right: auto; display: flex; justify-content: flex-start;
+    container-type: inline-size; }
+  /* dropped: left-aligned under the captains box (Wyatt's pick), just above the footer links */
+  #muteSlot:empty { display: none; } /* no empty 14px grid row while the button is up in the clock row */
+  /* inline: snug after the clock with the row's own gap, bottom edges level with it (his words:
+     "snug next to the clock, bottom-aligned with the bottom of the clock") */
+  #controlsRow > #btnMute { align-self: flex-end; }
   #actionPanel { grid-area: narration; }
   /* container for the chip-row query below — the captains box responds to ITS OWN width,
      not the viewport's, so the layout switches wherever the box is actually too narrow. */

@@ -444,6 +444,31 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## ASK 2–5 CLARIFYING QUESTIONS BEFORE BUILDING ANYTHING NON-TRIVIAL
+
+Wyatt, 2026-08-02, after three failed attempts at one small layout fix: *"it was really really
+helpful for you to ask me those questions before building it this time. please do that always — ask
+me 2-5 questions that help you clarify my intent. this feels like a good process."*
+
+**This is a standing instruction, not a suggestion.** What he is expert at is *describing intent* —
+his words. What he needs back is accurate execution of it. A session that skips the asking
+substitutes its own guess for his intent, builds on the guess, and makes him catch it on screen. On
+the mute button that cost **three rounds**: a wrong condition, then a stranded fallback, then a
+guessed threshold that contradicted what he could plainly see on his own display. One round of
+questions ended it.
+
+How to ask well:
+
+- **Before writing code**, not after a review round. Questions are cheapest when nothing is built.
+- **2–5 of them**, each one where a different answer changes what gets built.
+- **Never ask what the codebase or a measurement can answer.** Go and read it, or measure it, first —
+  then ask only what is genuinely his call. Arriving with the homework done is the point.
+- **Put the measurement in the question.** He answers far better against real numbers ("at 360px it
+  fits beside the clock by 2px — does that count as room?") than against abstractions.
+- Give concrete options with the trade-off stated, and mark a recommendation. He often replies with a
+  better third answer, or a question back — that reply is the most valuable part, so leave room for it.
+- **Taste, placement, wording and "how much is enough" are his. Mechanism is yours.**
+
 ## Driving the game in a browser
 
 `docs/DRIVING-THE-GAME.md` is required reading before any browser or playtest automation. Two traps waste the most sessions: the flippenator coin `#flipCoinWrap` **is** the flip button (it is not an `.apBtn` — this stalled three separate attempts), and a window narrower than about a second cannot be hand-driven at all, so use the armed watcher in §5d.

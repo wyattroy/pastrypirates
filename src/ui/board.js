@@ -1577,6 +1577,55 @@ export function seedIdleGameState(){
 // (narrow) layout — board full-width on its own row, sidebar full-width below it — instead of
 // squeezing the sidebar further and wrapping ingredients onto a second line.
 const MIN_SIDEBAR_W=380,MAX_SIDEBAR_W=560;
+// MUTE-01 (Wyatt, 2026-08-02), his rule verbatim: "if there is room ON THE SAME LINE as the turn
+// clock, put it there. if not, move it down."
+//
+// So it is MEASURED. Two earlier attempts substituted a proxy for that question and both were wrong
+// in ways he had to catch on screen: the sidebar-layout class (which answers "does the sidebar fit
+// ingredient chips") and then a 460px threshold derived from a stale measurement, which pushed the
+// button down at 391px where 11px of room was plainly visible. The contents of this row all clamp
+// with their container, so no fixed number can track them — only asking the layout can.
+//
+// The gap is counted, which was his question: `free` is what remains after the other children AND
+// the gaps between them, and the button needs its own width PLUS one more gap. The row's standard
+// spacing is therefore never squeezed to make something fit.
+//
+// It MOVES the button between two parents rather than restyling one in place, because his two
+// placements want genuinely different boxes — a flex child sitting snug after the clock and
+// bottom-aligned with it, or a grid item under the captains box. No CSS can relocate an element
+// across containers, and duplicating it would mean keeping two buttons' state in step.
+export function placeMuteButton(){
+  const row=$("controlsRow"), slot=$("muteSlot"), btn=$("btnMute"), clock=$("shotClockPanel");
+  if(!row||!slot||!btn)return;
+  const gap=parseFloat(getComputedStyle(row).gap)||0;
+  // Measure with the button OUT of the row, so its own width never counts toward "used".
+  const used=[...row.children]
+    .filter(el=>el!==btn&&getComputedStyle(el).display!=="none")
+    .reduce((sum,el,i)=>sum+el.getBoundingClientRect().width+(i?gap:0),0);
+  // The button is the same width in either home — #muteSlot mirrors the row's box and is its own
+  // inline-size container, so the cqw its styling uses resolves to the same basis. Without that this
+  // test would depend on where the button already was, and oscillate.
+  const need=btn.getBoundingClientRect().width+gap;
+  const fits=(row.getBoundingClientRect().width-used)>=need;
+  const wantRow=fits?row:slot;
+  if(btn.parentNode===wantRow)return; // no DOM write unless the answer actually changed
+  if(fits&&clock&&clock.nextSibling)row.insertBefore(btn,clock.nextSibling); // snug, right after the clock
+  else if(fits)row.appendChild(btn);
+  else slot.appendChild(btn);
+}
+let muteRO=null;
+export function watchMutePlacement(){
+  const row=$("controlsRow"), clock=$("shotClockPanel");
+  if(!row||muteRO||typeof ResizeObserver==="undefined"){placeMuteButton();return;}
+  // Observe the row AND the clock: the row catches viewport/layout changes, the clock catches its
+  // own content growing (the timer toggle appearing, the countdown widening) — either can change
+  // the answer without the other moving. ResizeObserver fires only on real size changes, so this
+  // costs nothing while the game sits still, unlike re-measuring on the 500ms tick.
+  muteRO=new ResizeObserver(()=>placeMuteButton());
+  muteRO.observe(row);
+  if(clock)muteRO.observe(clock);
+  placeMuteButton();
+}
 export function syncBoardSizing(){
   const root=document.documentElement;
   const footerH=($("footerRow")||{}).offsetHeight||0;
@@ -1606,6 +1655,10 @@ export function syncBoardSizing(){
     root.style.setProperty("--boardW",narrowBoardSize+"px");
     root.style.removeProperty("--sideW");
   }
+  // MUTE-01: --boardW just changed, which is the width #controlsRow and #muteSlot both cap to, so
+  // re-ask whether the button still fits beside the clock. The ResizeObserver covers everything
+  // else; this covers the case where the row's own max-width moved under it.
+  placeMuteButton();
 }
 
 // ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
