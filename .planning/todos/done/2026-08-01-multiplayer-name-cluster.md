@@ -77,3 +77,27 @@ measurement corrected the diagnosis above on all three counts.
   the rename landed on every client except the one that made it.
 
 Full detail: `.planning/quick/20260801-multiplayer-name-cluster/SUMMARY.md`
+
+## DISPOSITION AMENDED — 2026-08-01, commit `f979bf8`
+
+**The "B is not a bug" ruling above was half right, and the wrong half matters.**
+
+`cancelName()` → `showHome()` genuinely could not be reached from any user path *at the time it was
+measured* — every route into the name modal came from the mode-choice screen, which `showHome()`
+lands on. That part stands.
+
+But it was a **latent** fault, not an absent one, and it became reachable the moment Wyatt's actual
+request was built. Adding "Change yer name" to the room screen gave the modal a second entry point;
+measured immediately after wiring it, a host who pressed ✕ was dropped onto the mode-choice screen
+while `appState.room` still pointed at a live room they were still hosting — visually ejected from a
+game that had not ended. That is precisely the symptom Wyatt reported.
+
+`cancelName()` now returns to the room when the player is seated, and home otherwise.
+
+**The lesson, for whoever reads this next:** "does not reproduce" and "is not a bug" are different
+claims. The first was true and provable; the second was an inference beyond the evidence, and it was
+wrong. A dismissal route that hard-codes one destination is a defect whether or not a path currently
+reaches it.
+
+Wyatt's own instinct — *"back should go back one step, not exit out entirely"* — was the correct
+general rule the whole time.

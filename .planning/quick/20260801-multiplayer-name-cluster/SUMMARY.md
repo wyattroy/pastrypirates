@@ -64,3 +64,23 @@ session's self-attributed regression was not one.**
 3. **Cosmetic:** a player who accepts the prefilled "Davy Scones" and joins may be seated as
    "Crustbeard" — correct collision avoidance, but the modal showed them a name they did not get.
    Worth a look if it reads oddly in play.
+
+---
+
+## Follow-up, same day — commit `f979bf8`
+
+Wyatt, on being shown the finding: *"back should go back one step, not exit out entirely. the player
+may just want to change their name."* He chose adding a **"Change yer name"** button to the room
+screen over changing what "← back" does, so `#btnRoomBack` keeps abandoning the room (it is the only
+way out, and a host's room must still be torn down).
+
+`renameMySeat()` rewrites the player's own seat in place: one seat, only its owner's (the transaction
+re-checks the id), lobby only. `netWatchSeats()` repaints every client on the write.
+
+**This overturns the "B is not a bug" ruling above.** Adding the button gave the name modal a second
+entry point, and `cancelName()`'s unconditional `showHome()` became reachable — measured, a host
+pressing ✕ was dropped onto the mode-choice screen while still hosting a live room. Cancel now
+returns to the room when seated. *Not reproducible* was true; *not a bug* was an inference past the
+evidence, and it was wrong.
+
+Verified: 16 checks on the rename plus the original 14 re-run, both green, `npm test` 23/23.
