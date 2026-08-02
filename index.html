@@ -566,9 +566,20 @@
      (no min-width clamp, unlike #btnPlayAgain), so it reads as a control beside the clock rather
      than a second panel. Same border-radius/padding clamp idiom as #btnPlayAgain so it drops into
      the row without the layout jumping. */
-  #btnMute { flex: 0 0 auto; align-self: center;
-    border-radius: clamp(8px,3cqw,14px); padding: clamp(5px,2cqw,9px) clamp(7px,2.5cqw,12px);
-    border: 2px solid #d9a84e; font-size: clamp(14px,4.5cqw,20px); line-height: 1;
+  /* MUTE-02 (Wyatt, 2026-08-02): "can you make the mute button 50% smaller too now? it's almost the
+     same size as the flippenator, but it really doesn't have to be."
+     Halved in BOTH dimensions, per his pick: 65x58 -> ~33x29 on a phone.
+     His second ruling was "trim padding first, keep the icon legible", and at half size those two
+     partly conflict — with a border and any padding at all, a ~29px-tall box cannot hold a 26px
+     icon. So the size wins (it was the actual request) and the padding is cut to near-nothing so
+     the icon keeps as much of the smaller box as geometry allows: it lands ~20px rather than the
+     ~17px a proportional shrink would have given. The border also drops 2px -> 1.5px, which is a
+     whole pixel of icon back on each axis at this scale.
+     The icon is what carries mute state (D-14's megaphone/slashed-megaphone pair), so it is the
+     last thing that should shrink — see #btnMute::after for the tap target that keeps it usable. */
+  #btnMute { flex: 0 0 auto; align-self: center; position: relative;
+    border-radius: clamp(5px,1.7cqw,8px); padding: clamp(2px,0.9cqw,3px) clamp(3px,1.3cqw,5px);
+    border: 1.5px solid #d9a84e; font-size: clamp(9px,2.9cqw,13.5px); line-height: 1;
     background: linear-gradient(160deg, rgba(138,95,47,.6), rgba(92,61,28,.6));
     color: #ffe9b8; cursor: pointer; }
   #btnMute:hover { filter: brightness(1.15); }
@@ -578,6 +589,15 @@
      scaffold never exposed this because text is sized by font-size. em keeps the icon tied to the
      button's own clamp()ed font-size, so the narrow-viewport bump below still works. */
   #btnMute img { width: 1.5em; height: 1.5em; object-fit: contain; vertical-align: middle; }
+  /* MUTE-02: the button is now ~33x29 visually, which is below the ~44px that is comfortable to tap.
+     This pseudo-element extends the HIT AREA to 44x44 without changing the button's layout box — so
+     the row still only spends ~33px on it, and placeMuteButton()'s fit test (src/ui/board.js) keeps
+     measuring the visible size rather than a padded one. Growing the button with padding instead
+     would have made every measurement report 44px and pushed the button below the captains box
+     earlier than it needs to go.
+     It overflows into the row's 10px gap by ~5.5px a side, which stays clear of the clock. */
+  #btnMute::after { content: ""; position: absolute; left: 50%; top: 50%;
+    width: 44px; height: 44px; transform: translate(-50%,-50%); }
   /* standalone, matches #shotClockPanel's footprint (min-width/padding/border-radius) so it
      drops into the same #controlsRow slot without the layout jumping */
   #btnPlayAgain { flex: 0 0 auto; min-width: clamp(70px,26cqw,118px);
@@ -899,9 +919,12 @@
     /* AUDIO-02 (phase 21): #btnMute joins the same narrow-viewport bump — 21-03 made the timer
        toggle visible in solo for the first time, so this row now carries one more control than
        it ever has at this width. */
-    #btnMute { font-size: clamp(21px,6.75cqw,30px);
-      padding: clamp(7.5px,3cqw,13.5px) clamp(10.5px,3.75cqw,18px);
-      border-radius: clamp(12px,4.5cqw,21px); }
+    /* MUTE-02: halved along with the base rule. The narrow bump exists because this row carries one
+       more control than it used to at this width; the button still steps up here, just from a much
+       smaller base. */
+    #btnMute { font-size: clamp(12px,4.1cqw,14px);
+      padding: clamp(2.5px,1.1cqw,3px) clamp(4px,1.6cqw,5px);
+      border-radius: clamp(6px,2.2cqw,10px); }
     #scLabel { font-size: clamp(10.5px,3cqw,15px); }
     #shotClockNum { font-size: clamp(24px,9cqw,45px); }
     #scUnit { font-size: clamp(10.5px,3.3cqw,18px); }
