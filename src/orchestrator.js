@@ -95,7 +95,7 @@ import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
-  renderDecorativeBoard, syncBoardSizing, victoryConfetti, clearChatBubbles,
+  seedIdleGameState, syncBoardSizing, victoryConfetti, clearChatBubbles,
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, asyncBakeoff, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, remotePickHighlights, wireRestoreFail,
@@ -1360,10 +1360,6 @@ export function beginGame(cfg,seed){
   if(appState.gameStarted)return;appState.gameStarted=true;
   showGameView();
   appState.game=new Game(cfg,seed,true);
-  // PERF-02: clear the decorative flag here — a real voyage is starting, so the welcome backdrop's
-  // suppression of the End of Voyage screen must not survive into it, or the game would never show
-  // its own stats. Cleared alongside `live` because they are the same transition.
-  appState.decorative=false;
   appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
@@ -1561,7 +1557,7 @@ export function boot(){
   // ...only when there is no multiplayer session to reconnect to, exactly as the old nesting had it.
   const resumingSolo=!resumingRoom&&!!(solo&&solo.seed!=null&&solo.strategies);
   const resuming=resumingRoom||resumingSolo;
-  renderDecorativeBoard();
+  seedIdleGameState(); // holds up the "appState.game always exists" invariant; draws nothing
   wireWelcome();
   wireRecipeModal(); // wired unconditionally (not inside wireLobby) so it works in solo/offline play too
   wireLobby(); // wired unconditionally, before any early-return resume path (solo or offline), so

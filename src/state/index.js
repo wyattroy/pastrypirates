@@ -80,13 +80,6 @@ export const appState = {
   // index.html:2015-2051 — live (human) mode: networked-turn bookkeeping, shot clock, replay
   live: false,
   liveDone: false,
-  // PERF-02 (2026-08-02): true only while the welcome screen's decorative bot-vs-bot board is up.
-  // render() could not otherwise tell that board apart from a FINISHED game — the decorative board
-  // holds exactly one event at evIdx 0, so `evIdx === events.length-1` is trivially true, and
-  // `live` is false because nobody is playing. render() therefore called showStats(), which ran the
-  // End of Voyage celebration behind the welcome card. Measured cost of that mistake: 60 layouts a
-  // second, forever, on a game nobody played. Set by renderDecorativeBoard(), cleared by beginGame().
-  decorative: false,
   liveGen: 0,
   curSeat: 0,
   inBattlePrompt: false,

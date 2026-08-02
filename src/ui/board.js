@@ -106,7 +106,11 @@ import {
 } from "../shared/index.js";
 import {
   dockOrient, tracePolygonLoops, roundedPathFromLoop, islandArtPlacement, shipXY, pulseEl,
-  describeFor, NEUTRAL_VIEWER, assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
+  // describeFor + NEUTRAL_VIEWER dropped with LOAD-03's last step: their only use here was seeding
+  // the decorative board's demo log line, and that board no longer renders. Dead imports are
+  // forbidden in this codebase (D-33/D-34/D-40) and no gate catches them, so they go with the code
+  // that used them rather than being left behind as plausible-looking dependencies.
+  assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
 } from "./util.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
@@ -1348,13 +1352,19 @@ export function render(){
   $("scrub").value=appState.evIdx;
   renderLog();
   // end stats
-  // PERF-02: the decorative welcome board is NOT a finished voyage. It carries one event at evIdx 0,
-  // so the frontier test below is trivially true, and `live` is false because nobody is playing —
-  // between them they made this call showStats() on the welcome screen, which ran celebrateHomeDocks()
-  // and left four SVG pastries dancing forever behind the blur. Measured: 60 layouts/sec, 11.1% CPU
-  // -> 4.2% once they were gone. It also deleted Tortuga's four berths from the backdrop, since
-  // celebrateHomeDocks() removes each #homeDock rect as it replaces it.
-  if(!appState.decorative&&appState.evIdx===appState.game.events.length-1&&(!appState.live||appState.liveDone))showStats();
+  // PERF-02 (2026-08-02), resolved at the root. This test is a HEURISTIC — "we are at the event
+  // frontier and nobody is playing" is inferred to mean the voyage ended. The welcome screen used to
+  // satisfy it by accident: its decorative board carried one event at evIdx 0, so the frontier test
+  // was trivially true and `live` was false because nobody was playing. showStats() therefore ran on
+  // the WELCOME screen, firing celebrateHomeDocks() and leaving four SVG pastries dancing forever
+  // behind the blur (60 layouts/sec; 11.1% CPU -> 4.2% once gone) and deleting Tortuga's four berths.
+  //
+  // Fixed first with an appState.decorative flag, then fixed PROPERLY by removing the cause: the
+  // welcome screen no longer renders at all (see seedIdleGameState), so nothing can reach this
+  // before a real game exists and the flag was deleted rather than left standing guard over an
+  // impossibility. The heuristic itself is unchanged and still worth replacing with an explicit
+  // game-over fact one day — but it is no longer reachable from a state that lies to it.
+  if(appState.evIdx===appState.game.events.length-1&&(!appState.live||appState.liveDone))showStats();
   else $("statsWrap").style.display="none";
 }
 let logRenderedTo=-1;
@@ -1529,26 +1539,35 @@ export function showStats(){
   renderWindSummary();
 }
 
-// a purely decorative bot-vs-bot board rendered behind the welcome modal, so new players
-// get a glimpse of the game before they've made a choice. Never interactive.
-export function renderDecorativeBoard(){
+// LOAD-03 final (2026-08-02). This used to be renderDecorativeBoard(): it built a bot-vs-bot game
+// AND drew it behind the welcome modal, so new players glimpsed a board before choosing.
+//
+// THE DRAWING IS GONE, AND THE NAME NOW SAYS WHAT IS LEFT. Two separate jobs were tangled here:
+//
+//   1. Draw a backdrop — OBSOLETE. The welcome screen sits on a static blurred still now
+//      (#welcomeBackdrop), and #game is display:none behind it, so every element this drew was
+//      built, laid out and composited for something nobody could see. beginGame() calls
+//      drawBoard()/buildPlayerRows() itself, so a real game never depended on this having run.
+//
+//   2. Put a Game on appState — LOAD-BEARING, and the real reason this could not simply be
+//      deleted. `appState.game` is read 269 times across src/ and only 52 of those are guarded, so
+//      "a game always exists" is a global invariant of this codebase. This function is what holds
+//      it up before anyone has chosen a mode. That is a seam worth naming rather than a decoration.
+//
+// Deleting job 1 also removed the need for the `appState.decorative` flag added earlier the same
+// day: the ONLY render() that could fire before a real game began was the one this function used to
+// call, and render()'s end-of-voyage test could therefore never misfire on the welcome screen
+// again. The flag went with it rather than being left as a guard against something now impossible.
+//
+// If the 269 unguarded reads are ever made honest, this whole function can go. Until then it is the
+// cheapest possible way to keep the invariant true — one object, no DOM.
+export function seedIdleGameState(){
   try{
     const strategies=["pirate","trader","balanced","rusher"];
     appState.game=new Game(roundCfg(strategies),Math.floor(Math.random()*1e9),true);
     appState.roster=strategies.map(s=>({bot:true,strat:s}));
     appState.mySeat=null;
-    appState.decorative=true; // PERF-02 — set BEFORE render() below, which is what reads it
-    drawBoard();buildPlayerRows();
-    appState.game.round=1;appState.game.windNow="NSEW"[Math.floor(Math.random()*4)];appState.game.stormNow=false;
-    appState.game.ev({t:"newround",dir:appState.game.windNow});
-    // D-24: seed the demo log third-person like syncLogLines() does. Behaviourally identical here
-    // (mySeat is null above, so describe() already resolves neutral) — made explicit so the two
-    // log-building paths cannot drift if this preview ever runs with a seat assigned.
-    appState.evIdx=0;appState.logLines=[describeFor(appState.game.events[0],NEUTRAL_VIEWER)];
-    render();
-    $("statsWrap").style.display="none";
-    $("actionPanel").style.display="none";
-  }catch(err){console.error("decorative board failed",err);}
+  }catch(err){console.error("idle game state failed to seed",err);}
 }
 
 // Board size is driven purely by available HEIGHT (board+footer always fit the viewport, floored
