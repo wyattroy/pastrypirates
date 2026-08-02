@@ -219,6 +219,28 @@ D-10 of `19-CONTEXT.md`.
   `src/engine/index.js:311, 357-358` — and that is existing engine behaviour this phase does not
   touch.)
 
+### Added at plan time — 2026-08-02
+
+- **D-28: The D-07 tuning gate covers the DOTS ONLY. WIND-02/03/05 build in parallel.** Asked and
+  answered at plan time: D-07 gates WIND-01, and D-08's channel specks — though they reuse the dot
+  machinery — do **not** wait on Wyatt's sign-off. The specks, the whirlpool rotation and the rim
+  warning are built while he tweaks, and the specks **inherit the numbers he lands on** rather than
+  blocking on them. Rationale in his chosen option: he is never the bottleneck for four of the five
+  deliverables. ⚠ This means the speck implementation must read its tuning values from the same
+  shared constants WIND-01 approves, not hard-code its own copies.
+  — **Reversibility:** reversible — a sequencing choice, not a code shape.
+
+- **D-29: The tuning page carries three groups of sliders, not one — dots, channel speck density,
+  and whirlpool rotation speed.** Asked and answered at plan time. Two board numbers had no value
+  anywhere: the channel speck density is **unspecified in D-08**, and the whirlpool speed is a
+  **range (8–12s), not a number** (D-09). Both go on the page so **one sitting approves the whole
+  moving board** instead of three separate approval rounds. The dot sliders keep the D-01/D-02 fade
+  timings as well, which the Discretion note below already made subject to this gate.
+  ⚠ The page must therefore import the whirlpool and speck code paths too, not only
+  `windDotSpecs`/`windDotFrame` — the D-07 warning about approving code that is not what ships
+  applies identically to all three groups.
+  — **Reversibility:** reversible — a throwaway page; the approval it produces is the hard part.
+
 ### Claude's Discretion
 
 - **The mechanism for the channel specks** — whether they reuse the `.wlayer` element pool, get their
