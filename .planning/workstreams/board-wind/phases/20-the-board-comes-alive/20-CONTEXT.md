@@ -192,8 +192,8 @@ D-10 of `19-CONTEXT.md`.
   finds it needs an engine change, **STOP and re-scope.** — **Reversibility:** one-way — forces the
   31-fixture determinism re-record, a one-shot job explicitly scheduled for v1.4.
 
-- **D-22: All decoration randomness comes from a private `mulberry32` seeded from the game seed,
-  never `game.r()`** — the pattern `stormLayerSpecs()` and `windDotSpecs()` already use. This gives
+- **D-22: All decoration randomness comes from a private seeded `mulberry32`, never `game.r()`** —
+  seeded from the game seed; the pattern `stormLayerSpecs()` and `windDotSpecs()` already use. This gives
   every player in a room identical dots and specks while consuming nothing from the game stream.
   — **Reversibility:** one-way — same fixture re-record as D-21.
 
@@ -230,8 +230,8 @@ D-10 of `19-CONTEXT.md`.
   shared constants WIND-01 approves, not hard-code its own copies.
   — **Reversibility:** reversible — a sequencing choice, not a code shape.
 
-- **D-29: The tuning page carries three groups of sliders, not one — dots, channel speck density,
-  and whirlpool rotation speed.** Asked and answered at plan time. Two board numbers had no value
+- **D-29: The tuning page carries three slider groups, not one.** Dots, channel speck density,
+  and whirlpool rotation speed. Asked and answered at plan time. Two board numbers had no value
   anywhere: the channel speck density is **unspecified in D-08**, and the whirlpool speed is a
   **range (8–12s), not a number** (D-09). Both go on the page so **one sitting approves the whole
   moving board** instead of three separate approval rounds. The dot sliders keep the D-01/D-02 fade
