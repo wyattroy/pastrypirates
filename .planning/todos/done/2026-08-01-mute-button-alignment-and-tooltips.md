@@ -85,3 +85,51 @@ before writing, because this runs on the 500ms tick that once cost 137% CPU in S
 competing for space in a row that already clamps hard at 390px, to say what the icon already says.
 This todo's own bar — "the mute state must be readable from the icon alone regardless" — is met by
 Wyatt's megaphone / slashed-megaphone pair.
+
+---
+
+## CORRECTION, same day — the first fix was half a fix
+
+Wyatt, with screenshots at 327px and 300px: *"your mute button changes are almost fixed, but not
+quite -- on narrow iphone screens, look where it goes -- this is exactly why i wanted this work to be
+done properly."*
+
+He was right. Putting the button inside `#controlsRow` and letting `flex-wrap` decide got the INLINE
+case right at every width — but I asserted "inline at every size" and **never looked at what the wrap
+produced**. On a phone it landed in a stranded gap directly under the clock, right-aligned, floating
+between the clock and the recipe card. I verified the case that worked and not the case that didn't.
+
+**His ruling:** too narrow for the clock row → **under the captains box, just above the footer
+links.** That is P6's original placement with P6's broken *condition* replaced — not a revert to it.
+
+### Why it needed a wrapper
+
+The button must be a `#layout` GRID item to sit under the captains box, and must share
+`#controlsRow`'s exact box to align with the clock. One element cannot be a flex child of the row and
+a grid item elsewhere — the tension P6's own comment named ("one element, one home").
+
+`#muteSlot` is that seam. It carries the identical `width` / `max-width` / `margin` trio
+`#controlsRow` uses, so when both occupy the `controls` cell their boxes coincide and the button's
+right edge lands exactly on the row's right edge — at any width, in either layout. The button keeps
+its own styling; the slot only positions it.
+
+### Why a threshold after all
+
+A container query on `#controlsRow` cannot reach a non-descendant, and `flex-wrap` — the one
+instrument that answers "does it fit" without a number — is what produced the stranded gap. So the
+query is on `#layout` at **460px**, chosen to clear the measured need (313–333px for flippenator +
+clock + button + gaps) with real margin instead of the 1px the exact fit left at 390.
+
+### Verified at eight widths, checking WHERE it lands
+
+| width | placement | aligned |
+|---|---|---|
+| 300, 327 (his screenshots) | below captains, above footer | — |
+| 390, 430 (iPhone, Pro Max) | below captains, above footer | — |
+| 600, 768, 1000, 1440 | inline with the clock | right edge on the row's ✓ |
+
+None off-screen, none stranded. Measured at 327: captains ends 856, mute 882–933, footer starts 961.
+
+**One test expectation of mine was wrong again** — it classified 430px as "should be inline" when a
+Pro Max is still an iPhone and belongs below the captains box. The code was right; the test was
+corrected, not the code.

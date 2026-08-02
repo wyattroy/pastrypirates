@@ -57,11 +57,12 @@
   @keyframes bootSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
   @media (prefers-reduced-motion: reduce) { #bootLoader .bootShip, #bootLoader .bootBarFill { animation: none; } }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "controls" "narration" "stats" "captains" "chat"; }
+    grid-template-areas: "board" "controls" "narration" "stats" "captains" "mute" "chat";
+    /* the container #muteSlot's query below measures — see that rule */
+    container-type: inline-size; container-name: gamelayout; }
   #left { grid-area: board; min-width: 0; }
-  /* flex-wrap is what places #btnMute now — see its rule below. */
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
-    flex-wrap: wrap; container-type: inline-size; container-name: controls; }
+    container-type: inline-size; container-name: controls; }
   /* MUTE-01 (Wyatt, 2026-08-02: "the mute button is still misaligned").
    *
    * P6 had placed this as a GRID item with two homes — `grid-area: mute` (its own row under the
@@ -81,13 +82,36 @@
    * written for this row and never updated when it left: as a grid child of #layout there was no
    * container ancestor, so those cqw units had been silently resolving against the VIEWPORT.
    *
-   * So it goes home. `margin-left:auto` pins it to the right of the row, and `flex-wrap` on the row
-   * answers "does it fit" exactly — no threshold to get wrong by a pixel, and the cqw units resolve
-   * against the row they were written for. Where it does not fit it wraps to its own line INSIDE
-   * the controls area, which still satisfies P6's actual goal ("on narrow screens the mute button
-   * can go off-screen"). The `mute` grid area is gone; leaving it would cost an empty 14px gap row.
+   * FIRST ATTEMPT, AND WHY IT WAS NOT ENOUGH (Wyatt, 2026-08-02, screenshots at 327 and 300px):
+   * putting the button inside #controlsRow and letting flex-wrap decide got the inline case right at
+   * every width, but the WRAP case landed it in a stranded gap directly under the clock — right
+   * aligned, floating between the clock and the recipe card. "this is exactly why i wanted this work
+   * to be done properly." He is right, and the miss was mine: I asserted "inline at every size" and
+   * never looked at what wrapping actually produced.
+   *
+   * His ruling: too narrow for the clock row -> UNDER THE CAPTAINS BOX, just above the footer links.
+   * That is P6's original placement with P6's broken CONDITION replaced.
+   *
+   * WHY A WRAPPER. The button must be a #layout GRID item to sit under the captains box, and must
+   * share #controlsRow's exact box to align with the clock — and one element cannot be a flex child
+   * of the row and a grid item elsewhere. #muteSlot is that seam: it carries the identical
+   * `width/max-width/margin` trio #controlsRow uses, so when both occupy the `controls` cell their
+   * boxes coincide exactly and the button's right edge lands on the row's right edge, at any width
+   * and in either layout. The button keeps its own styling; the slot only positions it.
+   *
+   * WHY A THRESHOLD after all. A container query on #controlsRow cannot reach a non-descendant, and
+   * flex-wrap — the only instrument that answers "does it fit" without a number — is what produced
+   * the stranded gap. So the query is on #layout, and 460px is chosen to clear the measured need
+   * (313-333px for flippenator + clock + button + gaps) with real margin rather than the 1px the
+   * exact fit left at 390. Every phone width therefore lands under the captains box, which is what
+   * he asked for; tablets and up go inline.
    */
-  #btnMute { margin-left: auto; }
+  #muteSlot { grid-area: mute; width: 100%; max-width: var(--boardW, 100%);
+    margin-left: auto; margin-right: auto; display: flex; justify-content: flex-start; }
+  @container gamelayout (min-width: 460px) {
+    /* wide enough for the clock row: same cell as #controlsRow, same box, pinned to its right edge */
+    #muteSlot { grid-area: controls; justify-content: flex-end; align-self: center; }
+  }
   #actionPanel { grid-area: narration; }
   /* container for the chip-row query below — the captains box responds to ITS OWN width,
      not the viewport's, so the layout switches wherever the box is actually too narrow. */
@@ -1291,9 +1315,9 @@
            Wave 5's job and needs Wyatt's art pipeline; this ships behaviour complete now with no
            broken image and no borrowed icon (horn.png already carries the 📯 meaning). Visible
            content set every tick by setClockUI(); click bound once in wireLobby().
-           MUTE-01 (2026-08-02): returned to this row, where its CSS always assumed it was — see the
-           #btnMute rule for why P6's grid placement mis-positioned AND mis-sized it. -->
-      <button id="btnMute" type="button" style="display:none">🔊</button>
+           MUTE-01 (2026-08-02): the button itself lives in #muteSlot, a #layout grid child, so it can
+           sit under the captains box when the row is too narrow — see the #muteSlot rule. Its cqw
+           sizing still resolves against this row, because #muteSlot shares this row's box. -->
       <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
     <div id="actionPanel" style="display:none"><div id="apGrid"><div id="apGridInner"></div></div></div>
@@ -1301,6 +1325,12 @@
       <h3>Captains</h3>
       <div id="players"></div>
     </div>
+    <!-- MUTE-01 (Wyatt, 2026-08-02): "when the screen size is too narrow to have the mute button
+         appear in line with the turn clock, move it underneath the captain's box, just above the
+         footer links." #muteSlot is the grid item that makes that possible while still letting the
+         button align with the clock row when there IS space — see its CSS for why the wrapper
+         exists. Placed here, after the captains box, so DOM order matches the narrow reading order. -->
+    <div id="muteSlot"><button id="btnMute" type="button" style="display:none">🔊</button></div>
     <div class="panel" id="statsWrap" style="display:none">
       <h3>End of voyage</h3>
       <div id="statsPanel"></div>
