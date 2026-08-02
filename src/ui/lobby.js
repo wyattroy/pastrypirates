@@ -215,18 +215,31 @@ export function wireNameModal(){
 }
 
 /* ================= lobby / room ================= */
+// LOAD-03 (Wyatt's proposal, 2026-08-01): behind the welcome and lobby cards sits a STATIC blurred
+// picture, not the live game. `.bg-blurred` put a filter over the WHOLE of #game — board SVG,
+// captains panel and controls — and a filter forces that subtree into its own compositing layer,
+// so ANY invalidation inside it re-rasterises AND re-blurs the entire surface. The game was being
+// built, laid out and composited purely to be hidden behind a card.
+//
+// #game is now hidden outright on these screens rather than blurred, so there is no live surface to
+// invalidate. `.bg-blurred` stays on the element: it is what the game view removes on the way in,
+// and leaving it set keeps that transition honest if #game is ever shown while a card is still up.
+const showBackdrop=on=>{const b=$("welcomeBackdrop");if(b)b.style.display=on?"block":"none";};
 export function showHome(){
   showStep("stepChoose");
   $("lobby").style.display="flex";$("lobbyRoom").style.display="none";
-  $("game").style.display="";$("game").classList.add("bg-blurred");
+  showBackdrop(true);
+  $("game").style.display="none";$("game").classList.add("bg-blurred");
 }
 export function showRoom(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="flex";
-  $("game").style.display="";$("game").classList.add("bg-blurred");
+  showBackdrop(true);
+  $("game").style.display="none";$("game").classList.add("bg-blurred");
   $("roomCode").textContent=appState.room;
 }
 export function showGameView(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="none";
+  showBackdrop(false);
   $("game").style.display="";$("game").classList.remove("bg-blurred");
   syncBoardSizing();
 }

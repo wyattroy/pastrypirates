@@ -796,6 +796,19 @@
   /* ---- welcome modal + online lobby ---- */
   #game { padding:14px; transition: filter .45s ease, transform .45s ease; }
   #game.bg-blurred { filter: blur(7px) saturate(1.15) brightness(.97); pointer-events: none; user-select: none; transform: scale(1.015); }
+  /* LOAD-03 (Wyatt's proposal, 2026-08-01): the welcome and lobby screens sit on a STATIC blurred
+     picture instead of a live game that is built, laid out and composited only to be hidden behind
+     a card. Same filter values as .bg-blurred above, so the look does not change.
+     A still is the HONEST thing to show as well as the cheap one: that backdrop was never the
+     player's game. renderDecorativeBoard() and startSinglePlayer() draw two independent random
+     seeds (src/ui/board.js, src/ui/flow.js), so the board behind the card was always a different
+     voyage from the one about to start — Wyatt spotted it from two screenshots.
+     512x512, 71KB, captured from the real board so the art is the game's own. It is upscaled to
+     cover and then blurred 7px, which is exactly the case where low resolution costs nothing
+     visible. scale(1.06) hides the soft edge a blur leaves at the frame. */
+  #welcomeBackdrop { position: fixed; inset: 0; z-index: 0; display: none; pointer-events: none;
+    background: url(assets/welcome-backdrop.jpg) center / cover no-repeat;
+    filter: blur(7px) saturate(1.15) brightness(.97); transform: scale(1.06); }
   .modalOverlay { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center;
     padding: 24px; overflow-y: auto;
     background: radial-gradient(ellipse at 50% 12%, rgba(69,223,166,.22), rgba(41,163,178,.40) 68%); }
@@ -1199,6 +1212,12 @@
     <button class="primary big" id="btnRestoreRestart" type="button">🔄 Start a fresh voyage</button>
   </div>
 </div>
+
+<!-- LOAD-03: the static blurred backdrop the welcome and lobby screens sit on, in place of a live
+     game rendered only to be hidden. Declared BEFORE #game and at z-index 0 so it sits behind
+     everything; the modals are z-index 1000+. See its CSS above for why a still is both cheaper and
+     more honest than the live board. -->
+<div id="welcomeBackdrop" aria-hidden="true"></div>
 
 <!-- ===================== GAME ===================== -->
 <div id="game" style="display:none">

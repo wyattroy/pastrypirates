@@ -462,6 +462,19 @@ sessions, on a machine he was reporting as overheating. He was debugging a perfo
 the tooling sent to investigate it was the thing heating his laptop.
 `pkill -f remote-debugging-port` and `pkill -f http.server` before you finish.
 
+**"At the end of the session" is too late, and it already failed once after being written down.**
+Hours after the rule above was added, the same session left **53% CPU across 13 Chrome processes** on
+Wyatt's machine and he had to ask a second time. The gap was *backgrounded* work: a probe launched
+with `run_in_background` outlives the tool call that started it, so nothing forces a reckoning. So:
+
+- **Bound every long probe.** A driver loop needs a deadline (`for (let i=0;i<N;i++)`), never
+  `while (true)`. A full solo voyage takes minutes — see §5e and inject the state instead of playing
+  to it.
+- **Kill the probe the moment you have the answer**, not when the task ends. If a run is still going
+  and you already know what it will tell you, that is a reason to kill it, not to let it finish.
+- **Never leave a probe running across a reply.** If you are writing a message to Wyatt, either the
+  probe is done or you kill it first — he is at the keyboard, on the machine it is heating.
+
 ## After EVERY merge, pull origin main back down into local main
 
 Wyatt, 2026-08-02: *"we are going to pull origin main back down into local main after every merge so
