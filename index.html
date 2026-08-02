@@ -57,16 +57,37 @@
   @keyframes bootSlide { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
   @media (prefers-reduced-motion: reduce) { #bootLoader .bootShip, #bootLoader .bootBarFill { animation: none; } }
   #layout { display: grid; gap: 14px; padding: 14px; grid-template-columns: 1fr;
-    grid-template-areas: "board" "controls" "narration" "stats" "captains" "mute" "chat"; }
+    grid-template-areas: "board" "controls" "narration" "stats" "captains" "chat"; }
   #left { grid-area: board; min-width: 0; }
+  /* flex-wrap is what places #btnMute now — see its rule below. */
   #controlsRow { grid-area: controls; display: flex; gap: 10px; align-items: stretch;
-    container-type: inline-size; }
-  /* P6 (Wyatt, 2026-08-01, second pass): "it does sit below on narrow, but it should sit inline on
-     widescreen." Stacked layout -> its own row under the captains box. Wide/sidebar layout -> back
-     up beside the clock, which is where it always belonged there and where it never overflowed.
-     The wide layout has no `mute` area at all, so the override below is what places it. */
-  #btnMute { grid-area: mute; justify-self: start; }
-  #game.layoutWide #btnMute { grid-area: controls; justify-self: start; align-self: end; }
+    flex-wrap: wrap; container-type: inline-size; container-name: controls; }
+  /* MUTE-01 (Wyatt, 2026-08-02: "the mute button is still misaligned").
+   *
+   * P6 had placed this as a GRID item with two homes — `grid-area: mute` (its own row under the
+   * captains box) and a wide-layout override putting it back beside the clock. The bug was the
+   * CONDITION: that override keyed on the sidebar-layout class, which syncBoardSizing() toggles on
+   * whether the SIDEBAR has room for a row of ingredient chips — not the same question as whether
+   * the CONTROLS ROW has room for one small button. Measured at 1000x700, a wide window, the class
+   * was absent, so the button dropped to its own row at x=28 while the clock sat at x=382. That is
+   * Wyatt's screenshot.
+   *
+   * A container query on #controlsRow was the obvious instrument and could not work: container
+   * queries only style DESCENDANTS, and P6 had moved this element out of that row.
+   *
+   * Two things settled it. Measured, the button FITS INLINE AT EVERY SIZE — 333px needed against a
+   * 334px row even at 390px phone portrait — so "below the captains box" was never a space
+   * requirement. And its styling (`flex: 0 0 auto`, `align-self: center`, every size in `cqw`) was
+   * written for this row and never updated when it left: as a grid child of #layout there was no
+   * container ancestor, so those cqw units had been silently resolving against the VIEWPORT.
+   *
+   * So it goes home. `margin-left:auto` pins it to the right of the row, and `flex-wrap` on the row
+   * answers "does it fit" exactly — no threshold to get wrong by a pixel, and the cqw units resolve
+   * against the row they were written for. Where it does not fit it wraps to its own line INSIDE
+   * the controls area, which still satisfies P6's actual goal ("on narrow screens the mute button
+   * can go off-screen"). The `mute` grid area is gone; leaving it would cost an empty 14px gap row.
+   */
+  #btnMute { margin-left: auto; }
   #actionPanel { grid-area: narration; }
   /* container for the chip-row query below — the captains box responds to ITS OWN width,
      not the viewport's, so the layout switches wherever the box is actually too narrow. */
@@ -1269,7 +1290,10 @@
            Bare 🔊/🔇 emoji scaffold (D-14): the real speaker icon + blocked-slash overlay is
            Wave 5's job and needs Wyatt's art pipeline; this ships behaviour complete now with no
            broken image and no borrowed icon (horn.png already carries the 📯 meaning). Visible
-           content set every tick by setClockUI(); click bound once in wireLobby(). -->
+           content set every tick by setClockUI(); click bound once in wireLobby().
+           MUTE-01 (2026-08-02): returned to this row, where its CSS always assumed it was — see the
+           #btnMute rule for why P6's grid placement mis-positioned AND mis-sized it. -->
+      <button id="btnMute" type="button" style="display:none">🔊</button>
       <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
     <div id="actionPanel" style="display:none"><div id="apGrid"><div id="apGridInner"></div></div></div>
@@ -1277,12 +1301,6 @@
       <h3>Captains</h3>
       <div id="players"></div>
     </div>
-    <!-- P6 (Wyatt, 2026-08-01: "on narrow screens the mute button can go off-screen. fix: on narrow
-         screens, put mute button below captain's box"). Moved OUT of #controlsRow to be a direct
-         #layout child so the page grid can place it: below the captains box in the stacked layout,
-         and on its own row under the controls in the wide/sidebar layout. It cannot sit inside the
-         controls flex row AND be grid-placed elsewhere — one element, one home. -->
-    <button id="btnMute" type="button" style="display:none">🔊</button>
     <div class="panel" id="statsWrap" style="display:none">
       <h3>End of voyage</h3>
       <div id="statsPanel"></div>

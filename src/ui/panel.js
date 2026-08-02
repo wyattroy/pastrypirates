@@ -53,6 +53,11 @@ const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>
 // on the welcome-screen early return below for what unconditional writes were costing.
 function setIf(el,prop,val){ if(el&&el[prop]!==val)el[prop]=val; }
 function setStyleIf(el,prop,val){ if(el&&el.style[prop]!==val)el.style[prop]=val; }
+// MUTE-01: the attribute sibling of setIf. Needed for aria-*, which must be written as ATTRIBUTES
+// rather than via the `el.ariaLabel` IDL properties — ARIA reflection only reached Safari 16.4, and
+// this game is played on iOS. Compares first for the same reason setIf does: this runs on the 500ms
+// tick, and unconditional DOM writes are what made Safari burn 137% CPU behind the welcome blur.
+function setAttrIf(el,name,val){ if(el&&el.getAttribute(name)!==val)el.setAttribute(name,val); }
 export function setClockUI(){
   const wrap=$("shotClockPanel");if(!wrap)return;
   // ⚠ SAFARI CPU (Wyatt, 2026-08-01: "Safari rendering is killing my computer when I open
@@ -91,7 +96,30 @@ export function setClockUI(){
     // Tooltip copy recorded in .planning/todos/pending/copy-shipped-vs-approved-gate.md — no
     // @copy marker (a new misc.sound.* id would need registering in art-review's node-group
     // table, out of scope for this phase; see that file's phase-21 entry for the follow-up).
-    muteEl.title=isMuted()?"Turn the sound back on":"Mute the sound";
+    //
+    // MUTE-01 (Wyatt, 2026-08-01: "I don't see any mute tooltips — where are they?"). They were
+    // real, but `title` is a DESKTOP-ONLY affordance: it needs a hover-and-hold, and on touch it
+    // never appears at all. So on the device he mostly plays on there was nothing to see, and no
+    // amount of styling fixes that — a hover tooltip has no touch equivalent to fix.
+    //
+    // The honest resolution, and the one the todo asked for as a deliberate decision rather than an
+    // assumed bug: keep `title` as the desktop nicety it is, and add the treatment that works
+    // EVERYWHERE. aria-label names the control for assistive tech on any device, and aria-pressed
+    // exposes the on/off state as a real toggle rather than something inferable only from the
+    // picture. Both are kept in step with the icon on the same tick, so they can never drift.
+    //
+    // Deliberately NOT a custom tooltip bubble: it would be a second, permanently-visible-on-touch
+    // label competing with the icon for space in a row that already clamps hard at 390px, to say
+    // what the icon already says. The todo's own bar — "the mute state must be readable from the
+    // icon alone regardless" — is met by Wyatt's megaphone/slashed-megaphone pair above.
+    // setAttribute, NOT the `el.ariaLabel` IDL property: ARIA reflection only landed in Safari 16.4
+    // and this game is played on iOS. Still compared before writing, because this runs on the 500ms
+    // tick and unconditional DOM writes behind the blur are exactly what cost 137% CPU in Safari
+    // (see this function's header).
+    const muteLabel=isMuted()?"Turn the sound back on":"Mute the sound";
+    setIf(muteEl,"title",muteLabel);
+    setAttrIf(muteEl,"aria-label",muteLabel);
+    setAttrIf(muteEl,"aria-pressed",isMuted()?"true":"false");
   }
   wrap.classList.remove("warming"); // UI-02: only the active countdown branch below re-adds it
   if(appState.liveDone){

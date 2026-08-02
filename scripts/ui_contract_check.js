@@ -364,7 +364,14 @@ const LAYOUT_WIDE_EXPECTED = [
   // 4 -> 5 (P6, Wyatt 2026-08-01): #btnMute moved out of #controlsRow to a direct #layout child
   // so the page grid can place it — below the captains box when stacked, and back inline beside the
   // clock in the wide layout. That wide-layout override is the 5th usage. Deliberate, not drift.
-  { rel: "index.html", count: 5 },
+  //
+  // 5 -> 4 (MUTE-01, Wyatt 2026-08-02: "the mute button is still misaligned"): that 5th usage is
+  // GONE. Keying the button's placement on the sidebar-layout class was the bug — the class answers
+  // "does the sidebar fit a row of ingredient chips", not "does the controls row fit one button",
+  // and at 1000x700 the two disagree. #btnMute is back inside #controlsRow, where its cqw-based
+  // styling always assumed it lived, and flex-wrap answers the fit question directly. What remains
+  // is the three genuine wide-layout rules plus one mention in a comment.
+  { rel: "index.html", count: 4 },
   { rel: path.join("src", "ui", "board.js"), count: 1 },
 ];
 
