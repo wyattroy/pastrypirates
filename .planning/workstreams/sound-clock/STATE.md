@@ -8,13 +8,13 @@ status: complete
 stopped_at: "Phase 21 COMPLETE — merged, live, and NO OPEN ITEMS. The mute button (the last one) was fixed and shipped 2026-08-02."
 last_updated: "2026-08-02T14:45:00.000Z"
 last_activity: 2026-08-02
-last_activity_desc: "SHIPPED. Phase 21 merged to main and live. Its blocker (the real speaker icon, D-14) shipped 2026-08-01, and Wyatt's full verification matrix passed including the Safari storm-with-sound regression check and the timer toggle across all three modes. OPEN, scoped to this workstream: the MUTE BUTTON is misaligned in a wide-but-stacked window and its tooltips are invisible — .planning/todos/done/2026-08-01-mute-button-alignment-and-tooltips.md. Diagnosed, not fixed: the CSS rule keys on .layoutWide, which syncBoardSizing() toggles on whether the SIDEBAR has room, not on viewport width — so a wide stacked window drops the button to its own row. A container query on the controls row is the right instrument. The tooltips are native `title` attributes, which never appear on touch at all. Severity minor. Wyatt noticed it again on 2026-08-02 and asked when it gets fixed — it is the only known open item in this workstream."
+last_activity_desc: "SHIPPED. Phase 21 merged to main and live. Its blocker (the real speaker icon, D-14) shipped 2026-08-01, and Wyatt's full verification matrix passed including the Safari storm-with-sound regression check and the timer toggle across all three modes. CLOSED 2026-08-02 (this line said OPEN until then): the mute button was misaligned in a wide-but-stacked window with invisible tooltips — fixed and shipped, see .planning/todos/done/2026-08-01-mute-button-alignment-and-tooltips.md. Diagnosed, not fixed: the CSS rule keys on .layoutWide, which syncBoardSizing() toggles on whether the SIDEBAR has room, not on viewport width — so a wide stacked window drops the button to its own row. A container query on the controls row is the right instrument. The tooltips are native `title` attributes, which never appear on touch at all. Severity minor. Wyatt noticed it again on 2026-08-02; it was fixed and shipped the same day. NOTHING IS OPEN in this workstream."
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 90
+  completed_plans: 5
+  percent: 100
 workstream: sound-clock
 created: 2026-07-31
 ---
@@ -23,15 +23,22 @@ created: 2026-07-31
 
 ## Current Position
 
-**Status:** Phase 21 code-complete; blocked on Wyatt for two things (see below)
-**Current Phase:** 21
-**Last Activity:** 2026-08-01 — Phase 21 Plan 05 executed autonomously (overnight run), the phase's final wave
-**Last Activity Description:** Phase 21 Plan 05 executed autonomously (overnight run)
+**Status:** Complete — Phase 21 shipped, live, no open items
+**Current Phase:** 21 (done; this workstream owns no further phases in v1.3)
+**Last Activity:** 2026-08-02 — mute button placement, size, icon legibility and touch labelling fixed and shipped; phase closed
+**Last Activity Description:** Phase 21 merged and live. D-14 (the real speaker icon that blocked 21-05's Task 1 overnight) landed in commit `ec12892` — Wyatt's megaphone icons replaced the emoji scaffold. The mute button was then fixed 2026-08-02 (`todos/done/2026-08-01-mute-button-alignment-and-tooltips.md`). Nothing remains open.
+
+> **Corrected 2026-08-02.** These lines read *"Phase 21 code-complete; blocked on Wyatt for two
+> things"* with **Phases Complete: 0**, while this file's own frontmatter said `status: complete`.
+> The body was written 2026-08-01 and never updated when the blocking work landed the next day.
+> Noticed while reading `gsd-tools validate health` output — the same frontmatter-vs-body
+> contradiction found twice elsewhere the same day. The stale "Session Continuity" block below is
+> kept as a historical record of the overnight run, not as current status.
 
 ## Progress
 
-**Phases Complete:** 0
-**Current Plan:** 5 (Task 2 of 2 complete; Task 1 blocked on Wyatt)
+**Phases Complete:** 1 of 1
+**Current Plan:** none — 21-05 was the last
 
 ## Session Continuity
 

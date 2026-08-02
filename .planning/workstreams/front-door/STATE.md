@@ -8,11 +8,11 @@ status: complete
 stopped_at: "Phase 22 COMPLETE — merged, live, and NO OPEN ITEMS. LOAD-03's last third landed 2026-08-02: the welcome screen no longer constructs a game."
 last_updated: "2026-08-02T14:45:00.000Z"
 last_activity: 2026-08-02
-last_activity_desc: "SHIPPED. Phase 22 merged to main and live on playpastrypirates.com. On 2026-08-02 LOAD-03 was also built and shipped into this same screen: a static blurred backdrop (assets/welcome-backdrop.jpg, 512x512/71KB, captured from the real board) replaced a live game that was being built, laid out and composited only to be hidden behind the card; and boot() was restructured to decide the journey BEFORE painting. Measured as journeys, sampling every 60ms from navigation: a first-time visitor sees the home screen at ~170ms with the live game never rendered, and a mid-game refresh shows ZERO frames of the welcome screen with the board up at ~123ms under a loader reading 'Reconnecting to yer voyage…'. Two bugs were fixed on the way: the welcome screen had been running the End of Voyage celebration (60 layouts/sec from four leftover victory pastries), and showHome() ran unconditionally so a multiplayer refresh could fade the loader onto the WELCOME SCREEN before the player's voyage appeared. OPEN, scoped to this workstream: boot() still CONSTRUCTS a decorative game it never shows — .planning/todos/done/2026-08-02-welcome-should-not-construct-a-game.md — blocked on unguarded appState.game reads in src/ui/panel.js. That is the last third of LOAD-03."
+last_activity_desc: "SHIPPED. Phase 22 merged to main and live on playpastrypirates.com. On 2026-08-02 LOAD-03 was also built and shipped into this same screen: a static blurred backdrop (assets/welcome-backdrop.jpg, 512x512/71KB, captured from the real board) replaced a live game that was being built, laid out and composited only to be hidden behind the card; and boot() was restructured to decide the journey BEFORE painting. Measured as journeys, sampling every 60ms from navigation: a first-time visitor sees the home screen at ~170ms with the live game never rendered, and a mid-game refresh shows ZERO frames of the welcome screen with the board up at ~123ms under a loader reading 'Reconnecting to yer voyage…'. Two bugs were fixed on the way: the welcome screen had been running the End of Voyage celebration (60 layouts/sec from four leftover victory pastries), and showHome() ran unconditionally so a multiplayer refresh could fade the loader onto the WELCOME SCREEN before the player's voyage appeared. CLOSED 2026-08-02 (this line said OPEN until then): boot() no longer constructs a decorative game it never shows — the last third of LOAD-03, shipped. See .planning/todos/done/2026-08-02-welcome-should-not-construct-a-game.md. NOTHING IS OPEN in this workstream."
 
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
   completed_plans: 5
   percent: 100
@@ -24,15 +24,21 @@ created: 2026-07-31
 
 ## Current Position
 
-**Status:** Executing Phase 22 — all 5 plans executed, browser verification pass outstanding
-**Current Phase:** 22
-**Last Activity:** 2026-08-01 — Plans 22-04/22-05 (About-page screenshot install + Wyatt's full copy/feedback pass) complete
+**Status:** Complete — Phase 22 shipped, live, no open items
+**Current Phase:** 22 (done; this workstream owns no further phases in v1.3)
+**Last Activity:** 2026-08-02 — LOAD-03's last third landed: the welcome screen no longer constructs a game
+
+> **Corrected 2026-08-02.** These lines read *"Executing Phase 22 — all 5 plans executed, browser
+> verification pass outstanding"* with **Phases Complete: 0**, while this file's own frontmatter said
+> `status: complete` and its `stopped_at` recorded the phase merged, live and with no open items.
+> Noticed while reading `gsd-tools validate health` output — the same frontmatter-vs-body
+> contradiction found twice elsewhere the same day.
 **Last Activity Description:** See `last_activity_desc` in frontmatter above for the full account. In short: both of Phase 22's human approval gates (D-11 screenshot pick, D-09 copy sign-off) are now resolved, and Wyatt's nine-item playtesting review of the About page has been implemented and committed across four atomic commits (`b2395ec`, `f7972ff`, `1b42931`, `882019b`). See `22-04-SUMMARY.md` and `22-05-SUMMARY.md` for full detail.
 
 ## Progress
 
-**Phases Complete:** 0
-**Current Plan:** 5 of 5 (all plans complete; phase-level browser verification still outstanding)
+**Phases Complete:** 1 of 1
+**Current Plan:** none — 22-05 was the last
 
 ## Session Continuity
 
