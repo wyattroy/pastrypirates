@@ -5,7 +5,9 @@
 
 ## Phases in this workstream
 
-- [ ] **Phase 22: The Front Door** — You name yourself after choosing how to play, a real About page, and a Google preview image (FIX-01, ABOUT-01/02, META-01)
+- [x] **Phase 22: The Front Door** — SHIPPED 2026-08-02, live on playpastrypirates.com. You name yourself after choosing how to play, a real About page, and a Google preview image (FIX-01, ABOUT-01/02, META-01).
+  **Plus LOAD-03, the front door's speed** (also shipped): a static blurred backdrop instead of a live game rendered only to be hidden, and a boot that decides the journey before painting — first-time visitor sees the home screen at ~170ms; a mid-game refresh never sees the welcome screen at all.
+  - [ ] **STILL OPEN — the last third of LOAD-03:** `boot()` still CONSTRUCTS a decorative game it never shows. See `.planning/todos/pending/2026-08-02-welcome-should-not-construct-a-game.md`. Blocked on unguarded `appState.game` reads in `src/ui/panel.js` (`:178`, `:245`, `:246`, `:248`, `:250`) which `setClockUI` hits on a 500ms interval — removing the decorative board without guarding those turns the front door into a TypeError on a timer.
 
 ## Phase Details
 

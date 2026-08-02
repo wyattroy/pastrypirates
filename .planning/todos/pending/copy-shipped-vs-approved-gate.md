@@ -113,3 +113,42 @@ automatically.
 | 2026-08-01 | 18-06 (FIX-06) | every `button.primary` site (9 static `class="primary"` sites + 1 dynamic `.apBtn` site in `src/ui/flow.js`) plus `#btnConfirmLeave` | `index.html` (CSS block + `#btnConfirmLeave` markup) | Visual only, no word changed: `button.primary`/`button.primary:hover`/`.apBtn.primary:hover` restyled from a solid orange fill to the outline + pale-fill recipe taken verbatim from `.footerKofi`/`.footerKofi:hover`. `#btnConfirmLeave` additionally gains the `.footerLeave` red destructive recipe (label unchanged, `class="primary big footerLeave"` — kept `primary` so the enumerated button count doesn't move) via a `button.footerLeave` specificity bump over `button.primary`. | Not a copy change under this gate's own definition (no text differs on any of the 10 sites) — logged anyway per the same abundance-of-caution precedent 18-03's FIX-21 row set for a structural-only CSS/markup change. |
 | 2026-08-01 | 18-06 (FIX-17) | captain colour swatch, player rows + lobby seat list | `src/ui/util.js` (`buildPlayerRows`), `src/ui/lobby.js` (`renderSeatList`), `index.html` (CSS) | Visual only, no word changed: the `<span class="dot">` swatch is deleted from both templates; every other `HEXCOL[i]` consumer (row tint, `--rowcol` border, `.pname` colour) is untouched. `.prowTop`'s grid drops its 14px dot column; `.player-row .dot`/`.seat .dot` rules deleted. | Not a copy change (no text at either site) — logged for the same abundance-of-caution reason as the FIX-06 row above. |
 | 2026-08-01 | 18-06 (FIX-09) | ingredient chips, narrow-screen (`@media (max-width: 480px)`) | `index.html` (CSS) | Visual only, no word changed: two candidate narrow-screen chip treatments (shrink vs. own row), both live and toggleable via `body.chipsOwnRow`, per D-03. Neither chosen yet — 18-07 deletes the loser. | Not a copy change (no text anywhere in this fix) — logged for the same abundance-of-caution reason as the two rows above. |
+
+---
+
+## DESIGN INTENT added 2026-08-02 — audit coverage, not just audit accuracy
+
+Wyatt, 2026-08-02: **"no player-facing copy should sit outside of the audit tool, this is a design
+intent."**
+
+This todo has so far been about copy the audit *knows about* but never compared against his
+approvals. This is the other half: **copy the audit cannot see at all.** A string the extractor never
+reaches is worse than an unverified one, because it is invisible rather than merely unchecked — it
+will never appear on a review card, so he cannot approve it, reject it or even know it exists.
+
+### Known blind spots, found 2026-08-02
+
+| Site | Why the extractor misses it |
+|---|---|
+| `#bootLoader .bootMsg` — *"Hoisting the sails…"* | static markup in `index.html`; the extractor scans call sites |
+| the same node, set to *"Reconnecting to yer voyage…"* by `boot()` | a `textContent =` assignment, not a call site |
+| every other static string in `index.html` (welcome byline, choice-card labels, room screen, footer buttons) | same reason — nothing walks the markup |
+
+Discovered concretely: adding the reconnecting line, a real piece of player-facing copy, produced a
+`@copy` marker that **bound to nothing** and the audit gate rejected it. The marker was removed and
+the string shipped unregistered — consistent with how the loader's existing message is treated, and
+exactly the hole this note exists to close.
+
+### What "covered" has to mean
+
+1. The extractor gains a **markup pass** over `index.html` for player-facing text nodes, alongside
+   the existing call-site scan — otherwise the whole welcome screen stays invisible to review.
+2. It gains a pass for **`textContent`/`innerHTML` assignments of literal strings** in `src/`.
+3. `@copy` ids become bindable at those sites, so a marker is a promise the gate can keep.
+4. A gate then asserts the inverse of today's rule: not merely that every marker binds to a site,
+   but that **every player-facing string is reachable by some card**. Until that exists, the count
+   of uncovered strings is unknown — nobody has ever measured it.
+
+**Until then, every session that adds player-facing copy outside a call site must flag it to Wyatt
+directly in its reply**, because the tool cannot. That is a workaround for a missing gate, not a
+substitute for one.

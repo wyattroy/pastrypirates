@@ -4,11 +4,11 @@ milestone: v1.3
 milestone_name: milestone
 current_phase: 18
 current_plan: 6
-status: executing
-stopped_at: "18-05 complete (FIX-03/D-02 — the shot clock arms when the button row unhides, not at prompt-render; frozen 20s display during the reveal). Next: 18-06, wave 5 (button restyle, captain circles removed, FIX-09 chip treatment)."
-last_updated: "2026-08-01T09:20:00.000Z"
-last_activity: 2026-08-01
-last_activity_desc: 18-05 executed — ask() publishes a one-shot arm continuation instead of arming at prompt-render; panel()'s existing reveal gate (18-01) claims and fires it for local decisions, a new estimateRevealMs() defers the remote path by the actor's own prompt length; withShotClock is chained onto the arm so the 30s auto-skip resolver is provably still installed (proven with a recorded negative experiment); setClockUI() gains a frozen full-window pending display so the clock never ticks or blanks during the reveal
+status: shipped
+stopped_at: "Phase 18 MERGED TO MAIN AND LIVE (2026-08-02). All 12 items from Wyatt's Safari playtest passed."
+last_updated: "2026-08-02T14:45:00.000Z"
+last_activity: 2026-08-02
+last_activity_desc: "SHIPPED. Phase 18 merged to main and live on playpastrypirates.com. All twelve items from Wyatt's 2026-08-01 Safari playtest (P1-P12) verified, and the narration box was rebuilt as one owned phase machine after four failed patch rounds — measured with the headless harness: swaps that actually fade 1-of-9 -> 10-of-11, fades where the box moved 4-of-4 -> 0-of-8, messages whose text reflowed 'every multi-line one' -> 0-of-10, frames where content overflowed 0-of-1476."
 progress:
   total_phases: 1
   completed_phases: 0

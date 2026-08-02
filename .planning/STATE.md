@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: The Game Comes Alive
-status: "v1.3 in progress — Phase 19 complete and merged; 18, 21, 22 executed and staged for integration; 20 unblocked"
-last_updated: "2026-08-01T10:00:00.000Z"
-last_activity: 2026-08-01
-last_activity_desc: "Phases 18, 21 and 22 executed in parallel workstreams and merged into integration/v1.3-phases-18-21-22. Phase 19 (Safari gate) already on main — so Phase 20 is unblocked. Outstanding human gates: 18-07 browser pass, Phase 21's two blockers, Phase 22's browser verification."
-stopped_at: "Integration branch built from origin/main + phases 18/21/22. Not merged to main — main deploys the live site and two phases still owe a browser check."
+status: "v1.3 in progress — 18, 19, 21, 22 MERGED TO MAIN AND LIVE; 20 unblocked and not started"
+last_updated: "2026-08-02T14:40:00.000Z"
+last_activity: 2026-08-02
+last_activity_desc: "v1.3 SHIPPED TO PLAYERS. integration/v1.3-phases-18-21-22 fast-forwarded into main (144 commits) once the multiplayer name cluster was fixed, then a day of follow-on work also merged: the multiplayer name fixes + rename-in-place, the active-turn ripple moved out of SVG (62 layouts/sec -> 2) with the boats split into their own SVG above it, the welcome screen stopped running the End of Voyage celebration, and LOAD-03's front-door speed work. All Safari-verified by Wyatt."
+stopped_at: "main is live and local main is synced (0 ahead, 0 behind). Phase 20 (The Board Comes Alive) is the only v1.3 phase not started. Phase 21 has one known open item — the mute button's alignment and tooltips."
 progress:
   total_phases: 5
   completed_phases: 1
@@ -32,10 +32,10 @@ Last activity: 2026-08-01 — Phase 19 (Safari Check) complete in the `board-win
 | Workstream | Phase | Status |
 |---|---|---|
 | board-wind | 19 Safari Check | ✓ Complete — PASS, smooth at 100 dots, no dot budget needed |
-| board-wind | 20 The Board Comes Alive | Unblocked by 19, not yet planned |
-| prompts-polish | 18 Prompts & Polish | Roadmapped, no plans yet |
-| sound-clock | 21 Sound & the Clock Toggle | Roadmapped, no plans yet |
-| front-door | 22 The Front Door | Roadmapped, no plans yet |
+| board-wind | 20 The Board Comes Alive | **Unblocked, NOT STARTED — the only v1.3 phase with no work done** |
+| prompts-polish | 18 Prompts & Polish | ✓ Built, merged to main, live |
+| sound-clock | 21 Sound & the Clock Toggle | ✓ Built, merged, live — **one open item: the mute button's alignment + tooltips** (`todos/pending/2026-08-01-mute-button-alignment-and-tooltips.md`, severity minor, diagnosed not fixed) |
+| front-door | 22 The Front Door | ✓ Built, merged, live — plus LOAD-03's speed work. **One open item:** the welcome screen still constructs a game it never shows (`todos/pending/2026-08-02-welcome-should-not-construct-a-game.md`) |
 
 Progress: [██░░░░░░░░] 1 of 5 phases complete (v1.3)
 

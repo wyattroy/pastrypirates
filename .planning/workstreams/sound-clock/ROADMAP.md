@@ -5,7 +5,8 @@
 
 ## Phases in this workstream
 
-- [ ] **Phase 21: Sound & the Clock Toggle** — Luis's sound effects on by default, a mute button, his credit — plus the timer on/off toggle finally working in solo and pass-and-play (AUDIO-01/02/03, FIX-02/N-03)
+- [x] **Phase 21: Sound & the Clock Toggle** — SHIPPED 2026-08-02, live on playpastrypirates.com. Luis's sound effects on by default, a mute button, his credit — plus the timer on/off toggle working in solo and pass-and-play (AUDIO-01/02/03, FIX-02/N-03). Wyatt's full verification matrix passed, including the Safari storm-with-sound regression check.
+  - [ ] **STILL OPEN — the mute button's alignment and tooltips.** See `.planning/todos/pending/2026-08-01-mute-button-alignment-and-tooltips.md`. Severity minor, diagnosed but not fixed, and **Wyatt noticed it again on 2026-08-02**. The CSS keys on `.layoutWide`, which `syncBoardSizing()` toggles on whether the SIDEBAR has room — not on viewport width — so a wide-but-stacked window drops the button to its own row. A container query on the controls row is the right instrument. Separately, the tooltips are native `title` attributes, which never appear on touch at all. **This is the only known open item in this workstream.**
 
   **Goal:** Luis's six sound effects play at the right game moments, on by default, with a mute
   button beside the turn clock and Luis credited for them in the Credits modal — plus the turn-timer

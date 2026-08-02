@@ -4,11 +4,11 @@ milestone: v1.3
 milestone_name: milestone
 current_phase: 22
 current_plan: 5
-status: executing
-stopped_at: Completed 22-05-PLAN.md
-last_updated: "2026-08-01T09:20:00.000Z"
-last_activity: 2026-08-01
-last_activity_desc: "Plans 22-04 (Task 3) and 22-05 executed together: Wyatt supplied the shipped hero screenshot directly (assets/about-screenshot.jpg, 1320x888, superseding the five 1200x663 candidates from the earlier capture session — deviation recorded in 22-04-SUMMARY.md) and gave inline nine-item playtesting feedback covering the whole About page, resolving both remaining human gates (D-11 screenshot pick, D-09 copy sign-off). Applied: top 'Play Pastry Pirates' primary CTA (Ko-Fi restyled secondary), hero swap, cocoa-island/flippenator images interspersed through the rules, example-recipes section, testimonials section (four bot-captain quotes), .abtRulesNote paragraph deleted, both TODO(D-09)/TODO(D-11) markers removed, and 'Parley' renamed to 'Trade' across every player-visible rules surface (about.html, index.html's How-To-Play modal, RULES.md, Rules_boardgame.md, .planning/how-to-play-pastry-pirates.md prose) while engine cfg.parley and the narration event key t:'parley' were left untouched. Copy recorded against .planning/todos/pending/copy-shipped-vs-approved-gate.md (Phase 22 approvals section). All five named script gates pass; index.html's <style> block confirmed byte-identical to HEAD. Consolidated browser pass unrun (no browser-automation tool available) — logged to WINDOWS.md entry #8."
+status: shipped
+stopped_at: "Phase 22 MERGED TO MAIN AND LIVE (2026-08-02), plus LOAD-03's front-door speed work. ONE ITEM STILL OPEN — see below."
+last_updated: "2026-08-02T14:45:00.000Z"
+last_activity: 2026-08-02
+last_activity_desc: "SHIPPED. Phase 22 merged to main and live on playpastrypirates.com. On 2026-08-02 LOAD-03 was also built and shipped into this same screen: a static blurred backdrop (assets/welcome-backdrop.jpg, 512x512/71KB, captured from the real board) replaced a live game that was being built, laid out and composited only to be hidden behind the card; and boot() was restructured to decide the journey BEFORE painting. Measured as journeys, sampling every 60ms from navigation: a first-time visitor sees the home screen at ~170ms with the live game never rendered, and a mid-game refresh shows ZERO frames of the welcome screen with the board up at ~123ms under a loader reading 'Reconnecting to yer voyage…'. Two bugs were fixed on the way: the welcome screen had been running the End of Voyage celebration (60 layouts/sec from four leftover victory pastries), and showHome() ran unconditionally so a multiplayer refresh could fade the loader onto the WELCOME SCREEN before the player's voyage appeared. OPEN, scoped to this workstream: boot() still CONSTRUCTS a decorative game it never shows — .planning/todos/pending/2026-08-02-welcome-should-not-construct-a-game.md — blocked on unguarded appState.game reads in src/ui/panel.js. That is the last third of LOAD-03."
 
 progress:
   total_phases: 1
