@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1516,
+      "line": 1523,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -1304,7 +1304,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1225,
+      "line": 1260,
       "fn": "render",
       "rawMsg": "hold.map(x2=>`<span class=\"chip extra\" title=\"surplus cargo: ${iname(x2)}\">${ingImg(x2)}</span>`)",
       "id": "misc.board.surplustooltip"
@@ -1312,7 +1312,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1227,
+      "line": 1262,
       "fn": "render",
       "rawMsg": "chips.join(\"\")+(extras.length?`<span style=\"opacity:.4\">·</span>`:\"\")+extras.join(\"\")",
       "id": "misc.board.prowcargorow"
@@ -1320,7 +1320,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1231,
+      "line": 1266,
       "fn": "render",
       "rawMsg": "`<button type=\"button\" class=\"checkRecipeBtn\" onclick=\"revealMyRecipe()\" style=\"background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}\">🔍 Check my recipe</button>`",
       "id": "misc.board.checkrecipebtn"
@@ -1328,7 +1328,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1238,
+      "line": 1273,
       "fn": "render",
       "rawMsg": "held.join(\"\")||`<span style=\"opacity:.4\">empty hold</span>`",
       "id": "misc.board.emptyhold"
@@ -1336,7 +1336,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1440,
+      "line": 1476,
       "fn": "showStats",
       "rawMsg": "w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`",
       "id": "misc.board.eovbanner"
@@ -1344,7 +1344,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1450,
+      "line": 1486,
       "fn": "showStats",
       "rawMsg": "!winRecipe?\"\":`<div class=\"victoryText\">${pn(w)} baked ${(a=>a?a+\" \":\"\")(recipeArticle(winRecipe))}${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`",
       "id": "adhoc.voyageend.victory"
@@ -1352,7 +1352,7 @@
     {
       "category": "board",
       "file": "src/ui/board.js",
-      "line": 1469,
+      "line": 1505,
       "fn": "showStats",
       "rawMsg": "`<table>\n    <tr><td>Rounds</td><td>${appState.game.round}</td></tr>\n    <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>\n    <tr><td>Trades</td><td>${appState.game.trades}</td></tr>\n    <tr><td>Bakeoff</td><td>${appState.game.finishOrder.length>1?\"yes — \"+appState.game.finishOrder.length+\" finishers\":\"no\"}</td></tr>\n    ${appState.game.players.map((p,i)=>`<tr><td style=\"color:${HEXCOL[i]}\">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join(\"\")}\n    </table>`",
       "id": "misc.board.statsheadings"
@@ -1435,7 +1435,7 @@
     {
       "category": "lobby",
       "file": "src/ui/lobby.js",
-      "line": 307,
+      "line": 316,
       "fn": "renderSeatList",
       "rawMsg": "`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`",
       "id": "misc.lobby.waitcaption"

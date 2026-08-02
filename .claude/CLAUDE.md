@@ -448,6 +448,35 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 `docs/DRIVING-THE-GAME.md` is required reading before any browser or playtest automation. Two traps waste the most sessions: the flippenator coin `#flipCoinWrap` **is** the flip button (it is not an `.apBtn` — this stalled three separate attempts), and a window narrower than about a second cannot be hand-driven at all, so use the armed watcher in §5d.
 
+**Kill every headless Chrome and local server you start, in the same session you start them.** They do
+not exit on their own. Wyatt found two abandoned probes burning **21% CPU each** — still running a
+live game with an autoplay driver — alongside 17 stale `http.server` processes accumulated across
+sessions, on a machine he was reporting as overheating. He was debugging a performance problem while
+the tooling sent to investigate it was the thing heating his laptop.
+`pkill -f remote-debugging-port` and `pkill -f http.server` before you finish.
+
+## NEVER copy CNAME into another repo — it can take the live game down
+
+**Deploy to the preview site with `scripts/deploy-preview.sh` only. Do not hand-roll the sync.**
+
+`CNAME` in this repo contains `playpastrypirates.com`. GitHub Pages reads that file as a *claim* on
+the domain, so a second repo containing it does not fail safe — GitHub unsets the domain on one of
+them and **the live game goes down for real players**, with DNS and certificate re-issue standing
+between you and recovery.
+
+**Two separate Claude sessions have now come within one command of doing this.** Both were writing
+their own `rsync`/`cp` to publish a preview build. That is the pattern to distrust: the preview repo
+*is* a copy of this one, so "copy everything across" feels obviously correct, and `CNAME` is a
+21-byte file nobody notices in a 130-file diff.
+
+`scripts/deploy-preview.sh` excludes it and then re-checks the checkout before pushing, because the
+part that failed twice is the judgement of whoever ran the command — so the protection cannot live
+in judgement.
+
+The same care applies to any repo, gist, artifact, bucket or deploy target that is not this one:
+**`CNAME` never leaves.** If you are ever copying this repo wholesale anywhere, stop and either use
+the script or write down explicitly why the destination cannot contest the domain.
+
 <!-- GSD:profile-start -->
 
 ## Developer Profile
