@@ -295,8 +295,17 @@ export function renderSeatList(seats){
     // reader, `{name}` for another human, `{captain default} — 🤖 bot` for an empty seat.
     if(s.id)label=me?"you":"";
     else label="🤖 bot";
+    // NAME-02 (Wyatt, 2026-08-01): "put the Change yer name inside your pill, so it's easier to
+    // see." It renders ONLY in the reader's own row — the one place a player looks to check how
+    // their name reads — and only for a seat that is actually theirs, so there is no control
+    // suggesting you can rename a bot or another captain.
+    //
+    // It is rebuilt on every seats update, so its click cannot be bound once at wire time. The
+    // handler is DELEGATED from #seatList in src/orchestrator.js; nothing here binds it, which also
+    // keeps this file free of the net-calling code its purity bar (D-07) forbids.
+    const rename=me?`<button class="seatRename" type="button" id="btnChangeName">Change yer name</button>`:"";
     html+=`<div class="seat ${me?"me":""}">
-      <span class="nm">${pn(i)}${label?` — ${label}`:""}</span></div>`;
+      <span class="nm">${pn(i)}${label?` — ${label}`:""}</span>${rename}</div>`;
   }
   $("seatList").innerHTML=emojify(html);
   if(appState.isHost){

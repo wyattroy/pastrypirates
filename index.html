@@ -758,6 +758,15 @@
   .modalOverlay { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center;
     padding: 24px; overflow-y: auto;
     background: radial-gradient(ellipse at 50% 12%, rgba(69,223,166,.22), rgba(41,163,178,.40) 68%); }
+  /* NAME-02 (Wyatt, 2026-08-01): "i think maybe the modal pops up BEHIND the join crew modal —
+     because the background blur changes color, but i cannot see it until i click back."
+     Exactly right. Every .modalOverlay shares z-index:1000, so which one wins is decided purely by
+     DOM order — and #lobbyRoom (line ~995) is declared AFTER #nameModal (line ~975), so it painted
+     over it. Harmless until the room screen gained "Change yer name", because until then the name
+     modal was never open at the same time as another overlay.
+     The name modal is a modal OVER a screen, never a peer of one, so it wins outright rather than
+     being reordered in the markup — a fix that cannot be undone by someone moving the markup. */
+  #nameModal { z-index: 1001; }
   .modalCard { background: linear-gradient(175deg, #ffffff, var(--parch2) 250%); border: 3px solid var(--teal);
     border-radius: 20px; padding: 26px 28px 22px; max-width: 440px; width: 100%; text-align: center;
     box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18); }
@@ -852,6 +861,16 @@
   .seat { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; margin:5px 0; border:1.5px solid var(--line); }
   .seat .nm { flex:1; font-weight:600; }
   .seat.me { background:var(--lemon); border-color:var(--accent); }
+  /* NAME-02 (Wyatt, 2026-08-01): "put the Change yer name inside your pill, so it's easier to see,
+     and wrap it in a standard styling blue button." It rides in the reader's OWN seat row, which
+     .seat's existing flex + `.nm{flex:1}` right-aligns with no layout work.
+     SOLID teal rather than the house outline-and-faded-fill pattern (button.primary / .footerKofi):
+     that pattern fills with --lemon, and this button sits ON --lemon, so an outline button would
+     have all but vanished against the pill it lives in. Teal is the house blue, so the fill is the
+     palette's, not a new colour. */
+  .seat .seatRename { flex:0 0 auto; padding:4px 11px; font-size:12.5px; font-weight:700;
+    border:1.5px solid var(--teal); background:var(--teal); color:#fff; border-radius:7px; }
+  .seat .seatRename:hover { background:#22909e; border-color:#22909e; }
   .who { font-size:11px; font-weight:normal; opacity:.7; }
   /* ---- recipe draft cards: an aged treasure-map recipe leaf ---- */
   .apBtns.recipes { gap: 14px; }
@@ -1008,14 +1027,6 @@
            board and was, in Wyatt's words, "almost impossible to see". -->
       <button class="backLink roomBack" type="button" id="btnRoomBack">← back</button>
       <div id="seatList"></div>
-      <!-- NAME-02 (Wyatt, 2026-08-01): "back should go back one step, not exit out entirely. the
-           player may just want to change their name." Renaming is the goal behind that note, and
-           this serves it directly — it reopens the name modal and rewrites this player's seat in
-           place, so nobody has to leave a room to fix a name. "← back" above is deliberately left
-           alone: it is the only way out of a room, and for a host it must keep tearing the room down
-           (abandonRoom()). Sits under the captains list so it reads against the row showing the
-           player their own name. -->
-      <button class="backLink roomBack" type="button" id="btnChangeName">Change yer name</button>
       <div id="waitMsg" class="muted" style="margin-top:10px"></div>
       <button class="primary big" id="btnStart" style="display:none" type="button"><img class="narrIcon" src="assets/icons/sailboat.png" alt=""> Start the voyage!</button>
     </div>

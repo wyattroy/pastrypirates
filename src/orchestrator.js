@@ -1444,7 +1444,14 @@ export function wireLobby(){
   // NAME-02: same modal as every other name entry, so there is one place a captain is named. The
   // continuation writes the seat instead of starting a mode; dismissing it cancels and changes
   // nothing, which is what a ✕ should do here too.
-  $("btnChangeName").onclick=()=>{openNameModal(name=>{renameMySeat(name);});};
+  //
+  // DELEGATED, not bound to the button: renderSeatList() rebuilds #seatList's innerHTML on every
+  // seats update, so a handler attached to the button itself would be discarded the first time
+  // anyone joined — and this button lives inside the reader's own seat row precisely so it is
+  // rebuilt with it. Binding the container survives every re-render.
+  $("seatList").onclick=e=>{
+    if(e.target.closest("#btnChangeName"))openNameModal(name=>{renameMySeat(name);});
+  };
   $("btnLeave").onclick=()=>{$("leaveConfirmModal").style.display="flex";};
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};
