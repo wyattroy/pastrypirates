@@ -42,7 +42,7 @@ for the 11-row matrix consolidating every outstanding human check from 21-01 thr
 machine-checkable fences are green: full `npm test` (20 scripts), `scripts/audio_mapping_test.js`,
 `scripts/module_graph_check.js`, and `src/engine/index.js` byte-identical against `origin/main`'s
 merge-base. Task 1 (the real speaker icon, D-14) halted cleanly on its own precondition — the art
-runbook (`notes/art-generation-process.md`) is not present in this worktree (gitignored, lives only on
+runbook (`.planning/art-generation-process.md`) is not present in this worktree (gitignored, lives only on
 Wyatt's main-folder disk) and is inherently interactive, so it cannot run overnight. **This is the
 correct, expected outcome for Task 1, not a failure.** No browser automation tool was available to
 this session (confirmed by one bounded, failed AppleScript attempt — see 21-05-SUMMARY.md), so none of

@@ -8,7 +8,7 @@ overrides_applied: 0
 gaps:
   - truth: "D-14 — a new speaker icon (with blocked-slash overlay when muted) is drawn in the game's style and wired into #btnMute"
     status: failed
-    reason: "assets/icons/speaker.png does not exist on disk. #btnMute still renders the bare 🔊/🔇 emoji scaffold from 21-04. 21-05-PLAN.md Task 1 halted on its own stated precondition (the art runbook notes/art-generation-process.md is gitignored and only lives on Wyatt's main-folder disk; it is inherently interactive and needs his live Gemini/browser session) — this is documented honestly in 21-05-SUMMARY.md as blocked-on-Wyatt, not silently dropped, and it does not block AUDIO-02's functional behavior (the button itself works). But it is one of the 22 locked decisions and it is genuinely not implemented."
+    reason: "assets/icons/speaker.png does not exist on disk. #btnMute still renders the bare 🔊/🔇 emoji scaffold from 21-04. 21-05-PLAN.md Task 1 halted on its own stated precondition (the art runbook .planning/art-generation-process.md is gitignored and only lives on Wyatt's main-folder disk; it is inherently interactive and needs his live Gemini/browser session) — this is documented honestly in 21-05-SUMMARY.md as blocked-on-Wyatt, not silently dropped, and it does not block AUDIO-02's functional behavior (the button itself works). But it is one of the 22 locked decisions and it is genuinely not implemented."
     artifacts:
       - path: "assets/icons/speaker.png"
         issue: "File does not exist — confirmed via ls; ENOENT"
@@ -17,7 +17,7 @@ gaps:
       - path: "src/ui/panel.js"
         issue: "setClockUI()'s #btnMute block still sets innerHTML to the literal emoji strings 🔇/🔊, not iconImg(SPEAKER_IMG) composited with iconImg(BLOCKED_SLASH_IMG)"
     missing:
-      - "Wyatt supplies notes/art-generation-process.md's contents or confirms the abbreviated runbook (download button + Chrome Location setting, near-black background) so a follow-up session can execute 21-05-PLAN.md Task 1 exactly as already written — action and verify blocks are fully specified and ready"
+      - "Wyatt supplies .planning/art-generation-process.md's contents or confirms the abbreviated runbook (download button + Chrome Location setting, near-black background) so a follow-up session can execute 21-05-PLAN.md Task 1 exactly as already written — action and verify blocks are fully specified and ready"
 deferred: []
 human_verification:
   - test: "Row 1 — sound at the right moments: solo game, sail/dock/fish/trade/battle each make their mapped sound; bot captains audible too"

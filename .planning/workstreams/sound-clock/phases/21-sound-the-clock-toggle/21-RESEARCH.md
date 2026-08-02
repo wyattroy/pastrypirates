@@ -427,13 +427,13 @@ new happened" or an administrative/system event, matching the spirit of D-06's e
 **Warning signs:** a console error the first time a shot-clock penalty fires, or the first time a
 storm's second wind-leg lands on an already-dodged player, in playtesting.
 
-### Pitfall 2: the `notes/art-generation-process.md` file CONTEXT.md cites does not exist in this repo
+### Pitfall 2: the `.planning/art-generation-process.md` file CONTEXT.md cites does not exist in this repo
 **What goes wrong:** CONTEXT.md's canonical_refs section says "Downstream agents MUST read
-`notes/art-generation-process.md` before planning or implementing" the new speaker icon (D-14). That
+`.planning/art-generation-process.md` before planning or implementing" the new speaker icon (D-14). That
 file does not exist anywhere in this git history (`git log --all -- 'notes/*'` returns nothing; no
 `notes/` directory exists in this worktree at all).
 **Why it happens:** the user's own global memory (`MEMORY.md` → `feedback_gemini_asset_pipeline.md`)
-references "Full runbook: notes/art-generation-process.md" as a pointer to a more detailed document
+references "Full runbook: .planning/art-generation-process.md" as a pointer to a more detailed document
 that appears to have never been committed, or was written in a different, uncommitted location.
 **How to avoid:** the planner should either (a) treat the abbreviated version already present in
 global memory as the working spec — "use the download button + Chrome Location setting, near-black
@@ -442,7 +442,7 @@ step for Wyatt's review before it's treated as final, or (b) ask Wyatt directly 
 actually lives before starting the art sub-task. Either way, do not block the whole phase on this —
 D-14's icon is a small, isolated asset dependency (one new PNG, same treatment as every existing
 icon in `assets/icons/`), separable from the audio/timer engineering work.
-**Warning signs:** a plan step that says "read notes/art-generation-process.md" with no fallback
+**Warning signs:** a plan step that says "read .planning/art-generation-process.md" with no fallback
 if the read fails.
 
 ### Pitfall 3: three controls now compete for one small, already-full clock panel
@@ -589,7 +589,7 @@ before planning.
      entry if Wyatt wants any of them to sound, and shipping silent-by-default carries zero
      regression risk either way.
 
-2. **Where does `notes/art-generation-process.md` actually live?** (Pitfall 2)
+2. **Where does `.planning/art-generation-process.md` actually live?** (Pitfall 2)
    - What we know: it's referenced by both CONTEXT.md's canonical_refs and the user's own global
      memory, but is not present in this git repository at any point in its history.
    - What's unclear: whether it exists locally, uncommitted, on a different machine, or was simply
@@ -605,11 +605,11 @@ before planning.
 | `AudioContext`/`webkitAudioContext` | All sound playback | ✓ (Chrome, Safari 14.1+, Firefox — this project's stated target browsers) | Native, no version to pin | If absent (should not occur on any targeted browser): `initAudio()`'s own guard makes every `play()` a silent no-op — game remains fully playable with no sound, matching the project's "silent failure preferred for optional operations" convention |
 | Page Visibility API | D-12 tab-blur quieting | ✓ (universal, including Safari) | Native | — |
 | `sfx/*.mp3` files | All 6 sound effects | ✓ — already committed at `9f757f9`, verified present in this worktree (`ls sfx/` confirms all 6, ~306 KB total) | — | — |
-| `notes/art-generation-process.md` | D-14 speaker icon art generation | ✗ — does not exist in this repo (see Pitfall 2) | — | Use the abbreviated runbook already captured in the user's global memory (`feedback_gemini_asset_pipeline.md`); flag icon for Wyatt's review |
+| `.planning/art-generation-process.md` | D-14 speaker icon art generation | ✗ — does not exist in this repo (see Pitfall 2) | — | Use the abbreviated runbook already captured in the user's global memory (`feedback_gemini_asset_pipeline.md`); flag icon for Wyatt's review |
 
 **Missing dependencies with no fallback:** none.
 
-**Missing dependencies with fallback:** `notes/art-generation-process.md` (see above).
+**Missing dependencies with fallback:** `.planning/art-generation-process.md` (see above).
 
 ## Validation Architecture
 

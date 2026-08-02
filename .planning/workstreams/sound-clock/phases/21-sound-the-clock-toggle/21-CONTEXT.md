@@ -101,7 +101,7 @@ Luis Zanforlin's six sound effects play at the right game moments, on by default
 - `docs/DETERMINISM-RERECORD-NEXT.md` §7-8 — why the engine is untouchable for the whole of v1.3
 
 ### Art
-- `notes/art-generation-process.md` — the runbook for producing the new speaker icon (D-14). **Note:** this file exists on disk in Wyatt's main project folder but `notes/` is in `.gitignore`, so it is NOT in git and NOT visible from a worktree. Research flagged it as missing; it is not missing, only untracked. Ask Wyatt for it rather than concluding it does not exist.
+- `.planning/art-generation-process.md` — the runbook for producing the new speaker icon (D-14). **Note:** this file exists on disk in Wyatt's main project folder but `notes/` is in `.gitignore`, so it is NOT in git and NOT visible from a worktree. Research flagged it as missing; it is not missing, only untracked. Ask Wyatt for it rather than concluding it does not exist.
 - `assets/icons/blocked-slash.png` — the established "switched off" overlay, already used by the timer toggle
 
 </canonical_refs>

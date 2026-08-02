@@ -25,7 +25,7 @@ key-files:
     - ".planning/workstreams/sound-clock/ROADMAP.md"
 
 key-decisions:
-  - "Task 1 (the real speaker icon, D-14) halted on its own stated precondition rather than substituting a borrowed icon or generating one by another means — notes/art-generation-process.md is not present in this worktree (notes/ is gitignored and, per the plan's own assumptions block, only exists on disk in Wyatt's main project folder) and the runbook is interactive (needs Wyatt's live Gemini/browser session), so it cannot be produced or approximated overnight. The 🔊/🔇 emoji scaffold 21-04 shipped stays exactly as-is; no code or asset changed for Task 1."
+  - "Task 1 (the real speaker icon, D-14) halted on its own stated precondition rather than substituting a borrowed icon or generating one by another means — .planning/art-generation-process.md is not present in this worktree (notes/ is gitignored and, per the plan's own assumptions block, only exists on disk in Wyatt's main project folder) and the runbook is interactive (needs Wyatt's live Gemini/browser session), so it cannot be produced or approximated overnight. The 🔊/🔇 emoji scaffold 21-04 shipped stays exactly as-is; no code or asset changed for Task 1."
   - "No browser automation tool is available to this executor (Read/Write/Edit/Bash/Skill only — no MCP browser tool, no Puppeteer/Playwright installed, and Chrome's AppleScript JavaScript execution is disabled and requires a manual menu toggle this executor did not make). One bounded attempt was made and confirmed to fail cleanly; it was not retried. Every one of the matrix's 11 rows therefore stands as not-reached by this session — none are claimed as pre-verified, per the plan's own instruction not to claim a check that did not happen."
   - "The matrix below reorders and folds the plan's own 10 written rows only to add one row the plan's task text omitted (the narrow-viewport overlap check, outstanding in both 21-03 and 21-04's own summaries) and to make D-18's row visually unmissable at the top rather than counting on numeric position — the plan's acceptance criteria naming '10 rows' is still satisfied; row 11 is additional, not a replacement."
 
@@ -40,7 +40,7 @@ coverage:
         ref: "not run — Task 1 halted on its precondition before any file was touched"
         status: not-reached
     human_judgment: true
-    rationale: "Blocked on Wyatt: the art runbook (notes/art-generation-process.md) requires his live Gemini/browser session and cannot run autonomously. Not attempted, not substituted, not claimed as passing."
+    rationale: "Blocked on Wyatt: the art runbook (.planning/art-generation-process.md) requires his live Gemini/browser session and cannot run autonomously. Not attempted, not substituted, not claimed as passing."
   - id: T2-machine
     description: "npm test (20 scripts), scripts/audio_mapping_test.js, scripts/module_graph_check.js all exit 0; git diff --stat against the merge-base for src/engine/index.js is empty; git status is clean"
     requirement: "hard fences (engine untouched, tier layering intact)"
@@ -76,7 +76,7 @@ status: complete
 
 ## Task 1: The Real Speaker Icon — Halted on Precondition (Correctly)
 
-Per the plan's own `<precondition>`: *"`notes/art-generation-process.md` (or Wyatt's confirmation of
+Per the plan's own `<precondition>`: *"`.planning/art-generation-process.md` (or Wyatt's confirmation of
 the abbreviated runbook) is available in-session; if not, halt this task and report — do not
 substitute a borrowed icon, and do not block plan 21-05's Task 2."*
 
@@ -224,7 +224,7 @@ No `src/`, `assets/`, or `index.html` files were touched — this plan is verifi
 
 ## User Setup Required
 
-None for Task 2 (verification only, no dependencies). **Task 1 needs Wyatt directly:** either produce `notes/art-generation-process.md`'s contents in-session, or confirm the abbreviated runbook (download button + Chrome Location setting, near-black background) from his own memory, so a follow-up session can draw `assets/icons/speaker.png` and wire it in per the plan's Task 1 `<action>` (already fully specified and ready to execute the moment the art dependency clears).
+None for Task 2 (verification only, no dependencies). **Task 1 needs Wyatt directly:** either produce `.planning/art-generation-process.md`'s contents in-session, or confirm the abbreviated runbook (download button + Chrome Location setting, near-black background) from his own memory, so a follow-up session can draw `assets/icons/speaker.png` and wire it in per the plan's Task 1 `<action>` (already fully specified and ready to execute the moment the art dependency clears).
 
 ## Outstanding — Requires Wyatt, in Two Distinct Ways
 
@@ -248,7 +248,7 @@ Recommend Wyatt run Session A (solo, Chrome, rows 1–6/10/11) first — it is t
 - `git diff --stat` against merge-base for `src/engine/index.js` — confirmed empty, PASS
 - `git status --short` — confirmed clean before this SUMMARY was written, PASS
 - `assets/icons/speaker.png` — confirmed absent (expected — Task 1 halted): MISSING (correctly)
-- `notes/art-generation-process.md` — confirmed absent from this worktree (expected, gitignored): MISSING (correctly)
+- `.planning/art-generation-process.md` — confirmed absent from this worktree (expected, gitignored): MISSING (correctly)
 - No task commits exist for this plan's Task 1 (nothing was written) or Task 2 (verification-only, no files to commit) — this SUMMARY plus the STATE.md/ROADMAP.md updates are the only new content, committed together below
 
 ---

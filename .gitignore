@@ -6,7 +6,7 @@ notes/
 node_modules/
 
 # art-review/ is deliberately NOT ignored, despite what
-# notes/art-generation-process.md §6 says. Gemini output is not reproducible —
+# .planning/art-generation-process.md §6 says. Gemini output is not reproducible —
 # the same prompt gives a different image — so the repo is the only backup of
 # art that cannot be remade, and ignored files are one `git clean -xdf` from
 # gone. Revisit when the tracked total passes ~700 MB (Pages caps a published
