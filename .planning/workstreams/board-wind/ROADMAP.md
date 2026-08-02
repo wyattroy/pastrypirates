@@ -18,6 +18,16 @@
 
 - [ ] **Phase 20: The Board Comes Alive** — Drifting wind dots, arrows flowing into a rotating whirlpool, a signal before a ship is swept into the trade winds, and a pastry scent on every wind direction change (WIND-01…05). **Depends on Phase 19 passing**
 
+  **Plans:** 7 plans in 5 waves
+
+  - [ ] 20-01-PLAN.md — Tracer: the dots ship always-on and a wind direction change fades them out, re-aims unseen, and fades back in as the round line lands; the measuring rig deleted and the off-by-default assertion retired (wave 1)
+  - [ ] 20-02-PLAN.md — WIND-04: the 35-line pastry scent, derived from the round number with no RNG draw and no remembered state (wave 1)
+  - [ ] 20-03-PLAN.md — WIND-05: rim squares in the move highlights read as a warning, and a ghost of the player's own boat marks where the sweep ends (wave 1)
+  - [ ] 20-04-PLAN.md — WIND-01's look: a per-dot sway rhythm, per-dot sizes with a soft edge, and the compositor guard narrowed in the same commit (wave 2)
+  - [ ] 20-05-PLAN.md — WIND-03: four whirlpools turning clockwise at seeded speeds, in a new HTML rim-flow layer, with the doubled static copy removed (wave 3)
+  - [ ] 20-06-PLAN.md — WIND-02: specks ride each rim arc through the stationary arrows and are swallowed at the whirlpool (wave 4)
+  - [ ] 20-07-PLAN.md — The D-07/D-29 tuning gate: one page, three slider groups, Wyatt's numbers become the shipped defaults (wave 5, **blocking human gate**)
+
 ## Boundaries
 
 **This workstream owns:** `src/ui/board.js` and new sprite assets
