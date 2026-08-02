@@ -366,6 +366,55 @@ matchMedia('(prefers-reduced-motion: reduce)').matches   // must be false, or yo
                                                          // the reduced-motion code path
 ```
 
+### MEASURING COST IS NOT MEASURING LAYOUT — two traps that both report ZERO
+
+The launch line above is right for **sequencing and layout** work (what ran, in what order, did the
+box move). It is **wrong for measuring how expensive something is**, and both failures below produce
+a confident, plausible, wrong number rather than an error. Each cost a wrong conclusion on
+2026-08-01/02.
+
+**1. Drop `--disable-gpu` when measuring cost.** With it, the welcome screen measured **1.6% CPU**
+and the real culprit was invisible. With the GPU on, the same state measured **7.6%** and the cause
+was obvious. Launch a separate probe for cost work:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --remote-debugging-port=9336 \
+  --user-data-dir=/tmp/chrome-cost --no-first-run about:blank &
+```
+
+**2. YOU MUST DRIVE FRAMES.** An idle headless page stops producing them, so every CSS animation
+costs exactly nothing and `LayoutCount` never moves. Measured minutes apart on the same build:
+
+| same page, same 5s window | CPU | layouts |
+|---|---|---|
+| no rAF loop running | 0.2% | **2 (0/s)** |
+| rAF loop running | **11.1%** | **300 (60/s)** |
+
+The first reading is not a small error — it is the entire cost missing. Inject a ticker for the whole
+window and cancel it afterwards:
+
+```js
+window.__f=0;(function t(){window.__f++;window.__raf=requestAnimationFrame(t);})();
+// ...measure...
+(()=>{const v=window.__f;cancelAnimationFrame(window.__raf);return v;})()   // also gives you fps
+```
+
+**Always report the fps you actually achieved beside any cost number.** If it is not ~60 the page was
+not rendering, and the number underneath it means nothing. A cost measurement with no frame count
+beside it is not evidence.
+
+**Attribute by ablation, never by reading code.** Remove one suspect, re-measure, compare. Three
+times now the thing everyone was sure of was not the cause: the `drawBoard()` teardown was not the
+in-play cost (the ripple was); `transform-box: fill-box` was not why the ripple forced layout (Chrome
+simply never composites SVG transform animations, and `will-change` cannot promote an SVG child); and
+the welcome screen's cost was neither the blur nor the board rebuild but **four leftover victory
+pastries** left dancing behind it.
+
+**Compare like with like.** "Idle at a human prompt" and "mid-turn with bots moving" are different
+measurements; the same build reads 2 layouts/sec as the first and 10–20 as the second. State which
+one a number is, and never compare across them.
+
 ### Talk to it — Node has everything you need
 
 Node 22+ has a global `WebSocket`, so a CDP client is ~15 lines and no dependency:

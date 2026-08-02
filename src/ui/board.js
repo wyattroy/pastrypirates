@@ -1348,7 +1348,13 @@ export function render(){
   $("scrub").value=appState.evIdx;
   renderLog();
   // end stats
-  if(appState.evIdx===appState.game.events.length-1&&(!appState.live||appState.liveDone))showStats();
+  // PERF-02: the decorative welcome board is NOT a finished voyage. It carries one event at evIdx 0,
+  // so the frontier test below is trivially true, and `live` is false because nobody is playing —
+  // between them they made this call showStats() on the welcome screen, which ran celebrateHomeDocks()
+  // and left four SVG pastries dancing forever behind the blur. Measured: 60 layouts/sec, 11.1% CPU
+  // -> 4.2% once they were gone. It also deleted Tortuga's four berths from the backdrop, since
+  // celebrateHomeDocks() removes each #homeDock rect as it replaces it.
+  if(!appState.decorative&&appState.evIdx===appState.game.events.length-1&&(!appState.live||appState.liveDone))showStats();
   else $("statsWrap").style.display="none";
 }
 let logRenderedTo=-1;
@@ -1531,6 +1537,7 @@ export function renderDecorativeBoard(){
     appState.game=new Game(roundCfg(strategies),Math.floor(Math.random()*1e9),true);
     appState.roster=strategies.map(s=>({bot:true,strat:s}));
     appState.mySeat=null;
+    appState.decorative=true; // PERF-02 — set BEFORE render() below, which is what reads it
     drawBoard();buildPlayerRows();
     appState.game.round=1;appState.game.windNow="NSEW"[Math.floor(Math.random()*4)];appState.game.stormNow=false;
     appState.game.ev({t:"newround",dir:appState.game.windNow});

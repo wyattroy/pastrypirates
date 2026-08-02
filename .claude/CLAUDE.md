@@ -448,6 +448,13 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 `docs/DRIVING-THE-GAME.md` is required reading before any browser or playtest automation. Two traps waste the most sessions: the flippenator coin `#flipCoinWrap` **is** the flip button (it is not an `.apBtn` — this stalled three separate attempts), and a window narrower than about a second cannot be hand-driven at all, so use the armed watcher in §5d.
 
+**Measuring COST is not measuring layout — see §8a's "two traps that both report ZERO".** The §8a
+launch line carries `--disable-gpu`, which is right for sequencing/layout work and **wrong for cost**;
+and an idle headless page stops producing frames, so animations measure as free. The same page, same
+5s window, measured **0.2% CPU / 0 layouts per second** without a rAF loop and **11.1% / 60** with
+one. Neither trap errors — both hand you a plausible wrong number. Drive frames, quote the fps beside
+every cost figure, and attribute by ablation rather than by reading the code.
+
 **Kill every headless Chrome and local server you start, in the same session you start them.** They do
 not exit on their own. Wyatt found two abandoned probes burning **21% CPU each** — still running a
 live game with an autoplay driver — alongside 17 stale `http.server` processes accumulated across
