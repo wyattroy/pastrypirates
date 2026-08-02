@@ -1531,9 +1531,36 @@ export async function resumeHostGame(r){
 
 export function boot(){
   appState.myId=getMyId();
-  // reveal the game as soon as the art is ready, but never wait more than 6s (offline/failed CDN,
-  // dead image host, etc.) — a hung loader would be worse than the pop-in it prevents.
-  Promise.race([preloadAssets(),new Promise(r=>setTimeout(r,6000))]).then(hideBootLoader);
+  // LOAD-03b — DECIDE THE DESTINATION BEFORE PAINTING ANYTHING.
+  //
+  // Wyatt's intent, 2026-08-02, stated as two journeys: "i need players who are visiting the site
+  // without being in the middle of a game to load a beautiful homescreen fast. I need players who
+  // are visiting the site in the middle of a game (eg. because of a refresh) to see their game and
+  // not worry that it got interrupted."
+  //
+  // Both reads below are SYNCHRONOUS localStorage lookups, so "am I resuming?" is knowable before
+  // a single pixel is committed. The async netReadRoom() further down only confirms the room still
+  // EXISTS — it is not what decides the journey. That distinction is the whole fix.
+  //
+  // What this replaces: the boot loader used to hide on an art-download timer, and showHome() ran
+  // UNCONDITIONALLY. So a first-timer waited behind the loader for ~7.7MB of board art the welcome
+  // screen no longer even shows, and a mid-game refresher could watch the loader fade onto the
+  // WELCOME SCREEN — art finishing before the async room read — with their voyage arriving a beat
+  // later. That flash is the "did my game get lost?" moment, and it was reachable, not theoretical.
+  let sess=null;try{sess=JSON.parse(localStorage.getItem("pp_sess"));}catch(e){}
+  // CLOCK-01: a blob with no v field (pre-refactor build) or a mismatched v (stale schema) is
+  // treated as absent — cleared via the existing clearSession(), never partially trusted — so a
+  // returning old-version player starts clean instead of stalling on an invalid resume attempt
+  // (D-01/D-02). A current-version blob's v always matches and is never touched here.
+  if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
+  // Mirror guard, solo side (same D-01/D-02 reasoning). Hoisted from the branch below so the
+  // journey is decided up front; the schema guards themselves are unchanged.
+  let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
+  if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
+  const resumingRoom=!!(sess&&sess.room);
+  // ...only when there is no multiplayer session to reconnect to, exactly as the old nesting had it.
+  const resumingSolo=!resumingRoom&&!!(solo&&solo.seed!=null&&solo.strategies);
+  const resuming=resumingRoom||resumingSolo;
   renderDecorativeBoard();
   wireWelcome();
   wireRecipeModal(); // wired unconditionally (not inside wireLobby) so it works in solo/offline play too
@@ -1541,14 +1568,7 @@ export function boot(){
   // footer/pause buttons are never left unwired — previously this ran after the Firebase-init
   // check below, which the solo-resume branch's early `return` skipped entirely, leaving every
   // footer button and the pause button dead for the rest of a resumed solo game
-  showHome();
-  syncBoardSizing();
-  let sess=null;try{sess=JSON.parse(localStorage.getItem("pp_sess"));}catch(e){}
-  // CLOCK-01: a blob with no v field (pre-refactor build) or a mismatched v (stale schema) is
-  // treated as absent — cleared via the existing clearSession(), never partially trusted — so a
-  // returning old-version player starts clean instead of stalling on an invalid resume attempt
-  // (D-01/D-02). A current-version blob's v always matches and is never touched here.
-  if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
+  //
   // Firebase is initialised BEFORE any early return below, and the two cards are gated on the
   // result immediately. Previously this whole block sat AFTER the solo-resume return, so a player
   // resuming an interrupted solo game got `appState.db === null` while showHome() (above) had
@@ -1571,15 +1591,48 @@ export function boot(){
     $("choiceJoin").classList.add("disabled");
     $("fbnote").style.display="";
   }
-  if(!sess||!sess.room){
-    // no multiplayer game to reconnect to — check for an interrupted singleplayer game instead.
-    let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
-    // Mirror guard, solo side (same D-01/D-02 reasoning as pp_sess above).
-    if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
-    if(solo&&solo.seed!=null&&solo.strategies){resumeSoloGame(solo);return;}
-  }
-  if(!fbOk)return; // solo play still works fully offline; the welcome screen already says why
-  if(sess&&sess.room){
+
+  // if/else rather than an early return, deliberately: ui_contract_check.js's BOOT-FBINIT-OFFLINE
+  // assertion forbids ANY `return` between the !fbOk branch and resumeSoloGame(solo), because that
+  // is how an offline refresh mid-solo-game once stopped resuming. The early return this replaced
+  // sat on the not-resuming path and could not have caused that — but the assertion is a textual
+  // proxy for a real invariant, and the right move is to satisfy it structurally rather than loosen
+  // a gate that is doing its job.
+  if(!resuming){
+    // JOURNEY 1 — NOBODY'S GAME IS WAITING: paint the home screen NOW.
+    // It needs the card's own CSS, the logo, and one 71KB backdrop still. The ~7.7MB of board art
+    // belongs to a game this player has not started, so it is fetched WITHOUT being awaited and
+    // lands while they read the byline and pick a mode. showHome() lifts the boot loader itself.
+    showHome();
+    syncBoardSizing();
+    preloadAssets(); // deliberately not awaited — nothing on this screen is waiting for it
+  }else{
+  // JOURNEY 2 — THIS PLAYER IS MID-VOYAGE: never show them the welcome screen. Seeing it is the
+  // moment a refresh feels like a lost game, so the boot loader stays up and the next thing they
+  // see is their own board. The loader is lifted by showGameView()/showRoom()/showHome(), whichever
+  // the resume actually lands on, so it can never outlive the thing it is covering.
+  //
+  // The art IS awaited here, capped at 6s (offline, dead CDN, slow phone) — a hung loader would be
+  // worse than the pop-in it prevents. This is the one journey where waiting is right: the board is
+  // about to be drawn, and a voyage that reassembles island-by-island reads as damaged.
+  // The loader's default reads "Hoisting the sails…", which is a NEW-game promise and the wrong
+  // thing to tell someone whose voyage is already under way. This wording deliberately echoes the
+  // approved reconnecting line resumeHostGame() panels a moment later (@copy prompt.net.reconnecting,
+  // "⚓ Reconnecting to yer voyage…") so the two read as one continuous reassurance.
+  //
+  // No @copy id: the extractor scans call sites, not textContent assignments, so a marker here
+  // binds to nothing and the audit gate rejects it. The loader's own default string is unregistered
+  // for the same reason — boot-loader copy sits outside the audit by precedent, not by oversight.
+  const bootMsg=document.querySelector("#bootLoader .bootMsg");
+  if(bootMsg)bootMsg.textContent="Reconnecting to yer voyage…";
+  Promise.race([preloadAssets(),new Promise(r=>setTimeout(r,6000))]).then(()=>{
+    // Solo first and BEFORE the Firebase gate — the ordering constraint the comment above records:
+    // an offline refresh mid-solo-game still has to resume. resumingSolo is already false whenever
+    // a multiplayer session exists, so this cannot steal a room reconnect.
+    if(resumingSolo){resumeSoloGame(solo);return;}
+    // A room to rejoin but no Firebase to rejoin it with: there is nothing to restore, so fall back
+    // to the home screen rather than leaving them under a loader forever.
+    if(!fbOk){showHome();return;}
     appState.room=sess.room;appState.mySeat=sess.mySeat;appState.isHost=!!sess.isHost;
     netReadRoom(appState.db,appState.room).then(snap=>{
       if(!snap.exists()){clearSession();showHome();return;}
@@ -1594,5 +1647,6 @@ export function boot(){
       }
       watchRoom();
     }).catch(()=>{clearSession();showHome();});
+  });
   }
 }

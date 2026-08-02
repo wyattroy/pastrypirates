@@ -225,23 +225,40 @@ export function wireNameModal(){
 // invalidate. `.bg-blurred` stays on the element: it is what the game view removes on the way in,
 // and leaving it set keeps that transition honest if #game is ever shown while a card is still up.
 const showBackdrop=on=>{const b=$("welcomeBackdrop");if(b)b.style.display=on?"block":"none";};
+
+// LOAD-03b: the boot loader's job is to COVER THE GAP UNTIL THERE IS SOMETHING REAL TO SHOW, so
+// every function that paints a real destination lifts it. It used to hide on an art-download timer
+// instead, which got both journeys wrong:
+//
+//   * A first-time visitor waited behind it for ~7.7MB of board art the welcome screen does not
+//     even display any more (the backdrop is one 71KB still).
+//   * A player refreshing MID-GAME could have the loader fade onto the WELCOME SCREEN — because
+//     boot() called showHome() unconditionally, and on a multiplayer resume the room read is async,
+//     so the art often finished first. Their voyage then appeared a moment later. That flash is
+//     exactly the "did my game get lost?" moment, and it was reachable before this change.
+//
+// hideBootLoader() is idempotent (it returns if already hidden), so calling it from all three of
+// these is safe no matter which one wins the race to paint.
 export function showHome(){
   showStep("stepChoose");
   $("lobby").style.display="flex";$("lobbyRoom").style.display="none";
   showBackdrop(true);
   $("game").style.display="none";$("game").classList.add("bg-blurred");
+  hideBootLoader();
 }
 export function showRoom(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="flex";
   showBackdrop(true);
   $("game").style.display="none";$("game").classList.add("bg-blurred");
   $("roomCode").textContent=appState.room;
+  hideBootLoader();
 }
 export function showGameView(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="none";
   showBackdrop(false);
   $("game").style.display="";$("game").classList.remove("bg-blurred");
   syncBoardSizing();
+  hideBootLoader();
 }
 
 /* ================= pass & play: hand the device to the next seat ================= */
