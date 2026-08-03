@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Pastry Pirates v2 — playtest build</title>
+<style>
+:root{--teal:#0e4a55;--mint:#dff3f7;--sand:#f0d9a0;--gold:#f0b429;--ink:#0b3a44}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 "Trebuchet MS",system-ui,sans-serif;background:#8fd3de;color:var(--ink);
+ background-image:radial-gradient(circle at 50% -10%,#bfe9f0,#7cc6d4 60%,#4ea3b4)}
+header{padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:19px;margin:0;color:var(--teal)}
+header .tag{font-size:12px;background:#fff6;padding:2px 8px;border-radius:20px}
+main{max-width:1000px;margin:0 auto;padding:0 12px 40px;display:grid;gap:12px;grid-template-columns:minmax(280px,1.2fr) minmax(240px,1fr)}
+@media(max-width:760px){main{grid-template-columns:1fr}}
+.card{background:#fffdf6;border:2px solid var(--teal);border-radius:12px;padding:10px;box-shadow:0 3px 0 #0002}
+#board{display:flex;justify-content:center}
+#board svg{max-width:100%;height:auto;border-radius:8px}
+#panel{min-height:76px}
+.apMsg{font-size:16px;margin-bottom:8px}
+.apBtns{display:flex;flex-wrap:wrap;gap:6px}
+.apBtn{font:inherit;font-weight:700;cursor:pointer;background:var(--gold);color:var(--ink);
+ border:2px solid var(--ink);border-radius:9px;padding:7px 11px;box-shadow:0 2px 0 var(--ink);text-align:left}
+.apBtn:hover{transform:translateY(1px);box-shadow:0 1px 0 var(--ink)}
+.apBtn small{font-weight:400;opacity:.8}
+.apSub{font-style:italic;font-size:13px;opacity:.75;margin-top:7px}
+#narration{height:190px;overflow-y:auto;font-size:14px}
+#narration .line{padding:2px 0;border-bottom:1px dotted #0002}
+#narration .beat{font-weight:700}
+.hdr{display:inline-block;background:var(--teal);color:var(--mint);padding:2px 7px;border-radius:6px}
+.cap{margin-bottom:7px;padding:5px 8px;background:#fff;border-radius:8px}
+.cap.done{opacity:.55}
+.capTop{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pw{font-size:12px;background:var(--teal);color:var(--mint);padding:1px 6px;border-radius:10px}
+.coins{margin-left:auto;font-weight:700;display:flex;align-items:center;gap:3px}
+.coins img{width:15px;height:15px}
+.cargo{min-height:20px;display:flex;gap:2px;flex-wrap:wrap}
+.cargo img{width:20px;height:20px}
+.cargo i{font-size:12px;opacity:.5}
+.recipe{font-size:15px;margin-top:3px}
+.recipe .want{opacity:1}
+.recipe .have{opacity:.25}
+.ii{width:16px;height:16px;vertical-align:-3px}
+#vane{display:flex;align-items:center;gap:10px}
+.vaneKey{font-size:12px;line-height:1.5}
+#setup{max-width:520px;margin:6vh auto;text-align:center}
+#setup .apBtns{justify-content:center}
+h2{color:var(--teal);margin:.4em 0}
+.rules{font-size:13px;opacity:.85}
+</style></head><body>
+
+<header>
+  <h1>🏴‍☠️ Pastry Pirates <b>v2</b></h1>
+  <span class="tag">playtest build — solo &amp; pass-and-play</span>
+</header>
+
+<div id="setup" class="card">
+  <h2>Who's sailing?</h2>
+  <p class="rules">Collect yer recipe, sail home to Tortuga first. Trade is an open call to the whole
+  table; fights only happen when somebody won't deal.</p>
+  <div class="apBtns" id="setupBtns"></div>
+</div>
+
+<main id="game" style="display:none">
+  <div>
+    <div class="card"><div id="board"></div></div>
+    <div class="card" id="panel"></div>
+  </div>
+  <div>
+    <div class="card"><div id="vane"></div></div>
+    <div class="card"><div id="captains"></div></div>
+    <div class="card"><div id="narration"></div></div>
+  </div>
+</main>
+
+<script type="module">
+import { start } from "./main.js";
+const combos = [[1,3],[2,2],[3,1],[4,0]];
+document.getElementById("setupBtns").innerHTML = combos.map(([h,b],i)=>
+  `<button class="apBtn" data-i="${i}">${h} human${h>1?"s":""}${b?` + ${b} bot${b>1?"s":""}`:""}</button>`).join("");
+document.querySelectorAll("#setupBtns .apBtn").forEach(b=>
+  b.addEventListener("click",()=>{const [h,n]=combos[+b.dataset.i];start(h,n);}));
+</script>
+</body></html>
