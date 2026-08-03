@@ -67,6 +67,7 @@ const CAST = argv.includes("--cast");
 // Tuned so the table mints ~5 coins per cast — the same as rule 3 as written.
 // Same simultaneity, same push-your-luck feel, but one beat at the table instead of two.
 const CAST1 = argv.includes("--cast1");
+const RETUNE = argv.includes("--retune");   // the re-specced boat powers
 // Wyatt 2026-08-03: "fishing can simply get everyone 1, not the fisher 2. Either way, the decision
 // becomes 'should I do something that helps my opponents' or not — make sure your bot is
 // tactically deciding this."  --fishflat makes every captain, caster included, take exactly 1.
@@ -132,7 +133,7 @@ function reachable(g, p, wind) {
       frontier = next;
     }
   };
-  walk(pw === "racer" ? 5 : 4, false);
+  walk(pw === "racer" ? (RETUNE ? 6 : 5) : 4, false);
   walk(pw === "hedger" ? 3 : 2, true);
   return [...out.values()];
 }
@@ -244,7 +245,12 @@ function playGame(seed, stats) {
     return struck;
   }
   function tradeBonus(a, b) {
-    for (const x of [a, b]) if (x.power === "trader") { x.coins += 2; coinsMinted += 2; }
+    for (const x of [a, b]) {
+      if (x.power !== "trader") continue;
+      if (RETUNE) { if (x.traderPaidRound === g.round) continue; x.traderPaidRound = g.round;
+        x.coins += 1; coinsMinted += 1; continue; }
+      x.coins += 2; coinsMinted += 2;
+    }
   }
 
   // ---- rule 9: simultaneous committed-coin battle
@@ -262,12 +268,13 @@ function playGame(seed, stats) {
 
     // rule 9: downwind +1. geometry read once, exactly as the live engine does it.
     const dx = def.pos[0] - att.pos[0], dy = def.pos[1] - att.pos[1];
-    const aToD = DKEYS.find(k => DIRS[k][0] === dx && DIRS[k][1] === dy);
-    const dToA = DKEYS.find(k => DIRS[k][0] === -dx && DIRS[k][1] === -dy);
+    const ux = Math.sign(dx), uy = Math.sign(dy), axis = (dx === 0) !== (dy === 0);
+    const aToD = axis ? DKEYS.find(k => DIRS[k][0] === ux && DIRS[k][1] === uy) : undefined;
+    const dToA = axis ? DKEYS.find(k => DIRS[k][0] === -ux && DIRS[k][1] === -uy) : undefined;
     let A = a, D = d;
     if (wind === aToD) A += 1; else if (wind === dToA) D += 1;
-    if (att.power === "shooter") A += 1;
-    if (def.power === "shooter") D += 1;
+    if (!RETUNE && att.power === "shooter") A += 1;
+    if (!RETUNE && def.power === "shooter") D += 1;
 
     let win = null;
     if (A > D) win = att; else if (D > A) win = def;
@@ -283,6 +290,9 @@ function playGame(seed, stats) {
       }
     }
     const lose = win === att ? def : att;
+    if (RETUNE && win.power === "shooter") {            // efficient powder: the winner's stake returns
+      const back = win === att ? a : d; win.coins += back; coinsMinted += back;
+    }
     if (win === att) attWins++; else defWins++;
 
     // rule 5: spectators call it free, +2 if right
@@ -294,7 +304,11 @@ function playGame(seed, stats) {
     }
 
     // rule 9 spoils: 5 coins or a crate, WINNER's choice — take a crate you need if there is one
-    if (lose.power === "lockbox" && lose.ing.length) {
+    if (RETUNE && lose.power === "lockbox") {
+      const take = Math.min(5, lose.coins); lose.coins -= take; win.coins += take;
+      if (take) spoilCoins++; lockboxSaves++; recordSpoil(); return;
+    }
+    if (!RETUNE && lose.power === "lockbox" && lose.ing.length) {
       // the loser offers their least useful crate; the winner may still prefer 5 coins
       const useless = lose.ing.find(i => !needs(win).includes(i));
       const offer = useless !== undefined ? useless : lose.ing[0];
@@ -406,7 +420,14 @@ function playGame(seed, stats) {
       if (free < bd) upwindBound++;
       if (K(best) !== K(p.pos)) {
         p.pos = best;
-        if (!NO_RIM && g.onRim(p.pos)) { const h = g.rimHead[K(p.pos)]; if (h && K(h) !== K(p.pos)) { p.pos = [...h]; rimUses++; } }
+        if (!NO_RIM && g.onRim(p.pos)) {
+          const h = g.rimHead[K(p.pos)];
+          if (h && K(h) !== K(p.pos)) {
+            // sturdy bow holds course: ride the current only when it actually helps
+            const holds = RETUNE && p.power === "sturdybow" && (td[K(h)] ?? 1e9) > (td[K(p.pos)] ?? 1e9);
+            if (!holds) { p.pos = [...h]; rimUses++; }
+          }
+        }
       }
     }
 
@@ -434,7 +455,8 @@ function playGame(seed, stats) {
       }
     }
     // rule 9/14: attack an adjacent ship (Tortuga is no longer a sanctuary)
-    const adj = P.filter(q => q !== p && !q.done && man(q.pos, p.pos) === 1);
+    const reach = (RETUNE && p.power === "shooter") ? 2 : 1;
+    const adj = P.filter(q => q !== p && !q.done && man(q.pos, p.pos) <= reach);
     // guns come out only where talking failed — TRADE_FIRST models Wyatt's intent directly
     const stingy = q => !TRADE_FIRST || refused.has(p.idx + ">" + q.idx);
     const juicy = adj.find(q => stingy(q) && q.ing.some(i => needs(p).includes(i) && g.tokens[i] <= 0))
@@ -463,13 +485,20 @@ function playGame(seed, stats) {
       for (;;) {
         // everyone secretly decides, simultaneously, BEFORE the flip
         for (const q of [...stillIn]) {
-          if (potAt(stage) >= target.get(q)) { q.coins += potAt(stage); coinsMinted += potAt(stage);
-            if (potAt(stage) >= 8) bigHauls++; stillIn.delete(q); }
+          const takes = (RETUNE && q.power === "gambler") ? potAt(stage + 1) : potAt(stage);
+          if (takes >= target.get(q)) { q.coins += takes; coinsMinted += takes;
+            if (takes >= 8) bigHauls++; stillIn.delete(q); }
         }
         if (!stillIn.size) break;
         flips++; sharedFlips++;
         if (g.r() < .5) { stage++; if (stage > 12) { for (const q of stillIn) { q.coins += potAt(stage); coinsMinted += potAt(stage); } break; } }
-        else { wipeouts += stillIn.size; break; }   // tails: everyone still in gets nothing
+        else {                                      // tails: everyone still in gets nothing...
+          for (const q of stillIn) {
+            if (RETUNE && q.power === "trawler") { const t = potAt(stage); q.coins += t; coinsMinted += t; }
+            else wipeouts++;
+          }
+          break;
+        }
       }
       castRounds += 1;
       return;

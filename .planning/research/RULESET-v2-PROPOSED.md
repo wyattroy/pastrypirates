@@ -95,16 +95,16 @@ with the **most resources** takes the crown.
 
 One each, drafted at setup, no duplicates. Four of the eight sit out each game.
 
-| | Power |
-|---|---|
-| **Racer** | Sail **5** whenever no step of your move is upwind |
-| **Hedger** | Your upwind-capped move is **3**, not 2 |
-| **Shooter** | **+1** in every battle |
-| **Lockbox** | **You** choose which crate leaves your hold when you lose a battle — attacking or defending |
-| **Trawler** | *(re-spec pending — see §9)* |
-| **Trader** | *(re-spec pending — see §9)* |
-| **Sturdy bow** | A storm moves you only **1** square |
-| **Gambler** | A correct battle call pays **3**, not 2 |
+| | Power | Attaches to |
+|---|---|---|
+| **Racer** | Sail **6** whenever no step of your move is upwind | sailing |
+| **Hedger** | Your upwind-capped move is **3**, not 2 | sailing |
+| **Shooter** | **Win a battle and your committed coins come back.** Efficient powder | battle |
+| **Lockbox** | **Your crates can never be taken.** A winner takes 5 coins from you instead | battle |
+| **Trawler** | **When the cast busts, you still take the pot as it stood** | the cast |
+| **Gambler** | **When you take the pot, take one rung higher than it shows** | the cast |
+| **Trader** | **Once per round**, a completed trade pays you **+1** | trade |
+| **Sturdy bow** | **You choose whether the trade-wind current takes you** | the rim |
 
 ## 7. On another captain's turn
 
@@ -218,17 +218,97 @@ At roughly **39 deals a game** — about one every other turn — trade is now t
 interaction in the game. It does not need subsidising, and a bonus on that volume would be a large
 new coin faucet in an economy that is deliberately tight.
 
-## Flat starting coins
+## Boat powers: tune to frequency, not to feel
 
-The staggered 3/4/5/6 existed to offset going first. Free sailing weakened it so much that it
-**overcorrected** — going last became best. Flat 5 each:
+**A power is worth its per-event value multiplied by how often that event happens.** That is the
+whole of it, and it is why the original set was so far out. Event frequencies in a v2 game:
 
 ```
-staggered:   19.5%  25.3%  27.5%  27.3%     8.0-point spread
-flat five:   25.9%  24.1%  24.3%  25.2%     1.8-point spread
+sailing   ~72 per game        the cast    ~14
+trade     ~39                 battle       ~6
+dock      ~24                 storm        ~2
 ```
 
-Turn order has effectively stopped mattering, and setup loses a step.
+So a storm power has to be worth roughly **twenty times** a trade power per event to land in the
+same place. Measured, the original eight in a v2 game:
+
+```
+trader  52.5%   hedger 24.9%   racer 22.5%   shooter 21.7%
+sturdybow 20.7%  trawler 20.2%  lockbox 19.1%  gambler 19.1%
+```
+
+A **33-point spread**, and note that it is almost exactly *inverted* from where the same eight sat
+under the rules as originally written — where Shooter was the runaway at +18.2 and Trader was dead
+last at 0.24 coins a game. Nothing about the powers changed. **v2 moved the game's volume out of
+battle and into trade, and the power table followed it.** Any power you write is a bet on how often
+its subsystem fires.
+
+The re-specced set, same measurement, 5,000 games:
+
+```
+gambler   29.7%  +4.7        racer     23.7%  -1.3
+trader    28.7%  +3.7        trawler   22.9%  -2.1
+shooter   28.3%  +3.3        hedger    20.1%  -4.9
+lockbox   26.5%  +1.5        sturdybow 19.4%  -5.6
+```
+
+**A 10.3-point spread, down from 33.** Six of the eight sit within five points of neutral.
+
+What each re-spec was fixing:
+
+- **Trader** was the runaway at +27.5, because +2 on ~39 deals a game is +40 coins in an economy
+  that ends with 4.5. Capping it to **once per round at +1** cut it to +3.7 without touching what
+  makes it fun.
+- **Shooter** first got range-2 cannons — and got *worse*. More fights is not more wins; it just
+  burned more committed coins. **Returning the stake on a win** fixes the actual problem, which is
+  that battles were negative-EV. It also reads better: efficient powder, not a longer gun.
+- **Lockbox and Gambler** were both bottom of the table for the same reason — they hung off battles
+  and battle calls, and battles fell to 6 a game. Gambler moved to the cast (14 events a game) and
+  Lockbox got much stronger per event.
+- **Trawler's original wording stopped existing** — there is no "each fish" any more. Re-pointed at
+  the cast as the safe counterpart to Gambler's greedy one.
+- **Racer** at 5 was worth −5.8; at **6** it is −1.3. One extra square rarely changes how many turns
+  a journey takes, so movement powers need to be bigger than they look.
+
+Two are still short and I would keep tuning them:
+
+- **Hedger (−4.9).** It only fires on the ~27% of turns where the upwind cap binds. Try 4 rather
+  than 3, which makes it "the wind never slows you" — a clean line, and probably the right one.
+- **Sturdy bow (−5.6).** Storm-immunity is unfixable by dialling: **doubling storms to 1-in-4 moved
+  it 18.7% → 19.3%**, which is noise. Two events a game cannot carry a power. Re-pointing it at the
+  rim (~7 sweeps a game) helped but not enough. If it stays short, point it at **docking** — 24
+  events a game, and berths are single-occupancy, so "you may dock at an occupied berth" would be
+  both frequent and genuinely coveted.
+
+## Flat starting coins — why turn order no longer needs compensating
+
+The staggered 3/4/5/6 existed because in the shipped game **going first was a lasting edge**:
+sailing cost a coin, so a coin lead bought tempo, tempo bought crates, and the leader compounded.
+Three things in v2 break that link.
+
+**1. Coins no longer buy movement.** Free sailing severs coins from tempo entirely, so extra starting
+coins compensate for something that is no longer the constraint.
+
+**2. The game's biggest income event is simultaneous.** The Shared Cast pays every captain at once,
+~14 times a game. A faucet that fires for everybody on the same flip cannot favour a seat.
+
+**3. Two mechanics actively pull the leader back.** The market has no turn order at all — 39 deals a
+game, and a captain who falls behind can buy their way level. And the battle tiebreak hands ties to
+**fewer ingredients**, so whoever is ahead loses close fights; with no sanctuary at Tortuga (rule 14)
+they are also the most attackable ship on the board.
+
+Measured, the compensation had stopped compensating and started overshooting — with the stagger in
+the tuned economy, going **last** became best:
+
+```
+staggered 3/4/5/6:   19.5%  25.3%  27.5%  27.3%     8.0-point spread
+flat 5 each:         25.9%  24.1%  24.3%  25.2%     1.8-point spread
+flat 5, powers on:   26.2%  25.8%  25.5%  22.1%     4.1-point spread  (n=5000)
+```
+
+A residual of ~4 points remains with powers in play, and **it runs the other way** — the last seat is
+slightly behind, not the first. So any compensation aimed at "going first is good" would push it
+further wrong, which is exactly what the coin stagger was already doing. Leave it flat.
 
 ## Storms: 3 squares, everyone, at the start of the round
 
@@ -300,16 +380,14 @@ violent game than the same rules produce in person.
 
 # Still open
 
-- **Four boat powers need re-specifying.** Trawler, trader, gambler and sturdy bow all measured
-  below baseline, and the reason is the same for all four: **they pay in coins, and coins are the
-  most abundant thing in the game.** The two strong powers (shooter, lockbox) pay in battle outcomes,
-  which are the scarcest. Trader is the extreme case — worth **0.24 coins a game**. Re-spec them to
-  pay in tempo or information rather than money.
-- **The draft order.** First-come-first-served was chosen, but with Shooter as written that gave
-  seat 1 a **43.6%** win rate against seat 3's 16.1%. Opening the bid range halves Shooter's edge,
-  and flat starting coins flattened the seats — but the two have not been measured together with
-  powers on. If a spread reappears, drafting in **reverse** seat order fixes it and doubles as the
-  compensation for going first.
+- **Hedger and sturdy bow are still 5 points short.** Proposed next dials are in the boat-powers
+  section: hedger to 4 upwind, and sturdy bow re-pointed at docking if the rim version does not
+  carry it.
+- **The draft order.** First-come-first-served was chosen. With the *original* Shooter that was
+  dangerous — it gave seat 1 a 43.6% win rate against seat 3's 16.1%. With the re-specced set the
+  spread is 10.3 points rather than 33, so first-come is probably now safe; but it has not been
+  measured *as a draft*, only as a random draw. Worth one run before committing. If a spread
+  reappears, drafting in **reverse** seat order fixes it.
 - **Storm frequency.** At 1-in-8 storms cost 1.64 turns a game — most tables will barely notice
   them. 1-in-4 to 1-in-5 is the range where they are felt without stretching the game.
 - **Reconcile the shipped rulebooks.** `RULES.md` and `Rules_boardgame.md` describe a battle system
