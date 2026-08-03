@@ -13,6 +13,9 @@ requirement of this build, not a nice-to-have.
 
 The v2 ruleset changes things the current architecture assumes are fixed:
 
+- **Trade is an open outcry, not a private ask** — one call to the whole table, one round of answers,
+  one pick. The current architecture has no shape for "everyone answers at once and the caller
+  chooses", and the naive alternative (asking each rival in turn) is a dozen prompts a turn.
 - **Storms move every ship at once, before anybody's turn.** Today the storm is a per-turn push
   resolved inside `takeTurn`, square by square, with its own animation loop. It is also the source
   of the Safari performance bug.
@@ -89,8 +92,31 @@ A `DecisionRequest` is data: `{ id, seat, kind, options, deadline }`. A `Decisio
   `scripts/wyatt_ruleset_sim.mjs` becomes unnecessary the day this lands — which is the point.
 
 **Simultaneous decisions are first class.** The engine may emit several requests at once and wait for
-all of them. The Shared Cast and the storm both need this; the current architecture cannot express
-it at all.
+all of them. The Shared Cast, the storm and the trade outcry all need this; the current architecture
+cannot express any of them.
+
+### The three shapes every v2 decision fits into
+
+| Shape | Used by | Emits |
+|---|---|---|
+| **One captain chooses** | sail, act, dock, recipe draft | one request, one seat |
+| **Everyone chooses at once** | the Shared Cast, battle commitment, the Lookout | N requests, all seats, resolved together |
+| **One calls, the rest answer, the caller picks** | the trade outcry | one request → N requests → one request |
+
+The third is new and it is the one to design for deliberately, because it is now the most common
+interaction in the game (~37 deals a game). It resolves in exactly **three engine steps** and no
+more, which is what lets a shot clock always finish it:
+
+```
+1. OFFER     the active captain names both sides      "I want cocoa, I'll give 6"
+2. ANSWER    every other captain, simultaneously      no / yes / a counter that undercuts
+3. PICK      the offerer chooses one answer, or walks
+```
+
+**Bound it at one round of answers.** Open-ended haggling has no natural end, cannot be resolved
+against a clock, and — modelled — does not add anything: 52% of offers already draw more than one
+answer, so the undercutting happens *inside* step 2. A captain who is silent at step 2 has refused
+in public, which is what licenses a battle later (`BOT-STRATEGY.md` §5).
 
 ### Module map
 
@@ -276,7 +302,7 @@ Each ends with a working, playable thing. No milestone is "refactor only".
 |---|---|---|
 | **M1** | **Engine + decision seam.** Board, movement, all v2 rules, `DecisionRequest`/`Response`, event factories. No UI. | The headless sim runs the shipped engine and reproduces the balance figures in the ruleset doc |
 | **M2** | **Bot resolvers.** BOT-STRATEGY.md implemented against the engine. | Trades ≥20/game and battles ≤15% of actions on the shipped bots; turn-distance targeting verified |
-| **M3** | **Render + input, solo play.** Board, ships, the wind vane with both arrows and the water dots, the three narration tiers. | A full solo voyage is playable in Chrome and Safari at 331px |
+| **M3** | **Render + input, solo play.** Board, ships, the wind vane with both arrows and the water dots, the three narration tiers, and the **three-step trade outcry** as a first-class UI flow. | A full solo voyage is playable in Chrome and Safari at 331px; an offer, four answers and a pick fit on a 331px screen without clipping |
 | **M4** | **The two simultaneous beats.** Storm-moves-everyone and the Shared Cast, animation and narration. | Storm animates all four ships in one beat; the cast reads as one shared ladder; no Safari jank |
 | **M5** | **Multiplayer.** Transport, watcher registry, guest rendering, the shot clock. | Host and guest produce byte-identical narration for the same seat; pausing the timer never mutates state |
 | **M6** | **End of voyage, credits, About.** | Voice boundary verified: in-world pirate, credits plain first person |

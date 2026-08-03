@@ -68,6 +68,13 @@ const CAST = argv.includes("--cast");
 // Same simultaneity, same push-your-luck feel, but one beat at the table instead of two.
 const CAST1 = argv.includes("--cast1");
 const RETUNE = argv.includes("--retune");   // the re-specced boat powers
+// Wyatt's own line of play: do not chase the nearest crate — find a CHAIN of islands you can hop
+// dock-to-dock, roughly one a turn, and sail that even through islands you do not need, because
+// those crates are trade goods. And pick which recipe to chase by how chainable its whole path is.
+const ROUTE = argv.includes("--route");
+const NO_DETOUR = argv.includes("--nodetour");   // chain-order your OWN needs, no trade-goods stops
+const OUTCRY = argv.includes("--outcry");   // open-outcry market instead of pairwise solicitation
+const ROUTERS = parseInt((argv.find(a => a.startsWith("--routers=")) || "--routers=4").split("=")[1], 10);
 // Wyatt 2026-08-03: "fishing can simply get everyone 1, not the fisher 2. Either way, the decision
 // becomes 'should I do something that helps my opponents' or not — make sure your bot is
 // tactically deciding this."  --fishflat makes every captain, caster included, take exactly 1.
@@ -225,6 +232,53 @@ function waterDist(g, from) {
   return dist;
 }
 
+// turn-distance maps FROM each island berth and from home, cached per wind. The board is static,
+// so a route can be costed out of these without another search.
+function berthMaps(g, wind) {
+  g.__bm = g.__bm || {};
+  if (g.__bm[wind]) return g.__bm[wind];
+  const m = {};
+  for (const ing of g.ings) m[ing] = turnDist(g, g.dockOf[ing], wind);
+  m.__home = turnDist(g, g.home, wind);
+  return (g.__bm[wind] = m);
+}
+// Cost, in TURNS, of a pickup route: me -> each berth in order -> home.
+function routeCost(g, from, order, wind, fromMap) {
+  const bm = berthMaps(g, wind);
+  let cost = 0, at = null;
+  for (const ing of order) {
+    const cell = K(g.dockOf[ing]);
+    cost += at === null ? (fromMap[cell] ?? 12) : (bm[at][cell] ?? 12);
+    cost += 1;                                     // the turn spent docking
+    at = ing;
+  }
+  cost += at === null ? (fromMap[K(g.home)] ?? 12) : (bm[at][K(g.home)] ?? 12);
+  return cost;
+}
+// The cheapest order to collect a set of ingredients and get home. Brute force to 5 (120 orders);
+// nearest-neighbour beyond that. Cached per (need-set, wind) because it only changes when one of
+// them changes, not every turn.
+function bestRoute(g, from, need, wind, fromMap) {
+  if (!need.length) return { order: [], cost: fromMap[K(g.home)] ?? 12 };
+  const perms = (a) => a.length <= 1 ? [a] :
+    a.flatMap((x, i) => perms([...a.slice(0, i), ...a.slice(i + 1)]).map(r => [x, ...r]));
+  let cands;
+  if (need.length <= 5) cands = perms(need);
+  else {                                            // nearest-neighbour seed only
+    const bm = berthMaps(g, wind); const rest = [...need]; const order = []; let at = null;
+    while (rest.length) {
+      let bi = 0, bd = 1e9;
+      rest.forEach((ing, i) => { const c = at === null ? (fromMap[K(g.dockOf[ing])] ?? 12) : (bm[at][K(g.dockOf[ing])] ?? 12);
+        if (c < bd) { bd = c; bi = i; } });
+      at = rest[bi]; order.push(at); rest.splice(bi, 1);
+    }
+    cands = [order];
+  }
+  let best = null, bestC = 1e9;
+  for (const o of cands) { const c = routeCost(g, from, o, wind, fromMap); if (c < bestC) { bestC = c; best = o; } }
+  return { order: best, cost: bestC };
+}
+
 /* ---------------------------------------------------------------- the sim */
 
 function playGame(seed, stats) {
@@ -245,11 +299,25 @@ function playGame(seed, stats) {
       P.forEach((p, i) => p.power = pool[i]);
     }
   }
+  let recipePicked = 0, detours = 0, routeTurns = 0, offers = 0, offersFilled = 0, undercuts = 0;
   const sold = {}; g.ings.forEach(i => sold[i] = 0);   // rule 11: per-ISLAND price ladder
   const basePrice = ing => PRICE[Math.min(sold[ing], PRICE.length - 1)];
   let priceFor = null;                       // set to a captain while they are buying
   const price = ing => (priceFor && priceFor.power === "wholesaler") ? PRICE[0] : basePrice(ing);
 
+  // Rule: dealt two secret recipes, keep one. A router picks the card whose whole path is cheaper
+  // to sail from where they start — exactly the calculation Wyatt makes at the table.
+  if (ROUTE) {
+    const w0 = DKEYS[0];
+    for (const p of P) {
+      if (p.idx >= ROUTERS || !p.recipeChoices) continue;
+      const fromMap = turnDist(g, p.pos, w0);
+      const cost = r => bestRoute(g, p.pos, r.filter(i => g.tokens[i] > 0), w0, fromMap).cost;
+      const [a, b] = p.recipeChoices;
+      p.recipe = cost(a) <= cost(b) ? a : b;
+      recipePicked++;
+    }
+  }
   // rule 6: this round's wind and storm are known one round ahead
   let wind = DKEYS[Math.floor(g.r() * 4)], storm = g.r() < STORM_P;
   let nextWind = DKEYS[Math.floor(g.r() * 4)], nextStorm = g.r() < STORM_P;
@@ -278,12 +346,94 @@ function playGame(seed, stats) {
     return price(ing) + Math.min(9, turns * 2);              // price + the TURNS it costs to fetch
   }
   // What a seller gives up: the crate itself, plus the denial value of keeping it from a rival.
-  function reservation(p, ing) {
+  // What a seller gives up: the crate, plus its denial value. The denial term has to scale with
+  // THREAT — nobody sells the winning ingredient to the captain who is one crate from home, and a
+  // market where everyone always deals leaves no reason for anyone to ever fight.
+  function reservation(p, ing, buyer) {
     if (needs(p).includes(ing)) return 99;                   // not for sale at any price
     const rivals = P.filter(x => x !== p && !x.done && needs(x).includes(ing)).length;
-    return 2 + rivals + (g.tokens[ing] <= 0 ? 3 : 0);
+    let r = 2 + rivals + (g.tokens[ing] <= 0 ? 3 : 0);
+    if (buyer) { const left = needs(buyer).length;
+      if (left <= 1) r += 12; else if (left === 2) r += 5; }  // not to the captain about to win
+    return r;
+  }
+  // ---- OPEN OUTCRY (Wyatt, 2026-08-03) ----
+  // Not pairwise solicitation — that is horrible to play and horrible to watch. The active captain
+  // puts ONE offer on the table naming both sides ("I want cocoa, I'll give 6"), every other
+  // captain answers once (no / yes / a counter that undercuts), and the offerer picks. Bounded at
+  // exactly one round of responses so a shot clock can always resolve it.
+  function openOutcry(p) {
+    const myNeed = needs(p);
+    // A captain holding trade goods and short of coin calls a SALE instead: "I'll give cocoa,
+    // who'll pay?" Rivals answer with what they will pay and outbid each other.
+    const surplus = p.ing.filter(i => !myNeed.includes(i));
+    const nextCost = myNeed.length ? price(myNeed.find(i => g.tokens[i] > 0) || myNeed[0]) : 0;
+    const noOneHasWhatINeed = !myNeed.some(i => P.some(q => q !== p && !q.done && q.ing.includes(i)));
+    if (surplus.length && p.coins < nextCost && noOneHasWhatINeed) {
+      let best = null;
+      for (const g2 of surplus) for (const q of P) {
+        if (q === p || q.done || !needs(q).includes(g2)) continue;
+        const bid = Math.min(q.coins, crateValue(q, g2));
+        if (bid >= 2 && (!best || bid > best.bid)) best = { q, ing: g2, bid };
+      }
+      if (best) {
+        offers++;
+        if (P.filter(q => q !== p && !q.done && needs(q).includes(best.ing)).length > 1) undercuts++;
+        best.q.coins -= best.bid; p.coins += best.bid;
+        if (p.power === "chandler") { p.coins += 2; coinsMinted += 2; }
+        p.ing.splice(p.ing.indexOf(best.ing), 1); best.q.ing.push(best.ing);
+        trades++; sells++; tradeCoin += best.bid; offersFilled++; tradeBonus(p, best.q);
+        return true;
+      }
+    }
+    if (!myNeed.length) return false;
+    // What do I call for? The crate I need that is dearest to fetch myself — that is where a deal
+    // beats sailing. crateValue() already prices "what would getting this another way cost me".
+    let want = null, wantV = -1;
+    for (const ing of myNeed) {
+      const holders = P.filter(q => q !== p && !q.done && q.ing.includes(ing));
+      if (!holders.length) continue;
+      const v = crateValue(p, ing);
+      if (v > wantV) { wantV = v; want = ing; }
+    }
+    if (!want) return false;
+    offers++;
+    // What am I willing to give? A surplus crate first (costs me nothing), else coins up to value.
+    const mySurplus = p.ing.filter(i => !myNeed.includes(i));
+    const openingCoins = Math.min(p.coins, Math.max(1, Math.floor(wantV * 0.6)));
+    // Every rival answers ONCE. A holder answers with the least they will take; that is the
+    // undercut — they are bidding against each other to be the one who sells.
+    const answers = [];
+    for (const q of P) {
+      if (q === p || q.done || !q.ing.includes(want)) continue;
+      const res = reservation(q, want, p);
+      // A holder who will not deal at any price I would pay has REFUSED, in public, in front of
+      // the whole table. That is what licenses the guns later (BOT-STRATEGY.md §5).
+      if (res > wantV) { refused.add(p.idx + ">" + q.idx); continue; }
+      // will they take a crate instead of coin? only if it is something they need
+      const swapWith = mySurplus.find(i => needs(q).includes(i));
+      if (swapWith) { answers.push({ q, kind: "swap", give: swapWith, ask: 0 }); continue; }
+      answers.push({ q, kind: "coin", ask: Math.max(res, 1) });
+    }
+    if (!answers.length) { for (const q of P) if (q !== p && !q.done && q.ing.includes(want)) refused.add(p.idx + ">" + q.idx); return false; }
+    if (answers.length > 1) undercuts++;
+    // The offerer picks: a swap is free, so it always wins; otherwise the cheapest ask.
+    answers.sort((x, y) => (x.kind === "swap" ? -1 : y.kind === "swap" ? 1 : x.ask - y.ask));
+    const deal = answers[0];
+    if (deal.kind === "swap") {
+      p.ing.splice(p.ing.indexOf(deal.give), 1); deal.q.ing.push(deal.give);
+      deal.q.ing.splice(deal.q.ing.indexOf(want), 1); p.ing.push(want);
+      trades++; swaps++; offersFilled++; tradeBonus(p, deal.q); return true;
+    }
+    const pay = Math.min(deal.ask, openingCoins, p.coins);
+    if (pay < deal.ask) return false;                             // I could not meet the best answer
+    p.coins -= pay; deal.q.coins += pay;
+    deal.q.ing.splice(deal.q.ing.indexOf(want), 1); p.ing.push(want);
+    trades++; buys++; tradeCoin += pay; offersFilled++; tradeBonus(p, deal.q);
+    return true;
   }
   function tryTrade(p) {
+    if (OUTCRY) return openOutcry(p);
     let struck = false, dealsThisTurn = 0;
     for (const q of P) {
       if (q === p || q.done || dealsThisTurn >= MAX_DEALS) continue;
@@ -297,7 +447,7 @@ function playGame(seed, stats) {
       }
       // (b) I buy from them. A deal exists whenever my value clears their reservation.
       if (iWant) {
-        const v = crateValue(p, iWant), r = reservation(q, iWant);
+        const v = crateValue(p, iWant), r = reservation(q, iWant, p);
         const ask = Math.ceil((v + r) / 2);
         if (!(v >= r && p.coins >= ask)) refused.add(p.idx + ">" + q.idx);   // they would not deal
         if (v >= r && p.coins >= ask) {
@@ -308,7 +458,7 @@ function playGame(seed, stats) {
       }
       // (c) they buy from me — the merchant's whole business model
       if (theyWant) {
-        const v = crateValue(q, theyWant), r = reservation(p, theyWant);
+        const v = crateValue(q, theyWant), r = reservation(p, theyWant, q);
         const ask = Math.ceil((v + r) / 2);
         if (v >= r && q.coins >= ask) {
           q.coins -= ask; p.coins += ask;
@@ -462,6 +612,33 @@ function playGame(seed, stats) {
       const sqFrom = waterDist(g, p.pos);
       const rankT = c => (dists[K(c)] ?? 99) * 1000 + Math.min(999, sqFrom[K(c)] ?? 999);
       if (cands.length) target = cands.reduce((b, c) => rankT(c) < rankT(b) ? c : b, cands[0]);
+      // ---- the router: sail a CHAIN, not the nearest crate ----
+      // Wyatt's line: judge a route by how TIGHT the chain is — turns per dock. A chain you can
+      // hop roughly one island a turn is worth sailing even through crates you do not need, because
+      // those are trade goods. Re-planned only when the need-set or the wind changes, never per
+      // turn: a route that is recomputed every step is not a plan, it is a wander.
+      if (ROUTE && p.idx < ROUTERS && stocked.length) {
+        const key = stocked.slice().sort().join() + "|" + wind;
+        if (p.__rk !== key) {
+          const base = bestRoute(g, p.pos, stocked, wind, dists);
+          let chosen = base.order, bestPerDock = base.cost / Math.max(1, base.order.length);
+          // At most ONE trade-goods detour, and only if it does not loosen the chain.
+          if (!NO_DETOUR && base.order && base.order.length && needs(p).length > 2) {
+            for (const extra of g.ings) {
+              if (stocked.includes(extra) || g.tokens[extra] <= 0) continue;
+              if (!P.some(q => q !== p && !q.done && needs(q).includes(extra))) continue;
+              const withExtra = bestRoute(g, p.pos, [...stocked, extra], wind, dists);
+              const perDock = withExtra.cost / (withExtra.order.length || 1);
+              if (perDock <= bestPerDock) { chosen = withExtra.order; bestPerDock = perDock; }
+            }
+          }
+          if (chosen && chosen.length > (base.order||[]).length) detours++;
+          p.__rk = key; p.__route = chosen;
+        }
+        // drop stops already collected, then head for the next one
+        if (p.__route) p.__route = p.__route.filter(i => g.tokens[i] > 0 && !p.ing.includes(i));
+        if (p.__route && p.__route.length) { target = g.dockOf[p.__route[0]]; routeTurns++; }
+      }
       // Rule 11 as intended: if I am rich, an ingredient is running short, a rival needs it and I
       // do not, sailing over to buy it out is a real play. Only worth a detour, not a voyage.
       if (!NO_HOARD && p.coins >= price(need[0] || "wheat") + HOARD_RESERVE) {
@@ -723,6 +900,7 @@ function playGame(seed, stats) {
     (stats.powerSeat[p.power] ||= [0,0,0,0]); stats.powerSeat[p.power][p.idx]++;
   }
   stats.sharedFlips += sharedFlips; stats.bigHauls += bigHauls; stats.wipeouts += wipeouts;
+  stats.detours += detours; stats.offers += offers; stats.offersFilled += offersFilled; stats.undercuts += undercuts;
   stats.swaps += swaps; stats.buys += buys; stats.sells += sells; stats.tradeCoin += tradeCoin; stats.passes += passes;
   for (const q of P) { stats.lineGames[q.line]++; if (winner === q) stats.lineWins[q.line]++; }
   stats.lockboxSaves += lockboxSaves; stats.hoardBuys += hoardBuys; stats.castRounds += castRounds; stats.casts += casts;
@@ -739,7 +917,7 @@ const S = {
   battles: 0, attWins: 0, defWins: 0, tieFlips: 0, tieIng: 0, stormTurnsLost: 0, rimUses: 0,
   coinsMinted: 0, coinsBurned: 0, callPayouts: 0, brokeAtDock: 0, bidTotal: 0, flips: 0,
   upwindBound: 0, sailChances: 0, spoilNeeded: 0, spoilCoins: 0, cratesLeft: [], endCoins: [], winBySeat: [0, 0, 0, 0],
-  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0, sharedFlips: 0, bigHauls: 0, wipeouts: 0, swaps: 0, buys: 0, sells: 0, tradeCoin: 0, passes: 0,
+  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0, detours: 0, offers: 0, offersFilled: 0, undercuts: 0, sharedFlips: 0, bigHauls: 0, wipeouts: 0, swaps: 0, buys: 0, sells: 0, tradeCoin: 0, passes: 0,
   lineGames: {racer:0,merchant:0}, lineWins: {racer:0,merchant:0},
 };
 for (let i = 0; i < N_GAMES; i++) playGame(700000 + i, S);
@@ -757,6 +935,8 @@ console.log(`  fish    ${pct(S.acts.fish, totalActs)}`);
 console.log(`  dock    ${pct(S.acts.dock, totalActs)}`);
 console.log(`  battle  ${pct(S.acts.battle, totalActs)}`);
 console.log(`  pass    ${pct(S.acts.pass, totalActs)}   (declined to fish — it would have helped rivals more than me)`);
+if (OUTCRY) console.log(`  OPEN OUTCRY: ${(S.offers/S.games).toFixed(1)} offers a game, ${pct(S.offersFilled, S.offers)} filled, ${pct(S.undercuts, S.offers)} drew competing answers`);
+if (ROUTE) console.log(`  ROUTING: ${(S.detours/S.games).toFixed(2)} trade-goods detours a game`);
 console.log(`  trade breakdown: ${(S.swaps/S.games).toFixed(2)} swaps + ${(S.buys/S.games).toFixed(2)} buys + ${(S.sells/S.games).toFixed(2)} sells per game, ${(S.tradeCoin/Math.max(1,S.buys+S.sells)).toFixed(1)} coins per sale`);
 if (MERCHANTS) console.log(`  LINE WIN RATE: merchant ${pct(S.lineWins.merchant, S.lineGames.merchant)} (n=${S.lineGames.merchant})   racer ${pct(S.lineWins.racer, S.lineGames.racer)} (n=${S.lineGames.racer})`);
 console.log(`  trades struck (free phase, not an act): ${(S.trades / S.games).toFixed(2)} per game`);

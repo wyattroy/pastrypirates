@@ -123,14 +123,31 @@ should be offered first. They cost no coins and save both sides a voyage.
 
 In order, every turn.
 
-### Phase 1 — Trade (free, costs no action)
+### Phase 1 — Trade: call ONE offer to the whole table
 
-1. Offer a **swap** to every captain holding something you need, where you hold something they need.
-2. Otherwise **buy** what you need at the settled price, if you can afford it.
-3. Otherwise **sell** surplus to whoever values it above your reservation.
+Not a private ask to each rival in turn — that is a dozen prompts a turn and it is miserable to play
+and to watch. **One call, both sides named, to everybody at once.**
 
-**Record refusals.** If a captain would not deal for a crate you need, remember it. That record is
-what makes the next phase behave like a pirate game instead of a brawl.
+1. **What to call for.** The crate you need whose `value()` is highest — that is, the one that would
+   cost you most to fetch yourself. That is where a deal beats sailing.
+2. **What to offer.** A surplus crate the seller needs, if you have one (it costs you nothing).
+   Otherwise coins, opening at roughly 60% of your `value()` for it.
+3. **If nobody holds anything you need** and you are short of coin for your next crate, call a
+   **sale** instead: name a surplus crate and let rivals bid for it.
+4. **Answering someone else's call:** if you hold what they want, answer with your `reservation()`
+   for it. Two holders will undercut each other automatically, because each is answering with the
+   least they will take.
+5. **The offerer then picks** the best answer — a swap first (it costs no coins), else the cheapest
+   ask — or walks.
+
+**Record refusals.** A holder who will not deal at any price you would pay has refused **in public,
+in front of the whole table**. That record is what licenses the guns later (§5) — and it is the
+difference between a pirate game and a brawl.
+
+**Reservation must scale with threat.** A captain does not sell the winning ingredient to the rival
+who is one crate from home. Add a large premium (+12) against a buyer with one need left, a smaller
+one (+5) at two. Without it the market clears everything, nobody is ever stingy, and **battles fall
+to 0.5% of actions** — the whole reason to fight disappears.
 
 ### Phase 2 — Sail (free)
 
@@ -138,6 +155,10 @@ Pick a target, then sail to the reachable square that ranks best toward it.
 
 **Target priority:**
 
+0. **Plan a chain, not a next stop.** Cost the whole pickup route — me → each needed berth in some
+   order → home — in turns, and take the cheapest order. Brute-force it at five stops or fewer (120
+   orderings); nearest-neighbour beyond. **Re-plan only when your need-set or the wind changes**, and
+   drop stops as you collect them. A route recomputed every turn is not a plan, it is a wander.
 1. If your recipe is complete → **home**.
 2. If an ingredient you need is **gone from the board** → the position of whoever **holds** it. You
    cannot buy it; you must deal or take it.
@@ -205,6 +226,42 @@ short of the last vanilla on the board rides past sense — and should.
 
 ---
 
+## 6b. Choosing your recipe
+
+Dealt two, keep one. **Cost the full route for each** — every ingredient still in stock, in the
+cheapest order, ending at home — and keep the cheaper one. This is the same `bestRoute` used for
+targeting, run once at setup. It is the first decision of the game and the only one made with
+complete information about the board.
+
+## 6c. Chain-routing and trade-goods detours — specified, but NOT confirmed by the model
+
+Wyatt plays by chaining: find islands you can hop dock-to-dock roughly one a turn and sail that
+route, **even through crates you do not need, because those are trade goods**. It is specified above
+because it is plainly right at a table. **It did not beat greedy nearest-need in simulation, and the
+honest reading is that the model is the weak party, not the strategy:**
+
+```
+greedy nearest-need                     17.9 rounds   0.6% never finish
+chain-order your own needs              18.5 rounds   0.8%
+chain-order + trade-goods detours       25.0 rounds   2.6%
+```
+
+Three reasons to distrust that result before distrusting the strategy:
+
+1. **The router ignores the wind forecast, and it is the obvious culprit.** Rule 6 tells every
+   captain next round's wind. A human plans the chain around it. The implementation above plans
+   under the *current* wind only and then re-plans when it changes — so it is repeatedly planning a
+   route the weather then invalidates. **Fix this before concluding anything.** Cost the first leg
+   under this round's wind and later legs under next round's.
+2. **The detour only pays if the selling side is strong.** A bot that picks up trade goods it cannot
+   monetise has simply spent turns. Human selling is far better than anything modelled here.
+3. **A small board hides the effect.** At 4 squares a move on a 15×15 sea most islands are 2–3 turns
+   apart whatever order you take them in, so there is less chain to find than at a table with a
+   bigger relative map.
+
+**Implement it, then measure it again with the forecast wired in.** If chaining still does not win,
+that is a finding about this board size — not about the way Wyatt plays.
+
 ## 7. Tuning knobs, and what each one moves
 
 | Knob | Default | Raising it |
@@ -214,6 +271,8 @@ short of the last vanilla on the board rides past sense — and should.
 | Exhausted-island crate value | 14 | more desperate late-game deals and fights |
 | Reservation denial term | +1 per rival needing it | higher prices, fewer deals |
 | Battle commitment when the stake is a needed crate | full purse | shorter, more decisive fights |
+| Threat premium on `reservation()` (1 need left / 2) | +12 / +5 | fewer deals with the leader, more battles |
+| Trade-goods detour tolerance (turns per dock) | must not worsen | more trade goods, longer games |
 
 ---
 

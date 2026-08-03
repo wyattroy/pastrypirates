@@ -23,7 +23,9 @@ branch's git history and does not need re-reading.
   a ship may tie up, one ship at a time.
 - Around the rim runs the **trade-wind current**, in four clockwise arcs.
 - **Stock each island with (players − 1) crates.** Four captains → 3 crates an island, 21 in play.
-- Deal each captain a **secret recipe** of 5 of the 7 ingredients.
+- Deal each captain **two** secret recipes of 5 of the 7 ingredients. **Keep one, discard the
+  other**, before anyone sails. The choice is a real one: which of these two paths can I actually
+  chain together from where I start, given where the islands fell?
 - **Every captain takes 5 coins.** The same number for everyone.
 - Each captain takes a **boat power** (§6), drafted one each, no duplicates.
 - Set the wind wheel. Turn order is fixed for the game.
@@ -43,10 +45,24 @@ branch's git history and does not need re-reading.
 
 ## 3. A turn: Trade → Sail → Act
 
-### Trade — free, every turn
+### Trade — free, every turn. An open outcry, not a private ask.
 
-Deal with **any captain, anywhere on the sea**. Crates, coins, promises, alliances. Adjacency is not
-required and trading does not cost your action. No bonus is paid; the deal is its own reward.
+**The captain whose turn it is calls one offer to the whole table**, naming both sides:
+
+> *"I want cocoa. I'll give 6 coins."*  ·  *"I want cocoa. I'll give my sugar."*
+> *"I'll give my vanilla. Who'll pay?"*
+
+**Every other captain answers once** — no, yes, or a counter that undercuts the others
+(*"I'll take 4"*). **Then the offerer picks any one answer, or walks away.** That is the whole
+negotiation: one call, one round of answers, one choice.
+
+Adjacency is not required — you are shouting across the whole sea — and trading does not cost your
+action. No bonus is paid; the deal is its own reward.
+
+**Why it is bounded at one round of answers:** two captains who both want to sell will undercut each
+other inside their single answer, which is where the fun is. Letting it run open-ended turns every
+turn into a haggle with no natural end, and online it has to resolve against a shot clock. One
+round, then the offerer decides.
 
 ### Sail — free, every turn
 
@@ -193,6 +209,25 @@ decision the moment everyone is rich, and it also made the *Shooter* power worth
 rate — a third of the whole bid range. Opening the range up fixes the battle, the economy and the
 boat powers in one move: it is the only unbounded coin sink in the game, and it halves the spread
 between the strongest and weakest power without touching them.
+
+## Trade: one open call beats twelve private asks
+
+The alternative — the active captain asking each rival in turn whether they will part with a
+specific crate — is what the simulator did first, and it is unplayable in both directions. With
+three rivals and five ingredients it is a dozen prompts a turn for the asker and a dozen
+interruptions for everyone else, and nobody at the table learns anything from it.
+
+An open call is one prompt for the offerer and one for everyone else, and **it broadcasts
+information**: what a captain shouts for tells the table what they are missing, and what they will
+pay tells you how badly. Modelled, **52% of offers drew more than one answer** — competing sellers
+undercutting each other is the common case, not the rare one.
+
+## Recipe: deal two, keep one
+
+The route you must sail is the game. Being handed it removes the first and possibly most
+interesting decision — *which of these two hands can I actually sail, given where the islands
+fell and where I start?* The machinery already half-exists in the shipped engine
+(`recipeChoices: [a, b]`), from a draft idea that was never surfaced.
 
 ## Dock: treasure 3, then buy any crate at 3/4/5
 
