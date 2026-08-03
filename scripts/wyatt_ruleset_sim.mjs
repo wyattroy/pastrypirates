@@ -46,7 +46,7 @@ const argv = process.argv.slice(2);
 const N_GAMES = parseInt(argv.find(a => /^\d+$/.test(a)) || "1500", 10);
 const DOCK_SHELTER = argv.includes("--dockshelter=path") ? "path" : "berth";
 const NO_RIM = argv.includes("--norim");
-const STORM_P = parseFloat((argv.find(a => a.startsWith("--storm=")) || "--storm=0.125").split("=")[1]);
+const STORM_P = parseFloat((argv.find(a => a.startsWith("--storm=")) || "--storm=0.2").split("=")[1]);
 const PRICE = (argv.find(a => a.startsWith("--price=")) || "--price=3,4,5").split("=")[1].split(",").map(Number);
 const FISH_OTHERS = parseFloat((argv.find(a => a.startsWith("--fishothers=")) || "--fishothers=1").split("=")[1]);
 const BID_MAX = parseInt((argv.find(a => a.startsWith("--bidmax=")) || "--bidmax=3").split("=")[1], 10);
@@ -96,7 +96,13 @@ const MAX_ROUNDS = 200;
 // Rule 13 — the eight boat powers, per Wyatt's list and his four scoping answers:
 // unique draft (no duplicates), racer/hedger raise the BUDGET, lockbox applies to ANY loss.
 const EXCLUDE = ((argv.find(a => a.startsWith("--exclude=")) || "--exclude=").split("=")[1] || "").split(",").filter(Boolean);
-const POWER_LIST = ["racer","hedger","shooter","trawler","lockbox","trader","sturdybow","gambler"].filter(x => !EXCLUDE.includes(x));
+const POOL_V3 = argv.includes("--pool");   // the full candidate pool, Wyatt's new ones included
+const SET = (argv.find(a => a.startsWith("--set=")) || "").split("=")[1];
+const POWER_LIST = SET ? SET.split(",") : (POOL_V3
+  ? ["gambler","trader","shooter","lockbox","racer2","wholesaler","crazyeddie","blackpearl",
+     "poacher","harbourmaster","privateer","navigator","pilot","stormchaser","chandler","dreadnought"]
+  : ["racer","hedger","shooter","trawler","lockbox","trader","sturdybow","gambler"])
+  .filter(x => !EXCLUDE.includes(x));
 const rngFor = seed => { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0;
   let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
   return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
@@ -133,12 +139,79 @@ function reachable(g, p, wind) {
       frontier = next;
     }
   };
-  walk(pw === "racer" ? (RETUNE ? 6 : 5) : 4, false);
+  if (pw === "pilot") { walk(4, true); return [...out.values()]; }   // the wind never slows you
+  walk(pw === "racer2" ? 6 : (pw === "racer" ? (RETUNE ? 6 : 5) : 4), false);
   walk(pw === "hedger" ? 3 : 2, true);
   return [...out.values()];
 }
 
-// water-only BFS distance from a cell to everywhere — used for targeting, ignores wind
+// ---- TURN distance (Dijkstra over the real move graph), not square distance ----
+// Square counting is wrong for this game: a berth 3 squares upwind is TWO turns away, while one 4
+// squares downwind is ONE. Every valuation the bot makes — which island to sail for, what a crate
+// is worth in trade, whether a denial detour is affordable — is denominated in turns, so it has to
+// be measured in turns.
+//
+// The board is static, so the one-turn move graph is precomputed once per wind direction and
+// cached. Ships block *ending* on a cell but move constantly; they are ignored for distance
+// estimation, which keeps the graph cacheable and only ever under-estimates by a turn.
+function turnGraph(g, wind) {
+  g.__tg = g.__tg || {};
+  if (g.__tg[wind]) return g.__tg[wind];
+  const graph = new Map();
+  const ghost = { pos: null, power: null };
+  for (const key of g.valid) {
+    const c = key.split(",").map(Number);
+    if (land(g, c)) continue;
+    ghost.pos = c;
+    const outs = new Set();
+    for (const n of reachable(g, ghost, wind)) {
+      let dest = n;
+      if (!NO_RIM && g.onRim(n)) { const h = g.rimHead[K(n)]; if (h) dest = h; }
+      outs.add(K(dest));
+    }
+    graph.set(key, [...outs]);
+  }
+  return (g.__tg[wind] = graph);
+}
+// turns from `from` to everywhere, as a {"x,y": turns} map
+function turnDist(g, from, wind) {
+  const graph = turnGraph(g, wind);
+  const dist = { [K(from)]: 0 }; let frontier = [K(from)], t = 0;
+  while (frontier.length && t < 12) {
+    t++; const next = [];
+    for (const k of frontier) for (const nk of (graph.get(k) || []))
+      if (!(nk in dist)) { dist[nk] = t; next.push(nk); }
+    frontier = next;
+  }
+  return dist;
+}
+// The move graph is NOT symmetric — the wind makes going somewhere cheaper than coming back — so
+// "turns from me to T" and "turns from T to me" are different numbers. Anything asking "how close
+// is this cell to my target" needs the REVERSED graph, not the forward one.
+function turnGraphRev(g, wind) {
+  g.__tgr = g.__tgr || {};
+  if (g.__tgr[wind]) return g.__tgr[wind];
+  const fwd = turnGraph(g, wind), rev = new Map();
+  for (const [from, outs] of fwd) for (const to of outs) {
+    if (!rev.has(to)) rev.set(to, []);
+    rev.get(to).push(from);
+  }
+  return (g.__tgr[wind] = rev);
+}
+// turns needed to REACH `target` from everywhere, as a {"x,y": turns} map
+function turnDistTo(g, target, wind) {
+  const rev = turnGraphRev(g, wind);
+  const dist = { [K(target)]: 0 }; let frontier = [K(target)], t = 0;
+  while (frontier.length && t < 12) {
+    t++; const next = [];
+    for (const k of frontier) for (const nk of (rev.get(k) || []))
+      if (!(nk in dist)) { dist[nk] = t; next.push(nk); }
+    frontier = next;
+  }
+  return dist;
+}
+// square distance is still the right tool for "is this berth adjacent to that island" style
+// questions, so it stays — it is simply no longer used for anything the bot values.
 function waterDist(g, from) {
   const dist = { [K(from)]: 0 }; const q = [from];
   while (q.length) {
@@ -173,7 +246,9 @@ function playGame(seed, stats) {
     }
   }
   const sold = {}; g.ings.forEach(i => sold[i] = 0);   // rule 11: per-ISLAND price ladder
-  const price = ing => PRICE[Math.min(sold[ing], PRICE.length - 1)];
+  const basePrice = ing => PRICE[Math.min(sold[ing], PRICE.length - 1)];
+  let priceFor = null;                       // set to a captain while they are buying
+  const price = ing => (priceFor && priceFor.power === "wholesaler") ? PRICE[0] : basePrice(ing);
 
   // rule 6: this round's wind and storm are known one round ahead
   let wind = DKEYS[Math.floor(g.r() * 4)], storm = g.r() < STORM_P;
@@ -199,8 +274,8 @@ function playGame(seed, stats) {
   function crateValue(q, ing) {
     if (!needs(q).includes(ing)) return 0;
     if (g.tokens[ing] <= 0) return 14;                       // only trade or plunder can get it now
-    const d = waterDist(g, q.pos)[K(g.dockOf[ing])] ?? 20;
-    return price(ing) + Math.min(9, Math.ceil(d / 2));       // price + the tempo it costs to fetch
+    const turns = turnDist(g, q.pos, wind)[K(g.dockOf[ing])] ?? 12;
+    return price(ing) + Math.min(9, turns * 2);              // price + the TURNS it costs to fetch
   }
   // What a seller gives up: the crate itself, plus the denial value of keeping it from a rival.
   function reservation(p, ing) {
@@ -237,6 +312,7 @@ function playGame(seed, stats) {
         const ask = Math.ceil((v + r) / 2);
         if (v >= r && q.coins >= ask) {
           q.coins -= ask; p.coins += ask;
+          if (p.power === "chandler") { p.coins += 2; coinsMinted += 2; }
           p.ing.splice(p.ing.indexOf(theyWant), 1); q.ing.push(theyWant);
           trades++; sells++; dealsThisTurn++; tradeCoin += ask; tradeBonus(p, q); struck = true;
         }
@@ -257,7 +333,8 @@ function playGame(seed, stats) {
   function battle(att, def) {
     battles++;
     const bid = (x, keen) => {
-      const cap = Math.min(BID_MAX, x.coins);
+      let cap = Math.min(BID_MAX, x.coins);
+      if (x === att && def.power === "dreadnought") return x.coins;   // no half measures against her
       if (cap <= 0) return 0;
       return keen ? cap : Math.min(cap, 1 + Math.floor(g.r() * cap));
     };
@@ -271,6 +348,12 @@ function playGame(seed, stats) {
     const ux = Math.sign(dx), uy = Math.sign(dy), axis = (dx === 0) !== (dy === 0);
     const aToD = axis ? DKEYS.find(k => DIRS[k][0] === ux && DIRS[k][1] === uy) : undefined;
     const dToA = axis ? DKEYS.find(k => DIRS[k][0] === -ux && DIRS[k][1] === -uy) : undefined;
+    for (const [x, isAtt] of [[att, true], [def, false]]) {
+      if (x.power !== "crazyeddie") continue;
+      flips++;
+      if (g.r() < .5) { const extra = isAtt ? a : d; if (x.coins >= extra) { x.coins -= extra; coinsBurned += extra;
+        if (isAtt) a += extra; else d += extra; } }
+    }
     let A = a, D = d;
     if (wind === aToD) A += 1; else if (wind === dToA) D += 1;
     if (!RETUNE && att.power === "shooter") A += 1;
@@ -293,6 +376,7 @@ function playGame(seed, stats) {
     if (RETUNE && win.power === "shooter") {            // efficient powder: the winner's stake returns
       const back = win === att ? a : d; win.coins += back; coinsMinted += back;
     }
+    if (RETUNE && win.power === "privateer") { const t = Math.min(3, lose.coins); lose.coins -= t; win.coins += t; }
     if (win === att) attWins++; else defWins++;
 
     // rule 5: spectators call it free, +2 if right
@@ -327,9 +411,9 @@ function playGame(seed, stats) {
 
   // ---- rule 7/8: one simultaneous storm at the start of the round
   function stormPush() {
-    const d = DIRS[wind];
     for (const p of P) {
       if (p.done) continue;
+      const d = DIRS[p.power === "stormchaser" ? bestStormDir(p) : wind];
       const berthed = g.adjPort(p) !== null || man(p.pos, g.home) <= 1;
       if (berthed && DOCK_SHELTER === "berth") continue;      // rule 8: docks save you
       const legs = p.power === "sturdybow" ? 1 : 3;
@@ -337,6 +421,7 @@ function playGame(seed, stats) {
         const n = [p.pos[0] + d[0], p.pos[1] + d[1]];
         if (land(g, n)) {
           if (DOCK_SHELTER === "path" && g.adjPort(p) !== null) break;   // alt reading
+          if (p.power === "blackpearl") break;                            // never runs aground
           p.lostTurn = true; stormTurnsLost++; break;                     // rule 8
         }
         if (shipAt(g, n, p)) break;
@@ -346,6 +431,19 @@ function playGame(seed, stats) {
     }
   }
 
+  // a stormchaser rides the gale toward whatever she is sailing for
+  function bestStormDir(p) {
+    const nd = needs(p);
+    const tgt = nd.length ? (g.dockOf[nd.find(i => g.tokens[i] > 0) || nd[0]] || g.home) : g.home;
+    const td = waterDist(g, tgt);
+    let best = wind, bd = 1e9;
+    for (const dk of DKEYS) {
+      const dd = DIRS[dk]; let c = p.pos;
+      for (let s = 0; s < 3; s++) { const n = [c[0] + dd[0], c[1] + dd[1]]; if (land(g, n)) break; c = n; }
+      const v = td[K(c)] ?? 1e9; if (v < bd) { bd = v; best = dk; }
+    }
+    return best;
+  }
   // ---- a turn
   function takeTurn(p) {
     if (p.done) return;
@@ -359,21 +457,23 @@ function playGame(seed, stats) {
     let target = g.home;
     if (need.length) {
       const stocked = need.filter(i => g.tokens[i] > 0);
-      const dists = waterDist(g, p.pos);
+      const dists = turnDist(g, p.pos, wind);
       const cands = (stocked.length ? stocked : need).map(i => g.dockOf[i]).filter(Boolean);
-      if (cands.length) target = cands.reduce((b, c) => (dists[K(c)] ?? 1e9) < (dists[K(b)] ?? 1e9) ? c : b, cands[0]);
+      const sqFrom = waterDist(g, p.pos);
+      const rankT = c => (dists[K(c)] ?? 99) * 1000 + Math.min(999, sqFrom[K(c)] ?? 999);
+      if (cands.length) target = cands.reduce((b, c) => rankT(c) < rankT(b) ? c : b, cands[0]);
       // Rule 11 as intended: if I am rich, an ingredient is running short, a rival needs it and I
       // do not, sailing over to buy it out is a real play. Only worth a detour, not a voyage.
       if (!NO_HOARD && p.coins >= price(need[0] || "wheat") + HOARD_RESERVE) {
-        const myBest = dists[K(target)] ?? 1e9;
-        let deny = null, denyD = 1e9;
+        const myBest = dists[K(target)] ?? 99;
+        let deny = null, denyD = 99;
         for (const i of g.ings) {
           if (g.tokens[i] <= 0 || g.tokens[i] > 2 || needs(p).includes(i)) continue;
           if (!P.some(q => q !== p && !q.done && needs(q).includes(i))) continue;
-          const c = g.dockOf[i], d = dists[K(c)] ?? 1e9;
+          const c = g.dockOf[i], d = dists[K(c)] ?? 99;
           if (d < denyD) { denyD = d; deny = c; }
         }
-        if (deny && denyD <= myBest + 2) target = deny;
+        if (deny && denyD <= myBest + 1) target = deny;
       }
       // Scarcity is meant to force a scramble, not a stalemate: if something I need is off the
       // board entirely, the only routes left are trade and plunder — so go and find the holder.
@@ -387,7 +487,7 @@ function playGame(seed, stats) {
           if (!buyers && !needs(p).includes(i)) continue;
           const c = g.dockOf[i], d = dists[K(c)] ?? 99;
           if (p.coins < price(i)) continue;
-          const score = (needs(p).includes(i) ? 4 : 0) + buyers * 3 - d * 0.8;
+          const score = (needs(p).includes(i) ? 4 : 0) + buyers * 3 - d * 2.5;
           if (score > bestScore) { bestScore = score; best = c; }
         }
         if (best) target = best;
@@ -403,9 +503,11 @@ function playGame(seed, stats) {
     sailChances++;
     // does the upwind cap actually bind this turn? i.e. is the best cell only reachable at 2?
     if (cells.length) {
-      const td = waterDist(g, target);
-      let best = p.pos, bd = td[K(p.pos)] ?? 1e9;
-      for (const c of cells) { const d = td[K(c)] ?? 1e9; if (d < bd) { bd = d; best = c; } }
+      const td = turnDistTo(g, target, wind);
+      const sq = waterDist(g, target);                       // tiebreak only
+      const rank = c => (td[K(c)] ?? 99) * 1000 + Math.min(999, sq[K(c)] ?? 999);
+      let best = p.pos, bd = rank(p.pos);
+      for (const c of cells) { const d = rank(c); if (d < bd) { bd = d; best = c; } }
       // measure: how much closer could we have got with no upwind penalty at all (flat 4)?
       const free = (() => {
         const seen = new Set([K(p.pos)]); let fr = [p.pos], bestFree = td[K(p.pos)] ?? 1e9;
@@ -425,7 +527,15 @@ function playGame(seed, stats) {
           if (h && K(h) !== K(p.pos)) {
             // sturdy bow holds course: ride the current only when it actually helps
             const holds = RETUNE && p.power === "sturdybow" && (td[K(h)] ?? 1e9) > (td[K(p.pos)] ?? 1e9);
-            if (!holds) { p.pos = [...h]; rimUses++; }
+            if (!holds) {
+              p.pos = [...h]; rimUses++;
+              if (p.power === "navigator") {              // sail on from where the current drops you
+                const more = reachable(g, p, wind);
+                if (more.length) { let b2 = p.pos, r2 = rank(p.pos);
+                  for (const c of more) { const r = rank(c); if (r < r2) { r2 = r; b2 = c; } }
+                  if (K(b2) !== K(p.pos) && !g.onRim(b2)) p.pos = b2; }
+              }
+            }
           }
         }
       }
@@ -435,7 +545,7 @@ function playGame(seed, stats) {
     if (finished(p)) { p.done = true; g.finishOrder.push(p.idx); return; }
 
     const port = g.adjPort(p);
-    const occupied = port && g.dockOccupiedBy(port, p);
+    const occupied = port && p.power !== "harbourmaster" && g.dockOccupiedBy(port, p);
     // rule 10 + 11: dock = treasure flip, then always buy
     if (port && !occupied && g.tokens[port] > 0) {
       const iNeed = needs(p).includes(port);
@@ -444,13 +554,14 @@ function playGame(seed, stats) {
       const reserve = p.line === "merchant" ? 0 : HOARD_RESERVE;
       const wantHoard = !NO_HOARD && !iNeed && rivalNeeds && p.coins >= price(port) + reserve;
       if (iNeed || wantHoard) {
-        acts.dock++;
+        acts.dock++; priceFor = p;
         const h = g.r() < .5; flips++;
         if (h) { p.coins += TREASURE; coinsMinted += TREASURE; }
         const cost = price(port);
         if (p.coins >= cost) { p.coins -= cost; coinsBurned += cost; g.tokens[port]--; sold[port]++; p.ing.push(port);
           if (!iNeed) hoardBuys++; }
         else brokeAtDock++;
+        priceFor = null;
         return;
       }
     }
@@ -464,7 +575,10 @@ function playGame(seed, stats) {
     if (juicy && p.coins >= 1) { acts.battle++; battle(p, juicy); return; }
     if (SHARED) {
       // "once per round": if someone already called it this round, there is nothing to call.
-      if (calledThisRound) { acts.pass++; passes++; return; }
+      if (calledThisRound) {
+        if (p.power === "poacher") { acts.fish++; p.coins += 2; coinsMinted += 2; return; }
+        acts.pass++; passes++; return;
+      }
       // The volunteer's dilemma: calling costs YOU an action and pays everyone the same expected 1.
       // So only call when you actually need the coin and nobody else has done it for you.
       const nd = needs(p);
@@ -494,7 +608,8 @@ function playGame(seed, stats) {
         if (g.r() < .5) { stage++; if (stage > 12) { for (const q of stillIn) { q.coins += potAt(stage); coinsMinted += potAt(stage); } break; } }
         else {                                      // tails: everyone still in gets nothing...
           for (const q of stillIn) {
-            if (RETUNE && q.power === "trawler") { const t = potAt(stage); q.coins += t; coinsMinted += t; }
+            if (RETUNE && q.power === "trawler") {           // decides after the coin lands
+              const t = potAt(stage + 1); q.coins += t; coinsMinted += t; if (t >= 8) bigHauls++; }
             else wipeouts++;
           }
           break;

@@ -4,7 +4,8 @@
 shipped copy — the player-facing version would be in the pirate voice.
 
 Every number here was measured against the real generated board with
-`scripts/wyatt_ruleset_sim.mjs`, 1,500 games per configuration. The full working — the variants
+`scripts/wyatt_ruleset_sim.mjs`, 1,500–6,000 games per configuration, with bots that value
+everything in **turns** rather than squares (see `BOT-STRATEGY.md`). The full working — the variants
 tried, the dead ends, the two findings that had to be corrected — is in the git history of this
 branch and does not need re-reading.
 
@@ -24,9 +25,13 @@ branch and does not need re-reading.
 
 ## 2. The round
 
-1. **Spin the wind.** The wheel gives this round's direction — and it also shows **next** round's
-   direction, and whether next round will storm. You always know one round ahead.
-2. **Storm, if this round is stormy.** Every ship is pushed **3 squares** in the wind's direction,
+1. **Read and re-spin the wind vane.** The vane carries **two arrows**. The **stiff lower arrow**
+   records the wind blowing **now**; the **free upper arrow** predicts **next** round's wind.
+   At the start of every round, in this order: **move the lower arrow to wherever the upper arrow is
+   pointing** (last round's prediction becomes this round's wind), then **spin the upper arrow** for
+   next round. Every captain can therefore plan two turns of sailing. A gale is decided at the same
+   moment as the direction and travels down with the arrow.
+2. **Storm, if this round is stormy** — roughly **1 round in 5**. Every ship is pushed **3 squares** in the wind's direction,
    **all at once, before anybody takes a turn.** A ship driven into land loses its turn this round.
    **A ship sitting in a berth is safe** and is not pushed.
 3. **Each captain takes a turn**, in order.
@@ -97,14 +102,27 @@ One each, drafted at setup, no duplicates. Four of the eight sit out each game.
 
 | | Power | Attaches to |
 |---|---|---|
+| **Pilot** | **The wind never slows you** — always 4 squares, upwind or not | sailing |
 | **Racer** | Sail **6** whenever no step of your move is upwind | sailing |
-| **Hedger** | Your upwind-capped move is **3**, not 2 | sailing |
-| **Shooter** | **Win a battle and your committed coins come back.** Efficient powder | battle |
-| **Lockbox** | **Your crates can never be taken.** A winner takes 5 coins from you instead | battle |
-| **Trawler** | **When the cast busts, you still take the pot as it stood** | the cast |
-| **Gambler** | **When you take the pot, take one rung higher than it shows** | the cast |
+| **Wholesaler** | You always pay an island's **opening price of 3**, never 4 or 5 | dock |
+| **Poacher** | When the cast is already spent, you may still **take 2 alone** | the cast |
+| **Gambler** | When you take the pot, take **one rung higher** than it shows | the cast |
+| **Trawler** | You **decide after the coin lands** — you never bust | the cast |
 | **Trader** | **Once per round**, a completed trade pays you **+1** | trade |
-| **Sturdy bow** | **You choose whether the trade-wind current takes you** | the rim |
+| **Shooter** | **Win a battle and your committed coins come back.** Efficient powder | battle |
+
+Measured as a pool, 5,000 games — a power with no effect sits at 25%:
+
+```
+gambler 30.6 (+5.6)   trawler    23.6 (-1.4)
+shooter 29.4 (+4.4)   racer      22.1 (-2.9)
+trader  28.0 (+3.0)   poacher    20.3 (-4.7)
+pilot   26.1 (+1.1)   wholesaler 19.8 (-5.2)
+```
+
+**A 10.8-point spread, down from 33 for the original eight**, with six of the eight inside ±5.
+Powers are the most tunable thing in the game and should now be playtested rather than simulated
+further. Poacher and wholesaler are the two still light.
 
 ## 7. On another captain's turn
 
@@ -270,15 +288,34 @@ What each re-spec was fixing:
 - **Racer** at 5 was worth −5.8; at **6** it is −1.3. One extra square rarely changes how many turns
   a journey takes, so movement powers need to be bigger than they look.
 
-Two are still short and I would keep tuning them:
+### The wider pool that was tested
 
-- **Hedger (−4.9).** It only fires on the ~27% of turns where the upwind cap binds. Try 4 rather
-  than 3, which makes it "the wind never slows you" — a clean line, and probably the right one.
-- **Sturdy bow (−5.6).** Storm-immunity is unfixable by dialling: **doubling storms to 1-in-4 moved
-  it 18.7% → 19.3%**, which is noise. Two events a game cannot carry a power. Re-pointing it at the
-  rim (~7 sweeps a game) helped but not enough. If it stays short, point it at **docking** — 24
-  events a game, and berths are single-occupancy, so "you may dock at an occupied berth" would be
-  both frequent and genuinely coveted.
+Sixteen candidates were measured together, including Wyatt's five new ones. Everything that did not
+make the eight, and why:
+
+```
+pilot        +5.6   IN     racer2        +1.8   IN
+wholesaler   -0.6   IN     poacher       -1.2   IN
+stormchaser  -2.5          chandler      -4.0          navigator   -5.0
+harbourmaster-5.3          privateer     -5.6          blackpearl  -5.8
+dreadnought  -6.3          crazyeddie    -7.8
+hedger       -4.9          sturdy bow    -5.6
+```
+
+- **Crazy Eddie (−7.8), worst in the pool.** Doubling your stake on a heads sounds thrilling and is
+  actually a coin incinerator: the stake is lost either way, so half the time you burn double to win
+  a fight you would probably have won anyway. A lovely idea that the maths refuses.
+- **Black Pearl (−5.8) and Sturdy Bow (−5.6)** fail identically: grounding costs about 2.5 turns a
+  game *across all four captains*. **Doubling the storm rate moved sturdy bow 18.7% → 19.3%** — noise.
+  Two events a game cannot carry a power, whatever it does.
+- **Dreadnought (−6.3) is probably mis-measured**, not bad. It works by frightening attackers off,
+  and these bots do not model deterrence — they attacked anyway and simply went all in, which made
+  it *worse* than nothing. Worth a human playtest before discarding.
+- **Harbourmaster, Privateer, Navigator, Chandler** are all sound designs attached to subsystems
+  that fire too rarely (berth contention, battle wins, rim sweeps, sales).
+- **Hedger** only fires on the ~27% of turns where the upwind cap binds. **Pilot** is the same idea
+  taken all the way — "the wind never slows you" — and it measured +5.6 against hedger's −4.9. It is
+  the better line and it replaced it.
 
 ## Flat starting coins — why turn order no longer needs compensating
 
@@ -310,11 +347,15 @@ A residual of ~4 points remains with powers in play, and **it runs the other way
 slightly behind, not the first. So any compensation aimed at "going first is good" would push it
 further wrong, which is exactly what the coin stagger was already doing. Leave it flat.
 
-## Storms: 3 squares, everyone, at the start of the round
+## Storms: 3 squares, everyone, at the start of the round, 1 round in 5
 
 One system instead of two. Simultaneous resolution means the storm is a shared event the table
 watches together rather than four separate interruptions. **Both readings of "docks can save you"
 land within 0.7 rounds of each other**, so the wording is a taste call, not a balance one.
+
+At **1 in 5** storms cost 2.56 turns a game across the table — frequent enough to plan around, and
+since the vane predicts them a round ahead, planning around them is exactly the point. At 1-in-8
+most tables never noticed them.
 
 ## Wind announces the next round
 
@@ -380,16 +421,18 @@ violent game than the same rules produce in person.
 
 # Still open
 
-- **Hedger and sturdy bow are still 5 points short.** Proposed next dials are in the boat-powers
-  section: hedger to 4 upwind, and sturdy bow re-pointed at docking if the rim version does not
-  carry it.
+- **Poacher and wholesaler are ~5 points light.** Poacher's solo take could go to 3; wholesaler's
+  saving is real but small (~7 coins a game) and might want a second clause. Both are playtest
+  questions now, not simulation ones.
+- **Powers that pay in information are unmeasurable here** and were left out for that reason, not
+  because they are bad. A Cartographer (see the wind two rounds out), a Smuggler (your cargo is
+  secret) or a Cooper (one named crate can never be taken) could all be excellent and none of them
+  will ever show up in a bot simulation. They need a table.
 - **The draft order.** First-come-first-served was chosen. With the *original* Shooter that was
   dangerous — it gave seat 1 a 43.6% win rate against seat 3's 16.1%. With the re-specced set the
   spread is 10.3 points rather than 33, so first-come is probably now safe; but it has not been
   measured *as a draft*, only as a random draw. Worth one run before committing. If a spread
   reappears, drafting in **reverse** seat order fixes it.
-- **Storm frequency.** At 1-in-8 storms cost 1.64 turns a game — most tables will barely notice
-  them. 1-in-4 to 1-in-5 is the range where they are felt without stretching the game.
 - **Reconcile the shipped rulebooks.** `RULES.md` and `Rules_boardgame.md` describe a battle system
   the engine stopped running some time ago, and call the home port Barbados where the game says Isle
   of Tortuga. That is independent of everything here and should be fixed before v2 is written down
@@ -397,5 +440,9 @@ violent game than the same rules produce in person.
 
 ---
 
-*Re-run any figure here with `node scripts/wyatt_ruleset_sim.mjs 1500 --treasure=3 --bidmax=8
---tradefirst --flatcoins --shared`.*
+*Re-run any figure here with `node scripts/wyatt_ruleset_sim.mjs 2000 --treasure=3 --bidmax=8
+--tradefirst --flatcoins --shared`; add `--powers --retune --set=pilot,racer2,wholesaler,poacher,gambler,trawler,trader,shooter`
+for the boat powers, or `--powers --pool` for the full sixteen-candidate field.*
+
+*Companion documents: `BOT-STRATEGY.md` (how a captain should think — a build requirement, not a
+nice-to-have) and `PRD-v2-FORK.md` (how to build it).*
