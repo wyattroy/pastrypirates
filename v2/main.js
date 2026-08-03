@@ -163,8 +163,9 @@ export function start(nHumans, nBots) {
   G = new GameV2((Date.now() ^ 0x9e3779b9) >>> 0, seats);
   bot = botResolver(G);
   UI.attach(G); UI.resetNarration();
-  $("setup").style.display = "none";
-  $("game").style.display = "";
+  const hide = $("setup"), show = $("game");
+  if (hide) hide.style.display = "none";
+  if (show) show.style.display = "";
   UI.drawBoard(); UI.drawVane(); UI.drawCaptains(humanSeats[0] ?? -1);
   drive().catch(e => { UI.say(`<b>Something broke:</b> ${e.message}`); console.error(e); });
 }
