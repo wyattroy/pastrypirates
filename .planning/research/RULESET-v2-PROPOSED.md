@@ -3,11 +3,16 @@
 **2026-08-03.** The ruleset as decided, with the evidence for each rule. Written as a spec, not as
 shipped copy — the player-facing version would be in the pirate voice.
 
-Every number here was measured against the real generated board with
-`scripts/wyatt_ruleset_sim.mjs`, 1,500–6,000 games per configuration, with bots that value
-everything in **turns** rather than squares (see `BOT-STRATEGY.md`). The full working — the variants
-tried, the dead ends, the two findings that had to be corrected — is in the git history of this
-branch and does not need re-reading.
+**Every figure in this document comes from one canonical run** — 4,000 games at the final
+configuration, with bots that value everything in **turns** rather than squares
+(`BOT-STRATEGY.md`). Reproduce it with:
+
+```bash
+node scripts/wyatt_ruleset_sim.mjs 4000 --treasure=3 --bidmax=8 --tradefirst --flatcoins --shared --retune
+```
+
+The working — variants tried, dead ends, and the findings that had to be corrected — is in this
+branch's git history and does not need re-reading.
 
 ---
 
@@ -149,7 +154,14 @@ gap between the best wind and the worst wind for the same journey:
 4 / 2 upwind:     1.741 squares          +25%
 ```
 
-Three rules deleted, a stronger effect, and no maths.
+And with bots that route by turns rather than squares, the cap bites far harder than the earlier
+square-counting measurement suggested:
+
+```
+turns where the upwind cap actually cost you distance:   61.0%
+```
+
+**Three rules deleted, a stronger effect, and no arithmetic at the table.**
 
 ## Sailing is free
 
@@ -162,11 +174,19 @@ The old fight was a race to 2 points at 2 flips a round — 7.58 coin flips and 
 crate, with no decision anywhere inside it. This version is one simultaneous reveal.
 
 ```
-battles resolved with no coin flip at all:      ~90%
-total coin flips per game:            ~75  ->   ~27
-battles as a share of actions:      26.6%  ->   7.8%
-attacker win rate:                  66.9%  ->  58.3%
+battles resolved with no coin flip at all:              89.8%
+went to the tie flip:                                   10.2%
+went all the way to fewest-ingredients:                  5.2%
+battles per game:                                        5.4
+battles as a share of actions:                           8.4%
+mean coins committed, both sides:                        7.5
+spoils were a crate the winner specifically needed:     80.0%
 ```
+
+**Attacker win rate is 70.4%, and that is not a balance problem — it is selection.** Because a
+captain only attacks someone who has *refused a deal* (`BOT-STRATEGY.md` §5), the fights that happen
+are the ones the attacker wanted badly enough to pay for. Battles are rare, decisive, and almost
+always about a specific crate.
 
 **"Any part of your purse" rather than 0–3 is doing a lot of quiet work.** A 0–3 range stops being a
 decision the moment everyone is rich, and it also made the *Shooter* power worth +18 points of win
@@ -180,8 +200,13 @@ between the strongest and weakest power without touching them.
 they needed, nobody held anything worth trading and deals ran at 0.12 a game. Allowing the hoard:
 
 ```
-trades per game:        0.12  ->  39.5
+trades per game:   37.6      =  26.7 swaps + 6.6 purchases + 4.3 sales
+mean sale price:    6.6 coins
+crates bought that the buyer did not need:  1.4 per game
 ```
+
+Straight swaps dominate, which is the healthy shape: they cost no coins and save both captains a
+voyage.
 
 The per-island ladder is what makes a contested island a race: the third captain to that island pays
 5 where the first paid 3.
@@ -189,11 +214,16 @@ The per-island ladder is what makes a contested island a race: the third captain
 **Treasure pays 3** because the Shared Cast is a far smaller faucet than per-turn fishing, so the
 dock has to carry more of the economy. Swept:
 
-| treasure | coins at game end | docks you can't afford | seat spread |
-|---|---|---|---|
-| 2 | 3.9 | 38.1% | 2.9 pts |
-| **3** | **4.5** | **27.7%** | **1.8 pts** |
-| 4 | 5.1 | 20.8% | 6.3 pts |
+| treasure | coins at game end | docks you can't afford | trades/game | rounds |
+|---|---|---|---|---|
+| 2 | 3.5 | 39.8% | 42.1 | 17.8 |
+| **3** | **3.9** | **29.7%** | **37.6** | **16.7** |
+| 4 | 4.6 | 22.8% | 35.1 | 16.1 |
+
+At **3** the economy sits almost exactly level — 92.0 coins minted against 96.2 burned — and the
+mean purse stays flat at 4 from round one to the end of the game. Neither inflation nor a death
+spiral. **4 is also defensible** if 29.7% of docks being unaffordable plays as frustrating rather
+than tense; it buys a shorter game and slightly less trade.
 
 ## The Shared Cast
 
@@ -242,12 +272,12 @@ new coin faucet in an economy that is deliberately tight.
 whole of it, and it is why the original set was so far out. Event frequencies in a v2 game:
 
 ```
-sailing   ~72 per game        the cast    ~14
-trade     ~39                 battle       ~6
-dock      ~24                 storm        ~2
+sailing   ~67 per game        the cast    12.3
+trade      37.6               battle       5.4
+dock      ~22                 storm        3.3
 ```
 
-So a storm power has to be worth roughly **twenty times** a trade power per event to land in the
+So a storm power has to be worth **more than ten times** a trade power per event to land in the
 same place. Measured, the original eight in a v2 game:
 
 ```
@@ -261,32 +291,21 @@ last at 0.24 coins a game. Nothing about the powers changed. **v2 moved the game
 battle and into trade, and the power table followed it.** Any power you write is a bet on how often
 its subsystem fires.
 
-The re-specced set, same measurement, 5,000 games:
-
-```
-gambler   29.7%  +4.7        racer     23.7%  -1.3
-trader    28.7%  +3.7        trawler   22.9%  -2.1
-shooter   28.3%  +3.3        hedger    20.1%  -4.9
-lockbox   26.5%  +1.5        sturdybow 19.4%  -5.6
-```
-
-**A 10.3-point spread, down from 33.** Six of the eight sit within five points of neutral.
-
-What each re-spec was fixing:
+What the re-specs were fixing (the measured result is in §6):
 
 - **Trader** was the runaway at +27.5, because +2 on ~39 deals a game is +40 coins in an economy
-  that ends with 4.5. Capping it to **once per round at +1** cut it to +3.7 without touching what
-  makes it fun.
+  that ends with under 4. Capping it to **once per round at +1** brought it back to the pack without
+  touching what makes it fun.
 - **Shooter** first got range-2 cannons — and got *worse*. More fights is not more wins; it just
   burned more committed coins. **Returning the stake on a win** fixes the actual problem, which is
   that battles were negative-EV. It also reads better: efficient powder, not a longer gun.
 - **Lockbox and Gambler** were both bottom of the table for the same reason — they hung off battles
-  and battle calls, and battles fell to 6 a game. Gambler moved to the cast (14 events a game) and
-  Lockbox got much stronger per event.
+  and battle calls, and battles fell to about five a game. Gambler moved to the cast, which fires
+  more than twice as often, and Lockbox got much stronger per event.
 - **Trawler's original wording stopped existing** — there is no "each fish" any more. Re-pointed at
   the cast as the safe counterpart to Gambler's greedy one.
-- **Racer** at 5 was worth −5.8; at **6** it is −1.3. One extra square rarely changes how many turns
-  a journey takes, so movement powers need to be bigger than they look.
+- **Racer** at 5 was worth −5.8; at **6** it is competitive. One extra square rarely changes how many
+  turns a journey takes, so movement powers need to be bigger than they look.
 
 ### The wider pool that was tested
 
@@ -305,17 +324,20 @@ hedger       -4.9          sturdy bow    -5.6
 - **Crazy Eddie (−7.8), worst in the pool.** Doubling your stake on a heads sounds thrilling and is
   actually a coin incinerator: the stake is lost either way, so half the time you burn double to win
   a fight you would probably have won anyway. A lovely idea that the maths refuses.
-- **Black Pearl (−5.8) and Sturdy Bow (−5.6)** fail identically: grounding costs about 2.5 turns a
-  game *across all four captains*. **Doubling the storm rate moved sturdy bow 18.7% → 19.3%** — noise.
-  Two events a game cannot carry a power, whatever it does.
+- **Black Pearl (−5.8) and Sturdy Bow (−5.6)** fail identically: grounding costs about 2.6 turns a
+  game *across all four captains*. Doubling the storm rate moved sturdy bow **18.7% → 19.3%** —
+  noise. Three storms a game cannot carry a power, whatever it does. Note this is why raising storms
+  to 1-in-5 does *not* rescue them: the rate would have to be several times higher again.
 - **Dreadnought (−6.3) is probably mis-measured**, not bad. It works by frightening attackers off,
   and these bots do not model deterrence — they attacked anyway and simply went all in, which made
   it *worse* than nothing. Worth a human playtest before discarding.
 - **Harbourmaster, Privateer, Navigator, Chandler** are all sound designs attached to subsystems
   that fire too rarely (berth contention, battle wins, rim sweeps, sales).
-- **Hedger** only fires on the ~27% of turns where the upwind cap binds. **Pilot** is the same idea
-  taken all the way — "the wind never slows you" — and it measured +5.6 against hedger's −4.9. It is
-  the better line and it replaced it.
+- **Hedger** is the interesting failure, because frequency was *not* its problem — the upwind cap
+  binds on 61% of turns. Its problem was magnitude: moving 3 instead of 2 is one square, and one
+  square rarely changes how many turns a journey takes. **Pilot** is the same idea taken all the way
+  — "the wind never slows you" — and it measured +5.6 against hedger's −4.9. Same subsystem, same
+  frequency, four times the effect. It replaced it.
 
 ## Flat starting coins — why turn order no longer needs compensating
 
@@ -339,13 +361,13 @@ the tuned economy, going **last** became best:
 
 ```
 staggered 3/4/5/6:   19.5%  25.3%  27.5%  27.3%     8.0-point spread
-flat 5 each:         25.9%  24.1%  24.3%  25.2%     1.8-point spread
-flat 5, powers on:   26.2%  25.8%  25.5%  22.1%     4.1-point spread  (n=5000)
+flat 5 each:         23.6%  24.0%  26.7%  25.6%     3.1-point spread   (n=4000)
+flat 5, powers on:   22.4%  23.8%  27.3%  26.5%     4.9-point spread   (n=3000)
 ```
 
-A residual of ~4 points remains with powers in play, and **it runs the other way** — the last seat is
-slightly behind, not the first. So any compensation aimed at "going first is good" would push it
-further wrong, which is exactly what the coin stagger was already doing. Leave it flat.
+A residual of 3–5 points remains, and **it runs the other way** — the last seats are slightly ahead,
+not the first. Any compensation aimed at "going first is good" would push it further wrong, which is
+exactly what the coin stagger had started doing. Leave it flat.
 
 ## Storms: 3 squares, everyone, at the start of the round, 1 round in 5
 
@@ -383,19 +405,26 @@ means giving up first-home-wins — not worth it.
 
 | | Shipped today | v2 |
 |---|---|---|
-| Rounds per game | 19.6 | **18.3** |
-| Coin flips per game | ~75 | **~27 + ~21 shared** |
-| Battles needing no flip | 0% | **~90%** |
-| Battles as a share of actions | 7.6% | **7.8%** |
-| Trades per game | ~2.6 | **39.5** |
+| Rounds per game | 19.6 | **16.7** |
+| Coin flips per game | ~75, all serial | **41**, of which 19 are shared table beats |
+| Battles needing no flip | 0% | **89.8%** |
+| Battles per game | 6.0 | **5.4** |
+| Trades per game | ~2.6 | **37.6** |
 | Wind, best vs worst direction | 1.398 sq | **1.741 sq** |
-| Coins at game end | 7.6 | **4.5** |
-| Docks you can't afford | — | **27.7%** |
-| Captains locked out of a crate | 95.9% | **92.6%** |
-| Seat spread, best minus worst | 9.2 pts | **1.8 pts** |
-| Games that never finish | — | **0.4%** |
+| Turns where the wind cost you distance | — | **61.0%** |
+| Coins at game end | 7.6 | **3.9** |
+| Docks you can't afford | — | **29.7%** |
+| Captains locked out of a crate | 95.9% | **91.3%** |
+| Seat spread, best minus worst | 9.2 pts | **3.1 pts** |
+| Games that never finish | — | **0.0%** |
 
-The shape of a turn, as a share of all actions: **dock 33%, pass 40%, cast 19%, battle 8%.**
+The shape of a turn, as a share of all actions: **dock 32.7%, pass 39.9%, cast 19.0%, battle 8.4%.**
+
+Two things worth reading twice. **The coin-flip count is not the table-time count**: 19 of the 41
+are the Shared Cast, where the whole table flips together, so they cost 12 beats between them rather
+than 19. And **the rim current is now used deliberately rather than blundered into** — 2.8 sweeps a
+game, down from 6.8 when the bots measured in squares, because a turn-aware captain only rides the
+current when it actually helps.
 
 A "pass" turn is not a wasted one — it still trades and still sails four squares. It reads as a
 delivery run, and it is what makes calling the cast a decision instead of a default.
@@ -430,7 +459,7 @@ violent game than the same rules produce in person.
   will ever show up in a bot simulation. They need a table.
 - **The draft order.** First-come-first-served was chosen. With the *original* Shooter that was
   dangerous — it gave seat 1 a 43.6% win rate against seat 3's 16.1%. With the re-specced set the
-  spread is 10.3 points rather than 33, so first-come is probably now safe; but it has not been
+  spread is 10.8 points rather than 33, so first-come is probably now safe; but it has not been
   measured *as a draft*, only as a random draw. Worth one run before committing. If a spread
   reappears, drafting in **reverse** seat order fixes it.
 - **Reconcile the shipped rulebooks.** `RULES.md` and `Rules_boardgame.md` describe a battle system
@@ -440,9 +469,9 @@ violent game than the same rules produce in person.
 
 ---
 
-*Re-run any figure here with `node scripts/wyatt_ruleset_sim.mjs 2000 --treasure=3 --bidmax=8
---tradefirst --flatcoins --shared`; add `--powers --retune --set=pilot,racer2,wholesaler,poacher,gambler,trawler,trader,shooter`
-for the boat powers, or `--powers --pool` for the full sixteen-candidate field.*
+*The canonical command is at the top of this document. Add
+`--powers --set=pilot,racer2,wholesaler,poacher,gambler,trawler,trader,shooter` for the boat-power
+table, or `--powers --pool` for the full sixteen-candidate field.*
 
 *Companion documents: `BOT-STRATEGY.md` (how a captain should think — a build requirement, not a
 nice-to-have) and `PRD-v2-FORK.md` (how to build it).*
