@@ -8,7 +8,7 @@ configuration, with bots that value everything in **turns** rather than squares
 (`BOT-STRATEGY.md`). Reproduce it with:
 
 ```bash
-node scripts/wyatt_ruleset_sim.mjs 4000 --treasure=3 --bidmax=8 --tradefirst --flatcoins --shared --retune
+node scripts/wyatt_ruleset_sim.mjs 3000 --treasure=4 --bidmax=8 --tradefirst --flatcoins --shared --retune --outcry
 ```
 
 The working — variants tried, dead ends, and the findings that had to be corrected — is in this
@@ -76,7 +76,7 @@ there.
 
 ### Act — choose one
 
-**⚓ Dock** — only from a berth. Flip once for treasure: **heads takes 3 coins, tails nothing.** Then
+**⚓ Dock** — only from a berth. Flip once for treasure: **heads takes 4 coins, tails nothing.** Then
 **buy any crate the island still has**, at that island's price: **3 for its first crate sold, 4 for
 its second, 5 for its third.** You may buy crates you do not need — to trade, to deny a rival, or to
 bluff about your recipe.
@@ -246,19 +246,26 @@ voyage.
 The per-island ladder is what makes a contested island a race: the third captain to that island pays
 5 where the first paid 3.
 
-**Treasure pays 3** because the Shared Cast is a far smaller faucet than per-turn fishing, so the
-dock has to carry more of the economy. Swept:
+**Treasure pays 4, and the reason is nicer than a tuning argument: 4 is the average crate price**
+((3+4+5)/3). So a heads at the dock pays for exactly one average crate. The flip stops being "+n
+coins" and becomes a question a player can feel — *did I find enough treasure to pay for this crate,
+or am I buying it out of my own purse?*
 
-| treasure | coins at game end | docks you can't afford | trades/game | rounds |
+It also lands where it needs to. Swept at the final configuration:
+
+| treasure | coins at game end | docks you can't afford | trades/game | seat spread |
 |---|---|---|---|---|
-| 2 | 3.5 | 39.8% | 42.1 | 17.8 |
-| **3** | **3.9** | **29.7%** | **37.6** | **16.7** |
-| 4 | 4.6 | 22.8% | 35.1 | 16.1 |
+| 3 | 4.4 | 24.5% | 36.2 | 2.0 pts |
+| **4** | **5.2** | **18.5%** | **34.6** | **5.1 pts** |
+| 5 | 6.0 | 14.0% | 33.0 | 5.3 pts |
 
-At **3** the economy sits almost exactly level — 92.0 coins minted against 96.2 burned — and the
-mean purse stays flat at 4 from round one to the end of the game. Neither inflation nor a death
-spiral. **4 is also defensible** if 29.7% of docks being unaffordable plays as frustrating rather
-than tense; it buys a shorter game and slightly less trade.
+The economy at 4 sits almost exactly level — **75.4 coins minted against 74.7 burned** across a
+whole game. Neither inflation nor a death spiral.
+
+**The cost, stated plainly:** a richer economy restores some first-captain advantage, and the effect
+is monotonic across the sweep — going first is worth about **5 points at treasure 4 against 2 at
+treasure 3**, because money makes the denial play affordable and the first captain to a contested
+island buys it out. That is the trade for the elegance, and it is small enough to accept.
 
 ## The Shared Cast
 
@@ -440,20 +447,31 @@ means giving up first-home-wins — not worth it.
 
 | | Shipped today | v2 |
 |---|---|---|
-| Rounds per game | 19.6 | **16.7** |
-| Coin flips per game | ~75, all serial | **41**, of which 19 are shared table beats |
-| Battles needing no flip | 0% | **89.8%** |
-| Battles per game | 6.0 | **5.4** |
-| Trades per game | ~2.6 | **37.6** |
+| Rounds per game | 19.6 | **17.7** |
+| Coin flips per game | ~75, all serial | **31**, of which 11 are shared table beats |
+| Battles needing no flip | 0% | **87.2%** |
+| Battles per game | 6.0 | **1.6** |
+| Trades per game | ~2.6 | **34.6** |
 | Wind, best vs worst direction | 1.398 sq | **1.741 sq** |
-| Turns where the wind cost you distance | — | **61.0%** |
-| Coins at game end | 7.6 | **3.9** |
-| Docks you can't afford | — | **29.7%** |
-| Captains locked out of a crate | 95.9% | **91.3%** |
-| Seat spread, best minus worst | 9.2 pts | **3.1 pts** |
-| Games that never finish | — | **0.0%** |
+| Turns where the wind cost you distance | — | **60.5%** |
+| Coins minted / burned per game | — | **75.4 / 74.7** |
+| Coins at game end | 7.6 | **5.2** |
+| Docks you can't afford | — | **18.5%** |
+| Captains locked out of a crate | 95.9% | **94.1%** |
+| Seat spread, best minus worst | 9.2 pts | **5.1 pts** |
+| Games that never finish | — | **0.4%** |
 
-The shape of a turn, as a share of all actions: **dock 32.7%, pass 39.9%, cast 19.0%, battle 8.4%.**
+The shape of a turn, as a share of all actions: **dock 27.9%, pass 57.3%, cast 12.5%, battle 2.3%.**
+The market runs at **52.5 offers a game, 65.9% of them filled, and 55.5% drawing more than one
+answer** — competing sellers undercutting each other is the normal case.
+
+**One thing to watch, and it is the biggest open question in the design.** Battles have fallen to
+**1.6 a game**. That is your stated intent taken all the way — *fights happen only when someone is
+stingy* — and an efficient open market means almost nobody is. It may be too peaceful for a game
+about pirates. Note that battle frequency is now governed almost entirely by **how willing a captain
+is to refuse a deal**, which is a bot knob (`BOT-STRATEGY.md` §4, the threat premium) rather than a
+rule. That makes it easy to tune, but it also means the online game's aggression level is set by the
+AI, not by the rulebook — worth deciding deliberately rather than discovering.
 
 Two things worth reading twice. **The coin-flip count is not the table-time count**: 19 of the 41
 are the Shared Cast, where the whole table flips together, so they cost 12 beats between them rather

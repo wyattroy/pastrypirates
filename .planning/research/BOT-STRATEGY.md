@@ -282,17 +282,25 @@ Measure a bot change against these. They are the v2 recommended configuration, 2
 four captains:
 
 ```
-rounds per game                16.6        games that never finish     0.0%
-docking, share of actions      32.7%       trades per game             37.6
-passing                        39.9%       coins at game end            4.0
-the cast                       19.0%       docks you can't afford      29.6%
-battle                          8.4%       battles needing no flip     89.6%
-                                           seat spread            2.7 points
+rounds per game                17.7        games that never finish     0.4%
+docking, share of actions      27.9%       trades per game             34.6
+passing                        57.3%       coins minted / burned   75.4 / 74.7
+the cast                       12.5%       coins at game end            5.2
+battle                          2.3%       docks you can't afford      18.5%
+offers per game                52.5        battles needing no flip     87.2%
+  filled                       65.9%       seat spread            5.1 points
+  drew competing answers       55.5%
 ```
 
 **The two numbers to watch when tuning are trades per game and battles as a share of actions.** If
-trade falls below ~20 a game or battles rise above ~15%, the bot has stopped negotiating and started
-raiding, and the game will feel wrong long before anything else shows it.
+trade falls below ~20 a game the bot has stopped negotiating; if battles rise above ~15% it has
+started raiding. Either way the game will feel wrong long before anything else shows it.
+
+**And note where the aggression dial actually lives.** At the settings above battles are 1.6 a game
+— arguably too peaceful for a pirate game. That number is set almost entirely by the **threat
+premium** in `reservation()`, not by any rule: raise it and captains refuse more, refuse more and
+the guns come out. The online game's whole temperament is therefore an AI setting. Decide it
+deliberately.
 
 ---
 
