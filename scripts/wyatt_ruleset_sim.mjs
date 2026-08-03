@@ -77,6 +77,14 @@ const MAX_DEALS = parseInt((argv.find(a => a.startsWith("--maxdeals=")) || "--ma
 const TRADE_FIRST = argv.includes("--tradefirst");
 // the staggered 3/4/5/6 exists to offset going first; rule 2 made sailing free, which weakened it
 const FLAT_COINS = argv.includes("--flatcoins");
+// THE SHARED CAST (Wyatt, 2026-08-03). Fishing may be CALLED once per round by whoever spends
+// their action on it. Then EVERY captain rides one shared coin: take the pot as it stands, or stay
+// in for the next flip. Pot doubles 1,2,4,8,16... A tails and everyone still in gets nothing.
+// The doubling is the point: riding is worth exactly what bailing is worth at every single rung,
+// so the maths never tells you what to do — only your position does.
+const SHARED = argv.includes("--shared");
+const LADDER_CAP = parseInt((argv.find(a => a.startsWith("--laddercap=")) || "--laddercap=0").split("=")[1], 10);
+const potAt = n => { const v = Math.pow(2, n); return LADDER_CAP ? Math.min(LADDER_CAP, v) : v; };
 const MERCHANTS = parseInt((argv.find(a => a.startsWith("--merchants=")) || "--merchants=0").split("=")[1], 10);
 const CAST_CAP = 4;
 const HOARD_RESERVE = parseInt((argv.find(a => a.startsWith("--reserve=")) || "--reserve=6").split("=")[1], 10);
@@ -180,6 +188,7 @@ function playGame(seed, stats) {
   const coinTrace = [];
 
   const refused = new Set();
+  let calledThisRound = false, sharedFlips = 0, bigHauls = 0, wipeouts = 0;
   const needs = p => g.needs(p);
   const finished = p => !needs(p).length && man(p.pos, g.home) <= 1;
 
@@ -431,6 +440,40 @@ function playGame(seed, stats) {
     const juicy = adj.find(q => stingy(q) && q.ing.some(i => needs(p).includes(i) && g.tokens[i] <= 0))
       || adj.find(q => stingy(q) && (q.ing.some(i => needs(p).includes(i)) || q.coins >= 8));
     if (juicy && p.coins >= 1) { acts.battle++; battle(p, juicy); return; }
+    if (SHARED) {
+      // "once per round": if someone already called it this round, there is nothing to call.
+      if (calledThisRound) { acts.pass++; passes++; return; }
+      // The volunteer's dilemma: calling costs YOU an action and pays everyone the same expected 1.
+      // So only call when you actually need the coin and nobody else has done it for you.
+      const nd = needs(p);
+      const wantCoin = nd.length ? price(nd.find(i => g.tokens[i] > 0) || nd[0]) : 0;
+      if (p.coins >= wantCoin) { acts.pass++; passes++; return; }
+      calledThisRound = true; acts.fish++; casts++;
+      // everyone rides. Each captain's target is what they are short of; the pot is EV-neutral, so
+      // "ride until the pot covers what I need" is the whole strategy and it is purely positional.
+      const inPlay = P.filter(q => !q.done);
+      const target = new Map();
+      for (const q of inPlay) {
+        const qn = needs(q);
+        const want = qn.length ? price(qn.find(i => g.tokens[i] > 0) || qn[0]) : 0;
+        target.set(q, Math.max(1, want - q.coins));
+      }
+      const stillIn = new Set(inPlay);
+      let stage = 0;
+      for (;;) {
+        // everyone secretly decides, simultaneously, BEFORE the flip
+        for (const q of [...stillIn]) {
+          if (potAt(stage) >= target.get(q)) { q.coins += potAt(stage); coinsMinted += potAt(stage);
+            if (potAt(stage) >= 8) bigHauls++; stillIn.delete(q); }
+        }
+        if (!stillIn.size) break;
+        flips++; sharedFlips++;
+        if (g.r() < .5) { stage++; if (stage > 12) { for (const q of stillIn) { q.coins += potAt(stage); coinsMinted += potAt(stage); } break; } }
+        else { wipeouts += stillIn.size; break; }   // tails: everyone still in gets nothing
+      }
+      castRounds += 1;
+      return;
+    }
     // --- is fishing actually worth it? ---
     // The gain is 1 coin (or FISH_SELF). The cost is my whole action, plus handing every rival a
     // coin. So: only when I am genuinely short of what I am about to buy, and never when it would
@@ -495,6 +538,7 @@ function playGame(seed, stats) {
   let over = false;
   while (g.round < MAX_ROUNDS && !over) {
     g.round++;
+    calledThisRound = false;
     if (storm) stormPush();
     for (const p of P) {
       if (over) break;
@@ -534,6 +578,7 @@ function playGame(seed, stats) {
     (stats.powerWins[p.power] ||= 0); if (winner === p) stats.powerWins[p.power]++;
     (stats.powerSeat[p.power] ||= [0,0,0,0]); stats.powerSeat[p.power][p.idx]++;
   }
+  stats.sharedFlips += sharedFlips; stats.bigHauls += bigHauls; stats.wipeouts += wipeouts;
   stats.swaps += swaps; stats.buys += buys; stats.sells += sells; stats.tradeCoin += tradeCoin; stats.passes += passes;
   for (const q of P) { stats.lineGames[q.line]++; if (winner === q) stats.lineWins[q.line]++; }
   stats.lockboxSaves += lockboxSaves; stats.hoardBuys += hoardBuys; stats.castRounds += castRounds; stats.casts += casts;
@@ -550,7 +595,7 @@ const S = {
   battles: 0, attWins: 0, defWins: 0, tieFlips: 0, tieIng: 0, stormTurnsLost: 0, rimUses: 0,
   coinsMinted: 0, coinsBurned: 0, callPayouts: 0, brokeAtDock: 0, bidTotal: 0, flips: 0,
   upwindBound: 0, sailChances: 0, spoilNeeded: 0, spoilCoins: 0, cratesLeft: [], endCoins: [], winBySeat: [0, 0, 0, 0],
-  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0, swaps: 0, buys: 0, sells: 0, tradeCoin: 0, passes: 0,
+  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0, sharedFlips: 0, bigHauls: 0, wipeouts: 0, swaps: 0, buys: 0, sells: 0, tradeCoin: 0, passes: 0,
   lineGames: {racer:0,merchant:0}, lineWins: {racer:0,merchant:0},
 };
 for (let i = 0; i < N_GAMES; i++) playGame(700000 + i, S);
@@ -585,6 +630,10 @@ console.log(`  went to the tie flip: ${pct(S.tieFlips, S.battles)}   went all th
 console.log(`  mean coins committed per battle (both sides): ${(S.bidTotal / S.battles).toFixed(2)}`);
 console.log(`  spoils were a crate the WINNER SPECIFICALLY NEEDED: ${pct(S.spoilNeeded, S.battles)}   spoils were 5 coins: ${pct(S.spoilCoins, S.battles)}`);
 console.log(`  TOTAL COIN FLIPS PER GAME: ${(S.flips / S.games).toFixed(1)}   (baseline today: ~75)`);
+if (SHARED) {
+  console.log(`  THE SHARED CAST: called ${(S.casts/S.games).toFixed(1)} times a game (max 1 per round), ${(S.sharedFlips/Math.max(1,S.casts)).toFixed(2)} shared flips each`);
+  console.log(`     hauls of 8+: ${(S.bigHauls/S.games).toFixed(2)} per game   captains wiped out by a tails: ${(S.wipeouts/S.games).toFixed(2)} per game`);
+}
 if (CAST) console.log(`  THE CAST: ${(S.casts / S.games).toFixed(1)} per game, ${(S.castRounds / Math.max(1,S.casts)).toFixed(2)} simultaneous press-rounds each  (that, not the flip count, is the table time)`);
 console.log(`\n--- WIND & WEATHER ---`);
 console.log(`  turns where the upwind cap actually cost you distance: ${pct(S.upwindBound, S.sailChances)}`);

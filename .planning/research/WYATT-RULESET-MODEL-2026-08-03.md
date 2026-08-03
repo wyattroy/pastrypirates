@@ -666,3 +666,134 @@ The second list is what took trade from 2.5 deals a game to 39, and battles from
 tabletop group does that instinctively. **The app has to be taught it** — and if it isn't, the online
 game will feel like a completely different, much more violent game than the one played at a table
 with the same rulebook.
+
+
+---
+
+## 12. The Shared Cast — Wyatt's fishing mechanic, and it is the best one
+
+> *"Fishing is something that may be called once per round whenever one player decides to fish — and
+> everyone decides whether they want to get 1 coin, or flip to get 2, then 4, etc, and keep flipping
+> until everyone backs out or tails hits, in which case players lose all of what they would have
+> gained."* — Wyatt, 2026-08-03
+
+This is better than both of my proposals, and it has a mathematical property worth naming.
+
+### The doubling ladder is EV-neutral at every rung
+
+At a pot of `2^n`, bailing takes `2^n`. Riding is worth `0.5 × 2^(n+1) + 0.5 × 0` = **exactly `2^n`.**
+
+```
+  at  1:  ride is worth  1.00   exactly even
+  at  2:  ride is worth  2.00   exactly even
+  at  4:  ride is worth  4.00   exactly even
+  at  8:  ride is worth  8.00   exactly even
+  at 16:  ride is worth 16.00   exactly even
+```
+
+**The arithmetic never tells you what to do. Only your position does.** A captain who needs 4 coins
+to buy the crate they are docked beside rides to 4 and bails. A captain who needs 1 takes 1 and
+walks. A captain three coins short of the last vanilla on the board rides past sense. There is no
+solved line, no optimal-play table, and no way for the maths-inclined player at the table to be
+"correct" at anyone else's expense.
+
+Compare the alternatives — a gentler ladder (1,2,3,4,5) makes bailing correct from the second rung
+on, and a triangular one (1,2,4,7,11) from the third. **Doubling is the only shape that keeps the
+decision alive all the way up.** It is worth protecting.
+
+### It is also the cheapest thing at the table
+
+One shared coin, and the coin itself ends the sequence:
+
+```
+THE SHARED CAST: called 13.7 times a game, 1.52 shared flips each
+```
+
+That is about **21 flips for the entire fishing subsystem, per game** — against 75 for my
+per-captain version and roughly 40 for flat fishing across a game's turns. Because it is called at
+most once a round and everyone rides the same coin, the cost does not scale with player count at
+all. **A six-player game costs exactly the same table time as a three-player one.**
+
+**You do not need a cap.** I modelled one at 8; it changed nothing whatsoever — identical numbers to
+four significant figures — because reaching a pot of 8 happens 6.2% of the time and reaching 16
+happens 3.1%. The coin caps it for you.
+
+### The drama it produces
+
+```
+hauls of 8 or more:                  0.65 per game
+captains wiped out by a tails:      20.55 per game  (~1.5 per call)
+```
+
+So about two games in three contain one genuinely memorable score, and every single call takes
+somebody down. That is the right ratio — the big haul stays special, and the wipeout is common
+enough to be feared.
+
+### The volunteer's dilemma you built in without saying so
+
+"Once per round, whenever one player decides to fish" means the caller **spends their action** and
+everyone else rides **for free**, for the same expected 1 coin. Calling is strictly worse than being
+called for. So the real question at the table is *"who is going to break first and call it?"* — and
+the answer is whoever is most desperate, which is public information the moment they do it.
+
+That is a genuine second decision layered on the first, and it costs zero rules text. Modelled, it
+gets called in about three rounds out of four.
+
+### Measured, in the tuned economy
+
+| | as written | with the Shared Cast |
+|---|---|---|
+| Rounds per game | 20.4 | **18.3** |
+| Games that never finish | 0.6% | **0.4%** |
+| Trades per game | 0.12 | **39.5** |
+| Battles, share of actions | 26.6% | **7.8%** |
+| Battles needing no coin flip | 67.7% | **~90%** |
+| Mean coins at game end | 33.6 | **4.5** |
+| Docks you can't afford | 6.8% | **27.7%** |
+| Seat spread, best minus worst | 9.2 pts | **1.8 pts** |
+
+**That seat spread is the flattest this game has ever measured** — 25.9 / 24.1 / 24.3 / 25.2 across
+1,500 games. Turn order has effectively stopped mattering.
+
+### One knock-on: treasure has to come back up
+
+The Shared Cast is a **much smaller faucet** than per-turn fishing — it fires once a round instead of
+on half of all turns, and only when somebody is genuinely short. At treasure 2 the economy tips
+deflationary (89.9 minted against 94.7 burned, and 38% of docks unaffordable). Sweep:
+
+| treasure | end coins | can't afford | seat spread |
+|---|---|---|---|
+| 2 | 3.9 | 38.1% | 2.9 pts |
+| **3** | **4.5** | **27.7%** | **1.8 pts** |
+| 4 | 5.1 | 20.8% | 6.3 pts |
+
+**Treasure pays 3.** This supersedes §9's recommendation of 2, which was tuned against per-turn
+fishing.
+
+---
+
+## The recommended ruleset, complete
+
+Everything measured across §9–§12, as changes to your 14:
+
+| Rule | Change |
+|---|---|
+| 3 | **Replaced by the Shared Cast** — called once per round, one shared coin, pot 1/2/4/8/16, bail or ride, tails wipes everyone still in |
+| 9 | The secret commitment is **any part of your purse**, not 0–3 |
+| 10 | Treasure pays **3**, not 4 |
+| 11 | **Unchanged — buy any crate**, exactly as you intended it |
+| 13 | Shooter needs no fix once rule 9 changes; re-spec sturdy bow, trawler, gambler to pay in tempo or information rather than coins; draft in **reverse** seat order |
+| setup | Starting coins **flat 5 each** — delete the stagger, it overcorrects once sailing is free |
+| — | **No trade bonus** |
+| 1, 2, 4, 5, 6, 7, 8, 12, 14 | Unchanged. They do what you wanted. |
+
+And two things that are **not rules but must be built into the app**, because they are worth more
+than most of the rules above:
+
+1. **The AI must value crates properly and try to buy before it plunders.** This alone took trade
+   from 2.5 deals a game to 39, and battles from 27% of actions to 8%.
+2. **The AI must only cast when it is genuinely short**, and never when the coin would arm a rival
+   one crate from finishing.
+
+A table of humans does both instinctively. If the app doesn't, the online game will feel like a far
+more violent game than the same rulebook plays at a table.
