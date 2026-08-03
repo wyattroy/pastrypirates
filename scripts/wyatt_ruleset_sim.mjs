@@ -50,6 +50,25 @@ const STORM_P = parseFloat((argv.find(a => a.startsWith("--storm=")) || "--storm
 const PRICE = (argv.find(a => a.startsWith("--price=")) || "--price=3,4,5").split("=")[1].split(",").map(Number);
 const FISH_OTHERS = parseFloat((argv.find(a => a.startsWith("--fishothers=")) || "--fishothers=1").split("=")[1]);
 const BID_MAX = parseInt((argv.find(a => a.startsWith("--bidmax=")) || "--bidmax=3").split("=")[1], 10);
+const FISH_SELF = parseFloat((argv.find(a => a.startsWith("--fishself=")) || "--fishself=2").split("=")[1]);
+const TREASURE = parseFloat((argv.find(a => a.startsWith("--treasure=")) || "--treasure=4").split("=")[1]);
+// Rule 11 as Wyatt intended it: a docked captain may buy ANY crate, needed or not — to hoard,
+// to monopolise what a rival needs, or to bluff about their own recipe.
+const NO_HOARD = argv.includes("--nohoard");
+// THE CAST — the proposed replacement for rule 3's fishing. Push-your-luck, played by the WHOLE
+// table at once, so the wall-clock cost is the number of press-rounds, not the number of flips.
+//   every captain flips together: HEADS +1 to your haul and you may press again;
+//   TAILS ends your cast and you take 1. Stop and bank whenever you like. Max 4 presses.
+//   the active captain (best water) adds +1 to their final haul.
+const CAST = argv.includes("--cast");
+// THE CAST, one-beat variant: everyone secretly picks a net, then ONE simultaneous flip each.
+//   SHALLOW  a sure 1, no flip needed on your part
+//   DEEP     heads 3 / tails 0   (EV 1.5, half the time you come up empty)
+// Tuned so the table mints ~5 coins per cast — the same as rule 3 as written.
+// Same simultaneity, same push-your-luck feel, but one beat at the table instead of two.
+const CAST1 = argv.includes("--cast1");
+const CAST_CAP = 4;
+const HOARD_RESERVE = parseInt((argv.find(a => a.startsWith("--reserve=")) || "--reserve=6").split("=")[1], 10);
 const POWERS_ON = argv.includes("--powers") || argv.some(a => a.startsWith("--draft="));
 const DRAFT_ORDER = (argv.find(a => a.startsWith("--draft=")) || "").split("=")[1];
 const MAX_ROUNDS = 200;
@@ -144,7 +163,7 @@ function playGame(seed, stats) {
   let trades = 0, battles = 0, attWins = 0, defWins = 0, tieFlips = 0, tieIng = 0;
   let stormTurnsLost = 0, rimUses = 0, coinsMinted = 0, coinsBurned = 0, callPayouts = 0;
   let brokeAtDock = 0, bidTotal = 0, flips = 0, upwindBound = 0, sailChances = 0;
-  let spoilNeeded = 0, spoilCoins = 0, lockboxSaves = 0;
+  let spoilNeeded = 0, spoilCoins = 0, lockboxSaves = 0, hoardBuys = 0, castRounds = 0, casts = 0;
   const recordSpoil = () => {};
   const coinTrace = [];
 
@@ -169,8 +188,9 @@ function playGame(seed, stats) {
         trades++; tradeBonus(p, q); return true;
       }
       // otherwise buy it for coin — the seller wants more than the island would charge
-      const ask = 6;
-      if (p.coins >= ask) {
+      const desperate = g.tokens[want] <= 0;
+      const ask = desperate ? Math.min(p.coins, Math.max(10, Math.floor(p.coins * 0.6))) : 6;
+      if (p.coins >= ask && ask > 0) {
         p.coins -= ask; q.coins += ask;
         q.ing.splice(q.ing.indexOf(want), 1); p.ing.push(want);
         trades++; tradeBonus(p, q); return true;
@@ -283,6 +303,27 @@ function playGame(seed, stats) {
       const dists = waterDist(g, p.pos);
       const cands = (stocked.length ? stocked : need).map(i => g.dockOf[i]).filter(Boolean);
       if (cands.length) target = cands.reduce((b, c) => (dists[K(c)] ?? 1e9) < (dists[K(b)] ?? 1e9) ? c : b, cands[0]);
+      // Rule 11 as intended: if I am rich, an ingredient is running short, a rival needs it and I
+      // do not, sailing over to buy it out is a real play. Only worth a detour, not a voyage.
+      if (!NO_HOARD && p.coins >= price(need[0] || "wheat") + HOARD_RESERVE) {
+        const myBest = dists[K(target)] ?? 1e9;
+        let deny = null, denyD = 1e9;
+        for (const i of g.ings) {
+          if (g.tokens[i] <= 0 || g.tokens[i] > 2 || needs(p).includes(i)) continue;
+          if (!P.some(q => q !== p && !q.done && needs(q).includes(i))) continue;
+          const c = g.dockOf[i], d = dists[K(c)] ?? 1e9;
+          if (d < denyD) { denyD = d; deny = c; }
+        }
+        if (deny && denyD <= myBest + 2) target = deny;
+      }
+      // Scarcity is meant to force a scramble, not a stalemate: if something I need is off the
+      // board entirely, the only routes left are trade and plunder — so go and find the holder.
+      const gone = need.filter(i => g.tokens[i] <= 0);
+      if (gone.length) {
+        const holders = P.filter(q => q !== p && !q.done && q.ing.some(i => gone.includes(i)));
+        if (holders.length) target = holders.reduce((b, q) =>
+          (dists[K(q.pos)] ?? 1e9) < (dists[K(b.pos)] ?? 1e9) ? q : b, holders[0]).pos;
+      }
     }
     const cells = reachable(g, p, wind);
     sailChances++;
@@ -315,22 +356,66 @@ function playGame(seed, stats) {
     const port = g.adjPort(p);
     const occupied = port && g.dockOccupiedBy(port, p);
     // rule 10 + 11: dock = treasure flip, then always buy
-    if (port && !occupied && g.tokens[port] > 0 && needs(p).includes(port)) {
-      acts.dock++;
-      const h = g.r() < .5; flips++;
-      if (h) { p.coins += 4; coinsMinted += 4; }
-      const cost = price(port);
-      if (p.coins >= cost) { p.coins -= cost; coinsBurned += cost; g.tokens[port]--; sold[port]++; p.ing.push(port); }
-      else brokeAtDock++;
-      return;
+    if (port && !occupied && g.tokens[port] > 0) {
+      const iNeed = needs(p).includes(port);
+      // hoarding: buy a crate I do NOT need, if a rival needs it and I can spare the coin
+      const rivalNeeds = P.some(q => q !== p && !q.done && needs(q).includes(port));
+      const wantHoard = !NO_HOARD && !iNeed && rivalNeeds && p.coins >= price(port) + HOARD_RESERVE;
+      if (iNeed || wantHoard) {
+        acts.dock++;
+        const h = g.r() < .5; flips++;
+        if (h) { p.coins += TREASURE; coinsMinted += TREASURE; }
+        const cost = price(port);
+        if (p.coins >= cost) { p.coins -= cost; coinsBurned += cost; g.tokens[port]--; sold[port]++; p.ing.push(port);
+          if (!iNeed) hoardBuys++; }
+        else brokeAtDock++;
+        return;
+      }
     }
     // rule 9/14: attack an adjacent ship (Tortuga is no longer a sanctuary)
     const adj = P.filter(q => q !== p && !q.done && man(q.pos, p.pos) === 1);
-    const juicy = adj.find(q => q.ing.some(i => needs(p).includes(i)) || q.coins >= 8);
+    const juicy = adj.find(q => q.ing.some(i => needs(p).includes(i) && g.tokens[i] <= 0))
+      || adj.find(q => q.ing.some(i => needs(p).includes(i)) || q.coins >= 8);
     if (juicy && p.coins >= 1) { acts.battle++; battle(p, juicy); return; }
-    // rule 3: fish — no flip, fisher +2, everyone else +1
     acts.fish++;
-    const catchSize = p.power === "trawler" ? 3 : 2;
+    if (CAST1) {
+      for (const q of P) {
+        if (q.done) continue;
+        // go deep when you are far from affording what you are sailing to, shallow when a small
+        // sure catch closes the gap — the actual decision a player would be making
+        const nd = needs(q), cheapest = nd.length ? 3 : 0;
+        const deep = q.coins < cheapest || q.coins >= cheapest + 6 ? true : false;
+        flips++;
+        const h = g.r() < .5;
+        const take = deep ? (h ? 3 : 0) : 1;
+        const bonus = (q === p && take > 0) ? 1 : 0;
+        q.coins += take + bonus; coinsMinted += take + bonus;
+      }
+      castRounds += 1; casts++;
+      return;
+    }
+    if (CAST) {
+      // simultaneous push-your-luck. Bank when banking beats pressing: from haul h the press is
+      // worth 0.5(h+1) + 0.5(1), so pressing wins while h < 1 ... with the +1-per-heads curve the
+      // break-even sits at h<=1, so a captain presses twice and banks. Trawler presses once more.
+      let castFlips = 0;
+      for (const q of P) {
+        if (q.done) continue;
+        const stopAt = (q.power === "trawler" ? 3 : 2);   // trawler: the boat that dares one more
+        let haul = 0, busted = false;
+        for (let d = 0; d < CAST_CAP && haul < stopAt; d++) {
+          castFlips++; flips++;
+          if (g.r() < .5) haul += 1; else { busted = true; break; }
+        }
+        const take = busted ? 1 : haul + (q === p ? 1 : 0);
+        q.coins += take; coinsMinted += take;
+      }
+      castRounds += Math.ceil(castFlips / Math.max(1, P.filter(x => !x.done).length));
+      casts++;
+      return;
+    }
+    // rule 3 as written: no flip, fisher +2, everyone else +1
+    const catchSize = FISH_SELF + (p.power === "trawler" ? 1 : 0);
     p.coins += catchSize; coinsMinted += catchSize;
     for (const q of P) if (q !== p && !q.done) { q.coins += FISH_OTHERS; coinsMinted += FISH_OTHERS; }
   }
@@ -378,7 +463,7 @@ function playGame(seed, stats) {
     (stats.powerWins[p.power] ||= 0); if (winner === p) stats.powerWins[p.power]++;
     (stats.powerSeat[p.power] ||= [0,0,0,0]); stats.powerSeat[p.power][p.idx]++;
   }
-  stats.lockboxSaves += lockboxSaves;
+  stats.lockboxSaves += lockboxSaves; stats.hoardBuys += hoardBuys; stats.castRounds += castRounds; stats.casts += casts;
   if (P.some(p => !p.done && needs(p).some(i => g.tokens[i] === 0))) stats.lockout++;
   stats.multiFinish += finishers.length > 1 ? 1 : 0;
   for (let i = 0; i < coinTrace.length && i < 30; i++) { (stats.coinByRound[i] ||= []).push(coinTrace[i]); }
@@ -392,7 +477,7 @@ const S = {
   battles: 0, attWins: 0, defWins: 0, tieFlips: 0, tieIng: 0, stormTurnsLost: 0, rimUses: 0,
   coinsMinted: 0, coinsBurned: 0, callPayouts: 0, brokeAtDock: 0, bidTotal: 0, flips: 0,
   upwindBound: 0, sailChances: 0, spoilNeeded: 0, spoilCoins: 0, cratesLeft: [], endCoins: [], winBySeat: [0, 0, 0, 0],
-  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0,
+  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0,
 };
 for (let i = 0; i < N_GAMES; i++) playGame(700000 + i, S);
 
@@ -409,6 +494,7 @@ console.log(`  fish    ${pct(S.acts.fish, totalActs)}`);
 console.log(`  dock    ${pct(S.acts.dock, totalActs)}`);
 console.log(`  battle  ${pct(S.acts.battle, totalActs)}`);
 console.log(`  trades struck (free phase, not an act): ${(S.trades / S.games).toFixed(2)} per game`);
+console.log(`  crates bought that the buyer did NOT need (hoarding/monopolising): ${(S.hoardBuys / S.games).toFixed(2)} per game`);
 console.log(`\n--- ECONOMY ---`);
 console.log(`  coins minted per game  ${(S.coinsMinted / S.games).toFixed(1)}   burned ${(S.coinsBurned / S.games).toFixed(1)}   net ${((S.coinsMinted - S.coinsBurned) / S.games).toFixed(1)}`);
 console.log(`     of minted: fishing ${pct(S.coinsMinted - S.callPayouts - S.acts.dock * 2, S.coinsMinted)}  treasure ~${pct(S.acts.dock * 2, S.coinsMinted)}  battle calls ${pct(S.callPayouts, S.coinsMinted)}`);
@@ -422,6 +508,7 @@ console.log(`  went to the tie flip: ${pct(S.tieFlips, S.battles)}   went all th
 console.log(`  mean coins committed per battle (both sides): ${(S.bidTotal / S.battles).toFixed(2)}`);
 console.log(`  spoils were a crate the WINNER SPECIFICALLY NEEDED: ${pct(S.spoilNeeded, S.battles)}   spoils were 5 coins: ${pct(S.spoilCoins, S.battles)}`);
 console.log(`  TOTAL COIN FLIPS PER GAME: ${(S.flips / S.games).toFixed(1)}   (baseline today: ~75)`);
+if (CAST) console.log(`  THE CAST: ${(S.casts / S.games).toFixed(1)} per game, ${(S.castRounds / Math.max(1,S.casts)).toFixed(2)} simultaneous press-rounds each  (that, not the flip count, is the table time)`);
 console.log(`\n--- WIND & WEATHER ---`);
 console.log(`  turns where the upwind cap actually cost you distance: ${pct(S.upwindBound, S.sailChances)}`);
 console.log(`  rim sweeps per game: ${(S.rimUses / S.games).toFixed(2)}`);

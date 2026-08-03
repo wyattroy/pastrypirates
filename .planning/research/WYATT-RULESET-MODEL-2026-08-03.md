@@ -131,7 +131,7 @@ fourteen rules have stopped being decisions.
    rival's recipe. Keeps the generosity, mints no money. Don't just delete the bonus — it is the best
    off-turn hook in your list.
 
-### 3.2 — Rule 11 quietly killed trading
+### 3.2 — Rule 11 quietly killed trading  ⚠️ SUPERSEDED — see §9
 
 **0.12 completed trades per game.** Rule 4 made trade free and available every single turn, and it
 still essentially never happens.
@@ -143,6 +143,11 @@ economy. Take away the accidental crate and free trading has nothing to trade.
 
 This is structural, not an artefact of my bot: with rule 11 as written, surplus cargo can only enter
 the game as battle spoils.
+
+> **This section was based on a misreading.** Wyatt intended rule 11 to allow buying **any** crate
+> all along — to hoard, to monopolise, to bluff. Modelled correctly it does the opposite of what is
+> written below: trade goes from 0.12 to **2.56** deals a game. §9 has the corrected numbers. The
+> analysis of *why* trade needs surplus cargo still holds; only the conclusion about rule 11 was wrong.
 
 **Fix, cheapest first:** let a docked captain buy **any** crate at the ladder price, needed or not.
 One clause, it restores trade bait, it gives rich captains something to do with the money from §3.1,
@@ -372,3 +377,162 @@ node scripts/wyatt_ruleset_sim.mjs 3000 --draft=shooter,lockbox,hedger,racer   #
 
 Every run ends with a wind probe using the same metric as the shipped-rules measurement, so the two
 stay directly comparable.
+
+
+---
+
+## 9. The economy, fixed — and rule 11 corrected
+
+Wyatt, on reading §3.2: *"I intended for docked captains to be able to buy any crate. They can
+pretend they need it, they can hoard and monopolize others resources opportunistically."* Plus:
+*"Feel free to lower the coin earning amount in the game; I was worried that there would be too few
+coins to buy ingredients."*
+
+**So §3.2 had it backwards.** Rule 11 as intended is not what killed trading — it is what creates it.
+
+### Getting the model honest took two fixes to the bots, not the rules
+
+Modelling "buy any crate" naively did almost nothing (0.20 hoard-buys a game), because my captains
+only ever *sailed to* islands they needed, so they were never standing at a berth they didn't want.
+Giving them the motive a human has — a rich captain will detour to buy out an island a rival is
+short on — changed everything, and immediately broke the game:
+
+```
+with a denial motive, no recovery path:   62.7 rounds mean (median 19)   21.3% of games NEVER FINISHED
+```
+
+Four captains all denying each other, everyone locked out, nobody able to finish. That is not a
+property of your rules — it was my bots having no way to *recover*. The rules say scarcity forces a
+scramble; my captains had no way to scramble. Adding the three routes the rules already imply — hunt
+down whoever holds what you can no longer buy, attack them on sight, and pay whatever it takes in a
+trade — collapsed the stall to **0.6%**.
+
+**Worth keeping as a design warning even so:** hoarding is only healthy while money is scarce enough
+that hoarding costs you the race. With unlimited coins, a table of four determined monopolists can
+genuinely deadlock this game. The economy fix below is what keeps that from happening.
+
+### What hoarding is worth
+
+| | Hoarding off | Hoarding on |
+|---|---|---|
+| Trades per game | 0.31 | **2.27** |
+| Crates bought that the buyer didn't need | 0 | **4.4** |
+| Rounds | 15.3 | 21.2 |
+| Captains locked out | 92% | **98%** |
+
+**Rule 11 as you intended it is what makes the trade layer exist.** Seven times the deals. Keep it.
+
+### The coin sweep
+
+You offered to lower earnings. The measurement says **don't touch fishing** — the problem was never
+the faucet size, it was that the only sinks were bounded. Two changes fix it:
+
+| Config | rounds | stall | end coins | can't afford | hoard | trades |
+|---|---|---|---|---|---|---|
+| As written | 20.4 | 0.6% | 22.1 | 6.8% | 6.2 | 1.90 |
+| fisher 1 (halve the catch) | 19.4 | 0.1% | 14.5 | 14.5% | 4.6 | 1.76 |
+| prices 4/6/8 | 19.6 | 0.4% | 13.2 | 32.5% | 2.9 | 1.34 |
+| no treasure at all | 26.2 | 3.1% | 11.4 | 66.3% | 3.8 | 2.28 |
+| **treasure 4→2 + whole-purse bids** | **21.2** | **0.4%** | **12.0** | **22.7%** | **4.4** | **2.56** |
+
+### Recommended: change exactly two numbers
+
+> **Rule 10 — treasure pays 2, not 4.**
+> **Rule 9 — the secret commitment is any part of your purse, not 0–3.**
+
+Leave rule 3 alone. Leave the crate ladder at 3/4/5. Leave the off-turn +1 exactly as it is.
+
+```
+                         as written      with the two changes
+mean coins at game end        33.6   ->        12.0
+coins minted / burned    224 / 108   ->   268 / 238
+trades per game               0.12   ->        2.56
+battles needing no flip      67.7%   ->       85.6%
+attacker win rate            66.9%   ->       58.3%
+seat spread (best-worst)   9.2 pts   ->     5.4 pts
+```
+
+Every one of those moves the right way, and two of them fix problems I had listed as separate work:
+**the attacker advantage self-corrects** (66.9% → 58.3%, because a defender can now match a bid
+instead of being capped at 3), and **the first-player advantage nearly vanishes** — seat 1 goes from
+best to 21.6%, because going first now means being the first target with the smallest purse. You can
+probably delete the staggered starting coins entirely and give everyone the same number.
+
+Your worry about too few coins to buy ingredients: the model says the reverse, but the fix does put
+real pressure back on. **22.7% of docks are ones you can't afford** under the recommendation — about
+one in five, which is tension rather than frustration. Below ~10% money doesn't matter; above ~40%
+(the no-treasure runs) the game starts stalling.
+
+---
+
+## 10. The Cast — replacing fishing with something worth doing
+
+Your picks: **push-your-luck**, **everyone plays at once**, **still mostly coins**, and the
+**off-turn +1 stays unconditional**.
+
+### The engineering problem, and why your two picks solve it together
+
+Push-your-luck costs flips, and flips are exactly what we spent rule 9 removing. Solved for optimal
+play:
+
+| Variant | mean take | flips per cast |
+|---|---|---|
+| One coin: heads +1, tails busts to 1 | 1.25 | 1.50 |
+| Two coins: 2H +2, 1H +1, 2T busts | 2.39 | 5.37 |
+| One coin: heads +2, tails busts to 1, capped | 1.75 | 1.50 |
+| *rule 3 as written* | *2.00* | *0* |
+
+Five flips a cast, forty casts a game, is a disaster. **But that dissolves the moment the whole
+table casts at once** — because then the cost is the number of *press-rounds*, not the number of
+flips. Four captains flipping together is one beat. Your two picks are not two features; they are
+the feature and the thing that makes it affordable.
+
+### The proposal
+
+> ### 🎣 The Cast
+> When a captain casts, **every captain casts.**
+>
+> 1. **All captains flip together.** **Heads** — take 1 coin into your haul, and you may press
+>    again. **Tails** — your cast is over; you take 1 coin and nothing more.
+> 2. **Stop whenever you like** and bank your haul. Everyone decides for themselves, out loud or
+>    not, before each flip.
+> 3. **The captain whose turn it is** casts from the best water: **+1** on their final haul.
+>
+> Everybody is doing something, on every transit turn, for about two beats.
+
+The break-even is at a haul of 1, so pressing twice and banking is right — which means the interesting
+decision is whether to go for a third, and it comes up constantly. That is the Ra shape: everybody
+watching everybody else decide whether to be greedy.
+
+### Modelled, dropped into the recommended economy
+
+```
+mean coins at game end     11.8       (target ~12 — it lands where flat fishing did)
+trades per game             2.39
+docks you can't afford     20.7%
+casts per game             39.1
+press-rounds per cast       1.93      <- this, not the flip count, is the table time
+```
+
+**It is economically a drop-in replacement.** Same money supply, same tension, same game length —
+it just replaces a payout with a decision.
+
+### The honest cost
+
+39 casts × 1.93 press-rounds is about **75 simultaneous beats a game**, on top of ~27 battle flips.
+The shipped game is ~75 *serial* flips. So this is not free: it is roughly the same amount of ritual,
+redistributed from a place where nobody was deciding anything into a place where everybody is
+deciding at once. I think that is a good trade, but it is a trade, and you should see it as one.
+
+**If it feels like too much at the table, here is the one-beat version:** everyone secretly picks a
+net, then one simultaneous flip each. **Shallow** — a sure 1. **Deep** — heads 3, tails nothing.
+Same simultaneity, same greed decision, half the table time. It modelled at 17.7 end coins (a little
+loose — drop the deep payout to 2 to match), 2.27 trades, 21.0 rounds.
+
+### One deviation to flag
+
+You asked to keep the off-turn bonus at exactly +1 each. Under the Cast, a spectator **averages
+~1.25 and it varies** — sometimes 1, sometimes 3. That variance is unavoidable if everyone is
+playing, and it is what makes it a mini-game rather than a payout. If the flat, dependable +1 matters
+more to you than the simultaneity, say so and the Cast becomes caster-only with the spectators paid
+as they are now — it just gets less interesting on the ~50% of turns that are somebody else's.
