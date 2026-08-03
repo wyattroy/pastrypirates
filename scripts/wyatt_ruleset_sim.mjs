@@ -50,7 +50,17 @@ const STORM_P = parseFloat((argv.find(a => a.startsWith("--storm=")) || "--storm
 const PRICE = (argv.find(a => a.startsWith("--price=")) || "--price=3,4,5").split("=")[1].split(",").map(Number);
 const FISH_OTHERS = parseFloat((argv.find(a => a.startsWith("--fishothers=")) || "--fishothers=1").split("=")[1]);
 const BID_MAX = parseInt((argv.find(a => a.startsWith("--bidmax=")) || "--bidmax=3").split("=")[1], 10);
+const POWERS_ON = argv.includes("--powers") || argv.some(a => a.startsWith("--draft="));
+const DRAFT_ORDER = (argv.find(a => a.startsWith("--draft=")) || "").split("=")[1];
 const MAX_ROUNDS = 200;
+
+// Rule 13 — the eight boat powers, per Wyatt's list and his four scoping answers:
+// unique draft (no duplicates), racer/hedger raise the BUDGET, lockbox applies to ANY loss.
+const EXCLUDE = ((argv.find(a => a.startsWith("--exclude=")) || "--exclude=").split("=")[1] || "").split(",").filter(Boolean);
+const POWER_LIST = ["racer","hedger","shooter","trawler","lockbox","trader","sturdybow","gambler"].filter(x => !EXCLUDE.includes(x));
+const rngFor = seed => { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0;
+  let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
 
 /* ---------------------------------------------------------------- board helpers */
 
@@ -63,6 +73,7 @@ const land = (g, c) => g.blocked(c) || g.isIsland(c) || g.isHome(c);
 //   (b) up to 2 steps using any direction (this is the only way to make upwind progress)
 // Entering a rim cell ENDS the move there (the current then sweeps you) — same as the live game.
 function reachable(g, p, wind) {
+  const pw = p.power;
   const up = OPP[wind];                    // the one forbidden-if-you-want-4 direction
   const out = new Map();                   // "x,y" -> [x,y]
   const walk = (maxSteps, allowUpwind) => {
@@ -83,8 +94,8 @@ function reachable(g, p, wind) {
       frontier = next;
     }
   };
-  walk(4, false);
-  walk(2, true);
+  walk(pw === "racer" ? 5 : 4, false);
+  walk(pw === "hedger" ? 3 : 2, true);
   return [...out.values()];
 }
 
@@ -108,7 +119,20 @@ function playGame(seed, stats) {
   const cfg = roundCfg(["balanced", "balanced", "balanced", "balanced"]);
   const g = new Game(cfg, seed, false);
   const P = g.players;
-  P.forEach((p, i) => { p.coins = cfg.startCoins + i; p.bought = 0; p.lostTurn = false; });
+  P.forEach((p, i) => { p.coins = cfg.startCoins + i; p.bought = 0; p.lostTurn = false; p.power = null; });
+  if (POWERS_ON) {
+    const prng = rngFor(seed * 2654435761);
+    if (DRAFT_ORDER) {
+      // greedy draft in seat order down a fixed preference list — models "first come, first served"
+      const pref = DRAFT_ORDER.split(","), taken = new Set();
+      for (const p of P) { const pick = pref.find(x => !taken.has(x)); if (pick) { taken.add(pick); p.power = pick; } }
+    } else {
+      // random 4 distinct powers, randomly seated — isolates power strength from seat advantage
+      const pool = POWER_LIST.slice();
+      for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(prng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+      P.forEach((p, i) => p.power = pool[i]);
+    }
+  }
   const sold = {}; g.ings.forEach(i => sold[i] = 0);   // rule 11: per-ISLAND price ladder
   const price = ing => PRICE[Math.min(sold[ing], PRICE.length - 1)];
 
@@ -120,6 +144,8 @@ function playGame(seed, stats) {
   let trades = 0, battles = 0, attWins = 0, defWins = 0, tieFlips = 0, tieIng = 0;
   let stormTurnsLost = 0, rimUses = 0, coinsMinted = 0, coinsBurned = 0, callPayouts = 0;
   let brokeAtDock = 0, bidTotal = 0, flips = 0, upwindBound = 0, sailChances = 0;
+  let spoilNeeded = 0, spoilCoins = 0, lockboxSaves = 0;
+  const recordSpoil = () => {};
   const coinTrace = [];
 
   const needs = p => g.needs(p);
@@ -140,17 +166,20 @@ function playGame(seed, stats) {
         const give = mySurplus[0];
         p.ing.splice(p.ing.indexOf(give), 1); q.ing.push(give);
         q.ing.splice(q.ing.indexOf(want), 1); p.ing.push(want);
-        trades++; return true;
+        trades++; tradeBonus(p, q); return true;
       }
       // otherwise buy it for coin — the seller wants more than the island would charge
       const ask = 6;
       if (p.coins >= ask) {
         p.coins -= ask; q.coins += ask;
         q.ing.splice(q.ing.indexOf(want), 1); p.ing.push(want);
-        trades++; return true;
+        trades++; tradeBonus(p, q); return true;
       }
     }
     return false;
+  }
+  function tradeBonus(a, b) {
+    for (const x of [a, b]) if (x.power === "trader") { x.coins += 2; coinsMinted += 2; }
   }
 
   // ---- rule 9: simultaneous committed-coin battle
@@ -172,6 +201,8 @@ function playGame(seed, stats) {
     const dToA = DKEYS.find(k => DIRS[k][0] === -dx && DIRS[k][1] === -dy);
     let A = a, D = d;
     if (wind === aToD) A += 1; else if (wind === dToA) D += 1;
+    if (att.power === "shooter") A += 1;
+    if (def.power === "shooter") D += 1;
 
     let win = null;
     if (A > D) win = att; else if (D > A) win = def;
@@ -194,15 +225,25 @@ function playGame(seed, stats) {
       if (s === att || s === def || s.done) continue;
       const fav = att.coins >= def.coins ? att : def;         // they can see purses, not bids
       const call = g.r() < .6 ? fav : (fav === att ? def : att);
-      if (call === win) { s.coins += 2; coinsMinted += 2; callPayouts += 2; }
+      if (call === win) { const pay = s.power === "gambler" ? 3 : 2; s.coins += pay; coinsMinted += pay; callPayouts += pay; }
     }
 
     // rule 9 spoils: 5 coins or a crate, WINNER's choice — take a crate you need if there is one
+    if (lose.power === "lockbox" && lose.ing.length) {
+      // the loser offers their least useful crate; the winner may still prefer 5 coins
+      const useless = lose.ing.find(i => !needs(win).includes(i));
+      const offer = useless !== undefined ? useless : lose.ing[0];
+      if (useless !== undefined && lose.coins >= 5) { spoilCoins++; lose.coins -= 5; win.coins += 5; }
+      else { if (needs(win).includes(offer)) spoilNeeded++; lose.ing.splice(lose.ing.indexOf(offer), 1); win.ing.push(offer); }
+      lockboxSaves += useless !== undefined ? 1 : 0;
+      recordSpoil(); return;
+    }
     const wanted = lose.ing.filter(i => needs(win).includes(i));
-    if (wanted.length) { const i = wanted[0]; lose.ing.splice(lose.ing.indexOf(i), 1); win.ing.push(i); }
-    else if (lose.coins >= 5) { lose.coins -= 5; win.coins += 5; }
+    if (wanted.length) { spoilNeeded++; const i = wanted[0]; lose.ing.splice(lose.ing.indexOf(i), 1); win.ing.push(i); }
+    else if (lose.coins >= 5) { spoilCoins++; lose.coins -= 5; win.coins += 5; }
     else if (lose.ing.length) { const i = lose.ing[0]; lose.ing.splice(lose.ing.indexOf(i), 1); win.ing.push(i); }
     else { win.coins += lose.coins; lose.coins = 0; }
+    recordSpoil();
   }
 
   // ---- rule 7/8: one simultaneous storm at the start of the round
@@ -212,7 +253,8 @@ function playGame(seed, stats) {
       if (p.done) continue;
       const berthed = g.adjPort(p) !== null || man(p.pos, g.home) <= 1;
       if (berthed && DOCK_SHELTER === "berth") continue;      // rule 8: docks save you
-      for (let s = 0; s < 3; s++) {
+      const legs = p.power === "sturdybow" ? 1 : 3;
+      for (let s = 0; s < legs; s++) {
         const n = [p.pos[0] + d[0], p.pos[1] + d[1]];
         if (land(g, n)) {
           if (DOCK_SHELTER === "path" && g.adjPort(p) !== null) break;   // alt reading
@@ -288,7 +330,8 @@ function playGame(seed, stats) {
     if (juicy && p.coins >= 1) { acts.battle++; battle(p, juicy); return; }
     // rule 3: fish — no flip, fisher +2, everyone else +1
     acts.fish++;
-    p.coins += 2; coinsMinted += 2;
+    const catchSize = p.power === "trawler" ? 3 : 2;
+    p.coins += catchSize; coinsMinted += catchSize;
     for (const q of P) if (q !== p && !q.done) { q.coins += FISH_OTHERS; coinsMinted += FISH_OTHERS; }
   }
 
@@ -326,9 +369,16 @@ function playGame(seed, stats) {
   stats.coinsMinted += coinsMinted; stats.coinsBurned += coinsBurned; stats.callPayouts += callPayouts;
   stats.brokeAtDock += brokeAtDock; stats.bidTotal += bidTotal; stats.flips += flips;
   stats.upwindBound += upwindBound; stats.sailChances += sailChances;
+  stats.spoilNeeded += spoilNeeded; stats.spoilCoins += spoilCoins;
   stats.cratesLeft.push(Object.values(g.tokens).reduce((a, b) => a + b, 0));
   stats.endCoins.push(...P.map(p => p.coins));
   if (winner) stats.winBySeat[winner.idx]++;
+  if (POWERS_ON) for (const p of P) if (p.power) {
+    (stats.powerGames[p.power] ||= 0); stats.powerGames[p.power]++;
+    (stats.powerWins[p.power] ||= 0); if (winner === p) stats.powerWins[p.power]++;
+    (stats.powerSeat[p.power] ||= [0,0,0,0]); stats.powerSeat[p.power][p.idx]++;
+  }
+  stats.lockboxSaves += lockboxSaves;
   if (P.some(p => !p.done && needs(p).some(i => g.tokens[i] === 0))) stats.lockout++;
   stats.multiFinish += finishers.length > 1 ? 1 : 0;
   for (let i = 0; i < coinTrace.length && i < 30; i++) { (stats.coinByRound[i] ||= []).push(coinTrace[i]); }
@@ -341,8 +391,8 @@ const S = {
   games: 0, rounds: [], stalled: 0, acts: { fish: 0, dock: 0, battle: 0 }, trades: 0,
   battles: 0, attWins: 0, defWins: 0, tieFlips: 0, tieIng: 0, stormTurnsLost: 0, rimUses: 0,
   coinsMinted: 0, coinsBurned: 0, callPayouts: 0, brokeAtDock: 0, bidTotal: 0, flips: 0,
-  upwindBound: 0, sailChances: 0, cratesLeft: [], endCoins: [], winBySeat: [0, 0, 0, 0],
-  lockout: 0, multiFinish: 0, coinByRound: [],
+  upwindBound: 0, sailChances: 0, spoilNeeded: 0, spoilCoins: 0, cratesLeft: [], endCoins: [], winBySeat: [0, 0, 0, 0],
+  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0,
 };
 for (let i = 0; i < N_GAMES; i++) playGame(700000 + i, S);
 
@@ -370,6 +420,7 @@ console.log(`  ${(S.battles / S.games).toFixed(2)} per game   attacker wins ${pc
 console.log(`  resolved on the committed coins alone: ${pct(S.battles - S.tieFlips, S.battles)}`);
 console.log(`  went to the tie flip: ${pct(S.tieFlips, S.battles)}   went all the way to fewest-ingredients: ${pct(S.tieIng, S.battles)}`);
 console.log(`  mean coins committed per battle (both sides): ${(S.bidTotal / S.battles).toFixed(2)}`);
+console.log(`  spoils were a crate the WINNER SPECIFICALLY NEEDED: ${pct(S.spoilNeeded, S.battles)}   spoils were 5 coins: ${pct(S.spoilCoins, S.battles)}`);
 console.log(`  TOTAL COIN FLIPS PER GAME: ${(S.flips / S.games).toFixed(1)}   (baseline today: ~75)`);
 console.log(`\n--- WIND & WEATHER ---`);
 console.log(`  turns where the upwind cap actually cost you distance: ${pct(S.upwindBound, S.sailChances)}`);
@@ -402,7 +453,20 @@ overlap? 100% would mean the wind changes nothing. The shipped 9-point budget sc
       jac.push(inter / (A.size + B.size - inter));
     }
   }
-  console.log(`\n--- WIND PROBE (same metric as the shipped-rules run) ---`);
+  if (POWERS_ON) {
+  console.log(`\n--- RULE 13: BOAT POWERS  (${DRAFT_ORDER ? "seat-order draft" : "random distinct draw, seats randomised"}) ---`);
+  console.log(`  a power with no effect should sit at 25.0%. n = games that power appeared in.`);
+  const rows = POWER_LIST.map(k => ({ k, n: S.powerGames[k] || 0, w: S.powerWins[k] || 0 }))
+    .filter(r => r.n).map(r => ({ ...r, wr: 100 * r.w / r.n }))
+    .sort((a, b) => b.wr - a.wr);
+  for (const r of rows) {
+    const delta = r.wr - 25;
+    const bar = "\u2588".repeat(Math.max(0, Math.round(Math.abs(delta) * 2)));
+    console.log(`  ${r.k.padEnd(10)} ${r.wr.toFixed(1).padStart(5)}%  ${(delta >= 0 ? "+" : "") + delta.toFixed(1).padStart(5)}  ${bar}   n=${r.n}`);
+  }
+  console.log(`  lockbox saves (a useless crate handed over instead of a needed one): ${(S.lockboxSaves / S.games).toFixed(2)} per game`);
+}
+console.log(`\n--- WIND PROBE (same metric as the shipped-rules run) ---`);
   console.log(`  reachable-set overlap between two different winds: ${(100*mean(jac)).toFixed(1)}%   (shipped rules: 62.2%)`);
   console.log(`  mean reachable cells by wind: ` + DKEYS.map(d => `${d}=${mean(sizes[d]).toFixed(1)}`).join("  ") + `   (shipped rules: 11.3-12.0, flat)`);
 }

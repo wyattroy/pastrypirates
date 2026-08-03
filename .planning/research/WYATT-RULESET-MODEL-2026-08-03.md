@@ -230,10 +230,126 @@ above is the honest version.
 3. **Decide what coins are for at the end** — either they score, or the +1 off-turn fishing bonus
    becomes a non-coin token. Otherwise money stops mattering around round 8.
 
-**Rule 13 (boat powers) should be designed against these numbers, not before them.** The pressure
-points the model found — the mid-game money glut, the dead trade layer, fishing as the default
-transit action, and the 7.4-point first-player edge — are exactly what asymmetric powers are good at
-absorbing. Send me the powers, or say the word and I'll propose a set aimed at those four.
+**Rule 13 (boat powers) is now modelled too — see §8.**
+
+---
+
+---
+
+## 8. Rule 13 — the eight boat powers
+
+Modelled per your four answers: **unique draft, no duplicates**; **racer/hedger raise the budget**
+(racer moves 5 whenever no step is upwind, hedger's upwind-capped move becomes 3); **lockbox applies
+to any loss, attacking or defending**; balanced against **your rules exactly as written**.
+
+Method: each game draws **4 distinct powers from the 8 at random and seats them at random**, so seat
+advantage washes out and what is left is the power itself. 4,000 games. **A power with no effect
+sits at 25.0%.**
+
+### As written
+
+```
+  shooter     43.2%   +18.2   ████████████████████████████████████
+  lockbox     29.0%   + 4.0   ████████
+  hedger      25.3%   + 0.3   █
+  racer       24.6%   - 0.4   █
+  trawler     19.7%   - 5.3   ███████████
+  sturdybow   19.5%   - 5.5   ███████████
+  gambler     18.5%   - 6.5   █████████████
+  trader      17.6%   - 7.4   ███████████████
+```
+
+**A 25.6-point spread.** Shooter is not a power, it is a win button.
+
+Read these relatively: four seats must sum to 100%, so shooter winning 43% mathematically drags
+everyone else below 25 whether or not they deserve it. Here is the same field with shooter removed,
+which is the honest read on the other seven:
+
+```
+  lockbox     33.7%   + 8.7        trawler     21.6%   - 3.4
+  hedger      29.5%   + 4.5        sturdybow   20.8%   - 4.2
+  racer       27.0%   + 2.0        gambler     20.6%   - 4.4
+                                   trader      20.0%   - 5.0
+```
+
+Still a 13.7-point spread, and the ordering barely moves.
+
+### The one-line diagnosis
+
+**A power is worth exactly what its currency is worth, and your three weakest powers all pay in
+coins.**
+
+| Pays in | Powers | Result |
+|---|---|---|
+| **Battle outcomes** (the scarcest thing) | shooter, lockbox | the two strongest |
+| **Position / tempo** | hedger, racer, sturdybow | roughly neutral |
+| **Coins** (the most abundant thing) | trawler, gambler, trader | the three weakest |
+
+§3.1 measured a game that ends with **33.3 unspent coins**. Against that:
+
+- **trawler** is worth about **+8.8 coins a game** (~8.8 of your own fishing turns, +1 each).
+- **gambler** is worth about **+2.4 coins a game** (you spectate ~4.4 battles, call right ~55%).
+- **trader** is worth **+0.24 coins a game.** Trade fires 0.12 times per game (§3.2), so this power
+  is a rounding error. It is not undertuned — it has nothing to attach to.
+
+You cannot fix trawler, gambler or trader by raising their numbers. They are denominated in the one
+resource the game has a surplus of.
+
+### The draft compounds the first-player advantage badly
+
+You chose first-come-first-served. Modelled that way, with seat 1 taking shooter:
+
+```
+  seat 1 = 43.6%    seat 2 = 22.4%    seat 3 = 16.1%    seat 4 = 17.4%
+```
+
+The existing 7.4-point seat advantage (§4) becomes a **27.5-point** one. Picking first from an
+unbalanced set is a second first-player advantage stacked on the first.
+
+**Recommendation, and it kills two birds: draft the powers in REVERSE seat order.** The captain who
+sails last picks their ship first. That is the standard fix, it is thematically fine (last to the
+tavern gets first pick of the fleet), and it is a *better* compensation for going first than the
+staggered starting coins — which rule 2 already weakened, since coins matter less when sailing
+is free. You could then flatten starting coins to a single number for everyone and delete a setup
+step.
+
+### Two couplings worth knowing
+
+**Fixing the economy fixes shooter for free.** Re-run with the wider battle bids I recommended in
+§3.1:
+
+```
+  as written (bids 0-3):   shooter +18.2, total spread 25.6 points
+  wider bids (0-8):        shooter + 8.9, total spread 13.7 points
+```
+
+Shooter's +1 is a third of a 0–3 range and a twelfth of a 0–8 one. **Adopting whole-purse bidding
+halves shooter and halves the entire power spread**, without touching rule 13 at all. Lockbox
+self-corrects too, from +4.0 to −0.4, because more battles resolve on coins and fewer end in a crate
+being taken.
+
+**Storm frequency is a referendum on sturdy bow.** At your 1-in-8 it is worth ~0.4 turns a game.
+Doubling storms to 1-in-4 only moves it from −5.5 to −2.7 — better, still weak. Sturdy bow needs
+re-specifying, not a dial.
+
+### Per-power verdict
+
+| Power | Verdict | What I'd do |
+|---|---|---|
+| **shooter** | Broken as written (+18.2) | Adopt whole-purse bids and it lands at +8.9 on its own. If you keep 0–3 bids, make it *"+1 when attacking only"* or *"you win ties"* instead |
+| **lockbox** | Strong (+8.7 clean), and it fires 0.9–1.8 times a game | Fine at any-loss **if** the economy is fixed. Under your rules as written, narrow it to defender-only |
+| **hedger** | Healthy (+4.5) | Keep. Interesting that it beats racer — **relaxing your worst case is worth more than extending your best case**, which is a good general rule for this whole set |
+| **racer** | Mild (+2.0) | Keep, or make it +2 squares if you want it felt |
+| **sturdybow** | Weak (−4.2), worth ~0.4 turns/game | Re-spec to pay in tempo, not distance: *"a storm never costs you your turn"* — it deletes rule 8's penalty for you, which is the part that actually hurts |
+| **trawler** | Weak (−3.4); +8.8 coins in a game with 33 spare | Re-spec to tempo: *"you may fish **and** take another action"* |
+| **gambler** | Weak (−4.4); +2.4 coins a game | Re-spec to information: *"a correct call lets you see one combatant's committed coins in the next battle"* |
+| **trader** | Dead (−5.0); +0.24 coins a game | **Cannot be fixed in isolation.** Fix rule 11 first (let captains buy crates they don't need) so trading exists, then re-measure |
+
+### If you want one sentence
+
+The powers are currently a **25.6-point** spread that a first-come draft turns into a **27.5-point**
+seat spread. Adopting the §3.1 economy fix and reversing the draft order cuts both roughly in half
+before you retune a single power.
 
 ---
 
@@ -247,6 +363,11 @@ node scripts/wyatt_ruleset_sim.mjs 800 --fishothers=0        # no off-turn fishi
 node scripts/wyatt_ruleset_sim.mjs 800 --dockshelter=path    # the other reading of rule 8
 node scripts/wyatt_ruleset_sim.mjs 800 --norim               # price the trade winds
 node scripts/wyatt_ruleset_sim.mjs 800 --storm=0.25          # heavier weather
+
+node scripts/wyatt_ruleset_sim.mjs 4000 --powers                     # rule 13, random distinct draw
+node scripts/wyatt_ruleset_sim.mjs 4000 --powers --exclude=shooter   # clean read on the other seven
+node scripts/wyatt_ruleset_sim.mjs 4000 --powers --bidmax=8          # powers under a fixed economy
+node scripts/wyatt_ruleset_sim.mjs 3000 --draft=shooter,lockbox,hedger,racer   # seat-order draft
 ```
 
 Every run ends with a wind probe using the same metric as the shipped-rules measurement, so the two
