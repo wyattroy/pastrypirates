@@ -67,6 +67,17 @@ const CAST = argv.includes("--cast");
 // Tuned so the table mints ~5 coins per cast — the same as rule 3 as written.
 // Same simultaneity, same push-your-luck feel, but one beat at the table instead of two.
 const CAST1 = argv.includes("--cast1");
+// Wyatt 2026-08-03: "fishing can simply get everyone 1, not the fisher 2. Either way, the decision
+// becomes 'should I do something that helps my opponents' or not — make sure your bot is
+// tactically deciding this."  --fishflat makes every captain, caster included, take exactly 1.
+const FISH_FLAT = argv.includes("--fishflat");
+// How many of the four captains play the MERCHANT line: sail to the nearest island, hoard its
+// crates, and sell them on. The rest play the racer line (chase my own recipe).
+const MAX_DEALS = parseInt((argv.find(a => a.startsWith("--maxdeals=")) || "--maxdeals=1").split("=")[1], 10);
+const TRADE_FIRST = argv.includes("--tradefirst");
+// the staggered 3/4/5/6 exists to offset going first; rule 2 made sailing free, which weakened it
+const FLAT_COINS = argv.includes("--flatcoins");
+const MERCHANTS = parseInt((argv.find(a => a.startsWith("--merchants=")) || "--merchants=0").split("=")[1], 10);
 const CAST_CAP = 4;
 const HOARD_RESERVE = parseInt((argv.find(a => a.startsWith("--reserve=")) || "--reserve=6").split("=")[1], 10);
 const POWERS_ON = argv.includes("--powers") || argv.some(a => a.startsWith("--draft="));
@@ -138,7 +149,7 @@ function playGame(seed, stats) {
   const cfg = roundCfg(["balanced", "balanced", "balanced", "balanced"]);
   const g = new Game(cfg, seed, false);
   const P = g.players;
-  P.forEach((p, i) => { p.coins = cfg.startCoins + i; p.bought = 0; p.lostTurn = false; p.power = null; });
+  P.forEach((p, i) => { p.coins = cfg.startCoins + (FLAT_COINS ? 2 : i); p.bought = 0; p.lostTurn = false; p.power = null; p.line = i < MERCHANTS ? 'merchant' : 'racer'; });
   if (POWERS_ON) {
     const prng = rngFor(seed * 2654435761);
     if (DRAFT_ORDER) {
@@ -164,39 +175,64 @@ function playGame(seed, stats) {
   let stormTurnsLost = 0, rimUses = 0, coinsMinted = 0, coinsBurned = 0, callPayouts = 0;
   let brokeAtDock = 0, bidTotal = 0, flips = 0, upwindBound = 0, sailChances = 0;
   let spoilNeeded = 0, spoilCoins = 0, lockboxSaves = 0, hoardBuys = 0, castRounds = 0, casts = 0;
+  let swaps = 0, buys = 0, sells = 0, tradeCoin = 0, passes = 0;
   const recordSpoil = () => {};
   const coinTrace = [];
 
+  const refused = new Set();
   const needs = p => g.needs(p);
   const finished = p => !needs(p).length && man(p.pos, g.home) <= 1;
 
-  // ---- rule 4: one free trade at the start of the active captain's turn
+  // ---- rule 4: a real market at the start of every captain's turn.
+  // What a crate is WORTH to a buyer is what getting it another way would cost: the island's
+  // ladder price plus the turns of sailing, or a lot more if it is off the board entirely.
+  function crateValue(q, ing) {
+    if (!needs(q).includes(ing)) return 0;
+    if (g.tokens[ing] <= 0) return 14;                       // only trade or plunder can get it now
+    const d = waterDist(g, q.pos)[K(g.dockOf[ing])] ?? 20;
+    return price(ing) + Math.min(9, Math.ceil(d / 2));       // price + the tempo it costs to fetch
+  }
+  // What a seller gives up: the crate itself, plus the denial value of keeping it from a rival.
+  function reservation(p, ing) {
+    if (needs(p).includes(ing)) return 99;                   // not for sale at any price
+    const rivals = P.filter(x => x !== p && !x.done && needs(x).includes(ing)).length;
+    return 2 + rivals + (g.tokens[ing] <= 0 ? 3 : 0);
+  }
   function tryTrade(p) {
-    const myNeed = needs(p);
-    if (!myNeed.length) return false;
+    let struck = false, dealsThisTurn = 0;
     for (const q of P) {
-      if (q === p || q.done) continue;
-      const theyHold = q.ing.filter(i => myNeed.includes(i) && !q.recipe.includes(i)); // their surplus
-      if (!theyHold.length) continue;
-      const want = theyHold[0];
-      // swap if I hold something they need and don't want myself
-      const mySurplus = p.ing.filter(i => needs(q).includes(i) && !p.recipe.includes(i));
-      if (mySurplus.length) {
-        const give = mySurplus[0];
-        p.ing.splice(p.ing.indexOf(give), 1); q.ing.push(give);
-        q.ing.splice(q.ing.indexOf(want), 1); p.ing.push(want);
-        trades++; tradeBonus(p, q); return true;
+      if (q === p || q.done || dealsThisTurn >= MAX_DEALS) continue;
+      // (a) a straight swap — each of us holds what the other needs. Always the best deal available.
+      const iWant = q.ing.find(i => needs(p).includes(i) && !needs(q).includes(i));
+      const theyWant = p.ing.find(i => needs(q).includes(i) && !needs(p).includes(i));
+      if (iWant && theyWant) {
+        p.ing.splice(p.ing.indexOf(theyWant), 1); q.ing.push(theyWant);
+        q.ing.splice(q.ing.indexOf(iWant), 1); p.ing.push(iWant);
+        trades++; swaps++; dealsThisTurn++; tradeBonus(p, q); struck = true; continue;
       }
-      // otherwise buy it for coin — the seller wants more than the island would charge
-      const desperate = g.tokens[want] <= 0;
-      const ask = desperate ? Math.min(p.coins, Math.max(10, Math.floor(p.coins * 0.6))) : 6;
-      if (p.coins >= ask && ask > 0) {
-        p.coins -= ask; q.coins += ask;
-        q.ing.splice(q.ing.indexOf(want), 1); p.ing.push(want);
-        trades++; tradeBonus(p, q); return true;
+      // (b) I buy from them. A deal exists whenever my value clears their reservation.
+      if (iWant) {
+        const v = crateValue(p, iWant), r = reservation(q, iWant);
+        const ask = Math.ceil((v + r) / 2);
+        if (!(v >= r && p.coins >= ask)) refused.add(p.idx + ">" + q.idx);   // they would not deal
+        if (v >= r && p.coins >= ask) {
+          p.coins -= ask; q.coins += ask;
+          q.ing.splice(q.ing.indexOf(iWant), 1); p.ing.push(iWant);
+          trades++; buys++; dealsThisTurn++; tradeCoin += ask; tradeBonus(p, q); struck = true; continue;
+        }
+      }
+      // (c) they buy from me — the merchant's whole business model
+      if (theyWant) {
+        const v = crateValue(q, theyWant), r = reservation(p, theyWant);
+        const ask = Math.ceil((v + r) / 2);
+        if (v >= r && q.coins >= ask) {
+          q.coins -= ask; p.coins += ask;
+          p.ing.splice(p.ing.indexOf(theyWant), 1); q.ing.push(theyWant);
+          trades++; sells++; dealsThisTurn++; tradeCoin += ask; tradeBonus(p, q); struck = true;
+        }
       }
     }
-    return false;
+    return struck;
   }
   function tradeBonus(a, b) {
     for (const x of [a, b]) if (x.power === "trader") { x.coins += 2; coinsMinted += 2; }
@@ -318,6 +354,21 @@ function playGame(seed, stats) {
       }
       // Scarcity is meant to force a scramble, not a stalemate: if something I need is off the
       // board entirely, the only routes left are trade and plunder — so go and find the holder.
+      // The merchant line: the nearest island with stock that rivals want is a business, not a
+      // detour. Buy it out, sell it on. Weighed against my own recipe by distance, not ignored.
+      if (p.line === "merchant") {
+        let best = null, bestScore = -1e9;
+        for (const i of g.ings) {
+          if (g.tokens[i] <= 0) continue;
+          const buyers = P.filter(x => x !== p && !x.done && needs(x).includes(i)).length;
+          if (!buyers && !needs(p).includes(i)) continue;
+          const c = g.dockOf[i], d = dists[K(c)] ?? 99;
+          if (p.coins < price(i)) continue;
+          const score = (needs(p).includes(i) ? 4 : 0) + buyers * 3 - d * 0.8;
+          if (score > bestScore) { bestScore = score; best = c; }
+        }
+        if (best) target = best;
+      }
       const gone = need.filter(i => g.tokens[i] <= 0);
       if (gone.length) {
         const holders = P.filter(q => q !== p && !q.done && q.ing.some(i => gone.includes(i)));
@@ -360,7 +411,8 @@ function playGame(seed, stats) {
       const iNeed = needs(p).includes(port);
       // hoarding: buy a crate I do NOT need, if a rival needs it and I can spare the coin
       const rivalNeeds = P.some(q => q !== p && !q.done && needs(q).includes(port));
-      const wantHoard = !NO_HOARD && !iNeed && rivalNeeds && p.coins >= price(port) + HOARD_RESERVE;
+      const reserve = p.line === "merchant" ? 0 : HOARD_RESERVE;
+      const wantHoard = !NO_HOARD && !iNeed && rivalNeeds && p.coins >= price(port) + reserve;
       if (iNeed || wantHoard) {
         acts.dock++;
         const h = g.r() < .5; flips++;
@@ -374,9 +426,28 @@ function playGame(seed, stats) {
     }
     // rule 9/14: attack an adjacent ship (Tortuga is no longer a sanctuary)
     const adj = P.filter(q => q !== p && !q.done && man(q.pos, p.pos) === 1);
-    const juicy = adj.find(q => q.ing.some(i => needs(p).includes(i) && g.tokens[i] <= 0))
-      || adj.find(q => q.ing.some(i => needs(p).includes(i)) || q.coins >= 8);
+    // guns come out only where talking failed — TRADE_FIRST models Wyatt's intent directly
+    const stingy = q => !TRADE_FIRST || refused.has(p.idx + ">" + q.idx);
+    const juicy = adj.find(q => stingy(q) && q.ing.some(i => needs(p).includes(i) && g.tokens[i] <= 0))
+      || adj.find(q => stingy(q) && (q.ing.some(i => needs(p).includes(i)) || q.coins >= 8));
     if (juicy && p.coins >= 1) { acts.battle++; battle(p, juicy); return; }
+    // --- is fishing actually worth it? ---
+    // The gain is 1 coin (or FISH_SELF). The cost is my whole action, plus handing every rival a
+    // coin. So: only when I am genuinely short of what I am about to buy, and never when it would
+    // hand a rival the last coin they need to finish ahead of me.
+    if (FISH_FLAT) {
+      const nd = needs(p);
+      const wantCoin = nd.length ? price(nd.find(i => g.tokens[i] > 0) || nd[0]) : 0;
+      const short = p.coins < wantCoin;                       // I cannot afford my next crate
+      // would this tip a rival over the line? they are 1 crate from done and 1 coin short of it
+      const armsARival = P.some(q => {
+        if (q === p || q.done) return false;
+        const qn = needs(q); if (qn.length > 1) return false;
+        const cost = qn.length ? price(qn[0]) : 0;
+        return q.coins === cost - 1;
+      });
+      if (!short || armsARival) { acts.pass++; passes++; return; }
+    }
     acts.fish++;
     if (CAST1) {
       for (const q of P) {
@@ -447,7 +518,7 @@ function playGame(seed, stats) {
   stats.games++;
   stats.rounds.push(g.round);
   stats.stalled += finishers.length ? 0 : 1;
-  stats.acts.fish += acts.fish; stats.acts.dock += acts.dock; stats.acts.battle += acts.battle;
+  stats.acts.fish += acts.fish; stats.acts.dock += acts.dock; stats.acts.battle += acts.battle; stats.acts.pass += acts.pass;
   stats.trades += trades; stats.battles += battles; stats.attWins += attWins; stats.defWins += defWins;
   stats.tieFlips += tieFlips; stats.tieIng += tieIng;
   stats.stormTurnsLost += stormTurnsLost; stats.rimUses += rimUses;
@@ -463,6 +534,8 @@ function playGame(seed, stats) {
     (stats.powerWins[p.power] ||= 0); if (winner === p) stats.powerWins[p.power]++;
     (stats.powerSeat[p.power] ||= [0,0,0,0]); stats.powerSeat[p.power][p.idx]++;
   }
+  stats.swaps += swaps; stats.buys += buys; stats.sells += sells; stats.tradeCoin += tradeCoin; stats.passes += passes;
+  for (const q of P) { stats.lineGames[q.line]++; if (winner === q) stats.lineWins[q.line]++; }
   stats.lockboxSaves += lockboxSaves; stats.hoardBuys += hoardBuys; stats.castRounds += castRounds; stats.casts += casts;
   if (P.some(p => !p.done && needs(p).some(i => g.tokens[i] === 0))) stats.lockout++;
   stats.multiFinish += finishers.length > 1 ? 1 : 0;
@@ -473,17 +546,18 @@ function playGame(seed, stats) {
 /* ---------------------------------------------------------------- run */
 
 const S = {
-  games: 0, rounds: [], stalled: 0, acts: { fish: 0, dock: 0, battle: 0 }, trades: 0,
+  games: 0, rounds: [], stalled: 0, acts: { fish: 0, dock: 0, battle: 0, pass: 0 }, trades: 0,
   battles: 0, attWins: 0, defWins: 0, tieFlips: 0, tieIng: 0, stormTurnsLost: 0, rimUses: 0,
   coinsMinted: 0, coinsBurned: 0, callPayouts: 0, brokeAtDock: 0, bidTotal: 0, flips: 0,
   upwindBound: 0, sailChances: 0, spoilNeeded: 0, spoilCoins: 0, cratesLeft: [], endCoins: [], winBySeat: [0, 0, 0, 0],
-  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0,
+  lockout: 0, multiFinish: 0, coinByRound: [], powerGames: {}, powerWins: {}, powerSeat: {}, lockboxSaves: 0, hoardBuys: 0, castRounds: 0, casts: 0, swaps: 0, buys: 0, sells: 0, tradeCoin: 0, passes: 0,
+  lineGames: {racer:0,merchant:0}, lineWins: {racer:0,merchant:0},
 };
 for (let i = 0; i < N_GAMES; i++) playGame(700000 + i, S);
 
 const mean = a => a.reduce((s, v) => s + v, 0) / (a.length || 1);
 const pct = (n, d) => (100 * n / d).toFixed(1) + "%";
-const totalActs = S.acts.fish + S.acts.dock + S.acts.battle;
+const totalActs = S.acts.fish + S.acts.dock + S.acts.battle + S.acts.pass;
 
 console.log(`WYATT RULESET MODEL — ${S.games} games, 4 captains, seeds 700000+`);
 console.log(`  dock shelter: ${DOCK_SHELTER}   rim: ${NO_RIM ? "REMOVED" : "kept"}   storm p: ${STORM_P}\n`);
@@ -493,6 +567,9 @@ console.log(`\n--- ACTION MIX  (baseline today: fish 57.0 / dock 32.1 / battle 7
 console.log(`  fish    ${pct(S.acts.fish, totalActs)}`);
 console.log(`  dock    ${pct(S.acts.dock, totalActs)}`);
 console.log(`  battle  ${pct(S.acts.battle, totalActs)}`);
+console.log(`  pass    ${pct(S.acts.pass, totalActs)}   (declined to fish — it would have helped rivals more than me)`);
+console.log(`  trade breakdown: ${(S.swaps/S.games).toFixed(2)} swaps + ${(S.buys/S.games).toFixed(2)} buys + ${(S.sells/S.games).toFixed(2)} sells per game, ${(S.tradeCoin/Math.max(1,S.buys+S.sells)).toFixed(1)} coins per sale`);
+if (MERCHANTS) console.log(`  LINE WIN RATE: merchant ${pct(S.lineWins.merchant, S.lineGames.merchant)} (n=${S.lineGames.merchant})   racer ${pct(S.lineWins.racer, S.lineGames.racer)} (n=${S.lineGames.racer})`);
 console.log(`  trades struck (free phase, not an act): ${(S.trades / S.games).toFixed(2)} per game`);
 console.log(`  crates bought that the buyer did NOT need (hoarding/monopolising): ${(S.hoardBuys / S.games).toFixed(2)} per game`);
 console.log(`\n--- ECONOMY ---`);

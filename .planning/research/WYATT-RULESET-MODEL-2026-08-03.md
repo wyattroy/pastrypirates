@@ -536,3 +536,133 @@ You asked to keep the off-turn bonus at exactly +1 each. Under the Cast, a spect
 playing, and it is what makes it a mini-game rather than a payout. If the flat, dependable +1 matters
 more to you than the simultaneity, say so and the Cast becomes caster-only with the spectators paid
 as they are now — it just gets less interesting on the ~50% of turns that are somebody else's.
+
+
+---
+
+## 11. Trade as the main mode — and a correction
+
+Wyatt: *"In a normal game currently there are many more deals than that, I think — but I could be
+wrong."*
+
+**You were right, and the number I gave was measuring the wrong thing.**
+
+2.5 trades a game was my *bots' willingness to trade*, not the ruleset's capacity for it. Both my
+model and the shipped engine's own `tradeCandidate()` only strike a deal under a narrow condition —
+an exact swap of surpluses. A human table negotiates constantly; a bot that can only recognise one
+shape of deal will report that trading barely happens no matter how good the rules are. Every trade
+figure in §3.2 and §9 should be read as a floor set by the AI, not a ceiling set by the rules.
+
+So I rebuilt the trade layer as an actual market, with valuations on both sides:
+
+- **What a crate is worth to a buyer** = what getting it another way would cost — the island's ladder
+  price plus the sailing it saves, or a lot more if it is off the board entirely and only trade or
+  plunder can reach it.
+- **What a seller gives up** = the crate, plus its denial value (how many rivals need it, and whether
+  it is the last one).
+- A deal exists whenever the buyer's value clears the seller's reservation; they settle in the middle.
+
+```
+                        narrow bot     real market
+trades per game               2.5   ->      39.3
+   of which swaps               —          21.6
+             coin buys          —          10.7
+             coin sales         —           7.0
+mean price per sale             —      6.1 coins
+```
+
+**Trade is now the single most common interaction in the game**, at roughly one deal every other
+turn. That is the game you described.
+
+### Battles as the failure of negotiation
+
+You wanted *"battles would only come when players were being stingy and unwilling to trade."* I
+modelled that literally: a captain only reaches for the guns against someone who has actually
+**refused** a deal for the crate they need.
+
+```
+battles as a share of actions:   26.6%  ->  13.6%
+```
+
+Halved, and every remaining one is now the consequence of somebody being stingy. This is a **bot
+policy**, not a rule — but for the app it is the important design note: *the AI must try to buy
+before it tries to plunder*, or the game will feel like a brawl no matter what the rules say.
+
+### Flat fishing, and the decision you asked for
+
+*"Fishing can simply get everyone 1, not the fisher 2. Either way, the decision becomes 'should I do
+something that helps my opponents' or not — make sure your bot is tactically deciding this."*
+
+Done. Under flat fishing the payout is identical for everyone, so it changes **nobody's relative
+position** — it just costs you an action and hands three rivals a coin each. The bot now casts only
+when it is genuinely short of what it is about to buy, and refuses when the coin would arm a rival
+who is one crate and one coin from finishing.
+
+```
+casting as a share of actions:   45.6%  ->  20.1%
+turns spent trading and sailing without acting:      35.6%
+```
+
+**That 35.6% is not dead air** — those turns still trade and still sail four squares. It reads as a
+delivery run. And it is what turns fishing from a default into a decision, which is exactly what you
+asked for. Your call, recorded: keep it.
+
+### The merchant line loses, and that is fine
+
+I built the strategy you described — sail to the nearest island, buy out its stock, sell it on — and
+raced it against a plain racer:
+
+```
+merchant 20.9%   vs   racer 29.1%     (n=1800 each)
+```
+
+It loses **structurally**, not through bad tuning. A merchant converts tempo into coins; coins only
+convert back into crates at 3–5 each; and the racer was already spending that same tempo buying
+crates directly. The margin (6.1 a sale against a 3–5 cost) does not cover the detour.
+
+Your call, recorded: **accept it as a support line rather than a win condition.** I think that is
+right, and the numbers support it — with 21.6 swaps a game, *everybody* is already part merchant.
+Commerce serves the race; it is not an alternative to it. Worth knowing where the lever is if you
+ever change your mind: the only change that makes hoard-and-sell a genuine win condition is making
+leftover resources score at the end, which would mean giving up "first home wins outright."
+
+### Recommended configuration, all findings applied
+
+| # | Change | From | To |
+|---|---|---|---|
+| 1 | Rule 10 — treasure | 4 | **2** |
+| 2 | Rule 9 — the secret commitment | 0–3 | **any part of your purse** |
+| 3 | Rule 3 — fishing | fisher 2 / others 1 | **everyone 1** (your revision) |
+| 4 | Starting coins | staggered 3/4/5/6 | **5 each** |
+| 5 | Trade bonus | — | **none** (your call) |
+| 6 | *AI behaviour* | attack on sight | **try to buy before you plunder** |
+| 7 | *AI behaviour* | fish as a fallback | **cast only when actually short** |
+
+```
+                              as written      recommended
+rounds per game                     20.4  ->         18.3
+games that never finish             0.6%  ->         0.4%
+trades per game                     0.12  ->         39.3
+battles as a share of actions      26.6%  ->        13.6%
+battles needing no coin flip       67.7%  ->        83.9%
+mean coins at game end              33.6  ->          5.3
+seat spread (best minus worst)   9.2 pts  ->      3.4 pts
+captains locked out                98.0%  ->        94.9%
+```
+
+**Item 4 is worth calling out.** The staggered starting coins exist to offset going first, and rule 2
+(free sailing) weakened them — so much that in the tuned economy they *overcorrected* and going last
+became best (seat 1 19.5%, seat 3 27.5%). Flattening to 5 each closes it to 23.4–26.8%, which is as
+balanced as this game has ever measured. **Delete the stagger and delete a setup step.**
+
+### What is a rule and what is an AI note
+
+Worth separating, because two of the biggest improvements in that table are not rules at all:
+
+- **Rules:** treasure 2, whole-purse bids, flat fishing, flat starting coins, no trade bonus.
+- **AI behaviour:** value crates properly and try to buy before plundering; cast only when short.
+
+The second list is what took trade from 2.5 deals a game to 39, and battles from 27% to 14%. A
+tabletop group does that instinctively. **The app has to be taught it** — and if it isn't, the online
+game will feel like a completely different, much more violent game than the one played at a table
+with the same rulebook.
