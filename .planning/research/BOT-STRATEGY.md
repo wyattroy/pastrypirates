@@ -14,7 +14,58 @@ person.** That gap is invisible in the rules and only shows up in play.
 
 ---
 
-## 1. The one rule that governs everything: measure in TURNS, never in squares
+## 0. The governing principle: logic, not gates
+
+> **"Don't give bots gates to follow, give them logic-based rules that a human player would also be
+> using."** — Wyatt, 2026-08-04
+
+This is the standing rule for this file, and everything below is subordinate to it.
+
+**A gate is a condition that forbids an action.** *Only attack after they refuse a deal. Only call
+the cast if you are short. Only buy a crate you need.* Gates read as sensible in a specification and
+behave terribly in play, for a reason that is easy to miss: **a gate cannot be seen failing.** It
+produces no error and no odd number — the action simply never happens, and the game looks like it
+was designed that way.
+
+Three of them shipped in the first build, and each cost a playtest to find:
+
+| Gate | What it did | Found by |
+|---|---|---|
+| Attack only after a public refusal | A laden rival was adjacent on **46.5%** of turns; the bot fought on **1.4%** | Playing it |
+| Trade evaluated before battle, returning immediately | Made the fight branch unreachable whenever any deal existed | Instrumenting the above |
+| Offer at the top of every turn, no cost | Bots asked every rival every round — "it feels like advertising" | Playing it |
+
+**A human plays by valuation, not by permission.** They ask what each option is worth and take the
+best one. So the bot prices every legal action in coins and picks the maximum:
+
+```
+bake     winning
+dock     PROGRESS − price + expected treasure
+trade    PROGRESS − the least anyone will take
+battle   P(win) × PROGRESS − my stake
+cast     what the coin unlocks − what it hands my rivals
+hold     ~0
+```
+
+Three properties fall out, and they are why this is the rule rather than a preference:
+
+1. **Nothing is ever unreachable.** An option that never wins is *losing on value*, which shows up
+   as a number you can inspect — not as silence.
+2. **New actions need no ordering.** They slot in by being priced. Nobody has to decide which rung
+   they belong on, and nobody can put them on the wrong one.
+3. **The behaviour reads as intent.** A captain who fights when the prize is worth it and deals when
+   it is not looks like they are thinking, because they are — the same arithmetic a person does.
+
+**A refusal is the model case.** It used to be a gate: *never ask them again.* Now it raises what you
+believe they will charge, so the ask simply loses on value — and becomes worth making again when
+your need grows or their price falls. That is what "they said no last time" actually means to a
+person, and it is a rule rather than a wall.
+
+**When you catch yourself writing `if (...) return X`, that is a gate.** Write `worth(X)` instead.
+
+---
+
+## 1. Measure in TURNS, never in squares
 
 This is the single most important line in the document.
 

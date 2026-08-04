@@ -71,6 +71,16 @@ What matters more than the number: **battle frequency is set by the bot's threat
 rule.** The online game's whole temperament is an AI setting. It should be chosen deliberately, not
 discovered in playtest.
 
+## The standing principle for bot work
+
+> **"Don't give bots gates to follow, give them logic-based rules that a human player would also be
+> using."** — Wyatt, 2026-08-04
+
+`BOT-STRATEGY.md` §0. Three gates shipped in the first build and each cost a playtest to find,
+because **a gate cannot be seen failing** — the action just never happens and the game looks
+designed that way. The bot now prices every legal action and takes the maximum. If you catch
+yourself writing `if (...) return X`, write `worth(X)` instead.
+
 ## Things that were measured and would be expensive to rediscover
 
 - **Bots must measure in turns, not squares** — and the plateau trap that follows (`BOT-STRATEGY.md`

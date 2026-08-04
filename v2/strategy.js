@@ -189,88 +189,120 @@ export function botResolver(g) {
         return best;
       }
 
+      // ---------------------------------------------------------------------------------
+      // WYATT'S PRINCIPLE (2026-08-04): don't give bots gates, give them logic a human would use.
+      //
+      // This used to be a priority ladder — check bake, then dock, then trade, then fight — and
+      // every rung was a gate. Gates look reasonable written down and behave terribly in play: the
+      // fight rung was unreachable because the trade rung returned first, so a laden rival was
+      // adjacent on 46.5% of turns and the bot attacked on 1.4% of them. Nobody could see that from
+      // reading the code, which is exactly the problem with gates.
+      //
+      // A captain does not run a checklist. They ask what each option is WORTH and take the best
+      // one. So: price every legal action in coins, and pick the maximum. New actions slot in by
+      // being valued, not by being inserted at the right rung, and nothing is ever unreachable.
       case "act": {
-        const o = req.options;
-        const bake = o.find(x => x.a === "bake"); if (bake) return bake;
-        const dock = o.find(x => x.a === "dock");
-        if (dock && (g.needs(p).includes(dock.ing) || p.coins >= g.priceOf(dock.ing, p) + 6)) return dock;
-        // Trade costs the action now, so only spend it when a deal genuinely beats sailing on:
-        // somebody holds a crate I need, they have not already refused me for it, and fetching it
-        // myself would cost more than the deal will.
-        // What is a deal worth this turn? (the crate's value less what it will cost me)
-        const trade = o.find(x => x.a === "trade");
-        let tradeGain = 0;
-        if (trade) for (const i of g.needs(p)) {
-          const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(i) && !wasRefused(p, q.idx, i));
-          if (!holders.length) continue;
-          const ask = Math.min(...holders.map(q => reservation(g, q, i, p)));
-          if (ask > p.coins) continue;
-          tradeGain = Math.max(tradeGain, crateValue(g, p, i) - ask);
-        }
-        // guns only against someone who refused a deal in public
-        // BATTLE IS A STRATEGY, NOT A LAST RESORT. This is a pirate game: if somebody beside you is
-        // carrying a crate you need and you can afford the powder, taking it is a reasonable play and
-        // the bot should make it. Judge it the way a captain would — what is the crate worth, how
-        // likely am I to win, what does the powder cost me — and fight when that comes out ahead.
-        let bestFight = null, bestGain = 0;
-        for (const x of o.filter(y => y.a === "battle")) {
-          const q = g.players[x.target];
-          const prize = Math.max(0, ...q.ing.map(i => crateValue(g, p, i)));
-          if (prize <= 0) continue;                       // nothing aboard I want
-          const stake = Math.min(p.coins, commitFor(g, p, q, prize));
-          if (stake < 1) continue;
-          const gain = winChance(g, p, q, stake) * prize - stake;
-          if (gain > bestGain) { bestGain = gain; bestFight = x; }
-        }
-        // A pirate weighs the two against each other. Taking it is a real option, not a fallback for
-        // when nobody will deal — and it wins whenever the numbers say so.
-        if (bestFight && bestGain >= tradeGain) return bestFight;
-        if (trade && tradeGain > 0) return trade;
-        if (bestFight) return bestFight;
-        // call the cast only if genuinely short, and never if it arms a rival about to finish
-        const cast = o.find(x => x.a === "cast");
-        if (cast) {
-          const need = g.needs(p);
-          const want = need.length ? g.priceOf(need.find(i => g.board.tokens[i] > 0) || need[0], p) : 0;
-          const arms = g.players.some(q => q !== p && !q.done && g.needs(q).length <= 1 && q.coins === want - 1);
-          if (p.coins < want && !arms) return cast;
-        }
-        const poach = o.find(x => x.a === "poach");
-        if (poach && p.coins < 4) return poach;
-        if (dock) return dock;
-        return o.find(x => x.a === "pass");
+        const need = g.needs(p);
+        // A crate you NEED is not a purchase, it is a fifth of the game. Pricing it at what it saves
+        // you in coins undervalues it against anything that raises coins, and the bots churn deals
+        // instead of sailing. PROGRESS is what a captain is actually buying.
+        const PROGRESS = 14;
+        const worth = (x) => {
+          switch (x.a) {
+            case "bake": return 1e6;                                  // this wins the game
+
+            case "dock": {
+              const cost = g.priceOf(x.ing, p);
+              const treasure = 2;                                     // half of 4, the mean crate price
+              if (need.includes(x.ing)) return PROGRESS - cost + treasure;
+              // a crate I don't need is worth what denying it is worth, less what it ties up
+              const wanted = g.players.filter(q => q !== p && !q.done && g.needs(q).includes(x.ing)).length;
+              return wanted * 2 - cost + treasure;
+            }
+
+            case "trade": {
+              let best = 0;
+              for (const i of need) {
+                const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(i));
+                if (!holders.length) continue;
+                const ask = Math.min(...holders.map(q => reservation(g, q, i, p)));
+                if (ask > p.coins) continue;                          // I cannot pay it, so it is worth nothing
+                best = Math.max(best, PROGRESS - ask);
+              }
+              // Selling is only worth the gap it closes. Coin I do not need buys nothing, so a sale
+              // that leaves me no better placed is worth nothing — which is what stops the churn.
+              const wantCoin = need.length ? g.priceOf(need.find(i => g.board.tokens[i] > 0) || need[0], p) : 0;
+              const shortBy = Math.max(0, wantCoin - p.coins);
+              if (shortBy > 0) for (const i of p.ing.filter(j => !need.includes(j))) {
+                const buyers = g.players.filter(q => q !== p && !q.done && g.needs(q).includes(i));
+                if (buyers.length) best = Math.max(best, Math.min(shortBy, Math.max(...buyers.map(q => q.coins))) - buyers.length);
+              }
+              return best;
+            }
+
+            case "battle": {
+              const q = g.players[x.target];
+              const takeable = q.ing.filter(i => need.includes(i));
+              if (!takeable.length) return 0;
+              const prize = PROGRESS;                                 // same yardstick as dock and trade
+              const stake = Math.min(p.coins, commitFor(g, p, q, crateValue(g, p, takeable[0])));
+              if (stake < 1) return 0;
+              return winChance(g, p, q, stake) * prize - stake;
+            }
+
+            case "cast": {
+              // the ladder is fair at every rung, so my take is about 1 either way. What it is
+              // WORTH is what that coin unlocks — nothing if I am not short — less the fact that it
+              // pays every rival too, which is dearest when one of them is nearly home.
+              const want = need.length ? g.priceOf(need.find(i => g.board.tokens[i] > 0) || need[0], p) : 0;
+              const short = Math.max(0, want - p.coins);
+              const helps = g.players.reduce((n, q) => n + (q !== p && !q.done && g.needs(q).length <= 1 ? 3 : 1), 0) - 1;
+              return (short > 0 ? 2 + Math.min(short, 4) : 0.5) - helps * 0.5;
+            }
+
+            case "poach": return 2;                                   // a solo 2 that pays nobody else
+            default: return 0.25;                                     // holding course is not nothing
+          }
+        };
+        let best = null, bestV = -1e9;
+        for (const x of req.options) { const v = worth(x); if (v > bestV) { bestV = v; best = x; } }
+        return best || req.options[req.options.length - 1];
       }
 
       case "buy": {
-        const { ing, cost, need } = req.options;
-        if (need) return true;
-        // buy what I don't need only as trade goods, and only if a rival wants it and I can spare it
-        const wanted = g.players.some(q => q !== p && !q.done && g.needs(q).includes(ing));
-        return wanted && p.coins >= cost + 6;
+        const { ing, cost } = req.options;
+        if (g.needs(p).includes(ing)) return crateValue(g, p, ing) >= cost;
+        // one I don't need is worth what denying it is worth, and what it will fetch in a deal
+        const buyers = g.players.filter(q => q !== p && !q.done && g.needs(q).includes(ing));
+        const resale = buyers.length ? Math.max(...buyers.map(q => Math.min(q.coins, crateValue(g, q, ing)))) : 0;
+        return Math.max(resale, buyers.length * 2) >= cost && p.coins - cost >= 3;
       }
 
       case "offer": {
         const need = g.needs(p);
         let want = null, wv = -1;
         for (const ing of need) {
-          // only ask captains who have NOT already turned me down for this crate. Without this the
-          // bot asks the same person for the same thing every round, which reads as advertising.
-          const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(ing) && !wasRefused(p, q.idx, ing));
+          // No gate here either. A refusal raises what I think they will charge (see reservation),
+          // so an ask that will not clear simply loses to a better option — and the same ask becomes
+          // worth making again when my need grows or their price falls. That is how a human treats
+          // "they said no last time", rather than never speaking to them again.
+          const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(ing));
           if (!holders.length) continue;
-          const v = crateValue(g, p, ing);
-          if (v > wv) { wv = v; want = ing; }
+          const ask = Math.min(...holders.map(q => reservation(g, q, ing, p)));
+          const v = crateValue(g, p, ing) - ask;
+          if (v > wv && ask <= p.coins) { wv = v; want = ing; }
         }
-        if (want) {
+        if (want !== null && want !== undefined) {
           const surplus = p.ing.filter(i => !need.includes(i));
-          const swapWith = surplus.find(i => g.players.some(q => q !== p && !q.done && q.ing.includes(want) && !wasRefused(p, q.idx, want) && g.needs(q).includes(i)));
+          const swapWith = surplus.find(i => g.players.some(q => q !== p && !q.done && q.ing.includes(want) && g.needs(q).includes(i)));
           if (swapWith) return { want, giveIng: swapWith };
-          return { want, giveCoins: Math.min(p.coins, Math.max(1, Math.floor(wv * 0.6))) };
+          return { want, giveCoins: Math.min(p.coins, Math.max(1, Math.ceil(crateValue(g, p, want) * 0.6))) };
         }
         // nothing I need is on the table — sell surplus if I am short of coin
         const surplus = p.ing.filter(i => !need.includes(i));
         const nextCost = need.length ? g.priceOf(need.find(i => g.board.tokens[i] > 0) || need[0], p) : 0;
         if (surplus.length && p.coins < nextCost) {
-          const sellable = surplus.find(i => g.players.some(q => q !== p && !q.done && g.needs(q).includes(i) && !wasRefused(p, q.idx, i)));
+          const sellable = surplus.find(i => g.players.some(q => q !== p && !q.done && g.needs(q).includes(i)));
           if (sellable) return { want: sellable, sale: true };
         }
         return { skip: true };
