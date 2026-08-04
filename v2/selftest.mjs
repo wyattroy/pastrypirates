@@ -20,7 +20,7 @@ for (let i = 0; i < N; i++) {
   if (guard >= 200000) { stats.stall++; continue; }
   for (const e of g.events) {
     tally[e.t] = (tally[e.t] || 0) + 1; seen.add(e.t);
-    const line = narrate(e, { you: -1, name: i => "P" + i, ing: x => x });
+    const line = narrate(e, { you: -1, name: i => "P" + i, ing: x => x }, true);
     if (!line) throw new Error(`event "${e.t}" produced no narration line`);
   }
   stats.rounds.push(g.round);

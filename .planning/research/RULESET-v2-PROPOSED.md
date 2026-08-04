@@ -82,9 +82,37 @@ their purse**, then reveal. **Both lose what they committed**, win or lose.
 > *"I want cocoa. I'll give 6 coins."* · *"I want cocoa. I'll give my sugar."* · *"I'll give my
 > vanilla. Who'll pay?"*
 
-**Every other captain answers once** — no, yes, or a counter that undercuts the others (*"I'll take
-4"*). **Then you pick any one answer, or walk away.** One call, one round of answers, one choice.
+**Every other captain who can fill the call answers once, all at the same time.** An answer is
+**no**, **aye at your price**, or **a number of their own** — and that number may be *above* what
+you called:
+
+> *"Nay. Nine coins or nothing."* · *"Aye, six."* · *"I'll take five."*
+
+**The number you called is an opening bid, not a ceiling.** Hold out for more if you think they want
+it badly enough; they can pay anything in their purse, and their purse is on the table for all to
+see. **Going below the call only makes sense against another holder** — undercutting is how you
+steal a deal from a rival, not something to do to yourself. If you are the only captain holding it,
+there is nobody to undercut.
+
+**Then the caller picks any one answer, or walks away.** One call, one round of answers, one choice.
 Adjacency is not required; you are shouting across the whole sea. No bonus is paid.
+
+### A refusal is public, and it stands
+
+**Say no in front of the table and the table has your answer.** Nobody has to ask you again at that
+price — only a better number reopens the question. Turn down 5 coins for your milk and 5 is settled;
+6 is a new offer. Refuse a *swap* and that **pair** is settled — cocoa-for-your-milk is closed,
+eggs-for-your-milk is not.
+
+Two things follow, and both are the point:
+
+- **Refusing leaks information.** A captain who won't sell cocoa at any sensible price has told
+  everyone something about their recipe. That is the hidden-recipe layer doing its job.
+- **Prices climb toward the people who need things.** The next captain who wants your milk must
+  outbid the last one, so the crate nobody will part with becomes the crate that costs the most —
+  without a single rule about scarcity.
+
+It expires on its own: once you no longer need milk, you will take 6, and the market finds out.
 
 **🎣 Call the cast** — see §4. Only once per round, by whoever spends their action on it.
 

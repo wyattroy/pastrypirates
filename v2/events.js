@@ -82,15 +82,28 @@ export const EVENTS = {
            : `📣 ${c.name(e.p)} calls out: <b>I want ${c.ing(e.want)}</b>, and I'll give ` +
              (e.giveIng ? c.ing(e.giveIng) : `${e.giveCoins}🌕`)),
 
-  answer: R(TIER.TICKER, ["p", "ask", "no"], (e, c) =>
-    e.no ? `${c.name(e.p)} shakes their head.` : `${c.name(e.p)} will take ${e.ask ? e.ask + "🌕" : "the swap"}.`),
+  // A refusal already given in public does not need giving twice. Narrated so the price the caller
+  // has to beat is visible, rather than the captain simply going quiet for no stated reason.
+  standing: R(TIER.TICKER, ["p", "want", "price", "giveIng", "held"], (e, c) =>
+    `${(e.held || []).map(i => c.name(i)).join(" and ")} already said no to ` +
+    (e.giveIng ? `${c.ing(e.giveIng)} for ${c.ing(e.want)}` : `${e.price}🌕 for ${c.ing(e.want)}`) +
+    ` — ${c.name(e.p)} will have to do better.`),
+
+  answer: R(TIER.TICKER, ["p", "ask", "no", "offered", "swap", "sale"], (e, c) => {
+    if (e.no) return `${c.name(e.p)} shakes their head.`;
+    if (e.swap || !e.ask) return `${c.name(e.p)} will take the swap.`;
+    if (e.sale) return `${c.name(e.p)} bids ${e.ask}🌕.`;
+    if (e.ask > e.offered) return `${c.name(e.p)} holds out — <b>${e.ask}🌕</b> or nothing.`;
+    if (e.ask < e.offered) return `${c.name(e.p)} undercuts — ${e.ask}🌕.`;
+    return `${c.name(e.p)} will take the ${e.ask}🌕.`;
+  }),
 
   trade: R(TIER.LINE, ["a", "b", "gave", "got", "kind"], (e, c) =>
     `🤝 ${c.name(e.a)} and ${c.name(e.b)} strike a deal — ${e.gave} for ${e.got}.`),
 
   nodeal: R(TIER.LINE, ["p", "want", "refusers"], (e, c) =>
-    `🙅 Nobody will part with ${c.ing(e.want)}. ${c.name(e.p)} marks that down` +
-    (e.refusers.length ? ` against ${e.refusers.map(i => c.name(i)).join(" and ")}.` : ".")),
+    `🙅 Nobody will part with ${c.ing(e.want)} at that price. ${c.name(e.p)} marks it down` +
+    ((e.refusers || []).length ? ` against ${e.refusers.map(i => c.name(i)).join(" and ")}.` : ".")),
 
   walked: R(TIER.TICKER, ["p"], (e, c) => `${c.name(e.p)} doesn't like the price and walks away.`),
 
@@ -156,10 +169,19 @@ export function emit(events, type, fields, round) {
   return e;
 }
 
-export function narrate(e, ctx) {
+// In play, a line that throws must never take the game down — it degrades to a bare tag. But that
+// tag is indistinguishable from a working line to any check that only asks "did something come
+// back", which is how `nodeal` shipped rendering as the literal text "[nodeal]": the event declared
+// a `refusers` field, the engine never passed it, emit() filled it with null, and `.length` threw
+// on every single one. So the self-test passes strict and gets the throw.
+export function narrate(e, ctx, strict) {
   const spec = EVENTS[e.t];
   if (!spec) return null;
-  try { return spec.line(e, ctx); } catch (err) { return `[${e.t}]`; }
+  try { return spec.line(e, ctx); }
+  catch (err) {
+    if (strict) throw new Error(`event "${e.t}" threw while narrating: ${err.message}\n  ${JSON.stringify(e)}`);
+    return `[${e.t}]`;
+  }
 }
 
 export const tierOf = e => (EVENTS[e.t] || {}).tier || TIER.TICKER;

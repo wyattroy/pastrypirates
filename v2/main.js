@@ -74,7 +74,12 @@ function humanResolver() {
         for (const i of need) if (G.players.some(q => q !== p && !q.done && q.ing.includes(i))) {
           const coins = Math.min(p.coins, 6);
           if (coins > 0) opts.push({ label: `I want ${ingBtn(i)} — I'll give ${coins}🌕`, value: { want: i, giveCoins: coins } });
-          for (const s of surplus) opts.push({ label: `I want ${ingBtn(i)} — I'll give ${ING_NAME[s]}`, value: { want: i, giveIng: s } });
+          // terms the table has already refused in public are off the menu — asking again is the
+          // spam, and it reads as spam whoever does it
+          for (const s of surplus) {
+            if (G.players.every(q => q === p || q.done || !q.ing.includes(i) || G.swapRefused(q.idx, i, s))) continue;
+            opts.push({ label: `I want ${ingBtn(i)} — I'll give ${ING_NAME[s]}`, value: { want: i, giveIng: s } });
+          }
         }
         for (const s of surplus) if (G.players.some(q => q !== p && !q.done && G.needs(q).includes(s)))
           opts.push({ label: `I'll sell ${ingBtn(s)} — who'll pay?`, value: { want: s, sale: true } });
@@ -83,24 +88,45 @@ function humanResolver() {
           "Everyone answers once, then ye pick.");
       }
       case "answer": {
-        const { offer, from } = req.options;
+        const { offer, from, rivals, callerCoins, floor } = req.options;
         const who = `<b style="color:${HEXCOL[from]}">${G.players[from].name}</b>`;
         if (offer.sale) {
           const opts = [{ label: "No thanks", value: { no: true } }];
           for (const n of [2, 4, 6, 8].filter(n => n <= p.coins)) opts.push({ label: `I'll pay ${n}🌕`, value: { ask: n } });
-          return await UI.ask(`${who} is selling ${ingBtn(offer.want)}. What'll ye pay?`, opts, "Highest bid wins it.");
+          return await UI.ask(`${who} is selling ${ingBtn(offer.want)}. What'll ye pay?`, opts, "Highest bid takes it.");
         }
         const opts = [{ label: "I'll not deal", value: { no: true } }];
-        if (offer.giveIng) opts.push({ label: `Aye — swap for ${ING_NAME[offer.giveIng]}`, value: { ask: 0 } });
-        else for (const n of [1, 2, 3, 4, 6, 8].filter(n => n <= (offer.giveCoins | 0))) opts.push({ label: `I'll take ${n}🌕`, value: { ask: n } });
-        return await UI.ask(`${who} wants ${ingBtn(offer.want)} and offers ${offer.giveIng ? ING_NAME[offer.giveIng] : offer.giveCoins + "🌕"}. Ye hold one.`,
-          opts, "Undercut the others and the deal's yours.");
+        if (offer.giveIng) {
+          opts.push({ label: `Aye — swap for ${ING_NAME[offer.giveIng]}`, value: { ask: 0 } });
+          return await UI.ask(`${who} wants ${ingBtn(offer.want)} and offers ${ING_NAME[offer.giveIng]}. Ye hold one.`,
+            opts, "Crate for crate, or nothing.");
+        }
+        // Their number opens the haggle; it does not cap it. You may hold out for more, up to what
+        // is actually in their purse — and you may shave UNDER it only when another captain could
+        // take the deal instead, because that is the only time undercutting wins you anything.
+        const n0 = offer.giveCoins | 0;
+        opts.push({ label: `Aye — ${n0}🌕`, value: { ask: n0 } });
+        for (const n of [n0 + 1, n0 + 2, n0 + 4, n0 + 8].filter(n => n <= callerCoins))
+          opts.push({ label: `Nay — ${n}🌕 or nothing`, value: { ask: n } });
+        if (rivals > 0)
+          for (const n of [n0 - 1, n0 - 2].filter(n => n >= 1))
+            opts.push({ label: `Undercut — I'll take ${n}🌕`, value: { ask: n } });
+        const sub = rivals > 0
+          ? `${rivals === 1 ? "One other captain holds" : rivals + " other captains hold"} one too — shave yer ask and the deal's yours.`
+          : `Ye're the only one holding it. ${who} has ${callerCoins}🌕 in the purse.`;
+        return await UI.ask(`${who} wants ${ingBtn(offer.want)} and offers <b>${n0}🌕</b>. Ye hold one.`,
+          opts, sub + (floor ? ` <b>Ye turned down ${floor}🌕 for this before.</b>` : ""));
       }
       case "pick": {
         const { answers, offer } = req.options;
-        const opts = answers.map((a, i) => ({ label: `${G.players[a.seat].name} — ${a.ask ? a.ask + "🌕" : "swap"}`, value: i }));
+        const n0 = offer.giveCoins | 0;
+        const opts = answers.map((a, i) => ({
+          label: `${G.players[a.seat].name} — ${a.ask ? a.ask + "🌕" : "swap"}` +
+            (!offer.sale && !offer.giveIng && a.ask > n0 ? ` <small>(holds out for ${a.ask - n0} more)</small>` : ""),
+          value: i }));
         opts.push({ label: "Walk away", value: -1 });
-        return await UI.ask(`Answers for yer ${ING_NAME[offer.want]}. Take one?`, opts);
+        return await UI.ask(`Answers for yer ${ING_NAME[offer.want]}. Take one?`,
+          opts, offer.sale ? "Ye asked the table to bid." : `Ye called ${n0}🌕.`);
       }
       case "commit": {
         const { max, foe, attacking } = req.options;

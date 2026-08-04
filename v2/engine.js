@@ -57,8 +57,26 @@ export class GameV2 {
     this.players = seats.map((s, i) => ({
       idx: i, name: s.name, kind: s.kind,
       pos: null, coins: START_COINS, ing: [], recipe: null, recipeChoices: null,
-      power: null, done: false, lostTurn: false, refused: new Set(), refusedFor: new Set(), traderPaidRound: -1,
+      power: null, done: false, lostTurn: false, refused: new Set(), traderPaidRound: -1,
     }));
+    // THE PUBLIC REFUSAL LEDGER: "seat:ing" -> the highest price that captain has turned down for
+    // that crate, in front of everybody. It lives on the game and not on a player because the
+    // outcry IS public — the whole table watched you refuse 5 for milk, so the whole table knows.
+    //
+    // It was per-player before, as `refusedFor`, and it was dead: initialised, read by the bot, and
+    // never once written to by anything. So no captain remembered any refusal, and two bots would
+    // offer the same terms for the same crate one after the other.
+    //
+    // A floor does not silence anyone. It says what the next offer has to beat, which is what a
+    // public refusal actually means, and it expires by itself: once you no longer need milk you
+    // will take 6, and the market finds that out.
+    this.floors = new Map();
+    // A swap has no price, so a floor cannot bind it — and left unbound it became the whole of the
+    // spam once coin offers were fixed: 798 of 1131 prompts to a stubborn captain were somebody
+    // re-proposing a swap they had already turned down. So the exact pair is recorded instead.
+    // "Cocoa for your milk, no" says nothing about eggs for your milk, and that offer still gets
+    // made — it is the same terms that are settled, not the subject.
+    this.swapsRefused = new Set();   // "seat:want:given"
     const dirs = Object.values(DIRS);
     this.players.forEach((p, i) => { const d = dirs[i % 4]; p.pos = [this.board.home[0] + d[0], this.board.home[1] + d[1]]; });
     this.windNow = null; this.windNext = null; this.stormNext = false; this.stormNow = false;
@@ -255,6 +273,27 @@ export class GameV2 {
     this.ev("hold", { p: p.idx });
   }
 
+  /* ---- the public refusal ledger ---- */
+  floorFor(seat, ing) { return this.floors.get(seat + ":" + ing) || 0; }
+  setFloor(seat, ing, price) {
+    const k = seat + ":" + ing;
+    if (price > (this.floors.get(k) || 0)) this.floors.set(k, price);
+  }
+  swapRefused(seat, want, given) { return this.swapsRefused.has(seat + ":" + want + ":" + given); }
+  // Has this captain refused to part with this crate in public at all, at any price or for any
+  // swap? That is the evidence about their recipe, separate from what it would now cost.
+  heldOut(seat, ing) {
+    if (this.floorFor(seat, ing)) return true;
+    for (const k of this.swapsRefused) if (k.startsWith(seat + ":" + ing + ":")) return true;
+    return false;
+  }
+  // The one question the table already knows this captain's answer to: these exact terms.
+  answeredAlready(q, offer) {
+    if (offer.sale) return false;
+    if (offer.giveIng) return this.swapRefused(q.idx, offer.want, offer.giveIng);
+    return (offer.giveCoins | 0) > 0 && this.floorFor(q.idx, offer.want) >= (offer.giveCoins | 0);
+  }
+
   // Rule 4: ONE call to the whole table, one round of answers, the caller picks.
   *outcry(p) {
     const others = this.players.filter(q => q !== p && !q.done);
@@ -262,25 +301,58 @@ export class GameV2 {
     const offer = yield { kind: "offer", seat: p.idx, options: { need: this.needs(p), hold: p.ing.slice(), coins: p.coins } };
     if (!offer || offer.skip) return;
     this.ev("offer", { p: p.idx, want: offer.want, giveIng: offer.giveIng || null, giveCoins: offer.giveCoins || 0, sale: !!offer.sale });
-    // every other captain answers ONCE, simultaneously
+    // every other captain who has not already answered this in public answers ONCE, blind
     const answers = [], refusers = [];
-    for (const q of others) {
-      const can = offer.sale ? this.needs(q).includes(offer.want) : q.ing.includes(offer.want);
-      if (!can) continue;
-      const ans = yield { kind: "answer", seat: q.idx, options: { offer, from: p.idx } };
-      this.ev("answer", { p: q.idx, ask: ans && !ans.no ? (ans.ask | 0) : null, no: !ans || !!ans.no });
-      if (ans && !ans.no) answers.push({ seat: q.idx, ask: ans.ask | 0 });
-      else refusers.push(q.idx);
+    // Who else could satisfy this call? It decides whether shaving your ask is worth anything.
+    // Undercutting is a race against another holder; with no rival it is just giving money away,
+    // which is what the old ladder invited every time it capped you below the offer.
+    const holders = others.filter(q => offer.sale ? this.needs(q).includes(offer.want) : q.ing.includes(offer.want));
+    // A PUBLIC REFUSAL STANDS UNTIL SOMEBODY BEATS IT. Turn down 5 for your milk in front of the
+    // table and nobody has to ask you about 5 again — they heard you. Only a better number reopens
+    // the question, which is the difference between a market and being advertised at: measured over
+    // 200 games, 612 of 1238 answer prompts to a stubborn captain were at or under a price they had
+    // already refused in public.
+    //
+    // This is not the bots being told to stop asking. The engine simply does not re-put a question
+    // the table already has the answer to; a swap carries no price (giveCoins 0) so it is never
+    // suppressed this way.
+    const standing = holders.filter(q => this.answeredAlready(q, offer));
+    const askable = holders.filter(q => !standing.includes(q));
+    for (const q of standing) { refusers.push(q.idx); p.refused.add(q.idx); }
+    if (standing.length) this.ev("standing", { p: p.idx, want: offer.want, price: offer.giveCoins | 0,
+      giveIng: offer.giveIng || null, held: standing.map(q => q.idx) });
+    for (const q of askable) {
+      const ans = yield { kind: "answer", seat: q.idx, options: {
+        offer, from: p.idx,
+        rivals: askable.length - 1,          // others who could still take this call from you
+        callerCoins: p.coins,                // the purse is on the table for all to see
+        floor: this.floorFor(q.idx, offer.want),
+      } };
+      const no = !ans || !!ans.no;
+      const ask = no ? null : Math.max(0, ans.ask | 0);
+      this.ev("answer", { p: q.idx, ask, no, offered: offer.giveCoins | 0, swap: !!offer.giveIng, sale: !!offer.sale });
+      if (!no) answers.push({ seat: q.idx, ask });
+      else {
+        refusers.push(q.idx);
+        // A public refusal to part with a crate settles those terms. Coin sets the price the next
+        // captain has to beat; a swap settles that pair. Only for the crate they were asked to GIVE
+        // UP — declining to buy somebody's surplus says nothing about what you would sell.
+        if (offer.sale) { /* refusing to buy binds nothing */ }
+        else if (offer.giveIng) this.swapsRefused.add(q.idx + ":" + offer.want + ":" + offer.giveIng);
+        else this.setFloor(q.idx, offer.want, Math.max(1, offer.giveCoins | 0));
+        p.refused.add(q.idx);                // and it licenses the guns, whoever else answered
+      }
     }
-    if (!answers.length) {
-      // silence in public is a refusal, and it is what licenses the guns later
-      for (const q of others) if (offer.sale ? false : q.ing.includes(offer.want)) p.refused.add(q.idx);
-      this.ev("nodeal", { p: p.idx, want: offer.want });
+    // Answers may now come in ABOVE the call — the opening number is a bid, not a ceiling. What the
+    // caller cannot do is pay coin they do not have.
+    const payable = offer.sale ? answers : answers.filter(a => a.ask <= p.coins);
+    if (!payable.length) {
+      this.ev("nodeal", { p: p.idx, want: offer.want, refusers });
       return;
     }
-    const pick = yield { kind: "pick", seat: p.idx, options: { answers, offer } };
+    const pick = yield { kind: "pick", seat: p.idx, options: { answers: payable, offer } };
     if (pick === null || pick === undefined || pick < 0) { this.ev("walked", { p: p.idx }); return; }
-    const deal = answers[Math.min(pick, answers.length - 1)];
+    const deal = payable[Math.min(pick, payable.length - 1)];
     const q = this.players[deal.seat];
     if (offer.sale) {                                    // I sell them my crate for their bid
       const pay = Math.min(deal.ask, q.coins);
@@ -291,8 +363,8 @@ export class GameV2 {
       p.ing.splice(p.ing.indexOf(offer.giveIng), 1); q.ing.push(offer.giveIng);
       q.ing.splice(q.ing.indexOf(offer.want), 1); p.ing.push(offer.want);
       this.ev("trade", { a: p.idx, b: q.idx, gave: offer.giveIng, got: offer.want, kind: "swap" });
-    } else {                                             // I buy with coin
-      const pay = Math.min(deal.ask, p.coins);
+    } else {                                             // I buy with coin, at whatever they asked
+      const pay = deal.ask;
       p.coins -= pay; q.coins += pay;
       q.ing.splice(q.ing.indexOf(offer.want), 1); p.ing.push(offer.want);
       this.ev("trade", { a: p.idx, b: q.idx, gave: pay + " coins", got: offer.want, kind: "buy" });

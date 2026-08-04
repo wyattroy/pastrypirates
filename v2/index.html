@@ -34,8 +34,12 @@ main{max-width:1000px;margin:0 auto;padding:0 12px 40px;display:grid;gap:12px;gr
 .apSub.flipWin{opacity:1;font-style:normal;color:#0e6b3a}
 .apSub.flipLose{opacity:.8}
 @media(prefers-reduced-motion:reduce){.flipCoin.spinning .flipFace{animation:none;opacity:.5}}
-#narration{height:190px;overflow-y:auto;font-size:14px}
-#narration .line{padding:2px 0;border-bottom:1px dotted #0002}
+.logCard{padding:6px 10px}
+/* two lines, pinned to the newest. Anything taller stops being a commentary and starts being a
+   document — and the panel below it is where the player has to act. */
+#narration{height:44px;overflow-y:auto;font-size:14px;line-height:1.45;scrollbar-width:none}
+#narration::-webkit-scrollbar{display:none}
+#narration .line{padding:0;border:0}
 #narration .beat{font-weight:700;font-size:14.5px}
 #narration .ticker{opacity:.6;font-size:12.5px}
 #narration .line.line{font-weight:400}
@@ -76,12 +80,14 @@ h2{color:var(--teal);margin:.4em 0}
 <main id="game" style="display:none">
   <div>
     <div class="card"><div id="board"></div></div>
+    <!-- the log sits under the board because that is where the eye already is; two lines deep, so
+         it reads as a running commentary on what just moved rather than a wall to scroll through -->
+    <div class="card logCard"><div id="narration"></div></div>
     <div class="card" id="panel"></div>
   </div>
   <div>
     <div class="card"><div id="vane"></div></div>
     <div class="card"><div id="captains"></div></div>
-    <div class="card"><div id="narration"></div></div>
   </div>
 </main>
 

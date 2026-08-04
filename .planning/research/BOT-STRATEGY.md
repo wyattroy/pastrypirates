@@ -189,11 +189,31 @@ and to watch. **One call, both sides named, to everybody at once.**
    for it. Two holders will undercut each other automatically, because each is answering with the
    least they will take.
 5. **The offerer then picks** the best answer — a swap first (it costs no coins), else the cheapest
-   ask — or walks.
+   ask when buying and the **highest bid when selling** — or walks. Those two are not the same
+   comparison, and using one for both had captains crying a sale hand the crate to whoever valued it
+   least.
 
-**Record refusals.** A holder who will not deal at any price you would pay has refused **in public,
-in front of the whole table**. That record is what licenses the guns later (§5) — and it is the
-difference between a pirate game and a brawl.
+**Never refuse when you can name a price.** The call is an opening bid, not a ceiling: if your
+reservation is above what they offered, answer with *your* number, capped at what is actually in
+their purse. Refusing outright when the first number is low is how a bot walks away from a deal a
+human would have haggled into — and it is a gate wearing the clothes of a valuation, since the
+condition `res > offered` forbids the action rather than pricing it. Only refuse when **no** price
+they could pay would do.
+
+**Shave your ask only against a rival holder.** Undercutting is a race to be picked; with nobody else
+able to answer the call there is no race, and asking under their own offer is a gift.
+
+**Refusals are public, and they belong to the table, not to you.** The whole fleet watched, so the
+record lives on the game — `floors` for prices, `swapsRefused` for pairs — and every captain reads
+the same ledger. It does three things at once: it licenses the guns later (§5), it raises what
+everyone believes that captain will charge, and it means the next offer for that crate is
+*necessarily above* the one just refused. **That is how "don't ask again with the same terms" is
+achieved without a rule forbidding it** — the same terms simply stop being anybody's best option.
+
+> A private version of this shipped and was worse than useless: `p.refusedFor` was initialised by the
+> engine, read by the bot, and never written to by anything. Every captain had a perfect memory of
+> nothing, and two bots would offer the same price for the same crate one after the other. Check the
+> write, not the read.
 
 **Reservation must scale with threat.** A captain does not sell the winning ingredient to the rival
 who is one crate from home. Add a large premium (+12) against a buyer with one need left, a smaller

@@ -96,6 +96,15 @@ yourself writing `if (...) return X`, write `worth(X)` instead.
 - **Chain-routing is specified but unconfirmed** (`BOT-STRATEGY.md` §6c). It did not beat greedy in
   simulation, and the top suspect is that the router ignores the wind forecast rule 6 hands it. Try
   that before concluding the strategy is wrong.
+- **State that is wired at both ends and connected to nothing in the middle looks exactly like a
+  working feature.** `p.refusedFor` was initialised by the engine, read by the bot, and never once
+  written to — so every bot had a perfect memory of nothing, and a session wrote it up as fixed. The
+  event registry catches this class for events; nothing catches it for state. Grep for the write
+  before believing a read.
+- **When a fix moves a number, split the number by kind before believing it.** Binding coin offers
+  cut the trade spam by a fifth and looked like the fix. The other four fifths were swap offers,
+  which carry no price and which a price floor cannot bind — invisible until the same total was
+  broken out by offer type.
 
 ## Corrections made along the way — kept so they are not re-made
 

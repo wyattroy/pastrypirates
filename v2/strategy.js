@@ -70,12 +70,10 @@ function crateValue(g, p, ing) {
   const t = turnsFrom(g, p.pos, g.windNow)[K(g.dockOf[ing])];
   return g.priceOf(ing, p) + Math.min(9, (t === undefined ? 6 : t) * 2);
 }
-// Have I already been turned down for this exact crate by this exact captain?
-const wasRefused = (p, seat, ing) => p.refusedFor.has(seat + ":" + ing);
-// A refusal is evidence about their secret recipe: they probably need it. That both stops the
-// asking AND raises what I think they will charge — which is the negotiation layer the hidden
-// recipe was always meant to have.
-const believedToNeed = (p, seat, ing) => wasRefused(p, seat, ing);
+// What that captain has publicly refused for that crate. Everyone watched, so everyone knows —
+// this reads the game's ledger, not a private note, which is why one bot's rebuff teaches the
+// whole table and not just the bot that got it.
+const floorFor = (g, seat, ing) => g.floorFor(seat, ing);
 
 // What a holder gives up: the crate, plus its denial value — and nobody sells the winning
 // ingredient to the captain who is one crate from home.
@@ -84,7 +82,13 @@ function reservation(g, holder, ing, buyer) {
   const rivals = g.players.filter(x => x !== holder && !x.done && g.needs(x).includes(ing)).length;
   let r = 2 + rivals + (g.board.tokens[ing] <= 0 ? 3 : 0);
   if (buyer) { const left = g.needs(buyer).length; if (left <= 1) r += 12; else if (left === 2) r += 5; }
-  if (buyer && believedToNeed(buyer, holder.idx, ing)) r += 6;   // they turned me down before
+  // A public refusal is evidence about a secret recipe — they would not hold out for nothing. It
+  // raises what I think they will charge rather than crossing them off, so the same crate becomes
+  // worth asking for again when my need grows or my purse does. And a refusal at 5 means 5 will
+  // never do: the floor is a price the next offer has to beat.
+  if (g.heldOut(holder.idx, ing)) r += 6;
+  const floor = floorFor(g, holder.idx, ing);
+  if (floor) r = Math.max(r, floor + 1);
   return r;
 }
 
@@ -280,7 +284,7 @@ export function botResolver(g) {
 
       case "offer": {
         const need = g.needs(p);
-        let want = null, wv = -1;
+        let want = null, wv = -1, wantAsk = 0;
         for (const ing of need) {
           // No gate here either. A refusal raises what I think they will charge (see reservation),
           // so an ask that will not clear simply loses to a better option — and the same ask becomes
@@ -290,13 +294,20 @@ export function botResolver(g) {
           if (!holders.length) continue;
           const ask = Math.min(...holders.map(q => reservation(g, q, ing, p)));
           const v = crateValue(g, p, ing) - ask;
-          if (v > wv && ask <= p.coins) { wv = v; want = ing; }
+          if (v > wv && ask <= p.coins) { wv = v; want = ing; wantAsk = ask; }
         }
         if (want !== null && want !== undefined) {
           const surplus = p.ing.filter(i => !need.includes(i));
-          const swapWith = surplus.find(i => g.players.some(q => q !== p && !q.done && q.ing.includes(want) && g.needs(q).includes(i)));
+          // a pair that has already been turned down in public is not on the table any more
+          const swapWith = surplus.find(i => g.players.some(q => q !== p && !q.done && q.ing.includes(want)
+            && g.needs(q).includes(i) && !g.swapRefused(q.idx, want, i)));
           if (swapWith) return { want, giveIng: swapWith };
-          return { want, giveCoins: Math.min(p.coins, Math.max(1, Math.ceil(crateValue(g, p, want) * 0.6))) };
+          // Open at what the cheapest holder is believed to want, never below it. Since a public
+          // refusal lifts that estimate above the price refused, a second captain asking for the
+          // same crate necessarily calls a HIGHER number than the one that was just turned down —
+          // which is the whole of "don't offer the same terms again", arrived at by pricing rather
+          // than by a rule forbidding it.
+          return { want, giveCoins: Math.min(p.coins, Math.max(1, wantAsk, Math.ceil(crateValue(g, p, want) * 0.6))) };
         }
         // nothing I need is on the table — sell surplus if I am short of coin
         const surplus = p.ing.filter(i => !need.includes(i));
@@ -309,7 +320,7 @@ export function botResolver(g) {
       }
 
       case "answer": {
-        const { offer, from } = req.options;
+        const { offer, from, rivals, callerCoins } = req.options;
         const buyer = g.players[from];
         if (offer.sale) {                                   // they are selling; what will I pay?
           const v = crateValue(g, p, offer.want);
@@ -318,14 +329,25 @@ export function botResolver(g) {
         }
         const res = reservation(g, p, offer.want, buyer);
         if (offer.giveIng) return g.needs(p).includes(offer.giveIng) && res < 99 ? { ask: 0 } : { no: true };
-        const theirMax = offer.giveCoins | 0;
-        if (res > theirMax) return { no: true };             // I will not deal at a price they'd pay
-        return { ask: Math.max(1, res) };                    // the least I will take — that IS the undercut
+        const offered = offer.giveCoins | 0;
+        // Their number is an opening bid, not a ceiling. Below my reservation I do not refuse — I
+        // say what it would take, up to what they can actually pay. Refusing outright when the
+        // first number is low is how a bot walks away from a deal a human would have haggled into.
+        if (res > callerCoins) return { no: true };          // no price they could meet
+        let ask = Math.max(1, res);
+        // Shave only when somebody else could take this call instead — that is the whole point of
+        // undercutting. With no rival, asking under their own offer is a gift.
+        if (rivals > 0 && offered > ask) ask = Math.max(res, offered - 1);
+        else if (offered > ask) ask = offered;               // they opened above me; take their number
+        return { ask: Math.min(ask, callerCoins) };
       }
 
       case "pick": {
-        const { answers } = req.options;
-        let bi = 0; for (let i = 1; i < answers.length; i++) if (answers[i].ask < answers[bi].ask) bi = i;
+        const { answers, offer } = req.options;
+        // Selling, the best answer is the HIGHEST bid; buying, the lowest ask. It minimised both
+        // before, so a captain crying a sale handed their crate to whoever valued it least.
+        const better = offer.sale ? (a, b) => a > b : (a, b) => a < b;
+        let bi = 0; for (let i = 1; i < answers.length; i++) if (better(answers[i].ask, answers[bi].ask)) bi = i;
         return bi;
       }
 
