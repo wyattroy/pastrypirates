@@ -376,8 +376,13 @@ export function botResolver(g) {
       }
 
       case "call": {
-        const { a, d } = req.options;
-        return g.players[a].coins >= g.players[d].coins ? a : d;
+        // Called before either purse is committed, so this is a genuine read: whoever can bring
+        // more powder, plus the +1 the wind gives. It used to be settled after the result had
+        // already been announced, which made it free money rather than a call.
+        const { a, d, ca, cd, downwind } = req.options;
+        const A = (ca === null ? g.players[a].coins : ca) + (downwind === "a" ? 1 : 0);
+        const D = (cd === null ? g.players[d].coins : cd) + (downwind === "d" ? 1 : 0);
+        return A >= D ? a : d;
       }
 
       case "cast": {

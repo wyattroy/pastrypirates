@@ -129,14 +129,15 @@ h2{color:var(--teal);margin:.4em 0}
 <main id="game" style="display:none">
   <div>
     <div class="card boardCard"><div id="board"></div><div id="bubbles"></div></div>
-    <!-- the log sits under the board because that is where the eye already is; two lines deep, so
-         it reads as a running commentary on what just moved rather than a wall to scroll through -->
-    <div class="card logCard"><button id="speedBtn" class="spd" title="Narration speed">1×</button><div id="narration"></div></div>
     <div class="card" id="panel"></div>
   </div>
   <div>
     <div class="card"><div id="vane"></div></div>
     <div class="card"><div id="captains"></div></div>
+    <!-- The log lives BELOW the captains now. It sat under the board while the board was silent;
+         since every line also speaks from the ship it came from, the log is the record you consult
+         rather than the thing you watch, and it no longer needs to hold the best seat on the page. -->
+    <div class="card logCard"><button id="speedBtn" class="spd" title="Narration speed">1×</button><div id="narration"></div></div>
   </div>
 </main>
 

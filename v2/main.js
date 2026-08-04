@@ -174,9 +174,14 @@ function humanResolver() {
         return await UI.ask("Ye won. What'll ye take?", opts);
       }
       case "call": {
-        const { a, d } = req.options;
-        return await UI.ask(`⚔️ ${G.players[a].name} attacks ${G.players[d].name}. Call it from the crow's nest — free, +2🌕 if ye're right.`,
-          [{ label: G.players[a].name, value: a, color: HEXCOL[a] }, { label: G.players[d].name, value: d, color: HEXCOL[d] }]);
+        const { a, d, ca, cd, downwind } = req.options;
+        const nm = i => `<b style="color:${HEXCOL[i]}">${G.players[i].name}</b>`;
+        return await UI.ask(
+          `⚔️ ${nm(a)} runs out the guns at ${nm(d)}. Call it from the crow's nest — free, +2🌕 if ye're right.`,
+          [{ label: G.players[a].name, value: a, color: HEXCOL[a] }, { label: G.players[d].name, value: d, color: HEXCOL[d] }],
+          `${nm(a)} holds ${ca}🌕, ${nm(d)} holds ${cd}🌕.` +
+          (downwind ? ` ${nm(downwind === "a" ? a : d)} has the wind (+1).` : " Neither has the wind.") +
+          " <b>Nobody has committed yet.</b>");
       }
       case "cast": {
         const { pot, takes, stage } = req.options;

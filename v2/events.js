@@ -45,8 +45,11 @@ export const EVENTS = {
     const aground = e.moves.filter(m => m.aground).map(m => c.name(m.i));
     const swept = e.moves.filter(m => m.swept).map(m => c.name(m.i));
     const safe = e.moves.filter(m => m.safe).map(m => c.name(m.i));
+    const held = e.moves.filter(m => m.held);
     let s = `⛈ The gale drives every ship <b>${e.dir}</b>!`;
     if (safe.length) s += ` ${safe.join(" and ")} ${safe.length > 1 ? "ride" : "rides"} it out at anchor.`;
+    // every ship that did NOT move must say why, or the gale looks broken
+    for (const m of held) s += ` ${c.name(m.i)} is fouled against ${c.name(m.fouled)}'s hull and doesn't budge.`;
     if (swept.length) s += ` ${swept.join(" and ")} ${swept.length > 1 ? "are" : "is"} caught by the current 🌀`;
     if (aground.length) s += ` <b>${aground.join(" and ")} ${aground.length > 1 ? "run" : "runs"} aground</b> — the turn's lost to repairs.`;
     return s;
@@ -115,13 +118,21 @@ export const EVENTS = {
     const how = e.how === "coins" ? "on powder alone"
       : e.how === "flip" ? "on the flip of the bullion" : "on the lighter hold";
     const sp = e.spoil.ing ? c.ing(e.spoil.ing) : `${e.spoil.coins}🌕`;
-    return `⚔️ ${c.name(e.a)} attacks ${c.name(e.d)}! ` +
-      `(${e.ca}🌕 against ${e.cd}🌕${e.downwind ? ", and the downwind ship gains +1" : ""}) — ` +
-      `<b>${c.name(e.win)} wins ${how}</b> and takes ${sp}.`;
+    // the declaration is its own beat now, so this is purely the result
+    return `💥 Powder in — ${e.ca}🌕 against ${e.cd}🌕` +
+      (e.downwind ? `, +1 to ${c.name(e.downwind === "a" ? e.a : e.d)} for the wind` : "") +
+      `. <b>${c.name(e.win)} wins ${how}</b> and takes ${sp}.`;
   }),
 
   shooter: R(TIER.LINE, ["p", "got"], (e, c) =>
     `🎯 ${c.name(e.p)}'s powder was well spent — <b>${e.got}🌕 comes back</b>.`),
+
+  // The declaration. It carries the purses and the wind because that is exactly what a spectator
+  // has to go on when the crow's nest asks them to call it — before either captain commits.
+  attack: R(TIER.BEAT, ["a", "d", "downwind", "ca", "cd"], (e, c) =>
+    `⚔️ ${c.name(e.a)} runs out the guns at ${c.name(e.d)}! ` +
+    `(${e.ca}🌕 against ${e.cd}🌕` +
+    (e.downwind ? `, and ${c.name(e.downwind === "a" ? e.a : e.d)} has the wind` : ", and neither has the wind") + ")"),
 
   lookout: R(TIER.LINE, ["calls"], (e, c) => {
     const right = e.calls.filter(x => x.right).map(x => c.name(x.seat));

@@ -178,16 +178,21 @@ export class GameV2 {
       if (p.done) continue;
       const from = [...p.pos];
       if (this.berthOf(p) !== null || this.atHome(p)) { moves.push({ i: p.idx, from, to: from, safe: "berth" }); continue; }
-      let aground = false, swept = false;
+      let aground = false, swept = false, fouled = null;
       for (let s = 0; s < 3; s++) {
         const n = [p.pos[0] + d[0], p.pos[1] + d[1]];
         if (this.land(n)) { aground = true; break; }
-        if (this.shipAt(n, p)) break;
+        // Running up against another hull was the one outcome with no name on it: the ship simply
+        // did not move and the gale line said nothing, so 8.3% of ships in a storm looked like a
+        // bug. It is a real result and it now says whose hull stopped you.
+        const other = this.players.find(q => q !== p && !q.done && q.pos[0] === n[0] && q.pos[1] === n[1]);
+        if (other) { fouled = other.idx; break; }
         p.pos = n;
         if (this.onRim(p.pos)) { const h = this.rimHeadOf(p.pos); if (h) { p.pos = [...h]; swept = true; } break; }
       }
       if (aground && p.power !== "blackpearl") { p.lostTurn = true; }
-      moves.push({ i: p.idx, from, to: [...p.pos], aground, swept });
+      const held = fouled !== null && from[0] === p.pos[0] && from[1] === p.pos[1];
+      moves.push({ i: p.idx, from, to: [...p.pos], aground, swept, fouled, held });
     }
     this.ev("storm", { dir: this.windNow, moves });
   }
@@ -426,14 +431,24 @@ export class GameV2 {
 
   // Rule 9: both commit any part of their purse, in secret. Downwind +1. Tie -> one flip each.
   *battle(att, def) {
-    const bets = {};
-    for (const x of [att, def]) bets[x.idx] = Math.max(0, Math.min(x.coins, (yield { kind: "commit", seat: x.idx, options: { max: x.coins, foe: (x === att ? def : att).idx, attacking: x === att } }) | 0));
-    att.coins -= bets[att.idx]; def.coins -= bets[def.idx];
+    // ORDER MATTERS AND IT WAS WRONG. The crowd's free call used to be taken AFTER the battle event
+    // was emitted, so a spectator was asked to guess a winner the log had already announced — an
+    // unlosable +2 on every fight. The table order is: the attack is declared, the crowd calls it
+    // blind, THEN the powder goes in. Calling before the commits is what makes it a read on the two
+    // captains rather than a formality.
     const dx = def.pos[0] - att.pos[0], dy = def.pos[1] - att.pos[1];
     const aToD = DK.find(k => DIRS[k][0] === dx && DIRS[k][1] === dy);
     const dToA = DK.find(k => DIRS[k][0] === -dx && DIRS[k][1] === -dy);
-    let A = bets[att.idx], D = bets[def.idx], downwind = null;
-    if (this.windNow === aToD) { A += 1; downwind = "a"; } else if (this.windNow === dToA) { D += 1; downwind = "d"; }
+    let downwind = null;
+    if (this.windNow === aToD) downwind = "a"; else if (this.windNow === dToA) downwind = "d";
+    this.ev("attack", { a: att.idx, d: def.idx, downwind, ca: att.coins, cd: def.coins });
+    const calls = yield* this.lookout(att, def, downwind);
+
+    const bets = {};
+    for (const x of [att, def]) bets[x.idx] = Math.max(0, Math.min(x.coins, (yield { kind: "commit", seat: x.idx, options: { max: x.coins, foe: (x === att ? def : att).idx, attacking: x === att } }) | 0));
+    att.coins -= bets[att.idx]; def.coins -= bets[def.idx];
+    let A = bets[att.idx], D = bets[def.idx];
+    if (downwind === "a") A += 1; else if (downwind === "d") D += 1;
     let win = null, how = "coins", flips = null;
     if (A > D) win = att; else if (D > A) win = def;
     else {
@@ -453,21 +468,23 @@ export class GameV2 {
       else { const t = Math.min(5, lose.coins); lose.coins -= t; win.coins += t; spoil = { coins: t }; }
     } else { const t = Math.min(5, lose.coins); lose.coins -= t; win.coins += t; spoil = { coins: t }; }
     this.ev("battle", { a: att.idx, d: def.idx, ca: bets[att.idx], cd: bets[def.idx], downwind, how, flips, win: win.idx, spoil });
-    // the Lookout settles: spectators called this fight for free
-    yield* this.lookout(att, def, win);
+    // and now the calls made before a shot was fired are settled
+    for (const x of calls) { x.right = x.on === win.idx; if (x.right) this.players[x.seat].coins += 2; }
+    if (calls.length) this.ev("lookout", { calls });
   }
 
-  *lookout(att, def, win) {
+  // Called BEFORE a shot is fired and before either purse is committed, so nobody knows the answer.
+  // Returns the calls; the winner pays out later.
+  *lookout(att, def, downwind) {
     const spec = this.players.filter(q => q !== att && q !== def && !q.done);
-    if (!spec.length) return;
     const calls = [];
     for (const q of spec) {
-      const c = yield { kind: "call", seat: q.idx, options: { a: att.idx, d: def.idx } };
-      const right = c === win.idx;
-      if (right) q.coins += 2;
-      calls.push({ seat: q.idx, on: c, right });
+      // everything a spectator legitimately has to go on: both purses, and who holds the wind
+      const c = yield { kind: "call", seat: q.idx, options: { a: att.idx, d: def.idx,
+        ca: att.coins, cd: def.coins, downwind } };
+      calls.push({ seat: q.idx, on: c === def.idx ? def.idx : att.idx, right: false });
     }
-    this.ev("lookout", { calls });
+    return calls;
   }
 
   // Rule 3 (v2): the Shared Cast. One coin, the whole table, pot doubles, tails wipes everyone in.

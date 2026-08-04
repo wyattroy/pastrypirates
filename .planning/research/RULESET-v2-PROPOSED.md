@@ -49,7 +49,13 @@ branch's git history and does not need re-reading.
    moment as the direction and travels down with the arrow.
 2. **Storm, if this round is stormy** — roughly **1 round in 5**. Every ship is pushed **3 squares** in the wind's direction,
    **all at once, before anybody takes a turn.** A ship driven into land loses its turn this round.
-   **A ship in a berth, or in the waters around Tortuga, rides it out** and is not pushed.
+   **A ship in a berth, or in the waters around Tortuga, rides it out** and is not pushed. A ship
+   driven into another ship's hull stops there.
+
+   > **Every ship that does not move must say why.** Riding it out, running aground, being carried
+   > off by the current and being fouled against another hull are four different things, and the
+   > last of them was silent — 8.3% of ships in a gale simply did not move with nothing said, which
+   > reads as the storm being broken.
 
    > ⚠️ **Sheltered harbour is doing more work than it looks.** Measured over 300 games: storms fire
    > 3.4 times a game and 63% of games see one by round 5 — but **only 42% of ships actually move**,
@@ -96,6 +102,15 @@ their purse**, then reveal. **Both lose what they committed**, win or lose.
 - **Tied** — one flip each; heads scores. **Still tied** — the captain with **fewer ingredients**
   wins.
 - The loser gives up **5 coins or a crate, winner's choice**.
+
+> **The crow's nest calls it before a shot is fired.** When two captains square up, everyone else
+> makes a free call on the winner — **+2 coins if they are right** — and they call it *after the
+> attack is declared but before either captain commits*. They can see both purses and who holds the
+> wind; they cannot see the powder. That is the whole of the bet.
+>
+> It shipped the other way round: the call was taken **after the result was announced**, which made
+> it an unlosable +2 on every fight for anyone reading the log. The order is now declare → call →
+> commit → reveal, which is also the order it would happen at a table.
 
 **🤝 Hail the fleet** — call **one** offer to the whole table, naming both sides:
 
