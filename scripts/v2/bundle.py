@@ -2,9 +2,11 @@ import re, json, pathlib
 ROOT=pathlib.Path("/home/user/pastrypirates")
 SCR=pathlib.Path("/tmp/claude-0/-home-user-pastrypirates/c9013cf3-8ba9-52b4-bcd5-b2ae34d292ec/scratchpad/bundle")
 MODS=[("shared","src/shared/index.js"),("engine","src/engine/index.js"),
+      ("events","v2/events.js"),
       ("v2engine","v2/engine.js"),("strategy","v2/strategy.js"),("ui","v2/ui.js"),("main","v2/main.js")]
 ALIAS={"../src/shared/index.js":"shared","../shared/index.js":"shared",
-       "../src/engine/index.js":"engine","./engine.js":None,"./strategy.js":"strategy","./ui.js":"ui"}
+       "../src/engine/index.js":"engine","./engine.js":None,"./strategy.js":"strategy","./ui.js":"ui",
+       "./events.js":"events"}
 def alias_for(spec, key):
     if spec=="./engine.js": return "v2engine" if key in ("strategy","ui","main") else None
     return ALIAS.get(spec)
