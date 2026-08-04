@@ -33,14 +33,14 @@ export function drawBoard() {
 
   el("image", { x: 0, y: 0, width: CELL * n, height: CELL * n, href: A(BOARD_IMG), preserveAspectRatio: "none" }, svg);
 
-  // playable water + the rim current, so the four arcs are visible rather than secret
+  // playable water
   for (const key of G.board.valid) {
     const [x, y] = key.split(",").map(Number);
-    const rim = G.onRim([x, y]);
+    if (G.onRim([x, y])) continue;
     el("rect", { x: x * CELL, y: y * CELL, width: CELL, height: CELL, rx: 3,
-      fill: rim ? "#2b7d8c" : "#39a4b4", "fill-opacity": rim ? .55 : .30,
-      stroke: "#1d6472", "stroke-opacity": .25 }, svg);
+      fill: "#39a4b4", "fill-opacity": .30, stroke: "#1d6472", "stroke-opacity": .25 }, svg);
   }
+  drawTradeWinds(svg);
 
   // ISLANDS ARE DRAWN FROM THEIR OWN CELLS, not from a picture stretched over a bounding box.
   //
@@ -122,11 +122,75 @@ export function drawBoard() {
   return svg;
 }
 
+/* THE TRADE WINDS. Four clockwise arcs around the rim, each of which carries you to its own
+   clockwise-most end — the whirlpool. This was drawn as a slightly darker shade of the same water
+   and nothing else, so a ship that touched the edge was teleported across the map for no stated
+   reason. The arcs are the rule; they have to be legible as four separate things, each with a
+   direction and a destination. */
+// Four hues, none of them sea-coloured. The first attempt used two teals and they simply read as
+// slightly different water — the whole point is that these squares are NOT water you can sit in.
+// Which arc you are in decides where you come out, so the four have to be told apart at a glance.
+const ARC_FILL = ["#7b5ea8", "#b0604a", "#44579c", "#9c5e7b"];
+
+function arcNextMap() {
+  // rimCellInfo is in ring order with an arc id on each cell, so a cell's flow direction is simply
+  // the next cell of the same arc; the last of each arc is that arc's whirlpool.
+  const info = G.board.rimCellInfo || [], next = new Map(), head = new Set();
+  for (let i = 0; i < info.length; i++) {
+    const c = info[i], n = info[i + 1];
+    if (n && n.q === c.q) next.set(c.k, [n.x - c.x, n.y - c.y]); else head.add(c.k);
+  }
+  return { next, head, info };
+}
+
+function drawTradeWinds(svg) {
+  const { next, head, info } = arcNextMap();
+  if (!info.length) return;
+  const g = el("g", { id: "tradeWinds" }, svg);
+  for (const c of info) {
+    const x = c.x * CELL, y = c.y * CELL;
+    el("rect", { x, y, width: CELL, height: CELL, rx: 3,
+      fill: ARC_FILL[c.q % 4], "fill-opacity": .62, stroke: "#0b3a44", "stroke-opacity": .35 }, g);
+    const d = next.get(c.k);
+    if (d) {
+      // a chevron pointing the way the current carries you
+      const cx = x + CELL / 2, cy = y + CELL / 2, s = CELL * .22;
+      const ax = d[0], ay = d[1];
+      const p = [[cx - ax * s + ay * s, cy - ay * s - ax * s], [cx + ax * s, cy + ay * s],
+                 [cx - ax * s - ay * s, cy - ay * s + ax * s]];
+      el("polyline", { points: p.map(q => q.join(",")).join(" "), fill: "none",
+        stroke: "#eaf7fb", "stroke-opacity": .85, "stroke-width": Math.max(1.4, CELL * .09),
+        "stroke-linecap": "round", "stroke-linejoin": "round" }, g);
+    }
+  }
+  // the whirlpools: where each arc puts you down
+  for (const c of info) {
+    if (!head.has(c.k)) continue;
+    const cx = (c.x + .5) * CELL, cy = (c.y + .5) * CELL;
+    el("circle", { cx, cy, r: CELL * .44, fill: "#08313a", "fill-opacity": .75,
+      stroke: "#f0b429", "stroke-width": 2 }, g);
+    const t = el("text", { x: cx, y: cy + CELL * .22, "text-anchor": "middle",
+      "font-size": CELL * .6 }, g);
+    t.textContent = "🌀";
+  }
+}
+
 export function highlight(cells, onPick) {
   const svg = $("boardSvg"); if (!svg) return;
   for (const c of cells) {
+    const rim = G.onRim(c), to = rim ? G.rimHeadOf(c) : null;
+    // A trade-wind square IS a legal move — it just does not leave you there. Rather than make the
+    // player learn that the hard way, the square is marked as a current and a dashed line is drawn
+    // to the whirlpool it would carry you to. Static, so it works on a phone with nothing to hover.
+    if (rim && to) {
+      el("line", { x1: (c[0] + .5) * CELL, y1: (c[1] + .5) * CELL,
+        x2: (to[0] + .5) * CELL, y2: (to[1] + .5) * CELL, stroke: "#ffc23a", "stroke-opacity": .8,
+        "stroke-width": 2, "stroke-dasharray": "4 4" }, svg);
+    }
     const r = el("rect", { x: c[0] * CELL + 2, y: c[1] * CELL + 2, width: CELL - 4, height: CELL - 4, rx: 5,
-      class: "sailCell", fill: "#ffc23a", "fill-opacity": .75, style: "cursor:pointer" }, svg);
+      class: "sailCell", fill: rim ? "#e0553f" : "#ffc23a", "fill-opacity": rim ? .8 : .75,
+      style: "cursor:pointer" }, svg);
+    if (rim) el("title", {}, r).textContent = "The trade winds — this carries ye to the whirlpool";
     r.addEventListener("click", () => onPick(c));
   }
 }
@@ -309,18 +373,62 @@ export function resetNarration() { lastNarrated = 0; clearBubbles(); const b = $
 
 /* ---------------------------------------------------------------- the human resolver */
 
-export function ask(msg, buttons, sub) {
+// DOM order is back → message → buttons → helper text, because the panel is revealed top to bottom
+// and a thing must not appear before the thing it depends on. Standing rule, see CLAUDE.md.
+export const BACK = Symbol("back");
+
+export function ask(msg, buttons, sub, back) {
   return new Promise(res => {
     const p = $("panel");
-    p.innerHTML = `<div class="apMsg">${msg}</div><div class="apBtns"></div>${sub ? `<div class="apSub">${sub}</div>` : ""}`;
+    p.innerHTML = (back ? `<button class="apBack">‹ ${back}</button>` : "") +
+      `<div class="apMsg">${msg}</div><div class="apBtns"></div>${sub ? `<div class="apSub">${sub}</div>` : ""}`;
+    const done = v => { p.innerHTML = ""; res(v); };
+    const bk = p.querySelector(".apBack");
+    if (bk) bk.addEventListener("click", () => done(BACK));
     const row = p.querySelector(".apBtns");
     buttons.forEach(b => {
       const el2 = document.createElement("button");
       el2.className = "apBtn"; el2.innerHTML = b.label;
       if (b.color) el2.style.background = b.color;
-      el2.addEventListener("click", () => { p.innerHTML = ""; res(b.value); });
+      el2.addEventListener("click", () => done(b.value));
       row.appendChild(el2);
     });
+  });
+}
+
+/* A number, not a row of guessed rungs.
+   The offer menu used to be a cross-product — every crate you need times every way of paying for
+   it — truncated to seven buttons, with coins capped at six. So options vanished silently and you
+   could never put your purse on the table. A stepper says any number between two bounds in one
+   control, and it is the same control wherever a price is named. */
+export function stepper({ msg, min, max, start, sub, back, confirm }) {
+  return new Promise(res => {
+    const lo = Math.max(0, min | 0), hi = Math.max(lo, max | 0);
+    let v = Math.min(hi, Math.max(lo, start === undefined ? lo : start | 0));
+    const p = $("panel");
+    p.innerHTML = (back ? `<button class="apBack">‹ ${back}</button>` : "") +
+      `<div class="apMsg">${msg}</div>
+       <div class="stepWrap">
+         <button class="stepBtn" data-d="-1" aria-label="less">−</button>
+         <div class="stepVal"><span id="stepN">${v}</span><img class="ii" src="${A(COIN_IMG)}" alt=" coins"></div>
+         <button class="stepBtn" data-d="1" aria-label="more">+</button>
+       </div>
+       <input class="stepRange" type="range" min="${lo}" max="${hi}" value="${v}" aria-label="amount">
+       <div class="apBtns">
+         <button class="apBtn" data-set="${lo}">Least — ${lo}</button>
+         <button class="apBtn" data-set="${hi}">All — ${hi}</button>
+         <button class="apBtn stepGo">${confirm || "Call it"}</button>
+       </div>${sub ? `<div class="apSub">${sub}</div>` : ""}`;
+    const nEl = p.querySelector("#stepN"), range = p.querySelector(".stepRange");
+    const paint = () => { nEl.textContent = v; range.value = v; };
+    const set = n => { v = Math.min(hi, Math.max(lo, n)); paint(); };
+    p.querySelectorAll(".stepBtn").forEach(b => b.addEventListener("click", () => set(v + (+b.dataset.d))));
+    p.querySelectorAll("[data-set]").forEach(b => b.addEventListener("click", () => set(+b.dataset.set)));
+    range.addEventListener("input", () => set(+range.value));
+    const done = x => { p.innerHTML = ""; res(x); };
+    const bk = p.querySelector(".apBack");
+    if (bk) bk.addEventListener("click", () => done(BACK));
+    p.querySelector(".stepGo").addEventListener("click", () => done(v));
   });
 }
 export function say(msg) { $("panel").innerHTML = `<div class="apMsg">${msg}</div>`; }

@@ -47,6 +47,7 @@ export class GameV2 {
   constructor(seed, seats) {
     // seats: [{ name, kind: "human" | "bot" }]
     this.board = new BoardGame(roundCfg(seats.map(() => "balanced")), seed, false);
+    this.berthsOffTheRim();
     this.seed = seed;
     this.events = [];
     this.round = 0;
@@ -276,6 +277,52 @@ export class GameV2 {
     if (act.a === "cast") { this.castCalled = true; yield* this.cast(p); return; }
     if (act.a === "poach") { p.coins += 2; this.ev("poach", { p: p.idx, got: 2 }); return; }
     this.ev("hold", { p: p.idx });
+  }
+
+  // A berth backed onto the trade winds is technically reachable and practically miserable: the
+  // squares around it sweep you to the far side of the sea, so an overshoot costs a whole voyage.
+  // Measured on the generator as shipped: 15.2% of berths touched a rim cell and 7.6% had exactly
+  // one open-water way in — a berth a game that reads as broken rather than as difficult.
+  //
+  // This MOVES THE RESULT, it does not change the generator. `src/engine/index.js` is the shipped
+  // v1 engine and its board generation is load-bearing there; touching it would move the live
+  // game's maps. And it consumes no randomness, so nothing downstream of board setup shifts.
+  berthsOffTheRim() {
+    const b = this.board;
+    if (!b.rim || !b.rim.size) return;                       // square board: no trade winds at all
+    const D = Object.values(DIRS);
+    const touchesRim = c => D.some(d => b.onRim([c[0] + d[0], c[1] + d[1]]));
+    const taken = new Set(Object.values(b.dockOf).map(K));
+    for (const d of D) taken.add(K([b.home[0] + d[0], b.home[1] + d[1]]));
+
+    // open water you can actually sail from Tortuga, the trade winds being no place to stop
+    const passable = c => !b.blocked(c) && !b.onRim(c) && b.islands[K(c)] === undefined;
+    const reach = new Set(), q = [];
+    for (const d of D) { const c = [b.home[0] + d[0], b.home[1] + d[1]]; if (passable(c)) { reach.add(K(c)); q.push(c); } }
+    while (q.length) { const c = q.shift();
+      for (const d of D) { const o = [c[0] + d[0], c[1] + d[1]];
+        if (reach.has(K(o)) || !passable(o)) continue; reach.add(K(o)); q.push(o); } }
+
+    for (const ing of b.ings) {
+      const cur = b.dockOf[ing];
+      if (!touchesRim(cur)) continue;
+      const cand = [];
+      for (const c of b.islandRect[ing]) for (const d of D) {
+        const w = [c[0] + d[0], c[1] + d[1]], k = K(w);
+        if (taken.has(k) || !passable(w) || touchesRim(w)) continue;
+        if (w[0] === b.home[0] && w[1] === b.home[1]) continue;
+        cand.push(w);
+      }
+      const good = cand.filter(w => reach.has(K(w)));
+      const pool = good.length ? good : cand;
+      if (!pool.length) continue;               // this island has nothing but rim-side water: leave it
+      pool.sort((x, y) => (x[1] - y[1]) || (x[0] - y[0]));   // stable, and spends no randomness
+      taken.delete(K(cur));
+      b.dockOf[ing] = pool[0];
+      taken.add(K(pool[0]));
+    }
+    b.dockCells = new Set(Object.values(b.dockOf).map(K));
+    if (b.islandOf) for (const ing of b.ings) b.islandOf[ing] = b.dockOf[ing];
   }
 
   /* ---- the public refusal ledger ---- */

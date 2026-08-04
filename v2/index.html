@@ -25,6 +25,19 @@ main{max-width:1000px;margin:0 auto;padding:0 12px 40px;display:grid;gap:12px;gr
 .apBtn:hover{transform:translateY(1px);box-shadow:0 1px 0 var(--ink)}
 .apBtn small{font-weight:400;opacity:.8}
 .apSub{font-style:italic;font-size:13px;opacity:.75;margin-top:7px}
+/* back sits ABOVE the message it returns from — the panel reveals top to bottom */
+.apBack{display:block;font:inherit;font-size:13px;font-weight:700;cursor:pointer;background:none;
+ border:0;color:var(--teal);padding:0 0 4px;opacity:.8}
+.apBack:hover{opacity:1}
+/* naming a price: one control, any number, instead of a row of guessed rungs */
+.stepWrap{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 2px}
+.stepBtn{font:inherit;font-size:22px;font-weight:700;line-height:1;cursor:pointer;width:44px;height:44px;
+ background:var(--gold);color:var(--ink);border:2px solid var(--ink);border-radius:12px;box-shadow:0 2px 0 var(--ink)}
+.stepBtn:active{transform:translateY(2px);box-shadow:none}
+.stepVal{font-size:30px;font-weight:700;min-width:76px;text-align:center;display:flex;
+ align-items:center;justify-content:center;gap:4px}
+.stepVal .ii{width:22px;height:22px;vertical-align:-2px}
+.stepRange{width:100%;margin:2px 0 8px;accent-color:var(--teal)}
 .flipWrap{display:flex;justify-content:center}
 .flipCoin{background:none;border:0;padding:0;cursor:pointer;position:relative;width:92px;height:92px}
 .flipSocket{position:absolute;inset:0;width:92px;height:92px;opacity:.85}

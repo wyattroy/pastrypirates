@@ -21,7 +21,16 @@ branch's git history and does not need re-reading.
 - The **Sugar Seas**: a circular sea on a 15×15 grid. **Tortuga** sits at the centre. Seven
   ingredient islands are scattered around it, each with **one berth** — a single water square where
   a ship may tie up, one ship at a time.
-- Around the rim runs the **trade-wind current**, in four clockwise arcs.
+- Around the rim runs the **trade-wind current**, in four clockwise arcs. **Each arc is drawn in its
+  own colour, with arrows showing the way it carries you and a whirlpool at its clockwise end**, so a
+  captain can see which current they are about to enter and where it will put them down. It was
+  previously a slightly darker shade of the same water with nothing else, which meant a ship that
+  touched the edge was moved across the map for no stated reason.
+- **A berth is never placed against the trade winds.** Measured on the board generator as shipped,
+  **15.2% of berths backed onto a trade-wind square** and **7.6% had a single way in** — an island a
+  game that reads as broken rather than as difficult, because overshooting the one entrance costs a
+  whole voyage. Excluding rim-adjacent candidates takes that to 0% and 3.1%, and every berth stays
+  reachable from Tortuga in every wind.
 - **Stock each island with (players − 1) crates.** Four captains → 3 crates an island, 21 in play.
 - Deal each captain **two** secret recipes of 5 of the 7 ingredients. **Keep one, discard the
   other**, before anyone sails. The choice is a real one: which of these two paths can I actually
@@ -90,8 +99,11 @@ their purse**, then reveal. **Both lose what they committed**, win or lose.
 
 **🤝 Hail the fleet** — call **one** offer to the whole table, naming both sides:
 
-> *"I want cocoa. I'll give 6 coins."* · *"I want cocoa. I'll give my sugar."* · *"I'll give my
+> *"I want cocoa. I'll give 9 coins."* · *"I want cocoa. I'll give my sugar."* · *"I'll give my
 > vanilla. Who'll pay?"*
+
+**Say what you want first, then what you will give for it** — two separate choices, so neither is
+limited to a short list. **Any part of your purse may go on the table**, up to all of it.
 
 **Every other captain who can fill the call answers once, all at the same time.** An answer is
 **no**, **aye at your price**, or **a number of their own** — and that number may be *above* what
