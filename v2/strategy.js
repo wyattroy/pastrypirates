@@ -216,12 +216,17 @@ export function botResolver(g) {
             case "bake": return 1e6;                                  // this wins the game
 
             case "dock": {
+              const treasure = 2;                                     // half of 4, at even odds
+              // a stripped island still has sand to dig; that is all it has
+              if (g.board.tokens[x.ing] <= 0) return treasure;
               const cost = g.priceOf(x.ing, p);
-              const treasure = 2;                                     // half of 4, the mean crate price
-              if (need.includes(x.ing)) return PROGRESS - cost + treasure;
-              // a crate I don't need is worth what denying it is worth, less what it ties up
               const wanted = g.players.filter(q => q !== p && !q.done && g.needs(q).includes(x.ing)).length;
-              return wanted * 2 - cost + treasure;
+              const gain = need.includes(x.ing) ? PROGRESS : wanted * 2;
+              // The flip comes FIRST, so heads can be what buys the crate. A captain three coins
+              // short is not shut out of the dock, they are on even odds of affording it — which
+              // is the whole reason the treasure is dug before the storehouse opens.
+              const chance = p.coins >= cost ? 1 : (p.coins + 4 >= cost ? 0.5 : 0);
+              return chance * (gain - cost) + treasure;
             }
 
             case "trade": {

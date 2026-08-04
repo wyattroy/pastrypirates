@@ -73,6 +73,9 @@ export const EVENTS = {
     `📦 ${c.name(e.p)} buys ${c.ing(e.ing)} for ${e.cost}🌕` +
     (e.needed ? "" : " — <i>and doesn't need it…</i>")),
 
+  stripped: R(TIER.LINE, ["p", "ing"], (e, c) =>
+    `${c.name(e.p)} finds the ${c.ing(e.ing)} storehouse bare — nothing left but the sand.`),
+
   broke: R(TIER.LINE, ["p", "ing", "cost"], (e, c) =>
     `${c.name(e.p)} hasn't the coin for ${c.ing(e.ing)} (${e.cost}🌕).`),
 
@@ -185,6 +188,16 @@ export function narrate(e, ctx, strict) {
 }
 
 export const tierOf = e => (EVENTS[e.t] || {}).tier || TIER.TICKER;
+
+// Which captain is this event ABOUT? The board can then speak the line from that ship instead of
+// only listing it in the log. Derived from the field names the registry already uses rather than
+// declared per event, so a new event gets a bubble without anyone remembering to ask for one:
+// `p` is the acting captain everywhere, `a` is the attacker, `caller` calls the cast.
+// A null owner means the whole table — a round, a storm, the end — and belongs on the board itself.
+export function ownerOf(e) {
+  for (const f of ["p", "a", "caller"]) if (typeof e[f] === "number") return e[f];
+  return null;
+}
 
 // Asserted by the self-test. Cheap, and it is the check that would have caught both playtest bugs.
 export function checkRegistry() {

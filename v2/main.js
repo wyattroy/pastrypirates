@@ -164,18 +164,21 @@ async function drive() {
   while (!step.done) {
     const req = step.value;
     const p = G.players[req.seat];
+    // Draw FIRST, then narrate, then ask. Everything the last step did is on the board before any
+    // line describes it — which matters now the lines are bubbles pinned to ships: narrating first
+    // spoke from where a ship used to be, and left the vane reading "—" while the log announced
+    // the wind.
+    UI.drawBoard(); UI.drawVane();
+    UI.drawCaptains(p.kind === "human" ? req.seat : (activeHuman ?? -1));
+    await UI.narrate(activeHuman ?? humanSeats[0], false);
     let res;
     if (p.kind === "human") {
-      await UI.narrate(activeHuman ?? humanSeats[0], false);
-      UI.drawBoard(); UI.drawVane(); UI.drawCaptains(req.seat);
       res = await human(req);
     } else {
       res = bot(req);
-      UI.drawBoard(); UI.drawVane(); UI.drawCaptains(activeHuman ?? -1);
       await UI.sleep(req.kind === "sail" || req.kind === "act" ? 120 : 40);
     }
     step = it.next(res);
-    if (p.kind === "bot") await UI.narrate(activeHuman ?? humanSeats[0], false);
   }
   await UI.narrate(activeHuman ?? humanSeats[0], false);
   UI.drawBoard(); UI.drawCaptains(activeHuman ?? -1);

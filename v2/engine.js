@@ -226,7 +226,11 @@ export class GameV2 {
     const out = [];
     if (!this.needs(p).length && this.atHome(p)) out.push({ a: "bake" });
     const berth = this.berthOf(p);
-    if (berth && !this.berthTaken(berth, p) && this.board.tokens[berth] > 0) out.push({ a: "dock", ing: berth });
+    // Tying up is always allowed, stripped island or not. You are at the berth — often because a
+    // gale put you there — and digging the sand for treasure does not need the storehouse to have
+    // anything left in it. Gating the whole action on remaining crates meant a captain blown onto
+    // an empty island could not even take their turn there.
+    if (berth && !this.berthTaken(berth, p)) out.push({ a: "dock", ing: berth });
     const adj = this.players.filter(q => q !== p && !q.done && man(q.pos, p.pos) === 1);
     for (const q of adj) out.push({ a: "battle", target: q.idx });
     // Trade costs your action now. It used to be a free phase at the top of every turn, which made
@@ -263,7 +267,8 @@ export class GameV2 {
           p.coins -= cost; this.board.tokens[ing]--; this.sold[ing]++; p.ing.push(ing);
           this.ev("buy", { p: p.idx, ing, cost, needed });
         }
-      } else if (p.coins < cost) this.ev("broke", { p: p.idx, ing, cost });
+      } else if (this.board.tokens[ing] <= 0) this.ev("stripped", { p: p.idx, ing });
+      else this.ev("broke", { p: p.idx, ing, cost });
       return;
     }
     if (act.a === "trade") { yield* this.outcry(p); return; }

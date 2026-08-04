@@ -9,7 +9,7 @@ import { BOARD_IMG, DOCK_IMG, ING_IMG, ING_NAME, ING_EMOJI, BOAT_IMG, ISLAND_SHA
          COIN_IMG, COIN_SPIN_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, FLIP_SOCKET_IMG,
          HEXCOL, iconImg } from "../src/shared/index.js";
 import { DIRS, DK, K, man, POWERS } from "./engine.js";
-import { narrate as lineFor, tierOf, TIER } from "./events.js";
+import { narrate as lineFor, tierOf, ownerOf, TIER } from "./events.js";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const el = (t, a, p) => { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
@@ -42,28 +42,50 @@ export function drawBoard() {
       stroke: "#1d6472", "stroke-opacity": .25 }, svg);
   }
 
-  // islands: the shipped art, one image per island bounding box
+  // ISLANDS ARE DRAWN FROM THEIR OWN CELLS, not from a picture stretched over a bounding box.
+  //
+  // The board generator makes islands out of tetrominoes and records shapeIdx/rot/flip. The old
+  // draw took the art for shapeIdx, ignored the rotation and the flip, and stretched it edge to
+  // edge across the island's bounding rectangle — so the green landmass in the picture had almost
+  // nothing to do with the squares you can actually sail to. The crates then sat on the real
+  // cells, which put them beside the drawn island rather than on it, and the berth was a small
+  // brown jetty lost in open water. Three complaints, one cause.
+  //
+  // Cells are the truth, so cells are what gets painted: a sand ring (over-sized rects, which
+  // merge into one outline because they overlap) then the green land inside it. The shape on
+  // screen is now the shape of the island by construction, and cannot drift from it again.
   for (const ing of G.ings) {
     const cells = G.board.islandRect[ing];
-    const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]);
-    const x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs), y1 = Math.max(...ys);
-    const meta = G.board.islandShapeMeta[ing] || {};
-    const href = ISLAND_SHAPE_IMG[(meta.shapeIdx ?? 0) % ISLAND_SHAPE_IMG.length];
-    for (const c of cells) el("rect", { x: c[0] * CELL, y: c[1] * CELL, width: CELL, height: CELL, rx: CELL * .3, fill: "#e8c98a" }, svg);
-    el("image", { x: x0 * CELL, y: y0 * CELL, width: (x1 - x0 + 1) * CELL, height: (y1 - y0 + 1) * CELL,
-      href: A(href), preserveAspectRatio: "none", opacity: .95 }, svg);
-    // remaining crates, one icon per island square
+    const g1 = el("g", {}, svg);
+    for (const c of cells) el("rect", { x: c[0] * CELL - 3, y: c[1] * CELL - 3, width: CELL + 6, height: CELL + 6,
+      rx: 7, fill: "#e6c78c" }, g1);
+    for (const c of cells) el("rect", { x: c[0] * CELL - 1, y: c[1] * CELL - 1, width: CELL + 2, height: CELL + 2,
+      rx: 5, fill: "#6fb757" }, g1);
+    // one crate icon per island square, greyed as the storehouse empties
     cells.slice(0, G.board.cfg.crates).forEach((c, i) => {
       const gone = i >= G.board.tokens[ing];
-      el("image", { x: c[0] * CELL + CELL * .12, y: c[1] * CELL + CELL * .12, width: CELL * .76, height: CELL * .76,
-        href: A(ING_IMG[ing]), opacity: gone ? .18 : 1 }, svg);
+      el("image", { x: c[0] * CELL + CELL * .14, y: c[1] * CELL + CELL * .14, width: CELL * .72, height: CELL * .72,
+        href: A(ING_IMG[ing]), opacity: gone ? .22 : 1 }, g1);
     });
-    // the berth
-    const d = G.dockOf[ing];
-    el("image", { x: d[0] * CELL + CELL * .1, y: d[1] * CELL + CELL * .1, width: CELL * .8, height: CELL * .8, href: A(DOCK_IMG), opacity: .9 }, svg);
-    const lbl = el("text", { x: (x0 + (x1 - x0 + 1) / 2) * CELL, y: y0 * CELL - 2, "text-anchor": "middle",
-      "font-size": Math.max(9, CELL * .34), fill: "#0d3b44", "font-weight": "700" }, svg);
-    lbl.textContent = `${ING_EMOJI[ing]} ${G.board.tokens[ing]}`;
+  }
+
+  // BERTHS LAST, so nothing paints over them. The berth is a water square beside the island — it
+  // is where you actually sail, and it was the least visible thing on the board.
+  for (const ing of G.ings) {
+    const d = G.dockOf[ing], left = G.board.tokens[ing];
+    const g2 = el("g", {}, svg);
+    el("rect", { x: d[0] * CELL + 1, y: d[1] * CELL + 1, width: CELL - 2, height: CELL - 2, rx: 5,
+      fill: "#0e4a55", "fill-opacity": .55, stroke: "#f0b429", "stroke-width": 2 }, g2);
+    el("image", { x: d[0] * CELL + CELL * .12, y: d[1] * CELL + CELL * .12, width: CELL * .76, height: CELL * .76,
+      href: A(DOCK_IMG) }, g2);
+    // what is stocked here, on the square you sail to rather than floating over the island
+    const bw = CELL * .62, bh = CELL * .40;
+    el("rect", { x: d[0] * CELL + CELL - bw + 1, y: d[1] * CELL + CELL - bh, width: bw, height: bh, rx: 4,
+      fill: left > 0 ? "#fff8e6" : "#8a6b33", stroke: "#0b3a44" }, g2);
+    const t = el("text", { x: d[0] * CELL + CELL - bw / 2 + 1, y: d[1] * CELL + CELL - bh * .22,
+      "text-anchor": "middle", "font-size": Math.max(8, CELL * .34), "font-weight": "700",
+      fill: left > 0 ? "#0d3b44" : "#f0d9a0" }, g2);
+    t.textContent = String(left);
   }
 
   // Tortuga
@@ -162,8 +184,36 @@ const ctxFor = you => ({
 // louder than a pass and nothing read at all.
 const HOLD = { [TIER.BEAT]: 620, [TIER.LINE]: 260, [TIER.TICKER]: 90 };
 
+/* -------- the line, spoken from the ship it belongs to --------------------
+   The log under the board says what happened. It does not say WHERE, and on a board with four
+   identical-looking ships that is most of the information. So every owned line also appears as a
+   bubble pinned to that captain's ship, and the table-wide ones — a round, a gale — take the
+   middle of the board. The overlay is a sibling of the SVG (drawBoard wipes its own container)
+   and takes no pointer events, so it can never swallow a click on a sail square. */
+function bubbleAt(seat, html, tier) {
+  const layer = $("bubbles"), svg = $("boardSvg");
+  if (!layer || !svg) return null;
+  const p = seat === null ? null : G.players[seat];
+  if (p && p.done) return null;
+  const n = G.board.cfg.grid;
+  const scale = (svg.getBoundingClientRect().width || CELL * n) / (CELL * n);
+  const d = document.createElement("div");
+  d.className = "bub " + (seat === null ? "bubAll " : "") + tier;
+  d.innerHTML = html;
+  if (p) {
+    d.style.borderColor = HEXCOL[p.idx];
+    const cx = (p.pos[0] + 0.5) * CELL * scale, cy = p.pos[1] * CELL * scale;
+    const below = p.pos[1] < n / 3;                    // near the top edge? hang it underneath
+    d.style.left = Math.round(cx) + "px";
+    d.style.top = Math.round(below ? cy + CELL * scale : cy) + "px";
+    d.classList.add(below ? "bubBelow" : "bubAbove");
+  }
+  layer.appendChild(d);
+  return d;
+}
+
 export async function narrate(youSeat, fast) {
-  const box = $("narration"), ctx = ctxFor(youSeat);
+  const box = $("narration"), ctx = ctxFor(youSeat), layer = $("bubbles");
   for (const e of G.events.slice(lastNarrated)) {
     const html = lineFor(e, ctx);
     if (!html) continue;
@@ -174,11 +224,21 @@ export async function narrate(youSeat, fast) {
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
     while (box.children.length > 60) box.removeChild(box.firstChild);
+
+    let bub = null;
+    if (!fast && tier !== TIER.TICKER) {
+      const who = ownerOf(e);
+      // a captain's line speaks from their ship; a table-wide beat takes the whole board
+      if (who !== null || tier === TIER.BEAT) bub = bubbleAt(who, html, tier);
+      if (layer) while (layer.children.length > 3) layer.removeChild(layer.firstChild);
+    }
     await sleep(fast ? 0 : HOLD[tier]);
+    if (bub) { bub.classList.add("gone"); const b = bub; setTimeout(() => b.remove(), 400); }
   }
   lastNarrated = G.events.length;
 }
-export function resetNarration() { lastNarrated = 0; const b = $("narration"); if (b) b.innerHTML = ""; }
+export function clearBubbles() { const l = $("bubbles"); if (l) l.innerHTML = ""; }
+export function resetNarration() { lastNarrated = 0; clearBubbles(); const b = $("narration"); if (b) b.innerHTML = ""; }
 
 /* ---------------------------------------------------------------- the human resolver */
 

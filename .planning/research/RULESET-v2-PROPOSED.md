@@ -40,7 +40,13 @@ branch's git history and does not need re-reading.
    moment as the direction and travels down with the arrow.
 2. **Storm, if this round is stormy** — roughly **1 round in 5**. Every ship is pushed **3 squares** in the wind's direction,
    **all at once, before anybody takes a turn.** A ship driven into land loses its turn this round.
-   **A ship sitting in a berth is safe** and is not pushed.
+   **A ship in a berth, or in the waters around Tortuga, rides it out** and is not pushed.
+
+   > ⚠️ **Sheltered harbour is doing more work than it looks.** Measured over 300 games: storms fire
+   > 3.4 times a game and 63% of games see one by round 5 — but **only 42% of ships actually move**,
+   > and **14% of storms move nobody at all**, because berths and the five squares around Tortuga are
+   > where captains spend most of their time. The rate is right; the exemption is what makes a gale
+   > feel rare. Worth a decision, not worth changing quietly.
 3. **Each captain takes a turn**, in order.
 
 ## 3. A turn: Sail → Act
@@ -63,10 +69,15 @@ its second, 5 for its third.** You may buy crates you do not need — to trade, 
 bluff about your recipe.
 
 > Docking is **two things in a fixed order**, and the order is the point: the coin decides how much
-> money you are shopping with. At a table the captain flips it themselves; online they tap it and
-> watch it land. It is never resolved out of sight — a treasure flip that only shows up as a changed
-> number is the same as no flip at all, which is exactly how it shipped once and got caught in
-> playtest.
+> money you are shopping with. Heads can be what pays for the crate. At a table the captain flips it
+> themselves; online they tap it and watch it land. It is never resolved out of sight — a treasure
+> flip that only shows up as a changed number is the same as no flip at all, which is exactly how it
+> shipped once and got caught in playtest.
+>
+> **You may always tie up, even at an island that has been stripped bare.** There is still sand to
+> dig. This matters because you do not always choose to be there — a gale can put you at a berth you
+> never set course for, and a captain blown onto an empty island should not lose the use of their
+> turn for it.
 
 **⚔️ Battle** — an adjacent ship, including at Tortuga. Both captains **secretly commit any part of
 their purse**, then reveal. **Both lose what they committed**, win or lose.
@@ -271,7 +282,7 @@ interesting decision — *which of these two hands can I actually sail, given wh
 fell and where I start?* The machinery already half-exists in the shipped engine
 (`recipeChoices: [a, b]`), from a draft idea that was never surfaced.
 
-## Dock: treasure 3, then buy any crate at 3/4/5
+## Dock: treasure 4, then buy any crate at 3/4/5 — and you may always tie up
 
 **Buying crates you don't need is the whole trade economy.** With captains only ever buying what
 they needed, nobody held anything worth trading and deals ran at 0.12 a game. Allowing the hoard:
@@ -284,6 +295,11 @@ crates bought that the buyer did not need:  1.4 per game
 
 Straight swaps dominate, which is the healthy shape: they cost no coins and save both captains a
 voyage.
+
+**Docking at a stripped island stays legal**, and it costs almost nothing to allow. The action is
+only worth the treasure flip there, so a captain with any better option takes it — measured at
+**0.2 bare-storehouse docks a game**, against 17.4 treasure flips. What it buys is that a gale can
+never strand you somewhere your turn is worthless.
 
 The per-island ladder is what makes a contested island a race: the third captain to that island pays
 5 where the first paid 3.
