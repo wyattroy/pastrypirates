@@ -22,8 +22,8 @@ The v2 ruleset changes things the current architecture assumes are fixed:
 - **The Shared Cast is a table-wide simultaneous beat.** Nothing in the current engine has a shape
   for "every captain decides at once, then one shared coin resolves for all of them." The narration
   layer in particular assumes one actor per line.
-- **Trade is the most common interaction in the game** — ~38 deals a game, up from ~2.5. It cannot
-  stay an occasional action with a bespoke prompt.
+- **Trade is a first-class action** — ~17 deals a game, up from ~2.5, and it is what a captain does
+  while crossing open water. It cannot stay an occasional action with a bespoke prompt.
 - **Battles resolve in one reveal instead of a flip race**, so `asyncBattle`'s entire round loop,
   its scoreboard states and its per-flip pacing constants go away.
 
@@ -101,11 +101,10 @@ cannot express any of them.
 |---|---|---|
 | **One captain chooses** | sail, act, dock, recipe draft | one request, one seat |
 | **Everyone chooses at once** | the Shared Cast, battle commitment, the Lookout | N requests, all seats, resolved together |
-| **One calls, the rest answer, the caller picks** | the trade outcry | one request → N requests → one request |
+| **One calls, the rest answer, the caller picks** | the trade outcry, **taken as an action** | one request → N requests → one request |
 
-The third is new and it is the one to design for deliberately, because it is now the most common
-interaction in the game (~37 deals a game). It resolves in exactly **three engine steps** and no
-more, which is what lets a shot clock always finish it:
+The third is new and it is the one to design for deliberately. It resolves in exactly **three engine
+steps** and no more, which is what lets a shot clock always finish it:
 
 ```
 1. OFFER     the active captain names both sides      "I want cocoa, I'll give 6"
@@ -138,13 +137,32 @@ import from anything else; `strategy/` may import `engine/` only; `narrate/` may
 
 ---
 
-## 4. Events, and why they get a real schema
+## 4. Events: one registry, or it will happen again
 
 Today an event is an untyped object literal and `describe()` is a switch over `e.t`. Typos are
 invisible, the schema exists only in test scripts, and adding a field means editing several files
 that do not know about each other.
 
-**v2:** every event is produced by a factory, has a declared shape, and carries a schema version.
+**This is not hypothetical — it is what the 2026-08-04 playtest hit.** The first v2 build emitted 21
+event types and narrated 18. The three it missed included `turn`, so a player could not see whose
+turn it was and the whole log read as an ownerless stream. A Trawler surviving a bust and a Gambler
+taking a rung higher were invisible for the same reason: buried inside an event nobody had unpacked.
+**Both are one bug — the event and its narration lived in different files, so one could exist
+without the other and nothing complained.**
+
+**v2 answer: `v2/events.js`.** One table. Every event type is declared exactly once with its fields,
+its narration tier, and the line that describes it. `emit()` **throws** on an unregistered type, so
+a new event cannot be added without its line. `checkRegistry()` asserts every entry has one, and the
+self-test additionally narrates every event of every game and fails if any produces nothing.
+
+```js
+export const EVENTS = {
+  turn: R(TIER.BEAT, ["p"], (e, c) => `⚓ ${c.name(e.p)} takes the wheel…`),
+  ...
+};
+```
+
+Events also carry a declared shape and a schema version.
 
 ```js
 export const Events = {

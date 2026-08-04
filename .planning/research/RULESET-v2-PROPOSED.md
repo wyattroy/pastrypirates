@@ -43,26 +43,7 @@ branch's git history and does not need re-reading.
    **A ship sitting in a berth is safe** and is not pushed.
 3. **Each captain takes a turn**, in order.
 
-## 3. A turn: Trade → Sail → Act
-
-### Trade — free, every turn. An open outcry, not a private ask.
-
-**The captain whose turn it is calls one offer to the whole table**, naming both sides:
-
-> *"I want cocoa. I'll give 6 coins."*  ·  *"I want cocoa. I'll give my sugar."*
-> *"I'll give my vanilla. Who'll pay?"*
-
-**Every other captain answers once** — no, yes, or a counter that undercuts the others
-(*"I'll take 4"*). **Then the offerer picks any one answer, or walks away.** That is the whole
-negotiation: one call, one round of answers, one choice.
-
-Adjacency is not required — you are shouting across the whole sea — and trading does not cost your
-action. No bonus is paid; the deal is its own reward.
-
-**Why it is bounded at one round of answers:** two captains who both want to sell will undercut each
-other inside their single answer, which is where the fun is. Letting it run open-ended turns every
-turn into a haggle with no natural end, and online it has to resolve against a shot clock. One
-round, then the offerer decides.
+## 3. A turn: Sail → Act
 
 ### Sail — free, every turn
 
@@ -89,6 +70,15 @@ their purse**, then reveal. **Both lose what they committed**, win or lose.
 - **Tied** — one flip each; heads scores. **Still tied** — the captain with **fewer ingredients**
   wins.
 - The loser gives up **5 coins or a crate, winner's choice**.
+
+**🤝 Hail the fleet** — call **one** offer to the whole table, naming both sides:
+
+> *"I want cocoa. I'll give 6 coins."* · *"I want cocoa. I'll give my sugar."* · *"I'll give my
+> vanilla. Who'll pay?"*
+
+**Every other captain answers once** — no, yes, or a counter that undercuts the others (*"I'll take
+4"*). **Then you pick any one answer, or walk away.** One call, one round of answers, one choice.
+Adjacency is not required; you are shouting across the whole sea. No bonus is paid.
 
 **🎣 Call the cast** — see §4. Only once per round, by whoever spends their action on it.
 
@@ -209,6 +199,24 @@ decision the moment everyone is rich, and it also made the *Shooter* power worth
 rate — a third of the whole bid range. Opening the range up fixes the battle, the economy and the
 boat powers in one move: it is the only unbounded coin sink in the game, and it halves the spread
 between the strongest and weakest power without touching them.
+
+## Trade costs your action
+
+It was a free phase at the top of every turn. In play that was **spam**: bots asked every rival every
+round, remembered nothing, and it read like advertising rather than negotiation
+(`PLAYTEST-2026-08-04-v2.md`).
+
+Making it an **action** fixes that structurally rather than by tuning — a captain who must give up a
+dock, a fight or the cast will only ever call an offer when it genuinely beats sailing on. And it
+fills the hole the action mix had: **40–57% of turns were passes**, because docking needs a berth,
+fighting needs adjacency and the cast is once a round. Crossing open water is now when you do
+business.
+
+Measured, as an action rather than a phase: **trades fall from ~35 a game to ~17**, and turns spent
+doing nothing fall from ~40% to ~20%. Battles fall too — they are licensed by public refusals, and
+there are fewer offers to refuse — so a second licence was added: **desperation.** A captain will
+fight for a crate that is off the board entirely, refusal or no, because talking is no longer an
+option.
 
 ## Trade: one open call beats twelve private asks
 

@@ -70,6 +70,13 @@ function crateValue(g, p, ing) {
   const t = turnsFrom(g, p.pos, g.windNow)[K(g.dockOf[ing])];
   return g.priceOf(ing, p) + Math.min(9, (t === undefined ? 6 : t) * 2);
 }
+// Have I already been turned down for this exact crate by this exact captain?
+const wasRefused = (p, seat, ing) => p.refusedFor.has(seat + ":" + ing);
+// A refusal is evidence about their secret recipe: they probably need it. That both stops the
+// asking AND raises what I think they will charge — which is the negotiation layer the hidden
+// recipe was always meant to have.
+const believedToNeed = (p, seat, ing) => wasRefused(p, seat, ing);
+
 // What a holder gives up: the crate, plus its denial value — and nobody sells the winning
 // ingredient to the captain who is one crate from home.
 function reservation(g, holder, ing, buyer) {
@@ -77,6 +84,7 @@ function reservation(g, holder, ing, buyer) {
   const rivals = g.players.filter(x => x !== holder && !x.done && g.needs(x).includes(ing)).length;
   let r = 2 + rivals + (g.board.tokens[ing] <= 0 ? 3 : 0);
   if (buyer) { const left = g.needs(buyer).length; if (left <= 1) r += 12; else if (left === 2) r += 5; }
+  if (buyer && believedToNeed(buyer, holder.idx, ing)) r += 6;   // they turned me down before
   return r;
 }
 
@@ -150,9 +158,22 @@ export function botResolver(g) {
         const bake = o.find(x => x.a === "bake"); if (bake) return bake;
         const dock = o.find(x => x.a === "dock");
         if (dock && (g.needs(p).includes(dock.ing) || p.coins >= g.priceOf(dock.ing, p) + 6)) return dock;
+        // Trade costs the action now, so only spend it when a deal genuinely beats sailing on:
+        // somebody holds a crate I need, they have not already refused me for it, and fetching it
+        // myself would cost more than the deal will.
+        const trade = o.find(x => x.a === "trade");
+        if (trade) {
+          const worth = g.needs(p).some(i => {
+            const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(i) && !wasRefused(p, q.idx, i));
+            if (!holders.length) return false;
+            return crateValue(g, p, i) >= Math.min(...holders.map(q => reservation(g, q, i, p)));
+          });
+          if (worth) return trade;
+        }
         // guns only against someone who refused a deal in public
-        const fight = o.filter(x => x.a === "battle" && p.refused.has(x.target))
-          .find(x => g.players[x.target].ing.some(i => g.needs(p).includes(i)));
+        const desperate = x => g.players[x.target].ing.some(i => g.needs(p).includes(i) && g.board.tokens[i] <= 0);
+        const fight = o.filter(x => x.a === "battle")
+          .find(x => (p.refused.has(x.target) && g.players[x.target].ing.some(i => g.needs(p).includes(i))) || desperate(x));
         if (fight && p.coins >= 2) return fight;
         // call the cast only if genuinely short, and never if it arms a rival about to finish
         const cast = o.find(x => x.a === "cast");
@@ -180,13 +201,16 @@ export function botResolver(g) {
         const need = g.needs(p);
         let want = null, wv = -1;
         for (const ing of need) {
-          if (!g.players.some(q => q !== p && !q.done && q.ing.includes(ing))) continue;
+          // only ask captains who have NOT already turned me down for this crate. Without this the
+          // bot asks the same person for the same thing every round, which reads as advertising.
+          const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(ing) && !wasRefused(p, q.idx, ing));
+          if (!holders.length) continue;
           const v = crateValue(g, p, ing);
           if (v > wv) { wv = v; want = ing; }
         }
         if (want) {
           const surplus = p.ing.filter(i => !need.includes(i));
-          const swapWith = surplus.find(i => g.players.some(q => q !== p && !q.done && q.ing.includes(want) && g.needs(q).includes(i)));
+          const swapWith = surplus.find(i => g.players.some(q => q !== p && !q.done && q.ing.includes(want) && !wasRefused(p, q.idx, want) && g.needs(q).includes(i)));
           if (swapWith) return { want, giveIng: swapWith };
           return { want, giveCoins: Math.min(p.coins, Math.max(1, Math.floor(wv * 0.6))) };
         }
@@ -194,7 +218,7 @@ export function botResolver(g) {
         const surplus = p.ing.filter(i => !need.includes(i));
         const nextCost = need.length ? g.priceOf(need.find(i => g.board.tokens[i] > 0) || need[0], p) : 0;
         if (surplus.length && p.coins < nextCost) {
-          const sellable = surplus.find(i => g.players.some(q => q !== p && !q.done && g.needs(q).includes(i)));
+          const sellable = surplus.find(i => g.players.some(q => q !== p && !q.done && g.needs(q).includes(i) && !wasRefused(p, q.idx, i)));
           if (sellable) return { want: sellable, sale: true };
         }
         return { skip: true };

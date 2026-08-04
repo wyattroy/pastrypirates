@@ -8,6 +8,7 @@
 import { BOARD_IMG, DOCK_IMG, ING_IMG, ING_NAME, ING_EMOJI, BOAT_IMG, ISLAND_SHAPE_IMG,
          COIN_IMG, HEXCOL, iconImg } from "../src/shared/index.js";
 import { DIRS, DK, K, man, POWERS } from "./engine.js";
+import { narrate as lineFor, tierOf, TIER } from "./events.js";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const el = (t, a, p) => { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
@@ -148,66 +149,35 @@ export function drawCaptains(youSeat) {
 }
 
 let lastNarrated = 0;
+
+// Presentation the registry needs, without the registry knowing anything about the DOM.
+const ctxFor = you => ({
+  you,
+  name: i => `<b style="color:${HEXCOL[i]}">${G.players[i].name}</b>`,
+  ing: i => `<img class="ii" src="${A(ING_IMG[i])}" alt=""> ${ING_NAME[i] || i}`,
+});
+
+// Tiers (PRD 6). The old build gave every line the same weight, so a turn header could not be made
+// louder than a pass and nothing read at all.
+const HOLD = { [TIER.BEAT]: 620, [TIER.LINE]: 260, [TIER.TICKER]: 90 };
+
 export async function narrate(youSeat, fast) {
-  const box = $("narration");
+  const box = $("narration"), ctx = ctxFor(youSeat);
   for (const e of G.events.slice(lastNarrated)) {
-    const line = describe(e, youSeat);
-    if (!line) continue;
+    const html = lineFor(e, ctx);
+    if (!html) continue;
+    const tier = tierOf(e);
     const d = document.createElement("div");
-    d.className = "line" + (e.t === "round" || e.t === "storm" || e.t === "cast" ? " beat" : "");
-    d.innerHTML = line;
+    d.className = "line " + tier;
+    d.innerHTML = html;
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
-    while (box.children.length > 40) box.removeChild(box.firstChild);
-    await sleep(fast ? 0 : (e.t === "round" || e.t === "storm" || e.t === "cast" || e.t === "battle" ? 700 : 260));
+    while (box.children.length > 60) box.removeChild(box.firstChild);
+    await sleep(fast ? 0 : HOLD[tier]);
   }
   lastNarrated = G.events.length;
 }
 export function resetNarration() { lastNarrated = 0; const b = $("narration"); if (b) b.innerHTML = ""; }
-
-const nm = i => `<b style="color:${HEXCOL[i]}">${G.players[i].name}</b>`;
-const ing = i => `<img class="ii" src="${A(ING_IMG[i])}" alt="${i}"> ${ING_NAME[i] || i}`;
-
-function describe(e, you) {
-  switch (e.t) {
-    case "round": return `<span class="hdr">— Round ${e.n}: wind blows ${e.wind}${e.storm ? ", and a GALE is on us" : ""}. Next round: ${e.windNext}${e.stormNext ? " ⛈" : ""} —</span>`;
-    case "storm": {
-      const hits = e.moves.filter(m => m.aground).map(m => nm(m.i));
-      const swept = e.moves.filter(m => m.swept).map(m => nm(m.i));
-      let s = `⛈ The gale drives every ship ${e.dir}!`;
-      if (swept.length) s += ` ${swept.join(" and ")} caught the current.`;
-      if (hits.length) s += ` ${hits.join(" and ")} ran aground — the turn's lost to repairs.`;
-      return s;
-    }
-    case "sail": return `⛵ ${nm(e.p)} sails${e.swept ? " — and the trade winds seize her! 🌀" : ""}`;
-    case "treasure": return e.heads ? `⚪ ${nm(e.p)} digs up treasure at the dock (+${e.got}🌕)` : `⚫ ${nm(e.p)} finds nothing but sand`;
-    case "buy": return `📦 ${nm(e.p)} buys ${ing(e.ing)} for ${e.cost}🌕`;
-    case "broke": return `${nm(e.p)} hasn't the coin for ${ing(e.ing)} (${e.cost}🌕)`;
-    case "offer": return e.sale
-      ? `📣 ${nm(e.p)} cries a sale: <b>${ING_NAME[e.want]}</b> — who'll pay?`
-      : `📣 ${nm(e.p)} calls out: <b>I want ${ING_NAME[e.want]}</b>, and I'll give ${e.giveIng ? ING_NAME[e.giveIng] : e.giveCoins + "🌕"}`;
-    case "trade": return `🤝 ${nm(e.a)} and ${nm(e.b)} strike a deal — ${e.gave} for ${e.got}`;
-    case "nodeal": return `🙅 Nobody will part with ${ING_NAME[e.want]}. ${nm(e.p)} remembers that.`;
-    case "walked": return `${nm(e.p)} doesn't like the price and walks away`;
-    case "battle": {
-      const how = e.how === "coins" ? "on powder alone" : e.how === "flip" ? "on the flip of the bullion" : "on the lightest hold";
-      const sp = e.spoil.ing ? ing(e.spoil.ing) : `${e.spoil.coins}🌕`;
-      return `⚔️ ${nm(e.a)} attacks ${nm(e.d)}! (${e.ca}🌕 v ${e.cd}🌕${e.downwind ? ", downwind +1" : ""}) — ${nm(e.win)} wins ${how} and takes ${sp}`;
-    }
-    case "lookout": { const w = e.calls.filter(c => c.right).map(c => nm(c.seat)); return `🔭 The Lookout settles — ${w.length ? w.join(", ") + " called it (+2🌕)" : "nobody called it"}`; }
-    case "cast": {
-      const top = e.ladder.length ? Math.pow(2, e.ladder.length) : 1;
-      const took = Object.entries(e.took).map(([i, v]) => `${nm(+i)} ${v ? "+" + v : "nothing"}`).join(" · ");
-      return `🎣 ${nm(e.caller)} calls the cast! The pot climbed to ${top}. ${took}`;
-    }
-    case "poach": return `🎣 ${nm(e.p)} slips a line over the side alone (+${e.got}🌕)`;
-    case "pass": return `${nm(e.p)} holds course`;
-    case "aground": return `🛠 ${nm(e.p)} spends the turn on repairs`;
-    case "bake": return `<span class="hdr">🧁 ${nm(e.p)} reaches Tortuga with a full recipe and fires the ovens!</span>`;
-    case "finallap": return `<span class="hdr">🏁 Final lap — every other captain gets ONE last turn!</span>`;
-    default: return null;
-  }
-}
 
 /* ---------------------------------------------------------------- the human resolver */
 

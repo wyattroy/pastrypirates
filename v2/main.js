@@ -53,6 +53,7 @@ function humanResolver() {
         const lbl = o => o.a === "bake" ? "🧁 Fire the ovens — WIN"
           : o.a === "dock" ? `⚓ Dock — ${ingBtn(o.ing)} (${G.priceOf(o.ing, p)}🌕)`
           : o.a === "battle" ? `⚔️ Attack ${G.players[o.target].name}`
+          : o.a === "trade" ? "🤝 Hail the fleet — call a trade"
           : o.a === "cast" ? "🎣 Call the cast"
           : o.a === "poach" ? "🎣 Poach alone (+2🌕)" : "Hold";
         return await UI.ask(`${you} — what'll ye do?`, req.options.map(o => ({ label: lbl(o), value: o })));
@@ -140,7 +141,8 @@ async function drive() {
       res = await human(req);
     } else {
       res = bot(req);
-      if (["act", "cast", "commit"].includes(req.kind)) { UI.drawBoard(); UI.drawVane(); UI.drawCaptains(activeHuman ?? -1); await UI.sleep(90); }
+      UI.drawBoard(); UI.drawVane(); UI.drawCaptains(activeHuman ?? -1);
+      await UI.sleep(req.kind === "sail" || req.kind === "act" ? 120 : 40);
     }
     step = it.next(res);
     if (p.kind === "bot") await UI.narrate(activeHuman ?? humanSeats[0], false);
