@@ -5,7 +5,12 @@
 // Exactly the same seam the bots use — which is what makes "bots and humans play the same game by
 // the same rules" true by construction rather than by discipline.
 
-import { BOARD_IMG, DOCK_IMG, ING_IMG, ING_NAME, ING_EMOJI, BOAT_IMG, ISLAND_SHAPE_IMG,
+// ING_EMOJI is deliberately NOT imported. Every ingredient the player sees is the painted crate art
+// and nothing else: the emoji set does not match it — sugar is white cubes on the board and a
+// wrapped sweet as an emoji, wheat is a sheaf and 🌾 is rice, spice is cinnamon sticks and 🌶️ is a
+// chilli — so a recipe written in emoji named different ingredients from the ones on the islands.
+// Keeping it out of scope is the fix; a rule that lives in a comment gets broken by the next person.
+import { BOARD_IMG, DOCK_IMG, ING_IMG, ING_NAME, BOAT_IMG, ISLAND_SHAPE_IMG,
          COIN_IMG, COIN_SPIN_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, FLIP_SOCKET_IMG,
          HEXCOL, iconImg } from "../src/shared/index.js";
 import { DIRS, DK, K, man, POWERS } from "./engine.js";
@@ -227,10 +232,11 @@ export function drawCaptains(youSeat) {
     const mine = p.idx === youSeat;
     const cargo = p.ing.length ? p.ing.map(i => `<img src="${A(ING_IMG[i])}" alt="${i}">`).join("") : "<i>empty hold</i>";
     return `<div class="cap${p.done ? " done" : ""}" style="border-left:5px solid ${HEXCOL[p.idx]}">
-      <div class="capTop"><b>${p.name}</b> ${p.kind === "bot" ? "🤖" : ""} <span class="pw">${POWERS[p.power]?.name || ""}</span>
+      <div class="capTop"><b>${p.name}</b> ${p.kind === "bot" ? "🤖" : ""} ${POWERS[p.power] ? `<span class="pw">${POWERS[p.power].name}</span>` : ""}
         <span class="coins"><img src="${A(COIN_IMG)}" alt="coins">${p.coins}</span></div>
       <div class="cargo">${cargo}</div>
-      ${mine && p.recipe ? `<div class="recipe">Recipe: ${p.recipe.map(i => `<span class="${need.includes(i) ? "want" : "have"}">${ING_EMOJI[i]}</span>`).join(" ")}</div>` : ""}
+      ${mine && p.recipe ? `<div class="recipe">Recipe: ${p.recipe.map(i =>
+        `<span class="${need.includes(i) ? "want" : "have"}">${ingIcon(i, "ir")}</span>`).join("")}</div>` : ""}
     </div>`;
   }).join("");
 }
@@ -468,4 +474,8 @@ export function flipCoin(msg, heads, got) {
     });
   });
 }
-export { ING_NAME, ING_EMOJI, ING_IMG, HEXCOL, POWERS };
+// The one way to draw an ingredient. Everything that shows a crate goes through this, so the board,
+// the recipe cards, the buttons and the narration can never disagree about what cocoa looks like.
+export const ingIcon = (i, cls) => `<img class="${cls || "ii"}" src="${A(ING_IMG[i])}" alt="${ING_NAME[i] || i}" title="${ING_NAME[i] || i}">`;
+
+export { ING_NAME, ING_IMG, HEXCOL, POWERS };

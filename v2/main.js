@@ -2,13 +2,13 @@
 import { GameV2, POWERS, K, man } from "./engine.js";
 import { botResolver } from "./strategy.js";
 import * as UI from "./ui.js";
-const A = UI.A;
-import { ING_NAME, ING_EMOJI, ING_IMG, HEXCOL } from "../src/shared/index.js";
+// No ING_EMOJI here either — see the note in ui.js. One picture of a crate, everywhere.
+import { ING_NAME, HEXCOL } from "../src/shared/index.js";
 
 let G, bot, seats, humanSeats = [], activeHuman = null;
 
 const $ = id => document.getElementById(id);
-const ingBtn = i => `<img class="ii" src="${A(ING_IMG[i])}" alt=""> ${ING_NAME[i] || i}`;
+const ingBtn = i => `${UI.ingIcon(i)} ${ING_NAME[i] || i}`;
 
 // pass-and-play: hand the device over before a different captain is asked to decide
 async function handOver(seat) {
@@ -29,7 +29,9 @@ function humanResolver() {
     switch (req.kind) {
       case "recipe": {
         const [a, b] = req.options;
-        const show = r => r.map(i => ING_EMOJI[i]).join(" ");
+        // the same crate art that is sitting on the islands — a recipe you cannot match to the
+        // board by eye is not a choice, it is a guess
+        const show = r => `<span class="recipeRow">${r.map(i => UI.ingIcon(i, "ib")).join("")}</span>`;
         return await UI.ask(`${you} — two recipes, keep one. Which path can ye actually sail?`,
           [{ label: show(a), value: 0 }, { label: show(b), value: 1 }],
           "Look at where the islands fell and where ye start.");
@@ -121,8 +123,8 @@ function humanResolver() {
         }
         const opts = [{ label: "I'll not deal", value: { no: true } }];
         if (offer.giveIng) {
-          opts.push({ label: `Aye — swap for ${ING_NAME[offer.giveIng]}`, value: { ask: 0 } });
-          return await UI.ask(`${who} wants ${ingBtn(offer.want)} and offers ${ING_NAME[offer.giveIng]}. Ye hold one.`,
+          opts.push({ label: `Aye — swap for ${ingBtn(offer.giveIng)}`, value: { ask: 0 } });
+          return await UI.ask(`${who} wants ${ingBtn(offer.want)} and offers ${ingBtn(offer.giveIng)}. Ye hold one.`,
             opts, "Crate for crate, or nothing.");
         }
         // Their number opens the haggle; it does not cap it. Name any price up to what is actually
@@ -155,7 +157,7 @@ function humanResolver() {
             (!offer.sale && !offer.giveIng && a.ask > n0 ? ` <small>(holds out for ${a.ask - n0} more)</small>` : ""),
           value: i }));
         opts.push({ label: "Walk away", value: -1 });
-        return await UI.ask(`Answers for yer ${ING_NAME[offer.want]}. Take one?`,
+        return await UI.ask(`Answers for yer ${ingBtn(offer.want)}. Take one?`,
           opts, offer.sale ? "Ye asked the table to bid." : `Ye called ${n0}🌕.`);
       }
       case "commit": {
