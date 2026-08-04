@@ -88,6 +88,31 @@ function reservation(g, holder, ing, buyer) {
   return r;
 }
 
+/* ---------------------------------------------------------------- combat */
+
+// What will the other captain likely put up? They lose it either way, so nobody empties their purse
+// unless the prize is worth it. Assume roughly half a purse, more if they are holding something
+// they need themselves.
+const likelyStake = (g, q) => Math.min(q.coins, Math.max(1, Math.round(q.coins * 0.55)));
+
+// Downwind adds +1, and a tie on coins goes to the flip, then to the lighter hold.
+function winChance(g, p, q, stake) {
+  const dx = q.pos[0] - p.pos[0], dy = q.pos[1] - p.pos[1];
+  const toward = DK.find(k => DIRS[k][0] === dx && DIRS[k][1] === dy);
+  const away = DK.find(k => DIRS[k][0] === -dx && DIRS[k][1] === -dy);
+  let mine = stake + (g.windNow === toward ? 1 : 0);
+  const theirs = likelyStake(g, q) + (g.windNow === away ? 1 : 0);
+  if (mine > theirs) return 0.88;                    // they could still surprise me
+  if (mine < theirs) return 0.12;
+  // level: one flip each, then the lighter hold wins
+  return 0.5 + (p.ing.length < q.ing.length ? 0.12 : p.ing.length > q.ing.length ? -0.12 : 0);
+}
+// Commit enough to beat what they will probably show, but never more than the prize is worth.
+function commitFor(g, p, q, prize) {
+  const need = likelyStake(g, q) + 1;
+  return Math.max(1, Math.min(p.coins, Math.min(need, Math.ceil(prize * 0.7))));
+}
+
 /* ---------------------------------------------------------------- routing */
 
 // Cost, in turns, of a whole pickup route: me -> each berth in order -> home.
@@ -144,6 +169,17 @@ export function botResolver(g) {
             const holders = g.players.filter(q => q !== p && !q.done && q.ing.some(i => need.includes(i)));
             if (holders.length) target = holders[0].pos;
           }
+          // Closing on a laden ship is a legitimate voyage, not a detour of last resort. If a rival
+          // is carrying something I need and is no further off than the island that stocks it, sail
+          // at THEM. That is what makes battle a strategy rather than an accident of adjacency.
+          const fromT = turnsFrom(g, p.pos, g.windNow);
+          const here = fromT[K(target)] ?? 99;
+          for (const q of g.players) {
+            if (q === p || q.done || p.coins < 2) continue;
+            if (!q.ing.some(i => need.includes(i))) continue;
+            const d = fromT[K(q.pos)] ?? 99;
+            if (d <= here) { target = q.pos; break; }
+          }
         }
         const td = turnsTo(g, target, g.windNow), sq = squares(g, target);
         // turns decide; squares break ties and make progress within a turn (the plateau trap)
@@ -161,20 +197,36 @@ export function botResolver(g) {
         // Trade costs the action now, so only spend it when a deal genuinely beats sailing on:
         // somebody holds a crate I need, they have not already refused me for it, and fetching it
         // myself would cost more than the deal will.
+        // What is a deal worth this turn? (the crate's value less what it will cost me)
         const trade = o.find(x => x.a === "trade");
-        if (trade) {
-          const worth = g.needs(p).some(i => {
-            const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(i) && !wasRefused(p, q.idx, i));
-            if (!holders.length) return false;
-            return crateValue(g, p, i) >= Math.min(...holders.map(q => reservation(g, q, i, p)));
-          });
-          if (worth) return trade;
+        let tradeGain = 0;
+        if (trade) for (const i of g.needs(p)) {
+          const holders = g.players.filter(q => q !== p && !q.done && q.ing.includes(i) && !wasRefused(p, q.idx, i));
+          if (!holders.length) continue;
+          const ask = Math.min(...holders.map(q => reservation(g, q, i, p)));
+          if (ask > p.coins) continue;
+          tradeGain = Math.max(tradeGain, crateValue(g, p, i) - ask);
         }
         // guns only against someone who refused a deal in public
-        const desperate = x => g.players[x.target].ing.some(i => g.needs(p).includes(i) && g.board.tokens[i] <= 0);
-        const fight = o.filter(x => x.a === "battle")
-          .find(x => (p.refused.has(x.target) && g.players[x.target].ing.some(i => g.needs(p).includes(i))) || desperate(x));
-        if (fight && p.coins >= 2) return fight;
+        // BATTLE IS A STRATEGY, NOT A LAST RESORT. This is a pirate game: if somebody beside you is
+        // carrying a crate you need and you can afford the powder, taking it is a reasonable play and
+        // the bot should make it. Judge it the way a captain would — what is the crate worth, how
+        // likely am I to win, what does the powder cost me — and fight when that comes out ahead.
+        let bestFight = null, bestGain = 0;
+        for (const x of o.filter(y => y.a === "battle")) {
+          const q = g.players[x.target];
+          const prize = Math.max(0, ...q.ing.map(i => crateValue(g, p, i)));
+          if (prize <= 0) continue;                       // nothing aboard I want
+          const stake = Math.min(p.coins, commitFor(g, p, q, prize));
+          if (stake < 1) continue;
+          const gain = winChance(g, p, q, stake) * prize - stake;
+          if (gain > bestGain) { bestGain = gain; bestFight = x; }
+        }
+        // A pirate weighs the two against each other. Taking it is a real option, not a fallback for
+        // when nobody will deal — and it wins whenever the numbers say so.
+        if (bestFight && bestGain >= tradeGain) return bestFight;
+        if (trade && tradeGain > 0) return trade;
+        if (bestFight) return bestFight;
         // call the cast only if genuinely short, and never if it arms a rival about to finish
         const cast = o.find(x => x.a === "cast");
         if (cast) {
@@ -248,10 +300,12 @@ export function botResolver(g) {
       case "commit": {
         const { max, foe, attacking } = req.options;
         const q = g.players[foe];
-        const vital = q.ing.some(i => g.needs(p).includes(i) && g.board.tokens[i] <= 0);
-        if (vital) return max;
-        if (attacking) return Math.min(max, Math.max(1, Math.ceil(max * 0.6)));
-        return Math.min(max, Math.max(1, Math.ceil(max * 0.5)));
+        // what is actually at stake for me here?
+        const atRisk = attacking
+          ? Math.max(0, ...q.ing.map(i => crateValue(g, p, i)))              // the crate I am after
+          : Math.max(5, ...p.ing.map(i => g.needs(p).includes(i) ? crateValue(g, p, i) : 0));  // what I could lose
+        if (q.ing.some(i => g.needs(p).includes(i) && g.board.tokens[i] <= 0)) return max;      // last one afloat
+        return Math.min(max, commitFor(g, p, q, Math.max(atRisk, 4)));
       }
 
       case "spoils": {

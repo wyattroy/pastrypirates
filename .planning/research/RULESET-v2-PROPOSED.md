@@ -189,10 +189,10 @@ mean coins committed, both sides:                        7.5
 spoils were a crate the winner specifically needed:     80.0%
 ```
 
-**Attacker win rate is 70.4%, and that is not a balance problem — it is selection.** Because a
-captain only attacks someone who has *refused a deal* (`BOT-STRATEGY.md` §5), the fights that happen
-are the ones the attacker wanted badly enough to pay for. Battles are rare, decisive, and almost
-always about a specific crate.
+**Battles are a strategy, not a last resort** (Wyatt, 2026-08-04). A captain who is beside a laden
+rival and can afford the powder should take it, and the maths agrees — ~4 coins for a 60–88% shot at
+a crate worth 8–14. The bot weighs a fight against a deal and takes whichever is worth more, which
+puts battles at **7.3 a game**, above the shipped v1 game's 6.0, with trade still at 17.7.
 
 **"Any part of your purse" rather than 0–3 is doing a lot of quiet work.** A 0–3 range stops being a
 decision the moment everyone is rich, and it also made the *Shooter* power worth +18 points of win

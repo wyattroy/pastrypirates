@@ -179,18 +179,37 @@ Pick a target, then sail to the reachable square that ranks best toward it.
 
 ---
 
-## 5. Battle: try to buy before you plunder
+## 5. Battle: a strategy, weighed against trade — not a last resort
 
-**This is a hard requirement, not a heuristic.** A bot that attacks whenever a target is adjacent
-produces a completely different game from the one the rules describe:
+**SUPERSEDES the earlier "try to buy before you plunder" rule.** Wyatt, 2026-08-04: *"This is a
+pirate game; battles should not be a last resort, they should be a viable strategy, period. If a bot
+is close enough to someone who has a resource that they need, and they have enough money, then they
+should do what they would reasonably do, which is try to attack them."*
+
+He is right, and the economics agree: committing ~4 coins for a ~60–88% shot at a crate worth 8–14
+is clearly positive. The old rule was not caution, it was an ordering accident — trade was evaluated
+first and returned immediately, so a fight was only ever reached when no deal existed.
+
+**Measured, and it was not squeamishness — it was the ordering.** A laden rival is orthogonally
+adjacent on **46.5% of all turns**, and under the old rule the bot fought on **1.4%**.
+
+### The evaluation
 
 ```
-attack on sight:            battles are 26.6% of all actions
-attack only after refusal:  battles are  7.8% of all actions
+prize   = the most valuable crate aboard them that I need   (crateValue)
+stake   = enough to beat what they will likely show, capped at 70% of the prize
+theirs  = about 55% of their purse, +1 if they are downwind
+P(win)  = 0.88 if my stake beats theirs · 0.12 if it does not
+          0.50 if level, ±0.12 for the lighter-hold tiebreak
+gain    = P(win) x prize  −  stake
 ```
 
-Wyatt's design intent, verbatim: *"battles would only come when players were being stingy and
-unwilling to trade."* The rules cannot enforce that. The bot has to.
+**Then weigh it against the deal**, and take whichever is worth more. That single change — comparing
+the two rather than ordering them — took battles from **0.81 a game to 7.33**, more than the shipped
+v1 game, while trade held at 17.7.
+
+A refusal is no longer a *licence* to fight. It stays in the model as what it always was: evidence
+about a rival's recipe, which raises what you think they will charge.
 
 **Commitment size.** Both captains secretly commit any part of their purse; both lose it either way.
 Commit in proportion to what is at stake — the full purse when the target holds the last crate of
