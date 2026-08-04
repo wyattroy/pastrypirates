@@ -6,7 +6,8 @@
 // the same rules" true by construction rather than by discipline.
 
 import { BOARD_IMG, DOCK_IMG, ING_IMG, ING_NAME, ING_EMOJI, BOAT_IMG, ISLAND_SHAPE_IMG,
-         COIN_IMG, HEXCOL, iconImg } from "../src/shared/index.js";
+         COIN_IMG, COIN_SPIN_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, FLIP_SOCKET_IMG,
+         HEXCOL, iconImg } from "../src/shared/index.js";
 import { DIRS, DK, K, man, POWERS } from "./engine.js";
 import { narrate as lineFor, tierOf, TIER } from "./events.js";
 
@@ -196,4 +197,39 @@ export function ask(msg, buttons, sub) {
   });
 }
 export function say(msg) { $("panel").innerHTML = `<div class="apMsg">${msg}</div>`; }
+
+// The treasure flip at a berth. It always happened in the engine, but it happened silently and the
+// buy prompt arrived on top of it, so a player who was told "flip for treasure, then buy" saw only
+// the buy. Here it is its own beat: the coin is the button, it spins, it lands, and only then does
+// anything else appear.
+//
+// Panel order follows the standing rule — message, then the coin, then the helper text — so the
+// reveal reads top to bottom in the order it is laid out.
+export function flipCoin(msg, heads, got) {
+  return new Promise(res => {
+    const p = $("panel");
+    p.innerHTML = `<div class="apMsg">${msg}</div>
+      <div class="flipWrap"><button class="flipCoin" id="ppFlip" aria-label="Flip for treasure">
+        <img src="${A(FLIP_SOCKET_IMG)}" class="flipSocket" alt="">
+        <img src="${A(COIN_SPIN_IMG)}" class="flipFace" id="ppFlipFace" alt="">
+      </button></div>
+      <div class="apSub" id="ppFlipSub">Tap the coin to dig.</div>`;
+    const btn = $("ppFlip"), face = $("ppFlipFace"), sub = $("ppFlipSub");
+    let spent = false;
+    btn.addEventListener("click", async () => {
+      if (spent) return; spent = true;
+      btn.classList.add("spinning");
+      await sleep(700);
+      btn.classList.remove("spinning");
+      face.src = A(heads ? FLIP_HEADS_IMG : FLIP_TAILS_IMG);
+      sub.innerHTML = heads
+        ? `<b>Heads — treasure! +${got}<img class="ii" src="${A(COIN_IMG)}" alt=" coins"></b>`
+        : `Tails — nothing but sand.`;
+      sub.classList.add(heads ? "flipWin" : "flipLose");
+      await sleep(1000);
+      p.innerHTML = "";
+      res(null);
+    });
+  });
+}
 export { ING_NAME, ING_EMOJI, ING_IMG, HEXCOL, POWERS };

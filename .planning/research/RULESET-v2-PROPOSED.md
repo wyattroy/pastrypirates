@@ -62,6 +62,12 @@ there.
 its second, 5 for its third.** You may buy crates you do not need — to trade, to deny a rival, or to
 bluff about your recipe.
 
+> Docking is **two things in a fixed order**, and the order is the point: the coin decides how much
+> money you are shopping with. At a table the captain flips it themselves; online they tap it and
+> watch it land. It is never resolved out of sight — a treasure flip that only shows up as a changed
+> number is the same as no flip at all, which is exactly how it shipped once and got caught in
+> playtest.
+
 **⚔️ Battle** — an adjacent ship, including at Tortuga. Both captains **secretly commit any part of
 their purse**, then reveal. **Both lose what they committed**, win or lose.
 

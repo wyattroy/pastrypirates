@@ -5,6 +5,11 @@ ROOT="/home/user/pastrypirates/"
 # is drawn at ~560px; islands are drawn at ~100px each.
 SPEC=[("assets/board.png",760,"WEBP"),("assets/dock.png",64,"WEBP"),
       ("assets/icons/coin-emoji.png",40,"WEBP")]
+# the treasure flip at a berth — socket, spinning coin, and the two faces. Anything the panel can
+# show has to be inlined; the artifact's CSP blocks every external request, so a missing entry here
+# is a blank square in the middle of the beat rather than an error anyone would notice.
+SPEC+=[("assets/icons/flip-socket.png",120,"WEBP"),("assets/icons/coin-spin.png",84,"WEBP"),
+       ("assets/icons/flip-heads.png",84,"WEBP"),("assets/icons/flip-tails.png",84,"WEBP")]
 SPEC+=[(f"assets/islands/{i}.png",180,"WEBP") for i in range(1,8)]
 SPEC+=[(f"assets/boats/{i}.png",84,"WEBP") for i in range(1,5)]
 SPEC+=[(f"assets/ingredients/{n}.png",56,"WEBP") for n in

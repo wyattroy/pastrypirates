@@ -58,6 +58,10 @@ function humanResolver() {
           : o.a === "poach" ? "🎣 Poach alone (+2🌕)" : "Hold";
         return await UI.ask(`${you} — what'll ye do?`, req.options.map(o => ({ label: lbl(o), value: o })));
       }
+      case "flip": {
+        const { ing, heads, got } = req.options;
+        return await UI.flipCoin(`${you} ties up at ${ingBtn(ing)} — dig for treasure first.`, heads, got);
+      }
       case "buy": {
         const { ing, cost, need } = req.options;
         return await UI.ask(`Buy ${ingBtn(ing)} for <b>${cost}🌕</b>?`,

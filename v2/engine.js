@@ -228,15 +228,22 @@ export class GameV2 {
       p.done = true; this.finishOrder.push(p.idx); this.ev("bake", { p: p.idx }); return;
     }
     if (act.a === "dock") {
-      const ing = act.ing, heads = this.flip();
+      const ing = act.ing;
+      // Rule 7: tying up is TWO things in a fixed order — dig for treasure, THEN buy. The flip is
+      // resolved here so the order of RNG calls never depends on who is resolving, but the outcome
+      // rides along in the request so a human can be shown a coin turning over instead of a number
+      // that has already appeared. The response is discarded: this is a beat, not a decision.
+      const heads = this.flip();
+      yield { kind: "flip", seat: p.idx, options: { ing, heads, got: heads ? TREASURE : 0 } };
       if (heads) p.coins += TREASURE;
       this.ev("treasure", { p: p.idx, ing, heads, got: heads ? TREASURE : 0 });
       const cost = this.priceOf(ing, p);
+      const needed = this.needs(p).includes(ing);   // ask BEFORE the crate is in the hold
       if (this.board.tokens[ing] > 0 && p.coins >= cost) {
-        const buy = yield { kind: "buy", seat: p.idx, options: { ing, cost, need: this.needs(p).includes(ing) } };
+        const buy = yield { kind: "buy", seat: p.idx, options: { ing, cost, need: needed } };
         if (buy) {
           p.coins -= cost; this.board.tokens[ing]--; this.sold[ing]++; p.ing.push(ing);
-          this.ev("buy", { p: p.idx, ing, cost });
+          this.ev("buy", { p: p.idx, ing, cost, needed });
         }
       } else if (p.coins < cost) this.ev("broke", { p: p.idx, ing, cost });
       return;

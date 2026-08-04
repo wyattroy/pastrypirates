@@ -25,6 +25,15 @@ main{max-width:1000px;margin:0 auto;padding:0 12px 40px;display:grid;gap:12px;gr
 .apBtn:hover{transform:translateY(1px);box-shadow:0 1px 0 var(--ink)}
 .apBtn small{font-weight:400;opacity:.8}
 .apSub{font-style:italic;font-size:13px;opacity:.75;margin-top:7px}
+.flipWrap{display:flex;justify-content:center}
+.flipCoin{background:none;border:0;padding:0;cursor:pointer;position:relative;width:92px;height:92px}
+.flipSocket{position:absolute;inset:0;width:92px;height:92px;opacity:.85}
+.flipFace{position:absolute;left:14px;top:14px;width:64px;height:64px}
+.flipCoin.spinning .flipFace{animation:ppflip .18s linear infinite}
+@keyframes ppflip{0%{transform:scaleY(1)}50%{transform:scaleY(.08)}100%{transform:scaleY(1)}}
+.apSub.flipWin{opacity:1;font-style:normal;color:#0e6b3a}
+.apSub.flipLose{opacity:.8}
+@media(prefers-reduced-motion:reduce){.flipCoin.spinning .flipFace{animation:none;opacity:.5}}
 #narration{height:190px;overflow-y:auto;font-size:14px}
 #narration .line{padding:2px 0;border-bottom:1px dotted #0002}
 #narration .beat{font-weight:700;font-size:14.5px}
