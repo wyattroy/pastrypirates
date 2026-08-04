@@ -16,6 +16,7 @@ chat transcript.
 | 1 | **`RULESET-v2-PROPOSED.md`** | **The ruleset as decided.** Rules first, then the evidence for each. Start here. |
 | 2 | **`BOT-STRATEGY.md`** | How a captain should think. A build requirement, not a nice-to-have — two of the biggest quality wins in the whole pass were bot behaviour, not rules. |
 | 3 | **`PRD-v2-FORK.md`** | How to build it. Nine non-negotiables drawn from this project's own scar tissue, and the decision-seam architecture. |
+| 4 | **`PLAYTEST-2026-08-04-v2.md`** | **Wyatt's first real play of the build.** Two structural findings, both confirmed in code, with the fix he proposed. Read before touching `v2/`. |
 | — | `RULESET-DESIGN-REVIEW-2026-08-03.md` | The original review of the **shipped v1** game that started this. Superseded as a plan, still the best record of what is wrong with v1 and why. |
 
 ## The code
@@ -38,7 +39,10 @@ node scripts/wyatt_ruleset_sim.mjs 3000 --treasure=4 --bidmax=8 --tradefirst \
 
 ## ⚠️ Health warning on `v2/`
 
-**Wyatt playtested it on 2026-08-03 and found "so many problems I don't know where to start."**
+**Wyatt playtested it and found "so many problems I don't know where to start."** The two he named
+are written up in `PLAYTEST-2026-08-04-v2.md`: the bots spam trade offers every round with no memory
+of refusals, and three event types — including `turn` — are never narrated, so you cannot see whose
+turn it is or what anyone is deciding.
 
 Treat it as a proof that the rules can be implemented, **not** as a foundation to build on. The
 engine and the decision seam are probably sound — the self-test plays 200/200 games and the
@@ -48,6 +52,14 @@ confident.
 
 Also unresolved: the self-test's **seat spread favours later seats by ~9 points**, worse than the
 simulator's ~5. Something in the implementation differs from the model and was never chased down.
+
+## The change Wyatt proposed, and I agree with
+
+**Take trade out of the turn loop and make it one of the Acts.** It kills the offer spam
+structurally rather than by tuning, and it fills the 40–57% of turns that are currently passes —
+crossing the sea becomes when you do business. Consequences to design for are in
+`PLAYTEST-2026-08-04-v2.md`; the big one is that **every economy figure in the ruleset was measured
+at ~35 trades a game** and would need re-measuring.
 
 ## The one open design question
 
