@@ -59,7 +59,14 @@ main{max-width:1000px;margin:0 auto;padding:0 12px 40px;display:grid;gap:12px;gr
 @keyframes bubIn{from{opacity:0}to{opacity:1}}
 @keyframes bubOut{to{opacity:0}}
 @media(prefers-reduced-motion:reduce){.bub{animation:none;opacity:1}.bub.gone{opacity:0}}
-.logCard{padding:6px 10px}
+.logCard{padding:6px 10px;position:relative;cursor:pointer}
+/* the log and the board are both "hurry up" targets — tapping either cuts the current hold */
+.spd{position:absolute;right:5px;top:4px;z-index:2;font:inherit;font-size:11px;font-weight:700;
+ line-height:1;cursor:pointer;background:var(--teal);color:var(--mint);border:0;border-radius:20px;
+ padding:4px 8px;opacity:.75}
+.spd:hover{opacity:1}
+.boardCard{cursor:pointer}
+#narration{padding-right:34px}
 /* two lines, pinned to the newest. Anything taller stops being a commentary and starts being a
    document — and the panel below it is where the player has to act. */
 #narration{height:44px;overflow-y:auto;font-size:14px;line-height:1.45;scrollbar-width:none}
@@ -107,7 +114,7 @@ h2{color:var(--teal);margin:.4em 0}
     <div class="card boardCard"><div id="board"></div><div id="bubbles"></div></div>
     <!-- the log sits under the board because that is where the eye already is; two lines deep, so
          it reads as a running commentary on what just moved rather than a wall to scroll through -->
-    <div class="card logCard"><div id="narration"></div></div>
+    <div class="card logCard"><button id="speedBtn" class="spd" title="Narration speed">1×</button><div id="narration"></div></div>
     <div class="card" id="panel"></div>
   </div>
   <div>

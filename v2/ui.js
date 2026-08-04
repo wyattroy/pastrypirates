@@ -180,9 +180,61 @@ const ctxFor = you => ({
   ing: i => `<img class="ii" src="${A(ING_IMG[i])}" alt=""> ${ING_NAME[i] || i}`,
 });
 
-// Tiers (PRD 6). The old build gave every line the same weight, so a turn header could not be made
-// louder than a pass and nothing read at all.
-const HOLD = { [TIER.BEAT]: 620, [TIER.LINE]: 260, [TIER.TICKER]: 90 };
+/* ================= THE NARRATION CLOCK =================
+   THE NARRATOR IS THE CLOCK, and it is the only clock. `drive()` awaits `narrate()` before it
+   advances the generator, so the engine physically cannot get ahead of what has been said — it
+   steps, says everything that piled up, and only then takes the next step. That seam already
+   existed; what was wrong was that the clock ticked in tenths of a second.
+
+   Pacing therefore lives HERE and nowhere else. drive() used to add its own sleep on top of this
+   for bot steps, which meant two things decided the speed and neither one knew about the other.
+   That sleep is gone: if the game feels wrong, the numbers below are the only place to look.
+
+   BURST COMPRESSION. Most steps say one thing (mean 1.5 lines between decisions), but a trade
+   outcry can emit the call, three answers and the deal with nothing to click in between — up to
+   ten. At a flat 2s that is twenty seconds of watching. So a run of lines is budgeted as a whole:
+   past BURST_CAP the whole run is scaled to fit, with a floor so nothing flashes past unread. The
+   common case is untouched. */
+const PACE = { [TIER.BEAT]: 2000, [TIER.LINE]: 2000, [TIER.TICKER]: 600 };
+const BURST_CAP = 6000;    // longest a run of lines with no decision in it may take
+const MIN_HOLD = 350;      // ...and no line goes by faster than this, however long the run
+
+const SPEEDS = [{ mult: 1, label: "1×" }, { mult: 2, label: "2×" }, { mult: 0, label: "⏩" }];
+let speedIdx = 0;
+try { speedIdx = Math.min(SPEEDS.length - 1, Math.max(0, +localStorage.getItem("pp2_speed") | 0)); } catch (e) {}
+
+// One shared "stop waiting" signal. Every hold registers here, so a tap releases whatever is
+// currently being read without the caller needing to know a tap is even possible.
+const waiters = new Set();
+export function skipNow() { for (const f of [...waiters]) f(); }
+function hold(ms) {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise(res => {
+    const done = () => { clearTimeout(t); waiters.delete(done); res(); };
+    const t = setTimeout(done, ms);
+    waiters.add(done);
+  });
+}
+
+function paintSpeed() { const b = $("speedBtn"); if (b) b.textContent = SPEEDS[speedIdx].label; }
+function bumpSpeed() {
+  speedIdx = (speedIdx + 1) % SPEEDS.length;
+  try { localStorage.setItem("pp2_speed", String(speedIdx)); } catch (e) {}
+  paintSpeed(); skipNow();
+}
+
+let wired = false;
+function wirePacing() {
+  if (wired) return; wired = true;
+  // tapping the board or the log hurries the line along; the speed button is a session setting
+  for (const sel of [".boardCard", ".logCard"]) {
+    const el2 = document.querySelector(sel);
+    if (el2) el2.addEventListener("click", skipNow);
+  }
+  const b = $("speedBtn");
+  if (b) b.addEventListener("click", e => { e.stopPropagation(); bumpSpeed(); });
+  paintSpeed();
+}
 
 /* -------- the line, spoken from the ship it belongs to --------------------
    The log under the board says what happened. It does not say WHERE, and on a board with four
@@ -213,29 +265,44 @@ function bubbleAt(seat, html, tier) {
 }
 
 export async function narrate(youSeat, fast) {
+  wirePacing();
   const box = $("narration"), ctx = ctxFor(youSeat), layer = $("bubbles");
+
+  // The whole run is budgeted before a word of it is shown, because how long any one line should
+  // stay up depends on how many are behind it.
+  const run = [];
   for (const e of G.events.slice(lastNarrated)) {
     const html = lineFor(e, ctx);
-    if (!html) continue;
-    const tier = tierOf(e);
+    if (html) run.push({ e, html, tier: tierOf(e) });
+  }
+  lastNarrated = G.events.length;
+  const full = run.reduce((s, x) => s + PACE[x.tier], 0);
+  const squeeze = full > BURST_CAP ? BURST_CAP / full : 1;
+  const mult = SPEEDS[speedIdx].mult;
+
+  for (const x of run) {
+    const ms = (fast || mult === 0) ? 0 : Math.max(MIN_HOLD, PACE[x.tier] * squeeze) / mult;
     const d = document.createElement("div");
-    d.className = "line " + tier;
-    d.innerHTML = html;
+    d.className = "line " + x.tier;
+    d.innerHTML = x.html;
+    // what this line was actually given, and how many were queued with it — the pacing is the
+    // thing most likely to be argued about, so it should be readable from the page itself
+    d.dataset.hold = String(Math.round(ms));
+    d.dataset.run = String(run.length);
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
     while (box.children.length > 60) box.removeChild(box.firstChild);
 
     let bub = null;
-    if (!fast && tier !== TIER.TICKER) {
-      const who = ownerOf(e);
+    if (ms > 0 && x.tier !== TIER.TICKER) {
+      const who = ownerOf(x.e);
       // a captain's line speaks from their ship; a table-wide beat takes the whole board
-      if (who !== null || tier === TIER.BEAT) bub = bubbleAt(who, html, tier);
+      if (who !== null || x.tier === TIER.BEAT) bub = bubbleAt(who, x.html, x.tier);
       if (layer) while (layer.children.length > 3) layer.removeChild(layer.firstChild);
     }
-    await sleep(fast ? 0 : HOLD[tier]);
+    await hold(ms);
     if (bub) { bub.classList.add("gone"); const b = bub; setTimeout(() => b.remove(), 400); }
   }
-  lastNarrated = G.events.length;
 }
 export function clearBubbles() { const l = $("bubbles"); if (l) l.innerHTML = ""; }
 export function resetNarration() { lastNarrated = 0; clearBubbles(); const b = $("narration"); if (b) b.innerHTML = ""; }
@@ -286,7 +353,8 @@ export function flipCoin(msg, heads, got) {
         ? `<b>Heads — treasure! +${got}<img class="ii" src="${A(COIN_IMG)}" alt=" coins"></b>`
         : `Tails — nothing but sand.`;
       sub.classList.add(heads ? "flipWin" : "flipLose");
-      await sleep(1000);
+      // short, because the narration clock holds the treasure line for its full beat straight after
+      await sleep(600);
       p.innerHTML = "";
       res(null);
     });

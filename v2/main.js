@@ -171,13 +171,10 @@ async function drive() {
     UI.drawBoard(); UI.drawVane();
     UI.drawCaptains(p.kind === "human" ? req.seat : (activeHuman ?? -1));
     await UI.narrate(activeHuman ?? humanSeats[0], false);
-    let res;
-    if (p.kind === "human") {
-      res = await human(req);
-    } else {
-      res = bot(req);
-      await UI.sleep(req.kind === "sail" || req.kind === "act" ? 120 : 40);
-    }
+    // No sleep here on purpose. The narration clock in ui.js is the ONLY thing that sets the pace;
+    // a second delay stacked on top meant two places decided the speed and neither knew about the
+    // other. A bot step that says nothing now costs nothing.
+    const res = p.kind === "human" ? await human(req) : bot(req);
     step = it.next(res);
   }
   await UI.narrate(activeHuman ?? humanSeats[0], false);
