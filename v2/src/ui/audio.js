@@ -89,7 +89,8 @@ const EVENT_SOUND = {
   // D-01 (fishing); D-03 (dropping anchor in a storm); D-21 (the anchor holding — same family)
   fish: "fishing", anchor: "fishing", anchorHold: "fishing",
   // D-04: running aground / shipwrecked both borrow storm
-  aground: "storm", shipwrecked: "storm",
+  // v2.1: nothing runs aground any more — the storm keeps its own cue via `newround`
+  shipwrecked: "storm",
   // D-22 — see SHOTCLOCK_SOUND_PLACEHOLDER above. Referenced by constant, never repeated inline.
   shotclock: SHOTCLOCK_SOUND_PLACEHOLDER, shotclockskip: SHOTCLOCK_SOUND_PLACEHOLDER,
   // D-06 — explicit silence, not merely absent from the table
@@ -105,10 +106,10 @@ const EVENT_SOUND = {
   // v2 events, explicit silence rather than merely absent (D-06). `purse` especially: it exists
   // only to push a fresh state snapshot to the Captains panel mid-turn and is invisible by design,
   // so it must never become audible if the unmapped default ever changes.
-  purse: null, idle: null, stormlost: null, openoffer: null, collab: null,
+  purse: null, idle: null, openoffer: null, collab: null,
   // the ocean look and a blown-into-berth rescue are moments, but quiet ones — the narration and
   // the board already carry them
-  pass: null, blownDock: null, berthHold: null,
+  pass: null,
   // a battle that ends with nobody hit has no hit to sound; the paid re-fire is covered by the
   // flip that follows it
   battlenull: null, refire: null,

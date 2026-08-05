@@ -347,6 +347,12 @@ const EVENT_NARRATION={
       :`— Round ${e.round}: wind still blows ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`)+fc};
     return {cls:"roundhdr",txt:`— Round ${e.round}: wind is blowin' ${D} —`+fc};
   },
+  /* v2.1 (Wyatt, 2026-08-05): `aground`, `stormlost`, `berthHold` and `blownDock` are DELETED
+     along with the rule that produced them. A storm can no longer cost a turn, so nothing runs
+     aground, no mooring has to hold, and being blown into a berth is not a rescue worth naming —
+     it is just where the push happened to stop. The whole storm is now `storm` plus the ordinary
+     movement lines. Four narration entries, one engine outcome and two turn-path branches went
+     with it; that deletion IS the feature. */
   // v2 rule 7: the storm hits the whole table at once, before anybody acts.
   storm:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:`⛈️ THE STORM BREAKS! Every ship is blown ${e.dist} squares <b>${DIRNAME[e.dir]}</b>!`}),
@@ -359,25 +365,9 @@ const EVENT_NARRATION={
      narration was unclear about me losing my turn."*
      So `aground` now reports only what just happened, and THIS line reports the consequence at the
      moment it lands. Present tense, addressed, and explicit that both halves of the turn are gone. */
-  stormlost:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?`🏝️ ${pn(e.p)} — yer hard aground. The crew spends the whole turn heavin' her off the rocks: no sailin', no action.`
-    :`🏝️ ${pn(e.p)} is hard aground — their crew spends the whole turn heavin' her off the rocks.`,
-    caps:[[e.p,"🏝️ turn lost — aground"]],pops:[[at(e.p),"🏝️"]]}),
   // Silent by design: it exists only so the Captains panel's snapshot catches up with a purse that
   // changed mid-turn (see humanDock). It is not an event in the fiction and must never narrate.
   purse:()=>null,
-  // v2 rule 8: the mooring ye were ALREADY tied to holds ye against the blow. Without this a
-  // docked captain was driven into the island they were moored to, which is the one place a ship
-  // ought to be safe.
-  berthHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?`⚓ ${pn(e.p)} — the storm hurls itself at yer berth, but the mooring holds fast. Ye stay tied up.`
-    :`⚓ The storm hurls itself at ${pn(e.p)}'s berth, but the mooring holds fast.`,
-    caps:[[e.p,"⚓ mooring holds"]],pops:[[at(e.p),"⚓"]]}),
-  // v2 rule 8b/8d: a berth catches ye mid-storm. Ye stop there, and ye keep yer turn.
-  blownDock: (e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?`⚓ ${pn(e.p)} — the storm blows ye clean into a berth! Ye tie up safe.`
-    :`⚓ The storm blows ${pn(e.p)} clean into a berth — they tie up safe.`,
-    caps:[[e.p,"⚓ blown into a berth"]],pops:[[at(e.p),"⚓"]]}),
   // v2: a bot with nothing worth doing simply ends the turn. Deliberately silent in the
   // narration box — it is not an event, it is the absence of one.
   idle:()=>null,
@@ -421,10 +411,7 @@ const EVENT_NARRATION={
   // addressed reader keeps the name prefix, then switches to second person; every other viewer
   // (including NEUTRAL_VIEWER, and describe()'s own default when appState.mySeat is unset) sees the
   // third-person line — see isLocalTo()'s own header comment for why.
-  // v2 rules 7/8 delete the `moored` narration cluster with the rule behind it: a storm no
-  // longer spares a ship for having docked. It stops short of land (aground), is caught by an
-  // open berth (blownDock), or holds fast behind another ship (blocked). Those three are the
-  // whole of it.
+  // v2.1: a storm stops short of land or of another ship, and that is the whole of it.
   blocked:(e,at,cellPx,viewerSeat)=>{
     let txt;
     if(isLocalTo(e.p,viewerSeat))txt=`${pn(e.p)} — ye spot ${pn(e.other)} dead ahead, so ye strike sail and hold fast.`;
@@ -458,57 +445,6 @@ const EVENT_NARRATION={
     else txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — they refused.`;
     return {cls:"trade",txt,pops:[[at(e.a),"🙅"]]};
   },
-  // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): the coin case names the real amount lost, per
-  // his question on the addressed card — computed from the event stream's own snapshots (the
-  // immediately-prior event's captured coins for this seat, same technique movedSinceTurnStart
-  // uses for position), never a new engine field. Falls back to no parenthetical when the amount
-  // can't be determined (a fabricated/detached event) rather than guessing.
-  // v2 rule 8a: the whole v1 aground LADDER is gone — no pay-to-dodge, no flip-to-anchor, no
-  // losing half yer coins, no crate overboard, no shipwreck. A storm that drives ye onto the rocks
-  // costs exactly one thing: yer turn. This line plays as it happens, during the storm.
-  aground:(e,at,cellPx=0,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?`🏝️ ${pn(e.p)} — the storm drives ye onto the rocks!`
-    :`🏝️ The storm drives ${pn(e.p)} onto the rocks!`,
-    caps:[[e.p,"🏝️ aground"]],pops:[[at(e.p),"🏝️"]]}),
-  // NARR-01/D-25/D-46/D-48 (Wyatt-approved 2026-07-29): docking copy applied verbatim.
-  //
-  // D-46, STATED AS IT ACTUALLY READS (this comment used to describe the over-application F10
-  // found, i.e. exactly what D-46 forbade): *"Only the `ing` (heads) narration branch loses its
-  // place clause. The other three dock branches still need theirs. Do not apply the cut across all
-  // four."* So `ing` — and ONLY `ing` — drops the place and leads with the payoff, because the
-  // actor already read the place name on the Dock button and the flip prompt, and the haul itself
-  // is the payoff that needs no antecedent.
-  //
-  // G1 (Wyatt-approved 2026-07-30) — THE RULE, stated rather than its history: **the addressed line
-  // says what happened to YOU, not where you are.** The actor already read the place name on the
-  // Dock button and again on the flip prompt; a third telling is noise. Wyatt: "you already know
-  // that you docked at the Flour Patch — we don't need to tell you that again."
-  //
-  // This governs the `gA` table only. The NEUTRAL `g` table below keeps every place clause, because
-  // a spectator watching someone else's turn has no other source for either the place or the goods.
-  //
-  // F10's real defect was a DANGLING PRONOUN, and it stays fixed — by a different means. The
-  // addressed `bought` line read "ye flip ⚫ TAILS, but buy it anyway for 3🌕", where "it" referred
-  // to nothing. F10 gave "it" an antecedent by restoring the whole place-and-goods clause; that
-  // over-corrected, because the place was never the fix. `bought` now NAMES ITS GOODS directly in
-  // place of the pronoun — antecedent supplied, place dropped. `empty` returns to its shorter
-  // pre-F10 form at Wyatt's explicit ask; `coins` needs neither place nor goods.
-  //
-  // F5: the ingredient icon now sits directly before the ingredient NAME on every branch that names
-  // goods, via the single shared `goods` value from dockFlavorIcon() — one place decides where the
-  // icon goes, so these branches cannot drift apart again.
-  //
-  // D-48 — the flavour text (DOCK_FLAVOR) is kept and used on every branch, `ing` included.
-  /* v2 rules 10 + 11, wording Wyatt-approved 2026-08-05.
-
-     THE BUG THIS FIXES: a purchase used to swallow the flip entirely — "docks at Glitter Bay and
-     buys a jar of Crystal Sugar for 3" never said whether the captain struck treasure or spent the
-     turn hauling crates, so the 6🌕 or 2🌕 that paid for it was invisible. His report: *"you must
-     narrate when every player flips for treasure."*
-
-     So the line ALWAYS leads with the flip and its payout, and only then names the purchase. One
-     line rather than two: docking is the commonest action in the game and a second narration beat
-     on every dock would slow the whole table (his choice between the two). */
   dock:(e,at,cellPx,viewerSeat)=>{
     const place=dockPlace(e.ing),goods=dockFlavorIcon(e.ing);
     const heads=appState.game.cfg.dockHeads,tails=appState.game.cfg.dockTails;

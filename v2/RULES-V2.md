@@ -67,16 +67,29 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 - Storm push into the rim still triggers the trade-wind sweep.
 - No more NE/SW second gust.
 
-## 8. Blown into land
+## 8. Storms and land — SIMPLIFIED, 2026-08-05
 
-- You **stop on the last open water square** before the land and **forfeit the whole turn**
-  (sail and act). No options, no ladder — you could see it coming.
-- **Docks save you**: if the push's path takes you into a dock square, you stop there safely,
-  count as moored, and **keep your turn** (may dock-flip normally).
-- An **occupied** dock is a ship in the way: you **strike sail and hold fast** before it (v1's
-  blocked behaviour) — not aground, turn intact.
-- You can still be blown **off** a dock into open water.
-- Deleted entirely: pay-to-dodge, flip-to-anchor, lose-half-coins, lose-a-crate, shipwreck.
+Rule 8 originally read: blown into land costs your whole turn, docks save you, an occupied dock
+holds you fast, and you can still be blown off a dock. Playtesting produced two bugs in the same
+family within one session — Tortuga's berths not counting as docks, then a berth not protecting the
+ship moored to it — because "dock" meant three different things depending on the direction of
+approach. Asked what would simplify the storm most, Wyatt chose to **drop the lost turn entirely**.
+
+The whole rule is now one sentence:
+
+> **Land and other ships stop ye short.**
+
+- Nobody ever loses a turn to weather.
+- **Docks need no storm rule at all.** They are water the storm can push you onto or off.
+- The rim still sweeps you: blown into the trade winds, you are carried across the sea.
+
+What this gives up is nothing the game relied on. Measured over 150 games, a storm still moves each
+ship **3.05 squares** on average — most of a full turn's sailing — and still flings a ship into the
+rim roughly **0.85 times per storm**. Removing the lost turn changed the median game length by
+**zero rounds**. The punishment carried all the edge cases; the drama was always in the displacement.
+
+Deleted with it: the `aground`, `stormlost`, `berthHold` and `blownDock` narration, the
+`stormAground` forfeit branch in both the human and bot turn paths, and one engine outcome.
 
 ## 9. Battles — one round
 

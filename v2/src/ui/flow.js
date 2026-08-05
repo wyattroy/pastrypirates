@@ -972,18 +972,8 @@ export async function humanTurn(p){
   if(appState.turnExpired){appState.activeTurnSeat=null;appState.recipeRevealed=false;return;}
   // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
   // ships around; otherwise the wind only shapes this player's own sail budget below
-  // v2 rule 8a: a ship the storm drove onto the rocks at the top of the round forfeits this turn
-  // outright. There is nothing to decide and nothing to pay — the compass warned a round ago.
-  if(p.stormAground){
-    p.stormAground=false;
-    appState.game.ev({t:"stormlost",p:p.idx});
-    liveRender();
-    await narrateLastEvent();
-    stopShotClock();
-    appState.activeTurnSeat=null;
-    if(appState.passAndPlay)liveRender();
-    return;
-  }
+  // v2.1: a storm can no longer cost anyone a turn — land simply stops the push. The forfeit
+  // branch that used to sit here is gone with the rule.
   if(!appState.game.adjPort(p))p.dockedNow.clear();
   const preSailPos=[...p.pos],preSailCoins=p.coins; // lets humanAct offer "move instead" if this seat just stayed put
   // v2 rule 2: sailing is FREE. No coin gate, no debit, no "yer too broke to sail" nudge — and
@@ -1084,15 +1074,7 @@ export async function botTurn(p){
   const g=appState.game;
   g.ev({t:"turn",p:p.idx});
   await botBeat();
-  // v2 rule 8a: the storm already blew the whole table at the top of the round. A bot it drove
-  // aground loses this turn, exactly as a human does — same rule, same path.
-  if(p.stormAground){
-    p.stormAground=false;
-    g.ev({t:"stormlost",p:p.idx});
-    liveRender();
-    await narrateLastEvent();
-    return;
-  }
+  // v2.1: no turn is ever lost to weather, so a bot has no forfeit branch either.
   if(!g.adjPort(p))p.dockedNow.clear();
   // The planner decides where to go (rules-side, in the engine) — this path only animates it, so
   // a bot on screen can never sail somewhere the headless simulation would not have sent it.

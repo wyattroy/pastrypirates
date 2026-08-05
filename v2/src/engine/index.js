@@ -73,10 +73,12 @@ const PLAN={
   windEdge:0.8,
   // holding a crate a rival needs is leverage — worth this many turns of a bot's own time
   leverageTurns:1.1,
-  // Storm lookahead, in stepToward's own units (a whole step of real distance is 1000). Running
-  // aground costs a full turn, so it must outweigh giving up a square of progress — but NOT
-  // outweigh several, or a bot would cower in a corner all game instead of sailing.
-  stormAground:1600,
+  // Storm lookahead, in stepToward's own units (a whole step of real distance is 1000). With the
+  // lost turn gone a storm can no longer punish a bot, only displace it — so what it now avoids is
+  // being shoved against land and losing the ground it just made, and what it courts is a berth
+  // the storm will park it in for free. Both are worth about a square of progress, no more; price
+  // them higher and a bot cowers instead of sailing.
+  stormBlocked:900,
   stormDockBonus:400,
 };
 
@@ -346,37 +348,34 @@ class Game{
   //   "docked"   — the push put you in an open berth, which saves you (rule 8b/8d): you stop
   //                there, count as moored, and KEEP your turn.
   //   "swept"    — carried into the rim and away on the trade winds
-  // ONE square of a storm push. Split out from stormPush so the live UI can animate square by
-  // square and still run the identical rule — the same "keep the two in step" convention
-  // humanDock/doDock already follow. Never let this logic get reimplemented in the UI.
+  /* ONE square of a storm push.
+
+     v2.1 SIMPLIFICATION (Wyatt, 2026-08-05). The storm used to have five outcomes and a whole
+     vocabulary of docks: blown INTO a berth caught you, the berth you were ALREADY at held you,
+     an occupied berth stopped you, land grounded you and cost your turn. Three of those were
+     about docks, and "dock" meant something different in each — which is exactly why two bugs in
+     the same family surfaced in one session.
+
+     Now there is one sentence: LAND AND OTHER SHIPS STOP YE SHORT. Nobody loses a turn, and docks
+     need no storm rule at all — they are simply water the storm can push you onto or off.
+
+     What that gives up is nothing the game was relying on. Measured over 150 games: a storm still
+     moves each ship 3.05 squares on average, which is most of a full turn's sailing, and still
+     flings a ship into the trade-wind rim roughly 0.85 times per storm. Deleting the lost turn
+     changed the median game length by zero rounds. The punishment was carrying the edge cases;
+     the drama was always in the displacement. */
   stormStep(p,dirKey){
     const d=DIRS[dirKey];
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
-    // the edge of the world reads as land: you fetch up against it and lose the turn
-    if(this.blocked(nx))return "aground";
-    // another ship holds that square — including one tied up in a berth. You strike sail and hold
-    // fast (Wyatt's ruling for rule 8c): NOT aground, and your turn survives.
+    // the edge of the world is land like any other
+    if(this.blocked(nx))return "held";
+    // another ship holds that square — you strike sail and hold fast behind her
     const blocker=this.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
     if(blocker){this.ev({t:"blocked",p:p.idx,other:blocker.idx});return "held";}
-    if(this.isIsland(nx)||this.isHome(nx)){
-      /* A SHIP ALREADY TIED UP HOLDS FAST. Rule 8 says a dock saves you from being blown into
-         land; that has to include the dock you are already sitting at, and it is the case that
-         matters most, because a berth is BY DEFINITION adjacent to land — so whenever the wind
-         points at its island, a moored ship was being smashed into the very thing it was moored
-         to. Measured before this fix: 32% of ship-storms spent at a berth ended aground, and half
-         of every grounding in the game was a docked captain. Wyatt hit it twice in one session.
-         Being blown OFF a dock into open water is still allowed — that is the other half of his
-         rule, and it is handled below by the ordinary move. */
-      if(this.isBerth(p.pos))return "berthHold";
-      // land dead ahead and nothing to catch you — rule 8a, the turn is forfeit
-      return "aground";
-    }
+    // land dead ahead — you fetch up short of it, no harm beyond losing the ground
+    if(this.isIsland(nx)||this.isHome(nx))return "held";
     p.pos=nx;
     if(this.onRim(nx)){this.tradewind(p);return "swept";}
-    // an OPEN berth catches you mid-push and saves you (rule 8b: the square you'd hit). An
-    // occupied one was already handled above as a ship in the way. isBerth() — NOT dockCells —
-    // because Tortuga's berths are berths too.
-    if(this.isBerth(nx)){p.justDocked=true;return "docked";}
     return "moved";
   }
   stormPush(p,dirKey,dist){
@@ -389,15 +388,12 @@ class Game{
   }
   // The bookkeeping and narration event for one ship's storm outcome — shared by the headless
   // runStorm() and the live animated push, so bots and humans can never drift apart on the rule.
+  // With the lost turn gone there is nothing to forfeit and nothing to rescue: a ship either moved
+  // or it did not, and a ship that ends on a berth is docked there like any other way of arriving.
   noteStormOutcome(p,outcome,moved,wasDocked){
-    p.stormAground=(outcome==="aground");
-    // berthHold: still tied up, still moored, turn intact — the mooring did its job
-    if(outcome==="docked"||outcome==="berthHold")p.justDocked=true;
-    else if(moved)p.justDocked=false;
-    if(outcome==="aground")this.ev({t:"aground",p:p.idx});
-    else if(outcome==="docked")this.ev({t:"blownDock",p:p.idx});
-    else if(outcome==="berthHold")this.ev({t:"berthHold",p:p.idx});
-    else if(moved&&outcome!=="swept")this.ev({t:wasDocked?"blownOut":"windmove",p:p.idx});
+    if(!moved)return;
+    p.justDocked=this.isBerth(p.pos);
+    if(outcome!=="swept")this.ev({t:wasDocked&&!p.justDocked?"blownOut":"windmove",p:p.idx});
   }
   // Ships in the order the storm reaches them: furthest downwind first, so the lead ship clears
   // its square before the one behind arrives (rule 7b).
@@ -495,11 +491,11 @@ class Game{
     let c=[cell[0],cell[1]];
     for(let s=0;s<STORM_PUSH;s++){
       const nx=[c[0]+d[0],c[1]+d[1]];
-      if(this.blocked(nx))return "aground";
-      if(this.isIsland(nx)||this.isHome(nx))return "aground";
+      // land or the world's edge simply stops the push — no grounding, no lost turn (v2.1)
+      if(this.blocked(nx)||this.isIsland(nx)||this.isHome(nx))return "held";
       c=nx;
       if(this.onRim(c))return "swept";
-      if(this.dockCells.has(c[0]+","+c[1]))return "docked";
+      if(this.isBerth(c))return "docked";
     }
     return "moved";
   }
@@ -525,7 +521,7 @@ class Game{
       // next turn. A square the storm would blow into an open dock is a small BONUS: rule 8d says
       // you tie up safe there and keep the turn, so the storm does the sailing for you.
       const fc=this.stormOutcomeFrom(c);
-      const stormPenalty=fc==="aground"?PLAN.stormAground:(fc==="docked"?-PLAN.stormDockBonus:0);
+      const stormPenalty=fc==="held"?PLAN.stormBlocked:(fc==="docked"?-PLAN.stormDockBonus:0);
       const score=d*1000+n+stormPenalty;
       if(score<bestScore){bestScore=score;best=c;}
     }
@@ -1284,9 +1280,8 @@ class Game{
   takeTurn(p,windDir,storm){
     this.ev({t:"turn",p:p.idx});
     // v2 rule 7: storms are resolved for the WHOLE TABLE at the top of the round (see play()),
-    // not per player here. By the time a turn starts, any storm has already happened — a ship it
-    // ran aground is simply skipped.
-    if(p.stormAground){p.stormAground=false;this.ev({t:"stormlost",p:p.idx});return;}
+    // not per player here. By the time a turn starts the storm has already happened, and v2.1
+    // removed the only way it could cost a turn — so every captain always gets to play.
     const port0=this.adjPort(p);
     if(!port0)p.dockedNow.clear();
     const target=this.chooseTarget(p);
