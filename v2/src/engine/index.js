@@ -73,6 +73,11 @@ const PLAN={
   windEdge:0.8,
   // holding a crate a rival needs is leverage — worth this many turns of a bot's own time
   leverageTurns:1.1,
+  // Storm lookahead, in stepToward's own units (a whole step of real distance is 1000). Running
+  // aground costs a full turn, so it must outweigh giving up a square of progress — but NOT
+  // outweigh several, or a bot would cower in a corner all game instead of sailing.
+  stormAground:1600,
+  stormDockBonus:400,
 };
 
 class Game{
@@ -458,6 +463,32 @@ class Game{
     this._field=dist;this._fieldKey=k;this._fieldRound=this.round;
     return dist;
   }
+  /* v2 rules 6 + 8, together. The compass commits next round's wind a FULL ROUND early and rule 6d
+     promises the forecast is never wrong — so a captain who is paying attention can see a storm
+     coming and steer out of its path. That is the entire justification for rule 8 charging a whole
+     turn with no way to buy out of it: Wyatt's words, *"there are no multiple options, because now
+     you can plan ahead."*
+
+     A bot that ignored the forecast would make that rule feel like arbitrary punishment rather
+     than a thing you failed to plan around. So it doesn't ignore it.
+
+     Returns what the FORECAST storm would do to a ship sitting on `cell`. Other ships are
+     deliberately not modelled: nobody can know where they will be next round, and being stopped
+     by one is harmless anyway (rule 8c — you strike sail and keep your turn). */
+  stormOutcomeFrom(cell){
+    if(!this.stormNext||!this.windNext)return "none";
+    const d=DIRS[this.windNext];
+    let c=[cell[0],cell[1]];
+    for(let s=0;s<STORM_PUSH;s++){
+      const nx=[c[0]+d[0],c[1]+d[1]];
+      if(this.blocked(nx))return "aground";
+      if(this.isIsland(nx)||this.isHome(nx))return "aground";
+      c=nx;
+      if(this.onRim(c))return "swept";
+      if(this.dockCells.has(c[0]+","+c[1]))return "docked";
+    }
+    return "moved";
+  }
   // Move as close to `target` as this turn's sailing allows, measured in real sailing distance.
   // Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
   // when it is already as close as it can get.
@@ -474,7 +505,14 @@ class Game{
       // a square the flood never reached is cut off from the target — fall back to Manhattan so
       // it still ranks, just always behind anything genuinely connected
       const d=fd===undefined?man(c,target)+1000:fd;
-      const score=d*1000+n;
+      // Storm lookahead (rules 6 + 8). Running aground costs a WHOLE TURN, which is worth more
+      // than a square or two of progress — so an unsafe berth is penalised by more than one step
+      // of distance, and a bot will willingly end its move further from the island to keep its
+      // next turn. A square the storm would blow into an open dock is a small BONUS: rule 8d says
+      // you tie up safe there and keep the turn, so the storm does the sailing for you.
+      const fc=this.stormOutcomeFrom(c);
+      const stormPenalty=fc==="aground"?PLAN.stormAground:(fc==="docked"?-PLAN.stormDockBonus:0);
+      const score=d*1000+n+stormPenalty;
       if(score<bestScore){bestScore=score;best=c;}
     }
     if(!best)return false;
