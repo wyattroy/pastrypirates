@@ -850,7 +850,10 @@ class Game{
       if(!ah&&!dh){
         // a bot slips away when the wind is against it (it loses the next both-heads) or when it
         // is carrying a crate it cannot afford to lose; otherwise it stands and takes its chances
-        const holdingCritical=def.ing.some(i=>this.needs(def).includes(i));
+        // "carrying a crate it cannot afford to lose" = a RECIPE crate it holds no spare of.
+        // NOT `needs(def).includes(i)`: needs() is the recipe MINUS what you already hold, so
+        // testing held crates against it is always false and the defender would never flee.
+        const holdingCritical=def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&this.cnt(def.ing,i)<=1);
         if(downwind==="a"||holdingCritical){
           const cells=this.reachableFrom(def);
           if(cells.length){

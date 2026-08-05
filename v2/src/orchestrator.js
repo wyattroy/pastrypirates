@@ -551,7 +551,9 @@ export async function asyncBattle(att,def){
           [{label:"🏃 Flee!",value:true},{label:"⚔️ Stand yer ground",value:false}]);}
         // a bot slips away when the wind is against it (it loses the next both-heads) or when it is
         // carrying a crate it cannot afford to lose — the same test the headless battle() applies
-        else flee=(downwind==="a")||def.ing.some(i=>appState.game.needs(def).includes(i));
+        // same test as the headless battle() — a RECIPE crate held with no spare. needs() excludes
+        // what you already hold, so testing against it can never match (it never fled in 3000 sims).
+        else flee=(downwind==="a")||def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&appState.game.cnt(def.ing,i)<=1);
         if(flee){
           const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
           if(dest){def.pos=dest;appState.game.tradewind(def);await animateRimSweepIfAny();}
