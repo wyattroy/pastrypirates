@@ -102,6 +102,16 @@ const EVENT_SOUND = {
   battle: null,
   // D-21 — explicit silence: an offer is not a deal; sidebet is already narration-suppressed
   parley: null, sidebet: null,
+  // v2 events, explicit silence rather than merely absent (D-06). `purse` especially: it exists
+  // only to push a fresh state snapshot to the Captains panel mid-turn and is invisible by design,
+  // so it must never become audible if the unmapped default ever changes.
+  purse: null, idle: null, stormlost: null, openoffer: null, collab: null,
+  // the ocean look and a blown-into-berth rescue are moments, but quiet ones — the narration and
+  // the board already carry them
+  pass: null, blownDock: null,
+  // a battle that ends with nobody hit has no hit to sound; the paid re-fire is covered by the
+  // flip that follows it
+  battlenull: null, refire: null,
 };
 
 // PURE — no ctx, no DOM, no side effect, safe to call under plain Node. Returns null, or an
