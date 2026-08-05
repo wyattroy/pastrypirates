@@ -101,12 +101,14 @@ export function localAsk(msg,opts,colors,sub){
     });
   });
 }
-export async function humanFlip(p,label,allowBack){
+export async function humanFlip(p,label,allowBack,sub){
   setActor(p.idx);
   const opts=[{label:"🌕 FLIP!",value:1,flip:true}];
   if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
+  // `sub` is the italic helper line beneath the buttons — used by the dock flip to explain what
+  // the two faces of the coin actually pay (Wyatt, 2026-08-05).
   // @copy prompt.flip.fallback
-  const v=await ask(label||"Flip the dubloon!",opts);
+  const v=await ask(label||"Flip the dubloon!",opts,null,sub);
   if(v==="back")return "back";
   netHandlers().onBroadcastFlip("spin");
   await sleep(340);
@@ -555,8 +557,13 @@ export async function humanDock(p,port){
   // v2 rule 10d: an empty island still pays. There is treasure in the sand and work on the dock
   // whether or not there is a crate left to sell, so the flip always happens — unlike v1, which
   // skipped it. Keep this in step with Game.doDock or bots and humans diverge on the rule.
+  // G-v2 (Wyatt-approved 2026-08-05): the prompt used to be a bare "flip!" that never said what
+  // the flip was FOR — his report: *"it currently just tells you to flip for no reason."* The
+  // message stays short and the rules go in the helper line, which is where the narration box
+  // already puts explanatory text (and, per the standing top-to-bottom rule, is revealed last).
   // @copy misc.paramprompt.dockflip
-  const h=await humanFlip(p,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`,true);
+  const h=await humanFlip(p,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — dig for treasure!`,true,
+    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn's work on the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy a crate.`);
   if(h==="back")return "back";
   p.coins+=h?g.cfg.dockHeads:g.cfg.dockTails;
   let got=h?"treasure":"dockhand";
@@ -659,7 +666,9 @@ export async function humanTrade(p){
 
   // ---- every holder answers. Bots reason (engine-side); human captains are asked. ----
   const responses=[];
-  for(const q of g.holdersOf(offer.want,p)){
+  // Only hail captains for whom something has actually changed since they last said no — the
+  // memory lives in the engine so bots spam neither each other nor, more importantly, the human.
+  for(const q of g.holdersOf(offer.want,p).filter(q=>g.worthReAsking(p,q,offer.want,offer))){
     if(q.strategy==="human"){
       setActor(q.idx);
       // @copy prompt.trade.accept
@@ -789,7 +798,7 @@ export async function humanAct(p,sailCtx){
   const canMoveInstead=sailCtx&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  opts.push({label:"⏭️ Pass the turn",value:"pass"});
+  opts.push({label:"🌊 Look into the ocean",value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
@@ -833,7 +842,9 @@ export async function humanAct(p,sailCtx){
     await humanAct(p,sailCtx);return;
   }
   if(v==="pass"){
-    appState.game.ev({t:"pass",p:p.idx});
+    // Each captain walks the creature list from a different starting point, one step per look, so
+    // all thirty appear before any repeat. A random pick would collide almost immediately.
+    appState.game.ev({t:"pass",p:p.idx,sea:appState.game.nextSeaCreature(p)});
     liveRender();
     await narrateLastEvent();
     return;
@@ -964,6 +975,13 @@ export async function botOpenTradeLive(p){
     }else responses.push(g.respondToOffer(q,offer,p));
   }
   setActor(p.idx);
+  if(!responses.length)return false; // nobody left worth hailing — don't spend the turn on silence
+  // remember every refusal, so the same doomed offer is not put to the same captain again
+  const worth=g.offerWorthTurns(p,offer);
+  for(const r of responses)if(r.kind==="deny"){
+    g.rememberRefusal(p,offer.want,r.q.idx,worth);
+    g.refusedFlagWanted(p,offer,r.q);
+  }
   const accepts=responses.filter(r=>r.kind==="accept");
   const counters=responses.filter(r=>r.kind==="counter"&&(offer.giveCoins+r.askFor)<=p.coins);
   let deal=null,extra=0;
@@ -978,6 +996,7 @@ export async function botOpenTradeLive(p){
     if(g.coinTurns(offer.giveCoins+best.askFor)<=g.acquireTurns(p,offer.want).turns){deal=best.q;extra=best.askFor;}
   }
   if(!deal||!g.settleTrade(p,deal,offer,extra)){
+    for(const r of responses)if(r.kind==="counter")g.rememberRefusal(p,offer.want,r.q.idx,worth);
     g.ev({t:"parley",a:p.idx,b:null,offer:offerDisplay,want:offer.want});
     liveRender();
     await botBeat();
@@ -1024,9 +1043,9 @@ export async function botTurn(p){
     if(await botOpenTradeLive(p))return;
   }
   if(action.type==="dock"&&g.doDock(p,action.ing)){await botBeat();return;}
-  // v2 rule 3: no fishing, and deliberately nothing in its place. A bot that has sailed as far as
-  // it can and has nothing worth doing simply ends its turn.
-  g.ev({t:"idle",p:p.idx});
+  // v2 rule 3: no fishing. A bot with nothing worth doing looks into the ocean, exactly as a
+  // human does — same action, same narration, so the table reads consistently.
+  g.ev({t:"pass",p:p.idx,sea:g.nextSeaCreature(p)});
   await botBeat();
 }
 

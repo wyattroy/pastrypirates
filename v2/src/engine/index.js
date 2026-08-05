@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, man, ilabelImg } from "../shared/index.js";
 
 // notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
 // exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
@@ -609,6 +609,14 @@ class Game{
     this.windPrev=dir;
     return this.windStreak;
   }
+  // What this captain sees when they look into the ocean. Walks the list rather than sampling it:
+  // each seat starts at a different offset and advances one step per look, so all thirty appear
+  // before any repeats and two captains rarely see the same beast in the same round. Consumes no
+  // RNG, so it cannot perturb a seeded replay.
+  nextSeaCreature(p){
+    const n=(p.oceanLooks=(p.oceanLooks||0)+1);
+    return SEA_CREATURES[(p.idx*7+n-1)%SEA_CREATURES.length];
+  }
   cnt(arr,x){return arr.filter(v=>v===x).length;}
 
   /* ================= v2 rule 4: the table-wide open trade =================
@@ -712,41 +720,115 @@ class Game{
     const coins=(offer.giveCoins||0)+(extra||0);
     return (offer.giveIng?ilabelImg(offer.giveIng):"")+(offer.giveIng&&coins?" + ":"")+(coins?`${coins} coins`:"");
   }
+  /* ================= trade memory: why an offer is not worth repeating =================
+     Wyatt, 2026-08-05: *"bots must remember trades they've requested and been rejected from, and
+     not request the same ones again if they've failed, unless the table has substantively
+     changed... write logic (not gates) to stop spam."*
+
+     So this is deliberately NOT a cooldown. A timer would be a gate: it would silence a bot that
+     has a genuinely better offer, and then let the identical hopeless one through again the moment
+     it lapsed. What actually stops spam is asking the honest question — *has anything changed that
+     could change their answer?* — and the answer is derived from the board, so a bot re-asks the
+     instant it has a real reason to and never before.
+
+     A refusal is remembered per (crate wanted, captain who refused), with what the offer was worth
+     at the time and what that captain's situation looked like. Three things can revive it, each of
+     them a real change in the world rather than the passage of time:
+
+       1. THE OFFER GOT BETTER. Materially — a fifth more than they turned down, not a coin.
+       2. WHAT WE'RE OFFERING IS NOW SOMETHING THEY WANT. Judged from public evidence only
+          (demandFor), so this fires when the table watched them chase that ingredient.
+       3. THEIR HOLD CHANGED so the crate is cheaper for them to part with — they picked up a
+          second one, or they have visibly stopped needing it.
+
+     Note what is deliberately absent: elapsed rounds. A bot that has nothing new to say stays
+     quiet for the whole game, which is exactly right. */
+  rememberRefusal(p,want,byIdx,worth){
+    if(!p.refused)p.refused={};
+    const q=this.players[byIdx];
+    p.refused[want+"|"+byIdx]={
+      worth,
+      // their situation AT THE MOMENT THEY SAID NO, so we can tell later whether it moved
+      held:q?this.cnt(q.ing,want):0,
+      progress:q?this.visibleProgress(q):0,
+      wantedOurs:0, // filled by the caller when it knows what was on the table
+    };
+  }
+  // Records whether what we offered was something they visibly wanted at the time they refused.
+  // One place decides it, because worthReAsking's rule 2 compares against exactly this flag.
+  refusedFlagWanted(p,offer,q){
+    const memo=p.refused&&p.refused[offer.want+"|"+q.idx];
+    if(memo)memo.wantedOurs=offer.giveIng&&this.likelyNeeds(q,offer.giveIng)?1:0;
+  }
+  // Would it be worth putting this offer to this captain again? Everything here is public.
+  worthReAsking(p,q,want,offer){
+    const memo=p.refused&&p.refused[want+"|"+q.idx];
+    if(!memo)return true; // never refused us — always worth asking
+    const worth=this.offerWorthTurns(p,offer);
+    if(worth>=memo.worth*1.2+0.15)return true;          // 1. a materially better offer
+    if(offer.giveIng&&this.likelyNeeds(q,offer.giveIng)&&!memo.wantedOurs)return true; // 2. they want what we hold now
+    if(this.cnt(q.ing,want)>memo.held)return true;      // 3a. they picked up a spare
+    if(this.visibleProgress(q)<memo.progress-0.01)return true; // 3b. they lost ground; it may be cheap now
+    return false;
+  }
+  // What our own offer is worth, in the same turn units everything else is priced in. Kept next to
+  // the memory because the memory stores its output and the two must not drift apart.
+  offerWorthTurns(p,offer){
+    return this.coinTurns(offer.giveCoins||0)+(offer.giveIng?PLAN.leverageTurns:0);
+  }
   // What offer would this bot put to the table? It asks for the ingredient its route says is
   // dearest to get any other way, and offers the cheapest thing it owns that the holders are
   // likely to want — a surplus crate first (it costs almost nothing to give away), sweetened with
-  // coins only as far as it must. Returns null when there is nothing worth asking for.
-  botOpenOffer(p){
-    const needs=this.needs(p);
-    if(!needs.length)return null;
-    // only ask for things somebody actually holds — cargo is public, so this is not hidden info
-    const askable=needs.filter(i=>this.holdersOf(i,p).length);
-    if(!askable.length)return null;
-    askable.sort((x,y)=>this.acquireTurns(p,y).turns-this.acquireTurns(p,x).turns);
-    const want=askable[0];
-    // the cheapest crate to part with: surplus first (not on my recipe), then a duplicate
+  // coins only as far as it must.
+  //
+  // ORDER IS LOAD-BEARING: the offer is COMPOSED FIRST and only then tested against the memory,
+  // for each candidate crate in turn. Testing before composing (which is what the first cut did)
+  // checks a hypothetical offer and lets the real one through anyway — the bot still hails the
+  // table and only then discovers nobody will answer, which is precisely the spam. The hail is
+  // the thing being suppressed, so nothing may announce before this returns.
+  composeOffer(p,want){
+    const holders=this.holdersOf(want,p);
+    if(!holders.length)return null;
     const spares=p.ing.filter(i=>!p.recipe.includes(i)||this.cnt(p.ing,i)>1);
     // prefer a spare the holders are likely to want — that is what makes an offer land
-    const holders=this.holdersOf(want,p);
     spares.sort((x,y)=>{
       const wx=holders.filter(h=>this.likelyNeeds(h,x)).length;
       const wy=holders.filter(h=>this.likelyNeeds(h,y)).length;
       return wy-wx;
     });
     const giveIng=spares.length?spares[0]:null;
-    // sweeten up to whatever is left in the purse, holding back powder money if it is a fighter
     const bias=(PERSONALITY[p.strategy]||PERSONALITY.balanced);
     const reserve=bias.fightBias>=1?(this.cfg.powder||0):0;
     const giveCoins=Math.max(0,Math.min(p.coins-reserve,giveIng?2:5));
     if(!giveIng&&!giveCoins)return null;
-    // Don't hail the table with an offer nobody could say yes to. A bot that keeps making the
-    // same doomed offer every turn is not strategy, it is noise — and it was, at 4,040 offers to
-    // 49 deals in the first headless run. Check the price the holders are likely to name against
-    // what this offer is actually worth, using only public evidence.
-    const worth=this.coinTurns(giveCoins)+(giveIng?PLAN.leverageTurns:0);
-    const cheapest=Math.min(...holders.map(q=>this.estimateCrateCost(q,want)));
+    const offer={want,giveIng,giveCoins};
+    // Don't hail the table with an offer nobody could say yes to. Two independent reasons to stay
+    // quiet, and BOTH have to clear before a word is said:
+    //   a) nobody is worth re-asking — every holder already refused something this good and
+    //      nothing about the table has moved since (see worthReAsking);
+    //   b) the price they are likely to name is far beyond what this offer is worth.
+    const live=holders.filter(q=>this.worthReAsking(p,q,want,offer));
+    if(!live.length)return null;
+    const worth=this.offerWorthTurns(p,offer);
+    const cheapest=Math.min(...live.map(q=>this.estimateCrateCost(q,want)));
     if(worth*bias.dealBias<cheapest*0.6)return null;
-    return {want,giveIng,giveCoins};
+    offer.audience=live.map(q=>q.idx);
+    return offer;
+  }
+  botOpenOffer(p){
+    const needs=this.needs(p);
+    if(!needs.length)return null;
+    // cargo is public, so asking only for things somebody holds is not hidden information
+    const askable=needs.filter(i=>this.holdersOf(i,p).length);
+    if(!askable.length)return null;
+    // hardest-to-get-otherwise first, then fall down the list — a crate whose holders have all
+    // said no is skipped entirely rather than re-hailed, and the bot simply asks for the next one
+    askable.sort((x,y)=>this.acquireTurns(p,y).turns-this.acquireTurns(p,x).turns);
+    for(const want of askable){
+      const offer=this.composeOffer(p,want);
+      if(offer)return offer;
+    }
+    return null;
   }
   // A bot's whole trade turn: put the offer to the table, read every answer, take the best one it
   // can afford — or walk away. Exactly the flow a human gets in the UI (rule 4).
@@ -756,8 +838,17 @@ class Game{
     // announcing what you want is itself public information — everyone now knows p wants this
     this.noteDemand(p,offer.want,1);
     this.ev({t:"openoffer",p:p.idx,want:offer.want,offer:this.offerLabel(offer,0)});
-    const responses=this.collectResponses(offer,p);
+    // composeOffer already decided who is worth hailing; honour that list rather than re-deriving it
+    const aud=offer.audience;
+    const responses=this.collectResponses(offer,p)
+      .filter(r=>!aud||aud.includes(r.q.idx));
     if(!responses.length)return false;
+    // remember every no, with what it cost them to say it — see rememberRefusal
+    const worth=this.offerWorthTurns(p,offer);
+    for(const r of responses)if(r.kind==="deny"){
+      this.rememberRefusal(p,offer.want,r.q.idx,worth);
+      p.refused[offer.want+"|"+r.q.idx].wantedOurs=offer.giveIng&&this.likelyNeeds(r.q,offer.giveIng)?1:0;
+    }
     const accepts=responses.filter(r=>r.kind==="accept");
     const counters=responses.filter(r=>r.kind==="counter"&&(offer.giveCoins+r.askFor)<=p.coins);
     let deal=null,extra=0;
@@ -773,6 +864,9 @@ class Game{
       if(this.coinTurns(offer.giveCoins+best.askFor)<=mine){deal=best.q;extra=best.askFor;}
     }
     if(!deal){
+      // walking away from a counter is this offer being refused too — remember it, or the bot
+      // re-opens the identical hail next turn and gets the identical price back
+      for(const r of responses)if(r.kind==="counter")this.rememberRefusal(p,offer.want,r.q.idx,worth);
       this.ev({t:"parley",a:p.idx,b:null,offer:this.offerLabel(offer,0)||"nothing",want:offer.want});
       return false;
     }
@@ -1184,10 +1278,9 @@ class Game{
     if(action.type==="attack"){this.battle(p,action.target);return;}
     if(action.type==="trade"){if(this.tryTrade(p))return;}
     if(action.type==="dock"){if(this.doDock(p,action.ing))return;}
-    // Nothing left worth doing this turn. With fishing gone (rule 3) there is deliberately no
-    // filler action — a bot that has sailed as far as it can simply ends its turn, which is
-    // exactly what a human in the same position does.
-    this.ev({t:"idle",p:p.idx});
+    // Nothing left worth doing this turn — so a bot does exactly what a human does in the same
+    // position (rule 3 left no filler action): leans over the rail and looks into the ocean.
+    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
   }
   checkFinish(p){
     if(!this.needs(p).length&&man(p.pos,this.home)<=1){

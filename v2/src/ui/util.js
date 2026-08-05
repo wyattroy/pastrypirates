@@ -45,7 +45,7 @@ import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
   // dockFlavor consumer; all four branches now take the icon-placed form from the declared split.
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
-  CUPCAKE_IMG, CROWN_IMG, HORN_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
+  CUPCAKE_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
@@ -296,7 +296,26 @@ export function movedSinceTurnStart(e){
 // unset, and NEUTRAL_VIEWER) sees the third-person line. `newround` is deliberately EXCLUDED
 // (D-09 — it addresses the whole table, never one captain), and `end`/`turn` name no captain at
 // all, so neither gains a branch either.
-export const EVENT_NARRATION={
+export // "a cinnamon squid" / "an éclair eel" — the creature list is written lowercase and unarticled
+// so one place decides this, rather than thirty strings each carrying their own article.
+// Builds the whole sighting clause, because two of Wyatt's own creature names are PLURAL
+// ("praline prawns", "hot cross bunnacles") and "a hot cross bunnacles drifts past" reads as a
+// typo. One helper decides article AND verb agreement together, so a name added to the list later
+// gets both right for free rather than needing either to be remembered.
+function seaSighting(word){
+  const w=String(word);
+  // Trailing -s alone is not plural: "choctopus" and "waffle walrus" are singular and would
+  // otherwise read as "some choctopus drift past". Carve out the Latin -us / -ss / -is endings,
+  // which covers every name in the list today. A future plural that does not end in -s (say
+  // "shortbread school") would need adding here explicitly.
+  const plural=/s$/i.test(w)&&!/(us|ss|is)$/i.test(w);
+  if(plural)return {subject:"some "+w,verb:"drift"};
+  // NFD-normalise first so an accented initial still tests as its base vowel: "éclair eel" is
+  // "an éclair eel", and a bare /^[aeiou]/ silently gets that wrong.
+  const first=w.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return {subject:(/^[aeiou]/i.test(first)?"an ":"a ")+w,verb:"drifts"};
+}
+const EVENT_NARRATION={
   // notes/edits NARR-03: a wind that hasn't changed direction is "still" blowing that way — it
   // doesn't newly go anywhere, so it never says "now".
   // notes/edits NARR-04: any wind, storm or not, that holds one direction two rounds running gets
@@ -344,11 +363,15 @@ export const EVENT_NARRATION={
   // v2: a bot with nothing worth doing simply ends the turn. Deliberately silent in the
   // narration box — it is not an event, it is the absence of one.
   idle:()=>null,
-  // A HUMAN choosing to pass is different: they pressed a button and deserve to see it land.
-  pass:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?`⏭️ ${pn(e.p)} — ye bide a while and let the turn pass.`
-    :`⏭️ ${pn(e.p)} bides a while and lets the turn pass.`,
-    caps:[[e.p,"⏭️ bides a while"]]}),
+  // "Look into the ocean" (Wyatt, 2026-08-05) — the old Pass, given something to look at. Every
+  // captain who takes the turn off sees a different beast go by; see Game.nextSeaCreature.
+  pass:(e,at,cellPx,viewerSeat)=>{
+    const {subject,verb}=seaSighting(e.sea||"somethin' strange");
+    return {txt:isLocalTo(e.p,viewerSeat)
+      ?`🌊 ${pn(e.p)} — ye lean over the rail, and ${subject} ${verb} past below.`
+      :`🌊 ${pn(e.p)} leans over the rail, and ${subject} ${verb} past below.`,
+      caps:[[e.p,`🌊 spots ${subject}`]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]};
+  },
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
     txt:`💥 ${pn(e.a)} and ${pn(e.d)} break off — the smoke clears and neither has a thing to show for it.`,
@@ -458,25 +481,33 @@ export const EVENT_NARRATION={
   // icon goes, so these branches cannot drift apart again.
   //
   // D-48 — the flavour text (DOCK_FLAVOR) is kept and used on every branch, `ing` included.
-  // v2 rules 10 + 11: the flip is a TREASURE HUNT, and the crate is a purchase.
+  /* v2 rules 10 + 11, wording Wyatt-approved 2026-08-05.
+
+     THE BUG THIS FIXES: a purchase used to swallow the flip entirely — "docks at Glitter Bay and
+     buys a jar of Crystal Sugar for 3" never said whether the captain struck treasure or spent the
+     turn hauling crates, so the 6🌕 or 2🌕 that paid for it was invisible. His report: *"you must
+     narrate when every player flips for treasure."*
+
+     So the line ALWAYS leads with the flip and its payout, and only then names the purchase. One
+     line rather than two: docking is the commonest action in the game and a second narration beat
+     on every dock would slow the whole table (his choice between the two). */
   dock:(e,at,cellPx,viewerSeat)=>{
     const place=dockPlace(e.ing),goods=dockFlavorIcon(e.ing);
     const heads=appState.game.cfg.dockHeads,tails=appState.game.cfg.dockTails;
     const paid=e.price!=null?e.price:"";
-    const g={treasure:`docks at ${place}, digs deep and strikes buried treasure — ${heads}🌕!`,
-      dockhand:`docks at ${place} and spends the turn haulin' crates for the harbourmaster — ${tails}🌕`,
-      bought:`docks at ${place} and buys ${goods} for ${paid}🌕`};
-    // G1: no addressed branch names the place — the place is for the third-person forms.
-    const gA={treasure:`ye dig deep and strike buried treasure — ${heads}🌕!`,
-      dockhand:`ye spend the turn haulin' crates for the harbourmaster — ${tails}🌕`,
-      bought:`ye buy ${goods} for ${paid}🌕`};
-    const capM={treasure:`💰 +${heads}🌕`,dockhand:`+${tails}🌕`,bought:`buys ${ING_EMOJI[e.ing]} −${paid}🌕`};
-    const F=e.heads?"⚪H":"⚫T";
-    const gotIng=(e.got==="bought");
-    const key=g[e.got]?e.got:(e.heads?"treasure":"dockhand");
-    const txt=isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ${gA[key]}`:`${pn(e.p)} ${g[key]}`;
-    return {txt,caps:[[e.p,`docks ${F} ${capM[key]}`]],
-      pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
+    const bought=(e.got==="bought");
+    const buyTail=bought?` — then buys ${goods} for ${paid}🌕.`:``;
+    const buyTailYou=bought?` — then ye buy ${goods} for ${paid}🌕.`:``;
+    const txt=isLocalTo(e.p,viewerSeat)
+      ?(e.heads
+        ?`⚪ HEADS! Ye dig deep at ${place} and strike buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTailYou}`
+        :`⚫ TAILS — ye spend the turn haulin' crates at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTailYou}`)
+      :(e.heads
+        ?`⚪ HEADS! ${pn(e.p)} digs deep at ${place} and strikes buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTail}`
+        :`⚫ TAILS — ${pn(e.p)} spends the turn haulin' crates at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTail}`);
+    const cap=(e.heads?`⚪H 💰+${heads}🌕`:`⚫T +${tails}🌕`)+(bought?` · buys ${ING_EMOJI[e.ing]} −${paid}🌕`:``);
+    return {txt,caps:[[e.p,cap]],
+      pops:[[at(e.p),bought?ING_EMOJI[e.ing]:"🌕",false,bought?ING_IMG[e.ing]:null]]};
   },
   // v2 rule 4e: no harbor-tax refund any more, so no bonus clause to name.
   trade:(e,at,cellPx,viewerSeat)=>{

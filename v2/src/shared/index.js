@@ -197,6 +197,21 @@ const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}}
 // dead code the house rules exist to prevent.
 // ORDER IS LOAD-BEARING — parallel table keyed to DIRS; must stay in lockstep with it.
 const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
+// "Look into the ocean" — what a captain sees when there's nothing else worth doing with a turn
+// (the old Pass). Wyatt's nine, 2026-08-05, kept in his own words and spelling, followed by
+// twenty-one more in the same vein. Thirty in all, so a long voyage rarely shows the same beast
+// twice: each captain starts at a different point in the list and walks it in order, which
+// guarantees all thirty appear before any repeats — a random pick would collide constantly
+// (birthday problem: a repeat is more likely than not inside seven looks).
+const SEA_CREATURES=[
+  "cinnamon squid","hot cross bunnacles","butterwhale","sugarshark","praline prawns",
+  "peanut butter jellyfish","candycrab","choctopus","treacle ray",
+  "marzipan manta","custard cuttlefish","gingerbread grouper","meringue moray","toffee turtle",
+  "brioche barracuda","shortbread starfish","nougat narwhal","doughnut dolphin","sherbet seahorse",
+  "fudge flounder","waffle walrus","macaron mackerel","pavlova pufferfish","strudel sturgeon",
+  "lollipop lobster","trifle triggerfish","marshmallow manatee","croissant crayfish",
+  "profiterole porpoise","éclair eel",
+];
 const SAIL_RANGE=4,SAIL_RANGE_UPWIND=2;
 // v2 rule 7: a storm is one direction, this far, everyone at once, at the start of the round.
 const STORM_PUSH=3;
@@ -222,4 +237,4 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };
