@@ -58,12 +58,16 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 - Compass shows **both**: this round's live wind, and next round's forecast.
 - The forecast reveals **a storm and its direction**.
 - The forecast is **never wrong** — once shown it is committed.
-- **How it is drawn (2026-08-05):** the big ornate needle is always THIS round's wind. The forecast
-  rides on top of it as a small solid chevron with a white keyline — deliberately a different
-  *object*, not a second needle, because an earlier ghost needle of the same shape was mistaken for
-  the live wind. It doubles as the storm warning: **alarm red and pulsing** when a storm is coming,
-  muted slate when the next round is calm. The tiny "next: ←W" caption it replaced was, in Wyatt's
-  words, almost impossible to see.
+- **How it is drawn (2026-08-05, settled after two failed attempts):** the dial is left alone — one
+  ornate needle, always THIS round's wind. The forecast lives in a filled chip BELOW the compass
+  reading `FORECAST: E →`, and **the whole chip goes red and breathes when a storm is coming**.
+  Two earlier attempts put the forecast ON the dial and both failed for the same reason: anything
+  drawn over the needle competes with it. A ghost needle was mistaken for the live wind; a red
+  chevron was legible but shouted louder than the thing it annotated. A chip below annotates
+  without competing.
+- **Wind particles are ON in v2** (`WIND_PROTOTYPE_ENABLED_DEFAULT`), drifting with the live wind —
+  the clearest read of which way it blows. The prototype's tuning HUD stays opt-in behind
+  `?windhud=1`, because it is a fixed panel that lands on the Captains panel on a phone.
 
 ## 7. Storms
 

@@ -656,11 +656,11 @@
    * #rippleHost was briefly z-index 5, which tied with #stormOverlay and won on DOM order — so the
    * rings drew over the rain, which the SVG original never did. Fixed by this ordering too. */
   #rippleHost { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  /* THE STORM WARNING. The forecast chevron rides on the wind needle; when weather is coming it
-     pulses so the eye is caught by it even mid-glance. Only transform/opacity animate, so it
+  /* THE STORM WARNING. The forecast chip below the compass goes red when weather is coming, and
+     breathes so the eye is caught by it even mid-glance. Only transform/opacity animate, so it
      composites and costs no layout (PERF-01's rule for anything that moves on this board). */
-  @keyframes fcPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: .75; } }
-  .fcStorm { animation: fcPulse 1.15s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 82%; }
+  @keyframes fcPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: .82; } }
+  .fcStorm { animation: fcPulse 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
   @media (prefers-reduced-motion: reduce) { .fcStorm { animation: none; } }
   #boardShips { position: absolute; inset: 0; pointer-events: none; z-index: 4;
     width: 100%; height: 100%; overflow: visible; }

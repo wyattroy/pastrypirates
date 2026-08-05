@@ -136,7 +136,7 @@ export function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
   el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
   return g;
 }
-let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
+let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastPulse=null,forecastBox=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
 
 // Exported accessors for the still-classic call sites that read this cluster's render-only state
 // directly (localPickCell/remotePickHighlights read cell; showChatBubble reads shipEls) — see the
@@ -274,20 +274,12 @@ export function drawBoard(){
   // used to be), so the separately-drawn text labels are gone — windLabels stays around (now
   // always empty) purely so the storm-color-toggle loop below still has something safe to iterate.
   windLabels=[];
-  /* THE BIG NEEDLE IS ALWAYS THIS ROUND'S WIND. The forecast rides ON TOP of it as a second,
-     much smaller arrow (Wyatt, 2026-08-05) — the tiny "next: <-W" caption under the dial was, in
-     his words, almost impossible to see.
-
-     An earlier ghost needle failed here and the difference matters. That one was the SAME shape as
-     the live needle, merely smaller, greyer and half-transparent — two arrows of one kind, and he
-     duly took the forecast for the live wind and reported sailing "3 upwind". So this arrow is
-     deliberately a DIFFERENT OBJECT: a solid stubby chevron with a white keyline, roughly a third
-     the needle's length, sitting over the needle's collar. It reads as a badge pinned to the
-     needle rather than a rival needle.
-
-     It is also the STORM WARNING. When a storm is forecast it turns alarm red and pulses; when the
-     next round is calm it is a muted slate that recedes. One object, two states, and the loud one
-     is the one that matters. */
+  /* THE DIAL IS LEFT ALONE: one ornate needle, always THIS round's wind.
+     Two attempts to put the forecast ON the dial both failed for the same reason — anything drawn
+     over the needle competes with it. First a ghost needle (mistaken for the live wind), then a
+     red chevron (legible, but it shouted louder than the thing it was annotating). The forecast
+     now lives in its own chip BELOW the dial, where it annotates without competing. Do not put a
+     second marker back on this dial. */
   spinNeedle=el("g",{},hud);
   // needle art's collar (rotation pivot) sits at the vertical center of the image, so the
   // box is centered on (0,0) rather than offset — an offset box put the pivot ~6% of the
@@ -296,16 +288,35 @@ export function drawBoard(){
   spinNeedle.style.transition="transform .7s ease";
   spinNeedle.style.transformOrigin="0px 0px";
   stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
-  // The forecast arrow. Drawn AFTER the needle so it sits on top of it, and inside its own <g> so
-  // the rotation is independent of the needle's. The chevron points "up" at rotation 0, matching
-  // the needle's own convention (0 = N = the way the wind blows TO).
-  forecastNeedle=el("g",{},hud);
-  forecastMark=el("path",{
-    d:`M 0 ${-sr*.62} L ${sr*.235} ${-sr*.245} L ${sr*.085} ${-sr*.245} L ${sr*.085} ${sr*.05} `+
-      `L ${-sr*.085} ${sr*.05} L ${-sr*.085} ${-sr*.245} L ${-sr*.235} ${-sr*.245} Z`,
-    fill:"#b3261e",stroke:"#ffffff","stroke-width":Math.max(1.6,sr*.055),"stroke-linejoin":"round"},forecastNeedle);
-  forecastNeedle.style.transition="transform .7s ease";
-  forecastNeedle.style.transformOrigin="0px 0px";
+  /* THE FORECAST CHIP (Wyatt, 2026-08-05): a filled box below the compass, where the caption used
+     to be, reading "FORECAST: N ↑" — and turning red when a storm is coming.
+
+     SIZING IS DELIBERATE AND NOT sr-RELATIVE. The old caption was font-size 12 in board user
+     units, and the board is ~640 units wide — so on a 374px phone it rendered at about SEVEN
+     pixels. That is why it was, in his words, almost impossible to see. This is font-size 20 in
+     the same space (~12px on that phone) on a 170-unit chip (~99px), which is a legible chip
+     rather than a whisper.
+
+     Nudged left of the dial's centre (FC_DX) because the compass sits hard against the board's
+     right edge and a centred chip would overflow it. */
+  // Sized in the SVG's 640-unit space, which maps to the board's rendered width — so on a 374px
+  // phone these units are ~0.58px each. The chip is therefore ~117px wide with ~12px text, against
+  // the old caption's ~7px. It is nudged well left of the dial's centre because the compass sits
+  // hard against the board's right edge and a centred chip of this width would run off it.
+  //
+  // TWO NESTED GROUPS, AND THE NESTING IS LOAD-BEARING. The outer one carries the POSITION as an
+  // SVG transform attribute; the inner one carries the storm PULSE, which is a CSS animation that
+  // writes `transform`. A CSS transform overrides an element's SVG transform attribute outright —
+  // so with both on one node the pulse silently erased the translate, and the chip snapped back
+  // over the dial's centre and hung 28px off the right edge of the board. Measured, not guessed.
+  // Keep the position and the animation on different nodes.
+  const FC_W=200,FC_H=44,FC_DX=-70,FC_DY=sr+10;
+  forecastNeedle=el("g",{transform:`translate(${FC_DX},${FC_DY})`},hud);
+  forecastPulse=el("g",{},forecastNeedle);
+  forecastBox=el("rect",{x:-FC_W/2,y:0,width:FC_W,height:FC_H,rx:10,
+    fill:"#fffdf0",stroke:"#29a3b2","stroke-width":2.5},forecastPulse);
+  forecastMark=el("text",{x:0,y:FC_H*0.68,"text-anchor":"middle","font-size":21,
+    "font-weight":"bold",fill:"#1f4249"},forecastPulse);
   // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
   // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
   //
@@ -459,7 +470,7 @@ export function buildStormLayers(ov,seed){
 // knows the live wind direction at exactly the right moment (see the wind block below). Off by
 // default (D-08, D-10); enabled only by `?wind=1` or `localStorage.pp_wind_proto==="1"`. See the
 // file header's Phase 19 / WIND-00 scoped exception above for the full BUG-01 safety argument.
-export const WIND_PROTOTYPE_ENABLED_DEFAULT=false;
+export const WIND_PROTOTYPE_ENABLED_DEFAULT=true;
 /* ===== WIND DOT PROTOTYPE (Phase 19 / WIND-00) BEGIN ===== */
 
 // windPrototypeEnabled() — the on/off switch (D-08, D-10). Memoized into module-scope
@@ -474,6 +485,19 @@ export function windPrototypeEnabled(){
   try{ if(localStorage.getItem("pp_wind_proto")==="1")on=true; }catch(err){}
   windProtoEnabled=on;
   return windProtoEnabled;
+}
+
+// windHudEnabled() — the tuning HUD's own switch, separate from the dots themselves so the effect
+// can ship while the developer panel stays out of the way. Same memoize-and-guard shape as
+// windPrototypeEnabled() above.
+let windHudOn=null;
+export function windHudEnabled(){
+  if(windHudOn!==null)return windHudOn;
+  let on=false;
+  try{ if(location.search.indexOf("windhud=1")!==-1)on=true; }catch(err){}
+  try{ if(localStorage.getItem("pp_wind_hud")==="1")on=true; }catch(err){}
+  windHudOn=on;
+  return windHudOn;
 }
 
 // WIND_DOT_MAX is D-04's 0-100 dial ceiling. WIND_DOT_DEFAULT is D-02's 5-10 target density and
@@ -1093,7 +1117,10 @@ export function windDotsTick(angle){
   if(!windPrototypeEnabled())return;
   windAngle=angle;
   const layer=windEnsureLayer();
-  buildWindHud();
+  // v2: the DOTS are on by default (they are the clearest read of which way the wind blows), but
+  // the tuning HUD is not — it is a fixed panel pinned bottom-right, which on a phone lands on top
+  // of the Captains panel. Opt in with ?windhud=1 when the density dial is actually wanted.
+  if(windHudEnabled())buildWindHud();
   if(layer)layer.style.transform=`rotate(${windAngle+180}deg)`;
   if(!windRafId){
     buildWindDots(layer,appState.game&&appState.game.seed,windDotCount);
@@ -1352,17 +1379,15 @@ export function render(){
     // the way the wind will BLOW, matching the needle's own convention exactly.
     const nx=appState.game&&appState.game.windNext;
     const nextStorm=!!(appState.game&&appState.game.stormNext);
-    if(forecastNeedle){
-      forecastNeedle.style.display=nx?"":"none";
-      if(nx)forecastNeedle.style.transform=`rotate(${({N:0,E:90,S:180,W:270})[nx]}deg)`;
-    }
-    if(forecastMark){
-      // THE STORM WARNING. Alarm red and pulsing when weather is coming, muted slate when it is
-      // not — so the one a captain must not miss is the one that shouts.
-      forecastMark.setAttribute("fill",nextStorm?"#d32f2f":"#5b7a85");
-      forecastMark.setAttribute("stroke",storming?"#f4f6ff":"#ffffff");
-      forecastMark.style.opacity=nextStorm?"1":".85";
-      forecastMark.classList.toggle("fcStorm",nextStorm);
+    if(forecastNeedle)forecastNeedle.style.display=nx?"":"none";
+    if(forecastMark&&nx){
+      forecastMark.textContent=`FORECAST: ${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`;
+      // THE STORM WARNING IS THE WHOLE BOX GOING RED — a filled chip changing colour is visible in
+      // peripheral vision on a phone in a way that a small glyph never was.
+      forecastMark.setAttribute("fill",nextStorm?"#ffffff":"#1f4249");
+      forecastBox.setAttribute("fill",nextStorm?"#d32f2f":"#fffdf0");
+      forecastBox.setAttribute("stroke",nextStorm?"#7f1d1d":"#29a3b2");
+      forecastPulse.classList.toggle("fcStorm",nextStorm);
     }
     // notes/edits UI-05: the "⛈️ STORM" word + emoji under the compass are gone — the darkened
     // board, the coloured dial, the glowing needle and the rain already read as "storm" without a
