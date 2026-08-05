@@ -691,6 +691,68 @@ live URLs, which would have invited Google to index the preview as duplicate con
 real game. Caught only by reading the deploy diff. All three are excluded now — **when you add a
 file that identifies the live site, add it to `EXCLUDES` in the same commit.**
 
+## Two trees, one repo: always use ABSOLUTE paths for file edits
+
+**The failure, 2026-08-05, twice in one session.** Building `v2/` — a full copy of the game beside
+v1 — two edits meant for `v2/src/` landed in `v1/src/` instead. Both were caught and reverted before
+anything was committed, but only because `git status` happened to be run. Nothing else would have
+noticed.
+
+**Why it happened, precisely.** The session `cd`'d into `v2/` once and then used relative paths
+(`src/ui/util.js`) for dozens of commands. That worked — until a command that began
+`cd /tmp && …` (to write a browser probe) moved the shell, and the harness reset the working
+directory back to the repo root. The reset **is** announced in the tool output
+(*"Shell cwd was reset to /home/user/pastrypirates"*), and it was missed twice, because it appears
+at the bottom of unrelated command output.
+
+**The structural hazard, which is the real lesson.** `v2/` is a copy of the repo's own layout, so
+**`src/ui/util.js` resolves in both trees**. A mistyped or mis-rooted path does not error — it opens
+a real file, the edit applies cleanly, `node --check` passes, and the wrong tree is now modified.
+Every safety signal reports success. This is the same shape as the `CNAME` hazard above: a copy of
+the repo where a familiar path quietly means something else.
+
+**So:**
+
+1. **Every file-touching command uses an absolute path.** `/home/user/…/v2/src/ui/util.js`, never
+   `src/ui/util.js`. Do not rely on the shell's working directory persisting between calls — it does
+   not, and the reset is easy to miss.
+2. **Assert the blast radius after every batch of edits**, not at the end of the task:
+   ```bash
+   git diff --name-only | grep -v '^v2/'   # must print NOTHING
+   ```
+   One line, and it is the check that actually caught this. Whenever a task carries a
+   "don't touch X" constraint, write that constraint as a command and run it — a constraint you
+   only hold in your head is one you will violate silently.
+3. **Prefer editing tools that take an absolute path** over shell scripts using relative ones. A
+   Python heredoc doing `open('src/…')` inherits whatever cwd it happens to get; the same script
+   with an absolute path cannot.
+
+## Other things this session paid for
+
+**Chrome caches ES modules per URL — `docs/DRIVING-THE-GAME.md` §1 says so, and it still cost two
+rounds.** An edit was verified as "not working" when the fix was fine and the browser was serving a
+cached module from a port used earlier. **Use a port you have never loaded**, every time. When a
+change appears not to have taken effect, `curl` the file from the server and read it before
+debugging the code.
+
+**When you replace an algorithm, find out what the old one was compensating for.** v1's `stepToward`
+used Dijkstra; the v2 rewrite scored candidate moves on Manhattan distance instead. Manhattan lies
+next to land — a dock two squares away round the corner of its own island is four squares of real
+sailing — so bots refused every move that did not shorten a line they could not travel, and **a
+third of all bot turns did nothing at all**. The tell was in the data (33% dead turns), not in the
+code, which read perfectly sensibly.
+
+**A rule the bots ignore reads as an unfair rule.** Storms looked far too punishing at 38% of ships
+grounded per storm. The rules were fine; the bots were sailing into storms the compass had already
+shown them. Teaching them to look one round ahead halved it to 20% and changed nothing else about
+how they play. **Before tuning a number, check whether the agents are actually using the information
+the design already gives them.**
+
+**Bound every probe, and kill it in the same session.** A full solo voyage takes tens of minutes of
+wall clock, so a driver loop must have a deadline and the state should be injected rather than
+played to (§5e). Two probes here were killed the moment their answer arrived rather than left to
+finish, and the session ends with `ps aux | grep chrome` and `grep http.server` both at zero.
+
 <!-- GSD:profile-start -->
 
 ## Developer Profile
