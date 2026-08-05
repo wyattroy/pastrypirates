@@ -100,6 +100,7 @@ import {
   DIRS, STORM_DIAG, HEXCOL, ASSET_BASE, EMOJI_IMG,
   BOARD_IMG, DOCK_IMG, BOAT_IMG, ING_IMG, ING_HOLE_IMG, ANCHOR_IMG, TRADE_SWIRL_IMG,
   WIND_ARROW_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, COIN_IMG, SCROLL_IMG, CROWN_IMG,
+  STORM_CLOUD_IMG,
   HOURGLASS_IMG, CROISSANT_IMG, CAKE_SLICE_IMG, DONUT_IMG, CUPCAKE_IMG,
   FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG,
   iconImg, iname, ingImg,
@@ -136,7 +137,7 @@ export function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
   el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
   return g;
 }
-let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastPulse=null,forecastBox=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
+let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastPulse=null,forecastBox=null,forecastLabel=null,forecastStorm=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
 
 // Exported accessors for the still-classic call sites that read this cluster's render-only state
 // directly (localPickCell/remotePickHighlights read cell; showChatBubble reads shipEls) — see the
@@ -314,12 +315,27 @@ export function drawBoard(){
   // and it must not sit on the compass either. There are only ~32 units of room between the board's
   // top edge and the dial, so the height is set to fit that gap exactly, and the negative FC_DY
   // lifts it clear. It lands over the corner's decorative pastry art rather than over the grid.
-  const FC_W=116,FC_H=28,FC_DX=-14,FC_DY=-(sr+2+28);
+  /* LAID OUT WITH TWO ANCHORS, NOT ONE CENTRED STRING, and that is deliberate. "FORECAST:" is
+     pinned to the left edge with text-anchor:start and the direction to the right edge with
+     text-anchor:end, which leaves a fixed gap in the middle for the storm icon to drop into. A
+     single centred string would have needed the text measured at runtime to know where the icon
+     goes — and measurement is exactly what has gone wrong twice on this chip already. With two
+     anchors nothing needs measuring: both ends are nailed to the box. */
+  const FC_W=190,FC_H=28,FC_PAD=9,FC_DX=-50,FC_DY=-(sr+2+28);
   forecastNeedle=el("g",{transform:`translate(${FC_DX},${FC_DY})`},hud);
   forecastPulse=el("g",{},forecastNeedle);
   forecastBox=el("rect",{x:-FC_W/2,y:0,width:FC_W,height:FC_H,rx:10,
     fill:"#fffdf0",stroke:"#29a3b2","stroke-width":2},forecastPulse);
-  forecastMark=el("text",{x:0,y:FC_H*0.70,"text-anchor":"middle","font-size":16,
+  forecastLabel=el("text",{x:-FC_W/2+FC_PAD,y:FC_H*0.70,"text-anchor":"start","font-size":15,
+    "font-weight":"bold",fill:"#1f4249"},forecastPulse);
+  forecastLabel.textContent="FORECAST:";
+  // the game's own storm art, not a Unicode glyph — the same icon the narration uses, so the chip
+  // looks like the rest of the game rather than like whatever emoji font the phone happens to have
+  // sits immediately left of the direction with a real gap — measured at 170 units wide the
+  // cloud crowded the letter, so the chip gained 20 units rather than the icon losing size
+  forecastStorm=el("image",{x:FC_W/2-FC_PAD-54,y:FC_H*0.5-11,width:22,height:22,
+    href:STORM_CLOUD_IMG},forecastPulse);
+  forecastMark=el("text",{x:FC_W/2-FC_PAD,y:FC_H*0.70,"text-anchor":"end","font-size":15,
     "font-weight":"bold",fill:"#1f4249"},forecastPulse);
   // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
   // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
@@ -1391,13 +1407,13 @@ export function render(){
     const nextStorm=!!(appState.game&&appState.game.stormNext);
     if(forecastNeedle)forecastNeedle.style.display=nx?"":"none";
     if(forecastMark&&nx){
-      // "NEXT" rather than "FORECAST" purely for width: at a chip small enough not to cover the
-      // board, the longer word overflowed its own box. It also matches the round header's existing
-      // vocabulary ("Next round: wind east"). Say the word and it goes back with a wider chip.
-      forecastMark.textContent=`NEXT: ${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`;
+      forecastMark.textContent=`${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`;
+      // the storm cloud sits BEFORE the direction, and only when weather is actually coming
+      if(forecastStorm)forecastStorm.style.display=nextStorm?"":"none";
       // THE STORM WARNING IS THE WHOLE BOX GOING RED — a filled chip changing colour is visible in
       // peripheral vision on a phone in a way that a small glyph never was.
       forecastMark.setAttribute("fill",nextStorm?"#ffffff":"#1f4249");
+      forecastLabel.setAttribute("fill",nextStorm?"#ffffff":"#1f4249");
       forecastBox.setAttribute("fill",nextStorm?"#d32f2f":"#fffdf0");
       forecastBox.setAttribute("stroke",nextStorm?"#7f1d1d":"#29a3b2");
       forecastPulse.classList.toggle("fcStorm",nextStorm);
