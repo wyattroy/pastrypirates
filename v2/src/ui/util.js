@@ -385,8 +385,9 @@ const EVENT_NARRATION={
   // v2: a bot with nothing worth doing simply ends the turn. Deliberately silent in the
   // narration box — it is not an event, it is the absence of one.
   idle:()=>null,
-  // "Look into the ocean" (Wyatt, 2026-08-05) — the old Pass, given something to look at. Every
-  // captain who takes the turn off sees a different beast go by; see Game.nextSeaCreature.
+  // Pass, given something to look at. Every captain who takes the turn off sees a different beast
+  // go by; see Game.nextSeaCreature. The BUTTON reads "🌊 Pass" (Wyatt, 2026-08-05 — it briefly
+  // read "Look into the ocean"; the label went back to Pass, the narration stayed).
   pass:(e,at,cellPx,viewerSeat)=>{
     const {subject,verb}=seaSighting(e.sea||"somethin' strange");
     return {txt:isLocalTo(e.p,viewerSeat)

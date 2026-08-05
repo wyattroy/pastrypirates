@@ -197,8 +197,8 @@ const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}}
 // dead code the house rules exist to prevent.
 // ORDER IS LOAD-BEARING — parallel table keyed to DIRS; must stay in lockstep with it.
 const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
-// "Look into the ocean" — what a captain sees when there's nothing else worth doing with a turn
-// (the old Pass). Wyatt's nine, 2026-08-05, kept in his own words and spelling, followed by
+// What a captain sees when they Pass — there's nothing else worth doing with the turn, so they
+// look into the ocean. Wyatt's nine, 2026-08-05, kept in his own words and spelling, followed by
 // twenty-one more in the same vein. Thirty in all, so a long voyage rarely shows the same beast
 // twice: each captain starts at a different point in the list and walks it in order, which
 // guarantees all thirty appear before any repeats — a random pick would collide constantly

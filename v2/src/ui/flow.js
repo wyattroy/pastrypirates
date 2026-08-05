@@ -872,7 +872,7 @@ export async function humanAct(p,sailCtx){
   const canMoveInstead=sailCtx&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  opts.push({label:"🌊 Look into the ocean",value:"pass"});
+  opts.push({label:"🌊 Pass",value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
