@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /lab.html
+Disallow: /v2/
 
 Sitemap: https://playpastrypirates.com/sitemap.xml
