@@ -48,7 +48,7 @@ import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
-  DIRS, DIRNAME, STORM_PUSH, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
+  DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
@@ -139,6 +139,53 @@ export function reachable(p){
 // hardcoded its own separate sentence instead of rendering what the host composed, so the same
 // player read two different prompts depending on whether they happened to be the host or a guest
 // (D-35's sweep finding: guest-side code must render text, never author it).
+/* A SELF-CHECK, run every time a human is shown their sail options.
+   Wyatt reported being able to sail 3 squares upwind. Everything testable says that cannot happen:
+   an independent brute force over every path of length <= 4 agrees with the game's own reachability
+   on 1,920 board/position/wind combinations, click handlers are bound only to legal squares, and a
+   highlight rect's centre is (c+0.5)*cellPx — identical to where ships are drawn, so nothing is
+   displaced. I could not reproduce it, and rather than argue from a screenshot, this checks the
+   invariant live, on his phone, at the exact moment he is looking at it.
+
+   It re-derives the legal set from scratch — deliberately NOT by calling sailStates, since a bug in
+   sailStates would then be compared against itself — and also compares the wind the COMPASS is
+   drawn from (the current event) against the wind MOVEMENT is computed from (game.windNow), because
+   if those two ever drift the player is being shown one wind and moved by another.
+
+   Costs a few hundred node visits per prompt, i.e. nothing. If it ever fires, the message names the
+   wind, the position and the offending squares — so the screenshot IS the bug report. */
+export function sailSelfCheck(p,cells){
+  const g=appState.game,wind=g.windNow;
+  if(!wind||!p||!p.pos)return null;
+  const passable=o=>!g.blocked(o)&&!g.isIsland(o)&&!g.isHome(o);
+  const occupied=o=>g.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
+  const origin=p.pos.join(",");
+  const legal=new Map();
+  const walk=(cell,len,usedUp,hitRim)=>{
+    if(len>0){
+      const cap=usedUp?SAIL_RANGE_UPWIND:SAIL_RANGE,k=cell.join(",");
+      if(len<=cap&&!occupied(cell)&&k!==origin&&(!legal.has(k)||legal.get(k)>len))legal.set(k,len);
+    }
+    if(len>=SAIL_RANGE||hitRim)return;
+    for(const dk of Object.keys(DIRS)){
+      const d=DIRS[dk],o=[cell[0]+d[0],cell[1]+d[1]];
+      if(!passable(o))continue;
+      const u=usedUp||dk===OPPOSITE[wind];
+      if(len+1>(u?SAIL_RANGE_UPWIND:SAIL_RANGE))continue;
+      walk(o,len+1,u,g.onRim(o));
+    }
+  };
+  walk([p.pos[0],p.pos[1]],0,false,false);
+  const bad=(cells||[]).filter(c=>!legal.has(c[0]+","+c[1]));
+  const ev=g.events[appState.evIdx];
+  const dialWind=(ev&&ev.wind)||wind;
+  const problems=[];
+  if(bad.length)problems.push(`illegal: ${bad.map(c=>c.join(",")).join(" ")}`);
+  if(dialWind!==wind)problems.push(`compass shows ${dialWind}, movement uses ${wind}`);
+  if(!problems.length)return null;
+  console.error("[sail self-check]",{wind,dialWind,pos:p.pos,bad,cells});
+  return `⚠️ SAIL BUG — screenshot this: wind ${wind} at ${p.pos.join(",")} · ${problems.join(" · ")}`;
+}
 export function sailPickMsg(seat){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
   return `${pn(seat)}: click any yellow square to sail there`;
@@ -230,10 +277,13 @@ export function localPickCell(p,cells){
     // @copy prompt.sail.pickpanel
     // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
     // top-to-bottom rule for anything added to #actionPanel.
-    const hint=sailWindHint();
+    // the self-check's shout, if it ever fires, REPLACES the ordinary hint — it is the only thing
+    // that matters on screen at that point
+    const bug=sailSelfCheck(p,cells);
+    const hint=bug||sailWindHint();
     panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
-      (hint?`<div class="apSub">${hint}</div>`:``),true);
+      (hint?`<div class="apSub"${bug?' style="color:#b3261e;font-weight:bold"':''}>${hint}</div>`:``),true);
     $("apStay").onclick=()=>done(null);
   });
 }
