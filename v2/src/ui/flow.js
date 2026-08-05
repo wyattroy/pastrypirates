@@ -138,7 +138,10 @@ export function reachable(p){
 // player read two different prompts depending on whether they happened to be the host or a guest
 // (D-35's sweep finding: guest-side code must render text, never author it).
 export function sailPickMsg(seat){
-  return `${pn(seat)}: click any yellow square to sail there <span class="nobrk">(−1🌕)</span>`;
+  // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone. Rule 1's cap is worth saying
+  // here instead, because the highlighted squares are the only place a player can see it bite:
+  // when the route would head into the wind, the range they are shown shrinks from 4 to 2.
+  return `${pn(seat)}: click any yellow square to sail there`;
 }
 // G25 (Wyatt-approved 2026-07-30, D-55 PULLED FORWARD): THE ONE PLACE that decides what a sail
 // square looks like. Asked whether the four host/guest drifts were structurally fixed so they

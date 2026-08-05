@@ -628,10 +628,11 @@ export const EVENT_NARRATION={
   battleflee:(e,at,cellPx,viewerSeat)=>{
     const aAddr=isLocalTo(e.a,viewerSeat),dAddr=isLocalTo(e.d,viewerSeat);
     let txt;
-    if(aAddr)txt=`🏃 ${pn(e.a)} — ye attack ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(−1🌕)</span>`;
-    else if(dAddr)txt=`🏃 ${pn(e.a)} attacks ye, but both shots miss wildly and ye slip away! <span class="nobrk">(−1🌕)</span>`;
-    else txt=`🏃 ${pn(e.a)} attacks ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(−1🌕)</span>`;
-    return {cls:"battle",txt,caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]};
+    // v2 rule 2: fleeing is FREE now, so every (−1🌕) toll comes off these three lines and the capsule.
+    if(aAddr)txt=`🏃 ${pn(e.a)} — ye attack ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away!`;
+    else if(dAddr)txt=`🏃 ${pn(e.a)} attacks ye, but both shots miss wildly and ye slip away!`;
+    else txt=`🏃 ${pn(e.a)} attacks ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away!`;
+    return {cls:"battle",txt,caps:[[e.d,"🏃 flees!"]],pops:[[at(e.d),"🏃"]]};
   },
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
