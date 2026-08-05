@@ -72,6 +72,13 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
   people are reading. They drift with the live wind —
   the clearest read of which way it blows. The prototype's tuning HUD stays opt-in behind
   `?windhud=1`, because it is a fixed panel that lands on the Captains panel on a phone.
+- **Particles are half the prototype's size** (`WIND_DOT_PX`, 7px → 3.5px) and **never share the
+  board with the rain** (Wyatt, 2026-08-05): the field fades out over 400ms as a storm arrives —
+  gone before the rain's own 0.8s fade-in finishes — and fades back in over 900ms behind an 800ms
+  delay, so the rain has fully cleared first. Two weather animations at once read as noise; one at
+  a time reads as weather. The dots' rAF loop is stopped for the duration of the storm and
+  restarted just before they become visible again, so an invisible field costs nothing during the
+  most expensive moment the board has.
 
 ## 7. Storms
 

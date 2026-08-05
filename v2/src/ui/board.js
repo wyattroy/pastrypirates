@@ -529,6 +529,23 @@ export function windHudEnabled(){
 // part of the frame cost it measures.
 const WIND_SPEED_SCALE=0.2;
 const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=10, WIND_DOT_SEED_SALT=0x57494e44, WIND_LAYER_OVERSIZE=2.2, WIND_READOUT_MS=250;
+// WIND_DOT_PX (Wyatt, 2026-08-05): "decrease the wind particle size fifty percent" — the
+// prototype's 7px halved. A named constant rather than an edited literal, because the size is now
+// something taste may move again; nothing else in the region depends on it (the wobble cap and the
+// wrap margin are both in layer space, not dot space, so a smaller dot does not change its path).
+const WIND_DOT_PX=3.5;
+
+// WIND_STORM_FADE_* (Wyatt, 2026-08-05): "fade out the wind particles when a storm starts — the two
+// animation effects should not happen simultaneously." The rain's own fade is `.8s ease` on
+// #stormOverlay (index.html), so the two timings are set AGAINST it rather than matched to it:
+//  - OUT at 400ms with no delay, so the dots are gone about halfway through the rain's fade IN —
+//    the board never shows drifting dots under falling rain.
+//  - IN at 900ms behind an 800ms delay, so the dots only begin returning once the rain's own 800ms
+//    fade OUT has fully finished. A crossfade back would have been the same overlap in reverse.
+// The dots' rAF loop is also STOPPED once the fade-out finishes and restarted before the fade-in
+// (windStormSync) — an invisible dot field must not keep paying for frames through a storm, which
+// is the one moment the board is already at its most expensive (BUG-01).
+const WIND_STORM_FADE_OUT_MS=400, WIND_STORM_FADE_IN_MS=900, WIND_STORM_FADE_IN_DELAY_MS=800;
 
 // WIND_WOBBLE_MAX_PX/WIND_WOBBLE_PERIOD_MS (D-02.2) and WIND_FADE_FRAC (D-02.1) are 19-04's two
 // named fill-in points' constants. WIND_WOBBLE_MAX_PX caps the lateral sway's amplitude in the
@@ -643,7 +660,7 @@ export function windDotFrame(spec,tMs,layerW,layerH){
 // `div.wdot` elements and REMOVING surplus ones from the DOM entirely (never just hiding them).
 // Regenerates the module-scope `windSpecs` cache from windDotSpecs(seed,count) in the SAME call so
 // specs and elements can never disagree in length. Every dot is styled inline via element.style
-// only (D-14 — index.html is never touched): absolute position at left/top 0, a 7px circle, a flat
+// only (D-14 — index.html is never touched): absolute position at left/top 0, a WIND_DOT_PX circle, a flat
 // translucent white fill, and pointerEvents:"none". The dot is a drawn shape, not a baked image —
 // no new asset is loaded.
 export function buildWindDots(container,seed,count){
@@ -657,8 +674,8 @@ export function buildWindDots(container,seed,count){
     d.style.position="absolute";
     d.style.left="0";
     d.style.top="0";
-    d.style.width="7px";
-    d.style.height="7px";
+    d.style.width=WIND_DOT_PX+"px";
+    d.style.height=WIND_DOT_PX+"px";
     d.style.borderRadius="50%";
     d.style.background="rgba(255,255,255,.72)";
     d.style.pointerEvents="none";
@@ -714,6 +731,16 @@ export function buildWindDots(container,seed,count){
 // Anti-Patterns / Open Question 1 — the headroom run isolates this variable rather than guessing).
 let windDotEls=[],windSpecs=[],windDotsOn=true,windDotCount=WIND_DOT_DEFAULT,windAngle=0,windRafId=0,windLayer=null,windHudBuilt=false,windLastReadoutMs=0,windLastFrameMs=null,windWillChangeOn=false;
 
+// windStormFaded is the LAST storm state windStormSync acted on, so a fade fires once on the edge
+// rather than on every render() (render runs many times per storm — restarting the transition each
+// time would freeze the dots at whatever opacity they had reached). windStormTimer is the pending
+// stop-the-loop timeout, always cleared before a new one is set so a storm that ends mid-fade-out
+// cannot stop a loop the fade-in has just restarted. windBuilt replaces the old `if(!windRafId)`
+// build guard in windDotsTick: that test conflated "the pool exists" with "the loop is running",
+// and once a storm legitimately stops the loop it would have rebuilt the pool and restarted the
+// loop on the very next render — undoing the stop every single frame of the storm.
+let windStormFaded=false,windStormTimer=0,windBuilt=false;
+
 // windReducedMotion (D-13) — read ONCE at module init via the JS `matchMedia` pattern
 // (src/ui/panel.js:300), not the pure-CSS `animation-play-state` pattern the storm rain uses,
 // because the dots' motion is written by windDotLoop's own transform/opacity assignments — a CSS
@@ -752,6 +779,16 @@ function windEnsureLayer(){
     dots.style.borderRadius="10px";
     dots.style.overflow="hidden";
     dots.style.zIndex="6";
+    // The storm fade lives on the CONTAINER, not on the dots: one compositor-only opacity
+    // transition on one element, rather than 10 per-dot transitions fighting windDotLoop's own
+    // per-frame opacity writes (the loop would win, and the fade would never happen). Duration and
+    // delay are rewritten per direction by windStormSync — only the property and easing are fixed
+    // here. `opacity` is the sole transitioned property, so this stays inside BUG-01's
+    // compositor-only contract.
+    dots.style.opacity="1";
+    dots.style.transitionProperty="opacity";
+    dots.style.transitionTimingFunction="ease";
+    dots.style.transitionDuration=WIND_STORM_FADE_OUT_MS+"ms";
     bw.appendChild(dots);
   }
   let layer=dots.querySelector(".wlayer");
@@ -1134,12 +1171,49 @@ export function windSetDotCount(n){
   if(dialEl)dialEl.value=String(windDotCount);
 }
 
-// windDotsTick(angle) — the ONE call render() makes into this region (see the wind block below).
-// Returns immediately when the prototype is disabled, touching no DOM at all in a normal build.
-// Otherwise: stores the live angle, ensures the layer + HUD exist, writes the SAME `angle+180`
-// convention --slant uses as a live transform (zero restart), builds the dot pool on first run, and
-// starts the shared loop if it is not already running.
-export function windDotsTick(angle){
+// windStormSync(storming) — the wind field's half of "the two animation effects should not happen
+// simultaneously" (Wyatt, 2026-08-05). EDGE-TRIGGERED: returns immediately unless the storm state
+// actually changed, because render() runs many times during one storm and re-writing the opacity
+// every time would restart the CSS transition from wherever it had got to, pinning the dots at a
+// half-faded value forever.
+//
+// Fading OUT: rewrite the duration to WIND_STORM_FADE_OUT_MS with no delay, drop the container to
+// opacity 0, and schedule stopWindDots() for just after the fade lands. The loop keeps running
+// THROUGH the fade — a stopped loop freezes the dots, and dots that stop drifting the instant the
+// storm is announced read as a bug rather than as weather.
+//
+// Fading IN: start the loop FIRST (so the dots are already moving by the time they are visible —
+// starting it after would show a frozen field for one frame), then fade in behind
+// WIND_STORM_FADE_IN_DELAY_MS so the rain's own .8s fade-out has finished before the dots return.
+function windStormSync(storming){
+  if(storming===windStormFaded)return;
+  windStormFaded=storming;
+  const host=$("windDots");
+  if(windStormTimer){clearTimeout(windStormTimer);windStormTimer=0;}
+  if(storming){
+    if(host){
+      host.style.transitionDuration=WIND_STORM_FADE_OUT_MS+"ms";
+      host.style.transitionDelay="0ms";
+      host.style.opacity="0";
+    }
+    // +80ms of slack so the stop lands after the last painted frame of the fade, never on top of it
+    windStormTimer=setTimeout(function(){ windStormTimer=0; stopWindDots(); },WIND_STORM_FADE_OUT_MS+80);
+  }else{
+    startWindDots();
+    if(host){
+      host.style.transitionDuration=WIND_STORM_FADE_IN_MS+"ms";
+      host.style.transitionDelay=WIND_STORM_FADE_IN_DELAY_MS+"ms";
+      host.style.opacity="1";
+    }
+  }
+}
+
+// windDotsTick(angle,storming) — the ONE call render() makes into this region (see the wind block
+// below). Returns immediately when the prototype is disabled, touching no DOM at all in a normal
+// build. Otherwise: stores the live angle, ensures the layer + HUD exist, writes the SAME
+// `angle+180` convention --slant uses as a live transform (zero restart), builds the dot pool and
+// starts the loop on first run, and hands the live storm state to windStormSync above.
+export function windDotsTick(angle,storming){
   if(!windPrototypeEnabled())return;
   windAngle=angle;
   const layer=windEnsureLayer();
@@ -1148,10 +1222,12 @@ export function windDotsTick(angle){
   // of the Captains panel. Opt in with ?windhud=1 when the density dial is actually wanted.
   if(windHudEnabled())buildWindHud();
   if(layer)layer.style.transform=`rotate(${windAngle+180}deg)`;
-  if(!windRafId){
+  if(!windBuilt){
+    windBuilt=true;
     buildWindDots(layer,appState.game&&appState.game.seed,windDotCount);
     startWindDots();
   }
+  windStormSync(!!storming);
 }
 
 /* ===== WIND DOT PROTOTYPE (Phase 19 / WIND-00) END ===== */
@@ -1443,7 +1519,9 @@ export function render(){
       buildStormLayers(ov,appState.game&&appState.game.seed); // lazily create the jittered rain layers (once)
       ov.style.setProperty("--slant",(angle+180)+"deg");
     }
-    windDotsTick(angle);
+    // `storming` goes in so the dot field can fade itself out for the duration of the rain — the
+    // two effects are never on screen together (windStormSync).
+    windDotsTick(angle,storming);
   }
   $("scrub").value=appState.evIdx;
   renderLog();
