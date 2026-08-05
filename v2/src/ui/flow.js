@@ -774,14 +774,22 @@ export async function humanAct(p,sailCtx){
   opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
   if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
-  // v2 rule 3: Fish is gone from the menu. Nothing replaces it — a captain with nothing worth
-  // doing simply ends the turn, which is what a human in that position does anyway.
+  // v2 rule 3: Fish is gone from the menu, and rule 4's Trade is table-wide rather than
+  // adjacency-gated. Together that made it possible for EVERY option to be unavailable at once —
+  // not on a dock, nobody adjacent to fight, nobody holding cargo yet, recipe unfinished — which
+  // is exactly what happened on turn one of the first phone playtest: a menu with a single greyed
+  // Trade button and no way to end the turn at all.
+  //
+  // Fish used to absorb that case by accident, because it was always available. Nothing replaced
+  // it, so this does, explicitly: a turn must ALWAYS be endable. Never disabled, never hidden —
+  // a "pass" that vanishes when you need it is the D-41 dead-end all over again.
   //
   // offered only if this player's sail step ended in "Stay put" — covers the reported "hit Stay
   // put by accident" complaint. Sailing is free now (rule 2), so there is no purse test.
   const canMoveInstead=sailCtx&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
+  opts.push({label:"⏭️ Pass the turn",value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
@@ -823,6 +831,12 @@ export async function humanAct(p,sailCtx){
     if(dest){p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
+  }
+  if(v==="pass"){
+    appState.game.ev({t:"pass",p:p.idx});
+    liveRender();
+    await narrateLastEvent();
+    return;
   }
   // @copy adhoc.act.bakerystart
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}

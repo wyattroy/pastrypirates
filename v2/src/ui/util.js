@@ -341,9 +341,14 @@ export const EVENT_NARRATION={
     ?`⚓ ${pn(e.p)} — the storm blows ye clean into a berth! Ye tie up safe.`
     :`⚓ The storm blows ${pn(e.p)} clean into a berth — they tie up safe.`,
     caps:[[e.p,"⚓ blown into a berth"]],pops:[[at(e.p),"⚓"]]}),
-  // v2: a bot or captain with nothing worth doing simply ends the turn. Deliberately silent in
-  // the narration box — it is not an event, it is the absence of one.
+  // v2: a bot with nothing worth doing simply ends the turn. Deliberately silent in the
+  // narration box — it is not an event, it is the absence of one.
   idle:()=>null,
+  // A HUMAN choosing to pass is different: they pressed a button and deserve to see it land.
+  pass:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
+    ?`⏭️ ${pn(e.p)} — ye bide a while and let the turn pass.`
+    :`⏭️ ${pn(e.p)} bides a while and lets the turn pass.`,
+    caps:[[e.p,"⏭️ bides a while"]]}),
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
     txt:`💥 ${pn(e.a)} and ${pn(e.d)} break off — the smoke clears and neither has a thing to show for it.`,
