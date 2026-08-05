@@ -353,6 +353,20 @@ const EVENT_NARRATION={
      it is just where the push happened to stop. The whole storm is now `storm` plus the ordinary
      movement lines. Four narration entries, one engine outcome and two turn-path branches went
      with it; that deletion IS the feature. */
+  /* THE ANCHOR LINE, kept at Wyatt's request: *"I want the narration lines about 'dropped anchor
+     to avoid running aground' to remain."* It survives the v2.1 simplification because the moment
+     it describes still exists — the storm drives ye at the rocks and the ship fetches up short of
+     them. What changed is that there is no longer a penalty being dodged, so the line reports
+     seamanship rather than a bullet missed. It also fills a real silence: until now, a storm that
+     stopped a ship against land said nothing at all. */
+  anchorHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
+    ?(e.moved
+      ?`⚓ ${pn(e.p)} — the storm drives ye at the rocks, but ye drop anchor and hold fast, clear of the shore.`
+      :`⚓ ${pn(e.p)} — the storm hurls itself at ye, but ye've land at yer back and the anchor bites. Ye don't budge.`)
+    :(e.moved
+      ?`⚓ The storm drives ${pn(e.p)} at the rocks, but they drop anchor and hold fast, clear of the shore.`
+      :`⚓ The storm hurls itself at ${pn(e.p)}, but they've land at their back and the anchor bites.`),
+    caps:[[e.p,"⚓ anchors clear of the rocks"]],pops:[[at(e.p),"⚓"]]}),
   // v2 rule 7: the storm hits the whole table at once, before anybody acts.
   storm:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:`⛈️ THE STORM BREAKS! Every ship is blown ${e.dist} squares <b>${DIRNAME[e.dir]}</b>!`}),

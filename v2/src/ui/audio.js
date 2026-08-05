@@ -107,6 +107,8 @@ const EVENT_SOUND = {
   // only to push a fresh state snapshot to the Captains panel mid-turn and is invisible by design,
   // so it must never become audible if the unmapped default ever changes.
   purse: null, idle: null, openoffer: null, collab: null,
+  // the anchor biting IS a storm moment — it rides the storm bus like the weather it answers
+  anchorHold: "storm",
   // the ocean look and a blown-into-berth rescue are moments, but quiet ones — the narration and
   // the board already carry them
   pass: null,

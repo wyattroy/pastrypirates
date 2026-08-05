@@ -91,6 +91,18 @@ rim roughly **0.85 times per storm**. Removing the lost turn changed the median 
 Deleted with it: the `aground`, `stormlost`, `berthHold` and `blownDock` narration, the
 `stormAground` forfeit branch in both the human and bot turn paths, and one engine outcome.
 
+**The anchor line stays** (Wyatt, 2026-08-05). The moment it describes still happens — the storm
+drives ye at the rocks and the ship fetches up short of them — so `anchorHold` narrates it, and
+fills what was otherwise silence. It now reports seamanship rather than a penalty dodged.
+
+**Using land as a backstop is deliberate and good.** With land directly downwind the storm cannot
+move you at all, so a captain reading the forecast can choose to be immovable. Measured: 34.8% of
+your reachable squares are storm-proof, you are already on one 32.7% of the time, and only 0.7% of
+the time is none reachable. It is emergent from the one sentence — no rule was added for it — and it
+is not dominant, because the shove HELPS 25% of the time and only hurts 36%, netting −0.33 squares.
+Sheltering blindly forfeits free progress, so it is a read rather than a routine. If playtesting
+ever shows everyone parking against land, the lever is storm distance or frequency, never a new rule.
+
 ## 9. Battles — one round
 
 - **2🌕 powder** up front, as in v1.

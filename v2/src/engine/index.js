@@ -78,8 +78,10 @@ const PLAN={
   // being shoved against land and losing the ground it just made, and what it courts is a berth
   // the storm will park it in for free. Both are worth about a square of progress, no more; price
   // them higher and a bot cowers instead of sailing.
-  stormBlocked:900,
-  stormDockBonus:400,
+  // how much a bot cares, per square, about where the forecast storm will leave it. Deliberately
+  // a quarter of a step: enough to break a tie toward a favourable shove, never enough to walk
+  // away from an island it needs.
+  stormDrift:250,
 };
 
 class Game{
@@ -368,12 +370,14 @@ class Game{
     const d=DIRS[dirKey];
     const nx=[p.pos[0]+d[0],p.pos[1]+d[1]];
     // the edge of the world is land like any other
-    if(this.blocked(nx))return "held";
+    if(this.blocked(nx))return "landHeld";
     // another ship holds that square — you strike sail and hold fast behind her
     const blocker=this.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
     if(blocker){this.ev({t:"blocked",p:p.idx,other:blocker.idx});return "held";}
-    // land dead ahead — you fetch up short of it, no harm beyond losing the ground
-    if(this.isIsland(nx)||this.isHome(nx))return "held";
+    // land dead ahead — you fetch up short of it, no harm beyond losing the ground. Distinct from
+    // "held" (another ship) so the anchor line can be narrated: this is the moment a captain drops
+    // anchor rather than be driven onto the rocks, and it was silent until now.
+    if(this.isIsland(nx)||this.isHome(nx))return "landHeld";
     p.pos=nx;
     if(this.onRim(nx)){this.tradewind(p);return "swept";}
     return "moved";
@@ -391,6 +395,11 @@ class Game{
   // With the lost turn gone there is nothing to forfeit and nothing to rescue: a ship either moved
   // or it did not, and a ship that ends on a berth is docked there like any other way of arriving.
   noteStormOutcome(p,outcome,moved,wasDocked){
+    // Land brought the ship up short — whether it moved first or was pinned from the start. This
+    // is the anchor moment, and Wyatt asked for the line back: *"I want the narration lines about
+    // 'dropped anchor to avoid running aground' to remain."* Under v2.1 nothing runs aground any
+    // more, so the line reports what the anchor SAVED you from rather than a penalty it dodged.
+    if(outcome==="landHeld"){this.ev({t:"anchorHold",p:p.idx,moved:moved?1:0});return;}
     if(!moved)return;
     p.justDocked=this.isBerth(p.pos);
     if(outcome!=="swept")this.ev({t:wasDocked&&!p.justDocked?"blownOut":"windmove",p:p.idx});
@@ -473,31 +482,26 @@ class Game{
     this._field=dist;this._fieldKey=k;this._fieldRound=this.round;
     return dist;
   }
-  /* v2 rules 6 + 8, together. The compass commits next round's wind a FULL ROUND early and rule 6d
+  /* v2 rules 6 + 8. The compass commits next round's wind a FULL ROUND early and rule 6d
      promises the forecast is never wrong — so a captain who is paying attention can see a storm
-     coming and steer out of its path. That is the entire justification for rule 8 charging a whole
-     turn with no way to buy out of it: Wyatt's words, *"there are no multiple options, because now
-     you can plan ahead."*
-
-     A bot that ignored the forecast would make that rule feel like arbitrary punishment rather
-     than a thing you failed to plan around. So it doesn't ignore it.
-
-     Returns what the FORECAST storm would do to a ship sitting on `cell`. Other ships are
-     deliberately not modelled: nobody can know where they will be next round, and being stopped
-     by one is harmless anyway (rule 8c — you strike sail and keep your turn). */
-  stormOutcomeFrom(cell){
-    if(!this.stormNext||!this.windNext)return "none";
+     coming and place themselves for it. stormOutcomeFrom() used to answer "would this square
+     ground me?"; v2.1 removed grounding, so the question became "where will the shove leave me?"
+     and stormLanding() below answers that instead. The old helper is deleted rather than left
+     unused. */
+  // WHERE the forecast storm will actually leave a ship that ends its move on `cell`. Other ships
+  // are not modelled — nobody can know where they will be next round, and being stopped by one is
+  // harmless anyway.
+  stormLanding(cell){
+    if(!this.stormNext||!this.windNext)return cell;
     const d=DIRS[this.windNext];
     let c=[cell[0],cell[1]];
     for(let s=0;s<STORM_PUSH;s++){
       const nx=[c[0]+d[0],c[1]+d[1]];
-      // land or the world's edge simply stops the push — no grounding, no lost turn (v2.1)
-      if(this.blocked(nx)||this.isIsland(nx)||this.isHome(nx))return "held";
+      if(this.blocked(nx)||this.isIsland(nx)||this.isHome(nx))return c;
       c=nx;
-      if(this.onRim(c))return "swept";
-      if(this.isBerth(c))return "docked";
+      if(this.onRim(c)){const h=this.rimHead[c[0]+","+c[1]];return h?[h[0],h[1]]:c;}
     }
-    return "moved";
+    return c;
   }
   // Move as close to `target` as this turn's sailing allows, measured in real sailing distance.
   // Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
@@ -520,8 +524,15 @@ class Game{
       // of distance, and a bot will willingly end its move further from the island to keep its
       // next turn. A square the storm would blow into an open dock is a small BONUS: rule 8d says
       // you tie up safe there and keep the turn, so the storm does the sailing for you.
-      const fc=this.stormOutcomeFrom(c);
-      const stormPenalty=fc==="held"?PLAN.stormBlocked:(fc==="docked"?-PLAN.stormDockBonus:0);
+      // v2.1: being stopped by land is no longer a punishment to dodge — it is simply no movement,
+      // and movement can help as easily as hurt (measured: the storm pushes a ship CLOSER to its
+      // target 25% of the time and further 36%). So the bot no longer flees "blocked"; it scores
+      // where the storm will actually leave it, and mildly prefers a square whose shove helps.
+      // Weighted well under one step of real distance so it can never override reaching a dock.
+      const land=this.stormLanding(c);
+      const after=field[land[0]+","+land[1]];
+      const drift=(after===undefined||fd===undefined)?0:(after-fd);
+      const stormPenalty=drift*PLAN.stormDrift;
       const score=d*1000+n+stormPenalty;
       if(score<bestScore){bestScore=score;best=c;}
     }
