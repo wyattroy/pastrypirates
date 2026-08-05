@@ -352,9 +352,20 @@ const EVENT_NARRATION={
     txt:`⛈️ THE STORM BREAKS! Every ship is blown ${e.dist} squares <b>${DIRNAME[e.dir]}</b>!`}),
   // v2 rule 8a: run aground and ye simply lose the turn. No dodging, no anchoring, no repairs —
   // the compass warned ye a full round ago.
-  // Fires at the top of the grounded captain's own turn. Deliberately SILENT: `aground` above
-  // already told the table, as it happened, during the storm. Saying it twice reads as a bug.
-  stormlost:()=>null,
+  /* Fires at the top of the grounded captain's own turn. It used to be SILENT, on the reasoning
+     that `aground` had already announced it during the storm. That was wrong in practice: the
+     storm line promised a loss in the FUTURE tense ("they'll lose their turn"), and then the turn
+     simply never arrived — the game skipped it with nothing said at all. Wyatt, 2026-08-05: *"the
+     narration was unclear about me losing my turn."*
+     So `aground` now reports only what just happened, and THIS line reports the consequence at the
+     moment it lands. Present tense, addressed, and explicit that both halves of the turn are gone. */
+  stormlost:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
+    ?`🏝️ ${pn(e.p)} — yer hard aground. The crew spends the whole turn heavin' her off the rocks: no sailin', no action.`
+    :`🏝️ ${pn(e.p)} is hard aground — their crew spends the whole turn heavin' her off the rocks.`,
+    caps:[[e.p,"🏝️ turn lost — aground"]],pops:[[at(e.p),"🏝️"]]}),
+  // Silent by design: it exists only so the Captains panel's snapshot catches up with a purse that
+  // changed mid-turn (see humanDock). It is not an event in the fiction and must never narrate.
+  purse:()=>null,
   // v2 rule 8b/8d: a berth catches ye mid-storm. Ye stop there, and ye keep yer turn.
   blownDock: (e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
     ?`⚓ ${pn(e.p)} — the storm blows ye clean into a berth! Ye tie up safe.`
@@ -449,9 +460,9 @@ const EVENT_NARRATION={
   // losing half yer coins, no crate overboard, no shipwreck. A storm that drives ye onto the rocks
   // costs exactly one thing: yer turn. This line plays as it happens, during the storm.
   aground:(e,at,cellPx=0,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?`🏝️ ${pn(e.p)} — the storm drives ye onto the rocks! Ye'll lose yer turn.`
-    :`🏝️ The storm drives ${pn(e.p)} onto the rocks — they'll lose their turn.`,
-    caps:[[e.p,"🏝️ aground — turn lost"]],pops:[[at(e.p),"🏝️"]]}),
+    ?`🏝️ ${pn(e.p)} — the storm drives ye onto the rocks!`
+    :`🏝️ The storm drives ${pn(e.p)} onto the rocks!`,
+    caps:[[e.p,"🏝️ aground"]],pops:[[at(e.p),"🏝️"]]}),
   // NARR-01/D-25/D-46/D-48 (Wyatt-approved 2026-07-29): docking copy applied verbatim.
   //
   // D-46, STATED AS IT ACTUALLY READS (this comment used to describe the over-application F10

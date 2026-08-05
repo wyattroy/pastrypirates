@@ -632,6 +632,16 @@ export async function humanDock(p,port){
   p.coins+=h?g.cfg.dockHeads:g.cfg.dockTails;
   let got=h?"treasure":"dockhand";
   const price=g.cratePrice(ing);
+  /* THE CAPTAINS PANEL IS DRAWN FROM THE LAST EVENT'S SNAPSHOT, not from live player state — so
+     coins earned here stayed invisible until the `dock` event was finally emitted, which is AFTER
+     the buy prompt has been answered. Wyatt, 2026-08-05: the total "does not update until the very
+     end of your turn, which is confusing". He is right, and it matters most exactly here, because
+     the buy prompt asks him to spend money the panel says he does not have yet.
+     A silent event carries the new snapshot immediately. It narrates nothing (see EVENT_NARRATION
+     .purse) and logs nothing — its whole job is to make the panel tell the truth. Every other coin
+     change in the game emits its event in the same breath as the mutation; this one could not,
+     because a prompt sits in between. */
+  g.ev({t:"purse",p:p.idx});
   liveRender(); // the purse changed — show it before the buy prompt prices anything against it
   if(g.cfg.dockBuy&&price!==null){
     // F9/D-41: the affordability test decides only whether the option is CLICKABLE, never whether

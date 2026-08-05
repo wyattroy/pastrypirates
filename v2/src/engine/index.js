@@ -363,8 +363,9 @@ class Game{
     p.pos=nx;
     if(this.onRim(nx)){this.tradewind(p);return "swept";}
     // an OPEN berth catches you mid-push and saves you (rule 8b: the square you'd hit). An
-    // occupied one was already handled above as a ship in the way.
-    if(this.dockCells.has(nx[0]+","+nx[1])){p.justDocked=true;return "docked";}
+    // occupied one was already handled above as a ship in the way. isBerth() — NOT dockCells —
+    // because Tortuga's berths are berths too.
+    if(this.isBerth(nx)){p.justDocked=true;return "docked";}
     return "moved";
   }
   stormPush(p,dirKey,dist){
@@ -548,6 +549,17 @@ class Game{
       }
     }
     return false;
+  }
+  /* Is this square a berth a ship can tie up at? THE FOUR TORTUGA BERTHS COUNT.
+     `dockCells` holds only the island docks, so a storm that shoved a ship onto a Tortuga berth
+     did not recognise it as a rescue, carried on pushing into the island itself, and grounded the
+     captain — losing them a turn while they sat in a berth. Wyatt, 2026-08-05: *"I was blown into
+     a dock, on tortuga, which should be the same as every other dock."* He is right, and the rest
+     of the engine already agrees: mooredReason() has always treated a Tortuga berth as a berth.
+     Distance exactly 1 — the home square itself is land, not a berth. */
+  isBerth(c){
+    if(this.dockCells.has(c[0]+","+c[1]))return true;
+    return man(c,this.home)===1;
   }
   adjPort(p){
     if(this.cfg.singleDock){
