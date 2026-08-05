@@ -58,6 +58,12 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 - Compass shows **both**: this round's live wind, and next round's forecast.
 - The forecast reveals **a storm and its direction**.
 - The forecast is **never wrong** — once shown it is committed.
+- **How it is drawn (2026-08-05):** the big ornate needle is always THIS round's wind. The forecast
+  rides on top of it as a small solid chevron with a white keyline — deliberately a different
+  *object*, not a second needle, because an earlier ghost needle of the same shape was mistaken for
+  the live wind. It doubles as the storm warning: **alarm red and pulsing** when a storm is coming,
+  muted slate when the next round is calm. The tiny "next: ←W" caption it replaced was, in Wyatt's
+  words, almost impossible to see.
 
 ## 7. Storms
 
