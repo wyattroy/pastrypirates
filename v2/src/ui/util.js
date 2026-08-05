@@ -366,6 +366,13 @@ const EVENT_NARRATION={
   // Silent by design: it exists only so the Captains panel's snapshot catches up with a purse that
   // changed mid-turn (see humanDock). It is not an event in the fiction and must never narrate.
   purse:()=>null,
+  // v2 rule 8: the mooring ye were ALREADY tied to holds ye against the blow. Without this a
+  // docked captain was driven into the island they were moored to, which is the one place a ship
+  // ought to be safe.
+  berthHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
+    ?`⚓ ${pn(e.p)} — the storm hurls itself at yer berth, but the mooring holds fast. Ye stay tied up.`
+    :`⚓ The storm hurls itself at ${pn(e.p)}'s berth, but the mooring holds fast.`,
+    caps:[[e.p,"⚓ mooring holds"]],pops:[[at(e.p),"⚓"]]}),
   // v2 rule 8b/8d: a berth catches ye mid-storm. Ye stop there, and ye keep yer turn.
   blownDock: (e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
     ?`⚓ ${pn(e.p)} — the storm blows ye clean into a berth! Ye tie up safe.`

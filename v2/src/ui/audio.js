@@ -108,7 +108,7 @@ const EVENT_SOUND = {
   purse: null, idle: null, stormlost: null, openoffer: null, collab: null,
   // the ocean look and a blown-into-berth rescue are moments, but quiet ones — the narration and
   // the board already carry them
-  pass: null, blownDock: null,
+  pass: null, blownDock: null, berthHold: null,
   // a battle that ends with nobody hit has no hit to sound; the paid re-fire is covered by the
   // flip that follows it
   battlenull: null, refire: null,
