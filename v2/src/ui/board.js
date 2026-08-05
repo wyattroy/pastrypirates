@@ -310,12 +310,16 @@ export function drawBoard(){
   // so with both on one node the pulse silently erased the translate, and the chip snapped back
   // over the dial's centre and hung 28px off the right edge of the board. Measured, not guessed.
   // Keep the position and the animation on different nodes.
-  const FC_W=200,FC_H=44,FC_DX=-70,FC_DY=sr+10;
+  // Smaller, and ABOVE the dial (Wyatt, 2026-08-05) — below it the chip covered playable squares,
+  // and it must not sit on the compass either. There are only ~32 units of room between the board's
+  // top edge and the dial, so the height is set to fit that gap exactly, and the negative FC_DY
+  // lifts it clear. It lands over the corner's decorative pastry art rather than over the grid.
+  const FC_W=116,FC_H=28,FC_DX=-14,FC_DY=-(sr+2+28);
   forecastNeedle=el("g",{transform:`translate(${FC_DX},${FC_DY})`},hud);
   forecastPulse=el("g",{},forecastNeedle);
   forecastBox=el("rect",{x:-FC_W/2,y:0,width:FC_W,height:FC_H,rx:10,
-    fill:"#fffdf0",stroke:"#29a3b2","stroke-width":2.5},forecastPulse);
-  forecastMark=el("text",{x:0,y:FC_H*0.68,"text-anchor":"middle","font-size":21,
+    fill:"#fffdf0",stroke:"#29a3b2","stroke-width":2},forecastPulse);
+  forecastMark=el("text",{x:0,y:FC_H*0.70,"text-anchor":"middle","font-size":16,
     "font-weight":"bold",fill:"#1f4249"},forecastPulse);
   // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
   // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
@@ -507,6 +511,7 @@ export function windHudEnabled(){
 // so a live rotation never exposes a layer corner. WIND_READOUT_MS is 19-RESEARCH.md Pitfall 4's
 // throttle: the readout text updates at most this often, so measuring the frame rate never becomes
 // part of the frame cost it measures.
+const WIND_SPEED_SCALE=0.2;
 const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=10, WIND_DOT_SEED_SALT=0x57494e44, WIND_LAYER_OVERSIZE=2.2, WIND_READOUT_MS=250;
 
 // WIND_WOBBLE_MAX_PX/WIND_WOBBLE_PERIOD_MS (D-02.2) and WIND_FADE_FRAC (D-02.1) are 19-04's two
@@ -586,7 +591,12 @@ export function windDotSpecs(seed,count){
 // (drawn in [0,1) by windDotSpecs) so no dot's deviation from its lane can exceed WIND_WOBBLE_MAX_PX.
 export function windDotFrame(spec,tMs,layerW,layerH){
   const margin=16;
-  const rate=0.35+spec.speed*0.5; // layer-heights per second
+  // WIND_SPEED_SCALE (Wyatt, 2026-08-05): "MUCH slower — 20% their current speed". The prototype
+  // was tuned as a visible-motion demo; as ambient scene-setting under a board people are reading,
+  // that pace is busy. Applied as a scale on the rate rather than by editing the two literals, so
+  // the prototype's own 0.35..0.85 spread — the per-dot variation that stops them moving in
+  // lockstep — is preserved exactly, just slowed.
+  const rate=(0.35+spec.speed*0.5)*WIND_SPEED_SCALE; // layer-heights per second
   const span=layerH+margin*2;
   let raw=(spec.startT*span+(tMs/1000)*rate*layerH)%span;
   if(raw<0)raw+=span;
@@ -1381,7 +1391,10 @@ export function render(){
     const nextStorm=!!(appState.game&&appState.game.stormNext);
     if(forecastNeedle)forecastNeedle.style.display=nx?"":"none";
     if(forecastMark&&nx){
-      forecastMark.textContent=`FORECAST: ${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`;
+      // "NEXT" rather than "FORECAST" purely for width: at a chip small enough not to cover the
+      // board, the longer word overflowed its own box. It also matches the round header's existing
+      // vocabulary ("Next round: wind east"). Say the word and it goes back with a wider chip.
+      forecastMark.textContent=`NEXT: ${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`;
       // THE STORM WARNING IS THE WHOLE BOX GOING RED — a filled chip changing colour is visible in
       // peripheral vision on a phone in a way that a small glyph never was.
       forecastMark.setAttribute("fill",nextStorm?"#ffffff":"#1f4249");

@@ -59,13 +59,16 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 - The forecast reveals **a storm and its direction**.
 - The forecast is **never wrong** — once shown it is committed.
 - **How it is drawn (2026-08-05, settled after two failed attempts):** the dial is left alone — one
-  ornate needle, always THIS round's wind. The forecast lives in a filled chip BELOW the compass
-  reading `FORECAST: E →`, and **the whole chip goes red and breathes when a storm is coming**.
+  ornate needle, always THIS round's wind. The forecast lives in a small filled chip ABOVE the compass
+  reading `NEXT: E →`, and **the whole chip goes red and breathes when a storm is coming**. It sits
+  over the corner's decorative art, blocking neither the playing grid nor the dial.
   Two earlier attempts put the forecast ON the dial and both failed for the same reason: anything
   drawn over the needle competes with it. A ghost needle was mistaken for the live wind; a red
   chevron was legible but shouted louder than the thing it annotated. A chip below annotates
   without competing.
-- **Wind particles are ON in v2** (`WIND_PROTOTYPE_ENABLED_DEFAULT`), drifting with the live wind —
+- **Wind particles are ON in v2** (`WIND_PROTOTYPE_ENABLED_DEFAULT`), at **20% of the prototype's
+  speed** (`WIND_SPEED_SCALE`) — it was tuned as a motion demo, which is too busy under a board
+  people are reading. They drift with the live wind —
   the clearest read of which way it blows. The prototype's tuning HUD stays opt-in behind
   `?windhud=1`, because it is a fixed panel that lands on the Captains panel on a phone.
 
