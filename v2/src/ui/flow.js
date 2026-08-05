@@ -140,10 +140,20 @@ export function reachable(p){
 // player read two different prompts depending on whether they happened to be the host or a guest
 // (D-35's sweep finding: guest-side code must render text, never author it).
 export function sailPickMsg(seat){
-  // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone. Rule 1's cap is worth saying
-  // here instead, because the highlighted squares are the only place a player can see it bite:
-  // when the route would head into the wind, the range they are shown shrinks from 4 to 2.
+  // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
   return `${pn(seat)}: click any yellow square to sail there`;
+}
+// The wind's effect on THIS move, spelled out at the moment the move is made. The highlighted
+// squares already encode rule 1 exactly, but they encode it silently: a captain who misreads the
+// compass reads the highlights as a bug rather than as the rule. Naming the direction and both
+// ranges here means the prompt and the board can never disagree, and there is nothing left to
+// infer from the dial. (Wyatt, 2026-08-05, reported "sailed 3 upwind" after taking the forecast
+// needle for the live one — the engine was right and the display was ambiguous.)
+export function sailWindHint(){
+  const w=appState.game.windNow;
+  if(!w)return null;
+  const arrow={N:"↑",E:"→",S:"↓",W:"←"}[w]||"";
+  return `🌬️ Wind blows <b>${DIRNAME[w]}</b> ${arrow} — ye can run <b>4 squares</b> with it or across it, but only <b>2</b> if yer route bites into it.`;
 }
 // G25 (Wyatt-approved 2026-07-30, D-55 PULLED FORWARD): THE ONE PLACE that decides what a sail
 // square looks like. Asked whether the four host/guest drifts were structurally fixed so they
@@ -218,8 +228,12 @@ export function localPickCell(p,cells){
       hs.push(r);
     });
     // @copy prompt.sail.pickpanel
+    // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
+    // top-to-bottom rule for anything added to #actionPanel.
+    const hint=sailWindHint();
     panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
-      <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
+      <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
+      (hint?`<div class="apSub">${hint}</div>`:``),true);
     $("apStay").onclick=()=>done(null);
   });
 }

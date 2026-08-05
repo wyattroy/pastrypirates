@@ -136,7 +136,7 @@ export function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
   el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
   return g;
 }
-let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
+let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
 
 // Exported accessors for the still-classic call sites that read this cluster's render-only state
 // directly (localPickCell/remotePickHighlights read cell; showChatBubble reads shipEls) — see the
@@ -274,15 +274,15 @@ export function drawBoard(){
   // used to be), so the separately-drawn text labels are gone — windLabels stays around (now
   // always empty) purely so the storm-color-toggle loop below still has something safe to iterate.
   windLabels=[];
-  // v2 rule 6: a SECOND, ghosted needle showing next round's committed wind. It sits under the
-  // live needle and reads as a shadow of it — the wind that is coming, not the wind that is here.
-  // Rule 6d makes it a promise: once it points somewhere, that is where the wind will blow, which
-  // is the whole reason rule 8 can charge a full turn for being caught by a storm.
-  forecastNeedle=el("g",{opacity:.42},hud);
-  const fImg=el("image",{x:-sr*.25,y:-sr*.62,width:sr*.5,height:sr*1.02,href:COMPASS_NEEDLE_IMG},forecastNeedle);
-  fImg.style.filter="grayscale(1)";
-  forecastNeedle.style.transition="transform .7s ease";
-  forecastNeedle.style.transformOrigin="0px 0px";
+  /* THE DIAL CARRIES EXACTLY ONE NEEDLE, AND IT IS ALWAYS THIS ROUND'S WIND.
+     A ghosted second needle for the forecast used to sit under this one, distinguished only by
+     being smaller, greyer and half-transparent. On a phone that reads as a single ambiguous
+     double-arrow, and Wyatt duly misread which one was live: with the wind blowing west and the
+     forecast pointing north, he took the forecast for the wind, inverted which way was upwind, and
+     reported sailing "3 upwind" when the engine had it right the whole time (property-tested over
+     235,678 cells — zero violations).
+     The forecast now lives BELOW the dial as its own labelled arrow (see forecastMark), where it
+     cannot be mistaken for the needle. Do not put a second needle back on this dial. */
   spinNeedle=el("g",{},hud);
   // needle art's collar (rotation pivot) sits at the vertical center of the image, so the
   // box is centered on (0,0) rather than offset — an offset box put the pivot ~6% of the
@@ -291,10 +291,11 @@ export function drawBoard(){
   spinNeedle.style.transition="transform .7s ease";
   spinNeedle.style.transformOrigin="0px 0px";
   stormText=el("text",{x:0,y:sr+16,"text-anchor":"middle","font-size":14,"font-weight":"bold"},hud);
-  // v2 rule 6c: the forecast says WHETHER it storms as well as which way it blows. UI-05 removed
-  // the caption for the storm happening NOW (the darkened board and rain say it far better); this
-  // one is different — it describes a round that has not happened yet, and nothing else on screen
-  // can show it.
+  // v2 rule 6c: the forecast says WHETHER it storms as well as which way it blows — and it is the
+  // ONLY place the forecast appears now, so it has to carry the direction itself. An arrow plus a
+  // letter, beneath the dial, clearly labelled "next": impossible to confuse with the live needle
+  // above it. UI-05 removed the caption for the storm happening NOW (the darkened board and rain
+  // say that far better); this is different — it describes a round that has not happened yet.
   forecastMark=el("text",{x:0,y:sr+30,"text-anchor":"middle","font-size":12,"font-weight":"bold",fill:"#1f4249"},hud);
   // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
   // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
@@ -1338,16 +1339,14 @@ export function render(){
     // the needle simply points where the wind points, storm or no storm.
     const angle=({N:0,E:90,S:180,W:270})[e.wind];
     spinNeedle.style.transform=`rotate(${angle}deg)`;
-    // v2 rule 6: the ghost needle carries next round's committed wind, and the mark below the
-    // dial says whether that wind arrives as a storm.
+    // v2 rule 6: next round's committed wind, stated in words and an arrow beneath the dial —
+    // never as a second needle on it. The arrow points the way the wind will BLOW, matching the
+    // needle's own convention exactly.
     const nx=appState.game&&appState.game.windNext;
-    if(forecastNeedle){
-      forecastNeedle.style.display=nx?"":"none";
-      if(nx)forecastNeedle.style.transform=`rotate(${({N:0,E:90,S:180,W:270})[nx]}deg)`;
-    }
     if(forecastMark){
       const nextStorm=appState.game&&appState.game.stormNext;
-      forecastMark.textContent=nx?(nextStorm?"⛈ next":"next"):"";
+      const arrow={N:"↑",E:"→",S:"↓",W:"←"}[nx]||"";
+      forecastMark.textContent=nx?`next: ${nextStorm?"⛈":""}${arrow}${nx}`:"";
       forecastMark.setAttribute("fill",storming?"#f4f6ff":"#1f4249");
     }
     // notes/edits UI-05: the "⛈️ STORM" word + emoji under the compass are gone — the darkened
