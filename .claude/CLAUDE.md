@@ -469,6 +469,33 @@ How to ask well:
   better third answer, or a question back — that reply is the most valuable part, so leave room for it.
 - **Taste, placement, wording and "how much is enough" are his. Mechanism is yours.**
 
+## RESTATE EVERY MID-FLIGHT INSTRUCTION BEFORE CARRYING ON
+
+**When Wyatt interrupts mid-task, name each instruction back to him in the very next message, before
+continuing.** Not in a commit message, not folded silently into the work — in the reply he reads.
+
+Wyatt, 2026-08-06: *"sometimes I need to interrupt you before you continue doing things, but I'm not
+sure how... You didn't see them or acknowledge them."*
+
+He had sent two corrections mid-build — put the flamingo in the sky, call the water turquoise. Both
+arrived, both were implemented, both shipped. But nothing in the reply said so, so from where he sat
+they had vanished, and he spent a whole round asking whether they had been read. **Acting on an
+instruction is not the same as showing that you heard it.** A silent fix is indistinguishable from
+being ignored, and he is on a phone with no way to check the diff.
+
+One line is enough: *"got both — flamingo to the sky, water to turquoise."* Then keep working.
+
+**Do not go hunting when he refers back to something he told you.** Asked to "read my two latest
+notes", a session searched the working tree, every git ref, GitHub issues and Google Drive — and
+never scrolled up. The notes were his own two messages. **Scroll up first; the conversation is the
+most likely place anything he "wrote" lives.** Search the disk only after that comes up empty.
+
+For his side of it, so it can be repeated: **Esc then type** interrupts immediately; **typing while
+work is in progress** queues the message and delivers it at the next gap between actions. Both
+reach the session intact. The queue is why a correction can feel ignored for a minute — a headless
+browser probe can hold the turn open that long — which is one more reason to bound every probe
+(see `docs/DRIVING-THE-GAME.md`), and to acknowledge the moment the message lands.
+
 ## Driving the game in a browser
 
 `docs/DRIVING-THE-GAME.md` is required reading before any browser or playtest automation. Two traps waste the most sessions: the flippenator coin `#flipCoinWrap` **is** the flip button (it is not an `.apBtn` — this stalled three separate attempts), and a window narrower than about a second cannot be hand-driven at all, so use the armed watcher in §5d.
