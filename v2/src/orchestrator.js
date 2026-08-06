@@ -801,7 +801,7 @@ export async function runLiveNet(){
     // v2 rule 6: the wind that blows this round was forecast on the compass LAST round, and rule
     // 6d makes that forecast a promise — advanceWind() is the single place it is kept.
     appState.game.advanceWind();
-    appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.windNext,nextStorm:appState.game.stormNext});liveRender(); // NARR-04
+    appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
     // @copy adhoc.round.header
@@ -827,7 +827,7 @@ export async function runLiveNet(){
           await netIntroBarrier(`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`,"🦜 Final round — set sail!");
           appState.game.round++;
           appState.game.advanceWind(); // rule 6: the last lap sails under the wind already forecast
-          appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.windNext,nextStorm:appState.game.stormNext});liveRender(); // NARR-04
+          appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
           // @copy adhoc.round.finalheader
           await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
           if(appState.game.stormNow)await runStormLive(appState.game.windNow); // rule 7, last lap too

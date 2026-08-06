@@ -343,9 +343,12 @@ const EVENT_NARRATION={
     // v2 rule 7: a storm is ONE direction now, not a gust and then a perpendicular second gust —
     // so every line that named a second direction loses it. v2 rule 6: the round header also
     // carries next round's committed forecast, which is what makes planning ahead possible.
-    const fc=e.next?(e.nextStorm
-      ? ` <span class="nobrk">🧭 Next round: ⛈️ storm, blowin' ${DIRNAME[e.next]}.</span>`
-      : ` <span class="nobrk">🧭 Next round: wind ${DIRNAME[e.next]}.</span>`):"";
+    // v2.1: a forecast storm no longer names its direction — `e.next` is null on exactly those
+    // rounds (Game.forecastWind), so the storm arm reads off `e.nextStorm` alone and the two arms
+    // are no longer both keyed to `e.next`.
+    const fc=e.nextStorm
+      ? ` <span class="nobrk">🧭 Next round: ⛈️ a storm's comin' — no tellin' which way she'll blow.</span>`
+      : (e.next?` <span class="nobrk">🧭 Next round: wind ${DIRNAME[e.next]}.</span>`:"");
     if(e.storm){
       if(e.streak>=2)return {cls:"roundhdr",
         txt:(held

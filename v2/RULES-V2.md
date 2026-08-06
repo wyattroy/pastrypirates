@@ -76,7 +76,15 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 
 - Wind spins once per **round** and holds for the whole table.
 - Compass shows **both**: this round's live wind, and next round's forecast.
-- The forecast reveals **a storm and its direction**.
+- The forecast reveals **that a storm is coming, but never which way it will blow**
+  (Wyatt, 2026-08-06 — the storms "lost some of their force and fun and playfulness and
+  unpredictability"; a shove you can see coming a full round out is a logistics problem, not
+  weather). Because a storm blows along its own round's wind, the storm's direction and next
+  round's wind are **the same fact** — so hiding one hides the other, and a storm round is simply a
+  round whose weather nobody can plan. No rule was added: a tabletop deck prints the storm card
+  face-down. Everything reads through `Game.forecastWind()`, which returns null while a storm is
+  pending, so the direction cannot leak into the chip, the round header, the event log **or the
+  bots' planner** — an opponent with private weather reads as a cheat faster than an unfair rule does.
 - The forecast is **never wrong** — once shown it is committed.
 - **How it is drawn (2026-08-05, settled after two failed attempts):** the dial is left alone — one
   ornate needle, always THIS round's wind. The forecast lives in a filled chip ABOVE the compass

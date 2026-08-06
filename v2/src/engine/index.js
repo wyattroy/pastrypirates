@@ -491,9 +491,15 @@ class Game{
   // WHERE the forecast storm will actually leave a ship that ends its move on `cell`. Other ships
   // are not modelled — nobody can know where they will be next round, and being stopped by one is
   // harmless anyway.
+  // v2.1: reads forecastWind(), NOT windNext — which means that while the forecast hides the storm's
+  // direction this returns `cell` unchanged, the drift below is 0, and the bot plans the storm
+  // exactly as blindly as the player does. Deliberately left standing rather than deleted: it is one
+  // line from working again if the forecast ever shows direction, and gating it is what keeps the
+  // bots honest instead of merely uninformed.
   stormLanding(cell){
-    if(!this.stormNext||!this.windNext)return cell;
-    const d=DIRS[this.windNext];
+    const dir=this.forecastWind();
+    if(!this.stormNext||!dir)return cell;
+    const d=DIRS[dir];
     let c=[cell[0],cell[1]];
     for(let s=0;s<STORM_PUSH;s++){
       const nx=[c[0]+d[0],c[1]+d[1]];
@@ -1211,7 +1217,9 @@ class Game{
       // the NEXT leg is costed from wherever this one physically ends — a deal leg leaves the
       // ship where it already was, so `at` only advances when there was somewhere to sail
       at=best.target||best.moveTarget||at;
-      legWind=this.windNext||legWind;
+      // v2.1: forecastWind(), not windNext — with a storm coming the bot costs its next leg against
+      // the wind it can actually see, same as a captain reading the chip.
+      legWind=this.forecastWind()||legWind;
     }
     return {route,total};
   }
@@ -1345,6 +1353,20 @@ class Game{
     const storm=rollStorm(this); // #1a: never a third storm back-to-back
     return {dir,storm};
   }
+  /* v2.1 (Wyatt, 2026-08-06): "remove the storm direction from the forecast, so you'd know that a
+     storm will come next turn, but you don't know which direction it'll go." The storms had lost
+     their edge — a shove you can see coming a full round out is a logistics problem, not weather.
+
+     A storm blows along ITS OWN ROUND'S WIND (see play(): `if(storm)this.runStorm(wind)`), so the
+     storm's direction and next round's wind are THE SAME FACT. Hiding one hides the other, and
+     that is the whole mechanic: a storm round is a round whose weather nobody can plan. No rule is
+     added — a tabletop deck would simply print the storm card face-down.
+
+     Everything that shows or uses the forecast goes through here, so the hidden direction cannot
+     leak: the chip, the round header, the event log, and the bots' own planner. Bots must never
+     know what the player cannot see — an opponent with private weather reads as a cheat far faster
+     than an unfair rule does. */
+  forecastWind(){ return this.stormNext?null:this.windNext; }
   advanceWind(){
     // first round of the game: there is no standing forecast yet, so draw this round's weather now
     if(!this.next)this.next=this.drawWeather();
@@ -1374,7 +1396,7 @@ class Game{
     while(this.round<150){
       this.round++;
       const {dir:wind,storm}=this.advanceWind();
-      this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind),next:this.windNext,nextStorm:this.stormNext}); // NARR-04
+      this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext}); // NARR-04
       if(storm)this.runStorm(wind); // rule 7: everyone at once, before anyone acts
       for(const i of order){
         const p=this.players[i];

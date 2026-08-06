@@ -1479,12 +1479,18 @@ export function render(){
     spinNeedle.style.transform=`rotate(${angle}deg)`;
     // v2 rule 6: next round's committed wind, as the small chevron riding on the needle. It points
     // the way the wind will BLOW, matching the needle's own convention exactly.
-    const nx=appState.game&&appState.game.windNext;
+    // v2.1: forecastWind() is null while a storm is coming — the chip still shouts STORM, it just
+    // cannot say which way. `have` (not `nx`) gates the chip's visibility now, because gating on
+    // the direction would make the whole chip DISAPPEAR on exactly the round it matters most.
+    const nx=appState.game&&appState.game.forecastWind();
     const nextStorm=!!(appState.game&&appState.game.stormNext);
-    if(forecastNeedle)forecastNeedle.style.display=nx?"":"none";
-    if(forecastMark&&nx){
-      forecastMark.textContent=`${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`;
-      // the storm cloud sits BEFORE the direction, and only when weather is actually coming
+    const have=!!(appState.game&&(nx||nextStorm));
+    if(forecastNeedle)forecastNeedle.style.display=have?"":"none";
+    if(forecastMark&&have){
+      // No direction to give, so the word carries it. "STORM" alone reads at arm's length on a
+      // phone in a way a "?" glyph does not, and the missing arrow IS the information.
+      forecastMark.textContent=nx?`${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`:"STORM";
+      // the storm cloud sits BEFORE the word, and only when weather is actually coming
       if(forecastStorm)forecastStorm.style.display=nextStorm?"":"none";
       // THE STORM WARNING IS THE WHOLE BOX GOING RED — a filled chip changing colour is visible in
       // peripheral vision on a phone in a way that a small glyph never was.
