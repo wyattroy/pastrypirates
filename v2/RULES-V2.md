@@ -85,6 +85,13 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
   face-down. Everything reads through `Game.forecastWind()`, which returns null while a storm is
   pending, so the direction cannot leak into the chip, the round header, the event log **or the
   bots' planner** — an opponent with private weather reads as a cheat faster than an unfair rule does.
+- **How the chip says the direction is hidden on purpose:** the certainty stays where it already
+  lived — red box, storm cloud, breathing — and the doubt goes into the direction slot as **an arrow
+  that never settles**, turning once every 4 seconds. A bare `??` was considered and rejected by
+  Wyatt for the right reason: it reads as doubt about whether a storm is coming at all, when the
+  storm is the one certain part. A whirlpool was considered and rejected because 🌀 already means
+  the trade-wind rim current in this game, and a glyph should not mean two things. An arrow that
+  won't stop turning says *the direction* rather than *the forecast*, and needs no legend.
 - The forecast is **never wrong** — once shown it is committed.
 - **How it is drawn (2026-08-05, settled after two failed attempts):** the dial is left alone — one
   ornate needle, always THIS round's wind. The forecast lives in a filled chip ABOVE the compass

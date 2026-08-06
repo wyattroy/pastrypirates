@@ -662,6 +662,20 @@
   @keyframes fcPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: .82; } }
   .fcStorm { animation: fcPulse 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
   @media (prefers-reduced-motion: reduce) { .fcStorm { animation: none; } }
+  /* THE HIDDEN STORM DIRECTION (Wyatt, 2026-08-06). v2.1 stopped forecasting which way a storm
+     will blow, and the chip has to say that the omission is DELIBERATE. A bare "??" was tried on
+     paper and rejected by Wyatt himself for the right reason: it reads as doubt about whether a
+     storm is coming at all, when the storm is the one certain part. So the certainty stays where it
+     already lived — the red box, the cloud, the breathing — and the doubt goes into an arrow that
+     never settles. A direction glyph that won't stop turning says "the direction" rather than "the
+     forecast", with no new symbol for a player to learn.
+     4s per turn, deliberately slower than the 1.2s pulse it sits inside: two animations at the same
+     tempo would beat against each other, and this one must read as drifting, not spinning.
+     transform-box/transform-origin match .fcStorm exactly — an SVG <g> otherwise rotates about the
+     USER-SPACE origin, which would throw the glyph clean off the chip. */
+  @keyframes fcSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .fcSpin { animation: fcSpin 4s linear infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+  @media (prefers-reduced-motion: reduce) { .fcSpin { animation: none; } }
   #boardShips { position: absolute; inset: 0; pointer-events: none; z-index: 4;
     width: 100%; height: 100%; overflow: visible; }
   /* the thing that MOVES — carries the same translate() the SVG <g> used to, and the same

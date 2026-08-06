@@ -137,7 +137,7 @@ export function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
   el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
   return g;
 }
-let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastPulse=null,forecastBox=null,forecastLabel=null,forecastStorm=null,forecastMark=null,stormText=null,stormDial=null,windLabels=[];
+let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastPulse=null,forecastBox=null,forecastLabel=null,forecastStorm=null,forecastMark=null,forecastSpin=null,forecastSpinner=null,stormText=null,stormDial=null,windLabels=[];
 
 // Exported accessors for the still-classic call sites that read this cluster's render-only state
 // directly (localPickCell/remotePickHighlights read cell; showChatBubble reads shipEls) — see the
@@ -337,6 +337,23 @@ export function drawBoard(){
     href:STORM_CLOUD_IMG},forecastPulse);
   forecastMark=el("text",{x:FC_W/2-FC_PAD,y:FC_H*0.70,"text-anchor":"end","font-size":15,
     "font-weight":"bold",fill:"#1f4249"},forecastPulse);
+  /* The hidden-direction spinner (v2.1). Lives in the SAME slot the direction occupies — between
+     the cloud's right edge and the box's right padding — because the whole point is that it stands
+     where a direction would have stood. Centred in that slot rather than anchored to an edge, since
+     a rotating glyph has to turn about its own middle.
+     THREE NESTED GROUPS, and every one of them is load-bearing:
+       forecastSpin    — SVG transform attribute, position only. Never animated.
+       forecastSpinner — the CSS class .fcSpin, rotation only.
+     A CSS transform on the positioned element would REPLACE its SVG transform attribute and fling
+     the glyph off the chip — the exact failure that cost two attempts when this chip was first
+     built (see the comment above about measurement going wrong twice). Splitting position from
+     animation is what makes that impossible rather than merely unlikely. */
+  const FC_SLOT_L=FC_W/2-FC_PAD-54+22, FC_SLOT_R=FC_W/2-FC_PAD; // cloud's right edge .. box padding
+  forecastSpin=el("g",{transform:`translate(${(FC_SLOT_L+FC_SLOT_R)/2},${FC_H/2})`},forecastPulse);
+  forecastSpinner=el("g",{},forecastSpin);
+  const spinGlyph=el("text",{x:0,y:0,"text-anchor":"middle","dominant-baseline":"central",
+    "font-size":18,"font-weight":"bold",fill:"#ffffff"},forecastSpinner);
+  spinGlyph.textContent="↑";
   // active-player highlight: a sonar-style ripple of white rings expanding out from the boat
   // (positioned in render). Fixed white, not per-player color, so it stays visible against art.
   //
@@ -1487,10 +1504,17 @@ export function render(){
     const have=!!(appState.game&&(nx||nextStorm));
     if(forecastNeedle)forecastNeedle.style.display=have?"":"none";
     if(forecastMark&&have){
-      // No direction to give, so the word carries it. "STORM" alone reads at arm's length on a
-      // phone in a way a "?" glyph does not, and the missing arrow IS the information.
-      forecastMark.textContent=nx?`${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`:"STORM";
-      // the storm cloud sits BEFORE the word, and only when weather is actually coming
+      // With no direction to name, the direction slot holds a turning arrow instead of a letter —
+      // the two are mutually exclusive and share the same space, so exactly one is ever shown.
+      //
+      // THIS REPLACED THE WORD "STORM", which was a measured mistake and not a taste one: at the
+      // shipped size the word rendered 31.3px wide into an 18.6px slot and overlapped the cloud
+      // icon by 12.7px. The slot is fixed by the two anchors this chip is built on, so the thing
+      // that goes in it has to be small — a glyph, never a word.
+      forecastMark.textContent=nx?`${nx} ${({N:"↑",E:"→",S:"↓",W:"←"})[nx]||""}`:"";
+      if(forecastSpin)forecastSpin.style.display=nx?"none":"";
+      if(forecastSpinner)forecastSpinner.classList.toggle("fcSpin",!nx);
+      // the storm cloud sits BEFORE the slot, and only when weather is actually coming
       if(forecastStorm)forecastStorm.style.display=nextStorm?"":"none";
       // THE STORM WARNING IS THE WHOLE BOX GOING RED — a filled chip changing colour is visible in
       // peripheral vision on a phone in a way that a small glyph never was.
