@@ -47,6 +47,7 @@ import {
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
+  SEA_CREATURES, SEA_OPENERS,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
 // 11-07 (bridge deletion fix): util.js is a common dependency of src/ui/board.js, panel.js,
@@ -296,25 +297,35 @@ export function movedSinceTurnStart(e){
 // unset, and NEUTRAL_VIEWER) sees the third-person line. `newround` is deliberately EXCLUDED
 // (D-09 — it addresses the whole table, never one captain), and `end`/`turn` name no captain at
 // all, so neither gains a branch either.
-export // "a cinnamon squid" / "an éclair eel" — the creature list is written lowercase and unarticled
-// so one place decides this, rather than thirty strings each carrying their own article.
-// Builds the whole sighting clause, because two of Wyatt's own creature names are PLURAL
-// ("praline prawns", "hot cross bunnacles") and "a hot cross bunnacles drifts past" reads as a
-// typo. One helper decides article AND verb agreement together, so a name added to the list later
-// gets both right for free rather than needing either to be remembered.
-function seaSighting(word){
-  const w=String(word);
-  // Trailing -s alone is not plural: "choctopus" and "waffle walrus" are singular and would
-  // otherwise read as "some choctopus drift past". Carve out the Latin -us / -ss / -is endings,
-  // which covers every name in the list today. A future plural that does not end in -s (say
-  // "shortbread school") would need adding here explicitly.
-  const plural=/s$/i.test(w)&&!/(us|ss|is)$/i.test(w);
-  if(plural)return {subject:"some "+w,verb:"drift"};
-  // NFD-normalise first so an accented initial still tests as its base vowel: "éclair eel" is
-  // "an éclair eel", and a bare /^[aeiou]/ silently gets that wrong.
-  const first=w.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-  return {subject:(/^[aeiou]/i.test(first)?"an ":"a ")+w,verb:"drifts"};
+// seaLine(sea,mine) — the whole sighting sentence, minus the captain's name.
+//
+// Replaces seaSighting(), which INFERRED "a" vs "an" from the first letter (NFD-normalising so
+// "éclair" tested as a vowel) and "drift" vs "drifts" from a trailing -s, with a carve-out for the
+// -us/-ss/-is endings so "choctopus" didn't read as a plural. All fifty entries now carry their own
+// subject and their own agreed verb (see SEA_CREATURES), written out and approved as whole
+// sentences, so there is nothing left to infer and nothing left to get wrong — including the four
+// collective heads ("a school of...", "a pod of...") that no letter-based rule could have handled.
+//
+// `mine` picks the person: the captain reads "ye lean over the rail", everyone else reads
+// "Crustbeard leans over the rail". Both forms come from the one SEA_OPENERS entry.
+function seaLine(sea,mine){
+  // A pre-2026-08-06 solo save stores `sea` as a bare creature name. That log is replayed verbatim
+  // on resume, so it must still narrate rather than throw — one generic line, in the old shape.
+  if(!sea||typeof sea==="string"){
+    // "there's X down there" rather than the old "a X drifts past below": the legacy names were
+    // stored bare and unarticled (the deleted seaSighting() supplied "a"/"an" and the verb), and
+    // some of them are plural. This shape needs neither an article nor number agreement, so every
+    // old name reads correctly without resurrecting the inference this change removed.
+    return `${mine?"ye lean":"leans"} over the rail, and there's ${sea||"somethin' strange"} down there.`;
+  }
+  const op=SEA_OPENERS[sea.o]||SEA_OPENERS.rail; // unknown key (a retuned opener table) still reads
+  return `${mine?"ye "+op[0]:op[1]}, and ${sea.s} ${sea.v}.`;
 }
+// The bare subject, for anywhere that names the creature without the sentence around it.
+function seaSubject(sea){
+  return (!sea||typeof sea==="string")?(sea||"somethin' strange"):sea.s;
+}
+export
 const EVENT_NARRATION={
   // notes/edits NARR-03: a wind that hasn't changed direction is "still" blowing that way — it
   // doesn't newly go anywhere, so it never says "now".
@@ -389,11 +400,9 @@ const EVENT_NARRATION={
   // go by; see Game.nextSeaCreature. The BUTTON reads "🌊 Pass" (Wyatt, 2026-08-05 — it briefly
   // read "Look into the ocean"; the label went back to Pass, the narration stayed).
   pass:(e,at,cellPx,viewerSeat)=>{
-    const {subject,verb}=seaSighting(e.sea||"somethin' strange");
-    return {txt:isLocalTo(e.p,viewerSeat)
-      ?`🌊 ${pn(e.p)} — ye lean over the rail, and ${subject} ${verb} past below.`
-      :`🌊 ${pn(e.p)} leans over the rail, and ${subject} ${verb} past below.`,
-      caps:[[e.p,`🌊 spots ${subject}`]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]};
+    const mine=isLocalTo(e.p,viewerSeat);
+    return {txt:`🌊 ${pn(e.p)}${mine?" — ":" "}${seaLine(e.sea,mine)}`,
+      caps:[[e.p,`🌊 spots ${seaSubject(e.sea)}`]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]};
   },
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
@@ -1446,6 +1455,33 @@ export function getLastName(){
   return n||"";
 }
 export function saveLastName(v){try{localStorage.setItem("pp_lastName",v);}catch(e){}}
+// The sea-creature cursor (Wyatt, 2026-08-06): where this device's captain had got to in the
+// fifty, so the next voyage starts at the NEXT one and they work through the whole list across
+// many games instead of restarting near the top every time.
+//
+// Structurally excluded from the SESSION_SCHEMA_V/SOLO_SCHEMA_V versioning above, exactly like
+// pp_id and pp_lastName, and for the same reason: it is a durable device preference, not resumable
+// game state, so leaveGame()'s clearSession()/clearSoloState() must never wipe it — that is the
+// whole point of the feature. Same try/catch-swallow shape too, so Safari private mode and a
+// file:// page fall back to 0 and behave exactly as the game did before this existed.
+//
+// Read ONCE PER GAME (startSinglePlayer/startPassAndPlay stash it in soloMeta, which the solo save
+// carries), never once per look. A per-look read would make a host-refresh replay narrate
+// different creatures than the voyage actually showed, because the cursor would have moved on.
+export function getSeaBase(){
+  let n=null;try{n=localStorage.getItem("pp_seaIdx");}catch(e){}
+  const v=parseInt(n,10);
+  return (isFinite(v)&&v>=0)?(v%SEA_CREATURES.length):0;
+}
+// Called after a sighting by the seat that owns the cursor. Idempotent by construction — it writes
+// an ABSOLUTE position derived from the game's fixed base plus this captain's look count, not an
+// increment, so a replay that re-runs the same looks rewrites the same number rather than racing
+// the cursor forward a second time.
+export function advanceSeaCursor(p){
+  const base=(appState.game&&appState.game.seaBase)||0;
+  const looks=p.oceanLooks||0;
+  try{localStorage.setItem("pp_seaIdx",String((base+looks)%SEA_CREATURES.length));}catch(e){}
+}
 export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
 export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
 export function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
@@ -1467,8 +1503,11 @@ export function resumeSoloGame(saved){
   appState.passAndPlay=!!saved.passAndPlay;
   const names=saved.names||[saved.name]; // old solo saves only ever had one human, at seat 0
   appState.roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
-  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true}
-                      :{name:saved.name,strategies:saved.strategies,seed:saved.seed};
+  // seaBase rides along so the replay narrates the SAME creatures the live voyage did; a save from
+  // before this existed has none, and 0 is exactly the behaviour it had.
+  const seaBase=saved.seaBase||0;
+  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
+                      :{name:saved.name,strategies:saved.strategies,seed:saved.seed,seaBase};
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;
   netHandlers().onBeginGame(roundCfg(saved.strategies),saved.seed);

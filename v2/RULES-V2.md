@@ -30,9 +30,29 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 - Coins buy exactly three things: **powder**, **crates**, and whatever you can negotiate in a trade.
 - Starting coins stay **3**. Powder stays **2🌕**.
 
-## 3. Fishing removed
+## 3. Fishing removed — and Pass, the turn-ender that replaced it
 
-- Act menu is **Dock / Attack / Trade / Start yer bakery**. Nothing replaces fishing.
+- Act menu is **Dock / Attack / Trade / Start yer bakery**, plus **Pass**, which is never disabled:
+  a turn must always be endable, and fishing used to absorb that case by accident.
+- Pass narrates a **sea creature**. Fifty of them, all Wyatt's, 2026-08-06, each with a hand-written
+  sentence approved in full before it shipped. Two halves: an **opener** (what the captain is doing
+  when they spot it, chosen by where the creature actually lives — under the hull, at the surface,
+  in the air, on the bottom) and the creature's **own subject and verb**.
+- **An opener must never assert where the ship is.** "Over the shallows" and "study the sand below"
+  both implied land was close and read as wrong mid-ocean; they became "ye drift near a reef" and
+  "ye catch sight of the bottom". The flamingo moved from the shallows into the sky for the same
+  reason — a wading bird would need a proximity-to-land test this board has no notion of, which is
+  far too much machinery for one sighting.
+- **Every verb clause names the pastry**, not just the animal. The joke is that these are baked
+  goods; a line that only describes a fish wastes the sighting.
+- Nothing about a sighting is inferred at runtime. The old helper guessed *a*/*an* from the first
+  letter and *drift*/*drifts* from a trailing *-s*; fifty hand-agreed sentences cannot get that
+  wrong, including the four collective heads ("a school of…", "a pod of…").
+- **The lineup persists across games** (`pp_seaIdx`): your device remembers where you had got to,
+  and the next voyage starts at the next creature, so you work through all fifty over many games.
+  Read once per game and carried in the solo save, so a resumed voyage replays the same sightings
+  it showed live. Bots walk their own derived offsets and never touch your cursor.
+
 - Coins enter play only via dock flips (6 or 2) and correct battle calls (+2). Intentionally tight.
 - Fish art and the `fishing` sfx stay on disk in the shared assets; v2 just stops referencing them.
 

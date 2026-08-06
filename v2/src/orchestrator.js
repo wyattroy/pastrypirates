@@ -1317,6 +1317,12 @@ export function beginGame(cfg,seed){
   if(appState.gameStarted)return;appState.gameStarted=true;
   showGameView();
   appState.game=new Game(cfg,seed,true);
+  // Hand the engine the two plain numbers it needs to resume this device's captain mid-list (see
+  // Game.nextSeaCreature). Set here rather than inside roundCfg because the cursor is a UI-tier
+  // concern — the engine tier may not read localStorage (D-03) — and because roundCfg is also
+  // rebuilt from scratch on a resume, where the base must come from the SAVE, not from storage.
+  appState.game.seaSeat=appState.mySeat;
+  appState.game.seaBase=(appState.soloMeta&&appState.soloMeta.seaBase)||0;
   appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}

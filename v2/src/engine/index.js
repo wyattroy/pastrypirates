@@ -645,9 +645,22 @@ class Game{
   // each seat starts at a different offset and advances one step per look, so all thirty appear
   // before any repeats and two captains rarely see the same beast in the same round. Consumes no
   // RNG, so it cannot perturb a seeded replay.
+  // Each captain walks the list from a different starting point, one step per look, so all fifty
+  // appear before any repeat — a random pick would collide almost immediately (birthday problem: a
+  // repeat is more likely than not inside eight looks).
+  //
+  // `seaSeat`/`seaBase` (Wyatt, 2026-08-06: "remember where the host was in the lineup, and start
+  // their next game from the next one so they work their way through the whole list over many
+  // games") let ONE seat resume mid-list instead of always starting at its derived offset. Both are
+  // plain numbers set on the instance by beginGame — the engine never learns what a "local player"
+  // or a localStorage key is (D-03: no DOM, no storage, no wall-clock in this tier). The cursor is
+  // read once per GAME rather than once per look, which is what keeps a host-refresh replay showing
+  // the same creatures it showed the first time: base is fixed for the voyage and `oceanLooks` is
+  // rebuilt deterministically from the decision log.
   nextSeaCreature(p){
     const n=(p.oceanLooks=(p.oceanLooks||0)+1);
-    return SEA_CREATURES[(p.idx*7+n-1)%SEA_CREATURES.length];
+    const base=(p.idx===this.seaSeat)?(this.seaBase||0):p.idx*7;
+    return SEA_CREATURES[(base+n-1)%SEA_CREATURES.length];
   }
   cnt(arr,x){return arr.filter(v=>v===x).length;}
 

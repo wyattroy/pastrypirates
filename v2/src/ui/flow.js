@@ -58,6 +58,7 @@ import {
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
+  getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS,
@@ -916,9 +917,12 @@ export async function humanAct(p,sailCtx){
     await humanAct(p,sailCtx);return;
   }
   if(v==="pass"){
-    // Each captain walks the creature list from a different starting point, one step per look, so
-    // all thirty appear before any repeat. A random pick would collide almost immediately.
+    // See Game.nextSeaCreature for the walk. advanceSeaCursor persists where this device's captain
+    // has got to, so the NEXT voyage picks up at the next creature rather than restarting near the
+    // top — over enough games they see all fifty. Only this seat owns the cursor; bots walk their
+    // own derived offsets and never touch it.
     appState.game.ev({t:"pass",p:p.idx,sea:appState.game.nextSeaCreature(p)});
+    if(p.idx===appState.game.seaSeat)advanceSeaCursor(p);
     liveRender();
     await narrateLastEvent();
     return;
@@ -1336,7 +1340,9 @@ export function startSinglePlayer(){
   appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
   appState.roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
-  appState.soloMeta={name,strategies,seed};appState.dlog=[];saveSoloState();
+  // seaBase: where this device left off in the fifty sea creatures. Captured ONCE, here, and
+  // carried in soloMeta so the solo save replays the same sightings it showed live.
+  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();
   netHandlers().onBeginGame(roundCfg(strategies),seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
@@ -1347,7 +1353,7 @@ export function startPassAndPlay(names){
   appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;appState.passAndPlay=true;
   appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true};appState.dlog=[];saveSoloState();
+  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();
   netHandlers().onBeginGame(roundCfg(strategies),seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s

@@ -198,19 +198,104 @@ const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}}
 // ORDER IS LOAD-BEARING — parallel table keyed to DIRS; must stay in lockstep with it.
 const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
 // What a captain sees when they Pass — there's nothing else worth doing with the turn, so they
-// look into the ocean. Wyatt's nine, 2026-08-05, kept in his own words and spelling, followed by
-// twenty-one more in the same vein. Thirty in all, so a long voyage rarely shows the same beast
-// twice: each captain starts at a different point in the list and walks it in order, which
-// guarantees all thirty appear before any repeats — a random pick would collide constantly
-// (birthday problem: a repeat is more likely than not inside seven looks).
+// look into the ocean. All fifty creatures are Wyatt's, 2026-08-06, and every sentence below was
+// written out in full and approved before it landed: copy is his call, mechanism is ours.
+//
+// SEA_OPENERS is the "pre-animal sentence" (his words) — what the captain is DOING when they spot
+// the thing — and it is chosen by where the creature actually lives, so the framing never
+// contradicts the sighting. Each opener is a bare verb phrase held in BOTH persons, [ye-form,
+// third-person], because one sighting is narrated two ways: "ye lean over the rail, and ..." to
+// the captain themselves, "Crustbeard leans over the rail, and ..." to everyone else. Keeping the
+// pair together here is what stops the two from drifting apart.
+//
+// TWO OPENERS WERE REWRITTEN AFTER PLAYTEST READING (Wyatt, 2026-08-06) and the reason generalises:
+// an opener must not assert anything about WHERE THE SHIP IS. "ye drift over the shallows" and
+// "ye study the sand below" both claimed the ship was near land, and a captain passing a turn in
+// open ocean would read them as wrong. They became "ye drift near a reef" (a place, offered rather
+// than asserted) and "ye catch sight of the bottom" (the bottom came into view, no claim about
+// depth). Anything added here must survive the same test: it has to read true mid-ocean.
+const SEA_OPENERS={
+  rail:["lean over the rail","leans over the rail"],
+  down:["peer down past the waterline","peers down past the waterline"],
+  turq:["watch the turquoise water slide by","watches the turquoise water slide by"],
+  swell:["keep an eye on the swell","keeps an eye on the swell"],
+  bow:["watch the water off the bow","watches the water off the bow"],
+  ahead:["watch the sea open up ahead","watches the sea open up ahead"],
+  sky:["squint up at the sky","squints up at the sky"],
+  shadow:["look up at a shadow crossing the deck","looks up at a shadow crossing the deck"],
+  horizon:["scan the horizon","scans the horizon"],
+  bottom:["catch sight of the bottom","catches sight of the bottom"],
+  glass:["look down through water clear as glass","looks down through water clear as glass"],
+  reef:["drift near a reef","drifts near a reef"],
+};
+// Each creature carries its own subject `s` (Wyatt's name, with his article, lowercased for
+// mid-sentence) and its own verb clause `v`. NOTHING IS INFERRED AT RUNTIME any more: the old
+// seaSighting() helper guessed "a" vs "an" from the first letter and "drift" vs "drifts" from a
+// trailing -s, and needed a carve-out for the -us/-ss/-is endings so "choctopus" didn't read as
+// plural. Fifty hand-written subjects with hand-agreed verbs cannot get that wrong — including the
+// four collective heads ("a school of...", "a dozen...", "a family of...", "a pod of...") whose
+// agreement no letter-based rule could ever have gotten right.
+//
+// `o` is a FIXED pairing, not a random draw from the habitat's openers (Wyatt chose fixed, 2026-08-06):
+// every one of the fifty sentences was read end to end as a whole before approval, and a runtime
+// pairing would ship combinations nobody has read.
+//
+// Every verb clause names the PASTRY, not just the animal (Wyatt, 2026-08-06) — the joke is that
+// these are baked goods, so a line that only describes a fish wastes the sighting.
 const SEA_CREATURES=[
-  "cinnamon squid","hot cross bunnacles","butterwhale","sugarshark","praline prawns",
-  "peanut butter jellyfish","candycrab","choctopus","treacle ray",
-  "marzipan manta","custard cuttlefish","gingerbread grouper","meringue moray","toffee turtle",
-  "brioche barracuda","shortbread starfish","nougat narwhal","doughnut dolphin","sherbet seahorse",
-  "fudge flounder","waffle walrus","macaron mackerel","pavlova pufferfish","strudel sturgeon",
-  "lollipop lobster","trifle triggerfish","marshmallow manatee","croissant crayfish",
-  "profiterole porpoise","éclair eel",
+  {o:"rail",   s:"some shimmering cinnamon squid",       v:"drift past, trailing spice"},
+  {o:"ahead",  s:"a breaching butterwhale",              v:"comes down in a slick of butter"},
+  {o:"down",   s:"a school of glittering sugarfish",     v:"turns the water to sugar"},
+  {o:"bottom", s:"a dozen donut shrimp",                 v:"bounce past, holed through the middle"},
+  {o:"turq",   s:"drifting peanut butter jellyfish",     v:"pulse past, thick and slow as the jar"},
+  {o:"reef",   s:"a baby candycrab",                     v:"scuttles off, shell hard as a boiled sweet"},
+  {o:"down",   s:"a mocha manta ray",                    v:"glides below like poured coffee"},
+  {o:"rail",   s:"a gingerbread hammerhead",             v:"swings a head baked flat and hard"},
+  {o:"turq",   s:"a sprinkle shark",                     v:"circles once, shedding sprinkles"},
+  {o:"swell",  s:"a marshmallow manatee",                v:"rolls over, soft and toasted on top"},
+  {o:"sky",    s:"an applesauce albatross",              v:"hangs there, smelling of stewed apple"},
+  {o:"bow",    s:"a blueberry beluga",                   v:"surfaces, blue as a burst berry"},
+  {o:"horizon",s:"a pavlova pelican",                    v:"drops in a white crash of meringue"},
+  {o:"rail",   s:"a pistachio pufferfish",               v:"puffs up, green and salted"},
+  // In the sky, not the shallows (Wyatt, 2026-08-06): a wading flamingo would need the narration
+  // to know how close the ship is to land, and this board has no such notion — building one for a
+  // single sighting is overkill. A bird overhead is true from anywhere on the sea.
+  {o:"sky",    s:"a cotton candy flamingo",              v:"goes over, pink and spun"},
+  {o:"bow",    s:"a minty mahi mahi",                    v:"leaps out, cool and green as mint"},
+  {o:"bottom", s:"a salted caramel starfish",            v:"clings to a rock, gone soft in the sun"},
+  {o:"down",   s:"a family of strawberry seahorses",     v:"bobs in the weed, pink as glaze"},
+  {o:"glass",  s:"a reef of funnelcake coral",           v:"spreads out golden and fried"},
+  {o:"bottom", s:"a lollipop lobster",                   v:"backs into a crack, glossy as boiled sugar"},
+  {o:"reef",   s:"a honeycomb hermit crab",              v:"hauls a borrowed shell full of holes"},
+  {o:"turq",   s:"a key lime lionfish",                  v:"fans out every spine, sharp and sour"},
+  {o:"rail",   s:"a custard cuttlefish",                 v:"flashes gold and vanishes"},
+  {o:"ahead",  s:"a challah humpback",                   v:"blows a plume, back braided and shining"},
+  {o:"shadow", s:"a sesame seagull",                     v:"makes off with a seeded bun"},
+  {o:"glass",  s:"a nougat nudibranch",                  v:"inches along, frilled and chewy"},
+  {o:"down",   s:"a jello octopus",                      v:"pours itself into a bottle and wobbles"},
+  {o:"bottom", s:"a fudgey flounder",                    v:"unburies itself, dense and brown"},
+  {o:"rail",   s:"six clementine clownfish",             v:"squabble over one anemone, bright as peel"},
+  {o:"reef",   s:"a snickerdoodle sea snail",            v:"crosses the sand, dusted in cinnamon sugar"},
+  {o:"glass",  s:"a lemony anemone",                     v:"waves every arm, yellow and sharp"},
+  {o:"turq",   s:"some sour sardines",                   v:"turn together, silver and puckering"},
+  {o:"bottom", s:"a gummy eel",                          v:"leans out of a hole and stretches"},
+  {o:"down",   s:"a banana bonito",                      v:"runs the hull down, yellow and curved"},
+  {o:"rail",   s:"an affogato angelfish",                v:"drifts up in a swirl of coffee and cream"},
+  {o:"swell",  s:"some maple syrup seals",               v:"roll over each other, slick and sticky"},
+  {o:"bow",    s:"a pod of dark chocolate dolphins",     v:"takes station, dark and glossy"},
+  {o:"turq",   s:"a tiramisu tuna",                      v:"goes by dusted in cocoa"},
+  {o:"glass",  s:"a peppermint parrotfish",              v:"crunches coral and spits out sugar"},
+  {o:"down",   s:"a cheesecake sea snake",               v:"comes up for air, pale and rich"},
+  {o:"rail",   s:"a great white waffleshark",            v:"passes below, hide gridded like a waffle"},
+  {o:"turq",   s:"an ice cream sea bream",               v:"hangs in the hull's shadow, keepin' cool"},
+  {o:"reef",   s:"a crème brûlée stingray",              v:"lifts off, back cracked and burnt gold"},
+  {o:"bottom", s:"a tiny toasted coconut crab",          v:"picks over a rock, shredded and brown"},
+  {o:"glass",  s:"some pecan prawns",                    v:"flick backwards, candied and dark"},
+  {o:"bottom", s:"a giant cappuccino clam",              v:"shuts with a thump, foam at the lip"},
+  {o:"down",   s:"an eggnog nautilus",                   v:"rises spiral-first, pale and spiced"},
+  {o:"rail",   s:"a babka bull shark",                   v:"comes in too close, flank swirled dark"},
+  {o:"swell",  s:"a toffee turtle",                      v:"surfaces once, shell amber and hard"},
+  {o:"reef",   s:"a honey lavender sea cucumber",        v:"lies there, sweet and doing nothing"},
 ];
 const SAIL_RANGE=4,SAIL_RANGE_UPWIND=2;
 // v2 rule 7: a storm is one direction, this far, everyone at once, at the start of the round.
@@ -237,4 +322,4 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, SEA_OPENERS, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };
