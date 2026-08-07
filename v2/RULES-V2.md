@@ -220,6 +220,12 @@ ever shows everyone parking against land, the lever is storm distance or frequen
   their recipe — leaves the bake standing, as it should. `resolveEnd` additionally filters
   `finishOrder` to captains who still hold a full recipe: redundant today, but the cost of being
   wrong is exactly the bug above.
+- **A finished captain's ship does not fade** (Wyatt, 2026-08-06: *"they don't need to fade out
+  visually when they dock at Tortuga — they are still active players"*). It used to drop to 45%
+  opacity, which read as "out of the game". They never were: they are a legal target sitting on the
+  most valuable cargo at the table, and now that a raid actually un-bakes them, a ghosted ship says
+  "nothing to do here" about the one ship worth attacking. The tell that somebody is home is that
+  they are parked on Tortuga, plus the 🏁 line that announced it.
 
 ## Bot AI — rewritten as planners, not gates
 

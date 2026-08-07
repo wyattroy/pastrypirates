@@ -1425,7 +1425,14 @@ export function render(){
   appState.game.players.forEach((p,i)=>{
     const [x,y]=shipXY(st[i].pos,i,st,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
-    shipEls[i].style.opacity=st[i].done?.45:1;
+    // v2.1 (Wyatt, 2026-08-06): "they don't need to fade out visually when they dock at Tortuga —
+    // they are still active players." A finished captain used to drop to 45% opacity, which read as
+    // "out of the game". Under rule 13b they were never out — they are a legal target sitting on the
+    // most valuable cargo at the table — and since the bakery raid now actually un-bakes them
+    // (Game.unfinish), a ghosted ship is worse than cosmetic: it says "nothing to do here" about the
+    // one ship worth attacking. Every ship renders at full strength; the tell that somebody is home
+    // is that they are parked on Tortuga, plus the 🏁 line that announced it.
+    shipEls[i].style.opacity=1;
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
     const coinsEl=$("coins"+i),newCoins=st[i].coins;
     if(coinsEl.dataset.coins!==undefined&&+coinsEl.dataset.coins!==newCoins)pulseEl(coinsEl);
