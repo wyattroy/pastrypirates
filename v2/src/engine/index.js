@@ -1047,7 +1047,26 @@ class Game{
     lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);
     // the whole table just watched the winner choose that crate — public evidence of what it wants
     this.noteDemand(win,pick,1);
+    // v2.1 BUG (Wyatt, 2026-08-06): "I attacked Davy Scones when he got to Tortuga to start his
+    // bakery, and I stole one of the ingredients he needed... but instead, he still won."
+    // Rule 13c makes a finished captain a legal target precisely so this raid is worth making —
+    // but nothing ever REVOKED the finish. `done` stayed true, the seat stayed in finishOrder, and
+    // resolveEnd crowned a baker who no longer had a recipe to bake. The raid was legal, landed,
+    // and meant nothing.
+    if(lose.done&&this.needs(lose).length)this.unfinish(lose);
     return pick;
+  }
+  /* Take a captain back OUT of the bakery. Two things have to happen together and neither is
+     optional: `done` goes false so they re-enter the rotation and can go and replace what was
+     taken (Wyatt: "they should be able to continue playing"), and the seat leaves finishOrder so
+     the end-of-voyage ranking cannot crown them.
+     Emitted as its own event rather than folded into the battle line, because it is a separate
+     beat with separate stakes — the crate changing hands is the raid, this is the consequence. */
+  unfinish(p){
+    p.done=false;
+    const k=this.finishOrder.indexOf(p.idx);
+    if(k>=0)this.finishOrder.splice(k,1);
+    this.ev({t:"unfinish",p:p.idx});
   }
   // Can this ship legally be attacked? v2 rule 13e: an empty hold is not a target — there is
   // nothing to take, and the option greys out rather than wasting the attacker's powder.
@@ -1526,7 +1545,12 @@ class Game{
             for(const j of lastLap){const q=this.players[j];
               if(q.done)continue;
               this.takeTurn(q,wind,storm);this.checkFinish(q);}
-            return this.resolveEnd();
+            // v2.1: the final lap is the LIKELIEST moment for a raid on the bakery (rule 13c), and
+            // if it lands the finisher is no longer finished. Ending here regardless would crown
+            // nobody and stop a voyage that is still being sailed — so the voyage only ends if
+            // somebody is still home. Otherwise the while-loop simply carries on to the next day.
+            if(this.finishOrder.length)return this.resolveEnd();
+            break;
           }
         }
       }
@@ -1543,7 +1567,17 @@ class Game{
     if(pb.coins!==pa.coins)return pb.coins-pa.coins;
     return this.finishOrder.indexOf(a)-this.finishOrder.indexOf(b);
   }
+  /* NOBODY WINS WITHOUT A FULL RECIPE (Wyatt, 2026-08-06). unfinish() already removes a robbed
+     captain from finishOrder at the moment the crate changes hands, so this should never find
+     anyone to drop — it is here because the cost of being wrong is crowning a baker with nothing
+     to bake, which is the exact bug being fixed, and because rule 13c invites raids on the bakery
+     from paths this file cannot enumerate in advance. A check that is merely redundant today is
+     the cheapest possible insurance against the next one. */
+  eligibleFinishers(){
+    return this.finishOrder.filter(i=>!this.needs(this.players[i]).length);
+  }
   resolveEnd(){
+    this.finishOrder=this.eligibleFinishers();
     if(!this.finishOrder.length){this.ev({t:"end",winner:null});return null;}
     if(this.finishOrder.length===1){this.winner=this.finishOrder[0];this.ev({t:"end",winner:this.winner});return this.winner;}
     const ranked=this.finishOrder.slice().sort((a,b)=>this.bakeRank(a,b));

@@ -45,7 +45,7 @@ import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
   // dockFlavor consumer; all four branches now take the icon-placed form from the declared split.
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
-  CUPCAKE_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
+  CUPCAKE_IMG, FLAME_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
   SEA_CREATURES,
 } from "../shared/index.js";
@@ -417,6 +417,15 @@ const EVENT_NARRATION={
     // no separately-stored subject to lift out of it, and inventing one by parsing the prose is
     // exactly the kind of guessing this rewrite removed. (Nothing renders caps in v2 regardless.)
     caps:[[e.p,"🌊 looks into the ocean"]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]}),
+  // v2.1: the ovens go cold. A captain who reached Tortuga with a full recipe has just been raided
+  // (rule 13c) and stripped of a crate they needed, so the bake is off and they are back in the
+  // rotation. This is the loudest consequence in the game — the one moment a finished voyage comes
+  // undone — so it gets its own line rather than being folded into the battle's spoil clause.
+  unfinish:(e,at,cellPx,viewerSeat)=>({cls:"battle",
+    txt:isLocalTo(e.p,viewerSeat)
+      ?`${iconImg(FLAME_IMG)} ${pn(e.p)} — yer ovens go cold! That crate was part of yer recipe, and without it there's no bakin' to be done. Back to sea with ye.`
+      :`${iconImg(FLAME_IMG)} ${pn(e.p)}'s ovens go cold — the stolen crate was part of the recipe, and the bake is off. Back to sea.`,
+    caps:[[e.p,`${iconImg(FLAME_IMG)} ovens cold`]],pops:[[at(e.p),"🔥",true,FLAME_IMG]]}),
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
     txt:`💥 ${pn(e.a)} and ${pn(e.d)} break off — the smoke clears and neither has a thing to show for it.`,

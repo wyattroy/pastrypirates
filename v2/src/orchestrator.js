@@ -839,7 +839,12 @@ export async function runLiveNet(){
             await (q.strategy==="human"?humanTurn(q):botTurn(q));
             if(appState.game.checkFinish(q))liveRender();
           }
-          ended=true;break;
+          // v2.1: the final lap is the likeliest moment for a raid on the bakery (rule 13c), and
+          // if it lands the finisher is no longer finished (Game.unfinish). Ending here regardless
+          // would crown nobody and stop a voyage still being sailed — so end only if somebody is
+          // still home; otherwise break out of this rotation and let the while-loop sail on.
+          ended=appState.game.finishOrder.length>0;
+          break;
         }
       }
     }
@@ -848,6 +853,8 @@ export async function runLiveNet(){
   if(appState.replaying)endReplay();   // whole game was in the log: leave replay mode & paint the result
 }
 export async function liveResolveEndNet(){
+  // same guard as Game.resolveEnd: nobody is crowned without a full recipe (v2.1)
+  appState.game.finishOrder=appState.game.eligibleFinishers();
   if(!appState.game.finishOrder.length)appState.game.winner=null;
   else if(appState.game.finishOrder.length===1)appState.game.winner=appState.game.finishOrder[0];
   else{

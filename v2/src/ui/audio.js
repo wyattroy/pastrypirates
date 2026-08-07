@@ -115,6 +115,9 @@ const EVENT_SOUND = {
   // a battle that ends with nobody hit has no hit to sound; the paid re-fire is covered by the
   // flip that follows it
   battlenull: null, refire: null,
+  // v2.1: the ovens going cold rides the battle sound of the raid that caused it — it is the
+  // consequence of that same broadside, one beat later, not a second event to be scored.
+  unfinish: null,
 };
 
 // PURE — no ctx, no DOM, no side effect, safe to call under plain Node. Returns null, or an

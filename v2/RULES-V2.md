@@ -210,6 +210,16 @@ ever shows everyone parking against land, the lever is storm distance or frequen
 - Prize: **one crate, winner picks** — identical to rule 9.
 - Identical battle rules to rule 9 in every respect.
 - A defender with no crates can't be attacked (greyed out).
+- **Losing a recipe crate un-bakes ye** (Wyatt, 2026-08-06, from a playtest: *"I attacked Davy Scones
+  when he got to Tortuga... and I stole one of the ingredients he needed. This should have been an
+  effective strategy... but instead, he still won."*). Rule 13b made a finished captain a legal
+  target precisely so that raid is worth making, but nothing revoked the finish: `done` stayed true,
+  the seat stayed in `finishOrder`, and the end of voyage crowned a baker with no recipe to bake.
+  Now `Game.unfinish()` clears both, the captain **re-enters the rotation and can go and replace what
+  was taken**, and the voyage does not end while nobody is home. Taking a SURPLUS crate — one outside
+  their recipe — leaves the bake standing, as it should. `resolveEnd` additionally filters
+  `finishOrder` to captains who still hold a full recipe: redundant today, but the cost of being
+  wrong is exactly the bug above.
 
 ## Bot AI — rewritten as planners, not gates
 
