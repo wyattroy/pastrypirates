@@ -524,6 +524,24 @@
     background: rgba(0,0,0,.25); cursor: pointer; }
   #scPause:hover { background: rgba(0,0,0,.4); }
   #scPause img { width: 60%; height: 60%; object-fit: contain; }
+  /* THE PAUSED BEACON (Wyatt, 2026-08-06). A stopped game must announce itself: a player who steps
+     away from the tab comes back to a board that is simply not moving, with nothing saying why.
+     The clock face already goes silver and reads "paused"; this makes the one control that FIXES it
+     impossible to miss.
+     Glow + breath rather than a hard flash: a blinking control reads as an error, and this is an
+     invitation. The ring pulses amber — the same #f5a623 family the clock's own `warming` glow uses,
+     so it belongs to the clock rather than arriving as a new colour.
+     box-shadow and transform ONLY. Both composite (PERF-01's standing rule for anything that moves
+     on this screen), and neither triggers layout on a button pinned in the clock's corner.
+     Honours prefers-reduced-motion by dropping to a STATIC glow rather than to nothing at all —
+     the whole point is visibility, so the message must survive the animation being switched off. */
+  @keyframes scPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,.65); transform: scale(1); }
+    50%     { box-shadow: 0 0 10px 4px rgba(245,166,35,.15); transform: scale(1.14); } }
+  #scPause.scPulse { animation: scPulse 1.4s ease-in-out infinite;
+    border-color: #f5a623; background: rgba(245,166,35,.35); }
+  @media (prefers-reduced-motion: reduce) {
+    #scPause.scPulse { animation: none; box-shadow: 0 0 8px 3px rgba(245,166,35,.5); } }
   #scTimerToggle img { width: 60%; height: 60%; object-fit: contain; vertical-align: middle; }
   /* #7: timer off/on toggle — sits in the bottom-right corner, clear of the "turn clock" label
      text in the top-left (which it used to overlap) and of #scPause in the top-right */

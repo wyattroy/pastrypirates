@@ -150,6 +150,15 @@ export function setClockUI(){
   // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
   pauseEl.style.display=(!appState.liveDone)?"":"none";
   setIf($("scPauseImg"),"src",paused?PLAY_IMG:PAUSE_IMG);
+  // The button GLOWS AND BREATHES while paused (Wyatt, 2026-08-06: "flash or glow or pulsate to
+  // attract attention whenever the game is paused"). Set here, right beside the icon swap that is
+  // the button's other paused tell, so the two can never disagree — every branch below returns at a
+  // different point, and hanging this off any one of them would leave some path un-pulsed.
+  pauseEl.classList.toggle("scPulse",!!paused);
+  // @copy misc.timer.pausetooltip
+  const pauseLabel=paused?"The game is paused — tap to resume":"Pause the game";
+  setIf(pauseEl,"title",pauseLabel);
+  setAttrIf(pauseEl,"aria-label",pauseLabel);
   // #7 / D-20 (phase 21): the timer off/on toggle is offered to EVERY player in EVERY mode —
   // the soloBotGame() gate that used to hide it in solo/pass-and-play is gone. It used to be a
   // dead control there (toggleTimer() early-returned with no Firebase connection); Task 2 gave
@@ -162,6 +171,33 @@ export function setClockUI(){
     // @copy misc.timer.toggletooltip
     toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
   }
+  // PAUSED OUTRANKS TIMER-OFF (Wyatt, 2026-08-06: "players don't know why the game has stopped if
+  // they go away from the tab; we must make it clear that the game is paused").
+  //
+  // MEASURED, not guessed. The four combinations rendered like this before:
+  //   timer ON,  running -> "turn clock / – "
+  //   timer ON,  paused  -> "paused / ⏸ / tap ▶ to resume"     correct
+  //   timer OFF, running -> "timer off / ∞ / no rush — tap ⏱"
+  //   timer OFF, PAUSED  -> "timer off / ∞ / no rush — tap ⏱"  <-- the game is stopped and the
+  //                                                                panel says "no rush"
+  // The timer-off branch returned EARLY, before either paused branch could run, so with the timer
+  // off the pause state was invisible: the only tell was a 20px button icon flipping to ▶. That is
+  // exactly the reported bug, and it is a rendering-precedence bug, not a missing feature —
+  // "paused" and the ⏸ symbol were already written, they were simply unreachable.
+  //
+  // These are two INDEPENDENT states (D-05: the ⏱ toggle and the ▶/⏸ pause coexist), and paused is
+  // the one that stops play, so paused is the one the panel must report. Turning the timer off does
+  // not stop the game; pausing does.
+  if(paused&&(appState.timerOff||!state)){
+    wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
+    labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";
+    subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
+    // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
+    // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
+    // src/orchestrator.js (main-tier) directly.
+    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
+    return;
+  }
   if(appState.timerOff){
     // synced to all clients — everyone sees the clock is disabled
     wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
@@ -170,15 +206,8 @@ export function setClockUI(){
     return;
   }
   if(!state){
-    if(paused){
-      wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
-      labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
-      // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
-      // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
-      // src/orchestrator.js (main-tier) directly.
-      numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
-      return;
-    }
+    // the `!state && paused` case is handled by the precedence branch above, which now covers both
+    // timer-off and no-clock-yet — there is deliberately nothing left to do here.
     // D-02 (18-05) UI obligation: a decision's own reveal is gating the button row right now
     // (clockPendingSeat, set by panel() the instant it gates a real button row — see the D-02
     // comment there), so there is genuinely no live clock state yet — the arm itself is what's
