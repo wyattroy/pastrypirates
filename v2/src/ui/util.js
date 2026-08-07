@@ -383,8 +383,16 @@ const EVENT_NARRATION={
       :`⚓ The storm hurls itself at ${pn(e.p)}, but they've land at their back and the anchor bites.`),
     caps:[[e.p,"⚓ anchors clear of the rocks"]],pops:[[at(e.p),"⚓"]]}),
   // v2 rule 7: the storm hits the whole table at once, before anybody acts.
-  storm:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
-    txt:`⛈️ THE STORM BREAKS! Every ship is blown ${e.dist} squares <b>${DIRNAME[e.dir]}</b>!`}),
+  // SILENT (Wyatt, 2026-08-06): "it is a recording of the dialogue that comes before it". The round
+  // header has already said it one beat earlier — "Round 9: A ⛈️ storm be ragin'! It'll blow every
+  // ship 3 squares north." — and this line said the same thing again in different words, so the
+  // player read the storm twice before a single ship moved.
+  //
+  // The EVENT still fires; only its narration goes. runStormLive emits it, renders, and awaits
+  // narrateLastEvent() as before — that await now resolves immediately, which costs nothing,
+  // because the pacing beat was never here: the header runs through flash(...,900) in the
+  // orchestrator and holds on its own before the first ship is pushed.
+  storm:()=>null,
   // v2 rule 8a: run aground and ye simply lose the turn. No dodging, no anchoring, no repairs —
   // the compass warned ye a full round ago.
   /* Fires at the top of the grounded captain's own turn. It used to be SILENT, on the reasoning

@@ -123,6 +123,12 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 - Resolved **downwind-first**, so the lead ship clears the square before the ship behind arrives.
 - Storm push into the rim still triggers the trade-wind sweep.
 - No more NE/SW second gust.
+- **The storm is announced once, not twice** (Wyatt, 2026-08-06). The round header carries it —
+  *"Round 9: A ⛈️ storm be ragin'! It'll blow every ship 3 squares north."* — and the `storm` event's
+  own line (*"THE STORM BREAKS!…"*) said the same thing again a beat later, so the player read the
+  storm twice before a single ship moved. That narration is now silent; the event still fires and
+  still drives the push. The per-ship lines during the push (the anchor hold, the rim sweep) stay —
+  those report what happened to a particular captain, which the header cannot.
 
 ## 8. Storms and land — SIMPLIFIED, 2026-08-05
 
