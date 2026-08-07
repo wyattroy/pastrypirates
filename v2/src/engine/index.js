@@ -82,6 +82,21 @@ const PLAN={
   // a quarter of a step: enough to break a tie toward a favourable shove, never enough to walk
   // away from an island it needs.
   stormDrift:250,
+  // ---- HUNTING THE LEADER (v2.1, Wyatt 2026-08-06: "they should attack people if they are about
+  // to win, they should factor in others' proximity to winning and guess where they may be trying
+  // to go"). Measured before: bots fought 1.77 times a game, 23% of games had no battle at all, and
+  // the planner chose "take" for only 5.5% of legs — while ~29 turns a game went by with somebody
+  // already one crate from a full recipe. The leader was simply invisible to a planner that costs
+  // everything in turns-to-MY-recipe.
+  crateTurns:2.5,     // assumed turns to land one more crate, for the PUBLIC threat estimate
+  threatHorizon:8,    // a rival this many estimated turns from victory registers at urgency 0;
+                      // urgency climbs to 1 as that estimate falls to nothing
+  huntWeight:1.2,     // how much full urgency discounts a fight, before the archetype's own bias
+  denialTurns:5,      // what stopping a captain on the brink is worth in a bot's OWN turns, at
+                      // full urgency — this is what lets it raid cargo it has no use for
+  interceptLead:2,    // squares to aim AHEAD of a fleeing leader, along their path home
+  huntReach:2,        // a raid is only ever PLANNED against a leader this many sail-turns away —
+                      // the leash that stops a bot abandoning its own voyage to stalk across the map
 };
 
 class Game{
@@ -506,6 +521,52 @@ class Game{
       if(this.blocked(nx)||this.isIsland(nx)||this.isHome(nx))return c;
       c=nx;
       if(this.onRim(c)){const h=this.rimHead[c[0]+","+c[1]];return h?[h[0],h[1]]:c;}
+    }
+    return c;
+  }
+  /* ---- READING THE LEADER, FROM PUBLIC EVIDENCE ONLY (v2.1) ----
+     threatTurns(q) estimates how many turns until q could plausibly win, using exactly what any
+     captain at the table can see: how many DISTINCT crates they are carrying, and how far they are
+     from home. It NEVER touches q.recipe. That constraint is the whole reason this is an estimate
+     rather than a calculation — a bot that knew the recipe would know precisely when to strike, and
+     would be playing a different game from the one at the table.
+     Distinct crates, not total: a captain hoarding three sacks of cocoa is not two-thirds of the way
+     to a recipe, and counting raw cargo would rate the biggest hoarder as the biggest threat. This
+     can still overestimate (five distinct crates might be four of theirs plus a spare), which is the
+     right direction to be wrong in — a bot that occasionally raids a captain who was not quite as
+     close as they looked is playing the same guessing game a human plays. */
+  threatTurns(q){
+    if(q.done)return 0;
+    const distinct=new Set(q.ing).size;
+    const short=Math.max(0,(this.cfg.recipeSize||5)-distinct);
+    return short*PLAN.crateTurns+this.sailTurns(q.pos,this.home,this.windNow);
+  }
+  // 0 = no threat worth acting on, rising to 1 as they close on victory. Every hunting decision
+  // below reads this one number, so "how close is close" is tuned in ONE place (PLAN.threatHorizon).
+  threatUrgency(q){
+    return Math.max(0,Math.min(1,(PLAN.threatHorizon-this.threatTurns(q))/PLAN.threatHorizon));
+  }
+  /* Where to sail to CUT THEM OFF rather than chase them — Wyatt's "guess where they may be trying
+     to go". No mind-reading is needed: a captain near the end of their recipe is sailing home, and
+     home is the one destination every player at the table can see. So this walks a few squares down
+     the water-distance field toward home from where they are now, and aims there.
+     Aiming at their CURRENT square is what a stern chase looks like: you arrive where they were.
+     PLAN.interceptLead squares of lead is enough to meet them, and short enough that a bot never
+     abandons its own errand to camp the home port. */
+  interceptOf(q){
+    const field=this.waterField(this.home);
+    let c=[q.pos[0],q.pos[1]];
+    const lead=Math.min(PLAN.interceptLead,Math.max(0,Math.round(this.threatTurns(q))));
+    for(let s=0;s<lead;s++){
+      let best=null,bv=field[c[0]+","+c[1]];
+      if(bv===undefined)break;
+      for(const d of Object.values(DIRS)){
+        const nx=[c[0]+d[0],c[1]+d[1]];
+        const v=field[nx[0]+","+nx[1]];
+        if(v!==undefined&&v<bv){bv=v;best=nx;}
+      }
+      if(!best)break;
+      c=best;
     }
     return c;
   }
@@ -1174,13 +1235,22 @@ class Game{
       // (rule 13e — an empty hold is never a target) and when I can pay for powder.
       if(this.canAttack(p,q)||p.coins>=(this.cfg.powder||0)){
         if(q.ing.includes(ing)){
-          const sail=this.sailTurns(from,q.pos,wind);
+          // v2.1: sail to CUT THEM OFF, not to where they are standing. For a captain who is going
+          // nowhere this is their own square and nothing changes; for one running for home it is a
+          // couple of squares down their route (interceptOf).
+          const aim=this.interceptOf(q);
+          const sail=this.sailTurns(from,aim,wind);
           const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
           // the wind is a real edge in a one-round battle — price it
           const dirPtoQ=Object.keys(DIRS).find(k=>DIRS[k][0]===Math.sign(q.pos[0]-p.pos[0])&&DIRS[k][1]===Math.sign(q.pos[1]-p.pos[1]));
           const edge=(dirPtoQ&&wind===dirPtoQ)?-PLAN.windEdge:((dirPtoQ&&wind===OPPOSITE[dirPtoQ])?PLAN.windEdge:0);
-          const cost=(sail+PLAN.fightTurns+PLAN.fightLossRisk+rematch+edge)/bias.fightBias;
-          consider(cost,"take",q.pos,q);
+          // v2.1: a crate in the hands of someone about to win is worth more than the same crate
+          // anywhere else, because taking it costs them as well as paying me. Urgency discounts the
+          // fight; the archetype's own fightBias scales how far it will go, so the pirate hunts and
+          // the rusher keeps racing (Wyatt's choice, 2026-08-06 — "same brain, different taste").
+          const hunt=1+this.threatUrgency(q)*PLAN.huntWeight*bias.fightBias;
+          const cost=(sail+PLAN.fightTurns+PLAN.fightLossRisk+rematch+edge)/bias.fightBias/hunt;
+          consider(cost,"take",aim,q);
         }
       }
     }
@@ -1225,8 +1295,39 @@ class Game{
   }
   // Where this bot is trying to get to right now — the first leg of its route. Kept under the old
   // name because the live turn flow and the headless sim both call it.
+  /* Sail to head off a captain on the brink — the half of "attack people if they are about to win"
+     that the opportunism arm in chooseAction() cannot supply, because that arm only ever sees ships
+     ALREADY adjacent. Measured: with the threat model wired into costs but nothing steering the
+     ship, denial raids fired 0.05 times a game. A bot has to actually go after them.
+     BOUNDED BY PLAN.huntReach ON PURPOSE. Without a reach limit the sums say "always chase": at full
+     urgency the discounted cost of a raid stays under its worth from most of the board, so a pirate
+     would abandon a half-finished errand to cross the map, and the voyage would stop being about
+     baking. A short leash makes the behaviour legible instead — bots pounce when the leader comes
+     within reach, they do not stalk. */
+  huntTarget(p){
+    const bias=PERSONALITY[p.strategy]||PERSONALITY.balanced;
+    if(p.coins<(this.cfg.powder||0))return null; // no powder, no raid — never plan what you can't pay for
+    let best=null;
+    for(const q of this.players){
+      if(q===p||q.done||!q.ing.length)continue;   // rule 13e: an empty hold is never a target
+      const urgent=this.threatUrgency(q);
+      if(urgent<=0)continue;
+      const aim=this.interceptOf(q);
+      const sail=this.sailTurns(p.pos,aim,this.windNow);
+      if(sail>PLAN.huntReach)continue;
+      const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
+      const cost=(sail+PLAN.fightTurns+PLAN.fightLossRisk+rematch)/bias.fightBias/(1+urgent*PLAN.huntWeight);
+      const gain=q.ing.some(i=>this.needs(p).includes(i))?PLAN.crateTurns:0;
+      const worth=Math.max(gain,urgent*PLAN.denialTurns);
+      if(cost<worth&&(!best||cost<best.cost))best={aim,cost};
+    }
+    return best?best.aim:null;
+  }
   chooseTarget(p){
     if(!this.needs(p).length)return this.home; // recipe done — the only job left is to sail home
+    // v2.1: a captain about to win, within reach, outranks the next errand on the shopping list.
+    const hunt=this.huntTarget(p);
+    if(hunt)return hunt;
     const {route}=this.buildRoute(p);
     p.plan=route; // kept on the player so the turn flow (and any debugging) can read the reasoning
     // sail toward the first leg that HAS somewhere to sail to — a deal leg has none, so the ship
@@ -1288,17 +1389,33 @@ class Game{
     for(const q of adj){
       if(!this.canAttack(p,q))continue;
       const prize=q.ing.filter(i=>this.needs(p).includes(i));
-      if(!prize.length)continue;
-      const mine=this.acquireTurns(p,prize[0]).turns;
+      // v2.1 — THE DENIAL RAID (Wyatt, 2026-08-06). This used to `continue` whenever the target held
+      // nothing on my own shopping list, which is exactly why the leader sailed home unmolested:
+      // every fight in the game had to be self-interested, so a captain one crate from victory was
+      // only ever attacked by coincidence. Now a crate I have no use for is still worth taking if
+      // losing it sets THEM back — and that value is what `denial` prices, in my own turns.
+      const urgent=this.threatUrgency(q);
+      if(!prize.length&&urgent<=0)continue;
+      // what the fight is WORTH: the better of what I'd gain (turns saved acquiring it the slow
+      // way) and what I'd cost them. A raid on a nobody still needs to pay for itself.
+      const gain=prize.length?this.acquireTurns(p,prize[0]).turns:0;
+      const denial=urgent*PLAN.denialTurns;
+      const worth=Math.max(gain,denial);
       const bias=PERSONALITY[p.strategy]||PERSONALITY.balanced;
       const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
       const grudge=(activeGrudge&&activeGrudge.against===q.idx&&activeGrudge.expires>=this.round)?0.6:0;
-      const cost=(PLAN.fightTurns+PLAN.fightLossRisk+rematch-grudge)/bias.fightBias;
-      if(cost<mine&&(!bestFight||cost<bestFight.cost))bestFight={type:"attack",target:q,cost,why:"opportunity"};
+      const hunt=1+urgent*PLAN.huntWeight*bias.fightBias;
+      const cost=(PLAN.fightTurns+PLAN.fightLossRisk+rematch-grudge)/bias.fightBias/hunt;
+      if(cost<worth&&(!bestFight||cost<bestFight.cost))bestFight={type:"attack",target:q,cost,why:prize.length?"opportunity":"denial"};
     }
     if(bestFight){
       const tied=adj.filter(q=>this.canAttack(p,q));
-      if((PERSONALITY[p.strategy]||PERSONALITY.balanced).tieBully&&tied.length>1){
+      // v2.1: tieBully re-points a pirate at the WEAKEST adjacent ship, which is the opposite of
+      // what hunting the leader is for. Picking on the runt is a flavour preference; stopping the
+      // captain on the brink is the plan — so the bully arm stands down whenever the current mark
+      // is a genuine threat, rather than quietly undoing the decision made just above.
+      const marked=this.threatUrgency(bestFight.target)>0;
+      if(!marked&&(PERSONALITY[p.strategy]||PERSONALITY.balanced).tieBully&&tied.length>1){
         tied.sort((x,y)=>(x.coins+x.ing.length)-(y.coins+y.ing.length));
         if(tied[0]!==bestFight.target&&this.needs(p).some(i=>tied[0].ing.includes(i)))bestFight.target=tied[0];
       }

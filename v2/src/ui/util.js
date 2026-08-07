@@ -348,19 +348,19 @@ const EVENT_NARRATION={
     // unit together, not to keep a sentence on one line. Here that unit is the warning itself —
     // compass, cloud and claim — and the tail is free to wrap under it.
     const fc=e.nextStorm
-      ? ` <span class="nobrk">🧭 Next round: ⛈️ a storm's comin'</span> — no tellin' which way she'll blow.`
-      : (e.next?` <span class="nobrk">🧭 Next round: wind ${DIRNAME[e.next]}.</span>`:"");
+      ? ` <span class="nobrk">🧭 Next day: ⛈️ a storm's comin'</span> — no tellin' which way she'll blow.`
+      : (e.next?` <span class="nobrk">🧭 Next day: wind ${DIRNAME[e.next]}.</span>`:"");
     if(e.storm){
       if(e.streak>=2)return {cls:"roundhdr",
         txt:(held
-          ?`— Round ${e.round}: ⛈️ The storm's baked in and won't cool down! It's still aiming ${D}. Fie, Poseidon! —`
-          :`— Round ${e.round}: ⛈️ The storm's baked in and won't cool down! It's aiming ${D}. Batten down the hatches, ye scurvy lot! —`)+fc};
-      return {cls:"roundhdr",txt:`Round ${e.round}: A ⛈️ storm be ragin'! It'll blow every ship 3 squares ${D}.`+fc};
+          ?`— Day ${e.round}: ⛈️ The storm's baked in and won't cool down! It's still aiming ${D}. Fie, Poseidon! —`
+          :`— Day ${e.round}: ⛈️ The storm's baked in and won't cool down! It's aiming ${D}. Batten down the hatches, ye scurvy lot! —`)+fc};
+      return {cls:"roundhdr",txt:`Day ${e.round}: A ⛈️ storm be ragin'! It'll blow every ship 3 squares ${D}.`+fc};
     }
     if(held)return {cls:"roundhdr",txt:(wontQuit
-      ?`— Round ${e.round}: wind still to the ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`
-      :`— Round ${e.round}: wind still blows ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`)+fc};
-    return {cls:"roundhdr",txt:`— Round ${e.round}: wind is blowin' ${D} —`+fc};
+      ?`— Day ${e.round}: wind still to the ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`
+      :`— Day ${e.round}: wind still blows ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`)+fc};
+    return {cls:"roundhdr",txt:`— Day ${e.round}: wind is blowin' ${D} —`+fc};
   },
   /* v2.1 (Wyatt, 2026-08-05): `aground`, `stormlost`, `berthHold` and `blownDock` are DELETED
      along with the rule that produced them. A storm can no longer cost a turn, so nothing runs
@@ -815,7 +815,17 @@ export function computeAwards(){
   };
   let prevPos=appState.game.players.map(()=>null);
   for(const e of appState.game.events){
-    if(e.t==="battle"||e.t==="battleflee"){
+    // v2.1 (Wyatt, 2026-08-06: recalculate the lucky streak "over the course of the whole game").
+    // MEASURED FIRST: the walk was already whole-game — `streak` is never reset between turns — but
+    // it was BLIND TO `battlenull`, and that is where the reported symptom came from. A null battle
+    // (v2 rule 9: the crosswind stand-off nobody paid to break, and every declined re-fire) carries
+    // its flips in `rounds` exactly like the other two outcomes, and they were being dropped.
+    // Across 40 headless games that lost 74 of 816 flips — 9% — and the badge undercounted somebody's
+    // streak in 4 of them. Always downward, which is why it read as "this only counted one turn".
+    // Adding it also repairs timesAttacked and longestBattle, which had the same blind spot: a null
+    // battle is still a real attack with real rounds. battlesWon/battlesLost stay guarded on
+    // `winner!=null`, because a null is precisely the case where nobody won.
+    if(e.t==="battle"||e.t==="battleflee"||e.t==="battlenull"){
       // #5: a fought-then-fled battle still counts toward game.battles, so it must count in the
       // per-player battle stats too (it was a real attack with real rounds) — only the clean
       // win/loss tally is skipped for a flee, since nobody won.

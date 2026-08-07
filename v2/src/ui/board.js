@@ -938,6 +938,17 @@ function windFormatElapsed(ms){
 // #statsPanel and writes plain sentences, not a table of jargon — this is the text Wyatt reads to
 // decide whether Phase 20 goes ahead, not a metrics dump.
 export function renderWindSummary(){
+  // v2.1 (Wyatt, 2026-08-06): "remove this wind for smoothness report". It is developer instrumentation
+  // that shipped onto a PLAYER'S End of Voyage screen — a dashed box of frame rates between the
+  // keepsakes and the captains' luck. The wind dots are long since approved and live; the verdict this
+  // was built to inform has been made.
+  //
+  // The METER itself stays. windMeterSample still runs inside the existing rAF loop (one call, no
+  // extra loop) and windMeterSummary() still feeds the live readout in the tuning HUD behind
+  // ?windhud=1 — so this is not dead code, it is instrumentation that no longer shows itself to
+  // someone who did not ask for it. Gate flipped here, at the one render, rather than by deleting the
+  // instrument, so `?windhud=1` keeps working exactly as before.
+  if(!windHudEnabled())return;
   if(!windPrototypeEnabled())return;
   const panel=$("statsPanel");
   if(!panel)return;
@@ -1731,7 +1742,7 @@ export function showStats(){
   // rendered HTML is byte-identical to the inline version it replaced.
   // @copy misc.board.statsheadings
   const statsTable=`<table>
-    <tr><td>Rounds</td><td>${appState.game.round}</td></tr>
+    <tr><td>Days</td><td>${appState.game.round}</td></tr>
     <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
     <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
     <tr><td>Bakery</td><td>${appState.game.finishOrder.length>1?appState.game.finishOrder.length+" bakers, side by side":"one baker home"}</td></tr>
