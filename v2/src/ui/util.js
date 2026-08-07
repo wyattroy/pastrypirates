@@ -346,8 +346,16 @@ const EVENT_NARRATION={
     // v2.1: a forecast storm no longer names its direction — `e.next` is null on exactly those
     // rounds (Game.forecastWind), so the storm arm reads off `e.nextStorm` alone and the two arms
     // are no longer both keyed to `e.next`.
+    // NOBRK COVERS THE ATOMIC UNIT ONLY, NEVER THE WHOLE SENTENCE. `.nobrk` is white-space:nowrap,
+    // so anything inside it CANNOT wrap and will happily run off the side of the narration box. The
+    // calm line is short enough (185px) that wrapping it whole was harmless; this storm line is not,
+    // and shipping it in the same span put 502px of unbreakable text into a 276px box on a 360px
+    // phone — cut off at every width tested, 430px included.
+    // Same lesson as P7 (see the turn-order line in flow.js): the span's job is to keep ONE readable
+    // unit together, not to keep a sentence on one line. Here that unit is the warning itself —
+    // compass, cloud and claim — and the tail is free to wrap under it.
     const fc=e.nextStorm
-      ? ` <span class="nobrk">🧭 Next round: ⛈️ a storm's comin' — no tellin' which way she'll blow.</span>`
+      ? ` <span class="nobrk">🧭 Next round: ⛈️ a storm's comin'</span> — no tellin' which way she'll blow.`
       : (e.next?` <span class="nobrk">🧭 Next round: wind ${DIRNAME[e.next]}.</span>`:"");
     if(e.storm){
       if(e.streak>=2)return {cls:"roundhdr",
