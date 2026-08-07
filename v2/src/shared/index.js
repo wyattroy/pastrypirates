@@ -198,104 +198,132 @@ const STORM_DIAG={N:{E:45,W:315},S:{E:135,W:225},E:{N:45,S:135},W:{N:315,S:225}}
 // ORDER IS LOAD-BEARING — parallel table keyed to DIRS; must stay in lockstep with it.
 const OPPOSITE={N:"S",S:"N",E:"W",W:"E"};
 // What a captain sees when they Pass — there's nothing else worth doing with the turn, so they
-// look into the ocean. All fifty creatures are Wyatt's, 2026-08-06, and every sentence below was
-// written out in full and approved before it landed: copy is his call, mechanism is ours.
+// look into the ocean. All fifty sightings are Wyatt's, hand-written in full on 2026-08-06 and
+// corrected only for grammar and punctuation; copy here is his, mechanism is ours.
 //
-// SEA_OPENERS is the "pre-animal sentence" (his words) — what the captain is DOING when they spot
-// the thing — and it is chosen by where the creature actually lives, so the framing never
-// contradicts the sighting. Each opener is a bare verb phrase held in BOTH persons, [ye-form,
-// third-person], because one sighting is narrated two ways: "ye lean over the rail, and ..." to
-// the captain themselves, "Crustbeard leans over the rail, and ..." to everyone else. Keeping the
-// pair together here is what stops the two from drifting apart.
+// EACH ENTRY CARRIES BOTH PERSONS, and that is the whole design. One sighting is narrated two ways
+// — "ye lean over the rail..." to the captain themselves, "Crustbeard leans over the rail..." to
+// everyone else — and `{}` in `t` is where the captain's name goes. It is NOT always first: Wyatt's
+// own "Off the bow, ye see..." becomes "Off the bow, Crustbeard sees...", which no name-prefix rule
+// could have produced.
 //
-// TWO OPENERS WERE REWRITTEN AFTER PLAYTEST READING (Wyatt, 2026-08-06) and the reason generalises:
-// an opener must not assert anything about WHERE THE SHIP IS. "ye drift over the shallows" and
-// "ye study the sand below" both claimed the ship was near land, and a captain passing a turn in
-// open ocean would read them as wrong. They became "ye drift near a reef" (a place, offered rather
-// than asserted) and "ye catch sight of the bottom" (the bottom came into view, no claim about
-// depth). Anything added here must survive the same test: it has to read true mid-ocean.
-const SEA_OPENERS={
-  rail:["lean over the rail","leans over the rail"],
-  down:["peer down past the waterline","peers down past the waterline"],
-  turq:["watch the turquoise water slide by","watches the turquoise water slide by"],
-  swell:["keep an eye on the swell","keeps an eye on the swell"],
-  bow:["watch the water off the bow","watches the water off the bow"],
-  ahead:["watch the sea open up ahead","watches the sea open up ahead"],
-  sky:["squint up at the sky","squints up at the sky"],
-  shadow:["look up at a shadow crossing the deck","looks up at a shadow crossing the deck"],
-  horizon:["scan the horizon","scans the horizon"],
-  bottom:["catch sight of the bottom","catches sight of the bottom"],
-  glass:["look down through water clear as glass","looks down through water clear as glass"],
-  reef:["drift near a reef","drifts near a reef"],
-};
-// Each creature carries its own subject `s` (Wyatt's name, with his article, lowercased for
-// mid-sentence) and its own verb clause `v`. NOTHING IS INFERRED AT RUNTIME any more: the old
-// seaSighting() helper guessed "a" vs "an" from the first letter and "drift" vs "drifts" from a
-// trailing -s, and needed a carve-out for the -us/-ss/-is endings so "choctopus" didn't read as
-// plural. Fifty hand-written subjects with hand-agreed verbs cannot get that wrong — including the
-// four collective heads ("a school of...", "a dozen...", "a family of...", "a pod of...") whose
-// agreement no letter-based rule could ever have gotten right.
+// THE PREVIOUS SHAPE (a shared SEA_OPENERS table plus a per-creature subject and verb) IS GONE.
+// It existed to keep the two persons in lockstep from one source, but it only worked while every
+// line began with the same handful of clauses. Wyatt's rewrite fuses opener and sighting — "ye see
+// a baby candycrab scuttle off the deck", "By the bow, ye spy..." — so there is no shared opener
+// left to share. Both forms are now written out, which also means the second verb in a compound
+// sentence is conjugated correctly ("leans over the rail, and SPOTS six clownfish") — something no
+// leading-clause rule would have caught.
 //
-// `o` is a FIXED pairing, not a random draw from the habitat's openers (Wyatt chose fixed, 2026-08-06):
-// every one of the fifty sentences was read end to end as a whole before approval, and a runtime
-// pairing would ship combinations nobody has read.
+// Nothing is inferred at runtime. No article is guessed, no verb agreement is derived, no person is
+// conjugated: every string is read out exactly as written.
 //
-// Every verb clause names the PASTRY, not just the animal (Wyatt, 2026-08-06) — the joke is that
-// these are baked goods, so a line that only describes a fish wastes the sighting.
+// ORDER IS LOAD-BEARING (Wyatt, 2026-08-06): "we want each animal to be followed by a substantially
+// different animal, in a different view/part of the oceanscape." No two neighbours share a creature
+// family or a zone of the sea — and because each captain starts at their own point and walks the
+// list as a RING, the 50→1 join is a real adjacency and satisfies the rule too. Adding or moving an
+// entry means re-checking both, not just the visible neighbours.
 const SEA_CREATURES=[
-  {o:"rail",   s:"some shimmering cinnamon squid",       v:"drift past, trailing spice"},
-  {o:"ahead",  s:"a breaching butterwhale",              v:"comes down in a slick of butter"},
-  {o:"down",   s:"a school of glittering sugarfish",     v:"turns the water to sugar"},
-  {o:"bottom", s:"a dozen donut shrimp",                 v:"bounce past, holed through the middle"},
-  {o:"turq",   s:"drifting peanut butter jellyfish",     v:"pulse past, thick and slow as the jar"},
-  {o:"reef",   s:"a baby candycrab",                     v:"scuttles off, shell hard as a boiled sweet"},
-  {o:"down",   s:"a mocha manta ray",                    v:"glides below like poured coffee"},
-  {o:"rail",   s:"a gingerbread hammerhead",             v:"swings a head baked flat and hard"},
-  {o:"turq",   s:"a sprinkle shark",                     v:"circles once, shedding sprinkles"},
-  {o:"swell",  s:"a marshmallow manatee",                v:"rolls over, soft and toasted on top"},
-  {o:"sky",    s:"an applesauce albatross",              v:"hangs there, smelling of stewed apple"},
-  {o:"bow",    s:"a blueberry beluga",                   v:"surfaces, blue as a burst berry"},
-  {o:"horizon",s:"a pavlova pelican",                    v:"drops in a white crash of meringue"},
-  {o:"rail",   s:"a pistachio pufferfish",               v:"puffs up, green and salted"},
-  // In the sky, not the shallows (Wyatt, 2026-08-06): a wading flamingo would need the narration
-  // to know how close the ship is to land, and this board has no such notion — building one for a
-  // single sighting is overkill. A bird overhead is true from anywhere on the sea.
-  {o:"sky",    s:"a cotton candy flamingo",              v:"goes over, pink and spun"},
-  {o:"bow",    s:"a minty mahi mahi",                    v:"leaps out, cool and green as mint"},
-  {o:"bottom", s:"a salted caramel starfish",            v:"clings to a rock, gone soft in the sun"},
-  {o:"down",   s:"a family of strawberry seahorses",     v:"bobs in the weed, pink as glaze"},
-  {o:"glass",  s:"a reef of funnelcake coral",           v:"spreads out golden and fried"},
-  {o:"bottom", s:"a lollipop lobster",                   v:"backs into a crack, glossy as boiled sugar"},
-  {o:"reef",   s:"a honeycomb hermit crab",              v:"hauls a borrowed shell full of holes"},
-  {o:"turq",   s:"a key lime lionfish",                  v:"fans out every spine, sharp and sour"},
-  {o:"rail",   s:"a custard cuttlefish",                 v:"flashes gold and vanishes"},
-  {o:"ahead",  s:"a challah humpback",                   v:"blows a plume, back braided and shining"},
-  {o:"shadow", s:"a sesame seagull",                     v:"makes off with a seeded bun"},
-  {o:"glass",  s:"a nougat nudibranch",                  v:"inches along, frilled and chewy"},
-  {o:"down",   s:"a jello octopus",                      v:"pours itself into a bottle and wobbles"},
-  {o:"bottom", s:"a fudgey flounder",                    v:"unburies itself, dense and brown"},
-  {o:"rail",   s:"six clementine clownfish",             v:"squabble over one anemone, bright as peel"},
-  {o:"reef",   s:"a snickerdoodle sea snail",            v:"crosses the sand, dusted in cinnamon sugar"},
-  {o:"glass",  s:"a lemony anemone",                     v:"waves every arm, yellow and sharp"},
-  {o:"turq",   s:"some sour sardines",                   v:"turn together, silver and puckering"},
-  {o:"bottom", s:"a gummy eel",                          v:"leans out of a hole and stretches"},
-  {o:"down",   s:"a banana bonito",                      v:"runs the hull down, yellow and curved"},
-  {o:"rail",   s:"an affogato angelfish",                v:"drifts up in a swirl of coffee and cream"},
-  {o:"swell",  s:"some maple syrup seals",               v:"roll over each other, slick and sticky"},
-  {o:"bow",    s:"a pod of dark chocolate dolphins",     v:"takes station, dark and glossy"},
-  {o:"turq",   s:"a tiramisu tuna",                      v:"goes by dusted in cocoa"},
-  {o:"glass",  s:"a peppermint parrotfish",              v:"crunches coral and spits out sugar"},
-  {o:"down",   s:"a cheesecake sea snake",               v:"comes up for air, pale and rich"},
-  {o:"rail",   s:"a great white waffleshark",            v:"passes below, hide gridded like a waffle"},
-  {o:"turq",   s:"an ice cream sea bream",               v:"hangs in the hull's shadow, keepin' cool"},
-  {o:"reef",   s:"a crème brûlée stingray",              v:"lifts off, back cracked and burnt gold"},
-  {o:"bottom", s:"a tiny toasted coconut crab",          v:"picks over a rock, shredded and brown"},
-  {o:"glass",  s:"some pecan prawns",                    v:"flick backwards, candied and dark"},
-  {o:"bottom", s:"a giant cappuccino clam",              v:"shuts with a thump, foam at the lip"},
-  {o:"down",   s:"an eggnog nautilus",                   v:"rises spiral-first, pale and spiced"},
-  {o:"rail",   s:"a babka bull shark",                   v:"comes in too close, flank swirled dark"},
-  {o:"swell",  s:"a toffee turtle",                      v:"surfaces once, shell amber and hard"},
-  {o:"reef",   s:"a honey lavender sea cucumber",        v:"lies there, sweet and doing nothing"},
+  {y:"ye peep into the clear water and see a pokey pistachio pufferfish gettin' sassy.",
+   t:"{} peeps into the clear water and sees a pokey pistachio pufferfish gettin' sassy."},
+  {y:"ye lean on the railing as a honeycomb hermit crab skitters by.",
+   t:"{} leans on the railing as a honeycomb hermit crab skitters by."},
+  {y:"By the bow, ye spy a minty mahi mahi leap out of the emerald water.",
+   t:"By the bow, {} spies a minty mahi mahi leap out of the emerald water."},
+  {y:"ye peer down past the waterline at a school of glittering sugarfish.",
+   t:"{} peers down past the waterline at a school of glittering sugarfish."},
+  {y:"ye catch sight of the bottom, and a dozen donut shrimp bounce past.",
+   t:"{} catches sight of the bottom, and a dozen donut shrimp bounce past."},
+  {y:"ye spy a key lime lionfish fanning out its tangy fins.",
+   t:"{} spies a key lime lionfish fanning out its tangy fins."},
+  {y:"Off the bow, ye see a sprinkle shark leave a rainbow wake in the water.",
+   t:"Off the bow, {} sees a sprinkle shark leave a rainbow wake in the water."},
+  {y:"ye watch some sour sardines turn together in the turquoise water.",
+   t:"{} watches some sour sardines turn together in the turquoise water."},
+  {y:"ye lean over the rail, as shimmering cinnamon squid drift past.",
+   t:"{} leans over the rail, as shimmering cinnamon squid drift past."},
+  {y:"ye peer down past the waterline, and a banana bonito slips down the hull.",
+   t:"{} peers down past the waterline, and a banana bonito slips down the hull."},
+  {y:"ye catch sight of the bottom, where a lollipop lobster backs into a crack.",
+   t:"{} catches sight of the bottom, where a lollipop lobster backs into a crack."},
+  {y:"ye squint up and see an applesauce albatross soaring above.",
+   t:"{} squints up and sees an applesauce albatross soaring above."},
+  {y:"ye watch the sea open up as a butterwhale breaches and splashes down.",
+   t:"{} watches the sea open up as a butterwhale breaches and splashes down."},
+  {y:"ye lean over the rail and see a gingerbread hammerhead circling.",
+   t:"{} leans over the rail and sees a gingerbread hammerhead circling."},
+  {y:"ye peer starboard and see a marshmallow manatee floating in the swell.",
+   t:"{} peers starboard and sees a marshmallow manatee floating in the swell."},
+  {y:"ye look down through clear water at a nougat nudibranch sliding along.",
+   t:"{} looks down through clear water at a nougat nudibranch sliding along."},
+  {y:"ye look down at a reef to see a peppermint parrotfish crunching candy cane coral.",
+   t:"{} looks down at a reef to see a peppermint parrotfish crunching candy cane coral."},
+  {y:"ye lean over the rail, when a custard cuttlefish flashes gold and vanishes.",
+   t:"{} leans over the rail, when a custard cuttlefish flashes gold and vanishes."},
+  {y:"ye watch the water slide by, swirled by a school of tiramisu tuna.",
+   t:"{} watches the water slide by, swirled by a school of tiramisu tuna."},
+  {y:"ye catch sight of the bottom, and a tiny toasted coconut crab scuttles along.",
+   t:"{} catches sight of the bottom, and a tiny toasted coconut crab scuttles along."},
+  {y:"ye see a pavlova pelican dive in a white crash of meringue.",
+   t:"{} sees a pavlova pelican dive in a white crash of meringue."},
+  {y:"ye catch sight of a blueberry beluga spraying jam as it splashes down.",
+   t:"{} catches sight of a blueberry beluga spraying jam as it splashes down."},
+  {y:"ye look down through crystal clear water and spy a reef of golden funnelcake coral.",
+   t:"{} looks down through crystal clear water and spies a reef of golden funnelcake coral."},
+  {y:"ye keep an eye on the swell, and some maple syrup seals slick over each other.",
+   t:"{} keeps an eye on the swell, and some maple syrup seals slick over each other."},
+  {y:"ye peer down and spot a mocha manta ray gliding below.",
+   t:"{} peers down and spots a mocha manta ray gliding below."},
+  {y:"ye catch sight of the bottom, where a salted caramel starfish sticks to a rock.",
+   t:"{} catches sight of the bottom, where a salted caramel starfish sticks to a rock."},
+  {y:"ye lean over the rail, and spot six clementine clownfish squabbling.",
+   t:"{} leans over the rail, and spots six clementine clownfish squabbling."},
+  {y:"ye drift near a reef, and a giant snickerdoodle sea snail slides by.",
+   t:"{} drifts near a reef, and a giant snickerdoodle sea snail slides by."},
+  {y:"ye peer down deep, where a jello octopus wobbles.",
+   t:"{} peers down deep, where a jello octopus wobbles."},
+  {y:"ye catch sight of the bottom, where a fudgey flounder unburies itself.",
+   t:"{} catches sight of the bottom, where a fudgey flounder unburies itself."},
+  {y:"ye peer down past the waterline, and a cheesecake sea snake squiggles below.",
+   t:"{} peers down past the waterline, and a cheesecake sea snake squiggles below."},
+  {y:"ye lean over the rail, and a great white waffleshark passes below with maple syrup on its fin.",
+   t:"{} leans over the rail, and a great white waffleshark passes below with maple syrup on its fin."},
+  {y:"ye squint up at the sky, and see a cotton candy flamingo float over.",
+   t:"{} squints up at the sky, and sees a cotton candy flamingo float over."},
+  {y:"ye look into the water, and spy a cloud of pecan prawns roasting in the shimmering sun.",
+   t:"{} looks into the water, and spies a cloud of pecan prawns roasting in the shimmering sun."},
+  {y:"ye watch the turquoise water slide by, thick with peanut butter jellyfish.",
+   t:"{} watches the turquoise water slide by, thick with peanut butter jellyfish."},
+  {y:"ye float by a reef, where a lemony anemone wiggles its citrusy arms.",
+   t:"{} floats by a reef, where a lemony anemone wiggles its citrusy arms."},
+  {y:"ye watch the sea open up ahead, and a challah humpback blows a toasty plume.",
+   t:"{} watches the sea open up ahead, and a challah humpback blows a toasty plume."},
+  {y:"ye peer down deep and see a family of strawberry seahorses squoogling along.",
+   t:"{} peers down deep and sees a family of strawberry seahorses squoogling along."},
+  {y:"ye catch sight of the bottom, and a gummy eel stretches out of its hidey-hole.",
+   t:"{} catches sight of the bottom, and a gummy eel stretches out of its hidey-hole."},
+  {y:"ye lean over the rail, and some affogato angelfish swirl up like cream in coffee.",
+   t:"{} leans over the rail, and some affogato angelfish swirl up like cream in coffee."},
+  {y:"ye watch the water off the bow, and a pod of dark chocolate dolphins jump up.",
+   t:"{} watches the water off the bow, and a pod of dark chocolate dolphins jump up."},
+  {y:"ye drift near a reef, and a crème brûlée stingray lifts off, its back cracked and burnt gold.",
+   t:"{} drifts near a reef, and a crème brûlée stingray lifts off, its back cracked and burnt gold."},
+  {y:"ye see a baby candycrab scuttle off the deck, shell hard as torched sugar.",
+   t:"{} sees a baby candycrab scuttle off the deck, shell hard as torched sugar."},
+  {y:"ye look up at a shadow crossing the deck, and a sesame seagull makes off with a bun.",
+   t:"{} looks up at a shadow crossing the deck, and a sesame seagull makes off with a bun."},
+  {y:"ye spy an ice cream sea bream chilling in the hull's shadow, keepin' cool.",
+   t:"{} spies an ice cream sea bream chilling in the hull's shadow, keepin' cool."},
+  {y:"ye catch sight of the bottom, where a giant cappuccino clam shuts with a foamy thump.",
+   t:"{} catches sight of the bottom, where a giant cappuccino clam shuts with a foamy thump."},
+  {y:"ye peer at an eggnog nautilus spiraling to the surface in a creamy swirl.",
+   t:"{} peers at an eggnog nautilus spiraling to the surface in a creamy swirl."},
+  {y:"ye lean over the rail, and a babka bull shark comes in too close.",
+   t:"{} leans over the rail, and a babka bull shark comes in too close."},
+  {y:"ye keep an eye on the swell, and the amber shell of a toffee turtle surfaces.",
+   t:"{} keeps an eye on the swell, and the amber shell of a toffee turtle surfaces."},
+  {y:"ye drift near a reef, and a honey lavender sea cucumber lies there, doing nothing.",
+   t:"{} drifts near a reef, and a honey lavender sea cucumber lies there, doing nothing."},
 ];
 const SAIL_RANGE=4,SAIL_RANGE_UPWIND=2;
 // v2 rule 7: a storm is one direction, this far, everyone at once, at the start of the round.
@@ -322,4 +350,4 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, SEA_OPENERS, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, COLORS, HEXCOL, man };

@@ -34,20 +34,21 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
 
 - Act menu is **Dock / Attack / Trade / Start yer bakery**, plus **Pass**, which is never disabled:
   a turn must always be endable, and fishing used to absorb that case by accident.
-- Pass narrates a **sea creature**. Fifty of them, all Wyatt's, 2026-08-06, each with a hand-written
-  sentence approved in full before it shipped. Two halves: an **opener** (what the captain is doing
-  when they spot it, chosen by where the creature actually lives — under the hull, at the surface,
-  in the air, on the bottom) and the creature's **own subject and verb**.
-- **An opener must never assert where the ship is.** "Over the shallows" and "study the sand below"
-  both implied land was close and read as wrong mid-ocean; they became "ye drift near a reef" and
-  "ye catch sight of the bottom". The flamingo moved from the shallows into the sky for the same
-  reason — a wading bird would need a proximity-to-land test this board has no notion of, which is
-  far too much machinery for one sighting.
-- **Every verb clause names the pastry**, not just the animal. The joke is that these are baked
-  goods; a line that only describes a fish wastes the sighting.
-- Nothing about a sighting is inferred at runtime. The old helper guessed *a*/*an* from the first
-  letter and *drift*/*drifts* from a trailing *-s*; fifty hand-agreed sentences cannot get that
-  wrong, including the four collective heads ("a school of…", "a pod of…").
+- Pass narrates a **sea creature**. Fifty of them, all Wyatt's, hand-written in full on 2026-08-06
+  and corrected only for grammar and punctuation.
+- **Each entry stores both persons.** One sighting is narrated two ways — *"ye lean over the rail…"*
+  to the captain, *"Crustbeard leans over the rail…"* to everyone else — and `{}` marks where the
+  name goes, because it is not always first: *"Off the bow, ye see…"* becomes *"Off the bow,
+  Crustbeard sees…"*. The earlier shared-opener table is gone; Wyatt's rewrite fuses opener and
+  sighting, so there was no shared opener left to share. Writing both forms out also conjugates the
+  second verb of a compound sentence correctly (*"leans over the rail, and **spots** six
+  clownfish"*), which no leading-clause rule would have caught.
+- **Nothing is inferred at runtime** — no article guessed, no verb agreement derived, no person
+  conjugated. Every string is read out exactly as written.
+- **Order is load-bearing** (Wyatt, 2026-08-06): *"each animal followed by a substantially different
+  animal, in a different view/part of the oceanscape."* No two neighbours share a creature family or
+  a zone of the sea. The list is walked as a **ring**, so the 50→1 join is a real adjacency and
+  satisfies the rule too — moving or adding an entry means re-checking both.
 - **The lineup persists across games** (`pp_seaIdx`): your device remembers where you had got to,
   and the next voyage starts at the next creature, so you work through all fifty over many games.
   Read once per game and carried in the solo save, so a resumed voyage replays the same sightings

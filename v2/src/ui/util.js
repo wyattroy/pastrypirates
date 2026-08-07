@@ -47,7 +47,7 @@ import {
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
-  SEA_CREATURES, SEA_OPENERS,
+  SEA_CREATURES,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
 // 11-07 (bridge deletion fix): util.js is a common dependency of src/ui/board.js, panel.js,
@@ -297,33 +297,26 @@ export function movedSinceTurnStart(e){
 // unset, and NEUTRAL_VIEWER) sees the third-person line. `newround` is deliberately EXCLUDED
 // (D-09 — it addresses the whole table, never one captain), and `end`/`turn` name no captain at
 // all, so neither gains a branch either.
-// seaLine(sea,mine) — the whole sighting sentence, minus the captain's name.
+// seaLine(sea,mine,name) — the whole sighting sentence, INCLUDING the captain's name, because
+// where the name goes is not fixed. Most lines lead with it ("Crustbeard leans over the rail…"),
+// but Wyatt's own "Off the bow, ye see…" puts it mid-sentence ("Off the bow, Crustbeard sees…"),
+// so the third-person string carries a `{}` marker and this decides nothing on its own.
 //
-// Replaces seaSighting(), which INFERRED "a" vs "an" from the first letter (NFD-normalising so
-// "éclair" tested as a vowel) and "drift" vs "drifts" from a trailing -s, with a carve-out for the
-// -us/-ss/-is endings so "choctopus" didn't read as a plural. All fifty entries now carry their own
-// subject and their own agreed verb (see SEA_CREATURES), written out and approved as whole
-// sentences, so there is nothing left to infer and nothing left to get wrong — including the four
-// collective heads ("a school of...", "a pod of...") that no letter-based rule could have handled.
-//
-// `mine` picks the person: the captain reads "ye lean over the rail", everyone else reads
-// "Crustbeard leans over the rail". Both forms come from the one SEA_OPENERS entry.
-function seaLine(sea,mine){
-  // A pre-2026-08-06 solo save stores `sea` as a bare creature name. That log is replayed verbatim
-  // on resume, so it must still narrate rather than throw — one generic line, in the old shape.
-  if(!sea||typeof sea==="string"){
-    // "there's X down there" rather than the old "a X drifts past below": the legacy names were
-    // stored bare and unarticled (the deleted seaSighting() supplied "a"/"an" and the verb), and
-    // some of them are plural. This shape needs neither an article nor number agreement, so every
-    // old name reads correctly without resurrecting the inference this change removed.
-    return `${mine?"ye lean":"leans"} over the rail, and there's ${sea||"somethin' strange"} down there.`;
+// Both persons are read out verbatim from SEA_CREATURES. Nothing is conjugated, no article is
+// guessed, no verb agreement is derived — the deleted seaSighting() did all three and got the
+// plurals wrong; a leading-clause rule would additionally have missed the SECOND verb in a
+// compound sentence ("leans over the rail, and spots six clownfish").
+function seaLine(sea,mine,name){
+  // A pre-2026-08-06 solo save stores `sea` as a bare creature name, and a save from earlier the
+  // same day stores {o,s,v}. Both are replayed verbatim on resume, so both must still narrate.
+  // "there's X down there" needs neither an article nor number agreement, so every old name reads
+  // correctly without resurrecting the inference this change removed.
+  if(!sea||typeof sea==="string"||!sea.y){
+    const w=(sea&&sea.s)||(typeof sea==="string"?sea:null)||"somethin' strange";
+    return mine?`${name} — ye lean over the rail, and there's ${w} down there.`
+               :`${name} leans over the rail, and there's ${w} down there.`;
   }
-  const op=SEA_OPENERS[sea.o]||SEA_OPENERS.rail; // unknown key (a retuned opener table) still reads
-  return `${mine?"ye "+op[0]:op[1]}, and ${sea.s} ${sea.v}.`;
-}
-// The bare subject, for anywhere that names the creature without the sentence around it.
-function seaSubject(sea){
-  return (!sea||typeof sea==="string")?(sea||"somethin' strange"):sea.s;
+  return mine?`${name} — ${sea.y}`:sea.t.replace("{}",name);
 }
 export
 const EVENT_NARRATION={
@@ -410,11 +403,12 @@ const EVENT_NARRATION={
   // Pass, given something to look at. Every captain who takes the turn off sees a different beast
   // go by; see Game.nextSeaCreature. The BUTTON reads "🌊 Pass" (Wyatt, 2026-08-05 — it briefly
   // read "Look into the ocean"; the label went back to Pass, the narration stayed).
-  pass:(e,at,cellPx,viewerSeat)=>{
-    const mine=isLocalTo(e.p,viewerSeat);
-    return {txt:`🌊 ${pn(e.p)}${mine?" — ":" "}${seaLine(e.sea,mine)}`,
-      caps:[[e.p,`🌊 spots ${seaSubject(e.sea)}`]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]};
-  },
+  pass:(e,at,cellPx,viewerSeat)=>({
+    txt:`🌊 ${seaLine(e.sea,isLocalTo(e.p,viewerSeat),pn(e.p))}`,
+    // Generic rather than naming the creature: the sighting is one hand-written sentence now, with
+    // no separately-stored subject to lift out of it, and inventing one by parsing the prose is
+    // exactly the kind of guessing this rewrite removed. (Nothing renders caps in v2 regardless.)
+    caps:[[e.p,"🌊 looks into the ocean"]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]}),
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
     txt:`💥 ${pn(e.a)} and ${pn(e.d)} break off — the smoke clears and neither has a thing to show for it.`,
