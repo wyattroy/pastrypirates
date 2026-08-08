@@ -118,6 +118,9 @@ const EVENT_SOUND = {
   // v2.1: the ovens going cold rides the battle sound of the raid that caused it — it is the
   // consequence of that same broadside, one beat later, not a second event to be scored.
   unfinish: null,
+  // v2.1 bake-off: EXPLICIT silence, not an omission (D-06 — the two are different things here).
+  // Whether a successful bake earns its own cue is a design call for Wyatt, not a side effect.
+  ovens: null, bake: null,
 };
 
 // PURE — no ctx, no DOM, no side effect, safe to call under plain Node. Returns null, or an

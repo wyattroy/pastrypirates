@@ -762,6 +762,89 @@ export async function recipeDraftNet(){
   if(!appState.replaying)updateRecipeBanner();
   liveRender();
 }
+/* TODAY'S DAY, MOVED VERBATIM. Extracted rather than rewritten so "flag off = the game
+   Wyatt has been playing" is a property of the code's shape, not a claim about a conditional.
+   The only edit is the ending: what was `ended=…;break;` inside the while-loop is now a return. */
+async function runLiveDayClassic(order){
+    for(const i of order){
+      const p=appState.game.players[i];
+      if(p.done)continue;
+      await (p.strategy==="human"?humanTurn(p):botTurn(p));
+      if(appState.game.checkFinish(p)){
+        liveRender();
+        if(appState.game.finishOrder.length===1){
+          // FINAL ROUND (#19): the first ship reached Tortuga and fired up the bakery. Alert the
+          // whole crew with a blocking barrier, spin the wind ANEW for the last lap, then give
+          // every other captain exactly ONE more turn — continuing the SAME rotation from the seat
+          // right after the finisher (not restarting `order` from the top, which scrambled the
+          // apparent turn order). netIntroBarrier self-skips during host-refresh replay, and the
+          // wind re-spin's game.r() calls run identically live and on replay, so state stays
+          // deterministic.
+          // NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
+          // @copy misc.introbarrier.finalround
+          await netIntroBarrier(`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`,"🦜 Final round — set sail!");
+          appState.game.round++;
+          appState.game.advanceWind(); // rule 6: the last lap sails under the wind already forecast
+          appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
+          // @copy adhoc.round.finalheader
+          await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
+          if(appState.game.stormNow)await runStormLive(appState.game.windNow); // rule 7, last lap too
+          const startPos=order.indexOf(i);
+          const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
+          for(const j of lastLap){
+            const q=appState.game.players[j];
+            if(q.done)continue;
+            await (q.strategy==="human"?humanTurn(q):botTurn(q));
+            if(appState.game.checkFinish(q))liveRender();
+          }
+          // v2.1: the final lap is the likeliest moment for a raid on the bakery (rule 13c), and
+          // if it lands the finisher is no longer finished (Game.unfinish). Ending here regardless
+          // would crown nobody and stop a voyage still being sailed — so end only if somebody is
+          // still home; otherwise break out of this rotation and let the while-loop sail on.
+          return appState.game.finishOrder.length>0;
+        }
+      }
+    }
+  return false;
+}
+
+/* THE BAKE-OFF DAY (v2.1). Three differences from the classic day, all consequences of one rule —
+   the bake, not the arrival, is the finish line:
+     - a captain at the ovens takes no ordinary turn; their attempt IS the turn
+     - arriving lights the ovens and enrols them in THIS day's resolution, so nobody waits a day
+       for a first attempt
+     - the day resolves after every seat has played, so two captains arriving on the same day get a
+       fair race rather than seat order deciding it
+   The one-lap final round is gone: the baking days ARE the catch-up window.
+
+   The per-attempt sequence lives in Game.bakeAttempt and NOWHERE ELSE — this driver supplies only
+   which promise to await, never what to compute. That is what keeps the live and headless loops
+   from drifting, and scripts/bakeoff_parity_test.js asserts it rather than trusting the comment. */
+async function runLiveDayBakeoff(order){
+  const g=appState.game;
+  for(const i of order){
+    const p=g.players[i];
+    if(p.done||p.baking)continue;
+    await (p.strategy==="human"?humanTurn(p):botTurn(p));
+    if(g.lightOvens(p)){liveRender();await narrateLastEvent();}
+  }
+  for(const i of g.bakersToday(order)){
+    await bakeTurnLive(g.players[i]);
+  }
+  liveRender();
+  return g.endBakeDay();
+}
+/* One captain's attempt. The UI half lands in a later step; for now every seat plays with the
+   engine's own botGuess, which is exactly what a forfeited human turn will use too. */
+async function bakeTurnLive(p){
+  const g=appState.game;
+  g.bakeAttempt(p,null);
+  liveRender();
+  // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
+  // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking
+  // evIdx to narrate both was a mistake; that field drives the scrubber, not this.
+  await narrateLastEvent();
+}
 export async function runLiveNet(){
   await showAhoyIntro();
   // turn order is randomized once here and never rotates — a one-time first-player advantage,
@@ -808,46 +891,7 @@ export async function runLiveNet(){
     await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
     // v2 rule 7: one storm for the whole table, before anybody acts.
     if(appState.game.stormNow)await runStormLive(appState.game.windNow);
-    for(const i of order){
-      const p=appState.game.players[i];
-      if(p.done)continue;
-      await (p.strategy==="human"?humanTurn(p):botTurn(p));
-      if(appState.game.checkFinish(p)){
-        liveRender();
-        if(appState.game.finishOrder.length===1){
-          // FINAL ROUND (#19): the first ship reached Tortuga and fired up the bakery. Alert the
-          // whole crew with a blocking barrier, spin the wind ANEW for the last lap, then give
-          // every other captain exactly ONE more turn — continuing the SAME rotation from the seat
-          // right after the finisher (not restarting `order` from the top, which scrambled the
-          // apparent turn order). netIntroBarrier self-skips during host-refresh replay, and the
-          // wind re-spin's game.r() calls run identically live and on replay, so state stays
-          // deterministic.
-          // NARR-01/D-25 (Wyatt-approved 2026-07-29): applied verbatim.
-          // @copy misc.introbarrier.finalround
-          await netIntroBarrier(`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`,"🦜 Final round — set sail!");
-          appState.game.round++;
-          appState.game.advanceWind(); // rule 6: the last lap sails under the wind already forecast
-          appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
-          // @copy adhoc.round.finalheader
-          await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
-          if(appState.game.stormNow)await runStormLive(appState.game.windNow); // rule 7, last lap too
-          const startPos=order.indexOf(i);
-          const lastLap=order.slice(startPos+1).concat(order.slice(0,startPos));
-          for(const j of lastLap){
-            const q=appState.game.players[j];
-            if(q.done)continue;
-            await (q.strategy==="human"?humanTurn(q):botTurn(q));
-            if(appState.game.checkFinish(q))liveRender();
-          }
-          // v2.1: the final lap is the likeliest moment for a raid on the bakery (rule 13c), and
-          // if it lands the finisher is no longer finished (Game.unfinish). Ending here regardless
-          // would crown nobody and stop a voyage still being sailed — so end only if somebody is
-          // still home; otherwise break out of this rotation and let the while-loop sail on.
-          ended=appState.game.finishOrder.length>0;
-          break;
-        }
-      }
-    }
+    ended=appState.game.cfg.bakeoff?await runLiveDayBakeoff(order):await runLiveDayClassic(order);
   }
   await liveResolveEndNet();
   if(appState.replaying)endReplay();   // whole game was in the log: leave replay mode & paint the result

@@ -426,6 +426,33 @@ const EVENT_NARRATION={
       ?`${iconImg(FLAME_IMG)} ${pn(e.p)} — yer ovens go cold! That crate was part of yer recipe, and without it there's no bakin' to be done. Back to sea with ye.`
       :`${iconImg(FLAME_IMG)} ${pn(e.p)}'s ovens go cold — the stolen crate was part of the recipe, and the bake is off. Back to sea.`,
     caps:[[e.p,`${iconImg(FLAME_IMG)} ovens cold`]],pops:[[at(e.p),"🔥",true,FLAME_IMG]]}),
+  /* THE BAKE-OFF (v2.1). Two beats, and they are deliberately different in weight.
+
+     `ovens` is the arrival — loud, once, the moment the race changes shape. It does NOT replace the
+     existing `finish` line ("returns to the Isle of Tortuga with a full recipe!"), which now fires
+     on a successful BAKE instead; the two read as a pair, opening and closing the kitchen.
+
+     `bake` is the verdict on one attempt, and it has to work for a bot as well as for you, because
+     a rival quietly getting four of five is the most important thing on screen at that moment. It
+     leads with the count so the number is the first thing read, not the last. */
+  ovens:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
+    txt:isLocalTo(e.p,viewerSeat)
+      ?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye reach Tortuga with a full recipe and fire up the ovens! Now bake it right.`
+      :`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} reaches Tortuga with a full recipe and fires up the ovens!`,
+    caps:[[e.p,`${iconImg(CUPCAKE_IMG)} at the ovens`]],pops:[[at(e.p),"🧁",true,CUPCAKE_IMG]]}),
+  bake:(e,at,cellPx,viewerSeat)=>{
+    const mine=isLocalTo(e.p,viewerSeat);
+    if(e.solved)return {cls:"roundhdr",
+      txt:mine?`${iconImg(FLAME_IMG)} ${pn(e.p)} — every bowl in its place. Ye baked it!`
+              :`${iconImg(FLAME_IMG)} ${pn(e.p)} lifts the bowls — every one in its place!`,
+      caps:[[e.p,`${iconImg(FLAME_IMG)} baked!`]]};
+    // "n of five in place" reads as progress; "you got n wrong" reads as a scolding. Same number.
+    const n=e.correct,left=e.left;
+    return {cls:"battle",
+      txt:mine?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye lift the bowls: ${n} of 5 in place. ${left} to go, and they'll be shuffled again.`
+              :`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} lifts the bowls — ${n} of 5 in place, ${left} still to find.`,
+      caps:[[e.p,`${iconImg(CUPCAKE_IMG)} ${n}/5`]]};
+  },
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
     txt:`💥 ${pn(e.a)} and ${pn(e.d)} break off — the smoke clears and neither has a thing to show for it.`,
