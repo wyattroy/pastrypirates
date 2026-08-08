@@ -435,6 +435,12 @@ const EVENT_NARRATION={
      `bake` is the verdict on one attempt, and it has to work for a bot as well as for you, because
      a rival quietly getting four of five is the most important thing on screen at that moment. It
      leads with the count so the number is the first thing read, not the last. */
+  // ?ovens=1 only (see stockHoldsForBakeTest, src/orchestrator.js). It exists so the shortcut is
+  // ON THE RECORD: a test game that looked identical to a real one is a test game whose result
+  // eventually gets quoted as a real one. Deliberately NOT in the pirate register — this is the
+  // tooling talking, not the game world, the same boundary the credits sit on the far side of.
+  testhold:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
+    txt:`${iconImg(FLAME_IMG)} TEST GAME — ${pn(e.p)}'s hold was stocked with a full recipe to reach the bake-off early.`}),
   ovens:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:isLocalTo(e.p,viewerSeat)
       ?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye reach Tortuga with a full recipe and fire up the ovens! Now bake it right.`
@@ -1576,6 +1582,10 @@ export function resumeSoloGame(saved){
   const meta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
                       :{name:saved.name,strategies:saved.strategies,seed:saved.seed,seaBase};
   if(bakeoff!==undefined)meta.bakeoff=bakeoff;
+  // ?ovens=1 rides along for the same reason: it changes what is in a hold on day one, so a save
+  // made with it and resumed without it (he cleared the query string, or opened a bookmark that
+  // never had it) would replay its decision log against captains who never had a full recipe.
+  if(saved.ovens!==undefined)meta.ovens=!!saved.ovens;
   appState.soloMeta=meta;
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;

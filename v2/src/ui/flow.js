@@ -49,7 +49,7 @@ import {
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, ovensNowEnabled,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
@@ -1421,7 +1421,7 @@ export function startSinglePlayer(){
   // v2.1: the ruleset this voyage is being played under is recorded WITH the save, so a resume can
   // never replay the log against the other one. See resumeSoloGame (util.js) for what that costs.
   const cfg=roundCfg(strategies);
-  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff};appState.dlog=[];saveSoloState();
+  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();
   netHandlers().onBeginGame(cfg,seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
@@ -1433,7 +1433,7 @@ export function startPassAndPlay(names){
   appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
   const cfg=roundCfg(strategies);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff};appState.dlog=[];saveSoloState();
+  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();
   netHandlers().onBeginGame(cfg,seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s

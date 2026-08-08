@@ -69,8 +69,8 @@
 import { appState } from "./state/index.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import {
-  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, unusedDefaultName, iconImg, man,
-  ilabelImg,
+  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, iconImg, man,
+  ilabelImg, ovensNowEnabled,
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
@@ -856,6 +856,44 @@ async function bakeTurnLive(p){
   // evIdx to narrate both was a mistake; that field drives the scrubber, not this.
   await narrateLastEvent();
 }
+/* ?ovens=1 — SKIP THE VOYAGE, GO STRAIGHT TO THE BAKE-OFF.
+
+   Sixteen-odd days of gathering to reach a minigame that lasts ninety seconds makes the minigame
+   expensive to iterate on. This fills each HUMAN captain's hold with their own drafted recipe the
+   moment the draft closes. Everyone already starts the game standing on Tortuga, so a full hold is
+   the only thing between the first turn and the ovens — pass on day one and they light.
+
+   PLACED HERE, after recipeDraftNet, because that is where p.recipe stops being a pair of choices
+   and becomes the captain's actual recipe. Earlier and there is nothing to copy.
+
+   IT DRAWS NO RANDOM NUMBERS. That is the whole reason this can be bolted onto a seeded game
+   without lying about it: the board, the recipes, the wind and every bot decision are unchanged,
+   and only the contents of a hold differ. It emits a real `hold` event so the move shows up in the
+   captain's log rather than crates silently materialising, and says plainly on screen that this is
+   a test game — a shortcut nobody can see is one somebody eventually mistakes for a real result. */
+async function stockHoldsForBakeTest(){
+  // THE SAVE OUTRANKS THE URL. On a resume the query string may be gone (a bookmark without it, a
+  // shared link, a cleared address bar) while the decision log being replayed was recorded in a
+  // stocked game — so what the voyage was PLAYED under wins, and the URL only decides for a game
+  // that does not exist yet. Old saves predate the field and fall back to the URL, which is what
+  // they behaved like anyway.
+  const meta=appState.soloMeta;
+  const on=(meta&&meta.ovens!==undefined)?!!meta.ovens:ovensNowEnabled();
+  if(!on)return;
+  const g=appState.game;
+  const humans=g.players.filter(p=>p.strategy==="human");
+  if(!humans.length)return;
+  for(const p of humans){
+    if(!p.recipe||!p.recipe.length)continue;
+    p.ing=[...p.recipe];
+    g.ev({t:"testhold",p:p.idx});
+  }
+  liveRender();
+  // @copy adhoc.test.ovensnow
+  // "Stay put, then Pass" is MEASURED, not assumed: a turn is two prompts, the sail picker and then
+  // the action menu, so "pass on day one" would have sent him looking for one button that does both.
+  await flash(`${iconImg(FLAME_IMG)} <b>TEST GAME</b> — holds stocked. On day one choose <b>Stay put</b>, then <b>Pass</b>, and the ovens light.`,3000);
+}
 export async function runLiveNet(){
   await showAhoyIntro();
   // turn order is randomized once here and never rotates — a one-time first-player advantage,
@@ -888,6 +926,7 @@ export async function runLiveNet(){
   // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
   // the RNG stream, which is the one thing this swap must not do.
   await recipeDraftNet();
+  await stockHoldsForBakeTest();
   await showTurnOrderIntro(order);
   let ended=false;
   while(appState.game.round<150&&!ended){
