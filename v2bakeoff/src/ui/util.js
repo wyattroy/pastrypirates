@@ -426,6 +426,39 @@ const EVENT_NARRATION={
       ?`${iconImg(FLAME_IMG)} ${pn(e.p)} — yer ovens go cold! That crate was part of yer recipe, and without it there's no bakin' to be done. Back to sea with ye.`
       :`${iconImg(FLAME_IMG)} ${pn(e.p)}'s ovens go cold — the stolen crate was part of the recipe, and the bake is off. Back to sea.`,
     caps:[[e.p,`${iconImg(FLAME_IMG)} ovens cold`]],pops:[[at(e.p),"🔥",true,FLAME_IMG]]}),
+  /* THE BAKE-OFF (v2.1). Two beats, and they are deliberately different in weight.
+
+     `ovens` is the arrival — loud, once, the moment the race changes shape. It does NOT replace the
+     existing `finish` line ("returns to the Isle of Tortuga with a full recipe!"), which now fires
+     on a successful BAKE instead; the two read as a pair, opening and closing the kitchen.
+
+     `bake` is the verdict on one attempt, and it has to work for a bot as well as for you, because
+     a rival quietly getting four of five is the most important thing on screen at that moment. It
+     leads with the count so the number is the first thing read, not the last. */
+  // ?ovens=1 only (see stockHoldsForBakeTest, src/orchestrator.js). It exists so the shortcut is
+  // ON THE RECORD: a test game that looked identical to a real one is a test game whose result
+  // eventually gets quoted as a real one. Deliberately NOT in the pirate register — this is the
+  // tooling talking, not the game world, the same boundary the credits sit on the far side of.
+  testhold:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
+    txt:`${iconImg(FLAME_IMG)} TEST GAME — ${pn(e.p)}'s hold was stocked with a full recipe to reach the bake-off early.`}),
+  ovens:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
+    txt:isLocalTo(e.p,viewerSeat)
+      ?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye reach Tortuga with a full recipe and fire up the ovens! Now bake it right.`
+      :`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} reaches Tortuga with a full recipe and fires up the ovens!`,
+    caps:[[e.p,`${iconImg(CUPCAKE_IMG)} at the ovens`]],pops:[[at(e.p),"🧁",true,CUPCAKE_IMG]]}),
+  bake:(e,at,cellPx,viewerSeat)=>{
+    const mine=isLocalTo(e.p,viewerSeat);
+    if(e.solved)return {cls:"roundhdr",
+      txt:mine?`${iconImg(FLAME_IMG)} ${pn(e.p)} — every bowl in its place. Ye baked it!`
+              :`${iconImg(FLAME_IMG)} ${pn(e.p)} lifts the bowls — every one in its place!`,
+      caps:[[e.p,`${iconImg(FLAME_IMG)} baked!`]]};
+    // "n of five in place" reads as progress; "you got n wrong" reads as a scolding. Same number.
+    const n=e.correct,left=e.left;
+    return {cls:"battle",
+      txt:mine?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye lift the bowls: ${n} of 5 in place. ${left} to go, and they'll be shuffled again.`
+              :`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} lifts the bowls — ${n} of 5 in place, ${left} still to find.`,
+      caps:[[e.p,`${iconImg(CUPCAKE_IMG)} ${n}/5`]]};
+  },
   // v2 rule 9: the crosswind stand-off nobody paid to break.
   battlenull:(e,at,cellPx,viewerSeat)=>({cls:"battle",
     txt:`💥 ${pn(e.a)} and ${pn(e.d)} break off — the smoke clears and neither has a thing to show for it.`,
@@ -1538,11 +1571,27 @@ export function resumeSoloGame(saved){
   // seaBase rides along so the replay narrates the SAME creatures the live voyage did; a save from
   // before this existed has none, and 0 is exactly the behaviour it had.
   const seaBase=saved.seaBase||0;
-  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
+  // v2.1: THE RULESET RIDES ALONG TOO, for a sharper reason than seaBase's. cfg is rebuilt from
+  // roundCfg() here, which reads whatever the flag says RIGHT NOW — so a voyage played with the
+  // bake-off on and resumed with it off (or resumed on a `?bakeoff=0` link) would replay its
+  // decision log against a structurally different game: different turn loop, different rng draws,
+  // and a log whose entries no longer line up with the decisions being asked for. A save from
+  // before this field existed has no opinion, and inheriting the current flag is the only sensible
+  // reading of an old save.
+  const bakeoff=saved.bakeoff===undefined?undefined:!!saved.bakeoff;
+  const meta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
                       :{name:saved.name,strategies:saved.strategies,seed:saved.seed,seaBase};
+  if(bakeoff!==undefined)meta.bakeoff=bakeoff;
+  // ?ovens=1 rides along for the same reason: it changes what is in a hold on day one, so a save
+  // made with it and resumed without it (he cleared the query string, or opened a bookmark that
+  // never had it) would replay its decision log against captains who never had a full recipe.
+  if(saved.ovens!==undefined)meta.ovens=!!saved.ovens;
+  appState.soloMeta=meta;
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;
-  netHandlers().onBeginGame(roundCfg(saved.strategies),saved.seed);
+  const cfg=roundCfg(saved.strategies);
+  if(bakeoff!==undefined)cfg.bakeoff=bakeoff;
+  netHandlers().onBeginGame(cfg,saved.seed);
 }
 // notes/edits BUG-03/BUG-04: decide whether a host-refresh replay actually rebuilt the voyage.
 // The yardstick is resumeEvLen — the Firebase event count captured BEFORE the reload (see

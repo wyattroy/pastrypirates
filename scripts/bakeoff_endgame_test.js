@@ -13,7 +13,7 @@
 //
 //   node scripts/bakeoff_endgame_test.js
 
-import { Game, roundCfg } from "../v2/src/engine/index.js";
+import { Game, roundCfg } from "../v2bakeoff/src/engine/index.js";
 
 const STRATS=["pirate","trader","balanced","rusher"];
 let failures=0;

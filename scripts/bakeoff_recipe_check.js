@@ -11,9 +11,9 @@
 //
 // Run: node scripts/bakeoff_recipe_check.js
 
-import { RECIPE_STEPS, recipeSteps } from "../v2/src/shared/recipe-steps.js";
-import { ING_ALL } from "../v2/src/shared/index.js";
-import { RECIPE_BOOK } from "../v2/src/ui/recipe.js";
+import { RECIPE_STEPS, recipeSteps } from "../v2bakeoff/src/shared/recipe-steps.js";
+import { ING_ALL } from "../v2bakeoff/src/shared/index.js";
+import { RECIPE_BOOK } from "../v2bakeoff/src/ui/recipe.js";
 
 let failures=0;
 const fail=(m)=>{failures++;console.log("FAIL "+m);};

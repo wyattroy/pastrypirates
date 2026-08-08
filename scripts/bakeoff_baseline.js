@@ -20,7 +20,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { Game, roundCfg } from "../v2/src/engine/index.js";
+import { Game, roundCfg } from "../v2bakeoff/src/engine/index.js";
 
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const OUT=path.join(__dirname,"fixtures","bakeoff-baseline.json");

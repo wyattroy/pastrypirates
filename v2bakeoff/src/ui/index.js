@@ -12,4 +12,8 @@ export * from "./board.js";
 export * from "./panel.js";
 export * from "./lobby.js";
 export * from "./handlers.js";
+// v2.1 bake-off: BEFORE flow.js, which now genuinely depends on it — flow.js's bakeoffPrompt (the
+// logged + clocked wrapper) drives playBakeoffLive. The dependency runs one way only: bakeoff.js
+// reaches no further than panel.js/state/shared, so there is no cycle.
+export * from "./bakeoff.js";
 export * from "./flow.js";

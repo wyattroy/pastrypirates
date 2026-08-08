@@ -5,7 +5,9 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKEOFF_ENABLED, bakeoffEnabled, man, ilabelImg } from "../shared/index.js";
+import { recipeSteps } from "../shared/recipe-steps.js";
+import { newBake, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
 
 // notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
 // exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
@@ -252,7 +254,16 @@ class Game{
       return {idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
         ing:[],recipe:a,recipeChoices:[a,b],firstFlip:new Set(),dockedNow:new Set(),
         done:false,heads:0,flips:0,corner:null,justDocked:false,shipwrecked:false,
-        coolUntil:{},grudge:null,justLost:null,fightLog:{}};
+        coolUntil:{},grudge:null,justLost:null,fightLog:{},
+        // THE BAKE-OFF (v2.1). Initialised unconditionally, flag or no flag: they consume no r()
+        // and are not in ev()'s snapshot, so with the feature off they are three inert fields and
+        // the event stream is byte-identical (proved by scripts/bakeoff_baseline.js).
+        // `baking` is deliberately NOT `done`. Twenty-plus `!q.done` filters across this engine mean
+        // "still in play" — occupancy, blockers, adjOpp, holdersOf, threatUrgency, the active-turn
+        // ring. Today a finisher exists for at most one lap so nobody notices; a baker sits at the
+        // ovens for DAYS, and reusing `done` would make them non-blocking, un-tradeable-with and
+        // invisible to every bot. `done` is set only on a successful bake, when the voyage is over.
+        baking:false,bake:null,bakedToday:false};
     });
     // ships start at Isle of Tortuga's four docks (N/S/E/W of the island)
     const dirsArr=Object.values(DIRS);
@@ -1075,6 +1086,11 @@ class Game{
   // so raiding one is always allowed.
   canAttack(att,def){
     if(!def||def===att)return false;
+    // v2.1 SANCTUARY (Wyatt, 2026-08-06). Once the ovens are lit nobody can touch them. The raid
+    // does not die, it moves earlier: you rob a captain carrying a full recipe on their way home,
+    // which is the more skilful version of the same play and the one the bots already hunt for.
+    // Tortuga becomes the thing you are racing for rather than a place you get mugged.
+    if(this.cfg.bakeoff&&def.baking)return false;
     if(this.cfg.powder&&att.coins<this.cfg.powder)return false;
     return def.ing.length>0;
   }
@@ -1470,6 +1486,75 @@ class Game{
     // position (rule 3 left no filler action): leans over the rail and looks into the ocean.
     this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
   }
+  /* ================= THE BAKE-OFF (v2.1) =================
+     Arriving at Tortuga with a full recipe no longer wins the voyage — it lights the ovens. The
+     captain must then name their five ingredients back in the recipe's own order, under bowls that
+     have been shuffled. See v2bakeoff/src/engine/bakeoff.js for the pure core. */
+  // Same predicate checkFinish has always used, extracted so both endings share one gate and can
+  // never drift apart.
+  canBake(p){ return !this.needs(p).length&&man(p.pos,this.home)<=1; }
+  // Light the ovens. Returns true only on the transition, so a caller can narrate it once.
+  // The bench is built from the AUTHORED step order (shared/recipe-steps.js), falling back to the
+  // player's own recipe array if that table ever misses one: it is already a valid permutation, and
+  // a live voyage must never crash on a data gap.
+  lightOvens(p){
+    if(!this.cfg.bakeoff||p.baking||p.done||!this.canBake(p))return false;
+    const authored=recipeSteps(p.recipe);
+    if(!authored)console.error("bake-off: no step order for recipe",p.recipe);
+    p.baking=true;
+    p.bake=newBake(authored?authored.ings:p.recipe.slice());
+    this.ev({t:"ovens",p:p.idx});
+    return true;
+  }
+  /* One attempt. `guess` is BOWL INDICES in recipe order; pass null and the engine plays it with
+     the bot's own imperfect memory.
+
+     botGuess IS CALLED FOR EVERY SEAT, HUMAN OR BOT, and that is deliberate: it keeps the r()
+     stream from forking on "is this seat human?", which is the classic source of replay desync in
+     this codebase. It also hands the shot clock a free, deterministic default for a 30s forfeit.
+     The shuffle likewise always runs, so live and headless consume identical randomness. */
+  /* SPLIT IN TWO so the live path can show the shuffle, wait for a human, and only then score —
+     while the headless path does all three in one call. The rng ORDER is identical either way
+     (shuffle, then the bot's guess, then nothing else draws), which is what keeps a live game and
+     the simulator on the same seeded stream. Do not reorder these two draws. */
+  bakeSetup(p){
+    // BOUND, not passed bare: r() increments this.randCalls, so handing the pure core `this.r`
+    // detaches it from the instance and throws on the first draw. Caught by the first balance run.
+    const rng=()=>this.r();
+    const setup=shuffleSlots(p.bake,rng,BAKE_SWAPS);
+    p.bake.slots=setup.slots;
+    // computed for EVERY seat, human or bot: it keeps the stream from forking on "is this seat
+    // human?", and it is the forfeit answer if a human's shot clock runs out.
+    const fallback=botGuess(p.bake,rng,BAKE_ATTENTION);
+    return {setup,fallback};
+  }
+  bakeAttempt(p,guess){
+    const {setup,fallback}=this.bakeSetup(p);
+    return {setup,...this.bakeResolve(p,guess||fallback)};
+  }
+  bakeResolve(p,answer){
+    const res=scoreAttempt(p.bake,answer);
+    applyResult(p.bake,res);
+    this.ev({t:"bake",p:p.idx,attempt:p.bake.attempts,
+      correct:res.correct.filter(Boolean).length,left:unsolvedCount(p.bake),solved:p.bake.solved});
+    if(p.bake.solved){
+      p.bakedToday=true;
+      this.ev({t:"finish",p:p.idx});
+    }
+    return {answer,res,solved:p.bake.solved};
+  }
+  // Every captain at the ovens, in turn order. Bakes resolve together at the END of a day so that
+  // arriving on the same day is a fair race rather than an accident of seat order (Wyatt's ruling).
+  bakersToday(order){ return order.filter(i=>this.players[i].baking&&!this.players[i].done); }
+  /* Close the day. Anyone who baked perfectly joins finishOrder — which keeps its exact existing
+     meaning, so bakeRank, eligibleFinishers, resolveEnd and the collab scene all keep working with
+     no changes at all. Two on the same day means two finishers and the collaborative bakery. */
+  endBakeDay(){
+    const won=this.players.filter(q=>q.bakedToday);
+    for(const q of won){ q.done=true;q.baking=false;this.finishOrder.push(q.idx); }
+    this.players.forEach(q=>{q.bakedToday=false;});
+    return won.length>0;
+  }
   checkFinish(p){
     if(!this.needs(p).length&&man(p.pos,this.home)<=1){
       p.done=true;this.finishOrder.push(p.idx);this.ev({t:"finish",p:p.idx});
@@ -1526,7 +1611,40 @@ class Game{
       this.noteStormOutcome(p,outcome,p.pos[0]!==before[0]||p.pos[1]!==before[1],wasDocked);
     }
   }
-  play(){
+  /* v2.1: two rulesets, two loops, dispatched here. Split rather than branched INSIDE one loop on
+     purpose — playClassic is today's body moved verbatim, so "flag off = byte-for-byte" is a
+     property of the code's shape rather than a claim about a conditional, and
+     scripts/bakeoff_baseline.js proves it against a fingerprint taken before any of this existed. */
+  play(){ return this.cfg.bakeoff?this.playBakeoff():this.playClassic(); }
+  /* THE BAKE-OFF LOOP. Three differences from playClassic, all of them consequences of one rule —
+     the bake, not the arrival, is the finish line:
+       - a captain at the ovens takes no ordinary turn; the attempt IS their turn
+       - arriving lights the ovens and enrols them in THIS day's resolution, so nobody waits a day
+         for a first attempt
+       - the day resolves after every seat has played, so two captains arriving on the same day get
+         a fair race instead of seat order deciding it
+     The old one-lap final round is gone entirely: the baking days ARE the catch-up window. */
+  playBakeoff(){
+    let order=this.players.map((_,i)=>i);
+    this.shuffle(order);
+    while(this.round<150){
+      this.round++;
+      const {dir:wind,storm}=this.advanceWind();
+      this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext});
+      if(storm)this.runStorm(wind);
+      for(const i of order){
+        const p=this.players[i];
+        if(p.done)continue;
+        if(p.baking)continue;            // their whole turn is the attempt, taken at end of day
+        this.takeTurn(p,wind,storm);
+        this.lightOvens(p);              // arrive -> ovens -> enrolled in today
+      }
+      for(const i of this.bakersToday(order))this.bakeAttempt(this.players[i],null);
+      if(this.endBakeDay())return this.resolveEnd();
+    }
+    return this.resolveEnd();
+  }
+  playClassic(){
     let order=this.players.map((_,i)=>i);
     this.shuffle(order);
     while(this.round<150){
@@ -1606,7 +1724,16 @@ function roundCfg(strategies){
     dockBuy:true,merchant:true,parley:true,
     // rule 4e: no harbor-tax refund on a struck trade. rule 3: no fishing, so no sardine rule.
     asym:false,storm:0.20,islandW:2,islandH:2,tetris:true,singleDock:true,
-    roundBoard:true,unlimitedDock:true,strategies};
+    roundBoard:true,unlimitedDock:true,strategies,
+    // v2.1: threaded onto cfg rather than read at each call site, so a headless run can flip it PER
+    // GAME to compare rulesets in one process, and so a solo save carries the value it was played
+    // under (cfg is rebuilt from roundCfg() on resume).
+    //
+    // bakeoffEnabled(), NOT the bare constant: it is what honours `?bakeoff=0/1`, which is the whole
+    // point of having the override — A/B'ing both rulesets on a phone with no redeploy. Reading
+    // BAKEOFF_ENABLED here left that switch wired to nothing. It falls back to the constant wherever
+    // there is no location to read (every headless script), so the simulator is unaffected.
+    bakeoff:bakeoffEnabled()};
 }
 
 export { rollStorm, PERSONALITY, PLAN, Game, roundCfg };

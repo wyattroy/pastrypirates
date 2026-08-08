@@ -29,7 +29,7 @@
 //
 //   node scripts/bakeoff_parity_test.js
 
-import { Game, roundCfg } from "../v2/src/engine/index.js";
+import { Game, roundCfg } from "../v2bakeoff/src/engine/index.js";
 
 const GAMES=120;
 const STRATS=["pirate","trader","balanced","rusher"];

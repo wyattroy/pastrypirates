@@ -49,7 +49,7 @@ import {
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, ovensNowEnabled,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
@@ -64,6 +64,7 @@ import {
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS,
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
+import { playBakeoffLive } from "./bakeoff.js";
 import { netHandlers } from "./handlers.js";
 
 const $=id=>document.getElementById(id);
@@ -258,6 +259,77 @@ export function pickCell(p,cells){
   const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
+/* ================= the bake-off's decision seam =================
+
+   bakeoffPrompt(p,setup,fallback) — one captain's attempt, made REPLAYABLE and CLOCKED. It is
+   pickCell()'s shape, and it exists for a specific failure rather than for symmetry.
+
+   REPLAY. Without a logged decision, a solo refresh mid-bake would re-run the attempt with the
+   engine's own botGuess instead of what the player actually did. That is not a cosmetic difference:
+   a different answer locks different bowls, and the NEXT shuffle draws only from the unlocked ones,
+   so the r() stream diverges from that point and the rest of the voyage is a different game.
+
+   THE CLOCK. A bake was previously the one decision in the game with no shot clock at all — an
+   absent player at the ovens stalled the table forever, in a mode whose whole point is that
+   everyone else keeps taking turns. It is armed LATE, by playBakeoffLive itself once the preview
+   and swaps are done: arming at prompt time would spend ~4.5s of a 30s window on animation the
+   player cannot act during. `armed` is what withShotClock chains onto, exactly as ask() does — it
+   returns `base` unwrapped unless the seat is already the armed one, so the order matters.
+
+   PASS THE DEVICE FIRST. A bake is a whole turn, but it is taken in the END-OF-DAY loop rather
+   than the seat loop, so it never passes through humanTurn — and humanTurn is where every other
+   handoff happens. Without the gate here, pass-and-play hands the bench to whoever last held the
+   board: the preview would play in the wrong person's hands, and two captains baking on the same
+   day would get no handoff between them at all. passGate is a no-op in solo and whenever the
+   device is already with the right seat, so this costs those modes nothing.
+
+   THERE IS NO REMOTE PATH, and that is a decision rather than an omission. Wyatt, 2026-08-08:
+   *"This is all built for v2 which doesn't have multiplayer — we're testing the game dynamic."*
+   v2's welcome screen has no Host a Crew or Join a Crew (index.html), and in the two modes it does
+   ship every human seat is local — solo has one, and pass-and-play treats them all as local. So a
+   remote branch would be unreachable code whose only behaviour is to forfeit somebody's bake to
+   the bot without telling them. The FALLBACK below is a different thing and is genuinely live: it
+   is the shot-clock forfeit, which any mode can hit. */
+export async function bakeoffPrompt(p,setup,fallback){
+  // Before the replay early-return, exactly as humanTurn does it: passGate self-handles replay by
+  // silently syncing appState.mySeat rather than showing anything, and a baker never takes an
+  // ordinary turn on the day they bake — so this is the ONLY thing keeping mySeat in step with a
+  // baking seat across a resumed pass-and-play voyage.
+  await passGate(p.idx);
+  if(appState.replaying){
+    if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return appState.dlog[appState.dlogIdx++];}
+    endReplay();
+  }
+  setActor(p.idx);
+  netHandlers().onBroadcast(`${pn(p.idx)} steps up to the ovens…`,[{seat:p.idx,html:""}]);
+  // NO decisionIsLocal BRANCH, deliberately. v2 ships solo and pass-and-play only — Host a Crew and
+  // Join a Crew are gone from the welcome screen (index.html) — and in both of those every human
+  // seat is local by definition. A remote branch here would be a path no test can reach and no
+  // player can trigger, whose only behaviour is to hand somebody's bake to the bot without saying
+  // so. A silent forfeit down a dead branch is strictly worse than not having the branch.
+  let resolveArmed;const armed=new Promise(res=>{resolveArmed=res;});
+  const base=playBakeoffLive(p,setup,()=>{armClock(p.idx);resolveArmed();});
+  // Belt: playBakeoffLive can return before it ever arms, because it bails out if the bench failed
+  // to render. `armed` must still settle or the chain below waits forever and the voyage stops,
+  // which is worse than an unclocked decision.
+  base.then(()=>resolveArmed(),()=>resolveArmed());
+  return armed.then(()=>withShotClock(p.idx,base,null))
+    .then(g=>{
+      const answer=fillLocked(p.bake,g||fallback);
+      netHandlers().onLogDecision(answer);
+      return answer;
+    });
+}
+// A guess carries null at every step already solved on an earlier attempt — scoreAttempt accepts
+// that, but the decision log should not have to. Solo and pass-and-play persist the log as JSON in
+// localStorage, which round-trips a null happily; the reason to fill them in anyway is that a
+// logged guess is then always five plain bowl indices, so replaying one is never the question "was
+// this step null because it was locked, or because something went wrong writing it?". The locked
+// steps' answers are known by definition, so filling them in loses nothing.
+function fillLocked(bake,guess){
+  return guess.map((bowl,k)=>bowl==null?bake.slots.indexOf(bake.order[k]):bowl);
+}
+
 export function localPickCell(p,cells){
   return new Promise(res=>{
     const svg=$("board"),hs=[];
@@ -856,7 +928,11 @@ export async function humanAct(p,sailCtx){
   if(targets.length)
     opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">(−${appState.game.cfg.powder}🌕)</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length});
   opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
-  if(!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
+  // v2.1: dead under the bake-off, and gated EXPLICITLY rather than left to be dead by accident.
+  // The bake-off lights the ovens from the turn loop the moment a full recipe reaches Tortuga, so
+  // this button can never be the thing that starts a bakery — offering it would promise a finish
+  // the engine no longer grants on a click.
+  if(!appState.game.cfg.bakeoff&&!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
   // v2 rule 3: Fish is gone from the menu, and rule 4's Trade is table-wide rather than
   // adjacency-gated. Together that made it possible for EVERY option to be unavailable at once —
@@ -1342,8 +1418,11 @@ export function startSinglePlayer(){
   const seed=Math.floor(Math.random()*1e9);
   // seaBase: where this device left off in the fifty sea creatures. Captured ONCE, here, and
   // carried in soloMeta so the solo save replays the same sightings it showed live.
-  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();
-  netHandlers().onBeginGame(roundCfg(strategies),seed);
+  // v2.1: the ruleset this voyage is being played under is recorded WITH the save, so a resume can
+  // never replay the log against the other one. See resumeSoloGame (util.js) for what that costs.
+  const cfg=roundCfg(strategies);
+  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();
+  netHandlers().onBeginGame(cfg,seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
 // seats up to the standard 4-player table are filled with bots, same pool solo/host use.
@@ -1353,8 +1432,9 @@ export function startPassAndPlay(names){
   appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;appState.passAndPlay=true;
   appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();
-  netHandlers().onBeginGame(roundCfg(strategies),seed);
+  const cfg=roundCfg(strategies);
+  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();
+  netHandlers().onBeginGame(cfg,seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
 // canReveal/offerCheckBtn logic and the recipeRevealed re-lock points inside humanTurn.

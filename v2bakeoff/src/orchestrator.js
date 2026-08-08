@@ -69,8 +69,8 @@
 import { appState } from "./state/index.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import {
-  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, unusedDefaultName, iconImg, man,
-  ilabelImg,
+  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, iconImg, man,
+  ilabelImg, ovensNowEnabled,
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
@@ -93,6 +93,7 @@ import {
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
+  bakeoffPrompt, bakeoffReveal,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
@@ -762,52 +763,10 @@ export async function recipeDraftNet(){
   if(!appState.replaying)updateRecipeBanner();
   liveRender();
 }
-export async function runLiveNet(){
-  await showAhoyIntro();
-  // turn order is randomized once here and never rotates — a one-time first-player advantage,
-  // not something that cycles away round to round
-  let order=appState.game.players.map((_,i)=>i);
-  appState.game.shuffle(order);
-  // staggered starting coins level that one-time edge: sim-tested (see cocoa_pirates_sim.py
-  // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
-  // whoever goes last
-  order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
-  appState.turnOrder=order.slice();buildPlayerRows();
-  if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
-  // G5 (Wyatt-approved 2026-07-30): *"Put the recipe selection step NEXT"* — immediately after the
-  // Ahoy intro, before the turn-order intro. The player is told to choose a recipe and then asked
-  // to choose one, with nothing in between.
-  //
-  // ONLY these two awaited calls were swapped. The invariant that made that safe is NOT turn order
-  // itself — it is the seeded RNG stream and the decision log, because a host-reload replay must
-  // reconstruct an identical game. Verified before swapping:
-  //   1. shuffle(order) above consumes game.r() (src/engine/index.js:228).
-  //   2. recipeDraftNet consumes game.r() for bot picks and calls logDecision for human picks.
-  //   3. showTurnOrderIntro -> netIntroBarrier (src/ui/flow.js:988) consumes NEITHER, and returns
-  //      immediately when appState.replaying. Nor do its callees: localAsk, remoteDraftPrompt and
-  //      passGate. logDecision lives only inside ask() (:391), which the barrier never calls.
-  //   4. recipeDraftNet reads nothing from appState.turnOrder and iterates in SEAT-index order.
-  // So r() consumption order (shuffle -> bot recipe picks) and logDecision order are both identical.
-  //
-  // The silent setup above (:727-734 — shuffle, staggered coins, turnOrder, buildPlayerRows,
-  // netSetTurnOrder) was deliberately NOT moved. Nothing is on screen for it, so from a player's
-  // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
-  // the RNG stream, which is the one thing this swap must not do.
-  await recipeDraftNet();
-  await showTurnOrderIntro(order);
-  let ended=false;
-  while(appState.game.round<150&&!ended){
-    appState.game.round++;
-    // v2 rule 6: the wind that blows this round was forecast on the compass LAST round, and rule
-    // 6d makes that forecast a promise — advanceWind() is the single place it is kept.
-    appState.game.advanceWind();
-    appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
-    // wind direction (and any storm) used to be visible only in the captain's log — call it
-    // out in the yellow panel too, briefly, so it's not missed
-    // @copy adhoc.round.header
-    await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
-    // v2 rule 7: one storm for the whole table, before anybody acts.
-    if(appState.game.stormNow)await runStormLive(appState.game.windNow);
+/* TODAY'S DAY, MOVED VERBATIM. Extracted rather than rewritten so "flag off = the game
+   Wyatt has been playing" is a property of the code's shape, not a claim about a conditional.
+   The only edit is the ending: what was `ended=…;break;` inside the while-loop is now a return. */
+async function runLiveDayClassic(order){
     for(const i of order){
       const p=appState.game.players[i];
       if(p.done)continue;
@@ -843,11 +802,161 @@ export async function runLiveNet(){
           // if it lands the finisher is no longer finished (Game.unfinish). Ending here regardless
           // would crown nobody and stop a voyage still being sailed — so end only if somebody is
           // still home; otherwise break out of this rotation and let the while-loop sail on.
-          ended=appState.game.finishOrder.length>0;
-          break;
+          return appState.game.finishOrder.length>0;
         }
       }
     }
+  return false;
+}
+
+/* THE BAKE-OFF DAY (v2.1). Three differences from the classic day, all consequences of one rule —
+   the bake, not the arrival, is the finish line:
+     - a captain at the ovens takes no ordinary turn; their attempt IS the turn
+     - arriving lights the ovens and enrols them in THIS day's resolution, so nobody waits a day
+       for a first attempt
+     - the day resolves after every seat has played, so two captains arriving on the same day get a
+       fair race rather than seat order deciding it
+   The one-lap final round is gone: the baking days ARE the catch-up window.
+
+   The per-attempt sequence lives in Game.bakeAttempt and NOWHERE ELSE — this driver supplies only
+   which promise to await, never what to compute. That is what keeps the live and headless loops
+   from drifting, and scripts/bakeoff_parity_test.js asserts it rather than trusting the comment. */
+async function runLiveDayBakeoff(order){
+  const g=appState.game;
+  for(const i of order){
+    const p=g.players[i];
+    if(p.done||p.baking)continue;
+    await (p.strategy==="human"?humanTurn(p):botTurn(p));
+    if(g.lightOvens(p)){liveRender();await narrateLastEvent();}
+  }
+  for(const i of g.bakersToday(order)){
+    await bakeTurnLive(g.players[i]);
+  }
+  liveRender();
+  return g.endBakeDay();
+}
+/* One captain's attempt. The UI half lands in a later step; for now every seat plays with the
+   engine's own botGuess, which is exactly what a forfeited human turn will use too. */
+async function bakeTurnLive(p){
+  const g=appState.game;
+  /* SETUP FIRST, ALWAYS. The engine shuffles and computes the bot's guess in one call, in that
+     fixed order, so the seeded stream is identical whether a human is about to play or not. Only
+     then does the human path get to look at the bench. */
+  const {setup,fallback}=g.bakeSetup(p);
+  const human=p.strategy==="human";
+  // bakeoffPrompt owns replay, the decision log and the shot clock (see its note in flow.js). It is
+  // called for a human seat even under replay — that is the whole point, since it is what returns
+  // the guess the player ACTUALLY made rather than re-deriving one from the bot.
+  const answer=human?await bakeoffPrompt(p,setup,fallback):fallback;
+  const out=g.bakeResolve(p,answer);
+  if(human&&!appState.replaying)await bakeoffReveal(p,out.res);
+  liveRender();
+  // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
+  // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking
+  // evIdx to narrate both was a mistake; that field drives the scrubber, not this.
+  await narrateLastEvent();
+}
+/* ?ovens=1 — SKIP THE VOYAGE, GO STRAIGHT TO THE BAKE-OFF.
+
+   Sixteen-odd days of gathering to reach a minigame that lasts ninety seconds makes the minigame
+   expensive to iterate on. This fills each HUMAN captain's hold with their own drafted recipe the
+   moment the draft closes AND lights their ovens on the spot, so the bake-off runs at the end of
+   day one with nothing to sail, tap or survive first.
+
+   IT LIGHTS THE OVENS ITSELF, and the first version's failure to is why. That version only stocked
+   the hold and relied on "everyone starts standing on Tortuga, so just pass" — which is true right
+   up until the weather disagrees. Measured: a day-one storm (cfg.storm = 0.20, so one game in five)
+   runs BEFORE anyone acts and blows every ship three squares off Tortuga, so `Stay put` keeps you
+   where the storm dumped you, canBake never passes, and the ovens never light. The hold was only
+   half the condition; position was the other half, and a shortcut that guarantees one of two
+   requirements is a shortcut that fails a fifth of the time for reasons that look like a bug.
+   Lighting here removes the dependency on both the turn and the weather: once a captain is baking
+   the seat loop skips them and nothing re-checks where they are standing.
+
+   PLACED HERE, after recipeDraftNet, because that is where p.recipe stops being a pair of choices
+   and becomes the captain's actual recipe — and it is still before day one's wind and storm, which
+   is the window in which everyone is provably still on Tortuga.
+
+   IT DRAWS NO RANDOM NUMBERS. That is the whole reason this can be bolted onto a seeded game
+   without lying about it: the board, the recipes, the wind and every bot decision are unchanged,
+   and only the contents of a hold differ. It emits a real `hold` event so the move shows up in the
+   captain's log rather than crates silently materialising, and says plainly on screen that this is
+   a test game — a shortcut nobody can see is one somebody eventually mistakes for a real result. */
+async function stockHoldsForBakeTest(){
+  // THE SAVE OUTRANKS THE URL. On a resume the query string may be gone (a bookmark without it, a
+  // shared link, a cleared address bar) while the decision log being replayed was recorded in a
+  // stocked game — so what the voyage was PLAYED under wins, and the URL only decides for a game
+  // that does not exist yet. Old saves predate the field and fall back to the URL, which is what
+  // they behaved like anyway.
+  const meta=appState.soloMeta;
+  const on=(meta&&meta.ovens!==undefined)?!!meta.ovens:ovensNowEnabled();
+  if(!on)return;
+  const g=appState.game;
+  const humans=g.players.filter(p=>p.strategy==="human");
+  if(!humans.length)return;
+  for(const p of humans){
+    if(!p.recipe||!p.recipe.length)continue;
+    p.ing=[...p.recipe];
+    g.ev({t:"testhold",p:p.idx});
+    // Straight to the ovens. lightOvens still enforces its own gate (full recipe, at Tortuga), so
+    // this cannot conjure a bake out of an ineligible captain — it just satisfies the gate in the
+    // one window where everyone provably still meets it.
+    g.lightOvens(p);
+  }
+  liveRender();
+  // @copy adhoc.test.ovensnow
+  // "Stay put, then Pass" is MEASURED, not assumed: a turn is two prompts, the sail picker and then
+  // the action menu, so "pass on day one" would have sent him looking for one button that does both.
+  await flash(`${iconImg(FLAME_IMG)} <b>TEST GAME</b> — holds stocked and the ovens are lit. The bake-off begins at the end of day one.`,3000);
+}
+export async function runLiveNet(){
+  await showAhoyIntro();
+  // turn order is randomized once here and never rotates — a one-time first-player advantage,
+  // not something that cycles away round to round
+  let order=appState.game.players.map((_,i)=>i);
+  appState.game.shuffle(order);
+  // staggered starting coins level that one-time edge: sim-tested (see cocoa_pirates_sim.py
+  // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
+  // whoever goes last
+  order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
+  appState.turnOrder=order.slice();buildPlayerRows();
+  if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
+  // G5 (Wyatt-approved 2026-07-30): *"Put the recipe selection step NEXT"* — immediately after the
+  // Ahoy intro, before the turn-order intro. The player is told to choose a recipe and then asked
+  // to choose one, with nothing in between.
+  //
+  // ONLY these two awaited calls were swapped. The invariant that made that safe is NOT turn order
+  // itself — it is the seeded RNG stream and the decision log, because a host-reload replay must
+  // reconstruct an identical game. Verified before swapping:
+  //   1. shuffle(order) above consumes game.r() (src/engine/index.js:228).
+  //   2. recipeDraftNet consumes game.r() for bot picks and calls logDecision for human picks.
+  //   3. showTurnOrderIntro -> netIntroBarrier (src/ui/flow.js:988) consumes NEITHER, and returns
+  //      immediately when appState.replaying. Nor do its callees: localAsk, remoteDraftPrompt and
+  //      passGate. logDecision lives only inside ask() (:391), which the barrier never calls.
+  //   4. recipeDraftNet reads nothing from appState.turnOrder and iterates in SEAT-index order.
+  // So r() consumption order (shuffle -> bot recipe picks) and logDecision order are both identical.
+  //
+  // The silent setup above (:727-734 — shuffle, staggered coins, turnOrder, buildPlayerRows,
+  // netSetTurnOrder) was deliberately NOT moved. Nothing is on screen for it, so from a player's
+  // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
+  // the RNG stream, which is the one thing this swap must not do.
+  await recipeDraftNet();
+  await stockHoldsForBakeTest();
+  await showTurnOrderIntro(order);
+  let ended=false;
+  while(appState.game.round<150&&!ended){
+    appState.game.round++;
+    // v2 rule 6: the wind that blows this round was forecast on the compass LAST round, and rule
+    // 6d makes that forecast a promise — advanceWind() is the single place it is kept.
+    appState.game.advanceWind();
+    appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
+    // wind direction (and any storm) used to be visible only in the captain's log — call it
+    // out in the yellow panel too, briefly, so it's not missed
+    // @copy adhoc.round.header
+    await flash(describe(appState.game.events[appState.game.events.length-1]).txt,900);
+    // v2 rule 7: one storm for the whole table, before anybody acts.
+    if(appState.game.stormNow)await runStormLive(appState.game.windNow);
+    ended=appState.game.cfg.bakeoff?await runLiveDayBakeoff(order):await runLiveDayClassic(order);
   }
   await liveResolveEndNet();
   if(appState.replaying)endReplay();   // whole game was in the log: leave replay mode & paint the result

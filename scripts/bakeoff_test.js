@@ -11,9 +11,9 @@
 //
 // Run: node scripts/bakeoff_test.js
 
-import { mulberry32 } from "../v2/src/shared/index.js";
+import { mulberry32 } from "../v2bakeoff/src/shared/index.js";
 import { newBake, shuffleSlots, scoreAttempt, applyResult, botGuess,
-         bowlForStep, lockedStep, unsolvedCount } from "../v2/src/engine/bakeoff.js";
+         bowlForStep, lockedStep, unsolvedCount } from "../v2bakeoff/src/engine/bakeoff.js";
 
 const ING=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla"];
 let failures=0;

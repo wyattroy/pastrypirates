@@ -974,6 +974,89 @@
     #btnPlayAgain { min-width: clamp(105px,39cqw,177px); border-radius: clamp(12px,4.5cqw,21px);
       padding: clamp(7.5px,3cqw,13.5px) clamp(12px,4.5cqw,21px); font-size: clamp(16.5px,5.25cqw,24px); }
   }
+  /* ================= THE BAKE-OFF (v2.1, experimental) =================
+     Five mixing bowls inside #actionPanel. Only transform and opacity animate (PERF-01 — the Safari
+     rain-overlay regression is the cautionary tale), and every animation has a reduced-motion
+     opt-out that DOES NOT collapse to zero: the swaps must stay countable or the puzzle stops being
+     hard and starts being arbitrary. */
+  .bko { text-align: left; }
+  .bkoHd { font-weight: 700; font-size: 14px; color: var(--teal); display: flex; align-items: center; gap: 6px; }
+  .bkoHd img { width: 18px; height: 18px; object-fit: contain; }
+  .bkoAtt { margin-left: auto; font-weight: 600; font-size: 12px; opacity: .7; }
+  /* The recipe card. One line per step: ordinal, the ingredient's own icon, the wording. Sits ABOVE
+     the bowls so the thumb never covers it while tapping (Wyatt, 2026-08-06). */
+  .bkoCard { list-style: none; margin: 6px 0 8px; padding: 0; }
+  .bkoCard li { display: flex; align-items: center; gap: 6px; font-size: 12.5px; line-height: 1.5; }
+  .bkoCard li b { width: 12px; color: var(--teal); font-size: 11.5px; }
+  /* 24px, not the 17px first shipped. Measured at 360px: the icon under a lifted bowl renders at
+     38.3px, and matching card-icon to bowl-icon IS the interaction — at 17px the eye was comparing
+     a thumbnail to a picture. Truly identical sizes are not affordable (five 38px rows would add
+     ~105px to a panel that already overruns the board budget), so this closes the gap from 2.25x to
+     1.6x, which is close enough to read as the same object at a glance. */
+  .bkoCard li img { width: 24px; height: 24px; object-fit: contain; flex: 0 0 auto; }
+  .bkoCard li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* FLEX, NOT CONTAINER QUERIES. #actionPanel is not a `container-type` element and none of its
+     ancestors is, so a cqw unit here would resolve against the VIEWPORT — 17cqw would be 238px per
+     bowl on a desktop. The five bowls simply divide whatever the row has and cap at 64px, which
+     needs no media query and responds to the panel's real width on every device. */
+  /* 13px of top margin is CLEARANCE, not spacing: it is what the dome rises into. A -30% lift over
+     an 8px gap put the dome 7.1px into the recipe card's last line at 360px, so the card the player
+     is checking against was under the bowls exactly when they needed it.
+     SIZED AGAINST THE 64px CAP, not against the phone. The lift is a PERCENTAGE of the bowl and the
+     margin is fixed, so the worst case is the widest bowl: 18% of 64px = 11.5px. 360px was fine at
+     10px and desktop was still 1.5px short — measured, after a comment here claimed the two "can't
+     meet at any bowl size". Raise this if .bkoBowl's max-width ever grows. */
+  .bkoRow { display: flex; gap: 6px; justify-content: center; margin: 13px 0 8px; }
+  .bkoBowl { flex: 1 1 0; min-width: 0; max-width: 64px; aspect-ratio: 1;
+    position: relative; padding: 0; border: none; background: none; cursor: pointer;
+    border-radius: 10px; }
+  .bkoBowl.locked { cursor: default; }
+  .bkoIng { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; }
+  /* The dome is drawn, not an asset — there is no bowl art in assets/ and none needs commissioning
+     to ship this. It sits ABOVE the ingredient and slides down over it.
+     HEIGHT IS 100%, NOT 82%. At 82% the dome's top edge sat at 18% while .bkoIng starts at 12%, so
+     the top of every ingredient poked out over a "covered" bowl — a screenshot at 360px showed the
+     cinnamon sticks' tips and the cocoa pod plainly readable through the gap. A puzzle you can
+     partly see the answer to is not the puzzle. */
+  .bkoDome { position: absolute; left: 0; right: 0; bottom: 0; height: 100%;
+    border-radius: 46% 46% 14% 14%; background: linear-gradient(165deg, #4fc3d2, #2b8391);
+    border: 2px solid #1f6b78;
+    /* LIFT AND FADE, rather than the -118% eject first shipped. Ejecting moved the dome a full bowl
+       height upward — straight over the recipe card, which the reveal screenshot showed obscuring
+       steps 4 and 5 exactly when the player most wants to check them. A short rise plus a fade reads
+       as "the bowl comes off" without ever leaving the bench's own row. Still transform+opacity
+       only (PERF-01). */
+    transform: translateY(-18%); opacity: 0;
+    transition: transform .26s ease, opacity .26s ease; }
+  .bkoBowl.covered .bkoDome { transform: translateY(0); opacity: 1; }
+  .bkoNum { position: absolute; top: -4px; right: -4px; min-width: 19px; height: 19px;
+    border-radius: 50%; background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
+    line-height: 19px; text-align: center; opacity: 0; transition: opacity .15s ease; }
+  /* The badge shows for three different reasons and colours itself accordingly: orange while the
+     player is assigning it, green once that step is banked, pink where it went wrong. */
+  .bkoBowl.picked .bkoNum, .bkoBowl.locked .bkoNum,
+  .bkoBowl.right .bkoNum, .bkoBowl.wrong .bkoNum { opacity: 1; }
+  .bkoBowl.locked .bkoNum, .bkoBowl.right .bkoNum { background: #3aa76d; }
+  .bkoBowl.wrong .bkoNum { background: #d6337f; }
+  /* `covered` is the ONE switch that raises or drops a dome. The right/wrong/locked states used to
+     each re-declare their own lift transform, which meant four places could disagree about where a
+     dome sits — and after the lift changed above they would have quietly reinstated the old eject.
+     The JS removes `covered` for all three, so the base rule already has them uncovered. */
+  .bkoBowl.right { outline: 3px solid #3aa76d; outline-offset: 1px; }
+  .bkoBowl.wrong { outline: 3px solid #d6337f; outline-offset: 1px; }
+  .bkoBowl.locked { outline: 3px solid #3aa76d; outline-offset: 1px; opacity: .88; }
+  .bkoBowl.flash { animation: bkoFlash .34s ease; }
+  @keyframes bkoFlash { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .bkoHint { font-size: 12px; font-style: italic; opacity: .82; margin-bottom: 6px; }
+  /* .bkoBtns, NOT .apBtns: panel() adds `pendingReveal` whenever it sees .apBtns and index.html
+     hides them until the typewriter resolves. With no .apMsg here that resolves on the next
+     microtask — a one-frame flicker rather than a deadlock — but avoiding the class avoids it. */
+  .bkoBtns { display: flex; }
+  .bkoGo { font-weight: 700; }
+  @media (prefers-reduced-motion: reduce) {
+    .bkoDome, .bkoNum, .bkoBowl { transition: none; }
+    .bkoBowl.flash { animation: none; outline: 3px solid var(--orange); }
+  }
   .modalTitle { line-height: 1.25; }
   .modalLogo { width: 100%; height: auto; border-radius: 14px; }
   .modalTitleSub { display:block; font-size: 13.5px; font-weight: 500; font-style: italic; color: var(--teal); opacity: .75; margin-top: 2px; }
@@ -1104,7 +1187,7 @@
              pass-and-play only, and a button that cannot work is worse than no button. -->
       </div>
       <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px"><img class="narrIcon" src="../assets/icons/magnifying-glass.png" alt=""> Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you confirm after picking how to play is collected.</div>
-      <div style="text-align:center;margin-bottom:8px"><span style="font-size:12px;color:var(--teal)">v2.1 — test ruleset</span></div>
+      <div style="text-align:center;margin-bottom:8px"><span style="font-size:12px;color:var(--teal)">v2.1 + bake-off — test ruleset</span></div>
     </div>
 
     <!-- UI-05: NO LONGER REACHABLE from "Host a Crew" — that card now calls createRoom() directly
