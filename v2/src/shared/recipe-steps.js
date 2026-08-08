@@ -51,7 +51,7 @@ export const RECIPE_STEPS={
     lines:["Melt the chocolate","Whisk in the sugar","Beat in the eggs","Fold in the flour","Dust with cinnamon and bake"]},
   // Caramel Slice
   "cocoa|dairy|sugar|vanilla|wheat":{ings:["wheat","sugar","dairy","vanilla","cocoa"],
-    lines:["Rub in the flour","Add the brown sugar","Pour in melted butter","Splash in the vanilla","Top with chocolate and set"]},
+    lines:["Make crust with the flour","Caramelize the sugar","Pour in melted butter","Splash in the vanilla","Top with chocolate and set"]},
   // Cinnamon Snaps
   "cocoa|dairy|spice|vanilla|wheat":{ings:["dairy","vanilla","wheat","spice","cocoa"],
     lines:["Cream the butter","Pour in the vanilla","Work in the flour","Spice it with cinnamon","Roll in cocoa and bake"]},
@@ -63,7 +63,7 @@ export const RECIPE_STEPS={
     lines:["Warm the milk and butter","Stir in the sugar","Melt in the chocolate","Add the vanilla","Finish with cinnamon"]},
   // Crispy Cocoa Snaps
   "cocoa|spice|sugar|vanilla|wheat":{ings:["sugar","vanilla","wheat","cocoa","spice"],
-    lines:["Beat the sugar smooth","Pour in the vanilla","Work in the flour","Sift in the cocoa","Spice with cinnamon and bake"]},
+    lines:["Scoop the sugar","Pour in the vanilla","Work in the flour","Sift in the cocoa","Spice with cinnamon and bake"]},
   // Dark Chocolate Cream Puffs
   "cocoa|dairy|eggs|vanilla|wheat":{ings:["dairy","wheat","eggs","vanilla","cocoa"],
     lines:["Boil the milk and butter","Beat in the flour","Work in the eggs","Scent it with vanilla","Fill with chocolate cream"]},
@@ -75,7 +75,7 @@ export const RECIPE_STEPS={
     lines:["Warm the milk and cream","Whisk the egg yolks","Beat in the sugar","Melt in the chocolate","Finish with vanilla"]},
   // Chocolate Genoise Sponge Cake
   "cocoa|eggs|sugar|vanilla|wheat":{ings:["eggs","sugar","vanilla","wheat","cocoa"],
-    lines:["Whisk the eggs warm","Beat in the sugar","Add the vanilla","Sift in the flour","Fold in cocoa and bake"]},
+    lines:["Whisk the eggs","Beat in the sugar","Add the vanilla","Sift in the flour","Fold in cocoa and bake"]},
   // Cinnamon Dutch Baby  (real method blends all five at once — creaming convention decides)
   "dairy|eggs|spice|vanilla|wheat":{ings:["eggs","dairy","wheat","vanilla","spice"],
     lines:["Crack in the eggs","Pour in the milk","Blend in the flour","Add the vanilla","Dust with cinnamon and bake"]},
