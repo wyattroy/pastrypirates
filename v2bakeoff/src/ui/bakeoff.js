@@ -33,13 +33,16 @@ const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 // feel like a fairground. SWAP is per swap, and is the number that must stay readable: if a player
 // cannot count the swaps the puzzle is not hard, it is arbitrary. REVEAL is per bowl, lifted one at
 // a time in recipe order so a run of three correct builds before a miss lands.
-// SETTLE is the PAUSE BETWEEN SWAPS and is now 420ms, not 120 (Wyatt, 2026-08-08: "Pause a little
-// longer between each bowl shuffle"). At 120ms the next pair started moving while the eye was still
-// resolving the last one, which makes three swaps feel like one blur — and a swap you cannot
-// separate from its neighbour is not a thing you can track, only a thing that happens to you.
+// SETTLE is the PAUSE BETWEEN SWAPS: 120 -> 420 -> 700ms, twice on his say-so ("Pause a little
+// longer between each bowl shuffle", then "Also, pause longer between", 2026-08-08). At 120 the next
+// pair began moving while the eye was still resolving the last, so three swaps read as one blur — a
+// swap you cannot separate from its neighbour is not something you can track, only something that
+// happens to you. 420 was better and still not enough. This is the number that decides whether the
+// puzzle is memory or reflex, so it errs long: three swaps now take about 4.6s, and the player is
+// the one who chose to start them.
 // PREVIEW_MS is no longer used for the study window (the player presses Ready to bake! instead);
 // it survives only as the reduced-motion fallback timing further down.
-const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=500, SETTLE_MS=420, REVEAL_MS=520, VERDICT_MS=1300;
+const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=500, SETTLE_MS=700, REVEAL_MS=520, VERDICT_MS=1300;
 
 // Reduced motion is read in JS, not CSS, for the same reason panel() does it: a media query cannot
 // reach a setTimeout. It does NOT collapse to zero — the swaps have to stay countable or the game
@@ -196,8 +199,13 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
     await bakeoffIntroCard(bake);
   }
 
+  // BUTTON STARTS DISABLED, deliberately. Its click handler is not attached until after the ghost
+  // wait below, so for ~0.9s after this renders there is a live-looking button that does nothing —
+  // a tap in that window is silently swallowed, which reads as the game ignoring you. Rendering it
+  // disabled and enabling it at the exact moment it works removes the dead window instead of hiding
+  // it. Found by a probe that clicked at 800ms and hung.
   panel(shellHTML(p,bake,shown,
-    "Study the bowls. Start the shuffle when ye're ready.","Ready to bake!",true),true);
+    "Study the bowls. Start the shuffle when ye're ready.","Ready to bake!",false),true);
   const row=document.querySelector("#actionPanel .bkoRow");
   if(!row)return null;
   const bowls=[...row.querySelectorAll(".bkoBowl")];
@@ -218,6 +226,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // an explicit clear), and the wait is measured off panel.js's own exported constant rather than a
   // second copy of the duration.
   if(document.querySelector("#actionPanel .apMsg.fadeOut"))await sleep(GHOST_FADE_MS+80);
+  {const g0=$("bkoGo"); if(g0)g0.disabled=false;}   // the bench is clean; the button is now real
 
   // ---- phase 1: THE PLAYER DECIDES WHEN TO START ----
   // (Wyatt, 2026-08-08: "It was REALLY hard!! Don't hide the cups after a few seconds — let the user
@@ -311,8 +320,15 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
 
        IT CANNOT CHANGE THE ANSWER. It repaints the bench to setup.before and replays setup.swaps —
        the engine's own list, the same one already applied — so a replay is a recording, not a
-       re-shuffle. The picks already made are LEFT ALONE: you bought a second look, not a reset, and
-       wiping them would punish a player who was sure of four bowls and hazy on one.
+       re-shuffle.
+
+       THE ORDERING NUMBERS CLEAR when the shuffle restarts (Wyatt, 2026-08-08: "The ordering numbers
+       that appear when i tap the bowls stayed visible when i paid to rewatch the shuffle. They
+       should not. They should disappear when the shuffle restarts."). An earlier version kept them
+       on the reasoning that you bought a second look rather than a reset — but a number pinned to a
+       bowl while that bowl is visibly moving is an anchor to a reading you are in the middle of
+       replacing, and it is on screen at exactly the moment you are trying to see the bench fresh.
+       A rewatch is a fresh read, so the bench presents itself fresh.
 
        The coin is spent through the engine (onRewatch), not deducted here, because coins are game
        state that the end-of-voyage ranking reads. If the purse is empty the engine buys nothing and
@@ -328,6 +344,8 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       if(!(onRewatch&&onRewatch(1)))return;   // engine says no coins — nothing spent, nothing shown
       rewatches++;
       replaying=true;
+      picks.length=0;                    // the tapped numbers go with the restart, badges and all
+      paint();                           // repaints every badge empty and re-disables Bake it!
       if(go)go.disabled=true;
       paintButtons();
       const hintEl=$("bkoHint");
