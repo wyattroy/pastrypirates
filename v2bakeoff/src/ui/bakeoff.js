@@ -19,7 +19,7 @@
 // rule has held since.
 
 import { appState } from "../state/index.js";
-import { ING_IMG, iconImg, CUPCAKE_IMG } from "../shared/index.js";
+import { ING_IMG, iconImg, CUPCAKE_IMG, COIN_IMG } from "../shared/index.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { panel, setNeedsAction, GHOST_FADE_MS } from "./panel.js";
 
@@ -32,7 +32,13 @@ const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 // feel like a fairground. SWAP is per swap, and is the number that must stay readable: if a player
 // cannot count the swaps the puzzle is not hard, it is arbitrary. REVEAL is per bowl, lifted one at
 // a time in recipe order so a run of three correct builds before a miss lands.
-const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=500, SETTLE_MS=120, REVEAL_MS=520, VERDICT_MS=1300;
+// SETTLE is the PAUSE BETWEEN SWAPS and is now 420ms, not 120 (Wyatt, 2026-08-08: "Pause a little
+// longer between each bowl shuffle"). At 120ms the next pair started moving while the eye was still
+// resolving the last one, which makes three swaps feel like one blur — and a swap you cannot
+// separate from its neighbour is not a thing you can track, only a thing that happens to you.
+// PREVIEW_MS is no longer used for the study window (the player presses Ready to bake! instead);
+// it survives only as the reduced-motion fallback timing further down.
+const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=500, SETTLE_MS=420, REVEAL_MS=520, VERDICT_MS=1300;
 
 // Reduced motion is read in JS, not CSS, for the same reason panel() does it: a media query cannot
 // reach a setTimeout. It does NOT collapse to zero — the swaps have to stay countable or the game
@@ -102,15 +108,51 @@ function listSteps(steps){
   return n.slice(0,-1).join(", ")+" and "+n[n.length-1];
 }
 
-function shellHTML(p,bake,slots,hint){
+function shellHTML(p,bake,slots,hint,btnLabel,btnEnabled){
   const att=bake.attempts+1;
   return `<div class="bko">
     <div class="bkoHd">${iconImg(CUPCAKE_IMG)} The Bake-Off<span class="bkoAtt">attempt ${att}</span></div>
     ${cardHTML(bake)}
     ${benchHTML(bake,slots)}
     <div class="bkoHint" id="bkoHint">${hint}</div>
-    <div class="bkoBtns"><button class="apBtn bkoGo" id="bkoGo" type="button" disabled>Bake it!</button></div>
+    <div class="bkoBtns">
+      <button class="apBtn bkoWatch" id="bkoWatch" type="button" hidden>Watch again ${iconImg(COIN_IMG)}1</button>
+      <button class="apBtn bkoGo" id="bkoGo" type="button"${btnEnabled?"":" disabled"}>${btnLabel}</button>
+    </div>
   </div>`;
+}
+
+/* ================= the story beat ================= */
+
+// bakeoffIntroCard(bake) — the narration card, and the FIRST SIGHT OF THE RECIPE.
+//
+// (Wyatt, 2026-08-08: "The narration card should explain that the ingredients are all mixed up and
+// you have to use them in the right order. The recipe should also be revealed to you first, in that
+// narration screen, before showing you the mixed up bowls.")
+//
+// The recipe leads and the bowls are not on screen at all yet. That ordering is the whole point:
+// the player reads what they are trying to make while nothing is competing for their attention, so
+// that when the bench does appear they are matching against something they already hold in their
+// head rather than reading two new things at once. It is also the only screen in the minigame with
+// no time pressure of any kind — no timer, no clock, nothing moving.
+//
+// Ordinary panel + button, not the bake-off shell, so it reads as the game's own narrator — the
+// voice that has told the whole voyage — rather than as furniture belonging to the puzzle. Pirate
+// register, because this is squarely inside the game world.
+function bakeoffIntroCard(bake){
+  return new Promise(res=>{
+    // @copy prompt.bakeoff.intro
+    panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens are roarin' and yer whole hold be on
+      the bench, captain — but the crew have gone and <b>mixed every ingredient up</b>.<br><br>
+      Here be what ye're bakin':</div>
+      ${cardHTML(bake)}
+      <div class="apSub">Add them in <b>this order</b> and ye've baked it. Add them in any other, and
+      it's a ruined mess.</div>
+      <div class="apBtns"><button class="apBtn" id="bkoIntroGo" type="button">To the bench!</button></div>`,true);
+    const go=$("bkoIntroGo");
+    if(!go){res();return;}
+    go.onclick=()=>{go.onclick=null;res();};
+  });
 }
 
 /* ================= the interaction ================= */
@@ -123,7 +165,7 @@ function shellHTML(p,bake,slots,hint){
 // most important line in this file.
 // `onArm` is called at the exact moment the bench becomes answerable — see bakeoffPrompt (flow.js)
 // for why the shot clock starts there and not when the prompt opened.
-export async function playBakeoffLive(p,setup,onArm){
+export async function playBakeoffLive(p,setup,onArm,onRewatch){
   const bake=p.bake;
   const n=bake.order.length;
 
@@ -132,14 +174,26 @@ export async function playBakeoffLive(p,setup,onArm){
   // second time. Falls back to bake.slots only if a caller hands over a setup from before `before`
   // existed, which at least keeps a live voyage running.
   const shown=setup.before?setup.before.slice():bake.slots.slice();
-  panel(shellHTML(p,bake,shown,"Watch closely — the bowls are about to move."),true);
+
+  // ---- phase 0: THE STORY, before any of the machinery ----
+  // (Wyatt, 2026-08-08: "We need more context before the sequence fully starts. Something like a
+  // narration card saying that you have your ingredients, now you must combine them in the correct
+  // order to bake your recipe.") Only on the FIRST attempt — on a retry he already knows what game
+  // he is playing, and a card explaining it again would be in the way.
+  if(bake.attempts===0){
+    await bakeoffIntroCard(bake);
+  }
+
+  panel(shellHTML(p,bake,shown,
+    "Study the bowls. Start the shuffle when ye're ready.","Ready to bake!",true),true);
   const row=document.querySelector("#actionPanel .bkoRow");
-  if(!row)return setup.fallbackGuess||null;
+  if(!row)return null;
   const bowls=[...row.querySelectorAll(".bkoBowl")];
 
   // MEASURED ONCE, never per frame: the centre-to-centre distance between two bowls, used for the
-  // swap translate. Reading it inside the animation loop would be a layout thrash on the one screen
-  // that is already the busiest.
+  // swap translate. Horizontal, so it is a left-to-left distance and the swap animates translateX.
+  // These two must be changed together — a vertical build measured pitch off .top; leaving one and
+  // not the other yields a pitch of 0 and a shuffle in which nothing visibly moves.
   const pitch=bowls.length>1?(bowls[1].getBoundingClientRect().left-bowls[0].getBoundingClientRect().left):0;
 
   // ---- phase 0: let the previous line's GHOST finish fading ----
@@ -153,14 +207,27 @@ export async function playBakeoffLive(p,setup,onArm){
   // second copy of the duration.
   if(document.querySelector("#actionPanel .apMsg.fadeOut"))await sleep(GHOST_FADE_MS+80);
 
-  // ---- phase 1: preview, bowls open ----
-  await sleep(reduced?Math.round(PREVIEW_MS*0.6):PREVIEW_MS);
+  // ---- phase 1: THE PLAYER DECIDES WHEN TO START ----
+  // (Wyatt, 2026-08-08: "It was REALLY hard!! Don't hide the cups after a few seconds — let the user
+  // decide when to start the shuffle sequence by clicking a 'ready to bake!' button.")
+  // The 2.5s auto-timer is gone. It was the single biggest source of difficulty and the least fair
+  // one: a fixed study window punishes reading speed rather than memory, and it started running
+  // while the previous line was still fading over the bench. Untimed here is safe because the shot
+  // clock is not armed until the bench is answerable, further down.
+  await new Promise(res=>{
+    const go=$("bkoGo");
+    if(!go){res();return;}
+    go.onclick=()=>{go.onclick=null;go.disabled=true;res();};
+  });
 
   // ---- phase 2: domes down ----
   bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
   await sleep(reduced?60:COVER_MS);
 
   // ---- phase 3: the swaps, one at a time ----
+  await runSwaps();
+
+  async function runSwaps(){
   for(const [a,b] of setup.swaps){
     const A=bowls[a],B=bowls[b];
     if(!A||!B)continue;
@@ -185,6 +252,14 @@ export async function playBakeoffLive(p,setup,onArm){
     A.style.transform="";B.style.transform="";
     await sleep(reduced?40:SETTLE_MS);
   }
+  }
+
+  // Write an arrangement straight onto the bench. Used to rewind to the pre-shuffle bench before a
+  // paid replay — simpler and safer than un-applying the swap list in reverse, and it cannot drift
+  // from `before` because it IS `before`.
+  function paintBench(arr){
+    bowls.forEach((b,i)=>{ const img=b.querySelector(".bkoIng"); if(img&&arr[i])img.setAttribute("src",ING_IMG[arr[i]]); });
+  }
 
   // ---- phase 4: arm, and take taps ----
   // The shot clock is armed HERE, not when the prompt opened: ~4.5s of preview and shuffle would
@@ -205,11 +280,58 @@ export async function playBakeoffLive(p,setup,onArm){
     ?"Tap the bowls in recipe order. Tap again to undo."
     :`${openSteps.length} left — tap them for step${openSteps.length>1?"s":""} ${listSteps(openSteps)}. Tap again to undo.`;
   setNeedsAction(true);
+  // The same button served as "Ready to bake!"; it becomes the confirm control now, disabled until
+  // every open step has been assigned.
+  const goBtn=$("bkoGo");
+  if(goBtn){goBtn.textContent="Bake it!";goBtn.disabled=true;}
   if(onArm)onArm();
+
+  let rewatches=0;                        // paid replays, logged so a resume charges the same coins
 
   return await new Promise(resolve=>{
     const picks=[];                       // bowl indices, in the order tapped
     const go=$("bkoGo");
+    const watch=$("bkoWatch");
+
+    /* PAY FOR ANOTHER LOOK (Wyatt, 2026-08-08). The button is revealed only now, with the input —
+       there is nothing to re-watch before the shuffle has run once, and it must never compete with
+       "Ready to bake!" for the same tap.
+
+       IT CANNOT CHANGE THE ANSWER. It repaints the bench to setup.before and replays setup.swaps —
+       the engine's own list, the same one already applied — so a replay is a recording, not a
+       re-shuffle. The picks already made are LEFT ALONE: you bought a second look, not a reset, and
+       wiping them would punish a player who was sure of four bowls and hazy on one.
+
+       The coin is spent through the engine (onRewatch), not deducted here, because coins are game
+       state that the end-of-voyage ranking reads. If the purse is empty the engine buys nothing and
+       returns 0, and no animation runs — so the button can never hand out a free look. */
+    let replaying=false;
+    const paintButtons=()=>{
+      if(!watch)return;
+      watch.hidden=false;
+      watch.disabled=replaying||!(onRewatch&&onRewatch.canAfford&&onRewatch.canAfford());
+    };
+    if(watch)watch.onclick=async()=>{
+      if(replaying)return;
+      if(!(onRewatch&&onRewatch(1)))return;   // engine says no coins — nothing spent, nothing shown
+      rewatches++;
+      replaying=true;
+      if(go)go.disabled=true;
+      paintButtons();
+      const hintEl=$("bkoHint");
+      const was=hintEl?hintEl.textContent:"";
+      if(hintEl)hintEl.textContent="Watch closely — the bowls move again.";
+      paintBench(shown);
+      bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.remove("covered"); });
+      await sleep(reduced?400:900);
+      bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
+      await sleep(reduced?60:COVER_MS);
+      await runSwaps();
+      if(hintEl)hintEl.textContent=was;
+      replaying=false;
+      paintButtons();
+      paint();
+    };
     const paint=()=>{
       bowls.forEach((b,pos)=>{
         if(b.classList.contains("locked"))return;   // its badge is its earned step number — leave it
@@ -217,13 +339,15 @@ export async function playBakeoffLive(p,setup,onArm){
         b.querySelector(".bkoNum").textContent=at>=0?String(openSteps[at]+1):"";
         b.classList.toggle("picked",at>=0);
       });
-      if(go)go.disabled=picks.length!==openSteps.length;
+      if(go)go.disabled=replaying||picks.length!==openSteps.length;
+      paintButtons();
     };
     const finish=()=>{
       appState.activePickCleanup=null;
       setNeedsAction(false);
       openSteps.forEach((k,i)=>{guess[k]=picks[i];});
-      resolve(guess);
+      if(watch)watch.hidden=true;
+      resolve({guess,rewatches});
     };
     // the shot clock's teardown hook: it may force this panel closed at any moment, and the engine
     // will fall back to the bot's guess, so this only has to stop leaking handlers.
@@ -232,13 +356,14 @@ export async function playBakeoffLive(p,setup,onArm){
     bowls.forEach((b,pos)=>{
       if(b.classList.contains("locked"))return;
       b.onclick=()=>{
+        if(replaying)return;              // the bench is mid-animation; a tap now means nothing
         const at=picks.indexOf(pos);
         if(at>=0)picks.splice(at,1);          // tap again to undo, and everything after renumbers
         else if(picks.length<openSteps.length)picks.push(pos);
         paint();
       };
     });
-    if(go)go.onclick=()=>{ if(picks.length===openSteps.length)finish(); };
+    if(go)go.onclick=()=>{ if(!replaying&&picks.length===openSteps.length)finish(); };
     paint();
   });
 }

@@ -49,7 +49,7 @@ import {
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, ovensNowEnabled,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
@@ -297,7 +297,13 @@ export async function bakeoffPrompt(p,setup,fallback){
   // baking seat across a resumed pass-and-play voyage.
   await passGate(p.idx);
   if(appState.replaying){
-    if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return appState.dlog[appState.dlogIdx++];}
+    if(appState.dlogIdx<appState.dlog.length){
+      appState.dlogN++;
+      const rec=appState.dlog[appState.dlogIdx++];
+      // Logs written before rewatching existed hold a bare guess array; normalise so every caller
+      // downstream sees one shape.
+      return Array.isArray(rec)?{g:rec,w:0}:rec;
+    }
     endReplay();
   }
   setActor(p.idx);
@@ -308,16 +314,28 @@ export async function bakeoffPrompt(p,setup,fallback){
   // player can trigger, whose only behaviour is to hand somebody's bake to the bot without saying
   // so. A silent forfeit down a dead branch is strictly worse than not having the branch.
   let resolveArmed;const armed=new Promise(res=>{resolveArmed=res;});
-  const base=playBakeoffLive(p,setup,()=>{armClock(p.idx);resolveArmed();});
+  // Spending a coin goes through the ENGINE, live, one at a time — so the purse on screen drops the
+  // moment the player buys a look rather than after the whole prompt resolves. `canAfford` lets the
+  // button grey out without the UI having to know the price.
+  const onRewatch=(n)=>appState.game.bakeRewatch(p,n)>0&&(liveRender(),true);
+  onRewatch.canAfford=()=>p.coins>=BAKE_REWATCH_COST;
+  const base=playBakeoffLive(p,setup,()=>{armClock(p.idx);resolveArmed();},onRewatch);
   // Belt: playBakeoffLive can return before it ever arms, because it bails out if the bench failed
   // to render. `armed` must still settle or the chain below waits forever and the voyage stops,
   // which is worse than an unclocked decision.
   base.then(()=>resolveArmed(),()=>resolveArmed());
   return armed.then(()=>withShotClock(p.idx,base,null))
-    .then(g=>{
-      const answer=fillLocked(p.bake,g||fallback);
-      netHandlers().onLogDecision(answer);
-      return answer;
+    .then(r=>{
+      // playBakeoffLive resolves {guess,rewatches}; a shot-clock forfeit resolves null and forfeits
+      // to the engine's own guess, having bought nothing.
+      const answer=fillLocked(p.bake,(r&&r.guess)||fallback);
+      const watched=(r&&r.rewatches)||0;
+      // LOGGED TOGETHER, as one decision. The coins a rewatch spends are game state that the
+      // end-of-voyage ranking reads, so a resume that replayed the guess but not the spending would
+      // rebuild a captain with the wrong purse. One entry, both facts.
+      const dec={g:answer,w:watched};
+      netHandlers().onLogDecision(dec);
+      return dec;
     });
 }
 // A guess carries null at every step already solved on an earlier attempt — scoreAttempt accepts

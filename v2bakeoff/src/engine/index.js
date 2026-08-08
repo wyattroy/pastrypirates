@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKEOFF_ENABLED, bakeoffEnabled, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, BAKEOFF_ENABLED, bakeoffEnabled, man, ilabelImg } from "../shared/index.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { newBake, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
 
@@ -258,11 +258,12 @@ class Game{
         // THE BAKE-OFF (v2.1). Initialised unconditionally, flag or no flag: they consume no r()
         // and are not in ev()'s snapshot, so with the feature off they are three inert fields and
         // the event stream is byte-identical (proved by scripts/bakeoff_baseline.js).
-        // `baking` is deliberately NOT `done`. Twenty-plus `!q.done` filters across this engine mean
-        // "still in play" — occupancy, blockers, adjOpp, holdersOf, threatUrgency, the active-turn
-        // ring. Today a finisher exists for at most one lap so nobody notices; a baker sits at the
-        // ovens for DAYS, and reusing `done` would make them non-blocking, un-tradeable-with and
-        // invisible to every bot. `done` is set only on a successful bake, when the voyage is over.
+        // `baking` is still NOT `done` — done means the voyage is over and won, and it is what
+        // finishOrder, bakeRank and resolveEnd read. But a baking captain IS off the board: see
+        // inPlay() below, the single predicate every "still in play" test now asks. An earlier
+        // version of this note argued that making a baker non-blocking and un-tradeable-with would
+        // be a defect. It was, right up until a storm blew a captain off the dock they had just lit
+        // the ovens on.
         baking:false,bake:null,bakedToday:false};
     });
     // ships start at Isle of Tortuga's four docks (N/S/E/W of the island)
@@ -296,7 +297,11 @@ class Game{
   key(c){return c[0]+","+c[1];}
   isIsland(c){return this.islands[c]!==undefined;}
   ev(o){if(!this.record)return;o.round=this.round;o.wind=this.windNow;o.storm=this.stormNow;o.wind2=this.windNow2;
-    o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done}));
+    // `baking` rides in the snapshot so the board can render a captain's out-of-play state from the
+    // EVENT rather than from live state — which is what keeps the scrubber honest when you drag it
+    // back to before the ovens were lit. It consumes no r() and is not part of the baseline
+    // fingerprint's key set, so the flag-off stream is unchanged (bakeoff_baseline.js proves it).
+    o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done,baking:!!p.baking}));
     o.tokens={...this.tokens};this.events.push(o);}
   // during a reload-replay, fast-forwarding has no real delays between turns, and a bot's turn
   // can occasionally run a beat before its own recipe assignment has landed — treat "no recipe
@@ -398,7 +403,7 @@ class Game{
     // the edge of the world is land like any other
     if(this.blocked(nx))return "landHeld";
     // another ship holds that square — you strike sail and hold fast behind her
-    const blocker=this.players.find(q=>q!==p&&!q.done&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
+    const blocker=this.players.find(q=>q!==p&&this.inPlay(q)&&q.pos[0]===nx[0]&&q.pos[1]===nx[1]);
     if(blocker){this.ev({t:"blocked",p:p.idx,other:blocker.idx});return "held";}
     // land dead ahead — you fetch up short of it, no harm beyond losing the ground. Distinct from
     // "held" (another ship) so the anchor line can be narrated: this is the moment a captain drops
@@ -434,7 +439,7 @@ class Game{
   // its square before the one behind arrives (rule 7b).
   stormOrder(dirKey){
     const d=DIRS[dirKey];
-    return this.players.filter(p=>!p.done)
+    return this.players.filter(p=>this.inPlay(p))
       .map(p=>({p,proj:p.pos[0]*d[0]+p.pos[1]*d[1]}))
       .sort((a,b)=>b.proj-a.proj).map(o=>o.p);
   }
@@ -454,7 +459,7 @@ class Game{
       if(!opts.throughRim&&this.onRim(o))return false;
       return true;
     };
-    const occ=o=>this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
+    const occ=o=>this.players.some(q=>q!==p&&this.inPlay(q)&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
     const k=(c,u)=>c[0]+","+c[1]+","+(u?1:0);
     const seen={[k(p.pos,false)]:0};
     const out=new Map(); // "x,y" -> fewest steps to reach it legally
@@ -547,7 +552,7 @@ class Game{
      right direction to be wrong in — a bot that occasionally raids a captain who was not quite as
      close as they looked is playing the same guessing game a human plays. */
   threatTurns(q){
-    if(q.done)return 0;
+    if(!this.inPlay(q))return 0;
     const distinct=new Set(q.ing).size;
     const short=Math.max(0,(this.cfg.recipeSize||5)-distinct);
     return short*PLAN.crateTurns+this.sailTurns(q.pos,this.home,this.windNow);
@@ -629,7 +634,7 @@ class Game{
     return Object.values(DIRS).every(d=>{
       const o=[p.pos[0]+d[0],p.pos[1]+d[1]];
       return this.blocked(o)||this.isIsland(o)||this.isHome(o)||this.onRim(o)||
-        this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
+        this.players.some(q=>q!==p&&this.inPlay(q)&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
     });
   }
   // notes/edits AI-04/AI-05: a boxed-in bot may duck INTO the trade-wind channel to escape — the
@@ -640,7 +645,7 @@ class Game{
     if(!this.isRound)return false;
     for(const d of Object.values(DIRS)){
       const o=[p.pos[0]+d[0],p.pos[1]+d[1]];
-      if(this.onRim(o)&&!this.blocked(o)&&!this.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1])){
+      if(this.onRim(o)&&!this.blocked(o)&&!this.players.some(q=>q!==p&&this.inPlay(q)&&q.pos[0]===o[0]&&q.pos[1]===o[1])){
         p.pos=o;this.ev({t:"windmove",p:p.idx});
         this.tradewind(p);
         return true;
@@ -671,12 +676,12 @@ class Game{
   }
   dockOccupiedBy(ing,exclude){
     const d=this.dockOf[ing];if(!d)return null;
-    for(const q of this.players)if(q!==exclude&&!q.done&&q.pos[0]===d[0]&&q.pos[1]===d[1])return q;
+    for(const q of this.players)if(q!==exclude&&this.inPlay(q)&&q.pos[0]===d[0]&&q.pos[1]===d[1])return q;
     return null;
   }
-  adjOpp(p){const out=this.players.filter(q=>q!==p&&!q.done&&man(p.pos,q.pos)<=1);this.shuffle(out);return out;}
-  tradeOpp(p){if(this.cfg.parley)return this.players.filter(q=>q!==p&&!q.done);
-    return this.players.filter(q=>q!==p&&!q.done&&man(p.pos,q.pos)<=1);}
+  adjOpp(p){const out=this.players.filter(q=>q!==p&&this.inPlay(q)&&man(p.pos,q.pos)<=1);this.shuffle(out);return out;}
+  tradeOpp(p){if(this.cfg.parley)return this.players.filter(q=>q!==p&&this.inPlay(q));
+    return this.players.filter(q=>q!==p&&this.inPlay(q)&&man(p.pos,q.pos)<=1);}
   // v2 rule 11: price = 6 − crates still on the island. 3 left → 3🌕, 2 → 4🌕, 1 → 5🌕. Shared by
   // the whole table, and self-correcting if a crate ever comes back into supply — it is a function
   // of the board, not a counter anybody has to maintain. Returns null when there is nothing to buy.
@@ -704,7 +709,7 @@ class Game{
       const needsIt=this.needs(p).includes(ing);
       const leverage=this.cfg.merchant&&!needsIt&&
         PERSONALITY[p.strategy]&&PERSONALITY[p.strategy].hoardBias>=1.4&&
-        this.players.some(q=>q!==p&&!q.done&&this.likelyNeeds(q,ing));
+        this.players.some(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,ing));
       if(needsIt||leverage){
         p.coins-=price;this.tokens[ing]--;p.ing.push(ing);got="bought";
       }
@@ -753,7 +758,7 @@ class Game{
   // Everyone who could answer an offer for `ing` — i.e. actually holds one. Cargo is public, so
   // this is exactly what the asking player can see for themselves.
   holdersOf(ing,exclude){
-    return this.players.filter(q=>q!==exclude&&!q.done&&q.ing.includes(ing));
+    return this.players.filter(q=>q!==exclude&&this.inPlay(q)&&q.ing.includes(ing));
   }
   // How a bot prices a crate somebody is asking it for. Wyatt's ruling, 2026-08-04: price it in
   // TURNS — how long would it take me to replace this myself — PLUS a denial premium when the
@@ -1053,7 +1058,7 @@ class Game{
     if(!lose.ing.length)return null;
     const wanted=lose.ing.filter(i=>this.needs(win).includes(i));
     // no recipe need of its own? take what somebody else at the table plainly wants — leverage
-    const leverage=lose.ing.filter(i=>this.players.some(q=>q!==win&&q!==lose&&!q.done&&this.likelyNeeds(q,i)));
+    const leverage=lose.ing.filter(i=>this.players.some(q=>q!==win&&q!==lose&&this.inPlay(q)&&this.likelyNeeds(q,i)));
     const pick=(wanted[0]!==undefined)?wanted[0]:(leverage[0]!==undefined?leverage[0]:lose.ing[0]);
     lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);
     // the whole table just watched the winner choose that crate — public evidence of what it wants
@@ -1344,7 +1349,7 @@ class Game{
     if(p.coins<(this.cfg.powder||0))return null; // no powder, no raid — never plan what you can't pay for
     let best=null;
     for(const q of this.players){
-      if(q===p||q.done||!q.ing.length)continue;   // rule 13e: an empty hold is never a target
+      if(q===p||!this.inPlay(q)||!q.ing.length)continue;   // rule 13e: an empty hold is never a target
       const urgent=this.threatUrgency(q);
       if(urgent<=0)continue;
       const aim=this.interceptOf(q);
@@ -1374,7 +1379,7 @@ class Game{
     // every ingredient is out of stock and nobody holds one: shadow the captain carrying the most
     // of what we need, so we're in position the moment they pick one up
     const needs=this.needs(p);
-    const holders=this.players.filter(q=>q!==p&&!q.done&&q.ing.some(i=>needs.includes(i)));
+    const holders=this.players.filter(q=>q!==p&&this.inPlay(q)&&q.ing.some(i=>needs.includes(i)));
     if(holders.length){holders.sort((x,y)=>man(p.pos,x.pos)-man(p.pos,y.pos));return holders[0].pos;}
     return this.home;
   }
@@ -1492,6 +1497,21 @@ class Game{
      have been shuffled. See v2bakeoff/src/engine/bakeoff.js for the pure core. */
   // Same predicate checkFinish has always used, extracted so both endings share one gate and can
   // never drift apart.
+  /* IN PLAY — one predicate, and the ONLY thing that decides whether a captain is on the board.
+     (Wyatt, 2026-08-08: "when you enter tortuga and click 'fire up the ovens' your boat should no
+     longer be interactible — the weather shouldn't affect you, neither should the other players be
+     able to do anything to you. Rather than encode this as a list of special cases, there may be
+     some elegant way to do it".)
+
+     This is that way. Every "still in play" test in this engine — the storm's running order, who
+     blocks a square, who occupies a dock, who is adjacent to fight, who can be traded with, who
+     holds an ingredient worth raiding, who a bot rates as a threat — used to ask `this.inPlay(q)`. They
+     all ask this instead, so a baking captain leaves the board through one edit rather than
+     thirteen special cases, and anything added later inherits the rule for free.
+
+     WITH THE BAKE-OFF OFF THIS IS EXACTLY `!done`, because `baking` can never become true — which
+     is why scripts/bakeoff_baseline.js stays byte-identical across all 200 games. */
+  inPlay(p){ return !p.done&&!p.baking; }
   canBake(p){ return !this.needs(p).length&&man(p.pos,this.home)<=1; }
   // Light the ovens. Returns true only on the transition, so a caller can narrate it once.
   // The bench is built from the AUTHORED step order (shared/recipe-steps.js), falling back to the
@@ -1545,6 +1565,27 @@ class Game{
   }
   // Every captain at the ovens, in turn order. Bakes resolve together at the END of a day so that
   // arriving on the same day is a fair race rather than an accident of seat order (Wyatt's ruling).
+  /* PAY FOR ANOTHER LOOK. Buys `n` replays of the shuffle at BAKE_REWATCH_COST each, and returns
+     how many were actually AFFORDED — which is not always how many were asked for, so the caller
+     must not assume. Coins are the only thing this minigame spends, and the only reason a rewatch
+     is not free.
+
+     DRAWS NO RANDOM NUMBERS and does not touch the bench. It replays what already happened, so it
+     cannot change the answer — the swap list the UI animates a second time is the same one the
+     engine already applied. Emits an event so the spend shows up in the captain's log rather than
+     coins quietly draining, and so a scrubbed replay can account for them.
+
+     Called with the whole count at once on replay, and one at a time live — see bakeTurnLive. */
+  bakeRewatch(p,n){
+    const cost=BAKE_REWATCH_COST;
+    let bought=0;
+    for(let i=0;i<(n||0);i++){
+      if(p.coins<cost)break;
+      p.coins-=cost;bought++;
+    }
+    if(bought)this.ev({t:"rewatch",p:p.idx,n:bought,paid:bought*cost});
+    return bought;
+  }
   bakersToday(order){ return order.filter(i=>this.players[i].baking&&!this.players[i].done); }
   /* Close the day. Anyone who baked perfectly joins finishOrder — which keeps its exact existing
      meaning, so bakeRank, eligibleFinishers, resolveEnd and the collab scene all keep working with

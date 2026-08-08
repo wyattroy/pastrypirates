@@ -1308,6 +1308,14 @@ export function renderLiveShips(){
   live.forEach((p,i)=>{
     const [x,y]=shipXY(p.pos,i,live,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
+    // A CAPTAIN AT THE OVENS FADES OUT (Wyatt, 2026-08-08: "in a past version, the boat faded
+    // semitransparent when docked. I removed that feature in v2, but now i want it back because we
+    // have the bake-off"). It is not decoration: Game.inPlay() has genuinely taken them off the
+    // board — no storm moves them, nobody can reach, trade with or raid them, and their square is
+    // free — so the boat being half-there is the honest picture of the rule. Anything still solid
+    // on this board can be interacted with; anything faded cannot.
+    // opacity only (PERF-01), and written unconditionally because it is one property on four nodes.
+    shipEls[i].style.opacity=p.baking?0.42:1;
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
   });
   // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
@@ -1432,7 +1440,18 @@ export function render(){
     // (Game.unfinish), a ghosted ship is worse than cosmetic: it says "nothing to do here" about the
     // one ship worth attacking. Every ship renders at full strength; the tell that somebody is home
     // is that they are parked on Tortuga, plus the 🏁 line that announced it.
-    shipEls[i].style.opacity=1;
+    //
+    // THAT STILL HOLDS, and the bake-off does not undo it (Wyatt, 2026-08-08: "in a past version,
+    // the boat faded semitransparent when docked... now i want it back because we have the
+    // bake-off"). The two instructions are not in conflict once the distinction is drawn precisely:
+    //   done / docked with a full recipe -> SOLID. Still a legal target, still worth attacking.
+    //   baking                           -> FADED. Game.inPlay() has taken them off the board
+    //                                       entirely: no storm, no raid, no trade, square free.
+    // So the fade means one specific thing — "nothing you do can reach this ship" — instead of the
+    // vaguer "out of the game" it used to mean, which is exactly why it was wrong before.
+    // Read off the event snapshot, not live state, so dragging the scrubber back to before the
+    // ovens were lit shows a solid ship again.
+    shipEls[i].style.opacity=st[i].baking?0.42:1;
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
     const coinsEl=$("coins"+i),newCoins=st[i].coins;
     if(coinsEl.dataset.coins!==undefined&&+coinsEl.dataset.coins!==newCoins)pulseEl(coinsEl);

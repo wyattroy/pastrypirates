@@ -46,7 +46,7 @@ import {
   // dockFlavor consumer; all four branches now take the icon-placed form from the declared split.
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, FLAME_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
-  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
+  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG, EYES_IMG,
   SEA_CREATURES,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
@@ -441,6 +441,13 @@ const EVENT_NARRATION={
   // tooling talking, not the game world, the same boundary the credits sit on the far side of.
   testhold:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:`${iconImg(FLAME_IMG)} TEST GAME — ${pn(e.p)}'s hold was stocked with a full recipe to reach the bake-off early.`}),
+  // Buying another look at the shuffle. Worth a line rather than a silent coin drop: it is the only
+  // spend in the bake-off, and a rival watching should see that a captain paid for their certainty.
+  rewatch:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
+    txt:isLocalTo(e.p,viewerSeat)
+      ?`${iconImg(EYES_IMG)} ${pn(e.p)} — ye slip the kitchen hand ${e.paid}${iconImg(COIN_IMG)} for another look at the bowls.`
+      :`${iconImg(EYES_IMG)} ${pn(e.p)} pays ${e.paid}${iconImg(COIN_IMG)} for another look at the bowls.`,
+    caps:[[e.p,`${iconImg(EYES_IMG)} another look`]]}),
   ovens:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:isLocalTo(e.p,viewerSeat)
       ?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye reach Tortuga with a full recipe and fire up the ovens! Now bake it right.`

@@ -847,8 +847,13 @@ async function bakeTurnLive(p){
   // bakeoffPrompt owns replay, the decision log and the shot clock (see its note in flow.js). It is
   // called for a human seat even under replay — that is the whole point, since it is what returns
   // the guess the player ACTUALLY made rather than re-deriving one from the bot.
-  const answer=human?await bakeoffPrompt(p,setup,fallback):fallback;
-  const out=g.bakeResolve(p,answer);
+  const dec=human?await bakeoffPrompt(p,setup,fallback):{g:fallback,w:0};
+  // REPLAY ONLY. Live, each rewatch was already charged the instant it was bought (flow.js's
+  // onRewatch calls the engine per click, so the purse on screen falls as you spend). Under replay
+  // the prompt early-returns without ever running the UI, so nothing has been charged and the whole
+  // count is settled here in one go. Both paths end on the same coins.
+  if(appState.replaying&&dec.w)g.bakeRewatch(p,dec.w);
+  const out=g.bakeResolve(p,dec.g);
   if(human&&!appState.replaying)await bakeoffReveal(p,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event

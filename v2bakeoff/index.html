@@ -994,19 +994,22 @@
      ~105px to a panel that already overruns the board budget), so this closes the gap from 2.25x to
      1.6x, which is close enough to read as the same object at a glance. */
   .bkoCard li img { width: 24px; height: 24px; object-fit: contain; flex: 0 0 auto; }
-  .bkoCard li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bkoCard li span { overflow: visible; text-overflow: clip; white-space: normal; }
   /* FLEX, NOT CONTAINER QUERIES. #actionPanel is not a `container-type` element and none of its
      ancestors is, so a cqw unit here would resolve against the VIEWPORT — 17cqw would be 238px per
      bowl on a desktop. The five bowls simply divide whatever the row has and cap at 64px, which
      needs no media query and responds to the panel's real width on every device. */
-  /* 13px of top margin is CLEARANCE, not spacing: it is what the dome rises into. A -30% lift over
-     an 8px gap put the dome 7.1px into the recipe card's last line at 360px, so the card the player
-     is checking against was under the bowls exactly when they needed it.
-     SIZED AGAINST THE 64px CAP, not against the phone. The lift is a PERCENTAGE of the bowl and the
-     margin is fixed, so the worst case is the widest bowl: 18% of 64px = 11.5px. 360px was fine at
-     10px and desktop was still 1.5px short — measured, after a comment here claimed the two "can't
-     meet at any bowl size". Raise this if .bkoBowl's max-width ever grows. */
-  .bkoRow { display: flex; gap: 6px; justify-content: center; margin: 13px 0 8px; }
+  /* HORIZONTAL, and back here on purpose. A vertical column was built and measured — it fitted, at
+     342px against 365px of room — and then reverted (Wyatt, 2026-08-08: "you're right, we don't
+     want to confuse people about which ingredient goes where. Let's keep the layout horizontal").
+     Side-by-side columns put each bowl beside a recipe step, which reads as a pairing; the bowls are
+     about to be shuffled out of exactly that order, so the layout would have been quietly lying
+     during the one moment the player is trying to memorise the truth. A row says nothing about
+     which bowl belongs to which step, which is the honest thing for it to say.
+     13px of top margin is CLEARANCE, not spacing: it is what the dome rises into. The lift is a
+     PERCENTAGE of the bowl and this margin is fixed, so the worst case is the widest bowl —
+     18% of the 64px cap = 11.5px. Raise it if .bkoBowl's max-width ever grows. */
+  .bkoRow { display: flex; flex-direction: row; gap: 6px; justify-content: center; margin: 13px 0 8px; }
   .bkoBowl { flex: 1 1 0; min-width: 0; max-width: 64px; aspect-ratio: 1;
     position: relative; padding: 0; border: none; background: none; cursor: pointer;
     border-radius: 10px; }

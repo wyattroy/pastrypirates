@@ -115,5 +115,55 @@ const perfect=(bake)=>bake.order.map(ing=>bake.slots.indexOf(ing));
   check("checkFinish still finishes the old way",g.checkFinish(p)===true&&p.done===true);
 }
 
+/* ---- 6. OFF THE BOARD: a baking captain is untouchable by weather and by everyone else ----
+
+   Wyatt hit this live: he lit the ovens on the Tortuga dock and a storm blew him off it. The storm
+   runs before anyone acts and used to move every captain who was not `done`, so a baker got shoved
+   out of the very square that made them a baker. inPlay() is the fix, and these are the specific
+   consequences worth pinning so nobody re-scatters them. */
+{
+  const g=staged(5,[0]);
+  const p=g.players[0];
+  const before=[...p.pos];
+  // put a rival right next to them, holding cargo, so every "can you touch them" test has a subject
+  const q=g.players[1];
+  q.pos=[p.pos[0]+1,p.pos[1]];
+  q.coins=99;
+  q.ing=[...q.recipe];
+  p.ing=[...p.recipe];
+
+  const stormBefore=g.stormOrder("N").map(x=>x.idx);
+  const adjBefore=g.adjOpp(q).map(x=>x.idx);
+  const tradeBefore=g.tradeOpp(q).map(x=>x.idx);
+  const holdBefore=g.holdersOf(p.ing[0],q).map(x=>x.idx);
+  const dockBefore=g.dockOccupiedBy?null:null;
+  check("before the ovens: the storm moves them",stormBefore.includes(0),
+        "storm order "+JSON.stringify(stormBefore)+" — this scenario proves nothing if they were already exempt");
+  check("before the ovens: a rival can reach them",adjBefore.includes(0));
+
+  g.lightOvens(p);
+
+  check("the storm no longer moves a baking captain",!g.stormOrder("N").map(x=>x.idx).includes(0),
+        "storm order after lighting: "+JSON.stringify(g.stormOrder("N").map(x=>x.idx)));
+  check("nobody is adjacent to them any more",!g.adjOpp(q).map(x=>x.idx).includes(0));
+  check("they cannot be traded with",!g.tradeOpp(q).map(x=>x.idx).includes(0));
+  check("their cargo is not raidable",!g.holdersOf(p.ing[0],q).map(x=>x.idx).includes(0));
+  check("they are not a legal attack target",g.canAttack(q,p)===false);
+  // NOT `|| true`. The first draft of this line ended in `||true`, which made it incapable of
+  // failing — the exact anti-pattern this file exists to avoid. This asks the real question:
+  // does anything still count the baker as occupying their square?
+  check("their square no longer counts as occupied",
+        !g.players.some(x=>x!==q&&g.inPlay(x)&&x.pos[0]===p.pos[0]&&x.pos[1]===p.pos[1]),
+        "someone still occupies "+JSON.stringify(p.pos));
+
+  // and the whole point: run a real storm and confirm they have not moved an inch
+  g.runStorm("N");
+  check("a real storm leaves them exactly where they were",
+        p.pos[0]===before[0]&&p.pos[1]===before[1],
+        "moved "+JSON.stringify(before)+" -> "+JSON.stringify(p.pos));
+  check("but it did move the rival",q.pos[0]!==p.pos[0]+1||q.pos[1]!==p.pos[1],
+        "the rival did not move either — the storm may not have run at all");
+}
+
 console.log(failures?("\n"+failures+" FAILED"):"\nthe bake-off endgame holds");
 process.exit(failures?1:0);
