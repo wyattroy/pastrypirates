@@ -445,8 +445,8 @@ const EVENT_NARRATION={
   // spend in the bake-off, and a rival watching should see that a captain paid for their certainty.
   rewatch:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:isLocalTo(e.p,viewerSeat)
-      ?`${iconImg(EYES_IMG)} ${pn(e.p)} — ye slip the kitchen hand ${e.paid}${iconImg(COIN_IMG)} for another look at the bowls.`
-      :`${iconImg(EYES_IMG)} ${pn(e.p)} pays ${e.paid}${iconImg(COIN_IMG)} for another look at the bowls.`,
+      ?`${iconImg(EYES_IMG)} ${pn(e.p)} — ye slip the kitchen hand ${e.paid}${iconImg(COIN_IMG)} for another look at the crates.`
+      :`${iconImg(EYES_IMG)} ${pn(e.p)} pays ${e.paid}${iconImg(COIN_IMG)} for another look at the crates.`,
     caps:[[e.p,`${iconImg(EYES_IMG)} another look`]]}),
   ovens:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",
     txt:isLocalTo(e.p,viewerSeat)
@@ -456,14 +456,14 @@ const EVENT_NARRATION={
   bake:(e,at,cellPx,viewerSeat)=>{
     const mine=isLocalTo(e.p,viewerSeat);
     if(e.solved)return {cls:"roundhdr",
-      txt:mine?`${iconImg(FLAME_IMG)} ${pn(e.p)} — every bowl in its place. Ye baked it!`
-              :`${iconImg(FLAME_IMG)} ${pn(e.p)} lifts the bowls — every one in its place!`,
+      txt:mine?`${iconImg(FLAME_IMG)} ${pn(e.p)} — every crate in its place. Ye baked it!`
+              :`${iconImg(FLAME_IMG)} ${pn(e.p)} opens the crates — every one in its place!`,
       caps:[[e.p,`${iconImg(FLAME_IMG)} baked!`]]};
     // "n of five in place" reads as progress; "you got n wrong" reads as a scolding. Same number.
     const n=e.correct,left=e.left;
     return {cls:"battle",
-      txt:mine?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye lift the bowls: ${n} of 5 in place. ${left} to go, and they'll be shuffled again.`
-              :`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} lifts the bowls — ${n} of 5 in place, ${left} still to find.`,
+      txt:mine?`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} — ye open the crates: ${n} of 5 in place. ${left} to go, and they'll be shuffled again.`
+              :`${iconImg(CUPCAKE_IMG)} ${pn(e.p)} opens the crates — ${n} of 5 in place, ${left} still to find.`,
       caps:[[e.p,`${iconImg(CUPCAKE_IMG)} ${n}/5`]]};
   },
   // v2 rule 9: the crosswind stand-off nobody paid to break.

@@ -72,6 +72,11 @@ function cardHTML(bake){
 }
 
 /* ================= the bench ================= */
+// NAMING, so nobody tidies it: the CSS classes and local variables still say "bowl" (.bkoBowl,
+// .bkoDome, bowlForStep) while everything the player sees says CRATE. The rename was Wyatt's
+// 2026-08-08 call to match the rest of the game, where a crate is already what ingredients live in;
+// renaming the identifiers too would touch the engine's pure core, its property tests and the CSS
+// for no player-visible gain. The rule is simply: player-facing strings say crate, code says bowl.
 // A bowl is: the ingredient art, a dome that slides down over it, and a badge for the number the
 // player assigns. `data-pos` is the bowl's PHYSICAL index and never changes — the swap animation
 // moves elements visually and then commits by swapping their contents, so a bowl's identity as
@@ -98,7 +103,7 @@ function benchHTML(bake,slots){
   return `<div class="bkoRow">`+slots.map((ing,pos)=>{
     const lk=bake.locked[pos];
     return `<button class="bkoBowl${lk?" locked":""}" data-pos="${pos}" type="button"
-       aria-label="${lk?`Bowl ${pos+1}, step ${step[pos]}, already placed`:`Bowl ${pos+1}`}">
+       aria-label="${lk?`Crate ${pos+1}, step ${step[pos]}, already placed`:`Crate ${pos+1}`}">
        <span class="bkoBack"></span>
        <img class="bkoIng" src="${ING_IMG[ing]}" alt="">
        <span class="bkoDome"></span>
@@ -226,9 +231,9 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // second copy of the duration.
   if(document.querySelector("#actionPanel .apMsg.fadeOut"))await sleep(GHOST_FADE_MS+80);
   {const g0=$("bkoGo"); if(g0)g0.disabled=false;}   // the bench is clean; the button is now real
-  // The ghost bowls (see .bkoBack) fade up for the study phase, so "Study the bowls" has bowls to
-  // point at. They go the moment the real domes come down — from then on the bowl the player is
-  // tracking is the solid one.
+  // The ghost crates (see .bkoBack) fade up for the study phase, so the ingredients are sitting IN
+  // something rather than floating on an empty bench. They go the moment the real crates close over
+  // them — from then on the crate the player is tracking is the solid one.
   row.classList.add("bkoStudy");
 
   // ---- phase 1: THE PLAYER DECIDES WHEN TO START ----
@@ -302,7 +307,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // is 2 then 4, not 1 to 5, and saying so is the difference between the player counting and the
   // player playing.
   if(hint)hint.textContent=openSteps.length===n
-    ?"Tap the bowls in recipe order. Tap again to undo."
+    ?"Tap the crates in recipe order. Tap again to undo."
     :`${openSteps.length} left — tap them for step${openSteps.length>1?"s":""} ${listSteps(openSteps)}. Tap again to undo.`;
   setNeedsAction(true);
   // The same button served as "Ready to bake!"; it becomes the confirm control now, disabled until
@@ -354,7 +359,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       paintButtons();
       const hintEl=$("bkoHint");
       const was=hintEl?hintEl.textContent:"";
-      if(hintEl)hintEl.textContent="Watch closely — the bowls move again.";
+      if(hintEl)hintEl.textContent="Watch closely — the crates move again.";
       paintBench(shown);
       row.classList.add("bkoStudy");
       bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.remove("covered"); });
@@ -418,7 +423,7 @@ export async function bakeoffReveal(p,result){
   // a decision that has already resolved.
   const go=$("bkoGo");
   if(go){go.disabled=true;go.textContent="In the oven…";}
-  if(hint)hint.textContent="Lifting the bowls…";
+  if(hint)hint.textContent="Opening the crates…";
   for(let k=0;k<bake.order.length;k++){
     const bowl=bake.slots.indexOf(bake.order[k]);
     const el=bowls[bowl];
@@ -433,7 +438,7 @@ export async function bakeoffReveal(p,result){
   }
   if(hint){
     const got=result.correct.filter(Boolean).length;
-    hint.textContent=result.perfect?"Every bowl in its place — ye baked it!"
+    hint.textContent=result.perfect?"Every crate in its place — ye baked it!"
       :`${got} of 5 in place. Those stay put; the rest get shuffled again tomorrow.`;
   }
   await sleep(VERDICT_MS);
