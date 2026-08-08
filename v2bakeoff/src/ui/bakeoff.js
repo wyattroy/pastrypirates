@@ -99,6 +99,7 @@ function benchHTML(bake,slots){
     const lk=bake.locked[pos];
     return `<button class="bkoBowl${lk?" locked":""}" data-pos="${pos}" type="button"
        aria-label="${lk?`Bowl ${pos+1}, step ${step[pos]}, already placed`:`Bowl ${pos+1}`}">
+       <span class="bkoBack"></span>
        <img class="bkoIng" src="${ING_IMG[ing]}" alt="">
        <span class="bkoDome"></span>
        <span class="bkoNum">${lk?step[pos]:""}</span>
@@ -225,6 +226,10 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // second copy of the duration.
   if(document.querySelector("#actionPanel .apMsg.fadeOut"))await sleep(GHOST_FADE_MS+80);
   {const g0=$("bkoGo"); if(g0)g0.disabled=false;}   // the bench is clean; the button is now real
+  // The ghost bowls (see .bkoBack) fade up for the study phase, so "Study the bowls" has bowls to
+  // point at. They go the moment the real domes come down — from then on the bowl the player is
+  // tracking is the solid one.
+  row.classList.add("bkoStudy");
 
   // ---- phase 1: THE PLAYER DECIDES WHEN TO START ----
   // (Wyatt, 2026-08-08: "It was REALLY hard!! Don't hide the cups after a few seconds — let the user
@@ -240,6 +245,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   });
 
   // ---- phase 2: domes down ----
+  row.classList.remove("bkoStudy");
   bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
   await sleep(reduced?60:COVER_MS);
 
@@ -350,8 +356,10 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       const was=hintEl?hintEl.textContent:"";
       if(hintEl)hintEl.textContent="Watch closely — the bowls move again.";
       paintBench(shown);
+      row.classList.add("bkoStudy");
       bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.remove("covered"); });
       await sleep(reduced?400:900);
+      row.classList.remove("bkoStudy");
       bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
       await sleep(reduced?60:COVER_MS);
       await runSwaps();

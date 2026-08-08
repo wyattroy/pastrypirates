@@ -1023,14 +1023,26 @@
     position: relative; padding: 0; border: none; background: none; cursor: pointer;
     border-radius: 10px; }
   .bkoBowl.locked { cursor: default; }
-  .bkoIng { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; }
+  .bkoIng { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; z-index: 1; }
+  /* THE GHOST BOWL (Wyatt, 2026-08-08: "Make the 'bowls' appear at 50% opacity behind the
+     ingredients on this screen, so that the helper text (which refers to bowls) makes more sense").
+     The study screen said "Study the bowls" over five bare ingredients on an empty bench — the
+     bowls did not exist yet on screen, so the sentence pointed at nothing.
+     A SEPARATE ELEMENT from .bkoDome, deliberately. The dome has to sit IN FRONT to hide an
+     ingredient when it comes down; this has to sit BEHIND so the ingredient stays crisp and is
+     merely resting in a bowl. Doing both with one node would mean flipping z-index mid-transition,
+     which pops. Same shape and colours, so they read as the same object at two moments. */
+  .bkoBack { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; z-index: 0;
+    border-radius: 46% 46% 14% 14%; background: linear-gradient(165deg, #4fc3d2, #2b8391);
+    border: 2px solid #1f6b78; opacity: 0; transition: opacity .26s ease; }
+  .bkoRow.bkoStudy .bkoBack { opacity: .5; }
   /* The dome is drawn, not an asset — there is no bowl art in assets/ and none needs commissioning
      to ship this. It sits ABOVE the ingredient and slides down over it.
      HEIGHT IS 100%, NOT 82%. At 82% the dome's top edge sat at 18% while .bkoIng starts at 12%, so
      the top of every ingredient poked out over a "covered" bowl — a screenshot at 360px showed the
      cinnamon sticks' tips and the cocoa pod plainly readable through the gap. A puzzle you can
      partly see the answer to is not the puzzle. */
-  .bkoDome { position: absolute; left: 0; right: 0; bottom: 0; height: 100%;
+  .bkoDome { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; z-index: 2;
     border-radius: 46% 46% 14% 14%; background: linear-gradient(165deg, #4fc3d2, #2b8391);
     border: 2px solid #1f6b78;
     /* LIFT AND FADE, rather than the -118% eject first shipped. Ejecting moved the dome a full bowl
@@ -1066,7 +1078,7 @@
   .bkoBtns { display: flex; }
   .bkoGo { font-weight: 700; }
   @media (prefers-reduced-motion: reduce) {
-    .bkoDome, .bkoNum, .bkoBowl { transition: none; }
+    .bkoDome, .bkoNum, .bkoBowl, .bkoBack { transition: none; }
     .bkoBowl.flash { animation: none; outline: 3px solid var(--orange); }
   }
   .modalTitle { line-height: 1.25; }
