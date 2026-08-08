@@ -12,4 +12,7 @@ export * from "./board.js";
 export * from "./panel.js";
 export * from "./lobby.js";
 export * from "./handlers.js";
+// v2.1 bake-off: BEFORE flow.js — flow imports nothing from it, but the barrel order mirrors
+// the dependency direction everywhere else in this file.
+export * from "./bakeoff.js";
 export * from "./flow.js";

@@ -163,5 +163,39 @@ function perfectGuess(bake){ return bake.order.map((_,k)=>bowlForStep(bake,k)); 
   check("same seed reproduces the same bake exactly",a===b,a!==b?("\n  A: "+a+"\n  B: "+b):"");
 }
 
+/* ---- 8. THE ANIMATION CONTRACT: before + swaps, applied in order, must equal slots ----
+
+   This is the invariant a shipped bug violated. The UI draws the bench from `before`, plays each
+   swap, and the player is then marked against `slots`. If replaying the swap list does not land
+   exactly on `slots`, the bowls on screen disagree with the answer — and the player only finds out
+   by losing a bake they played correctly. Nothing else in this file would notice: `slots` alone is
+   internally consistent, which is precisely why the bug survived the first seven checks.
+
+   Also asserts locked bowls hold still, since the UI relies on that to keep their badges valid. */
+{
+  const rng=mulberry32(909);
+  let mismatches=0,lockMoves=0,trials=0,withLocks=0;
+  for(let t=0;t<600;t++){
+    const bake=newBake(["sugar","eggs","vanilla","cocoa","wheat"]);
+    // walk a real multi-attempt bake so later rounds are exercised with locks in place
+    for(let a=0;a<5;a++){
+      const sh=shuffleSlots(bake,rng,3);
+      trials++;
+      if(bake.locked.some(Boolean))withLocks++;
+      const replay=sh.before.slice();
+      for(const [i,j] of sh.swaps){const tmp=replay[i];replay[i]=replay[j];replay[j]=tmp;}
+      if(replay.join()!==sh.slots.join())mismatches++;
+      for(let i=0;i<bake.locked.length;i++)if(bake.locked[i]&&sh.before[i]!==sh.slots[i])lockMoves++;
+      bake.slots=sh.slots;
+      const g=botGuess(bake,rng,0.55);
+      applyResult(bake,scoreAttempt(bake,g));
+      if(bake.solved)break;
+    }
+  }
+  check("replaying `swaps` over `before` lands exactly on `slots` ("+trials+" shuffles, "+withLocks+" with locks)",
+        mismatches===0,mismatches+" shuffles ended somewhere other than the scored bench");
+  check("locked bowls never move during a shuffle",lockMoves===0,lockMoves+" locked bowls moved");
+}
+
 console.log(failures?("\n"+failures+" FAILED"):"\nall bake-off invariants hold");
 process.exit(failures?1:0);

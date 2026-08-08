@@ -93,6 +93,7 @@ import {
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
+  playBakeoffLive, bakeoffReveal,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
@@ -838,7 +839,17 @@ async function runLiveDayBakeoff(order){
    engine's own botGuess, which is exactly what a forfeited human turn will use too. */
 async function bakeTurnLive(p){
   const g=appState.game;
-  g.bakeAttempt(p,null);
+  /* SETUP FIRST, ALWAYS. The engine shuffles and computes the bot's guess in one call, in that
+     fixed order, so the seeded stream is identical whether a human is about to play or not. Only
+     then does the human path get to look at the bench. */
+  const {setup,fallback}=g.bakeSetup(p);
+  let answer=fallback;
+  const human=p.strategy==="human"&&!appState.replaying;
+  if(human){
+    answer=await playBakeoffLive(p,setup)||fallback;
+  }
+  const out=g.bakeResolve(p,answer);
+  if(human)await bakeoffReveal(p,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
   // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking

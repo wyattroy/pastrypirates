@@ -45,6 +45,14 @@ export function newBake(order){
 // disagrees with the answer they are about to be marked against — a bug that would be invisible
 // until somebody lost a bake they had played correctly.
 //
+// `before` IS PART OF THAT CONTRACT, and the reason it exists is a bug that shipped without it.
+// The engine assigns bake.slots = the FINAL bench the instant it shuffles, so a UI that renders
+// from bake.slots is already looking at the answer — and then plays the swap animation on top,
+// landing on a doubly-shuffled bench. Caught by screenshot at 360px: a bowl badged "step 2 — beat
+// in the sugar" was sitting over the vanilla. The animation must START from `before` and ARRIVE at
+// `slots`; the invariant that swaps applied in order turn one into the other is asserted in
+// scripts/bakeoff_test.js so it cannot rot.
+//
 // Swaps are drawn only from unlocked positions (rule: a solved bowl never moves again), so the
 // puzzle shrinks with every attempt. Two guards matter:
 //   - fewer than 2 unlocked bowls  -> nothing can be swapped; returns an empty list rather than
@@ -55,7 +63,8 @@ export function shuffleSlots(bake,rng,swaps=3){
   const open=[];
   for(let i=0;i<bake.slots.length;i++)if(!bake.locked[i])open.push(i);
   const list=[];
-  if(open.length<2)return {slots:bake.slots.slice(),swaps:list};
+  const before=bake.slots.slice();
+  if(open.length<2)return {before,slots:bake.slots.slice(),swaps:list};
   const slots=bake.slots.slice();
   for(let s=0;s<swaps;s++){
     const a=open[Math.floor(rng()*open.length)];
@@ -66,7 +75,7 @@ export function shuffleSlots(bake,rng,swaps=3){
     const t=slots[a];slots[a]=slots[b];slots[b]=t;
     list.push([a,b]);
   }
-  return {slots,swaps:list};
+  return {before,slots,swaps:list};
 }
 
 /* ================= scoring an attempt ================= */

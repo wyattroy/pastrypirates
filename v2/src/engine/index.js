@@ -1513,14 +1513,26 @@ class Game{
      stream from forking on "is this seat human?", which is the classic source of replay desync in
      this codebase. It also hands the shot clock a free, deterministic default for a 30s forfeit.
      The shuffle likewise always runs, so live and headless consume identical randomness. */
-  bakeAttempt(p,guess){
+  /* SPLIT IN TWO so the live path can show the shuffle, wait for a human, and only then score —
+     while the headless path does all three in one call. The rng ORDER is identical either way
+     (shuffle, then the bot's guess, then nothing else draws), which is what keeps a live game and
+     the simulator on the same seeded stream. Do not reorder these two draws. */
+  bakeSetup(p){
     // BOUND, not passed bare: r() increments this.randCalls, so handing the pure core `this.r`
     // detaches it from the instance and throws on the first draw. Caught by the first balance run.
     const rng=()=>this.r();
     const setup=shuffleSlots(p.bake,rng,BAKE_SWAPS);
     p.bake.slots=setup.slots;
+    // computed for EVERY seat, human or bot: it keeps the stream from forking on "is this seat
+    // human?", and it is the forfeit answer if a human's shot clock runs out.
     const fallback=botGuess(p.bake,rng,BAKE_ATTENTION);
-    const answer=guess||fallback;
+    return {setup,fallback};
+  }
+  bakeAttempt(p,guess){
+    const {setup,fallback}=this.bakeSetup(p);
+    return {setup,...this.bakeResolve(p,guess||fallback)};
+  }
+  bakeResolve(p,answer){
     const res=scoreAttempt(p.bake,answer);
     applyResult(p.bake,res);
     this.ev({t:"bake",p:p.idx,attempt:p.bake.attempts,
@@ -1529,7 +1541,7 @@ class Game{
       p.bakedToday=true;
       this.ev({t:"finish",p:p.idx});
     }
-    return {setup,answer,res,solved:p.bake.solved};
+    return {answer,res,solved:p.bake.solved};
   }
   // Every captain at the ovens, in turn order. Bakes resolve together at the END of a day so that
   // arriving on the same day is a fair race rather than an accident of seat order (Wyatt's ruling).
