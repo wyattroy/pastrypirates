@@ -121,7 +121,9 @@ function shellHTML(p,bake,slots,hint){
 //
 // `setup.swaps` is the engine's own list. Animating that rather than re-deriving one is the single
 // most important line in this file.
-export async function playBakeoffLive(p,setup){
+// `onArm` is called at the exact moment the bench becomes answerable — see bakeoffPrompt (flow.js)
+// for why the shot clock starts there and not when the prompt opened.
+export async function playBakeoffLive(p,setup,onArm){
   const bake=p.bake;
   const n=bake.order.length;
 
@@ -203,6 +205,7 @@ export async function playBakeoffLive(p,setup){
     ?"Tap the bowls in recipe order. Tap again to undo."
     :`${openSteps.length} left — tap them for step${openSteps.length>1?"s":""} ${listSteps(openSteps)}. Tap again to undo.`;
   setNeedsAction(true);
+  if(onArm)onArm();
 
   return await new Promise(resolve=>{
     const picks=[];                       // bowl indices, in the order tapped

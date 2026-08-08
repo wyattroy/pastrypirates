@@ -1565,11 +1565,23 @@ export function resumeSoloGame(saved){
   // seaBase rides along so the replay narrates the SAME creatures the live voyage did; a save from
   // before this existed has none, and 0 is exactly the behaviour it had.
   const seaBase=saved.seaBase||0;
-  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
+  // v2.1: THE RULESET RIDES ALONG TOO, for a sharper reason than seaBase's. cfg is rebuilt from
+  // roundCfg() here, which reads whatever the flag says RIGHT NOW — so a voyage played with the
+  // bake-off on and resumed with it off (or resumed on a `?bakeoff=0` link) would replay its
+  // decision log against a structurally different game: different turn loop, different rng draws,
+  // and a log whose entries no longer line up with the decisions being asked for. A save from
+  // before this field existed has no opinion, and inheriting the current flag is the only sensible
+  // reading of an old save.
+  const bakeoff=saved.bakeoff===undefined?undefined:!!saved.bakeoff;
+  const meta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
                       :{name:saved.name,strategies:saved.strategies,seed:saved.seed,seaBase};
+  if(bakeoff!==undefined)meta.bakeoff=bakeoff;
+  appState.soloMeta=meta;
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;
-  netHandlers().onBeginGame(roundCfg(saved.strategies),saved.seed);
+  const cfg=roundCfg(saved.strategies);
+  if(bakeoff!==undefined)cfg.bakeoff=bakeoff;
+  netHandlers().onBeginGame(cfg,saved.seed);
 }
 // notes/edits BUG-03/BUG-04: decide whether a host-refresh replay actually rebuilt the voyage.
 // The yardstick is resumeEvLen — the Firebase event count captured BEFORE the reload (see

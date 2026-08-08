@@ -93,7 +93,7 @@ import {
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
-  playBakeoffLive, bakeoffReveal,
+  bakeoffPrompt, bakeoffReveal,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
@@ -843,13 +843,13 @@ async function bakeTurnLive(p){
      fixed order, so the seeded stream is identical whether a human is about to play or not. Only
      then does the human path get to look at the bench. */
   const {setup,fallback}=g.bakeSetup(p);
-  let answer=fallback;
-  const human=p.strategy==="human"&&!appState.replaying;
-  if(human){
-    answer=await playBakeoffLive(p,setup)||fallback;
-  }
+  const human=p.strategy==="human";
+  // bakeoffPrompt owns replay, the decision log and the shot clock (see its note in flow.js). It is
+  // called for a human seat even under replay — that is the whole point, since it is what returns
+  // the guess the player ACTUALLY made rather than re-deriving one from the bot.
+  const answer=human?await bakeoffPrompt(p,setup,fallback):fallback;
   const out=g.bakeResolve(p,answer);
-  if(human)await bakeoffReveal(p,out.res);
+  if(human&&!appState.replaying)await bakeoffReveal(p,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
   // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking

@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKEOFF_ENABLED, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKEOFF_ENABLED, bakeoffEnabled, man, ilabelImg } from "../shared/index.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { newBake, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
 
@@ -1728,7 +1728,12 @@ function roundCfg(strategies){
     // v2.1: threaded onto cfg rather than read at each call site, so a headless run can flip it PER
     // GAME to compare rulesets in one process, and so a solo save carries the value it was played
     // under (cfg is rebuilt from roundCfg() on resume).
-    bakeoff:BAKEOFF_ENABLED};
+    //
+    // bakeoffEnabled(), NOT the bare constant: it is what honours `?bakeoff=0/1`, which is the whole
+    // point of having the override — A/B'ing both rulesets on a phone with no redeploy. Reading
+    // BAKEOFF_ENABLED here left that switch wired to nothing. It falls back to the constant wherever
+    // there is no location to read (every headless script), so the simulator is unaffected.
+    bakeoff:bakeoffEnabled()};
 }
 
 export { rollStorm, PERSONALITY, PLAN, Game, roundCfg };
