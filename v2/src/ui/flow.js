@@ -283,11 +283,13 @@ export function pickCell(p,cells){
    day would get no handoff between them at all. passGate is a no-op in solo and whenever the
    device is already with the right seat, so this costs those modes nothing.
 
-   MULTIPLAYER IS OUT OF SCOPE by decision (Wyatt, 2026-08-08: "we're only doing solo and pass and
-   play mode"), not by omission. decisionIsLocal covers both supported modes — solo has one human
-   seat, and pass-and-play treats every human seat as local — so the remote branch below is
-   unreachable in the modes this game ships. It falls back to the engine's own guess rather than
-   hanging, which is the same thing a shot-clock forfeit does. */
+   THERE IS NO REMOTE PATH, and that is a decision rather than an omission. Wyatt, 2026-08-08:
+   *"This is all built for v2 which doesn't have multiplayer — we're testing the game dynamic."*
+   v2's welcome screen has no Host a Crew or Join a Crew (index.html), and in the two modes it does
+   ship every human seat is local — solo has one, and pass-and-play treats them all as local. So a
+   remote branch would be unreachable code whose only behaviour is to forfeit somebody's bake to
+   the bot without telling them. The FALLBACK below is a different thing and is genuinely live: it
+   is the shot-clock forfeit, which any mode can hit. */
 export async function bakeoffPrompt(p,setup,fallback){
   // Before the replay early-return, exactly as humanTurn does it: passGate self-handles replay by
   // silently syncing appState.mySeat rather than showing anything, and a baker never takes an
@@ -300,15 +302,17 @@ export async function bakeoffPrompt(p,setup,fallback){
   }
   setActor(p.idx);
   netHandlers().onBroadcast(`${pn(p.idx)} steps up to the ovens…`,[{seat:p.idx,html:""}]);
-  const local=decisionIsLocal(p.idx);
+  // NO decisionIsLocal BRANCH, deliberately. v2 ships solo and pass-and-play only — Host a Crew and
+  // Join a Crew are gone from the welcome screen (index.html) — and in both of those every human
+  // seat is local by definition. A remote branch here would be a path no test can reach and no
+  // player can trigger, whose only behaviour is to hand somebody's bake to the bot without saying
+  // so. A silent forfeit down a dead branch is strictly worse than not having the branch.
   let resolveArmed;const armed=new Promise(res=>{resolveArmed=res;});
-  const base=local?playBakeoffLive(p,setup,()=>{armClock(p.idx);resolveArmed();})
-    :Promise.resolve(null);
-  // Belt: playBakeoffLive can return before it ever arms (it bails out if the bench failed to
-  // render), and a non-local seat never arms at all. Either way `armed` must still settle or the
-  // chain below waits forever and the voyage stops — which is worse than an unclocked decision.
+  const base=playBakeoffLive(p,setup,()=>{armClock(p.idx);resolveArmed();});
+  // Belt: playBakeoffLive can return before it ever arms, because it bails out if the bench failed
+  // to render. `armed` must still settle or the chain below waits forever and the voyage stops,
+  // which is worse than an unclocked decision.
   base.then(()=>resolveArmed(),()=>resolveArmed());
-  if(!local)resolveArmed();
   return armed.then(()=>withShotClock(p.idx,base,null))
     .then(g=>{
       const answer=fillLocked(p.bake,g||fallback);
