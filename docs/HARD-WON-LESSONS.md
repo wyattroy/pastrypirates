@@ -5,7 +5,11 @@ evidence that earned each rule. Written 2026-08-05 during the v2.1 build and pla
 
 Sibling to `docs/DRIVING-THE-GAME.md` (which is *how* to drive the game). This is *what to distrust*.
 
-Read the top two sections before touching a file. Everything else is reference.
+**Read this whole document at the start of every session.** Not the top two sections — all of it.
+The 2026-08-08 bake-off session hit **three lessons already written here** and paid for each of them
+again: `http.server` inheriting the cwd (§1), `no_undef_check` seeing only call-position identifiers
+(§3), and shipping a check that could not fail (§2). Every one was already on this page, in these
+words, and none of them was read. A document nobody opens is not a safeguard, it is a diary.
 
 ---
 
@@ -51,6 +55,31 @@ git diff --name-only | grep -v '^v2/'   # must print NOTHING
 ```
 
 One line. It is the only thing that actually caught this, twice.
+
+### `git checkout <ref> -- <dir>` restores, but never deletes
+
+Restoring `v2/` from `origin/main` left three files behind — the ones that exist on the branch and
+not on main. Checkout writes what the ref has; it does not remove what the ref lacks. `git diff
+--quiet <ref> -- <dir>` said "differs" and named them, which is the only reason it was caught.
+
+The same command also **silently reverted an earlier refactor** in that directory. A later scripted
+edit then targeted the refactored signature, matched nothing, and did nothing — see below.
+
+### A scripted `s.replace()` that matches nothing fails silently
+
+Python string replacement is not an error when the target is absent; it returns the input unchanged
+and the script reports success. Two edits in one session no-oped this way. One was caught by a gate,
+one only by the ordering accident of a later assert.
+
+```python
+assert old in s, "target not found"   # on EVERY replacement, without exception
+s = s.replace(old, new)
+```
+
+**And order the edits: prose first, mechanical global replaces second.** A global
+`s.replace("!q.done", ...)` rewrote the very comment text a later match depended on, so that later
+assert failed and the whole script aborted having written nothing. Atomic failure is the good
+outcome here — it is what the asserts buy.
 
 ### `http.server` inherits the cwd too
 
@@ -136,6 +165,13 @@ const r = el.getBoundingClientRect(), b = svg.getBoundingClientRect();
 { left: r.left - b.left, right: r.right - b.left, boardW: b.width }
 ```
 
+### Emphasis is a measurement, not a look
+
+`<b>` inside `.apMsg` looks like it does nothing, because `.apMsg` is already `font-weight: 700` and
+the bold only reaches 900. It IS applied; it is just nearly invisible. Read the computed
+`fontWeight` of both the container and the emphasised span before concluding either "the bold is
+broken" or "the bold is fine".
+
 ### Beware confounded metrics
 
 After teaching bots to read the storm forecast, "storm pushed them further" went **36% → 44%** and I
@@ -153,6 +189,26 @@ Pick the metric that measures the *goal*, not a proxy that moves for other reaso
 
 `href: STORM_CLOUD_IMG` — a bare value reference to an unimported constant — **passes the gate
 clean**. It would have shipped as a silently broken image. The check is a floor, not a ceiling.
+
+### A gate's ROOT is wherever the gate's FILE lives — check which tree it scans
+
+`scripts/no_undef_check.js` computes `ROOT = __dirname/..`, so from `scripts/` it scans the repo
+root's `src/` — **v1**. The copy that covers v2 is `v2/scripts/no_undef_check.js`. For an entire
+feature I ran the root one and reported "no-undef green" about code it had never opened.
+
+It passes either way, which is what makes it dangerous: a gate scanning the wrong tree is not silent,
+it is *reassuring*.
+
+```bash
+node v2bakeoff/scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
+```
+
+`module_graph_check.js` and `ui_contract_check.js` exist only at the root and have **no v2
+equivalent at all**, so they have never covered v2. Do not quote them as passing for v2 work.
+
+**Prove a gate covers the file you care about**: plant a deliberate fault in that exact file, watch
+it fail, revert. It takes twenty seconds and it is the only thing that distinguishes "green" from
+"blind".
 
 ### Chrome caches ES modules per URL
 
@@ -185,8 +241,24 @@ Immune to params, bodies, template literals and nesting alike.
 - **Bound every probe and kill it the moment you have the answer.** `ps aux | grep chrome-linux` and
   `grep http.server` both at zero before you finish. A worker restart mid-session killed two
   background runs and left orphans.
-- **`pkill` inside a compound command aborts the rest of it.** `pkill -f x && cat > /tmp/y <<'EOF'`
-  exits 144 and never writes the file — which then "does not exist" a moment later.
+- **`pkill -f <pattern>` KILLS YOUR OWN SHELL when the pattern is in your own command line.** This
+  is the cause behind the entry that used to sit here ("pkill inside a compound command aborts the
+  rest of it") — it does not abort, it is *killed*, because `-f` matches full command lines and yours
+  contains the literal pattern. Proved directly: `pgrep -af "unique-marker-abc123"` returns the very
+  bash process running it. The cost is not the odd exit code, it is that **everything after the
+  pkill never runs** — including, repeatedly, the `ps | grep` that printed "(clean)". Cleanup was
+  reported as verified by a command that had already been killed.
+
+  ```bash
+  pkill -9 -f "[r]emote-debugging-port"   # the bracket cannot match its own command line
+  ```
+
+- **A probe that times out is not evidence of absence.** An 18s and a 30s window against a ~50s game
+  day both reported "the bench never appears", which read exactly like a broken feature. It appeared
+  at 48s. Size the window from the thing being waited on, and say what you actually waited.
+- **A loop that never breaks will hand you its last sample as if it were the answer.** A 70-iteration
+  poll whose `if (found) break` never fired still ended with a truthy-looking final reading, and it
+  was reported as success. If a loop has a break condition, assert that it broke.
 - **A driven game takes tens of minutes to reach an end of voyage.** Inject the state instead
   (`DRIVING-THE-GAME.md` §5e). Injecting a full recipe at a human prompt reached the End of Voyage
   screen in ~90 seconds.
@@ -223,6 +295,16 @@ forfeit branch in **both** turn paths, and a how-to-play paragraph.
 
 It cost nothing measurable: storms still shove 2.9 squares (most of a turn's sailing) and still fling
 ~0.85 ships per storm into the rim; **median game length did not move**.
+
+### A justification rots independently of the behaviour it justifies
+
+A comment explained why only baking ships fade, on the grounds that a docked finisher "is still a
+legal target, still worth attacking". True in v2 classic. False in the bake-off, where Tortuga is
+sanctuary and `done` is only ever set by the call that ends the voyage. The **behaviour was correct**
+and the **stated reason was not** — carried across from the other ruleset and asserted as current.
+
+Wyatt caught it, because a wrong reason is what the next change gets built on. When a rule is copied
+between two rulesets, re-derive why it holds in the second one; do not port the sentence.
 
 ### One word meaning three things will produce a family of bugs
 
@@ -280,6 +362,20 @@ fights**. Test held crates against `recipe`, not `needs`.
   (`viewport: {width:430,height:930}`) and send it. Do not describe what it will look like.
 - **When he says a diagnosis is wrong, re-measure — do not defend it.** Both times he pushed back
   this session he was right and I was reasoning from too little.
+- **Flagging an assumption afterwards is not asking.** "Simplified recipe" was genuinely ambiguous.
+  I noticed that it was, picked a reading, shipped it, and *then* told him which reading I had picked.
+  That is not disclosure, it is moving the correction downstream onto him — and it cost a round. If a
+  term he used could mean two different builds, ask before building.
+- **Never quote him a URL without checking what is deployed there.** He was sent to
+  `playpastrypirates.com/v2/?ovens=1` for a flag that existed only on an unmerged branch, and spent
+  two turns staying put waiting for a feature that was not there. `git ls-tree origin/main -- <path>`
+  before naming a link.
+- **When he corrects a decision he made earlier, he is almost certainly right — go and read the
+  code.** Both times this session he pushed back on a rule ("a docked finisher is NOT raidable"), the
+  code agreed with him and the comment I had written did not.
+- **Ignore the apostrophe glyphs in copy he sends.** He drafts in Notes on a phone, which substitutes
+  a curly `'` automatically. The game's copy is straight `'` throughout (41 to 0). Normalise silently;
+  he has asked not to be asked about it again.
 - **Frame trade-offs with numbers.** Every design decision he made quickly was one where he was
   handed real measurements ("34.8% of your reachable squares are storm-proof, the shove helps 25% of
   the time") rather than adjectives.

@@ -724,7 +724,17 @@ Everything that has gone wrong, nearly gone wrong, or cost real time on this pro
 document: **`docs/HARD-WON-LESSONS.md`**. It is the sibling of `docs/DRIVING-THE-GAME.md` — that one
 is *how* to drive the game, this one is *what to distrust*.
 
-**Read its first two sections before touching a file.** They are the two that have actually bitten:
+**READ IT AT THE START OF EVERY SESSION, ALL OF IT, BEFORE THE FIRST TOOL CALL.** Not the first two
+sections — the whole document. This instruction is stronger than it was because the weaker version
+failed: on 2026-08-08 a session hit **three lessons already written in that file** and paid for each
+again — `http.server` inheriting the cwd, `no_undef_check` seeing only call-position identifiers, and
+shipping a check that could not fail. All three were on the page, in those words, unread. Reading it
+costs a minute; not reading it has now cost parts of three sessions.
+
+Wyatt, 2026-08-08: *"Write down all of your recent learnings to your document where you record
+these — and then tell me what it is called, and make yourself read it before starting new sessions."*
+
+The two sections that have bitten most often, if you read nothing else:
 
 1. **Absolute paths, always.** The Bash tool's cwd resets and announces it at the bottom of unrelated
    output. `v2/` mirrors the repo's layout, so `src/ui/util.js` resolves in BOTH trees — a mis-rooted
