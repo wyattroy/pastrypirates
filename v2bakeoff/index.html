@@ -465,8 +465,17 @@
        types in, not after ("the Back button should appear first ... this is not arbitrary").
      .apSub JOINS it: the italic helper line sits under the message and above the buttons, and was
        painting instantly, ahead of the text it explains ("it should honestly appear with the
-       buttons"). */
-  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apSub { visibility: hidden; }
+       buttons").
+     .bkoCard JOINS it too (Wyatt, 2026-08-08): the bake-off's intro card puts the recipe UNDER the
+       message, and the typewriter only walks .apMsg — so the recipe painted in full while the
+       sentence introducing it was still being typed. Same fault as .apSub's, in a new element,
+       which is exactly what the standing rule warns about: a new element's reveal order follows
+       its visual position and does not get re-decided each time.
+     This does NOT touch the bench, where the same .bkoCard class appears: the bench shell carries
+       .bkoBtns rather than .apBtns precisely so panel() never gates it (see .bkoBtns below), so
+       pendingReveal is never added there and the card shows immediately, as it should. */
+  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apSub,
+  #actionPanel.pendingReveal .bkoCard { visibility: hidden; }
   .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
   @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
   /* ---- battle scoreboard ---- */
