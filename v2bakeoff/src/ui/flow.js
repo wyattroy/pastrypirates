@@ -701,7 +701,7 @@ export async function runStormLive(dirKey){
 }
 /* v2 rules 10 + 11: dock, then buy.
    The flip is a TREASURE HUNT, not a grab for the crate: heads you turn up buried treasure
-   (6🌕), tails you spend the turn working the dock as a hand (2🌕). There is no free crate any
+   (cfg.dockHeads), tails you spend the turn working the dock as a hand (cfg.dockTails). There is no free crate any
    more — crates are bought, won in battle, or traded for. The purchase is offered after EITHER
    outcome, on the same turn, with the coins just earned (rule 10a/10c), and the price is
    6 − however many crates are left on the island, so it climbs 3 → 4 → 5 as the island empties. */

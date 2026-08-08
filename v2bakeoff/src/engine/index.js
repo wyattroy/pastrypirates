@@ -692,8 +692,8 @@ class Game{
     return Math.max(1,this.cfg.crateBase-left);
   }
   // v2 rule 10: docking is a treasure hunt, THEN a purchase. The flip only decides your payday —
-  // heads you turn up buried treasure (6🌕), tails you spend the turn working the dock as a hand
-  // (2🌕). There is no free crate any more: crates are bought, won, or traded for (rule 10b).
+  // heads you turn up buried treasure (cfg.dockHeads), tails you spend the turn working the dock as
+  // a hand (cfg.dockTails). There is no free crate any more: crates are bought, won, or traded for (rule 10b).
   // Buying is offered after EITHER outcome and may use the coins just earned (rule 10c).
   doDock(p,port){
     const ing=port,k=port; // ports are identified by ingredient name
@@ -1775,7 +1775,17 @@ function roundCfg(strategies){
     // rule 9c: powder still 2 up front. rule 9b: another 2 buys a fresh broadside, repeatable.
     powder:2,refire:2,callBounty:2,
     // rule 10: heads finds treasure, tails is a turn of dock work. rule 11: price = 6 − crates left.
-    dockHeads:6,dockTails:2,crateBase:6,
+    // TREASURE PAYS 5, NOT 6 (Wyatt, 2026-08-08: "Can we lower treasure to 5?"). Measured over 600
+    // normal-length voyages, this is what the number moves:
+    //   pays  ends with (median)  mean  ends broke  HOLDS AT THE OVENS
+    //     6           4            5.2      21%            6
+    //     5           3            3.5      29%            3
+    //     4           2            2.1      49%            2
+    // The end-of-voyage purse was never the real problem — crates already absorb ~81% of all dock
+    // income. What mattered is the last column: a captain reaching the ovens with 6 coins can buy
+    // six looks at the same three swaps, which stops being a memory test. 5 halves that to three
+    // looks while leaving the midgame able to fund itself. The peek price is deliberately untouched.
+    dockHeads:5,dockTails:2,crateBase:6,
     dockBuy:true,merchant:true,parley:true,
     // rule 4e: no harbor-tax refund on a struck trade. rule 3: no fishing, so no sardine rule.
     asym:false,storm:0.20,islandW:2,islandH:2,tetris:true,singleDock:true,

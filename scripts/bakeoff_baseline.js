@@ -15,6 +15,20 @@
 //
 //   node scripts/bakeoff_baseline.js --write     capture (run this BEFORE changing the engine)
 //   node scripts/bakeoff_baseline.js             verify against the captured file
+//
+// RE-BASED ONCE, 2026-08-08, and here is exactly why — because a re-captured baseline is worthless
+// if nobody records what moved. Wyatt lowered buried treasure from 6 coins to 5 (roundCfg's
+// dockHeads), which is a deliberate change to the RULESET, not a leak from the bake-off. It moved
+// 181 of 200 games, as any economy change would.
+//
+// It was proved to be the only cause before re-capturing, rather than assumed: setting dockHeads
+// back to 6 with every other line of the feature still in place returned all 200 games to
+// byte-identical. So the flag-off path is still inert with respect to the BAKE-OFF; it has simply
+// been re-anchored to the v2bakeoff ruleset, which now deliberately differs from /v2/'s.
+//
+// What this file still guarantees: no FURTHER bake-off code leaks into the disabled path from here.
+// What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/. That
+// stopped being true on purpose.
 
 import fs from "node:fs";
 import path from "node:path";
