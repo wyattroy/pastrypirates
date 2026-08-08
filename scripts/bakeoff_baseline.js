@@ -30,7 +30,9 @@ const STRATS=["pirate","trader","balanced","rusher"];
 // One game -> a stable string. Only fields that affect what a player SEES or what the engine
 // DECIDES are included; anything cosmetic is left out so the fingerprint doesn't churn on copy edits.
 function fingerprint(seed){
-  const g=new Game(roundCfg(STRATS),seed,true);
+  // FORCE THE FLAG OFF. This corpus exists to prove the DISABLED path is unchanged, so it must
+  // never inherit whatever BAKEOFF_ENABLED happens to be set to while the feature is being built.
+  const g=new Game({...roundCfg(STRATS),bakeoff:false},seed,true);
   const w=g.play();
   const parts=g.events.map(e=>{
     const keep=["t","p","a","d","dir","ing","winner","heads","got","kind","spoilIng","dist","round"];
