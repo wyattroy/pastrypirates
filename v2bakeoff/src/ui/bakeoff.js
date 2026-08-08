@@ -148,11 +148,17 @@ function shellHTML(p,bake,slots,hint,btnLabel,btnEnabled){
 function bakeoffIntroCard(bake){
   return new Promise(res=>{
     // @copy prompt.bakeoff.intro
-    // WYATT'S OWN WORDS, 2026-08-08, verbatim — with "roarin'", which he asked for on the second
-    // pass. His copy is the copy.
-    panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens are roarin'! The ingredients are
-      ready. To bake your <b>${escHtml(recipeTitle(bake.order))}</b>, add them in the correct
-      order.<br><br>Your recipe:</div>
+    // WYATT'S OWN WORDS, 2026-08-08 — he rewrote this himself into the register ("I'm bad at
+    // pirate", then two passes fixing my English back into his). His copy is the copy.
+    //
+    // APOSTROPHES ARE NORMALISED TO STRAIGHT, on his standing instruction: "Ignore my glyphs, I'm
+    // writing them in notes and cannot control them. Keep game consistency." He drafts on a phone
+    // where Notes substitutes a curly ' automatically, so the glyph in what he sends is an artefact
+    // of his keyboard rather than a choice. This file's copy is 41 straight elisions and zero curly,
+    // so straight it is — words untouched, and no need to ask again.
+    panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens be roarin'! Yer ingredients be
+      waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.<br><br>
+      <b>${escHtml(recipeTitle(bake.order))}</b></div>
       ${cardHTML(bake)}
       <div class="apSub">Add them in this exact order or it's a ruined mess.</div>
       <div class="apBtns"><button class="apBtn" id="bkoIntroGo" type="button">To the bench!</button></div>`,true);
