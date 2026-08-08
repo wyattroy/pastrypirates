@@ -1559,7 +1559,18 @@ class Game{
       correct:res.correct.filter(Boolean).length,left:unsolvedCount(p.bake),solved:p.bake.solved});
     if(p.bake.solved){
       p.bakedToday=true;
-      this.ev({t:"finish",p:p.idx});
+      // NO `finish` EVENT HERE (Wyatt, 2026-08-08: "There is a final narration after the successful
+      // bakeoff which should be removed: 'ye return to tortuga with a full recipe!'").
+      //
+      // The plan for this feature said the existing `finish` copy was "already right and is reused,
+      // not replaced". It was right for ARRIVING — which under the bake-off is what the `ovens`
+      // event already narrates, days earlier. Firing it again on a successful bake told the player
+      // they had just sailed home, at the exact moment they had in fact just baked, and immediately
+      // after the `bake` line that says so properly ("every bowl in its place — ye baked it!").
+      //
+      // Nothing else needed it: finishOrder is built by endBakeDay from `bakedToday`, not from this
+      // event, EVENT_SOUND.finish is explicit silence, and no code branches on the event type.
+      // checkFinish keeps its own `finish` — on the classic path that line is exactly true.
     }
     return {answer,res,solved:p.bake.solved};
   }
