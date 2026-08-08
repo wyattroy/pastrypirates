@@ -7,7 +7,7 @@
 
 import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, BAKEOFF_ENABLED, bakeoffEnabled, man, ilabelImg } from "../shared/index.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
-import { newBake, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
+import { newBake, scrambleBench, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
 
 // notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
 // exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
@@ -1523,6 +1523,9 @@ class Game{
     if(!authored)console.error("bake-off: no step order for recipe",p.recipe);
     p.baking=true;
     p.bake=newBake(authored?authored.ings:p.recipe.slice());
+    // The bench the captain studies is SCRAMBLED, not the recipe laid out in order — see
+    // scrambleBench. Bound rng, never `this.r` bare: r() increments this.randCalls and detaches.
+    scrambleBench(p.bake,()=>this.r());
     this.ev({t:"ovens",p:p.idx});
     return true;
   }

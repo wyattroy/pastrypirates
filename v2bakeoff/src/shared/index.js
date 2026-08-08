@@ -344,12 +344,30 @@ const STORM_PUSH=3;
    rebuilt from roundCfg() on resume, so a save made with it on and resumed with it off would replay
    a decision log against a structurally different game).
 
-   BAKE_ATTENTION is the bot's per-bowl memory, tuned by a 40k-trial sweep to a mean of 2.52 attempts
-   — the same curve as a decent human. It is NOT a difficulty dial for the player: raising it makes
-   bots better, it does not make the puzzle harder. */
+   BAKE_ATTENTION is the bot's per-crate memory. NOT a difficulty dial for the player: raising it
+   makes bots better, it does not make the puzzle harder.
+
+   RETUNED 0.28 -> 0.24 (Wyatt, 2026-08-08: "The bots should take 2-3 turns to finish the bakeoff,
+   getting 1-2 more ingredients right per attempt. Tune them so this is the case."). Measured over
+   60k bakes per candidate:
+
+     att    mean attempts   1st attempt   newly-correct per later attempt
+     0.20        2.94          2.00                 1.54
+     0.24        2.72          2.20                 1.63     <- both criteria inside their bands
+     0.28        2.51          2.41                 1.72     <- old; first attempt above "1-2"
+
+   THE TWO CRITERIA PULL AGAINST EACH OTHER, which is worth knowing before anyone "improves" this.
+   Five crates finished in two attempts REQUIRES 2.5 per attempt, which is outside "1-2" by
+   construction — so the gain criterion pushes the mean up and the turn criterion pushes it down.
+   0.24 is where both land inside their stated range at once.
+
+   Attention also cannot cut both tails: it only trades instant wins against long ones. At 0.24,
+   11.5% of bakes still finish first try and 21.3% run to four or more. The 2-3 band is essentially
+   flat at ~69% across the whole usable range, so there is no setting that concentrates it further —
+   that would need a different bot model, not a different number. */
 const BAKEOFF_ENABLED=true;
 const BAKE_SWAPS=3;
-const BAKE_ATTENTION=0.28;
+const BAKE_ATTENTION=0.24;
 // What one more look at the shuffle costs (Wyatt, 2026-08-08: "You should be able to pay 1 coin to
 // rewatch the shuffle happen before making your guess — and repeat it as long as you have coins").
 // A coin, and no cap beyond your purse: the ceiling is affordability, which is a decision the player

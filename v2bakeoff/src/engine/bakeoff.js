@@ -27,16 +27,44 @@
 // newBake(order) — a fresh bench for one captain. `order` is the recipe's ingredient sequence
 // (RECIPE_BOOK's order5, validated at boot to be a permutation of that recipe's own ingredients).
 //
-// The bench STARTS in recipe order, and that is deliberate rather than lazy: the preview shows the
-// captain the bowls already laid out correctly, which is what makes the shuffle legible — you watch
-// a known-good arrangement get scrambled, instead of trying to memorise a random one. The first
-// shuffleSlots() call is what actually scrambles it.
+// It starts in recipe order, which is NOT the arrangement the player ever sees: scrambleBench()
+// below is called immediately, by Game.lightOvens. An earlier version left it in recipe order
+// through the study screen on the reasoning that watching a known-good arrangement get scrambled is
+// more legible than memorising a random one. That reasoning was wrong in the way that matters
+// (Wyatt, 2026-08-08): "The crates currently are starting arranged in the actual order of the
+// recipe — this makes tracking them much easier than if they were in a mixed up order." It did not
+// make the shuffle legible, it made the whole puzzle three swaps deep, because the study screen WAS
+// the answer and the recipe card is on screen the entire time.
 export function newBake(order){
   const n=order.length;
   return {order:order.slice(),slots:order.slice(),locked:new Array(n).fill(false),attempts:0,solved:false};
 }
 
 /* ================= the shuffle ================= */
+
+// scrambleBench(bake,rng) — a full random permutation of the UNLOCKED crates, applied once when the
+// ovens are lit. This is what the player studies.
+//
+// A FULL PERMUTATION, not more swaps. Swaps from a known-good start are trackable individually; a
+// permutation has to be memorised as an arrangement, which is the thing the minigame is actually
+// about. shuffleSlots' three swaps then happen ON TOP of an arrangement the player has had to learn.
+//
+// Locked crates are excluded, so a retry cannot move a crate the player already earned — the same
+// invariant shuffleSlots keeps, asserted over both in scripts/bakeoff_test.js.
+//
+// The rng is passed in, like everything else here, so a bake replays identically. With the bake-off
+// off this is never reached (lightOvens returns false before it), so the flag-off stream is
+// untouched — bakeoff_baseline.js is the proof.
+export function scrambleBench(bake,rng){
+  const open=[];
+  for(let i=0;i<bake.slots.length;i++)if(!bake.locked[i])open.push(i);
+  for(let i=open.length-1;i>0;i--){
+    const j=Math.floor(rng()*(i+1));
+    const a=open[i],b=open[j];
+    const t=bake.slots[a];bake.slots[a]=bake.slots[b];bake.slots[b]=t;
+  }
+  return bake.slots;
+}
 
 // shuffleSlots(bake,rng,swaps) — scramble the UNLOCKED bowls and report exactly how.
 //

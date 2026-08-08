@@ -12,7 +12,7 @@
 // Run: node scripts/bakeoff_test.js
 
 import { mulberry32 } from "../v2bakeoff/src/shared/index.js";
-import { newBake, shuffleSlots, scoreAttempt, applyResult, botGuess,
+import { newBake, scrambleBench, shuffleSlots, scoreAttempt, applyResult, botGuess,
          bowlForStep, lockedStep, unsolvedCount } from "../v2bakeoff/src/engine/bakeoff.js";
 
 const ING=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla"];
@@ -195,6 +195,40 @@ function perfectGuess(bake){ return bake.order.map((_,k)=>bowlForStep(bake,k)); 
   check("replaying `swaps` over `before` lands exactly on `slots` ("+trials+" shuffles, "+withLocks+" with locks)",
         mismatches===0,mismatches+" shuffles ended somewhere other than the scored bench");
   check("locked bowls never move during a shuffle",lockMoves===0,lockMoves+" locked bowls moved");
+}
+
+/* ---- 9. THE OPENING SCRAMBLE: what the player studies is not the recipe ----
+
+   The bench used to start in recipe order, so the study screen WAS the answer and the puzzle was
+   only ever the three swaps on top of it. scrambleBench fixes that, and these pin the two things it
+   must not break: the bench stays the same five ingredients, and a locked crate never moves. */
+{
+  const rng=mulberry32(31337);
+  let notPerm=0,lockMoved=0,identical=0,trials=0;
+  for(let t=0;t<2000;t++){
+    const bake=newBake(anyOrder(rng));
+    const before=bake.slots.slice();
+    scrambleBench(bake,rng);
+    trials++;
+    if(bake.slots.slice().sort().join("|")!==bake.order.slice().sort().join("|"))notPerm++;
+    if(bake.slots.join("|")===before.join("|"))identical++;
+  }
+  check("the opening scramble keeps the bench a permutation of the recipe",notPerm===0,notPerm+" benches lost or duplicated an ingredient");
+  // 1/120 of random permutations are the identity, so a handful is expected and zero would mean the
+  // scramble is being prevented from landing on recipe order — a different, wrong behaviour.
+  check("it does land somewhere other than recipe order ("+identical+"/"+trials+" identity, expect ~17)",
+        identical>0&&identical<trials*0.06, identical+" of "+trials+" came back in recipe order");
+  // and with locks in play
+  for(let t=0;t<2000;t++){
+    const bake=newBake(anyOrder(rng));
+    scrambleBench(bake,rng);
+    applyResult(bake,scoreAttempt(bake,botGuess(bake,rng,0.5)));
+    if(bake.solved)continue;
+    const held=bake.slots.map((v,i)=>bake.locked[i]?v:null);
+    scrambleBench(bake,rng);
+    for(let i=0;i<bake.slots.length;i++)if(held[i]!==null&&bake.slots[i]!==held[i])lockMoved++;
+  }
+  check("a locked crate never moves in the scramble",lockMoved===0,lockMoved+" locked crates moved");
 }
 
 console.log(failures?("\n"+failures+" FAILED"):"\nall bake-off invariants hold");
