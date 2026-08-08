@@ -276,13 +276,26 @@ export function pickCell(p,cells){
    player cannot act during. `armed` is what withShotClock chains onto, exactly as ask() does — it
    returns `base` unwrapped unless the seat is already the armed one, so the order matters.
 
-   MULTIPLAYER IS NOT WIRED YET and this is deliberate rather than forgotten: a remote seat has no
-   `bakeoff` prompt kind in src/net/, so a guest at the ovens currently forfeits to the engine's
-   fallback. Same behaviour as a timeout, and the bake still resolves — but a remote human does not
-   get to play their own minigame. Solo is the verified path. */
-export function bakeoffPrompt(p,setup,fallback){
+   PASS THE DEVICE FIRST. A bake is a whole turn, but it is taken in the END-OF-DAY loop rather
+   than the seat loop, so it never passes through humanTurn — and humanTurn is where every other
+   handoff happens. Without the gate here, pass-and-play hands the bench to whoever last held the
+   board: the preview would play in the wrong person's hands, and two captains baking on the same
+   day would get no handoff between them at all. passGate is a no-op in solo and whenever the
+   device is already with the right seat, so this costs those modes nothing.
+
+   MULTIPLAYER IS OUT OF SCOPE by decision (Wyatt, 2026-08-08: "we're only doing solo and pass and
+   play mode"), not by omission. decisionIsLocal covers both supported modes — solo has one human
+   seat, and pass-and-play treats every human seat as local — so the remote branch below is
+   unreachable in the modes this game ships. It falls back to the engine's own guess rather than
+   hanging, which is the same thing a shot-clock forfeit does. */
+export async function bakeoffPrompt(p,setup,fallback){
+  // Before the replay early-return, exactly as humanTurn does it: passGate self-handles replay by
+  // silently syncing appState.mySeat rather than showing anything, and a baker never takes an
+  // ordinary turn on the day they bake — so this is the ONLY thing keeping mySeat in step with a
+  // baking seat across a resumed pass-and-play voyage.
+  await passGate(p.idx);
   if(appState.replaying){
-    if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(appState.dlog[appState.dlogIdx++]);}
+    if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return appState.dlog[appState.dlogIdx++];}
     endReplay();
   }
   setActor(p.idx);
@@ -304,10 +317,11 @@ export function bakeoffPrompt(p,setup,fallback){
     });
 }
 // A guess carries null at every step already solved on an earlier attempt — scoreAttempt accepts
-// that, but the decision log must not. encodeDec wraps the value straight onto Firebase, and an
-// array with holes in it is not something RTDB round-trips faithfully. The locked steps' answers
-// are known by definition, so filling them in loses nothing and makes every logged guess five plain
-// integers.
+// that, but the decision log should not have to. Solo and pass-and-play persist the log as JSON in
+// localStorage, which round-trips a null happily; the reason to fill them in anyway is that a
+// logged guess is then always five plain bowl indices, so replaying one is never the question "was
+// this step null because it was locked, or because something went wrong writing it?". The locked
+// steps' answers are known by definition, so filling them in loses nothing.
 function fillLocked(bake,guess){
   return guess.map((bowl,k)=>bowl==null?bake.slots.indexOf(bake.order[k]):bowl);
 }
