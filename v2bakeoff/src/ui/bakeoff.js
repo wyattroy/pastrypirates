@@ -162,7 +162,7 @@ function bakeoffIntroCard(bake){
       <b>${escHtml(recipeTitle(bake.order))}</b></div>
       ${cardHTML(bake)}
       <div class="apSub">Add them in this exact order or it's a ruined mess.</div>
-      <div class="apBtns"><button class="apBtn" id="bkoIntroGo" type="button">To the bench!</button></div>`,true);
+      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>`,true);
     const go=$("bkoIntroGo");
     if(!go){res();return;}
     go.onclick=()=>{go.onclick=null;res();};
@@ -204,7 +204,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // disabled and enabling it at the exact moment it works removes the dead window instead of hiding
   // it. Found by a probe that clicked at 800ms and hung.
   panel(shellHTML(p,bake,shown,
-    "Study the bowls. Start the shuffle when ye're ready.","Ready to bake!",false),true);
+    "Study the order. Start the shuffle when yer ready.","Ready to bake!",false),true);
   const row=document.querySelector("#actionPanel .bkoRow");
   if(!row)return null;
   const bowls=[...row.querySelectorAll(".bkoBowl")];
