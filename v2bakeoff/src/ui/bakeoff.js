@@ -19,7 +19,8 @@
 // rule has held since.
 
 import { appState } from "../state/index.js";
-import { ING_IMG, iconImg, CUPCAKE_IMG, COIN_IMG } from "../shared/index.js";
+import { ING_IMG, iconImg, CUPCAKE_IMG, COIN_IMG, iname } from "../shared/index.js";
+import { recipeTitle, escHtml } from "./recipe.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { panel, setNeedsAction, GHOST_FADE_MS } from "./panel.js";
 
@@ -124,6 +125,16 @@ function shellHTML(p,bake,slots,hint,btnLabel,btnEnabled){
 
 /* ================= the story beat ================= */
 
+// The SIMPLIFIED recipe: the ingredients in order, named plainly, with their own icon. The bench
+// card keeps the full baker's method ("Warm the milk and butter"); this is the short form for the
+// screen whose only job is "here is what you are making, in this order". Same icons as the bowls,
+// which is what makes the bench readable at a glance later.
+function simpleRecipeHTML(bake){
+  return `<ol class="bkoCard bkoCardLite">`+bake.order.map((ing,k)=>
+    `<li><b>${k+1}</b>${iconImg(ING_IMG[ing])}<span>${iname(ing)}</span></li>`).join("")+`</ol>`;
+}
+/* ================= the story beat ================= */
+
 // bakeoffIntroCard(bake) — the narration card, and the FIRST SIGHT OF THE RECIPE.
 //
 // (Wyatt, 2026-08-08: "The narration card should explain that the ingredients are all mixed up and
@@ -142,12 +153,13 @@ function shellHTML(p,bake,slots,hint,btnLabel,btnEnabled){
 function bakeoffIntroCard(bake){
   return new Promise(res=>{
     // @copy prompt.bakeoff.intro
-    panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens are roarin' and yer whole hold be on
-      the bench, captain — but the crew have gone and <b>mixed every ingredient up</b>.<br><br>
-      Here be what ye're bakin':</div>
-      ${cardHTML(bake)}
-      <div class="apSub">Add them in <b>this order</b> and ye've baked it. Add them in any other, and
-      it's a ruined mess.</div>
+    // WYATT'S OWN WORDS, 2026-08-08, verbatim — including "roaring" rather than "roarin'". He wrote
+    // this card himself; his copy is the copy, and pirate-ifying it would be overwriting the author.
+    panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens are roaring! The ingredients are
+      ready. To bake your <b>${escHtml(recipeTitle(bake.order))}</b>, add them in the correct
+      order.<br><br>Your recipe:</div>
+      ${simpleRecipeHTML(bake)}
+      <div class="apSub">Add them in this exact order or it's a ruined mess.</div>
       <div class="apBtns"><button class="apBtn" id="bkoIntroGo" type="button">To the bench!</button></div>`,true);
     const go=$("bkoIntroGo");
     if(!go){res();return;}

@@ -995,6 +995,10 @@
      1.6x, which is close enough to read as the same object at a glance. */
   .bkoCard li img { width: 24px; height: 24px; object-fit: contain; flex: 0 0 auto; }
   .bkoCard li span { overflow: visible; text-overflow: clip; white-space: normal; }
+  /* The intro card's short form: ingredient names rather than the full method, so it reads as a
+     shopping list in order rather than a second copy of the bench card. */
+  .bkoCardLite { margin: 4px 0 2px; }
+  .bkoCardLite li { font-size: 13.5px; line-height: 1.7; }
   /* FLEX, NOT CONTAINER QUERIES. #actionPanel is not a `container-type` element and none of its
      ancestors is, so a cqw unit here would resolve against the VIEWPORT — 17cqw would be 238px per
      bowl on a desktop. The five bowls simply divide whatever the row has and cap at 64px, which

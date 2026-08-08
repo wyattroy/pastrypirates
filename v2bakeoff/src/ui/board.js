@@ -1441,14 +1441,19 @@ export function render(){
     // one ship worth attacking. Every ship renders at full strength; the tell that somebody is home
     // is that they are parked on Tortuga, plus the 🏁 line that announced it.
     //
-    // THAT STILL HOLDS, and the bake-off does not undo it (Wyatt, 2026-08-08: "in a past version,
-    // the boat faded semitransparent when docked... now i want it back because we have the
-    // bake-off"). The two instructions are not in conflict once the distinction is drawn precisely:
-    //   done / docked with a full recipe -> SOLID. Still a legal target, still worth attacking.
-    //   baking                           -> FADED. Game.inPlay() has taken them off the board
-    //                                       entirely: no storm, no raid, no trade, square free.
-    // So the fade means one specific thing — "nothing you do can reach this ship" — instead of the
-    // vaguer "out of the game" it used to mean, which is exactly why it was wrong before.
+    // THE BAKE-OFF BRINGS IT BACK (Wyatt, 2026-08-08: "in a past version, the boat faded
+    // semitransparent when docked... now i want it back because we have the bake-off").
+    //
+    // A PREVIOUS VERSION OF THIS NOTE WAS WRONG AND IS CORRECTED HERE. It claimed a docked finisher
+    // stays solid because they are "still a legal target, still worth attacking". That is the v2
+    // CLASSIC rule, carried across and asserted as if it were this build's. It is not: Wyatt ruled
+    // on 2026-08-06 that Tortuga is sanctuary, canAttack returns false the moment the ovens are
+    // lit, and under the bake-off `done` is only ever set by endBakeDay — which ends the voyage.
+    // So there is no such thing here as a docked finisher sitting around raidable.
+    //
+    // Which leaves one honest meaning for the fade, and it is the same one either way you say it:
+    // a ship you cannot reach. inPlay() has taken them off the board — no storm, no raid, no trade,
+    // square free — and the boat being half-there is the picture of that.
     // Read off the event snapshot, not live state, so dragging the scrubber back to before the
     // ovens were lit shows a solid ship again.
     shipEls[i].style.opacity=st[i].baking?0.42:1;
