@@ -185,6 +185,42 @@ Pick the metric that measures the *goal*, not a proxy that moves for other reaso
 
 ## 3. Verification tooling that lies to you
 
+### A FALSY ZERO IN YOUR OWN HARNESS — this one cost three wrong diagnoses in one session
+
+`Game.play()` returns a **seat index**, so seat 0 winning returns `0`. A measurement harness written
+as `if (!winner) unfinished++` therefore counts **every single win by seat 0 as an unfinished game**.
+
+On 2026-08-09 that produced a confident, entirely fabricated crisis: "46 of 300 voyages never
+finish", then "my change took it to 57", then a whole diagnosis and two rewrites of the bot's fight
+pricing aimed at a regression **that did not exist**. Every game finished, before and after. Checking
+took one line:
+
+```js
+const w = g.play();
+if (w == null) unfinished++;     // NOT if(!w) — seat 0 is a real winner
+```
+
+**The tells, all of which were visible and all of which were rationalised away:**
+
+- The "unfinished" count sat near a quarter of games in a four-player table. That is the shape of
+  *one seat's win share*, not of a stall.
+- Mean voyage length was 17.5 rounds while the cap is 150. **46 games at the cap is arithmetically
+  impossible with that mean** — the two numbers could not both be true, and the contradiction was
+  printed side by side for three runs before anyone read it.
+- An earlier harness in the same session had already hit the sibling bug: `g.players[w.idx]` on a
+  number, silently yielding `undefined` and a wins table of all zeros. The shape was known.
+
+**The rules this earns:**
+
+1. **Never truth-test a value that can legitimately be `0`, `""` or `false`.** Use `== null`.
+   Indices, counts, coin totals and seat numbers are all in this trap.
+2. **Sanity-check a metric against another number in the same output before believing it.** Two
+   figures that cannot both be true mean the harness is wrong, not the game.
+3. **Confirm what a function returns before measuring it** — index or object, one line in a REPL.
+   Three rewrites were paid for skipping that.
+4. A harness is code and it is *unreviewed* code. It gets no more trust than the thing it measures —
+   see §2, which says exactly this and was written after a different instance of the same mistake.
+
 ### `no_undef_check.js` only inspects CALL-position identifiers
 
 `href: STORM_CLOUD_IMG` — a bare value reference to an unimported constant — **passes the gate

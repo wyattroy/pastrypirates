@@ -38,6 +38,16 @@
 // passes taken while standing at a workable dock went 3,746 -> 0, turns spent on a trade that was
 // never even announced went 4,884 -> 0, and the median voyage shortened by roughly half a day.
 //
+// RE-BASED A THIRD TIME, 2026-08-09, same discipline again. Bots now aim their last approach leg at
+// the square that WINS the fight (`mark − wind`) rather than merely one that reaches the mark —
+// measured 49.6% vs 24.9% to take the crate, for the same 2🌕. Steering changes what bots do, so it
+// moves the stream in every game containing a raid: 125 of 200.
+//
+// Proved to be the only cause before re-capturing, as with the previous two: stashing exactly that
+// edit returned all 200 games to byte-identical. Measured effect over 300 games — fights 1.68 -> 2.35
+// per game, shots fired with the wind 25.5% -> 44.6%, and the win spread across the four archetypes
+// TIGHTENED from 46-93 to 59-88. Zero games unfinished before or after.
+//
 // What this file still guarantees: no FURTHER bake-off code leaks into the disabled path from here.
 // What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/ (that
 // stopped being true on purpose at the first re-base), NOR that the bot brain is frozen — it is

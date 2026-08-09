@@ -1041,6 +1041,45 @@ class Game{
   reachableFrom(p){
     return [...this.sailStates(p).keys()].map(k=>k.split(",").map(Number));
   }
+  /* TAKING THE WEATHER GAUGE, IN THE SAME TURN YOU FIRE (Wyatt, 2026-08-09).
+     Measured on this engine over 60,000 battles: firing with the wind behind you takes the crate
+     49.6% of the time; upwind or crosswind, 24.9%. Same 2🌕. So WHERE you attack from is worth as
+     much as whether you attack.
+
+     WHY THE WIND SQUARE IS NEVER A MULTI-TURN GOAL. Wyatt: *"We dont want bots to get into an
+     infinite loop trying to get upwind of a player, as their position changes. They should navigate
+     upwind within the same turn they try to attack."* A bot creeping toward `mark − wind` re-derives
+     a new square every turn as the mark drifts, and shadows it forever without firing.
+     The APPROACH is a different thing and is still multi-turn, because it aims at something that
+     does not drift: where the mark is GOING. Wyatt again: *"humans can notice a player going towards
+     an island when the player has 4 ingredients, and infer that they are about to complete their
+     recipe, so abandon their own mission to sail over and intercept the winning player before they
+     reach tortuga."* That is interceptOf(), and it is stable because home is stable.
+
+     So: sail at the intercept while they are far, and at the wind square on the turn you arrive.
+     downwindSide() only reports "a" when the mark is EXACTLY one square away along the wind, so the
+     winning square is the single cell `mark − wind` — nothing to search, nothing to oscillate over. */
+  windSquare(q){
+    const wv=DIRS[this.windNow];
+    if(!wv)return null;
+    return [q.pos[0]-wv[0],q.pos[1]-wv[1]];
+  }
+  // The best square this ship could BOTH finish its move on this turn AND legally attack `q` from,
+  // with the odds that shot really carries. null when the mark cannot be engaged this turn at all —
+  // which means "keep approaching", not "give up".
+  strikeFrom(p,q){
+    if(!this.canAttack(p,q))return null;
+    if(p.coins<(this.cfg.powder||0))return null;
+    const reach=new Set(this.reachableFrom(p).map(c=>c.join(",")));
+    reach.add(p.pos.join(",")); // staying put is a legal "move" and may already hold the gauge
+    const wind=this.windSquare(q);
+    if(wind&&reach.has(wind.join(",")))return {cell:wind,pWin:0.5};
+    for(const d of Object.values(DIRS)){
+      const c=[q.pos[0]+d[0],q.pos[1]+d[1]];
+      if(reach.has(c.join(",")))return {cell:c,pWin:0.25};
+    }
+    return null;
+  }
   // Which side is firing downwind on this adjacency? Purely geometric; positions never change
   // mid-battle in v2 (no swap), so one reading holds for the whole fight.
   downwindSide(att,def){
@@ -1352,8 +1391,17 @@ class Game{
       if(q===p||!this.inPlay(q)||!q.ing.length)continue;   // rule 13e: an empty hold is never a target
       const urgent=this.threatUrgency(q);
       if(urgent<=0)continue;
-      const aim=this.interceptOf(q);
+      // WHERE the last leg aims. If the mark can be engaged this turn, aim at the square that wins
+      // the fight rather than the one that merely reaches it — same turn, same sail, twice the odds.
+      // Otherwise keep approaching the intercept, which is stable across turns (see strikeFrom).
+      const strike=this.strikeFrom(p,q);
+      const aim=strike?strike.cell:this.interceptOf(q);
       const sail=this.sailTurns(p.pos,aim,this.windNow);
+      // NOT stretched by urgency, and that was measured rather than assumed: an urgency-scaled
+      // leash was built, ablated over 300 games and found completely inert (46 -> 46 seat wins,
+      // 1.68 -> 1.69 fights/game). Aiming at a strike square already collapses the measured sail
+      // distance to <=1, so the leash stopped being the binding constraint the moment the aim
+      // changed. A constant that does nothing reads as if it does something; it went.
       if(sail>PLAN.huntReach)continue;
       const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
       const cost=(sail+PLAN.fightTurns+PLAN.fightLossRisk+rematch)/bias.fightBias/(1+urgent*PLAN.huntWeight);
