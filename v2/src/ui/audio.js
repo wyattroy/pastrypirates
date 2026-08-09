@@ -25,7 +25,13 @@
 
 /* ================= Pure data — safe to import headlessly, nothing built at load ================= */
 
-const SFX_DIR = "sfx/";
+// ../sfx/ — the repo root's set, shared exactly as ../assets already is. /v2/ has no sfx/ of its
+// own in git, so the old page-relative "sfx/" 404'd for every stem on the live site and the
+// loader's catch swallowed it — this build has been silently soundless in production. (The root
+// audio_mapping_test never caught it because it imports the ROOT build's audio.js and stats files
+// from the repo root, where "sfx/" happens to be correct.) Found 2026-08-09 by a headless probe
+// of the /3 copy; verified against git ls-tree origin/main.
+const SFX_DIR = "../sfx/";
 // The closed literal array — the ONLY source of a fetch URL anywhere in this module, never a
 // runtime string (threat T-21-02). Adding a 7th stem later means adding it here, nowhere else.
 const SFX_FILES = ["battle-swords", "coin-flip", "fishing", "ship-move", "store-ingredient", "storm"];
