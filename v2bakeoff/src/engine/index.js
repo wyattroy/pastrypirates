@@ -1237,7 +1237,46 @@ class Game{
 
      Every cost below is denominated in TURNS, which is what keeps it explainable: "buying this
      costs me 4 turns, taking it by force costs me 2 and a fight I might lose". A bot never
-     consults anybody's recipe card — only what the whole table can see (see demandFor). */
+     consults anybody's recipe card — only what the whole table can see (see demandFor).
+
+     ================= THE TEN PRINCIPLES (Wyatt, 2026-08-09) =================
+     He asked for these written down, "powerful and elegant". Every one was earned by something that
+     actually broke, and the measurements are kept so a later session can tell a principle from a
+     taste. Numbers are per 300 seeded bake-off games unless stated.
+
+     1. A TURN IS ONE DECISION, MADE WHOLE, BEFORE ANYTHING MOVES. Movement and action are not two
+        choices — they are one plan, (where I end up, what I do there), scored as a unit. Wyatt:
+        *"You need to run all of the calculations that decide the most valuable action for a turn
+        RIGHT AT THE BEGINNING OF THE TURN — not after moving. Thats what a human does."* Every bug
+        found on 2026-08-09 was a violation of it: chooseTarget picks a square blind to what the
+        square is FOR, and chooseAction then picks an action unable to change the square.
+        STILL UNMET IN THIS FILE — see the note at the end.
+     2. ONE CURRENCY: TURNS SAVED. A crate, a coin, a fight, a denial and a square of progress all
+        convert. Never score against a threshold; only compare values against each other.
+     3. NO PRIORITY ORDERS, EVER. An ordering is a decision made in advance, blind to the board.
+        "Dock before fight" is exactly why a bot that had sailed into a strike position docked
+        instead. Rank nothing; evaluate everything.
+     4. ASK THE EXACT QUESTION THE ACTION WILL ASK. Never commit under one test and perform under
+        another. The trade that was never spoken (4,884 dead turns), the strike square sailed to and
+        then declined, and the dock preempting the fight are one disease in three costumes.
+     5. PROBABILITIES, NOT PROXIES — AND NEVER CHARGE THE SAME RISK TWICE. Where odds are knowable
+        (measured: 49.6% firing with the wind, 24.9% without) use them and DELETE the constant that
+        stood in for them. Carrying fightLossRisk alongside real odds collapsed fights from 2.35 a
+        game to 0.60.
+     6. ONLY WHAT A PLAYER CAN SEE. Holds, positions, coins, stock, the wind, and the whole history
+        of what everyone did. Never a recipe card. Full-voyage memory is fair; mind-reading is not.
+     7. PLAN THE WHOLE VOYAGE EVERY TURN; COMMIT ONLY TO THIS TURN. A multi-turn approach may only
+        aim at something that does not drift — where a captain is GOING (interceptOf) — never at
+        something that does, like their square plus the wind, which oscillates forever.
+     8. A TURN WITH NOTHING WORTH DOING IS A BUG, NOT AN OUTCOME. Measured: 1,906 turns, 8.4% of all
+        bot turns, spent motionless in open water. That is an absent plan, not caution.
+     9. PERSONALITY TILTS VALUES; IT NEVER OVERRIDES THEM. A pirate discounts the cost of a fight.
+        It never takes a fight that loses turns.
+    10. PROVE IT AGAINST THE PREVIOUS BOT, NOT AGAINST A PROXY. scripts/bot_ladder.js is this rule
+        made mechanical. It is not optional: a whole-turn planner satisfying principles 1-3 was built
+        on 2026-08-09 and looked better on every proxy — trades 26 -> 140 a corpus, fights 88.6%
+        downwind, blank turns down — and the ladder showed it winning BELOW its fair share in three
+        of four configurations. Proxies said ship; the only measurement that counts said no. */
 
   // Coins are just stored turns: a dock flip pays 6 or 2, so a turn at a dock earns 4 on average.
   coinTurns(n){return n<=0?0:n/PLAN.coinsPerDockTurn;}
