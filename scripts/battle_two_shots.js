@@ -16,11 +16,15 @@
 // Four arms. The first is today's rule; the rest are the readings of "shoot twice":
 //
 //   today        one shot each. Both heads -> the downwind ship takes it (rule 9).
-//   extra-shot   downwind attacker fires TWICE and keeps the tiebreak. A strict buff.
-//   replaces     downwind attacker fires TWICE and LOSES the tiebreak — the second barrel IS the
-//                whole edge, and both-heads goes back to being a collision.
-//   symmetric    both ships fire twice when downwind (so it is a rule about the wind, not about
-//                attacking). Shown because the defender is downwind exactly as often.
+//   two-heads    downwind attacker flips TWICE and must land HEADS ON BOTH; the defender still
+//                flips once. This is Wyatt's rule as stated, and it is a HANDICAP, not a buff —
+//                the attacker's shot lands a quarter of the time instead of half.
+//   extra-shot   downwind attacker flips twice and needs heads on EITHER. The other reading of
+//                the same sentence, kept alongside because the two differ by 50 points.
+//   replaces     downwind attacker flips twice for either, and LOSES the tiebreak — the second
+//                barrel IS the whole edge, and both-heads goes back to being a collision.
+//   symmetric    both ships flip twice for either when downwind (a rule about the wind rather
+//                than about attacking). Shown because the defender is downwind exactly as often.
 //
 //   node scripts/battle_two_shots.js [trials]
 
@@ -110,7 +114,8 @@ function applyVariant(g, variant) {
       const a = realFlip(p);
       if (!two) return a;
       const b = realFlip(p);
-      return a || b;
+      // the whole difference between the two readings of "flip twice" lives on this line
+      return variant === "two-heads" ? (a && b) : (a || b);
     };
     // the opening round consumes both cannons; everything after it is a re-fire
     const out = realBattle(att, def);
@@ -133,7 +138,7 @@ for (const [title, attackerDownwind] of [["ATTACKER HOLDS THE GAUGE", true], ["A
   for (const purse of [2, 12]) {
     console.log(`\n=== ${title} — attacker's purse ${purse}🌕 ${purse === 2 ? "(powder only, no re-fire affordable)" : "(deep pockets)"} ===`);
     console.log(`  ${"rule".padEnd(12)} ${"win".padStart(6)} ${"lose".padStart(6)} ${"flee".padStart(6)} ${"null".padStart(6)}   shots  refire`);
-    for (const v of ["today", "extra-shot", "replaces", "symmetric"])
+    for (const v of ["today", "two-heads", "extra-shot", "replaces", "symmetric"])
       row(v, duel({ trials: TRIALS, variant: v, attackerDownwind, purse }));
   }
 }
