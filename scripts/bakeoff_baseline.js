@@ -62,6 +62,17 @@
 // fired with the wind, blank turns 8.8% -> 6.2%, deals struck 26 -> 156, voyage length unchanged at
 // ~18 days, no game unfinished.
 //
+// RE-BASED A FIFTH TIME, 2026-08-09, for a one-token change with a real effect. An action's value
+// was turnsToWin(now) - (1 + turnsToWin(after)); the 1 was the turn just spent. Wyatt: "Sailing
+// towards your goal should lower your turns to win because it gets you closer to your goal, if your
+// algorithm rates sailing at zero that means your algorithm is wrong." He is right — a full leg of
+// sailing printed 0.00, which made the game's most productive act look worthless.
+//
+// It was ALSO expected to be a pure constant that changed no decision, and that was wrong: where a
+// personality bias multiplies the value ((base - after) * dealBias) the constant does not cancel, so
+// 49 of 200 games moved. Sole cause proved by stashing before re-capturing, as always. The ladder is
+// unmoved by it — +5.3 points over 300 games a row, positive in all four configurations.
+//
 // What this file still guarantees: no FURTHER bake-off code leaks into the disabled path from here.
 // What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/ (that
 // stopped being true on purpose at the first re-base), NOR that the bot brain is frozen — it is

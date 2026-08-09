@@ -11,11 +11,11 @@
 //
 // Every value on the table answers ONE question:
 //
-//     turnsToWin(now)  -  ( 1 + turnsToWin(after) )
+//     turnsToWin(now)  -  turnsToWin(after)
 //
-// "How many turns does this bring my win forward, after paying for the turn it costs?" A POSITIVE
-// number shortens the voyage. Zero or less means the turn was not worth taking, whatever else it
-// achieved — which is what stops a bot idling at a berth to bank coins it does not need.
+// "How many turns closer to winning does this leave me?" Sailing a full leg toward the next island
+// scores +1 — it IS a turn of progress. Zero means the turn bought nothing; negative means it made
+// the voyage longer, which is what an idle turn at a berth actually does.
 //
 //   node scripts/bot_matrix.js [seed] [turnIndex]
 
@@ -62,7 +62,7 @@ Game.prototype.takeTurn = function (p, w, st) {
       `threatTurns ${q.t.toFixed(1)}${q.t < before ? "   <-- AHEAD OF ME" : ""}`);
 
   rows.sort((a, b) => b.value - a.value);
-  console.log(`\n${rows.length} candidate turns scored. value = turnsToWin(now) - (1 + turnsToWin(after)):\n`);
+  console.log(`\n${rows.length} candidate turns scored. value = turnsToWin(now) - turnsToWin(after):\n`);
   console.log(`   ${"value".padStart(7)}  ${"action".padEnd(22)} ${"square".padEnd(9)} why / arithmetic`);
   console.log(`   ${"-".repeat(7)}  ${"-".repeat(22)} ${"-".repeat(9)} ${"-".repeat(46)}`);
   for (const r of rows.slice(0, 24)) {

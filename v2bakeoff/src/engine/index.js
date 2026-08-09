@@ -1671,9 +1671,16 @@ class Game{
 
      A turn is one plan: (the square I end on, what I do there), and its value is
 
-         turnsToWin(now)  -  ( 1 + turnsToWin(after) )
+         turnsToWin(now)  -  turnsToWin(after)
 
-     THE 1 IS THE TURN YOU JUST SPENT, and leaving it out was the bug that sank the first attempt.
+     HOW MANY TURNS CLOSER TO WINNING THIS LEAVES ME. Sailing a full leg toward the next island
+     scores +1, because it IS a turn of progress — Wyatt, 2026-08-09: *"Sailing towards your goal
+     should lower your turns to win because it gets you closer to your goal, if your algorithm rates
+     sailing at zero that means your algorithm is wrong."* An earlier version subtracted the turn
+     just spent, which printed a good sail as 0.00 and invited exactly the wrong reading: that the
+     fundamental productive act of the game was worth nothing. The turn is spent whatever you choose,
+     so charging it is a constant that cancels between options and changes no decision — it only
+     changed what the number MEANT, and it meant the wrong thing.
      Wyatt, 2026-08-09: *"fix your calculation so that when you decide to stay at a doc to earn more
      money, that causes your total journey length to increase more than going on to get another
      ingredient... If an outcome does not lead to winning more quickly, it should not be acted upon."*
@@ -1733,7 +1740,7 @@ class Game{
     };
     for(const cell of candidates){
       // POSITION ALONE: how much shorter is my voyage if I finish the turn here?
-      const moved=base-1-this.turnsToWinIf(p,{cell});
+      const moved=base-this.turnsToWinIf(p,{cell});
       consider({cell,type:"sail",value:moved,why:this.needs(p).length?"enroute":"finishing"});
 
       const port=this.portAt(cell);
@@ -1746,7 +1753,7 @@ class Game{
         // what buildRoute's own earn term models — so pass the purse through and let it say.
         const after=this.turnsToWinIf(p,{cell,gain:needsIt?port:null,
                                          coins:p.coins+pay-(needsIt?price:0)});
-        let v=base-1-after;
+        let v=base-after;
         // a crate somebody else needs is leverage: it lengthens THEIR voyage if they must deal for it
         if(buys&&!needsIt){
           const mark=this.players.filter(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,port))
@@ -1776,7 +1783,7 @@ class Game{
            the positional term multiplied by pWin, an UPWIND attack scored 0.43 against the DOWNWIND
            one's 0.35 — the worse square winning because its smaller positional loss was scaled by a
            smaller pWin. The move costs what it costs however the coins land. */
-        const stand=base-1-this.turnsToWinIf(p,{cell,coins:purse});
+        const stand=base-this.turnsToWinIf(p,{cell,coins:purse});
         const here=this.turnsToWinIf(p,{cell,coins:purse});
         const prize=q.ing.filter(i=>this.needs(p).includes(i));
         // the crate itself, measured at the SAME square, so position cannot leak into it
@@ -1808,11 +1815,11 @@ class Game{
       if(offer){
         let park=null,parkV=-Infinity;
         for(const cell of candidates){
-          const v=base-1-this.turnsToWinIf(p,{cell});
+          const v=base-this.turnsToWinIf(p,{cell});
           if(v>parkV){parkV=v;park=cell;}
         }
         const after=this.turnsToWinIf(p,{cell:park,gain:offer.want,coins:p.coins-(offer.giveCoins||0)});
-        consider({cell:park,type:"trade",value:(base-1-after)*bias.dealBias,why:"plan"});
+        consider({cell:park,type:"trade",value:(base-after)*bias.dealBias,why:"plan"});
       }
     }
     return best||{cell:[...p.pos],type:"sail",value:0,why:"enroute"};
