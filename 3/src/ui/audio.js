@@ -25,12 +25,10 @@
 
 /* ================= Pure data — safe to import headlessly, nothing built at load ================= */
 
-// ../sfx/ — the repo root's set, shared exactly as ../assets already is. /v2/ has no sfx/ of its
-// own in git, so the old page-relative "sfx/" 404'd for every stem on the live site and the
-// loader's catch swallowed it — this build has been silently soundless in production. (The root
-// audio_mapping_test never caught it because it imports the ROOT build's audio.js and stats files
-// from the repo root, where "sfx/" happens to be correct.) Found 2026-08-09 by a headless probe
-// of the /3 copy; verified against git ls-tree origin/main.
+// ../sfx/ — the repo root's set, exactly as assets are shared. /3 has no sfx/ of its own, and a
+// page-relative "sfx/" 404s silently for every stem. The same bug shipped in /v2/ and /v2bakeoff/
+// (no sfx dir exists in git under either) until it was found here by a headless probe on
+// 2026-08-09 and fixed in all three builds at Wyatt's word.
 const SFX_DIR = "../sfx/";
 // The closed literal array — the ONLY source of a fetch URL anywhere in this module, never a
 // runtime string (threat T-21-02). Adding a 7th stem later means adding it here, nowhere else.
@@ -124,6 +122,9 @@ const EVENT_SOUND = {
   // v2.1: the ovens going cold rides the battle sound of the raid that caused it — it is the
   // consequence of that same broadside, one beat later, not a second event to be scored.
   unfinish: null,
+  // v2.1 bake-off: EXPLICIT silence, not an omission (D-06 — the two are different things here).
+  // Whether a successful bake earns its own cue is a design call for Wyatt, not a side effect.
+  ovens: null, bake: null,
 };
 
 // PURE — no ctx, no DOM, no side effect, safe to call under plain Node. Returns null, or an

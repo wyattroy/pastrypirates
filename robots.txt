@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /lab.html
 Disallow: /v2/
+Disallow: /v2bakeoff/
+Disallow: /3/
 
 Sitemap: https://playpastrypirates.com/sitemap.xml
