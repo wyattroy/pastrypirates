@@ -1220,9 +1220,19 @@ export async function netIntroBarrier(msg,btnLabel){
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
   const humans=appState.game.players.filter(p=>p.strategy==="human");
   if(appState.passAndPlay){
-    // one device, several humans: nobody is "remote", so read-and-click-through happens in
-    // turn, each gated by the same pass-the-device screen every turn hand-off uses
-    for(const p of humans){await passGate(p.idx);await localAsk(msg,opts);}
+    // ONE DEVICE, ONE SHOWING (Wyatt, 2026-08-08: "Dont require passing to the next player for the
+    // opening narration, or the lots drawing narration. Just show those once").
+    //
+    // This used to walk every human seat — pass the device, read, click, pass again — for two
+    // screens that say the SAME PUBLIC THING to everybody: the ahoy welcome, and who drew first
+    // lot. A pass-the-device gate exists to keep one player's private information off another
+    // player's screen; neither of these has any. So the gate was pure ceremony, and four players
+    // paid it twice before the first turn.
+    //
+    // Nothing is skipped and nothing is hidden — the table reads it together, once, off one screen.
+    // The FIRST REAL TURN still gates normally, via humanTurn's own passGate, so the device still
+    // reaches the right hands before anybody acts.
+    await localAsk(msg,opts);
     return;
   }
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
@@ -1337,8 +1347,12 @@ export async function collectSideBets(att,def){
   for(const s of spectators){
     if(s.strategy==="human"){
       setActor(s.idx);
+      // NAMED, because on one device the prompt arrives out of nowhere (Wyatt, 2026-08-08: "it is
+      // wyyy's turn and they are attacking, but juju must call; so the narration should say 'Juju —
+      // A battle's brewing!'"). The caller is a SPECTATOR of someone else's fight, so nothing about
+      // whose turn it is tells you the screen is now asking you. The name is the only thing that does.
       // @copy prompt.sidebet.call
-      const who=await ask(`⚔️ A battle's brewing! Call the winner — it's free, and ye get ${appState.game.cfg.callBounty}🌕 if yer right.`,
+      const who=await ask(`⚔️ ${ns(s.idx)} — a battle's brewing! Call the winner — it's free, and ye get ${appState.game.cfg.callBounty}🌕 if yer right.`,
         [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
         [HEXCOL[att.idx],HEXCOL[def.idx]]);
       bets.push({idx:s.idx,on:who});
