@@ -1584,8 +1584,8 @@ export function advanceSeaCursor(p){
   try{localStorage.setItem("pp_seaIdx",String((base+looks)%SEA_CREATURES.length));}catch(e){}
 }
 export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
-export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
-export function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
+export function saveSession(){try{localStorage.setItem("pp3_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
+export function clearSession(){try{localStorage.removeItem("pp3_sess");}catch(e){}}
 
 // --- host-refresh recovery: record & replay the decision log ---
 // Encode so a "stay put" (null) still persists as a non-empty object (Firebase drops nulls,
@@ -1596,9 +1596,9 @@ export function decodeDec(e){return (e&&Object.prototype.hasOwnProperty.call(e,"
 // but keep the log in localStorage instead of Firebase, since there's no server for solo games ----
 export function saveSoloState(){
   if(!appState.soloMeta)return;
-  try{localStorage.setItem("pp_solo",JSON.stringify({v:SOLO_SCHEMA_V,...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
+  try{localStorage.setItem("pp3_solo",JSON.stringify({v:SOLO_SCHEMA_V,...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
 }
-export function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
+export function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp3_solo");}catch(e){}}
 export function resumeSoloGame(saved){
   appState.numSeats=saved.strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
   appState.passAndPlay=!!saved.passAndPlay;

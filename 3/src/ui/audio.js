@@ -25,7 +25,11 @@
 
 /* ================= Pure data — safe to import headlessly, nothing built at load ================= */
 
-const SFX_DIR = "sfx/";
+// ../sfx/ — the repo root's set, exactly as assets are shared. /3 has no sfx/ of its own, and a
+// page-relative "sfx/" 404s silently for every stem (v2bakeoff ships that bug today: no sfx dir
+// exists in git under /v2/ or /v2bakeoff/, so their audio fetches all miss and the catch swallows
+// it — verified against git ls-tree origin/main and a headless probe, 2026-08-09).
+const SFX_DIR = "../sfx/";
 // The closed literal array — the ONLY source of a fetch URL anywhere in this module, never a
 // runtime string (threat T-21-02). Adding a 7th stem later means adding it here, nowhere else.
 const SFX_FILES = ["battle-swords", "coin-flip", "fishing", "ship-move", "store-ingredient", "storm"];

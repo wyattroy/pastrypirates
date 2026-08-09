@@ -659,6 +659,9 @@ export function writeGameLog(){
   if(!appState.db||appState.replaying)return Promise.resolve();
   const ts=Date.now();
   return netWriteGameLog(appState.db,ts,{
+    // gamelogs/ is shared by every build on this domain; the tag is what keeps /3's voyages
+    // separable from /v2bakeoff's when reading the data back.
+    build:"v3",
     ts,room:appState.room||null,winner:appState.game.winner,round:appState.game.round,
     battles:appState.game.battles,trades:appState.game.trades,strategies:appState.game.cfg.strategies,
     // names/bots are recorded per seat so solo & local games (no rooms/{code}/seats node) are still
@@ -1627,7 +1630,7 @@ export function boot(){
   // screen no longer even shows, and a mid-game refresher could watch the loader fade onto the
   // WELCOME SCREEN — art finishing before the async room read — with their voyage arriving a beat
   // later. That flash is the "did my game get lost?" moment, and it was reachable, not theoretical.
-  let sess=null;try{sess=JSON.parse(localStorage.getItem("pp_sess"));}catch(e){}
+  let sess=null;try{sess=JSON.parse(localStorage.getItem("pp3_sess"));}catch(e){}
   // CLOCK-01: a blob with no v field (pre-refactor build) or a mismatched v (stale schema) is
   // treated as absent — cleared via the existing clearSession(), never partially trusted — so a
   // returning old-version player starts clean instead of stalling on an invalid resume attempt
@@ -1635,7 +1638,7 @@ export function boot(){
   if(sess&&sess.v!==SESSION_SCHEMA_V){clearSession();sess=null;}
   // Mirror guard, solo side (same D-01/D-02 reasoning). Hoisted from the branch below so the
   // journey is decided up front; the schema guards themselves are unchanged.
-  let solo=null;try{solo=JSON.parse(localStorage.getItem("pp_solo"));}catch(e){}
+  let solo=null;try{solo=JSON.parse(localStorage.getItem("pp3_solo"));}catch(e){}
   if(solo&&solo.v!==SOLO_SCHEMA_V){clearSoloState();solo=null;}
   const resumingRoom=!!(sess&&sess.room);
   // ...only when there is no multiplayer session to reconnect to, exactly as the old nesting had it.
