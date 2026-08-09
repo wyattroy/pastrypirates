@@ -63,8 +63,8 @@ Game.prototype.takeTurn = function (p, w, st) {
 
   rows.sort((a, b) => b.value - a.value);
   console.log(`\n${rows.length} candidate turns scored. value = turnsToWin(now) - turnsToWin(after):\n`);
-  console.log(`   ${"value".padStart(7)}  ${"action".padEnd(22)} ${"square".padEnd(9)} why / arithmetic`);
-  console.log(`   ${"-".repeat(7)}  ${"-".repeat(22)} ${"-".repeat(9)} ${"-".repeat(46)}`);
+  console.log(`   ${"value".padStart(7)}  ${"voyage".padEnd(11)} ${"action".padEnd(22)} ${"square".padEnd(9)} why / arithmetic`);
+  console.log(`   ${"-".repeat(7)}  ${"-".repeat(11)} ${"-".repeat(22)} ${"-".repeat(9)} ${"-".repeat(44)}`);
   for (const r of rows.slice(0, 24)) {
     const act = r.type === "dock" ? `dock at ${nm(r.ing)}`
       : r.type === "attack" ? `attack seat ${r.target}`
@@ -76,12 +76,19 @@ Game.prototype.takeTurn = function (p, w, st) {
       note = `${r.detail.downwind ? "DOWNWIND" : "upwind  "} pWin ${r.detail.pWin}  move ${r.detail.stand}` +
         `  win +${r.detail.win} lose -${r.detail.lose} denial +${r.detail.denial}` + (r.detail.rematch ? ` rematch -${r.detail.rematch}` : "");
     const mark = r.value > 0 ? " " : "x";
-    console.log(` ${mark} ${r.value.toFixed(2).padStart(7)}  ${act.padEnd(22)} ${("[" + r.cell + "]").padEnd(9)} ${note}`);
+    // value IS base - after, so the whole voyage plan behind every row can be shown rather than
+    // asserted. Nothing on this table is a constant; each number is the difference between two
+    // complete solves of the remaining game.
+    const after = (before - r.value);
+    const voyage = `${before.toFixed(0)} -> ${after.toFixed(after % 1 ? 2 : 0)}`;
+    console.log(` ${mark} ${r.value.toFixed(2).padStart(7)}  ${voyage.padEnd(11)} ${act.padEnd(22)} ${("[" + r.cell + "]").padEnd(9)} ${note}`);
   }
   const pos = rows.filter(r => r.value > 0).length;
-  console.log(`\n   ${pos} of ${rows.length} candidates actually shorten the voyage (marked without an x).`);
-  console.log(`   CHOSEN: the top row. Everything at or below zero is a turn spent for nothing —`);
-  console.log(`   which is what stops a bot idling at a berth banking coins it does not need.`);
+  console.log(`\n   ${pos} of ${rows.length} candidates shorten the voyage. CHOSEN: the top row.`);
+  console.log(`   The "voyage" column is the whole point: every value is the difference between two`);
+  console.log(`   COMPLETE solves of the remaining game — all orderings of the crates still needed,`);
+  console.log(`   real water paths, the wind that will actually blow, real prices, through to the bake.`);
+  console.log(`   Nothing on this table is a hardcoded weight.`);
 };
 
 g.play();

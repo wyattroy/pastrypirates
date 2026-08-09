@@ -183,6 +183,36 @@ and the reason is that nothing it did was measured against turns-to-victory.
   rule: money that buys nothing on the remaining route shortens no voyage and is therefore worth
   nothing.
 
+### De-hardcoding a constant WITHOUT rescaling what reads it (-21.2 on the ladder)
+
+Wyatt, rightly: *"nothing should be hardcoded."* `threatTurns(q)` was `cratesShort x 2.5 + distance
+home` — a constant standing in for "how long to land one more crate", which on this board varies
+about sixfold. It was replaced with a real optimistic voyage for the rival: nearest islands supplying
+anything they do not hold, real water legs, real wind, home, bake. Strictly more truthful, built only
+from public information, and the estimates went from a flat 10-12 turns to a realistic 15-18.
+
+**It cost 21 points on the ladder**, because of what read it:
+
+```
+threatUrgency(q) = (threatHorizon - threatTurns(q)) / threatHorizon      // threatHorizon = 8
+```
+
+`threatHorizon: 8` was calibrated when `threatTurns` ranged over roughly 5-15. Against a number that
+now ranges over 10-25, **urgency is zero for every captain, all game** — so denial raids and leader-
+hunting switched off entirely, silently, without a line of that code changing.
+
+**The rule: a constant is never alone.** Replacing one with a computed quantity changes its RANGE,
+and every threshold, horizon and divisor calibrated against the old range is now wrong. Before
+swapping a constant for a calculation, list what reads it and what scale those readers assume — then
+rescale them in the same change, or the improvement lands as a regression somewhere you were not
+looking.
+
+Same run, same patch, also changed: the tour now models rivals emptying the shelves before you
+arrive (price is `6 - stock`, so a crate taken before you get there costs a coin and the last one
+costs the island). That part is sound and worth rebuilding on top of a rescaled horizon; it is not
+what the ladder was punishing. Saved as a patch rather than kept, because a change that is 60% right
+and untested at the seams is not a starting point, it is a trap.
+
 ### An urgency-scaled hunt leash (inert, deleted)
 
 Ablated over 300 games: **46 → 46** wins, **1.68 → 1.69** fights a game. Aiming at a strike square
