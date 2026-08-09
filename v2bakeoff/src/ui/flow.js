@@ -952,6 +952,27 @@ export async function humanAct(p,sailCtx){
   // the engine no longer grants on a click.
   if(!appState.game.cfg.bakeoff&&!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
+  // THE OVENS BUTTON (Wyatt, 2026-08-09: "Where did the button go? This is a celebratory moment!
+  // It feels terrible to have to click 'pass'").
+  //
+  // Suppressing the classic bakery button above left NOTHING in its place. The ovens still lit —
+  // runLiveDayBakeoff calls lightOvens() the moment the turn returns — but the captain who had just
+  // spent thirteen days assembling a full recipe had to end that turn by tapping "Pass", and only
+  // then read that they had arrived. The biggest moment in the voyage was reached through the
+  // button that means "I have nothing to do".
+  //
+  // This does NOT light the ovens itself, and that is deliberate: lightOvens() must stay in the day
+  // loop, called exactly once per captain, or the RNG stream forks on which button a human happened
+  // to press (scrambleBench draws from it). The button's whole job is to END THE TURN with the
+  // right name on it — the loop lights the ovens a moment later and EVENT_NARRATION.ovens carries
+  // the celebration, so nothing is flashed here that would step on it.
+  //
+  // It REPLACES Pass rather than joining it. The "a turn must always be endable" invariant below is
+  // what Pass exists for, and this discharges it — same action, right name. Offering both would put
+  // the dead option back on screen next to the live one.
+  const canOvens=appState.game.cfg.bakeoff&&appState.game.canBake(p);
+  // @copy adhoc.act.fireovens
+  if(canOvens)opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Fire up the ovens!`,value:"ovens",cls:"primary ahoyGlow"});
   // v2 rule 3: Fish is gone from the menu, and rule 4's Trade is table-wide rather than
   // adjacency-gated. Together that made it possible for EVERY option to be unavailable at once —
   // not on a dock, nobody adjacent to fight, nobody holding cargo yet, recipe unfinished — which
@@ -967,7 +988,7 @@ export async function humanAct(p,sailCtx){
   const canMoveInstead=sailCtx&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  opts.push({label:"🌊 Pass",value:"pass"});
+  if(!canOvens)opts.push({label:"🌊 Pass",value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
@@ -1021,6 +1042,9 @@ export async function humanAct(p,sailCtx){
     await narrateLastEvent();
     return;
   }
+  // Ends the turn and nothing else — runLiveDayBakeoff lights the ovens the instant this returns,
+  // and narrates it. See the option's own note above for why the click must not do it itself.
+  if(v==="ovens")return;
   // @copy adhoc.act.bakerystart
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock"){
