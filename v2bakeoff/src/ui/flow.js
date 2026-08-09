@@ -1221,6 +1221,13 @@ export async function botTurn(p){
     if(await botOpenTradeLive(p))return;
   }
   if(action.type==="dock"&&g.doDock(p,action.ing)){await botBeat();return;}
+  // THE FALLBACK, and it has to be repeated HERE rather than inherited: botTurn does not call
+  // Game.takeTurn — it reimplements the turn so each step can animate (see the note in
+  // scripts/bakeoff_parity_test.js). A fallback added only to the engine would fix the simulator
+  // and leave every real browser game exactly as broken, which is the opposite of the point.
+  // Same rule as the engine's: work the berth under your feet, nothing cleverer.
+  const fallbackPort=g.adjPort(p);
+  if(fallbackPort&&g.canDock(p,fallbackPort)&&g.doDock(p,fallbackPort)){await botBeat();return;}
   // v2 rule 3: no fishing. A bot with nothing worth doing looks into the ocean, exactly as a
   // human does — same action, same narration, so the table reads consistently.
   g.ev({t:"pass",p:p.idx,sea:g.nextSeaCreature(p)});

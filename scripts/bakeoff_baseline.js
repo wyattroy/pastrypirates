@@ -26,9 +26,23 @@
 // byte-identical. So the flag-off path is still inert with respect to the BAKE-OFF; it has simply
 // been re-anchored to the v2bakeoff ruleset, which now deliberately differs from /v2/'s.
 //
+// RE-BASED A SECOND TIME, 2026-08-09, same discipline. Wyatt, watching a pass-and-play voyage:
+// "the bots are stupid — sometimes they pass instead of dock — even when theyre at a dock and could
+// make money or gather resources that others need." Two fixes to the shared bot brain followed
+// (chooseAction no longer commits a turn to a trade botOpenOffer will refuse to open; a refused
+// action falls back to working the dock instead of ending the turn). Both change what bots DO, so
+// they move the event stream in every game a bot was previously wasting a turn in — 162 of 200.
+//
+// Proved to be the only cause before re-capturing, same as last time: stashing exactly those two
+// edits and re-running returned all 200 games to byte-identical. Measured effect, over 300 games:
+// passes taken while standing at a workable dock went 3,746 -> 0, turns spent on a trade that was
+// never even announced went 4,884 -> 0, and the median voyage shortened by roughly half a day.
+//
 // What this file still guarantees: no FURTHER bake-off code leaks into the disabled path from here.
-// What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/. That
-// stopped being true on purpose.
+// What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/ (that
+// stopped being true on purpose at the first re-base), NOR that the bot brain is frozen — it is
+// under active work, and a bot change is expected to move this file. Read the diff, prove the cause,
+// record it here, then re-capture.
 
 import fs from "node:fs";
 import path from "node:path";

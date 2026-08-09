@@ -1413,7 +1413,21 @@ class Game{
     if(leg&&leg.kind==="take"&&leg.via&&adj.includes(leg.via)&&this.canAttack(p,leg.via))
       return {type:"attack",target:leg.via,why:"plan"};
     // 2. The plan says deal for it — a trade reaches the whole table, so position is irrelevant.
-    if(leg&&leg.kind==="deal"&&this.holdersOf(leg.ing,p).length)
+    //
+    // ASK THE QUESTION THE TRADE ITSELF WILL ASK (Wyatt, 2026-08-09, watching bots pass while sitting
+    // on a dock). This used to check only that SOMEBODY holds the crate — but botOpenOffer applies
+    // two further tests before it will say a word (is anyone still worth re-asking, and is my offer
+    // within reach of their price), and it fails one of them most of the time. The turn was then
+    // committed to a hail that never happened: no offer, no parley, no dock, just a blank pass.
+    // Measured over 300 games: 4,884 of 5,703 trade turns died this way, 836 of them while standing
+    // at a workable dock and 831 beside a legal target holding a crate the bot needed.
+    //
+    // Calling botOpenOffer here is safe to do twice — the whole compose path (composeOffer /
+    // worthReAsking / offerWorthTurns / estimateCrateCost / acquireTurns) reads state and returns;
+    // it draws no RNG, emits no event and mutates nothing, so tryTrade recomputing it a moment
+    // later gets the same answer and the seeded stream is untouched. That purity is load-bearing:
+    // if anything in that path ever starts drawing from this.r(), this line forks replay.
+    if(leg&&leg.kind==="deal"&&this.botOpenOffer(p))
       return {type:"trade",why:"plan"};
     // 3. Standing at the dock the plan sent us to — work it. Docking is never wasted: it pays
     //    whether or not there is a crate left to buy (rule 10d), so it is always a real option.
@@ -1487,6 +1501,15 @@ class Game{
     if(action.type==="attack"){this.battle(p,action.target);return;}
     if(action.type==="trade"){if(this.tryTrade(p))return;}
     if(action.type==="dock"){if(this.doDock(p,action.ing))return;}
+    // THE FALLBACK. chooseAction picks ONE action and, before this, a refusal ended the turn: a
+    // hail nobody would answer, or a berth already taken, and the captain went to look at the sea —
+    // even standing on a dock that pays whether or not there is a crate left to buy (rule 10d).
+    // A human does the next best thing instead, so a bot does too. Deliberately only the DOCK, not
+    // a second full pass through chooseAction: re-running the menu could pick a fight the planner
+    // had already priced and rejected this turn, and working the berth under your feet is the one
+    // move that is never wrong.
+    const fallbackPort=this.adjPort(p);
+    if(fallbackPort&&this.canDock(p,fallbackPort)&&this.doDock(p,fallbackPort))return;
     // Nothing left worth doing this turn — so a bot does exactly what a human does in the same
     // position (rule 3 left no filler action): leans over the rail and looks into the ocean.
     this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
