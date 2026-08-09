@@ -231,6 +231,10 @@
   .rulegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; font-size: 13.5px; }
   .rulegrid label { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 0; }
   .rulegrid label span { flex: 1; }
+  /* a flex column purely so applyCaptainOrder() can resort the rows with `order` in Pass & Play
+     (see src/ui/util.js). Stacking and full-width rows are identical to the block layout it
+     replaces — with no `order` set anywhere, every row is 0 and DOM order stands. */
+  #players { display: flex; flex-direction: column; }
   .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; border: 2px solid transparent; box-sizing: border-box; transition: border-color .25s ease, box-shadow .25s ease; }
   .player-row.activeTurn { border-color: var(--rowcol, var(--accent)); box-shadow: 0 0 0 2px var(--rowcol, var(--accent)) inset, 0 0 6px rgba(0,0,0,.12); }
   /* fixed dot/name/coins columns keep money and hold aligned across all captains regardless of

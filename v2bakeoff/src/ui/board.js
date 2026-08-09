@@ -111,7 +111,7 @@ import {
   // the decorative board's demo log line, and that board no longer renders. Dead imports are
   // forbidden in this codebase (D-33/D-34/D-40) and no gate catches them, so they go with the code
   // that used them rather than being left behind as plausible-looking dependencies.
-  assignBadges, pname, pn, buildPlayerRows, SHIP_GLIDE_MS,
+  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS,
 } from "./util.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
@@ -1520,6 +1520,10 @@ export function render(){
   appState.game.players.forEach((p,i)=>{
     const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
   });
+  // Pass & Play only: float the captain whose turn it is to the top of the box, rest in sailing
+  // order. Driven from `active` above (the same derivation the ring and the highlight use) so the
+  // box moves in step with the narration playhead, not ahead of it. See applyCaptainOrder.
+  applyCaptainOrder(active);
   if(appState.game.cfg.crates<1e9)for(const ing of appState.game.ings){
     const remaining=e.tokens[ing];
     for(let idx=0;idx<appState.game.cfg.crates;idx++){
