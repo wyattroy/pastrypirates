@@ -5,6 +5,12 @@ evidence that earned each rule. Written 2026-08-05 during the v2.1 build and pla
 
 Sibling to `docs/DRIVING-THE-GAME.md` (which is *how* to drive the game). This is *what to distrust*.
 
+Third sibling: **`docs/BOT-DESIGN-PRINCIPLES.md`** — *what the bots are FOR*. Read it before touching
+the bot AI. It opens with the objective every bot decision has to serve (minimise the expected turns
+until *this bot* wins), and records the failures that came from not having one: a whole-turn planner
+that improved every behaviour statistic and still lost head-to-head, plus the two tuning traps found
+inside it.
+
 **Read this whole document at the start of every session.** Not the top two sections — all of it.
 The 2026-08-08 bake-off session hit **three lessons already written here** and paid for each of them
 again: `http.server` inheriting the cwd (§1), `no_undef_check` seeing only call-position identifiers
