@@ -57,6 +57,17 @@ const PERSONALITY={
 // Planner constants. Every one of these is denominated in TURNS, which is what makes the bot
 // explainable: it compares "buying this crate costs me 4 turns" against "taking it by force costs
 // me 2 turns and a fight I might lose" and picks the cheaper. Nothing here is a magic score.
+/* v3 race planner: the two constants of the logistic curve raceScore3 reads every pairwise race
+   off — P(I beat q) = σ((ETA_q − myFinish + RACE_BIAS) / RACE_SPREAD). MEASURED, not tuned:
+   scripts/measure_race_spread.mjs replays a seeded corpus and fits both by maximum likelihood on
+   27,867 observed did-p-beat-q outcomes (2026-08-09, incumbent-driven corpus, seeds 1..300×7919).
+   RACE_BIAS is positive because the two estimators lean opposite ways: my contested tour is
+   pessimistic (it prices contention), a rival's public ETA is optimistic (it assumes the cheapest
+   recipe they could possibly hold) — the raw margin therefore understates the mover. Re-run the
+   script if the movement, dock, battle or bake rules ever change. */
+const RACE_SPREAD=6.75;
+const RACE_BIAS=2.75;
+
 const PLAN={
   // a dock flip pays 6 on heads, 2 on tails (rule 10), so a turn spent docking earns 4 on average
   coinsPerDockTurn:4,
@@ -1697,9 +1708,426 @@ class Game{
      are where actions live), plus the handful that make the most ground toward the route. Scoring all
      ~40 reachable squares with a full re-plan each is affordable but pointless — the rest differ only
      in position, and position is already represented by the best of them. */
+  /* ================= v3 DISPATCH =================
+     planTurn(p) is the ONE brain entry point — Game.takeTurn (headless) and src/ui/flow.js
+     botTurn (animated) both call it, so a brain that lives here drives both turn paths by
+     construction. The incumbent whole-turn planner is preserved BYTE-IDENTICAL below as
+     planTurnClassic, and everything it reads (turnsToWin, buildRoute, acquireTurns, legTurns,
+     threatTurns, denialValue) stays untouched — that is what makes scripts/bot_ladder3.js a fair
+     head-to-head: the control seats run exactly the brain that ships at /v2bakeoff. */
+  planTurn(p){
+    return this.planTurnV3(p);
+  }
+  /* ================= v3: THE RACE PLANNER =================
+     The incumbent minimises MY expected turns and bolts denial on as a priced constant. This brain
+     changes the objective itself: it maximises the PROBABILITY OF WINNING a modelled four-way race.
+
+         P(win) = Π over rivals q of  σ( (ETA_q − myFinish) / RACE_SPREAD )
+
+     where σ is the logistic curve, myFinish comes from my own contested tour, and ETA_q is a real
+     voyage built for each rival from public evidence only. What this buys over the incumbent:
+
+       1. CONTENTION. Rivals' predicted island arrivals deplete the shelves inside MY tour costing,
+          so "go first where the crates will be gone" falls out of the price, not a tie-break.
+       2. DENIAL WITHOUT A CONSTANT. Robbing the leader raises P(win) by exactly how much it moves
+          their ETA past mine — worth everything in a close race, nothing when I'm out of it, and
+          no denialTurns/threatHorizon to mis-scale (the −21.2 lesson).
+       3. RISK POSTURE FOR FREE. A fight's outcomes are evaluated ON the curve, not averaged before
+          it: a comfortable leader finds gambles lower its P(win) (little to gain up top, a lot to
+          lose), a trailing captain finds the same gamble raises it. Jensen's inequality does what
+          an explicit variance policy would have hard-coded.
+       4. TRUE SAILING COSTS. Legs are costed by a wind-aware turn-count field built from the real
+          one-turn reachability rule, so a dogleg around the wind and a squeeze past an island are
+          priced as the squares they actually cost, not ceil(manhattan/speed).
+
+     Everything here is RNG-free (reads state, returns) and reads no rival's recipe. The incumbent
+     survives byte-identical as planTurnClassic below, both for scripts/bot_ladder3.js and as the
+     control that keeps this honest. */
+
+  /* One turn's reach from `from` under `wind` — the same flood as sailStates (rule 1: 4 squares,
+     2 once any step bites into the wind; the rim is never a staging post) with two deliberate
+     differences: other ships are ignored (they will have moved by the time a later leg is sailed),
+     and the wind is a parameter, because later legs are costed under the forecast. */
+  windReach3(from,wind,rev){
+    const maxOpen=this.sailRange(),maxUp=this.sailRangeUpwind();
+    // REVERSED FLOODS MIRROR THE TRIGGER. A legal turn from x to y under wind W is a path whose
+    // steps, negated and read backwards, form a path from y to x — and it contained a step in
+    // direction OPPOSITE[W] exactly when the reversed one contains a step in direction W. The
+    // "any upwind step halves the whole turn" rule is path-wide, so it survives the reversal
+    // intact. That is what lets turnsFieldTo3 flood once per DESTINATION instead of once per
+    // candidate square.
+    const trigger=rev?wind:OPPOSITE[wind];
+    const passable=o=>{
+      if(this.blocked(o))return false;
+      if(this.isIsland(o)||this.isHome(o))return false;
+      if(this.onRim(o))return false;
+      return true;
+    };
+    const seen={[from[0]+","+from[1]+",0"]:0};
+    const out=[];
+    const q=[[from,false,0]];
+    while(q.length){
+      const [c,used,n]=q.shift();
+      const limit=used?maxUp:maxOpen;
+      if(n>=limit)continue;
+      for(const dk of Object.keys(DIRS)){
+        const d=DIRS[dk];
+        const o=[c[0]+d[0],c[1]+d[1]];
+        if(!passable(o))continue;
+        const u2=used||dk===trigger;
+        const n2=n+1;
+        if(n2>(u2?maxUp:maxOpen))continue;
+        const kk=o[0]+","+o[1]+","+(u2?1:0);
+        if(seen[kk]!==undefined&&seen[kk]<=n2)continue;
+        seen[kk]=n2;
+        out.push(o);
+        q.push([o,u2,n2]);
+      }
+    }
+    return out;
+  }
+  /* Whole-TURN distance field TO a destination under a constant `wind`: field["x,y"] = fewest
+     turns of real sailing from x,y to `dest`, by the real movement rule. Layered reverse BFS —
+     each layer is one turn's windReach3 flood with the upwind trigger mirrored (see above). Land
+     never moves and ships are ignored, so a field lives for the whole game, cached by (dest,
+     wind); there are only ever a handful of destinations (seven docks and home), which is the
+     entire point of flooding from this end. This replaces ceil(BFS-distance / speed), which
+     prices a full-speed dogleg around the wind and a half-speed crawl straight into it
+     identically — and both wrong. */
+  turnsFieldTo3(dest,wind){
+    const key=dest[0]+","+dest[1]+"|"+(wind||"-");
+    if(!this._tf3)this._tf3={};
+    if(this._tf3[key])return this._tf3[key];
+    const field={};field[dest[0]+","+dest[1]]=0;
+    let frontier=[dest],t=0;
+    while(frontier.length&&t<60){
+      t++;
+      const next=[];
+      for(const c of frontier){
+        for(const o of this.windReach3(c,wind,true)){
+          const k=o[0]+","+o[1];
+          if(field[k]===undefined){field[k]=t;next.push(o);}
+        }
+      }
+      frontier=next;
+    }
+    return this._tf3[key]=field;
+  }
+  /* Turns to sail from→to under `wind`, over the real water, by the real movement rule.
+     null = no route. A voyage ENDS beside home, never on it (canBake is adjacency, and the home
+     square is land to the flood) — so home as a destination reads the nearest berth's field
+     value. Docks are ordinary water squares and read directly. */
+  legTurns3(from,to,wind){
+    const fk=from[0]+","+from[1];
+    if(this.isHome(to)){
+      let bst=null;
+      for(const d of Object.values(DIRS)){
+        const b=[to[0]+d[0],to[1]+d[1]];
+        if(this.blocked(b)||this.isIsland(b)||this.onRim(b))continue;
+        const v=this.turnsFieldTo3(b,wind)[fk];
+        if(v!==undefined&&(bst===null||v<bst))bst=v;
+      }
+      return bst;
+    }
+    const d=this.turnsFieldTo3(to,wind)[fk];
+    return d===undefined?null:d;
+  }
+  /* A rival's fastest plausible voyage, from PUBLIC evidence only (principle 5): position, purse,
+     distinct crates held, live stock and prices. Which five of the seven they actually need is
+     hidden, so this takes the OPTIMISTIC completion — the cheapest (recipeSize − distinct) crates
+     they do not yet hold, greedily nearest-first with prices moving as their own predicted buys
+     deplete each shelf. Optimistic is the right direction to be wrong in (threatTurns' own
+     argument), and it is also the assumption under which their arrivals empty shelves soonest,
+     which is exactly what the contention model must be robust against.
+     Returns {eta, buys:[{ing,t}]} — eta in turns from now, buys feeding the depletion schedule. */
+  rivalPlan3(q){
+    const rs=this.cfg.recipeSize||5;
+    const held=new Set(q.ing);
+    let need=Math.max(0,rs-held.size);
+    const stock={};for(const ing of this.ings)stock[ing]=this.tokens[ing]||0;
+    const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||1;
+    const base=this.cfg.crateBase||6;
+    const fc=this.forecastWind()||this.windNow;
+    let at=q.pos,coins=q.coins,t=0;
+    const buys=[];
+    while(need>0){
+      let best=null,bing=null,bsail=0,bearn=0,bprice=0;
+      for(const ing of this.ings){
+        if(held.has(ing)||buys.some(b=>b.ing===ing))continue;
+        if(stock[ing]<=0)continue;
+        const sail=this.legTurns3(at,this.dockOf[ing],t===0?this.windNow:fc);
+        if(sail===null)continue;
+        const price=stock[ing]>=1e9?base-1:Math.max(1,base-stock[ing]);
+        const earn=Math.max(0,Math.ceil((price-coins)/pay));
+        const cost=sail+earn+1;
+        if(best===null||cost<best){best=cost;bing=ing;bsail=sail;bearn=earn;bprice=price;}
+      }
+      if(bing===null){t+=4;need--;continue;}   // nothing buyable: a deal or a fight, ~4 turns
+      t+=bsail+bearn+1;
+      coins+=bearn*pay+pay-bprice;             // the buying flip pays too, same as doDock
+      if(stock[bing]<1e9)stock[bing]--;
+      buys.push({ing:bing,t});
+      at=this.dockOf[bing];
+      need--;
+    }
+    const home=this.legTurns3(at,this.home,fc);
+    t+=(home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0);
+    return {eta:t,buys};
+  }
+  // Recompute one rival's ETA under a hypothesis about their hold — they lost a crate to me, or
+  // took one of mine. Mutates and restores, exactly the turnsToWinIf pattern: the whole path
+  // reads state and returns, so a replay cannot fork on it.
+  rivalEta3If(q,h){
+    const si=q.ing;
+    if(h.gain)q.ing=q.ing.concat([h.gain]);
+    if(h.drop){const c=q.ing.slice(),i=c.indexOf(h.drop);if(i>=0)c.splice(i,1);q.ing=c;}
+    const v=this.rivalPlan3(q).eta;
+    q.ing=si;
+    return v;
+  }
+  /* The race, read once per decision: every rival's predicted voyage, and the merged schedule of
+     which shelves their buys empty and when. Computed at the top of planTurnV3 and passed down —
+     rivals do not move while this captain is choosing. */
+  raceContext3(p){
+    const plans=this.players.filter(q=>q!==p&&this.inPlay(q))
+      .map(q=>({q,plan:this.rivalPlan3(q)}));
+    const taken={};
+    for(const {plan} of plans)for(const b of plan.buys)(taken[b.ing]=taken[b.ing]||[]).push(b.t);
+    for(const k in taken)taken[k].sort((a,b)=>a-b);
+    return {plans,taken};
+  }
+  /* MY contested tour: the incumbent's exact-order walk (every ordering of the crates still
+     needed, real water, the wind that will actually blow, earn-only-what-is-short), with ONE
+     change of substance — the shelf I arrive at holds what will be LEFT when I get there, rivals'
+     predicted buys included, not what it holds now. Price is a clock; this makes the clock tick.
+     Returns {turns, first} — first is the best ordering's opening destination, for aiming. */
+  tour3(p,ctx){
+    const fc=this.forecastWind()||this.windNow;
+    if(p.done)return {turns:0,first:null};
+    const needs=this.needs(p);
+    if(!needs.length){
+      const home=this.legTurns3(p.pos,this.home,this.windNow);
+      return {turns:(home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0),
+              first:this.home};
+    }
+    const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||1;
+    const base=this.cfg.crateBase||6;
+    let best=PLAN.unreachable,bestFirst=null;
+    const walk=(rest,at,coins,t,first)=>{
+      if(t>=best)return;
+      if(!rest.length){
+        const home=this.legTurns3(at,this.home,fc);
+        const total=t+(home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0);
+        if(total<best){best=total;bestFirst=first;}
+        return;
+      }
+      for(let i=0;i<rest.length;i++){
+        const ing=rest[i];
+        let cost,end=at,purse=coins;
+        const sail=this.legTurns3(at,this.dockOf[ing],t===0?this.windNow:fc);
+        const arrive=t+(sail===null?PLAN.unreachable:sail);
+        const raw=this.tokens[ing]||0;
+        const takes=ctx&&ctx.taken[ing]?ctx.taken[ing]:[];
+        const left=raw>=1e9?raw:raw-takes.filter(x=>x<=arrive).length;
+        if(sail===null||left<=0){
+          // shelf bare (or bare by the time I arrive): dealt or taken, which acquireTurns prices
+          cost=Math.ceil(this.acquireTurns(p,ing,at,t===0?this.windNow:fc).turns);
+          if(cost>=PLAN.unreachable){best=Math.min(best,PLAN.unreachable);continue;}
+        }else{
+          const price=raw>=1e9?base-1:Math.max(1,base-left);
+          const earn=Math.max(0,Math.ceil((price-coins)/pay));
+          cost=sail+earn+1;
+          end=this.dockOf[ing];
+          purse=coins+earn*pay+pay-price;   // the buying flip pays too, same as doDock
+        }
+        walk(rest.slice(0,i).concat(rest.slice(i+1)),end,purse,t+cost,
+             first||(end===at?null:end)||this.dockOf[ing]);
+      }
+    };
+    walk(needs,p.pos,p.coins,0,null);
+    return {turns:best,first:bestFirst};
+  }
+  turnsToWin3(p,ctx){return this.tour3(p,ctx).turns;}
+  // The contested tour under a hypothesis — standing elsewhere, one crate up or down, a different
+  // purse. Mutate-and-restore, same contract as turnsToWinIf.
+  turnsToWin3If(p,h,ctx){
+    const sp=p.pos,si=p.ing,sc=p.coins;
+    if(h.cell)p.pos=h.cell;
+    if(h.gain)p.ing=p.ing.concat([h.gain]);
+    if(h.drop){const c=p.ing.slice(),i=c.indexOf(h.drop);if(i>=0)c.splice(i,1);p.ing=c;}
+    if(h.coins!==undefined)p.coins=h.coins;
+    const v=this.turnsToWin3(p,ctx);
+    p.pos=sp;p.ing=si;p.coins=sc;
+    return v;
+  }
+  /* P(win). My finish is (this turn) + (the contested tour after it); each rival's is their ETA.
+     Each pairwise race reads off a logistic curve over the margin in turns — RACE_SPREAD is the
+     measured scatter between a mid-voyage prediction and the finish it predicted (see the header
+     of scripts/measure_race_spread.mjs for the measurement), not a tuned taste. Margins are
+     clamped so a hopeless race is 0 and a won one is 1 without overflow. */
+  raceScore3(myT,plans,overrides){
+    let s=1;
+    for(const e of plans){
+      const eta=(overrides&&overrides.has(e.q))?overrides.get(e.q):e.plan.eta;
+      let m=(eta-(myT+1)+RACE_BIAS)/RACE_SPREAD;
+      if(m<-30)m=-30;if(m>30)m=30;
+      s*=1/(1+Math.exp(-m));
+    }
+    return s;
+  }
+  /* THE WHOLE TURN, DECIDED BEFORE THE SHIP MOVES — same shape as the incumbent (one plan: the
+     square I end on and what I do there; candidates pruned to every square with a berth or an
+     enemy plus the best ground-makers; ties break on ground made), scored on P(win) instead of
+     turns. Stochastic actions branch on their real outcomes and average the SCORE, not the state:
+     that is where the risk posture lives. */
+  planTurnV3(p){
+    const log=this.explain;
+    const bias=PERSONALITY[p.strategy]||PERSONALITY.balanced;
+    const grudge=p.grudge;p.grudge=null;
+    const ctx=this.raceContext3(p);
+    const tour=this.tour3(p,ctx);
+    const baseT=tour.turns;
+    p.plan=this.buildRoute(p).route;   // kept for narration/debugging, same as the incumbent
+
+    const cells=this.reachableFrom(p);
+    cells.push([...p.pos]);
+    const interesting=[],rest=[];
+    for(const c of cells){
+      const hasPort=!!this.portAt(c),hasFoe=this.foesAt(c,p).length>0;
+      (hasPort||hasFoe?interesting:rest).push(c);
+    }
+    const aimCell=tour.first||this.home;
+    rest.sort((a,b)=>man(a,aimCell)-man(b,aimCell));
+    /* Every reachable square is scored in full. The incumbent shortlists (PLAN.planCells) because
+       its re-plans were the cost; v3's legs are O(1) field lookups, so the whole option surface is
+       affordable — and it is worth points on the ladder (+6.7 -> +10.2 at 400 games), because the
+       wind-true fields can only prefer a dogleg the shortlist never offered them. */
+    const candidates=interesting.concat(rest);
+
+    const aimField=this.destField(aimCell);
+    const ground=c=>{const d=aimField[c[0]+","+c[1]];return d===undefined?1e6:d;};
+    let best=null,bestGround=1e9;
+    const consider=o=>{
+      if(log)log.push({...o,cell:[...o.cell],target:o.target?o.target.idx:null,ground:ground(o.cell)});
+      const g=ground(o.cell);
+      if(!best||o.value>best.value+1e-12||(Math.abs(o.value-best.value)<=1e-12&&g<bestGround)){
+        best=o;bestGround=g;
+      }
+    };
+    const heads=this.cfg.dockHeads||0,tails=this.cfg.dockTails||0;
+
+    for(const cell of candidates){
+      // POSITION ALONE: the race if I simply finish the turn here.
+      const sailT=this.turnsToWin3If(p,{cell},ctx);
+      consider({cell,type:"sail",value:this.raceScore3(sailT,ctx.plans),
+                why:this.needs(p).length?"enroute":"finishing",
+                detail:{myT:sailT}});
+
+      const port=this.portAt(cell);
+      if(port&&!(this.cfg.singleDock&&this.dockOccupiedBy(port,p))){
+        /* THE BERTH, BRANCHED ON THE FLIP IT ACTUALLY IS. doDock flips FIRST and buys against the
+           purse the flip just paid — so heads and tails are different states, evaluated exactly as
+           doDock will play them (needsIt || the merchant's leverage clause), then averaged as
+           SCORES. Using the mean payout instead would ask a different question than the action
+           answers, which is principle 3's whole warning. */
+        const price=this.cratePrice(port);
+        let ep=0;const branches=[];
+        for(const pay of [heads,tails]){
+          const purse=p.coins+pay;
+          const buys=this.cfg.dockBuy&&price!==null&&purse>=price;
+          const needsIt=buys&&this.needs(p).includes(port);
+          const leverage=buys&&!needsIt&&this.cfg.merchant&&bias.hoardBias>=1.4&&
+            this.players.some(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,port));
+          const take=needsIt||leverage;
+          const myT=this.turnsToWin3If(p,{cell,gain:take?port:null,
+                                          coins:purse-(take?price:0)},ctx);
+          // my purchase empties a shelf slot rivals may have been counting on — their race moves
+          let ov=null;
+          if(take){
+            ov=new Map();
+            this.tokens[port]--;
+            for(const e of ctx.plans)
+              if(e.plan.buys.some(b=>b.ing===port))ov.set(e.q,this.rivalPlan3(e.q).eta);
+            this.tokens[port]++;
+          }
+          const s=this.raceScore3(myT,ctx.plans,ov);
+          ep+=0.5*s;branches.push({pay,myT,take,s:+s.toFixed(4)});
+        }
+        consider({cell,type:"dock",ing:port,value:ep,
+                  why:(p.plan[0]&&p.plan[0].ing===port)?"plan":"income",
+                  detail:{price,branches}});
+      }
+
+      if(!this.needs(p).length)continue;   // finished recipes never start fights (v1's AI-01)
+      for(const q of this.foesAt(cell,p)){
+        if(!this.canAttack(p,q))continue;
+        /* THE FIGHT, EVALUATED ON THE CURVE. Outcome odds are the measured ones (60,000 battles:
+           downwind 49.6 / 25.4 / 25.0, otherwise 24.9 / 0 / 75.1). Each outcome is a full state —
+           crates moved on BOTH sides of the race — scored separately, then averaged. A leader
+           holding four crates finds the loss branch costs more P(win) than the win branch buys;
+           a trailer finds the reverse. Nobody wrote that policy down; the curve's shape is it.
+           The rematch escalator survives as a cost in my own turns — it exists to stop grudge
+           duels pricing themselves back in, and that failure mode does not care which objective
+           the duel was justified under. */
+        const downwind=this.downwindFrom(cell,q);
+        const pWin=downwind?0.5:0.25,pFlee=downwind?0.25:0,pLose=1-pWin-pFlee;
+        const purse=p.coins-(this.cfg.powder||0);
+        const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
+        const revenge=(grudge&&grudge.against===q.idx&&grudge.expires>=this.round)?0.6:0;
+        const drag=rematch-revenge;
+        // the crate the winner actually takes, mirroring awardSpoil's own pick order
+        const wanted=q.ing.filter(i=>this.needs(p).includes(i));
+        const lever=q.ing.filter(i=>this.players.some(x=>x!==p&&x!==q&&this.inPlay(x)&&this.likelyNeeds(x,i)));
+        const spoil=wanted[0]!==undefined?wanted[0]:(lever[0]!==undefined?lever[0]:q.ing[0]);
+        // stand: I sailed here and paid powder, coins landed nowhere
+        const standT=this.turnsToWin3If(p,{cell,coins:purse},ctx)+drag;
+        const sFlee=this.raceScore3(standT,ctx.plans);
+        // win: their crate in my hold, and their voyage longer by having to replace it
+        const winT=this.turnsToWin3If(p,{cell,gain:spoil,coins:purse},ctx)+drag;
+        const ovW=new Map([[q,this.rivalEta3If(q,{drop:spoil})]]);
+        const sWin=this.raceScore3(winT,ctx.plans,ovW);
+        // lose: my most expensive crate gone TO THEM — worst case for me, and their gain is real
+        let worst=null,worstCost=-1;
+        for(const ing of new Set(p.ing)){
+          const c=this.turnsToWin3If(p,{cell,drop:ing,coins:purse},ctx);
+          if(c>worstCost){worstCost=c;worst=ing;}
+        }
+        const loseT=(worst?worstCost:standT)+drag;
+        const ovL=worst?new Map([[q,this.rivalEta3If(q,{gain:worst})]]):null;
+        const sLose=this.raceScore3(loseT,ctx.plans,ovL);
+        /* Principle 8, ported: fightBias is the archetype's thumb on the RISK, never the prize.
+           A pirate feels the loss branch at 1/fightBias of its true depth below the stand score;
+           a rusher feels it deeper. The probabilities stay honest. */
+        const feltLose=sFlee-(sFlee-sLose)/bias.fightBias;
+        const v=pWin*sWin+pFlee*sFlee+pLose*feltLose;
+        consider({cell,type:"attack",target:q,value:v,why:wanted.length?"opportunity":"denial",
+                  detail:{downwind,pWin,pLose:+pLose.toFixed(2),spoil,
+                          sWin:+sWin.toFixed(4),sFlee:+sFlee.toFixed(4),sLose:+sLose.toFixed(4),
+                          rematch:+rematch.toFixed(2)}});
+      }
+    }
+
+    // A HAIL REACHES THE WHOLE TABLE (rule 4) — it rides on the best-positioned square, same as
+    // the incumbent, and botOpenOffer is the exact question tryTrade will ask (principle 3).
+    if(this.needs(p).length){
+      const offer=this.botOpenOffer(p);
+      if(offer){
+        let park=null,parkS=-Infinity;
+        for(const cell of candidates){
+          const s=this.raceScore3(this.turnsToWin3If(p,{cell},ctx),ctx.plans);
+          if(s>parkS){parkS=s;park=cell;}
+        }
+        const tradeT=this.turnsToWin3If(p,{cell:park,gain:offer.want,
+                                           coins:p.coins-(offer.giveCoins||0)},ctx);
+        consider({cell:park,type:"trade",value:this.raceScore3(tradeT,ctx.plans),why:"plan",
+                  detail:{park:[...park],myT:tradeT}});
+      }
+    }
+    return best||{cell:[...p.pos],type:"sail",value:0,why:"enroute"};
+  }
   // Set game.explain = [] before a turn and every candidate this planner scores is appended to it,
   // with the arithmetic that produced its number. Off unless something asks (scripts/bot_matrix.js).
-  planTurn(p){
+  planTurnClassic(p){
     const log=this.explain;
     const bias=PERSONALITY[p.strategy]||PERSONALITY.balanced;
     const grudge=p.grudge;p.grudge=null;
