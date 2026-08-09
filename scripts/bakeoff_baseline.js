@@ -48,6 +48,20 @@
 // per game, shots fired with the wind 25.5% -> 44.6%, and the win spread across the four archetypes
 // TIGHTENED from 46-93 to 59-88. Zero games unfinished before or after.
 //
+// RE-BASED A FOURTH TIME, 2026-08-09. The bot brain was replaced: a turn is now decided WHOLE before
+// the ship moves, scored against an actual voyage plan (turnsToWin — every remaining ingredient
+// ordered, sailed over real water under the wind that will actually blow, docked, sailed home,
+// baked; a whole number of turns). It changes what every bot does on every turn, so all 200 games
+// move — as they must.
+//
+// Proved the sole cause before re-capturing, same as the three before it: stashing exactly this
+// change returned all 200 games to byte-identical. It is also the first bot change this project has
+// shipped on evidence of WINNING rather than of behaving better: scripts/bot_ladder.js over 400
+// games a row scores it +6.7 points against the bot it replaces, positive in all four
+// configurations. Behaviour, for the record — fights 2.35 -> 2.41 a game but 44.6% -> 91.1% of them
+// fired with the wind, blank turns 8.8% -> 6.2%, deals struck 26 -> 156, voyage length unchanged at
+// ~18 days, no game unfinished.
+//
 // What this file still guarantees: no FURTHER bake-off code leaks into the disabled path from here.
 // What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/ (that
 // stopped being true on purpose at the first re-base), NOR that the bot brain is frozen — it is

@@ -1198,9 +1198,12 @@ export async function botTurn(p){
   await botBeat();
   // v2.1: no turn is ever lost to weather, so a bot has no forfeit branch either.
   if(!g.adjPort(p))p.dockedNow.clear();
-  // The planner decides where to go (rules-side, in the engine) — this path only animates it, so
-  // a bot on screen can never sail somewhere the headless simulation would not have sent it.
-  const target=g.chooseTarget(p);
+  // PRINCIPLE 1: the WHOLE turn is decided here, before a square is crossed — the square to finish
+  // on AND what to do from it, scored as one plan against turns-to-victory. This path only ANIMATES
+  // the engine's decision, so a bot on screen can never do something the headless simulation would
+  // not have done. See docs/BOT-DESIGN-PRINCIPLES.md.
+  const plan=g.planTurn(p);
+  const target=plan.cell;
   if(man(p.pos,target)>0){
     const b=[...p.pos];
     // v2 rule 2: sailing is free. No coin to spend, none to refund.
@@ -1212,15 +1215,17 @@ export async function botTurn(p){
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
-  const action=g.chooseAction(p);
-  if(action.type==="attack"){
-    await netHandlers().onAsyncBattle(p,action.target);
+  // The plan was costed from plan.cell; a storm or a blocked route can leave the ship short of it,
+  // so anything needing adjacency is re-checked against where the ship ACTUALLY is. Not a second
+  // decision — the same plan, refusing to pretend it arrived.
+  if(plan.type==="attack"&&man(p.pos,plan.target.pos)<=1&&g.canAttack(p,plan.target)){
+    await netHandlers().onAsyncBattle(p,plan.target);
     await botBeat();return;
   }
-  if(action.type==="trade"){
+  if(plan.type==="trade"){
     if(await botOpenTradeLive(p))return;
   }
-  if(action.type==="dock"&&g.doDock(p,action.ing)){await botBeat();return;}
+  if(plan.type==="dock"&&g.adjPort(p)===plan.ing&&g.doDock(p,plan.ing)){await botBeat();return;}
   // THE FALLBACK, and it has to be repeated HERE rather than inherited: botTurn does not call
   // Game.takeTurn — it reimplements the turn so each step can animate (see the note in
   // scripts/bakeoff_parity_test.js). A fallback added only to the engine would fix the simulator

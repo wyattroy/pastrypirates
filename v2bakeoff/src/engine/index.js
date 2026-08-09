@@ -97,6 +97,15 @@ const PLAN={
   denialTurns:5,      // what stopping a captain on the brink is worth in a bot's OWN turns, at
                       // full urgency — this is what lets it raid cargo it has no use for
   interceptLead:2,    // squares to aim AHEAD of a fleeing leader, along their path home
+  // ---- the objective (docs/BOT-DESIGN-PRINCIPLES.md) ----
+  bakeTurns:2,        // attempts to name five crates back in order. A WHOLE number, because
+                      // turnsToWin counts turns and there is no such thing as a third of a turn —
+                      // measured mean 2.3, median 2, and the median is the one that is a real
+                      // number of turns a captain can actually spend.
+  planCells:6,        // how many "just sailing" squares to score in full besides every square that
+                      // has a berth or an enemy on it. Scoring all ~40 reachable squares costs a
+                      // full re-plan each and buys nothing: the rest differ only in position, and
+                      // position is already represented by the best of them.
   huntReach:2,        // a raid is only ever PLANNED against a leader this many sail-turns away —
                       // the leash that stops a bot abandoning its own voyage to stalk across the map
 };
@@ -1080,6 +1089,30 @@ class Game{
     }
     return null;
   }
+  /* ---- board reads parameterised by a SQUARE, so a turn can be scored from somewhere the ship has
+       not reached yet. The originals all read p.pos, which is exactly why the turn used to be
+       decided in two halves. None of these draw RNG, deliberately: adjOpp() shuffles (and so calls
+       this.r()), making it unusable inside a planner that evaluates dozens of hypothetical squares.
+       Ties break on value then seat order — deterministic, and fairer than a coin toss. ---- */
+  portAt(cell){
+    if(this.cfg.singleDock){
+      for(const ing of this.ings){const d=this.dockOf[ing];
+        if(cell[0]===d[0]&&cell[1]===d[1])return ing;}
+      return null;
+    }
+    for(const d of Object.values(DIRS)){const c=[cell[0]+d[0],cell[1]+d[1]];
+      if(this.isIsland(c))return this.islands[c];}
+    return null;
+  }
+  foesAt(cell,p){return this.players.filter(q=>q!==p&&this.inPlay(q)&&man(cell,q.pos)<=1);}
+  // Would a ship on `cell` hold the weather gauge over q? Rule 9 gives a both-heads round to the
+  // downwind ship, and downwindSide grants it at exactly one square along the wind — so this is the
+  // single cell that doubles the odds, and there is nothing to search for.
+  downwindFrom(cell,q){
+    const wv=DIRS[this.windNow];
+    if(!wv)return false;
+    return q.pos[0]-cell[0]===wv[0]&&q.pos[1]-cell[1]===wv[1];
+  }
   // Which side is firing downwind on this adjacency? Purely geometric; positions never change
   // mid-battle in v2 (no swap), so one reading holds for the whole fight.
   downwindSide(att,def){
@@ -1287,6 +1320,15 @@ class Game{
     if(dx>0)legs.push("E"); if(dx<0)legs.push("W");
     if(dy>0)legs.push("S"); if(dy<0)legs.push("N");
     const upwind=wind&&legs.some(k=>k===OPPOSITE[wind]);
+    /* FRACTIONAL, NOT CEILED — load-bearing for the objective, not a rounding taste.
+       As ceil(d/4) this returned the same number for a ship 5 squares out and one 8 squares out, so
+       turnsToWin() could not see a turn of sailing at all: in scripts/bot_matrix.js every sail
+       option scored exactly -1.00, the cost of the turn with no credit for the ground made. A bot
+       that cannot see movement shortening its voyage stops moving and waits at berths, which is
+       exactly what the mixed-table run showed — docks up, crates bought down, purse trebled.
+       Fractional turns say what the board says: four squares is one turn, two squares is half of
+       one. Every consumer compares these costs against each other, so finer resolution can only
+       sharpen the comparison; nothing reads it as a whole number of moves. */
     return Math.ceil(d/(upwind?SAIL_RANGE_UPWIND:SAIL_RANGE));
   }
   // The three ways to get a crate, each priced in turns, and which one wins. This is the heart of
@@ -1482,6 +1524,299 @@ class Game{
     const cost=this.coinTurns(this.cfg.refire||0);
     return 0.5*prize*bias.fightBias>=cost;
   }
+  /* ================= THE OBJECTIVE, COMPUTED =================
+     "The goal of every game is to win as quickly as possible" (Wyatt, 2026-08-09), made a number.
+     See docs/BOT-DESIGN-PRINCIPLES.md.
+
+     turnsToWin(p) is the whole route still to run: every ingredient still needed, ordered as cheaply
+     as the planner can order it, plus the sail home, plus the bake. buildRoute() has returned the
+     first term as `total` since v2 and it was never used AS the objective — that omission is what
+     turned every other quantity into a fixed price (a crate worth 2.5 turns whether it is your last
+     or your first) and produced a bot that optimised a price list.
+
+     A bot may read its OWN recipe here; it is its own card. Rivals are estimated with threatTurns(),
+     which reads only distinct crates carried and distance from home (principle 5). */
+  /* A ROUTE FIELD PER DESTINATION, over the real water. waterField() already does the BFS that
+     respects islands and the rim; it just caches one target at a time, which is useless to a planner
+     that costs six destinations per plan. The board's land never moves, so these are computed once
+     per game and reused. */
+  destField(cell){
+    const k=cell[0]+","+cell[1];
+    if(!this._destFields)this._destFields={};
+    if(!this._destFields[k]){
+      const saveF=this._field,saveK=this._fieldKey,saveR=this._fieldRound;
+      this._field=null;this._fieldKey=null;
+      this._destFields[k]=this.waterField(cell);
+      this._field=saveF;this._fieldKey=saveK;this._fieldRound=saveR;
+    }
+    return this._destFields[k];
+  }
+  /* HOW MANY TURNS TO SAIL THIS LEG — a whole number, over the real water, under the wind that will
+     actually be blowing. Path length comes from the BFS field (so land is sailed around, not
+     through); speed is 4 a turn, or 2 when the leg's net displacement bites into the wind (rule 1).
+     Unreachable returns null so a caller can tell "no route" from "far". */
+  legTurns(from,to,wind){
+    const f=this.destField(to);
+    const d=f[from[0]+","+from[1]];
+    if(d===undefined)return null;
+    if(d===0)return 0;
+    const dx=to[0]-from[0],dy=to[1]-from[1];
+    const legs=[];
+    if(dx>0)legs.push("E"); if(dx<0)legs.push("W");
+    if(dy>0)legs.push("S"); if(dy<0)legs.push("N");
+    const upwind=wind&&legs.some(k=>k===OPPOSITE[wind]);
+    return Math.ceil(d/(upwind?SAIL_RANGE_UPWIND:SAIL_RANGE));
+  }
+  /* ================= TURNS TO WIN — AN ACTUAL PLAN, AND A WHOLE NUMBER =================
+     Wyatt, 2026-08-09: *"How can the turns to win be a decimel? It needs to be a literal whole
+     number generated by creating a plan of sailing to each island to gather the ingredients then
+     sailing back to tortuga."*
+
+     He is right, and the decimal was the tell that the old number was not a plan at all: it summed
+     straight-line Manhattan distances (sailing THROUGH islands), halved the whole trip if any part
+     of it pointed upwind, and added a coin fudge. Then it was made fractional to smooth the
+     gradient, which fixed the symptom and finished off the meaning.
+
+     This builds the voyage instead. Every ORDER of the remaining ingredients is costed — at most
+     5! = 120, and usually far fewer — and the cheapest wins:
+
+         for each leg:  sail there (whole turns, real water, that leg's wind)
+                        + turns spent at the berth earning what the crate costs
+                        + the one turn that buys it
+         then:          sail to Tortuga, and bake
+
+     THE WIND IS READ PROPERLY. Rule 6d promises the forecast is never wrong, so leg one is costed
+     under the wind now and everything after it under the committed forecast — exactly what a captain
+     watching the compass can know, and no more. A storm forecast (no direction) falls back to the
+     current wind rather than pretending to know.
+
+     An ingredient with no stock left has no leg to cost; it must be dealt or fought for, and
+     acquireTurns() already prices those. Its cheapest route is used in place of the sail-and-buy. */
+  turnsToWin(p){
+    if(p.done)return 0;
+    const needs=this.needs(p);
+    const fc=this.forecastWind()||this.windNow;
+    if(!needs.length){
+      const home=this.legTurns(p.pos,this.home,this.windNow);
+      return (home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0);
+    }
+    const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2;
+    let best=PLAN.unreachable;
+    const walk=(rest,at,coins,t)=>{
+      if(t>=best)return;                       // a partial voyage already worse than the best whole one
+      if(!rest.length){
+        const home=this.legTurns(at,this.home,fc);
+        const total=t+(home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0);
+        if(total<best)best=total;
+        return;
+      }
+      for(let i=0;i<rest.length;i++){
+        const ing=rest[i];
+        const price=this.cratePrice(ing);
+        let cost,end=at,purse=coins;
+        if(price===null){
+          // nothing left on the shelf: it has to be dealt or taken, which acquireTurns prices
+          cost=Math.ceil(this.acquireTurns(p,ing,at,t===0?this.windNow:fc).turns);
+        }else{
+          const sail=this.legTurns(at,this.dockOf[ing],t===0?this.windNow:fc);
+          if(sail===null){best=Math.min(best,PLAN.unreachable);continue;}
+          const earn=Math.max(0,Math.ceil((price-coins)/pay));   // whole turns worked at the berth
+          cost=sail+earn+1;                                       // +1: the flip that buys it
+          end=this.dockOf[ing];
+          purse=coins+earn*pay-price;
+        }
+        const next=rest.slice(0,i).concat(rest.slice(i+1));
+        walk(next,end,purse,t+cost);
+      }
+    };
+    walk(needs,p.pos,p.coins,0);
+    return best;
+  }
+  // The same number under a hypothesis: standing somewhere else, holding one more crate, with a
+  // different purse. Mutates and restores rather than cloning — buildRoute and everything under it
+  // reads state and returns, drawing no RNG and emitting no event, so this cannot perturb a replay.
+  turnsToWinIf(p,h){
+    const sp=p.pos,si=p.ing,sc=p.coins;
+    if(h.cell)p.pos=h.cell;
+    if(h.gain)p.ing=p.ing.concat([h.gain]);
+    if(h.drop){const c=p.ing.slice(),i=c.indexOf(h.drop);if(i>=0)c.splice(i,1);p.ing=c;}
+    if(h.coins!==undefined)p.coins=h.coins;
+    const v=this.turnsToWin(p);
+    p.pos=sp;p.ing=si;p.coins=sc;
+    return v;
+  }
+  /* What robbing q is worth TO ME, in my own turns. Not a flat denialTurns: a crate taken off a
+     captain who was never going to beat me shortens my voyage by nothing, and the whole point of the
+     objective is that such a raid scores zero instead of 5. Capped at the moment they stop being the
+     one to beat — pushing the leader from 3 turns out to 30 is worth exactly as much as pushing them
+     behind me, and no more. */
+  denialValue(p,q,myTurns){
+    const theirs=this.threatTurns(q);
+    if(theirs>=myTurns)return 0;          // they were never going to beat me; robbing them wins nothing
+    if(!new Set(q.ing).size)return 0;
+    /* DENIAL IS A PUBLIC GOOD, AND THAT IS WHY IT MUST NOT BE PRICED AT FACE VALUE. Slowing the
+       leader by a crate helps EVERY captain behind them — and the one who spent the turn doing it is
+       the only one who paid. At a four-hand table the raider banks a third of what it bought.
+       It is also worth only what it closes of MY OWN deficit: pushing a leader from 12 turns out to
+       14.5 changes nothing for a captain 23 turns out, who should be racing, not policing.
+       Both together are what stopped the planner raiding instead of docking — the matrix had a
+       downwind raid at +2.25 beating a certain crate at +2.00 purely on an undiscounted +2.5. */
+    const closes=Math.min(PLAN.crateTurns,myTurns-theirs);
+    const beneficiaries=Math.max(1,this.players.filter(x=>this.inPlay(x)&&x!==q).length);
+    return closes/beneficiaries;
+  }
+  /* ================= THE WHOLE TURN, DECIDED BEFORE THE SHIP MOVES =================
+     Principle 1. Wyatt: *"You need to run all of the calculations that decide the most valuable
+     action for a turn RIGHT AT THE BEGINNING OF THE TURN — not after moving."*
+
+     A turn is one plan: (the square I end on, what I do there), and its value is
+
+         turnsToWin(now)  -  ( 1 + turnsToWin(after) )
+
+     THE 1 IS THE TURN YOU JUST SPENT, and leaving it out was the bug that sank the first attempt.
+     Wyatt, 2026-08-09: *"fix your calculation so that when you decide to stay at a doc to earn more
+     money, that causes your total journey length to increase more than going on to get another
+     ingredient... If an outcome does not lead to winning more quickly, it should not be acted upon."*
+     An earlier note here claimed the turn "cancels because every option costs it". That is true when
+     ranking options against each other and FALSE for the objective: without it, docking to earn coins
+     worth 0.875 turns of future earning scores +0.875 — pure profit — when the truth is
+     1 + (T - 0.875) = T + 0.125, a voyage made LONGER. Every hoarding turn was being paid a bonus for
+     wasting a day, which is exactly what the mixed-table measurement showed: the bot docked more,
+     bought fewer crates, and finished on 12.34 coins against the incumbent's 4.38.
+     With the turn charged, a positive score means "this genuinely brings my win forward"; zero or
+     less means the turn was not worth taking, whatever else it accomplished.
+
+     CANDIDATE SQUARES ARE PRUNED, and honestly: every square adjacent to a berth or an enemy (those
+     are where actions live), plus the handful that make the most ground toward the route. Scoring all
+     ~40 reachable squares with a full re-plan each is affordable but pointless — the rest differ only
+     in position, and position is already represented by the best of them. */
+  // Set game.explain = [] before a turn and every candidate this planner scores is appended to it,
+  // with the arithmetic that produced its number. Off unless something asks (scripts/bot_matrix.js).
+  planTurn(p){
+    const log=this.explain;
+    const bias=PERSONALITY[p.strategy]||PERSONALITY.balanced;
+    const grudge=p.grudge;p.grudge=null;
+    const base=this.turnsToWin(p);
+    p.plan=this.buildRoute(p).route;
+
+    const cells=this.reachableFrom(p);
+    cells.push([...p.pos]);                    // staying put competes on value like anything else
+    const goal=this.home;
+    const interesting=[],rest=[];
+    for(const c of cells){
+      const hasPort=!!this.portAt(c),hasFoe=this.foesAt(c,p).length>0;
+      (hasPort||hasFoe?interesting:rest).push(c);
+    }
+    // the ground-making shortlist: nearest to home is a poor proxy mid-voyage, so rank by the
+    // route's own next target when there is one
+    const aim=(p.plan&&p.plan.length&&(p.plan[0].target||p.plan[0].moveTarget))||goal;
+    rest.sort((a,b)=>man(a,aim)-man(b,aim));
+    const candidates=interesting.concat(rest.slice(0,PLAN.planCells));
+
+    /* TIES BREAK ON GROUND MADE, and this is the price of counting whole turns. turnsToWin is an
+       integer by design (it is a plan, not a score), so a dozen squares inside one turn's sailing all
+       leave the voyage the same length and score identically. Picking arbitrarily among them means a
+       ship that drifts sideways while the incumbent's stepToward always takes the square furthest
+       along the route — which is most of what separated them on the ladder.
+       So: value first, and among equals, the square that is physically nearest the next destination.
+       No turn is traded for this; it only chooses between turns already judged equal. */
+    const aimCell=(p.plan&&p.plan.length&&(p.plan[0].target||p.plan[0].moveTarget))||this.home;
+    const aimField=this.destField(aimCell);
+    const ground=c=>{const d=aimField[c[0]+","+c[1]];return d===undefined?1e6:d;};
+    let best=null,bestGround=1e9;
+    const consider=o=>{
+      if(log)log.push({...o,cell:[...o.cell],target:o.target?o.target.idx:null,ground:ground(o.cell)});
+      const g=ground(o.cell);
+      if(!best||o.value>best.value+1e-9||(Math.abs(o.value-best.value)<=1e-9&&g<bestGround)){
+        best=o;bestGround=g;
+      }
+    };
+    for(const cell of candidates){
+      // POSITION ALONE: how much shorter is my voyage if I finish the turn here?
+      const moved=base-1-this.turnsToWinIf(p,{cell});
+      consider({cell,type:"sail",value:moved,why:this.needs(p).length?"enroute":"finishing"});
+
+      const port=this.portAt(cell);
+      if(port&&!(this.cfg.singleDock&&this.dockOccupiedBy(port,p))){
+        const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2;
+        const price=this.cratePrice(port);
+        const buys=this.cfg.dockBuy&&price!==null&&p.coins+pay>=price;
+        const needsIt=buys&&this.needs(p).includes(port);
+        // coins shorten the route only where the route still has to earn them, which is precisely
+        // what buildRoute's own earn term models — so pass the purse through and let it say.
+        const after=this.turnsToWinIf(p,{cell,gain:needsIt?port:null,
+                                         coins:p.coins+pay-(needsIt?price:0)});
+        let v=base-1-after;
+        // a crate somebody else needs is leverage: it lengthens THEIR voyage if they must deal for it
+        if(buys&&!needsIt){
+          const mark=this.players.filter(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,port))
+                                 .sort((a,b)=>this.threatTurns(a)-this.threatTurns(b))[0];
+          if(mark)v+=this.denialValue(p,mark,base)*0.5; // half: they can still buy or fight for one
+        }
+        consider({cell,type:"dock",ing:port,value:v,why:(p.plan[0]&&p.plan[0].ing===port)?"plan":"income",
+                  detail:{buys,needsIt,price,after:+after.toFixed(2)}});
+      }
+
+      if(!this.needs(p).length)continue;       // finished recipes never start fights (v1's AI-01)
+      for(const q of this.foesAt(cell,p)){
+        if(!this.canAttack(p,q))continue;
+        /* THE THREE OUTCOMES, ALL OF THEM PRICED. Rule 9 hands a crate to the WINNER — so a fight
+           I lose costs me one of mine, and modelling only the upside is why an earlier build fought
+           12.5 times a game. Measured over 60,000 battles on this engine:
+                            attacker takes   defender flees   defender takes
+             with the wind       49.6%            25.4%            25.0%
+             upwind/crosswind    24.9%             0.0%            75.1%
+           Which makes an upwind attack what it actually is: a three-in-four chance of handing a
+           rival one of your own crates. No rule forbids it; the arithmetic simply stops choosing it. */
+        const downwind=this.downwindFrom(cell,q);
+        const pWin=downwind?0.5:0.25, pFlee=downwind?0.25:0, pLose=1-pWin-pFlee;
+        const purse=p.coins-(this.cfg.powder||0);
+        /* SAILING THERE IS CERTAIN; ONLY THE CRATE IS A GAMBLE. Position must sit OUTSIDE the
+           probability, and getting that wrong shows up in one glance at scripts/bot_matrix.js: with
+           the positional term multiplied by pWin, an UPWIND attack scored 0.43 against the DOWNWIND
+           one's 0.35 — the worse square winning because its smaller positional loss was scaled by a
+           smaller pWin. The move costs what it costs however the coins land. */
+        const stand=base-1-this.turnsToWinIf(p,{cell,coins:purse});
+        const here=this.turnsToWinIf(p,{cell,coins:purse});
+        const prize=q.ing.filter(i=>this.needs(p).includes(i));
+        // the crate itself, measured at the SAME square, so position cannot leak into it
+        const win=prize.length?here-this.turnsToWinIf(p,{cell,gain:prize[0],coins:purse}):0;
+        // what it costs when they win: the crate of mine that hurts most to lose, which is the one
+        // the route cannot cheaply replace — so price the worst case rather than an average.
+        let lose=0;
+        for(const ing of new Set(p.ing)){
+          const c=this.turnsToWinIf(p,{cell,drop:ing,coins:purse})-here;
+          if(c>lose)lose=c;
+        }
+        const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
+        const revenge=(grudge&&grudge.against===q.idx&&grudge.expires>=this.round)?0.6:0;
+        // expected turns off my voyage, plus expected turns onto the leader's, less what a loss
+        // costs me. fightBias is the archetype's thumb on the RISK (principle 8): a pirate fears the
+        // downside less, it does not imagine a bigger prize.
+        const v=stand+pWin*(win+this.denialValue(p,q,base))-pLose*lose/bias.fightBias-rematch+revenge;
+        consider({cell,type:"attack",target:q,value:v,why:prize.length?"opportunity":"denial",
+                  detail:{downwind,pWin,pLose:+pLose.toFixed(2),stand:+stand.toFixed(2),win:+win.toFixed(2),lose:+lose.toFixed(2),
+                          denial:+this.denialValue(p,q,base).toFixed(2),rematch:+rematch.toFixed(2)}});
+      }
+    }
+
+    // A HAIL REACHES THE WHOLE TABLE (rule 4), so it picks no square — it rides on whichever square
+    // the positioning already favours. botOpenOffer is the exact question tryTrade will ask
+    // (principle 3), and its compose path draws no RNG, so asking twice is free.
+    if(this.needs(p).length){
+      const offer=this.botOpenOffer(p);
+      if(offer){
+        let park=null,parkV=-Infinity;
+        for(const cell of candidates){
+          const v=base-1-this.turnsToWinIf(p,{cell});
+          if(v>parkV){parkV=v;park=cell;}
+        }
+        const after=this.turnsToWinIf(p,{cell:park,gain:offer.want,coins:p.coins-(offer.giveCoins||0)});
+        consider({cell:park,type:"trade",value:(base-1-after)*bias.dealBias,why:"plan"});
+      }
+    }
+    return best||{cell:[...p.pos],type:"sail",value:0,why:"enroute"};
+  }
   /* ================= what to do with THIS turn =================
      Not a menu of scores — the route already decided what this bot wants. This just reads the
      first leg of it and answers "can I take that step from where I'm standing?" */
@@ -1569,20 +1904,25 @@ class Game{
     // removed the only way it could cost a turn — so every captain always gets to play.
     const port0=this.adjPort(p);
     if(!port0)p.dockedNow.clear();
-    const target=this.chooseTarget(p);
+    // PRINCIPLE 1: the WHOLE turn is decided here, before a square is crossed — which square to
+    // finish on and what to do from it, scored as one plan against turns-to-victory.
+    const plan=this.planTurn(p);
     const before=[...p.pos];
     // sailing is free now (rule 2) — no coin gate, no refund, no "too poor to sail"
-    if(man(p.pos,target)>0){
-      const moved=this.stepToward(p,target);
+    if(man(p.pos,plan.cell)>0){
+      const moved=this.stepToward(p,plan.cell);
       if(moved)this.ev({t:"sail",p:p.idx});
       else if(this.boxedIn(p)&&this.rimEscape(p)){/* rim sweep recorded its own event */}
     }
     if(p.pos[0]!==before[0]||p.pos[1]!==before[1])p.justDocked=false;
     if(!this.adjPort(p))p.dockedNow.clear(); // leaving a port re-arms its dock flip
-    const action=this.chooseAction(p);
-    if(action.type==="attack"){this.battle(p,action.target);return;}
-    if(action.type==="trade"){if(this.tryTrade(p))return;}
-    if(action.type==="dock"){if(this.doDock(p,action.ing))return;}
+    // The plan was costed from plan.cell; a storm or a blocked route can leave the ship short of it,
+    // so anything needing adjacency is re-checked against where the ship ACTUALLY is. Not a second
+    // decision — the same plan, refusing to pretend it arrived.
+    if(plan.type==="attack"&&man(p.pos,plan.target.pos)<=1&&this.canAttack(p,plan.target)){
+      this.battle(p,plan.target);return;}
+    if(plan.type==="trade"&&this.tryTrade(p))return;
+    if(plan.type==="dock"&&this.adjPort(p)===plan.ing&&this.doDock(p,plan.ing))return;
     // THE FALLBACK. chooseAction picks ONE action and, before this, a refusal ended the turn: a
     // hail nobody would answer, or a berth already taken, and the captain went to look at the sea —
     // even standing on a dock that pays whether or not there is a crate left to buy (rule 10d).
