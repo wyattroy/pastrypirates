@@ -952,6 +952,27 @@ export async function humanAct(p,sailCtx){
   // the engine no longer grants on a click.
   if(!appState.game.cfg.bakeoff&&!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
     opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
+  // THE OVENS BUTTON (Wyatt, 2026-08-09: "Where did the button go? This is a celebratory moment!
+  // It feels terrible to have to click 'pass'").
+  //
+  // Suppressing the classic bakery button above left NOTHING in its place. The ovens still lit —
+  // runLiveDayBakeoff calls lightOvens() the moment the turn returns — but the captain who had just
+  // spent thirteen days assembling a full recipe had to end that turn by tapping "Pass", and only
+  // then read that they had arrived. The biggest moment in the voyage was reached through the
+  // button that means "I have nothing to do".
+  //
+  // This does NOT light the ovens itself, and that is deliberate: lightOvens() must stay in the day
+  // loop, called exactly once per captain, or the RNG stream forks on which button a human happened
+  // to press (scrambleBench draws from it). The button's whole job is to END THE TURN with the
+  // right name on it — the loop lights the ovens a moment later and EVENT_NARRATION.ovens carries
+  // the celebration, so nothing is flashed here that would step on it.
+  //
+  // It REPLACES Pass rather than joining it. The "a turn must always be endable" invariant below is
+  // what Pass exists for, and this discharges it — same action, right name. Offering both would put
+  // the dead option back on screen next to the live one.
+  const canOvens=appState.game.cfg.bakeoff&&appState.game.canBake(p);
+  // @copy adhoc.act.fireovens
+  if(canOvens)opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Fire up the ovens!`,value:"ovens",cls:"primary ahoyGlow"});
   // v2 rule 3: Fish is gone from the menu, and rule 4's Trade is table-wide rather than
   // adjacency-gated. Together that made it possible for EVERY option to be unavailable at once —
   // not on a dock, nobody adjacent to fight, nobody holding cargo yet, recipe unfinished — which
@@ -967,7 +988,7 @@ export async function humanAct(p,sailCtx){
   const canMoveInstead=sailCtx&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  opts.push({label:"🌊 Pass",value:"pass"});
+  if(!canOvens)opts.push({label:"🌊 Pass",value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
@@ -1021,6 +1042,9 @@ export async function humanAct(p,sailCtx){
     await narrateLastEvent();
     return;
   }
+  // Ends the turn and nothing else — runLiveDayBakeoff lights the ovens the instant this returns,
+  // and narrates it. See the option's own note above for why the click must not do it itself.
+  if(v==="ovens")return;
   // @copy adhoc.act.bakerystart
   if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock"){
@@ -1174,9 +1198,12 @@ export async function botTurn(p){
   await botBeat();
   // v2.1: no turn is ever lost to weather, so a bot has no forfeit branch either.
   if(!g.adjPort(p))p.dockedNow.clear();
-  // The planner decides where to go (rules-side, in the engine) — this path only animates it, so
-  // a bot on screen can never sail somewhere the headless simulation would not have sent it.
-  const target=g.chooseTarget(p);
+  // PRINCIPLE 1: the WHOLE turn is decided here, before a square is crossed — the square to finish
+  // on AND what to do from it, scored as one plan against turns-to-victory. This path only ANIMATES
+  // the engine's decision, so a bot on screen can never do something the headless simulation would
+  // not have done. See docs/BOT-DESIGN-PRINCIPLES.md.
+  const plan=g.planTurn(p);
+  const target=plan.cell;
   if(man(p.pos,target)>0){
     const b=[...p.pos];
     // v2 rule 2: sailing is free. No coin to spend, none to refund.
@@ -1188,15 +1215,24 @@ export async function botTurn(p){
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
-  const action=g.chooseAction(p);
-  if(action.type==="attack"){
-    await netHandlers().onAsyncBattle(p,action.target);
+  // The plan was costed from plan.cell; a storm or a blocked route can leave the ship short of it,
+  // so anything needing adjacency is re-checked against where the ship ACTUALLY is. Not a second
+  // decision — the same plan, refusing to pretend it arrived.
+  if(plan.type==="attack"&&man(p.pos,plan.target.pos)<=1&&g.canAttack(p,plan.target)){
+    await netHandlers().onAsyncBattle(p,plan.target);
     await botBeat();return;
   }
-  if(action.type==="trade"){
+  if(plan.type==="trade"){
     if(await botOpenTradeLive(p))return;
   }
-  if(action.type==="dock"&&g.doDock(p,action.ing)){await botBeat();return;}
+  if(plan.type==="dock"&&g.adjPort(p)===plan.ing&&g.doDock(p,plan.ing)){await botBeat();return;}
+  // THE FALLBACK, and it has to be repeated HERE rather than inherited: botTurn does not call
+  // Game.takeTurn — it reimplements the turn so each step can animate (see the note in
+  // scripts/bakeoff_parity_test.js). A fallback added only to the engine would fix the simulator
+  // and leave every real browser game exactly as broken, which is the opposite of the point.
+  // Same rule as the engine's: work the berth under your feet, nothing cleverer.
+  const fallbackPort=g.adjPort(p);
+  if(fallbackPort&&g.canDock(p,fallbackPort)&&g.doDock(p,fallbackPort)){await botBeat();return;}
   // v2 rule 3: no fishing. A bot with nothing worth doing looks into the ocean, exactly as a
   // human does — same action, same narration, so the table reads consistently.
   g.ev({t:"pass",p:p.idx,sea:g.nextSeaCreature(p)});

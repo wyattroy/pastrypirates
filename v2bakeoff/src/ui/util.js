@@ -71,11 +71,40 @@ import { netHandlers } from "./handlers.js";
 // captains panel lists seats in sailing order (turnOrder), rotated so this browser's own seat
 // (the human, from its own point of view) always sits at the top — falls back to raw seat index
 // before turnOrder is known yet (briefly, at the very start of a game)
-export function seatDisplayOrder(){
+export function seatDisplayOrder(){ return seatOrderFrom(appState.mySeat); }
+// The rotation itself: sailing order (turnOrder), turned so `head` sits first and everyone else
+// follows in the order they will actually sail. Falls back to raw seat index before turnOrder is
+// known yet (briefly, at the very start of a game), and to plain sailing order if `head` is not a
+// seat in it.
+export function seatOrderFrom(head){
   const n=appState.game.players.length;
   if(!appState.turnOrder||appState.turnOrder.length!==n)return appState.game.players.map((_,i)=>i);
-  const startPos=Math.max(0,appState.turnOrder.indexOf(appState.mySeat));
-  return appState.turnOrder.slice(startPos).concat(appState.turnOrder.slice(0,startPos));
+  const at=appState.turnOrder.indexOf(head);
+  if(at<0)return appState.turnOrder.slice();
+  return appState.turnOrder.slice(at).concat(appState.turnOrder.slice(0,at));
+}
+// PASS & PLAY (Wyatt, 2026-08-09): "resort the captains box with the currently active player at the
+// top during their turn, and the rest of the players sorted according to turn order... currently
+// they have to scroll down too far" — at a full table the reader was scrolling past three rivals to
+// reach their own recipe, on the one mode where the reader CHANGES every turn.
+//
+// Only Pass & Play reorders. In solo and net play the reader's own seat is a fixed anchor that
+// seatDisplayOrder already parks at the top; a box that resorted under them every turn would cost
+// them the one row they look at most, which is the opposite of the fix.
+//
+// Done by setting flex `order` rather than moving nodes: every prow*/pname*/coins*/chips*/
+// prowRecipe* id keeps the same element, so no in-flight name marquee, highlight transition or
+// pending paint is restarted by a reorder. Requires #players to be a flex column (index.html).
+//
+// A null `active` (between rounds, or after the last captain finishes) deliberately does NOTHING:
+// the box holds its current order until the next turn rather than snapping back for one frame.
+export function applyCaptainOrder(active){
+  if(!appState.passAndPlay||active==null||!appState.game)return;
+  const order=seatOrderFrom(active);
+  for(let k=0;k<order.length;k++){
+    const row=document.getElementById("prow"+order[k]);
+    if(row)row.style.order=k;
+  }
 }
 // 11-07 (bridge deletion fix): relocated here verbatim from src/ui/lobby.js. lobby.js already
 // imports src/ui/board.js's syncBoardSizing(), so board.js importing buildPlayerRows() BACK from

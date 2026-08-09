@@ -444,6 +444,31 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## ASK WITH THE QUESTION UI. ALWAYS. NOT PROSE.
+
+**Every question to Wyatt goes through the `AskUserQuestion` tool — never as a numbered list in a
+chat message.** This is not a preference about formatting; it is the difference between a question
+he can answer and a wall of text he has to retype answers to.
+
+Wyatt, 2026-08-09: *"Ask me these questions using claude's question ui — and ALWAYS DO THIS.
+Remember it. Write it where youll remember it. I tell you every day."*
+
+**He has had to say this every day.** That is the whole reason it is at the top of this section
+instead of buried in it. A session that writes "1. … 2. … 3. …" into a reply has already failed,
+however good the questions are — **he is on a phone**, and answering fourteen prose questions by
+thumb is work he should never have been handed.
+
+Mechanics that matter, because they are why prose feels easier and must be resisted:
+
+- The tool takes **up to 4 questions per call**, 2–4 options each. More than four questions means
+  **more than one call, in sequence** — that is fine and expected. Do not collapse a dozen real
+  questions into four vague ones to fit; ask them in rounds.
+- **Put the measurement in the option text**, same rule as below. He answers far better against a
+  real number than an abstraction.
+- **Mark the recommendation** — first option, "(Recommended)" in the label.
+- "Other" is added automatically; he uses it constantly, and his write-in is usually a better third
+  answer than anything offered. Leave room for it, and read it as the most valuable reply in the set.
+
 ## ASK 2–5 CLARIFYING QUESTIONS BEFORE BUILDING ANYTHING NON-TRIVIAL
 
 Wyatt, 2026-08-02, after three failed attempts at one small layout fix: *"it was really really
