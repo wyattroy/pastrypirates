@@ -1240,6 +1240,14 @@ class Game{
      consults anybody's recipe card — only what the whole table can see (see demandFor).
 
      ================= THE OBJECTIVE =================
+     THE GOAL OF EVERY GAME IS TO WIN AS QUICKLY AS POSSIBLE. (Wyatt, 2026-08-09.) That is not
+     specific to this game; it is what a game IS, and everything below is a consequence of it.
+     It is written down only because it was MISSED — a whole day of bot work optimised the machinery
+     of deciding (are the options compared fairly? are the odds honest? is the turn decided before
+     the ship moves?) without once asking what the machinery was FOR. The failure mode has a name:
+     optimising the process instead of the goal. The tell is a scoreboard full of improved
+     intermediate metrics and no improvement in wins.
+
      Wyatt, 2026-08-09: *"the bots should be acting according to valuing, completing the game in as
      few turns as possible. When they evaluate all of the ways that they could spend their turn right
      now, they should act towards the path that will end the game the most quickly with the highest

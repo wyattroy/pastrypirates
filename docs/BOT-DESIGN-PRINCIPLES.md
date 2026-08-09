@@ -1,5 +1,23 @@
 # Bot design principles
 
+> # The goal of every game is to win as quickly as possible.
+>
+> — Wyatt, 2026-08-09
+
+That is the overarching principle, and it is not specific to Pastry Pirates. It is what a game *is*.
+Every rule below is a consequence of it; nothing below may contradict it.
+
+It is written down because it was missed. Not disputed — **missed**, which is worse. A whole day of
+bot work optimised the machinery of decision-making (are the options compared fairly? are the odds
+honest? is the turn decided before the ship moves?) without once asking what the machinery was *for*.
+The result was a bot that made beautifully-reasoned decisions in service of nothing, improved every
+statistic anyone thought to measure, and lost.
+
+**The failure mode has a name and it is worth recognising early: optimising the process instead of
+the goal.** The tell is a scoreboard full of improved intermediate metrics and no improvement in
+wins. If you cannot say which number a change is supposed to move *at the scoreboard*, the change is
+not ready.
+
 **Canonical.** `v2bakeoff/src/engine/index.js` points here rather than restating it — a copy always
 rots, a pointer cannot.
 
@@ -9,11 +27,11 @@ a taste. Numbers are per 300 seeded bake-off games unless stated.
 
 ---
 
-## 0. THE OBJECTIVE — everything else is a consequence of this
+## 0. THE OBJECTIVE — the overarching principle, made computable
 
 > **A bot acts to minimise the expected number of turns until *it* wins.**
 
-Wyatt, 2026-08-09:
+This is just "win as quickly as possible" written so a machine can evaluate it. Wyatt, 2026-08-09:
 
 > *"the bots should be acting according to valuing, completing the game in as few turns as possible.
 > When they evaluate all of the ways that they could spend their turn right now, they should act
