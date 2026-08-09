@@ -72,6 +72,8 @@ Game.prototype.takeTurn = function (p, w, st) {
     let note = r.why;
     if (r.detail && r.type === "dock")
       note = `${r.why}: ${r.detail.buys ? (r.detail.needsIt ? `buys ${nm(r.ing)} for ${r.detail.price}` : `crate not needed`) : "no crate affordable"}`;
+    if (r.detail && r.type === "trade")
+      note = `sails to [${r.detail.park}] AND hails: move +${r.detail.move}, crate +${r.detail.crate}`;
     if (r.detail && r.type === "attack")
       note = `${r.detail.downwind ? "DOWNWIND" : "upwind  "} pWin ${r.detail.pWin}  move ${r.detail.stand}` +
         `  win +${r.detail.win} lose -${r.detail.lose} denial +${r.detail.denial}` + (r.detail.rematch ? ` rematch -${r.detail.rematch}` : "");

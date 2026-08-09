@@ -73,6 +73,15 @@
 // 49 of 200 games moved. Sole cause proved by stashing before re-capturing, as always. The ladder is
 // unmoved by it — +5.3 points over 300 games a row, positive in all four configurations.
 //
+// RE-BASED A SIXTH TIME, 2026-08-09. dealBias was being applied to the trade option's WHOLE value —
+// including the sailing component, which has nothing to do with haggling — and it was the SECOND
+// application, since composeOffer already gates whether a word is spoken on `worth * dealBias`.
+// Applied twice it stopped tilting and started overriding (principle 8): a trader's 1.6x promoted a
+// hail worth 2 real turns above a dock worth a genuine 3. Removing it moves 103 of 200 games.
+//
+// Sole cause proved by stashing before re-capturing, as always. Ladder over 250 games a row: +5.8
+// points, positive in all four configurations.
+//
 // What this file still guarantees: no FURTHER bake-off code leaks into the disabled path from here.
 // What it no longer guarantees: that /v2bakeoff/ with the flag off plays identically to /v2/ (that
 // stopped being true on purpose at the first re-base), NOR that the bot brain is frozen — it is

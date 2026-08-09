@@ -1818,8 +1818,20 @@ class Game{
           const v=base-this.turnsToWinIf(p,{cell});
           if(v>parkV){parkV=v;park=cell;}
         }
+        /* NO dealBias HERE, and that is a fix rather than an omission. It was multiplying the WHOLE
+           value — including the sailing component, which has nothing to do with haggling — and it
+           was the SECOND application: composeOffer already gates whether a word is said on
+           `worth * dealBias`, and respondToOffer prices the answer with the holder's own. Applied
+           again at the planner it stopped tilting and started overriding, which principle 8 forbids:
+           a trader's 1.6x turned a hail worth 2 real turns into a 3.20 that outranked a dock worth a
+           genuine 3. Compare the fight arm, which biases only the RISK it is willing to carry and
+           never the size of the prize.
+           What remains is the honest number: how many turns shorter my voyage is if this lands,
+           counted from the best square I could be standing on when I say it — a hail reaches the
+           whole table (rule 4), so it costs no movement and rides on the sailing for free. */
         const after=this.turnsToWinIf(p,{cell:park,gain:offer.want,coins:p.coins-(offer.giveCoins||0)});
-        consider({cell:park,type:"trade",value:(base-after)*bias.dealBias,why:"plan"});
+        consider({cell:park,type:"trade",value:base-after,why:"plan",
+                  detail:{park:[...park],move:+parkV.toFixed(2),crate:+((base-after)-parkV).toFixed(2)}});
       }
     }
     return best||{cell:[...p.pos],type:"sail",value:0,why:"enroute"};
