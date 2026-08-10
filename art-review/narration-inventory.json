@@ -155,7 +155,7 @@
     {
       "id": "adhoc.battle.opening",
       "file": "src/orchestrator.js",
-      "line": 463,
+      "line": 464,
       "fn": "asyncBattle",
       "tableDriven": false,
       "group": "Battle",
@@ -169,7 +169,7 @@
     {
       "id": "adhoc.round.header",
       "file": "src/orchestrator.js",
-      "line": 861,
+      "line": 864,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -183,7 +183,7 @@
     {
       "id": "adhoc.round.finalheader",
       "file": "src/orchestrator.js",
-      "line": 885,
+      "line": 888,
       "fn": "runLiveNet",
       "tableDriven": true,
       "group": "Round Header",
@@ -197,7 +197,7 @@
     {
       "id": "adhoc.voyageend.drumroll",
       "file": "src/orchestrator.js",
-      "line": 925,
+      "line": 928,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -211,7 +211,7 @@
     {
       "id": "adhoc.voyageend.nobodyfinished",
       "file": "src/orchestrator.js",
-      "line": 941,
+      "line": 944,
       "fn": "liveResolveEndNet",
       "tableDriven": false,
       "group": "End of Voyage",
@@ -225,7 +225,7 @@
     {
       "id": "adhoc.flip.announce",
       "file": "src/ui/flow.js",
-      "line": 118,
+      "line": 119,
       "fn": "humanFlip",
       "tableDriven": false,
       "group": "Docking",
@@ -239,7 +239,7 @@
     {
       "id": "adhoc.storm.brokeanchor",
       "file": "src/ui/flow.js",
-      "line": 659,
+      "line": 660,
       "fn": "windLeg",
       "tableDriven": false,
       "group": "Storm",
@@ -253,7 +253,7 @@
     {
       "id": "adhoc.storm.botsquare",
       "file": "src/ui/flow.js",
-      "line": 743,
+      "line": 744,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -267,7 +267,7 @@
     {
       "id": "adhoc.storm.botlegsummary",
       "file": "src/ui/flow.js",
-      "line": 763,
+      "line": 764,
       "fn": "botWindLeg",
       "tableDriven": true,
       "group": "Storm",
@@ -281,7 +281,7 @@
     {
       "id": "adhoc.storm.secondleg",
       "file": "src/ui/flow.js",
-      "line": 797,
+      "line": 798,
       "fn": "humanWind",
       "tableDriven": false,
       "group": "Storm",
@@ -295,7 +295,7 @@
     {
       "id": "adhoc.trade.nocargo",
       "file": "src/ui/flow.js",
-      "line": 887,
+      "line": 888,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -309,7 +309,7 @@
     {
       "id": "adhoc.trade.refusalbot",
       "file": "src/ui/flow.js",
-      "line": 1043,
+      "line": 1044,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -323,7 +323,7 @@
     {
       "id": "adhoc.trade.refusalhuman",
       "file": "src/ui/flow.js",
-      "line": 1065,
+      "line": 1066,
       "fn": "humanTrade",
       "tableDriven": false,
       "group": "Trade & Parley",
@@ -337,7 +337,7 @@
     {
       "id": "adhoc.act.bakerystart",
       "file": "src/ui/flow.js",
-      "line": 1156,
+      "line": 1157,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -351,7 +351,7 @@
     {
       "id": "adhoc.act.nopowder",
       "file": "src/ui/flow.js",
-      "line": 1165,
+      "line": 1166,
       "fn": "humanAct",
       "tableDriven": false,
       "group": "Battle",
@@ -365,7 +365,7 @@
     {
       "id": "adhoc.turn.banner",
       "file": "src/ui/flow.js",
-      "line": 1208,
+      "line": 1209,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Round Header",
@@ -379,7 +379,7 @@
     {
       "id": "adhoc.turn.leeward",
       "file": "src/ui/flow.js",
-      "line": 1236,
+      "line": 1237,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -393,7 +393,7 @@
     {
       "id": "adhoc.turn.brokesail",
       "file": "src/ui/flow.js",
-      "line": 1246,
+      "line": 1247,
       "fn": "humanTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -407,7 +407,7 @@
     {
       "id": "adhoc.turn.botsecondleg",
       "file": "src/ui/flow.js",
-      "line": 1305,
+      "line": 1306,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Storm",
@@ -421,7 +421,7 @@
     {
       "id": "adhoc.turn.botbrokesail",
       "file": "src/ui/flow.js",
-      "line": 1349,
+      "line": 1350,
       "fn": "botTurn",
       "tableDriven": false,
       "group": "Sailing & Movement",
@@ -435,7 +435,7 @@
     {
       "id": "adhoc.sidebet.backed",
       "file": "src/ui/flow.js",
-      "line": 1587,
+      "line": 1588,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -449,7 +449,7 @@
     {
       "id": "adhoc.sidebet.freecall",
       "file": "src/ui/flow.js",
-      "line": 1589,
+      "line": 1590,
       "fn": "collectSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -463,7 +463,7 @@
     {
       "id": "adhoc.sidebet.settle",
       "file": "src/ui/flow.js",
-      "line": 1627,
+      "line": 1628,
       "fn": "settleSideBets",
       "tableDriven": false,
       "group": "Battle",
@@ -506,7 +506,7 @@
   "prompts": [
     {
       "file": "src/orchestrator.js",
-      "line": 329,
+      "line": 330,
       "fn": "renderBattle",
       "kind": "panel",
       "rawMsg": "`<div class=\"btl\">\n    <div class=\"btl-hd\"><span>${title}</span><span class=\"rnd\">Round ${o.round} · first to ${need}</span></div>\n    <div class=\"btl-body\">\n      <div class=\"btl-col${o.live===\"a\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(A.idx)}\">${nm(A.idx)}</div>\n        <div class=\"role\">${o.roleA||\"Attacker\"}</div>\n        ${coinHTML(o.atState,o.atBs,o.winCoin===\"a\")}\n        ${pipsHTML(o.a,col(A.idx),need)}\n      </div>\n      <div class=\"btl-mid\">VS</div>\n      <div class=\"btl-col${o.live===\"d\"?\" live\":\"\"}\">\n        <div class=\"who\" style=\"color:${col(D.idx)}\">${nm(D.idx)}</div>\n        <div class=\"role\">${o.roleD||\"Defender\"}</div>\n        ${coinHTML(o.dfState,o.dfBs,o.winCoin===\"d\")}\n        ${pipsHTML(o.d,col(D.idx),need)}\n      </div>\n    </div>\n    ${battleFooter(o)}\n  </div>`",
@@ -520,7 +520,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 603,
+      "line": 604,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${nm(def.idx)}: both shots missed wildly! Flee the battle <span class=\"nobrk\">(−1🌕)</span>?`",
@@ -551,7 +551,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 665,
+      "line": 666,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(lose.idx)}, ye lost! Pay with…`",
@@ -582,7 +582,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 675,
+      "line": 676,
       "fn": "asyncBattle",
       "kind": "ask",
       "rawMsg": "`${pn(win.idx)}, choose yer plunder!`",
@@ -596,7 +596,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1029,
+      "line": 1032,
       "fn": "watchDraftPrompt",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n      (p.labels||[]).map((l,i)=>`<button class=\"apBtn ${cls[i]||\"\"}\" data-i=\"${i}\">${l}</button>`).join(\"\")+`</div>`",
@@ -610,7 +610,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1101,
+      "line": 1104,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div>`",
@@ -624,7 +624,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1113,
+      "line": 1116,
       "fn": "watchPrompt",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${p.msg}</div><div class=\"apBtns${grid}\">`+\n        rest.map(x=>`<button class=\"apBtn ${cls[x.i]||\"\"}${dis[x.i]?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${dis[x.i]?\" disabled\":\"\"}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -638,7 +638,7 @@
     },
     {
       "file": "src/orchestrator.js",
-      "line": 1523,
+      "line": 1527,
       "fn": "resumeHostGame",
       "kind": "panel",
       "rawMsg": "'<div class=\"apMsg\">⚓ Reconnecting to yer voyage…</div>'",
@@ -652,7 +652,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 95,
+      "line": 96,
       "fn": "localAsk",
       "kind": "panel",
       "rawMsg": "`${backHtml}<div class=\"apMsg\">${msg}</div><div class=\"apBtns${grid}\">`+\n      rest.map(x=>`<button class=\"apBtn ${x.o.cls||\"\"}${x.o.disabled?\" apDisabled\":\"\"}\" data-i=\"${x.i}\"${x.o.disabled?\" disabled\":\"\"}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join(\"\")+`</div>${subHtml}`",
@@ -666,7 +666,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 109,
+      "line": 110,
       "fn": "humanFlip",
       "kind": "ask",
       "rawMsg": "label||\"Flip the dubloon!\"",
@@ -697,7 +697,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 142,
+      "line": 143,
       "fn": "fishCast",
       "kind": "ask",
       "rawMsg": "label||`${pn(p.idx)}: cast yer line — flip!`",
@@ -728,7 +728,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 268,
+      "line": 269,
       "fn": "localPickCell",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${sailPickMsg(p.idx)}</div>\n      <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
@@ -742,7 +742,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 661,
+      "line": 662,
       "fn": "windLeg",
       "kind": "ask",
       "rawMsg": "promptMsg",
@@ -789,7 +789,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 866,
+      "line": 867,
       "fn": "humanDock",
       "kind": "ask",
       "rawMsg": "`⚫️ TAILS! Take treasure instead? Or buy ${dockFlavorIcon(ing)}?`",
@@ -820,7 +820,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 909,
+      "line": 910,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Trade with whom?\"",
@@ -843,7 +843,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 915,
+      "line": 916,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`What do ye WANT from ${pn(st.q.idx)}?`",
@@ -866,7 +866,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 929,
+      "line": 930,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`What will ye GIVE ${pn(st.q.idx)} in exchange?`",
@@ -897,7 +897,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 940,
+      "line": 941,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "\"Ye don't have any to offer!\"",
@@ -920,7 +920,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 956,
+      "line": 957,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`How many?`",
@@ -943,7 +943,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 971,
+      "line": 972,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)}: accept ${offerDisplay} for yer ${ilabelImg(want)}?`",
@@ -974,7 +974,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1010,
+      "line": 1011,
       "fn": "humanTrade",
       "kind": "ask",
       "rawMsg": "`${pn(q.idx)} scoffs — but counters: \"${askFor}🌕 more for my ${ilabelImg(want)}, take it or leave it.\"`",
@@ -1005,7 +1005,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1139,
+      "line": 1140,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "prompt",
@@ -1068,7 +1068,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1168,
+      "line": 1169,
       "fn": "humanAct",
       "kind": "ask",
       "rawMsg": "\"Attack whom?\"",
@@ -1091,7 +1091,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1378,
+      "line": 1379,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`📯 ${pn(p.idx)} hails ye: \"Ahoy! Want ${price}🌕 for yer ${ilabelImg(ing)}?\"`",
@@ -1130,7 +1130,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1385,
+      "line": 1386,
       "fn": "botTurn",
       "kind": "ask",
       "rawMsg": "`Counter — how much for yer ${ilabelImg(ing)}?`",
@@ -1161,7 +1161,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1560,
+      "line": 1561,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`⚔️ A battle's brewing! Guess the winner (for free) and win 1🌕 — or back yer call for double-or-nothing.`",
@@ -1192,7 +1192,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1570,
+      "line": 1571,
       "fn": "collectSideBets",
       "kind": "ask",
       "rawMsg": "`💰 Add to yer call on ${who===\"a\"?ns(att.idx):ns(def.idx)}? Win: 2x🌕 + 1. Lose: ye get nothing.`",
@@ -1231,7 +1231,7 @@
     },
     {
       "file": "src/ui/flow.js",
-      "line": 1781,
+      "line": 1782,
       "fn": "remotePickHighlights",
       "kind": "panel",
       "rawMsg": "`<div class=\"apMsg\">${msg||sailPickMsg(appState.mySeat)}</div>\n    <div class=\"apBtns\"><button class=\"apBtn\" id=\"apStay\">Stay put</button></div>`",
@@ -1248,7 +1248,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 575,
+      "line": 576,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"score\">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`",
       "id": "misc.battleline.bothheadsdownwind"
@@ -1256,7 +1256,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 577,
+      "line": 578,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"cancel\">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide with no hit.</span>`",
       "id": "misc.battleline.bothheadscrosswind"
@@ -1264,7 +1264,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 584,
+      "line": 585,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"score\">${hitName} lands a hit!</span>`",
       "id": "misc.battleline.hitlands"
@@ -1272,7 +1272,7 @@
     {
       "category": "battleLine",
       "file": "src/orchestrator.js",
-      "line": 587,
+      "line": 588,
       "fn": "asyncBattle",
       "rawMsg": "`<span class=\"cancel\">Both miss — ⚫️ TAILS all round.</span>`",
       "id": "misc.battleline.bothmiss"
@@ -1280,7 +1280,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1668,
+      "line": 1669,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"cancel\">Both ⚪️ HEADS — no score this round.</span>`",
       "id": "misc.battleline.bakeoffbothheads"
@@ -1288,7 +1288,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1673,
+      "line": 1674,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"score\">${ah?nm(A.idx):nm(B.idx)} scores!</span>`",
       "id": "misc.battleline.bakeoffscores"
@@ -1296,7 +1296,7 @@
     {
       "category": "battleLine",
       "file": "src/ui/flow.js",
-      "line": 1676,
+      "line": 1677,
       "fn": "asyncBakeoff",
       "rawMsg": "`<span class=\"cancel\">Both ⚫️ TAILS — no score this round.</span>`",
       "id": "misc.battleline.bakeoffbothtails"
@@ -1360,7 +1360,7 @@
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 798,
+      "line": 801,
       "fn": "recipeDraftNet",
       "anchor": "choosing their recipe",
       "id": "misc.draftwait.recipechoosing"
@@ -1368,7 +1368,7 @@
     {
       "category": "draftWait",
       "file": "src/orchestrator.js",
-      "line": 805,
+      "line": 808,
       "fn": "recipeDraftNet",
       "anchor": "Recipe chosen! Waiting for the rest of the crew",
       "id": "misc.draftwait.recipechosen"
@@ -1376,7 +1376,7 @@
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 242,
+      "line": 243,
       "fn": "pickCell",
       "anchor": "is choosing where to sail",
       "id": "misc.draftwait.sailchoosing"
@@ -1384,7 +1384,7 @@
     {
       "category": "draftWait",
       "file": "src/ui/flow.js",
-      "line": 1455,
+      "line": 1456,
       "fn": "netIntroBarrier",
       "anchor": "Waiting for yer mateys",
       "id": "misc.draftwait.introwait"
@@ -1392,7 +1392,7 @@
     {
       "category": "introBarrier",
       "file": "src/orchestrator.js",
-      "line": 878,
+      "line": 881,
       "fn": "runLiveNet",
       "rawMsg": "`🏁 ${pn(i)} returned to Tortuga and fired up the bakery! Every captain gets ONE final turn to race home! ⛵`",
       "rawButton": "\"🦜 Final round — set sail!\"",
@@ -1401,7 +1401,7 @@
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 1486,
+      "line": 1487,
       "fn": "showAhoyIntro",
       "rawMsg": "`⚓ Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!`",
       "rawButton": "\"⚓ Arrgh!\"",
@@ -1410,7 +1410,7 @@
     {
       "category": "introBarrier",
       "file": "src/ui/flow.js",
-      "line": 1508,
+      "line": 1509,
       "fn": "showTurnOrderIntro",
       "rawMsg": "`${iconImg(DICE_IMG)} The crew draws lots for sailing order — ${lead} first!<br><br>`+\n    `No fretting, patience pays — ${rest} all cast off with extra dubloons.`",
       "rawButton": "\"🦜 Start\"",
@@ -1443,7 +1443,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1152,
+      "line": 1155,
       "fn": "createRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.createnoconnection"
@@ -1451,7 +1451,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1184,
+      "line": 1187,
       "fn": "createRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.createcapacity"
@@ -1459,7 +1459,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1248,
+      "line": 1251,
       "fn": "renameMySeat",
       "rawMsg": "\"Couldn't change yer name just now — the seas are choppy. Try again in a moment.\"",
       "id": "misc.mperror.renamefailed"
@@ -1467,7 +1467,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1257,
+      "line": 1260,
       "fn": "joinRoom",
       "rawMsg": "\"Enter the room code yer host shared.\"",
       "id": "misc.mperror.entercode"
@@ -1475,7 +1475,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1263,
+      "line": 1266,
       "fn": "joinRoom",
       "rawMsg": "NO_CONNECTION_MSG",
       "id": "misc.mperror.joinnoconnection"
@@ -1483,7 +1483,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1267,
+      "line": 1270,
       "fn": "joinRoom",
       "rawMsg": "\"Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?\"",
       "id": "misc.mperror.joincapacity"
@@ -1491,7 +1491,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1269,
+      "line": 1272,
       "fn": "joinRoom",
       "rawMsg": "`Arrgh, no game found with code ${code}. Try typin' again.`",
       "id": "misc.mperror.nogamefound"
@@ -1499,7 +1499,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1304,
+      "line": 1307,
       "fn": "joinRoom",
       "rawMsg": "\"⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.\"",
       "id": "misc.mperror.alreadysailed"
@@ -1507,7 +1507,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1315,
+      "line": 1318,
       "fn": "joinRoom",
       "rawMsg": "\"Too many pirates already in that game.\"",
       "id": "misc.mperror.roomfull"
@@ -1515,7 +1515,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1325,
+      "line": 1328,
       "fn": "watchRoom",
       "rawMsg": "\"That game no longer exists.\"",
       "id": "misc.mperror.gamegone"
@@ -1523,7 +1523,7 @@
     {
       "category": "mpError",
       "file": "src/orchestrator.js",
-      "line": 1356,
+      "line": 1360,
       "fn": "startGame",
       "rawMsg": "\"Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.\"",
       "id": "misc.mperror.serviceunreachable"
@@ -1531,7 +1531,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 671,
+      "line": 672,
       "fn": "windLeg",
       "callee": "humanFlip",
       "rawLabel": "\"Flip to dodge!\"",
@@ -1542,7 +1542,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 816,
+      "line": 817,
       "fn": "humanDock",
       "callee": "humanFlip",
       "rawLabel": "`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — flip!`",
@@ -1553,7 +1553,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 1177,
+      "line": 1178,
       "fn": "humanAct",
       "callee": "fishCast",
       "rawLabel": "\"🎣 Cast yer line — flip!\"",
@@ -1564,7 +1564,7 @@
     {
       "category": "paramPrompt",
       "file": "src/ui/flow.js",
-      "line": 1426,
+      "line": 1427,
       "fn": "botTurn",
       "callee": "fishCast",
       "rawLabel": "",
