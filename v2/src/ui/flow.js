@@ -43,6 +43,7 @@
 // duplicates instead of "moved", exactly like panel.js/board.js/lobby.js/recipe.js already do.
 
 import { appState } from "../state/index.js";
+import { pingStart } from "./usage.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
@@ -1363,7 +1364,7 @@ export function startSinglePlayer(){
   const seed=Math.floor(Math.random()*1e9);
   // seaBase: where this device left off in the fifty sea creatures. Captured ONCE, here, and
   // carried in soloMeta so the solo save replays the same sightings it showed live.
-  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();
+  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();pingStart(1,"solo");
   netHandlers().onBeginGame(roundCfg(strategies),seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
@@ -1374,7 +1375,7 @@ export function startPassAndPlay(names){
   appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;appState.passAndPlay=true;
   appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();
+  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase()};appState.dlog=[];saveSoloState();pingStart(names.length,"pass");
   netHandlers().onBeginGame(roundCfg(strategies),seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
