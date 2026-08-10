@@ -42,7 +42,11 @@ const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 // the one who chose to start them.
 // PREVIEW_MS is no longer used for the study window (the player presses Ready to bake! instead);
 // it survives only as the reduced-motion fallback timing further down.
-const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=500, SETTLE_MS=700, REVEAL_MS=520, VERDICT_MS=1300;
+// SWAP_MS 500 -> 1000 and the RESEAT stage are Wyatt's 2026-08-10 playtester feedback ("the
+// swapping animation is really hard to understand and keep track of. Slow the animation motion
+// down 50%"): half speed, and the two crates take separate lanes while crossing (see runSwaps),
+// then glide back into line at their new seats over RESEAT_MS.
+const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=1000, RESEAT_MS=350, SETTLE_MS=700, REVEAL_MS=520, VERDICT_MS=1300;
 
 // Reduced motion is read in JS, not CSS, for the same reason panel() does it: a media query cannot
 // reach a setTimeout. It does NOT collapse to zero — the swaps have to stay countable or the game
@@ -249,10 +253,30 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
     go.onclick=()=>{go.onclick=null;go.disabled=true;res();};
   });
 
-  // ---- phase 2: domes down ----
+  // ---- phase 2: crates down, ONE BY ONE, LEFT TO RIGHT ----
+  // (Wyatt, 2026-08-10, playtester feedback: "when the player clicks 'ready', animate in the
+  // crates 1-by-1 to cover up the ingredients, from left to right.") Each crate's lid rides the
+  // existing .26s CSS transition; the stagger is one COVER_MS beat apiece, so the bench closes as
+  // a readable sweep instead of one simultaneous slam. Locked crates are already sealed and take
+  // no beat. Reduced motion keeps the old instant cover — a forced 1.4s parade is the opposite of
+  // what that setting asks for.
   row.classList.remove("bkoStudy");
-  bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
-  await sleep(reduced?60:COVER_MS);
+  await coverBench();
+
+  // The left-to-right sweep, shared by the first cover and every paid rewatch so the bench always
+  // closes with the same grammar.
+  async function coverBench(){
+    if(reduced){
+      bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
+      await sleep(60);
+      return;
+    }
+    for(const b of bowls){
+      if(b.classList.contains("locked"))continue;
+      b.classList.add("covered");
+      await sleep(COVER_MS);
+    }
+  }
 
   // ---- phase 3: the swaps, one at a time ----
   await runSwaps();
@@ -267,11 +291,26 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       A.classList.remove("flash");B.classList.remove("flash");
     }else{
       const d=(b-a)*pitch;
+      /* SEPARATE LANES WHILE CROSSING (Wyatt, 2026-08-10, playtester feedback: "shift the
+         right-moving crates up vertically 30% of their height, and the [other] crates down 30%
+         ... then shift them back in line with the other crates once they have swapped, to make it
+         easier to see what is going where"). Two crates sliding through each other on one row is
+         why the shuffle was hard to track: for the middle of every swap they overlap and the eye
+         loses which is which. The right-mover now rides 30% of its height HIGH, the left-mover
+         30% LOW, so the two paths never cross — then both glide back into line at their new seats
+         before the invisible content-commit below. Still transform-only (PERF-01). */
+      const lift=A.getBoundingClientRect().height*0.3;
+      const yA=d>0?-lift:lift, yB=-yA;
       A.style.transition=`transform ${SWAP_MS}ms ease-in-out`;
       B.style.transition=`transform ${SWAP_MS}ms ease-in-out`;
-      A.style.transform=`translateX(${d}px)`;
-      B.style.transform=`translateX(${-d}px)`;
+      A.style.transform=`translate(${d}px,${yA}px)`;
+      B.style.transform=`translate(${-d}px,${yB}px)`;
       await sleep(SWAP_MS);
+      A.style.transition=`transform ${RESEAT_MS}ms ease-in-out`;
+      B.style.transition=`transform ${RESEAT_MS}ms ease-in-out`;
+      A.style.transform=`translate(${d}px,0)`;
+      B.style.transform=`translate(${-d}px,0)`;
+      await sleep(RESEAT_MS);
     }
     // COMMIT by swapping the two bowls' CONTENTS, then clearing the transform. The elements stay
     // where they are in the DOM, so `data-pos` keeps meaning "this place on the bench" and the next
@@ -365,8 +404,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.remove("covered"); });
       await sleep(reduced?400:900);
       row.classList.remove("bkoStudy");
-      bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.add("covered"); });
-      await sleep(reduced?60:COVER_MS);
+      await coverBench();
       await runSwaps();
       if(hintEl)hintEl.textContent=was;
       replaying=false;
