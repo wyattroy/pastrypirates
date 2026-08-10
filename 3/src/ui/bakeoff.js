@@ -42,11 +42,10 @@ const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 // the one who chose to start them.
 // PREVIEW_MS is no longer used for the study window (the player presses Ready to bake! instead);
 // it survives only as the reduced-motion fallback timing further down.
-// SWAP_MS 500 -> 1000 and the RESEAT stage are Wyatt's 2026-08-10 playtester feedback ("the
-// swapping animation is really hard to understand and keep track of. Slow the animation motion
-// down 50%"): half speed, and the two crates take separate lanes while crossing (see runSwaps),
-// then glide back into line at their new seats over RESEAT_MS.
-const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=1000, RESEAT_MS=350, SETTLE_MS=700, REVEAL_MS=520, VERDICT_MS=1300;
+// SWAP_MS 500 -> 1000 is Wyatt's 2026-08-10 playtester feedback ("the swapping animation is
+// really hard to understand and keep track of. Slow the animation motion down 50%"): half speed,
+// and the two crates arc over/under each other while crossing (see runSwaps).
+const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=1000, SETTLE_MS=700, REVEAL_MS=520, VERDICT_MS=1300;
 
 // Reduced motion is read in JS, not CSS, for the same reason panel() does it: a media query cannot
 // reach a setTimeout. It does NOT collapse to zero — the swaps have to stay countable or the game
@@ -168,7 +167,7 @@ function bakeoffIntroCard(bake){
     // so straight it is — words untouched, and no need to ask again.
     panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens be roarin'! Yer ingredients be
       waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.<br><br>
-      <b>${escHtml(recipeTitle(bake.order))}</b></div>
+      <b>${escHtml(recipeTitle(bake.order))} Recipe</b></div>
       ${cardHTML(bake)}
       <div class="apSub">Add them in this exact order or it's a ruined mess.</div>
       <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>`,true);
@@ -291,32 +290,47 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       A.classList.remove("flash");B.classList.remove("flash");
     }else{
       const d=(b-a)*pitch;
-      /* SEPARATE LANES WHILE CROSSING (Wyatt, 2026-08-10, playtester feedback: "shift the
-         right-moving crates up vertically 30% of their height, and the [other] crates down 30%
-         ... then shift them back in line with the other crates once they have swapped, to make it
-         easier to see what is going where"). Two crates sliding through each other on one row is
-         why the shuffle was hard to track: for the middle of every swap they overlap and the eye
-         loses which is which. The right-mover now rides 30% of its height HIGH, the left-mover
-         30% LOW, so the two paths never cross — then both glide back into line at their new seats
-         before the invisible content-commit below. Still transform-only (PERF-01). */
+      /* THE ARC (Wyatt, 2026-08-10, confirmed in his words before building: "move up/down
+         vertically smoothly in an arc as they travel — not linearly — reaching the apex at the
+         halfway point of their travel before vertically moving back down to baseline as they
+         complete their journey"). One continuous tossed-ball path: the crate leaves its seat
+         level with the row, curves up (right-mover) or down (left-mover), peaks at 30% of its
+         height exactly at mid-travel — precisely where the two crates pass, so the separation is
+         greatest at the only moment they could overlap — and lands already level at its new
+         seat. Horizontal keeps the old cubic ease; vertical rides a half-sine; both are baked
+         into sampled keyframes because no single CSS easing can draw a curve that comes back to
+         where it started. Still transform-only (PERF-01). The old two-stage version (climb the
+         whole way, then drop level in a separate step) is gone with it. */
       const lift=A.getBoundingClientRect().height*0.3;
-      const yA=d>0?-lift:lift, yB=-yA;
-      A.style.transition=`transform ${SWAP_MS}ms ease-in-out`;
-      B.style.transition=`transform ${SWAP_MS}ms ease-in-out`;
-      A.style.transform=`translate(${d}px,${yA}px)`;
-      B.style.transform=`translate(${-d}px,${yB}px)`;
-      await sleep(SWAP_MS);
-      A.style.transition=`transform ${RESEAT_MS}ms ease-in-out`;
-      B.style.transition=`transform ${RESEAT_MS}ms ease-in-out`;
-      A.style.transform=`translate(${d}px,0)`;
-      B.style.transform=`translate(${-d}px,0)`;
-      await sleep(RESEAT_MS);
+      const peakA=d>0?-lift:lift;
+      const easeIO=u=>u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+      const arc=(dx,peak)=>Array.from({length:25},(_,k)=>{
+        const u=k/24;
+        return {transform:`translate(${dx*easeIO(u)}px,${peak*Math.sin(Math.PI*u)}px)`};
+      });
+      if(A.animate){
+        const aA=A.animate(arc(d,peakA),{duration:SWAP_MS,easing:"linear",fill:"forwards"});
+        const aB=B.animate(arc(-d,-peakA),{duration:SWAP_MS,easing:"linear",fill:"forwards"});
+        await sleep(SWAP_MS);
+        // commit first (below), then release the fills — same invisible reconcile as ever:
+        // the crate sits at (d,0), the contents swap, the effect drops away, same pixels.
+        A._bkoAnim=aA;B._bkoAnim=aB;
+      }else{
+        // no Web Animations API (very old WebKit): the pre-arc flat slide, still legible
+        A.style.transition=`transform ${SWAP_MS}ms ease-in-out`;
+        B.style.transition=`transform ${SWAP_MS}ms ease-in-out`;
+        A.style.transform=`translateX(${d}px)`;
+        B.style.transform=`translateX(${-d}px)`;
+        await sleep(SWAP_MS);
+      }
     }
     // COMMIT by swapping the two bowls' CONTENTS, then clearing the transform. The elements stay
     // where they are in the DOM, so `data-pos` keeps meaning "this place on the bench" and the next
     // swap's arithmetic stays trivial. (FLIP-lite: animate, then reconcile.)
     const ia=A.querySelector(".bkoIng"),ib=B.querySelector(".bkoIng");
     const t=ia.getAttribute("src");ia.setAttribute("src",ib.getAttribute("src"));ib.setAttribute("src",t);
+    if(A._bkoAnim){A._bkoAnim.cancel();A._bkoAnim=null;}
+    if(B._bkoAnim){B._bkoAnim.cancel();B._bkoAnim=null;}
     A.style.transition="";B.style.transition="";
     A.style.transform="";B.style.transform="";
     await sleep(reduced?40:SETTLE_MS);
