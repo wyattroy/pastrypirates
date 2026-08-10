@@ -110,6 +110,37 @@ over ITS predecessor was +6.7 on the dev family. v3 tables also finish faster �
 18.2 → 16.5–17.3 rounds — which is the overarching principle showing up in the aggregate: the
 goal of every game is to win as quickly as possible.
 
+## The becalming bug (found by Wyatt in live play, 2026-08-10)
+
+Late-game bots sat motionless in open water and passed — sometimes for rounds on end. Measured:
+211 motionless open-water passes in 300 games, 120 of them with every needed shelf empty. Two
+mechanisms, both in the tour's flat spots:
+
+1. **A fight priced as a fee, not a voyage.** When a needed crate existed only in rivals' holds,
+   the tour charged the turns of taking it but never moved the ship — so closing on the holder
+   bought nothing while drifting from Tortuga lengthened the sail home, and the arithmetic
+   concluded that parking near home and "waiting for the crate to arrive" was optimal (seed
+   87109: four consecutive rounds at anchor). It also budgeted a cheap "deal for it" even when
+   `composeOffer` would not actually speak one. Fixed: a bare-shelf leg is now the real journey —
+   sail to the cheapest holder's intercept (wind-true), ~2 fights at the measured 50%, powder
+   spent, and the leg ENDS there so the rest of the voyage is costed from the deck of the fight.
+   A deal may undercut it only while an offer is actually composable.
+2. **Anchoring on ties.** Whole-turn tours tie across flat spots by construction, and both the
+   hail's parking square and the final selection could resolve a tie to "stay put" — a refused
+   hail from a stationary ship is a whole turn shown to the table as nothing. Fixed by Wyatt's
+   ruling, encoded as the tie-breaker of last resort: **never anchor.** When the winning plan is
+   plain sailing to the square already underfoot, the indifference resolves to the best candidate
+   that moves. Exceptions are honest ones: acting on this square, arriving at the bakery, or
+   being physically boxed in.
+
+After the fix: **5 motionless passes in 300 games (0.03% of turns), every one `reach 0, boxed
+in` — ships with no legal square to move to — and zero in the fight-is-the-only-way scenario.**
+
+Ladder after the change, 400 games per row, mean edge (2v2+3v1): **+10.3** on the dev family
+(×7919), **+2.6** on the held-out family (×104729), **+9.4** on a third fresh family (×224737)
+run because that middle number sagged — three families, twelve rows, every row positive. The
++2.6 reads as the low draw of the noise, not a cost of the fix.
+
 ## Determinism and information
 
 The whole evaluation path reads state and returns: no `this.r()` draws, no events, mutate-and-
