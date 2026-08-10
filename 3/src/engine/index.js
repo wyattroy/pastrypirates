@@ -1894,7 +1894,14 @@ class Game{
     const taken={};
     for(const {plan} of plans)for(const b of plan.buys)(taken[b.ing]=taken[b.ing]||[]).push(b.t);
     for(const k in taken)taken[k].sort((a,b)=>a-b);
-    return {plans,taken};
+    // Which still-needed crates could p actually open a table offer for RIGHT NOW. tour3 may only
+    // let a deal undercut a fight when the trade system would genuinely speak one (principle 3 —
+    // ask the exact question the action will ask). composeOffer is pure and RNG-free, the same
+    // guarantee tryTrade already relies on.
+    const offerable=new Set();
+    for(const ing of this.needs(p))
+      if(this.holdersOf(ing,p).length&&this.composeOffer(p,ing))offerable.add(ing);
+    return {plans,taken,offerable};
   }
   /* MY contested tour: the incumbent's exact-order walk (every ordering of the crates still
      needed, real water, the wind that will actually blow, earn-only-what-is-short), with ONE
@@ -1930,9 +1937,34 @@ class Game{
         const takes=ctx&&ctx.taken[ing]?ctx.taken[ing]:[];
         const left=raw>=1e9?raw:raw-takes.filter(x=>x<=arrive).length;
         if(sail===null||left<=0){
-          // shelf bare (or bare by the time I arrive): dealt or taken, which acquireTurns prices
-          cost=Math.ceil(this.acquireTurns(p,ing,at,t===0?this.windNow:fc).turns);
-          if(cost>=PLAN.unreachable){best=Math.min(best,PLAN.unreachable);continue;}
+          /* Shelf bare by arrival: the crate lives in somebody's hold, and the leg must be the
+             JOURNEY of taking it — sail to the cheapest holder's intercept, fight until it lands
+             (planned from the gauge, ~2 attempts at the measured 50%), and END THERE, so every
+             later leg is costed from the deck of the fight. The old costing charged the turns but
+             not the voyage: with no position in the price, closing on a holder bought nothing
+             while drifting from Tortuga lengthened the sail home — so a becalmed bot scored
+             SITTING STILL above every move and passed, for rounds on end (Wyatt saw it live;
+             measured 211 motionless open-water passes in 300 games, seed 87109 parked four
+             rounds straight). A deal may undercut the fight only when ctx.offerable says the
+             trade system would actually compose the offer right now — a hail that will never be
+             spoken is not a plan (principle 3, the 4,884-dead-turns lesson). */
+          const legWind=t===0?this.windNow:fc;
+          let take=null,aim=null;
+          for(const q of this.holdersOf(ing,p)){
+            const a=this.interceptOf(q);
+            const s=this.legTurns3(at,a,legWind);
+            if(s===null)continue;
+            const c=s+2;
+            if(take===null||c<take){take=c;aim=a;}
+          }
+          const deal=(ctx&&ctx.offerable&&ctx.offerable.has(ing))?2:null;
+          if(take===null&&deal===null){best=Math.min(best,PLAN.unreachable);continue;}
+          if(deal!==null&&(take===null||deal<take)){
+            cost=deal;                                   // rule 4: a hail reaches the whole table
+          }else{
+            cost=take;end=aim;
+            purse=coins-2*(this.cfg.powder||0);          // powder for the expected two broadsides
+          }
         }else{
           const price=raw>=1e9?base-1:Math.max(1,base-left);
           const earn=Math.max(0,Math.ceil((price-coins)/pay));
@@ -1940,8 +1972,12 @@ class Game{
           end=this.dockOf[ing];
           purse=coins+earn*pay+pay-price;   // the buying flip pays too, same as doDock
         }
+        // `first` is the best ordering's opening DESTINATION, for aiming ties. A leg that moved
+        // the ship supplies it (a buy leg's dock, a take leg's intercept); a deal leg moves
+        // nothing and supplies nothing — it must NOT fall back to the bare island's dock, which
+        // is exactly the empty shelf there is no reason to visit.
         walk(rest.slice(0,i).concat(rest.slice(i+1)),end,purse,t+cost,
-             first||(end===at?null:end)||this.dockOf[ing]);
+             first||(end===at?null:end));
       }
     };
     walk(needs,p.pos,p.coins,0,null);
@@ -2109,19 +2145,47 @@ class Game{
 
     // A HAIL REACHES THE WHOLE TABLE (rule 4) — it rides on the best-positioned square, same as
     // the incumbent, and botOpenOffer is the exact question tryTrade will ask (principle 3).
+    // The park prefers a MOVING square on ties (same anti-anchor rule as below): a hail can be
+    // refused, and a refused hail from a ship that also stood still is a whole turn shown to the
+    // table as nothing.
     if(this.needs(p).length){
       const offer=this.botOpenOffer(p);
       if(offer){
-        let park=null,parkS=-Infinity;
+        let park=null,parkS=-Infinity,parkG=1e9,parkStay=true;
         for(const cell of candidates){
           const s=this.raceScore3(this.turnsToWin3If(p,{cell},ctx),ctx.plans);
-          if(s>parkS){parkS=s;park=cell;}
+          const g=ground(cell),stay=cell[0]===p.pos[0]&&cell[1]===p.pos[1];
+          if(s>parkS+1e-12||(Math.abs(s-parkS)<=1e-12&&(parkStay&&!stay||(stay===parkStay&&g<parkG)))){
+            parkS=s;park=cell;parkG=g;parkStay=stay;
+          }
         }
         const tradeT=this.turnsToWin3If(p,{cell:park,gain:offer.want,
                                            coins:p.coins-(offer.giveCoins||0)},ctx);
         consider({cell:park,type:"trade",value:this.raceScore3(tradeT,ctx.plans),why:"plan",
                   detail:{park:[...park],myT:tradeT}});
       }
+    }
+    /* NEVER ANCHOR. Wyatt, 2026-08-10, watching /3: "They should never simply stay on the same
+       square and wait." When the winning plan is plain sailing that goes nowhere — no fight, no
+       berth worked, just this square again — and the race arithmetic was indifferent (whole-turn
+       tours tie in flat spots by construction), the indifference is resolved toward MOTION: the
+       best candidate that actually moves, by the same (value, ground) order as everything else.
+       Motion carries option value the integer tour cannot see — berths free up, storms shove,
+       holders drift into range — and a becalmed ship reads as a broken one (principle 7: a turn
+       with nothing worth doing is a bug). Exceptions are the honest ones: an ACTION on this
+       square (dock/fight here) is not waiting, arrival at the bakery is not waiting (lightOvens
+       fires after this turn), and a boxed-in ship has takeTurn's own rim escape. */
+    if(best&&best.type==="sail"&&best.cell[0]===p.pos[0]&&best.cell[1]===p.pos[1]&&!this.canBake(p)){
+      let move=null,moveG=1e9;
+      const mv=o=>{
+        const g=ground(o.cell);
+        if(!move||o.value>move.value+1e-12||(Math.abs(o.value-move.value)<=1e-12&&g<moveG)){move=o;moveG=g;}
+      };
+      for(const cell of candidates){
+        if(cell[0]===p.pos[0]&&cell[1]===p.pos[1])continue;
+        mv({cell,type:"sail",value:this.raceScore3(this.turnsToWin3If(p,{cell},ctx),ctx.plans),why:"enroute"});
+      }
+      if(move)best=move;
     }
     return best||{cell:[...p.pos],type:"sail",value:0,why:"enroute"};
   }
