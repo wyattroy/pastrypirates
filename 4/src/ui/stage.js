@@ -158,6 +158,10 @@ function gestures(wrap){
   wrap.addEventListener("gesturestart", e => { if (S.active) e.preventDefault(); });
   wrap.addEventListener("gesturechange", e => { if (S.active) e.preventDefault(); });
   wrap.addEventListener("pointerdown", e => {
+    // playtest 5, hold-to-peek: while a finger is on the sea, the floating prompt steps aside
+    // so the board behind it can be read; lifting the finger brings it back.
+    const pr = $("pp4Prompt");
+    if (pr && getComputedStyle(pr).display !== "none") document.body.classList.add("pp4Peek");
     ptrs.set(e.pointerId, [e.clientX, e.clientY]); moved = false;
     if (ptrs.size === 2){ const p = [...ptrs.values()]; pinch0 = { d: Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]), w: S.cam.tw }; }
     else panLast = [e.clientX, e.clientY];
@@ -183,6 +187,7 @@ function gestures(wrap){
     }
   });
   const up = e => {
+    if (ptrs.size <= 1) setTimeout(() => document.body.classList.remove("pp4Peek"), 140);
     ptrs.delete(e.pointerId); pinch0 = null;
     if (ptrs.size === 0 && !moved){
       const now = Date.now();
@@ -237,9 +242,12 @@ function stageFlash(msg){
     if (i >= 0) subj = i;
   }
   if (S.hurry) S.hurry();                            // one live bubble: retire the old one NOW
+  // playtest 5: a manual pinch/pan holds the camera only until the next action — then the
+  // director takes the wheel again, so other captains' moves never play off screen.
+  S.lock = false;
   const evType = S.evType; S.evType = null;
   if (evType === "storm") camFull();                 // watch the shove land from above
-  else if (subj != null && !S.lock) camToSeat(subj); // the camera glides to the speaker
+  else if (subj != null) camToSeat(subj);            // the camera glides to the speaker
   return new Promise(res => {
     const hold = Math.max(2500, Math.min(6000, msgHoldMs ? msgHoldMs(msg) : 2500));
     const b = document.createElement("div");
