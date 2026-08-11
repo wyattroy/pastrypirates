@@ -18,14 +18,14 @@ import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
 import { msgHoldMs } from "./util.js";
 import { typewriterReveal } from "./panel.js";
-import { HEXCOL } from "../shared/index.js";
+import { HEXCOL, emojify } from "../shared/index.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-11d";
+const PP4_STAMP = "2026-08-11e";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -263,7 +263,9 @@ function stageFlash(msg){
     const b = document.createElement("div");
     b.className = "pp4Bub" + (subj == null ? " ambient" : "");
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
-    b.innerHTML = `<div class="pp4BubIn">${msg}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
+    // playtest 10 item 7: bubbles bypass panel()'s emojify chokepoint, so ad-hoc narration lines
+    // (turn banners, flip results) kept raw ⚪/🌕 emoji instead of the game art. Emojify here.
+    b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
     document.body.appendChild(b);
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
     try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
@@ -310,6 +312,7 @@ function cerTeardown(){
   if (fp && row && fp.parentElement !== row) row.insertBefore(fp, row.firstChild);
   veil.remove();
   document.body.classList.remove("pp4Cer");
+  if (window.__pp4) window.__pp4.flipMsg = null;   // a later ceremony never inherits these words
   S.cerHome = null;
 }
 function cerWatchResult(){
@@ -321,7 +324,13 @@ function cerWatchResult(){
     const c = $("flipCoinWrap");
     const landed = c && (c.classList.contains("heads") || c.classList.contains("tails"));
     const armedAgain = c && c.classList.contains("active");
-    if (landed){ clearInterval(iv); setTimeout(() => { if (!$("flipCoinWrap")?.classList.contains("active")) cerTeardown(); }, 1100); }
+    if (landed){
+      clearInterval(iv);
+      // playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare
+      c.classList.add("pp4Land");
+      setTimeout(() => c.classList.remove("pp4Land"), 700);
+      setTimeout(() => { if (!$("flipCoinWrap")?.classList.contains("active")) cerTeardown(); }, 1100);
+    }
     else if (armedAgain){ clearInterval(iv); }        // a new flip re-armed: veil stays, caption returns
     else if (performance.now() - t0 > 6000){ clearInterval(iv); cerTeardown(); }
   }, 120);
@@ -350,6 +359,22 @@ function flipArmed(el, onClick){
   const fp = $("flipPanel"), slot = $("pp4CerSlot");
   if (fp && slot && fp.parentElement !== slot) slot.appendChild(fp);
   document.body.classList.add("pp4Cer");
+  // playtest 10 item 5: the old prompt card is hidden under the veil (CSS body.pp4Cer) — its
+  // words move up here: the ask above the coin, the stakes line beneath it. Copied on the next
+  // frame, AFTER localAsk's panel() has rendered (the arm hook fires first), and with the
+  // typewriter's reveal spans un-hidden so the copy is whole from its first paint.
+  requestAnimationFrame(() => {
+    const v2 = $("pp4Veil"); if (!v2) return;
+    // localAsk stashes the flip prompt's own words on the bridge — a PURE flip never renders a
+    // panel to read, and the panel can still hold the PREVIOUS prompt's text at arm time
+    const fm = window.__pp4 && window.__pp4.flipMsg;
+    let t = v2.querySelector(".pp4CerTitle");
+    if (!t){ t = document.createElement("div"); t.className = "pp4CerTitle"; v2.insertBefore(t, $("pp4CerSlot")); }
+    t.innerHTML = fm ? emojify(String(fm.m)) : "";
+    let st = v2.querySelector(".pp4CerStakes");
+    if (!st){ st = document.createElement("div"); st.className = "pp4CerStakes"; v2.insertBefore(st, v2.querySelector(".pp4CerSub")); }
+    st.innerHTML = fm ? emojify(String(fm.s)) : "";
+  });
   return true;
 }
 
@@ -417,6 +442,10 @@ function buildStage(){
     setTimeout(clockLabel, 60); };
   clockLabel();
   const foot = $("footerRow"); if (foot) foot.insertBefore(clockRow, foot.firstChild);
+  // playtest 10 item 2: the sound toggle was orphaned at the top-left of the stage (the horn
+  // peeking under the ribbon in Wyatt's screenshots) — it lives in the ☰ menu now
+  const ms = $("muteSlot");
+  if (ms && foot){ foot.insertBefore(ms, clockRow); ms.style.cssText = "display:flex;justify-content:center;"; }
   if (foot){
     const stamp = document.createElement("div");
     stamp.id = "pp4Stamp";
@@ -437,12 +466,15 @@ function buildStage(){
   S.active = true;
 }
 
-// a menu is 1-5 apBtn choices with SHORT labels and no rich content — the N4 radial case
+// a menu is 1-5 apBtn choices with SHORT labels and no rich content — the N4 radial case.
+// Playtest 10 (Wyatt: "ALL of the action prompts should be [radial]"): single-button prompts
+// qualify too, and a button whose ask() option carries a `short` label qualifies regardless of
+// its full label's length — the circle shows the short form, the pill carries the sentence.
 function menuButtons(ap){
   if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input,select")) return null;
   const btns = [...ap.querySelectorAll(".apBtn")];
-  if (btns.length < 2 || btns.length > 5) return null;   // one lone button keeps its card
-  if (!btns.every(b => b.textContent.trim().length <= 16)) return null;
+  if (btns.length < 1 || btns.length > 5) return null;
+  if (!btns.every(b => b._shortHtml != null || b.textContent.trim().length <= 16)) return null;
   return btns;
 }
 const RAD_ANGLES = { 1: [115], 2: [150, 30], 3: [165, 90, 15], 4: [-135, -45, 135, 45], 5: [-135, -45, 180, 0, 90] };
@@ -452,12 +484,38 @@ function promptTick(){
   const has = ap.innerText.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
   box.style.display = has ? "block" : "none";
   if (!has){ box.classList.remove("radial"); return; }
+  // playtest 10 item 1: the recipe chooser becomes a BOTTOM sheet — the sea it asks you to read
+  // stays visible above the cards, holding a finger on the sea peeks behind them (the gesture
+  // that already works on every card), and a hint line teaches it. Draft copy — Wyatt's to rewrite.
+  const recipes = !!ap.querySelector(".recipeList");
+  box.classList.toggle("pp4Recipes", recipes);
+  let hint = box.querySelector(".pp4PeekHint");
+  if (recipes){
+    box.classList.remove("radial", "centered");
+    const top = Math.round(innerHeight * 0.45);
+    box.style.left = "8px"; box.style.top = top + "px";
+    box.style.width = (innerWidth - 16) + "px";
+    ap.style.maxHeight = (innerHeight - top - 8) + "px";
+    if (!hint){
+      hint = document.createElement("div"); hint.className = "pp4PeekHint";
+      hint.textContent = "Tap a recipe to see its islands glow — hold a finger on the sea to peek behind the cards.";
+      box.insertBefore(hint, ap);
+    }
+    return;
+  }
+  if (hint) hint.remove();
+  ap.style.maxHeight = "";
   // N4 radial: choices bloom around the ship, right where the eyes are (the plan's own words).
   const menu = menuButtons(ap);
   const uu = boatUXY(appState.mySeat ?? 0);
-  if (menu && uu && !ap.querySelector(".sailCell")){
+  if (menu && uu){
     box.classList.add("radial"); box.classList.remove("centered");
     box.style.left = "0px"; box.style.top = "0px"; box.style.width = "100vw";
+    // playtest 10: circles carry the SHORT form of a long action (Wyatt's pick: "short verbs,
+    // details in the pill") — the full label is kept for the card fallback and restored there
+    menu.forEach(b => {
+      if (b._shortHtml != null && !b._radSwapped){ b._fullHtml = b.innerHTML; b.innerHTML = emojify(String(b._shortHtml)); b._radSwapped = true; }
+    });
     const [sx, sy] = toScreen(uu[0], uu[1]);
     const cap = $("pp4Cap");
     const capT = cap ? cap.getBoundingClientRect().top : innerHeight;
@@ -465,6 +523,15 @@ function promptTick(){
     const tSafe = (rib ? rib.getBoundingClientRect().bottom : 44) + 40;
     const R = 88, D = 66;
     const placed = [];
+    // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
+    // so every sail highlight is an obstacle nothing of ours may cover
+    const cellRects = [...document.querySelectorAll(".sailCell")].map(r => r.getBoundingClientRect());
+    let cb = null;
+    if (cellRects.length){
+      cb = { l: 1e9, t: 1e9, r: -1e9, b: -1e9 };
+      cellRects.forEach(r => { cb.l = Math.min(cb.l, r.left); cb.t = Math.min(cb.t, r.top);
+        cb.r = Math.max(cb.r, r.right); cb.b = Math.max(cb.b, r.bottom); });
+    }
     // the ask itself rides as a compact pill above the ship — never hidden, so the panel's
     // type-then-reveal order survives; the bloom below it is the answer space
     const msg = ap.querySelector(".apMsg");
@@ -472,11 +539,30 @@ function promptTick(){
     // bubble is just this pill's own words, retire it (the pill already says it)
     const bub = document.querySelector(".pp4Bub");
     if (bub && msg && plain(bub.textContent) === plain(msg.innerText) && S.hurry) S.hurry();
+    let pillB = null;
     if (msg){
       const mw = Math.min(msg.offsetWidth || 200, innerWidth - 20);
       msg.style.position = "fixed";
       msg.style.left = Math.min(Math.max(sx - mw / 2, 10), innerWidth - mw - 10) + "px";
-      msg.style.top = Math.max(tSafe - 34, sy - R - 96) + "px";
+      // during a sail prompt the pill dodges the whole sail window: above it if there's room
+      // under the ribbon, else just below it
+      let mTop = Math.max(tSafe - 34, sy - R - 96);
+      if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : Math.min(cb.b + 8, capT - 44); }
+      msg.style.top = mTop + "px";
+      pillB = msg.getBoundingClientRect();
+      // the back option, when present, is a small circle on the pill's shoulder
+      const back = ap.querySelector(".apBack");
+      if (back){
+        back.style.left = Math.max(4, pillB.left - 46) + "px";
+        back.style.top = (pillB.top + (pillB.height - 38) / 2) + "px";
+      }
+      // helper text (greyed-circle reasons) rides just beneath the pill
+      const sub = ap.querySelector(".apSub");
+      if (sub){
+        const sw = Math.min(sub.offsetWidth || 200, innerWidth - 20);
+        sub.style.left = Math.min(Math.max(sx - sw / 2, 10), innerWidth - sw - 10) + "px";
+        sub.style.top = (pillB.bottom + 6) + "px";
+      }
     }
     const angles = RAD_ANGLES[menu.length] || RAD_ANGLES[4];
     // Wyatt (edge-of-board playtest): "define the logic to show each button in whatever space is
@@ -487,12 +573,14 @@ function promptTick(){
     // ask pill, or an already-placed button — so the bloom re-shapes itself around whatever
     // space the edge leaves open instead of piling up against it.
     const xMin = 8, xMax = innerWidth - D - 8, yMin = tSafe, yMax = capT - D - 8;
-    const pillBox = msg ? msg.getBoundingClientRect() : null;
+    const pillBox = pillB;
+    const hitRect = (bx, by, r, m) =>
+      bx < r.right + m && bx + D > r.left - m && by < r.bottom + m && by + D > r.top - m;
     const clash = (bx, by) =>
       placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + 4) ||
       Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 30 ||
-      (pillBox && bx < pillBox.right + 4 && bx + D > pillBox.left - 4 &&
-        by < pillBox.bottom + 4 && by + D > pillBox.top - 4);
+      (pillBox && hitRect(bx, by, pillBox, 4)) ||
+      cellRects.some(r => hitRect(bx, by, r, 2));
     menu.forEach((b, i) => {
       const a0 = angles[i] ?? 90;
       let bx = null, by = null;
@@ -526,7 +614,10 @@ function promptTick(){
     return;
   }
   box.classList.remove("radial");
-  [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
+  [...ap.querySelectorAll(".apBtn")].forEach(b => {
+    b.style.position = ""; b.style.left = ""; b.style.top = "";
+    if (b._radSwapped){ b.innerHTML = b._fullHtml; b._radSwapped = false; }   // card shows the full label
+  });
   const big = box.offsetHeight > innerHeight * 0.42;
   const u = boatUXY(appState.mySeat ?? 0);
   if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }

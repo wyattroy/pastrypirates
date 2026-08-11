@@ -76,6 +76,9 @@ const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>
 export function localAsk(msg,opts,colors,sub){
   return new Promise(res=>{
     if(opts.length===1&&opts[0].flip){
+      // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
+      // the DOM — stash message + helper on the bridge for the ceremony title/stakes
+      if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
       setNeedsAction(true);
       setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});
       return;
@@ -88,7 +91,10 @@ export function localAsk(msg,opts,colors,sub){
     const backIdx=opts.findIndex(o=>o.back);
     const flipIdx=opts.findIndex(o=>o.flip);
     const done=v=>{setFlipActive(null);setNeedsAction(false);panel("");res(v);};
-    if(flipIdx!==-1){setNeedsAction(true);setFlipActive(()=>done(flipIdx));}
+    if(flipIdx!==-1){
+      if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
+      setNeedsAction(true);setFlipActive(()=>done(flipIdx));
+    }
     else setFlipActive(null);
     const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
     const grid=rest.some(x=>x.o.cls)?" recipes":"";
@@ -99,6 +105,11 @@ export function localAsk(msg,opts,colors,sub){
       rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?" disabled":""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
       true);
     $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+      // /4 stage: an option may carry a `short` label — the radial bloom shows that compact form
+      // in its circle while the card fallback keeps the full sentence (element property, never a
+      // data-attribute: the short form is HTML with icon imgs in it)
+      const o=opts[+b.dataset.i];
+      if(o&&o.short!=null)b._shortHtml=o.short;
       if(b.disabled)return; // disabled options are display-only (notes/edits #5d)
       b.onclick=()=>done(+b.dataset.i);
     });
@@ -780,7 +791,7 @@ export async function humanDock(p,port){
     const left=g.tokens[ing];
     const scarcity=(left<1e9&&left<=1)?` Last one on the island!`:``;
     const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,[
-      {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,value:true,disabled:!canBuy},
+      {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:true,disabled:!canBuy},
       {label:"Keep yer coin",value:false}],
       null,canBuy?(scarcity||null):`The price has risen to ${price}🌕 — more than ye can pay.`);
     // D-40 safety net: re-read the purse rather than trusting `canBuy`, which was computed BEFORE
@@ -978,7 +989,9 @@ export async function humanAct(p,sailCtx){
   // to sit in front of the whole anchor-plus-verb clause. Nothing else about the label changed, and
   // the anchor stays where it is (it labels the ACTION, not the island). The dock FLIP prompt
   // (:above) was already correct and is deliberately untouched.
-  if(canDock)opts.push({label:`⚓ Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)}`,value:"dock"});
+  // /4 radial (Wyatt's pick: short verbs in the circles, details in the pill): each long label
+  // carries a `short` form for the bloom; the card fallback keeps the full sentence. Draft copy.
+  if(canDock)opts.push({label:`⚓ Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)}`,short:`⚓ Dock ${iconImg(ING_IMG[port])}`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   if(targets.length)
@@ -989,7 +1002,7 @@ export async function humanAct(p,sailCtx){
   // this button can never be the thing that starts a bakery — offering it would promise a finish
   // the engine no longer grants on a click.
   if(!appState.game.cfg.bakeoff&&!appState.game.needs(p).length&&man(p.pos,appState.game.home)<=1)
-    opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,value:"bakery"});
+    opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,short:`${iconImg(CUPCAKE_IMG)} Bakery!`,value:"bakery"});
   // THE OVENS BUTTON (Wyatt, 2026-08-09: "Where did the button go? This is a celebratory moment!
   // It feels terrible to have to click 'pass'").
   //
@@ -1010,7 +1023,7 @@ export async function humanAct(p,sailCtx){
   // the dead option back on screen next to the live one.
   const canOvens=appState.game.cfg.bakeoff&&appState.game.canBake(p);
   // @copy adhoc.act.fireovens
-  if(canOvens)opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Fire up the ovens!`,value:"ovens",cls:"primary ahoyGlow"});
+  if(canOvens)opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Fire up the ovens!`,short:`${iconImg(CUPCAKE_IMG)} Fire ovens!`,value:"ovens",cls:"primary ahoyGlow"});
   // v2 rule 3: Fish is gone from the menu, and rule 4's Trade is table-wide rather than
   // adjacency-gated. Together that made it possible for EVERY option to be unavailable at once —
   // not on a dock, nobody adjacent to fight, nobody holding cargo yet, recipe unfinished — which

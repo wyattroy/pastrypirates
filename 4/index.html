@@ -1231,7 +1231,15 @@
   /* N4 radial: the menu blooms around the ship as circular choices */
   #pp4Prompt.radial { height:100vh; pointer-events:none; opacity:1; }
   #pp4Prompt.radial #actionPanel { background:none; border:none; box-shadow:none; padding:0; margin:0; }
-  #pp4Prompt.radial .apSub, #pp4Prompt.radial .apBack { display:none; }
+  /* playtest 10: sub and back survive the radial — the sub as a small note under the pill (it
+     explains greyed circles), the back as its own little circle beside the pill */
+  #pp4Prompt.radial .apSub { display:block; position:fixed; background:rgba(255,253,242,.9);
+    border-radius:9px; padding:4px 10px; font-size:11px; font-style:italic; color:#4a3223;
+    width:max-content; max-width:80vw; box-shadow:0 4px 12px rgba(0,0,0,.25); margin:0; }
+  #pp4Prompt.radial .apBack { display:flex; position:fixed; width:38px; height:38px;
+    border-radius:50%; align-items:center; justify-content:center; pointer-events:auto;
+    background:#fffdf2; border:2.5px solid #177; color:#0e3b3b; font-size:20px; padding:0;
+    box-shadow:0 5px 14px rgba(0,0,0,.3); }
   #pp4Prompt.radial .apMsg { background:rgba(255,253,242,.97); border:2px solid #177;
     border-radius:11px; padding:7px 12px; font-size:13px; width:max-content; max-width:88vw;
     margin:0; box-shadow:0 5px 16px rgba(0,0,0,.3); }
@@ -1295,6 +1303,27 @@
     filter:drop-shadow(0 16px 34px rgba(0,0,0,.55)); }
   #pp4CerSlot { padding:56px 0; }
   #pp4CerSlot #shotClockPanel, #pp4CerSlot #muteSlot, #pp4CerSlot #btnMute { display:none !important; }
+  /* playtest 10 item 5: the old prompt card never shows through the veil — its words move onto it */
+  body.pp4Cer #pp4Prompt { visibility:hidden; }
+  .pp4CerTitle { color:#ffe9b0; font-weight:800; font-size:16px; text-align:center;
+    max-width:86vw; line-height:1.4; text-shadow:0 2px 8px rgba(0,0,0,.7); }
+  .pp4CerStakes { color:#e8dcc0; font-size:12.5px; font-style:italic; text-align:center;
+    max-width:82vw; line-height:1.55; text-shadow:0 1px 4px rgba(0,0,0,.7); }
+  .pp4CerTitle img, .pp4CerStakes img { width:18px; height:18px; vertical-align:-3px; }
+  /* playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare */
+  #pp4CerSlot #flipCoinWrap.pp4Land { animation:pp4LandFx .62s ease-out; }
+  @keyframes pp4LandFx {
+    0%   { transform:none; filter:none; }
+    16%  { transform:scale(1.14) rotate(-2.5deg); filter:drop-shadow(0 0 18px rgba(255,205,90,.95)); }
+    34%  { transform:scale(1.06) rotate(2deg);    filter:drop-shadow(0 0 13px rgba(255,205,90,.8)); }
+    52%  { transform:scale(1.1)  rotate(-1deg);   filter:drop-shadow(0 0 9px rgba(255,205,90,.6)); }
+    100% { transform:none; filter:none; }
+  }
+  /* playtest 10 item 1: the recipe chooser is a BOTTOM sheet — the sea it asks you to read stays
+     visible above it, and holding a finger on the sea peeks behind the cards */
+  #pp4Prompt.pp4Recipes #actionPanel { overflow-y:auto; }
+  .pp4PeekHint { text-align:center; font-size:12px; font-style:italic; color:#fffdf2;
+    text-shadow:0 1px 4px rgba(0,0,0,.65); padding:0 4px 6px; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:8px 6px; }
   body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }
