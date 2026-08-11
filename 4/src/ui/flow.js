@@ -1115,6 +1115,9 @@ export async function humanTurn(p){
     if(dest){
       p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}
+      // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
+      // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
+      else if(appState.game.onRim(p.pos))await flash(`🌀 ${pn(p.idx)} rides at the head o' the current — she's got nowhere to carry ye from here.`);
     }
   }
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
