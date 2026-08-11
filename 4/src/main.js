@@ -145,10 +145,22 @@ if (typeof window !== "undefined") {
 
   // auto-pause solo/bot games when the tab/screen goes hidden (backgrounded, locked, computer
   // sleeps) — mobile especially can't rely on a second tab catching up later, so we pause rather
-  // than let bots keep playing unattended. Never auto-resumes; player taps ▶ same as manual pause.
+  // than let bots keep playing unattended.
+  //
+  // /4: a pause the PLAYER never asked for must also end itself when they come back. The stage
+  // hides the shot-clock panel (and solo defaults the clock off), so the v2 rule "never
+  // auto-resumes; player taps ▶" left no reachable ▶ at all — an app-switch on a phone silently
+  // paused the game, and the next sleep() (in practice the trade-wind rim sweep, twice in live
+  // playtests) hung the turn forever with no indicator. Only the automatic pause auto-resumes:
+  // a pause the player chose by tapping ⏸ stays theirs to end.
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && stateNs.appState.isHost && ui.soloBotGame() && !stateNs.appState.shotClockPaused) {
+    const st = stateNs.appState;
+    if (document.hidden && st.isHost && ui.soloBotGame() && !st.shotClockPaused) {
+      st.autoPausedByHide = true;
       ui.toggleShotClockPause();
+    } else if (!document.hidden && st.autoPausedByHide) {
+      st.autoPausedByHide = false;
+      if (st.shotClockPaused) ui.toggleShotClockPause();
     }
   });
 

@@ -90,6 +90,9 @@ export const appState = {
   shotClockForce: null,
   shotClockStash: null,
   shotClockPaused: false,
+  // /4: true only while the CURRENT pause was created by the hide-tab auto-pause (src/main.js) —
+  // the visibility handler auto-resumes exactly that pause on return and never a player's own ⏸
+  autoPausedByHide: false,
   shotClockPauseElapsed: 0,
   timerOff: false,
   shotClockFired: {},
