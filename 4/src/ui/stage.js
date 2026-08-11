@@ -425,14 +425,37 @@ function promptTick(){
   const u = boatUXY(appState.mySeat ?? 0);
   if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
   box.classList.remove("centered");
-  const [sx, sy] = toScreen(u[0], u[1]);
   const W = Math.min(330, innerWidth - 16);
   box.style.width = W + "px";
-  const left = Math.min(Math.max(sx - W / 2, 8), innerWidth - W - 8);
-  let top = sy + 34;                                      // just under the hull
+  const H = box.offsetHeight;
   const cap = $("pp4Cap");
   const capTop = cap ? cap.getBoundingClientRect().top : innerHeight;
-  if (top + box.offsetHeight > capTop - 6) top = Math.max(56, sy - box.offsetHeight - 44);
+  const pill = $("pp4Pill");
+  const topSafe = (pill && pill.style.display !== "none")
+    ? pill.getBoundingClientRect().bottom + 8
+    : ($("pp4Ribbon") ? $("pp4Ribbon").getBoundingClientRect().bottom + 8 : 56);
+  const [sx, sy] = toScreen(u[0], u[1]);
+  let left, top;
+  const cells = [...document.querySelectorAll(".sailCell")];
+  if (cells.length){
+    // playtest 6: during a sail prompt the card must NEVER sit on the sail window — the camera
+    // promised every legal square stays visible, so the card dodges to the clearest band:
+    // below the window, above it, or hugging the captains box, recomputed as the camera moves.
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    cells.forEach(c => { const r = c.getBoundingClientRect();
+      x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
+      x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); });
+    left = Math.min(Math.max((x0 + x1) / 2 - W / 2, 8), innerWidth - W - 8);
+    const below = (capTop - 8) - (y1 + 8);
+    const above = (y0 - 8) - topSafe;
+    if (below >= H) top = y1 + 8;
+    else if (above >= H) top = y0 - 8 - H;
+    else top = capTop - H - 6;                 // least-bad: hug the captains box
+  } else {
+    left = Math.min(Math.max(sx - W / 2, 8), innerWidth - W - 8);
+    top = sy + 34;                             // just under the hull
+    if (top + H > capTop - 6) top = Math.max(topSafe, sy - H - 44);
+  }
   box.style.left = left + "px"; box.style.top = top + "px";
 }
 function tick(){
