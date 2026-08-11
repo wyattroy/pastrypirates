@@ -67,6 +67,7 @@
 // every time (harmless, and needed so a genuine re-entry still sees the current room state).
 
 import { appState } from "./state/index.js";
+import { pingVisit, pingStart, pingFin, usageGid } from "./ui/usage.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, unusedDefaultName, iconImg, man,
@@ -708,9 +709,11 @@ export function writeMeta(){
 // so this is the only durable copy for later analysis. Only the host writes it (this function
 // only ever runs from the host's own turn loop), so there's no risk of duplicate writes.
 export function writeGameLog(){
+  if(!appState.replaying)pingFin(); // fires in every build, even where the SDK log below cannot
   if(!appState.db||appState.replaying)return Promise.resolve();
   const ts=Date.now();
   return netWriteGameLog(appState.db,ts,{
+    pid:appState.myId||null,gid:usageGid(),build:"main",
     ts,room:appState.room||null,winner:appState.game.winner,round:appState.game.round,
     battles:appState.game.battles,trades:appState.game.trades,strategies:appState.game.cfg.strategies,
     // names/bots are recorded per seat so solo & local games (no rooms/{code}/seats node) are still
@@ -1348,6 +1351,7 @@ export async function startGame(){
     for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
     const cfg=roundCfg(strategies);
     const seed=Math.floor(Math.random()*1e9);
+    pingStart(strategies.filter(s=>s==="human").length,"net");
     await netUpdateRoom(appState.db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
       recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
   }catch(e){
@@ -1527,6 +1531,7 @@ export async function resumeHostGame(r){
 
 export function boot(){
   appState.myId=getMyId();
+  pingVisit();
   // LOAD-03b — DECIDE THE DESTINATION BEFORE PAINTING ANYTHING.
   //
   // Wyatt's intent, 2026-08-02, stated as two journeys: "i need players who are visiting the site

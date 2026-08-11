@@ -545,7 +545,10 @@ export function windHudEnabled(){
 // throttle: the readout text updates at most this often, so measuring the frame rate never becomes
 // part of the frame cost it measures.
 const WIND_SPEED_SCALE=0.2;
-const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=10, WIND_DOT_SEED_SALT=0x57494e44, WIND_LAYER_OVERSIZE=2.2, WIND_READOUT_MS=250;
+// WIND_DOT_DEFAULT 10 -> 20 (Wyatt, 2026-08-10: "Add 100% more wind particles"). Goes with the
+// lane-band fix in windDotFrame below — the two together are what he asked for: more dots, and
+// all of them actually crossing the board.
+const WIND_DOT_MAX=100, WIND_DOT_DEFAULT=20, WIND_DOT_SEED_SALT=0x57494e44, WIND_LAYER_OVERSIZE=2.2, WIND_READOUT_MS=250;
 // WIND_DOT_PX (Wyatt, 2026-08-05): "decrease the wind particle size fifty percent" — the
 // prototype's 7px halved. A named constant rather than an edited literal, because the size is now
 // something taste may move again; nothing else in the region depends on it (the wobble cap and the
@@ -610,7 +613,12 @@ export function windDotSpecs(seed,count){
   const rnd=mulberry32(((seed==null?DEMO_RAIN_SEED:seed)^WIND_DOT_SEED_SALT)>>>0);
   const specs=[];
   for(let i=0;i<n;i++){
-    specs.push({startT:rnd(),wobbleAmp:rnd(),speed:rnd(),lane:rnd()});
+    // lane is STRATIFIED, not raw-uniform: dot i lives in the i-th slice of the crosswind span,
+    // jittered within it. Raw draws are fixed for a whole voyage, so one unlucky game could leave
+    // a 15% stretch of the board's edge with no dot in it ever (measured: one seed's 20 uniform
+    // lanes topped out at 0.83). A slice apiece guarantees the whole starting edge is served,
+    // every game — and the draw count per dot is unchanged, so the spec order note above holds.
+    specs.push({startT:rnd(),wobbleAmp:rnd(),speed:rnd(),lane:(i+rnd())/Math.max(1,n)});
   }
   return specs;
 }
@@ -666,7 +674,17 @@ export function windDotFrame(spec,tMs,layerW,layerH){
   opacity=Math.max(0,Math.min(1,opacity));
 
   const wobble=Math.sin(tMs/WIND_WOBBLE_PERIOD_MS*Math.PI*2+spec.startT*Math.PI*2)*spec.wobbleAmp*WIND_WOBBLE_MAX_PX;
-  const x=spec.lane*layerW+wobble;
+  /* LANES SPAN THE BOARD, NOT THE OVERSIZED LAYER (Wyatt, 2026-08-10: "make sure they spawn
+     across the whole starting edge of the board"). The layer is WIND_LAYER_OVERSIZE (2.2x) wide
+     so a live rotation never exposes a corner — but lanes drawn across its FULL width meant only
+     ~1/2.2 of the dots ever crossed the board's clip, and whichever random lanes survived
+     bunched wherever they fell. Measured before this change (headless, 10 dots): five lanes over
+     the board, all between 0.00 and 0.50 of its width, none between 0.60 and 1.00 — exactly the
+     "they all spawn near one spot" a playtest sees. Lanes now map into the central board-width
+     band, so every dot crosses the board and lane=0..1 is edge-to-edge of the board itself. The
+     oversize keeps its one job; the dots just stop hiding in it. */
+  const band=1/WIND_LAYER_OVERSIZE;
+  const x=layerW*((1-band)/2+spec.lane*band)+wobble;
 
   return {x,y,opacity};
 }

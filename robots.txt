@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /lab.html
+Disallow: /stats.html
 Disallow: /v2/
 Disallow: /v2bakeoff/
 Disallow: /3/

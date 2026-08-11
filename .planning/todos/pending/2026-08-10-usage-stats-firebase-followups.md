@@ -1,0 +1,96 @@
+---
+id: usage-stats-firebase-followups
+title: Usage stats follow-ups — verify reads, maybe add rules, allow firebaseio in the Claude environment
+status: pending
+type: task
+severity: medium
+area: infrastructure
+created: 2026-08-10
+source: Wyatt, 2026-08-10, on mobile ("add all these steps and context to backlog for when i get around a computer again")
+resolves_phase: null
+regression: false
+---
+
+## Context — what already shipped and works without any of this
+
+Usage tracking is LIVE as of the 2026-08-10 merges. Every build (`/`, `/v2`, `/v2bakeoff`, `/3`)
+fires three anonymous REST pings from the player's own browser (`src/ui/usage.js` in each build):
+
+- `visits/<ts>-<pid>` — one per page boot
+- `starts/<ts>-<pid>` — one per NEW voyage (solo / pass&play / net-host; resumes and replays never
+  write); the key doubles as the voyage's gid
+- `fins/<gid>` — one per completed voyage; **starts minus fins = unfinished games**
+
+The identifier is `pp_id` (the per-browser id the game has always minted, shared across builds) —
+deliberately NOT an IP: a page cannot see its own IP without a third-party echo service, and a
+per-browser id beats an address that lumps households together and hops with a phone. Pings fire
+only on playpastrypirates.com, are fire-and-forget, and swallow every failure.
+
+**playpastrypirates.com/stats.html** (noindexed, robots-disallowed) reads it all back: per-day
+unique visitors, boots, starts, finishes, unfinished, builds, captain names — and answers
+"besides me" automatically by reading this device's own `pp_id`, with tap-to-toggle chips to mark
+other devices (the laptop) as also-you. Counters begin 2026-08-10; earlier days show only finished
+games from the long-standing `gamelogs/` node.
+
+Known wrinkle: private/incognito tabs mint a fresh `pp_id` per tab, so private-tab testing shows
+up as one-visit strangers under "others".
+
+## Step 1 — the 30-second check that may end this todo (do FIRST)
+
+Open **playpastrypirates.com/stats.html** on anything.
+
+- Numbers appear → the database rules already allow public reads (test-mode rules). **Steps 2 is
+  unnecessary — skip it.** Only step 3 remains, and only if wanted.
+- A red "Permission denied" box appears → the pings are (probably) writing but reads are locked.
+  Do step 2. (If the box names a different error, read it — the page prints the exact failure.)
+
+## Step 2 — add read/write rules for the four nodes (60 seconds, needs the console)
+
+Firebase console → project **pastry-pirates** → **Realtime Database** → **Rules** tab.
+
+**Do NOT replace the existing rules** — `rooms`, `presence`, etc. are load-bearing for
+multiplayer. ADD these four entries inside the existing top-level `"rules": { ... }` object:
+
+```json
+"visits":   { ".read": true, ".write": true },
+"starts":   { ".read": true, ".write": true },
+"fins":     { ".read": true, ".write": true },
+"gamelogs": { ".read": true, ".write": true }
+```
+
+Then **Publish**. (`gamelogs` almost certainly already has `.write`; it may lack `.read`, which
+stats.html needs for captain names.)
+
+## Step 3 — let Claude sessions query the database directly (optional, approved 2026-08-10)
+
+Wyatt approved adding the Firebase domain to the Claude Code cloud environment so future sessions
+can pull the numbers instead of pointing at stats.html. A session cannot edit its own environment;
+this is a claude.ai UI action, and **there is no direct URL** — the docs say so explicitly
+("There's no settings page or direct URL for the selector"). The path:
+
+1. Open **claude.ai/code** (works in the mobile app too).
+2. In the row **directly above the message box**, tap the **cloud chip showing the environment
+   name** (likely "Default").
+3. Tap the **settings gear** on the environment.
+4. **Network access** → **Custom** → add one line to **Allowed domains**:
+   `pastry-pirates-default-rtdb.firebaseio.com`
+   — and keep the option that **includes the default Trusted domains**, or GitHub/npm access
+   breaks. (Lazier alternative: pick **Full** — any domain, nothing to maintain, less locked-down.)
+5. Save. **Takes effect for NEW sessions only.**
+
+## Step 4 — only if rule changes should become Claude's job (probably skip)
+
+Ruled out for now unless rules need changing often: it means minting a **database secret**
+(console → Project settings → Service accounts) and pasting it into the environment's
+**Environment variables** box. Tradeoff stated 2026-08-10: env vars are not a secrets store —
+visible to every session in that environment — and the secret grants full read/write to the whole
+database. Revocable in the console at any time. Step 2 being a one-time paste makes this rarely
+worth it.
+
+## Where the pieces live
+
+- Pings: `src/ui/usage.js` (and the same file under `v2/`, `v2bakeoff/`, `3/`) — header comment
+  documents the record shapes and the guards.
+- Dashboard: `stats.html` at repo root — source comment repeats the rules snippet.
+- Wiring: each build's `orchestrator.js` (boot → visit, startGame → net start, writeGameLog → fin)
+  and `ui/flow.js` (solo + pass&play starts).
