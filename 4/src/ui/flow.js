@@ -191,7 +191,7 @@ export function sailSelfCheck(p,cells){
 }
 export function sailPickMsg(seat){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
-  return `${pn(seat)}: tap any gold square to sail there`;
+  return `${pn(seat)}: tap to sail`;   // /4 playtest 6: one line — the card must stay small
 }
 // The wind's effect on THIS move, spelled out at the moment the move is made. The highlighted
 // squares already encode rule 1 exactly, but they encode it silently: a captain who misreads the
@@ -375,10 +375,13 @@ export function localPickCell(p,cells){
     // the self-check's shout, if it ever fires, REPLACES the ordinary hint — it is the only thing
     // that matters on screen at that point
     const bug=sailSelfCheck(p,cells);
-    const hint=bug||sailWindHint();
+    // /4 playtest 6: the standing wind-helper line leaves the sail card (the pill carries the
+    // wind; the card must stay one line tall for placement freedom). The self-check's red shout
+    // still renders when it fires — that one is a bug report, not a hint.
+    const hint=bug;
     panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
-      (hint?`<div class="apSub"${bug?' style="color:#b3261e;font-weight:bold"':''}>${hint}</div>`:``),true);
+      (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``),true);
     $("apStay").onclick=()=>done(null);
   });
 }
