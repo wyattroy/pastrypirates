@@ -578,28 +578,45 @@ export function rimSweepPointAt(curve,t){
 // would require the ENTRY CELL in the event stream, i.e. the STORM-02 class of change, which stays
 // parked on its own merits and is NOT added to the re-record batch.
 let _lastSweptEvIdx=-1;
+// Returns true only when a ride actually animated — runStormLive uses that to know whether its
+// own reconstructed-entry fallback (animateRimSweepRun below) still needs to play the ride.
 export async function animateRimSweepIfAny(){
   const g=appState.game;
-  if(!g||appState.replaying)return;
+  if(!g||appState.replaying)return false;
   const n=g.events.length;
-  if(n<2)return;
+  if(n<2)return false;
   const last=g.events[n-1];
-  if(!last||last.t!=="tradewind")return;
+  if(!last||last.t!=="tradewind")return false;
   // RE-ENTRY GUARD: a module-local index, NEVER a flag stamped on the event object. The host
   // broadcasts events verbatim (pushEvents -> JSON.parse(JSON.stringify(...))), so an extra field
   // would leak straight into the Firebase payload and can trip scripts/net_contract_check.js.
-  if(_lastSweptEvIdx===n-1)return;
+  if(_lastSweptEvIdx===n-1)return false;
   _lastSweptEvIdx=n-1;
   const seat=last.p;
   const prev=g.events[n-2];
-  if(!last.state||!prev||!prev.state)return;
+  if(!last.state||!prev||!prev.state)return false;
   const to=last.state[seat]&&last.state[seat].pos;
   const from=prev.state[seat]&&prev.state[seat].pos;
-  if(!to||!from||!g.onRim(from))return;
+  if(!to||!from||!g.onRim(from))return false;
+  return animateRimSweepRun(seat,from,to);
+}
+// /4 (Wyatt's playtest, storm rides): the SAME guarded ride, callable with an explicitly known
+// entry cell. A swept storm step emits nothing between stepping onto the rim and tradewind()
+// (see the fallback list above), so the event stream cannot supply `from` — but runStormLive
+// holds the pre-step square in its hand and stormStep moves exactly ONE straight square downwind
+// before the sweep, so the driver can reconstruct the entry cell first-hand. Same discipline:
+// derive the path and REFUSE TO GUESS — if rimSweepPath from the given cell does not land
+// exactly on `to`, no animation happens and today's instant render stands.
+export async function animateRimSweepRun(seat,from,to){
+  const g=appState.game;
+  if(!g||appState.replaying)return false;
   const path=rimSweepPath(g,from);
-  if(!path.length)return;
+  if(!path.length)return false;
   const end=path[path.length-1];
-  if(end[0]!==to[0]||end[1]!==to[1])return;   // the derivation disagrees with the engine — do not guess
+  if(end[0]!==to[0]||end[1]!==to[1])return false;   // the derivation disagrees with the engine — do not guess
+  // the ride spans the rim — pull the camera to the full board first, or the whole sweep can play
+  // past the edge of a zoomed-in view (a no-op outside the /4 stage)
+  if(window.__pp4&&window.__pp4.sweepCam)window.__pp4.sweepCam();
   try{
     // ── PART A: ARRIVE IN THE TRADE WINDS FIRST ──────────────────────────────────────────────
     // The square the player clicked was never drawn. liveRender() at the call site DOES write it,
@@ -654,6 +671,7 @@ export async function animateRimSweepIfAny(){
     setShipGlideMs(seat,null);
     paintShipAt(seat,to);
   }
+  return true;
 }
 /* ================= v2 rules 7 + 8: the storm =================
    A storm is now ONE event for the whole table, at the top of the round, before anybody acts:
@@ -686,15 +704,28 @@ export async function runStormLive(dirKey){
       const evBefore=g.events.length;
       outcome=g.stormStep(p,dirKey);
       const movedSquare=(p.pos[0]!==was[0]||p.pos[1]!==was[1]);
-      if(movedSquare){
+      if(movedSquare&&outcome!=="swept"){
         // D-22, carried into v2: paint THIS square before anything about the next one can narrate.
         // renderLiveShips(), not liveRender() — an ordinary storm square emits no event, and
         // render() draws ships from the last emitted event's snapshot, so liveRender() here would
         // repaint the square the ship has just left and the push would be invisible.
+        // A SWEPT step is excluded: p.pos is already the whirlpool by now, so this paint WAS the
+        // teleport Wyatt recorded ("swept around the rim!" with no ride). The sweep animation
+        // below paints its own arrival at the entry square instead.
         renderLiveShips();
         await sleep(STORM_STEP_MS);
       }
-      if(outcome==="swept"){await animateRimSweepIfAny();liveRender();}
+      if(outcome==="swept"){
+        // The event-derived animator declines a storm sweep (no rim-entry event exists to read —
+        // its own documented fallback), so reconstruct the entry square the driver knows
+        // first-hand: stormStep moved exactly one straight square downwind from `was` before
+        // tradewind() fired. animateRimSweepRun re-derives the path and refuses to guess.
+        if(!await animateRimSweepIfAny()){
+          const entry=[was[0]+DIRS[dirKey][0],was[1]+DIRS[dirKey][1]];
+          if(g.onRim(entry))await animateRimSweepRun(p.idx,entry,[...p.pos]);
+        }
+        liveRender();
+      }
       // stormStep records its own `blocked` event when a ship holds the square ahead
       if(g.events.length>evBefore){liveRender();await narrateLastEvent();}
       if(outcome!=="moved")break;

@@ -30,6 +30,7 @@ const S = {
   subject: null,            // seat index the next flash() line is about (stashed by panel.js)
   evType: null,
   hurry: null,              // resolver for tap-to-hurry on the live bubble
+  bubPlace: null,           // live bubble's positioner — run every tick, same loop as the camera
   raf: 0,
   lastPill: "",
 };
@@ -274,17 +275,22 @@ function stageFlash(msg){
       const t = b.querySelector(".pp4Tail");
       if (t) t.style.left = Math.max(16, Math.min(sx - left - 8, W - 32)) + "px";
     };
-    let done = false, iv = setInterval(place, 90);   // track the gliding camera
+    // Wyatt's recording, measured frame by frame: positioned on a 90ms interval, the bubble
+    // trailed the 60fps camera glide in visible 25-40px steps — a different loop than the board.
+    // It now rides tick() itself, repositioned in the SAME frame the camera moves.
+    let done = false;
     const finish = () => {
       if (done) return; done = true;
-      clearInterval(iv); if (S.hurry === finish) S.hurry = null;
+      if (S.bubPlace === place) S.bubPlace = null;
+      if (S.hurry === finish) S.hurry = null;
       b.classList.add("out");
       setTimeout(() => b.remove(), 300);
       res();
     };
     S.hurry = finish;
+    S.bubPlace = place;
     b.addEventListener("pointerdown", finish);
-    requestAnimationFrame(place);
+    place();
     setTimeout(finish, hold);
   });
 }
@@ -462,16 +468,46 @@ function promptTick(){
       msg.style.top = Math.max(tSafe - 34, sy - R - 96) + "px";
     }
     const angles = RAD_ANGLES[menu.length] || RAD_ANGLES[4];
+    // Wyatt (edge-of-board playtest): "define the logic to show each button in whatever space is
+    // available." The old way clamped each bloom angle to the viewport and then nudged one axis —
+    // with the ship hugging an edge, several circles clamped into the same corner and STACKED.
+    // Now each button takes the free spot NEAREST its ideal bloom position: widening angle sweeps
+    // at growing radii, rejecting any spot that leaves the safe area or lands on the ship, the
+    // ask pill, or an already-placed button — so the bloom re-shapes itself around whatever
+    // space the edge leaves open instead of piling up against it.
+    const xMin = 8, xMax = innerWidth - D - 8, yMin = tSafe, yMax = capT - D - 8;
+    const pillBox = msg ? msg.getBoundingClientRect() : null;
+    const clash = (bx, by) =>
+      placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + 4) ||
+      Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 30 ||
+      (pillBox && bx < pillBox.right + 4 && bx + D > pillBox.left - 4 &&
+        by < pillBox.bottom + 4 && by + D > pillBox.top - 4);
     menu.forEach((b, i) => {
-      const a = (angles[i] ?? 90) * Math.PI / 180;
-      let bx = sx + R * Math.cos(a) - D / 2, by = sy + R * Math.sin(a) - D / 2;
-      bx = Math.min(Math.max(bx, 8), innerWidth - D - 8);
-      by = Math.min(Math.max(by, tSafe), capT - D - 8);
-      // nudge apart if two circles collide after clamping (ship hugging an edge)
-      for (const q of placed){
-        if (Math.abs(bx - q[0]) < D && Math.abs(by - q[1]) < D){
-          bx = (q[0] + D + 6 <= innerWidth - D - 8) ? q[0] + D + 6 : q[0] - D - 6;
+      const a0 = angles[i] ?? 90;
+      let bx = null, by = null;
+      search:
+      for (const r of [R, R + 52, R + 104]){
+        for (const off of [0, -20, 20, -40, 40, -60, 60, -85, 85, -110, 110, -140, 140, 180]){
+          const a = (a0 + off) * Math.PI / 180;
+          const cx = sx + r * Math.cos(a) - D / 2, cy = sy + r * Math.sin(a) - D / 2;
+          if (cx < xMin || cx > xMax || cy < yMin || cy > yMax) continue;
+          if (clash(cx, cy)) continue;
+          bx = cx; by = cy; break search;
         }
+      }
+      if (bx == null){
+        // nothing free near the bloom — take the first open spot anywhere in the safe area
+        scan:
+        for (let cy = yMin; cy <= yMax; cy += D * 0.55){
+          for (let cx = xMin; cx <= xMax; cx += D * 0.55){
+            if (!clash(cx, cy)){ bx = cx; by = cy; break scan; }
+          }
+        }
+      }
+      if (bx == null){
+        // no free space at all (tiny viewport): clamp to the safe corner rather than vanish
+        bx = Math.min(Math.max(sx - D / 2, xMin), xMax);
+        by = Math.min(Math.max(sy - D / 2, yMin), Math.max(yMin, yMax));
       }
       placed.push([bx, by]);
       b.style.position = "fixed"; b.style.left = bx + "px"; b.style.top = by + "px";
@@ -519,6 +555,7 @@ function promptTick(){
 }
 function tick(){
   camFrame();
+  if (S.bubPlace) S.bubPlace();   // the live bubble moves in the same frame as the camera
   if (S.active){ pillTick(); ribbonTick(); promptTick(); }
   else {
     // activate once a solo game is actually on screen
@@ -546,6 +583,9 @@ export function initStage(){
       camToCell([cx, cy], 2.0); },
     flip: flipArmed,
     actor: seat => { S.activeSeat = seat; },
+    // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
+    // narration that follows glides the camera back down to the ship at its whirlpool
+    sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
   };
   recipeGuard();
   // grey the Pass & Play card: solo only this build (draft copy — Wyatt rewrites after playing)
