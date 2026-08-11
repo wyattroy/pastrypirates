@@ -78,10 +78,8 @@ function camFitSail(){
 function toScreen(ux, uy){
   const svg = svgEl(); if (!svg) return [0, 0];
   const br = svg.getBoundingClientRect();
-  const size = Math.min(br.width, br.height);
-  const offX = (br.width - size) / 2, offY = (br.height - size) / 2;
-  const sc = size / S.cam.w;
-  return [(ux - S.cam.x) * sc + br.left + offX, (uy - S.cam.y) * sc + br.top + offY];
+  const sc = br.width / S.cam.w;
+  return [(ux - S.cam.x) * sc + br.left, (uy - (S.vy ?? S.cam.y)) * sc + br.top];
 }
 function boatUXY(i){
   const els = boardShipEls();
@@ -93,8 +91,21 @@ function boatUXY(i){
 function camFrame(){
   const c = S.cam, k = 0.14;
   c.x += (c.tx - c.x) * k; c.y += (c.ty - c.y) * k; c.w += (c.tw - c.w) * k;
-  const svg = svgEl();
-  if (svg && S.active) svg.setAttribute("viewBox", `${c.x} ${c.y} ${c.w} ${c.w}`);
+  const svg = svgEl(); if (!svg || !S.active) return;
+  // the visible stage is the strip between the top of the screen and the sheet — size the wrap
+  // to it and give the viewBox the SAME aspect, so the board fills the strip edge to edge with
+  // no letterboxing and the top of the frame sits at the top of the screen (Wyatt, playtest 1).
+  const wrap = $("boardwrap"), sheet = $("pp4Sheet");
+  const availH = Math.max(200, (sheet ? sheet.getBoundingClientRect().top : innerHeight));
+  if (wrap && Math.abs((parseFloat(wrap.style.height) || 0) - availH) > 2) wrap.style.height = availH + "px";
+  const aspect = availH / innerWidth;
+  let h = c.w * aspect;
+  if (h > 640) h = 640;                       // whole board fits vertically; width stays filled
+  const cy = c.y + c.w / 2;                   // keep the camera centre
+  let vy = cy - h / 2;
+  vy = Math.max(0, Math.min(640 - h, vy));
+  S.vh = h; S.vy = vy;
+  svg.setAttribute("viewBox", `${c.x} ${vy} ${c.w} ${h}`);
 }
 
 /* ================= gestures ================= */
@@ -144,20 +155,20 @@ function gestures(wrap){
 
 /* ================= wind pill ================= */
 function pillHTML(){
-  const g = appState.game; if (!g) return "";
+  const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return "";
   const now = g.windNow, fc = g.forecastWind();
-  const nowS = `WIND NOW: ${now}${AR[now] || ""}`;
+  const nowS = `WIND NOW: ${now}${AR[now]}`;
   const fcS = g.stormNext
-    ? `FORECAST: ⛈<span class="pp4Spin">↑</span>`
-    : (fc ? `FORECAST: ${fc}${AR[fc] || ""}` : "");
-  return `${nowS} · ${fcS}`;
+    ? ` · FORECAST: ⛈<span class="pp4Spin">↑</span>`
+    : (fc ? ` · FORECAST: ${fc}${AR[fc] || ""}` : "");
+  return nowS + fcS;
 }
 function pillTick(){
   const p = $("pp4Pill"); if (!p) return;
   const h = pillHTML();
   if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; }
   const sw = $("statsWrap");
-  p.style.display = (sw && getComputedStyle(sw).display !== "none") ? "none" : "";
+  p.style.display = (!h || (sw && getComputedStyle(sw).display !== "none")) ? "none" : "";
 }
 
 /* ================= ribbon ================= */
@@ -173,7 +184,13 @@ function ribbonTick(){
 // the speaker's ship under the CURRENT camera; table lines hover top-centre over the water.
 function stageFlash(msg){
   if (!S.active) return null;                        // pre-game: let the panel handle it
-  const subj = S.subject; S.subject = null;
+  let subj = S.subject; S.subject = null;
+  if (subj == null && typeof msg === "string"){
+    // turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour
+    const i = HEXCOL.findIndex(cx => msg.indexOf(`color:${cx}`) >= 0);
+    if (i >= 0) subj = i;
+  }
+  if (S.hurry) S.hurry();                            // one live bubble: retire the old one NOW
   const evType = S.evType; S.evType = null;
   if (evType === "storm") camFull();                 // watch the shove land from above
   else if (subj != null && !S.lock) camToSeat(subj); // the camera glides to the speaker
@@ -199,9 +216,9 @@ function stageFlash(msg){
     let done = false, iv = setInterval(place, 90);   // track the gliding camera
     const finish = () => {
       if (done) return; done = true;
-      clearInterval(iv); S.hurry = null;
+      clearInterval(iv); if (S.hurry === finish) S.hurry = null;
       b.classList.add("out");
-      setTimeout(() => b.remove(), 380);
+      setTimeout(() => b.remove(), 300);
       res();
     };
     S.hurry = finish;
@@ -227,6 +244,8 @@ function flipArmed(el, onClick){
     });
   }
   document.body.classList.add("pp4Cer");
+  const coin = $("flipCoinWrap");                    // the big coin itself must be tappable too
+  if (coin && !coin._pp4Cer){ coin._pp4Cer = true; }
   return true;
 }
 
@@ -288,11 +307,21 @@ function buildStage(){
   capBtn.id = "pp4CapBtn"; capBtn.type = "button"; capBtn.textContent = "⚓ Captains & recipes";
   sheet.insertBefore(capBtn, cap);
   capBtn.onclick = () => document.body.classList.toggle("pp4Caps");
-  // menu: the old footer, as an overlay
+  // menu: the old footer as an overlay, plus the turn-clock toggle (its panel left the sheet)
+  const clockRow = document.createElement("button");
+  clockRow.id = "pp4ClockRow"; clockRow.type = "button";
+  const clockLabel = () => { clockRow.textContent = appState.timerOff ? "⏱ Turn clock: OFF — no rush" : "⏱ Turn clock: ON — 20s a turn"; };
+  clockRow.onclick = () => { const t = $("scTimerToggle"); if (t) t.click();
+    else { appState.timerOff = !appState.timerOff; try{ localStorage.setItem("pp_timerOff", appState.timerOff ? "1" : "0"); }catch(e){} }
+    setTimeout(clockLabel, 60); };
+  clockLabel();
+  const foot = $("footerRow"); if (foot) foot.insertBefore(clockRow, foot.firstChild);
   $("pp4Menu").onclick = () => {
-    const f = $("footerRow"); if (!f) return;
     document.body.classList.toggle("pp4Foot");
+    clockLabel();
   };
+  const svg = svgEl();
+  if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMin meet");   // full-board hugs the ribbon
   gestures(wrap);
   camFull();
   S.active = true;

@@ -265,7 +265,7 @@ export function drawBoard(){
   // relative to (0,0) — the needle's rotation pivot is then exactly "0px 0px", which stays correct
   // at any browser zoom level (an absolute px transform-origin drifted from the dial at non-100% zoom).
   const sr=cell*.95,scx=W-sr-14,scy=sr+32;
-  const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`},svg);
+  const hud=el("g",{opacity:.95,transform:`translate(${scx},${scy})`,class:"ppHud"},svg); // /4: the pill is the instrument on the stage
   // colored ring stays underneath as the storm-state indicator (still toggled by fill/stroke
   // below) — the dial art sits on top slightly smaller, so a thin halo of that color peeks out
   // around the rim instead of being fully hidden by the now-opaque dial image.

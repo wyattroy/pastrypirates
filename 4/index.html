@@ -1224,7 +1224,8 @@
   body.pp4Foot #footerRow { display:flex; position:fixed; left:12px; right:12px; top:64px;
     z-index:60; background:#fffdf2; border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
   body.pp4Stage #chatBubbles { display:none; }
-  body.pp4Stage .fcChip { display:none; }  /* the pill is the forecast now */  /* sea-creature bubbles don't track the camera yet */
+  body.pp4Stage .fcChip, body.pp4Stage .ppHud { display:none; }  /* the pill is the instrument now */
+  body.pp4Stage #controlsRow { display:none; }  /* coin + clock left the sheet: ceremony + menu toggle */  /* sea-creature bubbles don't track the camera yet */
   #pp4Ribbon { position:fixed; top:0; left:0; right:0; z-index:20; display:flex; align-items:center;
     gap:10px; padding:9px 12px calc(7px + env(safe-area-inset-top)); color:#fff; font-weight:800;
     background:linear-gradient(180deg,rgba(10,40,48,.88),rgba(10,40,48,.5) 75%,transparent);
@@ -1246,10 +1247,12 @@
   @media (prefers-reduced-motion: reduce){ .pp4Spin{ animation:none; opacity:.6; } }
   #pp4Sheet { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
     border-radius:16px 16px 0 0; box-shadow:0 -8px 30px rgba(0,0,0,.32);
-    padding:6px 12px calc(10px + env(safe-area-inset-bottom)); max-height:62vh; overflow:auto; display:none; }
+    padding:6px 12px calc(10px + env(safe-area-inset-bottom)); max-height:55vh; overflow:auto; display:none; }
   body.pp4Stage #pp4Sheet { display:block; }
   .pp4Grip { width:44px; height:5px; border-radius:3px; background:#d8cfae; margin:2px auto 8px; }
-  body.pp4Stage #controlsRow { margin:0 0 6px; justify-content:flex-start; }
+  #pp4ClockRow { display:block; width:100%; font-family:inherit; font-size:13.5px; font-weight:700;
+    padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
+    color:#177; margin-bottom:8px; }
   body.pp4Stage #actionPanel { margin:0; }
   #pp4CapBtn { display:block; width:100%; margin-top:8px; font-family:inherit; font-size:12.5px;
     font-weight:700; padding:8px; border:1.5px solid rgba(23,119,119,.35); border-radius:9px;
@@ -1267,9 +1270,15 @@
     font-weight:800; font-size:15px; letter-spacing:3px; }
   .pp4CerSub { position:absolute; bottom:22vh; left:0; right:0; text-align:center; color:#cfe0dd;
     font-weight:600; font-style:italic; font-size:13px; }
-  body.pp4Cer #pp4Sheet { z-index:40; }
-  body.pp4Cer #flipPanel { position:relative; z-index:41; transform:scale(1.5); transform-origin:bottom left; }
+  body.pp4Cer #controlsRow { display:block !important; position:fixed; left:50%; top:40%;
+    width:auto; transform:translate(-50%,-50%); z-index:42; background:none; margin:0; padding:0; }
+  body.pp4Cer #shotClockPanel, body.pp4Cer #muteSlot, body.pp4Cer #btnMute { display:none !important; }
+  body.pp4Cer #controlsRow * { margin:0 !important; }
+  body.pp4Cer #flipPanel { margin:0 !important; transform:scale(2.2); transform-origin:center;
+    filter:drop-shadow(0 16px 34px rgba(0,0,0,.55)); }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:8px 6px; }
+  body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }
   body.pp4Stage #actionPanel .apBtn .recipeThumb { height:54px; width:auto; display:block; margin:0 auto 2px; }
   body.pp4Stage #actionPanel .apBtn .recipeDesc { display:none; }
   body.pp4Stage #actionPanel .apBtn .recipeList li { font-size:10.5px; line-height:1.45; }
