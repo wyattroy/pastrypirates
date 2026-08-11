@@ -4,5 +4,6 @@ Disallow: /lab.html
 Disallow: /v2/
 Disallow: /v2bakeoff/
 Disallow: /3/
+Disallow: /4/
 
 Sitemap: https://playpastrypirates.com/sitemap.xml
