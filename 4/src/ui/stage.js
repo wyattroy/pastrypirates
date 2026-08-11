@@ -233,8 +233,13 @@ function ribbonTick(){
 /* ================= bubbles ================= */
 // One live bubble at a time (flash() is awaited sequentially upstream). Captain lines anchor to
 // the speaker's ship under the CURRENT camera; table lines hover top-centre over the water.
+const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 function stageFlash(msg){
   if (!S.active) return null;                        // pre-game: let the panel handle it
+  // a line that just repeats the live prompt's own ask (the broadcast mirror of localAsk)
+  // would bubble the same words twice — the pill already says it
+  const liveMsg = document.querySelector("#actionPanel .apMsg");
+  if (liveMsg && typeof msg === "string" && plain(msg) && plain(msg) === plain(liveMsg.innerHTML)) return Promise.resolve();
   let subj = S.subject; S.subject = null;
   if (subj == null && typeof msg === "string"){
     // turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour
@@ -249,14 +254,14 @@ function stageFlash(msg){
   if (evType === "storm") camFull();                 // watch the shove land from above
   else if (subj != null) camToSeat(subj);            // the camera glides to the speaker
   return new Promise(res => {
-    const hold = Math.max(2500, Math.min(6000, msgHoldMs ? msgHoldMs(msg) : 2500));
+    const hold = Math.max(1700, Math.min(4500, msgHoldMs ? msgHoldMs(msg) : 1700));
     const b = document.createElement("div");
     b.className = "pp4Bub" + (subj == null ? " ambient" : "");
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
     b.innerHTML = `<div class="pp4BubIn">${msg}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
     document.body.appendChild(b);
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
-    try { typewriterReveal(b.querySelector(".pp4BubIn"), 14); } catch (e) {}
+    try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
     const place = () => {
       if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
@@ -415,12 +420,66 @@ function buildStage(){
   S.active = true;
 }
 
+// a menu is 1-5 apBtn choices with SHORT labels and no rich content — the N4 radial case
+function menuButtons(ap){
+  if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input,select")) return null;
+  const btns = [...ap.querySelectorAll(".apBtn")];
+  if (btns.length < 2 || btns.length > 5) return null;   // one lone button keeps its card
+  if (!btns.every(b => b.textContent.trim().length <= 16)) return null;
+  return btns;
+}
+const RAD_ANGLES = { 1: [115], 2: [150, 30], 3: [165, 90, 15], 4: [-135, -45, 135, 45], 5: [-135, -45, 180, 0, 90] };
 function promptTick(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
   const has = ap.innerText.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
   box.style.display = has ? "block" : "none";
-  if (!has) return;
+  if (!has){ box.classList.remove("radial"); return; }
+  // N4 radial: choices bloom around the ship, right where the eyes are (the plan's own words).
+  const menu = menuButtons(ap);
+  const uu = boatUXY(appState.mySeat ?? 0);
+  if (menu && uu && !ap.querySelector(".sailCell")){
+    box.classList.add("radial"); box.classList.remove("centered");
+    box.style.left = "0px"; box.style.top = "0px"; box.style.width = "100vw";
+    const [sx, sy] = toScreen(uu[0], uu[1]);
+    const cap = $("pp4Cap");
+    const capT = cap ? cap.getBoundingClientRect().top : innerHeight;
+    const rib = $("pp4Ribbon");
+    const tSafe = (rib ? rib.getBoundingClientRect().bottom : 44) + 40;
+    const R = 88, D = 66;
+    const placed = [];
+    // the ask itself rides as a compact pill above the ship — never hidden, so the panel's
+    // type-then-reveal order survives; the bloom below it is the answer space
+    const msg = ap.querySelector(".apMsg");
+    // the ask's broadcast mirror can land as a bubble BEFORE the panel exists — if a live
+    // bubble is just this pill's own words, retire it (the pill already says it)
+    const bub = document.querySelector(".pp4Bub");
+    if (bub && msg && plain(bub.textContent) === plain(msg.innerText) && S.hurry) S.hurry();
+    if (msg){
+      const mw = Math.min(msg.offsetWidth || 200, innerWidth - 20);
+      msg.style.position = "fixed";
+      msg.style.left = Math.min(Math.max(sx - mw / 2, 10), innerWidth - mw - 10) + "px";
+      msg.style.top = Math.max(tSafe - 34, sy - R - 96) + "px";
+    }
+    const angles = RAD_ANGLES[menu.length] || RAD_ANGLES[4];
+    menu.forEach((b, i) => {
+      const a = (angles[i] ?? 90) * Math.PI / 180;
+      let bx = sx + R * Math.cos(a) - D / 2, by = sy + R * Math.sin(a) - D / 2;
+      bx = Math.min(Math.max(bx, 8), innerWidth - D - 8);
+      by = Math.min(Math.max(by, tSafe), capT - D - 8);
+      // nudge apart if two circles collide after clamping (ship hugging an edge)
+      for (const q of placed){
+        if (Math.abs(bx - q[0]) < D && Math.abs(by - q[1]) < D){
+          bx = (q[0] + D + 6 <= innerWidth - D - 8) ? q[0] + D + 6 : q[0] - D - 6;
+        }
+      }
+      placed.push([bx, by]);
+      b.style.position = "fixed"; b.style.left = bx + "px"; b.style.top = by + "px";
+    });
+    return;
+  }
+  box.classList.remove("radial");
+  [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
   const big = box.offsetHeight > innerHeight * 0.42;
   const u = boatUXY(appState.mySeat ?? 0);
   if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }

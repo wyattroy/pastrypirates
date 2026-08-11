@@ -1228,6 +1228,23 @@
   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
     width:min(348px, 94vw) !important; max-height:78vh; overflow:auto; }
   #pp4Prompt #actionPanel { margin:0; box-shadow:0 10px 30px rgba(0,0,0,.35); border-radius:13px; }
+  /* N4 radial: the menu blooms around the ship as circular choices */
+  #pp4Prompt.radial { height:100vh; pointer-events:none; opacity:1; }
+  #pp4Prompt.radial #actionPanel { background:none; border:none; box-shadow:none; padding:0; margin:0; }
+  #pp4Prompt.radial .apSub, #pp4Prompt.radial .apBack { display:none; }
+  #pp4Prompt.radial .apMsg { background:rgba(255,253,242,.97); border:2px solid #177;
+    border-radius:11px; padding:7px 12px; font-size:13px; width:max-content; max-width:88vw;
+    margin:0; box-shadow:0 5px 16px rgba(0,0,0,.3); }
+  /* the panel reveals .apBtns only after the (hidden) message types — radial IS the reveal */
+  #pp4Prompt.radial .apBtns, #pp4Prompt.radial .apBtn { visibility:visible !important; }
+  #pp4Prompt.radial .apBtn { pointer-events:auto; width:66px; height:66px; border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    padding:4px; font-size:10px; font-weight:800; line-height:1.05; text-align:center;
+    background:#fffdf2; border:2.5px solid #177; color:#0e3b3b;
+    box-shadow:0 6px 18px rgba(0,0,0,.35); }
+  #pp4Prompt.radial .apBtn img { width:22px; height:22px; }
+  #pp4Prompt.radial .apBtn.apDisabled { filter:grayscale(.7); opacity:.55; }
+  body.pp4Peek #pp4Prompt.radial { opacity:1; }  /* radial never blocks the board — no peek needed */
   body.pp4Stage #footerRow { display:none; }
   body.pp4Foot #footerRow { display:flex; position:fixed; left:12px; right:12px; top:64px;
     z-index:60; background:#fffdf2; border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
