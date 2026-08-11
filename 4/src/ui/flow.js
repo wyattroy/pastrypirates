@@ -43,6 +43,7 @@
 // duplicates instead of "moved", exactly like panel.js/board.js/lobby.js/recipe.js already do.
 
 import { appState } from "../state/index.js";
+import { pingStart } from "./usage.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
@@ -1493,7 +1494,7 @@ export function startSinglePlayer(){
   // v2.1: the ruleset this voyage is being played under is recorded WITH the save, so a resume can
   // never replay the log against the other one. See resumeSoloGame (util.js) for what that costs.
   const cfg=roundCfg(strategies);
-  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();
+  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();pingStart(1,"solo");
   netHandlers().onBeginGame(cfg,seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
@@ -1505,7 +1506,7 @@ export function startPassAndPlay(names){
   appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
   const seed=Math.floor(Math.random()*1e9);
   const cfg=roundCfg(strategies);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();
+  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();pingStart(names.length,"pass");
   netHandlers().onBeginGame(cfg,seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
