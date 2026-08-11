@@ -1265,17 +1265,17 @@
   .pp4Bub.out { opacity:0; }
   .pp4Tail { position:absolute; bottom:-9px; width:15px; height:15px; background:#fffdf2;
     border-right:2px solid; border-bottom:2px solid; transform:rotate(45deg); }
-  #pp4Veil { position:fixed; inset:0; z-index:38; background:radial-gradient(circle at 50% 42%,rgba(20,50,60,.55),rgba(4,16,22,.9)); }
-  .pp4CerTop { position:absolute; top:24vh; left:0; right:0; text-align:center; color:#ffd76b;
-    font-weight:800; font-size:15px; letter-spacing:3px; }
-  .pp4CerSub { position:absolute; bottom:22vh; left:0; right:0; text-align:center; color:#cfe0dd;
-    font-weight:600; font-style:italic; font-size:13px; }
-  body.pp4Cer #controlsRow { display:block !important; position:fixed; left:50%; top:40%;
-    width:auto; transform:translate(-50%,-50%); z-index:42; background:none; margin:0; padding:0; }
-  body.pp4Cer #shotClockPanel, body.pp4Cer #muteSlot, body.pp4Cer #btnMute { display:none !important; }
-  body.pp4Cer #controlsRow * { margin:0 !important; }
-  body.pp4Cer #flipPanel { margin:0 !important; transform:scale(2.2); transform-origin:center;
+  #pp4Veil { position:fixed; inset:0; z-index:44; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:26px;
+    background:radial-gradient(circle at 50% 44%,rgba(20,50,60,.6),rgba(4,16,22,.92)); }
+  .pp4CerTop { color:#ffd76b; font-weight:800; font-size:15px; letter-spacing:3px; text-align:center; }
+  .pp4CerSub { color:#e8f4ee; font-weight:700; font-style:italic; font-size:14px; text-align:center;
+    transition:opacity .3s; }
+  #pp4Veil.resolving .pp4CerSub { opacity:0; }
+  #pp4CerSlot #flipPanel { margin:0 !important; transform:scale(2.2); transform-origin:center;
     filter:drop-shadow(0 16px 34px rgba(0,0,0,.55)); }
+  #pp4CerSlot { padding:56px 0; }
+  #pp4CerSlot #shotClockPanel, #pp4CerSlot #muteSlot, #pp4CerSlot #btnMute { display:none !important; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:8px 6px; }
   body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }

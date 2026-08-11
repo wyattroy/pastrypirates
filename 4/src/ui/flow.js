@@ -1071,6 +1071,7 @@ export async function humanAct(p,sailCtx){
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;}
 }
 export async function humanTurn(p){
+  if(window.__pp4)window.__pp4.actor(p.idx);
   await passGate(p.idx);
   setActor(p.idx);
   // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
@@ -1197,6 +1198,7 @@ export async function botOpenTradeLive(p){
   return true;
 }
 export async function botTurn(p){
+  if(window.__pp4)window.__pp4.actor(p.idx);
   const g=appState.game;
   g.ev({t:"turn",p:p.idx});
   await botBeat();

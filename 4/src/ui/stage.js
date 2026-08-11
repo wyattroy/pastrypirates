@@ -38,11 +38,15 @@ function svgEl(){ return $("board"); }
 function grid(){ const g = appState.game; return g ? g.cfg.grid : 15; }
 function cellPx(){ return 640 / grid(); }
 
-function camTo(x, y, w){
+function camTo(x, y, w, immediate){
   S.cam.tx = Math.max(0, Math.min(640 - w, x));
   S.cam.ty = Math.max(0, Math.min(640 - w, y));
   S.cam.tw = Math.min(640, w);
+  if (immediate){ S.cam.x = S.cam.tx; S.cam.y = S.cam.ty; S.cam.w = S.cam.tw; S.tween = null; return; }
+  // Wyatt, playtest 3: the glide was a jerky exponential chase — S-curve it, ~300ms longer.
+  S.tween = { fx: S.cam.x, fy: S.cam.y, fw: S.cam.w, t0: performance.now(), dur: 650 };
 }
+const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 function camFull(){ camTo(0, 0, 640); }
 function camToCell(c, zoom){
   const w = 640 / (zoom || 1.9);
@@ -89,8 +93,15 @@ function boatUXY(i){
 }
 
 function camFrame(){
-  const c = S.cam, k = 0.14;
-  c.x += (c.tx - c.x) * k; c.y += (c.ty - c.y) * k; c.w += (c.tw - c.w) * k;
+  const c = S.cam;
+  if (S.tween){
+    const t = Math.min(1, (performance.now() - S.tween.t0) / S.tween.dur);
+    const e = easeInOutCubic(t);
+    c.x = S.tween.fx + (c.tx - S.tween.fx) * e;
+    c.y = S.tween.fy + (c.ty - S.tween.fy) * e;
+    c.w = S.tween.fw + (c.tw - S.tween.fw) * e;
+    if (t >= 1) S.tween = null;
+  } else { c.x = c.tx; c.y = c.ty; c.w = c.tw; }
   const svg = svgEl(); if (!svg || !S.active) return;
   // the visible stage is the strip between the top of the screen and the sheet — size the wrap
   // to it and give the viewBox the SAME aspect, so the board fills the strip edge to edge with
@@ -143,12 +154,12 @@ function gestures(wrap){
       if (Math.abs(d - pinch0.d) > 6){ moved = true; S.lock = true;
         const w = Math.max(640/2.6, Math.min(640, pinch0.w * pinch0.d / d));
         const cx = S.cam.tx + S.cam.tw/2, cy = S.cam.ty + S.cam.tw/2;
-        camTo(cx - w/2, cy - w/2, w); }
+        camTo(cx - w/2, cy - w/2, w, true); }
     } else if (ptrs.size === 1 && panLast){
       const dx = e.clientX - panLast[0], dy = e.clientY - panLast[1];
       if (Math.hypot(dx, dy) > 7){ moved = true; S.lock = true;
         panLast = [e.clientX, e.clientY];
-        camTo(S.cam.tx - dx * sc, S.cam.ty - dy * sc, S.cam.tw); }
+        camTo(S.cam.tx - dx * sc, S.cam.ty - dy * sc, S.cam.tw, true); }
     }
   });
   const up = e => {
@@ -190,7 +201,8 @@ function ribbonTick(){
   const r = $("pp4Round"), g = appState.game;
   if (r && g) r.textContent = "ROUND " + (g.round || 1);
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
-  boats.forEach((b, i) => b.classList.toggle("on", i === (appState.curSeat ?? -1)));
+  const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
+  boats.forEach((b, i) => b.classList.toggle("on", i === act));
 }
 
 /* ================= bubbles ================= */
@@ -243,13 +255,45 @@ function stageFlash(msg){
 }
 
 /* ================= flip ceremony ================= */
+// Playtest 3 rebuild. The coin moves INTO the veil (root stacking context), flex-centred with
+// its caption right beneath it — no fixed-position tricks, nothing above it to grey it out.
+// Disarm does NOT tear down: the veil holds while the spin plays and the landed face shows,
+// then the flippenator goes home to the (hidden) controls row.
+function cerTeardown(){
+  const veil = $("pp4Veil"); if (!veil) return;
+  const fp = $("flipPanel"), row = $("controlsRow");
+  if (fp && row && fp.parentElement !== row) row.insertBefore(fp, row.firstChild);
+  veil.remove();
+  document.body.classList.remove("pp4Cer");
+  S.cerHome = null;
+}
+function cerWatchResult(){
+  // the flip flow swaps faces on #flipCoinWrap: spin -> heads/tails. Hold the veil until a face
+  // lands, show it a beat, then leave. Fallback teardown if nothing lands (e.g. prompt cancelled).
+  const coin = $("flipCoinWrap");
+  const t0 = performance.now();
+  const iv = setInterval(() => {
+    const c = $("flipCoinWrap");
+    const landed = c && (c.classList.contains("heads") || c.classList.contains("tails"));
+    const armedAgain = c && c.classList.contains("active");
+    if (landed){ clearInterval(iv); setTimeout(() => { if (!$("flipCoinWrap")?.classList.contains("active")) cerTeardown(); }, 1100); }
+    else if (armedAgain){ clearInterval(iv); }        // a new flip re-armed: veil stays, caption returns
+    else if (performance.now() - t0 > 6000){ clearInterval(iv); cerTeardown(); }
+  }, 120);
+}
 function flipArmed(el, onClick){
   if (!S.active) return false;                       // pre-game: normal flippenator
-  if (!onClick){ document.body.classList.remove("pp4Cer"); const v = $("pp4Veil"); if (v) v.remove(); return true; }
+  if (!onClick){
+    // disarmed: the tap landed and the spin is starting — hold the stage and watch for the face
+    const veil = $("pp4Veil");
+    if (veil){ veil.classList.add("resolving"); cerWatchResult(); }
+    return true;
+  }
   let veil = $("pp4Veil");
   if (!veil){
     veil = document.createElement("div"); veil.id = "pp4Veil";
     veil.innerHTML = `<div class="pp4CerTop">CALL IN THE AIR…</div>
+      <div id="pp4CerSlot"></div>
       <div class="pp4CerSub">Tap the coin, captain — let fate decide.</div>`;
     document.body.appendChild(veil);
     veil.addEventListener("pointerdown", ev => {
@@ -257,9 +301,10 @@ function flipArmed(el, onClick){
       if (coin && coin.onclick){ ev.stopPropagation(); coin.onclick(); }
     });
   }
+  veil.classList.remove("resolving");
+  const fp = $("flipPanel"), slot = $("pp4CerSlot");
+  if (fp && slot && fp.parentElement !== slot) slot.appendChild(fp);
   document.body.classList.add("pp4Cer");
-  const coin = $("flipCoinWrap");                    // the big coin itself must be tappable too
-  if (coin && !coin._pp4Cer){ coin._pp4Cer = true; }
   return true;
 }
 
@@ -371,7 +416,7 @@ export function initStage(){
       const cp = cellPx(); const cx = (pa.pos[0] + pd.pos[0]) / 2, cy = (pa.pos[1] + pd.pos[1]) / 2;
       camToCell([cx, cy], 2.0); },
     flip: flipArmed,
-    actor: s => {},
+    actor: seat => { S.activeSeat = seat; },
   };
   recipeGuard();
   // grey the Pass & Play card: solo only this build (draft copy — Wyatt rewrites after playing)
