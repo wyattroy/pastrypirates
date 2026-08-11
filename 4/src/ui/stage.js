@@ -22,6 +22,10 @@ import { HEXCOL } from "../shared/index.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
+// Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
+// came from — two stall reports have now turned out to be photos of code that was already fixed,
+// and Safari's module cache makes "refresh" an unreliable way to get the new build.
+const PP4_STAMP = "2026-08-11d";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -413,6 +417,13 @@ function buildStage(){
     setTimeout(clockLabel, 60); };
   clockLabel();
   const foot = $("footerRow"); if (foot) foot.insertBefore(clockRow, foot.firstChild);
+  if (foot){
+    const stamp = document.createElement("div");
+    stamp.id = "pp4Stamp";
+    stamp.textContent = "v4 · build " + PP4_STAMP;
+    stamp.style.cssText = "opacity:.55;font-size:11px;text-align:center;padding:6px 0 2px;letter-spacing:.04em";
+    foot.appendChild(stamp);
+  }
   $("pp4Menu").onclick = () => {
     document.body.classList.toggle("pp4Foot");
     clockLabel();
