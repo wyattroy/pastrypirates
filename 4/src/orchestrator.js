@@ -486,6 +486,10 @@ export async function asyncBattle(att,def){
     await battleAsk(p,base(Object.assign({live:side,[key]:"wait"},extra)),
       label,[{label:"🌕 FLIP!",value:1,flip:true}]);
     broadcastFlip("spin");
+    // playtest 11: the battle card's own coin spins through the beat — before this, only the
+    // (hidden-under-the-stage) flippenator got the spin state and the card coin jumped
+    // wait -> face with no motion at all
+    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));
     await sleep(spin);
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
@@ -500,9 +504,11 @@ export async function asyncBattle(att,def){
     const key=side==="a"?"atState":"dfState";
     renderBattle(base(Object.assign({live:side,[key]:"wait"},extra)));
     broadcastFlip("spin");
+    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
     await sleep(spin);
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
+    renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
     await sleep(300);
     broadcastFlip("wait");
     return h;

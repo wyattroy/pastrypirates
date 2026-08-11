@@ -50,7 +50,7 @@ import {
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
@@ -172,7 +172,12 @@ export function sailSelfCheck(p,cells){
   const g=appState.game,wind=g.windNow;
   if(!wind||!p||!p.pos)return null;
   const passable=o=>!g.blocked(o)&&!g.isIsland(o)&&!g.isHome(o);
-  const occupied=o=>g.players.some(q=>q!==p&&!q.done&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
+  // A BAKING captain is off the board (Game.inPlay: !done && !baking) — no storm moves them and
+  // their square is a legal landing. This check predated the bake-off and still counted them as
+  // occupying, so on a bake day it flagged the (correct) squares beside Tortuga as illegal —
+  // Wyatt's DAY-15 screenshot, wind N at 10,9, cells 8,7/7,8: both held baking captains. The
+  // engine was right; the check was stale.
+  const occupied=o=>g.players.some(q=>q!==p&&!q.done&&!q.baking&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
   const origin=p.pos.join(",");
   const legal=new Map();
   const walk=(cell,len,usedUp,hitRim)=>{
@@ -1390,7 +1395,9 @@ export function coinHTML(state,bs,win){
   const w=win?" win":"";
   if(state==="H")return `<div class="coin heads${w}" style="background-image:url(${FLIP_HEADS_IMG})">${b}</div>`;
   if(state==="T")return `<div class="coin tails${w}" style="background-image:url(${FLIP_TAILS_IMG})">${b}</div>`;
-  if(state==="spin")return `<div class="coin spin">🪙${b}</div>`;
+  // playtest 11: the battle card's own coin visibly spins — .coin.spin sets color:transparent
+  // expecting a background image, so without one the "spin" state rendered as an empty square
+  if(state==="spin")return `<div class="coin spin" style="background-image:url(${COIN_SPIN_IMG})">${b}</div>`;
   return `<div class="coin wait">?</div>`;
 }
 export function pipsHTML(n,col,total){

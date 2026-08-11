@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-11e";
+const PP4_STAMP = "2026-08-11f";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -48,9 +48,10 @@ function camTo(x, y, w, immediate){
   S.cam.tx = Math.max(0, Math.min(640 - w, x));
   S.cam.ty = Math.max(0, Math.min(640 - w, y));
   S.cam.tw = Math.min(640, w);
-  if (immediate){ S.cam.x = S.cam.tx; S.cam.y = S.cam.ty; S.cam.w = S.cam.tw; S.tween = null; return; }
+  if (immediate){ S.cam.x = S.cam.tx; S.cam.y = S.cam.ty; S.cam.w = S.cam.tw; S.tween = null; wake(); return; }
   // Wyatt, playtest 3: the glide was a jerky exponential chase — S-curve it, ~300ms longer.
   S.tween = { fx: S.cam.x, fy: S.cam.y, fw: S.cam.w, t0: performance.now(), dur: 650 };
+  wake();   // the slow-gear heartbeat must never pace a glide
 }
 const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 function camFull(){ camTo(0, 0, 640); }
@@ -98,6 +99,12 @@ function boatUXY(i){
   return m ? [parseFloat(m[1]), parseFloat(m[2])] : null;
 }
 
+// playtest 11 (iPhone 13 mini running HOT): the tick loop used to lay out and write the DOM
+// every frame even with a parked camera — rect reads, viewBox writes and transform writes at
+// 60fps, forever. Layout inputs are now cached (refreshed ~2x/second and on resize), and every
+// write is skipped when the value hasn't changed, so an idle stage costs almost nothing.
+let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
+addEventListener("resize", () => { ribHAt = -1e9; lastVB = ""; });
 function camFrame(){
   const c = S.cam;
   if (S.tween){
@@ -114,7 +121,11 @@ function camFrame(){
   // visible. When the zoomed-out board leaves blank water, the captains box rises to meet it.
   const wrap = $("boardwrap"), cap = $("pp4Cap");
   const rib = $("pp4Ribbon");
-  const ribH = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+  if (performance.now() - ribHAt > 500){
+    ribHCache = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+    ribHAt = performance.now();
+  }
+  const ribH = ribHCache;
   const CAP_BASE = Math.min(250, Math.round(innerHeight * 0.30));
   const availH = Math.max(200, innerHeight - ribH - CAP_BASE);
   if (wrap){
@@ -136,19 +147,22 @@ function camFrame(){
     if (Math.abs((parseFloat(cap.style.top) || 0) - top) > 1) cap.style.top = top + "px";
   }
   const vb = `${c.x} ${vy} ${c.w} ${h}`;
-  svg.setAttribute("viewBox", vb);
-  // the boats live in their OWN svg overlay (#boardShips, same 640 space) — give it the same
-  // camera, or the ships stay parked on the full-board layout while the water zooms away
-  // beneath them (Wyatt, playtest 2).
-  const ships = $("boardShips");
-  if (ships) ships.setAttribute("viewBox", vb);
-  // the sonar rings are an HTML layer mapped to the full board — compose the camera in as a
-  // transform: rendered = scale(640/w) then translate(-v * W/640)
-  const rip = $("rippleHost");
-  if (rip){
-    const W = innerWidth, s2 = 640 / c.w;
-    rip.style.transformOrigin = "0 0";
-    rip.style.transform = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
+  if (vb !== lastVB){
+    lastVB = vb;
+    svg.setAttribute("viewBox", vb);
+    // the boats live in their OWN svg overlay (#boardShips, same 640 space) — give it the same
+    // camera, or the ships stay parked on the full-board layout while the water zooms away
+    // beneath them (Wyatt, playtest 2).
+    const ships = $("boardShips");
+    if (ships) ships.setAttribute("viewBox", vb);
+    // the sonar rings are an HTML layer mapped to the full board — compose the camera in as a
+    // transform: rendered = scale(640/w) then translate(-v * W/640)
+    const rip = $("rippleHost");
+    if (rip){
+      const W = innerWidth, s2 = 640 / c.w;
+      const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
+      if (t !== lastRipT){ lastRipT = t; rip.style.transformOrigin = "0 0"; rip.style.transform = t; }
+    }
   }
 }
 
@@ -163,6 +177,7 @@ function gestures(wrap){
   wrap.addEventListener("gesturestart", e => { if (S.active) e.preventDefault(); });
   wrap.addEventListener("gesturechange", e => { if (S.active) e.preventDefault(); });
   wrap.addEventListener("pointerdown", e => {
+    wake();   // a finger is on the sea — full frame rate for the pan/pinch that may follow
     // playtest 5, hold-to-peek: while a finger is on the sea, the floating prompt steps aside
     // so the board behind it can be read; lifting the finger brings it back.
     const pr = $("pp4Prompt");
@@ -202,10 +217,42 @@ function gestures(wrap){
           if (me) camToCell(me.pos, 2.0); } else camFull();
         lastTap = 0;
       } else lastTap = now;
+      // playtest 11: during YOUR sail prompt, tapping your own boat offers "stay put" with a
+      // confirmation right where you tapped — the radial Stay put circle stays as the other door
+      if (document.querySelector(".sailCell")){
+        const u = boatUXY(appState.mySeat ?? 0);
+        if (u){
+          const [bx, by] = toScreen(u[0], u[1]);
+          if (Math.hypot(e.clientX - bx, e.clientY - by) < 34){ stayConfirm(bx, by); }
+        }
+      }
       if (S.hurry) S.hurry();                        // any tap hurries the live bubble
     }
   };
   wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
+}
+
+// playtest 11: the tap-your-own-ship stay-put confirmation. "Aye" presses the sail prompt's own
+// Stay put button (the ONE .apBtn a sail prompt has), so the decision flows through pickCell
+// exactly as if the circle had been tapped — this UI never resolves anything itself.
+function stayConfirm(bx, by){
+  document.querySelector(".pp4Stay")?.remove();
+  const stayBtn = [...document.querySelectorAll("#actionPanel .apBtn")].find(b => !b.disabled);
+  if (!stayBtn) return;
+  const box = document.createElement("div");
+  box.className = "pp4Stay";
+  box.innerHTML = `<button class="aye" type="button">⚓ Aye,<br>stay put</button><button type="button">↩ Keep<br>sailin'</button>`;
+  document.body.appendChild(box);
+  const W = 130, left = Math.min(Math.max(bx - W / 2, 8), innerWidth - W - 8);
+  box.style.left = left + "px";
+  box.style.top = Math.max(54, by + 44) + "px";
+  const [aye, nay] = box.querySelectorAll("button");
+  aye.onclick = () => { box.remove(); stayBtn.click(); };
+  nay.onclick = () => box.remove();
+  // the confirm dies with the prompt (a sail was picked, or the turn moved on)
+  const iv = setInterval(() => {
+    if (!document.querySelector(".sailCell") || !document.body.contains(box)){ clearInterval(iv); box.remove(); }
+  }, 300);
 }
 
 /* ================= wind pill ================= */
@@ -222,8 +269,11 @@ function pillTick(){
   const p = $("pp4Pill"); if (!p) return;
   const h = pillHTML();
   if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; }
+  // statsWrap's visibility is toggled via its inline style — read that, never getComputedStyle
+  // (which forces style recalc and was running every frame; see the HOT-PHONE note above)
   const sw = $("statsWrap");
-  p.style.display = (!h || (sw && getComputedStyle(sw).display !== "none")) ? "none" : "";
+  const want = (!h || (sw && sw.style.display !== "none")) ? "none" : "";
+  if (p.style.display !== want) p.style.display = want;
 }
 
 /* ================= ribbon ================= */
@@ -233,6 +283,16 @@ function ribbonTick(){
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
   const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
   boats.forEach((b, i) => b.classList.toggle("on", i === act));
+  // playtest 11: the turn clock lives HERE, right of the boats — the old clock panel is hidden
+  // under the stage, so an enabled timer was invisible. Flashes for the last 5 seconds.
+  const ck = $("pp4Clock");
+  if (ck){
+    const armed = !appState.timerOff && appState.shotClockSeat != null && !appState.shotClockPaused;
+    const left = armed ? Math.max(0, Math.ceil((appState.shotClockDeadline - Date.now()) / 1000)) : 0;
+    ck.classList.toggle("on", armed);
+    ck.classList.toggle("urgent", armed && left <= 5);
+    if (armed){ const t = "⏱ " + left; if (ck.textContent !== t) ck.textContent = t; }
+  }
 }
 
 /* ================= bubbles ================= */
@@ -259,7 +319,9 @@ function stageFlash(msg){
   if (evType === "storm") camFull();                 // watch the shove land from above
   else if (subj != null) camToSeat(subj);            // the camera glides to the speaker
   return new Promise(res => {
-    const hold = Math.max(1700, Math.min(4500, msgHoldMs ? msgHoldMs(msg) : 1700));
+    // playtest 11 (Wyatt: "the game currently feels like it's in rush mode and i cant read
+    // anything") — every narration hold runs 50% longer than the panel's own curve
+    const hold = Math.max(2550, Math.min(6750, Math.round((msgHoldMs ? msgHoldMs(msg) : 1700) * 1.5)));
     const b = document.createElement("div");
     b.className = "pp4Bub" + (subj == null ? " ambient" : "");
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
@@ -269,15 +331,17 @@ function stageFlash(msg){
     document.body.appendChild(b);
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
     try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
+    let bh = 0, bhAt = -1e9;   // HOT-PHONE: offsetHeight is a layout read — remeasure ~2x/s, not 60
     const place = () => {
       if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
       const [sx, sy] = toScreen(u[0], u[1]);
       const W = Math.min(290, innerWidth - 24);
-      b.style.width = W + "px";
+      if (b.style.width !== W + "px") b.style.width = W + "px";
+      if (performance.now() - bhAt > 500){ bh = b.offsetHeight; bhAt = performance.now(); }
       const left = Math.min(Math.max(sx - W / 2, 8), innerWidth - W - 8);
       b.style.left = left + "px";
-      b.style.top = Math.max(54, sy - b.offsetHeight - 40) + "px";
+      b.style.top = Math.max(54, sy - bh - 40) + "px";
       const t = b.querySelector(".pp4Tail");
       if (t) t.style.left = Math.max(16, Math.min(sx - left - 8, W - 32)) + "px";
     };
@@ -295,6 +359,7 @@ function stageFlash(msg){
     };
     S.hurry = finish;
     S.bubPlace = place;
+    wake();   // a live bubble rides the ship — full frame rate while it's up
     b.addEventListener("pointerdown", finish);
     place();
     setTimeout(finish, hold);
@@ -418,6 +483,7 @@ function buildStage(){
   const order = [0, 1, 2, 3];
   rib.innerHTML = `<span id="pp4Round">DAY 1</span>
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="../assets/boats/${i + 1}.png">`).join("")}</span>
+    <span id="pp4Clock"></span>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
   // wind pill
@@ -430,6 +496,12 @@ function buildStage(){
   const cr = $("controlsRow"), ap = $("actionPanel");
   if (cr) capBox.appendChild(cr);              // parked hidden — the ceremony borrows the coin from here
   const cap = $("captainsPanel"); if (cap) capBox.appendChild(cap);
+  // playtest 11: rows are one line (recipe hidden) — tapping a row reveals that captain's recipe
+  // line again. Rows are stable elements, so the open state survives re-renders.
+  capBox.addEventListener("click", e => {
+    const row = e.target.closest(".player-row");
+    if (row && !e.target.closest("a,button")) row.classList.toggle("pp4Open");
+  });
   const prompt = document.createElement("div"); prompt.id = "pp4Prompt";
   document.body.appendChild(prompt);
   if (ap) prompt.appendChild(ap);
@@ -481,9 +553,11 @@ const RAD_ANGLES = { 1: [115], 2: [150, 30], 3: [165, 90, 15], 4: [-135, -45, 13
 function promptTick(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
-  const has = ap.innerText.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
-  box.style.display = has ? "block" : "none";
-  if (!has){ box.classList.remove("radial"); return; }
+  // textContent, not innerText — innerText forces a layout pass, and this runs every frame
+  const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
+  const want = has ? "block" : "none";
+  if (box.style.display !== want) box.style.display = want;
+  if (!has){ box.classList.remove("radial"); S.radKey = null; return; }
   // playtest 10 item 1: the recipe chooser becomes a BOTTOM sheet — the sea it asks you to read
   // stays visible above the cards, holding a finger on the sea peeks behind them (the gesture
   // that already works on every card), and a hint line teaches it. Draft copy — Wyatt's to rewrite.
@@ -538,7 +612,13 @@ function promptTick(){
     // the ask's broadcast mirror can land as a bubble BEFORE the panel exists — if a live
     // bubble is just this pill's own words, retire it (the pill already says it)
     const bub = document.querySelector(".pp4Bub");
-    if (bub && msg && plain(bub.textContent) === plain(msg.innerText) && S.hurry) S.hurry();
+    if (bub && msg && plain(bub.textContent) === plain(msg.textContent) && S.hurry) S.hurry();
+    // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
+    // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
+    const radKey = [menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
+      cellRects.length, innerWidth, menu.map(b => b.textContent.length).join(",")].join("|");
+    if (radKey === S.radKey) return;
+    S.radKey = radKey;
     let pillB = null;
     if (msg){
       const mw = Math.min(msg.offsetWidth || 200, innerWidth - 20);
@@ -614,10 +694,13 @@ function promptTick(){
     return;
   }
   box.classList.remove("radial");
+  S.radKey = null;
   [...ap.querySelectorAll(".apBtn")].forEach(b => {
     b.style.position = ""; b.style.left = ""; b.style.top = "";
     if (b._radSwapped){ b.innerHTML = b._fullHtml; b._radSwapped = false; }   // card shows the full label
   });
+  // HOT-PHONE: the card path reads offsetHeight (layout) — 20Hz is plenty when nothing glides
+  if (!S.tween && fc % 3) return;
   const big = box.offsetHeight > innerHeight * 0.42;
   const u = boatUXY(appState.mySeat ?? 0);
   if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
@@ -655,18 +738,34 @@ function promptTick(){
   }
   box.style.left = left + "px"; box.style.top = top + "px";
 }
+// HOT-PHONE, measured by ablation (idle at a sail prompt, headless): the 60Hz rAF loop itself
+// cost ~17% of a core — more than every CSS animation combined — just by waking the renderer
+// every frame. So the loop now has two gears: full rAF while anything actually moves (camera
+// tween, live pinch/pan, a bubble riding a ship), and an 8Hz heartbeat otherwise. wake() snaps
+// back to the fast gear the instant motion starts, so nothing ever glides at 8fps.
+let fc = 0;
+function needFast(){ return !!(S.tween || S.bubPlace || ptrs.size > 0); }
+export function wake(){
+  if (S.slow){ clearTimeout(S.raf); S.slow = false; S.raf = requestAnimationFrame(tick); }
+}
 function tick(){
+  fc++;
   camFrame();
   if (S.bubPlace) S.bubPlace();   // the live bubble moves in the same frame as the camera
-  if (S.active){ pillTick(); ribbonTick(); promptTick(); }
-  else {
+  if (S.active){
+    // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
+    if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
+    promptTick();
+  }
+  else if (S.slow || fc % 6 === 0){
     // activate once a solo game is actually on screen
     const gameEl = $("game");
     if (gameEl && getComputedStyle(gameEl).display !== "none" && appState.game && !appState.room){
       buildStage();
     }
   }
-  S.raf = requestAnimationFrame(tick);
+  if (needFast()){ S.slow = false; S.raf = requestAnimationFrame(tick); }
+  else { S.slow = true; S.raf = setTimeout(tick, 125); }
 }
 
 export function initStage(){

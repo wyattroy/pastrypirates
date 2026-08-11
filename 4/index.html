@@ -1334,7 +1334,39 @@
   body.pp4Stage #actionPanel .apBtn.pp4Focus { outline:3px solid #f5a623; }
   #choicePassPlay.pp4Off { filter:grayscale(.75) brightness(.92); position:relative; cursor:default; }
   .pp4OffNote { font-size:11.5px; font-weight:700; color:#fff; opacity:.95; margin-top:6px; font-style:italic; }
-  body.pp4Stage #statsWrap { position:fixed; inset:0; z-index:30; overflow:auto; background:rgba(232,244,238,.98); padding:14px; }
+  /* playtest 11: End of Voyage must never wall off the ☰ — it starts below the ribbon, and the
+     ribbon (with the menu button) stays above it */
+  body.pp4Stage #statsWrap { position:fixed; left:0; right:0; bottom:0;
+    top:calc(44px + env(safe-area-inset-top)); z-index:19; overflow:auto;
+    background:rgba(232,244,238,.98); padding:14px; }
+  /* playtest 11: suppress the iOS text-selection loupe over the board and prompts — nothing on
+     the stage is meant to be selected (form fields keep selection) */
+  body.pp4Stage, body.pp4Stage #boardwrap, body.pp4Stage #pp4Prompt, body.pp4Stage #pp4Cap {
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  body.pp4Stage input, body.pp4Stage textarea { -webkit-user-select:text; user-select:text; }
+  /* playtest 11: the turn clock lives in the ribbon, right of the captain boats, flashing near 0 */
+  #pp4Clock { display:none; font-size:13px; font-weight:800; letter-spacing:.5px; color:#fff;
+    background:rgba(255,255,255,.16); border-radius:8px; padding:3px 8px; min-width:34px;
+    text-align:center; font-variant-numeric:tabular-nums; }
+  #pp4Clock.on { display:block; }
+  #pp4Clock.urgent { color:#ffd0c4; animation:pp4ClockFlash .5s steps(2,jump-none) infinite; }
+  @keyframes pp4ClockFlash { 0% { background:rgba(214,69,42,.85); } 100% { background:rgba(255,255,255,.16); } }
+  /* playtest 11: one-line captain rows — name · coins · hold; the recipe line hides until the
+     row is tapped (the rows are stable elements, so the toggle survives re-renders) */
+  body.pp4Stage .prowTop { display:flex; flex-wrap:wrap; align-items:center; gap:3px 8px; }
+  body.pp4Stage .prowTop .pname { flex:0 1 auto; max-width:36%; }
+  body.pp4Stage .prowTop .coinsWrap { flex:0 0 auto; }
+  body.pp4Stage .prowTop .chips { flex:1 1 auto; min-width:0; display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-end; }
+  body.pp4Stage .chip { width:26px; height:26px; border-radius:6px; }
+  body.pp4Stage .prowTop .prowRecipe { display:none; flex-basis:100%; }
+  body.pp4Stage .player-row.pp4Open .prowRecipe { display:block; }
+  body.pp4Stage .player-row { cursor:pointer; }
+  /* playtest 11: tap-your-own-ship stay-put confirmation */
+  .pp4Stay { position:fixed; z-index:31; display:flex; gap:10px; }
+  .pp4Stay button { width:60px; height:60px; border-radius:50%; border:2.5px solid #177;
+    background:#fffdf2; color:#0e3b3b; font-size:11px; font-weight:800; line-height:1.1;
+    box-shadow:0 6px 18px rgba(0,0,0,.35); }
+  .pp4Stay button.aye { background:#177; color:#fffdf2; }
 </style>
 </head>
 <body>
