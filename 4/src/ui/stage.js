@@ -17,6 +17,7 @@
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
 import { msgHoldMs } from "./util.js";
+import { typewriterReveal } from "./panel.js";
 import { HEXCOL } from "../shared/index.js";
 
 const $ = id => document.getElementById(id);
@@ -103,12 +104,18 @@ function camFrame(){
     if (t >= 1) S.tween = null;
   } else { c.x = c.tx; c.y = c.ty; c.w = c.tw; }
   const svg = svgEl(); if (!svg || !S.active) return;
-  // the visible stage is the strip between the top of the screen and the sheet — size the wrap
-  // to it and give the viewBox the SAME aspect, so the board fills the strip edge to edge with
-  // no letterboxing and the top of the frame sits at the top of the screen (Wyatt, playtest 1).
-  const wrap = $("boardwrap"), sheet = $("pp4Sheet");
-  const availH = Math.max(200, (sheet ? sheet.getBoundingClientRect().top : innerHeight));
-  if (wrap && Math.abs((parseFloat(wrap.style.height) || 0) - availH) > 2) wrap.style.height = availH + "px";
+  // playtest 4: the stage strip runs from the BOTTOM of the ribbon (the board's top row must
+  // never hide under DAY + the captain circles) down to the captains box, which is always
+  // visible. When the zoomed-out board leaves blank water, the captains box rises to meet it.
+  const wrap = $("boardwrap"), cap = $("pp4Cap");
+  const rib = $("pp4Ribbon");
+  const ribH = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+  const CAP_BASE = Math.min(250, Math.round(innerHeight * 0.30));
+  const availH = Math.max(200, innerHeight - ribH - CAP_BASE);
+  if (wrap){
+    if (Math.abs((parseFloat(wrap.style.top) || 0) - ribH) > 1) wrap.style.top = ribH + "px";
+    if (Math.abs((parseFloat(wrap.style.height) || 0) - availH) > 2) wrap.style.height = availH + "px";
+  }
   const aspect = availH / innerWidth;
   let h = c.w * aspect;
   if (h > 640) h = 640;                       // whole board fits vertically; width stays filled
@@ -116,6 +123,13 @@ function camFrame(){
   let vy = cy - h / 2;
   vy = Math.max(0, Math.min(640 - h, vy));
   S.vh = h; S.vy = vy;
+  // rendered board bottom (meet, width-limited when h is clamped): captains rise to meet it
+  if (cap){
+    const scale = innerWidth / c.w;
+    const boardBottom = ribH + Math.min(availH, h * scale);
+    const top = Math.round(Math.min(ribH + availH, boardBottom));
+    if (Math.abs((parseFloat(cap.style.top) || 0) - top) > 1) cap.style.top = top + "px";
+  }
   const vb = `${c.x} ${vy} ${c.w} ${h}`;
   svg.setAttribute("viewBox", vb);
   // the boats live in their OWN svg overlay (#boardShips, same 640 space) — give it the same
@@ -137,6 +151,12 @@ function camFrame(){
 const ptrs = new Map();
 let pinch0 = null, panLast = null, lastTap = 0, moved = false;
 function gestures(wrap){
+  // playtest 4: pinching out over the board triggered Safari's tab-overview gesture. The board
+  // owns its touches: no browser pan/zoom on this surface, and multi-touch never reaches Safari.
+  wrap.style.touchAction = "none";
+  wrap.addEventListener("touchmove", e => { if (S.active) e.preventDefault(); }, { passive: false });
+  wrap.addEventListener("gesturestart", e => { if (S.active) e.preventDefault(); });
+  wrap.addEventListener("gesturechange", e => { if (S.active) e.preventDefault(); });
   wrap.addEventListener("pointerdown", e => {
     ptrs.set(e.pointerId, [e.clientX, e.clientY]); moved = false;
     if (ptrs.size === 2){ const p = [...ptrs.values()]; pinch0 = { d: Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]), w: S.cam.tw }; }
@@ -199,7 +219,7 @@ function pillTick(){
 /* ================= ribbon ================= */
 function ribbonTick(){
   const r = $("pp4Round"), g = appState.game;
-  if (r && g) r.textContent = "ROUND " + (g.round || 1);
+  if (r && g) r.textContent = "DAY " + (g.round || 1);
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
   const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
   boats.forEach((b, i) => b.classList.toggle("on", i === act));
@@ -227,6 +247,8 @@ function stageFlash(msg){
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
     b.innerHTML = `<div class="pp4BubIn">${msg}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
     document.body.appendChild(b);
+    // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
+    try { typewriterReveal(b.querySelector(".pp4BubIn"), 14); } catch (e) {}
     const place = () => {
       if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
@@ -346,26 +368,23 @@ function buildStage(){
   // ribbon
   const rib = document.createElement("div"); rib.id = "pp4Ribbon";
   const order = [0, 1, 2, 3];
-  rib.innerHTML = `<span id="pp4Round">ROUND 1</span>
+  rib.innerHTML = `<span id="pp4Round">DAY 1</span>
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="../assets/boats/${i + 1}.png">`).join("")}</span>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
   // wind pill
   const pill = document.createElement("div"); pill.id = "pp4Pill";
   document.body.appendChild(pill);
-  // sheet: adopt the existing controls row + action panel (all prompts render there unchanged)
-  const sheet = document.createElement("div"); sheet.id = "pp4Sheet";
-  const grip = document.createElement("div"); grip.className = "pp4Grip";
-  sheet.appendChild(grip);
-  document.body.appendChild(sheet);
+  // playtest 4: no sheet. The captains box is ALWAYS on screen, pinned under the board and
+  // rising to meet it when the zoomed-out board leaves blank water. Prompts float at the ship.
+  const capBox = document.createElement("div"); capBox.id = "pp4Cap";
+  document.body.appendChild(capBox);
   const cr = $("controlsRow"), ap = $("actionPanel");
-  if (cr) sheet.appendChild(cr);
-  if (ap) sheet.appendChild(ap);
-  const cap = $("captainsPanel"); if (cap) sheet.appendChild(cap);   // collapsed under a toggle
-  const capBtn = document.createElement("button");
-  capBtn.id = "pp4CapBtn"; capBtn.type = "button"; capBtn.textContent = "⚓ Captains & recipes";
-  sheet.insertBefore(capBtn, cap);
-  capBtn.onclick = () => document.body.classList.toggle("pp4Caps");
+  if (cr) capBox.appendChild(cr);              // parked hidden — the ceremony borrows the coin from here
+  const cap = $("captainsPanel"); if (cap) capBox.appendChild(cap);
+  const prompt = document.createElement("div"); prompt.id = "pp4Prompt";
+  document.body.appendChild(prompt);
+  if (ap) prompt.appendChild(ap);
   // menu: the old footer as an overlay, plus the turn-clock toggle (its panel left the sheet)
   const clockRow = document.createElement("button");
   clockRow.id = "pp4ClockRow"; clockRow.type = "button";
@@ -388,9 +407,29 @@ function buildStage(){
   S.active = true;
 }
 
+function promptTick(){
+  const box = $("pp4Prompt"), ap = $("actionPanel");
+  if (!box || !ap) return;
+  const has = ap.innerText.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
+  box.style.display = has ? "block" : "none";
+  if (!has) return;
+  const big = box.offsetHeight > innerHeight * 0.42;
+  const u = boatUXY(appState.mySeat ?? 0);
+  if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
+  box.classList.remove("centered");
+  const [sx, sy] = toScreen(u[0], u[1]);
+  const W = Math.min(330, innerWidth - 16);
+  box.style.width = W + "px";
+  const left = Math.min(Math.max(sx - W / 2, 8), innerWidth - W - 8);
+  let top = sy + 34;                                      // just under the hull
+  const cap = $("pp4Cap");
+  const capTop = cap ? cap.getBoundingClientRect().top : innerHeight;
+  if (top + box.offsetHeight > capTop - 6) top = Math.max(56, sy - box.offsetHeight - 44);
+  box.style.left = left + "px"; box.style.top = top + "px";
+}
 function tick(){
   camFrame();
-  if (S.active){ pillTick(); ribbonTick(); }
+  if (S.active){ pillTick(); ribbonTick(); promptTick(); }
   else {
     // activate once a solo game is actually on screen
     const gameEl = $("game");
