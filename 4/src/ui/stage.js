@@ -105,7 +105,21 @@ function camFrame(){
   let vy = cy - h / 2;
   vy = Math.max(0, Math.min(640 - h, vy));
   S.vh = h; S.vy = vy;
-  svg.setAttribute("viewBox", `${c.x} ${vy} ${c.w} ${h}`);
+  const vb = `${c.x} ${vy} ${c.w} ${h}`;
+  svg.setAttribute("viewBox", vb);
+  // the boats live in their OWN svg overlay (#boardShips, same 640 space) — give it the same
+  // camera, or the ships stay parked on the full-board layout while the water zooms away
+  // beneath them (Wyatt, playtest 2).
+  const ships = $("boardShips");
+  if (ships) ships.setAttribute("viewBox", vb);
+  // the sonar rings are an HTML layer mapped to the full board — compose the camera in as a
+  // transform: rendered = scale(640/w) then translate(-v * W/640)
+  const rip = $("rippleHost");
+  if (rip){
+    const W = innerWidth, s2 = 640 / c.w;
+    rip.style.transformOrigin = "0 0";
+    rip.style.transform = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
+  }
 }
 
 /* ================= gestures ================= */
@@ -322,6 +336,8 @@ function buildStage(){
   };
   const svg = svgEl();
   if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMin meet");   // full-board hugs the ribbon
+  const shipsSvg = $("boardShips");
+  if (shipsSvg) shipsSvg.setAttribute("preserveAspectRatio", "xMidYMin meet");
   gestures(wrap);
   camFull();
   S.active = true;
