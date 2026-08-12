@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12d";
+const PP4_STAMP = "2026-08-12e";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -582,6 +582,37 @@ function menuButtons(ap){
   if (!btns.every(b => b._shortHtml != null || b.textContent.trim().length <= 16)) return null;
   return btns;
 }
+// enterCenterStage() — flip the prompt box to centre-stage mode NOW, synchronously. promptTick
+// calls it on its own beat; the bake-off (via __pp4.stageCenterNow) calls it BEFORE building its
+// panel, because panel() measures its height at build time and a measurement taken under the
+// PREVIOUS prompt's radial CSS reads ~zero — radial makes every child position:fixed — which
+// pinned the intro's box to a clipped nothing for the whole typewriter (playtest 16: a dimmed sea
+// with no card on it). Idempotent, exactly as the promptTick branch it was extracted from.
+function enterCenterStage(){
+  const box = $("pp4Prompt"), ap = $("actionPanel");
+  if (!box || !ap) return;
+  box.style.display = "flex";
+  // centre within the water, not the viewport: the captains box owns the bottom of the screen,
+  // and a stage column tall enough to reach it (the bake-off intro was first) had its button
+  // clipped mid-letter at the panel's top edge. Padding, not a shorter box — the dim paints
+  // through padding, so the captains stay under the veil while the content centres above them.
+  const cap = $("pp4Cap");
+  const capH = cap ? Math.max(0, Math.round(innerHeight - cap.getBoundingClientRect().top)) : 0;
+  const pad = capH ? capH + "px" : "";
+  if (box.style.paddingBottom !== pad) box.style.paddingBottom = pad;
+  // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
+  // sheet must never share the centre stage (see the strip bug above)
+  const h1 = box.querySelector(".pp4PeekHint"); if (h1) h1.remove();
+  if (ap.style.maxHeight) ap.style.maxHeight = "";
+  box.classList.remove("pp4Recipes");
+  if (!box.classList.contains("pp4Center")){
+    box.classList.add("pp4Center"); box.classList.remove("radial", "centered");
+    S.radKey = null;
+    box.style.left = ""; box.style.top = ""; box.style.width = "";
+    [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
+    const m = ap.querySelector(".apMsg"); if (m){ m.style.position = ""; m.style.left = ""; m.style.top = ""; }
+  }
+}
 function promptTick(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
@@ -597,27 +628,21 @@ function promptTick(){
     S.radKey = null;
     const h0 = box.querySelector(".pp4PeekHint"); if (h0) h0.remove();
     if (ap.style.maxHeight) ap.style.maxHeight = "";
+    if (box.style.paddingBottom) box.style.paddingBottom = "";
     return;
   }
   // playtest 12 item 1/3: intro barriers (ahoy, turn order) play CENTER STAGE — the board dims,
   // the message sits dead centre and its button pulses right beneath it
-  if (ap.dataset.pp4Stage){
-    box.style.display = "flex";   // the visibility toggle above writes "block" — centre mode is flex
-    // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
-    // sheet must never share the centre stage (see the strip bug above)
-    const h1 = box.querySelector(".pp4PeekHint"); if (h1) h1.remove();
-    if (ap.style.maxHeight) ap.style.maxHeight = "";
-    box.classList.remove("pp4Recipes");
-    if (!box.classList.contains("pp4Center")){
-      box.classList.add("pp4Center"); box.classList.remove("radial", "centered");
-      S.radKey = null;
-      box.style.left = ""; box.style.top = ""; box.style.width = "";
-      [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
-      const m = ap.querySelector(".apMsg"); if (m){ m.style.position = ""; m.style.left = ""; m.style.top = ""; }
-    }
+  // ...and the bake-off shell (.bko) stages ITSELF, by content rather than flag: it is hand-built
+  // (never through localAsk), it must stay staged through the verdict reveal, and keying off the
+  // content means the stage ends at the exact moment the next narration replaces it — no window
+  // where the shell could flash back to the old card style (playtest 16).
+  if (ap.dataset.pp4Stage || ap.querySelector(".bko")){
+    enterCenterStage();
     return;
   }
   box.classList.remove("pp4Center");
+  if (box.style.paddingBottom) box.style.paddingBottom = "";   // centre-stage-only inset
   // playtest 10 item 1: the recipe chooser becomes a BOTTOM sheet — the sea it asks you to read
   // stays visible above the cards, holding a finger on the sea peeks behind them (the gesture
   // that already works on every card), and a hint line teaches it. Draft copy — Wyatt's to rewrite.
@@ -890,6 +915,10 @@ export function initStage(){
     // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
     // narration that follows glides the camera back down to the ship at its whirlpool
     sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
+    // playtest 16: the bake-off flips to centre stage BEFORE building its panel, so panel()'s
+    // height measurement runs under centre CSS rather than the outgoing radial prompt's (see
+    // enterCenterStage's own note for the clipped-to-nothing failure this prevents)
+    stageCenterNow: () => { if (S.active) enterCenterStage(); },
   };
   recipeGuard();
   // grey the Pass & Play card: solo only this build (draft copy — Wyatt rewrites after playing)

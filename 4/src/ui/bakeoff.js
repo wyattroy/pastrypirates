@@ -154,6 +154,13 @@ function shellHTML(p,bake,slots,hint,btnLabel,btnEnabled){
 // Ordinary panel + button, not the bake-off shell, so it reads as the game's own narrator — the
 // voice that has told the whole voyage — rather than as furniture belonging to the puzzle. Pirate
 // register, because this is squarely inside the game world.
+//
+// Playtest 16 (Wyatt: "The recipe is not inside the white narration box, but it should be! In
+// fact this whole thing should be on a stage"): the recipe card lives INSIDE .apMsg now, so on
+// the centre stage it sits in the white box under the message — and being part of .apMsg means
+// the typewriter walks it natively, top to bottom, per the standing reveal-order rule. The DOM
+// order is msg -> buttons -> helper, same as localAsk() builds. The stage flag itself is owned
+// by playBakeoffLive, which wraps this card and every later phase.
 function bakeoffIntroCard(bake){
   return new Promise(res=>{
     // @copy prompt.bakeoff.intro
@@ -167,10 +174,10 @@ function bakeoffIntroCard(bake){
     // so straight it is — words untouched, and no need to ask again.
     panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens be roarin'! Yer ingredients be
       waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.<br><br>
-      <b>${escHtml(recipeTitle(bake.order))} Recipe</b></div>
-      ${cardHTML(bake)}
-      <div class="apSub">Add them in this exact order or it's a ruined mess.</div>
-      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>`,true);
+      <b>${escHtml(recipeTitle(bake.order))} Recipe</b>
+      ${cardHTML(bake)}</div>
+      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>
+      <div class="apSub">Add them in this exact order or it's a ruined mess.</div>`,true);
     const go=$("bkoIntroGo");
     if(!go){res();return;}
     go.onclick=()=>{go.onclick=null;res();};
@@ -190,6 +197,21 @@ function bakeoffIntroCard(bake){
 export async function playBakeoffLive(p,setup,onArm,onRewatch){
   const bake=p.bake;
   const n=bake.order.length;
+
+  // Playtest 16 (Wyatt: "the bakeoff itself is still in a yellow action box, which we were
+  // supposed to get rid of! It should also happen over the stage"): the WHOLE bake — intro card,
+  // study, shuffle, taps and the reveal — plays on the centre stage, board dimmed, exactly like
+  // the other ceremonies. The flag (same one localAsk() uses for stage:true options) carries the
+  // INTRO card only; the shell stages itself by content (promptTick keys on .bko), which is what
+  // ends the stage at the exact moment the post-bake narration replaces it — no flash of the old
+  // card style, and a forfeit can never strand the stage. The deletes on the bail-out, teardown
+  // and reveal paths below are belts against future re-ordering.
+  $("actionPanel").dataset.pp4Stage="1";
+  // ...and the box flips to centre mode SYNCHRONOUSLY, before panel() below measures anything:
+  // measured under the outgoing radial prompt's CSS (children position:fixed) the intro reads as
+  // ~zero-height and the grid clips it invisible for the whole typewriter. Same __pp4 bridge the
+  // rest of src/ui/ uses toward stage.js — absent (stage not active) it is a harmless no-op.
+  if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
 
   // setup.before, NOT bake.slots: the engine already advanced bake.slots to the post-shuffle answer
   // when it built this setup, so rendering from it would preview the solution and then shuffle a
@@ -213,8 +235,11 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // it. Found by a probe that clicked at 800ms and hung.
   panel(shellHTML(p,bake,shown,
     "Study the order. Start the shuffle when yer ready.","Ready to bake!",false),true);
+  // the shell is in the DOM and carries .bko — from here the content keeps the stage lit, so the
+  // intro's flag can go (see the note at the top of this function)
+  delete $("actionPanel").dataset.pp4Stage;
   const row=document.querySelector("#actionPanel .bkoRow");
-  if(!row)return null;
+  if(!row){delete $("actionPanel").dataset.pp4Stage;return null;}
   const bowls=[...row.querySelectorAll(".bkoBowl")];
 
   // MEASURED ONCE, never per frame: the centre-to-centre distance between two bowls, used for the
@@ -443,8 +468,10 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
       resolve({guess,rewatches});
     };
     // the shot clock's teardown hook: it may force this panel closed at any moment, and the engine
-    // will fall back to the bot's guess, so this only has to stop leaking handlers.
-    appState.activePickCleanup=()=>{appState.activePickCleanup=null;setNeedsAction(false);};
+    // will fall back to the bot's guess, so this only has to stop leaking handlers — and drop the
+    // stage flag, or a forfeited bake would leave the next ordinary prompt playing centre stage.
+    appState.activePickCleanup=()=>{appState.activePickCleanup=null;setNeedsAction(false);
+      delete $("actionPanel").dataset.pp4Stage;};
 
     bowls.forEach((b,pos)=>{
       if(b.classList.contains("locked"))return;
@@ -467,7 +494,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
 export async function bakeoffReveal(p,result){
   const bake=p.bake;
   const row=document.querySelector("#actionPanel .bkoRow");
-  if(!row)return;
+  if(!row){delete $("actionPanel").dataset.pp4Stage;return;}
   const bowls=[...row.querySelectorAll(".bkoBowl")];
   const hint=$("bkoHint");
   // The confirm button is spent — the guess is already scored. Left live it stayed fully enabled and
@@ -494,4 +521,7 @@ export async function bakeoffReveal(p,result){
       :`${got} of 5 in place. Those stay put; the rest get shuffled again tomorrow.`;
   }
   await sleep(VERDICT_MS);
+  // belt only: the flag was already dropped when the shell rendered, and the stage itself ends
+  // when the narration that follows replaces the .bko content (see promptTick)
+  delete $("actionPanel").dataset.pp4Stage;
 }
