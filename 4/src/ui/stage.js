@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12a";
+const PP4_STAMP = "2026-08-12b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -582,13 +582,27 @@ function promptTick(){
   const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
   const want = has ? "block" : "none";
   if (box.style.display !== want) box.style.display = want;
-  if (!has){ box.classList.remove("radial"); S.radKey = null; return; }
+  if (!has){
+    // full mode teardown — the recipes->lots transition never passes through an empty tick, and a
+    // stale .pp4PeekHint left in the box becomes a FLEX SIBLING of the panel on the next centre
+    // stage, crushing the message into a one-word-wide strip (Wyatt's 2:10 screenshot)
+    box.classList.remove("radial", "pp4Center", "pp4Recipes");
+    S.radKey = null;
+    const h0 = box.querySelector(".pp4PeekHint"); if (h0) h0.remove();
+    if (ap.style.maxHeight) ap.style.maxHeight = "";
+    return;
+  }
   // playtest 12 item 1/3: intro barriers (ahoy, turn order) play CENTER STAGE — the board dims,
   // the message sits dead centre and its button pulses right beneath it
   if (ap.dataset.pp4Stage){
     box.style.display = "flex";   // the visibility toggle above writes "block" — centre mode is flex
+    // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
+    // sheet must never share the centre stage (see the strip bug above)
+    const h1 = box.querySelector(".pp4PeekHint"); if (h1) h1.remove();
+    if (ap.style.maxHeight) ap.style.maxHeight = "";
+    box.classList.remove("pp4Recipes");
     if (!box.classList.contains("pp4Center")){
-      box.classList.add("pp4Center"); box.classList.remove("radial", "centered", "pp4Recipes");
+      box.classList.add("pp4Center"); box.classList.remove("radial", "centered");
       S.radKey = null;
       box.style.left = ""; box.style.top = ""; box.style.width = "";
       [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });

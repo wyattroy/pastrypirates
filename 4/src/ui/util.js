@@ -1050,7 +1050,9 @@ export function msgHoldMs(text){
 // measurement on the fixed build put the real dwell at 166ms (bot) and 317ms (human), both under
 // the 350ms glide, exactly as that predicts. Raised to clear it with a little rest at each square.
 // Still the feel knob: tune freely, but keep both above SHIP_GLIDE_MS or the stepping is lost.
-export const SHIP_GLIDE_MS=350; // must match drawBoard()'s ship `transition: transform .35s`
+// /4 playtest 14 (Wyatt: "make the boats sail 50% of current speed"): 350 -> 700. Every derived
+// beat below (storm steps, rim-sweep pace) scales with it, so the per-square rest is preserved.
+export const SHIP_GLIDE_MS=700;
 export const STORM_STEP_MS=SHIP_GLIDE_MS+70;     // 420 — the human watching their own ship
 export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappier of the two
 // G14 (Wyatt-approved 2026-07-30): the per-square beat for a TRADE-WIND RIM SWEEP. Derived from the
