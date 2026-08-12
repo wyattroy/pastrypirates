@@ -250,6 +250,16 @@ export function drawBoard(){
         const g=iconAt(svg,scx,scy,cell*.8,ING_IMG[ing]);
         g.id=`crate_${ing}_${idx}`;
       });
+      // 🏴 THE BLACK MARKET FLAG (draft art — emoji until Wyatt commissions a proper flag): flies
+      // over the dock when the shelf is empty, the standing "still sells after dark, 10🌕" marker
+      // the ceremony teaches. Built hidden; render() toggles it from the same event snapshot that
+      // greys the crates, so the two tells can never disagree.
+      if(appState.game.cfg.blackMarket&&appState.game.dockOf&&appState.game.dockOf[ing]){
+        const fd=appState.game.dockOf[ing];
+        const f=el("text",{x:(fd[0]+.5)*cell,y:(fd[1]+.42)*cell,"text-anchor":"middle",
+          "font-size":Math.round(cell*.55)},svg);
+        f.textContent="🏴";f.id=`bmflag_${ing}`;f.style.opacity=0;
+      }
     }else{
       // unlimited-crate config (not used by the live game, kept for the lab): one plain icon
       const mx=cells.reduce((s,c)=>s+c[0],0)/cells.length, my=cells.reduce((s,c)=>s+c[1],0)/cells.length;
@@ -1553,6 +1563,9 @@ export function render(){
       if(img)img.setAttribute("href",taken?ING_HOLE_IMG[ing]:ING_IMG[ing]);
       ic.style.opacity=taken?.45:1;
     }
+    // the black-market flag rises exactly when the last crate greys (same snapshot, one truth)
+    const flag=document.getElementById(`bmflag_${ing}`);
+    if(flag){const dry=remaining<=0&&remaining<1e9;flag.style.opacity=dry?1:0;}
   }
   if(spinNeedle&&e.wind){
     const storming=!!e.storm;

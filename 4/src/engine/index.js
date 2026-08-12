@@ -265,6 +265,7 @@ class Game{
     this.ings.forEach(ing=>{this.islandOf[ing]=cfg.singleDock?this.dockOf[ing]:this.islandRect[ing][0];});
     const tok=cfg.crates===0?1e9:cfg.crates;
     this.tokens={}; this.ings.forEach(i=>this.tokens[i]=tok);
+    this.drySeen=false;   // flips true the first time any shelf empties — the black-market ceremony plays once
     this.players=cfg.strategies.map((s,i)=>{
       // two candidate recipe cards to choose from at game start (draft phase)
       const a=this.sample(this.ings,cfg.recipeSize);
@@ -707,9 +708,34 @@ class Game{
   // of the board, not a counter anybody has to maintain. Returns null when there is nothing to buy.
   cratePrice(ing){
     const left=this.tokens[ing];
-    if(!left||left<=0)return null;
+    // sold out -> the black market's flat price (never null while cfg.blackMarket is set). This
+    // ONE change is how the bots learn the mechanic with no special rules: every planner —
+    // acquireTurns, turnsToWin, planTurnV3's dock branch — prices crates through here, so a dry
+    // shelf simply becomes an expensive shelf and the same win-likelihood math weighs it against
+    // dealing and fighting. (rivalPlan3/tour3 model prices locally for speed; they mirror this
+    // rule in place — change the two together.)
+    if(!left||left<=0)return this.cfg.blackMarket||null;
     if(left>=1e9)return this.cfg.crateBase-1; // endless-supply sentinel: hold the opening price
     return Math.max(1,this.cfg.crateBase-left);
+  }
+  // ONE purchase path for bot and human alike (they diverged once before — see humanDock's
+  // keep-in-step warning). Pays, takes the crate, and floors the shelf at zero: the black market
+  // is bottomless, so a sold-out shelf never goes negative and its price never leaves 10.
+  // Returns what the buy did for the caller's dock event to say — `black` (paid the black
+  // market), `wentDry` (this purchase emptied the shelf), `firstDry` (first shelf of the whole
+  // voyage to empty — the ceremony that teaches the black market keys on this, once).
+  buyCrate(p,ing){
+    const price=this.cratePrice(ing);
+    if(price===null||p.coins<price)return null;
+    const left=this.tokens[ing];
+    const black=(left<=0)?1:0;
+    p.coins-=price;p.ing.push(ing);
+    let wentDry=0,firstDry=0;
+    if(!black&&left<1e9){
+      this.tokens[ing]--;
+      if(this.tokens[ing]===0){wentDry=1;if(!this.drySeen){this.drySeen=true;firstDry=1;}}
+    }
+    return {price,black,wentDry,firstDry};
   }
   // v2 rule 10: docking is a treasure hunt, THEN a purchase. The flip only decides your payday —
   // heads you turn up buried treasure (cfg.dockHeads), tails you spend the turn working the dock as
@@ -724,17 +750,18 @@ class Game{
     const price=this.cratePrice(ing);
     // a bot buys when it needs the crate and can afford today's price — or, if it trades for a
     // living, when the crate is leverage somebody else at the table plainly needs (rule 4 fodder)
-    let got=h?"treasure":"dockhand";
+    let got=h?"treasure":"dockhand",buy=null;
     if(this.cfg.dockBuy&&price!==null&&p.coins>=price){
       const needsIt=this.needs(p).includes(ing);
       const leverage=this.cfg.merchant&&!needsIt&&
         PERSONALITY[p.strategy]&&PERSONALITY[p.strategy].hoardBias>=1.4&&
         this.players.some(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,ing));
       if(needsIt||leverage){
-        p.coins-=price;this.tokens[ing]--;p.ing.push(ing);got="bought";
+        buy=this.buyCrate(p,ing);if(buy)got="bought";
       }
     }
-    this.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price});
+    this.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price,
+      black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
     return true;
   }
   // NARR-04: record this round's wind and return how many rounds running it has held that
@@ -1864,10 +1891,14 @@ class Game{
       let best=null,bing=null,bsail=0,bearn=0,bprice=0;
       for(const ing of this.ings){
         if(held.has(ing)||buys.some(b=>b.ing===ing))continue;
-        if(stock[ing]<=0)continue;
+        // an empty shelf is no longer a dead end: the black market prices it flat (mirrors
+        // cratePrice — change the two together). Without cfg.blackMarket the old skip stands.
+        if(stock[ing]<=0&&!this.cfg.blackMarket)continue;
         const sail=this.legTurns3(at,this.dockOf[ing],t===0?this.windNow:fc);
         if(sail===null)continue;
-        const price=stock[ing]>=1e9?base-1:Math.max(1,base-stock[ing]);
+        const price=stock[ing]>=1e9?base-1
+          :stock[ing]<=0?this.cfg.blackMarket
+          :Math.max(1,base-stock[ing]);
         const earn=Math.max(0,Math.ceil((price-coins)/pay));
         const cost=sail+earn+1;
         if(best===null||cost<best){best=cost;bing=ing;bsail=sail;bearn=earn;bprice=price;}
@@ -1875,7 +1906,7 @@ class Game{
       if(bing===null){t+=4;need--;continue;}   // nothing buyable: a deal or a fight, ~4 turns
       t+=bsail+bearn+1;
       coins+=bearn*pay+pay-bprice;             // the buying flip pays too, same as doDock
-      if(stock[bing]<1e9)stock[bing]--;
+      if(stock[bing]<1e9&&stock[bing]>0)stock[bing]--;   // the black market's shelf is bottomless
       buys.push({ing:bing,t});
       at=this.dockOf[bing];
       need--;
@@ -1968,8 +1999,21 @@ class Game{
             if(take===null||c<take){take=c;aim=a;}
           }
           const deal=(ctx&&ctx.offerable&&ctx.offerable.has(ing))?2:null;
-          if(take===null&&deal===null){best=Math.min(best,PLAN.unreachable);continue;}
-          if(deal!==null&&(take===null||deal<take)){
+          // THE BLACK MARKET keeps the buy leg alive on a bare shelf (mirrors cratePrice — change
+          // the two together): sail there, earn up to the flat price, buy. Weighed on the same
+          // clock as the fight and the deal, so the tour — not a special rule — decides which wins.
+          let bm=null,bmPurse=0;
+          if(sail!==null&&this.cfg.blackMarket){
+            const bprice=this.cfg.blackMarket;
+            const bearn=Math.max(0,Math.ceil((bprice-coins)/pay));
+            bm=sail+bearn+1;
+            bmPurse=coins+bearn*pay+pay-bprice;
+          }
+          if(take===null&&deal===null&&bm===null){best=Math.min(best,PLAN.unreachable);continue;}
+          const cheapest=Math.min(take===null?Infinity:take,deal===null?Infinity:deal,bm===null?Infinity:bm);
+          if(bm!==null&&bm===cheapest){
+            cost=bm;end=this.dockOf[ing];purse=bmPurse;  // a certain purchase outranks a coin-flip fight on ties
+          }else if(deal!==null&&deal===cheapest){
             cost=deal;                                   // rule 4: a hail reaches the whole table
           }else{
             cost=take;end=aim;
@@ -2087,9 +2131,10 @@ class Game{
           const take=needsIt||leverage;
           const myT=this.turnsToWin3If(p,{cell,gain:take?port:null,
                                           coins:purse-(take?price:0)},ctx);
-          // my purchase empties a shelf slot rivals may have been counting on — their race moves
+          // my purchase empties a shelf slot rivals may have been counting on — their race moves.
+          // Not on a black-market buy: that shelf is bottomless, so nobody's plan changes.
           let ov=null;
-          if(take){
+          if(take&&this.tokens[port]>0){
             ov=new Map();
             this.tokens[port]--;
             for(const e of ctx.plans)
@@ -2752,6 +2797,12 @@ function roundCfg(strategies){
     // six looks at the same three swaps, which stops being a memory test. 5 halves that to three
     // looks while leaving the midgame able to fund itself. The peek price is deliberately untouched.
     dockHeads:5,dockTails:2,crateBase:6,
+    // THE BLACK MARKET (Wyatt, 2026-08-12): a sold-out island always has ONE more crate — for a
+    // flat 10🌕, forever. Two treasure finds' worth (treasure pays 5), double the worst shelf
+    // price, so it is a last resort and not a shop — but it means no recipe is ever mathematically
+    // dead, and the map stays honest: the crate is still AT its island, ye still sail there.
+    // He killed the harbormaster 2-for-1 for this exact reason — it deleted geography; this keeps it.
+    blackMarket:10,
     dockBuy:true,merchant:true,parley:true,
     // rule 4e: no harbor-tax refund on a struck trade. rule 3: no fishing, so no sardine rule.
     asym:false,storm:0.20,islandW:2,islandH:2,tetris:true,singleDock:true,

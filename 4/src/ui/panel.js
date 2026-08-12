@@ -1066,6 +1066,30 @@ export async function narrateLastEvent(){
   // next event overwrote it. flash() awaits real reveal completion, then holds for length*80ms —
   // scaling with the text instead of a one-size-fits-all timer.
   await flash(L.txt,undefined,undefined,variants);
+  // THE BLACK MARKET'S ONE LESSON (Wyatt, 2026-08-12, "ceremony + marker"): the first time any
+  // shelf on the board empties, a once-per-voyage centre-stage beat teaches that sold-out islands
+  // now sell at 10🌕 — after this it is only the 🏴 marker and the dock's own whisper. Keyed on
+  // the event's firstDry stamp (engine sets it exactly once), so a replayed voyage re-derives the
+  // same single showing. Hand-built stage barrier, same pattern as the bake-off intro card —
+  // panel.js may not import flow.js's localAsk (layering), and needs none of it.
+  if(e.firstDry&&!appState.replaying)await dryCeremony();
+}
+function dryCeremony(){
+  return new Promise(res=>{
+    const ap=$("actionPanel");
+    ap.dataset.pp4Stage="1";
+    if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
+    // @copy prompt.blackmarket.ceremony — DRAFT, Wyatt rewrites
+    panel(`<div class="apMsg">🏴 <b>The shelves be bare…</b><br><br>
+      Word travels the Sugar Seas: when an island sells its last crate, the <b>black market</b>
+      opens after dark. Any sold-out island — marked with the black flag — will find ye one more
+      crate… for <b>10🌕</b>.</div>
+      <div class="apBtns"><button class="apBtn" id="bmCerGo" type="button">Arrgh!</button></div>
+      <div class="apSub">Steep, aye. But no recipe be ever truly sunk.</div>`,true);
+    const go=$("bmCerGo");
+    if(!go){delete ap.dataset.pp4Stage;res();return;}
+    go.onclick=()=>{go.onclick=null;delete ap.dataset.pp4Stage;panel("");res();};
+  });
 }
 
 // notes/edits #1: ms is no longer used to size the hold — the hold duration is derived purely

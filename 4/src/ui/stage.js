@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12e";
+const PP4_STAMP = "2026-08-12f";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -303,6 +303,18 @@ function ribbonTick(){
     if (!off && !armed) ck.classList.remove("on");
     if (ck.textContent !== t) ck.textContent = t;
   }
+  // the ⏩ chip shows only while a BOT holds the wheel and the voyage is live — on the player's
+  // own turn there is nothing to skip; while a skip runs it stays lit so a tap can't double-arm
+  const ff = $("pp4FF");
+  if (ff){
+    const g2 = appState.game;
+    const botsUp = g2 && !appState.liveDone && act >= 0 && act !== (appState.mySeat ?? 0) &&
+      g2.players[act] && !g2.players[act].done;
+    // explicit block/none — the CSS base is display:none, so writing "" would fall back to hidden
+    const want = botsUp ? "block" : "none";
+    if (ff.style.display !== want) ff.style.display = want;
+    ff.classList.toggle("on", !!appState.ff);
+  }
   // playtest 13: End of Voyage carries its own big PLAY AGAIN at the bottom. The real
   // #btnPlayAgain lives in the stage-hidden controls row, so this proxy clicks it. Re-injected
   // on this tick whenever a re-render rebuilds the stats panel.
@@ -321,6 +333,10 @@ function ribbonTick(){
 const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 function stageFlash(msg){
   if (!S.active) return null;                        // pre-game: let the panel handle it
+  // ⏩ fast-forward: narration is dropped entirely (Wyatt picked cut-not-montage) — the recap at
+  // skip end covers it. Resolved (not null) so panel.flash treats it as handled and never falls
+  // back to the slow panel path.
+  if (appState.ff) return Promise.resolve();
   // a line that just repeats the live prompt's own ask (the broadcast mirror of localAsk)
   // would bubble the same words twice — the pill already says it
   const liveMsg = document.querySelector("#actionPanel .apMsg");
@@ -507,8 +523,21 @@ function buildStage(){
   rib.innerHTML = `<span id="pp4Round">DAY 1</span>
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="../assets/boats/${i + 1}.png">`).join("")}</span>
     <span id="pp4Clock"></span>
+    <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
+  // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
+  // until the next prompt that involves him (his sail, a flip, a battle call, an offered trade),
+  // which ends the skip at normal speed and never re-arms it (flow.js ffEndNow is the other half:
+  // it also builds the one-clause-per-bot recap of what he didn't witness). Solo only by nature —
+  // /4 ships solo-only, and the flag drives pure UI pacing, never the engine.
+  $("pp4FF").onclick = () => {
+    if (appState.ff) return;
+    appState.ff = true;
+    appState.ffFromEv = appState.game ? appState.game.events.length : 0;
+    if (S.hurry) S.hurry();          // the live bubble goes NOW — the skip starts this instant
+    wake();
+  };
   // wind pill
   const pill = document.createElement("div"); pill.id = "pp4Pill";
   document.body.appendChild(pill);

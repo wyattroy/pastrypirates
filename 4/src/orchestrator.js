@@ -122,7 +122,9 @@ import {
 // used well beyond this cluster (still-classic call sites this wave's own functions used to sit
 // beside), so neither can simply "move" without breaking every other consumer.
 const $=id=>document.getElementById(id);
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
+// ⏩ fast-forward: same collapse as flow.js's sleep — beats that reach here without a player
+// prompt (storm holds, bot-only pacing) race by; anything that asks ends the skip first.
+const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,appState.ff?Math.min(ms||0,40):ms)));
 
 const MAX_CHAT_LEN=140;
 // Firebase Spark's free tier caps at 100 simultaneous connections (see ONLINE_SETUP.md) — once

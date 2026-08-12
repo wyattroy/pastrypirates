@@ -69,11 +69,64 @@ import { playBakeoffLive } from "./bakeoff.js";
 import { netHandlers } from "./handlers.js";
 
 const $=id=>document.getElementById(id);
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
+// ⏩ fast-forward: every flow beat (storm steps, rim sweeps, bot beats, battle pauses) collapses
+// to a breath — 40ms keeps the sequencing sane (paints still land in order) while the round races
+// by. Prompts are never touched by this: any decision involving the player ends the skip first
+// (ffEndNow below), so his interactions always play at full speed.
+const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,appState.ff?Math.min(ms||0,40):ms)));
+
+/* ================= ⏩ fast-forward: how a skip ends ================= */
+// Called, synchronously, at the top of EVERY entry point that puts a decision in front of the
+// player — localAsk (which also carries flips, battle calls, offered trades and defenses, since
+// ask() routes through it), localPickCell (the sail), and bakeoffPrompt. Wyatt's rule
+// (2026-08-12): the skip halts for ALL interactions he takes part in, plays them at normal
+// speed, and NEVER re-arms itself — the ⏩ chip sits in the ribbon to tap again after. The recap
+// is fire-and-forget so his prompt is never delayed by it, anchored to his own ship so the
+// camera stays where his decision is.
+function ffEndNow(){
+  if(!appState.ff)return;
+  appState.ff=false;
+  const from=appState.ffFromEv||0;appState.ffFromEv=null;
+  const g=appState.game;if(!g)return;
+  const line=ffRecapLine(g,from);
+  if(line){
+    if(window.__pp4)window.__pp4.subject=(appState.mySeat??0);
+    flash(line);
+  }
+}
+// One clause per bot (his pick), weightiest event claiming the clause: finishing > battles >
+// buys > trades > dock work > a plain sail. Covers only what he did NOT witness — anything that
+// halted the skip played live in front of him. Draft copy — Wyatt rewrites.
+function ffRecapLine(g,from){
+  const by=new Map();
+  const note=(seat,w,txt)=>{
+    if(seat==null||seat===(appState.mySeat??0))return;
+    const cur=by.get(seat);if(!cur||w>cur.w)by.set(seat,{w,txt});
+  };
+  for(const e of g.events.slice(Math.max(0,from))){
+    if(e.t==="finish")note(e.p,6,`made it home with a full recipe`);
+    else if(e.t==="battle"){
+      const loser=e.winner===e.a?e.d:e.a;
+      note(e.winner,5,`bested ${pn(loser)} in battle`);
+      note(loser,4,`lost a battle to ${pn(e.winner)}`);
+    }
+    else if(e.t==="dock"&&e.got==="bought")
+      note(e.p,e.black?4:3,e.black
+        ?`paid the black market for ${iconImg(ING_IMG[e.ing])}`
+        :`bought ${iconImg(ING_IMG[e.ing])} at ${dockPlace(e.ing)}`);
+    else if(e.t==="trade"){note(e.a,3,`struck a trade with ${pn(e.b)}`);note(e.b,3,`struck a trade with ${pn(e.a)}`);}
+    else if(e.t==="dock")note(e.p,2,`worked the docks at ${dockPlace(e.ing)}`);
+    else if(e.t==="sail"||e.t==="pass")note(e.p,1,`sailed on`);
+  }
+  if(!by.size)return null;
+  // @copy adhoc.ff.recap — DRAFT, Wyatt rewrites
+  return `⏩ While ye looked away: `+[...by.entries()].map(([s,v])=>`${pn(s)} ${v.txt}`).join("; ")+`.`;
+}
 
 /* ================= turn-flow + interaction ================= */
 
 export function localAsk(msg,opts,colors,sub){
+  ffEndNow();   // a decision is landing in front of the player — the skip is over, full speed
   return new Promise(res=>{
     if(opts.length===1&&opts[0].flip){
       // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
@@ -312,6 +365,7 @@ export function pickCell(p,cells){
    the bot without telling them. The FALLBACK below is a different thing and is genuinely live: it
    is the shot-clock forfeit, which any mode can hit. */
 export async function bakeoffPrompt(p,setup,fallback){
+  ffEndNow();   // the bake is his own hands-on turn — never reached mid-skip
   // Before the replay early-return, exactly as humanTurn does it: passGate self-handles replay by
   // silently syncing appState.mySeat rather than showing anything, and a baker never takes an
   // ordinary turn on the day they bake — so this is the ONLY thing keeping mySeat in step with a
@@ -370,6 +424,7 @@ function fillLocked(bake,guess){
 }
 
 export function localPickCell(p,cells){
+  ffEndNow();   // his sail prompt — the natural end of every full-round skip
   return new Promise(res=>{
     const svg=$("board"),hs=[];
     const done=v=>{hs.forEach(h=>h.remove());panel("");appState.activePickCleanup=null;res(v);};
@@ -789,22 +844,31 @@ export async function humanDock(p,port){
      because a prompt sits in between. */
   g.ev({t:"purse",p:p.idx});
   liveRender(); // the purse changed — show it before the buy prompt prices anything against it
+  let buy=null;
   if(g.cfg.dockBuy&&price!==null){
     // F9/D-41: the affordability test decides only whether the option is CLICKABLE, never whether
     // it is SHOWN. A captain who cannot afford today's price still learns that buying was possible
     // and what it now costs — which is exactly how the rising-price rule teaches itself.
     const canBuy=p.coins>=price;
     const left=g.tokens[ing];
-    const scarcity=(left<1e9&&left<=1)?` Last one on the island!`:``;
+    const black=left<1e9&&left<=0;
+    const scarcity=black
+      // @copy misc.blackmarket.whisper — draft, Wyatt rewrites
+      ?` The shelves be bare… but after dark, anything's fer sale.`
+      :(left<1e9&&left<=1)?` Last one on the island!`:``;
     const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,[
       {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:true,disabled:!canBuy},
       {label:"Nah",value:false}],
-      null,canBuy?(scarcity||null):`The price has risen to ${price}🌕 — more than ye can pay.`);
-    // D-40 safety net: re-read the purse rather than trusting `canBuy`, which was computed BEFORE
-    // the await — the shot clock's penalty can take a coin while this prompt sits open.
-    if(v&&p.coins>=price){p.coins-=price;g.tokens[ing]--;p.ing.push(ing);got="bought";}
+      null,canBuy?(scarcity||null)
+        :black?`The black market wants ${price}🌕 — more than ye carry.`
+        :`The price has risen to ${price}🌕 — more than ye can pay.`);
+    // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
+    // await, and the shot clock's penalty can take a coin while this prompt sits open. One
+    // purchase path with the bots (Game.buyCrate), so the two can never diverge on the rule.
+    if(v){buy=g.buyCrate(p,ing);if(buy)got="bought";}
   }
-  g.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price});
+  g.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price,
+    black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
   await narrateLastEvent();
   p.firstFlip.add(ing);p.dockedNow.add(ing);
   liveRender();

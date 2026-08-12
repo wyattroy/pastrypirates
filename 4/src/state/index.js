@@ -93,6 +93,12 @@ export const appState = {
   // /4: true only while the CURRENT pause was created by the hide-tab auto-pause (src/main.js) —
   // the visibility handler auto-resumes exactly that pause on return and never a player's own ⏸
   autoPausedByHide: false,
+  // /4 fast-forward: true while a one-shot ⏩ skip runs (armed by the ribbon chip, stage.js;
+  // ended by ANY prompt involving the player — flow.js ffEndNow). ffFromEv marks the event index
+  // when the skip armed, so the recap covers exactly what played unwitnessed. Pure UI pacing —
+  // the engine never reads either field.
+  ff: false,
+  ffFromEv: null,
   shotClockPauseElapsed: 0,
   timerOff: false,
   shotClockFired: {},

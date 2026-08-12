@@ -1424,6 +1424,11 @@
   #pp4Clock.off { opacity:.45; }               /* playtest 12: tapped off — dim, tap to re-arm */
   #pp4Clock.urgent { color:#ffd0c4; animation:pp4ClockFlash .5s steps(2,jump-none) infinite; }
   @keyframes pp4ClockFlash { 0% { background:rgba(214,69,42,.85); } 100% { background:rgba(255,255,255,.16); } }
+  /* ⏩ fast-forward: appears in the ribbon only while a bot holds the wheel (stage.js ribbonTick);
+     lights orange while a one-shot skip runs so a second tap can't double-arm */
+  #pp4FF { display:none; font-size:15px; line-height:1; color:#fff; background:rgba(255,255,255,.16);
+    border:none; border-radius:8px; padding:3px 9px; cursor:pointer; font-family:inherit; }
+  #pp4FF.on { background:rgba(245,166,35,.85); }
   /* playtest 11: one-line captain rows — name · coins · hold; the recipe line hides until the
      row is tapped (the rows are stable elements, so the toggle survives re-renders) */
   body.pp4Stage .prowTop { display:flex; flex-wrap:wrap; align-items:center; gap:3px 8px; }

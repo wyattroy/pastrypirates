@@ -565,8 +565,16 @@ const EVENT_NARRATION={
     const heads=appState.game.cfg.dockHeads,tails=appState.game.cfg.dockTails;
     const paid=e.price!=null?e.price:"";
     const bought=(e.got==="bought");
-    const buyTail=bought?` — then buys ${goods} for ${paid}🌕.`:``;
-    const buyTailYou=bought?` — then ye buy ${goods} for ${paid}🌕.`:``;
+    // black-market buys and the purchase that empties a shelf each get their clause — the dry
+    // notice is how the whole table learns a shelf ran out (draft copy, Wyatt rewrites)
+    const buyTail=bought
+      ?(e.black?` — then pays the black market ${paid}🌕 for ${goods} under cover o' dark.`
+        :` — then buys ${goods} for ${paid}🌕.`+(e.wentDry?` That were the last crate — the shelves be bare!`:``))
+      :``;
+    const buyTailYou=bought
+      ?(e.black?` — then ye pay the black market ${paid}🌕 for ${goods} under cover o' dark.`
+        :` — then ye buy ${goods} for ${paid}🌕.`+(e.wentDry?` Ye took the last crate — the shelves be bare!`:``))
+      :``;
     const txt=isLocalTo(e.p,viewerSeat)
       ?(e.heads
         ?`⚪ HEADS! Ye dig deep at ${place} and strike buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTailYou}`
@@ -1027,6 +1035,7 @@ export function assignBadges(){
 const HOLD_BASE_MS=500, HOLD_MS_PER_CHAR=20, HOLD_PAUSE_MS=300;
 export const HOLD_FLOOR_MS=800, HOLD_CEILING_MS=2000;
 export function msgHoldMs(text){
+  if(appState.ff)return 0;   // ⏩ fast-forward: no holds — pacing belongs to the skip until a prompt lands
   text=text||"";
   let raw=HOLD_BASE_MS+text.length*HOLD_MS_PER_CHAR;
   const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
