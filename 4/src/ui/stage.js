@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12c";
+const PP4_STAMP = "2026-08-12d";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -731,8 +731,35 @@ function promptTick(){
       placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + 4) ||
       Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 26 ||
       obstacles.some(r => hitRect(bx, by, r, 2));
-    // the most open heading: how far can a circle travel from the boat before hitting anything?
-    let bestA = Math.PI / 2, bestScore = -1;
+    // Playtest 16 (Wyatt: "fan them out in a more symmetrical orderly way"): the fan is a RIGID
+    // FORMATION, not per-button slot-filling. Straight rows perpendicular to the open heading,
+    // each row centred on the heading axis (7 -> 4 across + 3 staggered behind, like pins), and
+    // validity judged for the WHOLE formation — if anything collides the entire fan rotates to
+    // the next-best heading or steps outward, so it can never come out ragged or lopsided. Arc
+    // rows were tried first and rejected: at this radius a row of four wraps ~200° round the
+    // boat and reads as a ring, not a fan. Only the hopeless case docks as a strip.
+    const rowSplit = n => n <= 4 ? [n] : n === 5 ? [3, 2] : n === 6 ? [3, 3] : n === 7 ? [4, 3] : [4, 4];
+    const formation = (a0, r0) => {
+      const ux = Math.cos(a0), uy = Math.sin(a0);       // out from the boat
+      const vx = -uy, vy = ux;                          // across the row
+      const pts = [];
+      const split = rowSplit(menu.length);
+      for (let ri = 0; ri < split.length; ri++){
+        const along = r0 + ri * (D + 8);
+        const n = split[ri];
+        for (let j = 0; j < n; j++){
+          const off = (j - (n - 1) / 2) * (D + 8);
+          pts.push([sx + ux * along + vx * off - D / 2, sy + uy * along + vy * off - D / 2]);
+        }
+      }
+      return pts;
+    };
+    const formationOK = pts => pts.every(([cx, cy]) =>
+      inBounds(cx, cy) &&
+      Math.hypot(cx + D / 2 - sx, cy + D / 2 - sy) >= D / 2 + 26 &&
+      !obstacles.some(rc => hitRect(cx, cy, rc, 2)));
+    // headings ranked by open water, then fine-tuned by half-steps; radius grows as a last resort
+    const headings = [];
     for (let k = 0; k < 16; k++){
       const a = k * Math.PI / 8;
       let reach = 0;
@@ -741,26 +768,27 @@ function promptTick(){
         if (!inBounds(cx, cy) || obstacles.some(rc => hitRect(cx, cy, rc, 2))) break;
         reach = r;
       }
-      if (reach > bestScore){ bestScore = reach; bestA = a; }
+      headings.push({ a, reach });
     }
-    // slot list: two arc rows centred on the open heading, ordered centre-out — buttons take
-    // slots in order, so however many there are (1-8) they pack as one tight group
-    const slots = [];
-    for (const r of [R, R + D + 8]){
-      const step = 2 * Math.asin(Math.min(1, (D / 2 + 4) / r));
-      for (const m of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5]){
-        const a = bestA + m * step;
-        slots.push([sx + r * Math.cos(a) - D / 2, sy + r * Math.sin(a) - D / 2]);
+    headings.sort((p, q) => q.reach - p.reach);
+    let pts = null;
+    outer:
+    for (const grow of [0, 14, 28]){
+      for (const h of headings){
+        for (const da of [0, Math.PI / 16, -Math.PI / 16]){
+          const cand = formation(h.a + da, R + grow);
+          if (formationOK(cand)){ pts = cand; break outer; }
+        }
       }
     }
-    menu.forEach(b => {
-      let spot = slots.find(([cx, cy]) => inBounds(cx, cy) && !clash(cx, cy));
-      if (!spot){
-        // cornered beyond hope (tiny viewport): the group docks as a strip above the captains
-        const n = placed.length;
-        spot = [Math.min(Math.max(sx - D / 2 + (n - (menu.length - 1) / 2) * (D + 6), xMin), xMax),
-                Math.max(yMin, capT - D - 10)];
-      }
+    if (!pts){
+      // cornered beyond hope (tiny viewport): the group docks as a symmetric strip above the captains
+      pts = menu.map((b, n) =>
+        [Math.min(Math.max(sx - D / 2 + (n - (menu.length - 1) / 2) * (D + 6), xMin), xMax),
+         Math.max(yMin, capT - D - 10)]);
+    }
+    menu.forEach((b, i) => {
+      const spot = pts[i];
       placed.push(spot);
       b.style.position = "fixed"; b.style.left = spot[0] + "px"; b.style.top = spot[1] + "px";
     });
