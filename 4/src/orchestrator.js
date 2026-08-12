@@ -335,14 +335,12 @@ export function renderBattle(o){
         <div class="who" style="color:${col(A.idx)}">${nm(A.idx)}</div>
         <div class="role">${o.roleA||"Attacker"}</div>
         ${coinHTML(o.atState,o.atBs,o.winCoin==="a")}
-        ${pipsHTML(o.a,col(A.idx),need)}
       </div>
       <div class="btl-mid">VS</div>
       <div class="btl-col${o.live==="d"?" live":""}">
         <div class="who" style="color:${col(D.idx)}">${nm(D.idx)}</div>
         <div class="role">${o.roleD||"Defender"}</div>
         ${coinHTML(o.dfState,o.dfBs,o.winCoin==="d")}
-        ${pipsHTML(o.d,col(D.idx),need)}
       </div>
     </div>
     ${battleFooter(o)}

@@ -1373,7 +1373,9 @@ function activeTurnSeat(){
 // tiers by construction.
 // ONE spelling of the ship glide, used by drawBoard() to create it and by setShipGlideMs() to
 // retune and restore it. Only the duration and the easing ever vary.
-const SHIP_GLIDE_EASE="cubic-bezier(.42,0,.58,1)";
+// /4 playtest 12 (Wyatt: the sail "starts too rapidly") — a deeper S: the boat leans into the
+// move instead of leaping, and settles the same way.
+const SHIP_GLIDE_EASE="cubic-bezier(.6,0,.32,1)";
 function shipGlideCss(ms,ease){ return `${ms}ms ${ease||SHIP_GLIDE_EASE}`; }
 // Retune ONE ship's glide duration, or restore the default when `ms` is null.
 //

@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-11f";
+const PP4_STAMP = "2026-08-11g";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -283,15 +283,19 @@ function ribbonTick(){
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
   const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
   boats.forEach((b, i) => b.classList.toggle("on", i === act));
-  // playtest 11: the turn clock lives HERE, right of the boats — the old clock panel is hidden
-  // under the stage, so an enabled timer was invisible. Flashes for the last 5 seconds.
+  // playtest 11/12: the turn clock lives HERE, right of the boats. Counts down while armed,
+  // flashes red for the LAST 10 SECONDS, and shows a dim "⏱ off" you can tap to re-enable.
   const ck = $("pp4Clock");
   if (ck){
-    const armed = !appState.timerOff && appState.shotClockSeat != null && !appState.shotClockPaused;
+    const off = !!appState.timerOff;
+    const armed = !off && appState.shotClockSeat != null && !appState.shotClockPaused;
     const left = armed ? Math.max(0, Math.ceil((appState.shotClockDeadline - Date.now()) / 1000)) : 0;
-    ck.classList.toggle("on", armed);
-    ck.classList.toggle("urgent", armed && left <= 5);
-    if (armed){ const t = "⏱ " + left; if (ck.textContent !== t) ck.textContent = t; }
+    ck.classList.toggle("on", armed || off);
+    ck.classList.toggle("off", off);
+    ck.classList.toggle("urgent", armed && left <= 10);
+    const t = off ? "⏱ off" : (armed ? "⏱ " + left : "");
+    if (!off && !armed) ck.classList.remove("on");
+    if (ck.textContent !== t) ck.textContent = t;
   }
 }
 
@@ -317,7 +321,9 @@ function stageFlash(msg){
   S.lock = false;
   const evType = S.evType; S.evType = null;
   if (evType === "storm") camFull();                 // watch the shove land from above
-  else if (subj != null) camToSeat(subj);            // the camera glides to the speaker
+  // playtest 12 item 10: while a battle card is live, the camera HOLDS on the battle — a flee
+  // call can only be made by someone who can see the fight, not the caller's own boat
+  else if (subj != null && !document.querySelector("#actionPanel .btl")) camToSeat(subj);
   return new Promise(res => {
     // playtest 11 (Wyatt: "the game currently feels like it's in rush mode and i cant read
     // anything") — every narration hold runs 50% longer than the panel's own curve
@@ -465,8 +471,9 @@ function recipeGuard(){
         const c = (g.dockOf && g.dockOf[ing]) || (g.islandOf && g.islandOf[ing]); if (!c) return;
         const el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         el.setAttribute("cx", (c[0] + 0.5) * cp); el.setAttribute("cy", (c[1] + 0.5) * cp);
-        el.setAttribute("r", cp * 1.15); el.setAttribute("fill", "#f5a623"); el.setAttribute("fill-opacity", "0.16");
-        el.setAttribute("stroke", "#f5a623"); el.setAttribute("stroke-width", 5);
+        // playtest 12 (2.4): a tight ring on the dock square itself, not a splash over the island
+        el.setAttribute("r", cp * 0.55); el.setAttribute("fill", "#f5a623"); el.setAttribute("fill-opacity", "0.18");
+        el.setAttribute("stroke", "#f5a623"); el.setAttribute("stroke-width", 3);
         el.classList.add("pp4Glow"); svg.appendChild(el);
       });
     }).catch(() => {});
@@ -508,11 +515,14 @@ function buildStage(){
   // menu: the old footer as an overlay, plus the turn-clock toggle (its panel left the sheet)
   const clockRow = document.createElement("button");
   clockRow.id = "pp4ClockRow"; clockRow.type = "button";
-  const clockLabel = () => { clockRow.textContent = appState.timerOff ? "⏱ Turn clock: OFF — no rush" : "⏱ Turn clock: ON — 20s a turn"; };
-  clockRow.onclick = () => { const t = $("scTimerToggle"); if (t) t.click();
+  const clockLabel = () => { clockRow.textContent = appState.timerOff ? "⏱ Turn clock: OFF — no rush" : "⏱ Turn clock: ON — 30s a turn"; };
+  const clockToggle = () => { const t = $("scTimerToggle"); if (t) t.click();
     else { appState.timerOff = !appState.timerOff; try{ localStorage.setItem("pp_timerOff", appState.timerOff ? "1" : "0"); }catch(e){} }
     setTimeout(clockLabel, 60); };
+  clockRow.onclick = clockToggle;
   clockLabel();
+  // playtest 12: tapping the ribbon clock toggles it too, and the chip shows its OFF state
+  const rc = $("pp4Clock"); if (rc) rc.onclick = clockToggle;
   const foot = $("footerRow"); if (foot) foot.insertBefore(clockRow, foot.firstChild);
   // playtest 10 item 2: the sound toggle was orphaned at the top-left of the stage (the horn
   // peeking under the ribbon in Wyatt's screenshots) — it lives in the ☰ menu now
@@ -529,6 +539,11 @@ function buildStage(){
     document.body.classList.toggle("pp4Foot");
     clockLabel();
   };
+  // playtest 12 item 6: tapping anywhere outside the open menu closes it
+  document.addEventListener("pointerdown", e => {
+    if (document.body.classList.contains("pp4Foot") && !e.target.closest("#footerRow,#pp4Menu"))
+      document.body.classList.remove("pp4Foot");
+  }, true);
   const svg = svgEl();
   if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMin meet");   // full-board hugs the ribbon
   const shipsSvg = $("boardShips");
@@ -558,6 +573,20 @@ function promptTick(){
   const want = has ? "block" : "none";
   if (box.style.display !== want) box.style.display = want;
   if (!has){ box.classList.remove("radial"); S.radKey = null; return; }
+  // playtest 12 item 1/3: intro barriers (ahoy, turn order) play CENTER STAGE — the board dims,
+  // the message sits dead centre and its button pulses right beneath it
+  if (ap.dataset.pp4Stage){
+    box.style.display = "flex";   // the visibility toggle above writes "block" — centre mode is flex
+    if (!box.classList.contains("pp4Center")){
+      box.classList.add("pp4Center"); box.classList.remove("radial", "centered", "pp4Recipes");
+      S.radKey = null;
+      box.style.left = ""; box.style.top = ""; box.style.width = "";
+      [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
+      const m = ap.querySelector(".apMsg"); if (m){ m.style.position = ""; m.style.left = ""; m.style.top = ""; }
+    }
+    return;
+  }
+  box.classList.remove("pp4Center");
   // playtest 10 item 1: the recipe chooser becomes a BOTTOM sheet — the sea it asks you to read
   // stays visible above the cards, holding a finger on the sea peeks behind them (the gesture
   // that already works on every card), and a hint line teaches it. Draft copy — Wyatt's to rewrite.
@@ -572,7 +601,8 @@ function promptTick(){
     ap.style.maxHeight = (innerHeight - top - 8) + "px";
     if (!hint){
       hint = document.createElement("div"); hint.className = "pp4PeekHint";
-      hint.textContent = "Tap a recipe to see its islands glow — hold a finger on the sea to peek behind the cards.";
+      // playtest 12 (2.1/2.3): two separate pills on dark glass, legible over any water
+      hint.innerHTML = `<span>Tap a recipe to highlight its docks</span><span>Tap and hold the sea to reveal the board</span>`;
       box.insertBefore(hint, ap);
     }
     return;
@@ -595,7 +625,8 @@ function promptTick(){
     const capT = cap ? cap.getBoundingClientRect().top : innerHeight;
     const rib = $("pp4Ribbon");
     const tSafe = (rib ? rib.getBoundingClientRect().bottom : 44) + 40;
-    const R = 88, D = 66;
+    // playtest 12 item 8: circles hug the boat — as close as the ship-clearance allows
+    const R = 70, D = 66;
     const placed = [];
     // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
     // so every sail highlight is an obstacle nothing of ours may cover
@@ -665,7 +696,7 @@ function promptTick(){
       const a0 = angles[i] ?? 90;
       let bx = null, by = null;
       search:
-      for (const r of [R, R + 52, R + 104]){
+      for (const r of [R, R + 48, R + 96]){
         for (const off of [0, -20, 20, -40, 40, -60, 60, -85, 85, -110, 110, -140, 140, 180]){
           const a = (a0 + off) * Math.PI / 180;
           const cx = sx + r * Math.cos(a) - D / 2, cy = sy + r * Math.sin(a) - D / 2;

@@ -1443,8 +1443,12 @@ export function toggleShotClockPause(){
 export function shotClockTick(){
   if(appState.shotClockSeat==null)return;
   const elapsed=Date.now()-(appState.shotClockDeadline-30000);
-  if(!appState.shotClockFired.t20&&elapsed>=20000){appState.shotClockFired.t20=true;applyShotClockPenalty();}
-  if(elapsed>=30000){netHandlers().onExpireShotClock();return;}
+  // /4 playtest 12 (Wyatt): the coin penalty lands WITH the skip at 30s — not as a separate
+  // 20-second surcharge while the player is still deciding
+  if(elapsed>=30000){
+    if(!appState.shotClockFired.t30){appState.shotClockFired.t30=true;applyShotClockPenalty();}
+    netHandlers().onExpireShotClock();return;
+  }
   netHandlers().onSetClockUI();
 }
 export function applyShotClockPenalty(){

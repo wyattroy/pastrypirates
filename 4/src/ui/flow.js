@@ -90,7 +90,8 @@ export function localAsk(msg,opts,colors,sub){
     // choices, which still render as the normal button row.
     const backIdx=opts.findIndex(o=>o.back);
     const flipIdx=opts.findIndex(o=>o.flip);
-    const done=v=>{setFlipActive(null);setNeedsAction(false);panel("");res(v);};
+    const done=v=>{setFlipActive(null);setNeedsAction(false);delete $("actionPanel").dataset.pp4Stage;panel("");res(v);};
+    if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
     if(flipIdx!==-1){
       if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
       setNeedsAction(true);setFlipActive(()=>done(flipIdx));
@@ -797,7 +798,7 @@ export async function humanDock(p,port){
     const scarcity=(left<1e9&&left<=1)?` Last one on the island!`:``;
     const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,[
       {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:true,disabled:!canBuy},
-      {label:"Keep yer coin",value:false}],
+      {label:"Nah",value:false}],
       null,canBuy?(scarcity||null):`The price has risen to ${price}🌕 — more than ye can pay.`);
     // D-40 safety net: re-read the purse rather than trusting `canBuy`, which was computed BEFORE
     // the await — the shot clock's penalty can take a coin while this prompt sits open.
@@ -1314,7 +1315,9 @@ export async function botTurn(p){
 export async function netIntroBarrier(msg,btnLabel){
   if(appState.replaying)return;
   netHandlers().onNetBroadcast(msg);
-  const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow"}];
+  // /4 playtest 12: the two intro barriers (ahoy + turn order) play CENTER STAGE — board dimmed,
+  // message and button centred — instead of a bubble at the top and a lone circle mid-sea
+  const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow",stage:true}];
   const humans=appState.game.players.filter(p=>p.strategy==="human");
   if(appState.passAndPlay){
     // ONE DEVICE, ONE SHOWING (Wyatt, 2026-08-08: "Dont require passing to the next player for the

@@ -1250,12 +1250,20 @@
     padding:4px; font-size:10px; font-weight:800; line-height:1.05; text-align:center;
     background:#fffdf2; border:2.5px solid #177; color:#0e3b3b;
     box-shadow:0 6px 18px rgba(0,0,0,.35); }
-  #pp4Prompt.radial .apBtn img { width:22px; height:22px; }
+  /* playtest 12 item 8: circle contents sized to FIT the circle */
+  #pp4Prompt.radial .apBtn { font-size:9.5px; line-height:1; gap:0; padding:5px; }
+  #pp4Prompt.radial .apBtn img { width:17px; height:17px; }
   #pp4Prompt.radial .apBtn.apDisabled { filter:grayscale(.7); opacity:.55; }
-  body.pp4Peek #pp4Prompt.radial { opacity:1; }  /* radial never blocks the board — no peek needed */
+  /* playtest 12 item 8: hold-the-sea peeks EVERY prompt style, radial included — one gesture,
+     one behaviour (this replaces the old radial exemption) */
   body.pp4Stage #footerRow { display:none; }
-  body.pp4Foot #footerRow { display:flex; position:fixed; left:12px; right:12px; top:64px;
+  /* playtest 12 item 6: one clean column, uniform widths */
+  body.pp4Foot #footerRow { display:flex; flex-direction:column; align-items:stretch; gap:9px;
+    position:fixed; left:12px; right:12px; top:64px;
     z-index:60; background:#fffdf2; border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
+  body.pp4Foot #footerRow .footerBtn, body.pp4Foot #pp4ClockRow { width:100%; box-sizing:border-box;
+    margin:0; text-align:center; }
+  body.pp4Foot #pp4Stamp { order:99; }
   body.pp4Stage #chatBubbles { display:none; }
   body.pp4Stage .fcChip, body.pp4Stage .ppHud { display:none; }  /* the pill is the instrument now */
   body.pp4Stage #controlsRow { display:none; }  /* coin + clock left the sheet: ceremony + menu toggle */  /* sea-creature bubbles don't track the camera yet */
@@ -1270,7 +1278,8 @@
   .pp4Boat.on { background:rgba(255,255,255,.95); opacity:1; outline:2px solid #f5a623; }
   #pp4Menu { margin-left:auto; font-size:17px; padding:3px 10px; background:rgba(255,255,255,.16);
     border:none; border-radius:8px; color:#fff; }
-  #pp4Pill { position:fixed; top:calc(40px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+  /* playtest 12 item 7: clear air between the captain boats and the wind pill */
+  #pp4Pill { position:fixed; top:calc(52px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
     z-index:19; background:rgba(9,42,52,.62); color:#fff; font-weight:800; font-size:12.5px;
     letter-spacing:.4px; padding:5px 12px; border-radius:9px; white-space:nowrap; pointer-events:none;
     display:none; }
@@ -1322,8 +1331,36 @@
   /* playtest 10 item 1: the recipe chooser is a BOTTOM sheet — the sea it asks you to read stays
      visible above it, and holding a finger on the sea peeks behind the cards */
   #pp4Prompt.pp4Recipes #actionPanel { overflow-y:auto; }
-  .pp4PeekHint { text-align:center; font-size:12px; font-style:italic; color:#fffdf2;
-    text-shadow:0 1px 4px rgba(0,0,0,.65); padding:0 4px 6px; }
+  /* playtest 12 (2.1/2.3): each hint is its own pill on dark glass — legible over any water */
+  .pp4PeekHint { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 4px 7px; }
+  .pp4PeekHint span { background:rgba(9,42,52,.78); color:#fffdf2; font-size:11.5px;
+    font-style:italic; border-radius:999px; padding:3px 12px; width:max-content; max-width:92vw; }
+  /* playtest 12 (2.2): the picked recipe pulses orange — tap it AGAIN to confirm */
+  body.pp4Stage #actionPanel .apBtn.pp4Focus { outline:3px solid #f5a623;
+    animation:pp4FocusPulse 1s ease-in-out infinite; }
+  @keyframes pp4FocusPulse {
+    0%,100% { outline-color:#f5a623; box-shadow:0 0 0 0 rgba(245,166,35,0); }
+    50% { outline-color:#ffc964; box-shadow:0 0 0 7px rgba(245,166,35,.35); }
+  }
+  /* playtest 12 item 1/3: intro barriers play CENTER STAGE — dim sea, message centred, the
+     button pulsing hard right beneath it */
+  #pp4Prompt.pp4Center { left:0 !important; top:0 !important; width:100vw !important; height:100vh;
+    background:rgba(4,16,22,.6); display:flex; align-items:center; justify-content:center; }
+  #pp4Prompt.pp4Center #actionPanel { background:none; border:none; box-shadow:none; margin:0;
+    padding:0 18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:26px; max-width:420px; min-height:0 !important; }
+  #pp4Prompt.pp4Center .apMsg { background:#fffdf2; border:2px solid #177; border-radius:14px;
+    padding:16px 18px; font-size:16.5px; line-height:1.5; box-shadow:0 12px 40px rgba(0,0,0,.45); }
+  #pp4Prompt.pp4Center .apBtns, #pp4Prompt.pp4Center .apBtn { visibility:visible !important; }
+  #pp4Prompt.pp4Center .apBtns { display:flex; justify-content:center; width:100%; }
+  #pp4Prompt.pp4Center .apBtn { width:110px; height:110px; border-radius:50%; border:3px solid #177;
+    background:#fffdf2; color:#0e3b3b; font-size:15px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+    animation:pp4StagePulse 1.1s ease-in-out infinite; }
+  @keyframes pp4StagePulse {
+    0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(245,166,35,.0); }
+    50% { transform:scale(1.09); box-shadow:0 0 0 16px rgba(245,166,35,.28); }
+  }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:8px 6px; }
   body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }
@@ -1347,8 +1384,9 @@
   /* playtest 11: the turn clock lives in the ribbon, right of the captain boats, flashing near 0 */
   #pp4Clock { display:none; font-size:13px; font-weight:800; letter-spacing:.5px; color:#fff;
     background:rgba(255,255,255,.16); border-radius:8px; padding:3px 8px; min-width:34px;
-    text-align:center; font-variant-numeric:tabular-nums; }
+    text-align:center; font-variant-numeric:tabular-nums; cursor:pointer; }
   #pp4Clock.on { display:block; }
+  #pp4Clock.off { opacity:.45; }               /* playtest 12: tapped off — dim, tap to re-arm */
   #pp4Clock.urgent { color:#ffd0c4; animation:pp4ClockFlash .5s steps(2,jump-none) infinite; }
   @keyframes pp4ClockFlash { 0% { background:rgba(214,69,42,.85); } 100% { background:rgba(255,255,255,.16); } }
   /* playtest 11: one-line captain rows — name · coins · hold; the recipe line hides until the
