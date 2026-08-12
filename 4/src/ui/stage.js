@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-11g";
+const PP4_STAMP = "2026-08-12a";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -296,6 +296,16 @@ function ribbonTick(){
     const t = off ? "⏱ off" : (armed ? "⏱ " + left : "");
     if (!off && !armed) ck.classList.remove("on");
     if (ck.textContent !== t) ck.textContent = t;
+  }
+  // playtest 13: End of Voyage carries its own big PLAY AGAIN at the bottom. The real
+  // #btnPlayAgain lives in the stage-hidden controls row, so this proxy clicks it. Re-injected
+  // on this tick whenever a re-render rebuilds the stats panel.
+  const sw = $("statsWrap");
+  if (sw && sw.style.display !== "none" && !sw.querySelector(".pp4Again")){
+    const again = document.createElement("button");
+    again.className = "pp4Again"; again.type = "button"; again.textContent = "🔁 Play again!";
+    again.onclick = () => { const orig = $("btnPlayAgain"); if (orig && orig.onclick) orig.onclick(); };
+    ($("statsPanel") || sw).appendChild(again);
   }
 }
 

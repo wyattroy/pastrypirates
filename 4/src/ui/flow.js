@@ -822,6 +822,30 @@ export async function humanDock(p,port){
    Kept as a little step machine, exactly like v1's: Back moves to the PREVIOUS prompt, and only
    Back out of the first prompt returns to the action menu. Inputs accumulate in `st` so
    revisiting a step keeps what you already picked (UI-08). */
+/* /4 playtest 13: the COIN STEPPER — replaces both "How many?" option grids, the last of the
+   yellow boxes. The pill names the DIRECTION in every step (GIVIN' vs ASKIN', Wyatt's exact
+   complaint: "it isn't clear if you're offering those coins or asking for them"), and the
+   circles adjust one coin at a time. Each tap is a real ask(), so the shot clock re-arms and
+   the decision log records every step exactly as it always did — replay-safe by construction. */
+async function coinStepper(msgFor,start,min,max,confirmLabel,extraOpt){
+  let n=start;
+  for(;;){
+    const opts=[
+      {label:"− 1🌕",value:"minus",disabled:n<=min},
+      {label:"+ 1🌕",value:"plus",disabled:n>=max},
+      {label:confirmLabel,value:"ok",cls:"primary"},
+    ];
+    if(extraOpt)opts.push(extraOpt);
+    opts.push({label:"← Back",back:true,value:"__back__"});
+    const v=await ask(msgFor(n),opts);
+    if(appState.turnExpired)return null;
+    if(v==="minus")n=Math.max(min,n-1);
+    else if(v==="plus")n=Math.min(max,n+1);
+    else if(v==="ok")return n;
+    else if(v==="__back__"||v==null)return "__back__";
+    else return v;   // the extra option's value (e.g. "deny")
+  }
+}
 export async function humanTrade(p){
   setActor(p.idx);
   const g=appState.game;
@@ -857,21 +881,22 @@ export async function humanTrade(p){
       if(baseIng==="__back__"){step=0;continue;}
       if(baseIng==null)return false;
       st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=2;
-    }else{ // step 2
-      const coinChoices=[0,1,2,3,4,5,6].filter(n=>n===0||p.coins>=n);
-      if(!st.baseIng)coinChoices.shift(); // a coins-only offer needs at least 1 coin
-      if(!coinChoices.length){
+    }else{ // step 2 — playtest 13: the coin stepper, never an option grid
+      const maxC=Math.min(6,p.coins);
+      const minC=st.baseIng?0:1; // a coins-only offer needs at least 1 coin
+      if(maxC<minC){
         // @copy prompt.trade.nothingtooffer
         await ask("Ye don't have any to offer!",[{label:"← Back",back:true,value:-1}]);
         step=1;continue;
       }
-      const coinOpts=coinChoices.map(n=>({label:n===0?"No extra coins":`+${n}🌕`,value:n}));
-      coinOpts.push({label:"← Back",back:true,value:-1});
+      const giveBits=n=>[st.baseIng?ilabelImg(st.baseIng):null,n?`${n}🌕`:null].filter(Boolean).join(" + ");
       // @copy prompt.trade.addcoins
-      const extraCoins=await ask(`How many?`,coinOpts);
-      if(extraCoins===-1){step=1;continue;}
-      if(extraCoins==null)return false;
-      st.extraCoins=extraCoins;step=3;
+      const n=await coinStepper(
+        k=>`Ye're GIVIN' ${giveBits(k)} for ${ilabelImg(st.want)}`,
+        minC,minC,maxC,"Offer it!");
+      if(n==null)return false;
+      if(n==="__back__"){step=1;continue;}
+      st.extraCoins=n;step=3;
     }
   }
   if(appState.turnExpired)return false;
@@ -901,13 +926,14 @@ export async function humanTrade(p){
       if(appState.turnExpired)return false;
       if(v==="counter"){
         const room=Math.max(0,p.coins-offer.giveCoins);
-        const amounts=[1,2,3,4,5].filter(n=>n<=room);
-        if(!amounts.length){responses.push({q,kind:"deny",why:"toodear"});continue;}
+        if(room<1){responses.push({q,kind:"deny",why:"toodear"});continue;}
         // @copy prompt.trade.counter
-        const askFor=await ask(`How much more, on top of ${offerDisplay}?`,
-          amounts.map(n=>({label:`+${n}🌕 more`,value:n})).concat([{label:"Never mind — deny",value:0}]));
-        if(appState.turnExpired)return false;
-        responses.push(askFor?{q,kind:"counter",askFor}:{q,kind:"deny",why:"chose"});
+        const a=await coinStepper(
+          k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
+          1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
+        if(a==null)return false;
+        if(a==="deny"||a==="__back__")responses.push({q,kind:"deny",why:"chose"});
+        else responses.push({q,kind:"counter",askFor:a});
       }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
     }else{
       responses.push(g.respondToOffer(q,offer,p));
@@ -1211,13 +1237,14 @@ export async function botOpenTradeLive(p){
       if(appState.turnExpired)return false;
       if(v==="counter"){
         const room=Math.max(0,p.coins-offer.giveCoins);
-        const amounts=[1,2,3,4,5].filter(n=>n<=room);
-        if(!amounts.length){responses.push({q,kind:"deny",why:"toodear"});continue;}
+        if(room<1){responses.push({q,kind:"deny",why:"toodear"});continue;}
         // @copy prompt.trade.counter
-        const askFor=await ask(`How much more, on top of ${offerDisplay}?`,
-          amounts.map(n=>({label:`+${n}🌕 more`,value:n})).concat([{label:"Never mind — deny",value:0}]));
-        if(appState.turnExpired)return false;
-        responses.push(askFor?{q,kind:"counter",askFor}:{q,kind:"deny",why:"chose"});
+        const a=await coinStepper(
+          k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
+          1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
+        if(a==null)return false;
+        if(a==="deny"||a==="__back__")responses.push({q,kind:"deny",why:"chose"});
+        else responses.push({q,kind:"counter",askFor:a});
       }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
     }else responses.push(g.respondToOffer(q,offer,p));
   }

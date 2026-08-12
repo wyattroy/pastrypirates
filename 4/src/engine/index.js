@@ -855,6 +855,13 @@ class Game{
     q.ing.splice(q.ing.indexOf(offer.want),1);p.ing.push(offer.want);
     if(offer.giveIng){p.ing.splice(p.ing.indexOf(offer.giveIng),1);q.ing.push(offer.giveIng);}
     if(total){p.coins-=total;q.coins+=total;}
+    // /4 playtest 13 (Wyatt: "dough hook traded milk for my sugar, then immediately tried to buy
+    // it back for much less. A human would intuitively not do this"): both captains remember what
+    // they just handed over. botOpenOffer refuses to hail the table for a crate its own captain
+    // gave away within the last few rounds — the seller's remorse rule.
+    if(!q.gaveAway)q.gaveAway={};
+    q.gaveAway[offer.want]=this.round;
+    if(offer.giveIng){if(!p.gaveAway)p.gaveAway={};p.gaveAway[offer.giveIng]=this.round;}
     this.trades++;
     // v2 rule 4e: no harbor-tax refund. A trade is just the exchange.
     // The whole table watched who wanted what — that is public evidence, and it is how bots
@@ -966,8 +973,11 @@ class Game{
   botOpenOffer(p){
     const needs=this.needs(p);
     if(!needs.length)return null;
-    // cargo is public, so asking only for things somebody holds is not hidden information
-    const askable=needs.filter(i=>this.holdersOf(i,p).length);
+    // cargo is public, so asking only for things somebody holds is not hidden information.
+    // The seller's-remorse rule (see settleTrade): never hail the table for a crate this captain
+    // handed over within the last 3 rounds — buying back what ye just sold reads as witless.
+    const askable=needs.filter(i=>this.holdersOf(i,p).length)
+      .filter(i=>!(p.gaveAway&&p.gaveAway[i]!=null&&this.round-p.gaveAway[i]<3));
     if(!askable.length)return null;
     // hardest-to-get-otherwise first, then fall down the list — a crate whose holders have all
     // said no is skipped entirely rather than re-hailed, and the bot simply asks for the next one

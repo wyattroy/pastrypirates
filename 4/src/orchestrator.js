@@ -493,7 +493,8 @@ export async function asyncBattle(att,def){
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
-    await sleep(Math.min(hold*0.5,500));
+    // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe")
+    await sleep(800);
     broadcastFlip("wait");
     return h;
   };
@@ -507,7 +508,7 @@ export async function asyncBattle(att,def){
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
-    await sleep(300);
+    await sleep(800);   // playtest 13: the landed face holds long enough to actually read
     broadcastFlip("wait");
     return h;
   };
