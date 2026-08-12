@@ -1,3 +1,22 @@
+## CONSISTENCY IS A CORE VALUE — same gesture, same behaviour, everywhere
+
+**Standing design rule — Wyatt, 2026-08-12:** *"Add consistency as a core value... so it is
+flagged whenever it is broken, and only broken intentionally."*
+
+An interaction that behaves differently in two places is a bug unless Wyatt chose the exception.
+The instance that created the rule: hold-the-sea faded some prompt styles and not others, and the
+day/wind narration bubbles ignored the gesture entirely — three behaviours for one gesture.
+
+When adding or changing ANY interactive behaviour (a gesture, a fade, a prompt style, an
+animation, a pacing constant, a copy register), sweep every OTHER surface that behaviour touches
+and make them match — then say in the reply which surfaces were checked. An intentional exception
+must be named to Wyatt when introduced and recorded here.
+
+Sanctioned exceptions (each one his explicit pick):
+- Hold-the-sea fades every floating box (prompts of all styles, narration bubbles, the stay-put
+  confirm) but NOT the centre-stage intros or the flip-ceremony veil (2026-08-12).
+- The credits/About pages are not in pirate speak — see "The voice boundary" below.
+
 ## Narration box: content appears TOP TO BOTTOM, in that order
 
 **Standing design rule — Wyatt, 2026-08-01:** *"Everything in the narration box should appear from

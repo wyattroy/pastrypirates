@@ -1224,7 +1224,14 @@
   body.pp4Stage #pp4Cap { display:block; }
   body.pp4Stage #captainsPanel { display:block; margin:0; }
   #pp4Prompt { position:fixed; z-index:30; display:none; opacity:.96; transition:opacity .16s; }
-  body.pp4Peek #pp4Prompt { opacity:.13; pointer-events:none; }
+  /* playtest 15 item 4 (CONSISTENCY): hold-the-sea fades EVERY floating box the same way —
+     prompts in every style, narration bubbles, the stay-put confirm. The two sanctioned
+     exceptions (Wyatt's pick): centre-stage intros and the flip ceremony stay solid. */
+  body.pp4Peek #pp4Prompt,
+  body.pp4Peek .pp4Bub,
+  body.pp4Peek .pp4Stay { opacity:.13; pointer-events:none; }
+  body.pp4Peek #pp4Prompt.pp4Center { opacity:1; pointer-events:auto; }
+  .pp4Stay { transition:opacity .16s; }
   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
     width:min(348px, 94vw) !important; max-height:78vh; overflow:auto; }
   #pp4Prompt #actionPanel { margin:0; box-shadow:0 10px 30px rgba(0,0,0,.35); border-radius:13px; }

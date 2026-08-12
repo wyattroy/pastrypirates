@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12b";
+const PP4_STAMP = "2026-08-12c";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -282,7 +282,13 @@ function ribbonTick(){
   if (r && g) r.textContent = "DAY " + (g.round || 1);
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
   const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
-  boats.forEach((b, i) => b.classList.toggle("on", i === act));
+  // playtest 15 item 1: the circles read LEFT TO RIGHT in the drawn TURN ORDER, not seat order
+  const ord = appState.turnOrder;
+  boats.forEach((b, i) => {
+    b.classList.toggle("on", i === act);
+    const want = (ord && ord.length) ? String(ord.indexOf(i) < 0 ? i : ord.indexOf(i)) : "";
+    if (b.style.order !== want) b.style.order = want;
+  });
   // playtest 11/12: the turn clock lives HERE, right of the boats. Counts down while armed,
   // flashes red for the LAST 10 SECONDS, and shows a dim "⏱ off" you can tap to re-enable.
   const ck = $("pp4Clock");
@@ -427,8 +433,8 @@ function flipArmed(el, onClick){
   let veil = $("pp4Veil");
   if (!veil){
     veil = document.createElement("div"); veil.id = "pp4Veil";
-    veil.innerHTML = `<div class="pp4CerTop">CALL IN THE AIR…</div>
-      <div id="pp4CerSlot"></div>
+    // playtest 15 item 5: no "CALL IN THE AIR…" header — the coin and the stakes say it all
+    veil.innerHTML = `<div id="pp4CerSlot"></div>
       <div class="pp4CerSub">Tap the coin, captain — let fate decide.</div>`;
     document.body.appendChild(veil);
     veil.addEventListener("pointerdown", ev => {
@@ -570,11 +576,12 @@ function buildStage(){
 function menuButtons(ap){
   if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input,select")) return null;
   const btns = [...ap.querySelectorAll(".apBtn")];
-  if (btns.length < 1 || btns.length > 5) return null;
+  // playtest 15: up to EIGHT circles — the trade's what-do-ye-WANT step (7 crates) fans too;
+  // the open-side fan wraps to a second arc row past four, so big menus stay one tight group
+  if (btns.length < 1 || btns.length > 8) return null;
   if (!btns.every(b => b._shortHtml != null || b.textContent.trim().length <= 16)) return null;
   return btns;
 }
-const RAD_ANGLES = { 1: [115], 2: [150, 30], 3: [165, 90, 15], 4: [-135, -45, 135, 45], 5: [-135, -45, 180, 0, 90] };
 function promptTick(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
@@ -670,7 +677,7 @@ function promptTick(){
     if (bub && msg && plain(bub.textContent) === plain(msg.textContent) && S.hurry) S.hurry();
     // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
     // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
-    const radKey = [menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
+    const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
       cellRects.length, innerWidth, menu.map(b => b.textContent.length).join(",")].join("|");
     if (radKey === S.radKey) return;
     S.radKey = radKey;
@@ -678,11 +685,21 @@ function promptTick(){
     if (msg){
       const mw = Math.min(msg.offsetWidth || 200, innerWidth - 20);
       msg.style.position = "fixed";
-      msg.style.left = Math.min(Math.max(sx - mw / 2, 10), innerWidth - mw - 10) + "px";
-      // during a sail prompt the pill dodges the whole sail window: above it if there's room
-      // under the ribbon, else just below it
-      let mTop = Math.max(tSafe - 34, sy - R - 96);
-      if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : Math.min(cb.b + 8, capT - 44); }
+      // playtest 15 (Wyatt: "over the course of a single turn, it doesn't move around"): the
+      // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
+      // same turn reuses it — only the width re-clamps so a longer ask stays on screen.
+      let cxA, mTop;
+      if (S.pillLock && S.pillLock.key === S.turnSerial){
+        cxA = S.pillLock.cx; mTop = S.pillLock.top;
+      } else {
+        cxA = sx;
+        mTop = Math.max(tSafe - 34, sy - R - 96);
+        // a sail prompt's pill dodges the whole sail window: above it if there's room under
+        // the ribbon, else just below it
+        if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : Math.min(cb.b + 8, capT - 44); }
+        S.pillLock = { key: S.turnSerial, cx: cxA, top: mTop };
+      }
+      msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), innerWidth - mw - 10) + "px";
       msg.style.top = mTop + "px";
       pillB = msg.getBoundingClientRect();
       // the back option, when present, is a small circle on the pill's shoulder
@@ -695,56 +712,57 @@ function promptTick(){
       const sub = ap.querySelector(".apSub");
       if (sub){
         const sw = Math.min(sub.offsetWidth || 200, innerWidth - 20);
-        sub.style.left = Math.min(Math.max(sx - sw / 2, 10), innerWidth - sw - 10) + "px";
+        sub.style.left = Math.min(Math.max(cxA - sw / 2, 10), innerWidth - sw - 10) + "px";
         sub.style.top = (pillB.bottom + 6) + "px";
       }
     }
-    const angles = RAD_ANGLES[menu.length] || RAD_ANGLES[4];
-    // Wyatt (edge-of-board playtest): "define the logic to show each button in whatever space is
-    // available." The old way clamped each bloom angle to the viewport and then nudged one axis —
-    // with the ship hugging an edge, several circles clamped into the same corner and STACKED.
-    // Now each button takes the free spot NEAREST its ideal bloom position: widening angle sweeps
-    // at growing radii, rejecting any spot that leaves the safe area or lands on the ship, the
-    // ask pill, or an already-placed button — so the bloom re-shapes itself around whatever
-    // space the edge leaves open instead of piling up against it.
+    // ---- playtest 15, ONE placement rule (Wyatt's pick): a TIGHT FAN on the open side ----
+    // Find the most open direction from the boat (clear of screen edges, the captains box, the
+    // pill and every sail square), then lay ALL the buttons along snug arc rows centred on it —
+    // circles nearly touching, wrapping to a second row past four. A cornered boat fans toward
+    // whatever water is open; the group stays together instead of scattering.
     const xMin = 8, xMax = innerWidth - D - 8, yMin = tSafe, yMax = capT - D - 8;
-    const pillBox = pillB;
     const hitRect = (bx, by, r, m) =>
       bx < r.right + m && bx + D > r.left - m && by < r.bottom + m && by + D > r.top - m;
+    const obstacles = cellRects.slice();
+    if (pillB) obstacles.push(pillB);
+    const inBounds = (bx, by) => bx >= xMin && bx <= xMax && by >= yMin && by <= yMax;
     const clash = (bx, by) =>
       placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + 4) ||
-      Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 30 ||
-      (pillBox && hitRect(bx, by, pillBox, 4)) ||
-      cellRects.some(r => hitRect(bx, by, r, 2));
-    menu.forEach((b, i) => {
-      const a0 = angles[i] ?? 90;
-      let bx = null, by = null;
-      search:
-      for (const r of [R, R + 48, R + 96]){
-        for (const off of [0, -20, 20, -40, 40, -60, 60, -85, 85, -110, 110, -140, 140, 180]){
-          const a = (a0 + off) * Math.PI / 180;
-          const cx = sx + r * Math.cos(a) - D / 2, cy = sy + r * Math.sin(a) - D / 2;
-          if (cx < xMin || cx > xMax || cy < yMin || cy > yMax) continue;
-          if (clash(cx, cy)) continue;
-          bx = cx; by = cy; break search;
-        }
+      Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 26 ||
+      obstacles.some(r => hitRect(bx, by, r, 2));
+    // the most open heading: how far can a circle travel from the boat before hitting anything?
+    let bestA = Math.PI / 2, bestScore = -1;
+    for (let k = 0; k < 16; k++){
+      const a = k * Math.PI / 8;
+      let reach = 0;
+      for (let r = R; r <= R + 150; r += 15){
+        const cx = sx + r * Math.cos(a) - D / 2, cy = sy + r * Math.sin(a) - D / 2;
+        if (!inBounds(cx, cy) || obstacles.some(rc => hitRect(cx, cy, rc, 2))) break;
+        reach = r;
       }
-      if (bx == null){
-        // nothing free near the bloom — take the first open spot anywhere in the safe area
-        scan:
-        for (let cy = yMin; cy <= yMax; cy += D * 0.55){
-          for (let cx = xMin; cx <= xMax; cx += D * 0.55){
-            if (!clash(cx, cy)){ bx = cx; by = cy; break scan; }
-          }
-        }
+      if (reach > bestScore){ bestScore = reach; bestA = a; }
+    }
+    // slot list: two arc rows centred on the open heading, ordered centre-out — buttons take
+    // slots in order, so however many there are (1-8) they pack as one tight group
+    const slots = [];
+    for (const r of [R, R + D + 8]){
+      const step = 2 * Math.asin(Math.min(1, (D / 2 + 4) / r));
+      for (const m of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5]){
+        const a = bestA + m * step;
+        slots.push([sx + r * Math.cos(a) - D / 2, sy + r * Math.sin(a) - D / 2]);
       }
-      if (bx == null){
-        // no free space at all (tiny viewport): clamp to the safe corner rather than vanish
-        bx = Math.min(Math.max(sx - D / 2, xMin), xMax);
-        by = Math.min(Math.max(sy - D / 2, yMin), Math.max(yMin, yMax));
+    }
+    menu.forEach(b => {
+      let spot = slots.find(([cx, cy]) => inBounds(cx, cy) && !clash(cx, cy));
+      if (!spot){
+        // cornered beyond hope (tiny viewport): the group docks as a strip above the captains
+        const n = placed.length;
+        spot = [Math.min(Math.max(sx - D / 2 + (n - (menu.length - 1) / 2) * (D + 6), xMin), xMax),
+                Math.max(yMin, capT - D - 10)];
       }
-      placed.push([bx, by]);
-      b.style.position = "fixed"; b.style.left = bx + "px"; b.style.top = by + "px";
+      placed.push(spot);
+      b.style.position = "fixed"; b.style.left = spot[0] + "px"; b.style.top = spot[1] + "px";
     });
     return;
   }
@@ -838,7 +856,9 @@ export function initStage(){
       const cp = cellPx(); const cx = (pa.pos[0] + pd.pos[0]) / 2, cy = (pa.pos[1] + pd.pos[1]) / 2;
       camToCell([cx, cy], 2.0); },
     flip: flipArmed,
-    actor: seat => { S.activeSeat = seat; },
+    // turnSerial: bumps whenever the wheel changes hands — the pill-lock and placement memo key
+    // on it, so a NEW turn re-anchors the ask pill and an ongoing one never moves it (playtest 15)
+    actor: seat => { if (S.activeSeat !== seat) S.turnSerial = (S.turnSerial || 0) + 1; S.activeSeat = seat; },
     // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
     // narration that follows glides the camera back down to the ship at its whirlpool
     sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
