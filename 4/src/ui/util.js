@@ -709,6 +709,20 @@ const EVENT_NARRATION={
     else if(dAddr)mainClause=`⚔️ ${pn(e.d)} — ye ${winIsA?"lose":"win"} ${aP}–${dP}.`;
     else mainClause=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}.`;
     const viewerIsWinner=isLocalTo(e.winner,viewerSeat),viewerIsLoser=isLocalTo(loser,viewerSeat);
+    // playtest 20 (Mando: "There's a bug in the battles - we both rolled heads but he still took
+    // something from me"). It was not a bug — rule 9 gives a two-heads tie to the DOWNWIND ship —
+    // but nothing on the durable line ever said so, and both cannons land heads in ~25% of fights,
+    // so roughly ONE BATTLE IN FOUR ended with no stated reason. Wyatt, 2026-08-13, on where to
+    // explain it: after the battle (this), plus a badge on the battle card and a line in the flip
+    // ceremony. The loser's wording below is his approved copy verbatim; the winner-addressed and
+    // neutral forms are the mechanical person-swap of it, same as D-54 did for the base line.
+    //
+    // The DECIDING round is the last one that scored — a crosswind tie can re-fire, so earlier
+    // rounds may have no scorer at all. `downwind` rides the event (src/orchestrator.js).
+    const decidedRound=e.rounds&&e.rounds.filter(r=>r&&r[3]).pop();
+    const wonOnWind=!!(e.downwind&&decidedRound&&decidedRound[0]===1&&decidedRound[1]===1&&decidedRound[3]===e.downwind);
+    const windHeadThird=`⚔️ Both cannons land — but ${pn(e.winner)} fires downwind, and the wind carries the shot home.`;
+    const windHeadYe=`⚔️ Both cannons land — but ye're firin' downwind, and the wind carries the shot home.`;
     let spoilClause;
     // G3: every ${e.spoil} below became ${spoilText}. Not one sentence, clause order or word
     // changed — the only difference is how the spoil AMOUNT is spelled.
@@ -732,14 +746,23 @@ const EVENT_NARRATION={
     let txt;
     if(viewerIsLoser){
       const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
-      if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
+      if(wonOnWind){
+        // his approved line: "Both cannons land — but X fires downwind, and the wind carries the
+        // shot home. X takes yer cocoa." The spoil is a SECOND sentence here, not the em-dash
+        // continuation the score-led head uses, because the head already ends in a full stop.
+        if(e.spoilIng)txt=`${windHeadThird} ${pn(e.winner)} takes yer ${spoilText}.`;
+        else if(isBribe)txt=`${windHeadThird} Ye bribe yer way out of givin' away a crate with ${spoilText}.`;
+        else if(isEmptyHoldFive)txt=`${windHeadThird} Ye give up ${spoilText}.`;
+        else txt=`${windHeadThird} Ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
+      }
+      else if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
       else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${spoilText}.`;
       // FIX-07: mechanical person-swap of the ruled "Ye give up {spoil}." line into this composite's
       // own em-dash-continuation shape, matching the pattern the bribe/all-they-have branches above
       // already use in this same chain.
       else if(isEmptyHoldFive)txt=`${head} — ye give up ${spoilText}.`;
       else txt=`${head} — ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
-    }else txt=`${mainClause} ${spoilClause}`;
+    }else txt=`${wonOnWind?(viewerIsWinner?windHeadYe:windHeadThird):mainClause} ${spoilClause}`;
     return {cls:"battle",
       txt,
       caps:[[e.winner,`⚔️ wins! +${spoilText}`],[loser,"⚔️ loses 💸"]], // G3: the winner caption too

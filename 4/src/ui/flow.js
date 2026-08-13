@@ -993,24 +993,47 @@ export async function humanTrade(p){
     if(q.strategy==="human"){
       setActor(q.idx);
       // @copy prompt.trade.accept
-      const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
-        {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
-        {label:"💰 Name yer price",value:"counter"},
-        {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}]);
-      // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here is
-      // Accept. Without this guard a captain who merely ran out of time is recorded as agreeing.
-      if(appState.turnExpired)return false;
-      if(v==="counter"){
-        const room=Math.max(0,p.coins-offer.giveCoins);
-        if(room<1){responses.push({q,kind:"deny",why:"toodear"});continue;}
-        // @copy prompt.trade.counter
-        const a=await coinStepper(
-          k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
-          1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
-        if(a==null)return false;
-        if(a==="deny"||a==="__back__")responses.push({q,kind:"deny",why:"chose"});
-        else responses.push({q,kind:"counter",askFor:a});
-      }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
+      // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
+      // the trade and moved on"). TWO separate ways that happened, both fixed here:
+      //
+      //   1. A counter is "+k coins on top of the offer", so it needs the offerer to have coins
+      //      LEFT OVER. When they did not, tapping "Name yer price" was recorded as a DENIAL, with
+      //      no prompt and no word to the captain who tapped it — from their seat the game simply
+      //      moved on. The option is now greyed with the reason said out loud (Wyatt's pick), the
+      //      same way the game already greys crates nobody is carrying, so it can never be a silent
+      //      no again.
+      //   2. "← Back" out of the coin stepper was ALSO recorded as a denial. Everywhere else in
+      //      this flow Back steps BACK (see humanTrade's `step=0`/`step=1` above) — one gesture,
+      //      two meanings, which is the consistency rule this project keeps. Back now returns to
+      //      this prompt, and only "✗ Deny" denies.
+      //
+      // `room` is what the offerer has spare AFTER the coins already in the offer.
+      const room=Math.max(0,p.coins-offer.giveCoins);
+      let answered=false;
+      while(!answered){
+        if(appState.turnExpired)return false;
+        const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
+          {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
+          {label:"💰 Name yer price",value:"counter",disabled:room<1},
+          {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
+          // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
+          room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
+        // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
+        // is Accept. Without this guard a captain who merely ran out of time is recorded as
+        // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
+        if(appState.turnExpired)return false;
+        if(v==="counter"){
+          // @copy prompt.trade.counter
+          const a=await coinStepper(
+            k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
+            1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
+          if(a==null)return false;                 // shot clock expired mid-stepper
+          if(a==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
+          if(a==="deny")responses.push({q,kind:"deny",why:"chose"});
+          else responses.push({q,kind:"counter",askFor:a});
+        }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
+        answered=true;
+      }
     }else{
       responses.push(g.respondToOffer(q,offer,p));
     }
@@ -1307,23 +1330,47 @@ export async function botOpenTradeLive(p){
     if(q.strategy==="human"){
       setActor(q.idx);
       // @copy prompt.trade.accept
-      const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
-        {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
-        {label:"💰 Name yer price",value:"counter"},
-        {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}]);
-      // CR-02 layer 1: a forced default on shot-clock expiry must never read as agreement.
-      if(appState.turnExpired)return false;
-      if(v==="counter"){
-        const room=Math.max(0,p.coins-offer.giveCoins);
-        if(room<1){responses.push({q,kind:"deny",why:"toodear"});continue;}
-        // @copy prompt.trade.counter
-        const a=await coinStepper(
-          k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
-          1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
-        if(a==null)return false;
-        if(a==="deny"||a==="__back__")responses.push({q,kind:"deny",why:"chose"});
-        else responses.push({q,kind:"counter",askFor:a});
-      }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
+      // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
+      // the trade and moved on"). TWO separate ways that happened, both fixed here:
+      //
+      //   1. A counter is "+k coins on top of the offer", so it needs the offerer to have coins
+      //      LEFT OVER. When they did not, tapping "Name yer price" was recorded as a DENIAL, with
+      //      no prompt and no word to the captain who tapped it — from their seat the game simply
+      //      moved on. The option is now greyed with the reason said out loud (Wyatt's pick), the
+      //      same way the game already greys crates nobody is carrying, so it can never be a silent
+      //      no again.
+      //   2. "← Back" out of the coin stepper was ALSO recorded as a denial. Everywhere else in
+      //      this flow Back steps BACK (see humanTrade's `step=0`/`step=1` above) — one gesture,
+      //      two meanings, which is the consistency rule this project keeps. Back now returns to
+      //      this prompt, and only "✗ Deny" denies.
+      //
+      // `room` is what the offerer has spare AFTER the coins already in the offer.
+      const room=Math.max(0,p.coins-offer.giveCoins);
+      let answered=false;
+      while(!answered){
+        if(appState.turnExpired)return false;
+        const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
+          {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
+          {label:"💰 Name yer price",value:"counter",disabled:room<1},
+          {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
+          // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
+          room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
+        // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
+        // is Accept. Without this guard a captain who merely ran out of time is recorded as
+        // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
+        if(appState.turnExpired)return false;
+        if(v==="counter"){
+          // @copy prompt.trade.counter
+          const a=await coinStepper(
+            k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
+            1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
+          if(a==null)return false;                 // shot clock expired mid-stepper
+          if(a==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
+          if(a==="deny")responses.push({q,kind:"deny",why:"chose"});
+          else responses.push({q,kind:"counter",askFor:a});
+        }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
+        answered=true;
+      }
     }else responses.push(g.respondToOffer(q,offer,p));
   }
   setActor(p.idx);

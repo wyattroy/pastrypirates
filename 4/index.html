@@ -496,6 +496,16 @@
   .btl-col.live { background: #fff; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,166,35,.18); }
   .btl-col .who { font-weight: 800; font-size: 14px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .btl-col .role { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .5; margin-bottom: 7px; }
+  /* playtest 20: the wind, on the card, before a coin is tapped. A two-heads tie goes to the
+     downwind ship (rule 9) and ~25% of fights are decided that way, so the edge is named where
+     the fight is watched rather than only in the line that follows it. The downwind side is the
+     only one dressed loudly — an upwind or crosswind tag that shouted as loud would make the card
+     read as two competing claims instead of one advantage. */
+  .btl-col .windTag { font-size: 9px; font-weight: 800; letter-spacing: .6px; border-radius: 999px;
+    padding: 2px 7px; margin: -3px auto 7px; width: max-content; max-width: 100%; line-height: 1.35; }
+  .btl-col .windTag.dw { background: #f5a623; color: #3a2600; border: 1px solid #c9821a; }
+  .btl-col .windTag.up { background: rgba(31,66,73,.10); color: #1f4249; opacity: .65; }
+  .btl-col .windTag.cross { background: rgba(31,66,73,.10); color: #1f4249; opacity: .65; }
   .btl-mid { align-self: center; font-weight: 800; font-size: 12px; opacity: .35; padding-top: 30px; }
   .coin { width: 74px; height: 74px; margin: 0 auto 9px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 13px; letter-spacing: .5px; border: 3px solid; position: relative; }

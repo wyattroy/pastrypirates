@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-13c";
+const PP4_STAMP = "2026-08-13d";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -491,6 +491,28 @@ function flipArmed(el, onClick){
     let st = v2.querySelector(".pp4CerStakes");
     if (!st){ st = document.createElement("div"); st.className = "pp4CerStakes"; v2.insertBefore(st, v2.querySelector(".pp4CerSub")); }
     st.innerHTML = fm ? emojify(String(fm.s)) : "";
+    // playtest 20: a BATTLE flip borrows no words — the fight is drawn by renderBattle, not by
+    // localAsk — so the ceremony used to take the whole screen saying nothing about the one rule
+    // that settles a quarter of all fights. Read straight off the battle card's own wind badge
+    // rather than re-deriving the geometry, so the card and the ceremony can never disagree about
+    // who holds the wind. Built with DOM nodes, not innerHTML: the captain's name is player-typed.
+    const btl = document.querySelector("#actionPanel .btl");
+    if (!fm && btl){
+      const dwTag = btl.querySelector(".windTag.dw");
+      const who = dwTag && dwTag.parentElement ? dwTag.parentElement.querySelector(".who") : null;
+      t.textContent = "⚔️ Broadside!";
+      st.textContent = "";
+      if (who){
+        const b = document.createElement("b");
+        b.textContent = who.textContent.trim();
+        b.style.color = who.style.color || "";      // the captain's own boat colour, as everywhere else
+        st.appendChild(b);
+        // @copy misc.ceremony.windstakes — DRAFT, Wyatt rewrites
+        st.appendChild(document.createTextNode(" is firin' downwind — two heads and the tie is theirs."));
+      } else {
+        st.textContent = "Crosswind — two heads and the cannonballs collide.";
+      }
+    }
   });
   return true;
 }
