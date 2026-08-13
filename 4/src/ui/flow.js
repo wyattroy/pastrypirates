@@ -51,6 +51,7 @@ import {
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
+  buildRoster,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
@@ -1653,7 +1654,7 @@ export function startSinglePlayer(){
   const strategies=["human"];
   for(let i=1;i<=opp;i++)strategies.push(seatStrat(i)); // BOT-02: temperament follows the captain
   appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
-  appState.roster=strategies.map((s,i)=>i===0?{name,id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.roster=buildRoster([name],strategies);   // playtest 19: bots get a collision-free name
   const seed=Math.floor(Math.random()*1e9);
   // seaBase: where this device left off in the fifty sea creatures. Captured ONCE, here, and
   // carried in soloMeta so the solo save replays the same sightings it showed live.
@@ -1669,7 +1670,7 @@ export function startPassAndPlay(names){
   const strategies=names.map(()=>"human");
   for(let i=names.length;i<4;i++)strategies.push(seatStrat(i)); // BOT-02
   appState.numSeats=strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;appState.passAndPlay=true;
-  appState.roster=strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.roster=buildRoster(names,strategies);   // playtest 19: bots get a collision-free name
   const seed=Math.floor(Math.random()*1e9);
   const cfg=roundCfg(strategies);
   appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();pingStart(names.length,"pass");

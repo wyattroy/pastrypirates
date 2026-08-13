@@ -638,6 +638,14 @@ export function panel(html,needsAction=false){
     appState.clockPendingArm=null;appState.clockPendingText="";
     setTimeout(()=>armClock(fn()),estimateRevealMs(text));
   }
+  // playtest 19: LAY THE NEW PROMPT OUT IN THE FRAME IT WAS BUILT. The /4 stage styles and places
+  // every prompt from its own tick loop, which drops to an 8Hz heartbeat when nothing is moving —
+  // so a freshly built prompt could sit up to ~125ms in its unstyled default before the stage
+  // reached it. Measured on the recipe chooser: the cards painted at 110px wide, then jumped to
+  // 163.5px once .pp4Recipes landed. Called here, at panel()'s single chokepoint, so EVERY prompt
+  // style gets the same treatment rather than the recipe sheet alone — the same reasoning that put
+  // the bake-off's stageCenterNow() before its panel build. No-op off the stage.
+  try{ if(window.__pp4&&window.__pp4.syncPrompt)window.__pp4.syncPrompt(); }catch(e){}
 }
 // FIX-03 (18-01 Task 1): the live prompt's own reveal-completion promise, exported so a later
 // caller (18-05's armClock chain) has exactly one seam to hook rather than re-deriving this

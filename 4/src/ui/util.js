@@ -47,7 +47,7 @@ import {
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, FLAME_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG, EYES_IMG,
-  SEA_CREATURES,
+  SEA_CREATURES, buildRoster,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
 // 11-07 (bridge deletion fix): util.js is a common dependency of src/ui/board.js, panel.js,
@@ -245,14 +245,24 @@ export function shipXY(pos,i,state,cellPx){
 export function pname(i){
   const s=(appState.roster&&appState.roster[i])||{};
   const fallback=NAMES[i].replace("Capt. ","");
-  return s.id?(escHtml((s.name||"").trim())||fallback):fallback;
+  const nm=(s.name||"").trim();
+  // playtest 19: a BOT carries no id, so this used to hand it the SEAT-INDEXED default — which is
+  // how a human who typed "Dough Hook" ended up sitting opposite a bot of the same name. Bots are
+  // now named once, collision-free, at roster build (buildRoster, src/shared/index.js), and that
+  // assigned name is authoritative. The id gate still governs NETWORKED seats, where an unclaimed
+  // seat must show its default rather than a name left behind by whoever sat there last.
+  if(!s.id&&s.bot&&nm)return escHtml(nm);
+  return s.id?(escHtml(nm)||fallback):fallback;
 }
 // plain (unescaped) display name for a seat — the same source pname() renders, minus the HTML
 // escaping. Used by writeGameLog so every finished game records who was playing, including
 // solo/local games (which have no rooms/{code}/seats node to cross-reference names from).
 export function rawName(i){
   const s=(appState.roster&&appState.roster[i])||{};
-  return (s.id?(s.name||"").trim():"")||NAMES[i].replace("Capt. ","");
+  const nm=(s.name||"").trim();
+  // same rule as pname() above — the game log must record the crew the player actually saw
+  if(!s.id&&s.bot&&nm)return nm;
+  return (s.id?nm:"")||NAMES[i].replace("Capt. ","");
 }
 export function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
 // possessive form for narration addressed to spectators of someone else's turn, e.g. "Davy Scones' turn"
@@ -1637,7 +1647,8 @@ export function resumeSoloGame(saved){
   appState.numSeats=saved.strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
   appState.passAndPlay=!!saved.passAndPlay;
   const names=saved.names||[saved.name]; // old solo saves only ever had one human, at seat 0
-  appState.roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
+  appState.roster=buildRoster(names,saved.strategies);   // playtest 19: SAME rule as the fresh
+  // start above, or a resumed voyage would rename the bots mid-game
   // seaBase rides along so the replay narrates the SAME creatures the live voyage did; a save from
   // before this existed has none, and 0 is exactly the behaviour it had.
   const seaBase=saved.seaBase||0;

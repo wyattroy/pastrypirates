@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-13b";
+const PP4_STAMP = "2026-08-13c";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -939,6 +939,16 @@ function promptTick(){
 // tween, live pinch/pan, a bubble riding a ship), and an 8Hz heartbeat otherwise. wake() snaps
 // back to the fast gear the instant motion starts, so nothing ever glides at 8fps.
 let fc = 0;
+// activate once a solo game is actually on screen. Extracted from tick() so syncPrompt() can run
+// the SAME check synchronously: the stage was only ever built on the tick loop's own beat, so the
+// very first prompt of a voyage could render before body.pp4Stage existed at all — and then no
+// amount of laying it out helps, because every stage rule is scoped to that class. That is what
+// left the recipe cards at 306px (unstyled flex) for the first frames of the chooser.
+function maybeBuildStage(){
+  if (S.active) return;
+  const gameEl = $("game");
+  if (gameEl && getComputedStyle(gameEl).display !== "none" && appState.game && !appState.room) buildStage();
+}
 function needFast(){ return !!(S.tween || S.bubPlace || ptrs.size > 0); }
 export function wake(){
   if (S.slow){ clearTimeout(S.raf); S.slow = false; S.raf = requestAnimationFrame(tick); }
@@ -952,13 +962,7 @@ function tick(){
     if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
     promptTick();
   }
-  else if (S.slow || fc % 6 === 0){
-    // activate once a solo game is actually on screen
-    const gameEl = $("game");
-    if (gameEl && getComputedStyle(gameEl).display !== "none" && appState.game && !appState.room){
-      buildStage();
-    }
-  }
+  else if (S.slow || fc % 6 === 0) maybeBuildStage();
   if (needFast()){ S.slow = false; S.raf = requestAnimationFrame(tick); }
   else { S.slow = true; S.raf = setTimeout(tick, 125); }
 }
@@ -988,6 +992,12 @@ export function initStage(){
     // height measurement runs under centre CSS rather than the outgoing radial prompt's (see
     // enterCenterStage's own note for the clipped-to-nothing failure this prevents)
     stageCenterNow: () => { if (S.active) enterCenterStage(); },
+    // playtest 19: panel() calls this at the end of every prompt render, so a new prompt is styled
+    // and placed in the SAME frame it was built instead of waiting for the next tick — which, in
+    // the slow gear, is up to 125ms away. That window is what made the recipe cards flash at 110px
+    // before settling to 163.5px. promptTick is idempotent and already runs every frame, so this
+    // is the same work a beat earlier, not extra work.
+    syncPrompt: () => { maybeBuildStage(); if (S.active) promptTick(); },
   };
   recipeGuard();
   // playtest 18: Pass & Play sails again — the refit note comes off and the card is live.
