@@ -141,6 +141,54 @@ Ladder after the change, 400 games per row, mean edge (2v2+3v1): **+10.3** on th
 run because that middle number sagged — three families, twelve rows, every row positive. The
 +2.6 reads as the low draw of the noise, not a cost of the fix.
 
+## The trade winds (added 2026-08-13, on /4)
+
+Wyatt, pushing back on a conclusion this project had reached twice and got wrong both times:
+
+> *"The rim often seems to help me, when i use it intelligently as part of my route planning — i
+> regularly use it to plan my route along the board and opportunistically sail against the wind.
+> Am i doing something wrong, or are your bots not optimizing their routes effectively?"*
+
+He was right and the bots were not. §4 above says the fields treat the rim as "never a staging
+post", which is the rule — but the brain had no way to express **the rim as a DESTINATION**, so a
+ride was not merely under-valued, it was unrepresentable. Bots only ever touched the current by
+`rimEscape()`, the boxed-in last resort.
+
+The fix is one sentence of movement model: **touching the current is a legal one-turn move whose
+ARRIVAL is that quadrant's head.** Three places had to learn it and nothing else changed:
+
+- `windReach3` now mirrors `sailStates` exactly — the rim is a square you may FINISH on, never one
+  you may sail through.
+- `turnsFieldTo3` records a distance only for squares a ship can BE on (open water, plus the four
+  heads), and flows one further turn out from a head to every square that can touch that quadrant's
+  channel. That is the ride, priced as the one turn it is.
+- `planTurnV3` offers each reachable head as an ordinary candidate, remembering the entry square as
+  `plan.via`; `sailPlan(p,plan)` became the single movement entry point both turn paths call.
+
+No new constant, no rule, nothing rescaled — the existing P(win) objective weighs a ride against
+every other route by the same arithmetic, which is the whole reason it could be added this cheaply.
+
+**Proved before the ladder was believed.** `turnsFieldTo3` was rebuilt FORWARDS, per source, with
+its own hand-written one-turn reach — nothing shared with the engine's reverse flood but the board
+and the rules — and compared on every water square: **8,316 square/wind/destination comparisons, 0
+disagreements.** Red-proofed by disabling the sweep in the forward copy only: **1,222
+disagreements, every one the engine a turn faster.** So the check can fail, and the ride genuinely
+shortens ~15% of routes by a full turn.
+
+**Ladder** (`scripts/bot_ladder4.js`, 400 games per row, same seeds either side of the edit — the
+control arm is `planTurnClassic`, which touches none of the v3-only machinery and so cannot move):
+
+| family | before | after |
+|---|---|---|
+| ×7919 (dev) | +9.8 | **+12.4** |
+| ×104729 (held out) | +8.8 | **+11.3** |
+
+Both controls came back byte-identical (98/87/110/105 and 124/79/96/101), which is what makes the
+delta attributable. Seven of the eight rows improved; the eighth (1-vs-3 seat 0 on ×104729) landed
+on the same win count, and its mean voyage still moved 17.1 → 16.9 rounds — the games differed, the
+scoreboard happened to tie. Voyages shortened on every other row too (16.4 → 15.8, 16.6 → 16.0,
+16.5 → 15.3): the overarching principle again, showing up as the game ending sooner.
+
 ## Determinism and information
 
 The whole evaluation path reads state and returns: no `this.r()` draws, no events, mutate-and-

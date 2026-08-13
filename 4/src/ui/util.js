@@ -577,12 +577,23 @@ const EVENT_NARRATION={
     const bought=(e.got==="bought");
     // black-market buys and the purchase that empties a shelf each get their clause — the dry
     // notice is how the whole table learns a shelf ran out (draft copy, Wyatt rewrites)
+    // THE BLACK MARKET'S TWO PRICES read as two different sentences, because they are two
+    // different bargains: coin buys the crate, but a barter SPENDS two crates the whole table can
+    // see leave the hold — and they leave the game with them, so the line has to name them.
+    const barter=bought&&e.paidIng&&e.paidIng.length===2;
+    // paying with two of the SAME crate is legal and common (a hold of junk duplicates is exactly
+    // what the barter is for), and "trades Cacao Pods an' Cacao Pods" reads like a stutter
+    const gave=barter
+      ?(e.paidIng[0]===e.paidIng[1]?`two ${fmtItem(e.paidIng[0])}`:e.paidIng.map(fmtItem).join(" an' "))
+      :``;
     const buyTail=bought
-      ?(e.black?` — then pays the black market ${paid}🌕 for ${goods} under cover o' dark.`
+      ?(barter?` — then trades ${gave} to the black market for ${goods}, under cover o' dark.`
+        :e.black?` — then pays the black market ${paid}🌕 for ${goods} under cover o' dark.`
         :` — then buys ${goods} for ${paid}🌕.`+(e.wentDry?` That were the last crate — the shelves be bare!`:``))
       :``;
     const buyTailYou=bought
-      ?(e.black?` — then ye pay the black market ${paid}🌕 for ${goods} under cover o' dark.`
+      ?(barter?` — then ye trade ${gave} to the black market for ${goods}, under cover o' dark.`
+        :e.black?` — then ye pay the black market ${paid}🌕 for ${goods} under cover o' dark.`
         :` — then ye buy ${goods} for ${paid}🌕.`+(e.wentDry?` Ye took the last crate — the shelves be bare!`:``))
       :``;
     const txt=isLocalTo(e.p,viewerSeat)
@@ -592,7 +603,8 @@ const EVENT_NARRATION={
       :(e.heads
         ?`⚪ HEADS! ${pn(e.p)} digs deep at ${place} and strikes buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTail}`
         :`⚫ TAILS — ${pn(e.p)} spends the turn haulin' crates at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTail}`);
-    const cap=(e.heads?`⚪H 💰+${heads}🌕`:`⚫T +${tails}🌕`)+(bought?` · buys ${ING_EMOJI[e.ing]} −${paid}🌕`:``);
+    const cap=(e.heads?`⚪H 💰+${heads}🌕`:`⚫T +${tails}🌕`)+
+      (bought?(barter?` · ${e.paidIng.map(x=>ING_EMOJI[x]||"📦").join("")} → ${ING_EMOJI[e.ing]}`:` · buys ${ING_EMOJI[e.ing]} −${paid}🌕`):``);
     return {txt,caps:[[e.p,cap]],
       pops:[[at(e.p),bought?ING_EMOJI[e.ing]:"🌕",false,bought?ING_IMG[e.ing]:null]]};
   },

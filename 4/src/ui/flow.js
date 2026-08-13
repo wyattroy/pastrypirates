@@ -904,6 +904,43 @@ export async function runStormLive(dirKey){
   }
   liveRender();
 }
+// How a hold reads on a button: the crate, and how many of it are aboard. The count is load-
+// bearing wherever duplicates can be SPENT (the black market takes any two, same crate twice
+// included), and harmless everywhere else — so both pickers show it and neither has to be
+// remembered as the special one.
+function crateOpt(list,i){
+  const n=list.filter(x=>x===i).length;
+  return {label:`${ilabelImg(i)}${n>1?` <span class="nobrk">×${n}</span>`:``}`,short:iconImg(ING_IMG[i]),value:i};
+}
+/* WHICH two crates the black market takes — the captain's choice, and the human twin of
+   Game.blackMarketPick's for a bot. Two steps, Back at each, and nothing settles until the last
+   tap: Back at step one returns to the buy prompt with the hold untouched, Back at step two
+   re-picks the first crate. Returns [a,b], or null if the captain walked away.
+   Duplicates are legal, which is exactly why the buttons carry their counts. */
+async function pickBarterCrates(p,ing){
+  let first=null;
+  for(;;){
+    const pool=p.ing.slice();
+    if(first!==null){const at=pool.indexOf(first);if(at>=0)pool.splice(at,1);}
+    const opts=[...new Set(pool)].map(i=>crateOpt(pool,i));
+    opts.push({label:"← Back",back:true,value:"__back__"});
+    // @copy misc.blackmarket.pick1 / pick2 — draft, Wyatt rewrites
+    const msg=first===null
+      ?`The black market'll take any two crates fer ${dockFlavorIcon(ing)} — what's the first?`
+      :`Givin' ${ilabelImg(first)} an' one more fer ${dockFlavorIcon(ing)} — what's the second?`;
+    const sub=first===null
+      ?`Both crates leave the Sugar Seas fer good.`
+      :`Tap it an' the bargain's struck — both crates leave the Sugar Seas fer good.`;
+    const v=await ask(msg,opts,null,sub);
+    if(appState.turnExpired)return null;
+    if(v==="__back__"||v==null){
+      if(first===null)return null;
+      first=null;continue;
+    }
+    if(first===null){first=v;continue;}
+    return [first,v];
+  }
+}
 /* v2 rules 10 + 11: dock, then buy.
    The flip is a TREASURE HUNT, not a grab for the crate: heads you turn up buried treasure
    (cfg.dockHeads), tails you spend the turn working the dock as a hand (cfg.dockTails). There is no free crate any
@@ -941,28 +978,59 @@ export async function humanDock(p,port){
   liveRender(); // the purse changed — show it before the buy prompt prices anything against it
   let buy=null;
   if(g.cfg.dockBuy&&price!==null){
+    /* THE BLACK MARKET'S SECOND PRICE, on the human side (Wyatt, 2026-08-13): "ye can trade any 2
+       ingredients for the black market ingredient of the island yer docked at — so ye either pay
+       in doubloons or in 2 crates." The engine already settles it (Game.barterCrate); ALL this
+       does is let a captain choose the two, so bot and human can never diverge on the rule — the
+       same warning buyCrate carries above.
+
+       The choice of WHICH two is the whole decision, so it is asked as its own little step
+       machine (the trade flow's pattern, UI-08): Back at step one returns to the buy prompt with
+       nothing spent, Back at step two re-picks the first crate, and nothing settles until the
+       final tap. Duplicates are legal — a hold with two of the same junk crate may spend both. */
     // F9/D-41: the affordability test decides only whether the option is CLICKABLE, never whether
     // it is SHOWN. A captain who cannot afford today's price still learns that buying was possible
     // and what it now costs — which is exactly how the rising-price rule teaches itself.
-    const canBuy=p.coins>=price;
     const left=g.tokens[ing];
     const black=left<1e9&&left<=0;
-    const scarcity=black
+    for(;;){
+      // F9/D-41: the affordability test decides only whether an option is CLICKABLE, never whether
+      // it is SHOWN — re-read every pass, because the shot clock can take a coin while a prompt is
+      // open. That rule is why the barter appears the moment the shelves go bare and greys out
+      // when the hold is short: a captain carrying one crate still learns the swap exists.
+      const canBuy=p.coins>=price;
+      const canBarter=g.canBlackMarket(p,ing);
+      const scarcity=(!black&&left<1e9&&left<=1)?` Last one on the island!`:``;
+      const opts=[
+        {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:"coin",disabled:!canBuy},
+      ];
+      // @copy misc.blackmarket.barterbtn — draft, Wyatt rewrites
+      if(black)opts.push({label:`Trade any 2 crates fer ${ilabelImg(ing)}`,short:`2 crates → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter});
+      opts.push({label:"Nah",value:false});
       // @copy misc.blackmarket.whisper — draft, Wyatt rewrites
-      ?` The shelves be bare… but after dark, anything's fer sale.`
-      :(left<1e9&&left<=1)?` Last one on the island!`:``;
-    const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,[
-      {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:true,disabled:!canBuy},
-      {label:"Nah",value:false}],
-      null,canBuy?(scarcity||null)
-        :black?`The black market wants ${price}🌕 — more than ye carry.`
-        :`The price has risen to ${price}🌕 — more than ye can pay.`);
-    // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
-    // await, and the shot clock's penalty can take a coin while this prompt sits open. One
-    // purchase path with the bots (Game.buyCrate), so the two can never diverge on the rule.
-    if(v){buy=g.buyCrate(p,ing);if(buy)got="bought";}
+      const sub=black
+        ?(canBuy||canBarter
+          ?`The shelves be bare… but after dark, anything's fer sale — ${price}🌕, or any two crates out o' yer hold.`
+          :`The black market wants ${price}🌕 or two crates — ye've neither.`)
+        :canBuy?(scarcity||null)
+        :`The price has risen to ${price}🌕 — more than ye can pay.`;
+      const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
+      if(appState.turnExpired)break;
+      // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
+      // await, and the shot clock's penalty can take a coin while this prompt sits open. One
+      // purchase path with the bots (Game.buyCrate), so the two can never diverge on the rule.
+      if(v==="coin"){buy=g.buyCrate(p,ing);if(buy)got="bought";break;}
+      if(v==="barter"){
+        const give=await pickBarterCrates(p,ing);
+        if(!give)continue;                       // backed out of the picker — offer the berth again
+        buy=g.barterCrate(p,ing,give);if(buy)got="bought";
+        break;
+      }
+      break;                                     // "Nah"
+    }
   }
-  g.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price,
+  g.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
+    paidIng:buy&&buy.paidIng?buy.paidIng:undefined,
     black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
   await narrateLastEvent();
   p.firstFlip.add(ing);p.dockedNow.add(ing);
@@ -1031,7 +1099,7 @@ export async function humanTrade(p){
     }else if(step===1){
       // An offer is a crate, coins, or both — sweeten a crate with a few coins on top.
       const canOfferCoins=p.coins>0;
-      const ingOpts=[...new Set(p.ing)].map(i=>({label:ilabelImg(i),value:i}));
+      const ingOpts=[...new Set(p.ing)].map(i=>crateOpt(p.ing,i));
       ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins});
       ingOpts.push({label:"← Back",back:true,value:"__back__"});
       const offerSub=canOfferCoins?null:`Ye don't have any coin to offer — pick a crate instead.`;
