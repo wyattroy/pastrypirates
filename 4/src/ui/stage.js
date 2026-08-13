@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-13e";
+const PP4_STAMP = "2026-08-13f";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -74,11 +74,13 @@ function camFitSail(){
   const g = appState.game; if (!g) return;
   const me = g.players[appState.mySeat ?? 0]; if (!me) return;
   const cp = cellPx();
-  const cells = [...document.querySelectorAll(".sailCell")].map(r => {
-    const sd = parseFloat(r.getAttribute("width")), px = (sd / 0.9) + 4, ins = (px - sd) / 2;
-    return [Math.round((parseFloat(r.getAttribute("x")) - ins) / px),
-            Math.round((parseFloat(r.getAttribute("y")) - ins) / px)];
-  });
+  // playtest 20: the squares carry their own grid coordinates now (sailHighlightRect writes
+  // data-gx/gy). This used to invert that function's inset arithmetic by hand — a second copy of
+  // the same maths that had to be kept in step with it, and it stopped being possible at all once
+  // the squares became HTML sized in cqw rather than SVG rects with x/width attributes.
+  const cells = [...document.querySelectorAll(".sailCell")]
+    .map(r => [+r.dataset.gx, +r.dataset.gy])
+    .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
   cells.push(me.pos);
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   cells.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
@@ -171,10 +173,18 @@ function camFrame(){
     // the sonar rings are an HTML layer mapped to the full board — compose the camera in as a
     // transform: rendered = scale(640/w) then translate(-v * W/640)
     const rip = $("rippleHost");
-    if (rip){
+    // playtest 20: #sailHost joins the ripples here. Both are HTML layers mapped to the full board,
+    // so both need the same camera composed in — a highlight that did not move with the viewBox
+    // would drift off its own square the moment the director glided.
+    const sh = $("sailHost");
+    if (rip || sh){
       const W = vwPx(), s2 = 640 / c.w;
       const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
-      if (t !== lastRipT){ lastRipT = t; rip.style.transformOrigin = "0 0"; rip.style.transform = t; }
+      if (t !== lastRipT){
+        lastRipT = t;
+        if (rip){ rip.style.transformOrigin = "0 0"; rip.style.transform = t; }
+        if (sh){ sh.style.transformOrigin = "0 0"; sh.style.transform = t; }
+      }
     }
   }
 }
@@ -596,10 +606,9 @@ function sweepGuard(){
     const to = (cell.dataset.sweptTo || "").split(",").map(Number);
     const g = appState.game, svg = svgEl();
     if (!g || !svg || to.length !== 2 || !isFinite(to[0])) return;
-    // the tapped square's own grid cell, recovered the same way camFitSail does
-    const sd = parseFloat(cell.getAttribute("width")), px = (sd / 0.9) + 4, ins = (px - sd) / 2;
-    const fx = Math.round((parseFloat(cell.getAttribute("x")) - ins) / px);
-    const fy = Math.round((parseFloat(cell.getAttribute("y")) - ins) / px);
+    // the tapped square carries its own grid cell (data-gx/gy from sailHighlightRect)
+    const fx = +cell.dataset.gx, fy = +cell.dataset.gy;
+    if (!Number.isFinite(fx) || !Number.isFinite(fy)) return;
     const cp = cellPx();
     const x1 = (fx + 0.5) * cp, y1 = (fy + 0.5) * cp;
     const x2 = (to[0] + 0.5) * cp, y2 = (to[1] + 0.5) * cp;

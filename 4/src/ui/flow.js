@@ -366,26 +366,42 @@ function sailGuideLine(p,cells){
   return bits.length?bits.join(" "):null;
 }
 export function sailHighlightRect(c,cellPx,svg){
+  // playtest 20: an HTML div in #sailHost, NOT an SVG rect. UI-06's bounce animates transform:
+  // scale, and on an SVG element that forces a full layout every frame — measured as the whole of
+  // the board's idle cost (60.1 layouts/sec from the transform alone; zero from the opacity).
+  // This is PERF-01's fix applied a second time, to the same root cause it named for the ripples.
+  // The LOOK is unchanged; only the element type moved (Wyatt, 2026-08-13).
+  //
+  // #boardwrap is container-type:inline-size, so 640 board units == 100cqw and the geometry is
+  // identical to the rect this replaces — same SAIL_HL_SCALE inset, same rounded corner, same
+  // position — with no scale factor to keep in sync on resize.
+  //
+  // `svg` is still accepted so both call sites keep their signature, and is deliberately unused:
+  // the host outlives any one prompt, and callers dispose of squares with .remove() either way.
   const side=(cellPx-4)*SAIL_HL_SCALE, inset=(cellPx-side)/2;
-  // playtest 20 (Mando: "I was stuck here for 3 turns trying to get milk. Just couldn't get to the
-  // dock from this direction since I didn't want to get stuck in the trade winds").
-  // A square that ENDS YOUR TURN somewhere else entirely used to be drawn in exactly the same
-  // amber as a square that simply parks you there — legality and consequence looked identical, so
-  // the only way to learn the rule was to lose a turn to it. Rule (RULES-V2 line 24): sail into
-  // the rim and the current sweeps you to that arc's clockwise end.
-  // The engine already knows both halves — onRim(c) and rimHead["x,y"] — so this is a read, not a
-  // new derivation, and the two boards share this builder so host and guest cannot disagree.
+  const CQ=v=>(v/640*100)+"cqw";
+  const host=$("sailHost")||$("boardwrap")||document.body;
+  const d=document.createElement("div");
+  d.className="sailCell";
+  d.style.left=CQ(c[0]*cellPx+inset); d.style.top=CQ(c[1]*cellPx+inset);
+  d.style.width=CQ(side); d.style.height=CQ(side);
+  d.style.animationDelay=((c[0]+c[1])%4)*0.12+"s";
+  // THE GRID COORDINATES, CARRIED. Two readers used to recover these by inverting the maths above
+  // (camFitSail and the trade-wind preview, both in src/ui/stage.js) — a second copy of this
+  // function's arithmetic that had to be kept in step with it by hand. They read these instead.
+  d.dataset.gx=c[0]; d.dataset.gy=c[1];
+  // playtest 20 (Mando): a square in the trade-wind rim does not park you there — the current
+  // sweeps you to that arc's clockwise end (RULES-V2 line 24). It used to be drawn in exactly the
+  // same amber as a square that simply parks you, so the one square that costs the rest of your
+  // turn looked identical to the safe ones. The engine already knows both halves.
   const g=appState.game;
-  const swept=g&&g.onRim&&g.onRim(c);
-  const r=el("rect",{x:c[0]*cellPx+inset,y:c[1]*cellPx+inset,width:side,height:side,rx:6,
-    fill:swept?"#59c3d8":"#ffc23a",class:"sailCell"+(swept?" sailSwept":""),
-    style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
-  // the destination rides on the element so the preview (and any later read) never recomputes it
-  if(swept){
+  if(g&&g.onRim&&g.onRim(c)){
+    d.classList.add("sailSwept");
     const h=g.rimHead&&g.rimHead[c[0]+","+c[1]];
-    if(h){ r.dataset.sweptTo=h[0]+","+h[1]; }
+    if(h)d.dataset.sweptTo=h[0]+","+h[1];
   }
-  return r;
+  host.appendChild(d);
+  return d;
 }
 export function pickCell(p,cells){
   if(appState.replaying){

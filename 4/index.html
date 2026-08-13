@@ -701,6 +701,24 @@
    *
    * #rippleHost was briefly z-index 5, which tied with #stormOverlay and won on DOM order — so the
    * rings drew over the rain, which the SVG original never did. Fixed by this ordering too. */
+  /* playtest 20, and it is PERF-01 a second time. The sail highlights were SVG rects whose
+     UI-06 bounce animates transform:scale — measured at a phone viewport with the GPU on, that
+     ONE animation was the entire idle layout cost of the board:
+         shipped (transform + opacity)   59.9 layouts/sec
+         animation: none                  0.0
+         OPACITY only                     0.0
+         TRANSFORM only                  60.1     <- all of it
+     Chrome never composites an SVG transform animation and will-change cannot promote an SVG
+     child, exactly as PERF-01 found for the sonar rings. It ran while a human sail prompt was up,
+     which is precisely when a player sits still on a phone and thinks.
+     So the highlights are HTML divs now, in this host, and the bounce is unchanged — Wyatt kept
+     the look (2026-08-13) and only the element type moved.
+     Z-INDEX 2 is load-bearing: below #rippleHost(3) and #boardShips(4), so the squares still sit
+     UNDER the boats — "i like the fact that the sail highlights and emoji pops are below the
+     ships" (Wyatt, 2026-08-02). The host ignores pointer events; the squares themselves take them.
+     Sizes are cqw against #boardwrap (container-type: inline-size), so 640 board units == 100cqw
+     and every call site keeps the board coordinates it already had. */
+  #sailHost { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
   #rippleHost { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   /* THE STORM WARNING. The forecast chip below the compass goes red when weather is coming, and
      breathes so the eye is caught by it even mid-glance. Only transform/opacity animate, so it
@@ -744,8 +762,13 @@
   /* UI-03: boat emojis linger 2x longer — both the rise and the fade are slower (1.25s → 2.5s,
      and the splash variant 1.9s → 3.8s below). The JS removal timeouts are doubled to match. */
   /* UI-06: sail-destination squares — juicy, bouncing, clearly clickable */
-  .sailCell { opacity: .5; animation: sailBounce 1.15s ease-in-out infinite;
-    transform-box: fill-box; transform-origin: center;
+  /* playtest 20: HTML now, not an SVG rect (see #sailHost for the measurement). The bounce, the
+     hover and the timing are all unchanged — transform-box/transform-origin go because an HTML box
+     already scales about its own centre, and the colour moves from a `fill` attribute to a
+     background. cqw units keep the geometry identical to the 640-unit board. */
+  .sailCell { position: absolute; box-sizing: border-box; pointer-events: auto; cursor: pointer;
+    background: #ffc23a; border-radius: 6px; opacity: .5;
+    animation: sailBounce 1.15s ease-in-out infinite;
     transition: opacity .12s ease, filter .12s ease; }
   /* UI-04: a more distinct hover. Was opacity .85 + brightness 1.12 + a 4px glow, which on an
      already-pulsing square read as "slightly brighter" rather than "this one". Now the hovered
@@ -753,7 +776,7 @@
      instead of one, and the outline is the one that survives on a busy board. Hover cannot use a
      transform: `animation-play-state: paused` freezes the bounce mid-frame and the frozen keyframe
      transform would win over anything set here. */
-  .sailCell:hover { opacity: 1; stroke: #fff; stroke-width: 2;
+  .sailCell:hover { opacity: 1; box-shadow: inset 0 0 0 2px #fff;
     filter: brightness(1.18) drop-shadow(0 0 6px rgba(255,178,40,1)) drop-shadow(0 0 14px rgba(255,178,40,.55));
     animation-play-state: paused; }
   @keyframes sailBounce {
@@ -767,8 +790,8 @@
      current rather than the amber of "land here", plus a dashed edge that says "this does not
      hold you". Hover keeps the white outline (the cue that survives a busy board) but throws the
      glow in the current's own colour, so the two square types never look alike at any moment. */
-  .sailCell.sailSwept { stroke: rgba(255,255,255,.85); stroke-width: 1.5; stroke-dasharray: 4 3; }
-  .sailCell.sailSwept:hover {
+  .sailCell.sailSwept { background: #59c3d8; outline: 2px dashed rgba(255,255,255,.9); outline-offset: -3px; }
+  .sailCell.sailSwept:hover { box-shadow: inset 0 0 0 2px #fff;
     filter: brightness(1.18) drop-shadow(0 0 6px rgba(89,195,216,1)) drop-shadow(0 0 14px rgba(89,195,216,.55)); }
   /* the ride preview: a dotted track from the tapped square to the whirlpool it carries you to,
      and a ghost of your own hull waiting at the far end. Drawn only on the first tap. */
@@ -1790,6 +1813,7 @@
              layer; transform-box/transform-origin candidates all measured identical. As HTML it
              costs ZERO layouts. Positions come in `cqw` against #boardwrap (container-type:
              inline-size), so board user units still map 1:1 and every call site keeps its numbers. -->
+        <div id="sailHost" aria-hidden="true"></div>
         <div id="rippleHost" aria-hidden="true"><div id="rippleRing"></div></div>
         <!-- PERF-01 (2026-08-02): the boats, split out of #board into their own SVG so they paint
              ABOVE the ripple rings. Moving the rings to HTML had put them over the boats, which
