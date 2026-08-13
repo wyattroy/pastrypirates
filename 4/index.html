@@ -760,6 +760,24 @@
     0%, 100% { transform: scale(1); opacity: .5; }
     50%      { transform: scale(1.11); opacity: .72; } }
   @media (prefers-reduced-motion: reduce) { .sailCell { animation: none; } }
+  /* playtest 20: a sail square that sits in the TRADE-WIND RIM does not park you there — the
+     current sweeps you to that arc's clockwise end (RULES-V2 line 24). It used to be drawn in the
+     same amber as every other legal square, so the one square that costs you the rest of your turn
+     looked exactly like the safe ones. Now it reads as water, not as a berth: the sea-blue of the
+     current rather than the amber of "land here", plus a dashed edge that says "this does not
+     hold you". Hover keeps the white outline (the cue that survives a busy board) but throws the
+     glow in the current's own colour, so the two square types never look alike at any moment. */
+  .sailCell.sailSwept { stroke: rgba(255,255,255,.85); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .sailCell.sailSwept:hover {
+    filter: brightness(1.18) drop-shadow(0 0 6px rgba(89,195,216,1)) drop-shadow(0 0 14px rgba(89,195,216,.55)); }
+  /* the ride preview: a dotted track from the tapped square to the whirlpool it carries you to,
+     and a ghost of your own hull waiting at the far end. Drawn only on the first tap. */
+  .sweepPath { fill: none; stroke: #59c3d8; stroke-width: 3; stroke-linecap: round;
+    stroke-dasharray: 7 7; opacity: .95; animation: sweepFlow 1s linear infinite; }
+  @keyframes sweepFlow { to { stroke-dashoffset: -28; } }
+  .sweepEnd { fill: rgba(89,195,216,.22); stroke: #59c3d8; stroke-width: 3; }
+  .sweepGhost { opacity: .55; }
+  @media (prefers-reduced-motion: reduce) { .sweepPath { animation: none; } }
   /* UI-02, REWRITTEN 2026-07-31 to Wyatt's spec. The icon now APPEARS above the boat and then goes
      INTO it: it pops into existence in the square north of the ship, scaling up from nothing with a
      bounce, then travels down into the hull, shrinking and fading as it arrives.

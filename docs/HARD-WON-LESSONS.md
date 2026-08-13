@@ -395,6 +395,41 @@ fights**. Test held crates against `recipe`, not `needs`.
 
 ## 6. Working with Wyatt
 
+### ASK IN A SHORT TURN, AS THE FIRST THING YOU DO — never behind long work
+
+**A question form is a TOOL CALL THAT LIVES INSIDE ONE TURN.** If that turn ends for any reason —
+a timeout, the sandbox being re-provisioned, an interrupt — the form is cancelled and **everything
+he has typed into it is destroyed**. He does not get it back, and he has to reconstruct answers he
+had already thought through.
+
+Wyatt, 2026-08-13: *"Multiple times in the past few days i have started answering questions then the
+sandbox seems to glitch and time out and you lose all of my feedback and thoughts. It is
+frustrating."*
+
+**The part that is our fault, and is entirely controllable: WHERE IN THE TURN WE ASK.** The pattern
+that kept destroying his input was asking at the *end* of a long turn — ten to fifteen minutes of
+browser probes, measurements and edits, and only then the question form. So the form went up at the
+moment the turn was oldest and most fragile, and then sat there while yet more long work ran behind
+it. That is the worst possible ordering and it is the whole bug.
+
+The rules, in order of how much they save:
+
+1. **Ask as the FIRST action of a turn**, before any probe, server, browser or long edit. The form
+   should reach him seconds after his message, not minutes.
+2. **Never leave a question pending behind long-running work.** Get the answers, end the turn, then
+   go and do the work in the next one. A turn containing both an unanswered question and a five
+   minute probe is a turn that will eventually eat his thinking.
+3. **Commit and push incrementally.** A dead turn should cost minutes, not a session. Never carry a
+   large body of unpushed work across long-running tool calls.
+4. **Do the homework in an EARLIER turn, not the same one.** His standing rule is to arrive with
+   measurements in the options (`CLAUDE.md`) — that is still right, but it means measure in one
+   turn, ask at the top of the next. The two are not required to share a turn, and they must not.
+
+The failure is silent from our side: the tool simply returns as though it was never answered, so
+there is no way to tell "he did not reply" from "his reply was destroyed". **If a question comes
+back unanswered or the turn was interrupted near one, assume his input was lost, say so, and re-ask
+immediately** — do not make him raise it.
+
 - **Ask 2–5 clarifying questions before building** (his standing rule, in `CLAUDE.md`). For the v2
   ruleset this ran to 62 questions across 16 batches before a line of code was written, and it was
   the right call — several answers were "a better third thing" neither option offered.

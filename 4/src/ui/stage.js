@@ -569,6 +569,63 @@ function recipeGuard(){
 function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); }
 function clearBake(){ document.querySelectorAll(".pp4Bake").forEach(e => e.remove()); }
 
+/* ========== the trade-wind ride preview (playtest 20, Mando's three lost turns) ========== */
+// "I was stuck here for 3 turns trying to get milk. Just couldn't get to the dock from this
+// direction since I didn't want to get stuck in the trade winds."
+//
+// Landing on the rim does not park you there — the current carries you to that arc's clockwise
+// end (RULES-V2 line 24), which can be most of the board away. The only way to learn that was to
+// spend a turn on it. So a swept square now ANSWERS FIRST: one tap draws where you would actually
+// end up, and only a second tap commits.
+//
+// A DELIBERATE EXCEPTION to the one-tap sail gesture, and Wyatt's own pick (2026-08-13): every
+// other legal square still commits on the first tap. The confirmation is bought only where the
+// square does something the player cannot see coming.
+let sweepBtn = null;
+function clearSweep(){ document.querySelectorAll(".sweepPath,.sweepEnd,.sweepGhost").forEach(e => e.remove()); }
+function sweepGuard(){
+  document.addEventListener("click", e => {
+    if (!S.active) return;
+    const cell = e.target.closest && e.target.closest(".sailCell");
+    // any tap that is NOT on a previewed square clears the preview and forgets it
+    if (!cell || !cell.classList.contains("sailSwept")){ if (!cell) { clearSweep(); sweepBtn = null; } return; }
+    if (sweepBtn === cell){ clearSweep(); sweepBtn = null; return; }   // second tap: let it through
+    e.stopPropagation(); e.preventDefault();                           // first tap: show the ride
+    sweepBtn = cell;
+    clearSweep();
+    const to = (cell.dataset.sweptTo || "").split(",").map(Number);
+    const g = appState.game, svg = svgEl();
+    if (!g || !svg || to.length !== 2 || !isFinite(to[0])) return;
+    // the tapped square's own grid cell, recovered the same way camFitSail does
+    const sd = parseFloat(cell.getAttribute("width")), px = (sd / 0.9) + 4, ins = (px - sd) / 2;
+    const fx = Math.round((parseFloat(cell.getAttribute("x")) - ins) / px);
+    const fy = Math.round((parseFloat(cell.getAttribute("y")) - ins) / px);
+    const cp = cellPx();
+    const x1 = (fx + 0.5) * cp, y1 = (fy + 0.5) * cp;
+    const x2 = (to[0] + 0.5) * cp, y2 = (to[1] + 0.5) * cp;
+    // bow the track AWAY from the board's middle, so it reads as running round the rim rather
+    // than cutting straight across the sea the current never crosses
+    const mid = 320, bx = (x1 + x2) / 2, by = (y1 + y2) / 2;
+    const ox = bx - mid, oy = by - mid, len = Math.hypot(ox, oy) || 1;
+    const bow = Math.min(140, Math.hypot(x2 - x1, y2 - y1) * 0.35);
+    const cxq = bx + (ox / len) * bow, cyq = by + (oy / len) * bow;
+    const mk = (tag, attrs, cls) => {
+      const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const k in attrs) n.setAttribute(k, attrs[k]);
+      n.classList.add(cls); svg.appendChild(n); return n;
+    };
+    mk("path", { d: `M${x1},${y1} Q${cxq},${cyq} ${x2},${y2}` }, "sweepPath");
+    mk("circle", { cx: x2, cy: y2, r: cp * 0.42 }, "sweepEnd");
+    // a ghost of YOUR hull waiting at the far end — the clearest possible "this is where you'd be"
+    const seat = appState.mySeat ?? 0;
+    const gh = document.createElementNS("http://www.w3.org/2000/svg", "image");
+    gh.setAttribute("href", `../assets/boats/${seat + 1}.png`);
+    gh.setAttribute("x", x2 - cp * 0.32); gh.setAttribute("y", y2 - cp * 0.32);
+    gh.setAttribute("width", cp * 0.64); gh.setAttribute("height", cp * 0.64);
+    gh.classList.add("sweepGhost"); svg.appendChild(gh);
+  }, true);
+}
+
 /* ================= stage assembly ================= */
 function buildStage(){
   const wrap = $("boardwrap"); if (!wrap) return;
@@ -1022,6 +1079,7 @@ export function initStage(){
     syncPrompt: () => { maybeBuildStage(); if (S.active) promptTick(); },
   };
   recipeGuard();
+  sweepGuard();   // playtest 20: the trade-wind ride preview
   // playtest 18: Pass & Play sails again — the refit note comes off and the card is live.
   // (The shipyard greying was this block; the whole hand-off/privacy flow ships in
   // lobby.js/flow.js/board.js and the /4 stage sweep landed with it.)

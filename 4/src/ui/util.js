@@ -723,6 +723,22 @@ const EVENT_NARRATION={
     const wonOnWind=!!(e.downwind&&decidedRound&&decidedRound[0]===1&&decidedRound[1]===1&&decidedRound[3]===e.downwind);
     const windHeadThird=`⚔️ Both cannons land — but ${pn(e.winner)} fires downwind, and the wind carries the shot home.`;
     const windHeadYe=`⚔️ Both cannons land — but ye're firin' downwind, and the wind carries the shot home.`;
+    // playtest 20 (Wyatt: "losers of a battle without a crate don't always give 'all they have' —
+    // sometimes they don't even give all their doubloons"). They give NONE, and that is correct:
+    // RULES-V2 line 180 is "Prize: one crate, winner's choice. No coin alternative", so an empty
+    // hold means the winner leaves with nothing. The ENGINE (awardSpoil returns null) and the live
+    // path (`pick` is undefined) both already do exactly that. The BUG WAS THIS FUNCTION.
+    //
+    // The isBribe / isEmptyHoldFive / "all ye have" branches below are survivors of the OLDER
+    // ruleset, where a beaten captain could pay in coin. With no coin spoil possible any more,
+    // spoilN parses to NaN, both coin branches go false, and every empty-hold loss fell through to
+    // the "gives up all they have" fallback — which is a lie, and reads exactly like the game
+    // failing to take something. Measured before the fix:
+    //   live path   "Wyargh wins 0–1 — ye give up all ye have."
+    //   engine path "Wyargh wins 0–1 — ye give up all ye have: nothing."
+    // Detected on the DATA (a null/"nothing" spoil) rather than by assuming coins are impossible,
+    // so a future ruleset that restores a coin prize cannot silently inherit this line.
+    const tookNothing=e.spoilIng==null&&(e.spoil==null||e.spoil==="nothing"||e.spoil==="");
     let spoilClause;
     // G3: every ${e.spoil} below became ${spoilText}. Not one sentence, clause order or word
     // changed — the only difference is how the spoil AMOUNT is spelled.
@@ -746,7 +762,11 @@ const EVENT_NARRATION={
     let txt;
     if(viewerIsLoser){
       const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
-      if(wonOnWind){
+      // @copy misc.battle.emptyhold — verbatim as Wyatt wrote it, 2026-08-13. Checked BEFORE the
+      // wind branch: when nothing was taken, why the tie fell one way is not what the player is
+      // asking; "where did my crate go" is, and the answer is that there was never one to take.
+      if(tookNothing)txt=`⚔️ ${pn(e.winner)} wins — but ye've nothing in the hold to plunder.`;
+      else if(wonOnWind){
         // his approved line: "Both cannons land — but X fires downwind, and the wind carries the
         // shot home. X takes yer cocoa." The spoil is a SECOND sentence here, not the em-dash
         // continuation the score-led head uses, because the head already ends in a full stop.
@@ -762,7 +782,15 @@ const EVENT_NARRATION={
       // already use in this same chain.
       else if(isEmptyHoldFive)txt=`${head} — ye give up ${spoilText}.`;
       else txt=`${head} — ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
-    }else txt=`${wonOnWind?(viewerIsWinner?windHeadYe:windHeadThird):mainClause} ${spoilClause}`;
+    }else if(tookNothing){
+      // @copy misc.battle.emptyhold — Wyatt's own wording, 2026-08-13. It deliberately drops the
+      // "1–0" score the other lines carry: nothing changed hands, so the scoreline is the least
+      // interesting thing about the outcome. Winner-addressed and neutral are the person-swap.
+      txt=viewerIsWinner
+        ? `⚔️ Ye win — but there's nothing in ${pn(loser)}'s hold to plunder.`
+        : `⚔️ ${pn(e.winner)} wins — but there's nothing in ${pn(loser)}'s hold to plunder.`;
+    }
+    else txt=`${wonOnWind?(viewerIsWinner?windHeadYe:windHeadThird):mainClause} ${spoilClause}`;
     return {cls:"battle",
       txt,
       caps:[[e.winner,`⚔️ wins! +${spoilText}`],[loser,"⚔️ loses 💸"]], // G3: the winner caption too

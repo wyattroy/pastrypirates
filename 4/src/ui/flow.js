@@ -317,10 +317,75 @@ export function sailWindHint(){
 // The CSS bounce ratio (scale 1 -> 1.11) is left alone on purpose: "10% smaller" reads as the
 // resting size, and rescaling the animation too would flatten the bounce rather than shrink it.
 const SAIL_HL_SCALE=0.9;
+
+// playtest 20 (Mando: "I was stuck here for 3 turns trying to get milk. Just couldn't get to the
+// dock from this direction since I didn't want to get stuck in the trade winds").
+//
+// She could SEE the dock and had no way to find out, before spending a turn, either that the blue
+// squares would carry her off or that no square she could reach that day actually reached the
+// berth. Both facts are cheap and EXACT — nothing here is estimated:
+//   - a swept square is g.onRim(c), the same predicate that draws it blue;
+//   - /4 runs singleDock (roundCfg), so "can I dock for milk this turn" is literally
+//     "is dockOf.dairy one of the squares I may sail to" — a set membership test, not a route
+//     search. Deliberately NOT sailTurns(): that is the bots' comparison heuristic and a
+//     straight-line estimate that models neither the islands nor the rim ride, so quoting it as
+//     "days" would put a confident wrong number in front of the player.
+//
+// CORRECTION (Wyatt, 2026-08-13): an earlier version of this note called the rim "impassable".
+// It is not, and the distinction matters for anything built on top of this. The rim is a LEGAL,
+// DELIBERATE move — sailStates' own `throughRim` option exists precisely so "a human may
+// deliberately ride the trade winds". What is true is narrower: BOTS pass throughRim:false and
+// so never choose it. That is a bot-routing decision, not a rule, and it is being changed.
+// A wrong reason is what the next change gets built on — see HARD-WON-LESSONS section 5.
+// Draft copy — Wyatt rewrites.
+function sailGuideLine(p,cells){
+  const g=appState.game; if(!g) return null;
+  const bits=[];
+  // @copy adhoc.sail.tradewindhint
+  if(g.onRim&&cells.some(c=>g.onRim(c)))
+    bits.push(`Blue squares are the trade winds — land there and the current carries ye on.`);
+  // @copy adhoc.sail.dockoutofreach
+  const need=(g.needs&&g.needs(p))||[];
+  if(need.length){
+    const key=c=>c[0]+","+c[1];
+    const reach=new Set(cells.map(key));
+    const stillOut=need.filter(ing=>{
+      const d=(g.dockOf&&g.dockOf[ing])||(g.islandOf&&g.islandOf[ing]);
+      return d&&!reach.has(key(d));
+    });
+    // only worth saying when EVERY crate still wanted is out of reach — if one is reachable the
+    // player has a move to make and does not need to be told about the ones that aren't
+    if(stillOut.length===need.length){
+      const nearest=stillOut.map(ing=>{
+        const d=(g.dockOf&&g.dockOf[ing])||(g.islandOf&&g.islandOf[ing]);
+        return {ing,d,n:man(p.pos,d)};
+      }).sort((a,b)=>a.n-b.n)[0];
+      if(nearest)bits.push(`${iname(nearest.ing)} lies ${nearest.n} squares off — no square ye can reach this day sits on that dock.`);
+    }
+  }
+  return bits.length?bits.join(" "):null;
+}
 export function sailHighlightRect(c,cellPx,svg){
   const side=(cellPx-4)*SAIL_HL_SCALE, inset=(cellPx-side)/2;
-  return el("rect",{x:c[0]*cellPx+inset,y:c[1]*cellPx+inset,width:side,height:side,rx:6,
-    fill:"#ffc23a",class:"sailCell",style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
+  // playtest 20 (Mando: "I was stuck here for 3 turns trying to get milk. Just couldn't get to the
+  // dock from this direction since I didn't want to get stuck in the trade winds").
+  // A square that ENDS YOUR TURN somewhere else entirely used to be drawn in exactly the same
+  // amber as a square that simply parks you there — legality and consequence looked identical, so
+  // the only way to learn the rule was to lose a turn to it. Rule (RULES-V2 line 24): sail into
+  // the rim and the current sweeps you to that arc's clockwise end.
+  // The engine already knows both halves — onRim(c) and rimHead["x,y"] — so this is a read, not a
+  // new derivation, and the two boards share this builder so host and guest cannot disagree.
+  const g=appState.game;
+  const swept=g&&g.onRim&&g.onRim(c);
+  const r=el("rect",{x:c[0]*cellPx+inset,y:c[1]*cellPx+inset,width:side,height:side,rx:6,
+    fill:swept?"#59c3d8":"#ffc23a",class:"sailCell"+(swept?" sailSwept":""),
+    style:`cursor:pointer;animation-delay:${((c[0]+c[1])%4)*0.12}s`},svg);
+  // the destination rides on the element so the preview (and any later read) never recomputes it
+  if(swept){
+    const h=g.rimHead&&g.rimHead[c[0]+","+c[1]];
+    if(h){ r.dataset.sweptTo=h[0]+","+h[1]; }
+  }
+  return r;
 }
 export function pickCell(p,cells){
   if(appState.replaying){
@@ -459,13 +524,15 @@ export function localPickCell(p,cells){
     // the self-check's shout, if it ever fires, REPLACES the ordinary hint — it is the only thing
     // that matters on screen at that point
     const bug=sailSelfCheck(p,cells);
+    const guide=bug?null:sailGuideLine(p,cells);
     // /4 playtest 6: the standing wind-helper line leaves the sail card (the pill carries the
     // wind; the card must stay one line tall for placement freedom). The self-check's red shout
     // still renders when it fires — that one is a bug report, not a hint.
     const hint=bug;
     panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
-      (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``),true);
+      (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`
+           :(guide?`<div class="apSub">${guide}</div>`:``)),true);
     $("apStay").onclick=()=>done(null);
   });
 }
