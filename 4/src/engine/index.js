@@ -516,19 +516,63 @@ class Game{
   // corner of its own island can be four squares of actual sailing, and scoring candidate moves
   // on Manhattan makes a bot refuse every move that does not shorten a line it cannot travel.
   // That regression left a third of all bot turns doing nothing at all; v1's Dijkstra had it right.
+  /* THE RIM AS A ROUTE (Wyatt, 2026-08-13): "the rim isn't impassable to bots, in fact i wish the
+     bots used the rim more... do they know how to use the rim each round to navigate in the
+     shortest amount of time?" They did not, and it was worse than one switch being off — two wrongs
+     that hid each other. sailStates deleted every rim cell from a bot's options (throughRim:false),
+     AND waterField flooded THROUGH the rim as if it were ordinary water, so the distance field
+     routed ships down a channel no ship can sail along. Turning the switch on alone would have made
+     bots worse: they would have stepped into the current believing they were staying put.
+     The rim is a ONE-WAY EDGE. Step into rim cell R from beside it and the current puts you at
+     rimHead[R], turn over. rimEntries() is the reverse of that edge — for each arc head, every
+     square from which one move reaches it — cached because the geometry is fixed for the voyage. */
+  rimEntries(){
+    if(this._rimEntry)return this._rimEntry;
+    const m={};
+    if(this.isRound&&this.rimHead){
+      for(const rk of this.rim){
+        const h=this.rimHead[rk]; if(!h)continue;
+        const hk=h[0]+","+h[1];
+        const rx=+rk.split(",")[0], ry=+rk.split(",")[1];
+        for(const d of Object.values(DIRS)){
+          const o=[rx+d[0],ry+d[1]],ok=o[0]+","+o[1];
+          if(this.rim.has(ok))continue;                 // you must enter from OUTSIDE the channel
+          if(!this.valid.has(ok))continue;
+          if(this.isIsland(o)||this.isHome(o))continue;
+          if(!m[hk])m[hk]=[];
+          if(m[hk].indexOf(ok)<0)m[hk].push(ok);
+        }
+      }
+    }
+    this._rimEntry=m;return m;
+  }
   waterField(target){
     const k=target[0]+","+target[1];
     if(this._fieldKey===k&&this._fieldRound===this.round&&this._field)return this._field;
     const dist={[k]:0},q=[target];
+    const entries=this.rimEntries();
     while(q.length){
-      const c=q.shift(),dc=dist[c[0]+","+c[1]];
+      const c=q.shift(),ck=c[0]+","+c[1],dc=dist[ck];
+      const cRim=this.onRim(c);
       for(const d of Object.values(DIRS)){
         const o=[c[0]+d[0],c[1]+d[1]],ok=o[0]+","+o[1];
         if(dist[ok]!==undefined)continue;
         if(this.blocked(o))continue;
         // land is impassable, but the TARGET itself may legitimately be a dock beside it
         if(this.isIsland(o)||this.isHome(o))continue;
+        // NEVER SAIL ALONG THE CHANNEL. A rim cell is a place a ship can BE (the current puts you
+        // on one) and a place it can leave from, but two rim cells are never a route — the sweep
+        // fires the instant you touch the water. Without this the flood invented a fast lane
+        // right round the board that no ship has ever been able to use.
+        if(cRim&&this.onRim(o))continue;
         dist[ok]=dc+1;q.push(o);
+      }
+      // ...and the ride itself, read backwards: if this cell is an arc's head, then every square
+      // beside that arc reaches it in ONE move, however far away it looks.
+      const ent=entries[ck];
+      if(ent)for(const ek of ent){
+        if(dist[ek]!==undefined)continue;
+        dist[ek]=dc+1;q.push([+ek.split(",")[0],+ek.split(",")[1]]);
       }
     }
     this._field=dist;this._fieldKey=k;this._fieldRound=this.round;
@@ -611,7 +655,11 @@ class Game{
   // Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
   // when it is already as close as it can get.
   stepToward(p,target){
-    const cells=this.sailStates(p);
+    // playtest 20: the rim is a LEGAL destination for a bot now. It always was for a human —
+    // `throughRim` exists precisely so "a human may deliberately ride the trade winds" — and bots
+    // simply never asked for it. reachableFrom() deliberately still does not: that one serves the
+    // battle flee (rule 9), which is ordinary sailing, and the UI's own highlighting.
+    const cells=this.sailStates(p,{throughRim:true});
     if(!cells.size)return false;
     const field=this.waterField(target);
     const here=field[p.pos[0]+","+p.pos[1]];
@@ -619,10 +667,17 @@ class Game{
     let best=null,bestScore=Infinity;
     for(const [ck,n] of cells){
       const c=ck.split(",").map(Number);
-      const fd=field[ck];
+      // WHERE THIS MOVE ACTUALLY LEAVES YOU. Choosing a rim square does not park you on it: the
+      // current carries you to that arc's head and the turn ends. So the whole move is scored from
+      // the LANDING square — its distance to the target, and the storm's shove next round — which
+      // is what lets "three squares to the current, then a free ride" win against sailing the long
+      // way round whenever it genuinely is shorter.
+      const land=this.onRim(c)&&this.rimHead[ck]?this.rimHead[ck]:c;
+      const lk=land[0]+","+land[1];
+      const fd=field[lk];
       // a square the flood never reached is cut off from the target — fall back to Manhattan so
       // it still ranks, just always behind anything genuinely connected
-      const d=fd===undefined?man(c,target)+1000:fd;
+      const d=fd===undefined?man(land,target)+1000:fd;
       // Storm lookahead (rules 6 + 8). Running aground costs a WHOLE TURN, which is worth more
       // than a square or two of progress — so an unsafe berth is penalised by more than one step
       // of distance, and a bot will willingly end its move further from the island to keep its
@@ -633,16 +688,19 @@ class Game{
       // target 25% of the time and further 36%). So the bot no longer flees "blocked"; it scores
       // where the storm will actually leave it, and mildly prefers a square whose shove helps.
       // Weighted well under one step of real distance so it can never override reaching a dock.
-      const land=this.stormLanding(c);
-      const after=field[land[0]+","+land[1]];
+      const blown=this.stormLanding(land);
+      const after=field[blown[0]+","+blown[1]];
       const drift=(after===undefined||fd===undefined)?0:(after-fd);
       const stormPenalty=drift*PLAN.stormDrift;
       const score=d*1000+n+stormPenalty;
       if(score<bestScore){bestScore=score;best=c;}
     }
     if(!best)return false;
-    const bd=field[best[0]+","+best[1]];
-    const bestDist=bd===undefined?man(best,target)+1000:bd;
+    // compare the LANDING square against where we are now, for the same reason as above — a rim
+    // pick that looks sideways on the board may be most of the way round it once the current lands
+    const bl=this.onRim(best)&&this.rimHead[best[0]+","+best[1]]?this.rimHead[best[0]+","+best[1]]:best;
+    const bd=field[bl[0]+","+bl[1]];
+    const bestDist=bd===undefined?man(bl,target)+1000:bd;
     // nothing in range gets us any closer — hold position rather than drift for the sake of it
     if(bestDist>=cur)return false;
     p.pos=[...best];
