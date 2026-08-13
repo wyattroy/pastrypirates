@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-13d";
+const PP4_STAMP = "2026-08-13e";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1030,6 +1030,7 @@ function maybeBuildStage(){
 }
 function needFast(){ return !!(S.tween || S.bubPlace || ptrs.size > 0); }
 export function wake(){
+  if (S.hidden) return;   // nothing to wake for while the page is hidden — see the listener below
   if (S.slow){ clearTimeout(S.raf); S.slow = false; S.raf = requestAnimationFrame(tick); }
 }
 function tick(){
@@ -1042,8 +1043,31 @@ function tick(){
     promptTick();
   }
   else if (S.slow || fc % 6 === 0) maybeBuildStage();
+  if (S.hidden) { S.raf = 0; return; }   // backgrounded: stop dead, don't re-arm
   if (needFast()){ S.slow = false; S.raf = requestAnimationFrame(tick); }
   else { S.slow = true; S.raf = setTimeout(tick, 125); }
+}
+// playtest 20 (Wyatt: "see if those continue when the game is idle in the background on mobile,
+// and pause them"). Measured with the page hidden: a requestAnimationFrame loop stops on its own
+// (92 ticks -> 92 across 1.5s), but a setTimeout loop KEEPS FIRING (12 -> 14). This tick has two
+// gears and the idle one is `setTimeout(tick,125)`, so the stage went right on running — camera
+// maths, pill and ribbon updates, prompt placement — on a phone in a pocket, for as long as the
+// tab lived. Nothing was painting, so every bit of it was waste.
+// Stops on hide and restarts on show. The restart is a plain tick(): every layout input it caches
+// (ribbon height, viewBox, ripple transform) is re-read on the first pass, so there is no stale
+// frame to clear first. board.js's own visibilitychange listener is untouched — it resets the wind
+// meter's frame reference and must keep doing that independently of this.
+if (typeof document !== "undefined" && document.addEventListener){
+  document.addEventListener("visibilitychange", () => {
+    const hidden = document.visibilityState === "hidden";
+    if (hidden === !!S.hidden) return;
+    S.hidden = hidden;
+    if (hidden){
+      clearTimeout(S.raf); cancelAnimationFrame(S.raf); S.raf = 0;
+    } else if (!S.raf){
+      S.slow = false; tick();
+    }
+  });
 }
 
 export function initStage(){
