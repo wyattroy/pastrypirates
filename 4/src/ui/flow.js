@@ -83,16 +83,21 @@ const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>
 // speed, and NEVER re-arms itself — the ⏩ chip sits in the ribbon to tap again after. The recap
 // is fire-and-forget so his prompt is never delayed by it, anchored to his own ship so the
 // camera stays where his decision is.
+// Returns null when no skip was live, else a promise that resolves once the recap bubble has
+// played. Playtest 17 (Wyatt: "No narration/action messaging should overlap"): the recap is
+// AWAITED before the prompt builds — bubble first, pill after, never both. Tap-to-hurry works on
+// the bubble, so the cost of the sequence is one tap at most. (ask()'s no-panel belt arms the
+// clock during the recap for this one case; /4 ships with the turn clock off by default, and a
+// hurried bubble costs ~a second of a 30s window when it is on.)
 function ffEndNow(){
-  if(!appState.ff)return;
+  if(!appState.ff)return null;
   appState.ff=false;
   const from=appState.ffFromEv||0;appState.ffFromEv=null;
-  const g=appState.game;if(!g)return;
+  const g=appState.game;if(!g)return null;
   const line=ffRecapLine(g,from);
-  if(line){
-    if(window.__pp4)window.__pp4.subject=(appState.mySeat??0);
-    flash(line);
-  }
+  if(!line)return null;
+  if(window.__pp4)window.__pp4.subject=(appState.mySeat??0);
+  return flash(line);
 }
 // One clause per bot (his pick), weightiest event claiming the clause: finishing > battles >
 // buys > trades > dock work > a plain sail. Covers only what he did NOT witness — anything that
@@ -126,7 +131,11 @@ function ffRecapLine(g,from){
 /* ================= turn-flow + interaction ================= */
 
 export function localAsk(msg,opts,colors,sub){
-  ffEndNow();   // a decision is landing in front of the player — the skip is over, full speed
+  // a decision is landing in front of the player — the skip is over. When a recap is owed, it
+  // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule); the
+  // re-entry finds appState.ff already false and falls straight through.
+  const pre=ffEndNow();
+  if(pre)return pre.then(()=>localAsk(msg,opts,colors,sub));
   return new Promise(res=>{
     if(opts.length===1&&opts[0].flip){
       // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
@@ -365,7 +374,7 @@ export function pickCell(p,cells){
    the bot without telling them. The FALLBACK below is a different thing and is genuinely live: it
    is the shot-clock forfeit, which any mode can hit. */
 export async function bakeoffPrompt(p,setup,fallback){
-  ffEndNow();   // the bake is his own hands-on turn — never reached mid-skip
+  await (ffEndNow()||0);   // the bake is his own hands-on turn — recap first if a skip was live
   // Before the replay early-return, exactly as humanTurn does it: passGate self-handles replay by
   // silently syncing appState.mySeat rather than showing anything, and a baker never takes an
   // ordinary turn on the day they bake — so this is the ONLY thing keeping mySeat in step with a
@@ -424,7 +433,9 @@ function fillLocked(bake,guess){
 }
 
 export function localPickCell(p,cells){
-  ffEndNow();   // his sail prompt — the natural end of every full-round skip
+  // his sail prompt — the natural end of every full-round skip; recap first, prompt after
+  const pre=ffEndNow();
+  if(pre)return pre.then(()=>localPickCell(p,cells));
   return new Promise(res=>{
     const svg=$("board"),hs=[];
     const done=v=>{hs.forEach(h=>h.remove());panel("");appState.activePickCleanup=null;res(v);};

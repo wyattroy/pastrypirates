@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12f";
+const PP4_STAMP = "2026-08-12g";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -122,7 +122,16 @@ function camFrame(){
   const wrap = $("boardwrap"), cap = $("pp4Cap");
   const rib = $("pp4Ribbon");
   if (performance.now() - ribHAt > 500){
-    ribHCache = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+    let topEdge = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+    // playtest 17 (Wyatt: "the wind/forecast pip covers the top of the trade winds — move the
+    // board down slightly"): the wind pill floats just under the ribbon, so the stage strip now
+    // starts below whichever is lower — the board's top row of chevrons clears the pill.
+    const pill = $("pp4Pill");
+    if (pill){
+      const pr = pill.getBoundingClientRect();
+      if (pr.height > 0) topEdge = Math.max(topEdge, Math.ceil(pr.bottom) + 6);
+    }
+    ribHCache = topEdge;
     ribHAt = performance.now();
   }
   const ribH = ribHCache;
