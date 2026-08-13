@@ -25,7 +25,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-12g";
+const PP4_STAMP = "2026-08-13a";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -317,8 +317,9 @@ function ribbonTick(){
   const ff = $("pp4FF");
   if (ff){
     const g2 = appState.game;
-    const botsUp = g2 && !appState.liveDone && act >= 0 && act !== (appState.mySeat ?? 0) &&
-      g2.players[act] && !g2.players[act].done;
+    // no ⏩ at a Pass & Play table (Wyatt's ruling, 2026-08-13): the skip is solo-only
+    const botsUp = g2 && !appState.liveDone && !appState.passAndPlay && act >= 0 &&
+      act !== (appState.mySeat ?? 0) && g2.players[act] && !g2.players[act].done;
     // explicit block/none — the CSS base is display:none, so writing "" would fall back to hidden
     const want = botsUp ? "block" : "none";
     if (ff.style.display !== want) ff.style.display = want;
@@ -959,15 +960,8 @@ export function initStage(){
     stageCenterNow: () => { if (S.active) enterCenterStage(); },
   };
   recipeGuard();
-  // grey the Pass & Play card: solo only this build (draft copy — Wyatt rewrites after playing)
-  const pp = $("choicePassPlay");
-  if (pp){
-    pp.classList.add("pp4Off");
-    const note = document.createElement("div");
-    note.className = "pp4OffNote";
-    note.textContent = "\u{1F6E0} In the shipyard fer refit — sail solo fer now, captain.";
-    pp.appendChild(note);
-    pp.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); }, true);
-  }
+  // playtest 18: Pass & Play sails again — the refit note comes off and the card is live.
+  // (The shipyard greying was this block; the whole hand-off/privacy flow ships in
+  // lobby.js/flow.js/board.js and the /4 stage sweep landed with it.)
   tick();
 }

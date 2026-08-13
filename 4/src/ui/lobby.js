@@ -43,6 +43,10 @@ import { pname, pn, getLastName, saveLastName } from "./util.js";
 // task removed. The remaining name rendering escapes through pn() -> pname() -> escHtml, so the
 // escaping is preserved and this import is now dead — dropped rather than left (D-33/D-34/D-40).
 import { syncBoardSizing } from "./board.js";
+// playtest 18: passGate's /4 form is a centre-stage ceremony built through panel() — same
+// hand-built stage pattern as the bake-off intro and the black-market beat. No cycle: panel.js
+// imports nothing from this file.
+import { panel } from "./panel.js";
 
 const $=id=>document.getElementById(id);
 
@@ -270,6 +274,30 @@ export function passGate(seatIdx){
   if(!appState.passAndPlay||seatIdx===appState.mySeat)return Promise.resolve();
   if(appState.replaying){appState.mySeat=seatIdx;return Promise.resolve();} // silently keep mySeat in sync so it's
   // already correct the moment replay catches up to the live edge — no UI shown mid-replay
+  // The outgoing captain's turn is over, so their checked recipe locks the moment the wheel
+  // changes hands — playtest 18's "reveal lasts the turn" rule, and the reason nothing private
+  // can be on screen while the ceremony (or the old blur) holds the board.
+  appState.recipeRevealed=false;
+  // /4 (Wyatt's pick, 2026-08-13): the hand-off is a CENTRE-STAGE CEREMONY like every other —
+  // dim sea, minimal white card (name + button, no briefing), the button in the incoming
+  // captain's own boat color. The v2 blur overlay below survives only as the non-stage fallback,
+  // so a missing stage still fails safe to something that hands the device over.
+  if(document.body.classList.contains("pp4Stage")){
+    return new Promise(res=>{
+      const ap=$("actionPanel");
+      ap.dataset.pp4Stage="1";
+      if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
+      // @copy misc.lobby.passmessage4 — DRAFT, Wyatt rewrites
+      panel(`<div class="apMsg">${iconImg(DEVICE_IMG)} Pass the wheel to<br>
+        <b style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</b></div>
+        <div class="apBtns"><button class="apBtn" id="passHelmGo" type="button"
+          style="border-color:${HEXCOL[seatIdx]};color:${HEXCOL[seatIdx]}">At the helm!</button></div>`,true);
+      const go=$("passHelmGo");
+      const took=()=>{delete ap.dataset.pp4Stage;panel("");appState.mySeat=seatIdx;res();};
+      if(!go){took();return;}
+      go.onclick=()=>{go.onclick=null;took();};
+    });
+  }
   return new Promise(res=>{
     $("game").classList.add("bg-blurred");
     // NARR-01/D-25 (Wyatt-approved 2026-07-29).

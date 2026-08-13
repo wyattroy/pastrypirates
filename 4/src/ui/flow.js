@@ -1261,7 +1261,9 @@ export async function humanTurn(p){
   // rule 1 deletes the lee, so there is no upwind-island warning to give either.
   {
     const dest=await pickCell(p,reachable(p));
-    appState.recipeRevealed=false; // sail destination chosen — re-lock
+    // playtest 18 (Wyatt's pick): a checked recipe STAYS OPEN for the whole turn — the mid-turn
+    // re-locks (here after the sail, and after the action below) are gone. The reveal ends at the
+    // turn's own boundaries instead: humanTurn's entry, the expiry path, and passGate itself.
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
     if(dest){
       p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
@@ -1274,7 +1276,7 @@ export async function humanTurn(p){
   if(appState.turnExpired){appState.activeTurnSeat=null;return;}
   if(!appState.game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
-  appState.recipeRevealed=false; // the turn's dock/attack/trade/fish action just resolved — re-lock
+  appState.recipeRevealed=false; // the TURN is over — the reveal ends with it (playtest 18: no mid-turn re-locks)
   stopShotClock();
   appState.activeTurnSeat=null;
   // refresh now, not at the next turn's render — otherwise this seat's "check my recipe"

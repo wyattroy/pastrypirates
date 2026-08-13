@@ -101,6 +101,7 @@ import {
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, remotePickHighlights, wireRestoreFail,
+  startPassAndPlay,
   endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
@@ -1553,7 +1554,15 @@ export function wireLobby(){
   $("btnLeave").onclick=()=>{$("leaveConfirmModal").style.display="flex";};
   $("btnCancelLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";};
   $("btnConfirmLeave").onclick=()=>{$("leaveConfirmModal").style.display="none";leaveGame();};
-  $("btnPlayAgain").onclick=leaveGame;
+  // playtest 18 (Wyatt's pick): at a Pass & Play table, Play again is a REMATCH — same crew,
+  // same seats, fresh voyage. The names ride localStorage across the reload that resets all
+  // other state; boot() (src/main.js) consumes the stash and relaunches directly. Solo keeps
+  // the plain leave-to-welcome behavior.
+  $("btnPlayAgain").onclick=()=>{
+    if(appState.passAndPlay&&appState.soloMeta&&appState.soloMeta.names)
+      try{localStorage.setItem("pp_rematch",JSON.stringify(appState.soloMeta.names));}catch(e){}
+    leaveGame();
+  };
   $("scPause").onclick=togglePause;
   $("scTimerToggle").onclick=toggleTimer;
   $("btnMute").onclick=toggleMute;
@@ -1703,6 +1712,17 @@ export function boot(){
   // proxy for a real invariant, and the right move is to satisfy it structurally rather than loosen
   // a gate that is doing its job.
   if(!resuming){
+    // playtest 18: a Pass & Play REMATCH stashed by Play again (wireLobby's handler) relaunches
+    // the same crew directly — no welcome screen, no re-typing names. Checked only when no real
+    // resume exists (leaveGame cleared those first), so a mid-voyage refresh always outranks it.
+    // No early return, structurally: BOOT-FBINIT-OFFLINE forbids returns on the path to
+    // resumeSoloGame, so this is a sibling branch instead.
+    let rematch=null;
+    try{rematch=JSON.parse(localStorage.getItem("pp_rematch"));localStorage.removeItem("pp_rematch");}catch(e){}
+    if(Array.isArray(rematch)&&rematch.length>=2&&rematch.length<=4&&rematch.every(n=>typeof n==="string"&&n.trim())){
+      preloadAssets(); // same art the finished voyage just used — warm cache, not awaited
+      startPassAndPlay(rematch);
+    }else{
     // JOURNEY 1 — NOBODY'S GAME IS WAITING: paint the home screen NOW.
     // It needs the card's own CSS, the logo, and one 71KB backdrop still. The ~7.7MB of board art
     // belongs to a game this player has not started, so it is fetched WITHOUT being awaited and
@@ -1710,6 +1730,7 @@ export function boot(){
     showHome();
     syncBoardSizing();
     preloadAssets(); // deliberately not awaited — nothing on this screen is waiting for it
+    }
   }else{
   // JOURNEY 2 — THIS PLAYER IS MID-VOYAGE: never show them the welcome screen. Seeing it is the
   // moment a refresh feels like a lost game, so the boot loader stays up and the next thing they
