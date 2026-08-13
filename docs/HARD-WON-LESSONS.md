@@ -227,6 +227,31 @@ if (w == null) unfinished++;     // NOT if(!w) — seat 0 is a real winner
 4. A harness is code and it is *unreviewed* code. It gets no more trust than the thing it measures —
    see §2, which says exactly this and was written after a different instance of the same mistake.
 
+### `game.events` IS EMPTY UNLESS YOU SET `record = true`
+
+`ev()` opens with `if(!this.record)return;`. A headless harness that builds a `Game`, calls
+`play()` and then reads `g.events` gets **an empty array**, and every count derived from it is zero.
+
+That is not a loud failure. Measuring how often bots used the new black market, every row of the
+sweep read `0 uses` — which looks exactly like *"the mechanic is dead, nobody ever takes it"*, a
+completely plausible finding that would have been reported as a result. What gave it away was a
+control that could not possibly be zero: **shelf buys were also 0**, and crate-buying is the entire
+economy of the game. `g.tokens` proved it — shelves had drained from 3 to 0.
+
+    const g = new Game(cfg, seed);
+    g.record = true;              // <- without this, g.events stays empty
+    g.play();
+
+**The general rule, and it is the third instance of this family in this section: put a control in
+every harness whose value you already know.** A number you cannot sanity-check is a number you
+cannot trust — see the falsy-zero entry above, where mean voyage length and the "unfinished" count
+could not both be true and were printed side by side for three runs before anyone read them.
+
+**Also: `roundCfg()` returns `bakeoff: true` headless.** `bakeoffEnabled()` falls back to the
+constant when there is no `location` to read, so `play()` routes to `playBakeoff()`, not
+`playClassic()`. That is the right ruleset to measure for /4 — it is what ships — but say which one
+a number came from, because the two are different games.
+
 ### `no_undef_check.js` only inspects CALL-position identifiers
 
 `href: STORM_CLOUD_IMG` — a bare value reference to an unimported constant — **passes the gate

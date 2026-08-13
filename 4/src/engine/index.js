@@ -724,6 +724,65 @@ class Game{
   // Returns what the buy did for the caller's dock event to say — `black` (paid the black
   // market), `wentDry` (this purchase emptied the shelf), `firstDry` (first shelf of the whole
   // voyage to empty — the ceremony that teaches the black market keys on this, once).
+  /* THE BLACK MARKET'S SECOND PRICE (Wyatt, 2026-08-13): "you can trade any 2 ingredients for the
+     black market ingredient of the island you're docked at — so you either pay in doubloons or in
+     2 crates."
+
+     His three rulings, taken as given:
+       - DRY SHELVES ONLY. Exactly the trigger the coin black market already has, so geography and
+         the 3/4/5-coin shelf are untouched; this only means an empty purse is no longer a wall.
+       - THE CRATES LEAVE THE GAME. Not restocked anywhere. The voyage keeps tightening.
+       - ANY TWO, DUPLICATES ALLOWED. A hold full of the same junk crate is now worth something.
+
+     Which two you spend is the CALLER's choice — a human picks them, a bot picks with
+     blackMarketPick() below. This function only validates and settles, so the two can never
+     diverge the way the buy path once did (see buyCrate's own note).  */
+  canBlackMarket(p,ing){
+    return !!(this.cfg.blackMarket&&this.cfg.dockBuy&&
+      !(this.tokens[ing]>0)&&this.tokens[ing]!==undefined&&p.ing.length>=2);
+  }
+  // Settle a barter. `give` is two ingredient names out of p.ing (duplicates fine). Returns the
+  // same shape buyCrate does so the dock event can narrate either payment identically.
+  barterCrate(p,ing,give){
+    if(!this.canBlackMarket(p,ing))return null;
+    if(!Array.isArray(give)||give.length!==2)return null;
+    // validate against a COPY before mutating anything — paying with a crate you do not hold, or
+    // with the same single crate twice, must fail whole rather than half-settle
+    const pool=p.ing.slice();
+    for(const g of give){
+      const at=pool.indexOf(g);
+      if(at<0)return null;
+      pool.splice(at,1);
+    }
+    p.ing=pool;
+    p.ing.push(ing);
+    return {price:0,paidIng:give.slice(),black:1,wentDry:0,firstDry:0};
+  }
+  /* WHICH two a bot spends, and whether it should. Denominated in TURNS, because that is the only
+     currency the objective is written in (BOT-DESIGN-PRINCIPLES section 0: a bot acts to minimise
+     the expected turns until IT wins) — never a gate, and never "does it have spare junk".
+
+     Giving up a crate costs what getting it back would cost: nothing much if it is surplus, a real
+     leg of sailing if the recipe still wants it. So the two CHEAPEST crates by that measure are the
+     ones to spend, and the barter is worth doing only when it beats earning the coins instead. */
+  blackMarketPick(p,ing){
+    if(!this.canBlackMarket(p,ing))return null;
+    const need=this.needs(p);
+    const cost=g=>{
+      // a crate the recipe still wants, and this is the only one aboard: losing it costs the whole
+      // errand to replace. A spare copy, or a crate nothing needs, is leverage and little else.
+      const wanted=need.includes(g)||(p.recipe&&p.recipe.includes(g)&&this.cnt(p.ing,g)<=1);
+      return wanted?this.acquireTurns(p,g).turns:PLAN.leverageTurns;
+    };
+    const ranked=p.ing.map(g=>({g,c:cost(g)})).sort((a,b)=>a.c-b.c);
+    if(ranked.length<2)return null;
+    const give=[ranked[0].g,ranked[1].g];
+    const barterTurns=ranked[0].c+ranked[1].c;
+    // the coin route's cost is only the coins it still has to EARN — what is already in the purse
+    // is sunk, and spending it here costs nothing extra
+    const coinTurns=this.coinTurns(Math.max(0,(this.cfg.blackMarket||0)-p.coins));
+    return {give,barterTurns,coinTurns,worthIt:barterTurns<coinTurns};
+  }
   buyCrate(p,ing){
     const price=this.cratePrice(ing);
     if(price===null||p.coins<price)return null;
@@ -751,16 +810,25 @@ class Game{
     // a bot buys when it needs the crate and can afford today's price — or, if it trades for a
     // living, when the crate is leverage somebody else at the table plainly needs (rule 4 fodder)
     let got=h?"treasure":"dockhand",buy=null;
-    if(this.cfg.dockBuy&&price!==null&&p.coins>=price){
+    if(this.cfg.dockBuy&&price!==null){
       const needsIt=this.needs(p).includes(ing);
       const leverage=this.cfg.merchant&&!needsIt&&
         PERSONALITY[p.strategy]&&PERSONALITY[p.strategy].hoardBias>=1.4&&
         this.players.some(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,ing));
       if(needsIt||leverage){
-        buy=this.buyCrate(p,ing);if(buy)got="bought";
+        // playtest 20: a dry shelf now has TWO prices. Coins if the purse can stand it, or any two
+        // crates out of the hold. A bot takes whichever costs it fewer TURNS (blackMarketPick) —
+        // never a gate, and it only ever spends crates when that genuinely beats earning the coin.
+        // Leverage buying stays a coin-only errand: paying two real crates for stock to dangle at
+        // somebody else would spend the voyage to win someone else's.
+        const bm=needsIt?this.blackMarketPick(p,ing):null;
+        if(bm&&(bm.worthIt||p.coins<price))buy=this.barterCrate(p,ing,bm.give);
+        if(!buy&&p.coins>=price)buy=this.buyCrate(p,ing);
+        if(buy)got="bought";
       }
     }
-    this.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price,
+    this.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
+      paidIng:buy&&buy.paidIng?buy.paidIng:undefined,
       black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
     return true;
   }
