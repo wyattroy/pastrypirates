@@ -111,7 +111,7 @@ import {
   // the decorative board's demo log line, and that board no longer renders. Dead imports are
   // forbidden in this codebase (D-33/D-34/D-40) and no gate catches them, so they go with the code
   // that used them rather than being left behind as plausible-looking dependencies.
-  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS,
+  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
 } from "./util.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
@@ -1913,8 +1913,8 @@ export function syncBoardSizing(){
   const root=document.documentElement;
   const footerH=($("footerRow")||{}).offsetHeight||0;
   const chromeH=28+14+footerH; // #game top/bottom padding + layout gap + footer height
-  const boardSize=Math.max(600,window.innerHeight-chromeH);
-  const availW=window.innerWidth-28; // #game's own left+right padding
+  const boardSize=Math.max(600,vhPx()-chromeH);
+  const availW=vwPx()-28; // #game's own left+right padding (LAYOUT viewport — see vwPx in util.js)
   const remaining=availW-boardSize-14; // width left for the sidebar after the board + the column gap
   const wide=remaining>=MIN_SIDEBAR_W;
   $("game").classList.toggle("layoutWide",wide);
@@ -1933,7 +1933,7 @@ export function syncBoardSizing(){
     const gap=14; // matches #layout's grid gap, repeated between every stacked row
     const actionMaxH=180;
     const controlsH=($("controlsRow")||{}).offsetHeight||0;
-    const narrowBudget=window.innerHeight-28-gap*2-controlsH-actionMaxH;
+    const narrowBudget=vhPx()-28-gap*2-controlsH-actionMaxH;
     const narrowBoardSize=Math.max(280,Math.min(narrowBudget,availW));
     root.style.setProperty("--boardW",narrowBoardSize+"px");
     root.style.removeProperty("--sideW");

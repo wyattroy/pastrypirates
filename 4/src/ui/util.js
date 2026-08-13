@@ -1061,6 +1061,25 @@ export function msgHoldMs(text){
 // Still the feel knob: tune freely, but keep both above SHIP_GLIDE_MS or the stepping is lost.
 // /4 playtest 14 (Wyatt: "make the boats sail 50% of current speed"): 350 -> 700. Every derived
 // beat below (storm steps, rim-sweep pace) scales with it, so the per-square rest is preserved.
+// playtest 19 item 3 (Wyatt: "on load, the recipe cards were zoomed wrong; i had to zoom out then
+// refresh"). THE LAYOUT VIEWPORT — never window.innerWidth/innerHeight for laying anything out.
+//
+// Safari reports the *visual* viewport in innerWidth/innerHeight, so on a pinch-zoomed page they
+// SHRINK, and every box sized from them is built for a screen half the real width. Measured at
+// 390x844 with innerWidth forced to 195 (a 2x pinch), on the old build: the recipe sheet came out
+// 179px wide with 72px cards against a correct 374/163.5, and it stayed wrong until BOTH a
+// zoom-out and a reload — exactly what he had to do.
+//
+// documentElement.clientWidth/Height is the layout viewport. It does not move with pinch zoom, and
+// it is the same coordinate space getBoundingClientRect() reports in — which is what every
+// placement in stage.js compares against, so mixing the two was the whole bug.
+//
+// Defined ONCE here because two separate files had it: stage.js sizes the prompts and the recipe
+// sheet, and board.js's syncBoardSizing() sets --boardW, which #actionPanel is max-width capped to
+// (index.html) — so a zoomed innerWidth squeezed the cards a second time, through a different
+// file, after the first fix. The `||` is a floor for the pre-layout case, not a preference.
+export const vwPx=()=>document.documentElement.clientWidth||window.innerWidth;
+export const vhPx=()=>document.documentElement.clientHeight||window.innerHeight;
 export const SHIP_GLIDE_MS=700;
 export const STORM_STEP_MS=SHIP_GLIDE_MS+70;     // 420 — the human watching their own ship
 export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappier of the two

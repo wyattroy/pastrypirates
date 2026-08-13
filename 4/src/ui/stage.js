@@ -16,16 +16,20 @@
 "use strict";
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
-import { msgHoldMs } from "./util.js";
+import { msgHoldMs, vwPx, vhPx } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify } from "../shared/index.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
+// playtest 19 item 3: every box on this stage is laid out from the LAYOUT viewport (vwPx/vhPx in
+// util.js), never window.innerWidth/innerHeight — Safari reports the pinch-zoomed *visual*
+// viewport in those, which is what shrank the recipe sheet to half width. The helpers live in
+// util.js because board.js's syncBoardSizing() needs the same rule; see the note there.
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-13a";
+const PP4_STAMP = "2026-08-13b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -135,13 +139,13 @@ function camFrame(){
     ribHAt = performance.now();
   }
   const ribH = ribHCache;
-  const CAP_BASE = Math.min(250, Math.round(innerHeight * 0.30));
-  const availH = Math.max(200, innerHeight - ribH - CAP_BASE);
+  const CAP_BASE = Math.min(250, Math.round(vhPx() * 0.30));
+  const availH = Math.max(200, vhPx() - ribH - CAP_BASE);
   if (wrap){
     if (Math.abs((parseFloat(wrap.style.top) || 0) - ribH) > 1) wrap.style.top = ribH + "px";
     if (Math.abs((parseFloat(wrap.style.height) || 0) - availH) > 2) wrap.style.height = availH + "px";
   }
-  const aspect = availH / innerWidth;
+  const aspect = availH / vwPx();
   let h = c.w * aspect;
   if (h > 640) h = 640;                       // whole board fits vertically; width stays filled
   const cy = c.y + c.w / 2;                   // keep the camera centre
@@ -150,7 +154,7 @@ function camFrame(){
   S.vh = h; S.vy = vy;
   // rendered board bottom (meet, width-limited when h is clamped): captains rise to meet it
   if (cap){
-    const scale = innerWidth / c.w;
+    const scale = vwPx() / c.w;
     const boardBottom = ribH + Math.min(availH, h * scale);
     const top = Math.round(Math.min(ribH + availH, boardBottom));
     if (Math.abs((parseFloat(cap.style.top) || 0) - top) > 1) cap.style.top = top + "px";
@@ -168,7 +172,7 @@ function camFrame(){
     // transform: rendered = scale(640/w) then translate(-v * W/640)
     const rip = $("rippleHost");
     if (rip){
-      const W = innerWidth, s2 = 640 / c.w;
+      const W = vwPx(), s2 = 640 / c.w;
       const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
       if (t !== lastRipT){ lastRipT = t; rip.style.transformOrigin = "0 0"; rip.style.transform = t; }
     }
@@ -252,7 +256,7 @@ function stayConfirm(bx, by){
   box.className = "pp4Stay";
   box.innerHTML = `<button class="aye" type="button">⚓ Aye,<br>stay put</button><button type="button">↩ Keep<br>sailin'</button>`;
   document.body.appendChild(box);
-  const W = 130, left = Math.min(Math.max(bx - W / 2, 8), innerWidth - W - 8);
+  const W = 130, left = Math.min(Math.max(bx - W / 2, 8), vwPx() - W - 8);
   box.style.left = left + "px";
   box.style.top = Math.max(54, by + 44) + "px";
   const [aye, nay] = box.querySelectorAll("button");
@@ -384,10 +388,10 @@ function stageFlash(msg){
       if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
       const [sx, sy] = toScreen(u[0], u[1]);
-      const W = Math.min(290, innerWidth - 24);
+      const W = Math.min(290, vwPx() - 24);
       if (b.style.width !== W + "px") b.style.width = W + "px";
       if (performance.now() - bhAt > 500){ bh = b.offsetHeight; bhAt = performance.now(); }
-      const left = Math.min(Math.max(sx - W / 2, 8), innerWidth - W - 8);
+      const left = Math.min(Math.max(sx - W / 2, 8), vwPx() - W - 8);
       b.style.left = left + "px";
       b.style.top = Math.max(54, sy - bh - 40) + "px";
       const t = b.querySelector(".pp4Tail");
@@ -498,11 +502,30 @@ function recipeGuard(){
     if (!S.active) return;
     const btn = e.target.closest("#actionPanel .apBtn");
     if (!btn || !btn.querySelector(".recipeList")) { focusBtn = null; return; }
-    if (focusBtn === btn) { clearGlow(); focusBtn = null; return; }  // second tap: let it through
+    if (focusBtn === btn) { clearGlow(); clearBake(); focusBtn = null; return; }  // second tap: let it through
     e.stopPropagation(); e.preventDefault();                          // first tap: focus + glow
     focusBtn = btn;
     document.querySelectorAll("#actionPanel .apBtn").forEach(x => x.classList.toggle("pp4Focus", x === btn));
     clearGlow();
+    // playtest 19 item 2 (Wyatt: "the recipe choosing ux is confusing. we need a 'bake this' button
+    // to appear over the recipe after the first tap; maybe over the image?" — his pick: over the
+    // image). Nothing on screen used to say how to COMMIT: the first tap lit the docks and outlined
+    // the card, and the confirming second tap was undiscoverable.
+    // It is a SPAN, not a button, for two reasons that are really one: the recipe card is itself the
+    // <button>, so a nested button is invalid HTML and Chrome hoists it clean out of the card — and
+    // being inert (pointer-events:none) means a tap on it lands on the card underneath, which IS the
+    // second tap that already confirms. So the visible door and the old gesture are the same code
+    // path, and both keep working (Wyatt's pick: "yes — both work").
+    clearBake();
+    const thumb = btn.querySelector(".recipeThumb");
+    if (thumb){
+      const bake = document.createElement("span");
+      bake.className = "pp4Bake";
+      // @copy misc.stage.bakethis — DRAFT, Wyatt rewrites. In-world register (the voice boundary:
+      // this is the game speaking to a captain, not the credits).
+      bake.textContent = "Bake this!";
+      btn.appendChild(bake);
+    }
     const g = appState.game; if (!g) return;
     const names = [...btn.querySelectorAll(".rn")].map(x => x.textContent.trim());
     const cp = cellPx(), svg = svgEl();
@@ -522,6 +545,7 @@ function recipeGuard(){
   }, true);
 }
 function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); }
+function clearBake(){ document.querySelectorAll(".pp4Bake").forEach(e => e.remove()); }
 
 /* ================= stage assembly ================= */
 function buildStage(){
@@ -636,7 +660,7 @@ function enterCenterStage(){
   // clipped mid-letter at the panel's top edge. Padding, not a shorter box — the dim paints
   // through padding, so the captains stay under the veil while the content centres above them.
   const cap = $("pp4Cap");
-  const capH = cap ? Math.max(0, Math.round(innerHeight - cap.getBoundingClientRect().top)) : 0;
+  const capH = cap ? Math.max(0, Math.round(vhPx() - cap.getBoundingClientRect().top)) : 0;
   const pad = capH ? capH + "px" : "";
   if (box.style.paddingBottom !== pad) box.style.paddingBottom = pad;
   // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
@@ -690,16 +714,22 @@ function promptTick(){
   let hint = box.querySelector(".pp4PeekHint");
   if (recipes){
     box.classList.remove("radial", "centered");
-    const top = Math.round(innerHeight * 0.45);
+    const top = Math.round(vhPx() * 0.45);
     box.style.left = "8px"; box.style.top = top + "px";
-    box.style.width = (innerWidth - 16) + "px";
-    ap.style.maxHeight = (innerHeight - top - 8) + "px";
+    box.style.width = (vwPx() - 16) + "px";
     if (!hint){
       hint = document.createElement("div"); hint.className = "pp4PeekHint";
       // playtest 12 (2.1/2.3): two separate pills on dark glass, legible over any water
       hint.innerHTML = `<span>Tap a recipe to highlight its docks</span><span>Tap and hold the sea to reveal the board</span>`;
       box.insertBefore(hint, ap);
     }
+    // playtest 19: the cap is the room left UNDER THE PANEL'S OWN TOP, not under the box's. The
+    // hint pills are flex siblings above the panel, so measuring from `top` handed the panel the
+    // hint's height as extra allowance and it ran off the bottom of the screen by exactly that
+    // much — 47px, seen when slow-loading art made the cards tall enough to reach the cap.
+    const apTop = ap.getBoundingClientRect().top;
+    const capFrom = apTop > 0 ? apTop : top;
+    ap.style.maxHeight = Math.max(160, vhPx() - capFrom - 8) + "px";
     return;
   }
   if (hint) hint.remove();
@@ -717,7 +747,7 @@ function promptTick(){
     });
     const [sx, sy] = toScreen(uu[0], uu[1]);
     const cap = $("pp4Cap");
-    const capT = cap ? cap.getBoundingClientRect().top : innerHeight;
+    const capT = cap ? cap.getBoundingClientRect().top : vhPx();
     const rib = $("pp4Ribbon");
     const tSafe = (rib ? rib.getBoundingClientRect().bottom : 44) + 40;
     // playtest 12 item 8: circles hug the boat — as close as the ship-clearance allows
@@ -742,12 +772,12 @@ function promptTick(){
     // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
     // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
     const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
-      cellRects.length, innerWidth, menu.map(b => b.textContent.length).join(",")].join("|");
+      cellRects.length, vwPx(), menu.map(b => b.textContent.length).join(",")].join("|");
     if (radKey === S.radKey) return;
     S.radKey = radKey;
     let pillB = null;
     if (msg){
-      const mw = Math.min(msg.offsetWidth || 200, innerWidth - 20);
+      const mw = Math.min(msg.offsetWidth || 200, vwPx() - 20);
       msg.style.position = "fixed";
       // playtest 15 (Wyatt: "over the course of a single turn, it doesn't move around"): the
       // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
@@ -763,7 +793,7 @@ function promptTick(){
         if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : Math.min(cb.b + 8, capT - 44); }
         S.pillLock = { key: S.turnSerial, cx: cxA, top: mTop };
       }
-      msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), innerWidth - mw - 10) + "px";
+      msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), vwPx() - mw - 10) + "px";
       msg.style.top = mTop + "px";
       pillB = msg.getBoundingClientRect();
       // the back option, when present, is a small circle on the pill's shoulder
@@ -775,8 +805,8 @@ function promptTick(){
       // helper text (greyed-circle reasons) rides just beneath the pill
       const sub = ap.querySelector(".apSub");
       if (sub){
-        const sw = Math.min(sub.offsetWidth || 200, innerWidth - 20);
-        sub.style.left = Math.min(Math.max(cxA - sw / 2, 10), innerWidth - sw - 10) + "px";
+        const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
+        sub.style.left = Math.min(Math.max(cxA - sw / 2, 10), vwPx() - sw - 10) + "px";
         sub.style.top = (pillB.bottom + 6) + "px";
       }
     }
@@ -785,7 +815,7 @@ function promptTick(){
     // pill and every sail square), then lay ALL the buttons along snug arc rows centred on it —
     // circles nearly touching, wrapping to a second row past four. A cornered boat fans toward
     // whatever water is open; the group stays together instead of scattering.
-    const xMin = 8, xMax = innerWidth - D - 8, yMin = tSafe, yMax = capT - D - 8;
+    const xMin = 8, xMax = vwPx() - D - 8, yMin = tSafe, yMax = capT - D - 8;
     const hitRect = (bx, by, r, m) =>
       bx < r.right + m && bx + D > r.left - m && by < r.bottom + m && by + D > r.top - m;
     const obstacles = cellRects.slice();
@@ -866,15 +896,15 @@ function promptTick(){
   });
   // HOT-PHONE: the card path reads offsetHeight (layout) — 20Hz is plenty when nothing glides
   if (!S.tween && fc % 3) return;
-  const big = box.offsetHeight > innerHeight * 0.42;
+  const big = box.offsetHeight > vhPx() * 0.42;
   const u = boatUXY(appState.mySeat ?? 0);
   if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
   box.classList.remove("centered");
-  const W = Math.min(330, innerWidth - 16);
+  const W = Math.min(330, vwPx() - 16);
   box.style.width = W + "px";
   const H = box.offsetHeight;
   const cap = $("pp4Cap");
-  const capTop = cap ? cap.getBoundingClientRect().top : innerHeight;
+  const capTop = cap ? cap.getBoundingClientRect().top : vhPx();
   const pill = $("pp4Pill");
   const topSafe = (pill && pill.style.display !== "none")
     ? pill.getBoundingClientRect().bottom + 8
@@ -890,14 +920,14 @@ function promptTick(){
     cells.forEach(c => { const r = c.getBoundingClientRect();
       x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
       x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); });
-    left = Math.min(Math.max((x0 + x1) / 2 - W / 2, 8), innerWidth - W - 8);
+    left = Math.min(Math.max((x0 + x1) / 2 - W / 2, 8), vwPx() - W - 8);
     const below = (capTop - 8) - (y1 + 8);
     const above = (y0 - 8) - topSafe;
     if (below >= H) top = y1 + 8;
     else if (above >= H) top = y0 - 8 - H;
     else top = capTop - H - 6;                 // least-bad: hug the captains box
   } else {
-    left = Math.min(Math.max(sx - W / 2, 8), innerWidth - W - 8);
+    left = Math.min(Math.max(sx - W / 2, 8), vwPx() - W - 8);
     top = sy + 34;                             // just under the hull
     if (top + H > capTop - 6) top = Math.max(topSafe, sy - H - 44);
   }

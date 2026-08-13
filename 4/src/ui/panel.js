@@ -749,6 +749,13 @@ export function measurePanelHeight(minHeight=0){
 // when the reveal may START (i.e. once the box has finished moving) — that promise is handed to
 // typewriterReveal as its start SIGNAL, which is what keeps the two in step without either one
 // duplicating the other's duration.
+// playtest 19 item 1: the /4 centre stage owns its own height — index.html forces the row to
+// max-content and drops the clip there, so the ceremony card takes its natural size and can never
+// be drawn part-built (the "At the helm!" circle was being sliced 29.6px short of its own bottom).
+// With no transition left to fire, the RESIZING phase below would sit out its full RESIZE_BACKSTOP
+// waiting for a `transitionend` that can never arrive, delaying every centre-stage reveal by 300ms
+// for nothing. So it is skipped outright while the stage is up.
+const centreStaged=()=>{const b=$("pp4Prompt");return !!(b&&b.classList.contains("pp4Center"));};
 function runHeightSequence({ghostEl,targetH,fromH,revealDone}){
   const seq=++heightSeq;
   const grid=$("apGrid");
@@ -762,8 +769,9 @@ function runHeightSequence({ghostEl,targetH,fromH,revealDone}){
   const fading = ghostEl ? once(ghostEl,"animationend",GHOST_FADE_MS+120) : Promise.resolve();
   const canReveal = fading.then(()=>{
     if(!alive())return;
-    // RESIZING — skipped entirely when the height is unchanged (rule 4).
-    if(Math.abs(targetH-fromH)<1)return;
+    // RESIZING — skipped entirely when the height is unchanged (rule 4), or when the centre stage
+    // has taken the row off us (see centreStaged() above).
+    if(centreStaged()||Math.abs(targetH-fromH)<1)return;
     grid.style.gridTemplateRows=targetH+"px";
     return once(grid,"transitionend",RESIZE_BACKSTOP);
   });
