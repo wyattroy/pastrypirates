@@ -607,6 +607,17 @@ class Game{
     }
     return c;
   }
+  /* SAIL THE TURN'S PLAN — the one movement entry point both turn paths share (Game.takeTurn
+     headless, src/ui/flow.js botTurn animated), so a route that exists in one can never be
+     missing from the other. The ordinary case is stepToward. A plan that rides the trade winds
+     names the square where the ship ENTERS the channel; the caller's tradewind(p) then does what
+     it does for a human who sails onto the rim, which is the whole of the ride. */
+  sailPlan(p,plan){
+    if(plan.via&&this.sailStates(p,{throughRim:true}).has(plan.via[0]+","+plan.via[1])){
+      p.pos=[...plan.via];return true;
+    }
+    return this.stepToward(p,plan.cell);
+  }
   // Move as close to `target` as this turn's sailing allows, measured in real sailing distance.
   // Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
   // when it is already as close as it can get.
@@ -1850,9 +1861,10 @@ class Game{
      control that keeps this honest. */
 
   /* One turn's reach from `from` under `wind` — the same flood as sailStates (rule 1: 4 squares,
-     2 once any step bites into the wind; the rim is never a staging post) with two deliberate
-     differences: other ships are ignored (they will have moved by the time a later leg is sailed),
-     and the wind is a parameter, because later legs are costed under the forecast. */
+     2 once any step bites into the wind; the rim is a place you may FINISH but never a staging
+     post) with two deliberate differences: other ships are ignored (they will have moved by the
+     time a later leg is sailed), and the wind is a parameter, because later legs are costed under
+     the forecast. */
   windReach3(from,wind,rev){
     const maxOpen=this.sailRange(),maxUp=this.sailRangeUpwind();
     // REVERSED FLOODS MIRROR THE TRIGGER. A legal turn from x to y under wind W is a path whose
@@ -1865,7 +1877,6 @@ class Game{
     const passable=o=>{
       if(this.blocked(o))return false;
       if(this.isIsland(o)||this.isHome(o))return false;
-      if(this.onRim(o))return false;
       return true;
     };
     const seen={[from[0]+","+from[1]+",0"]:0};
@@ -1886,10 +1897,28 @@ class Game{
         if(seen[kk]!==undefined&&seen[kk]<=n2)continue;
         seen[kk]=n2;
         out.push(o);
+        if(this.onRim(o))continue;   // the current sweeps you away — never a staging post
         q.push([o,u2,n2]);
       }
     }
     return out;
+  }
+  // Is this square the head of its quadrant's current — the one rim square a ship can actually
+  // BE on? (rimHead maps every rim square to its quadrant's head; the head maps to itself, which
+  // is why entering there is a zero-square ride.)
+  isRimHead(c){const h=this.rimHead[c[0]+","+c[1]];return !!h&&h[0]===c[0]&&h[1]===c[1];}
+  // Every rim square whose current delivers to `head` — i.e. every way into that quadrant's
+  // channel. Built once per game; the board never moves.
+  rimEntriesTo(head){
+    if(!this._rimEntries){
+      this._rimEntries={};
+      for(const k of this.rim){
+        const h=this.rimHead[k];if(!h)continue;
+        const hk=h[0]+","+h[1];
+        (this._rimEntries[hk]=this._rimEntries[hk]||[]).push(k.split(",").map(Number));
+      }
+    }
+    return this._rimEntries[head[0]+","+head[1]]||[];
   }
   /* Whole-TURN distance field TO a destination under a constant `wind`: field["x,y"] = fewest
      turns of real sailing from x,y to `dest`, by the real movement rule. Layered reverse BFS —
@@ -1908,11 +1937,24 @@ class Game{
     while(frontier.length&&t<60){
       t++;
       const next=[];
+      /* A rim square is somewhere a ship sails TO, never somewhere it can BE — the current
+         sweeps it to that quadrant's head the instant it touches the channel. So the flood
+         records a distance only for squares a ship can occupy: open water, and the four heads. */
+      const add=o=>{
+        if(this.onRim(o)&&!this.isRimHead(o))return;
+        const k=o[0]+","+o[1];
+        if(field[k]===undefined){field[k]=t;next.push(o);}
+      };
       for(const c of frontier){
-        for(const o of this.windReach3(c,wind,true)){
-          const k=o[0]+","+o[1];
-          if(field[k]===undefined){field[k]=t;next.push(o);}
-        }
+        for(const o of this.windReach3(c,wind,true))add(o);
+        /* THE RIDE, READ BACKWARDS. If this square is a quadrant's head, then every square that
+           can touch ANY of that quadrant's rim squares is one turn from here — the ship pays the
+           turn to reach the channel and the current sails the rest. That is the whole trade wind
+           in the cost model: one more edge in the same flood, priced as the one turn it is, so
+           the planner weighs a ride against every other route by the same arithmetic. */
+        if(this.isRimHead(c))
+          for(const entry of this.rimEntriesTo(c))
+            for(const o of this.windReach3(entry,wind,true))add(o);
       }
       frontier=next;
     }
@@ -2149,6 +2191,21 @@ class Game{
 
     const cells=this.reachableFrom(p);
     cells.push([...p.pos]);
+    /* THE RIDE AS A MOVE. Touching the trade winds is a legal one-turn move whose ARRIVAL is that
+       quadrant's head, so the candidate square is the head and the entry square is remembered as
+       the route to it (plan.via). Nothing else here changes: the head is an ordinary square to
+       everything downstream — it can be docked from, fought from, hailed from, exactly as a human
+       captain does after the current sets them down — and it is weighed by P(win) like any other
+       square. Same edge the cost field just learned, offered on this turn. */
+    const rideVia={};
+    for(const k of this.sailStates(p,{throughRim:true}).keys()){
+      const c=k.split(",").map(Number);
+      if(!this.onRim(c))continue;
+      const h=this.rimHead[k]||c;
+      const hk=h[0]+","+h[1];
+      if(rideVia[hk]||(h[0]===p.pos[0]&&h[1]===p.pos[1]))continue;   // a ride to where we already are is a wasted turn
+      rideVia[hk]=c;cells.push([h[0],h[1]]);
+    }
     const interesting=[],rest=[];
     for(const c of cells){
       const hasPort=!!this.portAt(c),hasFoe=this.foesAt(c,p).length>0;
@@ -2310,6 +2367,8 @@ class Game{
       }
       if(move)best=move;
     }
+    // A square that is only reachable on the current names the entry the ship must sail for.
+    if(best){const hk=best.cell[0]+","+best.cell[1];if(rideVia[hk])best.via=rideVia[hk];}
     return best||{cell:[...p.pos],type:"sail",value:0,why:"enroute"};
   }
   // Set game.explain = [] before a turn and every candidate this planner scores is appended to it,
@@ -2544,8 +2603,8 @@ class Game{
     const before=[...p.pos];
     // sailing is free now (rule 2) — no coin gate, no refund, no "too poor to sail"
     if(man(p.pos,plan.cell)>0){
-      const moved=this.stepToward(p,plan.cell);
-      if(moved)this.ev({t:"sail",p:p.idx});
+      const moved=this.sailPlan(p,plan);
+      if(moved){this.ev({t:"sail",p:p.idx});this.tradewind(p);}
       else if(this.boxedIn(p)&&this.rimEscape(p)){/* rim sweep recorded its own event */}
     }
     if(p.pos[0]!==before[0]||p.pos[1]!==before[1])p.justDocked=false;

@@ -1504,7 +1504,7 @@ export async function botTurn(p){
   if(man(p.pos,target)>0){
     const b=[...p.pos];
     // v2 rule 2: sailing is free. No coin to spend, none to refund.
-    if(g.stepToward(p,target)){p.justDocked=false;g.ev({t:"sail",p:p.idx});await botBeat();
+    if(g.sailPlan(p,plan)){p.justDocked=false;g.ev({t:"sail",p:p.idx});await botBeat();
       if(g.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.
     // rimEscape() records its own events (windmove, then tradewind's sweep line).
