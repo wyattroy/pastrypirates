@@ -778,6 +778,16 @@ costs a minute; not reading it has now cost parts of three sessions.
 Wyatt, 2026-08-08: *"Write down all of your recent learnings to your document where you record
 these — and then tell me what it is called, and make yourself read it before starting new sessions."*
 
+**§0 is the newest and the most expensive: READ THE SUBSYSTEM'S OWN DESIGN DOCUMENT BEFORE YOU
+WRITE A LINE.** On 2026-08-13 a day went into building wind-aware route costing for the bots that
+`docs/BOT-V3-RACE-PLANNER.md` §4 says, in one sentence, already shipped — `windReach3()`, in the
+same file being edited. grep had been run over that file repeatedly and cannot surface a capability
+that exists under a different name. Ask what exists by BEHAVIOUR ("does anything here already price
+a route under the wind?"), ask it of the doc, and ask before writing code. The same section carries
+the other half: **re-read a lesson at its TRIGGER, not once at session start** — that day's session
+had read the whole lessons file that morning and still committed the exact rescaling failure it
+describes.
+
 The two sections that have bitten most often, if you read nothing else:
 
 1. **Absolute paths, always.** The Bash tool's cwd resets and announces it at the bottom of unrelated

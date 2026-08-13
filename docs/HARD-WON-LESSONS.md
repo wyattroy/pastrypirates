@@ -17,6 +17,79 @@ again: `http.server` inheriting the cwd (§1), `no_undef_check` seeing only call
 (§3), and shipping a check that could not fail (§2). Every one was already on this page, in these
 words, and none of them was read. A document nobody opens is not a safeguard, it is a diary.
 
+**And reading it once, here, at the start, is NOT enough — see §0.** On 2026-08-13 a session read
+this whole file and then committed a failure recorded in its sibling anyway, hours later, at the
+moment it applied. Lessons have to be re-read at their TRIGGER: before changing a shared quantity,
+before touching bot AI, before a browser probe. §0 also carries the rule that would have saved that
+whole day — **read the subsystem's own design document before writing a line**, because grep only
+finds what you can already name.
+
+---
+
+## 0. READ THE SUBSYSTEM'S OWN DESIGN DOCUMENT BEFORE YOU WRITE A LINE
+
+On 2026-08-13 I set out to teach the bots to price sailing under the wind. I wrote a wind-aware
+distance field, changed a shared function's units to do it, measured it three times, and reverted
+every line. **Each thing that went wrong was already written down in a document I had not opened.**
+
+### It already existed, one function away
+
+`docs/BOT-V3-RACE-PLANNER.md` is 152 lines. Section 4 says in one sentence that legs are already
+*"costed by wind-aware whole-turn distance fields built from the real one-turn reachability rule
+(4 squares, 2 once any step bites into the wind, rim never a staging post)"*. That is
+`windReach3()` + `turnsFieldTo3()`, in the same file I was editing, shipped, and measured at **+3.5
+ladder points on its own**. Two minutes of reading would have replaced a day of work with a
+four-line change.
+
+### grep cannot tell you a capability exists under another name
+
+I had searched that file repeatedly — `waterField`, `stepToward`, `sailStates`. Not one of those
+searches can surface `windReach3`. **grep finds what you can already name; the design document is
+the index of what EXISTS.** Ask the question behaviourally — *"does anything here already price a
+route under the wind?"* — and ask it of the doc, not the code.
+
+### Reading a lesson ONCE, at session start, does not stop you committing it
+
+This is the sharper finding, because it is about this very file. I read HARD-WON-LESSONS end to
+end at the start of that session, exactly as its header demands — and then committed the failure
+recorded in `BOT-DESIGN-PRINCIPLES.md` under *"de-hardcoding a constant WITHOUT rescaling what
+reads it"*: I changed `waterField` from counting SQUARES to counting quarter-turns while
+`destField()` and `stepToward()` both read it. That is the **−21.2 ladder regression** in a new
+costume, committed by someone who had read the account of it that morning.
+
+> **Tie the lesson to the TRIGGER, not to the session.** Before changing a quantity anything else
+> reads, re-read the rescaling lesson. Before touching bot AI, re-read the principles. Before a
+> browser probe, re-read §4. The re-read costs seconds at the exact moment it is worth something,
+> and "I read it hours ago" is demonstrably not protection.
+
+### Changing the executor when the planner decides is a change that cannot show up
+
+The work went into `stepToward` — the MOVER. `planTurnV3` chooses the destination square before a
+ship moves and says so in its own comment: *"the WHOLE turn is decided here, before a square is
+crossed."* Six head-to-head configurations came back byte-identical — 30/30, 14/46, sweeps 2.43 on
+every row.
+
+**Identical numbers across genuinely different treatments are never a result.** They mean the
+harness is not applying the treatment, or the code changed cannot reach the behaviour. Read them as
+an alarm, never as "no effect".
+
+### The checklist this earns, before editing any subsystem
+
+1. **Does this subsystem have a design document?** `docs/` carries one for the bots, one for
+   driving the game, one per ruleset. Read the whole thing — they are 150–250 lines, minutes each.
+2. **Ask what exists by BEHAVIOUR, not by name.** *"Is there already something that prices X?"*
+   beats *"where is `functionY` called?"*
+3. **List what reads whatever you are about to change** — its units and its range especially. A
+   shared quantity has callers calibrated to its current scale (§ the −21.2 failure).
+4. **Find where the decision is actually made**, and confirm it by reading the caller, not by
+   assuming the function with the obvious name is the one that matters.
+5. **Only then write code.**
+
+The arithmetic is brutal and worth stating plainly. The reading was about ten minutes. Skipping it
+cost a redundant implementation, a latent units regression, three measurement suites incapable of
+detecting anything, a full revert, and Wyatt's time spent telling me the bots already did the thing
+I was building.
+
 ---
 
 ## 1. Where your edits land
