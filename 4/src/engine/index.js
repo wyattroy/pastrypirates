@@ -516,101 +516,22 @@ class Game{
   // corner of its own island can be four squares of actual sailing, and scoring candidate moves
   // on Manhattan makes a bot refuse every move that does not shorten a line it cannot travel.
   // That regression left a third of all bot turns doing nothing at all; v1's Dijkstra had it right.
-  /* THE RIM AS A ROUTE (Wyatt, 2026-08-13): "the rim isn't impassable to bots, in fact i wish the
-     bots used the rim more... do they know how to use the rim each round to navigate in the
-     shortest amount of time?" They did not, and it was worse than one switch being off — two wrongs
-     that hid each other. sailStates deleted every rim cell from a bot's options (throughRim:false),
-     AND waterField flooded THROUGH the rim as if it were ordinary water, so the distance field
-     routed ships down a channel no ship can sail along. Turning the switch on alone would have made
-     bots worse: they would have stepped into the current believing they were staying put.
-     The rim is a ONE-WAY EDGE. Step into rim cell R from beside it and the current puts you at
-     rimHead[R], turn over. rimEntries() is the reverse of that edge — for each arc head, every
-     square from which one move reaches it — cached because the geometry is fixed for the voyage. */
-  rimEntries(){
-    if(this._rimEntry)return this._rimEntry;
-    const m={};
-    if(this.isRound&&this.rimHead){
-      for(const rk of this.rim){
-        const h=this.rimHead[rk]; if(!h)continue;
-        const hk=h[0]+","+h[1];
-        const rx=+rk.split(",")[0], ry=+rk.split(",")[1];
-        for(const d of Object.values(DIRS)){
-          const o=[rx+d[0],ry+d[1]],ok=o[0]+","+o[1];
-          if(this.rim.has(ok))continue;                 // you must enter from OUTSIDE the channel
-          if(!this.valid.has(ok))continue;
-          if(this.isIsland(o)||this.isHome(o))continue;
-          if(!m[hk])m[hk]=[];
-          if(m[hk].indexOf(ok)<0)m[hk].push(ok);
-        }
-      }
-    }
-    this._rimEntry=m;return m;
-  }
-  /* WIND COSTS DISTANCE, AND THE FIELD USED TO BE BLIND TO IT (Wyatt, 2026-08-13): "i regularly
-     use [the rim] to plan my route along the board and opportunistically sail against the wind."
-     That play was invisible to a bot. Sailing a route that bites into the wind halves the turn —
-     SAIL_RANGE 4 becomes SAIL_RANGE_UPWIND 2 — but this flood counted plain SQUARES, so an upwind
-     leg and a downwind leg of the same length looked identical, and the one thing that makes a rim
-     ride precious (it moves you at no cost at all, into the wind or not) could never show up.
-
-     Measured in QUARTER-TURNS, which makes the model exact at both ends rather than a fudge: a
-     turn covers 4 squares with the wind, so a square costs 1; it covers 2 against, so an upwind
-     square costs 2. Four units is one turn either way. Mixed routes are approximated — the real
-     rule caps the WHOLE turn at 2 the moment a route touches upwind, which no additive field can
-     express — but the direction and the magnitude are right, which is what move-scoring needs.
-
-     Read the direction carefully: this floods BACKWARDS from the target, so expanding from c to
-     c+d is a ship travelling o->c, i.e. heading OPPOSITE[d]. That step is upwind when
-     OPPOSITE[d] === OPPOSITE[wind] — which is simply d === wind. Getting this inverted would price
-     every route exactly wrong while still looking plausible.
-
-     Costs are 1 and 2, so a bucket queue is a complete Dijkstra here and stays O(cells).
-     cfg.windRoute / cfg.rimRoute exist so each half can be ablated for measurement and reverted
-     with one number. */
   waterField(target){
     const k=target[0]+","+target[1];
-    const wind=this.cfg.windRoute===true?this.windNow:null;
-    if(this._fieldKey===k&&this._fieldRound===this.round&&this._fieldWind===wind&&this._field)return this._field;
-    const rimOn=this.cfg.rimRoute===true;
-    const entries=rimOn?this.rimEntries():{};
-    const dist={[k]:0};
-    const buckets=[[target]];
-    for(let d=0;d<buckets.length;d++){
-      const bucket=buckets[d];
-      if(!bucket)continue;
-      for(let bi=0;bi<bucket.length;bi++){
-        const c=bucket[bi],ck=c[0]+","+c[1];
-        if(dist[ck]!==d)continue;                    // superseded by a cheaper route already
-        const cRim=this.onRim(c);
-        for(const dk of Object.keys(DIRS)){
-          const dd=DIRS[dk];
-          const o=[c[0]+dd[0],c[1]+dd[1]],ok=o[0]+","+o[1];
-          if(this.blocked(o))continue;
-          // land is impassable, but the TARGET itself may legitimately be a dock beside it
-          if(this.isIsland(o)||this.isHome(o))continue;
-          // NEVER SAIL ALONG THE CHANNEL. A rim cell is a place a ship can BE (the current puts you
-          // on one) and a place it can leave from, but two rim cells are never a route — the sweep
-          // fires the instant you touch the water.
-          if(cRim&&this.onRim(o))continue;
-          const step=(wind&&dk===wind)?2:1;          // see the direction note above
-          const nd=d+step;
-          if(dist[ok]!==undefined&&dist[ok]<=nd)continue;
-          dist[ok]=nd;
-          (buckets[nd]=buckets[nd]||[]).push(o);
-        }
-        // ...and the ride itself, read backwards: if this cell is an arc's head, every square
-        // beside that arc reaches it in ONE move, however far away it looks — and the current does
-        // not care about the wind, which is the whole point of taking it.
-        const ent=entries[ck];
-        if(ent)for(const ek of ent){
-          const nd=d+1;
-          if(dist[ek]!==undefined&&dist[ek]<=nd)continue;
-          dist[ek]=nd;
-          (buckets[nd]=buckets[nd]||[]).push([+ek.split(",")[0],+ek.split(",")[1]]);
-        }
+    if(this._fieldKey===k&&this._fieldRound===this.round&&this._field)return this._field;
+    const dist={[k]:0},q=[target];
+    while(q.length){
+      const c=q.shift(),dc=dist[c[0]+","+c[1]];
+      for(const d of Object.values(DIRS)){
+        const o=[c[0]+d[0],c[1]+d[1]],ok=o[0]+","+o[1];
+        if(dist[ok]!==undefined)continue;
+        if(this.blocked(o))continue;
+        // land is impassable, but the TARGET itself may legitimately be a dock beside it
+        if(this.isIsland(o)||this.isHome(o))continue;
+        dist[ok]=dc+1;q.push(o);
       }
     }
-    this._field=dist;this._fieldKey=k;this._fieldRound=this.round;this._fieldWind=wind;
+    this._field=dist;this._fieldKey=k;this._fieldRound=this.round;
     return dist;
   }
   /* v2 rules 6 + 8. The compass commits next round's wind a FULL ROUND early and rule 6d
@@ -690,20 +611,7 @@ class Game{
   // Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
   // when it is already as close as it can get.
   stepToward(p,target){
-    /* WHY THIS CHANGE DID NOT WORK, recorded so the next attempt starts in the right place.
-       stepToward is only the MOVER. planTurnV3 has already chosen the square to finish on —
-       "the WHOLE turn is decided here, before a square is crossed" (planTurnV3's own principle 1)
-       — and it enumerates candidates with reachableFrom(), which calls sailStates with the default
-       throughRim:false. So a rim square is never offered to the decision at all, and opting the
-       mover in changes nothing: six head-to-head configurations returned byte-identical results
-       (30/30, 14/46, sweeps 2.43 every row), which is what a treatment that does nothing looks like.
-       The real work is in the PLANNER: offer rim cells as candidates, and cost each one at the
-       square the current would actually leave the ship on (rimHead), not at the square tapped. */
-    // playtest 20: the rim is a LEGAL destination for a bot now. It always was for a human —
-    // `throughRim` exists precisely so "a human may deliberately ride the trade winds" — and bots
-    // simply never asked for it. reachableFrom() deliberately still does not: that one serves the
-    // battle flee (rule 9), which is ordinary sailing, and the UI's own highlighting.
-    const cells=this.sailStates(p,{throughRim:this.cfg.rimRoute===true});
+    const cells=this.sailStates(p);
     if(!cells.size)return false;
     const field=this.waterField(target);
     const here=field[p.pos[0]+","+p.pos[1]];
@@ -711,17 +619,10 @@ class Game{
     let best=null,bestScore=Infinity;
     for(const [ck,n] of cells){
       const c=ck.split(",").map(Number);
-      // WHERE THIS MOVE ACTUALLY LEAVES YOU. Choosing a rim square does not park you on it: the
-      // current carries you to that arc's head and the turn ends. So the whole move is scored from
-      // the LANDING square — its distance to the target, and the storm's shove next round — which
-      // is what lets "three squares to the current, then a free ride" win against sailing the long
-      // way round whenever it genuinely is shorter.
-      const land=this.onRim(c)&&this.rimHead[ck]?this.rimHead[ck]:c;
-      const lk=land[0]+","+land[1];
-      const fd=field[lk];
+      const fd=field[ck];
       // a square the flood never reached is cut off from the target — fall back to Manhattan so
       // it still ranks, just always behind anything genuinely connected
-      const d=fd===undefined?man(land,target)+1000:fd;
+      const d=fd===undefined?man(c,target)+1000:fd;
       // Storm lookahead (rules 6 + 8). Running aground costs a WHOLE TURN, which is worth more
       // than a square or two of progress — so an unsafe berth is penalised by more than one step
       // of distance, and a bot will willingly end its move further from the island to keep its
@@ -732,19 +633,16 @@ class Game{
       // target 25% of the time and further 36%). So the bot no longer flees "blocked"; it scores
       // where the storm will actually leave it, and mildly prefers a square whose shove helps.
       // Weighted well under one step of real distance so it can never override reaching a dock.
-      const blown=this.stormLanding(land);
-      const after=field[blown[0]+","+blown[1]];
+      const land=this.stormLanding(c);
+      const after=field[land[0]+","+land[1]];
       const drift=(after===undefined||fd===undefined)?0:(after-fd);
       const stormPenalty=drift*PLAN.stormDrift;
       const score=d*1000+n+stormPenalty;
       if(score<bestScore){bestScore=score;best=c;}
     }
     if(!best)return false;
-    // compare the LANDING square against where we are now, for the same reason as above — a rim
-    // pick that looks sideways on the board may be most of the way round it once the current lands
-    const bl=this.onRim(best)&&this.rimHead[best[0]+","+best[1]]?this.rimHead[best[0]+","+best[1]]:best;
-    const bd=field[bl[0]+","+bl[1]];
-    const bestDist=bd===undefined?man(bl,target)+1000:bd;
+    const bd=field[best[0]+","+best[1]];
+    const bestDist=bd===undefined?man(best,target)+1000:bd;
     // nothing in range gets us any closer — hold position rather than drift for the sake of it
     if(bestDist>=cur)return false;
     p.pos=[...best];
@@ -2972,13 +2870,6 @@ function roundCfg(strategies){
     // price, so it is a last resort and not a shop — but it means no recipe is ever mathematically
     // dead, and the map stays honest: the crate is still AT its island, ye still sail there.
     // He killed the harbormaster 2-for-1 for this exact reason — it deleted geography; this keeps it.
-  /* BOTH OF THESE SHIP OFF, and that is the honest state rather than the timid one.
-     The wind-aware field and the rim-ride edge are implemented and ablatable, but NEITHER has been
-     shown to make a bot stronger, because the experiment that would show it was measuring the
-     wrong function — see stepToward's own note. Turning an unmeasured change on would be exactly
-     the failure BOT-DESIGN-PRINCIPLES opens with: improving the machinery of deciding without
-     moving the scoreboard. They go on when a head-to-head says they earn it. */
-    windRoute:false,rimRoute:false,
     blackMarket:10,
     dockBuy:true,merchant:true,parley:true,
     // rule 4e: no harbor-tax refund on a struck trade. rule 3: no fishing, so no sardine rule.
