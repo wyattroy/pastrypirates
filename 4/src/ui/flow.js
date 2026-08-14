@@ -1494,20 +1494,48 @@ export async function humanTrade(p){
   }
 
   // ---- the asker sees EVERY answer at once and picks one, or walks away (rule 4a/4b) ----
+  /* WHAT EACH CAPTAIN IS ASKING FOR MUST BE ON SCREEN BEFORE YE TAP — playtest 21, and this was a
+     bug I shipped. Wyatt: "the counteroffer isnt displayed at all!!! When i clicked 'dough hook',
+     I suddenly lost my wheat! The narration box must say what each player is offering you."
+
+     The cause was one word. The radial bloom renders an option's `short` form when it has one, and
+     I gave the counter option `short: "💰 Crustbeard"` — a label that throws the TERMS away. So the
+     circle named a captain and said nothing about the price, the ask said only "the table answers",
+     and a counter that REPLACES the give side (asking for a different crate of yours) took a crate
+     the player never agreed to part with. A trade prompt that hides the price is worse than no
+     prompt: it turns a deliberate choice into a forfeit.
+
+     Two fixes, because the circle and the ask fail differently:
+       - the ASK now enumerates every answer, one captain per line, in full — Wyatt's instruction,
+         and the only place there is room for the whole deal;
+       - the CIRCLE's short form carries the crate ICON and the coins, so even the compact form can
+         never be read as "just tap the name". Short means SHORTER, not silent. */
   const opts=[];
+  const termsOf=r=>counterTerms(offer,r);
+  const bitsOf=t=>[t.giveIng?ilabelImg(t.giveIng):null,t.giveCoins?`${t.giveCoins}🌕`:null]
+    .filter(Boolean).join(" + ");
+  const answerLines=[];
   for(let i=0;i<responses.length;i++){
     const r=responses[i];
-    if(r.kind==="accept")opts.push({label:`${iconImg(CHECKMARK_IMG)} ${pn(r.q.idx)} accepts`,value:i});
+    if(r.kind==="accept"){
+      const b=bitsOf(offer);
+      answerLines.push(`${iconImg(CHECKMARK_IMG)} ${pn(r.q.idx)} takes yer ${b||"offer"}`);
+      opts.push({label:`${iconImg(CHECKMARK_IMG)} ${pn(r.q.idx)} accepts`,
+        short:`${iconImg(CHECKMARK_IMG)}<br>${pn(r.q.idx)}`,value:i});
+    }
     else if(r.kind==="counter"){
-      /* playtest 21 item 7: a counter can now name one of the ASKER'S OWN CRATES instead of the
-         crate that was offered, so the label has to say what is actually being asked for rather
-         than assume it is coin. counterTerms() is the ONE place a counter is turned into the deal
-         it means, and both the label here and the settlement below read it — so what a captain is
-         shown and what they get cannot drift apart, which is exactly how a trade UI goes wrong. */
-      const t=counterTerms(offer,r);
-      const bits=[t.giveIng?ilabelImg(t.giveIng):null,t.giveCoins?`${t.giveCoins}🌕`:null].filter(Boolean).join(" + ");
+      /* counterTerms() is the ONE place a counter is turned into the deal it means, and the ask
+         line, the circle and the settlement below all read it — so what a captain is SHOWN and
+         what they GET cannot drift apart, which is exactly how a trade UI goes wrong. */
+      const t=termsOf(r);
+      const bits=bitsOf(t);
       const haveIng=!t.giveIng||p.ing.includes(t.giveIng);
-      opts.push({label:`💰 ${pn(r.q.idx)} wants ${bits||"nothin'"}`,short:`💰 ${pn(r.q.idx)}`,value:i,
+      // a counter that swaps the give side is the dangerous one — say "instead" out loud
+      const swap=t.giveIng&&t.giveIng!==offer.giveIng;
+      answerLines.push(`💰 ${pn(r.q.idx)} wants ${bits||"nothin'"}${swap?" <i>instead</i>":""}`);
+      opts.push({label:`💰 ${pn(r.q.idx)} wants ${bits||"nothin'"}`,
+        short:`${pn(r.q.idx)}<br>${t.giveIng?iconImg(ING_IMG[t.giveIng]):""}${t.giveCoins?`+${t.giveCoins}🌕`:""}`,
+        value:i,
         disabled:t.giveCoins>p.coins||!haveIng,
         why:!haveIng?`Ye're not carryin' ${t.giveIng?iname(t.giveIng):"that"} any more.`
           :`That'd cost ye ${t.giveCoins}🌕, and ye've only ${p.coins}🌕 aboard.`});
@@ -1528,8 +1556,11 @@ export async function humanTrade(p){
       [{seat:p.idx,html:`No captain will part with ${ilabelImg(offer.want)} for that offer of yers.`}]);
     return true;
   }
-  // @copy prompt.trade.pick
-  const pick=await ask(`The table answers — take a deal, or walk away?`,opts,colors,denyNote);
+  // @copy prompt.trade.pick — DRAFT, Wyatt rewrites. One captain per line: the whole point is that
+  // the price is readable BEFORE a finger moves, so this deliberately does not compress.
+  const pick=await ask(
+    `Fer yer ${ilabelImg(offer.want)} the table answers:<br>${answerLines.join("<br>")}<br>Take a deal, or walk away?`,
+    opts,colors,denyNote);
   if(appState.turnExpired)return false;
   if(pick===-1||pick==null){
     g.ev({t:"parley",a:p.idx,b:null,offer:offerDisplay,want:offer.want});

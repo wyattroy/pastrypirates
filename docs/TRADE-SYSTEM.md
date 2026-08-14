@@ -225,6 +225,19 @@ what do ye WANT (every crate; ones nobody holds greyed with a reason)
 
 **Answering one** — Accept / *Ask for summat else* / Deny.
 
+**Choosing among the answers** — the asker sees every response at once. **The ask must state each
+captain's TERMS, one line per captain, before anything is tappable.** A counter can *replace* what
+ye hand over, so a prompt that names the captain without the price turns a deliberate choice into a
+forfeit — which is exactly what shipped on 2026-08-14 and cost Wyatt a crate he never agreed to
+give:
+
+> *"the counteroffer isnt displayed at all!!! When i clicked 'dough hook', i suddenly lost my
+> wheat! The narration box must say what each player is offering you."*
+
+The cause was one word: the option carried `short: "💰 Crustbeard"`, and the radial bloom renders
+the **short** form when one exists. **`short` means SHORTER, NOT SILENT** — a compact form may drop
+words, never the price. The circles now carry the crate icon and the coins as well as the name.
+
 **Countering** — `counterOffer(q, p, offer)`. Fast path first (Wyatt is on a phone):
 
 ```
