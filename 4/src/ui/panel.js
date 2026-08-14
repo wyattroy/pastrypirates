@@ -40,14 +40,15 @@ import {
 } from "./board.js";
 import {
   soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
-  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
+  waitWhilePaused, sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
 import { playForEvent, isMuted } from "./audio.js";
 
 const $=id=>document.getElementById(id);
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
+// sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
+const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(ms));
 
 // Writes only what has actually CHANGED. This is a performance fix, not tidiness — see the note
 // on the welcome-screen early return below for what unconditional writes were costing.

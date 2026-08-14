@@ -1273,9 +1273,11 @@ export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
 // the automation tab reported visibilityState "hidden", rAF returned zero frames, and the game
 // stalled mid-turn every time. setTimeout keeps firing (merely throttled) when hidden.
 //
-// The tick is paired with an equally short LINEAR css glide, so the browser interpolates between
-// our discrete targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not.
-// That pairing is what makes a setTimeout-driven motion look as smooth as an rAF one.
+// The tick is paired with a LINEAR css glide, so the browser interpolates between our discrete
+// targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not. That pairing
+// is what makes a setTimeout-driven motion look as smooth as an rAF one — but ONLY if the glide
+// outlasts the tick. See MOTION_BRIDGE_TICKS below: "equally short", which is what this paragraph
+// said for a fortnight, is the one length that cannot work.
 // UNITS: milliseconds BETWEEN motion updates — so SMALLER is smoother, not larger. 16ms is ~60
 // updates a second, which is the display's own refresh rate and therefore the practical ceiling:
 // going lower buys nothing a screen can show. (Wyatt asked for "48" reading 24 as a frame rate;
@@ -1287,6 +1289,39 @@ export const RIM_SWEEP_TICK_MS=16;
 // pace: the route's duration is SHIP_GLIDE_MS regardless, so lowering this buys smoothness and
 // costs paints, and changes nothing about how long a move takes.
 export const SAIL_ROUTE_TICK_MS=16;
+/* HOW LONG THE BRIDGING GLIDE RUNS, IN TICKS — and "one tick" is precisely the value that cannot
+   work, which is what both steppers shipped with until playtest 22 (Wyatt: "the ships movement is
+   not smooth; it feels jittery").
+
+   MEASURED, headless at a real 61fps, sampling the ship's RENDERED transform (getComputedStyle,
+   which returns the live animated matrix) on every animation frame through a real four-leg routed
+   sail. The control is a plain 700ms CSS glide on the same element — a motion already known to be
+   smooth, so it proves the sampler can tell the two apart at all:
+
+     bridge = 1 tick  (16ms, what shipped)   48% of the fast core's frames FROZEN   peak jump 20.0px
+     bridge = 2 ticks (32ms)                  0% frozen                             peak jump 10.6px
+     bridge = 3 ticks (48ms)                  0% frozen                             peak jump  9.5px
+     one 700ms CSS glide (control)            0% frozen                             peak jump  5.3px
+
+   At one tick the per-frame sequence is a perfect sawtooth — 0.1 0.0 0.5 0.0 1.3 0.0 2.8 0.0 —
+   the boat advancing on every OTHER frame in doubled steps. THE RACE IS WITH THE FRAME CLOCK, NOT
+   THE TIMER: a transition exactly as long as the tick has at most one frame in which to run, so
+   whether a frame shows an intermediate value at all depends on where setTimeout happens to land
+   inside it. Two ticks means a transition is always still in flight when the next target lands —
+   the measured tick gap ran 16-36ms — so the browser has something to interpolate every frame.
+
+   THE COST IS LAG, AND LAG ROUNDS CORNERS — the chord bug of 2026-07-31 in a milder form, so it is
+   measured too, and against the stepper's OWN targets rather than against arithmetic of mine (the
+   targets are on the drawn route by construction). Max excursion off the route: 4.5px at 2 ticks
+   (0.11 of a cell), 8.2px at 3, 12.7px at 5. Two ticks buys the whole of the smoothness and costs
+   a ninth of a cell, so it is the setting; three buys nothing more and costs twice as much.
+
+   ONE constant for BOTH steppers (routed sail and rim sweep) — they are the same mechanism and had
+   the same defect, so they are not allowed to drift apart. It is expressed in TICKS rather than
+   milliseconds for the same reason RIM_SWEEP_MS_PER_CELL is derived: the thing that matters is the
+   ratio to the tick, and a millisecond figure would quietly stop being right the moment a tick
+   rate is tuned. */
+export const MOTION_BRIDGE_TICKS=2;
 // Progress is always derived from ELAPSED TIME, never from a tick count — panel.js's other lesson:
 // a chain that counts ticks can never catch up, because each tick only schedules the next after its
 // own overhead, so one slow callback drifts every remaining one. Deriving from elapsed time means a
@@ -1467,6 +1502,41 @@ export function armClock(seat){
 // solo pause (see toggleShotClockPause) freezes the whole game by making every await-ed
 // sleep() stall first — bots pace their turns entirely through sleep(), so this alone halts
 // bot play without threading a paused-check through every call site.
+/* EVERY BEAT IN THE GAME IS AWAITED, SO NO BEAT MAY BE LOST — playtest 22, the stall report
+   (Wyatt: "the game just completely stalled, and when i refreshed the browser, the game RESTARTED").
+
+   The turn loop is a chain of awaits: a narration hold, a coin's spin, a pause between storm
+   squares. Each one was a bare `setTimeout`, and a `setTimeout` is a promise that a browser is
+   allowed to break. MEASURED, headless, with the page visible and unthrottled: two timers armed on
+   the same line with the same delay were BOTH never delivered, neither was ever cleared, and a
+   250ms setInterval kept counting straight through it — 272 ticks across 72 seconds. One lost
+   callback anywhere in that chain and the voyage stops for good, with no error and nothing on
+   screen to say so. That is precisely what a stall looks like from the seat.
+
+   So a beat is a DEADLINE with two ways to come due: the timer, which is exact and almost always
+   the one that fires, and a single sweeping interval that catches whatever the timer dropped. The
+   worst case becomes a beat up to SLEEP_SWEEP_MS late rather than a voyage that never continues.
+   One sweeper for the whole game, not one per sleep, so the cost is fixed no matter how many beats
+   are in flight — and intervals are what the measurement showed surviving.
+
+   If setInterval is lost too there is nothing left to catch it, and that is an accepted limit: the
+   evidence says the two are not lost together. */
+const SLEEP_SWEEP_MS=120;
+const pendingSleeps=new Set();
+setInterval(()=>{
+  if(!pendingSleeps.size)return;
+  const now=Date.now();
+  for(const rec of [...pendingSleeps])if(now>=rec.due)rec.fire();
+},SLEEP_SWEEP_MS);
+export function sleepMs(ms){
+  const wait=Math.max(0,ms||0);
+  return new Promise(res=>{
+    const rec={due:Date.now()+wait,done:false,
+      fire(){if(this.done)return;this.done=true;pendingSleeps.delete(this);res();}};
+    pendingSleeps.add(rec);
+    setTimeout(()=>rec.fire(),wait);
+  });
+}
 export function waitWhilePaused(){
   return appState.shotClockPaused?new Promise(res=>{
     const iv=setInterval(()=>{if(!appState.shotClockPaused){clearInterval(iv);res();}},150);

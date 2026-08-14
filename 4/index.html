@@ -530,7 +530,15 @@
   .btl-hd { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
   .btl-hd .rnd { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .55; font-weight: 700; }
   .btl-body { display: flex; align-items: flex-start; justify-content: center; gap: 8px; }
-  .btl-col { flex: 1 1 0; max-width: 190px; padding: 8px 6px; border-radius: 12px; border: 2px solid transparent; transition: background .2s, border-color .2s, box-shadow .2s; }
+  /* min-width:0 IS LOad-BEARING — playtest 22 (Wyatt: "the battles box is clipping at the edges"),
+     with the attacker's name cut to "ough Hook" on one side and "ties collide" cut on the other.
+     A flex item defaults to min-width:auto, so it refuses to shrink below its own content; the wind
+     tag below is `width: max-content`, so a long one ("CROSSWIND · ties collide") set the column's
+     intrinsic width and BOTH columns then pushed the row wider than the card. .btl-body centres its
+     children, so the overflow spilled equally off both ends — which is why it read as the box being
+     clipped at the edges rather than as one column being too wide. Letting the columns shrink puts
+     the tag's own max-width:100% back in charge. */
+  .btl-col { flex: 1 1 0; min-width: 0; max-width: 190px; padding: 8px 6px; border-radius: 12px; border: 2px solid transparent; transition: background .2s, border-color .2s, box-shadow .2s; }
   .btl-col.live { background: #fff; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,166,35,.18); }
   .btl-col .who { font-weight: 800; font-size: 14px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .btl-col .role { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .5; margin-bottom: 7px; }
@@ -1335,8 +1343,20 @@
   /* ================= /4 stage ================= */
   body.pp4Stage { overflow:hidden; background:#3d7d99; }
   body.pp4Stage #layout, body.pp4Stage #left { display:block; }
+  /* THE BOARD STRIP CLIPS ITS OWN LAYERS — playtest 22 (Wyatt: "the trade winds are not occluded
+     by the board area"), a chevron of the current sitting on the wind/forecast pill above the sea.
+     The two SVG layers clip themselves (an <svg> viewport does), but the three camera-carrying HTML
+     overlays do not: stage.js composes the camera into them as `scale(640/w) translate(-vy…)` with
+     transform-origin 0 0, so everything ABOVE the camera's top edge renders at a negative offset —
+     outside #boardwrap, over the ribbon, with nothing to stop it. One clip on the strip covers all
+     three (#rimHost, #sailHost, #rippleHost) rather than three rules that can drift apart; it must
+     live on the untransformed ancestor, because overflow on a layer clips in that layer's own space
+     and is then scaled up with it. Stage only: without the camera transform the overlays are
+     inset:0 and cannot overflow, and the classic layout's chat bubbles ride over the board edge on
+     purpose. #pp4Prompt and the narration bubbles are position:fixed on <body>, so the clip cannot
+     reach them. */
   body.pp4Stage #boardwrap { position:fixed; inset:0; width:100vw; height:100vh; max-width:none;
-    margin:0; border-radius:0; z-index:5; }
+    margin:0; border-radius:0; z-index:5; overflow:hidden; }
   body.pp4Stage #board { width:100%; height:100%; }
   #pp4Cap { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
     border-radius:14px 14px 0 0; box-shadow:0 -6px 24px rgba(0,0,0,.28);

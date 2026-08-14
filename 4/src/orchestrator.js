@@ -113,7 +113,7 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
-  stopShotClock, waitWhilePaused, applyTimerOff,
+  stopShotClock, waitWhilePaused, sleepMs, applyTimerOff,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
@@ -126,7 +126,8 @@ import {
 const $=id=>document.getElementById(id);
 // ⏩ fast-forward: same collapse as flow.js's sleep — beats that reach here without a player
 // prompt (storm holds, bot-only pacing) race by; anything that asks ends the skip first.
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,appState.ff?Math.min(ms||0,40):ms)));
+// sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
+const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(appState.ff?Math.min(ms||0,40):ms));
 
 const MAX_CHAT_LEN=140;
 // Firebase Spark's free tier caps at 100 simultaneous connections (see ONLINE_SETUP.md) — once
@@ -467,13 +468,26 @@ export function battleAsk(p,o,msg,opts,colors){
 
    `need` is gone along with the scoreboard race: the battle-UI's a/d counters now only ever read
    0 or 1, and exist so the shared renderBattle() scoreboard keeps working unchanged. */
+/* THE CAMERA IS ARMED AND DISARMED AROUND THE WHOLE FIGHT, not around the battle card, because a
+   battle asks its questions before the card exists — collectSideBets runs first, and playtest 22
+   found the crow's-nest call being made with the camera parked on the caller's own boat (Wyatt:
+   "the director should focus battles on the players fighting, not the player calling the battle").
+   A wrapper rather than a line at each exit: asyncBattle returns from a flee, a NULL, a decline and
+   two ordinary endings, and a hold that outlives one of them would freeze the director for the rest
+   of the voyage. `finally` is the only spelling that cannot be got wrong later. */
 export async function asyncBattle(att,def){
+  try{ return await asyncBattleRun(att,def); }
+  finally{ if(window.__pp4&&window.__pp4.battleEnd)window.__pp4.battleEnd(); }
+}
+async function asyncBattleRun(att,def){
   const c=appState.game.cfg;
   // G6 (COIN-AUDIT site 13), kept: guard BEFORE the opening broadcast, so a battle refused for
   // want of powder never announces itself and no snapshot can be in flight. v2 adds rule 13e's
   // empty-hold check to the same gate — canAttack() owns both, so the UI's greying and the engine
   // can never disagree about what is a legal target.
   if(!appState.game.canAttack(att,def))return null;
+  // frame both combatants BEFORE the opening line, so it is spoken over the fight it announces
+  if(window.__pp4&&window.__pp4.battle)window.__pp4.battle(att.idx,def.idx);
   playBattleEngage();
   const need=1;
   // D-08/D-25: the opening names both combatants, each reading it addressed to themselves.

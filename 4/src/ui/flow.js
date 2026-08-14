@@ -53,18 +53,18 @@ import {
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
+import { el, boardCell, setFlipActive, setFlipCoin, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
   pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
-  decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, seatStrat, saveSoloState,
+  decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS, isDisabledBtn,
-  SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS,
+  SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS, MOTION_BRIDGE_TICKS,
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
@@ -75,7 +75,8 @@ const $=id=>document.getElementById(id);
 // to a breath — 40ms keeps the sequencing sane (paints still land in order) while the round races
 // by. Prompts are never touched by this: any decision involving the player ends the skip first
 // (ffEndNow below), so his interactions always play at full speed.
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,appState.ff?Math.min(ms||0,40):ms)));
+// sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
+const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(appState.ff?Math.min(ms||0,40):ms));
 
 /* ================= ⏩ fast-forward: how a skip ends ================= */
 // Called, synchronously, at the top of EVERY entry point that puts a decision in front of the
@@ -189,7 +190,17 @@ export function localAsk(msg,opts,colors,sub,extra){
       // the DOM — stash message + helper on the bridge for the ceremony title/stakes
       if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
       setNeedsAction(true);
-      setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});
+      // THE TAP IS THE FLIP — playtest 22 (Wyatt: "the coin disappears, the word FLIP remains,
+      // which looks messy and bad, then after a second or two the coin starts to flip"). The spin
+      // used to arrive only from the far side of this promise: localAsk resolves, ask()'s
+      // withShotClock wrapper resolves, and only then does humanFlip call broadcastFlip("spin").
+      // None of that is a deliberate pause, so the gap is scheduling latency — the same thing this
+      // build has been caught losing whole timers to — and until it landed the coin sat blank with
+      // a stale caption on it. There is no state between armed and spinning, so the tap paints the
+      // spin itself, in its own frame. setFlipCoin AFTER the disarm (which clears the art), and
+      // through setFlipCoin so there is one spelling of a spinning coin; the broadcastFlip("spin")
+      // that follows finds it already spinning and is a no-op (setFlipCoin is idempotent for it).
+      setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);res(0);});
       return;
     }
     // an option flagged `back` renders as a small circular "‹" button of its own, above the
@@ -203,7 +214,8 @@ export function localAsk(msg,opts,colors,sub,extra){
     if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
     if(flipIdx!==-1){
       if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
-      setNeedsAction(true);setFlipActive(()=>done(flipIdx));
+      // same rule as the pure-flip path above: choosing the coin paints the spin at once
+      setNeedsAction(true);setFlipActive(()=>{done(flipIdx);setFlipCoin("spin");});
     }
     else setFlipActive(null);
     const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
@@ -235,7 +247,7 @@ export function localAsk(msg,opts,colors,sub,extra){
        to the same test in this change, and the CSS gains the matching selector. */
     const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
     panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
-      rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?` aria-disabled="true"`:""}${x.o.disabled&&x.o.why?` data-why="${esc(x.o.why)}"`:""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
+      rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.seat!=null?` data-seat="${x.o.seat}"`:""}${x.o.disabled?` aria-disabled="true"`:""}${x.o.disabled&&x.o.why?` data-why="${esc(x.o.why)}"`:""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
       true);
     if(sl){
       const inp=$("actionPanel").querySelector(".apSlider"),outEl=$("actionPanel").querySelector(".apSliderOut");
@@ -902,9 +914,12 @@ export async function animateRimSweepRun(seat,from,to){
     const curve=rimSweepCurve([from,...path]);
     if(curve.length>1){
       const total=rimSweepDurationMs(path.length);
-      // one tick's worth of LINEAR glide, so the browser bridges between our targets and soaks up
-      // setTimeout's jitter. Anything longer re-introduces the lag that made the boat cut corners.
-      setShipGlideMs(seat,RIM_SWEEP_TICK_MS,"linear");
+      // A LINEAR glide that OUTLASTS the tick, so the browser always has a transition in flight to
+      // interpolate and soaks up setTimeout's jitter. One tick's worth — what this was — leaves the
+      // glide finished before the next target lands, and the boat renders on every other frame; see
+      // MOTION_BRIDGE_TICKS in util.js for the frame-by-frame measurement and for the corner-rounding
+      // this is traded against.
+      setShipGlideMs(seat,RIM_SWEEP_TICK_MS*MOTION_BRIDGE_TICKS,"linear");
       const began=Date.now();
       for(;;){
         // progress from ELAPSED TIME, never from a tick count. A throttled or late tick then
@@ -969,8 +984,10 @@ export async function animateSailRoute(seat,from,path){
   if(!(total>0))return false;
   const dest=path[path.length-1];
   try{
-    // one tick of LINEAR glide so the browser bridges between our targets and soaks up setTimeout
-    // jitter; the eased shape lives in sailRouteEase, applied to progress along the whole route.
+    // a LINEAR glide that OUTLASTS the tick, so the browser always has a transition in flight to
+    // interpolate; the eased shape lives in sailRouteEase, applied to progress along the whole
+    // route. This was one tick's worth, which is the one length that guarantees the glide is over
+    // before the next target arrives — measured at 48% frozen frames. See MOTION_BRIDGE_TICKS.
     /* TAKE THE START WITH NO INTERPOLATION AT ALL, and commit it, before arming the tick glide.
        The earlier version painted the start with the tick glide already armed, on the reasoning
        that a browser paints once per task so the destination aim could never reach the screen.
@@ -982,7 +999,7 @@ export async function animateSailRoute(seat,from,path){
        snapShipTo forces the start to be committed — the layout read inside it is load-bearing, not
        a leftover — so both elements begin the route from the same place, stopped. */
     snapShipTo(seat,from);
-    setShipGlideMs(seat,SAIL_ROUTE_TICK_MS,"linear");
+    setShipGlideMs(seat,SAIL_ROUTE_TICK_MS*MOTION_BRIDGE_TICKS,"linear");
     const began=Date.now();
     for(;;){
       // progress from ELAPSED TIME, never a tick count — a throttled or late tick then advances
@@ -2133,7 +2150,9 @@ export async function collectSideBets(att,def){
       // whose turn it is tells you the screen is now asking you. The name is the only thing that does.
       // @copy prompt.sidebet.call
       const who=await ask(`⚔️ ${ns(s.idx)} — a battle's brewing! Call the winner — it's free, and ye get ${appState.game.cfg.callBounty}🌕 if yer right.`,
-        [{label:`Call ${ns(att.idx)}`,value:"a"},{label:`Call ${ns(def.idx)}`,value:"d"}],
+        // `seat` puts each circle ON THE BOAT IT NAMES (Wyatt's pick, playtest 22) rather than
+        // fanning both around the caller's own ship, which the director no longer has on screen.
+        [{label:`Call ${ns(att.idx)}`,value:"a",seat:att.idx},{label:`Call ${ns(def.idx)}`,value:"d",seat:def.idx}],
         [HEXCOL[att.idx],HEXCOL[def.idx]]);
       bets.push({idx:s.idx,on:who});
       // D-08: a call names two seats — the caller AND the captain called — so both get an

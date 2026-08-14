@@ -2069,10 +2069,14 @@ export function syncBoardSizing(){
 // battle scoreboard's per-fighter result circles, a separate use of the same .coin styles).
 export function setFlipCoin(state){
   const el=$("flipCoinWrap");if(!el)return;
+  // IDEMPOTENT for "spin", because the tap now paints it and broadcastFlip repaints it a beat
+  // later (setFlipActive below) — re-entering the state ye are already in must not re-play the
+  // sound, or every flip is heard twice.
+  const wasSpin=el.classList.contains("spin");
   el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;el.style.backgroundImage="";
   if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
   else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
-  else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";playFlip();}
+  else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";if(!wasSpin)playFlip();}
   else{el.classList.add("wait");el.textContent="";}
 }
 export function setFlipActive(onClick){
@@ -2083,5 +2087,9 @@ export function setFlipActive(onClick){
   // notes/edits UI-09: drop the heavy orange tint over the whole coin — show the clean heads face
   // and make just the word "FLIP" orange instead (see #flipCoinWrap.active CSS).
   if(onClick){el.classList.add("active");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="FLIP";el.onclick=onClick;}
-  else{el.classList.remove("active");el.style.backgroundImage="";el.onclick=null;}
+  // A PLAIN DISARM CLEARS THE WORD TOO. Every other coin state sets textContent; this one did not,
+  // so a disarmed coin kept the caption "FLIP" over a blank chip (playtest 22). The coin that has
+  // just been TAPPED goes straight to the spin instead — see localAsk, which owns that distinction:
+  // this function is called to disarm on every ordinary prompt as well, where a spin would be a lie.
+  else{el.classList.remove("active");el.style.backgroundImage="";el.textContent="";el.onclick=null;}
 }

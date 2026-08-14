@@ -29,16 +29,20 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-14g";
+const PP4_STAMP = "2026-08-14h";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
   cam: { x: 0, y: 0, w: 640, tx: 0, ty: 0, tw: 640 },
   lock: false,              // a player gesture holds the camera until the next sail prompt
+  battle: null,             // [attacker, defender] while a fight is live — the camera holds on it
   subject: null,            // seat index the next flash() line is about (stashed by panel.js)
   evType: null,
   hurry: null,              // resolver for tap-to-hurry on the live bubble
   bubPlace: null,           // live bubble's positioner — run every tick, same loop as the camera
+  frameKey: "",             // the prompt the director last re-framed for (once per ask, never per frame)
+  bubDue: 0,                // when the live bubble is due to retire — a DEADLINE, not a timer
+  bubFinish: null,          // …and the resolver the deadline calls. See stageFlash for why.
   raf: 0,
   lastPill: "",
 };
@@ -67,13 +71,30 @@ function camToSeat(i){
   const g = appState.game; if (!g || !g.players[i]) return;
   camToCell(g.players[i].pos, 1.9);
 }
+/* FRAME A SET OF CELLS: the box that holds every one of them, padded, at whatever zoom that box
+   allows — capped, so a tight subject is not magnified into abstraction. THE ZOOM IS DERIVED FROM
+   THE SUBJECT, never picked: two ships three squares apart and two ships across the board are not
+   the same shot, and one number cannot be right for both (CLAUDE.md, "nothing is a constant").
+   Shared by the sail window and the battle framing below, so those two cannot drift apart. */
+const CAM_FIT_PAD = 1.2;                             // cells of water left around the subject
+function camFitCells(cells, maxZoom){
+  if (!cells || !cells.length) return;
+  const cp = cellPx();
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  cells.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+  const P = CAM_FIT_PAD;
+  const bw = (x1 - x0 + 1 + 2 * P) * cp, bh = (y1 - y0 + 1 + 2 * P) * cp;
+  let side = Math.max(bw, bh);
+  side = Math.max(side, 640 / (maxZoom || 2.2));
+  side = Math.min(side, 640);
+  camTo((x0 - P) * cp + bw / 2 - side / 2, (y0 - P) * cp + bh / 2 - side / 2, side);
+}
 // frame the whole sail window: bbox of every highlighted cell + my ship, padded; zoom is
 // whatever that window allows, capped at 2.2x — a legal move is never off screen.
 function camFitSail(){
   S.lock = false;                                    // a new turn releases any gesture hold
   const g = appState.game; if (!g) return;
   const me = g.players[appState.mySeat ?? 0]; if (!me) return;
-  const cp = cellPx();
   // playtest 20: the squares carry their own grid coordinates now (sailHighlightRect writes
   // data-gx/gy). This used to invert that function's inset arithmetic by hand — a second copy of
   // the same maths that had to be kept in step with it, and it stopped being possible at all once
@@ -82,14 +103,12 @@ function camFitSail(){
     .map(r => [+r.dataset.gx, +r.dataset.gy])
     .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
   cells.push(me.pos);
-  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  cells.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
-  const PAD = 1.2;
-  const bw = (x1 - x0 + 1 + 2 * PAD) * cp, bh = (y1 - y0 + 1 + 2 * PAD) * cp;
-  let side = Math.max(bw, bh);
-  side = Math.max(side, 640 / 2.2);
-  side = Math.min(side, 640);
-  camTo((x0 - PAD) * cp + bw / 2 - side / 2, (y0 - PAD) * cp + bh / 2 - side / 2, side);
+  camFitCells(cells, 2.2);
+}
+// frame a set of captains — both combatants of a fight, whatever the water between them
+function camFitSeats(seats){
+  const g = appState.game; if (!g) return;
+  camFitCells(seats.map(i => g.players[i] && g.players[i].pos).filter(Boolean), 2.2);
 }
 // user SVG units -> screen px under the current camera ('meet' fit inside the wrap)
 function toScreen(ux, uy){
@@ -143,6 +162,7 @@ function shipStill(){
 }
 function stageSettled(){
   if (!S.active) return Promise.resolve();
+  if (appState.replaying) return Promise.resolve();   // a replay waits for nothing — see stageFlash
   const t0 = Date.now();
   return new Promise(res => {
     const poll = () => {
@@ -425,6 +445,22 @@ function ribbonTick(){
 const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 function stageFlash(msg){
   if (!S.active) return null;                        // pre-game: let the panel handle it
+  /* A REPLAY IS SILENT AND INSTANT — playtest 22, the other half of the stall report (Wyatt: "when
+     i refreshed the browser, the game RESTARTED").
+
+     It did not restart. A solo refresh REPLAYS the decision log to rebuild the voyage, and every
+     other surface in the game knows to do that silently: panel.js's own `sleep` is
+     `appState.replaying ? Promise.resolve() : …`, panel() returns early, renderLiveShips,
+     paintShipAt, paintShipAtPoint and animateSailRoute all open with the same guard. This function
+     was the one that did not — so the replay played every narration line at full length, 2.5-6.75
+     seconds each, hundreds of them, from Day 1 forward. What that looks like from the seat is a
+     brand new voyage, which is exactly what was reported: the state was never lost, it was being
+     re-narrated in real time.
+
+     Consistency, in this project's sense: `appState.replaying` is one condition honoured on every
+     surface, and a surface that quietly opted out is a bug even while every line it drew was
+     correct. Same shape as the `ff` guard directly below. */
+  if (appState.replaying) return Promise.resolve();
   // ⏩ fast-forward: narration is dropped entirely (Wyatt picked cut-not-montage) — the recap at
   // skip end covers it. Resolved (not null) so panel.flash treats it as handled and never falls
   // back to the slow panel path.
@@ -445,8 +481,16 @@ function stageFlash(msg){
   S.lock = false;
   const evType = S.evType; S.evType = null;
   if (evType === "storm") camFull();                 // watch the shove land from above
-  // playtest 12 item 10: while a battle card is live, the camera HOLDS on the battle — a flee
-  // call can only be made by someone who can see the fight, not the caller's own boat
+  /* playtest 12 item 10: while a battle card is live, the camera HOLDS on the battle — a flee
+     call can only be made by someone who can see the fight, not the caller's own boat.
+     playtest 22 extends that ruling to the WHOLE fight rather than to the card alone (Wyatt: "the
+     director should focus battles on the players fighting, not the player calling the battle").
+     The card is built after the calls are collected, so the `.btl` test could not cover the part
+     of a battle that asks a spectator anything: the crow's-nest call ran with the camera still on
+     whoever the opening line named, and then every "X calls Y" line glided it to the CALLER. So
+     the hold is now armed by the battle itself (S.battle, set at the top of asyncBattle) and the
+     card test stays as the belt to that braces. */
+  else if (S.battle) { /* hold the shot on the fight until it resolves */ }
   else if (subj != null && !document.querySelector("#actionPanel .btl")) camToSeat(subj);
   return new Promise(res => {
     // playtest 11 (Wyatt: "the game currently feels like it's in rush mode and i cant read
@@ -481,6 +525,7 @@ function stageFlash(msg){
     let done = false;
     const finish = () => {
       if (done) return; done = true;
+      if (S.bubFinish === finish){ S.bubFinish = null; S.bubDue = 0; }
       if (S.bubPlace === place) S.bubPlace = null;
       if (S.hurry === finish) S.hurry = null;
       b.classList.add("out");
@@ -489,6 +534,27 @@ function stageFlash(msg){
     };
     S.hurry = finish;
     S.bubPlace = place;
+    /* THE HOLD IS A DEADLINE, NOT A TIMER — playtest 22, and this is the CRITICAL one (Wyatt: "the
+       game just completely stalled").
+
+       MEASURED, headless, and it is not a logic bug at all. Every narration line is awaited by the
+       game loop, and this promise used to be resolved by exactly one `setTimeout`. Instrumented:
+       the bubble's `finish` timer AND a canary armed on the same line with the same delay were
+       BOTH never delivered — neither was ever cleared, and a 250ms setInterval kept counting right
+       through it (272 ticks over 72s). A browser dropped two pending timeouts. The game had no
+       second way to continue, so it stopped for good: no prompt, no error, no clock — exactly what
+       a stall looks like from the seat. On a phone this is the ordinary case rather than the exotic
+       one, because backgrounding a tab is what people do with phones.
+
+       The rule is already written thirty lines up, for stageSettled: "A UI gate that can wait
+       forever is a game that can hang." This gate could, and did. So the deadline is recorded and
+       tick() — which is re-armed by BOTH rAF and setTimeout, and restarted outright on
+       visibilitychange — retires the bubble the moment the clock says it is due. The timeout stays
+       as the fast path; the deadline is the belt that means losing it costs a late line rather than
+       the voyage. A tab that comes back from the background finds the line already overdue and the
+       game carries straight on. */
+    S.bubDue = Date.now() + hold;
+    S.bubFinish = finish;
     wake();   // a live bubble rides the ship — full frame rate while it's up
     b.addEventListener("pointerdown", finish);
     place();
@@ -532,6 +598,7 @@ function cerWatchResult(){
 }
 function flipArmed(el, onClick){
   if (!S.active) return false;                       // pre-game: normal flippenator
+  if (appState.replaying) return false;              // a replay raises no ceremony — see stageFlash
   if (!onClick){
     // disarmed: the tap landed and the spin is starting — hold the stage and watch for the face
     const veil = $("pp4Veil");
@@ -909,10 +976,46 @@ function promptTick(){
       if (b._shortHtml != null && !b._radSwapped){ b._fullHtml = b.innerHTML; b.innerHTML = emojify(String(b._shortHtml)); b._radSwapped = true; }
     });
     const [sx, sy] = toScreen(uu[0], uu[1]);
+    /* A CHOICE ABOUT SOMEONE ELSE'S SHIP SITS ON THAT SHIP — Wyatt's pick, playtest 22. The battle
+       call is the case that needs it: "Call Dough Hook" belongs over Dough Hook's boat, not fanned
+       around the caller's own, which the director no longer has on screen now that it frames the
+       fight. It is the same rule the fan already follows — circles bloom around the ship, right
+       where the eyes are — applied to the ship a button NAMES rather than the one choosing.
+       Opt-in and all-or-nothing: an option carries `seat` (localAsk writes data-seat) and every
+       button in the menu must carry one, or the ordinary fan runs untouched. */
+    const anchors = menu.map(b => {
+      const s = b.dataset ? b.dataset.seat : null;
+      const u = s == null ? null : boatUXY(+s);
+      return u ? toScreen(u[0], u[1]) : null;
+    });
+    const onBoats = anchors.length > 0 && anchors.every(Boolean);
     const cap = $("pp4Cap");
     const capT = cap ? cap.getBoundingClientRect().top : vhPx();
     const rib = $("pp4Ribbon");
     const tSafe = (rib ? rib.getBoundingClientRect().bottom : 44) + 40;
+    /* THE BOAT BEING ASKED IS ALWAYS ON THE WATER — playtest 22 (Wyatt: "the director did not
+       correctly center my boat, so the board looks weird"), from a screenshot with his own ship
+       drawn up over the ribbon and the wind pill, its action fan hanging beneath it.
+
+       Only the SAIL prompt framed anything: camFitSail fits the sail window (which contains the
+       ship by construction), and every other prompt simply inherited whatever shot the last
+       narration left. A ship that had just sailed to the edge of that shot therefore got its
+       question asked off the board. This became worth fixing rather than tolerating the moment
+       #boardwrap started clipping (see index.html): what used to paint over the ribbon would now
+       be cut off entirely, and a boat you cannot see is worse than a boat in the wrong place.
+
+       Fires ONCE per prompt — S.frameKey is the turn serial plus the ask itself, so a re-place
+       during the glide cannot re-aim the camera at every frame and chase itself. Only when the boat
+       is genuinely outside the band the circles have to live in; a boat merely near the edge is
+       left alone, because the director moving on its own is startling when it was not needed. */
+    if (!S.lock && sx != null){
+      const key = S.turnSerial + "|" + (ap.querySelector(".apMsg") || {}).textContent;
+      if (S.frameKey !== key){
+        S.frameKey = key;
+        const out = sx < 8 || sx > vwPx() - 8 || sy < tSafe || sy > capT - 8;
+        if (out) camToSeat(appState.mySeat ?? 0);
+      }
+    }
     // playtest 12 item 8: circles hug the boat — as close as the ship-clearance allows
     const R = 70, D = 66;
     const placed = [];
@@ -938,8 +1041,12 @@ function promptTick(){
     // that differs from the previous one ONLY by gaining a slider reuses the memoised layout and
     // the bar is never positioned — it would render at 0,0 in the corner.
     const hasSlider = ap.querySelector(".apSliderWrap") ? 1 : 0;
+    // the anchors are a placement INPUT, so they belong in the memo key — without them the layout
+    // would be computed once, on the first frame of the camera's glide into the fight, and frozen
+    // there while the boats slid across the screen underneath it
     const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
-      cellRects.length, vwPx(), hasSlider, menu.map(b => b.textContent.length).join(",")].join("|");
+      cellRects.length, vwPx(), hasSlider, menu.map(b => b.textContent.length).join(","),
+      anchors.map(a => a ? (a[0] | 0) + "," + (a[1] | 0) : "-").join(";")].join("|");
     if (radKey === S.radKey) return;
     S.radKey = radKey;
     let pillB = null;
@@ -950,7 +1057,14 @@ function promptTick(){
       // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
       // same turn reuses it — only the width re-clamps so a longer ask stays on screen.
       let cxA, mTop;
-      if (S.pillLock && S.pillLock.key === S.turnSerial){
+      // an ask about other people's ships is centred over THEM, and does not take or reuse the
+      // turn's pill lock: that lock exists so a pill does not wander during YOUR turn, and this
+      // prompt belongs to a fight in the middle of someone else's
+      if (onBoats){
+        cxA = anchors.reduce((a, p) => a + p[0], 0) / anchors.length;
+        mTop = Math.max(tSafe - 34, Math.min(...anchors.map(p => p[1])) - R - 96);
+      }
+      else if (S.pillLock && S.pillLock.key === S.turnSerial){
         cxA = S.pillLock.cx; mTop = S.pillLock.top;
       } else {
         cxA = sx;
@@ -995,6 +1109,27 @@ function promptTick(){
     // circles nearly touching, wrapping to a second row past four. A cornered boat fans toward
     // whatever water is open; the group stays together instead of scattering.
     const xMin = 8, xMax = vwPx() - D - 8, yMin = tSafe, yMax = capT - D - 8;
+    // ---- each circle on the boat it names (see `onBoats` above) ----
+    if (onBoats){
+      const spots = anchors.map(([ax, ay]) => [ax - D / 2, ay + 26]);   // just off the stern
+      // two adjacent ships would stack their circles: push any overlapping pair apart along the
+      // line between them, so the pairing with the boats survives even at a point-blank fight
+      for (let i = 0; i < spots.length; i++)
+        for (let j = i + 1; j < spots.length; j++){
+          const dx = spots[j][0] - spots[i][0], dy = spots[j][1] - spots[i][1];
+          const d = Math.hypot(dx, dy), need = D + 6;
+          if (d >= need) continue;
+          const ux = d > 0.5 ? dx / d : 1, uy = d > 0.5 ? dy / d : 0, push = (need - d) / 2;
+          spots[i][0] -= ux * push; spots[i][1] -= uy * push;
+          spots[j][0] += ux * push; spots[j][1] += uy * push;
+        }
+      menu.forEach((b, i) => {
+        b.style.position = "fixed";
+        b.style.left = Math.min(Math.max(spots[i][0], xMin), xMax) + "px";
+        b.style.top = Math.min(Math.max(spots[i][1], yMin), yMax) + "px";
+      });
+      return;
+    }
     const hitRect = (bx, by, r, m) =>
       bx < r.right + m && bx + D > r.left - m && by < r.bottom + m && by + D > r.top - m;
     const obstacles = cellRects.slice();
@@ -1136,6 +1271,9 @@ export function wake(){
 function tick(){
   fc++;
   camFrame();
+  // the narration deadline, honoured by whichever gear is running — see stageFlash's note. This is
+  // the only thing standing between a dropped timer and a voyage that never continues.
+  if (S.bubDue && Date.now() >= S.bubDue){ const f = S.bubFinish; S.bubDue = 0; S.bubFinish = null; if (f) f(); }
   if (S.bubPlace) S.bubPlace();   // the live bubble moves in the same frame as the camera
   if (S.active){
     // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
@@ -1147,6 +1285,22 @@ function tick(){
   if (needFast()){ S.slow = false; S.raf = requestAnimationFrame(tick); }
   else { S.slow = true; S.raf = setTimeout(tick, 125); }
 }
+/* WATCHDOG — because the thing that failed is the thing tick() is re-armed BY.
+   playtest 22. The stall above was a dropped `setTimeout`; the slow gear re-arms itself with
+   `setTimeout(tick,125)`, so the very same loss can kill the tick loop, and then the deadline check
+   inside tick() never runs either. A belt that hangs off the same hook as the thing it is holding up
+   is not a belt.
+   `setInterval` is the independent hook, and that is measured rather than assumed: in the run that
+   found this, a 250ms interval delivered 272 ticks across 72 seconds — through the whole stall —
+   while two timeouts armed in the middle of it were never delivered at all.
+   Half a second, and all it does when nothing is wrong is compare two integers: no layout, no DOM,
+   nothing that shows up on a hot phone. It never restarts the loop while the page is hidden — that
+   would undo playtest 20's battery fix, and visibilitychange already restarts it on the way back —
+   but it DOES honour a narration deadline while hidden, which is what the timeouts used to do. */
+setInterval(() => {
+  if (S.bubDue && Date.now() >= S.bubDue){ const f = S.bubFinish; S.bubDue = 0; S.bubFinish = null; if (f) f(); }
+  if (!S.hidden && !S.raf){ S.slow = false; tick(); }        // the loop stopped: pick it up again
+}, 500);
 // playtest 20 (Wyatt: "see if those continue when the game is idle in the background on mobile,
 // and pause them"). Measured with the page hidden: a requestAnimationFrame loop stops on its own
 // (92 ticks -> 92 across 1.5s), but a setTimeout loop KEEPS FIRING (12 -> 14). This tick has two
@@ -1180,10 +1334,18 @@ export function initStage(){
     set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
     set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
     sailCells: () => { if (S.active) camFitSail(); },
-    battle: (a, d) => { if (!S.active) return; const g = appState.game; if (!g) return;
-      const pa = g.players[a], pd = g.players[d]; if (!pa || !pd) return;
-      const cp = cellPx(); const cx = (pa.pos[0] + pd.pos[0]) / 2, cy = (pa.pos[1] + pd.pos[1]) / 2;
-      camToCell([cx, cy], 2.0); },
+    /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called at the top of asyncBattle (before the opening
+       line, so the camera is already there when it speaks) and again by every battle-card render.
+       It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
+       that are not — camFitSeats derives the zoom from the gap instead, so both boats are on screen
+       whatever the fight looks like. Re-fitting only when the pair changes: an unchanged re-fit
+       would restart the 650ms tween — and hold the tick loop in its fast gear — on every round. */
+    battle: (a, d) => { if (!S.active) return;
+      const g = appState.game; if (!g || !g.players[a] || !g.players[d]) return;
+      const same = S.battle && S.battle[0] === a && S.battle[1] === d;
+      S.battle = [a, d]; S.lock = false;
+      if (!same) camFitSeats([a, d]); },
+    battleEnd: () => { S.battle = null; },
     flip: flipArmed,
     // turnSerial: bumps whenever the wheel changes hands — the pill-lock and placement memo key
     // on it, so a NEW turn re-anchors the ask pill and an ongoing one never moves it (playtest 15)
