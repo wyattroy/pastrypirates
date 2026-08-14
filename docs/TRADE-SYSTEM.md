@@ -1,0 +1,344 @@
+# The trade system
+
+**Canonical.** How trading works in Pastry Pirates — the rule, the data shapes, the four invariants
+that constrain every change, where each decision lives, and what has already been tried and thrown
+away. Written 2026-08-14, after a session that broke two of the invariants below in a single change
+and had to be corrected twice by Wyatt.
+
+Sibling to `docs/BOT-DESIGN-PRINCIPLES.md` (what bots are FOR), `docs/HARD-WON-LESSONS.md` (what to
+distrust) and `docs/DRIVING-THE-GAME.md` (how to drive it in a browser).
+
+> **READ THIS BEFORE TOUCHING ANYTHING THAT TRADES.** Not because it is long — it is not — but
+> because the trade system's expensive mistakes are all *invisible from the code you are editing*.
+> Every one of them looked like a local improvement and broke something a previous session had
+> fought for, three files away or two milestones ago.
+
+---
+
+## 0. THE FOUR INVARIANTS
+
+Break one of these and the change is wrong however good it looks. Each is a ruling, with the
+sentence that earned it.
+
+### I1 — A hail interrupts the WHOLE TABLE, so its COUNT is a player-facing cost
+
+> Wyatt: *"We dont want the table continuously spammed with shitty trade requests, it's exhausting
+> for players to swat them away."*
+
+Rule 4 is a broadcast. There is no target player. So one hail is not one opponent being asked — it
+is **every** opponent, the human included, being interrupted. **Hails per game is therefore exactly
+the number of things a player has to swat away**, and it is a guarded number: `03a683c` held it at
+~2.8 a game *deliberately* while fixing something else.
+
+`HARD-WON-LESSONS` §5 states the mechanism in four words — **"the announcement IS the spam"**.
+Filtering *responses* after the hail barely moved anything (706 → 543); moving the check *before*
+the hail took it to 375.
+
+**Any change to trading reports hails per game beside whatever else it improved.** A change that
+improves offers by making *more* of them has failed.
+
+**Do not be reassured by "identical re-hails stayed flat."** A re-offer at a better price is still
+an announcement to swat away. That exact reasoning was used to defend a 3.25 → 4.10 regression in
+this very system; see §7.
+
+### I2 — Only what a player can see
+
+`BOT-DESIGN-PRINCIPLES` §5. A bot may read holds, positions, coins, stock, the wind, and the whole
+history of what everyone did. **Never a rival's recipe card.**
+
+This one is subtle in trading because the code has *two* pricing functions that look
+interchangeable and are not:
+
+| Function | Reads | Legitimate for |
+|---|---|---|
+| `crateCostTurns(q, ing, asker)` | **`q.recipe`** | `q` deciding about `q`'s OWN cargo |
+| `estimateCrateCost(q, ing)` | only public evidence | anyone guessing at `q`'s price |
+
+**A bot pricing its own answer may use the first. A bot deciding what to OFFER must use the
+second.** `estimateCrateCost` says so in its own comment: *the guess a human makes across the
+table*. A bid built on it can be wrong, and should be — being wrong is what the counter-offer is
+for.
+
+The same distinction applies to `needs(q)`: fine when `q` is the one deciding, mind-reading when
+anyone else consults it.
+
+### I3 — Bots and humans have exactly the same affordances
+
+> Wyatt, on humans not being able to counter with a crate: *"rather than remove the bot's ability,
+> we want to add it to the human ability."*
+
+Parity can be restored by levelling the human **up**, not only by taking capability away from bots.
+And it runs both ways: when the human gained crate counters (playtest 21 item 7), bots gained them
+in the same change, because a bot that can only answer *"+2 coins"* would then be the one with the
+poorer vocabulary.
+
+Before shipping any new trade move, ask: **can the other kind of captain do this too?**
+
+### I4 — Nothing that prices a trade may be a constant
+
+> Wyatt: *"We also dont want constants to drive the hail behavior, because the game is always
+> shifting!! The bot should calculate an offer that it would accept, and offer something close to
+> that."*
+
+A fixed price, margin, cap or threshold is a price list standing in for a quantity that moves by an
+order of magnitude across a voyage. A first crate and a last crate are not the same trade.
+
+Done properly this **deletes** code. The whole "is this worth saying out loud" test is one
+comparison with no threshold in it (§3.2).
+
+Corollary, which has now cost this project twice: **replacing a constant with a calculation breaks
+every test that reads it** — and can make a gate *vacuous* rather than merely wrong, which still
+reads as protection. List what reads a quantity, **gates included**, before changing how it is
+produced.
+
+---
+
+## 1. THE RULE (`4/RULES-V2.md` §4)
+
+- You announce **what you want** and **what you offer** to the whole table. No target player.
+- Every captain's cargo is public, so any crate may be asked for — crates **nobody holds are greyed
+  out** in the picker.
+- Every captain holding it responds: **accept**, **deny**, or **counter-offer**.
+- You see **all responses together**, then accept one or walk away. **One round only** — no
+  re-countering a counter.
+- **No harbor-tax bonus.** A trade is just the exchange.
+
+A trade is one captain's turn ACTION. The responders do not spend a turn answering.
+
+---
+
+## 2. THE DATA SHAPES
+
+```js
+offer    = { want, giveIng, giveCoins }        // giveIng may be null (coins only)
+response = { q, kind, why?, askFor?, askIng? } // kind: "accept" | "deny" | "counter"
+```
+
+`why` on a deny is one of `"nohave"`, `"blocking"` (a rival on the brink — refused at any price),
+`"toodear"`, `"chose"` (a human said no).
+
+**A counter has TWO shapes and they settle differently.** This is the fork most likely to grow a
+family of bugs, so exactly one function resolves it:
+
+```js
+{ askFor: n }             // ADDITIVE — n more coins on top of what was offered
+{ askIng: i, askFor: n }  // REPLACING — "keep yer coin, I want yer milk". Clears the give side.
+```
+
+**`Game.counterTerms(offer, response)` is the only place that knows.** It returns a complete offer
+object ready for `settleTrade`, so the label a captain reads and the trade that settles derive from
+the same call and cannot drift. `want` never changes — a counter haggles over the price, never over
+which crate is being sold.
+
+---
+
+## 3. THE PIPELINE
+
+### 3.1 Who proposes — `botOpenOffer` → `composeOffer`
+
+`botOpenOffer(p)` picks WHAT to ask for: of the crates `p` still needs and somebody holds, the one
+**hardest to get any other way** (`acquireTurns`, descending), skipping any crate `p` handed over
+within the last 3 rounds — the *seller's remorse* rule, from Wyatt watching a bot sell milk and
+immediately try to buy it back.
+
+`composeOffer(p, want)` then builds the offer, in this order, and **the order is load-bearing**:
+
+1. pick `giveIng` — the cheapest spare `p` owns, preferring one the holders are *likely to want*;
+2. **bid provisionally** (`openingBid`) — needed to ask who is still worth asking;
+3. filter the audience (`worthReAsking`);
+4. **re-bid against only that audience.**
+
+Step 4 exists because `openingBid` takes the **minimum** price across the captains it is handed —
+one yes is all a hail needs — so handing it every holder lets a never-asked captain set a cheap
+price and silently discards everything learned from the captains who already refused.
+
+### 3.2 What to bid — `openingBid`, and the hail test
+
+```
+need   = min over live holders of:  estimateCrateCost(q, want) − (what our crate is worth to them)
+         ...raised to just above any price this captain already refused
+coins  = min(need, what the crate is worth to ME, my purse − powder reserve)
+```
+
+- **`estimateCrateCost`, never `crateCostTurns`** — invariant I2.
+- **Refusals raise the price.** A captain who turned down 5🌕 has said in public that their price is
+  above 5. Without this the bid is re-derived from unchanged evidence every time and the only thing
+  that moves it is the bot's own growing purse — it gets richer, bids a little more, clears
+  `worthReAsking`, and hails again.
+- **The ceiling is `acquireTurns(p, want)`** — what fetching the crate myself would cost, which is
+  precisely the price at which I would be indifferent to selling it. That IS *"an offer I would
+  accept"* (I4), computed from the live board and never written down as a number.
+
+Which collapses the whole *should I speak at all* test to one comparison:
+
+```js
+worthHailing(bid)  ⇔  bid.coins >= bid.need
+```
+
+True only when what the table wants sits inside **both** what I would accept **and** what I can pay.
+If it does not, the hail buys nothing but a refusal I then have to remember — so stay quiet and go
+and fetch the crate.
+
+### 3.3 Who answers — `respondToOffer`
+
+```
+cost  = crateCostTurns(q, want, asker)     // what parting with it costs ME (may read q.recipe)
+value = offerValueTurns(q, offer)          // what I am being handed, in turns
+accept  ⇔  value × dealBias >= cost
+```
+
+Then, in order:
+
+1. **Blocking deny** — a rival whose *visible* progress is one crate from a full recipe is refused
+   outright, at any price, if they likely need this crate. Public evidence only.
+2. **Crate counter** — the asker's hold is public, so pick the crate of theirs worth most to *me*
+   and ask for that instead, when it covers the gap. Preferred over coin because a crate a bot needs
+   is worth whole turns of sailing while coins are worth a fraction of one.
+3. **Coin counter** — the shortfall converted back out of turns.
+4. **`toodear`** — deny when even the coin price is beyond the asker's purse.
+
+### 3.4 Settlement — `settleTrade`
+
+Validates **both legs before either mutates**, so a trade is atomic: a crate no longer held, or
+coins no longer there, routes to the decline path rather than half-completing. Also stamps
+`gaveAway` on both sides (seller's remorse) and calls `noteDemand` — the trade itself is public
+evidence, and is how bots learn each other's recipes without ever seeing one.
+
+---
+
+## 4. THE HUMAN FLOW (`4/src/ui/flow.js`)
+
+**Building an offer** — `humanTrade(p)`, a three-step machine where Back always steps *back*:
+
+```
+what do ye WANT (every crate; ones nobody holds greyed with a reason)
+  → what will ye GIVE (yer hold, or coins only)
+    → how many coins (SLIDER)
+```
+
+**Answering one** — Accept / *Ask for summat else* / Deny.
+
+**Countering** — `counterOffer(q, p, offer)`. Fast path first (Wyatt is on a phone):
+
+```
+what of THEIRS will ye have instead (their hold, tappable — cargo is public)
+  → how much coin on top (SLIDER, optional; a crate counter may take none)
+```
+
+The coins from the original offer are **cleared**: *"instead"* means instead, and no money rides
+along invisibly from an offer that was just rejected.
+
+### The two UI rules this flow must keep
+
+- **THE ARC IS FOR ACTIONS ONLY.** Wyatt: *"Keep the arc logic consistent by having all the buttons
+  that are in the ark actions. Move the plus minus coins out of the arc instead and style those
+  differently."* A quantity is a slider under the pill; every circle in the ring commits something.
+  This is why tapping "Ask it!" sent a trade he did not want — it looked exactly like the ±1 button
+  he had just been pressing repeatedly.
+- **Top to bottom.** Back → message → **slider** → buttons → helper text, revealed in that order.
+  A control that edits the message must not arrive before the message.
+
+**Named exception:** the slider reaches the **local** prompt path only. Solo and pass-and-play are
+both local decisions, so every human quantity prompt /4 presents gets it; a genuinely remote seat
+falls back to the stepper. **Close this if /4 ever ships online multiplayer.**
+
+---
+
+## 5. THE MEMORY — why a bot stops asking
+
+Deliberately **not** a cooldown. Wyatt: *"write logic (not gates) to stop spam."* A timer silences a
+bot with a genuinely better offer and then lets the identical hopeless one through the moment it
+lapses. The honest question is *has anything changed that could change their answer?*
+
+`worthReAsking(p, q, want, offer)` re-asks only when:
+
+1. the offer is **materially better** (`worth >= memo.worth × 1.2 + 0.15`), or
+2. we now hold something they **visibly want**, or
+3. their hold changed — they picked up a spare, or lost ground.
+
+Deliberately absent: **elapsed rounds.** A bot with nothing new to say stays quiet all game.
+
+The other brake is in `openingBid`: a refusal *raises the price* for that pair, so a bot goes quiet
+because the deal stopped being worth it — not because a counter told it to shut up.
+
+---
+
+## 6. MEASURED BEHAVIOUR
+
+**Recompute rather than trust these** — `node 4/scripts/trade_offer_measure.js 150`. Figures below
+are 2026-08-14, 150 seeded voyages, seats `pirate/trader/balanced/rusher` (the archetypes are *not*
+equally strong, so two runs are only comparable at identical seating).
+
+| | before item 4 | after item 4 | with counters |
+|---|---|---|---|
+| **hails per game** | 3.25 | 0.75 | **0.78** |
+| trades struck | 28 | 26 | **50** |
+| offers → trade | 5.7% | 23.0% | **42.7%** |
+| mean coins offered | 4.35 | 7.81 | 7.64 |
+| — early (rounds 1–5) | 4.23 | 7.46 | 7.27 |
+| IDENTICAL re-hails | 31 | 4 | **2** |
+| mean voyage | 15.4 | 15.4 | **15.4** |
+
+Bots choose a crate counter over a coin one **70 : 3**. Personality is intact and lives in the
+*responder's* `dealBias`: the trader takes 20 of 32 holder-side acceptances, five times anyone else.
+
+**The harness carries controls, and they are not decoration** — dock buys asserted non-zero (a zero
+means the harness is broken, not the game), winners counted with `== null` and never `!w` (seat 0 is
+a real winner), and every ingredient named in an offer checked against the engine's own list so no
+fixture can trade in a currency the game does not have.
+
+---
+
+## 7. WHAT WAS TRIED AND FAILED
+
+**Filtering responses instead of the hail.** Barely moved anything (706 → 543). The announcement is
+the spam; move the check before it (→ 375).
+
+**Deriving the bid without re-tightening the hail test** (2026-08-14). Fixed the offers and broke
+I1: hails 3.25 → 4.10 a game. The old gate compared the offer's worth against the asking price — bid
+*to* the asking price and that comparison can never fail again. It went **vacuous**, and a gate that
+cannot fail still reads as protection.
+
+**Defending it with a friendlier metric.** The same change argued that identical re-hails stayed
+flat, so the extra hails were "haggling, not spam". Every clause true, conclusion wrong: the project
+had already decided which number counts. See `HARD-WON-LESSONS` §2.
+
+**Fixing that with a constant.** A fixed margin by which buying had to beat fetching. Broke I4. The
+mechanism that finally worked is *smaller* than both attempts.
+
+**Applying `dealBias` twice** (`232a020`). `composeOffer` gated on `worth × dealBias` while the
+planner *also* biased the whole turn value, including the sailing component. Applied twice it
+stopped tilting and started overriding, which principle 8 forbids — it promoted a hail worth 2 real
+turns above a certain crate worth 3. The bias belongs in **one** place: the responder's own.
+
+**Committing to a trade and never speaking it** (`03a683c`). `chooseAction` checked only that
+somebody held the crate, while `botOpenOffer` applies two further tests and fails one most of the
+time — **4,884 dead turns** in 300 games. Ask the exact question the action will ask.
+
+---
+
+## 8. WHERE IT LIVES
+
+Engine — `4/src/engine/index.js`:
+`holdersOf` · `offerValueTurns` · `estimateCrateCost` · `crateCostTurns` · `respondToOffer` ·
+`collectResponses` · `settleTrade` · `counterTerms` · `offerLabel` · `rememberRefusal` ·
+`refusedFlagWanted` · `worthReAsking` · `offerWorthTurns` · `openingBid` · `worthHailing` ·
+`composeOffer` · `botOpenOffer` · `tryTrade`
+Public inference: `noteDemand` · `demandFor` · `likelyNeeds` · `visibleProgress`
+Units: `coinTurns` · `acquireTurns` · `PLAN.coinsPerDockTurn` · `PLAN.leverageTurns`
+
+UI — `4/src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `coinStepper` (remote
+fallback) · `crateOpt`
+Harness — `4/scripts/trade_offer_measure.js`
+
+---
+
+## 9. BEFORE YOU CHANGE ANYTHING HERE
+
+1. **Read this file and `git log --grep=trade -i`.** The design lives here; the graveyard and the
+   guarded numbers live in commit messages.
+2. **Baseline first.** `node 4/scripts/trade_offer_measure.js 150`, saved, before a line changes.
+3. **Ask which invariant your change touches.** Most trade changes touch at least one.
+4. **List what reads any quantity you are about to change — gates and tests included.**
+5. **Re-measure, and put hails per game in the summary, first, in its own row.** A number nobody is
+   allowed to explain away is the only kind that protects anything.

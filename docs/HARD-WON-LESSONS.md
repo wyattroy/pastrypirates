@@ -5,11 +5,24 @@ evidence that earned each rule. Written 2026-08-05 during the v2.1 build and pla
 
 Sibling to `docs/DRIVING-THE-GAME.md` (which is *how* to drive the game). This is *what to distrust*.
 
-Third sibling: **`docs/BOT-DESIGN-PRINCIPLES.md`** — *what the bots are FOR*. Read it before touching
-the bot AI. It opens with the objective every bot decision has to serve (minimise the expected turns
-until *this bot* wins), and records the failures that came from not having one: a whole-turn planner
-that improved every behaviour statistic and still lost head-to-head, plus the two tuning traps found
-inside it.
+**Per-subsystem specs, each of which must be read before touching its subsystem** (§0 explains why
+this file is not a substitute for them):
+
+| Document | Covers |
+|---|---|
+| `docs/BOT-DESIGN-PRINCIPLES.md` | what the bots are FOR — the objective, and every failure that came from not having one |
+| **`docs/TRADE-SYSTEM.md`** | **the trade system — the rule, the data shapes, the four invariants, and what has already been tried and thrown away** |
+| `docs/BOT-V3-RACE-PLANNER.md` | the route planner, and what it already does (grep cannot tell you) |
+| `docs/DRIVING-THE-GAME.md` | driving the game under automation, and measuring cost honestly |
+
+Two of those are worth knowing what you will find in them, because both are easy to assume you can
+skip. `BOT-DESIGN-PRINCIPLES.md` opens with the objective every bot decision has to serve (minimise
+the expected turns until *this bot* wins) and records the failures that came from not having one: a
+whole-turn planner that improved every behaviour statistic and still lost head-to-head, plus the two
+tuning traps found inside it. `TRADE-SYSTEM.md` opens with four invariants, and a session that had
+read this whole file broke two of them in a single change on 2026-08-14 — because the rulings behind
+them were scattered across a commit message, a code comment and two lines of this file, and never
+sat in one place until that document existed.
 
 **Read this whole document at the start of every session.** Not the top two sections — all of it.
 The 2026-08-08 bake-off session hit **three lessons already written here** and paid for each of them
@@ -108,8 +121,11 @@ Ask, and ask it of the log rather than the code: *has this project already had t
 
 ### The checklist this earns, before editing any subsystem
 
-1. **Does this subsystem have a design document?** `docs/` carries one for the bots, one for
-   driving the game, one per ruleset. Read the whole thing — they are 150–250 lines, minutes each.
+1. **Does this subsystem have a design document?** `docs/` carries one for the bots
+   (`BOT-DESIGN-PRINCIPLES.md`), one for **trading** (`TRADE-SYSTEM.md` — the rule, the data shapes,
+   the four invariants, the graveyard), one for the route planner (`BOT-V3-RACE-PLANNER.md`), one for
+   driving the game (`DRIVING-THE-GAME.md`), one per ruleset. Read the whole thing — they are
+   150–250 lines, minutes each.
 2. **What has already been tried here and rejected?** `git log --grep` and `git log -S` over the
    subsystem, before writing a line. The doc holds the design; the log holds the graveyard and the
    guarded numbers.
@@ -607,6 +623,12 @@ rule:
 The bots-side statement of the same constraint, with the current figures, is the hail-volume
 invariant in `docs/BOT-DESIGN-PRINCIPLES.md`. **Any change to bot trading reports hails per game
 beside whatever else it improved**, or it has not been measured.
+
+**The whole trade system — the rule, the data shapes, all four invariants, where every decision
+lives, and what has already been tried and failed — is `docs/TRADE-SYSTEM.md`. Read it before
+touching anything that trades.** It exists because this lesson, and the ruling behind it, were
+scattered across a commit message, a code comment and two lines of this file, and a session that had
+read all of them still broke it.
 
 ### `needs()` excludes what you already hold
 

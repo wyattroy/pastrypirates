@@ -41,7 +41,9 @@ which still reads as protection. `docs/BOT-DESIGN-PRINCIPLES.md` records a −21
 from exactly this, and a repeat of it on 2026-08-14. **List what reads a quantity, gates included,
 before you change how it is produced.**
 
-Canonical detail: principle 10 in `docs/BOT-DESIGN-PRINCIPLES.md`.
+Canonical detail: principle 10 in `docs/BOT-DESIGN-PRINCIPLES.md`, and — for the subsystem where
+this rule was earned twice in one day — **`docs/TRADE-SYSTEM.md`**, which is the full spec for
+trading and must be read before touching anything that trades.
 
 ## READ THE GRAVEYARD — what this project already tried and rejected lives in the GIT LOG
 

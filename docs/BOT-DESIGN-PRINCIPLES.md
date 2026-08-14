@@ -187,6 +187,10 @@ counter-offer is for.
 
 ### THE HAIL-VOLUME INVARIANT — a hail interrupts EVERYONE, so its count is a player-facing cost
 
+> The full trade system — the rule, the data shapes, all four of its invariants, where each decision
+> lives and what has already been tried and failed — is **`docs/TRADE-SYSTEM.md`**. Read it before
+> touching anything that trades. What follows is the bots-side half.
+
 > Wyatt: *"We dont want the table continuously spammed with shitty trade requests, it's exhausting
 > for players to swat them away."*
 
