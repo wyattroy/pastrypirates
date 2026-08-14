@@ -789,7 +789,9 @@
      transform is the spin keyframe, so a scale written there would be overwritten every frame the
      animation runs. The wrapper is otherwise static for a swirl, so it is free to hold it.
      1.35 rather than 1.0 because the asset carries transparent padding — at 100% of its cell the
-     drawn spiral sits well inside the square it is meant to fill. */
+     drawn spiral sits well inside the square it is meant to fill.
+     BOTH NUMBERS ARE SETTLED, not placeholders: Wyatt played them on 2026-08-14 and said
+     "whirlpools look good". Size and speed are his call — do not re-tune either without asking. */
   .rimSwirl { transform: scale(1.35); }
   .rimSwirl img { animation: rimSpin 6s linear infinite; will-change: transform; opacity: .95; }
   @keyframes rimSpin { to { transform: rotate(360deg); } }

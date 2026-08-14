@@ -425,7 +425,7 @@ const EVENT_NARRATION={
      — everyone who was pushed named together, then the exceptions. Grouped by OUTCOME rather than
      by captain, which is what makes it one sentence instead of four.
 
-     @copy adhoc.storm.summary — DRAFT, Wyatt rewrites.
+     @copy adhoc.storm.summary — APPROVED as written, Wyatt 2026-08-14 ("storm summary is good").
 
      Viewer-aware like every other line: whichever group the reader is in addresses them as "ye"
      and drops their own name out of the list, so a captain reads their own fate rather than

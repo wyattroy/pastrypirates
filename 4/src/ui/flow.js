@@ -1328,7 +1328,7 @@ async function counterOffer(q,p,offer){
       why:`${pn(p.idx)} has no coin at all — it must be a crate.`});
     opts.push({label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"__deny__"});
     opts.push({label:"← Back",back:true,value:"__back__"});
-    // @copy prompt.trade.counterwant — DRAFT, Wyatt rewrites
+    // @copy prompt.trade.counterwant — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
     const pick=await ask(`${pn(q.idx)}: what o' ${poss(pn(p.idx))} will ye have instead?`,opts,null,
       theirs.length?null:`${pn(p.idx)} has no other cargo — ye can ask for coin, or deny.`);
     if(appState.turnExpired)return null;
@@ -1343,7 +1343,7 @@ async function counterOffer(q,p,offer){
       continue;                                  // coin-only asked for but there is none — re-pick
     }
     const bits=n=>[askIng?ilabelImg(askIng):null,n?`${n}🌕`:null].filter(Boolean).join(" + ");
-    // @copy prompt.trade.countercoins — DRAFT, Wyatt rewrites
+    // @copy prompt.trade.countercoins — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
     const n=await coinSlider(q.idx,
       k=>`${pn(q.idx)}: ye're ASKIN' ${bits(k)||"nothin'"} for yer ${ilabelImg(offer.want)}`,
       minC,minC,maxC,"Ask it!");
@@ -1687,7 +1687,7 @@ export async function humanAct(p,sailCtx){
   // playtest 21 item 5: a greyed circle carries its OWN reason, spoken at the circle when tapped.
   // Attack has two independent ways to be greyed and they used to share one line — the powder one
   // is checked first because it is the one the captain can actually do something about.
-  // @copy adhoc.why.* — DRAFT, Wyatt rewrites.
+  // @copy adhoc.why.* — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine").
   if(targets.length)
     opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">(−${appState.game.cfg.powder}🌕)</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length,
       why:!canAfford?`Ye can't afford the powder — ${appState.game.cfg.powder}🌕 a broadside, and yer purse won't stretch.`
