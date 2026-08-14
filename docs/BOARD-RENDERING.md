@@ -131,6 +131,41 @@ each part of it was earned:
 **rAF is the wrong tool here** and `panel.js` records why: rAF callbacks are *fully suspended* in a
 hidden tab, so an awaited rAF loop never resolves and freezes the whole game loop.
 
+### THE ACTIVE-TURN RIPPLE MUST WEAR THE SHIP'S GLIDE — `ringTo()` is the only place that decides
+
+The ring lives in an HTML layer and the ship in an SVG one, so nothing makes them move together
+except code that says so. **This has now been got wrong twice, from opposite directions:**
+
+- **2026-07-31** — the ring carried no transition while the ship eased, so it ran ~2 squares *ahead*
+  during a rim sweep. Fixed by retuning the ring alongside the ship — but only for the sweep, and
+  only through `setShipGlideMs`.
+- **2026-08-14** — Wyatt, from a screen recording: *"The ripples now move differently than the ship
+  sailing."* The identical defect on ORDINARY moves, where nothing retunes anything. Measured: the
+  ring leads the boat by **54.5px — a full cell** — for the whole of a one-square move, and by
+  **135px** on a routed one. `SHIP_GLIDE_MS` had also doubled from 350 to 700 since the first fix,
+  which doubled how long the gap is on screen.
+
+The rule the 2026-07-31 comment was reaching for, stated properly:
+
+> **The ring wears whatever glide the ship it is marking is wearing. It snaps only when the wheel
+> changes HANDS** — a ring that glided from the last captain's boat to the next would slide right
+> across the board.
+
+Those two cases are told apart by the *seat*, which is why `ringTo(seat, x, y)` decides it once
+rather than each of the four call sites (`render`, `renderLiveShips`, `paintShipAt`,
+`paintShipAtPoint`) guessing.
+
+**Two batching traps, both of which make a "snap" silently animate:**
+
+1. Setting `transition:none`, writing the transform, then restoring the transition **in the same
+   task** applies whatever transition is in force at the END of it. You must force a commit in
+   between — `void el.getBoundingClientRect()`. **That read is load-bearing; deleting it as dead
+   code restores the bug in silence.** Both `ringTo` and `snapShipTo` depend on it.
+2. An element with **no** transition resolves a style write *immediately*, even with no paint. So
+   `liveRender()` aiming everything at the destination, followed synchronously by an animator
+   painting the start, is safe for the SHIP (which eases) and **not** for the ring (which is
+   already there). That asymmetry was the 135px routed-sail excursion.
+
 ## 7. HOW TO VERIFY WHERE SOMETHING IS — AND THREE WAYS I GOT IT WRONG
 
 2026-08-14. One overlay fix, three verifications, two of them confidently wrong:

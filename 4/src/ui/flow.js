@@ -53,7 +53,7 @@ import {
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
+import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -971,13 +971,18 @@ export async function animateSailRoute(seat,from,path){
   try{
     // one tick of LINEAR glide so the browser bridges between our targets and soaks up setTimeout
     // jitter; the eased shape lives in sailRouteEase, applied to progress along the whole route.
+    /* TAKE THE START WITH NO INTERPOLATION AT ALL, and commit it, before arming the tick glide.
+       The earlier version painted the start with the tick glide already armed, on the reasoning
+       that a browser paints once per task so the destination aim could never reach the screen.
+       That is true of the SHIP and false of the RING, and the difference is what Wyatt saw:
+       liveRender() aims both at the destination, but the ring carries no transition and therefore
+       RESOLVES there immediately, so arming a 16ms glide and then painting the start sent the ring
+       animating the whole length of the move backwards. Measured at 108 x 54px over the first two
+       frames of every routed sail.
+       snapShipTo forces the start to be committed — the layout read inside it is load-bearing, not
+       a leftover — so both elements begin the route from the same place, stopped. */
+    snapShipTo(seat,from);
     setShipGlideMs(seat,SAIL_ROUTE_TICK_MS,"linear");
-    // Paint the START synchronously. liveRender() at the call site has already aimed the ship at
-    // its destination on the ordinary 700ms glide; this overwrites that in the SAME task, and a
-    // browser paints once per task, so the destination aim never reaches the screen and there is
-    // no backwards jump. Identical mechanism to animateRimSweepRun's PART A, and load-bearing for
-    // the same reason.
-    paintShipAt(seat,from);
     const began=Date.now();
     for(;;){
       // progress from ELAPSED TIME, never a tick count — a throttled or late tick then advances

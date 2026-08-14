@@ -434,6 +434,7 @@ export function drawBoard(){
     activeRing.style.opacity=0;
     activeRing.style.transform="";
     activeRing.style.transition="";
+    ringSeat=null;   // a rebuilt ring belongs to nobody yet — its first placement must snap
     const d=CQ(cell*.8), bw=CQ(2);
     for(let i=0;i<3;i++){
       const ring=document.createElement("div");
@@ -1405,9 +1406,47 @@ export function renderLiveShips(){
     const a=activeTurnSeat();
     if(a!=null&&live[a]&&!live[a].done){
       const [ax,ay]=shipXY(live[a].pos,a,live,cell);
-      activeRing.style.transform=`translate(${CQ(ax)}cqw,${CQ(ay)}cqw)`;
+      ringTo(a,ax,ay);
     }
   }
+}
+/* THE RIPPLE FOLLOWS ITS OWN BOAT, AND ONLY JUMPS BETWEEN BOATS — one place decides, because this
+   has now been got wrong twice from two different directions.
+
+   2026-07-31: the ring carried no transition while the ship eased, so it ran ~2 squares AHEAD
+   during a rim sweep. Fixed then by retuning the ring alongside the ship for the duration of the
+   sweep — but only for the sweep, and only through setShipGlideMs.
+   2026-08-14, Wyatt, from a screen recording: *"The ripples now move differently than the ship
+   sailing."* The same defect, on ORDINARY moves, where nothing retunes anything: the ship glides
+   SHIP_GLIDE_MS (700 — doubled from the 350 the original fix was judged against) while the ring
+   snaps to the destination on the first frame and waits there.
+
+   The rule the old comment was reaching for, stated properly: **the ring must wear whatever glide
+   the ship it is marking is wearing.** It must still SNAP, but only when the wheel changes hands —
+   a ring that glided from the last captain's boat to the next would slide right across the board.
+   Those two cases are distinguishable, and the seat is what tells them apart, so this decides it
+   once instead of every caller guessing.
+
+   The layout read on the snap path is load-bearing for the same reason it is in snapShipTo: style
+   writes are batched, so without forcing the commit the "snap" animates after all. */
+let ringSeat=null;
+function ringTo(seat,x,y){
+  if(!activeRing)return;
+  const jumped=(ringSeat!==seat);
+  ringSeat=seat;
+  const xf=`translate(${CQ(x)}cqw,${CQ(y)}cqw)`;
+  if(jumped){
+    activeRing.style.transition="none";
+    activeRing.style.transform=xf;
+    void activeRing.getBoundingClientRect();
+    activeRing.style.transition="";
+    return;
+  }
+  // same boat: match its glide exactly, so the two are one moving object
+  const sh=shipEls[seat];
+  const want=sh?sh.style.transition:"";
+  if(activeRing.style.transition!==want)activeRing.style.transition=want;
+  activeRing.style.transform=xf;
 }
 // G14: which seat currently owns the turn, by walking back from the current event to the nearest
 // `turn` (stopping at a round boundary). Extracted from renderLiveShips so paintShipAt can ring the
@@ -1465,6 +1504,39 @@ function shipGlideCss(ms,ease){ return `${ms}ms ${ease||SHIP_GLIDE_EASE}`; }
 // The ring is only retuned while a sweep is in flight, and RESTORED to snapping afterwards. It must
 // keep snapping normally: `render()` repositions it whenever the turn passes, and a ring that
 // glided there would slide right across the board from the previous captain's boat to the next.
+/* PUT A SHIP AND ITS RING ON A CELL WITH NO INTERPOLATION, AND MAKE IT STICK BEFORE RETURNING.
+   2026-08-14, from a screen recording — Wyatt: *"The ripples now move differently than the ship
+   sailing."* Measured: a 108 x 54px excursion in the first two frames of every routed sail.
+
+   WHY IT HAPPENS, and it is not what it looks like. The targets are never wrong — the ring and the
+   ship are aimed at identical positions on every frame. What differs is the TRANSITION they are
+   carrying when liveRender() aims them at the destination: the ship has the ordinary 700ms glide
+   and eases off toward it, while the ring carries NONE (deliberately — see setShipGlideMs below;
+   it must snap when the turn passes, or it slides across the board between captains). So the ring
+   resolves to the destination INSTANTLY. animateSailRoute then arms a 16ms tick glide and paints
+   the start — and the ring, already at the far end, animates the whole length of the move backwards
+   over those 16ms. That is the ripple leaving the boat.
+
+   THE `getBoundingClientRect()` IS THE ENTIRE POINT OF THIS FUNCTION, and removing it as a useless
+   read would restore the bug in silence. Style writes are batched: set transition:none, write the
+   transform, then re-arm a transition, and the browser applies the transition in force at the END
+   of the task — so the "snap" animates after all. Reading layout forces the start position to be
+   committed first, which is what makes it a snap rather than a very short journey.
+
+   Restores whatever transitions were in force, so a caller can arm its own glide afterwards. */
+export function snapShipTo(seat,c){
+  if(!shipEls.length||!shipEls[seat])return;
+  const ringing=activeRing&&activeTurnSeat()===seat;
+  const prevShip=shipEls[seat].style.transition;
+  const prevRing=ringing?activeRing.style.transition:null;
+  shipEls[seat].style.transition="none";
+  if(ringing)activeRing.style.transition="none";
+  paintShipAt(seat,c);
+  void shipEls[seat].getBoundingClientRect();          // commit it — see above
+  if(ringing)void activeRing.getBoundingClientRect();
+  shipEls[seat].style.transition=prevShip;
+  if(ringing)activeRing.style.transition=prevRing;
+}
 export function setShipGlideMs(seat,ms,ease){
   if(!shipEls.length||!shipEls[seat])return;
   const css=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}`;
@@ -1485,7 +1557,7 @@ export function paintShipAtPoint(seat,fx,fy){
   const x=(fx+.5)*cell, y=(fy+.5)*cell;
   shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
   if(chatBubbles[seat])positionChatBubble(seat,x,y);
-  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transform=`translate(${CQ(x)}cqw,${CQ(y)}cqw)`;
+  if(activeRing&&activeTurnSeat()===seat)ringTo(seat,x,y);
 }
 export function paintShipAt(seat,c){
   if(appState.replaying)return;
@@ -1497,9 +1569,7 @@ export function paintShipAt(seat,c){
   const [x,y]=shipXY(c,seat,st,cell);
   shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
   if(chatBubbles[seat])positionChatBubble(seat,x,y); // the bubble rides along, as renderLiveShips does
-  if(activeRing&&activeTurnSeat()===seat){
-    activeRing.style.transform=`translate(${CQ(x)}cqw,${CQ(y)}cqw)`;
-  }
+  if(activeRing&&activeTurnSeat()===seat)ringTo(seat,x,y);
 }
 export function render(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
@@ -1591,7 +1661,7 @@ export function render(){
   if(activeRing){
     if(active!=null){
       const [ax,ay]=shipXY(st[active].pos,active,st,cell);
-      activeRing.style.transform=`translate(${CQ(ax)}cqw,${CQ(ay)}cqw)`;
+      ringTo(active,ax,ay);
       // PERF-01: a style, not an attribute — `opacity` is presentational-attribute-only on SVG.
       activeRing.style.opacity=1;
     }else activeRing.style.opacity=0;
