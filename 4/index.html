@@ -775,12 +775,30 @@
   /* the wrapper holds the tangent rotation and NEVER animates; the img drifts along that rotated
      local axis, so each arrow travels its own stretch of channel rather than all of them sliding
      the same way across the board */
-  .rimFlow img { animation: rimDrift 2.6s linear infinite; will-change: transform, opacity; }
+  /* THE RING IS ALWAYS COMPLETE; THE WAVE IS A BRIGHTENING THAT TRAVELS IT.
+     playtest 21 (Wyatt): "the trade winds are missing most of their arrows... They should all be
+     there from the start."
+     The fade used to bottom out at opacity 0, so at any instant — measured in Chrome, 36 arrows —
+     about 23 read clearly, ~6 were faint and ~1 was invisible. A fifth of the channel was missing
+     at all times BY DESIGN, which on a phone reads as a broken ring rather than a moving one.
+     The floor is .35 (his pick, against .6 and against keeping the full fade): every arrow is
+     always drawn, and the current still plainly moves. The ±42% slide is unchanged, also his pick —
+     it is what makes the ring read as carrying ships clockwise rather than a row of blinking signs.
+
+     NO will-change, deliberately, and this is a fix rather than a tidy-up. It promoted all 40 rim
+     elements to permanent compositor layers; a running transform/opacity animation is composited
+     anyway, so the hint bought nothing and asked an iPhone for 40 layers it creates lazily under
+     memory pressure — the likeliest reason arrows appeared over ~15 seconds instead of at once.
+     Chrome measured identical without it (0 layouts/sec, 68 recalcs/sec both ways).
+     The rim was the outlier: every other will-change in /4 is either a handful of elements (the
+     ripple rings, whose own note defends theirs) or transient (storm rain), or defaults off (the
+     wind-dot HUD). */
+  .rimFlow img { animation: rimDrift 2.6s linear infinite; }
   @keyframes rimDrift {
-    0%   { transform: translateX(-42%); opacity: 0; }
+    0%   { transform: translateX(-42%); opacity: .35; }
     22%  { opacity: .9; }
     72%  { opacity: .9; }
-    100% { transform: translateX(42%); opacity: 0; }
+    100% { transform: translateX(42%); opacity: .35; }
   }
   /* The whirlpool at each quadrant's drop-off — where the ride ends, so it turns rather than drifts.
      playtest 21 (Wyatt): "increase the size of the whirlpools so they take up their entire square,
@@ -793,7 +811,7 @@
      BOTH NUMBERS ARE SETTLED, not placeholders: Wyatt played them on 2026-08-14 and said
      "whirlpools look good". Size and speed are his call — do not re-tune either without asking. */
   .rimSwirl { transform: scale(1.35); }
-  .rimSwirl img { animation: rimSpin 6s linear infinite; will-change: transform; opacity: .95; }
+  .rimSwirl img { animation: rimSpin 6s linear infinite; opacity: .95; }   /* no will-change, same reason as .rimFlow above */
   @keyframes rimSpin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
     .rimFlow img { animation: none; opacity: .9; }
