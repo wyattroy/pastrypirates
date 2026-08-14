@@ -1395,9 +1395,22 @@ async function counterOffer(q,p,offer){
     if(pick==null||pick==="__back__")return "__back__";
     if(pick==="__deny__")return "deny";
     const askIng=(pick==="__coinsonly__")?null:pick;
-    // ...and how much coin on top, if any. A crate counter may take none at all, so the floor is 0.
+    /* ...and how much coin on top, if any. A crate counter may take none at all, so the floor is 0.
+
+       THE CEILING IS THEIR PURSE, NOT A NUMBER. playtest 21 (Wyatt, countering Dough Hook's 8🌕
+       with the slider stuck at 6): "i cannot ask for all that he has — i should be able to slide
+       the slider up to 8, no?" He should, and the 6 was answering a question nobody is asking any
+       more. It dates from the ±1 STEPPER (d63d14f, "circles adjust one coin at a time"), where the
+       ceiling was really a limit on how many taps a price could cost. A slider has no such cost,
+       and the constant outlived the control it was protecting.
+
+       It also broke both trade invariants at once (docs/TRADE-SYSTEM.md):
+         I4, nothing that prices a trade may be a constant — there is no 6-coin rule anywhere in
+             RULES-V2, and a purse ranges over an order of magnitude across a voyage;
+         I3, bots and humans have the same affordances — openingBid bounds a bot's bid by
+             `p.coins - reserve`, its whole purse, so the cap applied to the human alone. */
     const minC=askIng?0:1;
-    const maxC=Math.min(6,room);
+    const maxC=room;
     if(maxC<minC){
       if(askIng)return {askIng,askCoins:0};
       continue;                                  // coin-only asked for but there is none — re-pick
@@ -1527,7 +1540,10 @@ export async function humanTrade(p){
       if(baseIng==null)return false;
       st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=2;
     }else{ // step 2 — playtest 13: the coin stepper, never an option grid
-      const maxC=Math.min(6,p.coins);
+      // ye may offer everything ye have — the same ceiling the counter now uses, and the same one
+      // openingBid gives a bot. See counterOffer for why the old 6 had to go; fixing one and not
+      // the other would leave the human able to ASK for a whole purse but not OFFER one.
+      const maxC=p.coins;
       const minC=st.baseIng?0:1; // a coins-only offer needs at least 1 coin
       if(maxC<minC){
         // @copy prompt.trade.nothingtooffer
