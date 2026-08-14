@@ -264,6 +264,47 @@ Pick the metric that measures the *goal*, not a proxy that moves for other reaso
 
 ## 3. Verification tooling that lies to you
 
+### A FIXTURE THAT CANNOT EXIST IN THE GAME PROVES NOTHING — validate injected state against the engine's own constants
+
+2026-08-14. A browser probe for the black market's 2-crate barter injected the hold
+`["cocoa","cocoa","lemon"]`. **There is no lemon in Pastry Pirates.** `ING_ALL` is
+wheat/dairy/sugar/eggs/cocoa/spice/vanilla, and it has been for the whole project.
+
+Nine assertions passed, and the result was reported to Wyatt as proof. His reply was the first
+anyone knew: *"There is no lemon in the game! How is this possible?"*
+
+It is possible because **`barterCrate` only splices what it is given** — it validates that the
+crates are in the hold, not that the hold is legal. So a fabricated crate rides along invisibly.
+What actually settled was real (two `cocoa` bought one `wheat`, the lemon was a passenger that was
+never spent), so the mechanic *was* exercised — **by luck, not by the test**. Had the barter picked
+differently, the run would have "proved" a trade in a currency the game does not have.
+
+**The tell was in the output, quoted verbatim in the report, and read straight past:**
+
+```
+step 1 ... || Cacao Pods ×2 / lemon
+```
+
+`iname()` falls back to the raw key when an ingredient has no display name. Every real crate renders
+as a title-case name — "Cacao Pods", "Crystal Sugar". **A bare lowercase word in a list of proper
+names is the game telling you the thing does not exist.** Mixed casing in rendered output is a
+fixture bug until proven otherwise.
+
+The rules, cheap to follow and each one would have caught it:
+
+1. **Injected state is asserted, not assumed.** A probe that seeds a hold, a purse, a shelf or a
+   position must first check what it seeded against the engine's own exported constants —
+   `ING_ALL`, `ings`, `dockOf`. One `check()` line: `h.every(x => ING_ALL.includes(x))`.
+2. **Prefer reading a real value to typing a literal.** `g.ings[0]` cannot be wrong; `"lemon"`
+   can. Every hand-typed game noun in a probe is an opportunity to invent one.
+3. **Read your own PASS output as evidence, not as a verdict.** The count of passing assertions
+   says nothing about whether they asked the right question. The interesting information is in the
+   strings you printed beside them — which is exactly where this was sitting.
+
+Same disease as the falsy zero below, one level out: there, the harness miscounted real games;
+here, the harness ran a game that could not be real. **A green check on a fixture nobody validated
+is the most expensive kind of green.**
+
 ### A FALSY ZERO IN YOUR OWN HARNESS — this one cost three wrong diagnoses in one session
 
 `Game.play()` returns a **seat index**, so seat 0 winning returns `0`. A measurement harness written
