@@ -1145,7 +1145,50 @@ class Game{
     }));
     const worthToMe=Math.floor(this.acquireTurns(p,want).turns*PLAN.coinsPerDockTurn);
     const affordable=Math.max(0,p.coins-(reserve||0));
-    return {coins:Math.max(0,Math.min(need,worthToMe,affordable)),need};
+    return {coins:Math.max(0,Math.min(need,worthToMe,affordable)),need,giveIng};
+  }
+  /* IS THIS WORTH SAYING OUT LOUD AT ALL? — and this test is the whole reason the bid may be
+     raised without the table getting noisier.
+
+     THE ANNOUNCEMENT IS THE SPAM. That is the lesson, in those words, from the trade-memory work
+     (HARD-WON-LESSONS): filtering RESPONSES after the hail barely helped (706 -> 543), and moving
+     the check BEFORE the hail took it to 375. A hail reaches the WHOLE TABLE — rule 4, ye stand on
+     yer deck and announce it to the Sugar Seas — so one hail is not one captain being asked, it is
+     every captain being interrupted, the human included. Hail COUNT is therefore exactly the
+     number of things a player has to swat away, and Wyatt's ruling on it is explicit: "We dont
+     want the table continuously spammed with shitty trade requests, it's exhausting for players to
+     swat them away." 03a683c held it at ~2.8 a game deliberately.
+
+     Raising the bid without also tightening this test broke that, and the first cut of item 4 did
+     exactly it: hails went 3.25 -> 4.10 a game. The cause is plain in hindsight — the old test
+     suppressed offers whose FIXED low bid fell far short of the asking price, and a bid that now
+     rises to meet the price sails through a test written against the old one. Same disease as the
+     -21.2 regression: a threshold left calibrated to a quantity that changed underneath it.
+
+     AND THERE IS NO CONSTANT HERE, DELIBERATELY. Wyatt, on the first cut of this: "We also dont
+     want constants to drive the hail behavior, because the game is always shifting!! The bot
+     should calculate an offer that it would accept, and offer something close to that." He is
+     right, and it is the same objection BOT-DESIGN-PRINCIPLES already records as "nothing should
+     be hardcoded" — a fixed margin is a price list standing in for a quantity that moves by an
+     order of magnitude across a voyage. A first crate and a last crate are not the same trade.
+
+     So the bot asks itself the question, and it already knows how: what would I take for this?
+     openingBid caps the bid at acquireTurns — what fetching the crate myself would cost — which is
+     precisely the price at which I would be indifferent to selling it. That IS "an offer I would
+     accept", computed from the live board every turn and never written down as a number.
+
+     Which collapses this whole test to ONE comparison. `bid.coins` is already
+     min(what the table wants, what it's worth to me, what's in my purse), so:
+
+         bid.coins >= bid.need
+
+     is true only when the price the table wants is BOTH inside what I'd accept AND inside what I
+     can pay. One line, no threshold, and it moves with the board because every input does. If I
+     cannot meet the price, the hail buys nothing but a refusal I then have to remember — so I keep
+     my mouth shut and go and fetch it. */
+  worthHailing(bid){
+    if(bid.need<=0)return bid.coins>0||!!bid.giveIng;   // nothing to cover — a crate-only swap
+    return bid.coins>=bid.need;
   }
   composeOffer(p,want){
     const holders=this.holdersOf(want,p);
@@ -1196,7 +1239,7 @@ class Game{
        short, the hail is a wasted turn and a refusal I will have to remember. dealBias keeps its
        old job of tilting how gamely an archetype pushes a marginal deal (a trader at 1.60 will
        open on a stretch a rusher at 0.85 walks away from). */
-    if(bid.need>0&&giveCoins*bias.dealBias<bid.need*0.6)return null;
+    if(!this.worthHailing(bid))return null;
     offer.audience=live.map(q=>q.idx);
     return offer;
   }

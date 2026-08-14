@@ -13,8 +13,17 @@
 // WHAT THIS PRINTS, and why each column is here:
 //   openoffers      how many hails were made at all
 //   mean coins      the size of the opening bid — the number Wyatt is calling too low
-//   accept/counter/deny   what the table said back. A healthy change moves accepts UP without
-//                   moving hails up much: the bot should be asking no more often, but asking better.
+//   open offers     THE OTHER NUMBER THAT MATTERS, and the one this harness's first version was
+//                   too soft about. A hail reaches the WHOLE TABLE (rule 4), so a hail is not one
+//                   captain being asked — it is every captain, the human included, being
+//                   interrupted. "The announcement IS the spam" is the recorded lesson
+//                   (HARD-WON-LESSONS; the trade-memory work drove offers 706 -> 375), and Wyatt's
+//                   ruling is explicit: "We dont want the table continuously spammed with shitty
+//                   trade requests, it's exhausting for players to swat them away." 03a683c held
+//                   hails at ~2.8 a game on purpose. A change that improves offers by making MORE
+//                   of them has failed, however good the offers are.
+//                   Do NOT be reassured by IDENTICAL re-hails staying flat — a re-hail at a better
+//                   price is still an announcement to swat away. That mistake cost a round here.
 //   trades struck   the outcome that matters; a bid nobody takes is not generosity
 //   mean voyage     THE SCOREBOARD (BOT-DESIGN-PRINCIPLES §0). Bidding more must not lengthen the
 //                   voyage — a bot that buys crates it cannot afford to buy has optimised the
