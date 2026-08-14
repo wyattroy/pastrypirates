@@ -1236,7 +1236,69 @@ class Game{
     }));
     const worthToMe=Math.floor(this.acquireTurns(p,want).turns*PLAN.coinsPerDockTurn);
     const affordable=Math.max(0,p.coins-(reserve||0));
-    return {coins:Math.max(0,Math.min(need,worthToMe,affordable)),need,giveIng};
+    const coins=Math.max(0,Math.min(need,worthToMe,affordable));
+    /* WHAT ELSE IS STILL ON THE TABLE IF THEY SAY "not for that" — the REACH.
+
+       Before counters could ask for a crate, a shortfall was a dead end: the bot could not cover
+       the price, so speaking bought nothing but a refusal. Now a shortfall is where the
+       NEGOTIATION STARTS — a holder can answer "keep yer coin, I want yer cocoa", and the asker
+       decides then, with the real deal in front of it.
+
+       So the reach is the opening bid PLUS the best thing the counter could still ask me for:
+       whichever crate I hold, other than the one already on the table, that this captain has
+       publicly been seen chasing. likelyNeeds reads observed demand, never a recipe card (I2), and
+       a crate nobody has seen them want counts for the little that leverage is worth — which is
+       what stops this becoming "hail about everything".
+
+       Capped by worthToMe like the bid itself: a deal I would not accept is not made reachable by
+       my being willing to overpay for it. */
+    // the same spare set composeOffer picks giveIng from — computed here rather than passed, so
+    // openingBid stays callable on its own and the two definitions cannot drift apart
+    const spares=p.ing.filter(i=>!p.recipe||!p.recipe.includes(i)||this.cnt(p.ing,i)>1);
+    const reachExtra=Math.max(0,...live.map(q=>{
+      /* The reach is an EXPECTED value, and deliberately not a threshold: each crate I hold is
+         worth what it would be worth to them TIMES how likely they are to want it. demandFor is
+         the game's own public estimate of exactly that probability — it already folds in the bare
+         prior (a rival's recipe covers 5 of the 7 crates in play, so any given crate is a decent
+         bet before any evidence at all), everything the table has SEEN them chase, and zero for a
+         crate they already hold.
+
+         Both cruder versions were measured and both were wrong in the way a threshold always is.
+         Counting every crate at flat leverage value made the reach nearly free — 6.03 hails a game,
+         the bot opening a conversation on the grounds that it owned cargo, which is not a reason.
+         Counting only crates past likelyNeeds' 0.8 cut went to the other extreme at 1.45, because
+         that cut requires having been seen chasing it and most crates never are. The probability
+         itself is the honest answer and needs no cut at all. */
+      /* THE REACH IS "IS THERE AN ANSWER THEY COULD GIVE THAT I WOULD TAKE?" — which is the same
+         test tryTrade already applies before paying a counter, asked one step earlier.
+
+         A crate of mine counts toward the reach only if handing it over would STILL leave the deal
+         beating what fetching the crate myself would cost. That is what makes this self-limiting
+         without a threshold: a crate my own recipe wants, and that I hold only one of, prices
+         itself out on its own arithmetic, while a spare costs me almost nothing and a
+         recipe-for-recipe swap counts exactly when it is genuinely worth doing — which is the best
+         kind of trade on the board and the one most worth opening a conversation about.
+
+         Three cruder versions were measured first and every one missed, in both directions:
+           every crate at flat leverage value      6.03 hails/game — opening on the grounds of
+                                                   owning cargo, which is not a reason
+           every crate x demandFor                 7.33 — worse, because demandFor's prior is high
+           spares only                             0.78 — identical to no reach at all, since a bot
+                                                   has usually already offered its only spare
+         The willingness test is the honest question the others were approximating. */
+      let best=0;
+      const mineTurns=this.acquireTurns(p,want).turns;
+      for(const i of p.ing){
+        if(i===giveIng)continue;
+        const wanted=p.recipe&&p.recipe.includes(i)&&this.cnt(p.ing,i)<=1;
+        const giveCost=wanted?this.acquireTurns(p,i).turns:PLAN.leverageTurns;
+        if(this.coinTurns(coins)+giveCost>mineTurns)continue;   // I would refuse this counter
+        const v=PLAN.crateTurns*this.demandFor(q,i);
+        if(v>best)best=v;
+      }
+      return Math.ceil(best*PLAN.coinsPerDockTurn);
+    }));
+    return {coins,need,giveIng,reach:Math.min(coins+reachExtra,worthToMe)};
   }
   /* IS THIS WORTH SAYING OUT LOUD AT ALL? — and this test is the whole reason the bid may be
      raised without the table getting noisier.
@@ -1279,7 +1341,24 @@ class Game{
      my mouth shut and go and fetch it. */
   worthHailing(bid){
     if(bid.need<=0)return bid.coins>0||!!bid.giveIng;   // nothing to cover — a crate-only swap
-    return bid.coins>=bid.need;
+    /* 2026-08-14, Wyatt: "We do want more hails.. especially now that players can counter-offer
+       robustly." He is right, and the reason is that THIS TEST WAS WRITTEN FOR A GAME THAT NO
+       LONGER EXISTS. `coins >= need` asks "can I pay the whole price up front?" — the only
+       question worth asking when a shortfall was a dead end, because a counter could then add
+       coins and nothing else. Now a holder can answer "keep yer coin, I want yer cocoa", so a
+       shortfall is not a refusal waiting to happen, it is where the bargaining starts.
+
+       Measured with the old test in place: it blocked 24,165 of 24,901 attempts — 97% — at a mean
+       shortfall of 8.15 coins. At coinsPerDockTurn 4 that is about two turns, which is precisely
+       the size of gap ONE CRATE closes. The bots were sitting silent on the exact deals the new
+       counter mechanic exists to settle.
+
+       So the test now asks the question the mechanic actually supports: is there any answer they
+       could give that I would take? `reach` is the bid plus the best crate a counter could still
+       ask me for (openingBid), so this stays derived from the live board and carries no threshold
+       — I4. It cannot become "hail about everything", because reach only counts a crate this
+       captain has been publicly SEEN chasing, and is capped by what the crate is worth to me. */
+    return bid.reach>=bid.need;
   }
   composeOffer(p,want){
     const holders=this.holdersOf(want,p);

@@ -37,6 +37,13 @@ the hail took it to 375.
 **Any change to trading reports hails per game beside whatever else it improved.** A change that
 improves offers by making *more* of them has failed.
 
+**The invariant is "no unearned noise", not "as few hails as possible".** Wyatt, 2026-08-14: *"We
+do want more hails.. especially now that players can counter-offer robustly."* A hail a player can
+counter into a deal they wanted is not spam — it is the mechanic working. What the number guards
+against is hails that *cannot go anywhere*, which is why the hail test asks whether any answer
+exists that the asker would take (§3.2). The working figure is **~2–3 a game**; it was ~2.8 when
+last set deliberately.
+
 **Do not be reassured by "identical re-hails stayed flat."** A re-offer at a better price is still
 an announcement to swat away. That exact reasoning was used to defend a 3.25 → 4.10 regression in
 this very system; see §7.
@@ -269,15 +276,23 @@ because the deal stopped being worth it — not because a counter told it to shu
 are 2026-08-14, 150 seeded voyages, seats `pirate/trader/balanced/rusher` (the archetypes are *not*
 equally strong, so two runs are only comparable at identical seating).
 
-| | before item 4 | after item 4 | with counters |
-|---|---|---|---|
-| **hails per game** | 3.25 | 0.75 | **0.78** |
-| trades struck | 28 | 26 | **50** |
-| offers → trade | 5.7% | 23.0% | **42.7%** |
-| mean coins offered | 4.35 | 7.81 | 7.64 |
-| — early (rounds 1–5) | 4.23 | 7.46 | 7.27 |
-| IDENTICAL re-hails | 31 | 4 | **2** |
-| mean voyage | 15.4 | 15.4 | **15.4** |
+| | before item 4 | after item 4 | + counters | **+ reach (current)** |
+|---|---|---|---|---|
+| **hails per game** | 3.25 | 0.75 | 0.78 | **2.63** |
+| trades struck | 28 | 26 | 50 | **179** |
+| offers → trade | 5.7% | 23.0% | 42.7% | **45.3%** |
+| mean coins offered | 4.35 | 7.81 | 7.64 | 4.48 |
+| — early (rounds 1–5) | 4.23 | 7.46 | 7.27 | 3.95 |
+| IDENTICAL re-hails | 31 | 4 | 2 | **8 (2.0%)** |
+| mean voyage | 15.4 | 15.4 | 15.4 | **15.0** |
+
+**Read the mean-coins column carefully — it is a composition effect, not a return to stinginess,
+and the distinction is the whole point of the change.** Disaggregated over 2,936 composed offers:
+**96% bid essentially everything the bot has** (mean bid 4.90 against a mean purse of 5.51), and
+56% now come from captains holding 5 coins or fewer. The figure that dropped is *who is speaking*,
+not *how hard they try*. The behaviour item 4 removed was a hardcoded 2/5-coin cap applied
+regardless of purse; this is "everything I have, counter me", and it lands 45.3% of the time
+against the 5.7% that started all this.
 
 Bots choose a crate counter over a coin one **70 : 3**. Personality is intact and lives in the
 *responder's* `dealBias`: the trader takes 20 of 32 holder-side acceptances, five times anyone else.
@@ -305,6 +320,17 @@ had already decided which number counts. See `HARD-WON-LESSONS` §2.
 
 **Fixing that with a constant.** A fixed margin by which buying had to beat fetching. Broke I4. The
 mechanism that finally worked is *smaller* than both attempts.
+
+**Three shapes of "reach" that missed the target in both directions** (2026-08-14, tuning hails
+from 0.78 toward ~2). Counting every crate the bot holds at flat leverage value gave **6.03**
+hails/game — it opened conversations on the grounds of owning cargo, which is not a reason.
+Weighting by `demandFor` gave **7.33**, *worse*, because that estimate's bare prior is high (a
+rival's recipe covers 5 of 7 crates). Restricting to spares gave **0.78** — identical to having no
+reach at all, since a bot has usually already offered its only spare. All three were approximating
+the honest question, which is **"is there an answer they could give that I would take?"** — the
+same test `tryTrade` applies before paying a counter, asked one step earlier. That lands at 2.63
+and needs no threshold, because a crate the bot's own recipe wants prices itself out on its own
+arithmetic.
 
 **Applying `dealBias` twice** (`232a020`). `composeOffer` gated on `worth × dealBias` while the
 planner *also* biased the whole turn value, including the sailing component. Applied twice it
