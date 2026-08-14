@@ -1350,7 +1350,26 @@ const counterTerms=(offer,r)=>appState.game.counterTerms(offer,r);
    ONE ROUND (his pick, and rule 4c): they accept it or they walk. A counter cannot itself be
    countered, so this cannot become a haggling loop that eats a turn in prompts.
 
-   Returns {askIng, askCoins} — or "__back__" to re-ask, "deny", or null if the clock ran out. */
+   Returns {askIng, askCoins} — or "__back__" to re-ask, "deny", or null if the clock ran out.
+
+   THE COUNTER STALL (playtest 22, Wyatt: "when i counter-offer a bot trade the entire game stalls
+   and stops... it happened immediately when i clicked counter offer"). It was ONE character of
+   nesting on the message line below — `poss(pn(p.idx))` where poss(), like pn(), takes a SEAT INDEX
+   and renders the name itself. pname() computes `NAMES[i].replace("Capt. ","")` unconditionally,
+   before any early return, so an array indexed by a finished `<b …>` string gives undefined and the
+   .replace throws. Not sometimes: EVERY tap of Counter, for every seat, since the counter rebuild
+   shipped (c8e2937).
+
+   THE SHAPE OF IT IS WHY IT SURVIVED TWO SESSIONS OF FIXES. A throw inside this await chain has no
+   error boundary anywhere above it — botOpenTradeLive, the bot turn, the voyage loop all simply
+   stop, with nothing on screen and nothing in the log. On a refresh solo REPLAYS the decision log,
+   reaches the recorded Counter press, throws in the same place before the board is ever driven, and
+   comes back sat at the starting position with every purse showing "–": Wyatt's "the game remains
+   unplayable but from the starting position". One fault, both halves of the report.
+
+   Both earlier attempts (a6b81cd, 69b9f23) were reasoning about what a counter SETTLES, which is
+   everything downstream of a prompt that never rendered. When a stall is reported at a tap, prove
+   the prompt appears before improving what it decides. 4/scripts/seat_arg_check.js is the gate. */
 async function counterOffer(q,p,offer){
   const g=appState.game;
   // what THEY are carrying, minus the crate already on the table — offering it back is not a counter
@@ -1365,7 +1384,12 @@ async function counterOffer(q,p,offer){
     opts.push({label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"__deny__"});
     opts.push({label:"← Back",back:true,value:"__back__"});
     // @copy prompt.trade.counterwant — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
-    const pick=await ask(`${pn(q.idx)}: what o' ${poss(pn(p.idx))} will ye have instead?`,opts,null,
+    // poss() TAKES A SEAT INDEX, exactly as pn() does — it renders the name itself. Passing it
+    // pn(p.idx) fed a finished <b> string to pname(), where `NAMES[i].replace(...)` is evaluated
+    // UNCONDITIONALLY on an array indexed by that string: undefined.replace, a TypeError, thrown on
+    // the first line of the first counter prompt. That is the whole of playtest 22's counter stall —
+    // see the note above counterOffer.
+    const pick=await ask(`${pn(q.idx)}: what o' ${poss(p.idx)} will ye have instead?`,opts,null,
       theirs.length?null:`${pn(p.idx)} has no other cargo — ye can ask for coin, or deny.`);
     if(appState.turnExpired)return null;
     if(pick==null||pick==="__back__")return "__back__";

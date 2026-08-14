@@ -46,6 +46,24 @@ document.getElementById('nameModalInput').value = 'Wyatt';
 document.getElementById('btnNameConfirm').click();
 ```
 
+**Two traps in those three lines, both of which cost a run on 2026-08-14:**
+
+**`btnNameConfirm` is in the DOM from boot.** Waiting on `!!document.getElementById('btnNameConfirm')`
+returns immediately, so the confirm fires before the modal has opened, does nothing, and the probe
+sits on the welcome screen for the rest of its timeout with no error. Wait for it to be **visible**:
+
+```js
+(() => { const b = document.getElementById('btnNameConfirm'); return !!(b && b.offsetParent); })()
+```
+
+**The welcome screen runs its own all-bot attract board on `appState.game`.** So "a game exists" is
+not the signal that your solo game has started — inject into it and you have posed the demo. Wait
+for a game with a HUMAN seat in it:
+
+```js
+appState.game.players.some(p => p.strategy === 'human')
+```
+
 Hosting instead: `document.getElementById('choiceHost').click()` creates a real Firebase room on the
 first click. **Delete the room afterwards** — `appState.db.ref('rooms/'+room).remove()` — or use the
 back link on the room screen, which calls `abandonRoom()` and tears it down properly.

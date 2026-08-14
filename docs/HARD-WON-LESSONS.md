@@ -230,6 +230,67 @@ Always pass `--directory`. And `curl` one asset to confirm the root before blami
 
 ---
 
+## 1b. A THROW IN THE TURN CHAIN IS AN INVISIBLE STALL — and it does not reach the console either
+
+2026-08-14, playtest 22. Wyatt: *"When i counter-offer a bot trade the entire game stalls and stops.
+No prompt appears. Nothing is playable... It happened immediately when i clicked counter offer."*
+The whole fault was one call in one template string:
+
+```js
+poss(pn(p.idx))     // pn() and poss() BOTH take a seat index and BOTH render the name
+```
+
+`pname()` computes `NAMES[i].replace("Capt. ","")` **unconditionally, before every early return**, so
+an array indexed by a finished `<b …>` string gives `undefined` and `.replace` throws. Every tap of
+Counter, for every seat, from the day the counter rebuilt shipped.
+
+**Three things about the SHAPE of this are the lesson, not the typo.**
+
+**1. There is no error boundary anywhere in the turn chain.** `counterOffer` → `botOpenTradeLive` →
+`botTurn` → the voyage loop is a chain of awaits, and a throw at the bottom rejects all the way up
+and stops the game. Nothing renders, nothing is logged, no captain's-log line is written.
+
+**2. It does not appear as a page error.** Measured over CDP with `Runtime.exceptionThrown`
+subscribed: the tap produced `page errors: none`. It is a rejected promise the awaiting chain
+swallows, so **the console is clean while the game is dead.** Do not take an empty console as
+evidence that nothing threw — catch the rejection at the call you are testing and print it, which is
+what turned this from a two-session hunt into a stack trace:
+
+```js
+flow.botOpenTradeLive(bot).then(v=>window.__probe='resolved:'+v,
+                                e=>window.__probe='REJECTED: '+(e&&e.stack||e));
+```
+
+**3. It survives a refresh, and looks like something else entirely.** Solo replays a DECISION LOG, so
+the refresh re-runs the recorded Counter press, throws in the same place before the board is ever
+driven, and comes back **sitting at the starting position with every purse showing "–"**. That is
+Wyatt's second sentence — *"the game remains unplayable but from the starting position"* — and it
+reads exactly like the save being corrupt. It was one fault, not two. **A stall plus a broken-looking
+resume is the signature of a throw on the replayed path, not of a bad save.**
+
+**Why two earlier sessions fixed "the counter" and missed it.** Both (a6b81cd, 69b9f23) were
+reasoning about what a counter *settles* — the three copies of the settlement, the slider's value in
+the decision log. All of that is downstream of a prompt **that never rendered**. When a stall is
+reported *at a tap*, the first thing to prove is that the next prompt appears at all. Everything
+about what it decides is unreachable until that is true.
+
+`4/scripts/seat_arg_check.js` is the gate: the four name renderers (`pn`/`poss`/`pname`/`rawName`)
+take a seat index, and it rejects any call site handed a rendered name or a string literal.
+`no_undef_check.js` cannot see this class at all — `poss` is defined and imported, and it is the
+ARGUMENT that is wrong.
+
+Two things the gate itself taught, both worth copying into the next one:
+
+- **Its first run failed on the comment documenting the bug it exists to catch**, which quotes
+  `poss(pn(p.idx))` verbatim. A check that cannot tell prose from code makes writing the explanation
+  an offence. Strip comments — and strip regex literals with them, because this source contains
+  `/"/g` and a naive scanner reads that lone quote as a string that swallows the rest of the line.
+- **It prints the number of call sites it scanned (161).** The comment stripper is the one part that
+  could quietly blank the thing it inspects, and a green run over nothing at all is the shape of
+  check this project has shipped before. A count is falsifiable; a bare "OK" is not.
+
+---
+
 ## 2. Do not trust your own reasoning over a measurement
 
 This is the single biggest theme of the session. Every one of these was a confident, plausible,
