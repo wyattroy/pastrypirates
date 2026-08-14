@@ -287,7 +287,7 @@ export function passGate(seatIdx){
       const ap=$("actionPanel");
       ap.dataset.pp4Stage="1";
       if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
-      // @copy misc.lobby.passmessage4 — DRAFT, Wyatt rewrites
+      // @copy misc.lobby.passmessage4 — APPROVED as written, Wyatt 2026-08-14
       panel(`<div class="apMsg">${iconImg(DEVICE_IMG)} Pass the wheel to<br>
         <b style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</b></div>
         <div class="apBtns"><button class="apBtn" id="passHelmGo" type="button"

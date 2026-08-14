@@ -339,7 +339,7 @@ export function renderBattle(o){
   // after one (BATL-03), so the geometry cannot go stale between render and result. `o.dw` still
   // wins when present, so a broadcast snapshot keeps rendering from its own recorded value.
   const dw=o.dw!==undefined?o.dw:(appState.game&&appState.game.downwindSide?appState.game.downwindSide(A,D):null);
-  // @copy misc.battlecard.windtag — DRAFT, Wyatt rewrites
+  // @copy misc.battlecard.windtag — APPROVED as written, Wyatt 2026-08-14
   const windTag=side=>dw==null
     ? `<div class="windTag cross">CROSSWIND · ties collide</div>`
     : (dw===side ? `<div class="windTag dw">⬇ DOWNWIND · wins ties</div>`

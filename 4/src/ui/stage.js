@@ -652,7 +652,7 @@ function flipArmed(el, onClick){
         b.textContent = who.textContent.trim();
         b.style.color = who.style.color || "";      // the captain's own boat colour, as everywhere else
         st.appendChild(b);
-        // @copy misc.ceremony.windstakes — DRAFT, Wyatt rewrites
+        // @copy misc.ceremony.windstakes — APPROVED as written, Wyatt 2026-08-14
         st.appendChild(document.createTextNode(" is firin' downwind — two heads and the tie is theirs."));
       } else {
         st.textContent = "Crosswind — two heads and the cannonballs collide.";
@@ -688,7 +688,7 @@ function recipeGuard(){
     if (thumb){
       const bake = document.createElement("span");
       bake.className = "pp4Bake";
-      // @copy misc.stage.bakethis — DRAFT, Wyatt rewrites. In-world register (the voice boundary:
+      // @copy misc.stage.bakethis — APPROVED as written, Wyatt 2026-08-14. In-world register (the voice boundary:
       // this is the game speaking to a captain, not the credits).
       bake.textContent = "Bake this!";
       btn.appendChild(bake);

@@ -127,7 +127,7 @@ function ffRecapLine(g,from){
     else if(e.t==="sail"||e.t==="pass")note(e.p,1,`sailed on`);
   }
   if(!by.size)return null;
-  // @copy adhoc.ff.recap — DRAFT, Wyatt rewrites
+  // @copy adhoc.ff.recap — APPROVED as written, Wyatt 2026-08-14
   return `⏩ While ye looked away: `+[...by.entries()].map(([s,v])=>`${pn(s)} ${v.txt}`).join("; ")+`.`;
 }
 
@@ -1534,7 +1534,7 @@ export async function humanTrade(p){
             disabled:room<1&&![...new Set(p.ing)].some(i=>i!==offer.giveIng),
             why:`${pn(p.idx)} has nothin' else aboard and no coin — ye can take it or leave it.`},
           {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
-          // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
+          // @copy adhoc.trade.nocointosweeten — APPROVED as written, Wyatt 2026-08-14
           room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
         // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
         // is Accept. Without this guard a captain who merely ran out of time is recorded as
@@ -1623,7 +1623,7 @@ export async function humanTrade(p){
       [{seat:p.idx,html:`No captain will part with ${ilabelImg(offer.want)} for that offer of yers.`}]);
     return true;
   }
-  // @copy prompt.trade.pick — DRAFT, Wyatt rewrites. One captain per line: the whole point is that
+  // @copy prompt.trade.pick — APPROVED as written, Wyatt 2026-08-14. One captain per line: the whole point is that
   // the price is readable BEFORE a finger moves, so this deliberately does not compress.
   const pick=await ask(
     `Fer yer ${ilabelImg(offer.want)} the table answers:<br>${answerLines.join("<br>")}<br>Take a deal, or walk away?`,
@@ -1937,7 +1937,7 @@ export async function botOpenTradeLive(p){
             disabled:room<1&&![...new Set(p.ing)].some(i=>i!==offer.giveIng),
             why:`${pn(p.idx)} has nothin' else aboard and no coin — ye can take it or leave it.`},
           {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
-          // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
+          // @copy adhoc.trade.nocointosweeten — APPROVED as written, Wyatt 2026-08-14
           room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
         // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
         // is Accept. Without this guard a captain who merely ran out of time is recorded as

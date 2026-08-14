@@ -1105,7 +1105,7 @@ function dryCeremony(){
     const ap=$("actionPanel");
     ap.dataset.pp4Stage="1";
     if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
-    // @copy prompt.blackmarket.ceremony — DRAFT, Wyatt rewrites
+    // @copy prompt.blackmarket.ceremony — APPROVED as written, Wyatt 2026-08-14
     panel(`<div class="apMsg">🏴 <b>The shelves be bare…</b><br><br>
       Word travels the Sugar Seas: when an island sells its last crate, the <b>black market</b>
       opens after dark. Any sold-out island — marked with the black flag — will find ye one more
