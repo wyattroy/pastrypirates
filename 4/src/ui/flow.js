@@ -940,14 +940,15 @@ export async function animateRimSweepRun(seat,from,to){
       const began=Date.now();
       for(;;){
         // progress from ELAPSED TIME, never from a tick count. A throttled or late tick then
-        // advances further along the curve instead of stretching the sweep — and in a hidden tab,
-        // where setTimeout is clamped to ~1s, this reaches 1 and terminates rather than crawling.
-        // (rAF would not run at all there; see RIM_SWEEP_TICK_MS and src/ui/panel.js:334.)
+        // advances further along the curve instead of stretching the sweep.
+        // The tick is routeTick() — the frame clock raced against the timer — for the reason the
+        // routed sail uses it (see routeTick): this is the same driven motion, and a ship that
+        // judders on one of them and glides on the other is one gesture with two behaviours.
         const t=Math.min(1,(Date.now()-began)/total);
         const p=rimSweepPointAt(curve,t);
         if(p)paintShipAtPoint(seat,p[0],p[1]);
         if(t>=1)break;
-        await sleep(RIM_SWEEP_TICK_MS);
+        await routeTick(RIM_SWEEP_TICK_MS);
       }
     }
   }finally{
@@ -988,6 +989,41 @@ export async function animateRimSweepRun(seat,from,to){
    A one-step move returns immediately: there is no corner, the chord IS the route, and the ordinary
    CSS glide already draws it perfectly for free. */
 const sailRouteEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+/* THE SHIP IS THE ONLY THING ON THE BOARD ANIMATED BY A JS TIMER, AND THAT IS WHY IT ALONE JUDDERS.
+
+   playtest 21 (Wyatt): "The ships STILL move in a very jerky way — watch the video and diagnose it
+   properly." Measured off his 60fps recording, tracking the green sail BY COLOUR (scale-invariant,
+   so the camera zoom cannot corrupt it) across the window where the camera is provably static — the
+   sail's pixel area holds constant at ~1980px, so there is no zoom in those frames:
+
+       frames 0-6    still          frame 7   +93.6px
+       frames 8-12   still          frame 13  +79.1px
+       frames 14-18  still          frame 19  +46.7px
+
+   The ship's position advances ONCE PER 100ms — six frames still, then a jump — and the steps
+   shrink, which is the ease being sampled about six times too rarely. It is not the page freezing:
+   in those SAME frames the ship's own neighbourhood changes on 24 of 25 of them (mean 5.7 grey
+   levels/px), so the phone is painting at 60fps throughout. Only the ship's TRANSFORM is late.
+
+   Every other moving thing in /4 is CSS — the rim arrows, the whirlpools, the ripple rings, the
+   camera's own layer transforms — and CSS animation is driven by the browser's frame clock. This
+   loop alone asked a `setTimeout` for its next tick, and a phone under load or in Low Power Mode
+   clamps timers hard while continuing to composite. So the one JS-timed animation in the game is
+   the one that drops to ~10fps, which is exactly the complaint.
+
+   requestAnimationFrame is the frame clock itself — it cannot be later than the frame it draws in,
+   and progress here is already computed from ELAPSED TIME, so a coarser clock advances further per
+   tick instead of stretching the move.
+
+   THE TIMEOUT IS STILL THERE, RACED, and that is not belt-and-braces — it is the lesson from the
+   playtest 22 stall (util.js: "EVERY BEAT IN THE GAME IS AWAITED, SO NO BEAT MAY BE LOST").
+   rAF stops completely in a backgrounded tab, so an rAF-only loop would hang the voyage the moment
+   the phone locked, mid-glide, with the turn loop awaiting it. sleepMs carries the sweeper that
+   catches a dropped timer, so whichever clock is alive wins the race and the glide always finishes. */
+const routeTick=(ms)=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>Promise.race([
+  new Promise(res=>requestAnimationFrame(()=>res())),
+  sleepMs(appState.ff?Math.min(ms||SAIL_ROUTE_TICK_MS,40):(ms||SAIL_ROUTE_TICK_MS)*8),
+]));
 export async function animateSailRoute(seat,from,path){
   if(appState.replaying)return false;
   if(!Array.isArray(path)||path.length<2||!from)return false;   // no corner to draw
@@ -1028,7 +1064,7 @@ export async function animateSailRoute(seat,from,path){
       const span=cum[j+1]-cum[j],f=span>0?(d-cum[j])/span:0;
       paintShipAtPoint(seat,pts[j][0]+(pts[j+1][0]-pts[j][0])*f,pts[j][1]+(pts[j+1][1]-pts[j][1])*f);
       if(t>=1)break;
-      await sleep(SAIL_ROUTE_TICK_MS);
+      await routeTick(SAIL_ROUTE_TICK_MS);
     }
   }finally{
     // an interruption must never strand a ship mid-water, nor leave it on the short tick glide —

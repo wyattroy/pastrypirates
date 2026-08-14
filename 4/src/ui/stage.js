@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-14j";
+const PP4_STAMP = "2026-08-14k";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -947,11 +947,32 @@ function promptTick(){
     const top = Math.round(vhPx() * 0.45);
     box.style.left = "8px"; box.style.top = top + "px";
     box.style.width = (vwPx() - 16) + "px";
+    /* THE TWO HINTS TEACH TWO DIFFERENT SURFACES, SO THEY LIVE ON THE SURFACE THEY TEACH.
+       playtest 21 (Wyatt), items 2 and 4. They used to be a stacked pair of pills wedged in the gap
+       between the board and the sheet, where the sea one sat nowhere near the sea it names and the
+       recipe one sat outside the card it is about.
+         - "tap and hold the SEA"    -> a pill over the water, up in the open sea near the top of the
+                                        board, away from the sheet entirely.
+         - "tap a RECIPE"            -> inside the card, small italics, under the ask and above the
+                                        cards it describes.
+       The recipe line goes after .apMsg and before .apBtns, which is its VISUAL position — so the
+       top-to-bottom reveal rule carries it for free: back, message, this, cards. */
     if (!hint){
       hint = document.createElement("div"); hint.className = "pp4PeekHint";
-      // playtest 12 (2.1/2.3): two separate pills on dark glass, legible over any water
-      hint.innerHTML = `<span>Tap a recipe to highlight its docks</span><span>Tap and hold the sea to reveal the board</span>`;
+      hint.innerHTML = `<span>Tap and hold the sea to reveal the board</span>`;
       box.insertBefore(hint, ap);
+    }
+    // over the SEA, high on the board — measured off the board's own rect rather than a guessed
+    // viewport fraction, so it lands on water at any screen height
+    const bw = document.getElementById("boardwrap");
+    const br = bw ? bw.getBoundingClientRect() : null;
+    hint.style.top = Math.round(br && br.height ? br.top + br.height * 0.10 : vhPx() * 0.20) + "px";
+    const msg = ap.querySelector(".apMsg");
+    if (msg && !ap.querySelector(".pp4RecipeHint")){
+      const rh = document.createElement("div");
+      rh.className = "pp4RecipeHint";
+      rh.textContent = "Tap a recipe to highlight its docks";
+      msg.insertAdjacentElement("afterend", rh);
     }
     // playtest 19: the cap is the room left UNDER THE PANEL'S OWN TOP, not under the box's. The
     // hint pills are flex siblings above the panel, so measuring from `top` handed the panel the

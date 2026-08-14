@@ -128,8 +128,43 @@ each part of it was earned:
 4. **Restore in a `finally`**, before the corrective paint, or an interruption strands the ship on
    a short glide and every ordinary move it makes for the rest of the voyage snaps.
 
-**rAF is the wrong tool here** and `panel.js` records why: rAF callbacks are *fully suspended* in a
-hidden tab, so an awaited rAF loop never resolves and freezes the whole game loop.
+5. **Tick on the FRAME CLOCK, raced against the timer** — `routeTick()`, used by both drivers.
+
+### The ship was the only thing on the board animated by a JS timer, and it alone juddered
+
+This section used to say flatly *"rAF is the wrong tool here"*, citing `panel.js`: rAF callbacks are
+**fully suspended** in a hidden tab, so an awaited rAF loop never resolves and freezes the game loop.
+That objection is real and still stands — it is why `routeTick()` **races** rAF against `sleepMs()`
+rather than replacing one with the other. Whichever clock is alive wins; a locked phone still
+finishes the glide on the timer, and a visible one draws on the frame clock.
+
+What changed the ruling was a measurement, from playtest 21. Tracking the ship in Wyatt's 60fps
+recording **by sail colour** (scale-invariant, so the camera zoom cannot corrupt it), across the
+window where the camera is provably static — the sail's pixel area holds constant, so no zoom:
+
+| frames | ship |
+|---|---|
+| 0–6 | still |
+| 7 | **+93.6px** |
+| 8–12 | still |
+| 13 | **+79.1px** |
+| 14–18 | still |
+| 19 | **+46.7px** |
+
+**One position change per 100ms — six frames still, then a jump**, with the steps shrinking, which is
+the ease being sampled about six times too rarely. It was not the page freezing: in those same frames
+the ship's own neighbourhood changed on 24 of 25 (mean 5.7 grey levels/px), so the phone was
+compositing at 60fps throughout.
+
+The reason it is the ship and nothing else: **every other moving thing on this board is CSS** — the
+rim arrows, the whirlpools, the ripple rings, the camera's layer transforms — and CSS animation runs
+on the browser's own frame clock. These two drivers were the only animation in the game asking a
+`setTimeout` for the next tick, and a phone under load or in Low Power Mode clamps timers hard while
+continuing to composite. Headless Chrome cannot reproduce this at all (writes at 16.3ms, frames at
+16.7ms), which is exactly why the video was the instrument.
+
+**So: if you add a driven animation, tick it on `routeTick()`.** And when you are told a subsystem is
+slow on a phone but not on the desk, ask first which clock it is on.
 
 ### THE ACTIVE-TURN RIPPLE MUST WEAR THE SHIP'S GLIDE — `ringTo()` is the only place that decides
 

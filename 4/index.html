@@ -511,6 +511,7 @@
      that edits the message must not appear before the message it edits has finished arriving.
      Measured before this line existed: apPendingReveal true, slider visibility "visible". */
   #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apSub,
+  #actionPanel.pendingReveal .pp4RecipeHint,
   #actionPanel.pendingReveal .apSliderWrap { visibility: hidden; }
   /* ONE EXCEPTION, and it is measured (Wyatt, 2026-08-08: "The 'to the bench!' Button doesn't
      respond quickly and i often have to push it twice — why?").
@@ -1522,10 +1523,26 @@
   /* playtest 10 item 1: the recipe chooser is a BOTTOM sheet — the sea it asks you to read stays
      visible above it, and holding a finger on the sea peeks behind the cards */
   #pp4Prompt.pp4Recipes #actionPanel { overflow-y:auto; }
-  /* playtest 12 (2.1/2.3): each hint is its own pill on dark glass — legible over any water */
-  .pp4PeekHint { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 4px 7px; }
+  /* playtest 21 item 2: the sea hint sits OVER THE SEA, high on the board, instead of in the gap
+     above the sheet where it named a surface it was nowhere near. Fixed to the viewport (stage.js
+     measures the board's own rect and sets `top`) so it is not dragged around by the sheet. */
+  .pp4PeekHint { position:fixed; left:0; right:0; display:flex; justify-content:center;
+    pointer-events:none; z-index:6; }
   .pp4PeekHint span { background:rgba(9,42,52,.78); color:#fffdf2; font-size:11.5px;
     font-style:italic; border-radius:999px; padding:3px 12px; width:max-content; max-width:92vw; }
+  /* playtest 21 item 4: the recipe hint moves INSIDE the card — small italics under the ask and
+     above the cards it is about. Muted, because it explains the choice rather than being part of it. */
+  .pp4RecipeHint { font-size:11.5px; font-style:italic; font-weight:600; color:#6b7f86;
+    text-align:center; padding:1px 10px 5px; line-height:1.35; }
+  /* playtest 21 item 3 (Wyatt): "there should be NO YELLOW BACKGROUND action prompts any more!
+     They should all use the white background styling."
+     The yellow was #actionPanel.needsAction, and in /4 only ONE prompt still painted a panel at all
+     — the recipe sheet — because radial and centre-stage both blank it. Both gradients (the mint
+     resting one and the yellow needsAction one) are replaced by the same warm white the centre-stage
+     card already uses, so every surface in /4 that shows a panel shows the same one. The teal border
+     stays: it is the card's edge everywhere else too. */
+  body.pp4Stage #actionPanel,
+  body.pp4Stage #actionPanel.needsAction { background:#fffdf2; }
   /* playtest 12 (2.2): the picked recipe pulses orange — tap it AGAIN to confirm */
   body.pp4Stage #actionPanel .apBtn.pp4Focus { outline:3px solid #f5a623;
     animation:pp4FocusPulse 1s ease-in-out infinite; }
@@ -1595,11 +1612,16 @@
   #pp4Prompt.pp4Center .apSub { color:#fffdf2; opacity:.9; text-align:center; font-size:13px;
     text-shadow:0 1px 8px rgba(0,0,0,.6); }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:8px 6px; }
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:5px 5px 6px; }
   body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }
   body.pp4Stage #actionPanel .apBtn .recipeThumb { height:54px; width:auto; display:block; margin:0 auto 2px; }
   body.pp4Stage #actionPanel .apBtn .recipeDesc { display:none; }
-  body.pp4Stage #actionPanel .apBtn .recipeList li { font-size:10.5px; line-height:1.45; }
+  /* playtest 21 item 5: every ingredient of both recipes has to be readable WITHOUT SCROLLING, now
+     that the hint line sits above the cards as well. The savings are taken from padding and leading
+     — the type size is untouched, because a recipe nobody can read is not a fix. */
+  body.pp4Stage #actionPanel .apBtn .recipeList { padding:2px 8px 3px; }
+  body.pp4Stage #actionPanel .apBtn .recipeList li { font-size:10.5px; line-height:1.3; padding:2px 0; gap:6px; }
+  body.pp4Stage #actionPanel .apBtn .recipeList .ri img { width:17px; height:17px; }
   body.pp4Stage #actionPanel .apBtn .recipeList .rc { display:none; }
   body.pp4Stage #actionPanel .apBtn.pp4Focus { outline:3px solid #f5a623; }
   /* playtest 19 item 2: the "Bake this!" pill, over the pastry art of the tapped card (Wyatt's
