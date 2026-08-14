@@ -446,15 +446,48 @@ class Game{
   // runStorm() and the live animated push, so bots and humans can never drift apart on the rule.
   // With the lost turn gone there is nothing to forfeit and nothing to rescue: a ship either moved
   // or it did not, and a ship that ends on a berth is docked there like any other way of arriving.
+  /* ONE LINE FOR THE WHOLE STORM — playtest 21 item 3 (Wyatt: "Replace all post-storm narrations
+     with one summary narration (reading the same message 4 times about different players is
+     tedious) — eg (The storm moved X,Y, and Z but A had land at their back and dropped anchor)").
+     His example is the shape, and it is also the argument: a storm is ONE event for the whole
+     table (rule 7), so it should read as one sentence about the table, not as four sentences that
+     each say a quarter of it.
+
+     WHAT IS AND IS NOT COLLAPSED, because "replace all post-storm narrations" could mean deleting
+     the per-ship events entirely and that would take real things with it:
+       - the per-ship events STAY. They carry the board pops, the captain-panel notes, and the
+         audio cues (windmove/blownOut -> ship-move, anchorHold -> fishing). Deleting them would
+         silence the storm and strip the board of the per-ship feedback that makes the push
+         legible. HARD-WON-LESSONS already records the cost of removing a rule and discovering
+         afterwards what its narration was covering — "silence is a bug".
+       - only their BUBBLE TEXT goes. The reading is what was tedious, not the ships moving.
+     So this is a summary ADDED and four texts withdrawn, which is why the seat lists are gathered
+     here rather than re-derived by the UI: the engine already knows each outcome at the moment it
+     decides it, and a second derivation in the renderer is a second thing to keep in step. */
+  stormSummaryEvent(dirKey){
+    const g={moved:[],held:[],blown:[]};
+    for(const p of this.players){
+      const o=p.stormNote;
+      if(o&&g[o])g[o].push(p.idx);
+      p.stormNote=null;
+    }
+    // nothing at all happened to anybody — say nothing rather than narrate an absence
+    if(!g.moved.length&&!g.held.length&&!g.blown.length)return;
+    this.ev({t:"stormSummary",dir:dirKey,moved:g.moved,held:g.held,blown:g.blown});
+  }
   noteStormOutcome(p,outcome,moved,wasDocked){
     // Land brought the ship up short — whether it moved first or was pinned from the start. This
     // is the anchor moment, and Wyatt asked for the line back: *"I want the narration lines about
     // 'dropped anchor to avoid running aground' to remain."* Under v2.1 nothing runs aground any
     // more, so the line reports what the anchor SAVED you from rather than a penalty it dodged.
-    if(outcome==="landHeld"){this.ev({t:"anchorHold",p:p.idx,moved:moved?1:0});return;}
+    if(outcome==="landHeld"){p.stormNote="held";this.ev({t:"anchorHold",p:p.idx,moved:moved?1:0});return;}
     if(!moved)return;
     p.justDocked=this.isBerth(p.pos);
-    if(outcome!=="swept")this.ev({t:wasDocked&&!p.justDocked?"blownOut":"windmove",p:p.idx});
+    if(outcome!=="swept"){
+      const blown=wasDocked&&!p.justDocked;
+      p.stormNote=blown?"blown":"moved";
+      this.ev({t:blown?"blownOut":"windmove",p:p.idx});
+    }
   }
   // Ships in the order the storm reaches them: furthest downwind first, so the lead ship clears
   // its square before the one behind arrives (rule 7b).
@@ -2894,6 +2927,8 @@ class Game{
       const outcome=this.stormPush(p,dirKey,STORM_PUSH);
       this.noteStormOutcome(p,outcome,p.pos[0]!==before[0]||p.pos[1]!==before[1],wasDocked);
     }
+    // playtest 21 item 3: the one line that reads the whole storm, after every ship has resolved
+    this.stormSummaryEvent(dirKey);
   }
   /* v2.1: two rulesets, two loops, dispatched here. Split rather than branched INSIDE one loop on
      purpose — playClassic is today's body moved verbatim, so "flag off = byte-for-byte" is a

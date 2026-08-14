@@ -900,8 +900,19 @@ export async function runStormLive(dirKey){
     const moved=(p.pos[0]!==before[0]||p.pos[1]!==before[1]);
     const evBefore=g.events.length;
     g.noteStormOutcome(p,outcome,moved,wasDocked);
-    if(g.events.length>evBefore){liveRender();await narrateLastEvent();}
+    // The per-ship event still fires — it carries this ship's board pop, its captain-panel note and
+    // its audio cue — but it no longer NARRATES (playtest 21 item 3, the four texts withdrawn in
+    // src/ui/util.js). liveRender still runs so the square it landed on is painted at the moment it
+    // lands, which is the thing D-22 exists to protect; only the awaited bubble is gone from here.
+    if(g.events.length>evBefore)liveRender();
   }
+  // ...and THEN the one line that reads the whole storm at once. Emitted here rather than left to
+  // the engine's runStorm() because the live path drives the push itself, square by square, and
+  // never calls it — the same split that already exists for every other storm event. Both paths
+  // call the identical engine method so the sentence cannot differ between them.
+  const evBefore=g.events.length;
+  g.stormSummaryEvent(dirKey);
+  if(g.events.length>evBefore){liveRender();await narrateLastEvent();}
   liveRender();
 }
 // How a hold reads on a button: the crate, and how many of it are aboard. The count is load-

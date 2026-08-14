@@ -413,14 +413,63 @@ const EVENT_NARRATION={
      them. What changed is that there is no longer a penalty being dodged, so the line reports
      seamanship rather than a bullet missed. It also fills a real silence: until now, a storm that
      stopped a ship against land said nothing at all. */
-  anchorHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)
-    ?(e.moved
-      ?`⚓ ${pn(e.p)} — the storm drives ye at the rocks, but ye drop anchor and hold fast, clear of the shore.`
-      :`⚓ ${pn(e.p)} — the storm hurls itself at ye, but ye've land at yer back and the anchor bites. Ye don't budge.`)
-    :(e.moved
-      ?`⚓ The storm drives ${pn(e.p)} at the rocks, but they drop anchor and hold fast, clear of the shore.`
-      :`⚓ The storm hurls itself at ${pn(e.p)}, but they've land at their back and the anchor bites.`),
+  /* playtest 21 item 3 (Wyatt: "reading the same message 4 times about different players is
+     tedious"). The TEXT is gone; the event is not. It still carries this ship's anchor pop on the
+     board, its captain-panel note, and its audio cue — all of which are per-ship by nature and
+     none of which was the tedious part. The whole storm now reads as one sentence, built by
+     `stormSummary` below from the outcome the engine recorded for every captain. */
+  anchorHold:(e,at,cellPx,viewerSeat)=>({
     caps:[[e.p,"⚓ anchors clear of the rocks"]],pops:[[at(e.p),"⚓"]]}),
+  /* ONE LINE FOR THE WHOLE STORM. Wyatt's own example is the shape it follows:
+       "(The storm moved X,Y, and Z but A had land at their back and dropped anchor)"
+     — everyone who was pushed named together, then the exceptions. Grouped by OUTCOME rather than
+     by captain, which is what makes it one sentence instead of four.
+
+     @copy adhoc.storm.summary — DRAFT, Wyatt rewrites.
+
+     Viewer-aware like every other line: whichever group the reader is in addresses them as "ye"
+     and drops their own name out of the list, so a captain reads their own fate rather than
+     finding themselves in a roll-call. `NEUTRAL_VIEWER` and the headless default both fall
+     through to the third-person form, which is what keeps bot_storm_narration_test green. */
+  stormSummary:(e,at,cellPx,viewerSeat)=>{
+    const D=DIRNAME[e.dir]||"";
+    // every clause below begins with a literal lowercase word ("the storm…", "a gale…"), never
+    // with markup, so capitalising position 0 is safe here and would not be in general
+    const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
+    // a group as it reads to THIS viewer: their own seat becomes "ye", the rest are named
+    const say=seats=>{
+      const mine=seats.filter(s=>isLocalTo(s,viewerSeat));
+      const them=seats.filter(s=>!isLocalTo(s,viewerSeat)).map(s=>pn(s));
+      const list=[];
+      if(mine.length)list.push("ye");
+      list.push(...them);
+      if(!list.length)return {txt:"",you:false};
+      const joined=list.length===1?list[0]
+        :list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+      return {txt:joined,you:!!mine.length,n:list.length};
+    };
+    const mv=say(e.moved||[]),hd=say(e.held||[]),bl=say(e.blown||[]);
+    const parts=[];
+    if(mv.txt)parts.push(`the storm drives ${mv.txt} ${D}`);
+    if(bl.txt)parts.push(`a gale tears ${bl.txt} off the dock`);
+    const lead=parts.join(" and ");
+    let txt="";
+    if(lead&&hd.txt){
+      // the possessive follows the READER, not the group: "ye and Crustbeard have land at YER
+      // backs", never "at their backs" with the reader standing inside the group
+      const held=hd.n===1
+        ?`${hd.txt} ${hd.you?"have":"has"} land at ${hd.you?"yer":"their"} back and ${hd.you?"drop":"drops"} anchor`
+        :`${hd.txt} have land at ${hd.you?"yer":"their"} backs and drop anchor`;
+      txt=`🌬️ ${cap(lead)} — but ${held}.`;
+    }else if(lead){
+      txt=`🌬️ ${cap(lead)}.`;
+    }else if(hd.txt){
+      txt=hd.n===1
+        ?`⚓ The storm hurls itself at ${hd.txt}, but ${hd.you?"ye've":"they've"} land at ${hd.you?"yer":"their"} back and the anchor bites.`
+        :`⚓ The storm hurls itself at the fleet, but ${hd.txt} have land at ${hd.you?"yer":"their"} backs and every anchor bites.`;
+    }
+    return {txt};
+  },
   // v2 rule 7: the storm hits the whole table at once, before anybody acts.
   // SILENT (Wyatt, 2026-08-06): "it is a recording of the dialogue that comes before it". The round
   // header has already said it one beat earlier — "Round 9: A ⛈️ storm be ragin'! It'll blow every
@@ -529,7 +578,9 @@ const EVENT_NARRATION={
   // FIX-04 (Wyatt, 2026-07-31): the narration line itself is gone — both viewer variants together,
   // per D-07/NARR-05. The Captains-box capsule stays; it's the only remaining marker of the drift.
   windmove:(e,at,cellPx,viewerSeat)=>({caps:[[e.p,"🌬️ drifts"]]}),
-  blownOut:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`⛵ ${pn(e.p)} — a gale blows ye off the dock!`:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
+  // playtest 21 item 3: folded into `stormSummary`'s "a gale tears X off the dock" clause. The
+  // event stays for its audio cue (ship-move) and for the captain panel; only the bubble is gone.
+  blownOut:(e,at,cellPx,viewerSeat)=>({caps:[[e.p,"⛵ blown off the dock"]]}),
   // v2 rule 2: sailing is free — no coin named, because none changes hands.
   sail:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ye set sail`:`${pn(e.p)} sets sail`,caps:[[e.p,"⛵ sails"]]}),
   // D-07/NARR-05/D-10 (Wyatt-approved 2026-07-29): the tracer line for viewer-aware narration. The

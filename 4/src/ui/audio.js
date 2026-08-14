@@ -99,6 +99,10 @@ const EVENT_SOUND = {
   shotclock: SHOTCLOCK_SOUND_PLACEHOLDER, shotclockskip: SHOTCLOCK_SOUND_PLACEHOLDER,
   // D-06 — explicit silence, not merely absent from the table
   blocked: null, moored: null, turn: null, newround: null, tradewind: null, bakeoff: null,
+  // playtest 21 item 3: the storm's one summary line. Deliberately SILENT — every ship in it has
+  // already played its own cue (windmove/blownOut -> ship-move, anchorHold -> fishing) as it moved,
+  // so a sound here would be a fifth noise describing four that just happened.
+  stormSummary: null,
   end: null, finish: null,
   // 260801-7f4 — explicit silence, not an oversight. The `battle` event only fires once the whole
   // fight has resolved (src/engine/index.js:581), which is exactly why the clash used to land at
