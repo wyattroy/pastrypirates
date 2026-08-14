@@ -505,7 +505,24 @@ export function sailHighlightRect(c,cellPx,svg){
 }
 export function pickCell(p,cells){
   if(appState.replaying){
-    if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(appState.dlog[appState.dlogIdx++]);}
+    if(appState.dlogIdx<appState.dlog.length){
+      appState.dlogN++;
+      const rec=appState.dlog[appState.dlogIdx++];
+      /* A RECORDED SQUARE ONLY MEANS ANYTHING AGAINST THE BOARD THAT WAS ACTUALLY REBUILT.
+         This used to be handed straight back, unchecked — so if a replay ever diverged (the coin
+         slider did exactly that until logQuantity, above), the ship was teleported to a square it
+         had no legal route to, and everything downstream reasoned about a position the rules could
+         not have produced. Same posture resolveOpt() already takes for a stale option index: warn,
+         fall back to something the rules allow, and let the voyage carry on. "Stay put" is the
+         outcome the sail prompt already has for a captain who chooses nothing, so it costs a move
+         rather than inventing one. */
+      if(rec==null)return Promise.resolve(null);
+      if(!(cells&&cells.some(c=>c[0]===rec[0]&&c[1]===rec[1]))){
+        console.warn("pickCell(): recorded square",rec,"is not reachable in the rebuilt voyage — staying put");
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(rec);
+    }
     endReplay();
   }
   setActor(p.idx);
@@ -1335,6 +1352,33 @@ async function counterOffer(q,p,offer){
     return {askIng,askCoins:n};
   }
 }
+/* A CONFIRMED QUANTITY IS ITS OWN DECISION, AND ask() ONLY EVER LOGS WHICH BUTTON WAS PRESSED.
+
+   MEASURED, on a real trade driven to a real slider: the captain dragged it to 6 and the decision
+   log gained exactly `[0]` — the index of "Offer it!". The number lived in the slider's `ref`, and
+   the button knew nothing about it. So a solo refresh replayed that trade at the slider's FLOOR (1
+   coin, not 6): a different offer, a different answer from the holder, a different r() stream, and
+   every recorded decision after it landing on a prompt that is no longer the one it was recorded
+   against. From the seat that is not a subtle desync — it is Wyatt's report, "the game was simply
+   reset and stalled and the captains log was empty and nothing happened."
+
+   The slider is new (playtest 21 item 7), which is why this is new: every other quantity in the
+   game is spelled out in button presses the log already holds. The fix is the seam pickCell() and
+   bakeoffPrompt() already use — record the value itself, replay the recorded one — applied at the
+   ONE place a quantity is confirmed.
+
+   BOTH controls log it, not just the slider. coinStepper's number is derivable from its own logged
+   button presses, so logging is redundant there — but which control a seat gets is decided by
+   decisionIsLocal(), and a log whose LENGTH depends on that is a log that only replays under the
+   same routing. Same gesture, same record. */
+function logQuantity(n){
+  if(appState.replaying){
+    if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return appState.dlog[appState.dlogIdx++];}
+    endReplay();
+  }
+  netHandlers().onLogDecision(n);
+  return n;
+}
 async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
   if(!decisionIsLocal(seat))return coinStepper(msgFor,start,min,max,confirmLabel,extraOpt);
   if(max<=min){
@@ -1344,7 +1388,7 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
     opts.push({label:"← Back",back:true,value:"__back__"});
     const v0=await ask(msgFor(min),opts);
     if(appState.turnExpired)return null;
-    if(v0==="ok")return min;
+    if(v0==="ok")return logQuantity(min);
     if(v0==="__back__"||v0==null)return "__back__";
     return v0;
   }
@@ -1354,7 +1398,13 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
   opts.push({label:"← Back",back:true,value:"__back__"});
   const v=await ask(msgFor(start),opts,null,null,{slider:{min,max,start,ref,fmt:msgFor,aria:"Coins"}});
   if(appState.turnExpired)return null;
-  if(v==="ok")return Math.max(min,Math.min(max,ref.value));
+  if(v==="ok"){
+    const n=logQuantity(Math.max(min,Math.min(max,ref.value)));
+    // clamped AGAIN on the way out, against the range THIS call was given: the number coming back
+    // may be a replayed one, and a save made when the purse was richer must not spend coins the
+    // captain does not have now
+    return Math.max(min,Math.min(max,n));
+  }
   if(v==="__back__"||v==null)return "__back__";
   return v;
 }
@@ -1372,7 +1422,7 @@ async function coinStepper(msgFor,start,min,max,confirmLabel,extraOpt){
     if(appState.turnExpired)return null;
     if(v==="minus")n=Math.max(min,n-1);
     else if(v==="plus")n=Math.min(max,n+1);
-    else if(v==="ok")return n;
+    else if(v==="ok")return Math.max(min,Math.min(max,logQuantity(n)));   // logQuantity: same record, either control
     else if(v==="__back__"||v==null)return "__back__";
     else return v;   // the extra option's value (e.g. "deny")
   }
@@ -1912,20 +1962,49 @@ export async function botOpenTradeLive(p){
     g.rememberRefusal(p,offer.want,r.q.idx,worth);
     g.refusedFlagWanted(p,offer,r.q);
   }
+  /* THE HUMAN'S COUNTER IS A REAL COUNTER HERE TOO — and it was being thrown away.
+
+     playtest 21 item 7 taught counters to REPLACE the give side ("keep yer coin, I want yer
+     cocoa"), and updated the engine's tryTrade and humanTrade's own settlement to read
+     counterTerms(). This path — a BOT hailing the table, the HUMAN answering — is a THIRD copy of
+     the same settlement, and it was left reading the raw `offer`:
+
+         g.settleTrade(p, deal, offer, extra)      // the ORIGINAL deal, not what was agreed
+
+     So a captain who countered asking for a different crate had their counter accepted on screen
+     and the ORIGINAL trade executed instead — the crate they asked for never moved, and the one
+     they had offered still went. Every other test here was wrong in the same way: affordability
+     was judged on `offer.giveCoins + askFor` (blind to a crate counter costing no coin at all),
+     the sort was on `askFor` (not comparable across the two counter shapes), and the worth test
+     priced the deal as if the crate being asked for were free.
+
+     Now identical in shape to Game.tryTrade: price each answer in TURNS on its own terms, drop any
+     the bot cannot actually honour, and settle what was AGREED. Three copies of one decision is
+     the real defect; this at least makes them agree, and TRADE-SYSTEM.md now names all three. */
   const accepts=responses.filter(r=>r.kind==="accept");
-  const counters=responses.filter(r=>r.kind==="counter"&&(offer.giveCoins+r.askFor)<=p.coins);
-  let deal=null,extra=0;
+  const counters=responses.filter(r=>{
+    if(r.kind!=="counter")return false;
+    const t=g.counterTerms(offer,r);
+    return (t.giveCoins||0)<=p.coins&&(!t.giveIng||p.ing.includes(t.giveIng));
+  });
+  let deal=null,terms=offer;
   if(accepts.length){
     accepts.sort((x,y)=>g.crateCostTurns(y.q,offer.want,p)-g.crateCostTurns(x.q,offer.want,p));
     deal=accepts[0].q;
   }else if(counters.length){
-    counters.sort((x,y)=>x.askFor-y.askFor);
-    const best=counters[0];
-    // only pay a counter that still beats getting the crate the hard way — the same test the
+    const priced=counters.map(r=>{
+      const t=g.counterTerms(offer,r);
+      let cost=g.coinTurns(t.giveCoins||0);
+      if(t.giveIng)cost+=(p.recipe&&p.recipe.includes(t.giveIng)&&g.cnt(p.ing,t.giveIng)<=1)
+        ?g.acquireTurns(p,t.giveIng).turns
+        :1.1;   // PLAN.leverageTurns — a spare costs little to let go
+      return {r,t,cost};
+    }).sort((a,b)=>a.cost-b.cost);
+    // only take a counter that still beats getting the crate the hard way — the same test the
     // headless bot applies, so a bot never pays a price on screen it would refuse in simulation
-    if(g.coinTurns(offer.giveCoins+best.askFor)<=g.acquireTurns(p,offer.want).turns){deal=best.q;extra=best.askFor;}
+    if(priced[0].cost<=g.acquireTurns(p,offer.want).turns){deal=priced[0].r.q;terms=priced[0].t;}
   }
-  if(!deal||!g.settleTrade(p,deal,offer,extra)){
+  if(!deal||!g.settleTrade(p,deal,terms,0)){
     for(const r of responses)if(r.kind==="counter")g.rememberRefusal(p,offer.want,r.q.idx,worth);
     g.ev({t:"parley",a:p.idx,b:null,offer:offerDisplay,want:offer.want});
     liveRender();

@@ -258,9 +258,20 @@ along invisibly from an offer that was just rejected.
 - **Top to bottom.** Back → message → **slider** → buttons → helper text, revealed in that order.
   A control that edits the message must not arrive before the message.
 
+- **THE SLIDER'S NUMBER IS A DECISION, so it is written to the decision log.** `ask()` records which
+  *button* was pressed; the slider's value lives in a `ref` the button knows nothing about. Both
+  quantity controls therefore return through `logQuantity()` (`4/src/ui/flow.js`), which records the
+  number live and replays the recorded one — the same seam `pickCell()` and `bakeoffPrompt()` use.
+  Measured before the fix: a captain dragged the slider to 6 and the log gained exactly `[0]`, so a
+  refresh replayed the trade at 1 coin and every decision after it landed on the wrong prompt. Wyatt
+  saw *"the game was simply reset and stalled and the captains log was empty."* Gated by
+  `4/scripts/dlog_quantity_check.js`; the failure and its lessons are in `HARD-WON-LESSONS.md` §5.
+
 **Named exception:** the slider reaches the **local** prompt path only. Solo and pass-and-play are
 both local decisions, so every human quantity prompt /4 presents gets it; a genuinely remote seat
-falls back to the stepper. **Close this if /4 ever ships online multiplayer.**
+falls back to the stepper. **Close this if /4 ever ships online multiplayer.** Note this is why
+*both* controls log: which one a seat gets is a routing decision, and a log whose length depends on
+routing only replays under the same routing.
 
 ---
 
@@ -367,8 +378,30 @@ Public inference: `noteDemand` · `demandFor` · `likelyNeeds` · `visibleProgre
 Units: `coinTurns` · `acquireTurns` · `PLAN.coinsPerDockTurn` · `PLAN.leverageTurns`
 
 UI — `4/src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `coinStepper` (remote
-fallback) · `crateOpt`
-Harness — `4/scripts/trade_offer_measure.js`
+fallback) · `crateOpt` · `logQuantity`
+Harnesses — `4/scripts/trade_offer_measure.js` · `4/scripts/dlog_quantity_check.js`
+
+### A deal is settled in THREE places, and they must agree
+
+This is the one structural fact most likely to bite you here. `counterTerms(offer, r)` is the single
+place a counter is turned into the deal it *means* — and three separate call sites read it, because
+who is asking and who is answering changes which code runs:
+
+| Who hails | Who answers | Where it settles |
+|---|---|---|
+| bot | bot | `Game.tryTrade` — `4/src/engine/index.js` |
+| **human** | bots | `humanTrade`'s settlement — `flow.js` |
+| **bot** | human (and bots) | `botOpenTradeLive`'s settlement — `flow.js` |
+
+Playtest 21 item 7 taught counters to *replace* the give side and updated the first two. The third
+was missed, and it was still settling the raw `offer`: a captain who countered asking for a
+different crate had their counter accepted on screen and **the original trade executed instead**.
+Every other test in that block was wrong the same way — affordability judged on `offer.giveCoins +
+askFor` (blind to a crate counter costing no coin), and the sort on `askFor` (not comparable across
+the two counter shapes).
+
+All three now price answers in TURNS on their own terms. **Three copies of one decision is the real
+defect; until they are one, change all three or none.**
 
 ---
 

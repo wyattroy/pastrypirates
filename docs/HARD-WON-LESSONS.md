@@ -576,6 +576,41 @@ Immune to params, bodies, template literals and nesting alike.
 
 ## 5. Design and code lessons
 
+### A NEW CONTROL IS A NEW DECISION — and a decision the log cannot see rots the whole voyage
+
+Playtest 21 replaced the counter-offer's ±1 coin stepper with a drag slider. The stepper spelled its
+answer out in button presses, which `ask()` already records; the slider's number lived in a `ref`
+object the confirm button knew nothing about. **Measured on a real trade: the captain dragged it to
+6 and the decision log gained exactly `[0]` — the index of "Offer it!", and nothing else.**
+
+Solo play persists as a *decision log*, not a state snapshot: a refresh replays your choices against
+the seed. So a number that never reaches the log replays at the control's floor — 1 coin instead of
+6. That is not a cosmetic difference. It is a different offer, a different answer from the holder, a
+different `r()` draw, and from that moment every later recorded decision lands on a prompt it was
+never recorded against. From the seat, Wyatt's words: *"the game was simply reset and stalled and
+the captains log was empty and nothing happened."*
+
+**The rule, and it generalises past sliders:** anything a player can set — a drag, a dial, a text
+field, a multi-select — is a decision, and it goes through the same seam `ask()`/`pickCell()`/
+`bakeoffPrompt()` go through. If you are adding a control whose answer is not "which button", ask
+where the answer is written down before you ask how it looks.
+
+Three things this cost that are worth copying:
+
+- **The gate counts, it does not pattern-match.** `4/scripts/dlog_quantity_check.js`'s first version
+  looked for `=== "ok") return <expr>;` and read the expression — then I reformatted that branch into
+  a block and the gate went green while silently covering half of what it claimed. Counting confirm
+  branches against `logQuantity()` calls is immune to how the branch is written.
+- **The end-to-end probe's fidelity check had teeth only sometimes.** Comparing the replayed event
+  prefix catches divergence *when the wrong coin count changed the outcome*, which is not every run.
+  The check that actually proved the fix was the narrow one — "is the chosen number in the log" —
+  and it was verified by neutering `logQuantity` and watching it fail. **A broad check that passes
+  for the wrong reason is worse than a narrow one that cannot.**
+- **Bump the save's schema stamp in the same commit.** `SOLO_SCHEMA_V` 1 → 2, because a save written
+  before the new entry has one fewer entry per coined trade — replaying it is exactly the misaligned
+  log the fix exists to prevent. The stamp is what makes an old blob "no resume" rather than a
+  quietly wrong one.
+
 ### When you replace an algorithm, find out what the old one was compensating for
 
 v1's `stepToward` used Dijkstra. The v2 rewrite scored candidate moves on Manhattan distance instead.

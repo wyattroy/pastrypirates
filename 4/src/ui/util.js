@@ -1792,7 +1792,12 @@ export function preloadAssets(){
 // pp_lastName joins that exclusion in FIX-01 (Phase 22): it carries a display name, not resumable
 // game state, so it is never cleared by leaveGame() either — that is precisely the point, per D-04.
 export const SESSION_SCHEMA_V=1;
-export const SOLO_SCHEMA_V=1;
+// 1 -> 2 (playtest 21, the counter-offer stall): a confirmed COIN QUANTITY is now its own entry in
+// the decision log (flow.js logQuantity). A save written before that has one fewer entry per coined
+// trade, so replaying it would run every decision after the first such trade against the wrong
+// prompt — the exact failure the new entry exists to stop. The stamp is what makes an old blob
+// "no resume" instead of a mis-aligned one.
+export const SOLO_SCHEMA_V=2;
 export function getMyId(){
   let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
   if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}
