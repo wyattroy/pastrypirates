@@ -98,6 +98,60 @@ function toScreen(ux, uy){
   const sc = br.width / S.cam.w;
   return [(ux - S.cam.x) * sc + br.left, (uy - (S.vy ?? S.cam.y)) * sc + br.top];
 }
+/* WAIT FOR THE BOAT TO ARRIVE BEFORE BLOOMING THE FAN — playtest 21 item 2 (Wyatt: "only appear
+   the action prompt fan buttons AFTER the boat has finished moving — currently, they appear before
+   it has finished and they recalculate position and glitch out in the final few ms of travel,
+   which looks bad").
+
+   WHY IT GLITCHES, which is not where it looks. boatUXY reads el.style.transform — the ship's
+   TARGET, written in one go — so the circles are not chasing the hull. They are chasing the
+   CAMERA: the bloom is placed through toScreen(), the camera tweens across to follow the ship, and
+   every frame of that tween moves the whole placement. The tween finishes at about the moment the
+   boat lands, which is exactly the "final few ms of travel" he describes. So a fix aimed only at
+   the ship's glide would have missed half of it, and a fix aimed only at the camera would have
+   left the fan blooming around a hull still in flight.
+
+   BOTH are waited on, and each is MEASURED rather than timed:
+     - the camera, by asking whether a tween is running at all;
+     - the ship, by comparing its RENDERED transform (getComputedStyle, which returns the current
+       animated matrix) against its target. When they agree, the transition is genuinely over.
+   A timer would have been a third hand-synced copy of SHIP_GLIDE_MS, and this project has paid for
+   that pattern more than once. It also breaks the moment a sweep retunes the glide via
+   setShipGlideMs, which is precisely when the ship is moving furthest.
+
+   BOUNDED, AND THIS IS THE LOAD-BEARING PART. A UI gate that can wait forever is a game that can
+   hang on a dropped transitionend or a camera that never settles. The wait can never outlast
+   SETTLE_CAP_MS, after which the fan blooms regardless: the worst case is the cosmetic glitch this
+   exists to remove, never a turn that cannot be taken. */
+const SETTLE_POLL_MS = 60;
+const SETTLE_CAP_MS = 1400;   // comfortably past SHIP_GLIDE_MS (700) + the camera's own tween
+function shipStill(){
+  const els = boardShipEls();
+  if (!els || !els.length) return true;
+  for (const el of els){
+    if (!el || !el.style || !el.style.transform) continue;
+    const want = el.style.transform;
+    const now = getComputedStyle(el).transform;
+    // matrix(1,0,0,1,X,Y) vs translate(Xpx,Ypx) — compare the two translation components only
+    const a = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(want);
+    const b = /matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+),\s*([-\d.]+)\)/.exec(now);
+    if (!a || !b) continue;             // nothing readable to compare — do not block on it
+    if (Math.abs(parseFloat(a[1]) - parseFloat(b[1])) > 0.5) return false;
+    if (Math.abs(parseFloat(a[2]) - parseFloat(b[2])) > 0.5) return false;
+  }
+  return true;
+}
+function stageSettled(){
+  if (!S.active) return Promise.resolve();
+  const t0 = Date.now();
+  return new Promise(res => {
+    const poll = () => {
+      if (!S.active || (!S.tween && shipStill()) || Date.now() - t0 >= SETTLE_CAP_MS) return res();
+      setTimeout(poll, SETTLE_POLL_MS);
+    };
+    poll();
+  });
+}
 function boatUXY(i){
   const els = boardShipEls();
   const el = els && els[i]; if (!el) return null;
@@ -1113,6 +1167,7 @@ export function initStage(){
     // before settling to 163.5px. promptTick is idempotent and already runs every frame, so this
     // is the same work a beat earlier, not extra work.
     syncPrompt: () => { maybeBuildStage(); if (S.active) promptTick(); },
+    settled: stageSettled,
   };
   recipeGuard();
   sweepGuard();   // playtest 20: the trade-wind ride preview

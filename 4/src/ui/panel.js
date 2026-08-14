@@ -614,7 +614,16 @@ export function panel(html,needsAction=false){
     // host's deferred arm (below) broadcasts it.
     const armFn=(appState.clockPendingLocal&&appState.clockPendingArm)?appState.clockPendingArm:null;
     if(armFn){appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";}
-    revealDone.then(()=>{
+    /* playtest 21 item 2: the buttons also wait for the BOAT TO ARRIVE. Extended here rather than
+       given its own mechanism, because pendingReveal already exists to answer exactly this
+       question — "may the player act yet?" — and a second gate would be a second thing able to
+       disagree with the first. src/ui/stage.js:stageSettled() waits on the camera tween and the
+       ship's rendered transform, and is HARD-BOUNDED so it can never hold a turn hostage.
+       Consequence worth stating: the shot clock arms on this same promise, so a captain no longer
+       burns seconds of their 30 while the board is still moving under them. That is a fix in its
+       own right, and it falls out of putting the wait in the existing seam instead of beside it. */
+    const settled=(window.__pp4&&window.__pp4.settled)?window.__pp4.settled():Promise.resolve();
+    Promise.all([revealDone,settled]).then(()=>{
       // T-18-15: reuse the SAME seq stamp the unhide above is gated by — a late-resolving EARLIER
       // reveal must never clear a NEWER prompt's clockPendingSeat or arm a stale seat's clock.
       if(gateEl.dataset.revealSeq!==String(seq))return;

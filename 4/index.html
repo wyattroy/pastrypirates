@@ -1300,8 +1300,23 @@
   #pp4Prompt.radial .apMsg { background:rgba(255,253,242,.97); border:2px solid #177;
     border-radius:11px; padding:7px 12px; font-size:13px; width:max-content; max-width:88vw;
     margin:0; box-shadow:0 5px 16px rgba(0,0,0,.3); }
-  /* the panel reveals .apBtns only after the (hidden) message types — radial IS the reveal */
-  #pp4Prompt.radial .apBtns, #pp4Prompt.radial .apBtn { visibility:visible !important; }
+  /* The panel reveals .apBtns only after the (hidden) message types. The radial bloom used to
+     force itself visible unconditionally — "radial IS the reveal" — which meant the ONE prompt
+     style that positions itself against the moving board was also the one style that ignored the
+     gate telling it when the board had stopped moving.
+     playtest 21 item 2 (Wyatt: "only appear the action prompt fan buttons AFTER the boat has
+     finished moving — currently, they appear before it has finished and they recalculate position
+     and glitch out in the final few ms of travel, which looks bad"). The circles are placed
+     through the camera, and the camera is tweening across to follow the ship for the whole of
+     that travel, so every frame moves them.
+     The bloom still IS the reveal — it just waits for pendingReveal to lift, which now means both
+     "the ask has finished typing" and "the boat has arrived" (src/ui/panel.js, and stageSettled()
+     in src/ui/stage.js). Both arms are stated explicitly rather than relying on the base rule's
+     specificity, because the whole bug was an !important quietly winning an argument. */
+  #pp4Prompt.radial #actionPanel:not(.pendingReveal) .apBtns,
+  #pp4Prompt.radial #actionPanel:not(.pendingReveal) .apBtn { visibility:visible !important; }
+  #pp4Prompt.radial #actionPanel.pendingReveal .apBtns,
+  #pp4Prompt.radial #actionPanel.pendingReveal .apBtn { visibility:hidden !important; }
   #pp4Prompt.radial .apBtn { pointer-events:auto; width:66px; height:66px; border-radius:50%;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
     padding:4px; font-size:10px; font-weight:800; line-height:1.05; text-align:center;
