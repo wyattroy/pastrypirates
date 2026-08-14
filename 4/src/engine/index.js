@@ -504,7 +504,19 @@ class Game{
   //
   // `opts.throughRim` lets a caller keep the rim as a legal destination (a human may deliberately
   // ride the trade winds); bots pass it false and stay out of the channel except via rimEscape().
-  sailStates(p,opts){
+  /* THE ONE SAIL SEARCH. sailStates() is this function's `out` and nothing else, so the squares a
+     player may sail to and the ROUTE a ship takes to reach one are answered by the same walk of the
+     board — they cannot disagree about what is legal, which a second pathfinder would eventually
+     manage. playtest 21 item 6 needed the route (Wyatt: "Animate the boats to take the actual legal
+     routes through the water. Confusingly, it often looks like they go over land because they sail
+     simply from current square to end square"), and the honest way to get it was to have the search
+     that already knows remember how it arrived rather than to write a second one.
+
+     The search state is (cell, has-any-step-bitten-into-the-wind) — NOT cell alone — because the
+     budget shrinks the moment a step goes upwind. So `prev` is keyed by that whole state, and
+     `bestK` records WHICH state achieved each cell's entry in `out`. Walking `prev` back from
+     bestK is therefore the real route the rule allows, upwind bookkeeping included. */
+  sailSearch(p,opts){
     opts=opts||{};
     const maxOpen=this.sailRange(),maxUp=this.sailRangeUpwind();
     const passable=o=>{
@@ -515,9 +527,18 @@ class Game{
     };
     const occ=o=>this.players.some(q=>q!==p&&this.inPlay(q)&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
     const k=(c,u)=>c[0]+","+c[1]+","+(u?1:0);
-    const seen={[k(p.pos,false)]:0};
+    // `opts.from` lets a caller ask the search from a square the ship is no longer standing on —
+    // the bot path needs it, because sailPlan has already committed p.pos by the time the route is
+    // wanted. An explicit origin, NEVER a temporary write to p.pos: mutating live game state to
+    // read something back out of it is the shortcut HARD-WON-LESSONS records as having wedged a
+    // whole run, and it would be invisible here right up until something rendered mid-way.
+    const origin=opts.from||p.pos;
+    const startKey=k(origin,false);
+    const seen={[startKey]:0};
     const out=new Map(); // "x,y" -> fewest steps to reach it legally
-    const q=[[p.pos,false,0]];
+    const prev={};       // state key -> the state key it was reached FROM
+    const bestK=new Map();// "x,y" -> the state key that achieved out's entry for that cell
+    const q=[[origin,false,0]];
     while(q.length){
       const [c,used,n]=q.shift();
       const limit=used?maxUp:maxOpen;
@@ -532,16 +553,41 @@ class Game{
         const kk=k(o,u2);
         if(seen[kk]!==undefined&&seen[kk]<=n2)continue;
         seen[kk]=n2;
+        prev[kk]=k(c,used);
         const ck=o[0]+","+o[1];
         // a cell you may legally FINISH on: not another ship's square
-        if(!occ(o)&&(!out.has(ck)||out.get(ck)>n2))out.set(ck,n2);
+        if(!occ(o)&&(!out.has(ck)||out.get(ck)>n2)){out.set(ck,n2);bestK.set(ck,kk);}
         // the rim sweeps you away the instant you touch it — never a staging post
         if(this.onRim(o))continue;
         q.push([o,u2,n2]);
       }
     }
-    out.delete(p.pos[0]+","+p.pos[1]);
-    return out;
+    out.delete(origin[0]+","+origin[1]);
+    bestK.delete(origin[0]+","+origin[1]);
+    return {out,prev,bestK,startKey};
+  }
+  sailStates(p,opts){return this.sailSearch(p,opts).out;}
+  /* The squares a ship actually crosses to reach `dest`, in order, EXCLUDING the square it starts
+     on and INCLUDING dest. Empty when dest is not legally reachable — callers animate nothing
+     rather than invent a route, the same refusal rimSweepPath makes.
+
+     playtest 21 item 6: a ship was drawn gliding straight from its old square to its new one, so a
+     move around the corner of an island read as sailing THROUGH the island. Nothing was wrong with
+     the move; only with the line drawn between its endpoints. */
+  sailPath(p,dest,opts){
+    if(!dest)return [];
+    const {prev,bestK,startKey}=this.sailSearch(p,opts);
+    let cur=bestK.get(dest[0]+","+dest[1]);
+    if(!cur)return [];
+    const path=[];
+    // bounded by the sail budget; the guard is against a malformed prev chain, never expected
+    for(let i=0;cur&&cur!==startKey&&i<64;i++){
+      const parts=cur.split(",");
+      path.push([+parts[0],+parts[1]]);
+      cur=prev[cur];
+    }
+    if(cur!==startKey)return [];   // the chain did not reach the start — refuse rather than guess
+    return path.reverse();
   }
   // How far every water square is from `target`, sailing around the islands rather than through
   // them — a plain BFS flood, wind ignored (wind prices how FAR you get in a turn, not which

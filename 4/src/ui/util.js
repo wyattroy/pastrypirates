@@ -1281,6 +1281,12 @@ export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
 // going lower buys nothing a screen can show. (Wyatt asked for "48" reading 24 as a frame rate;
 // 16ms is ~60/sec, i.e. more than the 48/sec he was after, in the direction he wanted.)
 export const RIM_SWEEP_TICK_MS=16;
+// playtest 21 item 6: the motion tick for a routed sail. Same value and same reasoning as the rim
+// sweep's — small enough that the eye reads one continuous travel, and paired with a one-tick
+// LINEAR ship glide so the browser bridges between successive targets. It is a TICK RATE, not a
+// pace: the route's duration is SHIP_GLIDE_MS regardless, so lowering this buys smoothness and
+// costs paints, and changes nothing about how long a move takes.
+export const SAIL_ROUTE_TICK_MS=16;
 // Progress is always derived from ELAPSED TIME, never from a tick count — panel.js's other lesson:
 // a chain that counts ticks can never catch up, because each tick only schedules the next after its
 // own overhead, so one slow callback drifts every remaining one. Deriving from elapsed time means a

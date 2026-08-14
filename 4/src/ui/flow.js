@@ -64,6 +64,7 @@ import {
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS, isDisabledBtn,
+  SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS,
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
@@ -902,6 +903,78 @@ export async function animateRimSweepRun(seat,from,to){
   }
   return true;
 }
+/* SAIL THE ROUTE, NOT THE CHORD — playtest 21 item 6 (Wyatt: "Animate the boats to take the actual
+   legal routes through the water. Confusingly, it often looks like they go over land because they
+   sail simply from current square to end square").
+
+   "Often" turned out to be measurable: over 13,982 legal moves across 40 boards and four winds,
+   the straight line between a ship's two squares passed over land in 16.3% of them — better than
+   one move in six, and up to three land squares at a time. The MOVE was always legal; only the line
+   drawn between its endpoints was a lie.
+
+   The route comes from Game.sailPath, which is the very BFS that decides which squares are legal
+   (sailStates is now that same search's `out`). So the path a ship is drawn along and the rule that
+   permitted the move cannot disagree — the alternative, a second pathfinder in the UI, is precisely
+   the shape of bug this project keeps paying for.
+
+   STRAIGHT SEGMENTS, NOT A SPLINE, and this is a real decision rather than laziness. The rim sweep
+   smooths its ring with Catmull-Rom because a ring walked cell by cell is a staircase. Here the
+   opposite holds: a spline through cell centres BULGES OUTSIDE a right-angled corner, and the
+   corner it would bulge into is the island the ship is sailing around. Smoothing this path would
+   re-introduce the exact bug it exists to fix, in a subtler form that only shows up on tight turns.
+
+   SAME TOTAL TIME WHATEVER THE ROUTE (Wyatt's pick): a four-square dogleg takes exactly as long as
+   a four-square straight run, so turn pacing is completely unchanged and only the path is honest.
+   The easing is applied over the WHOLE route rather than per segment, so a routed move leans in and
+   settles exactly like an ordinary one-square glide instead of stuttering at every corner.
+
+   A one-step move returns immediately: there is no corner, the chord IS the route, and the ordinary
+   CSS glide already draws it perfectly for free. */
+const sailRouteEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+export async function animateSailRoute(seat,from,path){
+  if(appState.replaying)return false;
+  if(!Array.isArray(path)||path.length<2||!from)return false;   // no corner to draw
+  const pts=[from,...path];
+  // cumulative distance, so a constant rate gives a constant SPEED rather than hurrying the long
+  // legs — the same reason rimSweepCurve resamples
+  const cum=[0];
+  for(let i=1;i<pts.length;i++)
+    cum.push(cum[i-1]+Math.abs(pts[i][0]-pts[i-1][0])+Math.abs(pts[i][1]-pts[i-1][1]));
+  const total=cum[cum.length-1];
+  if(!(total>0))return false;
+  const dest=path[path.length-1];
+  try{
+    // one tick of LINEAR glide so the browser bridges between our targets and soaks up setTimeout
+    // jitter; the eased shape lives in sailRouteEase, applied to progress along the whole route.
+    setShipGlideMs(seat,SAIL_ROUTE_TICK_MS,"linear");
+    // Paint the START synchronously. liveRender() at the call site has already aimed the ship at
+    // its destination on the ordinary 700ms glide; this overwrites that in the SAME task, and a
+    // browser paints once per task, so the destination aim never reaches the screen and there is
+    // no backwards jump. Identical mechanism to animateRimSweepRun's PART A, and load-bearing for
+    // the same reason.
+    paintShipAt(seat,from);
+    const began=Date.now();
+    for(;;){
+      // progress from ELAPSED TIME, never a tick count — a throttled or late tick then advances
+      // further along the route instead of stretching the move, and a backgrounded tab finishes
+      // rather than crawling
+      const t=Math.min(1,(Date.now()-began)/SHIP_GLIDE_MS);
+      const d=total*sailRouteEase(t);
+      let j=0; while(j<cum.length-2&&cum[j+1]<d)j++;
+      const span=cum[j+1]-cum[j],f=span>0?(d-cum[j])/span:0;
+      paintShipAtPoint(seat,pts[j][0]+(pts[j+1][0]-pts[j][0])*f,pts[j][1]+(pts[j+1][1]-pts[j][1])*f);
+      if(t>=1)break;
+      await sleep(SAIL_ROUTE_TICK_MS);
+    }
+  }finally{
+    // an interruption must never strand a ship mid-water, nor leave it on the short tick glide —
+    // which would make every ordinary move it makes for the rest of the voyage snap instead of
+    // glide. Restore BEFORE the corrective paint so that paint travels at the normal speed.
+    setShipGlideMs(seat,null);
+    paintShipAt(seat,dest);
+  }
+  return true;
+}
 /* ================= v2 rules 7 + 8: the storm =================
    A storm is now ONE event for the whole table, at the top of the round, before anybody acts:
    one direction, three squares, everyone at once. It asks the player nothing.
@@ -1448,7 +1521,14 @@ export async function humanAct(p,sailCtx){
     // destination" outcome — the ship simply does not move, which renders nothing, so nothing is
     // invented. appState.turnExpired above does NOT cover this: it is set at 30s, the coin
     // penalty fires at 20s and sets no flag at all.
-    if(dest){p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
+    if(dest){
+      // playtest 21 item 6: the route is derived from the PRE-MOVE square, so it must be taken
+      // before p.pos is written. sailPath asks the same search that made `dest` legal in the first
+      // place, so the drawn line and the rule can never disagree.
+      const from=[...p.pos];
+      const route=appState.game.sailPath(p,dest,{throughRim:true});
+      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
+      await animateSailRoute(p.idx,from,route);
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
@@ -1529,7 +1609,13 @@ export async function humanTurn(p){
     // turn's own boundaries instead: humanTurn's entry, the expiry path, and passGate itself.
     if(appState.turnExpired){appState.activeTurnSeat=null;return;}
     if(dest){
+      // playtest 21 item 6 — see the moveInstead site above; both human sail legs route, because a
+      // ship that sails honestly on one of them and cuts the corner on the other is the same
+      // inconsistency in a new place.
+      const fromSail=[...p.pos];
+      const routeSail=appState.game.sailPath(p,dest,{throughRim:true});
       p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
+      await animateSailRoute(p.idx,fromSail,routeSail);
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}
       // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
       // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
@@ -1661,7 +1747,18 @@ export async function botTurn(p){
   if(man(p.pos,target)>0){
     const b=[...p.pos];
     // v2 rule 2: sailing is free. No coin to spend, none to refund.
-    if(g.sailPlan(p,plan)){p.justDocked=false;g.ev({t:"sail",p:p.idx});await botBeat();
+    // playtest 21 item 6: bots route too. `b` is already the pre-move square, and sailPlan writes
+    // p.pos — so the path is derived AFTER the move, from `b` to where the bot actually ended up,
+    // which is the one square sailPath can no longer be asked about from p. Hence the explicit
+    // `dest` read. A bot that cut corners while the human sailed honestly would be the same
+    // inconsistency wearing a different hat, and bots do most of the sailing a player watches.
+    if(g.sailPlan(p,plan)){p.justDocked=false;g.ev({t:"sail",p:p.idx});
+      // `from:b` — sailPlan has already written p.pos, so the search is told the pre-move square
+      // outright rather than p.pos being temporarily rewound to read the route back out of it.
+      const route=g.sailPath(p,[...p.pos],{throughRim:false,from:b});
+      liveRender();
+      await animateSailRoute(p.idx,b,route);
+      await botBeat();
       if(g.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.
     // rimEscape() records its own events (windmove, then tradewind's sweep line).
