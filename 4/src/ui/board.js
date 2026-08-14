@@ -178,6 +178,13 @@ function buildRimFlow(cellPx){
     const left=CQ(c.x*cellPx),top=CQ(c.y*cellPx),size=CQ(cellPx);
     const d=document.createElement("div");
     d.style.left=left;d.style.top=top;d.style.width=size;d.style.height=size;
+    // the grid cell this belongs to, carried rather than left to be re-derived. Same reasoning as
+    // sailHighlightRect's data-gx/gy: two readers there had been inverting the positioning maths by
+    // hand, which is a second copy of it to keep in step. It is also what lets a probe check an
+    // arrow against its OWN square instead of against the board's corner — under a zoom, points at
+    // different board positions move by different amounts, so only a same-cell comparison means
+    // anything.
+    d.dataset.gx=c.x; d.dataset.gy=c.y;
     if(heads.has(c.k)){
       d.className="rimSwirl";
       const img=document.createElement("img");

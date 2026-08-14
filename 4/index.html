@@ -774,8 +774,16 @@
     72%  { opacity: .9; }
     100% { transform: translateX(42%); opacity: 0; }
   }
-  /* the whirlpool at each quadrant's drop-off — where the ride ends, so it turns rather than drifts */
-  .rimSwirl img { animation: rimSpin 11s linear infinite; will-change: transform; opacity: .95; }
+  /* The whirlpool at each quadrant's drop-off — where the ride ends, so it turns rather than drifts.
+     playtest 21 (Wyatt): "increase the size of the whirlpools so they take up their entire square,
+     and spin them a little faster."
+     The SCALE is on the wrapper, not the img, and that split is load-bearing: the img's own
+     transform is the spin keyframe, so a scale written there would be overwritten every frame the
+     animation runs. The wrapper is otherwise static for a swirl, so it is free to hold it.
+     1.35 rather than 1.0 because the asset carries transparent padding — at 100% of its cell the
+     drawn spiral sits well inside the square it is meant to fill. */
+  .rimSwirl { transform: scale(1.35); }
+  .rimSwirl img { animation: rimSpin 6s linear infinite; will-change: transform; opacity: .95; }
   @keyframes rimSpin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
     .rimFlow img { animation: none; opacity: .9; }

@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-14d";
+const PP4_STAMP = "2026-08-14e";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -163,6 +163,9 @@ function boatUXY(i){
 // every frame even with a parked camera — rect reads, viewBox writes and transform writes at
 // 60fps, forever. Layout inputs are now cached (refreshed ~2x/second and on resize), and every
 // write is skipped when the value hasn't changed, so an idle stage costs almost nothing.
+// The HTML overlays that are mapped to board coordinates and must therefore carry the camera.
+// See where it is applied below for why this is a list rather than two named consts.
+const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost"];
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
 addEventListener("resize", () => { ribHAt = -1e9; lastVB = ""; });
 function camFrame(){
@@ -224,20 +227,25 @@ function camFrame(){
     // beneath them (Wyatt, playtest 2).
     const ships = $("boardShips");
     if (ships) ships.setAttribute("viewBox", vb);
-    // the sonar rings are an HTML layer mapped to the full board — compose the camera in as a
-    // transform: rendered = scale(640/w) then translate(-v * W/640)
-    const rip = $("rippleHost");
-    // playtest 20: #sailHost joins the ripples here. Both are HTML layers mapped to the full board,
-    // so both need the same camera composed in — a highlight that did not move with the viewBox
-    // would drift off its own square the moment the director glided.
-    const sh = $("sailHost");
-    if (rip || sh){
+    /* EVERY HTML LAYER MAPPED TO THE BOARD NEEDS THE CAMERA COMPOSED IN — as a transform:
+       rendered = scale(640/w) then translate(-v * W/640). The SVGs get it via their viewBox; an
+       HTML overlay has no viewBox, so without this it stays parked on the full-board layout while
+       the water zooms away beneath it.
+
+       KEPT AS A LIST, because this is the second time it has been got wrong by being a hand-written
+       pair. playtest 21: #rimHost (the trade-wind current) was added as a third layer and NOT added
+       here, so on any zoom the arrows detached from the board entirely and scattered across the
+       screen — Wyatt: "the wind arrows are not attached to the board! When the director zooms in,
+       they remain unaffected." The comment sitting right here already predicted it in as many
+       words for the sail squares. Adding a board-mapped overlay now means adding its id to this
+       array and nothing else. */
+    const layers = CAM_HTML_LAYERS.map(id => $(id)).filter(Boolean);
+    if (layers.length){
       const W = vwPx(), s2 = 640 / c.w;
       const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
       if (t !== lastRipT){
         lastRipT = t;
-        if (rip){ rip.style.transformOrigin = "0 0"; rip.style.transform = t; }
-        if (sh){ sh.style.transformOrigin = "0 0"; sh.style.transform = t; }
+        for (const el of layers){ el.style.transformOrigin = "0 0"; el.style.transform = t; }
       }
     }
   }
