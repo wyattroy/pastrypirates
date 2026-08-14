@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-13g";
+const PP4_STAMP = "2026-08-14a";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -334,8 +334,11 @@ function ribbonTick(){
     // no ⏩ at a Pass & Play table (Wyatt's ruling, 2026-08-13): the skip is solo-only
     const botsUp = g2 && !appState.liveDone && !appState.passAndPlay && act >= 0 &&
       act !== (appState.mySeat ?? 0) && g2.players[act] && !g2.players[act].done;
-    // explicit block/none — the CSS base is display:none, so writing "" would fall back to hidden
-    const want = botsUp ? "block" : "none";
+    // explicit inline-flex/none — the CSS base is display:none, so writing "" would fall back to
+    // hidden. inline-flex, NOT block: playtest 21 item 8 gave the ⏩ and the clock one shared box
+    // rule that centres their contents with flex, and an inline `display:block` written here would
+    // silently defeat that centring on the ⏩ only — the exact drift the shared rule exists to stop.
+    const want = botsUp ? "inline-flex" : "none";
     if (ff.style.display !== want) ff.style.display = want;
     ff.classList.toggle("on", !!appState.ff);
   }

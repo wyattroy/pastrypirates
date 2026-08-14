@@ -1475,8 +1475,18 @@
      exists. One code path, two doors. See recipeGuard() in src/ui/stage.js.
      The card needs a positioning context for it; nothing else here is positioned. */
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { position:relative; }
+  /* playtest 21 item 1 (Wyatt: "the same bright color as the rings around the island" — his
+     clarification: "the orange color that the circles around the docks that show when you select
+     a recipe"). That is #f5a623, written by recipeGuard() in src/ui/stage.js as both the stroke
+     and the 18% fill of each dock ring. The pill and the rings are drawn by the SAME first tap,
+     so they now say the same thing in the same colour: these docks, this recipe, bake it.
+     It was #177 before — the identical dark teal as the radial fan's rings, which is what made it
+     read as chrome rather than as the way in.
+     Ink and edge are NOT invented here: #3a2600 on #f5a623 with a #c9821a border is already this
+     codebase's pairing for text on this orange (.btl-col .windTag.dw, the downwind battle tag).
+     White would have been the obvious choice and fails contrast on it (~2.2:1). */
   .pp4Bake { position:absolute; left:50%; top:35px; z-index:2; pointer-events:none;
-    background:#177; color:#fffdf2; border:2px solid #0e5c5c; border-radius:999px;
+    background:#f5a623; color:#3a2600; border:2px solid #c9821a; border-radius:999px;
     padding:7px 13px; font-size:13px; font-weight:800; letter-spacing:.02em; white-space:nowrap;
     box-shadow:0 4px 14px rgba(0,0,0,.45);
     animation:pp4BakeIn .22s cubic-bezier(.2,.9,.3,1.15) both; }
@@ -1511,17 +1521,29 @@
     -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
   body.pp4Stage input, body.pp4Stage textarea { -webkit-user-select:text; user-select:text; }
   /* playtest 11: the turn clock lives in the ribbon, right of the captain boats, flashing near 0 */
-  #pp4Clock { display:none; font-size:13px; font-weight:800; letter-spacing:.5px; color:#fff;
-    background:rgba(255,255,255,.16); border-radius:8px; padding:3px 8px; min-width:34px;
-    text-align:center; font-variant-numeric:tabular-nums; cursor:pointer; }
-  #pp4Clock.on { display:block; }
+  /* THE RIBBON CHIP — ONE box shared by the turn clock and the ⏩, so the two cannot drift apart.
+     playtest 21 item 8 (Wyatt: "make the slip button's size match the timer box's size — its
+     weirdly short"). They were two independently hand-written boxes and every metric disagreed:
+     the clock inherited the ribbon's line-height and carried min-width:34px, while the ⏩ set
+     line-height:1 and no min-width at all — so it came out both shorter and narrower than its
+     neighbour for no reason anybody chose.
+     The fix is structural rather than a matched pair of numbers: box metrics live in this one
+     rule, and the two ids below carry ONLY what genuinely differs (font size, weight, cursor
+     behaviour). An explicit line-height is what makes it hold — without it the ⏩'s larger
+     font-size silently makes its box taller than the clock's again, which is the same
+     two-hand-synced-numbers trap this project keeps paying for. */
+  #pp4Clock, #pp4FF { box-sizing:border-box; align-items:center; justify-content:center;
+    min-width:34px; padding:3px 8px; line-height:18px; border:none; border-radius:8px;
+    background:rgba(255,255,255,.16); color:#fff; font-family:inherit; text-align:center; }
+  #pp4Clock { display:none; font-size:13px; font-weight:800; letter-spacing:.5px;
+    font-variant-numeric:tabular-nums; cursor:pointer; }
+  #pp4Clock.on { display:inline-flex; }
   #pp4Clock.off { opacity:.45; }               /* playtest 12: tapped off — dim, tap to re-arm */
   #pp4Clock.urgent { color:#ffd0c4; animation:pp4ClockFlash .5s steps(2,jump-none) infinite; }
   @keyframes pp4ClockFlash { 0% { background:rgba(214,69,42,.85); } 100% { background:rgba(255,255,255,.16); } }
   /* ⏩ fast-forward: appears in the ribbon only while a bot holds the wheel (stage.js ribbonTick);
      lights orange while a one-shot skip runs so a second tap can't double-arm */
-  #pp4FF { display:none; font-size:15px; line-height:1; color:#fff; background:rgba(255,255,255,.16);
-    border:none; border-radius:8px; padding:3px 9px; cursor:pointer; font-family:inherit; }
+  #pp4FF { display:none; font-size:15px; cursor:pointer; }
   #pp4FF.on { background:rgba(245,166,35,.85); }
   /* playtest 11: one-line captain rows — name · coins · hold; the recipe line hides until the
      row is tapped (the rows are stable elements, so the toggle survives re-renders) */
