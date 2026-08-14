@@ -17,6 +17,60 @@ Sanctioned exceptions (each one his explicit pick):
   confirm) but NOT the centre-stage intros or the flip-ceremony veil (2026-08-12).
 - The credits/About pages are not in pirate speak — see "The voice boundary" below.
 
+## NOTHING IS A CONSTANT — the game is always shifting
+
+**Standing design rule — Wyatt, 2026-08-14:** *"We also dont want constants to drive the
+[behaviour], because the game is always shifting!! The bot should calculate an offer that it would
+accept, and offer something close to that."*
+
+A hardcoded price, margin, threshold or cap is **a price list standing in for a quantity that moves
+by an order of magnitude across a voyage**. A bot's first crate and its last crate are not the same
+trade; a captain with 2 coins and one with 20 are not playing the same game. A constant cannot be
+right for both, and it fails silently — it just plays slightly wrong, forever, in a way no gate can
+see.
+
+**Derive it instead, from something the game already computes.** The elegant version almost always
+*deletes* code: when a bot was asked to price a trade properly, the answer turned out to be
+`acquireTurns()` — what fetching the crate itself would cost, which it was already calculating to
+plan its route — and the whole hail test collapsed to one comparison with no threshold in it. Two
+earlier attempts, both of which added a constant, were longer AND worse.
+
+The same rule caught in the other direction: **replacing a constant with a calculation breaks every
+test that reads it.** Not merely "makes them wrong" — it can make them *vacuous*, unable to fail,
+which still reads as protection. `docs/BOT-DESIGN-PRINCIPLES.md` records a −21.2 ladder regression
+from exactly this, and a repeat of it on 2026-08-14. **List what reads a quantity, gates included,
+before you change how it is produced.**
+
+Canonical detail: principle 10 in `docs/BOT-DESIGN-PRINCIPLES.md`.
+
+## READ THE GRAVEYARD — what this project already tried and rejected lives in the GIT LOG
+
+**Standing process — Wyatt, 2026-08-14:** *"we already tried many failed attempts at decreasing
+trade spam; have you read all those logs?"*
+
+I had not, and the answer to that question is nearly always no unless it is asked deliberately.
+
+**A design document says how a subsystem WORKS. It does not say what was already tried and thrown
+away, which numbers are deliberately held, or which ruling was earned by a previous failure.**
+Those live in commit messages — and this repo's are unusually long *precisely so they can be read
+this way*. Reading `BOT-DESIGN-PRINCIPLES.md` and `HARD-WON-LESSONS.md` end to end is NOT a
+substitute, proven on 2026-08-14 when both were read that morning and a hard-won result was
+reversed anyway.
+
+Before changing any subsystem that has a history — bots, narration, the storm, the clock, trades:
+
+```bash
+git log --all --oneline --grep="<subsystem>" -i          # the arguments already had
+git log --all --format="%H %s" -S "<the number or fn>"   # where a quantity was last defended
+```
+
+**The tell that you are about to re-run a settled argument:** you catch yourself reasoning that
+some number going *up* is acceptable because a different number stayed flat. If a quantity is worth
+defending like that, somebody has already defended it. Go and read what it cost them.
+
+Full account: `docs/HARD-WON-LESSONS.md` §0 ("the git history is the other half") and §2 ("do not
+swap the recorded metric for a more sympathetic one").
+
 ## Narration box: content appears TOP TO BOTTOM, in that order
 
 **Standing design rule — Wyatt, 2026-08-01:** *"Everything in the narration box should appear from

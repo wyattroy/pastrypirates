@@ -151,6 +151,55 @@ A pirate discounts the cost of a fight. It never takes a fight that lengthens it
 **Read it as a detector, not a designer.** It can tell you a change is worse; it cannot tell you why,
 and it will not hand you the objective. That is what principle 0 is for.
 
+### 10. A bot prices by asking what IT would accept — never by a constant
+
+> Wyatt, 2026-08-14: *"We also dont want constants to drive the hail behavior, because the game is
+> always shifting!! The bot should calculate an offer that it would accept, and offer something
+> close to that."*
+
+This is principle 0 pointed at negotiation, and it is the general form of *"nothing should be
+hardcoded"*. Any fixed price, margin or threshold in a trade is a **price list standing in for a
+quantity that moves by an order of magnitude across a voyage** — a bot's first crate and its last
+crate are not the same trade, and no constant can be right for both.
+
+The bot always has the honest number to hand, because it is the same one it uses to plan:
+`acquireTurns(want)` — what fetching this crate myself would cost — **is** the price at which it
+would be indifferent to selling it. So "what would I accept?" needs no new machinery, and the
+answer is recomputed from the live board every turn.
+
+Done properly it *deletes* code rather than adding it. The whole "is this worth saying out loud"
+test in `composeOffer` is now one comparison with no threshold in it:
+
+```js
+bid.coins >= bid.need      // bid.coins is already min(their price, my price, my purse)
+```
+
+True only when what the table wants sits inside both what I would accept and what I can pay.
+If it does not, the hail buys nothing but a refusal I will have to remember — so stay quiet and go
+and fetch the crate.
+
+**Corollary, and it is where two attempts went wrong: symmetry is not mind-reading.** Modelling a
+rival by asking what *you* would accept is fair and uses only your own recipe. Calling
+`respondToOffer`/`crateCostTurns`/`needs(q)` on the rival is not — every one reads `q.recipe`
+(principle 5). `estimateCrateCost()` exists for exactly this and says so: the guess a human makes
+across the table. A bid built on it can be **wrong**, and should be. Being wrong is what the
+counter-offer is for.
+
+### THE HAIL-VOLUME INVARIANT — a hail interrupts EVERYONE, so its count is a player-facing cost
+
+> Wyatt: *"We dont want the table continuously spammed with shitty trade requests, it's exhausting
+> for players to swat them away."*
+
+**Rule 4: a trade is announced to the whole Sugar Seas, not put to one captain.** So a hail is not
+one opponent being asked — it is every opponent, the human included, being interrupted. **Hail
+count is exactly the number of things a player has to swat away**, and it is a guarded number:
+`03a683c` held it at **~2.8 a game deliberately** while fixing something else.
+
+Any trade change must report hails per game beside whatever it improved. A change that makes offers
+better by making **more** of them has failed, however good the offers are.
+
+Current, after 2026-08-14: **0.75 hails a game, 23.0% of them struck** (was 3.25 at 5.7%).
+
 ---
 
 ## What was tried and failed, with numbers
@@ -218,6 +267,46 @@ and untested at the seams is not a starting point, it is a trap.
 Ablated over 300 games: **46 → 46** wins, **1.68 → 1.69** fights a game. Aiming at a strike square
 already collapses the measured sail distance, so the leash was never the binding constraint. A
 constant that does nothing reads as if it does something.
+
+### Raising the bid without re-tightening the hail test (2026-08-14, two goes to get right)
+
+Wyatt: *"The bots offer trades that are far too low to be enticing, early on… in fact i think the
+logic is already in there."* He was right about where it lived — `respondToOffer` had priced crates
+properly all along, while `composeOffer` bid a hardcoded 2 coins with a crate, 5 alone.
+
+Deriving the bid fixed the offers and **broke the thing nobody was watching**:
+
+| | baseline | derive the bid | + Wyatt's rule |
+|---|---|---|---|
+| **hails per game** | 3.25 | **4.10** | **0.75** |
+| trades struck | 28 | 41 | 26 |
+| offers → trade | 5.7% | 6.3% | **23.0%** |
+| mean coins offered | 4.35 | 6.28 | **7.81** |
+| — early (rounds 1–5) | 4.23 | 4.88 | **7.46** |
+| mean voyage | 15.4 | 15.4 | 15.4 |
+
+**Why the middle column is a regression even though every column I was looking at improved.** The
+old gate compared the offer's worth against the asking price. Bid *to* the asking price and that
+comparison can never fail again — it went vacuous, exactly the −21.2 shape above: a threshold left
+calibrated to a quantity that changed underneath it. **When you replace a constant with a
+calculation, every test that reads it is now wrong, including the ones that merely stop being
+able to fire.** A gate that cannot fail is worse than a deleted one, because it still reads as
+protection.
+
+**And the first repair was itself a constant** — a fixed margin by which buying had to beat
+fetching. That is the failure at the top of this file wearing a third costume. Principle 10 is what
+finally worked, and it is *smaller* than either attempt.
+
+Two things checked afterwards rather than assumed, both of which could have made this a hidden
+regression:
+
+- **Personality survived.** Dropping the asker-side `dealBias` might have flattened the archetypes.
+  It did not: over 200 voyages the trader takes **20 of 32** holder-side acceptances, five times
+  anyone else; the rusher hails most, the pirate least. The tilt lives in the *responder's* bias —
+  the single application `232a020` established when it caught that bias being applied twice and
+  "overriding rather than tilting" (principle 8). Adding an asker-side margin back would have
+  rebuilt that bug.
+- **The scoreboard did not move** — 15.4 rounds throughout. Trades bought with turns are not a win.
 
 ---
 

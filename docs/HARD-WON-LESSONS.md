@@ -73,17 +73,56 @@ every row.
 harness is not applying the treatment, or the code changed cannot reach the behaviour. Read them as
 an alarm, never as "no effect".
 
+### THE GIT HISTORY IS THE OTHER HALF — read what was already TRIED AND REJECTED
+
+2026-08-14, and this is a distinct failure from the one above, because that day the design document
+**was** read. `BOT-DESIGN-PRINCIPLES.md` end to end, `HARD-WON-LESSONS.md` end to end, the whole
+trade subsystem. Then I changed how bots price a trade, drove bot hails **from 3.25 to 4.10 a
+game**, and wrote a commit message arguing it was fine.
+
+It was not fine. It reversed a hard-won result that lives only in the git log:
+
+> `03a683c` — *"Trade SPAM is deliberately not increased — hails stay at ~2.8 a game. Wyatt: 'We
+> dont want the table continuously spammed with shitty trade requests, it's exhausting for players
+> to swat them away.'"*
+
+Wyatt caught it in the transcript, before the build reached his phone: *"we already tried many
+failed attempts at decreasing trade spam; have you read all those logs?"* I had not.
+
+**A design document says how the subsystem WORKS. It does not say what has already been tried and
+thrown away, which numbers are deliberately held, or which ruling was earned by a previous
+failure.** Those live in commit messages, and this repo's commit messages are unusually rich
+precisely so they can be read this way. Two greps would have found it:
+
+```bash
+git log --all --oneline --grep="<subsystem>" -i          # the arguments
+git log --all --format="%H %s" -S "<the number or fn>"   # where a quantity was last defended
+```
+
+**The tell that you are about to repeat a settled argument:** you find yourself reasoning that some
+number going *up* is acceptable because a different number stayed flat. If a quantity is worth that
+much defending, somebody has probably already defended it — go and see who, and read what it cost
+them.
+
+Ask, and ask it of the log rather than the code: *has this project already had this argument?*
+
 ### The checklist this earns, before editing any subsystem
 
 1. **Does this subsystem have a design document?** `docs/` carries one for the bots, one for
    driving the game, one per ruleset. Read the whole thing — they are 150–250 lines, minutes each.
-2. **Ask what exists by BEHAVIOUR, not by name.** *"Is there already something that prices X?"*
+2. **What has already been tried here and rejected?** `git log --grep` and `git log -S` over the
+   subsystem, before writing a line. The doc holds the design; the log holds the graveyard and the
+   guarded numbers.
+3. **Ask what exists by BEHAVIOUR, not by name.** *"Is there already something that prices X?"*
    beats *"where is `functionY` called?"*
-3. **List what reads whatever you are about to change** — its units and its range especially. A
-   shared quantity has callers calibrated to its current scale (§ the −21.2 failure).
-4. **Find where the decision is actually made**, and confirm it by reading the caller, not by
+4. **List what reads whatever you are about to change** — its units and its range especially. A
+   shared quantity has callers calibrated to its current scale (§ the −21.2 failure). **Including
+   the tests and gates that read it**: a threshold compared against a quantity you just replaced
+   with a calculation does not merely go wrong, it can go VACUOUS, and a gate that cannot fail
+   still reads as protection.
+5. **Find where the decision is actually made**, and confirm it by reading the caller, not by
    assuming the function with the obvious name is the one that matters.
-5. **Only then write code.**
+6. **Only then write code.**
 
 The arithmetic is brutal and worth stating plainly. The reading was about ten minutes. Skipping it
 cost a redundant implementation, a latent units regression, three measurement suites incapable of
@@ -250,6 +289,38 @@ const r = el.getBoundingClientRect(), b = svg.getBoundingClientRect();
 the bold only reaches 900. It IS applied; it is just nearly invisible. Read the computed
 `fontWeight` of both the container and the emphasised span before concluding either "the bold is
 broken" or "the bold is fine".
+
+### DO NOT SWAP THE RECORDED METRIC FOR A MORE SYMPATHETIC ONE
+
+The worst version of this mistake is not failing to measure. It is measuring, getting a bad number,
+and quietly arguing your way onto a different number that looks better.
+
+2026-08-14, verbatim from my own commit message, defending bot hails rising 3.25 → 4.10 a game:
+
+> *"IDENTICAL re-hails 31 → 32 — flat. THIS is the spam metric… The extra repeats are all re-offers
+> at a BETTER price, which is haggling: a bot that improves its offer after a no is doing what a
+> human does."*
+
+Every clause is true. The conclusion is wrong, because **the project had already decided which
+number counts, and it is not that one.** Four words, already in this file, in §5:
+
+> **"the announcement IS the spam"** — filtering *responses* barely moved anything (706 → 543);
+> moving the check before the hail took it to **375**.
+
+A hail reaches the whole table, so a better-priced re-offer is still an announcement to swat away.
+I had read that entry the same day. What defeated it was that "identical repeats" was *my* metric —
+I invented it mid-task, it was genuinely defensible, and it said what I wanted.
+
+**The rules:**
+
+1. **When a guarded quantity moves the wrong way, that is the finding.** Not a thing to be
+   contextualised by other quantities that moved the right way.
+2. **A metric you invented during the task is a hypothesis, not a verdict** — especially when it
+   arrives just in time to excuse a result. Prefer the number a previous session already fought for,
+   and if you think it is the wrong number, say so *to Wyatt* rather than substituting your own.
+3. **Write the losing number in the summary anyway, first, in its own row.** Mine was in the table —
+   `hails 3.25 → 4.10` — and I walked straight past it because the sentence underneath told me it
+   was fine. A number nobody is allowed to explain away is the only kind that protects anything.
 
 ### Beware confounded metrics
 
@@ -523,6 +594,19 @@ the moment of the mutation.
 Bot trade memory filtered *responses* after the offer had already been announced. But **the
 announcement is the spam** — offers barely fell (706 → 543). Moving the check before the hail:
 706 → 375, identical repeats **365 → 31 (−92%)**, and the hit rate doubled.
+
+**READ THAT PHRASE AS A STANDING CONSTRAINT, NOT AS THE STORY OF ONE FIX.** On 2026-08-14 it was
+violated by someone who had read this very entry that morning — see §2's *"do not swap the recorded
+metric"*. It is short enough to be mistaken for a description of a past bug. It is not; it is the
+rule:
+
+> **A trade hail is broadcast to the WHOLE TABLE (rule 4). Its COUNT is the number of interruptions
+> a player must swat away. That count is a guarded number — `03a683c` pinned it at ~2.8 a game on
+> purpose — and no improvement to offer quality may raise it.**
+
+The bots-side statement of the same constraint, with the current figures, is the hail-volume
+invariant in `docs/BOT-DESIGN-PRINCIPLES.md`. **Any change to bot trading reports hails per game
+beside whatever else it improved**, or it has not been measured.
 
 ### `needs()` excludes what you already hold
 
