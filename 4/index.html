@@ -441,8 +441,27 @@
      recipe above for every in-panel primary button (items 10-12 of the enumerated sites). */
   .apBtn.primary:hover { background: #fae7cb; }
   /* #5d: a too-poor Attack shows greyed and non-clickable rather than vanishing */
-  .apBtn.apDisabled, .apBtn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
-  .apBtn.apDisabled:hover, .apBtn:disabled:hover { background: #fff; }
+  /* playtest 21 item 5: greyed options carry aria-disabled now, not the `disabled` attribute — a
+     real disabled button fires no click, so it could never be tapped to ask why. The look is
+     unchanged; the selector gains the aria form alongside the old one. `cursor: help` rather than
+     `not-allowed`, because the button now DOES do something when ye tap it. */
+  .apBtn.apDisabled, .apBtn:disabled, .apBtn[aria-disabled="true"] {
+    opacity: .45; cursor: help; filter: grayscale(.4); }
+  .apBtn.apDisabled:hover, .apBtn:disabled:hover, .apBtn[aria-disabled="true"]:hover { background: #fff; }
+  /* The reason a greyed circle is greyed, spoken AT that circle. Wyatt's screenshot had one helper
+     line explaining one of several greyed buttons from across the board; a bubble with a tail
+     cannot be misread that way. pointer-events:none so it never eats the tap that dismisses it. */
+  .apWhy { position: fixed; z-index: 60; pointer-events: none; max-width: min(260px, 78vw);
+    background: #fffdf2; color: #4a3223; border: 2px solid #177; border-radius: 11px;
+    padding: 7px 11px; font-size: 12.5px; font-style: italic; line-height: 1.35; font-weight: 600;
+    box-shadow: 0 6px 20px rgba(0,0,0,.34); animation: apWhyIn .16s ease-out both; }
+  .apWhy::after { content: ""; position: absolute; left: var(--tailX, 50%); bottom: -8px;
+    width: 12px; height: 12px; margin-left: -6px; background: #fffdf2;
+    border-right: 2px solid #177; border-bottom: 2px solid #177; transform: rotate(45deg); }
+  .apWhy.below::after { bottom: auto; top: -8px;
+    border-right: none; border-bottom: none; border-left: 2px solid #177; border-top: 2px solid #177; }
+  @keyframes apWhyIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .apWhy { animation: none; } }
   /* #5c: helper line under the action buttons */
   .apSub { margin-top: 8px; font-size: 12.5px; opacity: .8; font-style: italic; }
   /* small, consistent "back" affordance for every back-able decision — deliberately lower-key

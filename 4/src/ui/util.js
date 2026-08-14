@@ -1202,6 +1202,15 @@ export function msgHoldMs(text){
 // sheet, and board.js's syncBoardSizing() sets --boardW, which #actionPanel is max-width capped to
 // (index.html) — so a zoomed innerWidth squeezed the cards a second time, through a different
 // file, after the first fix. The `||` is a floor for the pre-layout case, not a preference.
+/* ONE ANSWER to "is this option greyed out?", for every site that needs to know.
+   playtest 21 item 5 moved greyed options from the `disabled` ATTRIBUTE onto aria-disabled, because
+   a real <button disabled> fires no click event and therefore could never be tapped to ask why it
+   is greyed. The consequence is that `b.disabled` is now FALSE on every prompt button, so any
+   surviving `!b.disabled` test silently starts treating greyed options as live — which is exactly
+   how the stay-put confirm would have picked one to hang itself on.
+   It lives in util.js rather than flow.js because stage.js needs it too and flow.js must not be
+   imported there: module_graph_check.js forbids the cycle. */
+export function isDisabledBtn(b){return !!b&&b.getAttribute("aria-disabled")==="true";}
 export const vwPx=()=>document.documentElement.clientWidth||window.innerWidth;
 export const vhPx=()=>document.documentElement.clientHeight||window.innerHeight;
 export const SHIP_GLIDE_MS=700;
@@ -1410,7 +1419,10 @@ export function ask(msg,opts,colors,sub){
   const base=decisionIsLocal(seat)?netHandlers().onLocalAsk(msg,opts,colors,sub)
     :netHandlers().onRemotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
-       disabled:opts.map(o=>!!o.disabled),sub:sub||null,flip:isFlip,
+       // playtest 21 item 5: `why` rides across with `disabled`, because the two are one fact and
+       // a guest that got the greying without the reason would show a dead circle that answers
+       // nothing when tapped — the exact complaint, reintroduced on the other side of the wire.
+       disabled:opts.map(o=>!!o.disabled),why:opts.map(o=>o.why||""),sub:sub||null,flip:isFlip,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip
   // prompt (opts.length===1 with a `flip`) never calls panel() at all (see localAsk()), so there

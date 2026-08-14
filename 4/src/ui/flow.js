@@ -63,7 +63,7 @@ import {
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
-  RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS,
+  RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS, isDisabledBtn,
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
@@ -131,6 +131,51 @@ function ffRecapLine(g,from){
 
 /* ================= turn-flow + interaction ================= */
 
+/* THE REASON, SPOKEN AT THE BUTTON THAT OWNS IT — playtest 21 item 5 (Wyatt: "The helper text for
+   a given action should hover near its button — see this ss, the attack greyed out prompt hovers
+   far away. Alternatively, the helper text reason should appear when the user taps the grey
+   button"). His pick was the tap, and the bubble is placed AT the circle with a tail pointing at
+   it so it can never be ambiguous which greyed button it belongs to — which is the actual failure
+   in the screenshot, where one line explained one of several circles from across the board.
+
+   Deliberately NOT the shared .apSub line: that is one element for a whole prompt, so with two
+   greyed circles it can only ever explain one of them, and it explains it from wherever it happens
+   to sit. A per-button bubble scales to however many are greyed.
+
+   Dismissal is every gesture that means "I'm done reading": another tap anywhere, and a timeout.
+   It is pointer-events:none so it can never itself swallow the tap that dismisses it or the tap on
+   a live button underneath. */
+let whyBub=null,whyTimer=null;
+export function clearWhy(){
+  if(whyTimer){clearTimeout(whyTimer);whyTimer=null;}
+  if(whyBub){whyBub.remove();whyBub=null;}
+}
+export function showWhy(b){
+  clearWhy();
+  const why=b&&b.dataset&&b.dataset.why;
+  if(!why)return;                       // nothing to say — stay silent rather than show an empty box
+  const r=b.getBoundingClientRect();
+  const d=document.createElement("div");
+  d.className="apWhy";
+  d.textContent=why;                    // textContent: the reason is prose, never markup
+  document.body.appendChild(d);
+  // measure AFTER it is in the DOM, then clamp to the viewport — a circle near the right edge of a
+  // 390px phone would otherwise hang its bubble off the screen
+  const w=d.offsetWidth,h=d.offsetHeight;
+  const cx=r.left+r.width/2;
+  d.style.left=Math.min(Math.max(cx-w/2,8),Math.max(8,window.innerWidth-w-8))+"px";
+  // above the button by preference; below it when there is no room up there
+  const above=r.top-h-10;
+  d.style.top=(above>=8?above:r.bottom+10)+"px";
+  d.classList.toggle("below",!(above>=8));
+  // the tail tracks the BUTTON, not the bubble's centre — after clamping they are not the same
+  d.style.setProperty("--tailX",Math.min(Math.max(cx-parseFloat(d.style.left),12),Math.max(12,w-12))+"px");
+  whyBub=d;
+  whyTimer=setTimeout(clearWhy,4200);
+  // any next tap clears it. Registered on the NEXT frame so the tap that opened it does not
+  // immediately close it again.
+  setTimeout(()=>document.addEventListener("pointerdown",clearWhy,{once:true}),0);
+}
 export function localAsk(msg,opts,colors,sub){
   // a decision is landing in front of the player — the skip is over. When a recap is owed, it
   // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule); the
@@ -165,8 +210,20 @@ export function localAsk(msg,opts,colors,sub){
     const backHtml=backIdx!==-1?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
     const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
     // @copy prompt.plumbing.localask
+    /* playtest 21 item 5 — a greyed circle now SAYS WHY when ye tap it (Wyatt's pick), and the
+       reason appears at the circle itself rather than in a line floating near the top of the
+       board. His screenshot: "Their holds are empty – nothin' to plunder." hovering a long way
+       from the Attack button it explains.
+
+       aria-disabled, NOT the `disabled` attribute — this is the load-bearing detail. A real
+       <button disabled> fires no click event at all, so the reason could never be asked for. It
+       also stays focusable this way, which is what lets a keyboard or screen-reader user reach the
+       explanation instead of hitting a dead control; aria-disabled is still announced as dimmed.
+       The two places that read the DOM property (below, and the stay-put finder in stage.js) move
+       to the same test in this change, and the CSS gains the matching selector. */
+    const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
     panel(`${backHtml}<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
-      rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?" disabled":""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
+      rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?` aria-disabled="true"`:""}${x.o.disabled&&x.o.why?` data-why="${esc(x.o.why)}"`:""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
       true);
     $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
       // /4 stage: an option may carry a `short` label — the radial bloom shows that compact form
@@ -174,7 +231,12 @@ export function localAsk(msg,opts,colors,sub){
       // data-attribute: the short form is HTML with icon imgs in it)
       const o=opts[+b.dataset.i];
       if(o&&o.short!=null)b._shortHtml=o.short;
-      if(b.disabled)return; // disabled options are display-only (notes/edits #5d)
+      if(isDisabledBtn(b)){
+        // display-only for the DECISION (notes/edits #5d — a greyed option can never be chosen),
+        // but no longer mute: it answers for itself when asked.
+        b.onclick=()=>showWhy(b);
+        return;
+      }
       b.onclick=()=>done(+b.dataset.i);
     });
   });
@@ -1013,10 +1075,12 @@ export async function humanDock(p,port){
       const canBarter=g.canBlackMarket(p,ing);
       const scarcity=(!black&&left<1e9&&left<=1)?` Last one on the island!`:``;
       const opts=[
-        {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:"coin",disabled:!canBuy},
+        {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:"coin",disabled:!canBuy,
+          why:`It costs ${price}🌕 and ye've ${p.coins}🌕 — ${price-p.coins}🌕 short.`},
       ];
       // @copy misc.blackmarket.barterbtn — draft, Wyatt rewrites
-      if(black)opts.push({label:`Trade any 2 crates fer ${ilabelImg(ing)}`,short:`2 crates → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter});
+      if(black)opts.push({label:`Trade any 2 crates fer ${ilabelImg(ing)}`,short:`2 crates → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter,
+        why:`The barter takes two crates off yer hands, and ye're carryin' ${p.ing.length}.`});
       opts.push({label:"Nah",value:false});
       // @copy misc.blackmarket.whisper — draft, Wyatt rewrites
       const sub=black
@@ -1096,7 +1160,10 @@ export async function humanTrade(p){
       // every crate in the game, with the ones nobody holds greyed out (rule 4, Wyatt's ruling)
       const opts=g.ings.map(i=>{
         const holders=g.holdersOf(i,p);
-        return {label:ilabelImg(i),value:i,disabled:!holders.length};
+        // playtest 21 item 5: the greyed crate says which crate it is and why it is out of reach,
+        // so the reason survives even when the shared helper line is explaining something else
+        return {label:ilabelImg(i),value:i,disabled:!holders.length,
+          why:`No captain on the water is carryin' ${iname(i)}.`};
       });
       const anyHeld=opts.some(o=>!o.disabled);
       // @copy adhoc.trade.nocargo
@@ -1111,7 +1178,8 @@ export async function humanTrade(p){
       // An offer is a crate, coins, or both — sweeten a crate with a few coins on top.
       const canOfferCoins=p.coins>0;
       const ingOpts=[...new Set(p.ing)].map(i=>crateOpt(p.ing,i));
-      ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins});
+      ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins,
+        why:`Yer purse is empty — ye've no coin to offer, so it must be a crate.`});
       ingOpts.push({label:"← Back",back:true,value:"__back__"});
       const offerSub=canOfferCoins?null:`Ye don't have any coin to offer — pick a crate instead.`;
       // @copy prompt.trade.give
@@ -1176,7 +1244,8 @@ export async function humanTrade(p){
         if(appState.turnExpired)return false;
         const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
           {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
-          {label:"💰 Name yer price",value:"counter",disabled:room<1},
+          {label:"💰 Name yer price",value:"counter",disabled:room<1,
+            why:`${pn(p.idx)} has no coin left to sweeten the deal — take it or leave it.`},
           {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
           // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
           room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
@@ -1214,7 +1283,8 @@ export async function humanTrade(p){
     if(r.kind==="accept")opts.push({label:`${iconImg(CHECKMARK_IMG)} ${pn(r.q.idx)} accepts`,value:i});
     else if(r.kind==="counter"){
       const total=offer.giveCoins+r.askFor;
-      opts.push({label:`💰 ${pn(r.q.idx)} wants +${r.askFor}🌕 more`,value:i,disabled:total>p.coins});
+      opts.push({label:`💰 ${pn(r.q.idx)} wants +${r.askFor}🌕 more`,value:i,disabled:total>p.coins,
+        why:`That'd cost ye ${total}🌕 all told, and ye've only ${p.coins}🌕 aboard.`});
     }
   }
   const denials=responses.filter(r=>r.kind==="deny");
@@ -1287,9 +1357,16 @@ export async function humanAct(p,sailCtx){
   if(canDock)opts.push({label:`⚓ Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)}`,short:`⚓ Dock ${iconImg(ING_IMG[port])}`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
+  // playtest 21 item 5: a greyed circle carries its OWN reason, spoken at the circle when tapped.
+  // Attack has two independent ways to be greyed and they used to share one line — the powder one
+  // is checked first because it is the one the captain can actually do something about.
+  // @copy adhoc.why.* — DRAFT, Wyatt rewrites.
   if(targets.length)
-    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">(−${appState.game.cfg.powder}🌕)</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length});
-  opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade});
+    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">(−${appState.game.cfg.powder}🌕)</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length,
+      why:!canAfford?`Ye can't afford the powder — ${appState.game.cfg.powder}🌕 a broadside, and yer purse won't stretch.`
+        :`Their holds are empty — there's nothin' aboard worth takin'.`});
+  opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade,
+    why:`Not a captain on the water is carryin' cargo to trade for.`});
   // v2.1: dead under the bake-off, and gated EXPLICITLY rather than left to be dead by accident.
   // The bake-off lights the ovens from the turn loop the moment a full recipe reaches Tortuga, so
   // this button can never be the thing that starts a bakery — offering it would promise a finish
@@ -1513,7 +1590,8 @@ export async function botOpenTradeLive(p){
         if(appState.turnExpired)return false;
         const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
           {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
-          {label:"💰 Name yer price",value:"counter",disabled:room<1},
+          {label:"💰 Name yer price",value:"counter",disabled:room<1,
+            why:`${pn(p.idx)} has no coin left to sweeten the deal — take it or leave it.`},
           {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
           // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
           room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);

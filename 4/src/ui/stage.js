@@ -16,7 +16,7 @@
 "use strict";
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
-import { msgHoldMs, vwPx, vhPx } from "./util.js";
+import { msgHoldMs, vwPx, vhPx, isDisabledBtn } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify } from "../shared/index.js";
 
@@ -314,7 +314,10 @@ function gestures(wrap){
 // exactly as if the circle had been tapped — this UI never resolves anything itself.
 function stayConfirm(bx, by){
   document.querySelector(".pp4Stay")?.remove();
-  const stayBtn = [...document.querySelectorAll("#actionPanel .apBtn")].find(b => !b.disabled);
+  // isDisabledBtn, not `!b.disabled` — playtest 21 item 5 moved greyed options onto aria-disabled
+  // so they can be tapped for their reason, which means the DOM property is now false on EVERY
+  // button and this finder would have happily picked a greyed one to hang the confirm on.
+  const stayBtn = [...document.querySelectorAll("#actionPanel .apBtn")].find(b => !isDisabledBtn(b));
   if (!stayBtn) return;
   const box = document.createElement("div");
   box.className = "pp4Stay";

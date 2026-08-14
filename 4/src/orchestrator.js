@@ -116,6 +116,7 @@ import {
   stopShotClock, waitWhilePaused, applyTimerOff,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
+  isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
 } from "./ui/index.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
@@ -1217,13 +1218,23 @@ export function watchPrompt(){
       }
       setFlipActive(null);
       const dis=p.disabled||[];
+      // playtest 21 item 5: the guest's own copy of the button markup. It has to match localAsk's
+      // exactly — aria-disabled so a greyed circle can be TAPPED for its reason, and data-why so
+      // it has one to give. This renderer is a genuine second copy (host and guest render prompts
+      // from different sources), so a change to one that skips the other reintroduces the bug on
+      // whichever side was forgotten.
+      const why=p.why||[];
+      const escW=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
       const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
       // @copy prompt.net.promptrerenderbuttons
       panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
-        rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?" disabled":""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
-      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{if(b.disabled)return;b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
+        rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?` aria-disabled="true"`:""}${dis[x.i]&&why[x.i]?` data-why="${escW(why[x.i])}"`:""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
+      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+        if(isDisabledBtn(b)){b.onclick=()=>showWhy(b);return;}
+        b.onclick=()=>sendResponse(p.id,+b.dataset.i);
+      });
     }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
