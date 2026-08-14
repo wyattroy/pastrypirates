@@ -279,6 +279,18 @@ take a seat index, and it rejects any call site handed a rendered name or a stri
 `no_undef_check.js` cannot see this class at all — `poss` is defined and imported, and it is the
 ARGUMENT that is wrong.
 
+**And the stall itself is now visible** — Wyatt's call, same day. `voyageAground()` (`src/ui/util.js`)
+paints a box carrying the build stamp, the error text and whether a refresh will help;
+`runLiveNet().catch(...)` in orchestrator.js is the root of the voyage chain, with
+`unhandledrejection`/`error` listeners in main.js as the belt behind it. Three things about it are
+deliberate and must survive any edit: it uses **raw DOM and no imports**, because the thing that
+failed may be the render path and a surface that needs the broken machine is not a surface; it says
+**"start a fresh voyage"** whenever a decision log exists, because refreshing into a fault on a
+replayed decision is what produces the "back at the starting position" half of these reports; and it
+**does not retry or resume**, because play cannot continue past a turn that half-happened.
+Proven both ways: no box after a clean boot or a played round, a box for a stray rejection, an
+uncaught error, and a forced throw inside the live turn loop (stamp, `runLiveNet`, stack, all shown).
+
 Two things the gate itself taught, both worth copying into the next one:
 
 - **Its first run failed on the comment documenting the bug it exists to catch**, which quotes

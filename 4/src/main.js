@@ -202,6 +202,15 @@ if (typeof window !== "undefined") {
   // is where that wiring happens, so this ordering preserves it. 11-07: both
   // are now real src/ui/ exports, called directly rather than through the
   // `window`-property indirection the bridge provided.
+  /* THE BELT BEHIND THE BRACES. orchestrator.js catches the voyage chain at its root, which is
+     where a broken turn actually lands. This catches everything that is NOT rooted there — a
+     guest's Firebase watcher, a detached animation, a stray listener — because the failure mode
+     being closed is not "an error happened" but "the game died and said nothing". Installed at the
+     composition root, before boot(), so nothing can throw ahead of the handler that reports it.
+     voyageAground() itself is first-fault-wins, so the two paths cannot stack two boxes. */
+  window.addEventListener("unhandledrejection", e => ui.voyageAground(e.reason, "unhandled rejection"));
+  window.addEventListener("error", e => ui.voyageAground(e.error || e.message, "uncaught error"));
+
   ui.applyEngineBootstrapEffects();
   ui.attachPastryArt();
 

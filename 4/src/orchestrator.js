@@ -117,6 +117,7 @@ import {
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
+  voyageAground, // the visible stall guard — a throw in the turn chain must never be silent again
 } from "./ui/index.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
@@ -1513,7 +1514,12 @@ export function beginGame(cfg,seed){
   drawBoard();buildPlayerRows();
   updateRecipeBanner();
   watchRecipes();
-  if(appState.isHost){runLiveNet();}
+  /* THE ONE PLACE THE WHOLE VOYAGE IS ROOTED, and until 2026-08-14 the only thing here was a bare
+     call. runLiveNet() is not awaited (it drives the game for the rest of the session), so a throw
+     anywhere beneath it — any round, any turn, any prompt — became an unhandled rejection that
+     stopped the game with an empty panel and, measured, NOTHING in the console. See
+     voyageAground()'s note in util.js for why that is worse than a crash. */
+  if(appState.isHost){runLiveNet().catch(e=>voyageAground(e,"runLiveNet"));}
   else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag

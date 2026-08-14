@@ -794,12 +794,47 @@
      The rim was the outlier: every other will-change in /4 is either a handful of elements (the
      ripple rings, whose own note defends theirs) or transient (storm rain), or defaults off (the
      wind-dot HUD). */
-  .rimFlow img { animation: rimDrift 2.6s linear infinite; }
+  /* THEY MUST APPEAR AS SMOOTHLY AS THEY LEAVE — playtest 22 (Wyatt): "the animation for the trade
+     wind arrows should fade them in as smoothly as it fades them out — currently they appear
+     jerkily." Two separate faults, and only one of them was the fade curve.
+
+     1. THE RAMPS WERE NOT THE SAME LENGTH, and both had corners. In one 2.6s cycle the rise ran
+        0->22% (0.572s) and the fall 72->100% (0.728s) — the exit was 27% longer than the entrance —
+        and `linear` put a hard corner at each end of the plateau. Now 3->24% and 76->97%: 0.546s
+        each way, eased, no corner anywhere.
+
+     2. THE ARROW TELEPORTED ON THE FRAME IT BEGAN BRIGHTENING. translateX runs -42% -> +42% and
+        then resets, which is a jump of 84% of the arrow's own width — and the old floor meant it
+        made that jump at opacity .35, PLAINLY VISIBLE. The fade-out ended smoothly in place; the
+        fade-in opened with a snap. That is exactly the asymmetry he described, and no amount of
+        easing the curve would have touched it.
+
+     TWO ANIMATIONS ON ONE ELEMENT, which is what lets both be right at once. The drift stays
+     strictly `linear` — the current must read as steady, not as something that surges and eases —
+     while the opacity gets its own shape and its own `ease-in-out`. Written as one animation, the
+     per-keyframe timing needed for the fade would have been applied to the drift as well and made
+     the ring's speed pulse. A single `animation-delay` still governs both, so board.js's per-cell
+     stagger is unchanged and the two stay in phase.
+
+     THE FLOOR IS STILL .35, AND THE 3% BLINK AT EACH END IS A NAMED EXCEPTION TO IT (Wyatt's call,
+     2026-08-14, choosing "hide the snap-back" with the floor kept "everywhere else in the cycle").
+     His ruling above is that the ring is never missing arrows; it was earned against a design where
+     a fifth of the channel was faint or gone AT ALL TIMES. This costs 6% of one arrow's cycle below
+     the floor — measured on the real board, ~2 of 36 arrows at any instant, each for 0.16s — and
+     buys a reset nobody can see. Do not widen the 3% to smooth it further: that is the number that
+     keeps this a blink rather than the gap he rejected. */
+  .rimFlow img { animation: rimDrift 2.6s linear infinite, rimPulse 2.6s ease-in-out infinite; }
   @keyframes rimDrift {
-    0%   { transform: translateX(-42%); opacity: .35; }
-    22%  { opacity: .9; }
-    72%  { opacity: .9; }
-    100% { transform: translateX(42%); opacity: .35; }
+    from { transform: translateX(-42%); }
+    to   { transform: translateX(42%); }
+  }
+  @keyframes rimPulse {
+    0%   { opacity: 0; }    /* the reset instant — the jump happens here, and nothing is drawn for it */
+    3%   { opacity: .35; }
+    24%  { opacity: .9; }
+    76%  { opacity: .9; }
+    97%  { opacity: .35; }
+    100% { opacity: 0; }
   }
   /* The whirlpool at each quadrant's drop-off — where the ride ends, so it turns rather than drifts.
      playtest 21 (Wyatt): "increase the size of the whirlpools so they take up their entire square,

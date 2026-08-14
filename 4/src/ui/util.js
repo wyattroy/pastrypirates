@@ -1542,6 +1542,66 @@ export function waitWhilePaused(){
     const iv=setInterval(()=>{if(!appState.shotClockPaused){clearInterval(iv);res();}},150);
   }):Promise.resolve();
 }
+/* ---------- the voyage ran aground ---------- */
+/* A THROW IN THE TURN CHAIN USED TO BE A SILENT DEATH. Wyatt's call, 2026-08-14, after the counter
+   stall: put something on screen.
+
+   The chain runLiveNet -> the round loop -> humanTurn/botTurn -> every prompt is one long series of
+   awaits with nothing catching at the top. A throw anywhere in it rejected all the way up and the
+   game simply stopped — empty panel, no captain's-log line, and MEASURED over CDP with
+   Runtime.exceptionThrown subscribed: `page errors: NONE`, because the awaiting chain swallows the
+   rejection. On a phone he has no console, so a crash and a hang look identical to him, and the
+   report that reaches me is "it stalled" rather than a stack. That cost two sessions on one typo.
+
+   THREE RULES SHAPE THIS, and each one is why it looks the way it does:
+
+   1. IT MUST NOT USE THE GAME'S OWN RENDERING. Not panel(), not flash(), not showNarration() — the
+      thing that failed may BE the render path, and an error surface that needs the broken machine
+      is not a surface. Raw createElement, inline styles, appended to <body>, no imports.
+   2. IT MUST CARRY THE BUILD STAMP AND THE ERROR TEXT, read from the DOM rather than imported for
+      the same reason. A screenshot of this box is a bug report I can act on; "it stalled" is not.
+   3. IT MUST SAY WHETHER A REFRESH WILL HELP. Solo persists as a decision log, so if the fault is
+      on a REPLAYED decision a refresh sails straight back into it and comes back at the starting
+      position — which reads like a corrupt save and is the second half of every stall report so
+      far. When the log is what will be replayed, the box says to start a fresh voyage instead.
+
+   Deliberately NOT a retry or a resume. Play cannot continue past a turn that half-happened — the
+   coins, the crates and the decision log would disagree — and an error boundary that lets the game
+   limp on is how a small fault becomes an unexplainable one.
+   @copy adhoc.stall.aground — pirate voice with the stamp, Wyatt's pick 2026-08-14. */
+export function voyageAground(err,where){
+  try{
+    if(document.getElementById("ppAground"))return;      // first fault wins; later ones are noise
+    const stamp=(document.getElementById("pp4Stamp")||{}).textContent||"v4 · build unknown";
+    const detail=String((err&&(err.stack||err.message))||err||"unknown");
+    // a replayed decision is the case where refreshing makes it WORSE, not better
+    const onReplay=!!(appState&&appState.replaying);
+    const hasLog=!!(appState&&appState.dlog&&appState.dlog.length);
+    const advice=onReplay||hasLog
+      ? "Refreshin' will sail ye back onto the same rock — start a fresh voyage."
+      : "A refresh may set ye right.";
+    console.error("VOYAGE AGROUND"+(where?" ("+where+")":""),err);
+    const box=document.createElement("div");
+    box.id="ppAground";
+    box.style.cssText="position:fixed;inset:auto 12px 12px 12px;z-index:99999;background:#fffdf2;"+
+      "border:2px solid #2aa9b8;border-radius:14px;padding:14px 16px;max-height:60vh;overflow:auto;"+
+      "font:14px/1.45 system-ui,sans-serif;color:#123;box-shadow:0 8px 30px rgba(0,0,0,.35)";
+    const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    box.innerHTML=
+      `<div style="font-weight:800;margin-bottom:6px">🪨 The voyage has run aground</div>`+
+      `<div style="margin-bottom:8px">Somethin' broke below decks and the game can sail no further. `+
+      `${esc(advice)}</div>`+
+      `<div style="opacity:.6;font-size:11px;margin-bottom:6px">${esc(stamp)}`+
+      `${where?" · "+esc(where):""}</div>`+
+      `<pre style="white-space:pre-wrap;word-break:break-word;font-size:11px;opacity:.8;margin:0">`+
+      `${esc(detail)}</pre>`;
+    document.body.appendChild(box);
+  }catch(e){
+    // the surface itself failed — say it the one way that cannot also fail
+    console.error("voyageAground() could not render",e,"original:",err);
+    try{alert("The voyage has run aground. "+String(err));}catch(_){}
+  }
+}
 // used only to derive flip/spin animation-pacing constants (asyncBattle, asyncBakeoff, fishCast)
 // — unrelated to text legibility, which is governed by flash()'s own reveal/hold/fade formula.
 export function stepDelay(){return 3000;}
