@@ -12,6 +12,7 @@ this file is not a substitute for them):
 |---|---|
 | `docs/BOT-DESIGN-PRINCIPLES.md` | what the bots are FOR — the objective, and every failure that came from not having one |
 | **`docs/TRADE-SYSTEM.md`** | **the trade system — the rule, the data shapes, the four invariants, and what has already been tried and thrown away** |
+| **`docs/BOARD-RENDERING.md`** | **the board — the layer stack, the two coordinate systems, how the camera reaches each layer, and why half of it is HTML** |
 | `docs/BOT-V3-RACE-PLANNER.md` | the route planner, and what it already does (grep cannot tell you) |
 | `docs/DRIVING-THE-GAME.md` | driving the game under automation, and measuring cost honestly |
 
@@ -123,9 +124,10 @@ Ask, and ask it of the log rather than the code: *has this project already had t
 
 1. **Does this subsystem have a design document?** `docs/` carries one for the bots
    (`BOT-DESIGN-PRINCIPLES.md`), one for **trading** (`TRADE-SYSTEM.md` — the rule, the data shapes,
-   the four invariants, the graveyard), one for the route planner (`BOT-V3-RACE-PLANNER.md`), one for
-   driving the game (`DRIVING-THE-GAME.md`), one per ruleset. Read the whole thing — they are
-   150–250 lines, minutes each.
+   the four invariants, the graveyard), one for **the board** (`BOARD-RENDERING.md` — layers,
+   coordinates, the camera, and the checklist for adding an overlay), one for the route planner
+   (`BOT-V3-RACE-PLANNER.md`), one for driving the game (`DRIVING-THE-GAME.md`), one per ruleset.
+   Read the whole thing — they are 150–250 lines, minutes each.
 2. **What has already been tried here and rejected?** `git log --grep` and `git log -S` over the
    subsystem, before writing a line. The doc holds the design; the log holds the graveyard and the
    guarded numbers.
@@ -255,6 +257,43 @@ out.** The honest check was comparing the highlight rect's centre against where 
 (`(c+0.5)*cellPx` in both — they agreed).
 
 The general form: **verify against an independent path, never against the suspect itself.**
+
+### A CHECK BUILT ON YOUR OWN ARITHMETIC IS THE SUSPECT, NOT THE WITNESS
+
+2026-08-14, and the reason it earns its own entry beside the probe-inversion lesson below is the
+timing: it was committed **twice in ten minutes, by someone who had spent the previous hour writing
+a document that quotes the rule**. Reading it, writing it down, and quoting it are all demonstrably
+not the same as applying it.
+
+One overlay fix, three verifications:
+
+1. **Compared the moved element against the board's top-left corner.** Under a zoom, points at
+   *different* board positions move by *different* amounts — the comparison has no meaning. It
+   reported **FAIL on a correct fix.**
+2. **Computed where the element should be from the SVG viewBox**, assuming the content stretches.
+   It is `preserveAspectRatio="xMidYMin meet"` into a non-square box, so it **letterboxes**. That
+   reported a confident **200px drift that did not exist**, and I began hunting a second bug.
+3. **Compared each element with the grid rect the SVG ITSELF DREW for that same cell.** No formula
+   of mine anywhere in it. 1.0px worst at rest, 2.8px zoomed — across all 40 elements.
+
+Only the third is evidence. The first two dressed my own re-derivation up as an oracle, and both
+failure modes are seductive because the arithmetic *looks* like independent verification.
+
+**The rule: compare against something the RENDERER produced, never against arithmetic you wrote.**
+The SVG's own rects. `getBoundingClientRect` on the real element. `getComputedStyle().transform`
+for the live animated value. **If your check needs a formula, the formula is the most likely thing
+in the room to be wrong** — and it will fail in whichever direction costs you a false alarm or a
+false all-clear, with no way to tell which from the number alone.
+
+Two specific liars worth knowing, both of which produced the above:
+
+- **A non-square SVG box letterboxes.** `rect.width / viewBox.width` is only the scale when the
+  aspect ratios match. Check `preserveAspectRatio` — and note it may be set at RUNTIME rather than
+  in the markup, which is where you would look.
+- **A size ratio is not a size.** `getBoundingClientRect` on a *rotated* square returns its
+  axis-aligned bounding box, √2 ≈ 1.41× the side. That reads as "the element is too big" and is not.
+
+Full board-geometry account, including the layer stack and the camera: `docs/BOARD-RENDERING.md`.
 
 ### Write the independent implementation
 

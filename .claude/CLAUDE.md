@@ -648,6 +648,20 @@ reach the session intact. The queue is why a correction can feel ignored for a m
 browser probe can hold the turn open that long — which is one more reason to bound every probe
 (see `docs/DRIVING-THE-GAME.md`), and to acknowledge the moment the message lands.
 
+## The board is drawn in FIVE layers, and a new one must be told about the camera
+
+`docs/BOARD-RENDERING.md` is required reading before adding anything that draws on the board. Two
+facts save the most time: **an HTML overlay mapped to board coordinates must be added to
+`CAM_HTML_LAYERS`** or it detaches from the board the moment the director zooms (2026-08-14, the
+trade-wind current did exactly this, beside a comment predicting it) — and **anything that animates
+continuously must be HTML, not SVG**, because Chrome cannot composite an SVG transform animation at
+all: the same animation measured ~62 layouts/sec as SVG and **zero** as HTML.
+
+It also carries the rule for checking WHERE something is on the board: **compare against something
+the renderer produced, never against arithmetic you wrote.** Three verifications of one fix that
+day, two of them confidently wrong — including a 200px phantom bug from assuming the SVG stretches
+when it letterboxes.
+
 ## Driving the game in a browser
 
 `docs/DRIVING-THE-GAME.md` is required reading before any browser or playtest automation. Two traps waste the most sessions: the flippenator coin `#flipCoinWrap` **is** the flip button (it is not an `.apBtn` — this stalled three separate attempts), and a window narrower than about a second cannot be hand-driven at all, so use the armed watcher in §5d.
