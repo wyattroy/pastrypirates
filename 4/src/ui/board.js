@@ -145,6 +145,56 @@ let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,foreca
 export function boardCell(){return cell;}
 export function boardShipEls(){return shipEls;}
 
+/* THE TRADE WINDS ACTUALLY BLOW — playtest 21 item 9 (WIND-02, on the roadmap unstarted since
+   v1.3). The rim used to be one STATIC WIND_ARROW_IMG per channel square plus a still swirl at each
+   drop-off, so the one part of the board that is defined by movement was the only part that never
+   moved. Wyatt's pick: always on, so the current teaches itself at a glance before a ship is ever
+   swept.
+
+   IT IS HTML, NOT SVG, AND THAT IS THE WHOLE ENGINEERING DECISION. index.html's #sailHost note
+   records the measurement that settles it: an animated transform on an SVG child forced ~62 layouts
+   PER SECOND — 97% of all layout work with the game idle — and "Chrome does not composite SVG
+   transform animations at all; will-change cannot promote an SVG child to its own layer". Animating
+   forty arrows in #board would therefore have been the single most expensive thing in the build, on
+   a phone Wyatt has already reported running hot. As HTML, transform and opacity are compositor
+   work and cost zero layouts.
+
+   THE ROTATION AND THE MOTION ARE ON DIFFERENT ELEMENTS, deliberately. The wrapper carries the
+   tangent rotation and never animates; the <img> inside animates translateX and opacity only. So
+   each arrow drifts along its OWN channel direction — compose them on one element and the keyframe
+   transform would overwrite the rotation, which is the same class of bug as the compass chip whose
+   CSS animation erased its SVG transform attribute.
+
+   The per-cell delay is what makes it a CURRENT rather than forty independent twitches: the wave
+   travels clockwise around the ring, in the direction a ship is actually carried. */
+function buildRimFlow(cellPx){
+  const host=$("rimHost"); if(!host)return;
+  host.innerHTML="";
+  const g=appState.game; if(!g||!g.isRound)return;
+  const CQ=v=>(v/640*100)+"cqw";
+  const heads=new Set(Object.values(g.rimHead||{}).map(h=>h[0]+","+h[1]));
+  const ring=g.rimCellInfo||[];
+  ring.forEach((c,i)=>{
+    const left=CQ(c.x*cellPx),top=CQ(c.y*cellPx),size=CQ(cellPx);
+    const d=document.createElement("div");
+    d.style.left=left;d.style.top=top;d.style.width=size;d.style.height=size;
+    if(heads.has(c.k)){
+      d.className="rimSwirl";
+      const img=document.createElement("img");
+      img.src=TRADE_SWIRL_IMG;img.alt="";img.decoding="async";
+      d.appendChild(img);
+    }else{
+      d.className="rimFlow";
+      d.style.transform=`rotate(${c.deg+90}deg)`;   // tangent of the clockwise flow — STATIC
+      const img=document.createElement("img");
+      img.src=WIND_ARROW_IMG;img.alt="";img.decoding="async";
+      // the wave runs with the current, one beat per cell around the ring
+      img.style.animationDelay=(-(i%ring.length)*0.16)+"s";
+      d.appendChild(img);
+    }
+    host.appendChild(d);
+  });
+}
 export function drawBoard(){
   const svg=$("board");svg.innerHTML="";
   // PERF-01 (2026-08-02): the boats live in their own SVG overlaying #board so they paint ABOVE the
@@ -171,17 +221,9 @@ export function drawBoard(){
       el("rect",{x:x*cell,y:y*cell,width:cell,height:cell,
         fill:rimC?"#000000":"none","fill-opacity":rimC?.1:0,stroke:"#a6dee8","stroke-width":1,"stroke-opacity":.5},grid);
     }
-    // flow arrows on every channel square (clockwise), a swirl icon at each quadrant's drop-off
-    const headKeys=new Set(Object.values(appState.game.rimHead).map(h=>h[0]+","+h[1]));
-    for(const c of appState.game.rimCellInfo||[]){
-      const cx=(c.x+.5)*cell,cy=(c.y+.5)*cell;
-      if(headKeys.has(c.k)){
-        iconAt(svg,cx,cy,cell,TRADE_SWIRL_IMG);
-      }else{
-        const rot=c.deg+90; // tangent of clockwise flow
-        iconAt(svg,cx,cy,cell,WIND_ARROW_IMG,rot);
-      }
-    }
+    // playtest 21 item 9: the current MOVES now — see buildRimFlow. The arrows and the drop-off
+    // swirls left #board entirely, so nothing about the channel is drawn here any more.
+    buildRimFlow(cell);
   }else{
     svg.style.background="";
     for(let i=0;i<=n;i++){

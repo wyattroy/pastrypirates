@@ -738,6 +738,30 @@
      Sizes are cqw against #boardwrap (container-type: inline-size), so 640 board units == 100cqw
      and every call site keeps the board coordinates it already had. */
   #sailHost { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  /* THE TRADE-WIND CURRENT (playtest 21 item 9 / WIND-02). Every animated property here is
+     transform or opacity on an HTML element — compositor work, zero layout. Nothing in this block
+     may ever animate width/height/top/left, which is what would quietly hand the board back the
+     62 layouts/sec that moving the sail squares out of SVG bought back. */
+  #rimHost { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  #rimHost > div { position: absolute; }
+  #rimHost img { display: block; width: 100%; height: 100%; }
+  /* the wrapper holds the tangent rotation and NEVER animates; the img drifts along that rotated
+     local axis, so each arrow travels its own stretch of channel rather than all of them sliding
+     the same way across the board */
+  .rimFlow img { animation: rimDrift 2.6s linear infinite; will-change: transform, opacity; }
+  @keyframes rimDrift {
+    0%   { transform: translateX(-42%); opacity: 0; }
+    22%  { opacity: .9; }
+    72%  { opacity: .9; }
+    100% { transform: translateX(42%); opacity: 0; }
+  }
+  /* the whirlpool at each quadrant's drop-off — where the ride ends, so it turns rather than drifts */
+  .rimSwirl img { animation: rimSpin 11s linear infinite; will-change: transform; opacity: .95; }
+  @keyframes rimSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .rimFlow img { animation: none; opacity: .9; }
+    .rimSwirl img { animation: none; }
+  }
   #rippleHost { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   /* THE STORM WARNING. The forecast chip below the compass goes red when weather is coming, and
      breathes so the eye is caught by it even mid-glance. Only transform/opacity animate, so it
@@ -1869,6 +1893,12 @@
              layer; transform-box/transform-origin candidates all measured identical. As HTML it
              costs ZERO layouts. Positions come in `cqw` against #boardwrap (container-type:
              inline-size), so board user units still map 1:1 and every call site keeps its numbers. -->
+        <!-- playtest 21 item 9 (WIND-02): the trade-wind current, in HTML for the same reason the
+             sail squares above are — an animated transform on an SVG child costs ~62 layouts/sec
+             and cannot be composited, while the identical animation on HTML costs zero. Sits at
+             z-index 1: above the water and the grid, below the sail squares(2), rings(3) and
+             boats(4), because a current is scenery and must never cover a choice or a ship. -->
+        <div id="rimHost" aria-hidden="true"></div>
         <div id="sailHost" aria-hidden="true"></div>
         <div id="rippleHost" aria-hidden="true"><div id="rippleRing"></div></div>
         <!-- PERF-01 (2026-08-02): the boats, split out of #board into their own SVG so they paint
