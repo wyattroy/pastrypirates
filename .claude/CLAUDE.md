@@ -71,6 +71,58 @@ git pull
 **Never report git state from memory or from earlier in the session.** Re-run the command. Refs move —
 including because of something you did yourself.
 
+## HOW WYATT PLAYS WHAT YOU BUILT — the milestone directory ships on `main`
+
+**Standing process — Wyatt, 2026-08-14:** *"The design we have been using is that
+playpastrypirates.com continues serving its normal version; but playpastrypirates.com/4 is serving
+the version that we are working on."*
+
+He asked for this to be written down so he never has to explain it to a new session again.
+
+**The shape of it.** `playpastrypirates.com` is GitHub Pages serving **`main`, from the repo root,
+with no build step and no deploy workflow.** What is on `main` *is* what is live — there is nothing
+in between.
+
+| URL | Served from | What it is |
+|---|---|---|
+| `playpastrypirates.com` | repo root (`index.html`) | the finished game real players play |
+| `playpastrypirates.com/4` | `4/` | **the milestone under development** — this is what Wyatt playtests |
+
+**So pushing the work-in-progress build to `main` is the normal thing to do, not a release.** It is
+how he gets to play it at all: he is on a phone, and `/4` on the live domain is his only way in.
+Merging does NOT touch the root game, because the root game is different files. Do not treat a
+merge to `main` as a scary outward-facing act requiring a ceremony — treat the *diff* as the thing
+to check.
+
+**The loop, every time:**
+
+1. Develop and commit on the session's designated branch (never straight onto `main`).
+2. **Bump the build stamp** — `PP4_STAMP` in `4/src/ui/stage.js`, shown in the hamburger menu as
+   `v4 · build 2026-08-13g`. It is how he tells at a glance whether he is looking at your work.
+3. **Prove the merge touches only the milestone.** Run this and read it — empty output is the
+   licence to push:
+   ```bash
+   git diff --name-only origin/main..HEAD -- ':(exclude)4/' ':(exclude)scripts/' ':(exclude)docs/' ':(exclude).claude/'
+   ```
+   Anything printed there changes the live game real players are in the middle of. Stop and ask.
+   `CNAME`, `robots.txt` and `sitemap.xml` must never appear — see the CNAME section below for why
+   that one is not a style preference.
+4. Fast-forward and push, then pull, then verify both directions are zero (the sync rule above):
+   ```bash
+   git checkout main && git merge --ff-only <branch> && git push origin main && git pull origin main
+   git rev-list --count origin/main..main   # 0
+   git rev-list --count main..origin/main   # 0
+   ```
+5. Go back to the working branch. Tell him the build stamp to look for, and that Pages takes a
+   minute or two.
+
+**The tell that a session skipped this: he reports an old build stamp.** On 2026-08-14 he sent a
+screenshot of `build 2026-08-13a` and said he could not see `13g` even in an incognito window — and
+he was completely right. Fourteen commits of playtest fixes were sitting on a branch nobody had
+merged, so `/4` was still serving a build from before the session started. He had spent the
+morning testing work that was never deployed. It was not a cache; **nothing is ever a cache here,
+because there is no build step.** If he cannot see it, it is not on `main`.
+
 <!-- GSD:project-start source:PROJECT.md -->
 
 ## Project
