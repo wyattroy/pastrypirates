@@ -1047,6 +1047,73 @@ class Game{
   // checks a hypothetical offer and lets the real one through anyway — the bot still hails the
   // table and only then discovers nobody will answer, which is precisely the spam. The hail is
   // the thing being suppressed, so nothing may announce before this returns.
+  /* WHAT TO OPEN WITH — playtest 21 item 4 (Wyatt: "The bots offer trades that are far too low to
+     be enticing, early on… no one would trade a resource that cost them 3 for 5, when it would
+     waste them a turn, and save their opponent travel across the board. Find an elegant way to
+     increase the theory of mind of the bots with trades; in fact i think the logic is already in
+     there.")
+
+     He was right on both counts, and the second one is the whole shape of this fix. The RESPONDER
+     already has the theory of mind: respondToOffer prices a crate in turns and names the exact
+     coin shortfall it would take to say yes. The PROPOSER never asked. It bid a flat 2 coins
+     alongside a crate and 5 coins alone, hardcoded, having consulted nobody — so the table's
+     answer was mostly no. Measured over 150 seeded voyages before this change:
+         487 open offers -> 28 trades struck.  A 5.7% hit rate.
+         mean bid 4.35 coins; 311 of the 487 hails inside the first five rounds.
+     That is not a negotiation, it is 94% noise, and it is exactly what he was reading on screen.
+
+     SO THE BID IS NOW DERIVED, NOT DECLARED: what would it take to make somebody say yes?
+
+     THE HARD CONSTRAINT, and it decides the whole implementation — BOT-DESIGN-PRINCIPLES §5, only
+     what a player can see. The obvious version of this change is to call respondToOffer() (or
+     crateCostTurns, or needs(q)) and read the answer off. EVERY ONE OF THOSE READS q.recipe, which
+     p is not allowed to know — it would be mind-reading, it would be an affordance no human at the
+     table has, and it would quietly break the parity invariant the whole trade design rests on.
+     estimateCrateCost() exists for precisely this and says so in its own comment: the guess a human
+     makes across the table, built only from crates held, demand anyone has publicly shown, and
+     visible progress. That is what this prices against. The bid can therefore be WRONG — and it
+     should be, sometimes. Being wrong is what the counter-offer is for.
+
+     TWO CEILINGS, both of which must hold, because a bid that wins the crate and loses the voyage
+     is the process-optimising failure §0 warns about:
+       1. never bid more than the crate is worth TO ME — acquireTurns says what fetching it myself
+          would cost, and that is the identical test tryTrade already applies before paying a
+          counter, so opening and closing a deal are now priced on one scale instead of two;
+       2. never bid past the purse, less the powder a fighting archetype is holding back.
+
+     Bid to clear the CHEAPEST live holder, not the dearest: one yes is all a hail needs.
+
+    Returns {coins, need}: what it will actually put on the table, and what it publicly reckons the
+    table wants. composeOffer needs BOTH, because the gap between them is the whole question of
+    whether opening yer mouth is worth the turn. */
+  openingBid(p,want,giveIng,holders,reserve){
+    const live=holders&&holders.length?holders:this.holdersOf(want,p);
+    if(!live.length)return {coins:0,need:0};
+    const need=Math.min(...live.map(q=>{
+      // what the offer is ALREADY worth to them, estimated publicly. likelyNeeds reads observed
+      // demand — who was seen chasing what — never a recipe card.
+      const theirs=giveIng?(this.likelyNeeds(q,giveIng)?PLAN.crateTurns:PLAN.leverageTurns):0;
+      const shortTurns=this.estimateCrateCost(q,want)-theirs;
+      let coins=Math.max(0,Math.ceil(shortTurns*PLAN.coinsPerDockTurn));
+      /* LEARN THE PRICE FROM THE REFUSAL. A captain who turned down 5🌕 has told ye, for free and
+         in public, that their price is ABOVE 5 — so the estimate that produced 5 was too low and
+         must never be trusted again for this pair. Without this the bid is re-derived from the
+         same unchanged public evidence every time, and the ONLY thing that moves it is the bot's
+         own growing purse: it gets richer, bids a little more, clears worthReAsking's "materially
+         better offer" test, and hails again. Measured when it was missing — repeat hails for the
+         same (captain, crate) went 70 -> 167, from 14.4% of all hails to 25.5%. That is precisely
+         the spam Wyatt ruled out on 2026-08-05, arriving through a side door.
+         Note WHERE this sits: it raises the PRICE, and composeOffer's reach test then decides
+         whether to speak. So a bot goes quiet because the deal stopped being worth it, not because
+         a counter told it to shut up — "write logic (not gates)", his words. */
+      const memo=p.refused&&p.refused[want+"|"+q.idx];
+      if(memo)coins=Math.max(coins,Math.ceil(memo.worth*PLAN.coinsPerDockTurn)+1);
+      return coins;
+    }));
+    const worthToMe=Math.floor(this.acquireTurns(p,want).turns*PLAN.coinsPerDockTurn);
+    const affordable=Math.max(0,p.coins-(reserve||0));
+    return {coins:Math.max(0,Math.min(need,worthToMe,affordable)),need};
+  }
   composeOffer(p,want){
     const holders=this.holdersOf(want,p);
     if(!holders.length)return null;
@@ -1060,19 +1127,43 @@ class Game{
     const giveIng=spares.length?spares[0]:null;
     const bias=(PERSONALITY[p.strategy]||PERSONALITY.balanced);
     const reserve=bias.fightBias>=1?(this.cfg.powder||0):0;
-    const giveCoins=Math.max(0,Math.min(p.coins-reserve,giveIng?2:5));
+    /* TWO PASSES, and the order is the whole point. openingBid takes the MINIMUM price across the
+       captains it is given — one yes is all a hail needs — so it must be given the captains who
+       will ACTUALLY be hailed. Priced against every holder instead, a captain who has never been
+       asked sets a cheap price, the min throws away the higher price learned from everyone who
+       already refused, and the refusal-learning above is silently discarded. Measured with the
+       single pass: repeat hails 167, essentially unchanged from having no learning at all.
+       So: bid provisionally, use that to ask who is still worth asking, then RE-BID against only
+       those captains. The second bid is the one that goes on the table. */
+    const provisional={want,giveIng,giveCoins:this.openingBid(p,want,giveIng,holders,reserve).coins};
+    const live=holders.filter(q=>this.worthReAsking(p,q,want,provisional));
+    if(!live.length)return null;
+    const bid=this.openingBid(p,want,giveIng,live,reserve);
+    const giveCoins=bid.coins;
     if(!giveIng&&!giveCoins)return null;
     const offer={want,giveIng,giveCoins};
     // Don't hail the table with an offer nobody could say yes to. Two independent reasons to stay
     // quiet, and BOTH have to clear before a word is said:
     //   a) nobody is worth re-asking — every holder already refused something this good and
-    //      nothing about the table has moved since (see worthReAsking);
+    //      nothing about the table has moved since (see worthReAsking, applied above to build the
+    //      audience this bid is priced for);
     //   b) the price they are likely to name is far beyond what this offer is worth.
-    const live=holders.filter(q=>this.worthReAsking(p,q,want,offer));
-    if(!live.length)return null;
-    const worth=this.offerWorthTurns(p,offer);
-    const cheapest=Math.min(...live.map(q=>this.estimateCrateCost(q,want)));
-    if(worth*bias.dealBias<cheapest*0.6)return null;
+    /* b) THE PRICE IS OUT OF REACH. This test used to read
+             worth*dealBias < cheapest*0.6      (worth and cheapest both in turns)
+       and it had to be rewritten in the same change that derived the bid, not left alone —
+       BOT-DESIGN-PRINCIPLES records a −21.2 ladder regression from doing exactly the opposite
+       (swapping a constant for a calculation and leaving the thresholds calibrated to the old
+       range). Here the range did not merely shift, the test went VACUOUS: the bid is now BUILT to
+       clear `cheapest`, so `worth` lands on top of it by construction and a comparison against
+       cheapest*0.6 can never fail again. Measured when it was left in place — 487 hails -> 634,
+       a 30% rise in noise from a gate that had quietly stopped being a gate.
+
+       Asked properly, in coins, the question is no longer "is my offer worth much?" but "can I
+       actually reach what they want?" — and if the purse or the crate's own worth to me stops me
+       short, the hail is a wasted turn and a refusal I will have to remember. dealBias keeps its
+       old job of tilting how gamely an archetype pushes a marginal deal (a trader at 1.60 will
+       open on a stretch a rusher at 0.85 walks away from). */
+    if(bid.need>0&&giveCoins*bias.dealBias<bid.need*0.6)return null;
     offer.audience=live.map(q=>q.idx);
     return offer;
   }
