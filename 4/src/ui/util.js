@@ -1372,7 +1372,14 @@ export function resolveOpt(opts,i,fallback){
   console.warn("resolveOpt(): invalid choice index",i,"of",opts.length,"options — defaulting to",fallback);
   return{i:fallback,opt:opts[fallback]};
 }
-export function ask(msg,opts,colors,sub){
+/* `extra` (playtest 21 item 7) carries a SLIDER spec for a quantity prompt. It reaches localAsk
+   only — a remote seat's prompt crosses the wire as labels and flags, and threading a live control
+   through that contract is a large change for a mode /4 does not ship. NAMED EXCEPTION rather than
+   a silent one: solo and pass-and-play are both LOCAL decisions (decisionIsLocal returns true for
+   any human seat at a pass-and-play table), so every human quantity prompt /4 actually presents
+   gets the slider. coinSlider falls back to the old stepper for a genuinely remote seat, so that
+   path still works — and this must be closed if /4 ever ships online multiplayer. */
+export function ask(msg,opts,colors,sub,extra){
   // during reload-replay, return the recorded choice (an index) mapped through the freshly
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
   if(appState.replaying){
@@ -1422,7 +1429,7 @@ export function ask(msg,opts,colors,sub){
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
-  const base=decisionIsLocal(seat)?netHandlers().onLocalAsk(msg,opts,colors,sub)
+  const base=decisionIsLocal(seat)?netHandlers().onLocalAsk(msg,opts,colors,sub,extra)
     :netHandlers().onRemotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
        // playtest 21 item 5: `why` rides across with `disabled`, because the two are one fact and

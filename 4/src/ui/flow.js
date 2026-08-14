@@ -51,7 +51,7 @@ import {
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
-  buildRoster,
+  buildRoster, emojify,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint } from "./board.js";
 import {
@@ -177,7 +177,7 @@ export function showWhy(b){
   // immediately close it again.
   setTimeout(()=>document.addEventListener("pointerdown",clearWhy,{once:true}),0);
 }
-export function localAsk(msg,opts,colors,sub){
+export function localAsk(msg,opts,colors,sub,extra){
   // a decision is landing in front of the player — the skip is over. When a recap is owed, it
   // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule); the
   // re-entry finds appState.ff already false and falls straight through.
@@ -210,6 +210,17 @@ export function localAsk(msg,opts,colors,sub){
     const grid=rest.some(x=>x.o.cls)?" recipes":"";
     const backHtml=backIdx!==-1?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
     const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
+    /* playtest 21 item 7 — THE ARC IS FOR ACTIONS ONLY. Wyatt, on tapping "Ask it!" expecting a
+       stepper: "Keep the arc logic consistent by having all the buttons that are in the ark
+       actions. Move the plus minus coins out of the arc instead and style those differently,
+       potentially with a slider or some other mechanic."
+       So a quantity is no longer a pair of circles indistinguishable from Attack and Trade. It is a
+       slider, and it sits BETWEEN the message and the buttons — which is also exactly where the
+       narration-box rule puts it, since content is revealed in the order it appears top to bottom
+       (back, message, THIS, buttons, helper text) and a control that edits the message belongs
+       with the message rather than among the answers. */
+    const sl=extra&&extra.slider;
+    const slHtml=sl?`<div class="apSliderWrap"><input class="apSlider" type="range" min="${sl.min}" max="${sl.max}" value="${sl.start}" step="1" aria-label="${(sl.aria||"Amount").replace(/"/g,"&quot;")}"><output class="apSliderOut">${sl.start}</output></div>`:"";
     // @copy prompt.plumbing.localask
     /* playtest 21 item 5 — a greyed circle now SAYS WHY when ye tap it (Wyatt's pick), and the
        reason appears at the circle itself rather than in a line floating near the top of the
@@ -223,9 +234,23 @@ export function localAsk(msg,opts,colors,sub){
        The two places that read the DOM property (below, and the stay-put finder in stage.js) move
        to the same test in this change, and the CSS gains the matching selector. */
     const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
-    panel(`${backHtml}<div class="apMsg">${msg}</div><div class="apBtns${grid}">`+
+    panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
       rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.disabled?` aria-disabled="true"`:""}${x.o.disabled&&x.o.why?` data-why="${esc(x.o.why)}"`:""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
       true);
+    if(sl){
+      const inp=$("actionPanel").querySelector(".apSlider"),outEl=$("actionPanel").querySelector(".apSliderOut");
+      if(inp){
+        const paint=()=>{
+          const n=+inp.value;
+          if(sl.ref)sl.ref.value=n;            // the caller reads the answer from here
+          if(outEl)outEl.textContent=String(n);
+          // the ask itself re-states the deal as ye drag, so the number is never read in isolation
+          if(sl.fmt){const m=$("actionPanel").querySelector(".apMsg");if(m)m.innerHTML=emojify(sl.fmt(n));}
+        };
+        inp.addEventListener("input",paint);
+        paint();
+      }
+    }
     $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
       // /4 stage: an option may carry a `short` label — the radial bloom shows that compact form
       // in its circle while the card fallback keeps the full sentence (element property, never a
@@ -1202,6 +1227,115 @@ export async function humanDock(p,port){
    complaint: "it isn't clear if you're offering those coins or asking for them"), and the
    circles adjust one coin at a time. Each tap is a real ask(), so the shot clock re-arms and
    the decision log records every step exactly as it always did — replay-safe by construction. */
+/* playtest 21 item 7 — THE COIN SLIDER, which replaces the stepper above wherever the decision is
+   local. Wyatt tapped "Ask it!" expecting another adjuster and sent a trade he did not want:
+
+     "the trade counteroffer flow is strange bc the confirmation button (ask it) looks the same as
+      the +1 buttons, but you can press those multiple times"
+
+   and his ruling on the fix is the general rule, not a patch to this one prompt:
+
+     "Keep the arc logic consistent by having all the buttons that are in the ark actions. Move the
+      plus minus coins out of the arc instead and style those differently, potentially with a
+      slider or some other mechanic."
+
+   So THE ARC IS FOR ACTIONS ONLY. A quantity is set on a bar under the pill that looks nothing
+   like a circle, and every circle left in the arc commits something. One tap, one consequence.
+
+   It also removes a whole class of the original confusion: reaching 6 coins took six taps of a
+   button that looked exactly like the one that sent the deal, so the two were being pressed in the
+   same rhythm. Dragging and committing are not the same gesture and can no longer be confused.
+
+   The pill re-states the whole deal as ye drag (`fmt`), so the number is never read in isolation.
+
+   FALLS BACK to the stepper for a genuinely REMOTE seat — a live control does not cross the prompt
+   wire, and threading it through is a large change for a mode /4 does not ship. Named, not silent:
+   solo and pass-and-play are both LOCAL decisions, so every human quantity prompt /4 actually
+   presents gets the slider. See ask()'s own note in util.js. */
+// the engine owns what a counter MEANS (see Game.counterTerms) — this is just the reach.
+const counterTerms=(offer,r)=>appState.game.counterTerms(offer,r);
+/* THE COUNTER-OFFER, REBUILT — playtest 21 item 7 (Wyatt): "'Ask it' is really confusing because
+   i clicked it thinking that i could counteroffer their money with asking for their milk. Instead,
+   it simply initiated the trade (which i did not want). I want a way to counteroffer with other of
+   their ingredients; and when i do, they should calculate their algorithm to see if it is
+   advantageous for them to trade that to me bc of turns saved etc."
+
+   A counter used to be "+k coins on top of whatever they offered" and NOTHING ELSE, so the one
+   thing he actually wanted — their milk instead of their coin — could not be expressed at all. The
+   button was not misnamed; the feature was missing.
+
+   FAST PATH FIRST (his pick, and he is on a phone): the counter opens straight on WHAT OF THEIRS
+   DO YE WANT — their hold, tappable, because cargo is public and he can already see it. Coins are
+   an optional second step ye can skip entirely. Two taps to say "milk instead", which is exactly
+   what he tried to do.
+
+   THE COINS ARE CLEARED (his pick): "instead" means instead. The counter is a fresh deal — ye name
+   what ye want, and no money rides along invisibly from an offer ye just rejected.
+
+   ONE ROUND (his pick, and rule 4c): they accept it or they walk. A counter cannot itself be
+   countered, so this cannot become a haggling loop that eats a turn in prompts.
+
+   Returns {askIng, askCoins} — or "__back__" to re-ask, "deny", or null if the clock ran out. */
+async function counterOffer(q,p,offer){
+  const g=appState.game;
+  // what THEY are carrying, minus the crate already on the table — offering it back is not a counter
+  const theirs=[...new Set(p.ing)].filter(i=>i!==offer.giveIng);
+  const room=Math.max(0,p.coins);
+  for(;;){
+    if(appState.turnExpired)return null;
+    const opts=theirs.map(i=>crateOpt(p.ing,i));
+    // coin-only is still a legal counter — it is what the old flow could do, kept rather than lost
+    opts.push({label:`💰 Coin instead`,short:`💰 Coin`,value:"__coinsonly__",disabled:room<1,
+      why:`${pn(p.idx)} has no coin at all — it must be a crate.`});
+    opts.push({label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"__deny__"});
+    opts.push({label:"← Back",back:true,value:"__back__"});
+    // @copy prompt.trade.counterwant — DRAFT, Wyatt rewrites
+    const pick=await ask(`${pn(q.idx)}: what o' ${poss(pn(p.idx))} will ye have instead?`,opts,null,
+      theirs.length?null:`${pn(p.idx)} has no other cargo — ye can ask for coin, or deny.`);
+    if(appState.turnExpired)return null;
+    if(pick==null||pick==="__back__")return "__back__";
+    if(pick==="__deny__")return "deny";
+    const askIng=(pick==="__coinsonly__")?null:pick;
+    // ...and how much coin on top, if any. A crate counter may take none at all, so the floor is 0.
+    const minC=askIng?0:1;
+    const maxC=Math.min(6,room);
+    if(maxC<minC){
+      if(askIng)return {askIng,askCoins:0};
+      continue;                                  // coin-only asked for but there is none — re-pick
+    }
+    const bits=n=>[askIng?ilabelImg(askIng):null,n?`${n}🌕`:null].filter(Boolean).join(" + ");
+    // @copy prompt.trade.countercoins — DRAFT, Wyatt rewrites
+    const n=await coinSlider(q.idx,
+      k=>`${pn(q.idx)}: ye're ASKIN' ${bits(k)||"nothin'"} for yer ${ilabelImg(offer.want)}`,
+      minC,minC,maxC,"Ask it!");
+    if(n==null)return null;
+    if(n==="__back__")continue;                  // BACK MEANS BACK — return to the crate picker
+    return {askIng,askCoins:n};
+  }
+}
+async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
+  if(!decisionIsLocal(seat))return coinStepper(msgFor,start,min,max,confirmLabel,extraOpt);
+  if(max<=min){
+    // nothing to choose — do not present a slider with one stop on it
+    const opts=[{label:confirmLabel,value:"ok",cls:"primary"}];
+    if(extraOpt)opts.push(extraOpt);
+    opts.push({label:"← Back",back:true,value:"__back__"});
+    const v0=await ask(msgFor(min),opts);
+    if(appState.turnExpired)return null;
+    if(v0==="ok")return min;
+    if(v0==="__back__"||v0==null)return "__back__";
+    return v0;
+  }
+  const ref={value:start};
+  const opts=[{label:confirmLabel,value:"ok",cls:"primary"}];
+  if(extraOpt)opts.push(extraOpt);
+  opts.push({label:"← Back",back:true,value:"__back__"});
+  const v=await ask(msgFor(start),opts,null,null,{slider:{min,max,start,ref,fmt:msgFor,aria:"Coins"}});
+  if(appState.turnExpired)return null;
+  if(v==="ok")return Math.max(min,Math.min(max,ref.value));
+  if(v==="__back__"||v==null)return "__back__";
+  return v;
+}
 async function coinStepper(msgFor,start,min,max,confirmLabel,extraOpt){
   let n=start;
   for(;;){
@@ -1270,7 +1404,11 @@ export async function humanTrade(p){
       }
       const giveBits=n=>[st.baseIng?ilabelImg(st.baseIng):null,n?`${n}🌕`:null].filter(Boolean).join(" + ");
       // @copy prompt.trade.addcoins
-      const n=await coinStepper(
+      // playtest 21 item 7: the slider here too, not only in the counter. Wyatt's rule is about the
+      // ARC, not about one prompt — leaving ±1 circles on the offer-building step and removing them
+      // from the counter would be the same gesture behaving two ways, which is the consistency rule
+      // this project treats as a bug in its own right.
+      const n=await coinSlider(p.idx,
         k=>`Ye're GIVIN' ${giveBits(k)} for ${ilabelImg(st.want)}`,
         minC,minC,maxC,"Offer it!");
       if(n==null)return false;
@@ -1317,8 +1455,12 @@ export async function humanTrade(p){
         if(appState.turnExpired)return false;
         const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
           {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
-          {label:"💰 Name yer price",value:"counter",disabled:room<1,
-            why:`${pn(p.idx)} has no coin left to sweeten the deal — take it or leave it.`},
+          // playtest 21 item 7: a counter is no longer "+coins" — it can ask for one of THEIR
+          // crates instead. So it is live whenever they hold anything at all to give, not only
+          // when they have coin spare, and the label says what it now does.
+          {label:"💰 Ask for summat else",short:"💰 Counter",value:"counter",
+            disabled:room<1&&![...new Set(p.ing)].some(i=>i!==offer.giveIng),
+            why:`${pn(p.idx)} has nothin' else aboard and no coin — ye can take it or leave it.`},
           {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
           // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
           room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
@@ -1327,14 +1469,11 @@ export async function humanTrade(p){
         // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
         if(appState.turnExpired)return false;
         if(v==="counter"){
-          // @copy prompt.trade.counter
-          const a=await coinStepper(
-            k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
-            1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
-          if(a==null)return false;                 // shot clock expired mid-stepper
-          if(a==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
-          if(a==="deny")responses.push({q,kind:"deny",why:"chose"});
-          else responses.push({q,kind:"counter",askFor:a});
+          const c=await counterOffer(q,p,offer);
+          if(c==null)return false;                 // shot clock expired mid-counter
+          if(c==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
+          if(c==="deny")responses.push({q,kind:"deny",why:"chose"});
+          else responses.push({q,kind:"counter",askIng:c.askIng,askFor:c.askCoins});
         }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
         answered=true;
       }
@@ -1355,9 +1494,18 @@ export async function humanTrade(p){
     const r=responses[i];
     if(r.kind==="accept")opts.push({label:`${iconImg(CHECKMARK_IMG)} ${pn(r.q.idx)} accepts`,value:i});
     else if(r.kind==="counter"){
-      const total=offer.giveCoins+r.askFor;
-      opts.push({label:`💰 ${pn(r.q.idx)} wants +${r.askFor}🌕 more`,value:i,disabled:total>p.coins,
-        why:`That'd cost ye ${total}🌕 all told, and ye've only ${p.coins}🌕 aboard.`});
+      /* playtest 21 item 7: a counter can now name one of the ASKER'S OWN CRATES instead of the
+         crate that was offered, so the label has to say what is actually being asked for rather
+         than assume it is coin. counterTerms() is the ONE place a counter is turned into the deal
+         it means, and both the label here and the settlement below read it — so what a captain is
+         shown and what they get cannot drift apart, which is exactly how a trade UI goes wrong. */
+      const t=counterTerms(offer,r);
+      const bits=[t.giveIng?ilabelImg(t.giveIng):null,t.giveCoins?`${t.giveCoins}🌕`:null].filter(Boolean).join(" + ");
+      const haveIng=!t.giveIng||p.ing.includes(t.giveIng);
+      opts.push({label:`💰 ${pn(r.q.idx)} wants ${bits||"nothin'"}`,short:`💰 ${pn(r.q.idx)}`,value:i,
+        disabled:t.giveCoins>p.coins||!haveIng,
+        why:!haveIng?`Ye're not carryin' ${t.giveIng?iname(t.giveIng):"that"} any more.`
+          :`That'd cost ye ${t.giveCoins}🌕, and ye've only ${p.coins}🌕 aboard.`});
     }
   }
   const denials=responses.filter(r=>r.kind==="deny");
@@ -1386,11 +1534,14 @@ export async function humanTrade(p){
     return true;
   }
   const chosen=responses[pick];
-  const extra=chosen.kind==="counter"?chosen.askFor:0;
+  // the deal that was actually agreed — a crate counter REPLACES what was offered rather than
+  // adding to it (Wyatt: the counter is a fresh deal, no money riding along invisibly)
+  const terms=chosen.kind==="counter"?counterTerms(offer,chosen):offer;
+  const extra=0;
   // CR-02 layer 2: settleTrade validates BOTH legs before EITHER mutates, so a trade is atomic —
   // a crate that is no longer held, or coins that are no longer there, routes into the decline
   // path below rather than half-completing.
-  if(!g.settleTrade(p,chosen.q,offer,extra)){
+  if(!g.settleTrade(p,chosen.q,terms,extra)){
     // @copy adhoc.trade.refusalhuman
     await flash(`${pn(chosen.q.idx)} declines ${pn(p.idx)}'s offer!`,undefined,undefined,[{seat:p.idx,html:`${pn(chosen.q.idx)} declines yer offer!`}]);
     return true;
@@ -1676,8 +1827,12 @@ export async function botOpenTradeLive(p){
         if(appState.turnExpired)return false;
         const v=await ask(`${pn(q.idx)}: ${pn(p.idx)} offers ${offerDisplay} for yer ${ilabelImg(offer.want)}.`,[
           {label:`${iconImg(CHECKMARK_IMG)} Accept`,value:"accept"},
-          {label:"💰 Name yer price",value:"counter",disabled:room<1,
-            why:`${pn(p.idx)} has no coin left to sweeten the deal — take it or leave it.`},
+          // playtest 21 item 7: a counter is no longer "+coins" — it can ask for one of THEIR
+          // crates instead. So it is live whenever they hold anything at all to give, not only
+          // when they have coin spare, and the label says what it now does.
+          {label:"💰 Ask for summat else",short:"💰 Counter",value:"counter",
+            disabled:room<1&&![...new Set(p.ing)].some(i=>i!==offer.giveIng),
+            why:`${pn(p.idx)} has nothin' else aboard and no coin — ye can take it or leave it.`},
           {label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"deny"}],null,
           // @copy adhoc.trade.nocointosweeten — DRAFT, Wyatt rewrites
           room<1?`${pn(p.idx)} has no coin left to sweeten the deal — ye can take it or leave it.`:null);
@@ -1686,14 +1841,11 @@ export async function botOpenTradeLive(p){
         // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
         if(appState.turnExpired)return false;
         if(v==="counter"){
-          // @copy prompt.trade.counter
-          const a=await coinStepper(
-            k=>`${pn(q.idx)}: ye're ASKIN' +${k}🌕 more on top o' ${offerDisplay}`,
-            1,1,Math.min(5,room),"Ask it!",{label:"✗ Deny",value:"deny"});
-          if(a==null)return false;                 // shot clock expired mid-stepper
-          if(a==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
-          if(a==="deny")responses.push({q,kind:"deny",why:"chose"});
-          else responses.push({q,kind:"counter",askFor:a});
+          const c=await counterOffer(q,p,offer);
+          if(c==null)return false;                 // shot clock expired mid-counter
+          if(c==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
+          if(c==="deny")responses.push({q,kind:"deny",why:"chose"});
+          else responses.push({q,kind:"counter",askIng:c.askIng,askFor:c.askCoins});
         }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
         answered=true;
       }

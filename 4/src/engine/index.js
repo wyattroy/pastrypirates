@@ -1015,6 +1015,30 @@ class Game{
     if(nearlyDone&&this.likelyNeeds(asker,offer.want))return {q,kind:"deny",why:"blocking"};
     // otherwise name a price: the coin shortfall, converted back out of turns
     const shortTurns=cost-value*bias;
+    /* ASK FOR A CRATE, NOT ONLY FOR COIN — playtest 21 item 7, and it is the PARITY half of it.
+       Wyatt's ruling when humans could not counter with a crate: "rather than remove the bot's
+       ability, we want to add it to the human ability." The same principle runs back the other
+       way — having taught the human to say "keep yer coin, I want yer milk", a bot that can only
+       ever answer "+2 coins" is now the one with the poorer vocabulary, and the standing invariant
+       is that bots play by exactly the same affordances as humans.
+
+       No new valuation: it asks what the crate would be worth to ITSELF, with the same call
+       offerValueTurns already uses to price a crate on the table. Reading its own recipe here is
+       correct and not mind-reading (principle 5) — q is deciding what q wants — and the asker's
+       hold is public, so choosing from it is a read any player could make across the table.
+
+       Preferred over coin when it actually covers the gap, because a crate a bot NEEDS is worth
+       whole turns of sailing while coins are worth a fraction of one — so this is the counter more
+       likely to be worth striking for both sides, which is the entire point of countering. */
+    if(asker){
+      let bestIng=null,bestVal=0;
+      for(const i of new Set(asker.ing)){
+        if(i===offer.giveIng)continue;                 // already on the table — not a counter
+        const v=this.acquireTurns(q,i).turns*(this.needs(q).includes(i)?1:0.25);
+        if(v>bestVal){bestVal=v;bestIng=i;}
+      }
+      if(bestIng&&bestVal*bias>=shortTurns)return {q,kind:"counter",askIng:bestIng,askFor:0};
+    }
     const askFor=Math.max(1,Math.ceil(shortTurns*PLAN.coinsPerDockTurn));
     if(asker&&askFor>asker.coins-(offer.giveCoins||0))return {q,kind:"deny",why:"toodear"};
     return {q,kind:"counter",askFor};
@@ -1055,6 +1079,27 @@ class Game{
     if(offer.giveIng)this.noteDemand(q,offer.giveIng,0.5);
     this.ev({t:"trade",a:p.idx,b:q.idx,gave:this.offerLabel(offer,extra),got:offer.want,kind:extra?"counter":"open"});
     return true;
+  }
+  /* WHAT A COUNTER ACTUALLY MEANS, in one place — playtest 21 item 7.
+
+     A counter comes in two shapes now and they settle differently, which is precisely the kind of
+     fork that grows a family of bugs if each caller works it out for itself (this project already
+     has "one word meaning three things" written down for the same reason):
+
+       {askFor:n}            the old shape — n MORE coins on top of what was offered. Additive.
+       {askIng:i, askFor:n}  the new one — "keep yer coin, I want yer milk". REPLACES the offer's
+                             give side entirely, because Wyatt's ruling is that a counter is a
+                             fresh deal: "instead" means instead, and no money rides along
+                             invisibly from an offer that was just rejected.
+
+     Returns a full offer object ready for settleTrade, so the button label a captain reads and the
+     trade that actually settles are derived from the SAME call. `want` never changes: a counter
+     haggles over the price, never over which crate is being sold. */
+  counterTerms(offer,r){
+    if(!r||r.kind!=="counter")return offer;
+    if(r.askIng==null)
+      return {want:offer.want,giveIng:offer.giveIng,giveCoins:(offer.giveCoins||0)+(r.askFor||0)};
+    return {want:offer.want,giveIng:r.askIng,giveCoins:r.askFor||0};
   }
   offerLabel(offer,extra){
     const coins=(offer.giveCoins||0)+(extra||0);
@@ -1327,18 +1372,36 @@ class Game{
       p.refused[offer.want+"|"+r.q.idx].wantedOurs=offer.giveIng&&this.likelyNeeds(r.q,offer.giveIng)?1:0;
     }
     const accepts=responses.filter(r=>r.kind==="accept");
-    const counters=responses.filter(r=>r.kind==="counter"&&(offer.giveCoins+r.askFor)<=p.coins);
-    let deal=null,extra=0;
+    // affordability is judged on the counter's OWN terms — a crate counter may cost no coin at all,
+    // and the old test would have thrown those away as unaffordable
+    const counters=responses.filter(r=>{
+      if(r.kind!=="counter")return false;
+      const t=this.counterTerms(offer,r);
+      return (t.giveCoins||0)<=p.coins&&(!t.giveIng||p.ing.includes(t.giveIng));
+    });
+    let deal=null,terms=offer;
     if(accepts.length){
       // several yeses: take the crate from whoever can spare it most easily
       accepts.sort((x,y)=>this.crateCostTurns(y.q,offer.want,p)-this.crateCostTurns(x.q,offer.want,p));
       deal=accepts[0].q;
     }else if(counters.length){
-      counters.sort((x,y)=>x.askFor-y.askFor);
-      // only pay a counter that still beats getting the crate the hard way
-      const best=counters[0];
+      /* playtest 21 item 7: a counter may now ask for one of MY crates instead of coin, so the
+         answers are no longer comparable on askFor alone and are priced in TURNS — the currency
+         everything else in this planner uses. What a counter costs me is what I hand over: the
+         coins, plus (if they want a crate) what replacing that crate would cost me, discounted
+         hard when it is surplus I never needed. Cheapest first, and still only struck if it beats
+         fetching the crate myself, which is the test that was already here. */
+      const priced=counters.map(r=>{
+        const t=this.counterTerms(offer,r);
+        let cost=this.coinTurns(t.giveCoins||0);
+        if(t.giveIng)cost+=(p.recipe&&p.recipe.includes(t.giveIng)&&this.cnt(p.ing,t.giveIng)<=1)
+          ?this.acquireTurns(p,t.giveIng).turns
+          :PLAN.leverageTurns;
+        return {r,t,cost};
+      }).filter(x=>!x.t.giveIng||p.ing.includes(x.t.giveIng))
+        .sort((a,b)=>a.cost-b.cost);
       const mine=this.acquireTurns(p,offer.want).turns;
-      if(this.coinTurns(offer.giveCoins+best.askFor)<=mine){deal=best.q;extra=best.askFor;}
+      if(priced.length&&priced[0].cost<=mine){deal=priced[0].r.q;terms=priced[0].t;}
     }
     if(!deal){
       // walking away from a counter is this offer being refused too — remember it, or the bot
@@ -1347,7 +1410,7 @@ class Game{
       this.ev({t:"parley",a:p.idx,b:null,offer:this.offerLabel(offer,0)||"nothing",want:offer.want});
       return false;
     }
-    return this.settleTrade(p,deal,offer,extra);
+    return this.settleTrade(p,deal,terms,0);
   }
   // called on every battle resolution (win or flee) — cools the opportunistic "rich" attack
   // trigger against this specific opponent for a few rounds (mutual, since either side's coin

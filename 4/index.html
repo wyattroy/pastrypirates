@@ -434,6 +434,20 @@
      matches. It has to: a media query cannot reach a JS timer, so without that read a
      reduced-motion user would get a blank 180ms gap AND no fade — the worst of both. */
   @media (prefers-reduced-motion: reduce) { .apMsg.fadeOut { display: none; } }
+  /* THE QUANTITY SLIDER (playtest 21 item 7). Wyatt: "Move the plus minus coins out of the arc
+     instead and style those differently, potentially with a slider or some other mechanic."
+     It is deliberately NOT circular and NOT the fan's colours — a control that sets a number must
+     not be mistakable for a control that commits an action, which is the whole bug. */
+  .apSliderWrap { display: flex; align-items: center; gap: 10px; margin: 8px 0 2px; }
+  .apSlider { -webkit-appearance: none; appearance: none; flex: 1 1 auto; height: 6px;
+    border-radius: 999px; background: linear-gradient(90deg, #f5a623, #ffd894); outline: none; }
+  .apSlider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%; background: #fffdf2; border: 3px solid #f5a623;
+    box-shadow: 0 3px 10px rgba(0,0,0,.32); cursor: grab; }
+  .apSlider::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: #fffdf2;
+    border: 3px solid #f5a623; box-shadow: 0 3px 10px rgba(0,0,0,.32); cursor: grab; }
+  .apSliderOut { min-width: 2.2em; text-align: center; font-weight: 900; font-size: 15px;
+    color: #8a5a12; font-variant-numeric: tabular-nums; }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }
   .apBtn { background: #fff; font-size: 14px; }
   .apBtn:hover { background: #eafbf4; }
@@ -492,7 +506,12 @@
      The bench shell's own .bkoCard is likewise untouched: it carries .bkoBtns rather than
        .apBtns precisely so panel() never gates it (see .bkoBtns below), so pendingReveal is
        never added there and the card shows immediately, as it should. */
-  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apSub { visibility: hidden; }
+  /* playtest 21 item 7: the quantity slider joins the gate. It sits BETWEEN the message and the
+     buttons, and the standing rule is that the narration box reveals top to bottom — so a control
+     that edits the message must not appear before the message it edits has finished arriving.
+     Measured before this line existed: apPendingReveal true, slider visibility "visible". */
+  #actionPanel.pendingReveal .apBtns, #actionPanel.pendingReveal .apSub,
+  #actionPanel.pendingReveal .apSliderWrap { visibility: hidden; }
   /* ONE EXCEPTION, and it is measured (Wyatt, 2026-08-08: "The 'to the bench!' Button doesn't
      respond quickly and i often have to push it twice — why?").
      Because it was not there. Sampled every 100ms: the button sits visibility:hidden — which takes
@@ -1333,6 +1352,14 @@
   #pp4Prompt.radial #actionPanel { background:none; border:none; box-shadow:none; padding:0; margin:0; }
   /* playtest 10: sub and back survive the radial — the sub as a small note under the pill (it
      explains greyed circles), the back as its own little circle beside the pill */
+  /* playtest 21 item 7: in the radial prompt the slider becomes a floating bar under the ask pill
+     — the one place a quantity control can sit without joining the arc, which is now actions only.
+     pointer-events:auto because .radial makes the panel itself inert. */
+  #pp4Prompt.radial .apSliderWrap { display:flex; position:fixed; pointer-events:auto;
+    background:rgba(255,253,242,.96); border:2px solid #177; border-radius:999px;
+    padding:6px 14px; box-shadow:0 5px 16px rgba(0,0,0,.3); margin:0; width:max-content;
+    max-width:min(300px,84vw); }
+  #pp4Prompt.radial .apSlider { width:170px; }
   #pp4Prompt.radial .apSub { display:block; position:fixed; background:rgba(255,253,242,.9);
     border-radius:9px; padding:4px 10px; font-size:11px; font-style:italic; color:#4a3223;
     width:max-content; max-width:80vw; box-shadow:0 4px 12px rgba(0,0,0,.25); margin:0; }
@@ -1359,6 +1386,7 @@
   #pp4Prompt.radial #actionPanel:not(.pendingReveal) .apBtns,
   #pp4Prompt.radial #actionPanel:not(.pendingReveal) .apBtn { visibility:visible !important; }
   #pp4Prompt.radial #actionPanel.pendingReveal .apBtns,
+  #pp4Prompt.radial #actionPanel.pendingReveal .apSliderWrap,
   #pp4Prompt.radial #actionPanel.pendingReveal .apBtn { visibility:hidden !important; }
   #pp4Prompt.radial .apBtn { pointer-events:auto; width:66px; height:66px; border-radius:50%;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;

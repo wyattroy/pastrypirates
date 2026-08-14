@@ -785,7 +785,14 @@ function buildStage(){
 // qualify too, and a button whose ask() option carries a `short` label qualifies regardless of
 // its full label's length — the circle shows the short form, the pill carries the sentence.
 function menuButtons(ap){
-  if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input,select")) return null;
+  /* `input` disqualifies a prompt from the radial bloom because a text field cannot live in a ring
+     of circles. The quantity SLIDER (playtest 21 item 7) is an <input type=range> and was therefore
+     knocking its own prompt out of radial mode entirely — measured, not guessed: with the slider
+     present #pp4Prompt carried NO classes at all, so every radial rule for the pill, the arc and
+     the slider bar silently stopped applying and the whole prompt fell back to a flat card.
+     It is exempted by class rather than by type: any OTHER input still disqualifies, which is the
+     behaviour this guard exists for. */
+  if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input:not(.apSlider),select")) return null;
   const btns = [...ap.querySelectorAll(".apBtn")];
   // playtest 15: up to EIGHT circles — the trade's what-do-ye-WANT step (7 crates) fans too;
   // the open-side fan wraps to a second arc row past four, so big menus stay one tight group
@@ -919,8 +926,12 @@ function promptTick(){
     if (bub && msg && plain(bub.textContent) === plain(msg.textContent) && S.hurry) S.hurry();
     // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
     // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
+    // playtest 21 item 7: the slider's presence is part of the placement key. Without it a prompt
+    // that differs from the previous one ONLY by gaining a slider reuses the memoised layout and
+    // the bar is never positioned — it would render at 0,0 in the corner.
+    const hasSlider = ap.querySelector(".apSliderWrap") ? 1 : 0;
     const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
-      cellRects.length, vwPx(), menu.map(b => b.textContent.length).join(",")].join("|");
+      cellRects.length, vwPx(), hasSlider, menu.map(b => b.textContent.length).join(",")].join("|");
     if (radKey === S.radKey) return;
     S.radKey = radKey;
     let pillB = null;
@@ -950,12 +961,24 @@ function promptTick(){
         back.style.left = Math.max(4, pillB.left - 46) + "px";
         back.style.top = (pillB.top + (pillB.height - 38) / 2) + "px";
       }
+      // playtest 21 item 7: the quantity slider sits directly under the ask pill — between the
+      // message it edits and the arc of actions, which is the same top-to-bottom order the
+      // narration box uses everywhere else. Placed BEFORE the helper text so the helper, when both
+      // are present, is pushed below it rather than landing on top of it.
+      const slw = ap.querySelector(".apSliderWrap");
+      let stackTop = pillB.bottom + 6;
+      if (slw){
+        const qw = Math.min(slw.offsetWidth || 220, vwPx() - 20);
+        slw.style.left = Math.min(Math.max(cxA - qw / 2, 10), vwPx() - qw - 10) + "px";
+        slw.style.top = stackTop + "px";
+        stackTop += (slw.offsetHeight || 40) + 6;
+      }
       // helper text (greyed-circle reasons) rides just beneath the pill
       const sub = ap.querySelector(".apSub");
       if (sub){
         const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
         sub.style.left = Math.min(Math.max(cxA - sw / 2, 10), vwPx() - sw - 10) + "px";
-        sub.style.top = (pillB.bottom + 6) + "px";
+        sub.style.top = stackTop + "px";
       }
     }
     // ---- playtest 15, ONE placement rule (Wyatt's pick): a TIGHT FAN on the open side ----
