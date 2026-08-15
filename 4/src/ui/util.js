@@ -1228,6 +1228,11 @@ export function isDisabledBtn(b){return !!b&&b.getAttribute("aria-disabled")==="
 export const vwPx=()=>document.documentElement.clientWidth||window.innerWidth;
 export const vhPx=()=>document.documentElement.clientHeight||window.innerHeight;
 export const SHIP_GLIDE_MS=700;
+/* How long the finished board is left alone before the End of Voyage banner covers it (playtest 22
+   item 12). Long enough to read the sea and take a screenshot, short enough that it does not read
+   as the game having stalled — the same judgement msgHoldMs makes for a line of narration, and
+   deliberately a shade longer because there is nothing to read and everything to look at. */
+export const BOARD_LAST_LOOK_MS=2600;
 export const STORM_STEP_MS=SHIP_GLIDE_MS+70;     // 420 — the human watching their own ship
 export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappier of the two
 // G14 (Wyatt-approved 2026-07-30): the per-square beat for a TRADE-WIND RIM SWEEP. Derived from the

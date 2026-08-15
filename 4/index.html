@@ -1599,9 +1599,20 @@
      button pulsing hard right beneath it */
   #pp4Prompt.pp4Center { left:0 !important; top:0 !important; width:100vw !important; height:100vh;
     background:rgba(4,16,22,.6); display:flex; align-items:center; justify-content:center; }
+  /* WIDTH IS DECIDED BY THE STAGE, NOT BY WHAT HAS FINISHED LOADING — playtest 22 item 11 (Wyatt):
+     "something strange happens with the bakeoff screen when you reveal the ingredients — it gets
+     too narrow... This was temporary; after a few seconds, it glitched to the correct width."
+     The panel is a flex ITEM with only a max-width, so its width was its CONTENT's width — and the
+     bake-off's content is a row of bowls whose intrinsic size is the size of images that may not
+     have arrived yet. A cold cache therefore lays the card out narrow and re-lays it wide the
+     moment the art lands, which is exactly "temporary, then glitched to the correct width".
+     A definite width cannot be renegotiated by a late image.
+     NOT REPRODUCED LOCALLY, and said plainly: on a warm local server the art is there before the
+     first layout, and the card measured a stable 420px for the whole reveal. This removes the
+     dependency rather than the symptom, which is the only fix available without his network. */
   #pp4Prompt.pp4Center #actionPanel { background:none; border:none; box-shadow:none; margin:0;
     padding:0 18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:26px; max-width:420px; min-height:0 !important; }
+    gap:26px; width:min(420px, 94vw); max-width:420px; box-sizing:border-box; min-height:0 !important; }
   #pp4Prompt.pp4Center .apMsg { background:#fffdf2; border:2px solid #177; border-radius:14px;
     padding:16px 18px; font-size:16.5px; line-height:1.5; box-shadow:0 12px 40px rgba(0,0,0,.45); }
   #pp4Prompt.pp4Center .apBtns, #pp4Prompt.pp4Center .apBtn { visibility:visible !important; }

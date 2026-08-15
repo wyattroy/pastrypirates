@@ -113,7 +113,7 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
-  stopShotClock, waitWhilePaused, sleepMs, applyTimerOff,
+  stopShotClock, waitWhilePaused, sleepMs, applyTimerOff, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
@@ -1048,6 +1048,24 @@ export async function liveResolveEndNet(){
   // the interval he asked for: "when that text has been on screen for the amount of time that it
   // would normally be faded out if there were another message coming after it." fadeOutPanel()
   // then performs the same GHOST_FADE_MS fade a replaced line gets, and hides the box.
+  /* THE BOARD GETS THE LAST WORD — playtest 22 item 12 (Wyatt): "After the successful bake off i
+     could see things happening on the board behind the stage, like bargain boxes and animations;
+     but the stage blocked it. I think we should close the stage to let the viewer see the board and
+     appreciate it one last time, then let final voyage end screen appear. The player should always
+     be able to see the board again, in order to reflect on their voyage or screenshot it."
+
+     The bake-off holds CENTRE STAGE — a full-screen dim with the panel over it — and the voyage ran
+     straight from that into the gold banner, so the last thing the board did happened entirely
+     behind a curtain. Two beats, in his order: drop the curtain, pull the shot out to the whole
+     board, and hold. Only then the drumroll and the banner.
+     fadeOutPanel() is what actually ends the stage: enterCenterStage keys off the panel's CONTENT
+     (`.bko`), so emptying the panel IS lowering the curtain — no separate teardown to keep in step.
+     The wide shot reuses sweepCam, which is camFull; the rim sweep already trusts it to frame the
+     entire board. */
+  await fadeOutPanel();
+  if(window.__pp4&&window.__pp4.sweepCam)window.__pp4.sweepCam();
+  liveRender();
+  await sleepMs(BOARD_LAST_LOOK_MS);
   // @copy adhoc.voyageend.drumroll
   await flash("Drumroll...");
   await fadeOutPanel();

@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-15a";
+const PP4_STAMP = "2026-08-15b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -950,9 +950,21 @@ function enterCenterStage(){
   // and a stage column tall enough to reach it (the bake-off intro was first) had its button
   // clipped mid-letter at the panel's top edge. Padding, not a shorter box — the dim paints
   // through padding, so the captains stay under the veil while the content centres above them.
+  /* CENTRED ON THE STAGE, LIFTED ONLY AS FAR AS IT HAS TO BE — playtest 22 item 10 (Wyatt): "the
+     bakeoff box stage should be vertically centered on the stage; it is too high here."
+     The padding above was the captains box's FULL height, unconditionally. On a four-captain table
+     that is ~250px, so a short card was centred in the top two-thirds of the screen and read as
+     floating. The reason it existed is real and kept: a column tall enough to reach the captains
+     box had its button hidden behind it.
+     So compute the lift instead of assuming it. Centred, the column's bottom sits at
+     (vh + need) / 2; it only needs lifting by however far THAT dips below the captains box, and
+     with align-items:center a lift of N costs 2N of bottom padding. A card that already clears the
+     captains box gets no padding at all and is centred on the stage, which is the ask. */
   const cap = $("pp4Cap");
   const capH = cap ? Math.max(0, Math.round(vhPx() - cap.getBoundingClientRect().top)) : 0;
-  const pad = capH ? capH + "px" : "";
+  const need = ap.offsetHeight || 0;
+  const dip = Math.max(0, Math.round((vhPx() + need) / 2 - (vhPx() - capH)));
+  const pad = dip > 0 ? Math.min(capH, dip * 2) + "px" : "";
   if (box.style.paddingBottom !== pad) box.style.paddingBottom = pad;
   // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
   // sheet must never share the centre stage (see the strip bug above)
