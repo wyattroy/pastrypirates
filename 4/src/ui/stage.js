@@ -18,7 +18,7 @@ import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
 import { msgHoldMs, vwPx, vhPx, isDisabledBtn } from "./util.js";
 import { typewriterReveal } from "./panel.js";
-import { HEXCOL, emojify } from "../shared/index.js";
+import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-14n";
+const PP4_STAMP = "2026-08-15a";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -439,6 +439,56 @@ function ribbonTick(){
   }
 }
 
+/* ================= THE BOARD'S WINDOW — one definition, and one clip ==================
+
+   Wyatt, playtest 22 item 7, and he asked for the RULE rather than the patch: "The narration boxes
+   must be occluded by the game board also. Do not patch this one by one; there is a generalizable
+   rule here: whatever is shown in the game board should only be visible within this game board
+   window; it should zoom naturally and be directed consistently... you can see 'Wyargh calls
+   crustbeard…' hovering over the captains box, which is bad. But it happened because the game board
+   is zoomed in, and spatially, wyargh would be down behind the captains box."
+
+   The old comment in index.html states the defect plainly and left it: "#pp4Prompt and the narration
+   bubbles are position:fixed on <body>, so the clip cannot reach them." #boardwrap clips (z5), the
+   captains box is z22, and the bubbles were z26 on <body> — so a bubble anchored to a ship that had
+   been zoomed off the bottom of the board still painted, over the captains box, describing
+   something the player could not see.
+
+   THE BAND is the region where the board is actually visible: below the wind ribbon, above the
+   captains box. capT and tSafe were already computed for the radial placement, but privately —
+   which is why the bubbles never learned about them. One function now, three consumers: the clip
+   host, the bubble placer and the ask pill.
+
+   THE CLIP is what makes it a rule rather than a promise. #pp4Fx is sized to the band and carries
+   overflow:hidden, so anything appended to it is PHYSICALLY unable to paint over the captains box or
+   over the ribbon, however wrong its own arithmetic goes. Placement still clamps inside the band —
+   clipping is the guarantee, clamping is what stops the guarantee from ever cutting a line in half. */
+export function boardBand(){
+  const cap = $("pp4Cap");
+  const rib = $("pp4Ribbon");
+  const capVisible = cap && getComputedStyle(cap).display !== "none";
+  const top = (rib && getComputedStyle(rib).display !== "none" ? rib.getBoundingClientRect().bottom : 44) + 8;
+  const bottom = capVisible ? cap.getBoundingClientRect().top : vhPx();
+  return { top, bottom, left: 8, right: vwPx() - 8 };
+}
+// the clipped host every board-anchored floater lives in. Re-sized from the band on the same tick
+// the camera moves, so a captains box that grows (a fourth captain, a wrapped hold) takes the
+// bubbles with it instead of letting them slide underneath.
+function fxHost(){
+  let h = $("pp4Fx");
+  if (!h){
+    h = document.createElement("div");
+    h.id = "pp4Fx";
+    h.setAttribute("aria-hidden", "true");
+    document.body.appendChild(h);
+  }
+  const b = boardBand();
+  const t = Math.round(b.top), ht = Math.max(0, Math.round(b.bottom - b.top));
+  if (h.dataset.t !== String(t)){ h.style.top = t + "px"; h.dataset.t = String(t); }
+  if (h.dataset.h !== String(ht)){ h.style.height = ht + "px"; h.dataset.h = String(ht); }
+  return h;
+}
+
 /* ================= bubbles ================= */
 // One live bubble at a time (flash() is awaited sequentially upstream). Captain lines anchor to
 // the speaker's ship under the CURRENT camera; table lines hover top-centre over the water.
@@ -502,7 +552,8 @@ function stageFlash(msg){
     // playtest 10 item 7: bubbles bypass panel()'s emojify chokepoint, so ad-hoc narration lines
     // (turn banners, flip results) kept raw ⚪/🌕 emoji instead of the game art. Emojify here.
     b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
-    document.body.appendChild(b);
+    const host = fxHost();
+    host.appendChild(b);
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
     try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
     let bh = 0, bhAt = -1e9;   // HOT-PHONE: offsetHeight is a layout read — remeasure ~2x/s, not 60
@@ -510,12 +561,22 @@ function stageFlash(msg){
       if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
       const [sx, sy] = toScreen(u[0], u[1]);
+      const band = boardBand();
+      const h = fxHost();                            // keeps the clip in step with the captains box
       const W = Math.min(290, vwPx() - 24);
       if (b.style.width !== W + "px") b.style.width = W + "px";
       if (performance.now() - bhAt > 500){ bh = b.offsetHeight; bhAt = performance.now(); }
-      const left = Math.min(Math.max(sx - W / 2, 8), vwPx() - W - 8);
-      b.style.left = left + "px";
-      b.style.top = Math.max(54, sy - bh - 40) + "px";
+      const left = Math.min(Math.max(sx - W / 2, band.left), band.right - W);
+      /* ABOVE THE SHIP WHEN THERE IS ROOM, BELOW IT WHEN THERE IS NOT — playtest 22 item 4:
+         "When the boats are at the top of the map, the narration box should appear below them, so
+         that it doesnt cover them up." The old line clamped to a flat 54px, which for a ship near
+         the top meant the bubble was pushed DOWN onto the boat it was talking about. Flipping is
+         the only placement that keeps both the ship and the words visible. */
+      const above = sy - bh - 40;
+      const top = (above >= band.top) ? above : Math.min(sy + 44, band.bottom - bh - 4);
+      b.style.left = (left - 0) + "px";
+      b.style.top = (Math.max(band.top, Math.min(top, band.bottom - bh - 4)) - band.top) + "px";
+      b.classList.toggle("below", above < band.top);
       const t = b.querySelector(".pp4Tail");
       if (t) t.style.left = Math.max(16, Math.min(sx - left - 8, W - 32)) + "px";
     };
@@ -1010,6 +1071,8 @@ function promptTick(){
       return u ? toScreen(u[0], u[1]) : null;
     });
     const onBoats = anchors.length > 0 && anchors.every(Boolean);
+    // the SEATS those anchors belong to — the framing needs captains, not screen points
+    const anchorSeats = menu.map(b => b.dataset ? +b.dataset.seat : NaN).filter(n => Number.isFinite(n));
     const cap = $("pp4Cap");
     const capT = cap ? cap.getBoundingClientRect().top : vhPx();
     const rib = $("pp4Ribbon");
@@ -1029,12 +1092,27 @@ function promptTick(){
        during the glide cannot re-aim the camera at every frame and chase itself. Only when the boat
        is genuinely outside the band the circles have to live in; a boat merely near the edge is
        left alone, because the director moving on its own is startling when it was not needed. */
+    /* FRAME WHAT THE QUESTION IS ABOUT, NOT WHOEVER IS ANSWERING IT — playtest 22 item 6 (Wyatt):
+       "The director is not correctly centering the players who are engaging in a battle, when
+       asking a player to call the battle. The player is centered; instead, the two battling
+       captains should be."
+       Exactly what this did. `sx,sy` is MY ship and camToSeat(mySeat) re-aimed at MY ship, for
+       EVERY prompt — including the call-the-winner prompt, which is a question about two other
+       captains and whose own circles are anchored to THEM. So the director pulled the shot off the
+       fight onto a bystander, and the two circles then bloomed around boats that had just been
+       shoved to the edge, which is the second half of his report ("the logic is broken on
+       displaying the action buttons"). The buttons were placed correctly around the wrong shot.
+       `camFitSeats` already exists and is what __pp4.battle uses — the fight simply was not asking
+       for it here. */
     if (!S.lock && sx != null){
       const key = S.turnSerial + "|" + (ap.querySelector(".apMsg") || {}).textContent;
       if (S.frameKey !== key){
         S.frameKey = key;
-        const out = sx < 8 || sx > vwPx() - 8 || sy < tSafe || sy > capT - 8;
-        if (out) camToSeat(appState.mySeat ?? 0);
+        const inBand = (px, py) => px >= 8 && px <= vwPx() - 8 && py >= tSafe && py <= capT - 8;
+        if (onBoats && anchorSeats.length){
+          // every captain the question is about has to be on screen, not just one of them
+          if (!anchors.every(a => inBand(a[0], a[1]))) camFitSeats(anchorSeats);
+        } else if (!inBand(sx, sy)) camToSeat(appState.mySeat ?? 0);
       }
     }
     // playtest 12 item 8: circles hug the boat — as close as the ship-clearance allows
@@ -1085,15 +1163,27 @@ function promptTick(){
         cxA = anchors.reduce((a, p) => a + p[0], 0) / anchors.length;
         mTop = Math.max(tSafe - 34, Math.min(...anchors.map(p => p[1])) - R - 96);
       }
-      else if (S.pillLock && S.pillLock.key === S.turnSerial){
+      /* THE LOCK IS PER TURN *AND* PER SHIP POSITION — playtest 22 item 8 (Wyatt): "'Wyargh whatll
+         ye do' is far below my boat instead of above it, which is where it should be, and this
+         happens even though there is space above it."
+         The lock exists for a good reason (playtest 15: "over the course of a single turn, it
+         doesn't move around"), but it keyed on the turn ALONE. The first prompt of a turn is the
+         SAIL prompt, whose pill deliberately dodges the sail window and drops BELOW it when the
+         squares reach the ribbon — and then the ship sails away and the action menu inherits that
+         low spot, with the whole sea empty above it. Adding the ship's square to the key keeps the
+         pill still while the ship is still, which is what he actually asked for, and re-picks the
+         moment the ship has moved. */
+      else if (S.pillLock && S.pillLock.key === S.turnSerial && S.pillLock.at === (sx|0)+","+(sy|0)){
         cxA = S.pillLock.cx; mTop = S.pillLock.top;
       } else {
         cxA = sx;
-        mTop = Math.max(tSafe - 34, sy - R - 96);
+        // above the boat when the band has room, below it when it does not — the same rule the
+        // narration bubble now follows (item 4), so one gesture has one behaviour
+        mTop = (sy - R - 96 >= tSafe - 34) ? sy - R - 96 : Math.min(sy + R + 34, capT - 44);
         // a sail prompt's pill dodges the whole sail window: above it if there's room under
         // the ribbon, else just below it
         if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : Math.min(cb.b + 8, capT - 44); }
-        S.pillLock = { key: S.turnSerial, cx: cxA, top: mTop };
+        S.pillLock = { key: S.turnSerial, at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
       }
       msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), vwPx() - mw - 10) + "px";
       msg.style.top = mTop + "px";
@@ -1374,6 +1464,28 @@ export function initStage(){
     // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
     // narration that follows glides the camera back down to the ship at its whirlpool
     sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
+    /* THE STORM IS THE ONE MOMENT THE WHOLE TABLE MOVES AT ONCE — playtest 22 item 1 (Wyatt): "The
+       director should zoom out to show all boats and their end squares before moving them in a
+       storm." A storm takes every ship three squares downwind simultaneously; framed on one boat,
+       the player watches their own ship slide and has to infer the rest from the narration.
+       The window is every ship's square AND the square the wind is driving it toward. That target
+       is computed the plain way (pos + dir x STORM_PUSH) rather than asked of the engine, and that
+       is deliberate: a ship that fetches up short on land or another hull ends INSIDE this window,
+       never outside it, so an over-estimate is always safe and an engine query would have to mutate
+       the board to answer. Called before the first ship moves, so the shot is already wide when the
+       storm starts rather than chasing it. */
+    stormCam: (dirKey) => { if (!S.active) return;
+      const g = appState.game; if (!g) return;
+      const d = DIRS[dirKey]; if (!d) return;
+      const cells = [];
+      for (const p of g.players){
+        if (!g.inPlay || !g.inPlay(p) || !p.pos) continue;
+        cells.push(p.pos);
+        cells.push([p.pos[0] + d[0] * STORM_PUSH, p.pos[1] + d[1] * STORM_PUSH]);
+      }
+      if (!cells.length) return;
+      S.lock = false;
+      camFitCells(cells, 2.0); },
     // playtest 16: the bake-off flips to centre stage BEFORE building its panel, so panel()'s
     // height measurement runs under centre CSS rather than the outgoing radial prompt's (see
     // enterCenterStage's own note for the clipped-to-nothing failure this prevents)

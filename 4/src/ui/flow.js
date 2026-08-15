@@ -437,34 +437,24 @@ const SAIL_HL_SCALE=0.9;
 // deliberately ride the trade winds". What is true is narrower: BOTS pass throughRim:false and
 // so never choose it. That is a bot-routing decision, not a rule, and it is being changed.
 // A wrong reason is what the next change gets built on — see HARD-WON-LESSONS section 5.
-// Draft copy — Wyatt rewrites.
-function sailGuideLine(p,cells){
-  const g=appState.game; if(!g) return null;
-  const bits=[];
-  // @copy adhoc.sail.tradewindhint
-  if(g.onRim&&cells.some(c=>g.onRim(c)))
-    bits.push(`Blue squares are the trade winds — land there and the current carries ye on.`);
-  // @copy adhoc.sail.dockoutofreach
-  const need=(g.needs&&g.needs(p))||[];
-  if(need.length){
-    const key=c=>c[0]+","+c[1];
-    const reach=new Set(cells.map(key));
-    const stillOut=need.filter(ing=>{
-      const d=(g.dockOf&&g.dockOf[ing])||(g.islandOf&&g.islandOf[ing]);
-      return d&&!reach.has(key(d));
-    });
-    // only worth saying when EVERY crate still wanted is out of reach — if one is reachable the
-    // player has a move to make and does not need to be told about the ones that aren't
-    if(stillOut.length===need.length){
-      const nearest=stillOut.map(ing=>{
-        const d=(g.dockOf&&g.dockOf[ing])||(g.islandOf&&g.islandOf[ing]);
-        return {ing,d,n:man(p.pos,d)};
-      }).sort((a,b)=>a.n-b.n)[0];
-      if(nearest)bits.push(`${iname(nearest.ing)} lies ${nearest.n} squares off — no square ye can reach this day sits on that dock.`);
-    }
-  }
-  return bits.length?bits.join(" "):null;
-}
+/* THE SAIL CARD CARRIES NO HELPER LINE AT ALL — playtest 22 items 2 and 9 (Wyatt).
+
+   sailGuideLine() had exactly two things to say and he cut both:
+
+     "Blue squares are the trade winds — land there and the current carries ye on."
+        -> "Remove it entirely — it's too long, it blocks the board, and it appears every time."
+           The board teaches this better than the sentence does: the channel is tinted, the arrows
+           flow along it, and a ship that lands there is visibly swept.
+
+     "<crate> lies N squares off — no square ye can reach this day sits on that dock."
+        -> "the helper text is stupid and unhelpful: 'fresh milk lies 0 squares off' makes no
+           sense." It is worse than unhelpful, it is WRONG: `man(p.pos, dock)` is the distance to
+           the DOCK SQUARE, and a captain moored on that very square measures 0 while being told
+           nothing he can reach sits on it.
+
+   With both gone the function could only ever return null, so it is deleted rather than left
+   returning nothing — a helper nothing can be said by is dead code. The self-check's red shout is
+   NOT this and stays: it is a bug report, not a hint. */
 export function sailHighlightRect(c,cellPx,svg){
   // playtest 20: an HTML div in #sailHost, NOT an SVG rect. UI-06's bounce animates transform:
   // scale, and on an SVG element that forces a full layout every frame — measured as the whole of
@@ -657,15 +647,13 @@ export function localPickCell(p,cells){
     // the self-check's shout, if it ever fires, REPLACES the ordinary hint — it is the only thing
     // that matters on screen at that point
     const bug=sailSelfCheck(p,cells);
-    const guide=bug?null:sailGuideLine(p,cells);
     // /4 playtest 6: the standing wind-helper line leaves the sail card (the pill carries the
     // wind; the card must stay one line tall for placement freedom). The self-check's red shout
     // still renders when it fires — that one is a bug report, not a hint.
     const hint=bug;
     panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
       <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
-      (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`
-           :(guide?`<div class="apSub">${guide}</div>`:``)),true);
+      (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``),true);
     $("apStay").onclick=()=>done(null);
   });
 }
@@ -1094,6 +1082,9 @@ export async function runStormLive(dirKey){
   const g=appState.game;
   g.ev({t:"storm",dir:dirKey,dist:STORM_PUSH});
   liveRender();
+  // playtest 22 item 1: pull the shot wide BEFORE the first hull moves, so the whole table and the
+  // water it is about to be driven across are on screen for the announcement. See stage.js stormCam.
+  if(window.__pp4&&window.__pp4.stormCam)window.__pp4.stormCam(dirKey);
   await narrateLastEvent();
   // furthest downwind moves first, so the lead ship clears its square before the ship behind it
   // arrives — the engine owns that ordering too (rule 7b)

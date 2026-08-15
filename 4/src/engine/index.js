@@ -362,11 +362,19 @@ class Game{
     if(c[0]<0||c[1]<0||c[0]>=n||c[1]>=n)return true;
     return this.isRound&&!this.valid.has(c[0]+","+c[1]);}
   onRim(c){return this.isRound&&this.rim.has(c[0]+","+c[1]);}
-  tradewind(p){ // entering the rim channel sweeps you to the head of that quadrant
+  /* entering the rim channel sweeps you to the head of that quadrant.
+     `blown` records HOW the ship got into the channel, because the narration says two different
+     things about it (playtest 22 item 3, Wyatt): a captain who sailed in chose the ride, and only a
+     storm BLOWS anyone anywhere. The engine is the only thing that knows which happened, so it is
+     the engine that records it — the alternative, guessing in the narration table from whatever
+     event came before, is the kind of second source of truth this project keeps paying for.
+     Only windLeg's storm push passes true; a chosen sail, a rim escape and a flight from a battle
+     are all the ship moving under its own canvas. */
+  tradewind(p,blown){
     if(!this.isRound)return false;
     const head=this.rimHead[p.pos[0]+","+p.pos[1]];
     if(head&&(head[0]!==p.pos[0]||head[1]!==p.pos[1])){
-      p.pos=[...head];this.ev({t:"tradewind",p:p.idx});return true;
+      p.pos=[...head];this.ev({t:"tradewind",p:p.idx,blown:!!blown});return true;
     }
     return false;
   }
@@ -431,7 +439,7 @@ class Game{
     // anchor rather than be driven onto the rocks, and it was silent until now.
     if(this.isIsland(nx)||this.isHome(nx))return "landHeld";
     p.pos=nx;
-    if(this.onRim(nx)){this.tradewind(p);return "swept";}
+    if(this.onRim(nx)){this.tradewind(p,true);return "swept";}   // the storm put him there
     return "moved";
   }
   stormPush(p,dirKey,dist){

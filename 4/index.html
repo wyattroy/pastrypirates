@@ -1520,12 +1520,22 @@
     color:#177; margin-bottom:8px; }
   body.pp4Stage #actionPanel { margin:0; }
 
-  .pp4Bub { position:fixed; z-index:26; background:#fffdf2; border:2px solid #177; border-radius:13px;
+  /* playtest 22 item 7: the clipped host every board-anchored floater lives in. It spans the
+     board's visible window — below the wind ribbon, above the captains box — and stage.js resizes
+     it from boardBand() on the same tick the camera moves. overflow:hidden is the whole point: a
+     bubble for a ship that has been zoomed off the bottom of the board is now CUT by the board's
+     edge instead of painting over the captains box. Children are pointer-events:auto individually
+     if they ever need taps; the host itself must never eat one. */
+  #pp4Fx { position:fixed; left:0; right:0; overflow:hidden; pointer-events:none; z-index:21; }
+  #pp4Fx > * { pointer-events:auto; }
+  .pp4Bub { position:absolute; z-index:26; background:#fffdf2; border:2px solid #177; border-radius:13px;
     padding:9px 12px; box-shadow:0 8px 26px rgba(0,0,0,.33); font-size:14px; line-height:1.45;
     font-weight:600; color:#1f2d33; transition:opacity .35s; }
   .pp4Bub.ambient { left:50%; transform:translateX(-50%); top:calc(74px + env(safe-area-inset-top));
     max-width:min(320px,86vw); background:rgba(9,42,52,.87); color:#fff; border-color:rgba(255,255,255,.25); }
   .pp4Bub.out { opacity:0; }
+  /* item 4: below its ship, the tail points UP at the boat it belongs to */
+  .pp4Bub.below .pp4Tail { top:-9px; bottom:auto; transform:rotate(225deg); }   /* 45 + 180: the base tail is already rotated 45, so a bare 180 would square it off */
   .pp4Tail { position:absolute; bottom:-9px; width:15px; height:15px; background:#fffdf2;
     border-right:2px solid; border-bottom:2px solid; transform:rotate(45deg); }
   #pp4Veil { position:fixed; inset:0; z-index:44; display:flex; flex-direction:column;

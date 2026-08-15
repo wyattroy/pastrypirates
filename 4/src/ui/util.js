@@ -47,6 +47,8 @@ import {
   NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, FLAME_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG, EYES_IMG,
+  // the flip's own five, for preloadAssets — see its note on why a timed ceremony cannot wait
+  FLIP_SOCKET_IMG, COIN_SPIN_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
   SEA_CREATURES, buildRoster,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
@@ -595,7 +597,19 @@ const EVENT_NARRATION={
     else txt=`${pn(e.p)} spots ${pn(e.other)} dead ahead, so strikes sail and holds fast.`;
     return {txt,pops:[[at(e.p),"⚓"]]};
   },
-  tradewind:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — yer blown into the trade winds and swept around the rim!`:`🌀 ${pn(e.p)} is blown into the trade winds and swept around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
+  /* TWO WAYS INTO THE CHANNEL, AND ONLY ONE OF THEM IS SOMETHING DONE TO YE.
+     playtest 22 item 3 (Wyatt): the line should say "sails the trade winds!" on every turn where the
+     captain steered in on purpose, and "is blown into the trade winds" ONLY when a storm put him
+     there. One line for both read as though the sea had grabbed a captain who had just made a
+     clever move — it took the credit for his own plan away from him.
+     `e.blown` is set by the engine at the moment of entry (Game.tradewind), never inferred here.
+     @copy adhoc.narr.tradewind — DRAFT, Wyatt rewrites */
+  tradewind:(e,at,cellPx,viewerSeat)=>({txt:e.blown
+      ?(isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — yer blown into the trade winds and swept around the rim!`
+                                 :`🌀 ${pn(e.p)} is blown into the trade winds and swept around the rim!`)
+      :(isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — ye sail the trade winds, and the current carries ye on!`
+                                 :`🌀 ${pn(e.p)} sails the trade winds, and the current carries her on!`),
+    pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
   // D-19 SIMPLIFIED (Wyatt-approved 2026-07-29): `parley` now fires ONLY on a refusal — an accepted
   // hail emits a `trade` event instead (src/ui/flow.js's bot-hail path), so the old `e.ok===true`
   // "deal struck!" branch here is unreachable and has been removed rather than left as dead copy a
@@ -1831,8 +1845,23 @@ export function updateRecipeBanner(){
 // #6: preload the core board art up front so a slow connection doesn't render the board with
 // missing/fallback tiles that pop in one by one. Each image resolves on load OR error (never
 // rejects), and boot() caps the whole wait with a timeout, so the loader can never hang the game.
+/* THE COIN'S OWN FACES WERE NEVER IN HERE — playtest 22 item 13 (Wyatt): "Make sure to load all of
+   the coin flip images immediately when the game loads; currently they seem to be loading during
+   the first flip, which makes them fail to appear sometimes."
+   Exactly right, and the reason is a drift this list is prone to: it was written around the BOARD
+   (art, docks, boats, islands, crates) and the flip's five images were never added, so the first
+   toss of a voyage fetched its own socket, spin and faces mid-ceremony. Everything else on the
+   board can arrive a beat late and nobody notices; a flip CANNOT, because it is a timed animation
+   that has already started.
+
+   That is the line this list draws, and it is worth stating so the next addition knows which side
+   it is on: preload what a TIMED CEREMONY needs — anything the game animates on a clock, where a
+   late image is a missed beat rather than a slow paint. Not every icon in the game: ~90 images at
+   boot on a phone would trade this bug for a slower start. The flip is the archetype; the coin is
+   also what battles, docks and the bake-off all spend their drama on. */
 export function preloadAssets(){
   const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
+    FLIP_SOCKET_IMG,COIN_SPIN_IMG,FLIP_HEADS_IMG,FLIP_TAILS_IMG,COIN_IMG,
     ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
   return Promise.all(urls.map(u=>new Promise(res=>{
     const img=new Image();
