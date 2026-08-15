@@ -1615,6 +1615,34 @@
     gap:26px; width:min(420px, 94vw); max-width:420px; box-sizing:border-box; min-height:0 !important; }
   #pp4Prompt.pp4Center .apMsg { background:#fffdf2; border:2px solid #177; border-radius:14px;
     padding:16px 18px; font-size:16.5px; line-height:1.5; box-shadow:0 12px 40px rgba(0,0,0,.45); }
+  /* THE BOWLS FILL THE CARD — the other half of playtest 22 item 11, and the half his screenshot
+     actually shows.
+     MEASURED through a whole bake: with the card pinned wide the bowls row still came out 260px
+     inside a 404px card, each bowl 47px against its own 64px cap. The panel is a COLUMN flex with
+     align-items:center, so every child is content-sized — and .bkoBowl is `flex:1 1 0`, whose
+     content width is whatever the bowl art happens to measure. The row therefore collapses to the
+     art rather than the card, and the bowls never reach their intended size.
+     Before the card was pinned, the panel was content-sized too, so the WHOLE CARD shrank to that
+     collapsed row: ~267px, which is exactly the width in his screenshot (the card and the bowls row
+     are nearly the same width there, while a healthy card is much wider than its bowls). And "after
+     a few seconds it glitched to the correct width" is the art finishing its decode and changing
+     the intrinsic width everything had been sized from.
+     Stretching the shell and the row breaks the circularity: the row is as wide as the card, so
+     `flex:1 1 0` divides a REAL width and each bowl grows to its 64px cap.
+
+     WHICH element was content-sized took a measurement to find, and it was NOT the one I stretched
+     first. The real chain, read off a live bake:
+         #actionPanel   404px   (pinned by the rule above)
+         #apGrid        316px   <- content-sized: a grid child of a column flex with
+         #apGridInner   316px      align-items:center, so it never filled the panel
+         .bko           296px
+         .bkoRow        260px
+         .bkoBowl        47px   against its own 64px cap
+     #apGrid is the one that has to stretch; everything under it is block-level and follows. */
+  #pp4Prompt.pp4Center #apGrid,
+  #pp4Prompt.pp4Center .bko,
+  #pp4Prompt.pp4Center .bkoRow,
+  #pp4Prompt.pp4Center .bkoCard { align-self:stretch; width:100%; box-sizing:border-box; }
   #pp4Prompt.pp4Center .apBtns, #pp4Prompt.pp4Center .apBtn { visibility:visible !important; }
   #pp4Prompt.pp4Center .apBtns { display:flex; justify-content:center; width:100%; }
   #pp4Prompt.pp4Center .apBtn { width:110px; height:110px; border-radius:50%; border:3px solid #177;
