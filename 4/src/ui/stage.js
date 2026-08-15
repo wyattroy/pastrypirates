@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-15c";
+const PP4_STAMP = "2026-08-15d";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -556,16 +556,39 @@ function stageFlash(msg){
     host.appendChild(b);
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
     try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
-    let bh = 0, bhAt = -1e9;   // HOT-PHONE: offsetHeight is a layout read — remeasure ~2x/s, not 60
+    /* ONLY AS WIDE AS THE WORDS — playtest 23 item 3 (Wyatt): "the narration text boxes should only
+       be as wide as they need to be… For a single line text box the boxes should be only as wide as
+       they need to be to fit the text."
+
+       `width: max-content` rather than dropping the width and letting the absolute box shrink-wrap:
+       an abs-positioned element with `left` set sizes against the space LEFT of the containing
+       block's right edge, so a bubble for a ship near the right of the board would have wrapped a
+       line that fits perfectly well at the same font. max-content is the one-line width regardless
+       of where the box is standing; the cap then wraps only what genuinely cannot fit.
+
+       Safe against the typewriter, and this is the reason it is safe rather than lucky:
+       typewriterReveal() splits every text node into a shown span and a `visibility:hidden` span
+       holding the SAME full text, so the box's intrinsic width is the finished line's from the very
+       first frame. Nothing grows as the words arrive. (Same property panel.js records for height.)
+
+       Both other floating boxes already do this and are untouched: `.pp4Bub.ambient` is
+       `max-width:min(320px,86vw)` with no width, and the chat `.bubble` is `max-width:42%`. */
+    const CAP = () => Math.min(290, vwPx() - 24);
+    b.style.width = "max-content";
+    b.style.maxWidth = CAP() + "px";
+    let bh = 0, bw = 0, bhAt = -1e9;   // HOT-PHONE: offset* are layout reads — remeasure ~2x/s, not 60
     const place = () => {
       if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
       const [sx, sy] = toScreen(u[0], u[1]);
       const band = boardBand();
       const h = fxHost();                            // keeps the clip in step with the captains box
-      const W = Math.min(290, vwPx() - 24);
-      if (b.style.width !== W + "px") b.style.width = W + "px";
-      if (performance.now() - bhAt > 500){ bh = b.offsetHeight; bhAt = performance.now(); }
+      const cap = CAP();
+      if (b.style.maxWidth !== cap + "px"){ b.style.maxWidth = cap + "px"; bhAt = -1e9; }
+      if (performance.now() - bhAt > 500){ bh = b.offsetHeight; bw = b.offsetWidth; bhAt = performance.now(); }
+      // MEASURED, not computed: the clamp and the tail both need the width the renderer actually
+      // gave the box, which is now the text's width and no longer a number this file chose.
+      const W = bw || cap;
       const left = Math.min(Math.max(sx - W / 2, band.left), band.right - W);
       /* ABOVE THE SHIP WHEN THERE IS ROOM, BELOW IT WHEN THERE IS NOT — playtest 22 item 4:
          "When the boats are at the top of the map, the narration box should appear below them, so
@@ -578,7 +601,10 @@ function stageFlash(msg){
       b.style.top = (Math.max(band.top, Math.min(top, band.bottom - bh - 4)) - band.top) + "px";
       b.classList.toggle("below", above < band.top);
       const t = b.querySelector(".pp4Tail");
-      if (t) t.style.left = Math.max(16, Math.min(sx - left - 8, W - 32)) + "px";
+      // the tail tracks the ship, clamped INSIDE the box — and the box can now be narrow, so the
+      // two bounds are ordered rather than nested: with a fixed 290px width `Math.max(16, …W-32)`
+      // could never invert, and at max-content width it can.
+      if (t) t.style.left = Math.min(Math.max(sx - left - 8, 8), Math.max(8, W - 23)) + "px";
     };
     // Wyatt's recording, measured frame by frame: positioned on a 90ms interval, the bubble
     // trailed the 60fps camera glide in visible 25-40px steps — a different loop than the board.

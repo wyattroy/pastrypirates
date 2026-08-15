@@ -332,7 +332,7 @@ export function watchChat(){
 export function renderBattle(o){
   if(appState.replaying)return;          // silent during reload-replay, like liveRender
   const nm=i=>pname(i),col=i=>HEXCOL[i];
-  const A=o.att,D=o.def,need=o.need||3,title=o.title||"⚔️ Broadside Battle";
+  const A=o.att,D=o.def,title=o.title||"⚔️ Broadside Battle";
   // playtest 20: WHO WINS A TIE, said before a coin is ever tapped. Rule 9 hands a two-heads tie
   // to the downwind ship and the card used to show only names, roles and coins — so a quarter of
   // all fights turned on something the card never mentioned. Wyatt's pick, 2026-08-13.
@@ -340,29 +340,37 @@ export function renderBattle(o){
   // after one (BATL-03), so the geometry cannot go stale between render and result. `o.dw` still
   // wins when present, so a broadcast snapshot keeps rendering from its own recorded value.
   const dw=o.dw!==undefined?o.dw:(appState.game&&appState.game.downwindSide?appState.game.downwindSide(A,D):null);
-  // @copy misc.battlecard.windtag — APPROVED as written, Wyatt 2026-08-14
-  const windTag=side=>dw==null
+  /* ONE PILL, CENTRED UNDER BOTH CAPTAINS — playtest 23 item 2 (Wyatt: "the battle UI has too much
+     text and much of it is unnecessary… remove both wind hint pills from underneath the captain's
+     name; instead put one wind hint pill underneath, centered across both captains").
+     The pair it replaces stated ONE fact twice, from two sides, and neither half named the captain
+     it favoured — the reader had to work out that ⬇ DOWNWIND under a column meant that column. A
+     single pill says the whole thing once and points at whoever holds the edge.
+     @copy misc.battlecard.windtag — APPROVED as written, Wyatt 2026-08-15 (the downwind line was
+     his own wording; the crosswind line is unchanged from the 2026-08-14 approval). */
+  const windTag=dw==null
     ? `<div class="windTag cross">CROSSWIND · ties collide</div>`
-    : (dw===side ? `<div class="windTag dw">⬇ DOWNWIND · wins ties</div>`
-                 : `<div class="windTag up">⬆ UPWIND</div>`);
+    : `<div class="windTag dw">⬇ ${nm(dw==="a"?A.idx:D.idx).toUpperCase()} FIRES DOWNWIND — WINS TIES</div>`;
+  // `Round N · first to K` is gone with it, and it was never load-bearing: asyncBattleRun fixes
+  // need=1 and the a/d counters only ever read 0 or 1 (see the note above asyncBattle), so the
+  // line counted a race that stopped existing when the battle became a single broadside.
   // @copy prompt.battle.scoreboard
   panel(`<div class="btl">
-    <div class="btl-hd"><span>${title}</span><span class="rnd">Round ${o.round} · first to ${need}</span></div>
+    <div class="btl-hd"><span>${title}</span></div>
     <div class="btl-body">
       <div class="btl-col${o.live==="a"?" live":""}">
         <div class="who" style="color:${col(A.idx)}">${nm(A.idx)}</div>
         <div class="role">${o.roleA||"Attacker"}</div>
-        ${windTag("a")}
         ${coinHTML(o.atState,o.atBs,o.winCoin==="a")}
       </div>
       <div class="btl-mid">VS</div>
       <div class="btl-col${o.live==="d"?" live":""}">
         <div class="who" style="color:${col(D.idx)}">${nm(D.idx)}</div>
         <div class="role">${o.roleD||"Defender"}</div>
-        ${windTag("d")}
         ${coinHTML(o.dfState,o.dfBs,o.winCoin==="d")}
       </div>
     </div>
+    <div class="btl-wind">${windTag}</div>
     ${battleFooter(o)}
   </div>`,!!o.prompt);
   // broadcast the read-only scoreboard (never buttons) so every connected client — not just

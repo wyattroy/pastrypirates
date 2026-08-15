@@ -529,7 +529,6 @@
   /* ---- battle scoreboard ---- */
   .btl { text-align: center; }
   .btl-hd { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
-  .btl-hd .rnd { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .55; font-weight: 700; }
   .btl-body { display: flex; align-items: flex-start; justify-content: center; gap: 8px; }
   /* min-width:0 IS LOad-BEARING — playtest 22 (Wyatt: "the battles box is clipping at the edges"),
      with the attacker's name cut to "ough Hook" on one side and "ties collide" cut on the other.
@@ -545,15 +544,25 @@
   .btl-col .role { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .5; margin-bottom: 7px; }
   /* playtest 20: the wind, on the card, before a coin is tapped. A two-heads tie goes to the
      downwind ship (rule 9) and ~25% of fights are decided that way, so the edge is named where
-     the fight is watched rather than only in the line that follows it. The downwind side is the
-     only one dressed loudly — an upwind or crosswind tag that shouted as loud would make the card
-     read as two competing claims instead of one advantage. */
-  .btl-col .windTag { font-size: 9px; font-weight: 800; letter-spacing: .6px; border-radius: 999px;
-    padding: 2px 7px; margin: -3px auto 7px; width: max-content; max-width: 100%; line-height: 1.35; }
-  .btl-col .windTag.dw { background: #f5a623; color: #3a2600; border: 1px solid #c9821a; }
-  .btl-col .windTag.up { background: rgba(31,66,73,.10); color: #1f4249; opacity: .65; }
-  .btl-col .windTag.cross { background: rgba(31,66,73,.10); color: #1f4249; opacity: .65; }
-  .btl-mid { align-self: center; font-weight: 800; font-size: 12px; opacity: .35; padding-top: 30px; }
+     the fight is watched rather than only in the line that follows it.
+     playtest 23 item 2: ONE pill, centred BENEATH both columns, rather than one per captain. It
+     left the columns, so it is scoped to .btl-wind — the min-width:0 note above no longer applies
+     to it (a centred row cannot set a column's intrinsic width), but the columns keep that rule
+     because the captain names still can. `.up` is gone rather than left unused: a single pill
+     names the downwind ship, so there is no side left to label upwind. */
+  .btl-wind { display: flex; justify-content: center; margin-top: 8px; }
+  .btl-wind .windTag { font-size: 10px; font-weight: 800; letter-spacing: .6px; border-radius: 999px;
+    padding: 3px 10px; width: max-content; max-width: 100%; line-height: 1.35; }
+  .btl-wind .windTag.dw { background: #f5a623; color: #3a2600; border: 1px solid #c9821a; }
+  .btl-wind .windTag.cross { background: rgba(31,66,73,.10); color: #1f4249; opacity: .65; }
+  /* VS HOLDS ITS PLACE AGAINST THE COINS, and 9px is a measurement rather than a guess. The pill
+     leaving the column shortened it 160px -> 138px, so the old 30px over-corrected. Swept in the
+     live page at 430px and read off a Range over the glyph — NOT off the flex box, which
+     align-self:center pins to the line centre and which therefore reads the same at every padding
+     (that mis-measurement reported a flat -13 for 0px through 40px and nearly shipped a wrong number):
+       before, padding 30px -> VS sits  9.1px above the coin's centre
+       after,  padding  9px -> VS sits  8.5px above the coin's centre  */
+  .btl-mid { align-self: center; font-weight: 800; font-size: 12px; opacity: .35; padding-top: 9px; }
   .coin { width: 74px; height: 74px; margin: 0 auto 9px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 13px; letter-spacing: .5px; border: 3px solid; position: relative; }
   .coin.wait { background: #f4f4f4; border-color: #dcdcdc; color: #c2c2c2; font-size: 24px; }

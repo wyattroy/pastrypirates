@@ -603,12 +603,20 @@ const EVENT_NARRATION={
      there. One line for both read as though the sea had grabbed a captain who had just made a
      clever move — it took the credit for his own plan away from him.
      `e.blown` is set by the engine at the moment of entry (Game.tradewind), never inferred here.
-     @copy adhoc.narr.tradewind — DRAFT, Wyatt rewrites */
+
+     BOTH LINES STOP AT THE TRADE WINDS — playtest 23 item 4 (Wyatt): "the narration dialogue for
+     sailing the tradewinds uses the pronoun her. Remove the second half of the sentence and just
+     keep the part about sailing the tradewinds." The pronoun was the tell — a captain the game has
+     never gendered was being called "her" — but the trailing clause was the thing to cut, because
+     the board is already showing the current carrying the ship as the words are read. His call,
+     same day, was to trim the storm sibling to match rather than leave one long line and one
+     short: same event, same box, same length.
+     @copy adhoc.narr.tradewind — APPROVED as written, Wyatt 2026-08-15 */
   tradewind:(e,at,cellPx,viewerSeat)=>({txt:e.blown
-      ?(isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — yer blown into the trade winds and swept around the rim!`
-                                 :`🌀 ${pn(e.p)} is blown into the trade winds and swept around the rim!`)
-      :(isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — ye sail the trade winds, and the current carries ye on!`
-                                 :`🌀 ${pn(e.p)} sails the trade winds, and the current carries her on!`),
+      ?(isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — yer blown into the trade winds!`
+                                 :`🌀 ${pn(e.p)} is blown into the trade winds!`)
+      :(isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — ye sail the trade winds!`
+                                 :`🌀 ${pn(e.p)} sails the trade winds!`),
     pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
   // D-19 SIMPLIFIED (Wyatt-approved 2026-07-29): `parley` now fires ONLY on a refusal — an accepted
   // hail emits a `trade` event instead (src/ui/flow.js's bot-hail path), so the old `e.ok===true`
