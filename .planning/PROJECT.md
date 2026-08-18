@@ -49,8 +49,9 @@ never lose multiplayer, which is why `4/` stays at `/4` until it can host a netw
 
 **Target features:**
 - **Multiplayer restored to `4/`** — the Firebase tags come back, and the bake-off gets the remote
-  branch it was deliberately built without. A rival sees nothing until the reveal, which needs a
-  private per-seat channel the current room-readable `prompt` node cannot provide.
+  branch it was deliberately built without. **Every other captain watches the bake live** on the same
+  face-down bench, replacing today's "waiting…" note; it rides the `rooms/<C>/battle` spectator
+  channel that already exists and already carries a bake-off snapshot. No shot clock on the bake-off.
 - **The full test harness rebuilt against `4/`** — the 21 gates, a fresh determinism corpus for the
   new engine, and `4/src/ui/stage.js` made importable under Node so the largest new module can be
   tested at all.
@@ -119,7 +120,7 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 
 <!-- v2.0 The New Game scope. Requirements defined in .planning/REQUIREMENTS.md. -->
 
-- Multiplayer restored to `4/`, including a networked bake-off with rival bowls private until reveal — v2.0
+- Multiplayer restored to `4/`, including a networked bake-off every other captain watches live (face-down bench, no shot clock) — v2.0
 - Full test harness rebuilt against `4/` — 21 gates, fresh determinism corpus, `stage.js` importable — v2.0
 - Cutover: `4/` to the repo root, v1 to `/classic`, `v2/`+`v2bakeoff/`+`3/` deleted — v2.0
 - True widescreen desktop layout — board fills height, captains as a right-hand column — v2.0
@@ -201,7 +202,8 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 | **The `4/` redesign becomes the official game (v2.0)** | Wyatt, 2026-08-18: the design, rules and engine of `4/` are what he wants. The prototype was sanctioned, not rogue — and its engine is determinism-clean, correctly layered, with zero commented-out code in 18k lines and all five standing design rules verified honored | — Pending — v2.0 |
 | **v1 is retired to `/classic`, not deleted; `v2/`, `v2bakeoff/`, `3/` are deleted** | Nothing a player has bookmarked should break, but five copies of the game make every "which file?" question ambiguous. The three intermediate builds are fully preserved in git history | — Pending — v2.0 |
 | **Multiplayer before cutover; desktop after** | The core value is that the game stays playable in multiplayer. Cutting over before `4/` can host a networked game would take multiplayer away from real players for the duration | — Pending — v2.0 |
-| **The networked bake-off keeps rival bowls private until the reveal** | Wyatt, 2026-08-18. It preserves how the scene feels solo. It is also the harder option: the shared `rooms/<C>/prompt` node is room-readable, so this requires a private per-seat channel that does not exist today — which is precisely why `4/src/ui/flow.js:584` was written with "NO decisionIsLocal BRANCH, deliberately" | — Pending — v2.0 |
+| ~~The networked bake-off keeps rival bowls private until the reveal~~ **REVERSED same day — rivals WATCH the bake live, bowls face down** | Wyatt, 2026-08-18: *"how hard would it be to let other players watch the bakeoff, instead of just see a standard 'waiting for {Player} to decide' note? that seems like a better design."* It is better **and** cheaper: privacy needed a private per-seat channel (the milestone's hardest item), while watching rides `rooms/<C>/battle`, which already exists, already carries a bake-off snapshot, and is muted by one guard clause a previous session explicitly left as Wyatt's call. No competitive leak exists — each captain bakes their own recipe on their own bench | — Pending — v2.0 |
+| **The bake-off runs with no shot clock** | Wyatt, 2026-08-18: the finish line gets as long as it needs. Consequence handled rather than accepted — the engine's fallback guess now fires on **presence loss** instead of expiry, so a dropped captain cannot hang the table (MP-13) | — Pending — v2.0 |
 | **Full test harness rebuilt against `4/` before cutover** | The 21 gates and the 31-seed determinism corpus are what made v1 trustworthy, and multiplayer lockstep is the thing they protect. `4/` has 4 scripts, one permanently red, and its largest module cannot be imported under Node | — Pending — v2.0 |
 | **True widescreen, not a centred phone column** | Wyatt, 2026-08-18. At 1440×900 only 5.9 of the board's 15 rows are visible today because the stage camera derives its height from window aspect ratio. v1's two-column `layoutWide` grid survives intact in `4/`, so the two-column treatment has already been paid for once | — Pending — v2.0 |
 | **`RULES-V2.md` is rewritten from the code, and the commit-message record is lifted into `docs/`** | The spec was copied in on 2026-08-11 and never edited — byte-identical across `v2/`, `v2bakeoff/`, `3/`, `4/`, header still says "Lives in `v2/`", and §12 is titled "No bakeoff" while the game ships one. 3 of 10 spot-checked rules disagree with the code | — Pending — v2.0 |
@@ -226,8 +228,9 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 *Last updated: 2026-08-18 — v2.0 "The New Game" opened. The `4/` redesign is promoted to become the
-official game: multiplayer restored (including a networked bake-off with rival bowls private until
-reveal), the full test harness rebuilt against `4/`, cutover with v1 retired to `/classic`, a true
+official game: multiplayer restored (including a networked bake-off every other captain watches live,
+on a face-down bench, with no shot clock), the full test harness rebuilt against `4/`, cutover with
+v1 retired to `/classic`, a true
 widescreen desktop layout, and the written record rebuilt from the code and the commit log. v1.3
 closes as superseded — Phase 20 retires unbuilt because `4/` did that work independently. Phase
 numbering restarts at 1. Intake research: `.planning/research/v2.0-intake/`.*

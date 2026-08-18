@@ -21,12 +21,22 @@ The Firebase tags were deliberately removed at `4/index.html:28` with a comment 
 them. `4/src/net/` is **byte-identical** to the live net layer in `readers`/`registry`/`watchers`/
 `writers`; `index.js` differs by 6 lines. This is a revival, not a rebuild — except for the bake-off.
 
+**The bake-off spectator channel already exists and is deliberately muted.** `rooms/<C>/battle` is
+host-written (`4/src/orchestrator.js:378`), watched by every guest (`:381`) and rendered by
+`renderBattleFromSnap` — a live-updating stage, not a one-shot. `battleSnapshot` already carries a
+`title` for a bake-off snapshot, and `asyncBakeoff` is its only producer in the repo. The bake-off is
+silenced by one guard at `:396`, whose comment reads: *"un-silencing the bakeoff is a design call
+belonging to Wyatt, not a side effect of this timing fix."* **Wyatt made that call on 2026-08-18:
+un-silence it.** The remaining work is replacing `battleSnapshot`'s 15 battle-shaped keys with
+bake-shaped ones and writing a bench renderer beside `renderBattleFromSnap`.
+
 - [ ] **MP-01**: A player can host a networked game from the promoted build and share a room code
 - [ ] **MP-02**: A second player can join by room code, claim a seat, and be named without collision
 - [ ] **MP-03**: A guest sees the host's board, ships, narration and prompts in sync for a full voyage
 - [ ] **MP-04**: A player can take a bake-off turn in a networked game
-- [ ] **MP-05**: A rival cannot see the contents of another captain's bowl until the reveal
+- [ ] **MP-05**: A player who is not baking **watches the bake-off live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — seeing the same **face-down** bench the baker sees, not the answer. Replaces today's `⏳ Waiting for {name}…` note (`battleFooter`, `4/src/ui/flow.js:2270`)
 - [ ] **MP-06**: A player can spend coins mid-bake-off (the pay-to-rewatch button) in a networked game
+- [ ] **MP-13**: The bake-off runs with **no shot clock**, and a captain who disconnects or closes their tab mid-bake does not stall the table — the engine's fallback guess fires on presence loss instead of on a timer
 - [ ] **MP-07**: A player can make and receive trade counter-offers in a networked game
 - [ ] **MP-08**: A player can use the coin slider in a networked trade (local-path only today — flagged in `c8e2937` as *"must be closed if /4 ever ships online multiplayer"*)
 - [ ] **MP-09**: A multi-captain trade completes inside one turn without stalling the table (~5 sequential round trips today)
@@ -153,24 +163,91 @@ Irrelevant under host authority; only bites if the design ever moves to true loc
 | Keeping `v2/`, `v2bakeoff/`, `3/` on disk | Five copies make every "which file?" question ambiguous. All three are fully preserved in git history. |
 | A bundler/minifier toolchain | The no-build-step principle survives the promotion — `4/` is already native ES modules. |
 | TypeScript migration | Unchanged from v1: out of scope. |
-| Rival bowls visible during the bake-off | Wyatt's call, 2026-08-18: private until the reveal, matching how the scene feels solo. Recorded here so the cheaper always-visible option is not re-proposed as a shortcut when MP-05 proves hard. |
+| A private per-seat channel for the bake-off | **Reversed 2026-08-18.** The original MP-05 required hiding bowl contents from rivals, which meant inventing a private channel — the single hardest thing in the milestone. Wyatt chose watching instead, which is both the better design and the cheaper build, and there is no competitive leak to protect: each captain bakes their own recipe on their own shuffled bench, so seeing a rival's bowls teaches nothing about your own. **Do not re-introduce privacy here.** |
+| Showing a watcher the answer (bowls face up) | Wyatt's call, 2026-08-18: a watcher sees the same face-down bench the baker sees, so they can play along and be wrong too. Face-up costs the same to build and removes all tension for the person watching. |
+| A shot clock on the bake-off | Wyatt's call, 2026-08-18: the finish line gets as long as it needs. The stall risk is handled by MP-13 — the fallback fires on disconnect, not on a timer. |
 | A centred phone column on desktop | Wyatt's call, 2026-08-18: true widescreen. Recorded so the letterbox option is not revived as a schedule saver. |
 
 ---
 
 ## Traceability
 
-Populated during roadmap creation.
+Mapped during roadmap creation, 2026-08-18. **Phase numbering restarts at 1 for v2.0** — the phases
+below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROADMAP.md`](ROADMAP.md).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| _(pending roadmap)_ | — | — |
+| FIX-01 | Phase 1 — Before the Engine Freezes | Pending |
+| TEST-01 | Phase 1 — Before the Engine Freezes | Pending |
+| TEST-02 | Phase 1 — Before the Engine Freezes | Pending |
+| RULE-01 | Phase 1 — Before the Engine Freezes | Pending |
+| RULE-02 | Phase 1 — Before the Engine Freezes | Pending |
+| FIX-06 | Phase 1 — Before the Engine Freezes | Pending |
+| MP-01 | Phase 2 — Multiplayer Revival | Pending |
+| MP-02 | Phase 2 — Multiplayer Revival | Pending |
+| MP-03 | Phase 2 — Multiplayer Revival | Pending |
+| MP-10 | Phase 2 — Multiplayer Revival | Pending |
+| MP-11 | Phase 2 — Multiplayer Revival | Pending |
+| MP-12 | Phase 2 — Multiplayer Revival | Pending |
+| FIX-03 | Phase 2 — Multiplayer Revival | Pending |
+| TEST-03 | Phase 3 — The Safety Net | Pending |
+| TEST-04 | Phase 3 — The Safety Net | Pending |
+| TEST-05 | Phase 3 — The Safety Net | Pending |
+| TEST-06 | Phase 3 — The Safety Net | Pending |
+| TEST-07 | Phase 3 — The Safety Net | Pending |
+| MP-04 | Phase 4 — The Networked Bake-off | Pending |
+| MP-05 | Phase 4 — The Networked Bake-off | Pending |
+| MP-06 | Phase 4 — The Networked Bake-off | Pending |
+| MP-13 | Phase 4 — The Networked Bake-off | Pending |
+| MP-07 | Phase 5 — Trade Over the Wire | Pending |
+| MP-08 | Phase 5 — Trade Over the Wire | Pending |
+| MP-09 | Phase 5 — Trade Over the Wire | Pending |
+| CUT-01 | Phase 6 — The Cutover | Pending |
+| CUT-02 | Phase 6 — The Cutover | Pending |
+| CUT-03 | Phase 6 — The Cutover | Pending |
+| CUT-04 | Phase 6 — The Cutover | Pending |
+| CUT-05 | Phase 6 — The Cutover | Pending |
+| CUT-06 | Phase 6 — The Cutover | Pending |
+| CUT-07 | Phase 6 — The Cutover | Pending |
+| CUT-08 | Phase 6 — The Cutover | Pending |
+| FIX-02 | Phase 6 — The Cutover | Pending |
+| FIX-04 | Phase 6 — The Cutover | Pending |
+| FIX-05 | Phase 6 — The Cutover | Pending |
+| DESK-01 | Phase 7 — The Board Fits | Pending |
+| DESK-02 | Phase 7 — The Board Fits | Pending |
+| DESK-08 | Phase 7 — The Board Fits | Pending |
+| DESK-03 | Phase 8 — A Desktop Worth the Width | Pending |
+| DESK-04 | Phase 8 — A Desktop Worth the Width | Pending |
+| DESK-05 | Phase 8 — A Desktop Worth the Width | Pending |
+| DESK-06 | Phase 8 — A Desktop Worth the Width | Pending |
+| DESK-07 | Phase 8 — A Desktop Worth the Width | Pending |
+| DOC-01 | Phase 9 — The Written Record | Pending |
+| DOC-02 | Phase 9 — The Written Record | Pending |
+| DOC-03 | Phase 9 — The Written Record | Pending |
+| DOC-04 | Phase 9 — The Written Record | Pending |
+| DOC-05 | Phase 9 — The Written Record | Pending |
+| DOC-06 | Phase 9 — The Written Record | Pending |
+| DOC-07 | Phase 9 — The Written Record | Pending |
 
 **Coverage:**
-- v2.0 requirements: 50 total (MP 12, CUT 8, DESK 8, DOC 7, TEST 7, FIX 6, RULE 2)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 50 ⚠️
+- v2.0 requirements: 51 total (MP 13, CUT 8, DESK 8, DOC 7, TEST 7, FIX 6, RULE 2)
+- Mapped to phases: **51** ✓ — every requirement maps to exactly one phase
+- Unmapped: **0** — no orphans, no duplicates
+
+**Sequencing constraints honored by this mapping:**
+
+- **FIX-01** — a live bug affecting real players today, independent of every promotion decision — is
+  in the earliest phase, not batched with the cutover.
+- **TEST-01** (`4/src/ui/stage.js` importable under Node) is in Phase 1, so it unblocks the rest of
+  the TEST work rather than sitting behind it.
+- **RULE-01 lands in Phase 1, before TEST-03 records the corpus in Phase 3** — recorded once, not
+  twice.
+- **The harness (Phase 3) is rebuilt before the cutover (Phase 6)** — and before the largest work in
+  the milestone (Phases 4–5) is built on top of it, so the bake-off and trade work are guarded by
+  `net_contract_check`, `dlog_replay_test` and `host_guest_parity_check` while they are written.
+- **Multiplayer (Phases 2, 4, 5) → cutover (Phase 6) → desktop (Phases 7, 8).** The live game never
+  loses multiplayer; `4/` stays at `/4` until it can host a networked game.
 
 ---
 *Requirements defined: 2026-08-18*
-*Last updated: 2026-08-18 after v2.0 milestone opening*
+*Last updated: 2026-08-18 — Traceability populated at roadmap creation; 51/51 mapped (MP-13 added when the bake-off spectator decision reversed).*
