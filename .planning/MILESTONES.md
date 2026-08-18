@@ -1,5 +1,65 @@
 # Milestones
 
+## v1.3 The Game Comes Alive (Closed early: 2026-08-18 — 4 of 5 phases shipped)
+
+**Phases completed:** 4 of 5 (18, 19, 21, 22 shipped and live). **Phase 20 was never started.**
+**Git range:** `a918460`…`dc56e2c` on `main` — 75 files, ~11,296 insertions / ~450 deletions
+excluding the prototype directories; 45 files and ~7,208 insertions in the root game's own code.
+**Timeline:** 2026-07-31 → 2026-08-10 (last root-game commit), closed 2026-08-18
+**Worked in four parallel workstreams:** `prompts-polish`, `board-wind`, `sound-clock`, `front-door`
+
+### Why this milestone ended early
+
+**It was not abandoned — it was overtaken.** On 2026-08-05, five days after v1.3 opened, the project
+started a ground-up redesign of the whole game at `v2/` (`02cb5e7`), built outside GSD by Wyatt's
+explicit instruction. Over the next ten days that redesign became `v2bakeoff/` (the bake-off
+minigame), then `3/` (the race-planner bot brain), then `4/` (the full visual redesign). The root
+game's last code commit was **2026-08-10**; every commit after that belongs to the redesign.
+
+By 2026-08-18 the redesign was the thing Wyatt wanted to ship, and v2.0 "The New Game" was opened to
+promote it. Finishing v1.3 would have meant polishing a game that was already being retired.
+
+**Phase 20 "The Board Comes Alive" is retired unbuilt, and specifically is NOT lost work.** Its
+scope — drifting wind dots, arrows flowing into a rotating whirlpool, a signal before a ship is
+swept into the trade winds — was built independently inside `4/` during the redesign. It has no
+phase directory anywhere in `.planning/` because it never had a plan written. It carried WIND-01,
+WIND-02 and WIND-03, which are superseded rather than dropped.
+
+**What shipped, and is live today:**
+
+- **Phase 18 — Prompts & Polish.** Action buttons wait for the typewriter; a narrow window stopped clipping the only button that takes the action; narration stopped jumping sideways as it faded and the box stopped shrinking under a still-fading line; orange buttons restyled; captain colour circles removed everywhere. Formally closed 2026-08-02 with `18-07` written retroactively.
+- **Phase 19 — Safari Check.** The gate before any wind work, and it passed: smooth at 100 dots, no dot budget needed. This was the milestone's biggest deliberate risk — BUG-01 had been a Safari near-crash on that same always-on animated subsystem — and measuring it first is why Phase 20 was safe to attempt at all.
+- **Phase 21 — Sound & the Clock Toggle.** Sound effects with a mute button, and the turn-clock toggle finally working in solo and pass-and-play. The mute button's placement is **measured** by `placeMuteButton()` rather than thresholded — the fix that landed after three failed attempts at guessing a width, and the incident that produced the standing "ask 2–5 clarifying questions" rule.
+- **Phase 22 — The Front Door.** You name yourself after choosing how to play; a real About page; a Google preview image. LOAD-03 finished 2026-08-02: the welcome screen no longer constructs a game at all — `seedIdleGameState()` replaced `renderDecorativeBoard()`, taking the welcome screen from 11.1% CPU and 60 layouts/sec to 1.7% and 0.
+
+**Two performance findings worth carrying forward.** The active-turn ripple moved out of SVG (62
+layouts/sec → 2) with the boats split into their own `#boardShips` SVG above it; and the discovery
+that **Chrome never composites SVG transform animations**, which is why that move was necessary
+rather than cosmetic. Both were Safari-verified by Wyatt.
+
+**Three standing rules were earned during this milestone** and are recorded in `.claude/CLAUDE.md`:
+the narration box reveals top-to-bottom in DOM order; the credits and About page are outside the
+game world and are **not** written in pirate speak; and every question to Wyatt goes through the
+question UI, never as prose.
+
+**Carried forward, named rather than waved through:**
+
+- **WIND-01/02/03 (Phase 20)** — superseded by the equivalent work inside `4/`. Not re-planned.
+- **META-03** — Google Search Console verification. Wyatt's own action, and now blocked behind v2.0's CUT-04.
+- **The shipped-vs-approved copy gate** — still not built. 19 of 144 approval fields conclusively settled. `scripts/narration_copy_check.js` does not exist; every post-approval wording change must still be surfaced by hand. Carried into v2.0's DOC-03 in a narrower form (the 13 strings approved 2026-08-14).
+- **STORM-02** — multiplayer guest storm-push parity. Re-assess against the v2 engine; the v1 analysis that it forces a determinism re-record may no longer apply.
+- **The D-57 residue** — `flash()` and `showNarration()` remain two independent hold/fade schedulers on the same `.apMsg`, unenforced.
+
+**Verification:** `npm test` stands at **21 gates** and passes. `src/engine/index.js` needed no
+determinism re-record during this milestone. Phases 18, 19, 21 and 22 each carry full GSD artifacts
+under `.planning/workstreams/<name>/phases/`.
+
+**Closeout:** early close, approved by Wyatt on 2026-08-18. The root game is not being deleted — v2.0
+retires it to `/classic` so nothing a player has bookmarked breaks. Prior state preserved verbatim at
+`.planning/milestones/v1.3-STATE.md` and `.planning/milestones/v1.3-{REQUIREMENTS,ROADMAP}.md`.
+
+---
+
 ## v1.2 Playtest Fixes & Polish (Shipped: 2026-07-31)
 
 **Phases completed:** 5 phases (13–17), 15 plans + 8 quick tasks. Phase 18 deferred to v1.3.
