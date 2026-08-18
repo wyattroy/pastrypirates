@@ -122,7 +122,7 @@ disagree with the code.
 
 ### Standalone Fixes (FIX)
 
-- [ ] **FIX-01**: Visiting the development build no longer turns the turn clock off in the live game (`4/src/ui/stage.js:1478` force-writes the shared, un-namespaced `pp_timerOff`) — **fix independently of any promotion decision**
+- [ ] **FIX-01**: The new game's turn-clock preference is stored under its **own** key, so its default does not reach into the other game. **The default being OFF is intentional (Wyatt, 2026-08-18) and must not be changed** — the defect is only that `4/src/ui/stage.js:1478` writes the shared, un-namespaced `pp_timerOff`, which v1 reads at `src/orchestrator.js:1399` and pushes to the whole room at `:1404`. `4/` already namespaces `pp4_sess` and `pp4_solo`; this key was missed. The fix survives the cutover, where the new game and `/classic` still share one origin and want opposite defaults.
 - [ ] **FIX-02**: `?ovens=1` (skips the entire 16-day voyage) and `?windhud=1` are gated or removed before the game is public
 - [ ] **FIX-03**: The sparse-draft crash at `4/src/orchestrator.js:1591` is fixed, along with the unguarded `.val()` at `:1501` and the unescaped host HTML at `:1239`
 - [ ] **FIX-04**: Safari storm performance is re-measured on a real device — the BUG-01 fix is intact, but rain is now full-viewport (~5× paint area) and a 60fps camera tween runs during storms, and this has never been measured on Safari
@@ -166,6 +166,7 @@ Irrelevant under host authority; only bites if the design ever moves to true loc
 | A private per-seat channel for the bake-off | **Reversed 2026-08-18.** The original MP-05 required hiding bowl contents from rivals, which meant inventing a private channel — the single hardest thing in the milestone. Wyatt chose watching instead, which is both the better design and the cheaper build, and there is no competitive leak to protect: each captain bakes their own recipe on their own shuffled bench, so seeing a rival's bowls teaches nothing about your own. **Do not re-introduce privacy here.** |
 | Showing a watcher the answer (bowls face up) | Wyatt's call, 2026-08-18: a watcher sees the same face-down bench the baker sees, so they can play along and be wrong too. Face-up costs the same to build and removes all tension for the person watching. |
 | A shot clock on the bake-off | Wyatt's call, 2026-08-18: the finish line gets as long as it needs. The stall risk is handled by MP-13 — the fallback fires on disconnect, not on a timer. |
+| Changing the new game's turn clock to default ON | **Wyatt, 2026-08-18: the OFF default in `4/` is intentional.** FIX-01 namespaces the storage key so that default stops leaking into the other game; it does not touch the default itself. Recorded here because "the clock defaults off" reads like a bug to anyone who has only seen v1. |
 | A centred phone column on desktop | Wyatt's call, 2026-08-18: true widescreen. Recorded so the letterbox option is not revived as a schedule saver. |
 
 ---
@@ -236,8 +237,9 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 
 **Sequencing constraints honored by this mapping:**
 
-- **FIX-01** — a live bug affecting real players today, independent of every promotion decision — is
-  in the earliest phase, not batched with the cutover.
+- **FIX-01** — the clock preference leaking between the two games, affecting real players today and
+  independent of every promotion decision — is in the earliest phase, not batched with the cutover.
+  **It namespaces the key; the OFF default in the new game is intentional and stays.**
 - **TEST-01** (`4/src/ui/stage.js` importable under Node) is in Phase 1, so it unblocks the rest of
   the TEST work rather than sitting behind it.
 - **RULE-01 lands in Phase 1, before TEST-03 records the corpus in Phase 3** — recorded once, not

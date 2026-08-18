@@ -35,7 +35,7 @@ a real desktop layout, and the safety net and written record the prototype skipp
 cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code commit since
 2026-08-02.
 
-- [ ] **Phase 1: Before the Engine Freezes** - The live bug stops, the biggest new module becomes testable, and the one new rule lands — so nothing after this forces the determinism corpus to be recorded twice
+- [ ] **Phase 1: Before the Engine Freezes** - The clock preference stops leaking between the two games, the biggest new module becomes testable, and the one new rule lands — so nothing after this forces the determinism corpus to be recorded twice
 - [ ] **Phase 2: Multiplayer Revival** - The Firebase tags come back and a host and guest play a full networked voyage with the bake-off switched off — which measures what is really broken before the large work is planned
 - [ ] **Phase 3: The Safety Net** - A determinism corpus for the v2 engine, the contract gates pointed at the tree being promoted, and host/guest parity gated rather than remembered
 - [ ] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
@@ -52,21 +52,23 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
 **Depends on**: Nothing (first phase)
 **Requirements**: FIX-01, TEST-01, TEST-02, RULE-01, RULE-02, FIX-06
 **Success Criteria** (what must be TRUE):
-  1. A player who opens the development build no longer has the turn clock switched off in the **live** multiplayer game — and a host who visited it no longer pushes that setting to everyone in their room.
+  1. The new game still defaults its turn clock OFF — that is intentional — but it stores that preference under its **own** key, so a player who opens it no longer has the clock switched off in the **other** game, and a host who visited it no longer pushes that setting to everyone in their room.
   2. `4/src/ui/stage.js` imports under Node without throwing, and `4/scripts/no_undef_check.js` exits 0 — so the 1,545-line stage layer can be tested headlessly at all.
   3. A captain who passes receives one dubloon, at every one of the three `{t:"pass"}` emission sites — human menu, flow, and the bot fallback. Bots pass, so bots are paid.
   4. The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries.
   5. The engine ships exactly one bot planner — the unreachable `planTurnClassic` subtree is gone, so no future tuning pass can aim at code that never runs.
 **Plans**: TBD
 
-**Why these are one phase.** FIX-01 is a live bug affecting real players today and is independent of
-every promotion decision — it does not wait for anything. TEST-01/02 unblock nearly all other TEST
+**Why these are one phase.** FIX-01 affects real players today and is independent of every
+promotion decision — it does not wait for anything. TEST-01/02 unblock nearly all other TEST
 work. RULE-01/02 and FIX-06 are the last changes to the engine before its behaviour is frozen by a
 corpus. All five share one property: **everything here must land before Phase 3 records the
 corpus.**
 
-**Evidence.** `4/src/ui/stage.js:1478` force-writes the shared, un-namespaced `pp_timerOff`, read
-back by live at `src/orchestrator.js:1399` and pushed to the room at `:1404-1405`. The bare
+**Evidence.** `4/src/ui/stage.js:1478` writes the shared, un-namespaced `pp_timerOff`, read back by
+the other game at `src/orchestrator.js:1399` and pushed to the room at `:1404-1405`. **Namespace the
+key; do not touch the default** — defaulting the clock OFF in the new game is Wyatt's intent
+(2026-08-18), and `4/` already namespaces `pp4_sess`/`pp4_solo`, so this key was simply missed. The bare
 `addEventListener` at `4/src/ui/stage.js:190` throws `ReferenceError` at module-evaluation time.
 Pass sites: `4/src/ui/flow.js:1861`, `4/src/ui/flow.js:2140`, `4/src/engine/index.js:2993`. The coin
 treatment to reuse is `(+1🌕)` inside a `nobrk` span (G27/P7, `4/src/ui/flow.js:2231`). Dead planner:

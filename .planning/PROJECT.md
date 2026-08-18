@@ -64,7 +64,7 @@ never lose multiplayer, which is why `4/` stays at `/4` until it can host a netw
 - **The written record rebuilt** — `RULES-V2.md` rewritten from what the code actually does, and
   ~40 design rulings, 13 approved copy strings and the rejection graveyard lifted out of commit
   messages into `docs/`.
-- **The `pp_timerOff` bleed fixed** — a live bug today, independent of every promotion decision.
+- **The `pp_timerOff` leak between the two games fixed** — the new game keeps its intentional clock-off default but stops writing it into the other game's setting. Independent of every promotion decision.
 
 - **One new gameplay rule** — passing pays the captain a dubloon, and the pass narration says so in
   both persons across all 50 sea-creature entries. Wyatt, 2026-08-18. **It must land before the
@@ -125,7 +125,7 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 - Cutover: `4/` to the repo root, v1 to `/classic`, `v2/`+`v2bakeoff/`+`3/` deleted — v2.0
 - True widescreen desktop layout — board fills height, captains as a right-hand column — v2.0
 - Written record rebuilt — `RULES-V2.md` from the code, rulings and copy approvals out of commit messages — v2.0
-- `pp_timerOff` localStorage bleed fixed — v2.0
+- `pp_timerOff` namespaced so the new game's intentional clock-off default stops leaking into the other game — v2.0
 
 ### Deferred to a later milestone (captured as Future in REQUIREMENTS.md)
 

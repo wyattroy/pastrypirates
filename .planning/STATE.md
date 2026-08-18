@@ -138,9 +138,12 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   byte-identical, but the headroom it bought has been spent: full-viewport rain (~5× the paint
   area), a 60fps camera tween during storms, and narration typing at `msPerChar=9` vs live's 20.
   This is a gate on promotion (Phase 6), not a courtesy.
-- **`pp_timerOff` is a live bug affecting real players today.** `4/src/ui/stage.js:1478` force-writes
-  the shared, un-namespaced key; any player who opens `/4` once has the shot clock switched off in
-  the **real** multiplayer game, and if they host, it is pushed to everyone in the room. Fixed in
+- **`pp_timerOff` LEAKS between the two games — but the OFF default in `4/` is INTENTIONAL**
+  (Wyatt, 2026-08-18). `4/src/ui/stage.js:1478` writes the shared, un-namespaced key, so any player
+  who opens `/4` once also has the shot clock switched off in the **real** game, and if they host it
+  is pushed to everyone in the room. **The fix is to namespace the key, NOT to change the default** —
+  `4/` already namespaces `pp4_sess` and `pp4_solo` and simply missed this one. It stays relevant
+  after the cutover, where the new game and `/classic` share one origin and want opposite defaults.
   Phase 1, independently of every promotion decision.
 - **Two player-reachable dev flags ship in `4/`.** `?ovens=1` skips the entire 16-day voyage;
   `?windhud=1` opens a tuning panel. Harmless self-cheating solo; a genuine exploit the moment
