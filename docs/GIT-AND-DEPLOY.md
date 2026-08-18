@@ -78,6 +78,27 @@ Stop and fetch before concluding, if you see any of these:
 **Never report git state from memory or from earlier in the session.** Re-run the command. Refs
 move — including because of something you did yourself.
 
+### The second-order version: a stale checkout serves stale RULES
+
+**A session's context copy of `.claude/CLAUDE.md` is assembled from the working tree before that
+session's first `git pull`.** So a behind checkout does not merely give you stale code — it gives you
+an **old rulebook**, and nothing signals it. A shorter file has no gaps in it; it just looks complete.
+
+Measured on 2026-08-18: a session opened with local `main` **171 commits behind**. Its context held
+the CLAUDE.md from `a418cb3` (2026-08-01) — **457 lines**, missing eight sections added during the
+`/4` era, including "ask with the question UI", "nothing is a constant", "read the graveyard" and the
+whole `/4` deploy loop. Every section it *did* have was added 2026-08-02 or earlier; every section it
+lacked was added 2026-08-05 or later. A clean cut at the stale ref, not a truncation.
+
+It surfaced only because a research agent independently diffed the on-disk file against what the
+session had been given. **Do not rely on that happening.** After the first pull:
+
+```bash
+git diff --stat HEAD@{1} HEAD -- .claude/CLAUDE.md docs/
+```
+
+If anything moved, re-read it from disk before trusting your own copy.
+
 ---
 
 ## 3. Keep local main and origin/main in sync

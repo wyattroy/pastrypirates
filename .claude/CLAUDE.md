@@ -4,6 +4,26 @@
 way.** It is deliberately short so that it survives being read. The war stories moved to linked
 documents; the rules themselves are all here, in full.
 
+> ### ⚠️ IF YOUR FIRST `git pull` MOVED THIS FILE, RE-READ IT FROM DISK
+>
+> **Your context copy of this file was assembled from the working tree BEFORE you pulled.** If the
+> checkout was behind, you are holding an old rulebook and nothing will tell you so — it looks
+> complete, because a shorter file has no gaps in it.
+>
+> This is not hypothetical. On **2026-08-18** a session started with local `main` **171 commits
+> behind**; its context held the **2026-08-01** version of this file — 457 lines, missing eight
+> sections including *"ask with the question UI"* and the entire `/4` deploy loop. It caught this
+> only because a research agent happened to diff the file against what the session had been given.
+> The irony is the tell: the stale copy contained *"always fetch before you read git state"*, and
+> the reason it was stale is that nobody had fetched.
+>
+> ```bash
+> git fetch origin && git pull origin main     # first thing, every session
+> git diff --stat HEAD@{1} HEAD -- .claude/CLAUDE.md docs/   # did the rules move? then RE-READ them
+> ```
+>
+> **The check is cheap and the failure is silent. Run it.**
+
 ## THE RULES, IN ONE SCREEN
 
 | | Rule | §|
@@ -18,7 +38,7 @@ documents; the rules themselves are all here, in full.
 | 8 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
 | 9 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
 | 10 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 11 | **`git fetch` before you trust any ref; keep `main` synced both ways** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 11 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 12 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 13 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 14 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
