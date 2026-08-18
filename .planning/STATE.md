@@ -3,8 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
 status: planning
-last_updated: "2026-08-18"
+stopped_at: Phase 1 context gathered
+last_updated: "2026-08-18T22:53:01.057Z"
 last_activity: 2026-08-18
+last_activity_desc: v2.0 roadmap created, 9 phases, 51/51 requirements mapped
 progress:
   total_phases: 9
   completed_phases: 0
@@ -89,11 +91,14 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - **The `4/` redesign becomes the official game.** The prototype was sanctioned, not rogue — its
   engine is determinism-clean, correctly layered, with zero commented-out code in 18k lines and all
   five standing design rules verified honored.
+
 - **v1 is retired to `/classic`, not deleted; `v2/`, `v2bakeoff/` and `3/` are deleted.** Nothing a
   player has bookmarked should break, but five copies make every "which file?" question ambiguous.
   The three intermediate builds are fully preserved in git history.
+
 - **Multiplayer before cutover; desktop after.** Cutting over before `4/` can host a networked game
   would take multiplayer away from real players for the duration.
+
 - **Every other captain WATCHES the networked bake-off live, on a face-down bench** (Wyatt,
   2026-08-18 — reversed from "private until the reveal" the same day, after he asked *"how hard would
   it be to let other players watch the bakeoff… that seems like a better design"*). Better **and**
@@ -101,15 +106,19 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
   snapshot, and is muted by one guard at `4/src/orchestrator.js:396` that a previous session
   explicitly left as his call. No competitive leak — each captain bakes their own recipe on their own
   bench. **Do not re-introduce privacy here.**
+
 - **No shot clock on the bake-off** (Wyatt, 2026-08-18). Consequence handled, not accepted: the
   engine's fallback guess must fire on presence loss instead of expiry, or a dropped captain hangs
   the table forever (MP-13).
+
 - **Full test harness rebuilt against `4/` before the cutover**, and before the largest work is
   built on top of it.
+
 - **True widescreen, not a centred phone column** (Wyatt, 2026-08-18).
 - **`RULES-V2.md` is rewritten from the code**, and the commit-message record is lifted into `docs/`.
 - **Exactly one new gameplay rule: passing pays a dubloon** (RULE-01/02, Wyatt 2026-08-18). A second
   exception costs a determinism re-record.
+
 - **Phase numbering restarts at 1** for v2.0.
 
 ### Pending Todos
@@ -129,15 +138,18 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 - **`4/` has no safety net yet.** Root `npm test` runs 21 gates and passes, and **not one of them
   loads `4/`** — the "gate scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3. Until
   Phase 3 lands, **a green `npm test` says nothing about the game being promoted.**
+
 - **The v2 determinism corpus does not exist and its capture is one-way.** `docs/DETERMINISM-RERECORD.md`:
   capture exactly once, never weaken `REQUIRED_EVENT_TYPES`. RULE-01 must land first (Phase 1), and
   after capture nothing may change what `4/src/engine/index.js` emits. Also decide before capturing
   whether to land `docs/DETERMINISM-RERECORD-NEXT.md`'s three queued purity fixes — with no fixtures
   yet, the reason they were queued has disappeared.
+
 - **Safari has never been measured on `4/`.** The BUG-01 storm fix is verifiably intact and
   byte-identical, but the headroom it bought has been spent: full-viewport rain (~5× the paint
   area), a 60fps camera tween during storms, and narration typing at `msPerChar=9` vs live's 20.
   This is a gate on promotion (Phase 6), not a courtesy.
+
 - **`pp_timerOff` LEAKS between the two games — but the OFF default in `4/` is INTENTIONAL**
   (Wyatt, 2026-08-18). `4/src/ui/stage.js:1478` writes the shared, un-namespaced key, so any player
   who opens `/4` once also has the shot clock switched off in the **real** game, and if they host it
@@ -145,18 +157,22 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   `4/` already namespaces `pp4_sess` and `pp4_solo` and simply missed this one. It stays relevant
   after the cutover, where the new game and `/classic` share one origin and want opposite defaults.
   Phase 1, independently of every promotion decision.
+
 - **Two player-reachable dev flags ship in `4/`.** `?ovens=1` skips the entire 16-day voyage;
   `?windhud=1` opens a tuning panel. Harmless self-cheating solo; a genuine exploit the moment
   multiplayer is restored. Closed in Phase 6.
+
 - **The `4/` net layer has never executed.** It is byte-identical to live for 4 of 5 files, but four
   latent faults sit on paths no one has run: the sparse-`picks` crash (`orchestrator.js:1591`),
   the unguarded null room (`:1501`), unescaped host HTML (`:1239-1245`), and `remotePrompt` with no
   timeout (`:1143-1152`). All must be closed before the first networked playtest (Phase 2).
+
 - **MP test-harness gotchas (carried forward, still true):** same-machine two-tab multiplayer shares
   localStorage `pp_id` — re-set the host's own `pp_id` before reloading. Read
   `docs/DRIVING-THE-GAME.md` before any browser pass; §5d covers windows too narrow to hand-drive.
   **Its import paths are root-relative and will inject state into the wrong tree** until DOC-06 fixes
   them.
+
 - **Kill every headless Chrome and local server in the same session you start them.** Two abandoned
   probes at 21% CPU each, and 53% CPU across 13 processes hours after the rule was written, both on
   a machine Wyatt was reporting as overheating.
@@ -174,10 +190,10 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-18 — v2.0 roadmap creation.
-Stopped at: `ROADMAP.md` written (9 phases), `REQUIREMENTS.md` Traceability populated (51/51),
+Last session: 2026-08-18T22:53:01.039Z
+Stopped at: Phase 1 context gathered
 this file re-based from v1.3 to v2.0.
-Resume file: `.planning/ROADMAP.md`
+Resume file: .planning/phases/01-before-the-engine-freezes/01-CONTEXT.md
 
 **The v1.x record is not lost.** The full v1.2/v1.3-era ledger — 40+ decisions, per-plan metrics,
 the quick-task log, and the v1 blockers list — is archived verbatim at
@@ -188,5 +204,6 @@ the quick-task log, and the v1 blockers list — is archived verbatim at
 1. Wyatt approves the roadmap (or sends changes).
 2. `/gsd-plan-phase 1` — Before the Engine Freezes (FIX-01, TEST-01, TEST-02, RULE-01, RULE-02,
    FIX-06). It is independent of every promotion decision and can start immediately.
+
 3. Read the relevant `research/v2.0-intake/` report before planning any phase — it is the only
    synthesis of a development period that left no GSD artifacts.
