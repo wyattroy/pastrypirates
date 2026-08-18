@@ -65,8 +65,12 @@ never lose multiplayer, which is why `4/` stays at `/4` until it can host a netw
   messages into `docs/`.
 - **The `pp_timerOff` bleed fixed** — a live bug today, independent of every promotion decision.
 
-**Explicitly NOT in this milestone:** any new gameplay rule. v2.0 promotes and hardens the game
-that exists; it does not design a further one.
+- **One new gameplay rule** — passing pays the captain a dubloon, and the pass narration says so in
+  both persons across all 50 sea-creature entries. Wyatt, 2026-08-18. **It must land before the
+  determinism corpus is recorded**, or the corpus gets recorded twice.
+
+**Explicitly NOT in this milestone:** any *further* gameplay rule. v2.0 promotes and hardens the
+game that exists; beyond the pass dubloon it does not design a further one.
 
 ## Core Value
 
@@ -154,7 +158,7 @@ The game must stay playable and fair end-to-end in both Safari and multiplayer �
 - **Approval gates**: End-of-voyage badge redesign and storm-text rewrite require Wyatt's explicit sign-off before/within implementation
 - **Milestone order (v2.0)**: multiplayer → cutover → desktop — **the live game must never lose multiplayer**, so `4/` stays at `/4` until it can host a networked game. Desktop work happens after the cutover, on the real game.
 - **Cutover is one-way (v2.0)**: `4/` forked 2026-08-11; root has had no code commit since 2026-08-02. There is nothing to merge back, and no fix is stranded — but it also means **every v1 fix made after a cutover has to be made in the new tree**.
-- **No new gameplay rules (v2.0)**: this milestone promotes and hardens the game that exists. A rule change mid-promotion invalidates the determinism corpus being recorded and the spec being written from the code.
+- **Exactly one new gameplay rule (v2.0)**: passing pays a dubloon (RULE-01/02), granted by Wyatt 2026-08-18. Otherwise this milestone promotes and hardens the game that exists — every further rule change invalidates the determinism corpus being recorded and the spec being written from the code, so a second exception costs a re-record. **RULE-01 must land before TEST-03 records the corpus.**
 - **The `4/` safety net does not exist yet**: root `npm test` runs 21 gates and passes, and **not one of them loads `4/`**. Until the harness is rebuilt, a green `npm test` says nothing about the game being promoted — the exact "gate scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3.
 - **Promotion mechanics are load-bearing, not cosmetic**: `4/index.html:10` carries `noindex, nofollow` (correct at `/4`, de-indexes the live game at root), the title still reads `v3 bot test`, `ASSET_BASE="../assets/"` (`4/src/shared/index.js:24`) resolves art one directory above the app, `about.html` links are already 404 at `/4`, and `robots.txt` carries `Disallow: /4/`.
 - **Bot/human parity** *(standing design invariant — Wyatt, 2026-08-01, "and it has been from the
