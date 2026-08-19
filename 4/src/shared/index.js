@@ -110,9 +110,32 @@ const EMOJIFY_RE=new RegExp(
 // on the same string (already-swapped text has no emoji left to match) — deliberately applied at
 // more than one chokepoint (describe(), panel()) rather than tracked precisely, since re-scanning
 // a short string is free and missing a spot silently isn't.
+//
+// SUBSTITUTION HAPPENS OUTSIDE TAGS ONLY, and that is load-bearing, not tidiness. panel()
+// (ui/panel.js:435) runs a WHOLE assembled button row through here — every attribute included —
+// and iconImg() returns `<img class="narrIcon" src="..." alt="">`, which carries three literal
+// double-quotes. Spliced into an already-correctly-escaped data-why="Ye can't afford the powder —
+// 5🌕 a broadside…", the first of those quotes CLOSES the attribute early and breaks the button's
+// own opening tag open; the leaked fragments then count toward the textContent that
+// menuButtons() (ui/stage.js:1029) measures against its 16-character cutoff, which disqualifies
+// the WHOLE prompt from the radial bloom and drops it to a flat card — on host and guest alike,
+// since panel() is the one sink both localAsk() and watchPrompt() render through. So walk the
+// string tag-by-tag and only ever replace inside the text spans between them. This protects every
+// current and future data-* attribute, not just data-why.
+//
+// KNOWN LIMITATION, named rather than hidden (RESEARCH 02.1 §7, threat T-02.1-04): a literal ">"
+// inside an attribute value would end a tag span early here and could still be walked into. No
+// string this codebase feeds through emojify() contains one — every why:/label is
+// developer-authored, never player-typed, and esc()/escW() already turn "<" into "&lt;" — and a
+// real HTML tokenizer is disproportionate to a zero-dependency, zero-build-step codebase.
 function emojify(html){
   if(!html)return html;
-  return html.replace(EMOJIFY_RE,m=>iconImg(EMOJI_IMG[m.replace(/️$/,"")]));
+  // split() with ONE capture group alternates text, tag, text, tag… so odd indices are always the
+  // captured tags. Index parity is used rather than a startsWith("<") test so that a stray, never
+  // -closed "<" in ordinary prose stays TEXT and still gets its emoji swapped.
+  return html.split(/(<[^>]*>)/).map((seg,i)=>
+    i%2?seg:seg.replace(EMOJIFY_RE,m=>iconImg(EMOJI_IMG[m.replace(/️$/,"")]))
+  ).join("");
 }
 const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);
 // 7 base island footprints (see TET below); art is authored once per shape in its canonical
