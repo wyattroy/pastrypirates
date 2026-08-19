@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 01
 current_phase_name: before-the-engine-freezes
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-08-19T01:08:18.801Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-08-19T01:23:00.036Z"
 last_activity: 2026-08-18
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 01 (before-the-engine-freezes) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-08-18 — Phase 01 execution started
 
@@ -89,6 +89,7 @@ No v2.0 plans executed yet. Prior-milestone velocity and per-plan metrics are ar
 |------|----------|-------|-------|
 | Phase 01 P01 | 21min | 2 tasks | 4 files |
 | Phase 01 P02 | 8min | 2 tasks | 4 files |
+| Phase 01 P03 | 24m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: The accessor exclusion in no_undef_check.js is a named helper, narrow to the exact get/set keyword; CALL_RE unchanged (01-01)
 - [Phase ?]: FIX-01: the new game's turn-clock preference moves to the per-game key pp4_timerOff at all five 4/-side sites; the shared legacy key is deleted exactly once per browser behind the pp4_timerOffCleaned marker (D-01/D-02) (01-02)
 - [Phase ?]: D-04 in practice — pp_id, pp_lastName and pp_muted stay un-prefixed and shared; only behaviour keys split. First worked example of "share who you are, split how you play", and the precedent the Phase 6 cutover copies (01-02)
+- [Phase ?]: Plan 03: the ladder's comparison axis is time, not seat — one brain ships, so a seat-axis control no longer exists
+- [Phase ?]: Plan 03: bot_ladder4.js wall clock goes to stderr, keeping stdout byte-identical for exact before/after diffs
+- [Phase ?]: Plan 03: balance baseline uses dev seed family x7919 only; held-out x104729 reserved for plan 06 if the result reads close
 
 ### Pending Todos
 
@@ -202,8 +206,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T01:08:18.788Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-08-19T01:23:00.023Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
