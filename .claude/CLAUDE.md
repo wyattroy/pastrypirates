@@ -160,10 +160,25 @@ autonomous run — precisely when he most needs to watch from his phone — is t
 his ability to. A brand-new session works, which is why "just start a new one" looks like a fix and
 is really just a fresh 15-minute clock.
 
-**So: before he goes, ask him to re-arm the 🌐 globe and confirm the session shows on his phone.** Say
-it in the same reply as "sure, I'll keep going." **He cannot fix it from the road.** On 2026-08-19 he
-came back to four completed plans and no way to have watched any of it — the session had been
-disconnected since 10:13 and the run had no idea.
+**There is NO re-arm. This is the part that matters.** Arming happens only inside
+`LocalSessions.start`, from the auto-enable preference (`[rcAutoEnable] verdict: enable=true
+source=explicit_pref` — Wyatt has it ON, which is why a brand-new session is reachable by itself).
+Once the idle recycle has taken a session's bridge, **nothing brings it back**: the app bundle
+contains no UI string for enabling, disabling or re-connecting remote control on a running session.
+**The 🌐 globe is the browser preview panel, not remote control** — a session sent him there twice
+before checking, which is how this note got written.
+
+**So the rule is not "re-arm it," it is: work he needs to watch from his phone must run in a session
+started for that purpose.** A long-lived session silently stops being phone-visible, permanently, and
+neither he nor you can tell from inside it.
+
+- **When he says he is stepping away, offer the handoff in that same reply** — a fresh session picks
+  up from `.planning/` on disk, and `/gsd-execute-phase {N}` skips every plan that already has a
+  SUMMARY. The cost of handing off is near zero; the cost of not is his whole window.
+- **Never assert a cause for this without reading `~/Library/Logs/Claude/main1.log` first.** Two
+  confident wrong answers were given on 2026-08-19 — "local sessions are never phone-reachable"
+  (his had been, the day before) and "click the globe" — before anyone opened the log that says it
+  outright.
 
 - **Front-load every decision.** If he is about to be away, ask everything answerable *now*. A run
   that blocks twenty minutes after he leaves burns the whole window for one question.
