@@ -1858,7 +1858,9 @@ export async function humanAct(p,sailCtx){
     // has got to, so the NEXT voyage picks up at the next creature rather than restarting near the
     // top — over enough games they see all fifty. Only this seat owns the cursor; bots walk their
     // own derived offsets and never touch it.
-    appState.game.ev({t:"pass",p:p.idx,sea:appState.game.nextSeaCreature(p)});
+    // RULE-01: the dubloon and the event are one shared engine method, so this site, the bot
+    // fallback below and the engine's own fallback can never drift apart on what a pass is worth.
+    appState.game.doPass(p);
     if(p.idx===appState.game.seaSeat)advanceSeaCursor(p);
     liveRender();
     await narrateLastEvent();
@@ -2136,8 +2138,10 @@ export async function botTurn(p){
   const fallbackPort=g.adjPort(p);
   if(fallbackPort&&g.canDock(p,fallbackPort)&&g.doDock(p,fallbackPort)){await botBeat();return;}
   // v2 rule 3: no fishing. A bot with nothing worth doing looks into the ocean, exactly as a
-  // human does — same action, same narration, so the table reads consistently.
-  g.ev({t:"pass",p:p.idx,sea:g.nextSeaCreature(p)});
+  // human does — same action, same narration, same dubloon (RULE-01), so the table reads
+  // consistently. The shared engine method is what makes "same" a property of the code rather
+  // than a claim about two sites that happen to agree today.
+  g.doPass(p);
   await botBeat();
 }
 

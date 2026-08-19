@@ -930,6 +930,33 @@ class Game{
       black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
     return true;
   }
+  // v2.2 RULE-01: passing pays a dubloon. Passing is the always-available turn-ender — the one move
+  // nobody can ever be denied — so this is the floor of the economy rather than a reward for idling:
+  // a captain who is blocked, broke and out of reach of every berth still comes away with something
+  // to show for the day. The narration says so (EVENT_NARRATION.pass, src/ui/util.js).
+  //
+  // THE ORDER OF THESE TWO LINES IS THE RULE, not a style preference — the same order doDock uses,
+  // and for the same reason. ev() is a RECORDER, not a reducer: it builds its own state snapshot at
+  // the instant it is called, mapping every captain's purse. Record before paying and that snapshot
+  // holds the pre-payment purse, so the replay scrubber shows a captain a dubloon short at the exact
+  // tick their narration claims payment. Phase 3 freezes this stream into a determinism corpus,
+  // after which the same fix costs a gated re-record (docs/DETERMINISM-RERECORD.md).
+  // 4/scripts/pass_coin_test.js reads the purse back out of the snapshot and has been seen failing
+  // with these two statements swapped.
+  //
+  // NOT conditioned on this.record. ev() self-gates; the payment must not — a game that happens not
+  // to be recording is still a game being played, and the dubloon is a rule, not a log entry.
+  //
+  // ONE method, three call sites: the engine fallback below, and both UI-tier sites in
+  // src/ui/flow.js (the human menu and the animated bot fallback, which is deliberately duplicated
+  // rather than inherited — see the note there). Bots and humans have identical rules and
+  // affordances, so bots pass and bots are paid. Deliberately NOT folded in: the human-only sea
+  // cursor advanced at the flow.js menu site, which is per-device narration bookkeeping owned by one
+  // seat — bots walk their own derived offsets and would be handed a cursor they must not touch.
+  doPass(p){
+    p.coins+=1;
+    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
+  }
   // NARR-04: record this round's wind and return how many rounds running it has held that
   // direction. Called once per round, right after the direction is rolled.
   noteWind(dir){
@@ -2989,8 +3016,9 @@ class Game{
     const fallbackPort=this.adjPort(p);
     if(fallbackPort&&this.canDock(p,fallbackPort)&&this.doDock(p,fallbackPort))return;
     // Nothing left worth doing this turn — so a bot does exactly what a human does in the same
-    // position (rule 3 left no filler action): leans over the rail and looks into the ocean.
-    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
+    // position (rule 3 left no filler action): leans over the rail and looks into the ocean — and
+    // is paid the same dubloon a human is paid for it (RULE-01, see doPass).
+    this.doPass(p);
   }
   /* ================= THE BAKE-OFF (v2.1) =================
      Arriving at Tortuga with a full recipe no longer wins the voyage — it lights the ovens. The
