@@ -395,6 +395,31 @@ function findLine(text, offset) {
   return text.slice(0, offset).split("\n").length;
 }
 
+/* Accessor exclusion. An object-literal accessor pair — `get subject(){…}`, `set subject(v){…}` —
+   puts its property name in call position as far as CALL_RE is concerned, because the regex has no
+   concept of accessor syntax. `4/src/ui/stage.js:1483` carries both on one line and was therefore
+   reported TWICE, as an undeclared call to a name that is not a call at all.
+   Built from the same backward-walk technique the property-call exclusion above already uses: skip
+   whitespace, then take the maximal run of identifier characters, and skip the match only when that
+   token is exactly the bare reader or writer keyword. Because the run is MAXIMAL, the word boundary
+   holds by construction — `widget subject(` captures "widget", not "get" — and the explicit test
+   below states that so it cannot quietly rot if the walk is ever rewritten.
+   Deliberately no wider than that. This file is over-permissive rather than under-permissive on
+   purpose (see the header), and an exclusion that stopped at "the line mentions get or set" would
+   stop catching the real bare browser-global calls this gate exists for. A gate that no longer
+   catches its own failure class is not silent, it is reassuring (docs/HARD-WON-LESSONS.md §3). */
+function precededByAccessorKeyword(masked, idx) {
+  let p = idx - 1;
+  while (p >= 0 && /\s/.test(masked[p])) p--;
+  if (p < 0) return false;
+  const end = p;
+  while (p >= 0 && /[A-Za-z0-9_$]/.test(masked[p])) p--;
+  const word = masked.slice(p + 1, end + 1);
+  if (word !== "get" && word !== "set") return false;
+  if (p >= 0 && /[A-Za-z0-9_$]/.test(masked[p])) return false; // word boundary, stated not assumed
+  return true;
+}
+
 function checkFile(file, masked, rawLines) {
   const failures = [];
   const declared = collectDeclaredNames(masked);
@@ -410,6 +435,8 @@ function checkFile(file, masked, rawLines) {
     let p = idx - 1;
     while (p >= 0 && /\s/.test(masked[p])) p--;
     if (p >= 0 && masked[p] === ".") continue;
+    // exclude accessor definitions: `get name(){…}` / `set name(v){…}` — a property name, not a call
+    if (precededByAccessorKeyword(masked, idx)) continue;
     // exclude `function NAME(` declarations themselves appearing as a "call" to the regex (the
     // declared-name pass already added NAME, so this is already excluded by declared.has(name)
     // above in the normal case — this guard only matters if the name collides with a global).
