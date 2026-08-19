@@ -274,6 +274,35 @@ no grade, and none was added here.
 **Whether the movement above is material is Wyatt's call**, made against these numbers at plan 06's
 decision checkpoint (D-07).
 
-The **held-out seed family (×104729)** has *not* been run. It remains available as one more ~90-second
-run per side if the dev-family result reads as borderline — that is one of the options at the
-checkpoint, not a step already taken.
+The **held-out seed family (×104729)** has *not* been run. It was offered as one more ~90-second run
+per side if the dev-family result read as borderline — one of the options at the checkpoint, not a
+step already taken. → What he chose is recorded below.
+
+---
+
+## The decision — recorded, not concluded
+
+**This section is a record of what Wyatt decided and when. It is not a finding of this report.**
+Nothing above it changed, and nothing above it was written to lead here. The measurements and the
+decision are two separate things and are kept that way on purpose (D-07).
+
+**2026-08-19 — Wyatt was shown the numbers above at plan 06's decision checkpoint and chose to ship
+the pass dubloon at one coin.**
+
+> **"ship it"** — Wyatt, 2026-08-19
+
+Of the three options put to him — ship at one coin, lower the payout before the freeze, or spend
+another run on the held-out seed family first — he took the first.
+
+What follows from that, as fact:
+
+| | |
+|---|---|
+| **The payout** | stays at **one dubloon**. `passCoin: 1` on the round config in `4/src/engine/index.js` is unchanged. |
+| **The held-out seed family (×104729)** | **not run.** He did not ask for it, so the option closed with the decision. |
+| **The 400-game ladder** | **not re-run.** Nothing about the game changed at this checkpoint, so there is nothing new to measure. |
+| **D-07's gate** | **closed** — measured on identical seeds, reported with no threshold, decided by the person whose call it is. |
+
+**The engine can now freeze on this rule.** Phase 3 records the determinism corpus against a payout
+that has been measured and ruled on, which is the whole reason this gate sat in Phase 1 rather than
+in a follow-up note.
