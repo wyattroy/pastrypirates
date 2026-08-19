@@ -170,6 +170,55 @@ rendering of the new stage (`4/src/ui/stage.js`, never executed on the guest tie
 the guest (`4/src/orchestrator.js:1210`), the greyed-button reasons (`:1262-1273`). Phases 4 and 5
 are scoped from that list.
 
+### Phase 02.1: One Game, Every Captain — one render path for host and guest (INSERTED)
+
+**Goal**: One render path for every captain. A guest sees the same game, drawn the same way, as the
+player who opened the room — with host and guest differing only in who computes the voyage and who
+creates the room.
+
+**Why this exists — Wyatt, 2026-08-19**, reading the Phase 2 gate fixes: *"I don't understand why
+your architecture is treating the host and the guest differently across the board. There should be
+one architecture that displays things for every player regardless of whether there's a host or a
+guest... the only thing that needs to be distinct is something quite invisible on the back end and
+just the starting flow where someone makes a game."*
+
+**The cause, confirmed in code, not inferred.** Every renderer reads `appState.game` directly. On
+the host that is live truth. **On a guest it is a stale render shell** — a guest does not simulate
+the voyage, it renders the state snapshot carried on each broadcast event
+(`docs/DRIVING-THE-GAME.md` §5c, re-verified 2026-08-19). So `ribbonTick()` reading `g.round` is
+why a guest's day counter sticks on DAY 1, and the director reading `game.players[mySeat].pos` is
+why it cannot centre a guest's own boat and strands the radial buttons at the bottom of the screen.
+**Every renderer is silently wrong for a guest**, which is why the symptom is "so many bugs in guest
+mode" rather than a list of unrelated ones.
+
+**The second copy, which the code already admits.** `4/src/orchestrator.js:1263` describes the
+guest's button renderer as "a genuine second copy (host and guest render prompts from different
+sources), so a change to one that skips the other reintroduces the bug on whichever side was
+forgotten." Every field on that wire — `disabled`, `why`, `back`, `flipIdx`, and in Phase 2 `stage`
+and `shorts` — was added only after someone noticed the guest was missing one. **Phase 2 added the
+sixth and seventh. That is the pattern, not the cure.**
+
+**Sequencing (Wyatt's ruling, 2026-08-19): fix the state layer FIRST**, so the game state tells the
+truth on both sides, and let the render bugs fall out — rather than unifying one subsystem at a
+time. Then delete the 43 host/guest branches across 7 files and the duplicate prompt renderer.
+
+**Scope: everything a player sees** — the prompt panel, the ribbon and day counter, the
+director/camera, narration. Also in scope by his pick: the flat-card bug where a greyed button's
+`why` sentence containing a coin breaks its own label past the 16-character radial cutoff (hits host
+and guest alike, reproduced deterministically), and **establishing a way to verify in Safari**,
+which is what he actually plays and which nothing in this milestone has ever been tested against.
+**Explicitly NOT in scope, his call:** the doubled flip sound, which never reproduced.
+
+**Requirements**: TBD (run /gsd-plan-phase 02.1)
+**Depends on:** Phase 2
+**Blocks:** Phase 6 (The Cutover) — guest mode should be right before `4/` becomes the game real
+players land on.
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 02.1 to break down)
+
 ### Phase 3: The Safety Net
 
 **Goal**: The game being promoted gets the mechanical guarantees v1 had — before the largest piece of work in the milestone is built on top of it.
@@ -515,7 +564,8 @@ The first phase is independent of every promotion decision and can start immedia
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
-| 2. Multiplayer Revival | 4/7 | In Progress|  |
+| 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
+| 02.1 One Game, Every Captain (INSERTED) | 0/TBD | Not planned | - |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |

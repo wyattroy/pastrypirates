@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase: 2
-current_phase_name: Multiplayer Revival
-status: executing
-stopped_at: 02-07-PLAN.md tasks 1-2 done — 02-FINDINGS.md written and the one drop pushed (build 2026-08-19a). Task 3 is a blocking human checkpoint: Wyatt plays a real voyage. Phase does not close until he approves.
-last_updated: "2026-08-19T16:32:39.000Z"
+current_phase: 02.1
+current_phase_name: One Game, Every Captain
+status: ready-to-plan
+stopped_at: "Phase 2 COMPLETE (7/7). Wyatt played the gate, found seven faults; three were real defects, fixed and re-dropped as build 2026-08-19b. He ruled that Phase 2 closes and the remaining guest-side faults become Phase 02.1. Next: /gsd-plan-phase 02.1"
+last_updated: "2026-08-19T19:54:16.927Z"
 last_activity: 2026-08-19
-last_activity_desc: "02-05 and 02-06 executed: chat given a home in the new stage (ribbon chip, slide-up sheet, flash) and the headless shakeout passed clean; 02-07 drop pushed and awaiting Wyatt's voyage (see .planning/phases/02-multiplayer-revival/02-FINDINGS.md)"
+last_activity_desc: "Phase 2 closed at its human gate: Wyatt played build 2026-08-19a and found seven faults, three of them real defects (the >18-character name crash, the doubled narration paint that cut every crew-game hold to 1ms, and two fields missing from the guest's prompt payload). All three fixed and re-dropped as 2026-08-19b. His architectural finding — one render path for every player — became Phase 02.1 (see .planning/phases/02-multiplayer-revival/02-07-SUMMARY.md)"
 progress:
-  total_phases: 9
-  completed_phases: 1
+  total_phases: 10
+  completed_phases: 2
   total_plans: 13
-  completed_plans: 12
-  percent: 11
+  completed_plans: 13
+  percent: 20
 ---
 
 <!-- ============================================================================
@@ -57,10 +57,37 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 2 (Multiplayer Revival) — AWAITING WYATT'S VOYAGE
-Plan: 6 of 7 complete; 02-07's tasks 1-2 done, task 3 is the gate
-Next: 02-07-PLAN.md task 3 — Wyatt plays a real voyage at `playpastrypirates.com/4/?bakeoff=0`, build `2026-08-19a`. Nothing in this phase closes on headless evidence (D-09).
-Last activity: 2026-08-19 — 02-05 and 02-06 executed and 02-07 pushed: chat has a home in the new stage, the headless shakeout found no game faults, and `02-FINDINGS.md` is written (see .planning/phases/02-multiplayer-revival/02-FINDINGS.md)
+Phase: 02.1 (One Game, Every Captain) — NOT PLANNED YET
+Plan: none yet
+Next: `/gsd-plan-phase 02.1`
+Last activity: 2026-08-19 — Phase 2 closed at its gate; build `2026-08-19b` is live at `playpastrypirates.com/4`
+
+**Phase 2 is complete, 7 of 7.** It delivered what it was scoped to: Firebase restored, Host a Crew
+and Join a Crew back on the welcome screen, three never-run crashes closed, the skip gate held in a
+crew game, chat given a home in the new stage, and the crew-game narration timing fixed. Wyatt
+played the gate and found seven faults; three were real defects and were fixed and re-dropped the
+same day. Full account: `phases/02-multiplayer-revival/02-07-SUMMARY.md`.
+
+**Why Phase 02.1 exists, and it is Wyatt's finding, not a session's.** Reading those fixes he said:
+*"There should be one architecture that displays things for every player regardless of whether
+there's a host or a guest... the only thing that needs to be distinct is something quite invisible
+on the back end and just the starting flow where someone makes a game."*
+
+The cause is confirmed in code: **every renderer reads `appState.game` directly.** On the host that
+is live truth; on a guest it is a stale render shell, because a guest does not simulate the game —
+it renders the state snapshot carried on each broadcast event. So `ribbonTick()` reading `g.round`
+is why a guest's day counter sticks on DAY 1, and the director reading `game.players[mySeat].pos`
+is why it cannot centre a guest's own boat. **Every renderer is silently wrong for a guest**, which
+is why the symptom is "so many bugs in guest mode" rather than a list of unrelated ones.
+
+His sequencing ruling: **fix the state layer first**, so the game state tells the truth on both
+sides, and then delete the 43 host/guest branches across 7 files and the duplicate prompt renderer —
+rather than unifying one subsystem at a time. Scope is **everything a player sees**: prompts, the
+ribbon and day counter, the director/camera, narration. Host vs guest survives only as who computes
+the game and who creates the room. Also in scope by his pick: the flat-card bug where a greyed
+button's `why` sentence containing a coin breaks its own label past the radial cutoff, and
+establishing a way to verify in **Safari**, which is what he actually plays and which nothing has
+ever been tested against. **The doubled flip sound is deliberately NOT in this phase** — his call.
 
 **Phase 1's last open question is answered.** D-07 could not be closed by any measurement, only by
 Wyatt: shown what the pass dubloon did to the bots across 400 identical games, he said **"ship it"**
@@ -239,6 +266,10 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260818-vot | Pass payout in config, shown on the Pass button | 2026-08-18 | 831abd2 | [260818-vot-pass-payout-in-config](./quick/260818-vot-pass-payout-in-config/) |
+
+### Roadmap Evolution
+
+- Phase 02.1 inserted after Phase 2: One render path for host and guest: every renderer reads appState.game, which is live truth on the host and a stale render shell on a guest. Fix the state layer first, then delete the 43 host/guest branches and the duplicate prompt renderer. (URGENT)
 
 ## Deferred Items
 
