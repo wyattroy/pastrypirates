@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase: 02
 current_phase_name: multiplayer-revival
 status: planning
-stopped_at: Phase 1 complete and verified — ready to discuss Phase 2
-last_updated: "2026-08-19T11:45:00.000Z"
+stopped_at: Phase 2 context gathered
+last_updated: "2026-08-19T12:11:49.781Z"
 last_activity: 2026-08-19
-last_activity_desc: Phase 1 complete — 6 plans, verified 22/22, UAT 4/4 passed
+last_activity_desc: "Phase 1 closed; D-07 answered by Wyatt (\\\"ship it\\\"), UAT confirmed on his phone"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 6
   completed_plans: 6
   percent: 11
+current_phase: 02
 ---
 
 <!-- ============================================================================
@@ -237,9 +237,9 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T11:08:31.292Z
-Stopped at: Completed 01-06-PLAN.md — Phase 1 complete, awaiting verification
-Resume file: None
+Last session: 2026-08-19T12:11:49.766Z
+Stopped at: Phase 2 context gathered
+Resume file: .planning/phases/02-multiplayer-revival/02-CONTEXT.md
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
 
