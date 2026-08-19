@@ -182,7 +182,18 @@ $ git rev-list --count main..origin/main
 0
 ```
 
-These were both `0` at fetch time. **This agent did not push** — the orchestrator owns the push, so the count from this plan's two commits (`8107356` already pushed, `09aac6e` local) must be re-read after that push, never carried from here. Naming that explicitly is the point of T-01-17.
+Both `0` at that fetch — i.e. everything committed **before** this plan's close-out was already on `origin`.
+
+**This agent did not push.** The orchestrator owns the push, so the count moved the moment the close-out commits landed locally. Re-run after the final commit, it printed:
+
+```
+$ git rev-list --count origin/main..main
+2
+$ git rev-list --count main..origin/main
+0
+```
+
+Those 2 are `09aac6e` (the recorded decision) and `98910f4` (this SUMMARY plus `STATE.md` and `ROADMAP.md`). `8107356` was already pushed. **Zero in both directions is owed after the orchestrator pushes, and must be re-read there — not carried from this file.** A count copied forward is the 457-commits-behind failure in miniature, which is the whole point of T-01-17.
 
 ---
 
