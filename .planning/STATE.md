@@ -5,10 +5,10 @@ milestone_name: The New Game
 current_phase: 02.1
 current_phase_name: one-game-every-captain-one-render-path-for-host-and-guest
 status: executing
-stopped_at: Completed 02.1-03-PLAN.md
+stopped_at: 02.1-04 Task 1 complete (drop 2026-08-19c); holding at Task 2 human checkpoint
 last_updated: "2026-08-19T23:06:52.721Z"
 last_activity: 2026-08-19
-last_activity_desc: "02.1-01 shipped: a guest's game object stops lying"
+last_activity_desc: "02.1-04 drop landed — build 2026-08-19c live at /4; awaiting Wyatt's Safari host"
 progress:
   total_phases: 10
   completed_phases: 2
@@ -58,9 +58,12 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — EXECUTING
-Plan: 4 of 4
-Next: `/gsd-execute-phase 02.1` — plan 02.1-02 (the flat-card bug)
-Last activity: 2026-08-19 — 02.1-01 shipped: a guest's game object stops lying
+Plan: 4 of 4 — Task 1 done (the drop), HOLDING at Task 2's blocking human checkpoint
+Next: Wyatt hosts a crew game in his own Safari at `playpastrypirates.com/4/?bakeoff=0` and replies
+with the room code; Claude then joins as a driven Chrome guest (Task 3) and compares both screens.
+Last activity: 2026-08-19 — **the phase drop landed: `PP4_STAMP` is `2026-08-19c`**, commit `4db2c00`,
+confirmed serving live from `playpastrypirates.com/4`. It carries all three code plans (02.1-01, -02,
+-03) in one build, per Wyatt's one-drop-one-test convention.
 
 **Phase 2 is complete, 7 of 7.** It delivered what it was scoped to: Firebase restored, Host a Crew
 and Join a Crew back on the welcome screen, three never-run crashes closed, the skip gate held in a
