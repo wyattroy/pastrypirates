@@ -57,7 +57,19 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
   3. A captain who passes receives one dubloon, at every one of the three `{t:"pass"}` emission sites — human menu, flow, and the bot fallback. Bots pass, so bots are paid.
   4. The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries.
   5. The engine ships exactly one bot planner — the unreachable `planTurnClassic` subtree is gone, so no future tuning pass can aim at code that never runs.
-**Plans**: TBD
+**Plans**: 6 plans, 5 waves
+
+Plans:
+- [ ] 01-01-PLAN.md — TRACER: the first gate in this repo that loads `4/` runs green (TEST-01, TEST-02)
+- [ ] 01-02-PLAN.md — The clock preference stops leaking into the live game (FIX-01)
+- [ ] 01-03-PLAN.md — One-brain ladder rewrite, and the balance baseline captured before the dubloon (FIX-06)
+- [ ] 01-04-PLAN.md — Passing pays a dubloon, and the narration says so (RULE-01, RULE-02)
+- [ ] 01-05-PLAN.md — The dead bot planner is deleted; the engine ships one brain (FIX-06)
+- [ ] 01-06-PLAN.md — D-07's balance gate: measure after, report the delta, ask Wyatt, ship the stamp (RULE-01, FIX-06)
+
+**Wave order.** 1: 01-01 · 2: 01-02, 01-03 (parallel) · 3: 01-04 · 4: 01-05 · 5: 01-06.
+The ordering is forced by D-07: the balance baseline must be measured on a tree where passing does
+not yet pay, so the ladder rewrite (01-03) lands **before** RULE-01 (01-04), not after.
 
 **Why these are one phase.** FIX-01 affects real players today and is independent of every
 promotion decision — it does not wait for anything. TEST-01/02 unblock nearly all other TEST
