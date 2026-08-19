@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 01
 current_phase_name: before-the-engine-freezes
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-08-19T01:49:58.581Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-08-19T02:26:56.794Z"
 last_activity: 2026-08-18
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 01 (before-the-engine-freezes) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-08-18 — Phase 01 execution started
 
@@ -91,6 +91,7 @@ No v2.0 plans executed yet. Prior-milestone velocity and per-plan metrics are ar
 | Phase 01 P02 | 8min | 2 tasks | 4 files |
 | Phase 01 P03 | 24m | 2 tasks | 2 files |
 | Phase 01 P04 | 1h | 2 tasks | 5 files |
+| Phase 01 P05 | 42 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: RULE-01: passing pays one dubloon through a single Game.doPass(p) called from all three emission sites; the purse is mutated BEFORE ev() records it, because ev() snapshots at call time (01-04)
 - [Phase ?]: RULE-01: the human-only sea-cursor advance stays outside doPass — per-device narration bookkeeping owned by one seat, never handed to bots (01-04)
 - [Phase ?]: RULE-02/D-06: the pass tag 'Recipe idea! (+1 coin)' is appended by the renderer in one place as a subjectless fragment; all 100 hand-written sea-creature strings untouched (01-04)
+- [Phase ?]: FIX-06: the engine ships one bot planner. The classic whole-turn planner and its four exclusive helpers are deleted from 4/src/engine/index.js; the v3-suffixed helpers are live and gated. The divergent float tie-break tolerance is resolved by removal, not reconciliation. (01-05)
+- [Phase ?]: The published bot numbers in docs/BOT-V3-RACE-PLANNER.md and docs/FABLE-BOT-BRIEF.md are deliberately NOT edited. They became unreproducible on 2026-08-18 and stay true as the record of why the race planner was chosen; annotating them is Phase 9's work. (01-05)
+- [Phase ?]: Deletions whose targets share a prefix with live code are done as asserted line-range surgery, never regex over a name prefix, and are proved behaviour-neutral by a byte-identical before/after ladder record that is itself red-proofed. (01-05)
 
 ### Pending Todos
 
@@ -210,8 +214,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T01:49:49.876Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-08-19T02:26:47.314Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

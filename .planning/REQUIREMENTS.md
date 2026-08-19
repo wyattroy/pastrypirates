@@ -127,7 +127,7 @@ disagree with the code.
 - [ ] **FIX-03**: The sparse-draft crash at `4/src/orchestrator.js:1591` is fixed, along with the unguarded `.val()` at `:1501` and the unescaped host HTML at `:1239`
 - [ ] **FIX-04**: Safari storm performance is re-measured on a real device — the BUG-01 fix is intact, but rain is now full-viewport (~5× paint area) and a 60fps camera tween runs during storms, and this has never been measured on Safari
 - [ ] **FIX-05**: The wind-dot prototype's shipping default is a decision, not an accident (`4/src/ui/board.js:570` ships `true` at 20 dots; live deliberately keeps it `false` at 10)
-- [ ] **FIX-06**: The dead bot brain is resolved — `planTurnClassic` (`4/src/engine/index.js:2739`, ~210 lines) has zero callers and `planTurn:2197` dispatches to v3 unconditionally
+- [x] **FIX-06**: The dead bot brain is resolved — `planTurnClassic` (`4/src/engine/index.js:2739`, ~210 lines) has zero callers and `planTurn:2197` dispatches to v3 unconditionally
 
 ---
 
@@ -183,7 +183,7 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | TEST-02 | Phase 1 — Before the Engine Freezes | Complete |
 | RULE-01 | Phase 1 — Before the Engine Freezes | Complete |
 | RULE-02 | Phase 1 — Before the Engine Freezes | Complete |
-| FIX-06 | Phase 1 — Before the Engine Freezes | Pending |
+| FIX-06 | Phase 1 — Before the Engine Freezes | Complete |
 | MP-01 | Phase 2 — Multiplayer Revival | Pending |
 | MP-02 | Phase 2 — Multiplayer Revival | Pending |
 | MP-03 | Phase 2 — Multiplayer Revival | Pending |

@@ -61,7 +61,7 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
   4. The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries.
   5. The engine ships exactly one bot planner — the unreachable `planTurnClassic` subtree is gone, so no future tuning pass can aim at code that never runs.
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 **Wave 1**
@@ -79,7 +79,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 01-05-PLAN.md — The dead bot planner is deleted; the engine ships one brain (FIX-06)
+- [x] 01-05-PLAN.md — The dead bot planner is deleted; the engine ships one brain (FIX-06)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -490,7 +490,7 @@ The first phase is independent of every promotion decision and can start immedia
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Before the Engine Freezes | 4/6 | In Progress|  |
+| 1. Before the Engine Freezes | 5/6 | In Progress|  |
 | 2. Multiplayer Revival | 0/TBD | Not started | - |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
