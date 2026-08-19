@@ -422,9 +422,16 @@ function ribbonTick(){
   const ff = $("pp4FF");
   if (ff){
     const g2 = appState.game;
-    // no ⏩ at a Pass & Play table (Wyatt's ruling, 2026-08-13): the skip is solo-only
-    const botsUp = g2 && !appState.liveDone && !appState.passAndPlay && act >= 0 &&
-      act !== (appState.mySeat ?? 0) && g2.players[act] && !g2.players[act].done;
+    // no ⏩ at a Pass & Play table (Wyatt's ruling, 2026-08-13) and no ⏩ in a crew game either
+    // (D-04, 02-03, 2026-08-19 — the skip's third mode, not a new ruling: "there is no skip in a
+    // multiplayer game -- this was decided earlier. skip is only for solo games"). The ⏩ exists to
+    // skip BOTS (348ccf4); a Pass & Play table and a networked table both hold nothing but people
+    // on the turns being waited on, so there is nothing left for either to skip. `appState.db &&
+    // appState.room` is the same networked test the chat panel already uses (orchestrator.js) —
+    // reused here rather than inventing a new flag, per the state module's own field for "am I in
+    // a room right now."
+    const botsUp = g2 && !appState.liveDone && !appState.passAndPlay && !(appState.db && appState.room) &&
+      act >= 0 && act !== (appState.mySeat ?? 0) && g2.players[act] && !g2.players[act].done;
     // explicit inline-flex/none — the CSS base is display:none, so writing "" would fall back to
     // hidden. inline-flex, NOT block: playtest 21 item 8 gave the ⏩ and the clock one shared box
     // rule that centres their contents with flex, and an inline `display:block` written here would
@@ -879,10 +886,21 @@ function buildStage(){
   // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
   // until the next prompt that involves him (his sail, a flip, a battle call, an offered trade),
   // which ends the skip at normal speed and never re-arms it (flow.js ffEndNow is the other half:
-  // it also builds the one-clause-per-bot recap of what he didn't witness). Solo only by nature —
-  // /4 ships solo-only, and the flag drives pure UI pacing, never the engine.
+  // it also builds the one-clause-per-bot recap of what he didn't witness). Solo only by design
+  // (D-04) — never Pass & Play, never a crew game — and the flag drives pure UI pacing, never the
+  // engine.
+  //
+  // T-02-10 (02-03): hiding the chip is not proof the flag can't be set — appState.ff also
+  // shortens sleep() in orchestrator.js/flow.js, and on the HOST those calls pace the entire
+  // runLiveNet loop, so an armable-but-invisible flag would still rush every guest's narration
+  // even with #pp4FF's own display stuck at "none". The arm refuses here, in the handler body,
+  // using the same networked test the visibility tick above uses — a guard rather than a
+  // conditionally-attached handler, so it holds even if this device's mode were ever to change
+  // after buildStage() already ran (never happens today — a room's networked-ness is fixed for a
+  // voyage's whole lifetime — but the guard doesn't have to trust that staying true).
   $("pp4FF").onclick = () => {
     if (appState.ff) return;
+    if (appState.db && appState.room) return; // D-04: no arming the skip in a crew game, chip visible or not
     appState.ff = true;
     appState.ffFromEv = appState.game ? appState.game.events.length : 0;
     if (S.hurry) S.hurry();          // the live bubble goes NOW — the skip starts this instant
@@ -1408,15 +1426,29 @@ function promptTick(){
 // tween, live pinch/pan, a bubble riding a ship), and an 8Hz heartbeat otherwise. wake() snaps
 // back to the fast gear the instant motion starts, so nothing ever glides at 8fps.
 let fc = 0;
-// activate once a solo game is actually on screen. Extracted from tick() so syncPrompt() can run
-// the SAME check synchronously: the stage was only ever built on the tick loop's own beat, so the
-// very first prompt of a voyage could render before body.pp4Stage existed at all — and then no
-// amount of laying it out helps, because every stage rule is scoped to that class. That is what
-// left the recipe cards at 306px (unstyled flex) for the first frames of the chooser.
+// activate once a voyage is actually on screen — solo, pass-and-play, OR networked. Extracted
+// from tick() so syncPrompt() can run the SAME check synchronously: the stage was only ever built
+// on the tick loop's own beat, so the very first prompt of a voyage could render before
+// body.pp4Stage existed at all — and then no amount of laying it out helps, because every stage
+// rule is scoped to that class. That is what left the recipe cards at 306px (unstyled flex) for
+// the first frames of the chooser.
+//
+// 02-03 (MP-10/MP-11): this used to also require `!appState.room`, written 2026-08-13 while `4/`'s
+// Firebase tags were off and appState.room could never be non-null — a no-op at the time, not a
+// deliberate "networked games use the classic layout" choice. Restoring multiplayer (02-01) turned
+// that no-op into a real bug: appState.room stays truthy for a room's entire lifetime, so this
+// guard silently stopped the stage — and with it #pp4Ribbon, #pp4FF, everything this phase's
+// mode-gating work depends on — from ever building in a networked game, confirmed by direct
+// measurement (headless host+guest voyage: `pp4Stage` absent from body, `#pp4Ribbon`/`#pp4FF`
+// absent from the DOM, even with `gameStarted:true`). `gameEl`'s display plus `appState.game`
+// already fully capture "the voyage view is on screen" for every mode alike (`showGameView()`,
+// `4/src/ui/lobby.js`, runs identically for solo/pass-and-play/networked) — the room check added
+// nothing even when it was harmless, and removing it is not a new mechanism, just the two
+// conditions that were always sufficient on their own.
 function maybeBuildStage(){
   if (S.active) return;
   const gameEl = $("game");
-  if (gameEl && getComputedStyle(gameEl).display !== "none" && appState.game && !appState.room) buildStage();
+  if (gameEl && getComputedStyle(gameEl).display !== "none" && appState.game) buildStage();
 }
 function needFast(){ return !!(S.tween || S.bubPlace || ptrs.size > 0); }
 export function wake(){
