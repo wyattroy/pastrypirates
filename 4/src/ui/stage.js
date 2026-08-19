@@ -187,7 +187,13 @@ function boatUXY(i){
 // See where it is applied below for why this is a list rather than two named consts.
 const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost"];
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
-addEventListener("resize", () => { ribHAt = -1e9; lastVB = ""; });
+// TEST-01: guarded because there is no browser global to bind to under Node, and a bare
+// `addEventListener(` at module scope threw a ReferenceError the instant anything imported this
+// file — the largest module in the new game at 1,545 lines, and the one every 4/ gate has to be
+// able to load. Same block-guard shape as 4/src/main.js:32, not an inline ternary.
+if (typeof window !== "undefined") {
+  window.addEventListener("resize", () => { ribHAt = -1e9; lastVB = ""; });
+}
 function camFrame(){
   const c = S.cam;
   if (S.tween){
