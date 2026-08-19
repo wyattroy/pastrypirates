@@ -63,3 +63,30 @@ frontmatter open/waived/fixed/total=5/1/9/15 but entries yield 6/0/3/9.
 Pre-existing, unrelated to anything this phase touched, and it means **the ledger cannot accept new
 entries at all** — which is why D1 and D2 are recorded here instead of there. Worth repairing
 before `/gsd-ship`, since the ship gate reads that file.
+
+---
+
+## D4 — the why bubble shows a SYSTEM emoji coin, not the game's coin art
+
+**Found during:** 02.1-02 Task 2 (seen in the screenshot, not in any assertion) · **Owner:**
+unassigned — needs Wyatt's ruling · **Recorded:** 2026-08-19
+
+With the flat-card bug fixed, tapping a greyed circle now speaks its whole reason, and the picture
+shows what the numbers could not: the coin in that bubble is the **yellow system emoji 🌕**, while
+every other coin on the same screen — the circle's own `(−2🌕)`, the captains list, the ribbon — is
+Wyatt's drawn coin. Two different coins, a hundred pixels apart.
+
+`showWhy()` (`4/src/ui/flow.js:162`) sets `d.textContent = why`, with the comment *"the reason is
+prose, never markup"*. That is a deliberate choice and it is what makes the bubble immune to the
+very corruption 02.1-02 just fixed — so it must not be casually undone. Rendering the coin art
+there means letting that bubble accept markup again, which re-opens the door this plan closed.
+
+**Not fixed here, deliberately:** it is pre-existing (the bubble behaved this way before this plan
+too — the text was simply truncated so nobody saw the coin), it is outside 02.1-02's stated scope
+(`emojify()` only), and whether one system emoji is worth reintroducing markup into the one
+tooltip that is currently markup-proof is a taste-and-risk call that belongs to Wyatt, not to an
+executor. It is flagged under CLAUDE.md rule 6 (consistency is broken here — but only
+intentionally once he has seen it).
+
+**Where to look:** `shots/green-guest-showwhy.png` and `shots/green-host-showwhy.png` from this
+plan's probe run.

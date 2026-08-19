@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 02.1
 current_phase_name: one-game-every-captain-one-render-path-for-host-and-guest
 status: executing
-stopped_at: "Completed 02.1-01-PLAN.md — guest state layer fixed, red/green proven. Next: 02.1-02"
-last_updated: "2026-08-19T22:14:53.584Z"
+stopped_at: Completed 02.1-02-PLAN.md
+last_updated: "2026-08-19T22:32:01.825Z"
 last_activity: 2026-08-19
-last_activity_desc: 02.1-01 complete — guest state layer fixed, red/green proven
+last_activity_desc: "02.1-01 shipped: a guest's game object stops lying"
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
   percent: 20
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Next: `/gsd-execute-phase 02.1` — plan 02.1-02 (the flat-card bug)
 Last activity: 2026-08-19 — 02.1-01 shipped: a guest's game object stops lying
 
@@ -135,6 +135,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02 P03 | ~85min | 2 tasks | 1 files |
 | Phase 02 P04 | ~110min | 2 tasks | 0 files |
 | Phase 02.1 P01 | 45min | 3 tasks | 1 files |
+| Phase 02.1 P02 | 20min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,8 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: Firebase's /seats/*/name security rule caps a captain name to 18 chars server-side, well under the 40-char client-side clamp — undocumented, found mid-probe when it silently froze a page via a blocking alert() (02-04)
 - [Phase ?]: 02.1-01: fix the guest's state layer, not the six renderers that read it — watchEvents() applies each event's baked-in snapshot onto appState.game, so ribbonTick/pillHTML/camFitSail become correct with zero renderer changes and zero engine changes
 - [Phase ?]: 02.1-01: a guest's appState.game is now TRUE, not a render shell — docs/DRIVING-THE-GAME.md §5c's 'never compare game.players across clients' rule is obsolete for 4/ and must not be followed (DOC-06 owns the doc)
+- [Phase ?]: emojify() is tag-aware: substitution happens only outside HTML tags, so no attribute can be broken open by the coin <img>
+- [Phase ?]: The literal-'>'-in-an-attribute limitation is named in a comment at the fix site rather than closed with an HTML tokenizer (threat T-02.1-04, accepted)
 
 ### Pending Todos
 
@@ -287,8 +290,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T22:14:53.575Z
-Stopped at: Completed 02.1-01-PLAN.md — guest state layer fixed, red/green proven. Next: 02.1-02
+Last session: 2026-08-19T22:31:54.136Z
+Stopped at: Completed 02.1-02-PLAN.md
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
