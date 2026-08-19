@@ -223,12 +223,12 @@ ruling removes the constraint, it does not mandate the expensive path.
 **Depends on:** Phase 2
 **Blocks:** Phase 6 (The Cutover) — guest mode should be right before `4/` becomes the game real
 players land on.
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02.1-01-PLAN.md — the state layer: watchEvents() applies each event's own snapshot onto appState.game — the day counter, wind pill, and camera fall out with zero changes to any renderer (tracer, red/green proved) (PAR-01, PAR-02, PAR-03, PAR-04)
+- [x] 02.1-01-PLAN.md — the state layer: watchEvents() applies each event's own snapshot onto appState.game — the day counter, wind pill, and camera fall out with zero changes to any renderer (tracer, red/green proved) (PAR-01, PAR-02, PAR-03, PAR-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -601,7 +601,7 @@ The first phase is independent of every promotion decision and can start immedia
 |-------|----------------|--------|-----------|
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
-| 02.1 One Game, Every Captain (INSERTED) | 0/4 | Planned | - |
+| 02.1 One Game, Every Captain (INSERTED) | 1/4 | In Progress|  |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |

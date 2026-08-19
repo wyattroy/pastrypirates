@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
 current_phase: 02.1
-current_phase_name: One Game, Every Captain
-status: ready-to-plan
-stopped_at: "Phase 2 COMPLETE (7/7). Wyatt played the gate, found seven faults; three were real defects, fixed and re-dropped as build 2026-08-19b. He ruled that Phase 2 closes and the remaining guest-side faults become Phase 02.1. Next: /gsd-plan-phase 02.1"
-last_updated: "2026-08-19T19:54:16.927Z"
+current_phase_name: one-game-every-captain-one-render-path-for-host-and-guest
+status: executing
+stopped_at: "Completed 02.1-01-PLAN.md — guest state layer fixed, red/green proven. Next: 02.1-02"
+last_updated: "2026-08-19T22:14:53.584Z"
 last_activity: 2026-08-19
-last_activity_desc: "Phase 2 closed at its human gate: Wyatt played build 2026-08-19a and found seven faults, three of them real defects (the >18-character name crash, the doubled narration paint that cut every crew-game hold to 1ms, and two fields missing from the guest's prompt payload). All three fixed and re-dropped as 2026-08-19b. His architectural finding — one render path for every player — became Phase 02.1 (see .planning/phases/02-multiplayer-revival/02-07-SUMMARY.md)"
+last_activity_desc: 02.1-01 complete — guest state layer fixed, red/green proven
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 17
+  completed_plans: 14
   percent: 20
 ---
 
@@ -45,7 +45,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-18)
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a
 storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
 
-**Current focus:** Phase 2 — Multiplayer Revival. The `4/` redesign — a new ruleset answered across
+**Current focus:** Phase 02.1 — one-game-every-captain-one-render-path-for-host-and-guest
 62 questions, a bake-off minigame, a race-planner bot brain fitted on 27,867 simulated outcomes,
 and a complete visual redesign — is being promoted to become the official Pastry Pirates. This is
 a **one-way cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code commit
@@ -57,10 +57,10 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 02.1 (One Game, Every Captain) — NOT PLANNED YET
-Plan: none yet
-Next: `/gsd-plan-phase 02.1`
-Last activity: 2026-08-19 — Phase 2 closed at its gate; build `2026-08-19b` is live at `playpastrypirates.com/4`
+Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — EXECUTING
+Plan: 2 of 4
+Next: `/gsd-execute-phase 02.1` — plan 02.1-02 (the flat-card bug)
+Last activity: 2026-08-19 — 02.1-01 shipped: a guest's game object stops lying
 
 **Phase 2 is complete, 7 of 7.** It delivered what it was scoped to: Firebase restored, Host a Crew
 and Join a Crew back on the welcome screen, three never-run crashes closed, the skip gate held in a
@@ -134,6 +134,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02 P02 | ~65min | 2 tasks | 1 files |
 | Phase 02 P03 | ~85min | 2 tasks | 1 files |
 | Phase 02 P04 | ~110min | 2 tasks | 0 files |
+| Phase 02.1 P01 | 45min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -197,6 +198,8 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: MP-10's tab-hide gate measured (not read) to hold in both directions on a live two-browser networked voyage — rooms/<CODE>/paused never moved across guest/host hide+show, sensor red-proofed against a solo bot game where the same technique correctly flips local pause state; no production code touched (02-03)
 - [Phase ?]: FIX-03's third site (watchPrompt's unescaped host HTML) does not reproduce — pname() already routes every typed name through escHtml before it reaches any prompt renderer; no code changed (02-04)
 - [Phase ?]: Firebase's /seats/*/name security rule caps a captain name to 18 chars server-side, well under the 40-char client-side clamp — undocumented, found mid-probe when it silently froze a page via a blocking alert() (02-04)
+- [Phase ?]: 02.1-01: fix the guest's state layer, not the six renderers that read it — watchEvents() applies each event's baked-in snapshot onto appState.game, so ribbonTick/pillHTML/camFitSail become correct with zero renderer changes and zero engine changes
+- [Phase ?]: 02.1-01: a guest's appState.game is now TRUE, not a render shell — docs/DRIVING-THE-GAME.md §5c's 'never compare game.players across clients' rule is obsolete for 4/ and must not be followed (DOC-06 owns the doc)
 
 ### Pending Todos
 
@@ -284,8 +287,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T14:37:33.614Z
-Stopped at: Completed 02-04-PLAN.md — FIX-03's third site (unescaped host HTML) measured and found not to reproduce; no code changed
+Last session: 2026-08-19T22:14:53.575Z
+Stopped at: Completed 02.1-01-PLAN.md — guest state layer fixed, red/green proven. Next: 02.1-02
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

@@ -54,10 +54,10 @@ Minted from ROADMAP's Phase 02.1 section (no numbered Success Criteria list exis
 phase was inserted after REQUIREMENTS.md was written) and from `02.1-RESEARCH.md`'s complete
 divergence inventory.
 
-- [ ] **PAR-01**: A guest's ribbon day counter advances round to round exactly as the host's does, with no reload (`ribbonTick()`, `4/src/ui/stage.js:401`)
-- [ ] **PAR-02**: A guest's wind pill shows a wind-now and forecast that match the host's, from the first event of the voyage onward (`pillHTML()`, `4/src/ui/stage.js:380`)
-- [ ] **PAR-03**: The camera centres a guest's own boat on a sail prompt, and frames battle/storm using each captain's true current position, on both host and guest (`camToSeat`/`camFitSail`/`camFitSeats`, `4/src/ui/stage.js:70-112`, and the `window.__pp4.battle`/`stormCam` hooks at `:1626-1660`)
-- [ ] **PAR-04**: A guest's narration matches the host's exactly — confirmed already correct by research, reconfirmed rather than rebuilt
+- [x] **PAR-01**: A guest's ribbon day counter advances round to round exactly as the host's does, with no reload (`ribbonTick()`, `4/src/ui/stage.js:401`)
+- [x] **PAR-02**: A guest's wind pill shows a wind-now and forecast that match the host's, from the first event of the voyage onward (`pillHTML()`, `4/src/ui/stage.js:380`)
+- [x] **PAR-03**: The camera centres a guest's own boat on a sail prompt, and frames battle/storm using each captain's true current position, on both host and guest (`camToSeat`/`camFitSail`/`camFitSeats`, `4/src/ui/stage.js:70-112`, and the `window.__pp4.battle`/`stormCam` hooks at `:1626-1660`)
+- [x] **PAR-04**: A guest's narration matches the host's exactly — confirmed already correct by research, reconfirmed rather than rebuilt
 - [ ] **PAR-05**: Host and guest render every prompt from one shared button-building function, not two hand-mirrored copies, including the previously-unwired `seat` field that anchors a radial option over the boat it names
 - [ ] **PAR-06**: A greyed button whose reason text contains an icon-mapped emoji (a coin, most commonly) still renders as a correct radial-or-flat prompt, not a corrupted one, on both host and guest (`emojify()`, `4/src/shared/index.js:113`)
 - [ ] **PAR-07**: There is a proven, repeatable way to verify `4/` in real Safari, and this phase's changes have been verified that way — the first time anything in `4/` has been checked against real Safari
@@ -209,10 +209,10 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | MP-11 | Phase 2 — Multiplayer Revival | Pending |
 | MP-12 | Phase 2 — Multiplayer Revival | Pending |
 | FIX-03 | Phase 2 — Multiplayer Revival | Pending |
-| PAR-01 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
-| PAR-02 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
-| PAR-03 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
-| PAR-04 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-01 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
+| PAR-02 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
+| PAR-03 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
+| PAR-04 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
 | PAR-05 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
 | PAR-06 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
 | PAR-07 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
