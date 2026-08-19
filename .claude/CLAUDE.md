@@ -46,6 +46,7 @@ documents; the rules themselves are all here, in full.
 | 16 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 17 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
 | 18 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
+| 19 | **QA your own work in the browser, with screenshots, before handing it to him** | [§1](#1-working-with-wyatt) |
 
 ---
 
@@ -78,8 +79,10 @@ Wyatt, 2026-08-09: *"Ask me these questions using claude's question ui — and A
 it. Write it where youll remember it. I tell you every day."*
 
 **He has had to say this every day.** A session that writes "1. … 2. … 3. …" into a reply has already
-failed, however good the questions are — **he is on a phone**, and answering prose questions by thumb
-is work he should never have been handed.
+failed, however good the questions are. **He asked for the UI directly and repeats it — that is the
+whole reason, and it does not expire when he sits down at a laptop.** (An earlier version of this
+rule justified it with "he is on a phone." He corrected that on 2026-08-19 — see the note under
+*"Before he walks away"* below — and the rule stands unchanged without it.)
 
 - The tool takes **up to 4 questions per call**. More than four means **more than one call, in
   sequence** — that is fine and expected. Do not collapse a dozen real questions into four vague ones.
@@ -138,9 +141,15 @@ Wyatt, 2026-08-19: *"it seems like the /remote-control session got killed someho
 check in on this on my phone... always make sure these sessions are running in such a way that i can
 receive updates and approve things on my phone as well, even when i'm away from my laptop."*
 
-**He is on a phone. That is the whole shape of this project** — it is why the work ships to `/4` (§6),
-why questions go through the question UI (above), and why a run he cannot see is a run he cannot
-direct. A session he cannot reach turns "I'll be back in an hour" into an hour of lost work.
+**The laptop is home base; the phone is how he keeps directing once he leaves it** — which is why a
+run he cannot see is a run he cannot direct. A session he cannot reach turns "I'll be back in an
+hour" into an hour of lost work.
+
+> **This rule is about the moment he WALKS AWAY — it is not a claim that he is always on a phone.**
+> Sessions kept writing "he is on a phone" as a permanent fact and then designing every deliverable
+> for a 360px screen he never asked for. Wyatt, 2026-08-19: *"i'm back on my laptop. you don't need
+> to make the page optimized for mobile."* **Do not assume either device — he says which one he is
+> on, unprompted. Give a page the room its content needs unless he has told you he is on the phone.**
 
 **The mechanism, measured — do not re-derive it, and do not guess at it as an earlier session did.**
 Remote control is armed **once**, when a session starts (or when the 🌐 globe in the session's top bar
@@ -193,6 +202,37 @@ neither he nor you can tell from inside it.
   message that reads on a phone screen: short, plain, and with the recommendation first.
 - **Report the boundary honestly.** If you cannot tell whether he can see something, say that, rather
   than assuming he can.
+
+### Look at it yourself first — in the browser, with screenshots — before you hand it to him
+
+Wyatt, 2026-08-19: *"add to claude.md that you should always check and QA your own work in browser
+with screenshots before passing it off to me."*
+
+**He asked for this after finding SEVEN bugs in about twenty minutes, in a build a session had just
+told him was ready and green.** Every one of them was visible on the first screen. He was doing QA
+that should never have reached him.
+
+**How a green report and a broken game coexisted, because this is the trap and it will recur:** the
+headless shakeout that blessed that build checked *game state* — ship positions, turn order, event
+indices, dubloon counts — and every one of those checks passed honestly. It never once looked at
+what was **drawn**. So a guest whose prompt rendered as a flat card instead of the radial bloom, a
+chat heading stranded behind the ribbon, a narration box that never cleared, and an undimmed board
+all sailed straight through. **The checks were not wrong. They were measuring a different thing than
+the one that was broken** — and a passing suite made that invisible.
+
+- **Open it. Screenshot it. Look at the picture.** Not the DOM, not `getComputedStyle`, not a state
+  dump — the rendered image. Everything that got through that day was obvious in a screenshot and
+  invisible to an assertion.
+- **In multiplayer, screenshot BOTH sides and compare them.** Host and guest must match (§2). Four
+  of the seven were host/guest divergences, and a single-browser probe cannot see one by
+  construction.
+- **Screenshot the state you changed AND the state next to it.** The chat regression was not in the
+  chat sheet; it was a heading peeking out from behind the ribbon three hundred pixels away.
+- **Never write "everything is green" on the strength of checks that cannot see pixels.** Say what
+  you actually verified and how. **"A green suite proves nothing about what he will see"** belongs
+  beside "a green root `npm test` proves nothing about `4/`" (§5) — same failure, different layer.
+- **This is not the same as the phone pass.** D-09 stands: his real voyage is still the gate. This
+  rule is about not spending that gate on faults you could have seen yourself in one screenshot.
 
 ---
 
@@ -501,9 +541,9 @@ deploy workflow.** What is on `main` *is* what is live.
 > **This changes at v2.0's cutover (Phase 6):** `4/` becomes the root, today's game moves to
 > `/classic`. Update this table in the same commit.
 
-**So pushing work-in-progress to `main` is normal, not a release** — it is the only way he can play
-it, because he is on a phone. Merging does not touch the root game; they are different files. **Treat
-the *diff* as the thing to check, not the push.**
+**So pushing work-in-progress to `main` is normal, not a release** — the live domain is how he
+playtests, and it is the only route at all when he is away from the laptop. Merging does not touch
+the root game; they are different files. **Treat the *diff* as the thing to check, not the push.**
 
 Every time: commit on the session's branch → **bump `PP4_STAMP` in `4/src/ui/stage.js`** → prove the
 diff touches only the milestone → push, pull, verify zero → tell him the build stamp to look for.
