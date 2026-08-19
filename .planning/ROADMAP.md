@@ -223,7 +223,7 @@ ruling removes the constraint, it does not mandate the expensive path.
 **Depends on:** Phase 2
 **Blocks:** Phase 6 (The Cutover) — guest mode should be right before `4/` becomes the game real
 players land on.
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -236,7 +236,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02.1-03-PLAN.md — one shared prompt renderer: the seat field crosses the wire, a red-proofed parity gate exists for the first time (PAR-05)
+- [x] 02.1-03-PLAN.md — one shared prompt renderer: the seat field crosses the wire, a red-proofed parity gate exists for the first time (PAR-05)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -601,7 +601,7 @@ The first phase is independent of every promotion decision and can start immedia
 |-------|----------------|--------|-----------|
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
-| 02.1 One Game, Every Captain (INSERTED) | 2/4 | In Progress|  |
+| 02.1 One Game, Every Captain (INSERTED) | 3/4 | In Progress|  |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |

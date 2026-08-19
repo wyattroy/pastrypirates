@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 02.1
 current_phase_name: one-game-every-captain-one-render-path-for-host-and-guest
 status: executing
-stopped_at: Completed 02.1-02-PLAN.md
-last_updated: "2026-08-19T22:32:01.825Z"
+stopped_at: Completed 02.1-03-PLAN.md
+last_updated: "2026-08-19T23:06:52.721Z"
 last_activity: 2026-08-19
 last_activity_desc: "02.1-01 shipped: a guest's game object stops lying"
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
   percent: 20
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Next: `/gsd-execute-phase 02.1` — plan 02.1-02 (the flat-card bug)
 Last activity: 2026-08-19 — 02.1-01 shipped: a guest's game object stops lying
 
@@ -136,6 +136,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02 P04 | ~110min | 2 tasks | 0 files |
 | Phase 02.1 P01 | 45min | 3 tasks | 1 files |
 | Phase 02.1 P02 | 20min | 2 tasks | 1 files |
+| Phase 02.1 P03 | 30min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -203,6 +204,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 02.1-01: a guest's appState.game is now TRUE, not a render shell — docs/DRIVING-THE-GAME.md §5c's 'never compare game.players across clients' rule is obsolete for 4/ and must not be followed (DOC-06 owns the doc)
 - [Phase ?]: emojify() is tag-aware: substitution happens only outside HTML tags, so no attribute can be broken open by the coin <img>
 - [Phase ?]: The literal-'>'-in-an-attribute limitation is named in a comment at the fix site rather than closed with an HTML tokenizer (threat T-02.1-04, accepted)
+- [Phase ?]: One shared optionButtonsHTML() builds every prompt button row (host, guest, draft channel); res(i) and sendResponse(id,i) stay separate — share the builder, not the caller
+- [Phase ?]: The seat field crosses the wire as seats[]; seat 0 is a real captain so both send and read test !=null, never truthiness
+- [Phase ?]: 4/ gets its own parity gate — scripts/host_guest_parity_check.js reads the ROOT game's src/ and never looked at 4/
 
 ### Pending Todos
 
@@ -290,8 +294,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T22:31:54.136Z
-Stopped at: Completed 02.1-02-PLAN.md
+Last session: 2026-08-19T23:06:52.713Z
+Stopped at: Completed 02.1-03-PLAN.md
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

@@ -90,3 +90,43 @@ intentionally once he has seen it).
 
 **Where to look:** `shots/green-guest-showwhy.png` and `shots/green-host-showwhy.png` from this
 plan's probe run.
+
+---
+
+## D5 — the "Stay put" confirm button is still hand-built twice
+
+**Found during:** 02.1-03 Task 3 (the live grammar check flagged it) · **Owner:** unassigned ·
+**Recorded:** 2026-08-19
+
+`<button class="apBtn" id="apStay">Stay put</button>` is built by hand in **two** places in
+`4/src/ui/flow.js` — `localPickCell` (`:662`) and `remotePickHighlights` (`:2484`). That is the same
+duplication shape 02.1-03 just removed for option rows, still standing in the sail-pick path: one
+copy for the host's own pick, one for a remote seat's.
+
+It is **not** an option button — it carries no `data-i` and has no option behind it, so
+`optionButtonsHTML` is not the right home for it and this plan correctly left it alone. But the two
+copies can drift from each other exactly the way `localAsk` and `watchPrompt` did, and nothing would
+notice. The shared-builder fix here is one line of `stayPutHTML()` in `util.js` if anyone wants it.
+
+**Where it surfaced:** the probe's attribute-grammar assertion failed on 55 of these buttons before
+the check was scoped to `data-i` carriers. They are counted and printed in the probe output rather
+than silently skipped, so the exclusion cannot quietly grow.
+
+---
+
+## D6 — `scripts/host_guest_parity_check.js` gates the ROOT game, not `4/`
+
+**Found during:** 02.1-03 Task 1 · **Owner:** unassigned · **Recorded:** 2026-08-19
+
+Its `REAL_ROOT` is the repo root and its paths are `src/ui/flow.js` / `src/orchestrator.js` — the
+**root game's** files. It stayed 5/5 green through a refactor that rewrote both of `4/`'s prompt
+renderers, because **it never looked at `4/` at all.**
+
+That green is easy to misread as coverage of the milestone tree, and this session nearly did: the
+first measurement of "did assertion 1 go vacuous?" was run by hand against `4/src`, found
+`apDisabled` symmetrically absent from both renderers (it moved into the shared builder), and only
+then discovered the gate reads a different tree entirely.
+
+**The fix is one sentence in that file's header** naming which tree it gates. `4/` now has its own
+(`4/scripts/prompt_field_parity_check.js`), so nothing is uncovered — but the ambiguity costs a
+session's attention every time somebody checks.
