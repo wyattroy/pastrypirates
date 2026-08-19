@@ -1310,6 +1310,12 @@ export function watchNarr(){
 // A null db is checked BEFORE the try, not inside the catch, because it is not an exception — it is
 // a precondition that is knowable without attempting anything.
 const NO_CONNECTION_MSG="Can't reach the Sugar Seas — check yer connection, wifi, and ad blockers, then try again matey.";
+// FIX-03/T-02-05 (02-02): shared with watchRoom's existing guard below AND startGame's new one —
+// two ids for one shared sentence, exactly as createnoconnection/joinnoconnection already do it
+// above (the id names the SITE so a review mark can follow it across a source move; the constant
+// keeps the words identical so the two sites can never drift into two different sentences for one
+// situation — a room that has stopped existing).
+const GAME_GONE_MSG="That game no longer exists.";
 export async function createRoom(){
   // @copy misc.mperror.createnoconnection
   if(!appState.db){alert(NO_CONNECTION_MSG);return;}
@@ -1485,7 +1491,7 @@ let _watchRoomAttachedFor=null;
 export async function watchRoom(){
   const r0=(await netReadRoom(appState.db,appState.room)).val();
   // @copy misc.mperror.gamegone
-  if(!r0){alert("That game no longer exists.");clearSession();showHome();return;}
+  if(!r0){alert(GAME_GONE_MSG);clearSession();showHome();return;}
   appState.numSeats=r0.numSeats;appState.isHost=(r0.host===appState.myId);
   if(r0.status==="lobby")showRoom();
   if(_watchRoomAttachedFor===appState.room)return; // already watching this room — see D-13 above
@@ -1507,6 +1513,13 @@ export async function watchRoom(){
 export async function startGame(){
   try{
     const r=(await netReadRoom(appState.db,appState.room)).val();
+    // T-02-05: the room can be gone by the time this read resolves — the host abandoned it,
+    // a probe's teardown removed it, or two clients raced — and reading numSeats/seats off null
+    // would throw inside this awaited chain, the same silent-stall shape as the sparse-draft
+    // crash above. watchRoom already handles exactly this condition twenty lines up; give
+    // startGame the identical treatment against the identical condition, not a new invention.
+    // @copy misc.mperror.startgamegone
+    if(!r){alert(GAME_GONE_MSG);clearSession();showHome();return;}
     const strategies=[];
     for(let i=0;i<r.numSeats;i++){const s=(r.seats&&r.seats[i])||{};strategies.push(s.id?"human":(s.strat||"pirate"));}
     const cfg=roundCfg(strategies);
