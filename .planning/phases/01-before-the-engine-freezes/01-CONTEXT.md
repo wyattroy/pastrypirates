@@ -42,8 +42,8 @@ one sanctioned exception (`REQUIREMENTS.md:160`); a second costs a determinism r
   permanently vandalises the live game's preference — the exact bug FIX-01 exists to fix, re-committed
   from the other direction.
 
-- **D-03: The clock default stays OFF everywhere, including once multiplayer returns — ONE key, no
-  solo/multiplayer split.** Wyatt, 2026-08-18, verbatim: *"multiplayer is played between friends, who
+- **D-03: The clock default stays OFF everywhere, including once multiplayer returns — ONE key, no solo/multiplayer split.**
+  Wyatt, 2026-08-18, verbatim: *"multiplayer is played between friends, who
   can communicate through the chat. the host's game would be 'hung' because their friend is no longer
   playing, even if the timer was on."* This closes the question raised by the intake report
   (`4/src/orchestrator.js:1143-1152`, `remotePrompt` with no timeout) — **the shot clock is not the

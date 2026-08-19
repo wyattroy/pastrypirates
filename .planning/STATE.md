@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-08-18T22:53:01.057Z"
+stopped_at: Phase 1 planned — ready to execute
+last_updated: "2026-08-19T00:28:23.000Z"
 last_activity: 2026-08-18
-last_activity_desc: v2.0 roadmap created, 9 phases, 51/51 requirements mapped
+last_activity_desc: Phase 1 planned — 6 plans, 5 waves, tracer-first
 progress:
   total_phases: 9
   completed_phases: 0
-  total_plans: 0
+  total_plans: 6
   completed_plans: 0
   percent: 0
 ---
@@ -55,10 +55,10 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **Phase 1 — Before the Engine Freezes** (not started)
-Plan: —
-Status: Roadmap created, awaiting Wyatt's approval
-Last activity: 2026-08-18 — v2.0 roadmap created, 9 phases, 51/51 requirements mapped
+Phase: **Phase 1 — Before the Engine Freezes** (planned, not started)
+Plan: 6 plans across 5 waves — see [`ROADMAP.md`](ROADMAP.md) → Phase 1 for the wave list
+Status: Ready to execute
+Last activity: 2026-08-18 — Phase 1 planned; research, patterns and validation strategy all on disk
 
 **Milestone shape (from `ROADMAP.md`):**
 
@@ -190,10 +190,11 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-18T22:53:01.039Z
-Stopped at: Phase 1 context gathered
-this file re-based from v1.3 to v2.0.
-Resume file: .planning/phases/01-before-the-engine-freezes/01-CONTEXT.md
+Last session: 2026-08-19T00:28:23.000Z
+Stopped at: Phase 1 planned — 6 plans written, checked, and committed; nothing executed yet.
+Resume file: .planning/phases/01-before-the-engine-freezes/01-01-PLAN.md (wave 1, the tracer)
+
+Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
 
 **The v1.x record is not lost.** The full v1.2/v1.3-era ledger — 40+ decisions, per-plan metrics,
 the quick-task log, and the v1 blockers list — is archived verbatim at
@@ -201,9 +202,15 @@ the quick-task log, and the v1 blockers list — is archived verbatim at
 
 ## Operator Next Steps
 
-1. Wyatt approves the roadmap (or sends changes).
-2. `/gsd-plan-phase 1` — Before the Engine Freezes (FIX-01, TEST-01, TEST-02, RULE-01, RULE-02,
-   FIX-06). It is independent of every promotion decision and can start immediately.
+1. `/gsd-execute-phase 1` — the 6 plans are written, checked and committed. Wave 1 is the tracer
+   (TEST-01/TEST-02): the first gate in this repo that loads `4/` and runs green. Nothing else in
+   the phase can be verified headlessly until it does.
+
+2. Wave 5 ends on a blocking decision checkpoint, not on a commit. D-07 makes the balance check a
+   gate: the rewritten ladder reports what moved in pass rate and voyage length, and **Wyatt decides**
+   whether it is material. The plan is forbidden from carrying a recommendation or a threshold.
 
 3. Read the relevant `research/v2.0-intake/` report before planning any phase — it is the only
    synthesis of a development period that left no GSD artifacts.
+
+*(Done: roadmap approved; `/gsd-plan-phase 1` run on 2026-08-18.)*

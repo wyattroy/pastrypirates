@@ -25,6 +25,7 @@
 ## Phases
 
 **Phase Numbering:**
+
 - Integer phases (1, 2, 3): planned milestone work
 - Decimal phases (2.1, 2.2): urgent insertions, executed between their surrounding integers
 
@@ -48,23 +49,40 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
 ## Phase Details
 
 ### Phase 1: Before the Engine Freezes
+
 **Goal**: The development build stops harming the live game, the largest new module becomes testable, and the last gameplay rule lands — so that nothing after this point forces the v2 determinism corpus to be recorded twice.
 **Depends on**: Nothing (first phase)
 **Requirements**: FIX-01, TEST-01, TEST-02, RULE-01, RULE-02, FIX-06
 **Success Criteria** (what must be TRUE):
+
   1. The new game still defaults its turn clock OFF — that is intentional — but it stores that preference under its **own** key, so a player who opens it no longer has the clock switched off in the **other** game, and a host who visited it no longer pushes that setting to everyone in their room.
   2. `4/src/ui/stage.js` imports under Node without throwing, and `4/scripts/no_undef_check.js` exits 0 — so the 1,545-line stage layer can be tested headlessly at all.
   3. A captain who passes receives one dubloon, at every one of the three `{t:"pass"}` emission sites — human menu, flow, and the bot fallback. Bots pass, so bots are paid.
   4. The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries.
   5. The engine ships exactly one bot planner — the unreachable `planTurnClassic` subtree is gone, so no future tuning pass can aim at code that never runs.
+
 **Plans**: 6 plans, 5 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 01-01-PLAN.md — TRACER: the first gate in this repo that loads `4/` runs green (TEST-01, TEST-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 01-02-PLAN.md — The clock preference stops leaking into the live game (FIX-01)
 - [ ] 01-03-PLAN.md — One-brain ladder rewrite, and the balance baseline captured before the dubloon (FIX-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 01-04-PLAN.md — Passing pays a dubloon, and the narration says so (RULE-01, RULE-02)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 01-05-PLAN.md — The dead bot planner is deleted; the engine ships one brain (FIX-06)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 01-06-PLAN.md — D-07's balance gate: measure after, report the delta, ask Wyatt, ship the stamp (RULE-01, FIX-06)
 
 **Wave order.** 1: 01-01 · 2: 01-02, 01-03 (parallel) · 3: 01-04 · 4: 01-05 · 5: 01-06.
@@ -93,14 +111,17 @@ fitted on 27,867 outcomes and see whether pass-farming beats playing. Worth doin
 worth debating first.
 
 ### Phase 2: Multiplayer Revival
+
 **Goal**: `4/` can host a real networked voyage again — and playing one measures what is actually broken, rather than what the research predicted, before the large multiplayer work is planned.
 **Depends on**: Phase 1
 **Requirements**: MP-01, MP-02, MP-03, MP-10, MP-11, MP-12, FIX-03
 **Success Criteria** (what must be TRUE):
+
   1. A player can host a game from the promoted build and share a room code; a second player can join by that code, claim a seat, and be named without collision.
   2. A host and a guest play a full voyage with `?bakeoff=0` and the guest's board, ships, narration and prompts stay in sync throughout — including the recipe draft, which crashes every guest today.
   3. Hiding or backgrounding a tab does not pause or resume the shared clock for everyone else, and fast-forward cannot skip narration another player is still watching.
   4. A host who reloads mid-voyage comes back to the same game, resumed from the decision log — not a board reset to turn 1.
+
 **Plans**: TBD
 
 **This is a revival, not a rebuild.** `4/src/net/{readers,registry,watchers,writers}.js` are
@@ -126,15 +147,18 @@ the guest (`4/src/orchestrator.js:1210`), the greyed-button reasons (`:1262-1273
 are scoped from that list.
 
 ### Phase 3: The Safety Net
+
 **Goal**: The game being promoted gets the mechanical guarantees v1 had — before the largest piece of work in the milestone is built on top of it.
 **Depends on**: Phase 2
 **Requirements**: TEST-03, TEST-04, TEST-05, TEST-06, TEST-07
 **Success Criteria** (what must be TRUE):
+
   1. `npm test` covers the game being promoted and states its gate count in `package.json` — a green run finally says something about `4/`.
   2. A determinism corpus exists for the v2 engine and verifies green, captured **once**, after the pass dubloon landed.
   3. The engine, module-graph, net, state and UI contract gates all run against the promoted tree, so its currently-clean layering is guarded by a gate rather than by discipline.
   4. Host/guest parity fails the build when it breaks, instead of being noticed in a playtest.
   5. No comment in the tree claims a check gates it when that check does not exist.
+
 **Plans**: TBD
 
 **Why the safety net comes before the bake-off, not after.** Root `npm test` runs 21 gates and
@@ -163,15 +187,18 @@ the moment either is fixed. TEST-07's two dangling citations are `4/src/orchestr
 `4/src/ui/util.js:1484`, both naming checks that do not exist in `4/`.
 
 ### Phase 4: The Networked Bake-off
+
 **Goal**: The finish line of the game works over the wire — a player bakes on their own screen, and everyone else watches it happen instead of reading "waiting…".
 **Depends on**: Phase 3
 **Requirements**: MP-04, MP-05, MP-06, MP-13
 **Success Criteria** (what must be TRUE):
+
   1. A player takes their own bake-off turn on their own screen in a networked game — the host no longer plays it for them, and no captain's bake is silently handed to the bot.
   2. Every other captain **watches the bake live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — on the same **face-down** bench the baker sees. Nobody sees `⏳ Waiting for {name}…` at the finish line any more.
   3. A player can pay to re-watch the shuffle mid-bake-off and see their purse drop, without the prompt closing.
   4. A host who reloads during the bake-off replays the voyage to the same finish — the bake still logs as one decision per captain.
   5. The bake-off runs with no shot clock, and a captain who drops mid-bake does not stall the table.
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -231,14 +258,17 @@ one entry, both facts (guess and coins spent), exactly as `4/src/ui/flow.js:601-
 so it must not alter what the engine emits.
 
 ### Phase 5: Trade Over the Wire
+
 **Goal**: A multi-captain trade works, paces, and gives a guest the same controls as the host.
 **Depends on**: Phase 4
 **Requirements**: MP-07, MP-08, MP-09
 **Success Criteria** (what must be TRUE):
+
   1. A player can make and receive counter-offers in a networked game, including a counter that replaces the give side with a crate ("keep yer coin, I want yer milk").
   2. A guest gets the same coin control as the host — or the stepper fallback is a decision Wyatt made and recorded, not an open hole flagged in the code.
   3. A trade that reaches three other captains resolves inside one turn, without the rest of the table watching a "…is deciding" line for over two minutes.
   4. The decision log records the same entries in the same order however a trade was routed, so a host reload still replays.
+
 **Plans**: TBD
 
 **Better news than expected on MP-07.** The whole counter-offer loop already goes through `ask()`
@@ -264,15 +294,18 @@ it is `4/`-native, and the "NOTHING IS A CONSTANT" rule was earned twice in one 
 subsystem.
 
 ### Phase 6: The Cutover
+
 **Goal**: `playpastrypirates.com` serves the new game, every bookmark still works, and exactly one deployment claims to be the live site.
 **Depends on**: Phase 5
 **Requirements**: CUT-01, CUT-02, CUT-03, CUT-04, CUT-05, CUT-06, CUT-07, CUT-08, FIX-02, FIX-04, FIX-05
 **Success Criteria** (what must be TRUE):
+
   1. Visiting `playpastrypirates.com` plays the new game — every image resolves, the About page opens, the page title is the game's name, and search engines are allowed in.
   2. A bookmark to today's game still works at `/classic`, and a returning player's saved voyage and preferences survive the move.
   3. `CNAME`, `robots.txt` and `sitemap.xml` describe exactly one live deployment and exist in exactly one tree; `v2/`, `v2bakeoff/` and `3/` are gone from the working tree.
   4. No URL a player can type skips the voyage or opens a developer tuning panel.
   5. A storm has been measured on a real Safari device on the promoted build, and the wind-dot loop ships at a default someone chose.
+
 **Plans**: TBD
 
 **HARD CONSTRAINT — this is one-way.** `4/` forked 2026-08-11; the root has had no code commit since
@@ -308,13 +341,16 @@ the repo root. A green `npm test` against the game at the root is this phase's o
 declaring the cutover done.
 
 ### Phase 7: The Board Fits
+
 **Goal**: The whole board is visible and playable on a laptop, and the director stops cropping the choices it is asking the player to make.
 **Depends on**: Phase 6
 **Requirements**: DESK-01, DESK-02, DESK-08
 **Success Criteria** (what must be TRUE):
+
   1. On a 1440×900 laptop the whole 15×15 board is on screen without dragging — 5.9 of 15 rows are visible today, and 6.5 of 15 at 2560×1440.
   2. Every highlighted sail square, and both captains in a battle, are on screen when the game asks about them — on any wide display.
   3. The phone layout is visually unchanged: the camera change costs the phone nothing.
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -338,14 +374,17 @@ so this is where a phone regression is most likely, and 23 numbered playtest rou
 are what is at risk. `preserveAspectRatio="xMidYMin meet"` is already set at `stage.js:937`.
 
 ### Phase 8: A Desktop Worth the Width
+
 **Goal**: On a wide screen the game reads as designed for one, rather than as phone chrome dropped onto a big canvas.
 **Depends on**: Phase 7
 **Requirements**: DESK-03, DESK-04, DESK-05, DESK-06, DESK-07
 **Success Criteria** (what must be TRUE):
+
   1. On a wide screen the captains occupy a right-hand column instead of a 2560px band, and no piece of furniture stretches the full width of the window.
   2. Controls are sized and placed for a mouse rather than a thumb — and moving the mouse over a prompt button visibly responds.
   3. The board can be panned and zoomed with a mouse and trackpad, the cursor says the board is draggable, and a keyboard user can see what is focused.
   4. Board and boat art is crisp on a high-resolution display at the sizes the desktop layout actually draws them.
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -377,14 +416,17 @@ at up to 3.4× — the worst ratio in the set, and they are on screen at all tim
 step and no image pipeline. Put the measurement in the question.
 
 ### Phase 9: The Written Record
+
 **Goal**: The rules of the official game describe the game the code actually plays, and the reasoning that only exists in commit bodies survives a directory rename.
 **Depends on**: Phase 6 (may run in parallel with Phases 7–8)
 **Requirements**: DOC-01, DOC-02, DOC-03, DOC-04, DOC-05, DOC-06, DOC-07
 **Success Criteria** (what must be TRUE):
+
   1. A reader can learn the actual rules of the shipped game from one document — including the bake-off, the black market and its 2-crate barter price, and dock heads at 5 not 6.
   2. The ~40 design rulings, the 13 copy strings approved on 2026-08-14, and the rejection graveyard are readable in `docs/` without git archaeology.
   3. Every doc that addresses `v2/`, `v2bakeoff/` or `3/` points at the promoted tree instead — including `docs/DRIVING-THE-GAME.md`'s import paths, so a playtest probe cannot inject state into the wrong copy.
   4. `README.md` describes the promoted game and the `/classic` URL.
+
 **Plans**: TBD
 
 **This is the milestone's insurance against the next session re-running a settled argument.** It runs
@@ -412,22 +454,28 @@ don't restate — a pointer cannot go stale; a copy always can.
 1. **Multiplayer → cutover → desktop.** The live game must never lose multiplayer, so `4/` stays
    served at `/4` until it can host a networked game. Desktop work happens **after** the cutover, on
    the promoted game.
+
 2. **RULE-01 lands before TEST-03 records the corpus.** Paying a dubloon changes what the engine
    writes into the event stream, invalidating any corpus recorded before it. Recording first means
    recording twice — the same one-way cost that shaped v1.2's Phase 14
    (`docs/DETERMINISM-RERECORD.md`).
+
 3. **Once the corpus exists, nothing may change what `4/src/engine/index.js` emits** — including
    adding a field to an existing event. If a later phase finds it needs an engine change, **stop and
    re-scope.**
+
 4. **Exactly one new gameplay rule this milestone.** Passing pays a dubloon (RULE-01/02), granted by
    Wyatt 2026-08-18. A second exception costs a re-record and a re-write of the spec being derived
    from the code — raise it as a v2.1 candidate, not as scope creep here.
+
 5. **`CNAME`, `robots.txt` and `sitemap.xml` never leave this tree.** Copying any of them to another
    repo or deploy target can take the live game down for real players.
+
 6. **Bot/human parity is a standing design invariant.** Bots play by exactly the same rules and have
    exactly the same affordances as humans; they differ only in *how they choose*. Any "should bots
    be allowed to…?" is already answered — and when the two sides differ, levelling the human *up* is
    frequently the right answer.
+
 7. **Safari is a supported platform and has never been measured on `4/`.** Criterion 5 of the
    cutover phase is a gate on promotion.
 
