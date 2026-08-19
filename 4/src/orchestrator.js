@@ -1588,11 +1588,28 @@ export function watchTurnOrder(){
     if(v){appState.turnOrder=v;buildPlayerRows();}
   });
 }
+// FIX-03/T-02-04 (02-02): Firebase Realtime Database has no native array type — the SDK hands
+// rooms/<C>/recipes back as a dense ARRAY, padded with null, only when the picked-seat/max-index
+// ratio is high enough to look array-like; a lone early pick (the normal shape of a draft still in
+// progress) reads back as a plain OBJECT with sparse integer-like keys instead (measured directly
+// against the live database, 02-02-SUMMARY.md). The old `picks.forEach(...)` assumed the array
+// shape unconditionally and threw `TypeError: picks.forEach is not a function` the instant a guest
+// (every guest also runs this callback, per beginGame()'s unconditional watchRecipes() call)
+// received the object form — killing the guest silently, with zero page errors
+// (docs/HARD-WON-LESSONS.md §1b's exact shape). Object.entries() walks either shape identically,
+// keyed by the seat index each pick actually names, so both the sparse mid-draft object and the
+// fully-resolved dense array apply correctly. The `pk==null` guard also closes a second, quieter
+// fault the array-only code carried: a null-padded gap would have driven `recipeChoices[null]`
+// (=== undefined) onto a still-drafting seat's `.recipe` — this is the same fix, not new scope.
 export function watchRecipes(){
   netWatchRecipes(appState.db,appState.room,snap=>{
     const picks=snap.val();
     if(!picks)return;
-    picks.forEach((pk,i)=>{if(appState.game.players[i]&&appState.game.players[i].recipeChoices)appState.game.players[i].recipe=appState.game.players[i].recipeChoices[pk];});
+    Object.entries(picks).forEach(([key,pk])=>{
+      if(pk==null)return; // not-yet-picked seat — either absent (object form) or null-padded (array form)
+      const i=+key;
+      if(appState.game.players[i]&&appState.game.players[i].recipeChoices)appState.game.players[i].recipe=appState.game.players[i].recipeChoices[pk];
+    });
     updateRecipeBanner();
     if(appState.game.events.length)render();
   });
