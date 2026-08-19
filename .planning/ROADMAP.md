@@ -121,8 +121,18 @@ worth debating first.
   2. A host and a guest play a full voyage with `?bakeoff=0` and the guest's board, ships, narration and prompts stay in sync throughout — including the recipe draft, which crashes every guest today.
   3. Hiding or backgrounding a tab does not pause or resume the shared clock for everyone else, and fast-forward cannot skip narration another player is still watching.
   4. A host who reloads mid-voyage comes back to the same game, resumed from the decision log — not a board reset to turn 1.
+  5. A guest who closes their tab mid-voyage and reopens the page rejoins the same game, in their seat, without retyping the room code. *(Added by CONTEXT.md D-10 — this closes the open item Phase 1 deferred here.)*
 
-**Plans**: TBD
+**Plans**: 7 plans, in 5 waves
+
+Plans:
+- [ ] 02-01-PLAN.md — the lights come back on: Firebase tags, four welcome cards, and one host-and-guest handshake (tracer)
+- [ ] 02-02-PLAN.md — FIX-03's two crash sites: the sparse recipe draft and the vanished room
+- [ ] 02-03-PLAN.md — the two gates that must hold: no ⏩ in a crew game, and one hidden tab pauses nobody
+- [ ] 02-04-PLAN.md — FIX-03's third site: whether host-supplied text really reaches a guest's panel as markup
+- [ ] 02-05-PLAN.md — chat gets a home: a 💬 ribbon chip, a slide-up sheet, and a flash that obeys hold-the-sea
+- [ ] 02-06-PLAN.md — the headless shakeout: a full voyage, a host reload, and a guest reconnect
+- [ ] 02-07-PLAN.md — the finding, the one drop, and Wyatt's real voyage
 
 **This is a revival, not a rebuild.** `4/src/net/{readers,registry,watchers,writers}.js` are
 **byte-identical** to the live net layer; `index.js` differs by 5 lines (a `typeof firebase` guard).
