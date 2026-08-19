@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
 current_phase_name: multiplayer-revival
-status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-08-19T12:11:49.781Z"
+status: ready-to-execute
+stopped_at: Phase 2 planned — 7 plans in 5 waves, verification passed
+last_updated: "2026-08-19T13:02:37.000Z"
 last_activity: 2026-08-19
-last_activity_desc: "Phase 1 closed; D-07 answered by Wyatt (\\\"ship it\\\"), UAT confirmed on his phone"
+last_activity_desc: "Phase 2 planned: 7 plans, 5 waves, one drop; plan-checker passed with zero issues"
 progress:
   total_phases: 9
   completed_phases: 1
-  total_plans: 6
+  total_plans: 13
   completed_plans: 6
   percent: 11
 current_phase: 02
@@ -59,8 +59,8 @@ build step — nothing here is ever a cache.
 
 Phase: **Phase 1 — Before the Engine Freezes: COMPLETE** (2026-08-19)
 Plan: 6 of 6 executed, verified 22/22 must-haves, UAT 4/4 passed
-Next: **Phase 2 — Multiplayer Revival** (not started)
-Last activity: 2026-08-19 — Phase 1 closed; D-07 answered by Wyatt ("ship it"), UAT confirmed on his phone
+Next: **Phase 2 — Multiplayer Revival** — planned, ready to execute (7 plans, 5 waves)
+Last activity: 2026-08-19 — Phase 2 planned; research, validation strategy and plan-checker all landed
 
 **Phase 1's last open question is answered.** D-07 could not be closed by any measurement, only by
 Wyatt: shown what the pass dubloon did to the bots across 400 identical games, he said **"ship it"**
@@ -237,9 +237,9 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T12:11:49.766Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-multiplayer-revival/02-CONTEXT.md
+Last session: 2026-08-19T13:02:37.000Z
+Stopped at: Phase 2 planned — 7 plans in 5 waves, plan-checker passed with zero issues
+Resume file: .planning/phases/02-multiplayer-revival/02-01-PLAN.md
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
 

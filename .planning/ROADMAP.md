@@ -126,12 +126,26 @@ worth debating first.
 **Plans**: 7 plans, in 5 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 02-01-PLAN.md — the lights come back on: Firebase tags, four welcome cards, and one host-and-guest handshake (tracer)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02-PLAN.md — FIX-03's two crash sites: the sparse recipe draft and the vanished room
 - [ ] 02-03-PLAN.md — the two gates that must hold: no ⏩ in a crew game, and one hidden tab pauses nobody
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-04-PLAN.md — FIX-03's third site: whether host-supplied text really reaches a guest's panel as markup
 - [ ] 02-05-PLAN.md — chat gets a home: a 💬 ribbon chip, a slide-up sheet, and a flash that obeys hold-the-sea
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 02-06-PLAN.md — the headless shakeout: a full voyage, a host reload, and a guest reconnect
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 02-07-PLAN.md — the finding, the one drop, and Wyatt's real voyage
 
 **This is a revival, not a rebuild.** `4/src/net/{readers,registry,watchers,writers}.js` are

@@ -38,8 +38,8 @@ removed is two `<script>` tags and two welcome cards; the wiring is guarded, not
 
 ### How multiplayer reaches Wyatt
 
-- **D-01: The Host/Join cards ship straight to `/4`. No flag, no separate preview deployment, no
-  gating machinery.** Wyatt, 2026-08-19, verbatim: *"you're making this more complicated than it
+- **D-01: The Host/Join cards ship straight to `/4`. No flag, no separate preview deployment, no gating machinery.**
+  Wyatt, 2026-08-19, verbatim: *"you're making this more complicated than it
   needs to be — no one in the entire world is playing /4 except me. just push it to /4 so i can
   test, and stop overcomplicating it."*
 
@@ -65,8 +65,8 @@ removed is two `<script>` tags and two welcome cards; the wiring is guarded, not
 
 ### The ⏩ skip button (MP-11)
 
-- **D-04: There is no ⏩ in a networked game. This is NOT a new ruling — it is Wyatt's existing
-  ruling reaching its third mode.** Wyatt, 2026-08-19: *"there is no skip in a multiplayer game --
+- **D-04: There is no ⏩ in a networked game. This is NOT a new ruling — it is Wyatt's existing ruling reaching its third mode.**
+  Wyatt, 2026-08-19: *"there is no skip in a multiplayer game --
   this was decided earlier. skip is only for solo games."*
 
   The ruling is already written in the code at `4/src/ui/stage.js:425`:
@@ -96,9 +96,8 @@ removed is two `<script>` tags and two welcome cards; the wiring is guarded, not
 
 ### Chat's new home
 
-- **D-06: Chat gets a button in the top ribbon beside ☰, opening a slide-up sheet with the log and
-  the text box, with a dot when there is something unread.** Wyatt, 2026-08-19. The ship speech
-  bubbles stay off.
+- **D-06: Chat gets a button in the top ribbon beside ☰, opening a slide-up sheet with the log and the text box, with a dot when there is something unread.**
+  Wyatt, 2026-08-19. The ship speech bubbles stay off.
 
   **Why this is in Phase 2 at all:** Wyatt's Phase-1 ruling that there is no shot clock rests on
   *"multiplayer is played between friends, who can communicate through the chat"* (D-03 of
@@ -138,8 +137,8 @@ removed is two `<script>` tags and two welcome cards; the wiring is guarded, not
 
 ### How the phase is proved
 
-- **D-09: Claude shakes it out headless first; Wyatt then plays a real voyage on his phone, and that
-  is the pass.** Wyatt, 2026-08-19. Four faults sit on code that has never run, so the first join
+- **D-09: Claude shakes it out headless first; Wyatt then plays a real voyage on his phone, and that is the pass.**
+  Wyatt, 2026-08-19. Four faults sit on code that has never run, so the first join
   will very likely crash — he should not be the crash detector. But nothing in this phase closes on
   headless evidence alone.
 
