@@ -1,0 +1,249 @@
+diff --git a/4/index.html b/4/index.html
+index 0e65289..a2837cb 100644
+--- a/4/index.html
++++ b/4/index.html
+@@ -1432,11 +1432,13 @@
+   body.pp4Stage #captainsPanel { display:block; margin:0; }
+   #pp4Prompt { position:fixed; z-index:30; display:none; opacity:.96; transition:opacity .16s; }
+   /* playtest 15 item 4 (CONSISTENCY): hold-the-sea fades EVERY floating box the same way —
+-     prompts in every style, narration bubbles, the stay-put confirm. The two sanctioned
+-     exceptions (Wyatt's pick): centre-stage intros and the flip ceremony stay solid. */
++     prompts in every style, narration bubbles, the stay-put confirm, and (02-05, D-07) the chat
++     flash. The two sanctioned exceptions (Wyatt's pick): centre-stage intros and the flip ceremony
++     stay solid. */
+   body.pp4Peek #pp4Prompt,
+   body.pp4Peek .pp4Bub,
+-  body.pp4Peek .pp4Stay { opacity:.13; pointer-events:none; }
++  body.pp4Peek .pp4Stay,
++  body.pp4Peek #pp4ChatFlash { opacity:.13; pointer-events:none; }
+   body.pp4Peek #pp4Prompt.pp4Center { opacity:1; pointer-events:auto; }
+   .pp4Stay { transition:opacity .16s; }
+   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
+@@ -1502,6 +1504,19 @@
+   body.pp4Foot #footerRow .footerBtn, body.pp4Foot #pp4ClockRow { width:100%; box-sizing:border-box;
+     margin:0; text-align:center; }
+   body.pp4Foot #pp4Stamp { order:99; }
++  /* D-06 (02-05): chat's slide-up sheet. Follows body.pp4Foot's own toggle-a-body-class-then-
++     tap-outside-closes pattern directly above (same capture-phase listener, extended — see
++     stage.js), with one genuine difference: D-06 calls for a "slide-up sheet" specifically, so this
++     gets a real translateY transform rather than the footer menu's plain pop-in/out, and shares its
++     z-index (60) since the two are the codebase's only two sheets and never need to out-rank each
++     other. Background/radius/shadow are #pp4Cap's own values (below), not new numbers — the same
++     near-white bottom-sheet look already established for the captains box. */
++  #pp4ChatSheet { position:fixed; left:0; right:0; bottom:0; z-index:60; max-height:70vh;
++    overflow:auto; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
++    background:rgba(255,253,242,.97); border-radius:14px 14px 0 0; box-shadow:0 -6px 24px rgba(0,0,0,.28);
++    transform:translateY(100%); transition:transform .22s ease-out; pointer-events:none; }
++  body.pp4Chat #pp4ChatSheet { transform:translateY(0); pointer-events:auto; }
++  #pp4ChatSheet #chatPanel { margin-bottom:0; }
+   body.pp4Stage #chatBubbles { display:none; }
+   body.pp4Stage .fcChip, body.pp4Stage .ppHud { display:none; }  /* the pill is the instrument now */
+   body.pp4Stage #controlsRow { display:none; }  /* coin + clock left the sheet: ceremony + menu toggle */  /* sea-creature bubbles don't track the camera yet */
+@@ -1525,6 +1540,19 @@
+   .pp4Spin { display:inline-block; animation:pp4spin 4s linear infinite; }
+   @keyframes pp4spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+   @media (prefers-reduced-motion: reduce){ .pp4Spin{ animation:none; opacity:.6; } }
++  /* D-07 (02-05): the chat flash — under the ribbon, deliberately NOT down at the ships (the space
++     the narration bubbles took, and the reason the ship bubbles were switched off in the first
++     place). Fixed chrome, same anchor #pp4Pill uses just above (top:52px — reused, not a new
++     number) rather than the board-clipped #pp4Fx band .pp4Bub lives in: the flash is ribbon-anchored,
++     not board-anchored, so it does not join CAM_HTML_LAYERS either (stage.js). Card look (bg/border/
++     radius/shadow/font) is .pp4Bub's own values below — the codebase's one existing "floating
++     message card" style, reused rather than invented a second time. */
++  #pp4ChatFlash { position:fixed; top:calc(52px + env(safe-area-inset-top)); left:50%;
++    transform:translateX(-50%); z-index:23; display:none; max-width:min(320px,86vw);
++    background:#fffdf2; border:2px solid #177; border-radius:13px; padding:9px 12px;
++    box-shadow:0 8px 26px rgba(0,0,0,.33); font-size:14px; line-height:1.45; font-weight:600;
++    color:#1f2d33; cursor:pointer; transition:opacity .35s; }
++  #pp4ChatFlash.out { opacity:0; }
+ 
+   #pp4ClockRow { display:block; width:100%; font-family:inherit; font-size:13.5px; font-weight:700;
+     padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
+@@ -1783,7 +1811,7 @@
+      behaviour). An explicit line-height is what makes it hold — without it the ⏩'s larger
+      font-size silently makes its box taller than the clock's again, which is the same
+      two-hand-synced-numbers trap this project keeps paying for. */
+-  #pp4Clock, #pp4FF { box-sizing:border-box; align-items:center; justify-content:center;
++  #pp4Clock, #pp4FF, #pp4Chat { box-sizing:border-box; align-items:center; justify-content:center;
+     min-width:34px; padding:3px 8px; line-height:18px; border:none; border-radius:8px;
+     background:rgba(255,255,255,.16); color:#fff; font-family:inherit; text-align:center; }
+   #pp4Clock { display:none; font-size:13px; font-weight:800; letter-spacing:.5px;
+@@ -1796,6 +1824,13 @@
+      lights orange while a one-shot skip runs so a second tap can't double-arm */
+   #pp4FF { display:none; font-size:15px; cursor:pointer; }
+   #pp4FF.on { background:rgba(245,166,35,.85); }
++  /* D-06 (02-05): the 💬 chip shares #pp4Clock/#pp4FF's ONE box rule above (playtest 21 item 8's own
++     ruling against a third hand-written box) and adds only what genuinely differs: glyph size,
++     cursor, and position:relative so the unread dot can anchor to its own corner. Visibility (a
++     crew game only) is written inline in ribbonTick with the explicit value, same as #pp4FF. */
++  #pp4Chat { display:none; font-size:15px; cursor:pointer; position:relative; }
++  #pp4ChatDot { position:absolute; top:1px; right:1px; width:9px; height:9px; border-radius:50%;
++    background:#f5a623; border:1.5px solid rgba(10,40,48,.9); display:none; }
+   /* playtest 11: one-line captain rows — name · coins · hold; the recipe line hides until the
+      row is tapped (the rows are stable elements, so the toggle survives re-renders) */
+   body.pp4Stage .prowTop { display:flex; flex-wrap:wrap; align-items:center; gap:3px 8px; }
+diff --git a/4/src/ui/panel.js b/4/src/ui/panel.js
+index d6b295a..71cef7c 100644
+--- a/4/src/ui/panel.js
++++ b/4/src/ui/panel.js
+@@ -1032,6 +1032,49 @@ export function appendChatLine(seat,text){
+   line.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
+   log.appendChild(line);
+   log.scrollTop=log.scrollHeight;
++  // D-06/D-07 (02-05): watchChat's only consumer already routes every incoming message (including
++  // this client's own) through appendChatLine — the flash and the unread mark hang off this SAME
++  // call rather than a second listener, so orchestrator.js needs no edit (key_links, 02-05-PLAN.md).
++  if(seat===appState.mySeat)return;                        // never flash your own sent message back
++  if(document.body.classList.contains("pp4Chat"))return;   // sheet open — already visible, no flash/dot
++  showChatFlash(seat,text);
++  setChatUnread(true);
++}
++let chatFlashRevealT=null,chatFlashHideT=null;
++// D-07: the flash under the ribbon. No typewriter reveal (unlike showChatBubble below) — D-06 is
++// deliberately the smallest honest version and a per-character reveal on a second surface is new
++// design work nothing asked for; the flash simply appears, holds, and fades. `pn()`/`escHtml()` are
++// the exact route appendChatLine already uses — no second escaping path.
++export function showChatFlash(seat,text){
++  const el=$("pp4ChatFlash");if(!el)return;
++  clearTimeout(chatFlashRevealT);clearTimeout(chatFlashHideT);
++  el.classList.remove("out");
++  el.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
++  el.style.display="block";
++  // D-15's own chat-bubble hold curve (chatBubbleHoldMs, util.js — CHAT_BUBBLE_HOLD_MULTIPLIER,
++  // fc68f74/util.js:1419), reused as-is rather than a hand-typed duration: it is already the
++  // codebase's answer to "how long does this chat message hold before it fades," and a ribbon-
++  // anchored flash of the same message has no reason to disagree with the bubble's own reading of
++  // the same text.
++  chatFlashRevealT=setTimeout(()=>{
++    el.classList.add("out");
++    // 350ms matches .pp4Bub's own `transition:opacity .35s` (index.html) — the fade-out timing this
++    // codebase already uses for a floating message card, not a new number.
++    chatFlashHideT=setTimeout(()=>{ if(el.classList.contains("out"))el.style.display="none"; },350);
++  },chatBubbleHoldMs(text));
++}
++// T-02-15: one flash element, replaced by the newest message rather than stacked, plus instant
++// tap-dismissal at any lifecycle stage — the same DoS mitigation showChatBubble's own onclick gives
++// a bubble, and the same reason: a captain spamming chat must not be able to wall off the ribbon.
++export function hideChatFlash(){
++  const el=$("pp4ChatFlash");if(!el)return;
++  clearTimeout(chatFlashRevealT);clearTimeout(chatFlashHideT);
++  el.classList.add("out");
++  el.style.display="none";
++}
++export function setChatUnread(v){
++  const dot=$("pp4ChatDot");if(!dot)return;
++  dot.style.display=v?"block":"none";
+ }
+ // one bubble div per seat; a new message replaces whatever that seat was already showing.
+ // chatBubbles/positionChatBubble/removeChatBubble all live in src/ui/board.js (chatBubbles since
+diff --git a/4/src/ui/stage.js b/4/src/ui/stage.js
+index 1cfcbaf..398bef6 100644
+--- a/4/src/ui/stage.js
++++ b/4/src/ui/stage.js
+@@ -17,7 +17,7 @@
+ import { appState } from "../state/index.js";
+ import { boardShipEls } from "./board.js";
+ import { msgHoldMs, vwPx, vhPx, isDisabledBtn } from "./util.js";
+-import { typewriterReveal } from "./panel.js";
++import { typewriterReveal, hideChatFlash, setChatUnread } from "./panel.js";
+ import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
+ 
+ const $ = id => document.getElementById(id);
+@@ -291,8 +291,16 @@ function gestures(wrap){
+     wake();   // a finger is on the sea — full frame rate for the pan/pinch that may follow
+     // playtest 5, hold-to-peek: while a finger is on the sea, the floating prompt steps aside
+     // so the board behind it can be read; lifting the finger brings it back.
+-    const pr = $("pp4Prompt");
+-    if (pr && getComputedStyle(pr).display !== "none") document.body.classList.add("pp4Peek");
++    // D-07 (02-05): widened to ALSO arm on the chat flash. Read alone, this gate only ever checked
++    // #pp4Prompt, because until this plan every floating box the gate was meant to protect (the
++    // prompt, .pp4Bub, .pp4Stay) only ever appeared while a prompt was already up. The chat flash
++    // is the first floating box that can appear with NO prompt showing at all — a message can land
++    // mid-turn, between prompts — so checking #pp4Prompt alone would leave it un-armed exactly when
++    // it is the only floating thing on screen, failing the very consistency rule (CLAUDE.md §2)
++    // this task exists to uphold.
++    const pr = $("pp4Prompt"), cf = $("pp4ChatFlash");
++    if ((pr && getComputedStyle(pr).display !== "none") || (cf && getComputedStyle(cf).display !== "none"))
++      document.body.classList.add("pp4Peek");
+     ptrs.set(e.pointerId, [e.clientX, e.clientY]); moved = false;
+     if (ptrs.size === 2){ const p = [...ptrs.values()]; pinch0 = { d: Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]), w: S.cam.tw }; }
+     else panLast = [e.clientX, e.clientY];
+@@ -440,6 +448,16 @@ function ribbonTick(){
+     if (ff.style.display !== want) ff.style.display = want;
+     ff.classList.toggle("on", !!appState.ff);
+   }
++  // D-06 (02-05): the 💬 chip lives only in a crew game — nobody to talk to solo or Pass & Play.
++  // Same tick as the ⏩'s own networked term just above, reading the SAME `appState.db &&
++  // appState.room` test the ⏩ (D-04) and the classic #chatPanel display gate
++  // (orchestrator.js beginGame(), "no chat in solo/pass-and-play — no one else to talk to") already
++  // use — reused a third time here rather than inventing yet another copy of it.
++  const chat = $("pp4Chat");
++  if (chat) {
++    const want2 = (appState.db && appState.room) ? "inline-flex" : "none";
++    if (chat.style.display !== want2) chat.style.display = want2;
++  }
+   // playtest 13: End of Voyage carries its own big PLAY AGAIN at the bottom. The real
+   // #btnPlayAgain lives in the stage-hidden controls row, so this proxy clicks it. Re-injected
+   // on this tick whenever a re-render rebuilds the stats panel.
+@@ -881,6 +899,7 @@ function buildStage(){
+     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="../assets/boats/${i + 1}.png">`).join("")}</span>
+     <span id="pp4Clock"></span>
+     <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
++    <button id="pp4Chat" type="button" title="Scuttlebutt">💬<span id="pp4ChatDot"></span></button>
+     <button id="pp4Menu" type="button">☰</button>`;
+   document.body.appendChild(rib);
+   // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
+@@ -906,6 +925,36 @@ function buildStage(){
+     if (S.hurry) S.hurry();          // the live bubble goes NOW — the skip starts this instant
+     wake();
+   };
++  // D-06 (02-05): chat's slide-up sheet re-parents the classic #chatPanel wholesale — the same
++  // re-parent-not-rebuild pattern this function already uses below for #actionPanel/#captainsPanel/
++  // #controlsRow — which is what leaves #chatLog/#chatForm/#chatInput's ids, and the orchestrator's
++  // wiring to them (sendChat/watchChat/the #chatForm submit handler), completely untouched.
++  const chatSheet = document.createElement("div"); chatSheet.id = "pp4ChatSheet";
++  document.body.appendChild(chatSheet);
++  const chatPanelEl = $("chatPanel"); if (chatPanelEl) chatSheet.appendChild(chatPanelEl);
++  // opening clears the unread mark, drops any live flash (its message is now visible in the log)
++  // and focuses the input; closing does nothing further — nothing about chat is persisted, and the
++  // log is already wiped by startGame()'s own reset.
++  $("pp4Chat").onclick = () => {
++    const opening = !document.body.classList.contains("pp4Chat");
++    document.body.classList.toggle("pp4Chat");
++    if (opening) {
++      setChatUnread(false);
++      hideChatFlash();
++      const inp = $("chatInput"); if (inp) inp.focus();
++    }
++  };
++  // D-07: the flash under the ribbon — its own fixed chrome element (like #pp4Pill just below,
++  // NOT board content), so it does not join CAM_HTML_LAYERS and does not live in the board-clipped
++  // #pp4Fx band: those exist for things drawn IN the board that the camera's zoom can carry off
++  // screen, and the flash's whole placement point (D-07) is that it is explicitly NOT down at the
++  // ships, which is the board-anchored space the narration bubbles already occupy. A tap dismisses
++  // it immediately at any point in its lifecycle (hideChatFlash, panel.js) — the same instant-
++  // dismissal a chat bubble already gets, and for the same reason (T-02-15: one captain spamming
++  // chat must not be able to wall off the screen).
++  const chatFlash = document.createElement("div"); chatFlash.id = "pp4ChatFlash";
++  chatFlash.onclick = () => hideChatFlash();
++  document.body.appendChild(chatFlash);
+   // wind pill
+   const pill = document.createElement("div"); pill.id = "pp4Pill";
+   document.body.appendChild(pill);
+@@ -952,10 +1001,15 @@ function buildStage(){
+     document.body.classList.toggle("pp4Foot");
+     clockLabel();
+   };
+-  // playtest 12 item 6: tapping anywhere outside the open menu closes it
++  // playtest 12 item 6: tapping anywhere outside the open menu closes it. D-06 (02-05) reuses this
++  // SAME capture-phase listener for the chat sheet rather than adding a second one — extended with
++  // its own condition block (not folded into one shared selector) since #pp4Foot and #pp4Chat close
++  // against different "outside" targets and toggle different body classes.
+   document.addEventListener("pointerdown", e => {
+     if (document.body.classList.contains("pp4Foot") && !e.target.closest("#footerRow,#pp4Menu"))
+       document.body.classList.remove("pp4Foot");
++    if (document.body.classList.contains("pp4Chat") && !e.target.closest("#pp4ChatSheet,#pp4Chat"))
++      document.body.classList.remove("pp4Chat");
+   }, true);
+   const svg = svgEl();
+   if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMin meet");   // full-board hugs the ribbon
