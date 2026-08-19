@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 01
 current_phase_name: before-the-engine-freezes
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-08-19T01:23:00.036Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-08-19T01:49:58.581Z"
 last_activity: 2026-08-18
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 01 (before-the-engine-freezes) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-08-18 — Phase 01 execution started
 
@@ -90,6 +90,7 @@ No v2.0 plans executed yet. Prior-milestone velocity and per-plan metrics are ar
 | Phase 01 P01 | 21min | 2 tasks | 4 files |
 | Phase 01 P02 | 8min | 2 tasks | 4 files |
 | Phase 01 P03 | 24m | 2 tasks | 2 files |
+| Phase 01 P04 | 1h | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: Plan 03: the ladder's comparison axis is time, not seat — one brain ships, so a seat-axis control no longer exists
 - [Phase ?]: Plan 03: bot_ladder4.js wall clock goes to stderr, keeping stdout byte-identical for exact before/after diffs
 - [Phase ?]: Plan 03: balance baseline uses dev seed family x7919 only; held-out x104729 reserved for plan 06 if the result reads close
+- [Phase ?]: RULE-01: passing pays one dubloon through a single Game.doPass(p) called from all three emission sites; the purse is mutated BEFORE ev() records it, because ev() snapshots at call time (01-04)
+- [Phase ?]: RULE-01: the human-only sea-cursor advance stays outside doPass — per-device narration bookkeeping owned by one seat, never handed to bots (01-04)
+- [Phase ?]: RULE-02/D-06: the pass tag 'Recipe idea! (+1 coin)' is appended by the renderer in one place as a subjectless fragment; all 100 hand-written sea-creature strings untouched (01-04)
 
 ### Pending Todos
 
@@ -206,8 +210,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T01:23:00.023Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-08-19T01:49:49.876Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

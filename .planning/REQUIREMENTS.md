@@ -52,8 +52,8 @@ passing gives the player one Dubloon and we need to adjust their narration to ac
 Pass is the turn-ender that replaced fishing (`RULES-V2.md` §3) — always available, never disabled,
 and it narrates one of 50 hand-written sea creatures stored in both persons.
 
-- [ ] **RULE-01**: A captain who passes receives 1 dubloon. All three `{t:"pass"}` emission sites pay it — the human menu (`4/src/ui/flow.js:1861`), `4/src/ui/flow.js:2140`, and the bot fallback (`4/src/engine/index.js:2993`). Per the standing bot/human parity invariant this is not an open question: bots pass, so bots are paid.
-- [ ] **RULE-02**: The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries. The established treatment for a coin gain already exists and should be reused rather than re-invented — `(+1🌕)` inside a `nobrk` span so the name and its amount never split across a line break (G27/P7, `4/src/ui/flow.js:2231`).
+- [x] **RULE-01**: A captain who passes receives 1 dubloon. All three `{t:"pass"}` emission sites pay it — the human menu (`4/src/ui/flow.js:1861`), `4/src/ui/flow.js:2140`, and the bot fallback (`4/src/engine/index.js:2993`). Per the standing bot/human parity invariant this is not an open question: bots pass, so bots are paid.
+- [x] **RULE-02**: The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries. The established treatment for a coin gain already exists and should be reused rather than re-invented — `(+1🌕)` inside a `nobrk` span so the name and its amount never split across a line break (G27/P7, `4/src/ui/flow.js:2231`).
 
 > **Sequencing constraint — this rule must land BEFORE TEST-03.** Paying a dubloon changes what the
 > engine writes into the event stream, which invalidates any determinism corpus recorded before it.
@@ -181,8 +181,8 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | FIX-01 | Phase 1 — Before the Engine Freezes | Complete |
 | TEST-01 | Phase 1 — Before the Engine Freezes | Complete |
 | TEST-02 | Phase 1 — Before the Engine Freezes | Complete |
-| RULE-01 | Phase 1 — Before the Engine Freezes | Pending |
-| RULE-02 | Phase 1 — Before the Engine Freezes | Pending |
+| RULE-01 | Phase 1 — Before the Engine Freezes | Complete |
+| RULE-02 | Phase 1 — Before the Engine Freezes | Complete |
 | FIX-06 | Phase 1 — Before the Engine Freezes | Pending |
 | MP-01 | Phase 2 — Multiplayer Revival | Pending |
 | MP-02 | Phase 2 — Multiplayer Revival | Pending |
