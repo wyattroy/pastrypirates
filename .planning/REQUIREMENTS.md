@@ -70,8 +70,8 @@ and it narrates one of 50 hand-written sea creatures stored in both persons.
 Root `npm test` runs 21 gates and passes — **not one of them loads `4/`**. This is the exact "gate
 scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3.
 
-- [ ] **TEST-01**: `4/src/ui/stage.js` imports under Node without throwing (bare `addEventListener` at `:190` makes the largest new module — 1,545 lines — untestable headlessly today)
-- [ ] **TEST-02**: `4/scripts/no_undef_check.js` exits 0 (fails today, exit 1)
+- [x] **TEST-01**: `4/src/ui/stage.js` imports under Node without throwing (bare `addEventListener` at `:190` makes the largest new module — 1,545 lines — untestable headlessly today)
+- [x] **TEST-02**: `4/scripts/no_undef_check.js` exits 0 (fails today, exit 1)
 - [ ] **TEST-03**: A determinism corpus exists for the v2 engine and verifies green
 - [ ] **TEST-04**: The contract gates — engine, module graph, net, state, UI — run against the promoted tree
 - [ ] **TEST-05**: `npm test` covers the promoted game, and its gate count is stated in `package.json`
@@ -179,8 +179,8 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FIX-01 | Phase 1 — Before the Engine Freezes | Pending |
-| TEST-01 | Phase 1 — Before the Engine Freezes | Pending |
-| TEST-02 | Phase 1 — Before the Engine Freezes | Pending |
+| TEST-01 | Phase 1 — Before the Engine Freezes | Complete |
+| TEST-02 | Phase 1 — Before the Engine Freezes | Complete |
 | RULE-01 | Phase 1 — Before the Engine Freezes | Pending |
 | RULE-02 | Phase 1 — Before the Engine Freezes | Pending |
 | FIX-06 | Phase 1 — Before the Engine Freezes | Pending |
@@ -231,6 +231,7 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | DOC-07 | Phase 9 — The Written Record | Pending |
 
 **Coverage:**
+
 - v2.0 requirements: 51 total (MP 13, CUT 8, DESK 8, DOC 7, TEST 7, FIX 6, RULE 2)
 - Mapped to phases: **51** ✓ — every requirement maps to exactly one phase
 - Unmapped: **0** — no orphans, no duplicates
@@ -240,13 +241,17 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 - **FIX-01** — the clock preference leaking between the two games, affecting real players today and
   independent of every promotion decision — is in the earliest phase, not batched with the cutover.
   **It namespaces the key; the OFF default in the new game is intentional and stays.**
+
 - **TEST-01** (`4/src/ui/stage.js` importable under Node) is in Phase 1, so it unblocks the rest of
   the TEST work rather than sitting behind it.
+
 - **RULE-01 lands in Phase 1, before TEST-03 records the corpus in Phase 3** — recorded once, not
   twice.
+
 - **The harness (Phase 3) is rebuilt before the cutover (Phase 6)** — and before the largest work in
   the milestone (Phases 4–5) is built on top of it, so the bake-off and trade work are guarded by
   `net_contract_check`, `dlog_replay_test` and `host_guest_parity_check` while they are written.
+
 - **Multiplayer (Phases 2, 4, 5) → cutover (Phase 6) → desktop (Phases 7, 8).** The live game never
   loses multiplayer; `4/` stays at `/4` until it can host a networked game.
 
