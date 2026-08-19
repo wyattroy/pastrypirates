@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase: 01
 current_phase_name: before-the-engine-freezes
-status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-08-19T02:26:56.794Z"
+status: verifying
+stopped_at: Completed 01-06-PLAN.md — Phase 1 complete, awaiting verification
+last_updated: "2026-08-19T11:08:31.481Z"
 last_activity: 2026-08-18
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 9
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 5
-  percent: 0
+  completed_plans: 6
+  percent: 11
 ---
 
 <!-- ============================================================================
@@ -57,10 +57,20 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 01 (before-the-engine-freezes) — EXECUTING
+Phase: 01 (before-the-engine-freezes) — ALL 6 PLANS EXECUTED
 Plan: 6 of 6
-Status: Ready to execute
-Last activity: 2026-08-18 — Phase 01 execution started
+Status: Phase complete — ready for verification
+Last activity: 2026-08-19 — Phase 01 executed end to end; D-07's balance gate closed by Wyatt
+
+**Phase 1's last open question is answered.** D-07 could not be closed by any measurement, only by
+Wyatt: shown what the pass dubloon did to the bots across 400 identical games, he said **"ship it"**
+(2026-08-19). The payout stays at one dubloon. **Nothing in this phase forces the v2 determinism
+corpus to be recorded twice**, which was the phase's whole purpose.
+
+The Phase 1 build is **`2026-08-18e`** at `playpastrypirates.com/4` — it carries the window guard, the
+namespaced turn-clock key, the pass dubloon, the narration tag and the Pass button that says what it
+pays. Plan 06 deliberately did not bump past it: it changed no game code, and a new stamp with no new
+gameplay behind it is the one thing the stamp exists not to do.
 
 **Milestone shape (from `ROADMAP.md`):**
 
@@ -92,6 +102,7 @@ No v2.0 plans executed yet. Prior-milestone velocity and per-plan metrics are ar
 | Phase 01 P03 | 24m | 2 tasks | 2 files |
 | Phase 01 P04 | 1h | 2 tasks | 5 files |
 | Phase 01 P05 | 42 | 2 tasks | 2 files |
+| Phase 01 P06 | 1h40m | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -144,6 +155,8 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: FIX-06: the engine ships one bot planner. The classic whole-turn planner and its four exclusive helpers are deleted from 4/src/engine/index.js; the v3-suffixed helpers are live and gated. The divergent float tie-break tolerance is resolved by removal, not reconciliation. (01-05)
 - [Phase ?]: The published bot numbers in docs/BOT-V3-RACE-PLANNER.md and docs/FABLE-BOT-BRIEF.md are deliberately NOT edited. They became unreproducible on 2026-08-18 and stay true as the record of why the race planner was chosen; annotating them is Phase 9's work. (01-05)
 - [Phase ?]: Deletions whose targets share a prefix with live code are done as asserted line-range surgery, never regex over a name prefix, and are proved behaviour-neutral by a byte-identical before/after ladder record that is itself red-proofed. (01-05)
+- [Phase ?]: D-07 CLOSED — Wyatt, 2026-08-19: 'ship it'. Shown the before/after ladder on identical seeds (pass rate 54.99% to 55.62%, voyages 15.16 to 14.84 rounds), he chose to ship the pass dubloon at one coin. Payout unchanged, held-out seed family not run, ladder not re-run. (01-06)
+- [Phase ?]: Plan 06: the build stamp was deliberately NOT bumped — nothing under 4/ changed, and a stamp bump with no gameplay behind it is what the stamp exists not to do. 2026-08-18e IS the Phase 1 build. (01-06)
 
 ### Pending Todos
 
@@ -159,9 +172,13 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ### Blockers/Concerns
 
-- **`4/` has no safety net yet.** Root `npm test` runs 21 gates and passes, and **not one of them
-  loads `4/`** — the "gate scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3. Until
-  Phase 3 lands, **a green `npm test` says nothing about the game being promoted.**
+- **`4/` has a first safety net, but `npm test` still does not run it.** Phase 1 built six gates that
+  load `4/` — `stage_import_check`, `no_undef_check`, `pp4_timeroff_check`, `pass_coin_test`,
+  `pass_narration_test`, `planner_singleton_check` — and all six exit 0. **But they are not wired into
+  root `npm test`**, whose 21 gates still scan only the live game. So the trap in
+  `docs/HARD-WON-LESSONS.md` §3 is narrowed, not closed: **a green `npm test` still says nothing about
+  the game being promoted**, and the six `4/` gates have to be run by name. Wiring them in, and
+  covering the rest of `4/`, is Phase 3.
 
 - **The v2 determinism corpus does not exist and its capture is one-way.** `docs/DETERMINISM-RERECORD.md`:
   capture exactly once, never weaken `REQUIRED_EVENT_TYPES`. RULE-01 must land first (Phase 1), and
@@ -174,13 +191,13 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   area), a 60fps camera tween during storms, and narration typing at `msPerChar=9` vs live's 20.
   This is a gate on promotion (Phase 6), not a courtesy.
 
-- **`pp_timerOff` LEAKS between the two games — but the OFF default in `4/` is INTENTIONAL**
-  (Wyatt, 2026-08-18). `4/src/ui/stage.js:1478` writes the shared, un-namespaced key, so any player
-  who opens `/4` once also has the shot clock switched off in the **real** game, and if they host it
-  is pushed to everyone in the room. **The fix is to namespace the key, NOT to change the default** —
-  `4/` already namespaces `pp4_sess` and `pp4_solo` and simply missed this one. It stays relevant
-  after the cutover, where the new game and `/classic` share one origin and want opposite defaults.
-  Phase 1, independently of every promotion decision.
+- ~~**`pp_timerOff` LEAKS between the two games**~~ — **CLOSED in Phase 1 (FIX-01, plan 01-02,
+  `fbf1088`).** All five `4/`-side sites now read and write the namespaced `pp4_timerOff`, and the old
+  shared key is removed exactly once per browser behind the `pp4_timerOffCleaned` marker. The OFF
+  default in `4/` was intentional and was **not** changed (Wyatt, 2026-08-18). Gated by
+  `4/scripts/pp4_timeroff_check.js`, which checks the source shape *and* the cleanup's real behaviour.
+  **Still open, and only a person can check it:** confirm on a real browser that setting the live
+  game's clock, opening `/4`, and coming back leaves the live setting intact.
 
 - **Two player-reachable dev flags ship in `4/`.** `?ovens=1` skips the entire 16-day voyage;
   `?windhud=1` opens a tuning panel. Harmless self-cheating solo; a genuine exploit the moment
@@ -220,8 +237,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T02:26:47.314Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-08-19T11:08:31.292Z
+Stopped at: Completed 01-06-PLAN.md — Phase 1 complete, awaiting verification
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
@@ -232,15 +249,22 @@ the quick-task log, and the v1 blockers list — is archived verbatim at
 
 ## Operator Next Steps
 
-1. `/gsd-execute-phase 1` — the 6 plans are written, checked and committed. Wave 1 is the tracer
-   (TEST-01/TEST-02): the first gate in this repo that loads `4/` and runs green. Nothing else in
-   the phase can be verified headlessly until it does.
+1. **Verify Phase 1 on the phone.** Everything headless is green, but two checks only a person can
+   make are still open, both from plan 06's plan file: open `playpastrypirates.com/4`, confirm the
+   footer reads **`2026-08-18e`**, pass a turn and read the narration line in **both** persons (Wyatt
+   reversed that wording twice against rendered lines); then confirm the clock preference no longer
+   leaks — set the clock as you like it in the live game, open `/4`, come back, and check the live
+   game's setting survived.
 
-2. Wave 5 ends on a blocking decision checkpoint, not on a commit. D-07 makes the balance check a
-   gate: the rewritten ladder reports what moved in pass rate and voyage length, and **Wyatt decides**
-   whether it is material. The plan is forbidden from carrying a recommendation or a threshold.
+2. **Then `/gsd-plan-phase 2` — Multiplayer Revival.** Read
+   `research/v2.0-intake/` first; it is the only synthesis of a development period that left no GSD
+   artifacts. Note before planning: `docs/DRIVING-THE-GAME.md`'s import paths are root-relative and
+   will inject state into the wrong tree until DOC-06 fixes them.
 
-3. Read the relevant `research/v2.0-intake/` report before planning any phase — it is the only
-   synthesis of a development period that left no GSD artifacts.
+3. **Do not record the determinism corpus before Phase 3 decides on the queued purity fixes.**
+   Capture happens exactly once. `docs/DETERMINISM-RERECORD-NEXT.md` holds three queued fixes whose
+   original justification disappeared along with the old fixtures — that call is owed before capture,
+   not after.
 
-*(Done: roadmap approved; `/gsd-plan-phase 1` run on 2026-08-18.)*
+*(Done: roadmap approved; `/gsd-plan-phase 1` run 2026-08-18; all 6 plans of Phase 1 executed
+2026-08-18/19; D-07 closed by Wyatt 2026-08-19.)*

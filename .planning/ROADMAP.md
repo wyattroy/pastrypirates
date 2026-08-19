@@ -61,7 +61,7 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
   4. The pass narration tells the captain they were paid, in **both** the addressed and third-person renderings, across all 50 sea-creature entries.
   5. The engine ships exactly one bot planner — the unreachable `planTurnClassic` subtree is gone, so no future tuning pass can aim at code that never runs.
 
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 **Wave 1**
@@ -83,7 +83,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 01-06-PLAN.md — D-07's balance gate: measure after, report the delta, ask Wyatt, ship the stamp (RULE-01, FIX-06)
+- [x] 01-06-PLAN.md — D-07's balance gate: measure after, report the delta, ask Wyatt, ship the stamp (RULE-01, FIX-06)
 
 **Wave order.** 1: 01-01 · 2: 01-02, 01-03 (parallel) · 3: 01-04 · 4: 01-05 · 5: 01-06.
 The ordering is forced by D-07: the balance baseline must be measured on a tree where passing does
@@ -490,7 +490,7 @@ The first phase is independent of every promotion decision and can start immedia
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Before the Engine Freezes | 5/6 | In Progress|  |
+| 1. Before the Engine Freezes | 6/6 | In Progress|  |
 | 2. Multiplayer Revival | 0/TBD | Not started | - |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
