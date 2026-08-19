@@ -440,6 +440,16 @@ function ribbonTick(){
     if (ff.style.display !== want) ff.style.display = want;
     ff.classList.toggle("on", !!appState.ff);
   }
+  // D-06: the 💬 chip lives only where there's someone to talk to — a crew game. `appState.db &&
+  // appState.room` is the SAME networked test the ⏩ chip just above (D-04, 02-03) and the classic
+  // #chatPanel display gate (orchestrator.js's beginGame(), "no chat in solo/pass-and-play — no one
+  // else to talk to") already use — reused a third time here rather than inventing a fourth copy.
+  const chat = $("pp4Chat");
+  if (chat){
+    const netUp = !!(appState.db && appState.room);
+    const wantChat = netUp ? "inline-flex" : "none";
+    if (chat.style.display !== wantChat) chat.style.display = wantChat;
+  }
   // playtest 13: End of Voyage carries its own big PLAY AGAIN at the bottom. The real
   // #btnPlayAgain lives in the stage-hidden controls row, so this proxy clicks it. Re-injected
   // on this tick whenever a re-render rebuilds the stats panel.
@@ -881,6 +891,7 @@ function buildStage(){
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="../assets/boats/${i + 1}.png">`).join("")}</span>
     <span id="pp4Clock"></span>
     <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
+    <button id="pp4Chat" type="button" title="Scuttlebutt">💬<span id="pp4ChatDot"></span></button>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
   // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
@@ -905,6 +916,26 @@ function buildStage(){
     appState.ffFromEv = appState.game ? appState.game.events.length : 0;
     if (S.hurry) S.hurry();          // the live bubble goes NOW — the skip starts this instant
     wake();
+  };
+  // D-06: chat's slide-up sheet re-parents the classic #chatPanel wholesale — the same
+  // build-a-container-then-move-the-existing-node pattern this function already uses below for
+  // #controlsRow/#captainsPanel/#actionPanel. That's what leaves #chatLog/#chatForm/#chatInput's
+  // ids, and the orchestrator's own wiring to them (sendChat/watchChat/the #chatForm submit
+  // handler, orchestrator.js:1711), completely untouched — no second chat log, no edit there.
+  const chatSheet = document.createElement("div"); chatSheet.id = "pp4ChatSheet";
+  document.body.appendChild(chatSheet);
+  const chatPanelEl = $("chatPanel"); if (chatPanelEl) chatSheet.appendChild(chatPanelEl);
+  // Opening clears the unread mark and focuses the input; closing does nothing further — nothing
+  // about chat persists, and the log is already wiped by startGame()'s own reset
+  // (orchestrator.js:1551). The dot is toggled directly here (not through panel.js's own setter,
+  // which this plan's second task adds) so this task's own commit stays self-contained.
+  $("pp4Chat").onclick = () => {
+    const opening = !document.body.classList.contains("pp4Chat");
+    document.body.classList.toggle("pp4Chat");
+    if (opening){
+      const dot = $("pp4ChatDot"); if (dot) dot.classList.remove("on");
+      const inp = $("chatInput"); if (inp) inp.focus();
+    }
   };
   // wind pill
   const pill = document.createElement("div"); pill.id = "pp4Pill";
@@ -952,10 +983,15 @@ function buildStage(){
     document.body.classList.toggle("pp4Foot");
     clockLabel();
   };
-  // playtest 12 item 6: tapping anywhere outside the open menu closes it
+  // playtest 12 item 6: tapping anywhere outside the open menu closes it. D-06 extends this SAME
+  // capture-phase listener for the chat sheet rather than adding a second one — a second condition
+  // block, not a folded selector, since the ☰ menu and the chat sheet close against different
+  // "outside" targets and toggle different body classes.
   document.addEventListener("pointerdown", e => {
     if (document.body.classList.contains("pp4Foot") && !e.target.closest("#footerRow,#pp4Menu"))
       document.body.classList.remove("pp4Foot");
+    if (document.body.classList.contains("pp4Chat") && !e.target.closest("#pp4ChatSheet,#pp4Chat"))
+      document.body.classList.remove("pp4Chat");
   }, true);
   const svg = svgEl();
   if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMin meet");   // full-board hugs the ribbon

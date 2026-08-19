@@ -1502,6 +1502,19 @@
   body.pp4Foot #footerRow .footerBtn, body.pp4Foot #pp4ClockRow { width:100%; box-sizing:border-box;
     margin:0; text-align:center; }
   body.pp4Foot #pp4Stamp { order:99; }
+  /* D-06 (02-05): chat's slide-up sheet. #chatPanel (Scuttlebutt — #chatLog/#chatForm/#chatInput,
+     unchanged ids) is re-parented into this container by stage.js's buildStage(), the same
+     "build the container here, move the existing node into it" pattern buildStage already uses
+     for #pp4Cap/#pp4Prompt below. #chatPanel's OWN `.panel` styling (index.html:174 — background,
+     border, shadow, padding) already supplies the card look, so this sheet only needs to be the
+     fixed, bottom-anchored, closeable FRAME — no second set of card values to invent.
+     No slide-in transition: body.pp4Foot's own toggle (the ☰ menu, just above) is this codebase's
+     only other toggleable sheet and it has none either. Matching it is the smallest honest version
+     D-06 asks for; inventing a hand-picked transition duration nothing else uses would be exactly
+     the "constant nobody chose" this project keeps paying for (CLAUDE.md §2). */
+  #pp4ChatSheet { position:fixed; left:12px; right:12px; bottom:0; z-index:61; display:none;
+    max-height:70vh; overflow:auto; padding-bottom:env(safe-area-inset-bottom); }
+  body.pp4Chat #pp4ChatSheet { display:block; }
   body.pp4Stage #chatBubbles { display:none; }
   body.pp4Stage .fcChip, body.pp4Stage .ppHud { display:none; }  /* the pill is the instrument now */
   body.pp4Stage #controlsRow { display:none; }  /* coin + clock left the sheet: ceremony + menu toggle */  /* sea-creature bubbles don't track the camera yet */
@@ -1783,7 +1796,7 @@
      behaviour). An explicit line-height is what makes it hold — without it the ⏩'s larger
      font-size silently makes its box taller than the clock's again, which is the same
      two-hand-synced-numbers trap this project keeps paying for. */
-  #pp4Clock, #pp4FF { box-sizing:border-box; align-items:center; justify-content:center;
+  #pp4Clock, #pp4FF, #pp4Chat { box-sizing:border-box; align-items:center; justify-content:center;
     min-width:34px; padding:3px 8px; line-height:18px; border:none; border-radius:8px;
     background:rgba(255,255,255,.16); color:#fff; font-family:inherit; text-align:center; }
   #pp4Clock { display:none; font-size:13px; font-weight:800; letter-spacing:.5px;
@@ -1796,6 +1809,14 @@
      lights orange while a one-shot skip runs so a second tap can't double-arm */
   #pp4FF { display:none; font-size:15px; cursor:pointer; }
   #pp4FF.on { background:rgba(245,166,35,.85); }
+  /* D-06: the 💬 chip shares #pp4Clock/#pp4FF's ONE box rule above (playtest 21 item 8's own
+     ruling against a third hand-written box) and adds only what genuinely differs from #pp4FF —
+     nothing, in fact, but position:relative to anchor the unread dot to its own corner. Visibility
+     (crew games only) is written inline in ribbonTick, same explicit-value pattern as #pp4FF. */
+  #pp4Chat { display:none; font-size:15px; cursor:pointer; position:relative; }
+  #pp4ChatDot { display:none; position:absolute; top:-2px; right:-2px; width:9px; height:9px;
+    border-radius:50%; background:#f5a623; box-shadow:0 0 0 2px rgba(10,40,48,.9); }
+  #pp4ChatDot.on { display:block; }
   /* playtest 11: one-line captain rows — name · coins · hold; the recipe line hides until the
      row is tapped (the rows are stable elements, so the toggle survives re-renders) */
   body.pp4Stage .prowTop { display:flex; flex-wrap:wrap; align-items:center; gap:3px 8px; }
