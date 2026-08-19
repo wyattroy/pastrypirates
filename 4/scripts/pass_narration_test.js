@@ -18,6 +18,32 @@
  * is conjugated, no article is guessed, no agreement is derived. The deleted seaSighting() did all
  * three and got the plurals wrong. This gate is what stops that coming back.
  *
+ * THREE LEGS, AND THEY MUST NOT BE COLLAPSED INTO ONE. The amount inside the tag is no longer
+ * written into the builder — it derives from a field on the round config, the same field the engine
+ * pays from. That makes ONE failure mode available to this file that was not available before: an
+ * assertion re-pointed at that field becomes a TAUTOLOGY, unable to fail and still printing PASS.
+ * Read the same constant twice and you have built a mirror, not a check. Each leg catches something
+ * the other two cannot, so every assertion below says which one it belongs to:
+ *
+ *   LEG A  THE SHIPPED DEFAULT, PINNED TO HAND-TYPED COPY. TAG below is D-06's approved wording,
+ *          amount and all, typed out once and never read back off the config it pins. All 100
+ *          renderings are compared against it. *** THIS IS THE LEG THE HAZARD IS ABOUT: move the
+ *          config default and a tautological gate stays green while a pinned one goes red. *** It
+ *          is also why the 100 verdicts were NOT edited when the builder was de-hardcoded — their
+ *          passing UNCHANGED is the evidence that the derivation is invisible at the default, and
+ *          rewriting them would have destroyed exactly that evidence.
+ *   LEG B  DERIVATION, PROVED AT A PAYOUT THAT IS NOT THE DEFAULT. A builder that kept a literal
+ *          passes every run at 1 and fails the moment the number moves, which under D-07 is next
+ *          week. So all 100 are re-rendered at a payout the game would never produce by accident,
+ *          against a tag built from a literal typed here — never from the config.
+ *   LEG C  AGREEMENT BETWEEN AN OBSERVED DELTA AND A RENDERED STRING. The anti-tautology leg. A real
+ *          payment is run on the fixture game and the purse delta captured as a NUMBER the engine
+ *          performed; the narration is then rendered for that same game and the amount in the STRING
+ *          the renderer produced is compared against it. Neither side is a constant read off the
+ *          other's source, so a builder pointed at the wrong config field is caught even though both
+ *          sides would still "derive". Done at both payouts. Its button half lives in
+ *          4/scripts/pass_coin_test.js and is a SOURCE read, because the button needs a DOM.
+ *
  * WHAT IT GATES
  *   RULE-02 coverage    All 100 renderings — 50 entries x the addressed and third-person persons —
  *                       end with the tag. One check line per rendering, each naming its own fault.
@@ -183,6 +209,66 @@ for (let i = 0; i < SEA_CREATURES.length; i++) {
   check(`#${String(i).padStart(2, "0")} third-person`, verdict(SEA_CREATURES[i], false), "ok");
 }
 
+/* ================= LEG B: the amount DERIVES, proved away from the default ================= */
+/* A builder that kept a literal sails through every assertion above. So the payout is moved to a
+ * number the game would never produce by accident and all 100 are re-rendered — against a tag built
+ * from a literal typed HERE, never read back off the config that was just set. Counted rather than
+ * printed one line per rendering: 100 more PASS lines would bury the report, and a count is
+ * falsifiable where a bare "OK" is not. */
+console.log("\n  -- 100 re-renderings at a payout that is NOT the default --");
+const ALT_PAYOUT = 7;
+const ALT_WRAPPED = `<span class="nobrk">Recipe idea! (+${ALT_PAYOUT}\u{1F315})</span>`;
+appState.game.cfg.passCoin = ALT_PAYOUT;
+let altOk = 0, altFirstFault = "";
+for (let i = 0; i < SEA_CREATURES.length; i++) {
+  for (const mine of [true, false]) {
+    const txt = render(SEA_CREATURES[i], mine).txt;
+    if (txt.endsWith(ALT_WRAPPED) && countOf(txt, ALT_WRAPPED) === 1) altOk++;
+    else if (!altFirstFault) altFirstFault = `#${String(i).padStart(2, "0")} ${mine ? "addressed" : "third-person"}: ${JSON.stringify(txt.slice(-60))}`;
+  }
+}
+if (altFirstFault) console.log(`         first fault: ${altFirstFault}`);
+check(`LEG B: all 100 renderings carry the moved payout, wrapped whole`, altOk, SEA_CREATURES.length * 2);
+// The counterpart, and it is what makes the count above mean something: at the moved payout the
+// shipped default's tag must be GONE from every rendering. Without this a builder that appended both
+// amounts, or ignored the config and got lucky, would still score 100.
+let staleDefault = 0;
+for (let i = 0; i < SEA_CREATURES.length; i++) {
+  for (const mine of [true, false]) if (render(SEA_CREATURES[i], mine).txt.includes(TAG)) staleDefault++;
+}
+check("LEG B: and not one of them still carries the shipped default's amount", staleDefault, 0);
+
+/* ================= LEG C: an OBSERVED delta against a RENDERED string ================= */
+/* THE ANTI-TAUTOLOGY LEG. One side is a number the engine actually produced by moving a purse; the
+ * other is the amount inside a string the renderer actually built. Neither is read off the other's
+ * source, so this stays able to fail even though both sides derive from the same field — a builder
+ * pointed at the WRONG config field derives just as honestly and is caught here and nowhere else.
+ * Run at both payouts, because agreement at one number can be a coincidence. */
+console.log("\n  -- the amount RENDERED equals the purse delta a real payment OBSERVES --");
+function observedVsRendered(payout, seed) {
+  appState.game = new Game({ ...roundCfg(STRATS), bakeoff: true, passCoin: payout }, seed, true);
+  const p = appState.game.players[SEAT];
+  const before = p.coins;
+  appState.game.doPass(p);                      // behaviour the engine performed
+  const observed = p.coins - before;            // ... captured as a plain number
+  const txt = render(SEA_CREATURES[4], false).txt;   // ... and a string the renderer produced
+  const expected = `<span class="nobrk">Recipe idea! (+${observed}\u{1F315})</span>`;
+  return { observed, txt, agrees: txt.endsWith(expected) };
+}
+for (const [payout, seed] of [[SHIPPED_PAYOUT, 5 * 7919], [ALT_PAYOUT, 6 * 7919]]) {
+  const r = observedVsRendered(payout, seed);
+  console.log(`         at a configured payout of ${payout}: the engine moved the purse by ${r.observed}; rendered "...${r.txt.slice(-42)}"`);
+  checkTrue(`CONTROL: the payment at ${payout} actually moved a purse by a finite amount`, Number.isFinite(r.observed));
+  check(`LEG C: the amount the narration renders equals the delta the purse observed (payout ${payout})`, r.agrees, true);
+}
+
+/* Back to the shipped default, and re-rendered to prove the restore took, before the structural
+ * assertions below read a source file that says nothing about the live config. */
+appState.game = new Game({ ...roundCfg(STRATS), bakeoff: true }, 7919, true);
+check("LEG A: restored — the fixture is back at the shipped default", appState.game.cfg.passCoin, SHIPPED_PAYOUT);
+checkTrue("LEG A: and a rendering at the restored default carries D-06's approved tag again",
+  render(SEA_CREATURES[4], false).txt.endsWith(WRAPPED));
+
 /* ================= the builder's own source ================= */
 console.log("\n  -- 4/src/ui/util.js: appended in one place, resolved at the chokepoint --");
 check("the tag is written in exactly one place in the narration table", countOf(UTIL_SRC, "Recipe idea!"), 1);
@@ -198,6 +284,14 @@ if (passIdx >= 0) {
    * compare the RENDERED text and are unchanged. Derived from TAG rather than re-typed, so the two
    * cannot drift. */
   checkTrue("the builder body carries the tag's approved wording", body.includes(TAG.slice(0, TAG.indexOf("(") + 2)));
+  /* LEG C's negative, in the shape a re-hardcoded TAG takes: a `+` immediately followed by a digit
+   * inside the parenthetical. The body is sliced from the builder itself, so the prose above it —
+   * which necessarily discusses what the amount used to be — cannot trip this on the explanation
+   * rather than on a breach. */
+  checkTrue("LEG C: the builder writes no literal amount into the tag — the number is derived",
+    !/\(\+\d/.test(body));
+  checkTrue("LEG C: and it reads the payout off the live round config, the same field the engine pays from",
+    body.includes("appState.game.cfg.passCoin"));
   check("the builder body wraps it in exactly one no-break span", countOf(body, "nobrk"), 1);
   checkTrue("the builder body hand-rolls no image markup — the coin resolves at the chokepoint",
     !body.includes("iconImg(") && !body.includes("COIN_IMG") && !body.includes("<img"));
