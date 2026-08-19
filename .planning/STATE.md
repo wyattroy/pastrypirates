@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 2
 current_phase_name: Multiplayer Revival
 status: ready-to-execute
-stopped_at: Completed 02-02-PLAN.md — watchRecipes() and startGame() no longer crash on the sparse draft / vanished room; 2 of FIX-03's 3 sites closed
-last_updated: "2026-08-19T13:48:21.164Z"
+stopped_at: Completed 02-03-PLAN.md — MP-11's networked skip closed, MP-10's tab-hide gate proven, and a previously-undiscovered stage-build fault fixed
+last_updated: "2026-08-19T14:09:39.093Z"
 last_activity: 2026-08-19
 last_activity_desc: "02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 11
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 2 (Multiplayer Revival) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Next: 02-02-PLAN.md
 Last activity: 2026-08-19 — 02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)
 
@@ -105,6 +105,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 01 P06 | 1h40m | 3 tasks | 1 files |
 | Phase 02 P01 | ~50min | 2 tasks | 1 files |
 | Phase 02 P02 | ~65min | 2 tasks | 1 files |
+| Phase 02 P03 | ~85min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: Two independent headless Chrome processes, own --user-data-dir and --remote-debugging-port each, is the phase's shared multiplayer test rig (scratchpad rig.mjs) — proven against the live handshake, no shared pp_id workaround needed (01-01)
 - [Phase ?]: FIX-03: watchRecipes() iterates Object.entries(picks) instead of picks.forEach, tolerating both the sparse-object and null-padded-array shapes Firebase actually returns for rooms/<C>/recipes (02-02)
 - [Phase ?]: FIX-03: startGame() reuses watchRoom's existing 'that game no longer exists' guard (shared GAME_GONE_MSG constant, two distinct @copy ids) instead of throwing when the room vanishes mid-start (02-02)
+- [Phase ?]: MP-11: the networked ⏩ term reuses appState.db && appState.room (the codebase's existing 'am I in a networked game' idiom, from the chat-panel gate) rather than appState.live, which turned out to be true in every mode (02-03)
+- [Phase ?]: maybeBuildStage()'s stale !appState.room guard (a 2026-08-13 no-op predating multiplayer) was silently blocking the entire stage/ribbon from building in ANY networked game — found and fixed under Rule 3 because Task 1's own MP-11 acceptance criteria depended on it; flagged for 02-04 through 02-06 to re-verify against (02-03)
+- [Phase ?]: MP-10's tab-hide gate measured (not read) to hold in both directions on a live two-browser networked voyage — rooms/<CODE>/paused never moved across guest/host hide+show, sensor red-proofed against a solo bot game where the same technique correctly flips local pause state; no production code touched (02-03)
 
 ### Pending Todos
 
@@ -225,6 +229,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   a machine Wyatt was reporting as overheating.
 
 - Four small throwaway entries (gamelogs/17871453713N, /17871454233N, /1787145352658, /1787145353126) landed in the live production gamelogs/ node during 02-01's self-test and cannot be removed by any client — Firebase's write-once rule denies delete/overwrite on that path for everyone, including Wyatt. Sub-1KB, clearly tagged test data; only Firebase console admin access can remove them. Full account: 02-01-SUMMARY.md 'Known Issue'.
+- 02-03 found (and fixed) that 4/src/ui/stage.js's maybeBuildStage() silently prevented the entire stage/ribbon from building in ANY networked game until this plan's fix — a stale 2026-08-13 pre-multiplayer no-op turned real bug by 02-01. Any remaining phase-2 plan assuming the ribbon exists in networked mode (02-04's chat button, D-06/D-07) should re-verify against the fixed tree.
 
 ### Quick Tasks Completed
 
@@ -245,8 +250,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T13:48:21.157Z
-Stopped at: Completed 02-02-PLAN.md — watchRecipes() and startGame() no longer crash on the sparse draft / vanished room; 2 of FIX-03's 3 sites closed
+Last session: 2026-08-19T14:09:30.815Z
+Stopped at: Completed 02-03-PLAN.md — MP-11's networked skip closed, MP-10's tab-hide gate proven, and a previously-undiscovered stage-build fault fixed
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
