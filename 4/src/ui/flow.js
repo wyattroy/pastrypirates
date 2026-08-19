@@ -58,7 +58,7 @@ import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
-  pn, poss, apBtnStyle, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
+  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
@@ -220,7 +220,7 @@ export function localAsk(msg,opts,colors,sub,extra){
     else setFlipActive(null);
     const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
     const grid=rest.some(x=>x.o.cls)?" recipes":"";
-    const backHtml=backIdx!==-1?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
+    const backHtml=backIdx!==-1?backButtonHTML(backIdx):"";
     const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
     /* playtest 21 item 7 — THE ARC IS FOR ACTIONS ONLY. Wyatt, on tapping "Ask it!" expecting a
        stepper: "Keep the arc logic consistent by having all the buttons that are in the ark
@@ -244,10 +244,17 @@ export function localAsk(msg,opts,colors,sub,extra){
        also stays focusable this way, which is what lets a keyboard or screen-reader user reach the
        explanation instead of hitting a dead control; aria-disabled is still announced as dimmed.
        The two places that read the DOM property (below, and the stay-put finder in stage.js) move
-       to the same test in this change, and the CSS gains the matching selector. */
-    const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+       to the same test in this change, and the CSS gains the matching selector.
+
+       THE ROW ITSELF IS NO LONGER BUILT HERE (02.1-03). optionButtonsHTML (util.js) is the one
+       definition of what an option button is, shared with the guest's watchPrompt and with the
+       draft channel's watchDraftPrompt, so a field added on one side can no longer go missing on
+       another. The local `esc` closure went with it — the shared builder escapes through escHtml,
+       which also escapes ">" where this one never did. What stays HERE is this path's own click
+       wiring (done(v) -> res(v)): a local promise and a network round trip are not the same thing
+       and must not be shared. */
     panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
-      rest.map(x=>`<button class="apBtn ${x.o.cls||""}${x.o.disabled?" apDisabled":""}" data-i="${x.i}"${x.o.seat!=null?` data-seat="${x.o.seat}"`:""}${x.o.disabled?` aria-disabled="true"`:""}${x.o.disabled&&x.o.why?` data-why="${esc(x.o.why)}"`:""}${apBtnStyle(colors&&colors[x.i])}>${x.o.label}</button>`).join("")+`</div>${subHtml}`,
+      optionButtonsHTML(rest.map(x=>({i:x.i,label:x.o.label,cls:x.o.cls,disabled:x.o.disabled,why:x.o.why,seat:x.o.seat,color:colors&&colors[x.i]})))+`</div>${subHtml}`,
       true);
     if(sl){
       const inp=$("actionPanel").querySelector(".apSlider"),outEl=$("actionPanel").querySelector(".apSliderOut");

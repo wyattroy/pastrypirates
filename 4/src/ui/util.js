@@ -1448,6 +1448,43 @@ export function pastelize(hex,alpha=.16){
   return `#${mix(r)}${mix(g)}${mix(b)}`;
 }
 export function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${pastelize(col)};font-weight:700"`:"";}
+/* ================= ONE BUTTON ROW, BUILT IN ONE PLACE (02.1-03) =================
+
+   The host's localAsk (flow.js) and the guest's watchPrompt (orchestrator.js) used to build this
+   markup from two separately-maintained template literals, and orchestrator.js's own comment named
+   the hazard in as many words: "this renderer is a genuine second copy (host and guest render
+   prompts from different sources), so a change to one that skips the other reintroduces the bug on
+   whichever side was forgotten." Six fields had already drifted and been caught ONE AT A TIME —
+   `disabled`, `why`, `back`, `flipIdx`, `stage`, `shorts` — every one of them found by a human
+   staring at two browser windows. A seventh, `seat`, was still missing from the guest when this
+   was written. This function is why there cannot be an eighth.
+
+   SHARE THE BUILDER, NOT THE CALLER. This is the sailHighlightRect() shape (flow.js:388-419, G25,
+   which fixed the same class of drift for sail squares): one pure function decides what the markup
+   IS, and each caller keeps its own click wiring. localAsk resolves its own promise with res(i);
+   watchPrompt writes an answer to Firebase with sendResponse(p.id,i). Those two resolution paths
+   are legitimately different — a local promise and a network round trip — and must stay apart.
+   Unifying them is NOT what this shares.
+
+   escHtml (recipe.js) rather than a third local escaper. The two `esc`/`escW` closures this
+   replaces never escaped ">" at all; escHtml does, so the row is strictly better escaped than
+   either copy was. Nothing in 4/ feeds a ">" into a `why` today (checked), so no rendered reason
+   changes — this is a hole closed, not a behaviour change.
+
+   Items are {i, label, cls, disabled, why, seat, color}. `seat` MAY BE 0 — seat 0 is a real
+   captain — so it is tested against null and never for truthiness. `data-why` is written only when
+   the option is BOTH disabled and has a reason, because that attribute exists for showWhy() to
+   speak when a greyed circle is tapped, and a live button has nothing to explain.
+
+   The narration-box reveal rule (.apBack -> .apMsg -> .apBtns -> .apSub) is untouched by this: it
+   builds only what goes INSIDE .apBtns, and never the order panel() assembles around it. */
+export function optionButtonsHTML(items){
+  return (items||[]).map(it=>`<button class="apBtn ${it.cls||""}${it.disabled?" apDisabled":""}" data-i="${it.i}"${it.seat!=null?` data-seat="${it.seat}"`:""}${it.disabled?` aria-disabled="true"`:""}${it.disabled&&it.why?` data-why="${escHtml(it.why)}"`:""}${apBtnStyle(it.color)}>${it.label}</button>`).join("");
+}
+// the small circular "‹" escape hatch that renders ABOVE the message rather than competing with
+// the real choices in the button row. Both call sites hand-built this identical string; same
+// reason as the row above, one definition.
+export function backButtonHTML(idx){return `<button class="apBack" data-i="${idx}" aria-label="Back">‹</button>`;}
 // opts[i] can come back missing — a remote seat's answer can resolve to null (remotePrompt
 // resolves null when Firebase gives back a response with no `choice` field, e.g. a dropped
 // connection), or a replay log can be stale/corrupt. Left unguarded that throws mid-decision
@@ -1534,6 +1571,16 @@ export function ask(msg,opts,colors,sub,extra){
        // turns that into the centre-stage treatment. Without it the joining captain got a small
        // pill where the host got the dimmed 420px card: same words, different game.
        shorts:opts.map(o=>o&&o.short!=null?o.short:""),
+       //   `seats` — the SEVENTH field of this exact class, and the last one still missing when
+       // 02.1-03 went looking. An option carrying `seat` blooms its circle over the boat it NAMES
+       // rather than around the boat choosing (stage.js:1174 reads it back off data-seat) — the
+       // battle side-bet's "Call Dough Hook" is the case that needs it. Without this the spectating
+       // guest got the ordinary fan while the host got the anchored one: same words, different
+       // game, which is the same sentence the `stage` fix five lines up had to be written in.
+       //   Empty string for absent, matching `classes`/`why`/`shorts` above and avoiding RTDB's
+       // null-hole behaviour in arrays. SEAT 0 IS A REAL CAPTAIN, so the test is `!=null`, never
+       // truthiness — and the guest reading it back must be just as careful.
+       seats:opts.map(o=>o&&o.seat!=null?o.seat:""),
        stage:opts.some(o=>o&&o.stage)?1:null,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip

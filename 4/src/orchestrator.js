@@ -112,6 +112,7 @@ import {
   openNameModal, // NAME-02: the room screen's "Change yer name" reuses the one naming modal
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
+  optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, waitWhilePaused, sleepMs, applyTimerOff, BOARD_LAST_LOOK_MS,
@@ -1190,8 +1191,11 @@ export function watchDraftPrompt(){
     const grid=cls.some(c=>c)?" recipes":"";
     if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
     // @copy prompt.net.draftrerender
+    // 02.1-03: the third copy of this markup is gone too. The draft channel's WIRE payload stays
+    // deliberately narrower (no disabled/why/seat/colors — a recipe card is never greyed); only
+    // its RENDERING stops duplicating the pattern, so a field it one day needs is already built.
     panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
-      (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
+      optionButtonsHTML((p.labels||[]).map((l,i)=>({i,label:l,cls:cls[i]})))+`</div>`,true);
     const shorts=p.shorts||[];
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       const i=+b.dataset.i;
@@ -1314,7 +1318,7 @@ export function watchPrompt(){
       const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[];
       const flipIdx=(p.flipIdx!=null&&p.flipIdx>=0)?p.flipIdx:(p.flip?0:-1);
       const backIdx=(p.back!=null&&p.back>=0)?p.back:-1;
-      const backHtml=backIdx>=0?`<button class="apBack" data-i="${backIdx}" aria-label="Back">‹</button>`:"";
+      const backHtml=backIdx>=0?backButtonHTML(backIdx):"";
       if(flipIdx>=0){
         setNeedsAction(true);
         setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,flipIdx);});
@@ -1328,13 +1332,24 @@ export function watchPrompt(){
       }
       setFlipActive(null);
       const dis=p.disabled||[];
-      // playtest 21 item 5: the guest's own copy of the button markup. It has to match localAsk's
-      // exactly — aria-disabled so a greyed circle can be TAPPED for its reason, and data-why so
-      // it has one to give. This renderer is a genuine second copy (host and guest render prompts
-      // from different sources), so a change to one that skips the other reintroduces the bug on
-      // whichever side was forgotten.
+      // playtest 21 item 5: aria-disabled so a greyed circle can be TAPPED for its reason, and
+      // data-why so it has one to give.
+      //
+      // THIS IS NO LONGER A SECOND COPY OF THE BUTTON MARKUP (02.1-03). The comment that used to
+      // sit here said it out loud — "a genuine second copy... so a change to one that skips the
+      // other reintroduces the bug on whichever side was forgotten" — and six fields had already
+      // proved it one at a time. The row is now built by optionButtonsHTML (util.js), the same
+      // function localAsk calls, so there is nothing left to keep in step by hand. The local escW
+      // closure went with it; the shared builder escapes through escHtml, which also escapes ">".
+      // What stays here, and must, is this tier's own click wiring: sendResponse(p.id,i) writes an
+      // answer to Firebase where localAsk resolves a promise in this browser.
       const why=p.why||[];
-      const escW=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+      // The seventh and last field of that drift class. `seat` anchors an option's circle over the
+      // boat it NAMES rather than the boat choosing (stage.js:1174 reads it back off data-seat) —
+      // the battle side-bet's "Call Dough Hook" is what needs it, and until now a spectating guest
+      // got the ordinary fan while the host got the anchored one. "" means "no seat"; SEAT 0 IS A
+      // REAL CAPTAIN, so this is an explicit ""/null test and never a truthiness one.
+      const seats=p.seats||[];
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
       const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
@@ -1343,7 +1358,7 @@ export function watchPrompt(){
       if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
       // @copy prompt.net.promptrerenderbuttons
       panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
-        rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?` aria-disabled="true"`:""}${dis[x.i]&&why[x.i]?` data-why="${escW(why[x.i])}"`:""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
+        optionButtonsHTML(rest.map(x=>({i:x.i,label:x.l,cls:cls[x.i],disabled:dis[x.i],why:why[x.i],seat:(seats[x.i]===""||seats[x.i]==null)?null:seats[x.i],color:cols[x.i]})))+`</div>${subHtml}`,true);
       // menuButtons() reads _shortHtml off the BUTTON, so the guest has to hang it on the same way
       // localAsk does (flow.js:271) — an empty string means "this option had no short label",
       // which is not the same as having one, so it must not be assigned.
