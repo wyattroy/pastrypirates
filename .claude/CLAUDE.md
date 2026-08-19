@@ -31,19 +31,20 @@ documents; the rules themselves are all here, in full.
 | 1 | **Ask 2–5 clarifying questions before building anything non-trivial** | [§1](#1-working-with-wyatt) |
 | 2 | **Ask with the question UI. Always. Never as prose.** | [§1](#1-working-with-wyatt) |
 | 3 | **Restate every mid-flight instruction in your next reply** | [§1](#1-working-with-wyatt) |
-| 4 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
-| 5 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
-| 6 | **Read the graveyard** — what was tried and rejected lives in the git log | [§2](#2-design-rules) |
-| 7 | **The narration box reveals top to bottom, in DOM order** | [§2](#2-design-rules) |
-| 8 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
-| 9 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
-| 10 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 11 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 12 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 13 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 14 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 15 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
-| 16 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
+| 4 | **Talk to Wyatt in plain English — he directs, he does not read the diff** | [§1](#1-working-with-wyatt) |
+| 5 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
+| 6 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
+| 7 | **Read the graveyard** — what was tried and rejected lives in the git log | [§2](#2-design-rules) |
+| 8 | **The narration box reveals top to bottom, in DOM order** | [§2](#2-design-rules) |
+| 9 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
+| 10 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
+| 11 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 12 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 13 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 14 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 15 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 16 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
+| 17 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
 
 ---
 
@@ -103,6 +104,32 @@ never scrolled up. The notes were his own two messages. **Scroll up first.**
 *(His side, so it can be repeated: **Esc then type** interrupts immediately; typing while work is in
 progress queues the message and delivers it at the next gap. The queue is why a correction can feel
 ignored for a minute — one more reason to bound every probe, §3.)*
+
+### Talk to him in plain English — he is directing the work, not reading the diff
+
+Wyatt, 2026-08-18: *"always speak to me, ask me questions, and give me updates in as clear, plain
+english as possible as a designer not a coder... if you can translate them for me, an executive, not
+an engineer in the trenches, you will help me direct you more effectively."*
+
+**He drew the line himself, and it is sharp enough to quote exactly.** Fine: *"Attack's − is U+2212,
+not ASCII."* Beyond him: *"the test becomes a tautology."* The difference is not length or
+difficulty — the first is a **concrete fact about this game**, the second is **testing theory
+wearing a costume**.
+
+- **Say what breaks for a player, then how you know.** Not "the assertion is vacuous" but "that
+  test would keep passing even if the payout silently changed — so it is protecting nothing."
+- **Nouns from the game beat nouns from the toolchain.** Dubloons, the Pass button, the sea line,
+  the board. Not fixtures, predicates, invariants, idempotency, tautologies.
+- **This is not dumbing down, and he said so explicitly.** He wants the decisions and the reasoning
+  — he is choosing between them. **Translate the mechanism; never drop the trade-off.**
+- **The test: could he repeat your sentence to someone who has played the game?** If it only
+  survives being repeated to an engineer, rewrite it.
+- **Applies to everything he reads** — replies, question forms, checkpoint framing, status reports.
+  Not commit messages or code comments; those are written for the next session.
+
+**Why this is a rule and not a preference: a sentence he cannot parse is a decision he cannot
+make.** He holds taste, scope, and "how much is enough" (above). Handing him jargon does not merely
+annoy him — it quietly moves his decision onto us.
 
 ---
 

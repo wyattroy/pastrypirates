@@ -201,6 +201,12 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   probes at 21% CPU each, and 53% CPU across 13 processes hours after the rule was written, both on
   a machine Wyatt was reporting as overheating.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260818-vot | Pass payout in config, shown on the Pass button | 2026-08-18 | 831abd2 | [260818-vot-pass-payout-in-config](./quick/260818-vot-pass-payout-in-config/) |
+
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
