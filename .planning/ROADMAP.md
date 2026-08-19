@@ -123,7 +123,7 @@ worth debating first.
   4. A host who reloads mid-voyage comes back to the same game, resumed from the decision log — not a board reset to turn 1.
   5. A guest who closes their tab mid-voyage and reopens the page rejoins the same game, in their seat, without retyping the room code. *(Added by CONTEXT.md D-10 — this closes the open item Phase 1 deferred here.)*
 
-**Plans**: 3/7 plans executed
+**Plans**: 4/7 plans executed
 
 Plans:
 **Wave 1**
@@ -137,7 +137,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-04-PLAN.md — FIX-03's third site: whether host-supplied text really reaches a guest's panel as markup
+- [x] 02-04-PLAN.md — FIX-03's third site: whether host-supplied text really reaches a guest's panel as markup
 - [ ] 02-05-PLAN.md — chat gets a home: a 💬 ribbon chip, a slide-up sheet, and a flash that obeys hold-the-sea
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -515,7 +515,7 @@ The first phase is independent of every promotion decision and can start immedia
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
-| 2. Multiplayer Revival | 3/7 | In Progress|  |
+| 2. Multiplayer Revival | 4/7 | In Progress|  |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
