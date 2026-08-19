@@ -501,8 +501,24 @@ const EVENT_NARRATION={
   // Pass, given something to look at. Every captain who takes the turn off sees a different beast
   // go by; see Game.nextSeaCreature. The BUTTON reads "🌊 Pass" (Wyatt, 2026-08-05 — it briefly
   // read "Look into the ocean"; the label went back to Pass, the narration stayed).
+  //
+  // RULE-01/D-06: passing pays a dubloon (Game.doPass), and the line says so. Wyatt's wording, his
+  // pick over two longer drafts of his own — the idea is that the sea creatures are where the recipe
+  // inspiration comes from, and the constraint he named was "short and easy to read".
+  //
+  // IT IS A SUBJECTLESS FRAGMENT AND THAT IS THE WHOLE POINT. About twenty of the fifty sightings
+  // end on the CREATURE as the nearest grammatical subject ("...and a dozen donut shrimp bounce
+  // past."), so any appended clause carrying a verb hands the pen to the shrimp. No subject, no
+  // verb, no agreement to derive: it reads identically after all fifty sentences in both persons,
+  // which is what lets it be appended HERE, once, with all 100 hand-written strings untouched — the
+  // seaLine contract above, which the deleted seaSighting() broke in all three ways at once.
+  //
+  // The coin is a RAW character, resolved to the coin image by emojify() at panel()'s single
+  // chokepoint (D-50), like every other coin-amount line in this table. Hand-rolling the markup here
+  // would duplicate the chokepoint. Wrapped WHOLE rather than just the parenthetical — a unit and
+  // its amount are one readable thing (the sailing-order precedent, G27/P7).
   pass:(e,at,cellPx,viewerSeat)=>({
-    txt:`🌊 ${seaLine(e.sea,isLocalTo(e.p,viewerSeat),pn(e.p))}`,
+    txt:`🌊 ${seaLine(e.sea,isLocalTo(e.p,viewerSeat),pn(e.p))} <span class="nobrk">Recipe idea! (+1🌕)</span>`,
     // Generic rather than naming the creature: the sighting is one hand-written sentence now, with
     // no separately-stored subject to lift out of it, and inventing one by parsing the prose is
     // exactly the kind of guessing this rewrite removed. (Nothing renders caps in v2 regardless.)
