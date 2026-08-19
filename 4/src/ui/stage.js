@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-18a";
+const PP4_STAMP = "2026-08-18b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
