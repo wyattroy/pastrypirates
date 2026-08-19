@@ -1,12 +1,31 @@
 ---
 created: 2026-08-01T05:00:00.000Z
 title: Sound effects still missing after Phase 21 — the shopping list for Luis
+status: superseded
+superseded_by: 2026-08-19-audio-defects-and-sourcing.md
+superseded_on: 2026-08-19
 area: audio
 severity: minor
 files:
   - src/ui/audio.js (EVENT_SOUND mapping, WIN_SOUND_PLACEHOLDER, SHOTCLOCK_SOUND_PLACEHOLDER)
   - src/orchestrator.js (asyncBattle — the battle-sound timing issue below)
 ---
+
+> ## ⚠️ SUPERSEDED 2026-08-19 — read [`2026-08-19-audio-defects-and-sourcing.md`](2026-08-19-audio-defects-and-sourcing.md) instead
+>
+> **Two parts of this file are now wrong, which is why it is not simply left standing.**
+>
+> - **§4's battle-timing defect is FIXED.** The clash moved to engage time in `260801-7f4`;
+>   `playBattleEngage()` fires from the orchestrator's own battle-opening seams. The "still
+>   unexplained" missing-sound report in that section went with it.
+> - **The moment count is stale.** This file says 25 moments against six files. The `/4` build emits
+>   **30** event types and has a whole bake-off — a covered-bowl shell game — that did not exist when
+>   this was written and is silent end to end.
+>
+> It is kept because §1–§3 record real history: the three sounds Wyatt asked for on 2026-08-01
+> (wind, cannon, new round), which of the six were borrowed for jobs they were never recorded for,
+> and which silences were deliberate. **The full current picture, with measurements, is
+> [`docs/AUDIO.md`](../../../docs/AUDIO.md).**
 
 ## Why this exists
 

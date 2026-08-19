@@ -238,7 +238,8 @@ The cause was one word: the option carried `short: "💰 Crustbeard"`, and the r
 the **short** form when one exists. **`short` means SHORTER, NOT SILENT** — a compact form may drop
 words, never the price. The circles now carry the crate icon and the coins as well as the name.
 
-**Countering** — `counterOffer(q, p, offer)`. Fast path first (Wyatt is on a phone):
+**Countering** — `counterOffer(q, p, offer)`. Fast path first — the common counter should never
+cost extra taps, and on a touch screen every extra step is paid for twice:
 
 ```
 what of THEIRS will ye have instead (their hold, tappable — cargo is public)

@@ -428,6 +428,7 @@ and ask before writing code.
 | Touching… | Read first |
 |---|---|
 | Anything that trades | [`docs/TRADE-SYSTEM.md`](../docs/TRADE-SYSTEM.md) |
+| Sound, music, or the mute control | [`docs/AUDIO.md`](../docs/AUDIO.md) — **three defects are live; one deleted line fixes two of them** |
 | Anything drawn on the board | [`docs/BOARD-RENDERING.md`](../docs/BOARD-RENDERING.md) |
 | Bot behaviour or tuning | [`docs/BOT-DESIGN-PRINCIPLES.md`](../docs/BOT-DESIGN-PRINCIPLES.md), [`docs/BOT-V3-RACE-PLANNER.md`](../docs/BOT-V3-RACE-PLANNER.md) |
 | Browser or playtest automation | [`docs/DRIVING-THE-GAME.md`](../docs/DRIVING-THE-GAME.md) |

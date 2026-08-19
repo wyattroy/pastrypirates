@@ -187,7 +187,8 @@ no deploy workflow.** What is on `main` *is* what is live — there is nothing i
 > moves to `/classic`. Update this section in the same commit that performs the cutover.
 
 **So pushing the work-in-progress build to `main` is the normal thing to do, not a release.** It is
-how he gets to play it at all: he is on a phone, and `/4` on the live domain is his only way in.
+how he gets to play it: `/4` on the live domain is where he playtests, and it is his only way in at
+all whenever he is away from the laptop.
 Merging does not touch the root game, because the root game is different files. Do not treat a merge
 to `main` as a scary outward-facing act requiring ceremony — **treat the *diff* as the thing to
 check.**

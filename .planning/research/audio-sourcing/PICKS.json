@@ -1,0 +1,48 @@
+{
+  "_note": "Wyatt's own audition verdicts, exported from the gallery pages on 2026-08-19. This is the authoritative record of what he chose — the galleries themselves are regenerable, these decisions are not.",
+  "settled": [
+    { "slot": "cannon",      "moment": "Cannon — the opening broadside",   "file": "explosion_med_long_tail_01.wav",              "library": "Gamemaster Audio - Explosion Sound Pack",  "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1, "note": "Round 2 offered cannon-on-hull alternatives; he preferred this one. Closed." },
+    { "slot": "victory",     "moment": "Victory",                          "file": "EFX EXT GROUP Battle Celebration 02 A.wav",   "library": "Coll Anderson - Battle Crowd",             "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "timer-tick",  "moment": "Time running low — the warning",   "file": "Beep,Clean,Pure,Simple,High,x4,Fast.wav",     "library": "Airborne Sound - Beeps and Buzzers",       "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "timer-out",   "moment": "Time up — the buzzer",             "file": "Beep,Buzz,Clean,Tight,Mid,x3.wav",           "library": "Airborne Sound - Beeps and Buzzers",       "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "wind",        "moment": "Wind — the compass turns",         "file": "Designed Fire - Winds - Binaural, swoosh, waves 02.wav", "library": "Gregor Quendel – Designed Fire", "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "sea-bed",     "moment": "The sea — ambient bed",            "file": "Ocean Waves 2017 Kauai Night Waves.WAV",     "library": "Discover Oregon – Ocean and Stream",       "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1, "note": "Loops — see the loopStart/loopEnd note in docs/AUDIO.md before shipping." },
+    { "slot": "bowl-cover",  "moment": "Bake-off — the covers come down",  "file": "impactWood_light_000.ogg + bookClose.ogg",   "library": "Impact Sounds / RPG Audio",               "source": "Kenney",      "licence": "CC0", "round": 1, "note": "He kept BOTH — likely wants them alternated across the five bowls." },
+    { "slot": "correct",     "moment": "Bake-off — correct, rising ladder","file": "jingles-pizzicato_02.ogg",                   "library": "Music Jingles (Pizzicato)",               "source": "Kenney",      "licence": "CC0", "round": 1, "note": "Needs a SET of 5 rising pitches — pitch-shift this one, or take pizzicato_00..04." },
+    { "slot": "ovens-on",    "moment": "The ovens fire up",                "file": "sm-fire-firewood-small-03-DPAmono.wav",      "library": "The Sound Keeper - Small Fire",           "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "hail",        "moment": "Hailing the table",                "file": "EFX EXT GROUP Unrest Murmur 01 A .wav",      "library": "Coll Anderson - Battle Crowd",            "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "deal",        "moment": "A deal struck",                    "file": "Coins_Hand_Jingle_Movement_Takes_6.wav",     "library": "Effectsworks - COINAGE",                  "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "anchor",      "moment": "The anchor bites",                 "file": "Heavy_Chain-Foley_On_Wood.wav",              "library": "Conor Bradley - Metal Chains",            "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1, "note": "Replaces the fishing.mp3 stand-in once DEFECT-1 is fixed." },
+    { "slot": "storm-shove", "moment": "The storm shoves you",             "file": "Thunder_Boom_Fienup_005.wav + Thunder_Crack_Fienup_016.wav", "library": "Soundopolis - Natures Fury_Thunder", "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1, "note": "Kept both — boom and crack, probably alternating." },
+    { "slot": "coin-land",   "moment": "The coin lands",                   "file": "chipLay1.ogg",                               "library": "Casino Audio",                            "source": "Kenney",      "licence": "CC0", "round": 1 },
+    { "slot": "ui-tap",      "moment": "Interface tap",                    "file": "click_001.ogg",                              "library": "Interface Sounds",                        "source": "Kenney",      "licence": "CC0", "round": 1 },
+    { "slot": "splash",      "moment": "Something in the water",           "file": "Bluezone_BC0256_water_splash_008.wav",       "library": "Bluezone - Splash",                       "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1 },
+    { "slot": "blocked",     "moment": "Blocked",                          "file": "impactWood_heavy_000.ogg",                   "library": "Impact Sounds",                           "source": "Kenney",      "licence": "CC0", "round": 1 },
+    { "slot": "creak",       "moment": "Rigging creak — ambient scatter",  "file": "BOAT_078-PU020_Swing_2_Pulleys_Medium.wav + SQUEAKS AND CREAKS TWO 136 Wood Door 03 Creaks 01 D100 XY.wav", "library": "Secret Source - Boat Pulley / Russell Gorsky", "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 1, "note": "Scatter pair over the sea bed." },
+    { "slot": "wrong",       "moment": "Bake-off — a miss, as a squawk",   "file": "Macaw, Stressed,Shouting,Close,Prespective_02.wav", "library": "RZ Post - The Macaw",              "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 2, "note": "HIS IDEA, and the one that reframed the whole hunt toward the game's own world." },
+    { "slot": "seabird",     "moment": "Gulls — ambient scatter",          "file": "Seagull Ambient 1, 3, 5, 6.wav",             "library": "solo-seagull-sound-effects",              "source": "OpenGameArt", "licence": "CC0", "round": 2, "note": "Kept four — a scatter set, fired at random gaps." },
+    { "slot": "swap",        "moment": "Bake-off — bowls on the bench",    "file": "Draging Kitchen Cabinets 04.wav",            "library": "Sound Ex Machina - Kitchen Sounds 1.2",   "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 2 },
+    { "slot": "verdict",     "moment": "Bake-off — the verdict",           "file": "Timpani_Hit_Fienup_001.wav",                 "library": "Soundopolis - Percussion 01",             "source": "Sonniss GDC", "licence": "Royalty-free (games)", "round": 2 }
+  ],
+  "open_awaiting_his_verdict": [
+    { "slot": "drumroll", "moment": "Drumroll — before the winner reveal", "status": "round 3 published, not yet judged",
+      "candidates": "3 ASSEMBLED rolls (roll_timpani / roll_handdrum / roll_deep, built from a single strike) + Riser 027 / Riser 078 / HandDrum_Reverse_SlowDown",
+      "spec": "2.55s exactly — see docs/AUDIO.md" },
+    { "slot": "clash", "moment": "The fight resolves", "status": "round 3 published, not yet judged — THIRD attempt",
+      "history": "Round 1 steel: rejected (wrong object, nobody is fencing). Round 2 cannon-on-hull/wood: rejected ('no energy'). Round 3 goes for impact over accuracy — metal crashes, anvil, scrap pile, one human shout.",
+      "note": "If round 3 fails too, stop searching and put it on the ElevenLabs list." },
+    { "slot": "reveal", "moment": "Bake-off — the bowl lifts", "status": "round 3 published, not yet judged — SECOND attempt",
+      "history": "Round 2 kitchen drawers/pots all rejected. Round 3 reframes it: a bowl on a fairground bench is not opened, it is UNCOVERED — cloth whipped away." }
+  ],
+  "for_elevenlabs": [
+    { "slot": "bell", "moment": "A new day — the ship's bell",
+      "why": "Two rounds of searching found a cowbell, a bell tree, a waiter's bell, a metal ring and real bell-ringers. None is a ship's bell hung in a rolling sea. A specific object with a specific sound." },
+    { "slot": "your-turn", "moment": "Your turn",
+      "why": "Four interface blips rejected, then a steam whistle (industrial) and folk horns. What the moment wants is a bosun's pipe and no free library has one.",
+      "open_decision": "Also needs his ruling: this cue only works if it plays for HIM alone, which breaks the standing 'you hear the whole table' rule (audio.js D-07)." }
+  ],
+  "struck_from_the_list": [
+    { "slot": "ovens-off", "moment": "The ovens go cold", "why": "Wyatt, 2026-08-19: the moment no longer exists in the game." },
+    { "slot": "coin-slip", "moment": "Paying the kitchen hand", "why": "Wyatt, 2026-08-19: does not need a sound." }
+  ]
+}
