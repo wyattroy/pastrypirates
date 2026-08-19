@@ -36,7 +36,7 @@ a real desktop layout, and the safety net and written record the prototype skipp
 cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code commit since
 2026-08-02.
 
-- [ ] **Phase 1: Before the Engine Freezes** - The clock preference stops leaking between the two games, the biggest new module becomes testable, and the one new rule lands — so nothing after this forces the determinism corpus to be recorded twice
+- [x] **Phase 1: Before the Engine Freezes** - The clock preference stops leaking between the two games, the biggest new module becomes testable, and the one new rule lands — so nothing after this forces the determinism corpus to be recorded twice
 - [ ] **Phase 2: Multiplayer Revival** - The Firebase tags come back and a host and guest play a full networked voyage with the bake-off switched off — which measures what is really broken before the large work is planned
 - [ ] **Phase 3: The Safety Net** - A determinism corpus for the v2 engine, the contract gates pointed at the tree being promoted, and host/guest parity gated rather than remembered
 - [ ] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
@@ -490,7 +490,7 @@ The first phase is independent of every promotion decision and can start immedia
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Before the Engine Freezes | 6/6 | In Progress|  |
+| 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 0/TBD | Not started | - |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |

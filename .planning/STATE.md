@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase: 01
-current_phase_name: before-the-engine-freezes
-status: verifying
-stopped_at: Completed 01-06-PLAN.md — Phase 1 complete, awaiting verification
-last_updated: "2026-08-19T11:08:31.481Z"
-last_activity: 2026-08-18
-last_activity_desc: Phase 01 execution started
+current_phase: 02
+current_phase_name: multiplayer-revival
+status: planning
+stopped_at: Phase 1 complete and verified — ready to discuss Phase 2
+last_updated: "2026-08-19T11:45:00.000Z"
+last_activity: 2026-08-19
+last_activity_desc: Phase 1 complete — 6 plans, verified 22/22, UAT 4/4 passed
 progress:
   total_phases: 9
   completed_phases: 1
@@ -45,7 +45,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-18)
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a
 storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
 
-**Current focus:** Phase 01 — before-the-engine-freezes
+**Current focus:** **v2.0 The New Game.** Phase 1 is complete. The `4/` redesign — a new ruleset answered across 62
 questions, a bake-off minigame, a race-planner bot brain fitted on 27,867 simulated outcomes, and a
 complete visual redesign — is being promoted to become the official Pastry Pirates. This is a
 **one-way cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code commit
@@ -57,10 +57,10 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 01 (before-the-engine-freezes) — ALL 6 PLANS EXECUTED
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-08-19 — Phase 01 executed end to end; D-07's balance gate closed by Wyatt
+Phase: **Phase 1 — Before the Engine Freezes: COMPLETE** (2026-08-19)
+Plan: 6 of 6 executed, verified 22/22 must-haves, UAT 4/4 passed
+Next: **Phase 2 — Multiplayer Revival** (not started)
+Last activity: 2026-08-19 — Phase 1 closed; D-07 answered by Wyatt ("ship it"), UAT confirmed on his phone
 
 **Phase 1's last open question is answered.** D-07 could not be closed by any measurement, only by
 Wyatt: shown what the pass dubloon did to the bots across 400 identical games, he said **"ship it"**
@@ -91,7 +91,7 @@ so the restart was free. "Phase 1" in any v2.0 document is not v1.0's Phase 1.
 
 ## Performance Metrics
 
-No v2.0 plans executed yet. Prior-milestone velocity and per-plan metrics are archived in
+Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived in
 `milestones/v1.3-STATE.md` and in each milestone's own archive under `milestones/`.
 **Per-Plan Metrics:**
 
