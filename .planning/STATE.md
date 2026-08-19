@@ -5,15 +5,15 @@ milestone_name: The New Game
 current_phase: 2
 current_phase_name: Multiplayer Revival
 status: ready-to-execute
-stopped_at: Completed 02-01-PLAN.md — Firebase tags and Host/Join cards restored in 4/, host-guest handshake proven headlessly; MP-01/MP-02 await Wyatt's phone pass per D-09
-last_updated: "2026-08-19T13:24:43.835Z"
+stopped_at: Completed 02-02-PLAN.md — watchRecipes() and startGame() no longer crash on the sparse draft / vanished room; 2 of FIX-03's 3 sites closed
+last_updated: "2026-08-19T13:48:21.164Z"
 last_activity: 2026-08-19
-last_activity_desc: Phase 2 execution started
+last_activity_desc: "02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 13
-  completed_plans: 7
+  completed_plans: 8
   percent: 11
 ---
 
@@ -58,7 +58,7 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 Phase: 2 (Multiplayer Revival) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Next: 02-02-PLAN.md
 Last activity: 2026-08-19 — 02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)
 
@@ -104,6 +104,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 01 P05 | 42 | 2 tasks | 2 files |
 | Phase 01 P06 | 1h40m | 3 tasks | 1 files |
 | Phase 02 P01 | ~50min | 2 tasks | 1 files |
+| Phase 02 P02 | ~65min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,8 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: Plan 06: the build stamp was deliberately NOT bumped — nothing under 4/ changed, and a stamp bump with no gameplay behind it is what the stamp exists not to do. 2026-08-18e IS the Phase 1 build. (01-06)
 - [Phase ?]: gamelogs/<ts> is write-once by Firebase security rule for every client, including Wyatt's own browser — no probe in this phase may drive a voyage to completion (never call writeGameLog()); teardownRoom() now only handles rooms/<CODE> (01-01)
 - [Phase ?]: Two independent headless Chrome processes, own --user-data-dir and --remote-debugging-port each, is the phase's shared multiplayer test rig (scratchpad rig.mjs) — proven against the live handshake, no shared pp_id workaround needed (01-01)
+- [Phase ?]: FIX-03: watchRecipes() iterates Object.entries(picks) instead of picks.forEach, tolerating both the sparse-object and null-padded-array shapes Firebase actually returns for rooms/<C>/recipes (02-02)
+- [Phase ?]: FIX-03: startGame() reuses watchRoom's existing 'that game no longer exists' guard (shared GAME_GONE_MSG constant, two distinct @copy ids) instead of throwing when the room vanishes mid-start (02-02)
 
 ### Pending Todos
 
@@ -242,9 +245,9 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T13:24:43.828Z
-Stopped at: Completed 02-01-PLAN.md — Firebase tags and Host/Join cards restored in 4/, host-guest handshake proven headlessly; MP-01/MP-02 await Wyatt's phone pass per D-09
-Resume file: .planning/phases/02-multiplayer-revival/02-02-PLAN.md
+Last session: 2026-08-19T13:48:21.157Z
+Stopped at: Completed 02-02-PLAN.md — watchRecipes() and startGame() no longer crash on the sparse draft / vanished room; 2 of FIX-03's 3 sites closed
+Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
 
