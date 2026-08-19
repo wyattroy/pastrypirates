@@ -122,7 +122,7 @@ disagree with the code.
 
 ### Standalone Fixes (FIX)
 
-- [ ] **FIX-01**: The new game's turn-clock preference is stored under its **own** key, so its default does not reach into the other game. **The default being OFF is intentional (Wyatt, 2026-08-18) and must not be changed** — the defect is only that `4/src/ui/stage.js:1478` writes the shared, un-namespaced `pp_timerOff`, which v1 reads at `src/orchestrator.js:1399` and pushes to the whole room at `:1404`. `4/` already namespaces `pp4_sess` and `pp4_solo`; this key was missed. The fix survives the cutover, where the new game and `/classic` still share one origin and want opposite defaults.
+- [x] **FIX-01**: The new game's turn-clock preference is stored under its **own** key, so its default does not reach into the other game. **The default being OFF is intentional (Wyatt, 2026-08-18) and must not be changed** — the defect is only that `4/src/ui/stage.js:1478` writes the shared, un-namespaced `pp_timerOff`, which v1 reads at `src/orchestrator.js:1399` and pushes to the whole room at `:1404`. `4/` already namespaces `pp4_sess` and `pp4_solo`; this key was missed. The fix survives the cutover, where the new game and `/classic` still share one origin and want opposite defaults.
 - [ ] **FIX-02**: `?ovens=1` (skips the entire 16-day voyage) and `?windhud=1` are gated or removed before the game is public
 - [ ] **FIX-03**: The sparse-draft crash at `4/src/orchestrator.js:1591` is fixed, along with the unguarded `.val()` at `:1501` and the unescaped host HTML at `:1239`
 - [ ] **FIX-04**: Safari storm performance is re-measured on a real device — the BUG-01 fix is intact, but rain is now full-viewport (~5× paint area) and a 60fps camera tween runs during storms, and this has never been measured on Safari
@@ -178,7 +178,7 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 1 — Before the Engine Freezes | Pending |
+| FIX-01 | Phase 1 — Before the Engine Freezes | Complete |
 | TEST-01 | Phase 1 — Before the Engine Freezes | Complete |
 | TEST-02 | Phase 1 — Before the Engine Freezes | Complete |
 | RULE-01 | Phase 1 — Before the Engine Freezes | Pending |
