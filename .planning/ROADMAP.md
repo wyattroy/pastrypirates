@@ -209,15 +209,51 @@ and guest alike, reproduced deterministically), and **establishing a way to veri
 which is what he actually plays and which nothing in this milestone has ever been tested against.
 **Explicitly NOT in scope, his call:** the doubled flip sound, which never reproduced.
 
-**Requirements**: TBD (run /gsd-plan-phase 02.1)
+**The determinism ruling — Wyatt, 2026-08-19, and it overrides a standing default.** CLAUDE.md says
+changing what the engine emits into the event stream invalidates the determinism corpus and forces a
+gated re-record, and therefore to **prefer UI-tier fixes**. Asked directly whether that constraint
+should shape this phase, he chose: **change the stream if that is the right design, and accept the
+re-record as part of this phase's cost.** So the planner must design for correctness first rather
+than contorting to protect the corpus — but the re-record is then in scope and must be planned,
+sequenced and gated, not discovered late. If the existing snapshots turn out to carry everything
+needed (they already carry positions and ingredients), taking the cheaper route is still fine — his
+ruling removes the constraint, it does not mandate the expensive path.
+
+**Requirements**: PAR-01, PAR-02, PAR-03, PAR-04, PAR-05, PAR-06, PAR-07
 **Depends on:** Phase 2
 **Blocks:** Phase 6 (The Cutover) — guest mode should be right before `4/` becomes the game real
 players land on.
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
+**Wave 1**
 
-- [ ] TBD (run /gsd-plan-phase 02.1 to break down)
+- [ ] 02.1-01-PLAN.md — the state layer: watchEvents() applies each event's own snapshot onto appState.game — the day counter, wind pill, and camera fall out with zero changes to any renderer (tracer, red/green proved) (PAR-01, PAR-02, PAR-03, PAR-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02.1-02-PLAN.md — the flat-card bug: emojify() stops corrupting attributes it runs across (PAR-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02.1-03-PLAN.md — one shared prompt renderer: the seat field crosses the wire, a red-proofed parity gate exists for the first time (PAR-05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 02.1-04-PLAN.md — the one drop: stamp bumped once, Safari host + driven Chrome guest compared directly, Wyatt plays a real voyage — the phase gate (PAR-07)
+
+**Wave order.** Strictly sequential, 1 -> 2 -> 3 -> 4. Plan 01 is the state-layer fix every later plan's
+own verification assumes is already true (Wyatt's own sequencing ruling). Plans 01 and 03 both touch
+`4/src/orchestrator.js`, which alone would force the later wave; the remaining plans stay linear rather
+than parallel because every plan in this phase drives two-browser CDP sessions against local ports, and
+running two of those concurrently risks the exact port/process collision CLAUDE.md's safety rules warn
+about.
+
+**A known scoping question this phase does NOT answer, by design.** `02.1-RESEARCH.md` Open Question 1
+flags that a guest who reloads mid-voyage today rebuilds nothing locally until the next broadcast event
+arrives. It is adjacent to this phase's fix but was never named by ROADMAP's own scope list (prompt
+panel, ribbon, camera, narration, the flat-card bug, Safari verification) — raised here rather than
+silently folded in or silently dropped, per the research's own recommendation.
 
 ### Phase 3: The Safety Net
 
@@ -565,7 +601,7 @@ The first phase is independent of every promotion decision and can start immedia
 |-------|----------------|--------|-----------|
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
-| 02.1 One Game, Every Captain (INSERTED) | 0/TBD | Not planned | - |
+| 02.1 One Game, Every Captain (INSERTED) | 0/4 | Planned | - |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
@@ -590,8 +626,9 @@ The first phase is independent of every promotion decision and can start immedia
 | 8. A Desktop Worth the Width | DESK-03, DESK-04, DESK-05, DESK-06, DESK-07 | 5 |
 | 9. The Written Record | DOC-01…DOC-07 | 7 |
 | **Total** | | **50** |
+| 02.1. One Game, Every Captain *(inserted, not in the 50 above)* | PAR-01…PAR-07 | 7 |
 
-By category: MP 12/12 · CUT 8/8 · DESK 8/8 · DOC 7/7 · TEST 7/7 · FIX 6/6 · RULE 2/2.
+By category: MP 12/12 · CUT 8/8 · DESK 8/8 · DOC 7/7 · TEST 7/7 · FIX 6/6 · RULE 2/2 · PAR 7/7 (inserted).
 
 Per-requirement mapping: [`REQUIREMENTS.md` § Traceability](REQUIREMENTS.md).
 

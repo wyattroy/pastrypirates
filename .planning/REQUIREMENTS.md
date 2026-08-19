@@ -44,6 +44,24 @@ bake-shaped ones and writing a bench renderer beside `renderBattleFromSnap`.
 - [ ] **MP-11**: Fast-forward cannot let one player skip narration other players are still watching (`4/src/state/index.js:99`)
 - [ ] **MP-12**: A host who reloads mid-voyage resumes from the decision log with the game intact
 
+### One Game, Every Captain (PAR)
+
+**Inserted 2026-08-19, Phase 02.1 — not part of the original 51 v2.0 requirements below**, and not
+counted in the "51 total" coverage figure at the bottom of this file. Every renderer in `4/` reads
+`appState.game` directly, which is live truth on the host and a stale render shell on a guest (a guest
+never simulates the voyage — it only renders the state snapshot carried on each broadcast event).
+Minted from ROADMAP's Phase 02.1 section (no numbered Success Criteria list existed there, since the
+phase was inserted after REQUIREMENTS.md was written) and from `02.1-RESEARCH.md`'s complete
+divergence inventory.
+
+- [ ] **PAR-01**: A guest's ribbon day counter advances round to round exactly as the host's does, with no reload (`ribbonTick()`, `4/src/ui/stage.js:401`)
+- [ ] **PAR-02**: A guest's wind pill shows a wind-now and forecast that match the host's, from the first event of the voyage onward (`pillHTML()`, `4/src/ui/stage.js:380`)
+- [ ] **PAR-03**: The camera centres a guest's own boat on a sail prompt, and frames battle/storm using each captain's true current position, on both host and guest (`camToSeat`/`camFitSail`/`camFitSeats`, `4/src/ui/stage.js:70-112`, and the `window.__pp4.battle`/`stormCam` hooks at `:1626-1660`)
+- [ ] **PAR-04**: A guest's narration matches the host's exactly — confirmed already correct by research, reconfirmed rather than rebuilt
+- [ ] **PAR-05**: Host and guest render every prompt from one shared button-building function, not two hand-mirrored copies, including the previously-unwired `seat` field that anchors a radial option over the boat it names
+- [ ] **PAR-06**: A greyed button whose reason text contains an icon-mapped emoji (a coin, most commonly) still renders as a correct radial-or-flat prompt, not a corrupted one, on both host and guest (`emojify()`, `4/src/shared/index.js:113`)
+- [ ] **PAR-07**: There is a proven, repeatable way to verify `4/` in real Safari, and this phase's changes have been verified that way — the first time anything in `4/` has been checked against real Safari
+
 ### The One New Rule (RULE)
 
 **Wyatt, 2026-08-18:** *"There is just ONE new gameplay rule that i want added to this new build:
@@ -191,6 +209,13 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | MP-11 | Phase 2 — Multiplayer Revival | Pending |
 | MP-12 | Phase 2 — Multiplayer Revival | Pending |
 | FIX-03 | Phase 2 — Multiplayer Revival | Pending |
+| PAR-01 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-02 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-03 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-04 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-05 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-06 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
+| PAR-07 | Phase 02.1 — One Game, Every Captain (inserted) | Pending |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
 | TEST-04 | Phase 3 — The Safety Net | Pending |
 | TEST-05 | Phase 3 — The Safety Net | Pending |
@@ -235,6 +260,9 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 - v2.0 requirements: 51 total (MP 13, CUT 8, DESK 8, DOC 7, TEST 7, FIX 6, RULE 2)
 - Mapped to phases: **51** ✓ — every requirement maps to exactly one phase
 - Unmapped: **0** — no orphans, no duplicates
+- **Plus 7 PAR requirements** minted 2026-08-19 for the inserted Phase 02.1, all mapped to that phase —
+  deliberately kept out of the 51-count above, since Phase 02.1 did not exist when that count was
+  fixed at roadmap creation (2026-08-18). See the PAR section above for the full list.
 
 **Sequencing constraints honored by this mapping:**
 
