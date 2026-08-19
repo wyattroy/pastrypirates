@@ -41,6 +41,7 @@ import {
 import {
   soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
   waitWhilePaused, sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
+  pickNarrVariant,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -1221,7 +1222,36 @@ export async function fadeOutPanel(){
 export async function flash(msg,ms,holdMs,variants){
   // /4 stage: narration renders as a board bubble instead of the panel (solo only; the stage
   // hook returns null before a game is on screen, and the classic path runs unchanged).
-  if(window.__pp4){const h=window.__pp4.flash(msg,ms,holdMs,variants);if(h){if(appState.room){const _nh0=netHandlers();if(_nh0.onBroadcast)_nh0.onBroadcast(msg,variants);}return h;}}
+  /* CREW GAMES PAINTED EVERY NARRATION LINE TWICE, AND THE SECOND PAINT ATE THE FIRST ONE'S HOLD.
+     Measured 2026-08-19 on a live board, rAF-driven at ~60fps: the same flash() call held 2701ms
+     in solo and 1ms in a crew game. Wyatt saw it as "the pass narration is immediately blitzed
+     past by the bots" and as "the final coin image didn't load" — the coin had in fact loaded and
+     was painted, then wiped 1ms later, because humanFlip awaits this very promise before blanking
+     the coin (flow.js:298).
+
+     The cause was one identifier. `onBroadcast` is netNarrate, which BOTH broadcasts AND repaints
+     this screen's panel; `onNetBroadcast` is netBroadcast, which exists for exactly this case —
+     "broadcast narration to spectators WITHOUT touching this screen's panel" (orchestrator.js:305).
+     Calling the former meant stageFlash ran a second time, and stageFlash's first act is
+     `if (S.hurry) S.hurry()` — retire the live bubble NOW (stage.js:558) — which resolved the
+     promise this function had just returned. The hold was computed correctly all along and thrown
+     away; no duration needed changing, and none was.
+
+     WHY THE PICKED VARIANT IS PASSED TO THE BUBBLE: stageFlash takes only `msg` and never reads
+     `variants`, so the bubble always carried the NEUTRAL line while the panel echo carried the
+     host's addressed one ("ye flip HEADS"). Since the echo is what he actually read, deleting it
+     alone would have quietly demoted his own lines to the neutral wording — a copy regression
+     hiding inside a timing fix. Picking here keeps what he reads identical.
+
+     ...and why only when `appState.room` is set: in solo there was never an echo, so the bubble's
+     neutral line IS the shipped solo wording. Picking unconditionally would have changed solo copy
+     nobody asked to change. The broadcast still sends the neutral `msg` so every other client picks
+     its own variant, exactly as before. */
+  if(window.__pp4){
+    const shown=appState.room?pickNarrVariant({html:msg,variants},appState.mySeat):msg;
+    const h=window.__pp4.flash(shown,ms,holdMs,variants);
+    if(h){if(appState.room){const _nh0=netHandlers();if(_nh0.onNetBroadcast)_nh0.onNetBroadcast(msg,variants);}return h;}
+  }
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate
   // is itself still a classic-script global this wave, wired in through the still-present PP

@@ -38,7 +38,7 @@ import {
   HEXCOL, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG, HOURGLASS_IMG,
   CLOSE_X_IMG, iconImg, emojify, unusedDefaultName,
 } from "../shared/index.js";
-import { pname, pn, getLastName, saveLastName } from "./util.js";
+import { pname, pn, getLastName, saveLastName, MAX_NAME_LEN } from "./util.js";
 // F2/UI-06 (2026-07-29): escHtml's only use here was the duplicate seat-name rendering that this
 // task removed. The remaining name rendering escapes through pn() -> pname() -> escHtml, so the
 // escaping is preserved and this import is now dead — dropped rather than left (D-33/D-34/D-40).
@@ -103,7 +103,7 @@ export function requireName(){
   // captain via unusedDefaultName(null,0) rather than DEFAULT_NAMES[0] directly, so the
   // collision-safe helper stays the single source of default names — deterministic, and can't
   // clash with the bots that fill seats 1-3.
-  return v?v.slice(0,40):unusedDefaultName(null,0);
+  return v?v.slice(0,MAX_NAME_LEN):unusedDefaultName(null,0);
 }
 
 /* ================= name modal (FIX-01) ================= */
@@ -131,7 +131,10 @@ export function openNameModal(next){
   // Only a name the player has actually chosen before counts as chosen now; a blank store means the
   // value below is ours, not theirs.
   autoOfferedName=saved?null:unusedDefaultName(null,0);
-  $("nameModalInput").value=saved?saved.slice(0,40):autoOfferedName;
+  // Same reason as #joinName in flow.js's wireWelcome: this modal's name reaches seats/$seat/name
+  // for a host and a joiner alike, and the database refuses anything longer than MAX_NAME_LEN.
+  $("nameModalInput").maxLength=MAX_NAME_LEN;
+  $("nameModalInput").value=saved?saved.slice(0,MAX_NAME_LEN):autoOfferedName;
   $("nameModal").style.display="flex";
   $("nameModalInput").focus();
   $("nameModalInput").select();
@@ -140,7 +143,7 @@ export function confirmName(){
   // guard: a second invocation with no pending action (e.g. a stray dismiss handler firing twice)
   // is a no-op, not a throw.
   if(!pendingNameAction)return;
-  const raw=($("nameModalInput").value||"").trim().slice(0,40);
+  const raw=($("nameModalInput").value||"").trim().slice(0,MAX_NAME_LEN);
   // Unchosen == left blank, or confirmed exactly as offered. Either way the displayed name stays
   // the friendly default so the player still sees a captain rather than an empty field — it is only
   // the DOWNSTREAM treatment that differs.

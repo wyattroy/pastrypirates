@@ -107,6 +107,7 @@ import {
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
   requireName, getLastName, // FIX-01: the one read chokepoint (createRoom) and the raw persisted read (Feedback)
+  MAX_NAME_LEN, // the live RTDB rule's own cap on seats/$seat/name — over it, the join dies server-side
   pendingAutoName, // NAME-01: was the resolved name CHOSEN by the player, or merely offered to them?
   openNameModal, // NAME-02: the room screen's "Change yer name" reuses the one naming modal
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
@@ -1155,6 +1156,10 @@ export function sendResponse(id,choice){
   const o={id};
   if(choice!==null&&choice!==undefined)o.choice=choice;
   netSetResponse(appState.db,appState.room,o,netFail("response"));
+  // Mirror localAsk's done() (flow.js:213): the centre-stage stamp is cleared as part of answering,
+  // not left for the next prompt to overwrite. Without this the guest's board stays dimmed behind a
+  // card they have already dismissed.
+  delete $("actionPanel").dataset.pp4Stage;
   panel("");
 }
 // Parallel prompt/response path used only for concurrent recipe drafting — a per-seat node
@@ -1162,8 +1167,13 @@ export function sendResponse(id,choice){
 // rooms/{room}/prompt above which only ever holds one.
 export function remoteDraftPrompt(seat,msg,opts,waitMsg){
   const id="d"+(appState.promptCounter++)+"_"+Date.now();
+  // Same two fields as the singular prompt channel (util.js's ask()). This channel carries the
+  // opening Ahoy! and the turn-order intro through netIntroBarrier, which is precisely where Wyatt
+  // saw the host get a dimmed centre-stage card and the joining captain get a small pill.
   netSetDraftPrompt(appState.db,appState.room,seat,{id,seat,msg,waitMsg:waitMsg||null,
-    labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||"")},netFail("recipe prompt"));
+    labels:opts.map(o=>o.label),classes:opts.map(o=>o.cls||""),
+    shorts:opts.map(o=>o&&o.short!=null?o.short:""),
+    stage:opts.some(o=>o&&o.stage)?1:null},netFail("recipe prompt"));
   return new Promise(res=>{
     let wid;
     const cb=snap=>{const v=snap.val();
@@ -1178,13 +1188,25 @@ export function watchDraftPrompt(){
     if(!p){return;}
     const cls=p.classes||[];
     const grid=cls.some(c=>c)?" recipes":"";
+    if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
     // @copy prompt.net.draftrerender
     panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
       (p.labels||[]).map((l,i)=>`<button class="apBtn ${cls[i]||""}" data-i="${i}">${l}</button>`).join("")+`</div>`,true);
+    const shorts=p.shorts||[];
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
+      const i=+b.dataset.i;
+      if(shorts[i])b._shortHtml=shorts[i];
       b.onclick=()=>{
-        netSetDraftResponse(appState.db,appState.room,appState.mySeat,{id:p.id,choice:+b.dataset.i},netFail("recipe response"));
-        if(p.waitMsg)showNarration(p.waitMsg);else panel("");
+        netSetDraftResponse(appState.db,appState.room,appState.mySeat,{id:p.id,choice:i},netFail("recipe response"));
+        /* THE CARD WAS NEVER TORN DOWN — Wyatt, 2026-08-19: "the crew draws lots screen doesn't
+           disappear". The old line showed the waiting narration and left the panel standing,
+           because showNarration paints a floating bubble and does not touch #actionPanel. On the
+           opening Ahoy! that meant the card sat there for the rest of the voyage. localAsk's done()
+           clears the stamp AND the panel before anything else (flow.js:213) — mirrored here.
+           The teardown runs unconditionally now; the waiting line, if any, comes after it. */
+        delete $("actionPanel").dataset.pp4Stage;
+        panel("");
+        if(p.waitMsg)showNarration(p.waitMsg);
       };
     });
   });
@@ -1269,12 +1291,21 @@ export function watchPrompt(){
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
       const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
+      // The guest half of the two fields added to this payload in util.js's ask(). Stamped BEFORE
+      // panel() so the stage loop sees it on the same tick localAsk's does (flow.js:214).
+      if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
       // @copy prompt.net.promptrerenderbuttons
       panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
         rest.map(x=>`<button class="apBtn ${cls[x.i]||""}${dis[x.i]?" apDisabled":""}" data-i="${x.i}"${dis[x.i]?` aria-disabled="true"`:""}${dis[x.i]&&why[x.i]?` data-why="${escW(why[x.i])}"`:""}${apBtnStyle(cols[x.i])}>${x.l}</button>`).join("")+`</div>${subHtml}`,true);
+      // menuButtons() reads _shortHtml off the BUTTON, so the guest has to hang it on the same way
+      // localAsk does (flow.js:271) — an empty string means "this option had no short label",
+      // which is not the same as having one, so it must not be assigned.
+      const shorts=p.shorts||[];
       $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+        const i=+b.dataset.i;
+        if(shorts[i])b._shortHtml=shorts[i];
         if(isDisabledBtn(b)){b.onclick=()=>showWhy(b);return;}
-        b.onclick=()=>sendResponse(p.id,+b.dataset.i);
+        b.onclick=()=>sendResponse(p.id,i);
       });
     }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
@@ -1420,7 +1451,7 @@ export async function renameMySeat(newName){
   // this one included, the moment the write lands.
 }
 export async function joinRoom(){
-  const typedName=($("joinName").value||"").trim().slice(0,40);
+  const typedName=($("joinName").value||"").trim().slice(0,MAX_NAME_LEN);
   const code=($("joinCode").value||"").toUpperCase().trim();
   // @copy misc.mperror.entercode
   if(code.length<4){alert("Enter the room code yer host shared.");return;}

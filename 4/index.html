@@ -1517,6 +1517,24 @@
   #pp4ChatSheet { position:fixed; left:12px; right:12px; bottom:0; z-index:61; display:none;
     max-height:70vh; overflow:auto; padding-bottom:env(safe-area-inset-bottom); }
   body.pp4Chat #pp4ChatSheet { display:block; }
+  /* SEATBELT, not a repair — Wyatt, 2026-08-19: "it looks like something is hovering behind the top
+     ribbon", which was the Scuttlebutt heading stranded at the top of the page. It did not reproduce
+     in Chrome across three driven runs (host, guest and solo, per-frame recorded: zero frames with a
+     visible box), and a reload on his side cleared it — the signature of Safari serving a CACHED
+     index.html against a FRESH stage.js, so the sheet's rules above did not exist while the script
+     that re-parents into the sheet did.
+
+     Why the rule earns its place anyway: `body.pp4Stage` never hides the classic layout wholesale —
+     #layout stays an ordinary padded block and every classic node is dealt with individually, most
+     by being physically MOVED OUT of it in buildStage(). So any classic node left behind in #layout
+     renders at the top of the page, under the fixed ribbon. That was measured by forcing it: put
+     #chatPanel back in #layout with display:'' and the heading appears at (41,39) — his screenshot.
+     There is also a real 80ms window on a guest between beginGame()'s display write and the
+     re-parent, where the panel genuinely is visible in #layout.
+
+     Once buildStage() moves the panel, this selector stops matching, so the sheet opens and closes
+     exactly as before. Scoped to body.pp4Stage, so the classic layout is untouched. */
+  body.pp4Stage #layout > #chatPanel { display:none; }
   body.pp4Stage #chatBubbles { display:none; }
   body.pp4Stage .fcChip, body.pp4Stage .ppHud { display:none; }  /* the pill is the instrument now */
   body.pp4Stage #controlsRow { display:none; }  /* coin + clock left the sheet: ceremony + menu toggle */  /* sea-creature bubbles don't track the camera yet */

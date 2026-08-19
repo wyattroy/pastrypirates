@@ -1521,6 +1521,20 @@ export function ask(msg,opts,colors,sub,extra){
        // a guest that got the greying without the reason would show a dead circle that answers
        // nothing when tapped — the exact complaint, reintroduced on the other side of the wire.
        disabled:opts.map(o=>!!o.disabled),why:opts.map(o=>o.why||""),sub:sub||null,flip:isFlip,
+       // 2026-08-19, Wyatt: "the guest doesn't have radial action menus", and "the narration box
+       // stage doesn't look the same for guest and host". Both were THIS payload, missing two
+       // fields — the same shape as the `why` fix five lines up, which is why that note is worth
+       // reading before adding an option flag that the guest also has to see.
+       //   `shorts` — menuButtons() (stage.js:1029) only blooms a prompt into the radial ring when
+       // every button either carries a short label or is <=16 characters. "Dock at the Flour Patch"
+       // is neither, so with `short` left behind the guest silently fell back to a flat card for
+       // the commonest prompt in the game. Empty string, not null, for absent: matches `classes`
+       // and `why` above and avoids RTDB's null-hole behaviour in arrays.
+       //   `stage` — localAsk stamps dataset.pp4Stage from it (flow.js:214) and the stage loop
+       // turns that into the centre-stage treatment. Without it the joining captain got a small
+       // pill where the host got the dimmed 420px card: same words, different game.
+       shorts:opts.map(o=>o&&o.short!=null?o.short:""),
+       stage:opts.some(o=>o&&o.stage)?1:null,
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip
   // prompt (opts.length===1 with a `flip`) never calls panel() at all (see localAsk()), so there
@@ -1938,6 +1952,22 @@ export function getMyId(){
 // Follows getMyId()'s exact try/catch-swallow shape: silent failure, no logging, plain string (not
 // a JSON blob), never stamped with SESSION_SCHEMA_V/SOLO_SCHEMA_V and never cleared — same
 // structural exclusion as pp_id, see the comment block above.
+/* MAX_NAME_LEN — NOT a taste decision, and not ours to pick: the LIVE Firebase rule validates
+   `seats/$seat/name` with `newData.val().length <= 18` (notes/ONLINE_SETUP.md). A longer name is
+   refused by the database SERVER-side, and the refusal arrives as an uncaught promise rejection
+   from firebase-database-compat.js — which the game surfaces as "The voyage has run aground."
+   Wyatt hit exactly this on 2026-08-19 with a 22-character name: the join simply died.
+
+   The boxes used to accept 40 and the clamps used to cut at 40, so every name between 19 and 40
+   characters was a crash the player could type. This is the one number that must agree with the
+   deployed rule, so it lives here once and every name that can reach the database derives from it.
+   If the rule is ever changed in the Firebase console, THIS is the line that has to move with it.
+
+   Pass-and-play's own name boxes (#ppName0-3) deliberately do NOT use this: those names are local
+   to one device, never written to any room, and never persisted through saveLastName() — the only
+   caller of which is confirmName() below. Capping them would restrict a mode the database rule
+   does not reach. */
+export const MAX_NAME_LEN=18;
 export function getLastName(){
   let n=null;try{n=localStorage.getItem("pp_lastName");}catch(e){}
   return n||"";
