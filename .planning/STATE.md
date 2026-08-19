@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase_name: multiplayer-revival
+current_phase: 2
+current_phase_name: Multiplayer Revival
 status: ready-to-execute
-stopped_at: Phase 2 planned — 7 plans in 5 waves, verification passed
-last_updated: "2026-08-19T13:02:37.000Z"
+stopped_at: Completed 02-01-PLAN.md — Firebase tags and Host/Join cards restored in 4/, host-guest handshake proven headlessly; MP-01/MP-02 await Wyatt's phone pass per D-09
+last_updated: "2026-08-19T13:24:43.835Z"
 last_activity: 2026-08-19
-last_activity_desc: "Phase 2 planned: 7 plans, 5 waves, one drop; plan-checker passed with zero issues"
+last_activity_desc: Phase 2 execution started
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 13
-  completed_plans: 6
+  completed_plans: 7
   percent: 11
-current_phase: 02
 ---
 
 <!-- ============================================================================
@@ -45,10 +45,10 @@ See: `.planning/PROJECT.md` (updated 2026-08-18)
 **Core value:** The game must stay playable and fair end-to-end in both Safari and multiplayer — a
 storm must not crash the game, and pausing the multiplayer timer must never destroy game state.
 
-**Current focus:** **v2.0 The New Game.** Phase 1 is complete. The `4/` redesign — a new ruleset answered across 62
-questions, a bake-off minigame, a race-planner bot brain fitted on 27,867 simulated outcomes, and a
-complete visual redesign — is being promoted to become the official Pastry Pirates. This is a
-**one-way cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code commit
+**Current focus:** Phase 2 — Multiplayer Revival. The `4/` redesign — a new ruleset answered across
+62 questions, a bake-off minigame, a race-planner bot brain fitted on 27,867 simulated outcomes,
+and a complete visual redesign — is being promoted to become the official Pastry Pirates. This is
+a **one-way cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code commit
 since 2026-08-02.
 
 **Where the two games live right now:** `playpastrypirates.com` serves the repo root (v1, live, real
@@ -57,10 +57,10 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **Phase 1 — Before the Engine Freezes: COMPLETE** (2026-08-19)
-Plan: 6 of 6 executed, verified 22/22 must-haves, UAT 4/4 passed
-Next: **Phase 2 — Multiplayer Revival** — planned, ready to execute (7 plans, 5 waves)
-Last activity: 2026-08-19 — Phase 2 planned; research, validation strategy and plan-checker all landed
+Phase: 2 (Multiplayer Revival) — EXECUTING
+Plan: 2 of 7
+Next: 02-02-PLAN.md
+Last activity: 2026-08-19 — 02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)
 
 **Phase 1's last open question is answered.** D-07 could not be closed by any measurement, only by
 Wyatt: shown what the pass dubloon did to the bots across 400 identical games, he said **"ship it"**
@@ -103,6 +103,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 01 P04 | 1h | 2 tasks | 5 files |
 | Phase 01 P05 | 42 | 2 tasks | 2 files |
 | Phase 01 P06 | 1h40m | 3 tasks | 1 files |
+| Phase 02 P01 | ~50min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,8 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: Deletions whose targets share a prefix with live code are done as asserted line-range surgery, never regex over a name prefix, and are proved behaviour-neutral by a byte-identical before/after ladder record that is itself red-proofed. (01-05)
 - [Phase ?]: D-07 CLOSED — Wyatt, 2026-08-19: 'ship it'. Shown the before/after ladder on identical seeds (pass rate 54.99% to 55.62%, voyages 15.16 to 14.84 rounds), he chose to ship the pass dubloon at one coin. Payout unchanged, held-out seed family not run, ladder not re-run. (01-06)
 - [Phase ?]: Plan 06: the build stamp was deliberately NOT bumped — nothing under 4/ changed, and a stamp bump with no gameplay behind it is what the stamp exists not to do. 2026-08-18e IS the Phase 1 build. (01-06)
+- [Phase ?]: gamelogs/<ts> is write-once by Firebase security rule for every client, including Wyatt's own browser — no probe in this phase may drive a voyage to completion (never call writeGameLog()); teardownRoom() now only handles rooms/<CODE> (01-01)
+- [Phase ?]: Two independent headless Chrome processes, own --user-data-dir and --remote-debugging-port each, is the phase's shared multiplayer test rig (scratchpad rig.mjs) — proven against the live handshake, no shared pp_id workaround needed (01-01)
 
 ### Pending Todos
 
@@ -218,6 +221,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   probes at 21% CPU each, and 53% CPU across 13 processes hours after the rule was written, both on
   a machine Wyatt was reporting as overheating.
 
+- Four small throwaway entries (gamelogs/17871453713N, /17871454233N, /1787145352658, /1787145353126) landed in the live production gamelogs/ node during 02-01's self-test and cannot be removed by any client — Firebase's write-once rule denies delete/overwrite on that path for everyone, including Wyatt. Sub-1KB, clearly tagged test data; only Firebase console admin access can remove them. Full account: 02-01-SUMMARY.md 'Known Issue'.
+
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
@@ -237,9 +242,9 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T13:02:37.000Z
-Stopped at: Phase 2 planned — 7 plans in 5 waves, plan-checker passed with zero issues
-Resume file: .planning/phases/02-multiplayer-revival/02-01-PLAN.md
+Last session: 2026-08-19T13:24:43.828Z
+Stopped at: Completed 02-01-PLAN.md — Firebase tags and Host/Join cards restored in 4/, host-guest handshake proven headlessly; MP-01/MP-02 await Wyatt's phone pass per D-09
+Resume file: .planning/phases/02-multiplayer-revival/02-02-PLAN.md
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
 
