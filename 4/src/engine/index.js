@@ -949,8 +949,14 @@ class Game{
   // affordances, so bots pass and bots are paid. Deliberately NOT folded in: the human-only sea
   // cursor advanced at the flow.js menu site, which is per-device narration bookkeeping owned by one
   // seat — bots walk their own derived offsets and would be handed a cursor they must not touch.
+  //
+  // THE AMOUNT IS NOT WRITTEN HERE. It is a field on the round config (see roundCfg, and the note
+  // on it), read live off this game's own cfg, so the payment, the Pass button and the narration
+  // tag can never disagree about what a pass is worth. "A dubloon" above is the SHIPPED DEFAULT,
+  // not a constant: D-07 may lower it at the wave 5 balance gate, and that edit lands on the config
+  // field, not on this line.
   doPass(p){
-    p.coins+=1;
+    p.coins+=this.cfg.passCoin;
     this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
   }
   // NARR-04: record this round's wind and return how many rounds running it has held that
@@ -3032,6 +3038,14 @@ function roundCfg(strategies){
     // six looks at the same three swaps, which stops being a memory test. 5 halves that to three
     // looks while leaving the midgame able to fund itself. The peek price is deliberately untouched.
     dockHeads:5,dockTails:2,crateBase:6,
+    // RULE-01: what a pass pays. A FIELD rather than a number written into the method, for the
+    // reason every other amount on this object is one — nothing here is a constant, the game shifts
+    // under it, and three copies of an amount that must move together is how the interface ends up
+    // lying to a captain about their own purse. D-07 makes the balance check a gate on this phase:
+    // if the ladder shows bots passing materially more and voyages dragging, Wyatt lowers this, and
+    // THIS LINE is where that edit lands. Everything else — the payment, the button, the narration —
+    // derives from here.
+    passCoin:1,
     // THE BLACK MARKET (Wyatt, 2026-08-12): a sold-out island always has ONE more crate — for a
     // flat 10🌕, forever. Two treasure finds' worth (treasure pays 5), double the worst shelf
     // price, so it is a last resort and not a shop — but it means no recipe is ever mathematically

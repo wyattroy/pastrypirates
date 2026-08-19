@@ -70,6 +70,7 @@ import { fileURLToPath } from "node:url";
 import { EVENT_NARRATION, pn, NEUTRAL_VIEWER } from "../src/ui/util.js";
 import { SEA_CREATURES, emojify, COIN_IMG, WAVE_IMG } from "../src/shared/index.js";
 import { appState } from "../src/state/index.js";
+import { Game, roundCfg } from "../src/engine/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");            // -> 4/
@@ -97,6 +98,16 @@ appState.roster = [
 const at = () => [0, 0];   // the builder needs board coordinates for its pop; it never reads them here
 const SEAT = 1;            // Crustbeard, the seat D-06's own rendered check was written against
 
+/* A REAL GAME, because the builder reads the payout off the live round config rather than writing a
+ * number into the tag. A hand-made {cfg:{...}} stand-in would let this file "prove" the tag against
+ * a config the game cannot produce — the lemon-in-the-hold failure (docs/HARD-WON-LESSONS.md §3), so
+ * the fixture is built by roundCfg() exactly as every construction site in the tree builds it, at a
+ * fixed seed, and is VALIDATED below before a single rendering is measured. Third arg true is the
+ * record flag; bakeoff:true is explicit because these are the rules /4 ships. */
+const STRATS = ["pirate", "trader", "balanced", "rusher"];
+const SHIPPED_PAYOUT = 1;  // Leg A: hand-typed, never read back off the config it is pinning
+appState.game = new Game({ ...roundCfg(STRATS), bakeoff: true }, 7919, true);
+
 // The tag, and the whole-unit wrapping it must arrive in. Both written once, here, and everything
 // below is asserted against these rather than against a literal repeated per assertion.
 const TAG = "Recipe idea! (+1\u{1F315})";
@@ -115,6 +126,13 @@ console.log("\nRULE-02 — the pass narration says the captain was paid\n");
 
 /* ================= the fixture, before anything is measured ================= */
 console.log("  -- fixture: the sightings are the game's own, not this file's --");
+// The seated game, asserted before it is used. A cfg missing the payout field would render the tag
+// as NaN on all 100 lines, and a config default that has quietly moved would render a number D-06
+// never approved — this pins both, against a literal typed here rather than read back off the
+// config, which is the whole point of the pin.
+checkTrue("CONTROL: a real game is seated, built by the game's own round config", appState.game instanceof Game);
+checkTrue("CONTROL: the payout the builder reads is a finite number", Number.isFinite(appState.game.cfg.passCoin));
+check("LEG A: the shipped default payout is one dubloon", appState.game.cfg.passCoin, SHIPPED_PAYOUT);
 check("CONTROL: SEA_CREATURES holds 50 hand-written entries", SEA_CREATURES.length, 50);
 checkTrue("CONTROL: every entry is a pair carrying both persons",
   SEA_CREATURES.every((s) => s && typeof s.y === "string" && typeof s.t === "string" && s.y.length > 0 && s.t.length > 0));
@@ -174,7 +192,12 @@ checkTrue("CONTROL: the pass builder was located in the narration table", passId
 if (passIdx >= 0) {
   const body = UTIL_SRC.slice(passIdx, UTIL_SRC.indexOf("\n  unfinish:", passIdx));
   console.log(`         pass builder anchored at util.js:${UTIL_SRC.slice(0, passIdx).split("\n").length + 1}, ${body.split("\n").length} lines`);
-  checkTrue("the builder body carries the tag", body.includes(TAG));
+  /* The body no longer carries the tag as ONE literal, because the amount derives from the round
+   * config. What must still be true of the source is that the WORDING is written out here and the
+   * NUMBER is not — the pin against D-06's approved string in full is the 100 verdicts above, which
+   * compare the RENDERED text and are unchanged. Derived from TAG rather than re-typed, so the two
+   * cannot drift. */
+  checkTrue("the builder body carries the tag's approved wording", body.includes(TAG.slice(0, TAG.indexOf("(") + 2)));
   check("the builder body wraps it in exactly one no-break span", countOf(body, "nobrk"), 1);
   checkTrue("the builder body hand-rolls no image markup — the coin resolves at the chokepoint",
     !body.includes("iconImg(") && !body.includes("COIN_IMG") && !body.includes("<img"));

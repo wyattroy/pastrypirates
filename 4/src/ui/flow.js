@@ -1803,7 +1803,26 @@ export async function humanAct(p,sailCtx){
   const canMoveInstead=sailCtx&&
     p.pos[0]===sailCtx.preSailPos[0]&&p.pos[1]===sailCtx.preSailPos[1];
   if(canMoveInstead)opts.push({label:"← Actually, move instead",back:true,value:"moveInstead"});
-  if(!canOvens)opts.push({label:"🌊 Pass",value:"pass"});
+  // RULE-01: the button states what a pass pays, built exactly like Attack's cost above — same
+  // conditional shape, same no-break wrapping, same read off the live round config, and the coin
+  // left raw for panel()'s emojify chokepoint (D-50). Never hand-rolled markup for a coin.
+  //
+  // ONLY WHEN THE PAYOUT IS TRUTHY, for the same reason Attack drops its parenthetical when powder
+  // is free: a "(+0🌕)" advertises nothing and reads as a broken label. If D-07 zeroes the payout at
+  // the wave 5 gate, the annotation disappears rather than lying about it.
+  //
+  // The sign is ASCII, not Attack's U+2212 MINUS SIGN — every GAIN parenthetical in this game uses
+  // a plain plus (the shot-clock line in src/ui/util.js, the Spotter's Bounty note below).
+  //
+  // No `short` form: src/ui/stage.js requires one only past 16 characters of textContent, and this
+  // renders 14 at the shipped default — fewer once emojify swaps the coin for its image. Attack
+  // carries none for the same reason.
+  //
+  // NOT swept onto Dock or the sidebet Call, and that is the consistency ruling rather than an
+  // omission: a button states its amount when the amount is CERTAIN at the moment of the tap. Buy
+  // states its price, Attack states its powder, a pass pays a known amount. Dock is a coin flip and
+  // Call is conditional on being right, so both put their amounts in the prompt text instead.
+  if(!canOvens)opts.push({label:`🌊 Pass${appState.game.cfg.passCoin?` <span class="nobrk">(+${appState.game.cfg.passCoin}🌕)</span>`:""}`,value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
