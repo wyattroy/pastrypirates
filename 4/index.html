@@ -1432,11 +1432,13 @@
   body.pp4Stage #captainsPanel { display:block; margin:0; }
   #pp4Prompt { position:fixed; z-index:30; display:none; opacity:.96; transition:opacity .16s; }
   /* playtest 15 item 4 (CONSISTENCY): hold-the-sea fades EVERY floating box the same way —
-     prompts in every style, narration bubbles, the stay-put confirm. The two sanctioned
-     exceptions (Wyatt's pick): centre-stage intros and the flip ceremony stay solid. */
+     prompts in every style, narration bubbles, the stay-put confirm, and (D-07, 02-05) the chat
+     flash. The two sanctioned exceptions (Wyatt's pick): centre-stage intros and the flip ceremony
+     stay solid. */
   body.pp4Peek #pp4Prompt,
   body.pp4Peek .pp4Bub,
-  body.pp4Peek .pp4Stay { opacity:.13; pointer-events:none; }
+  body.pp4Peek .pp4Stay,
+  body.pp4Peek #pp4ChatFlash { opacity:.13; pointer-events:none; }
   body.pp4Peek #pp4Prompt.pp4Center { opacity:1; pointer-events:auto; }
   .pp4Stay { transition:opacity .16s; }
   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
@@ -1538,6 +1540,25 @@
   .pp4Spin { display:inline-block; animation:pp4spin 4s linear infinite; }
   @keyframes pp4spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
   @media (prefers-reduced-motion: reduce){ .pp4Spin{ animation:none; opacity:.6; } }
+  /* D-07: the incoming-message flash under the ribbon. Card look copied from .pp4Bub's own
+     values below (background/border/radius/shadow/font/line-height/weight/transition) — but NOT
+     its class: stage.js's own `document.querySelector(".pp4Bub")` (the radial prompt's own-line
+     de-dupe check) specifically means the LIVE NARRATION bubble, and a second element sharing that
+     class would be a real hazard there, not just cosmetic duplication.
+     position:fixed (not .pp4Bub's own position:absolute-inside-#pp4Fx), because the flash is
+     ribbon-anchored, not board-anchored (docs/BOARD-RENDERING.md) — it does not belong in the
+     board-clipped/camera-mapped host and does not join CAM_HTML_LAYERS (stage.js) either, same as
+     #pp4Pill and #pp4Ribbon just above, which are fixed-on-body for the identical reason.
+     Top anchor is .pp4Bub.ambient's own 74px-under-the-ribbon offset (below), reused because it is
+     already the value this codebase picked to clear #pp4Pill's OWN 52px band — reusing #pp4Pill's
+     anchor instead would sit the flash directly on top of the wind pill, which is on screen for
+     nearly the whole game. */
+  #pp4ChatFlash { position:fixed; z-index:26; left:50%; transform:translateX(-50%);
+    top:calc(74px + env(safe-area-inset-top)); max-width:min(320px,86vw);
+    background:rgba(9,42,52,.87); color:#fff; border:2px solid rgba(255,255,255,.25);
+    border-radius:13px; padding:9px 12px; box-shadow:0 8px 26px rgba(0,0,0,.33); font-size:14px;
+    line-height:1.45; font-weight:600; transition:opacity .35s; cursor:pointer; }
+  #pp4ChatFlash.out { opacity:0; }
 
   #pp4ClockRow { display:block; width:100%; font-family:inherit; font-size:13.5px; font-weight:700;
     padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;

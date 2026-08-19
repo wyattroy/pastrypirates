@@ -1032,6 +1032,67 @@ export function appendChatLine(seat,text){
   line.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
   log.appendChild(line);
   log.scrollTop=log.scrollHeight;
+  // D-07: watchChat (orchestrator.js) calls appendChatLine for EVERY incoming chat message,
+  // including this client's own echo — the flash and the unread mark hang off this same call
+  // rather than a second listener, so the orchestrator needs no edit (key_links, 02-05-PLAN.md).
+  //
+  // Never flash a captain's own sent message back at them, and never flash (or mark unread)
+  // while the sheet is open — the message is already sitting right there in the log they're
+  // looking at.
+  if(seat===appState.mySeat)return;
+  if(document.body.classList.contains("pp4Chat"))return;
+  renderChatFlash(seat,text);
+  setChatUnread(true);
+}
+// D-06's unread mark — a DOT, not a counter (nothing here counts messages). Exported so it is the
+// one place that turns it on or off; stage.js's own sheet-open handler (Task 1, committed ahead of
+// this function existing) clears the dot with a direct class toggle instead of importing this, so
+// that task's commit stayed self-contained — both write the same "on" class to the same element.
+export function setChatUnread(on){
+  const dot=$("pp4ChatDot");if(dot)dot.classList.toggle("on",!!on);
+}
+// D-07: the flash under the ribbon — seen without opening the sheet. ONE element, replaced rather
+// than stacked (T-02-15: a captain spamming chat must not wall the board off with piled-up
+// flashes), with the same instant-tap-dismissal a ship bubble carries at ANY stage of its
+// lifecycle, including mid-reveal, for the same reason (board.js's removeChatBubble comment: one
+// captain spamming chat must not be able to wall off the screen).
+//
+// Rendering route is copied verbatim from appendChatLine just above: pn() names the seat,
+// escHtml() bounds the free text. No second escaping path (T-02-14).
+let chatFlashTimer=null;
+export function renderChatFlash(seat,text){
+  let el=$("pp4ChatFlash");
+  if(!el){
+    el=document.createElement("div");
+    el.id="pp4ChatFlash";
+    el.addEventListener("pointerdown",removeChatFlash);
+    document.body.appendChild(el);
+  }
+  if(chatFlashTimer)clearTimeout(chatFlashTimer);
+  if(el._msgEl&&el._msgEl._revealTimer)clearTimeout(el._msgEl._revealTimer);
+  el.classList.remove("out");
+  el.innerHTML="";
+  const msgEl=document.createElement("span");
+  el.appendChild(msgEl);
+  el._msgEl=msgEl;
+  msgEl.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
+  typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);   // same reveal rate showChatBubble already uses
+  // D-15's own hold curve (chatBubbleHoldMs, util.js) — this IS chat, the exact same kind of
+  // message the ship bubble already paces, so it borrows that curve rather than msgHoldMs's
+  // narration one, and rather than a hand-typed duration nothing else in the codebase provides.
+  chatFlashTimer=setTimeout(()=>{
+    el.classList.add("out");
+    // .35s matches .pp4Bub's own transition:opacity — 300ms matches stageFlash's own removal
+    // delay after adding .out (stage.js) — the same fade-out timing this codebase already uses
+    // for a floating message card, not a new number.
+    setTimeout(()=>{ if($("pp4ChatFlash")===el)el.remove(); },300);
+  },chatBubbleHoldMs(text));
+}
+export function removeChatFlash(){
+  const el=$("pp4ChatFlash");if(!el)return;
+  if(el._msgEl&&el._msgEl._revealTimer)clearTimeout(el._msgEl._revealTimer);
+  if(chatFlashTimer){clearTimeout(chatFlashTimer);chatFlashTimer=null;}
+  el.remove();
 }
 // one bubble div per seat; a new message replaces whatever that seat was already showing.
 // chatBubbles/positionChatBubble/removeChatBubble all live in src/ui/board.js (chatBubbles since

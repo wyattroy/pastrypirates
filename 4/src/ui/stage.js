@@ -289,10 +289,17 @@ function gestures(wrap){
   wrap.addEventListener("gesturechange", e => { if (S.active) e.preventDefault(); });
   wrap.addEventListener("pointerdown", e => {
     wake();   // a finger is on the sea — full frame rate for the pan/pinch that may follow
-    // playtest 5, hold-to-peek: while a finger is on the sea, the floating prompt steps aside
-    // so the board behind it can be read; lifting the finger brings it back.
-    const pr = $("pp4Prompt");
-    if (pr && getComputedStyle(pr).display !== "none") document.body.classList.add("pp4Peek");
+    // playtest 5, hold-to-peek: while a finger is on the sea, every floating box steps aside so
+    // the board behind it can be read; lifting the finger brings it back.
+    //
+    // WIDENED, 02-05 (Wyatt, direct ruling, 2026-08-19): this used to arm only "while #pp4Prompt
+    // is showing", which meant a box that could be up with NO prompt on screen — a narration
+    // bubble sitting alone, or the D-07 chat flash — never dimmed on hold at all. CLAUDE.md §2
+    // (consistency): every floating box fades the same way on hold, including one that happens to
+    // be the only thing up. Arm on ANY sea touch, unconditionally; the two sanctioned exceptions
+    // (centre-stage intros, the flip veil) are what the body.pp4Peek CSS selector list excludes
+    // (index.html), not this arm site.
+    document.body.classList.add("pp4Peek");
     ptrs.set(e.pointerId, [e.clientX, e.clientY]); moved = false;
     if (ptrs.size === 2){ const p = [...ptrs.values()]; pinch0 = { d: Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]), w: S.cam.tw }; }
     else panLast = [e.clientX, e.clientY];
