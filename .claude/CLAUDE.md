@@ -142,12 +142,28 @@ receive updates and approve things on my phone as well, even when i'm away from 
 why questions go through the question UI (above), and why a run he cannot see is a run he cannot
 direct. A session he cannot reach turns "I'll be back in an hour" into an hour of lost work.
 
-**Check reachability BEFORE he goes, and say so in that same reply.** The moment he says *"I'm
-leaving for a bit, keep going"* — establish whether this session is actually reachable from his phone
-and tell him immediately. **He cannot fix it from the road.** A local agent session inside the Claude
-desktop app lives and dies on the Mac and is **not** phone-reachable; that is not a failure, it is
-what it is — but discovering it after he has left is a failure. On 2026-08-19 he came back to four
-completed plans and no way to have watched any of it.
+**The mechanism, measured — do not re-derive it, and do not guess at it as an earlier session did.**
+Remote control is armed **once**, when a session starts (or when the 🌐 globe in the session's top bar
+is clicked). A **15-minute idle timeout then tears it down, and it never re-arms itself.** "Idle"
+means *Wyatt* is not typing — it is **completely blind to whether work is happening**. The proof is in
+`~/Library/Logs/Claude/main1.log`:
+
+```
+2026-08-18 13:10:26  Enabling remote control for session local_1d43c178…     <- armed, once
+2026-08-19 09:09:12  [WarmLifecycle:session] Idle timeout reached, disconnecting local_1d43c178…
+2026-08-19 09:28:46  … 09:43:46 … 09:58:46 … 10:13:46   (every ~15 min)      <- never re-armed
+                     [WarmLifecycle:session] Starting idle timeout … 900s
+```
+
+**Every one of those disconnects fired while a subagent was running flat out.** So the long
+autonomous run — precisely when he most needs to watch from his phone — is the exact case that kills
+his ability to. A brand-new session works, which is why "just start a new one" looks like a fix and
+is really just a fresh 15-minute clock.
+
+**So: before he goes, ask him to re-arm the 🌐 globe and confirm the session shows on his phone.** Say
+it in the same reply as "sure, I'll keep going." **He cannot fix it from the road.** On 2026-08-19 he
+came back to four completed plans and no way to have watched any of it — the session had been
+disconnected since 10:13 and the run had no idea.
 
 - **Front-load every decision.** If he is about to be away, ask everything answerable *now*. A run
   that blocks twenty minutes after he leaves burns the whole window for one question.
