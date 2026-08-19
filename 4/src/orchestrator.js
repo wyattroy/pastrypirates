@@ -181,7 +181,7 @@ export function broadcastClock(){
 // direction can drift between the networked and local path.
 export function toggleTimer(){
   const next=!appState.timerOff;
-  try{localStorage.setItem("pp_timerOff",next?"1":"0");}catch(e){}
+  try{localStorage.setItem("pp4_timerOff",next?"1":"0");}catch(e){}
   if(appState.db&&appState.room){
     netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
   }else{
@@ -1560,19 +1560,23 @@ export function beginGame(cfg,seed){
   // reload resumes through replay, `appState.replaying` is true, and this read was skipped — so
   // appState.timerOff fell back to its `false` default in src/state/index.js.
   //
-  // pp_timerOff is a PER-DEVICE preference, not game state (see src/ui/util.js's note that it is
+  // pp4_timerOff is a PER-DEVICE preference, not game state (see src/ui/util.js's note that it is
   // structurally excluded from the versioned-blob mechanism, and never cleared) — confirmed by
   // Wyatt 2026-08-01: "per-device in local storage". So on replay it should still be honoured.
+  // FIX-01 (D-01): this key was pp_timerOff until 2026-08-19, un-namespaced and therefore SHARED
+  // with the live game at the same origin — so this read, and the room push below, were reading and
+  // broadcasting the other game's preference. The per-game key is the fix; the one-time removal of
+  // the legacy key lives in cleanupLegacyTimerKey() in src/ui/stage.js.
   // The !replaying guard is kept ONLY for networked games, where the room's shared flag is the
   // authority and watchTimer() delivers it; overriding that from one device's localStorage mid-
   // replay is what the original guard was protecting against.
   if(!appState.replaying||!(appState.db&&appState.room)){
-    try{appState.timerOff=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
+    try{appState.timerOff=localStorage.getItem("pp4_timerOff")==="1";}catch(e){}
   }
   // host seeds the shared flag from its own last choice so the preference carries across games
   // (but not on a reload-replay, which must keep whatever the live game already had)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
-    let off=false;try{off=localStorage.getItem("pp_timerOff")==="1";}catch(e){}
+    let off=false;try{off=localStorage.getItem("pp4_timerOff")==="1";}catch(e){}
     netSetTimerOff(appState.db,appState.room,off,netFail("timerOff"));
   }
 }

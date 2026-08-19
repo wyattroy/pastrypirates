@@ -912,7 +912,7 @@ function buildStage(){
   clockRow.id = "pp4ClockRow"; clockRow.type = "button";
   const clockLabel = () => { clockRow.textContent = appState.timerOff ? "⏱ Turn clock: OFF — no rush" : "⏱ Turn clock: ON — 30s a turn"; };
   const clockToggle = () => { const t = $("scTimerToggle"); if (t) t.click();
-    else { appState.timerOff = !appState.timerOff; try{ localStorage.setItem("pp_timerOff", appState.timerOff ? "1" : "0"); }catch(e){} }
+    else { appState.timerOff = !appState.timerOff; try{ localStorage.setItem("pp4_timerOff", appState.timerOff ? "1" : "0"); }catch(e){} }
     setTimeout(clockLabel, 60); };
   clockRow.onclick = clockToggle;
   clockLabel();
@@ -1479,9 +1479,62 @@ if (typeof document !== "undefined" && document.addEventListener){
   });
 }
 
+/* FIX-01 (D-01/D-02) — the ONE-TIME removal of the shared, un-namespaced turn-clock key.
+ *
+ * WHY. playpastrypirates.com and playpastrypirates.com/4 are two games on ONE origin, so they share
+ * one localStorage namespace. Until this commit the new game wrote pp_timerOff, which the live
+ * game reads at src/orchestrator.js:1399 and PUSHES TO THE WHOLE ROOM at :1404 — so opening /4
+ * switched the clock off in the game real players play, and a host who had visited /4 handed that
+ * setting to everyone at their table. The new game now writes pp4_timerOff at all five of its own
+ * sites; this function clears the key it should never have written. D-01, Wyatt 2026-08-18:
+ * "Not migrate, not leave." The standing rule it comes from is D-04 — share who you are, split how
+ * you play — which is why pp_id / pp_lastName / pp_muted are deliberately NOT namespaced.
+ *
+ * WHY IT IS MARKER-GUARDED AND NOT A DELETE-ON-EVERY-LOAD (D-02, the whole point). Deleting the
+ * shared key on every visit would mean /4 permanently vandalises the live game's preference — every
+ * time a live-game session set it, the next /4 load would wipe it again. That is the exact defect
+ * FIX-01 exists to fix, re-committed from the other direction. It runs once per browser; after that
+ * a re-planted legacy key belongs to the live game and is left strictly alone.
+ *
+ * WHY THE MARKER IS TESTED WITH `!= null` AND THE LEGACY VALUE IS NEVER READ AT ALL. "0" and ""
+ * are both legitimate stored values and both are falsy (HARD-WON-LESSONS §3, the falsy zero). A
+ * truth-test would treat a browser storing "0" as never having been cleaned, and would skip an
+ * empty-string legacy key as though there were nothing to remove. removeItem() is unconditional
+ * precisely so no falsy-but-present value can be missed.
+ *
+ * `store` is a parameter rather than a direct localStorage reference so the behaviour is drivable
+ * against a fake store under Node — that is what 4/scripts/pp4_timeroff_check.js does, and it costs
+ * exactly one argument. The try/catch swallows silently with no logging, matching this codebase's
+ * storage convention at 4/src/ui/audio.js:177-183 (Safari private mode throws on write).
+ *
+ * Returns true when this call performed the cleanup, false when it was already done or storage
+ * threw — the boolean is what lets the gate assert the marker semantics instead of inferring them.
+ *
+ * NOTE TO THE NEXT EDITOR: every mention of a key name in PROSE here is deliberately UNQUOTED.
+ * 4/scripts/pp4_timeroff_check.js counts QUOTED occurrences of the legacy literal and requires
+ * exactly one tree-wide — the removeItem call below. Quoting a key name in a comment makes that
+ * gate red, which is the trap HARD-WON-LESSONS §1b records: a check that cannot tell prose from
+ * code makes writing the explanation an offence. Quotes are code here; prose goes bare.
+ */
+export function cleanupLegacyTimerKey(store){
+  try {
+    if (store.getItem("pp4_timerOffCleaned") != null) return false;
+    store.removeItem("pp_timerOff");
+    store.setItem("pp4_timerOffCleaned", "1");
+    return true;
+  } catch (e) { return false; }
+}
+
 export function initStage(){
-  // solo clock: off by default on /4 (the toggle in the sheet still works and persists)
-  try { if (localStorage.getItem("pp_timerOff") == null) { appState.timerOff = true; localStorage.setItem("pp_timerOff", "1"); } } catch (e) {}
+  // FIX-01: clear the shared legacy key once per browser, BEFORE the seed below reads anything.
+  // Wrapped again here because a browser can throw on merely touching localStorage (Safari private
+  // mode) — the boot path must not go down for a housekeeping call.
+  try { cleanupLegacyTimerKey(localStorage); } catch (e) {}
+  // solo clock: off by default on /4 (the toggle in the sheet still works and persists).
+  // D-03: the OFF default is DELIBERATE and is not what FIX-01 changes — only the key changed.
+  // Wyatt, 2026-08-18: "multiplayer is played between friends, who can communicate through the
+  // chat." The shot clock is not this game's dropped-player mechanism. REQUIREMENTS.md:169.
+  try { if (localStorage.getItem("pp4_timerOff") == null) { appState.timerOff = true; localStorage.setItem("pp4_timerOff", "1"); } } catch (e) {}
   // bridge for the classic modules (no import cycles): panel/flow/board call these if present
   window.__pp4 = {
     flash: stageFlash,

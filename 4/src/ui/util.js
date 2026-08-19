@@ -1890,7 +1890,11 @@ export function preloadAssets(){
 // Alternatives Considered) — bump only the one whose shape actually changes. boot()'s guard clears
 // a blob (via the existing clearSession()/clearSoloState()) whenever its stamp doesn't match,
 // treating an unstamped pre-refactor blob or a stale mismatched one as "no resume" (D-01/D-02).
-// pp_id/pp_timerOff are structurally excluded from this mechanism (D-03) — never versioned/cleared.
+// pp_id and the turn-clock key are structurally excluded from THIS MECHANISM (D-03) — meaning the
+// SESSION_SCHEMA_V/SOLO_SCHEMA_V auto-clear of the resumable-game-state blobs never versions or
+// clears them. That is the entire scope of the sentence. It says nothing about any other cleanup:
+// v2.0's FIX-01 removes the legacy shared pp_timerOff key exactly once per browser
+// (cleanupLegacyTimerKey in src/ui/stage.js), and this exclusion neither blocks nor governs it.
 // pp_lastName joins that exclusion in FIX-01 (Phase 22): it carries a display name, not resumable
 // game state, so it is never cleared by leaveGame() either — that is precisely the point, per D-04.
 export const SESSION_SCHEMA_V=1;
