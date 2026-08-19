@@ -25,9 +25,11 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"VideoGame","name":"Pastry Pirates on the Sugar Seas","url":"https://playpastrypirates.com/","description":"A free browser pirate board game — sail the Caribbean, collect baking ingredients, battle rival captains, and race home to become the Best Baker.","image":"https://playpastrypirates.com/og-image.jpg","genre":"Board Game","gamePlatform":"Web Browser","numberOfPlayers":"2-4","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
-<!-- v2 is solo / pass-and-play only: the Firebase SDK tags are gone, so fbInit() finds no global
-     and every net path stays dormant. src/net/ is left on disk untouched rather than deleted, so
-     multiplayer can be revived by restoring these two tags. -->
+<!-- Phase 2 (Multiplayer Revival): the Firebase SDK tags are restored here — fbInit() now finds
+     a real global and every net path in src/net/ (left on disk untouched while the tags were gone)
+     comes back live. -->
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
@@ -1837,10 +1839,20 @@
         <button class="choiceCard passplay" id="choicePassPlay" type="button">
           <div class="ccIcon"><img src="../assets/icons/stool.png" alt=""></div><div class="ccTitle">Pass & Play</div><div class="ccSub">share one device</div>
         </button>
-        <!-- v2: "Host a Crew" and "Join a Crew" are removed — this build is solo and
-             pass-and-play only, and a button that cannot work is worse than no button. -->
+        <!-- Phase 2 (Multiplayer Revival), D-08: "Host a Crew" and "Join a Crew" restored, in the
+             live game's order (Solo, Pass & Play, Host, Join) — measured to wrap 2x2 at phone width
+             (.choiceCard is flex:1 1 120px / min-width:118px with a 10px gap, :1310-1312). The click
+             wiring was already guarded and live at src/ui/flow.js:2391. -->
+        <button class="choiceCard host" id="choiceHost" type="button">
+          <div class="ccIcon"><img src="../assets/icons/map.png" alt=""></div><div class="ccTitle">Host a Crew</div><div class="ccSub">start a multiplayer game</div>
+        </button>
+        <button class="choiceCard join" id="choiceJoin" type="button">
+          <div class="ccIcon"><img src="../assets/icons/key.png" alt=""></div><div class="ccTitle">Join a Crew</div><div class="ccSub">enter a friend's code</div>
+        </button>
       </div>
       <div class="muted" style="font-size:12px;margin-top:10px;margin-bottom:8px"><img class="narrIcon" src="../assets/icons/magnifying-glass.png" alt=""> Thanks for playtesting! Anonymized move data is recorded to help improve the game — nothing beyond the name you confirm after picking how to play is collected.</div>
+      <div id="fbnote" class="fbnote" style="display:none"><img class="narrIcon" src="../assets/icons/gear.png" alt=""> Multiplayer needs a one-time Firebase setup — see <code>ONLINE_SETUP.md</code>. Solo play works right now!</div>
+      <div id="busynote" class="fbnote" style="display:none"><img class="narrIcon" src="../assets/icons/sailboat.png" alt=""> Lots of crews out sailing right now — multiplayer may be slow to sync. <b>Play Solo</b> works instantly and never waits on the crowd!</div>
       <div style="text-align:center;margin-bottom:8px"><span style="font-size:12px;color:var(--teal)">v2.1 + bake-off — test ruleset</span></div>
     </div>
 
