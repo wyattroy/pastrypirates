@@ -32,19 +32,20 @@ documents; the rules themselves are all here, in full.
 | 2 | **Ask with the question UI. Always. Never as prose.** | [§1](#1-working-with-wyatt) |
 | 3 | **Restate every mid-flight instruction in your next reply** | [§1](#1-working-with-wyatt) |
 | 4 | **Talk to Wyatt in plain English — he directs, he does not read the diff** | [§1](#1-working-with-wyatt) |
-| 5 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
-| 6 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
-| 7 | **Read the graveyard** — what was tried and rejected lives in the git log | [§2](#2-design-rules) |
-| 8 | **The narration box reveals top to bottom, in DOM order** | [§2](#2-design-rules) |
-| 9 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
-| 10 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
-| 11 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 12 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 13 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 14 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 15 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 16 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
-| 17 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
+| 5 | **Before he walks away, make sure he can still reach the work from his phone** | [§1](#1-working-with-wyatt) |
+| 6 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
+| 7 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
+| 8 | **Read the graveyard** — what was tried and rejected lives in the git log | [§2](#2-design-rules) |
+| 9 | **The narration box reveals top to bottom, in DOM order** | [§2](#2-design-rules) |
+| 10 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
+| 11 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
+| 12 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 13 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 14 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 15 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 16 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 17 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
+| 18 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
 
 ---
 
@@ -130,6 +131,37 @@ wearing a costume**.
 **Why this is a rule and not a preference: a sentence he cannot parse is a decision he cannot
 make.** He holds taste, scope, and "how much is enough" (above). Handing him jargon does not merely
 annoy him — it quietly moves his decision onto us.
+
+### Before he walks away, make sure he can still reach the work from his phone
+
+Wyatt, 2026-08-19: *"it seems like the /remote-control session got killed somehow, because i couldn't
+check in on this on my phone... always make sure these sessions are running in such a way that i can
+receive updates and approve things on my phone as well, even when i'm away from my laptop."*
+
+**He is on a phone. That is the whole shape of this project** — it is why the work ships to `/4` (§6),
+why questions go through the question UI (above), and why a run he cannot see is a run he cannot
+direct. A session he cannot reach turns "I'll be back in an hour" into an hour of lost work.
+
+**Check reachability BEFORE he goes, and say so in that same reply.** The moment he says *"I'm
+leaving for a bit, keep going"* — establish whether this session is actually reachable from his phone
+and tell him immediately. **He cannot fix it from the road.** A local agent session inside the Claude
+desktop app lives and dies on the Mac and is **not** phone-reachable; that is not a failure, it is
+what it is — but discovering it after he has left is a failure. On 2026-08-19 he came back to four
+completed plans and no way to have watched any of it.
+
+- **Front-load every decision.** If he is about to be away, ask everything answerable *now*. A run
+  that blocks twenty minutes after he leaves burns the whole window for one question.
+- **A checkpoint his existing rulings already answer is NOT a reason to stop.** Resolve it from the
+  record, **name which ruling you used**, and keep going. Same day: an executor paused to ask whether
+  to push an early peek — he had chosen **one drop** that morning. Answering from the record cost
+  nothing and saved the window. **Only genuinely new decisions wait for him.**
+- **In a remote session, ask with `--text` mode.** The TUI menus do not render through the Claude
+  app, so a question asked the normal way is a question he physically cannot answer — it looks to him
+  like the run simply stopped.
+- **Never leave a run silently blocked.** If you must stop, the reason and the options go into a
+  message that reads on a phone screen: short, plain, and with the recommendation first.
+- **Report the boundary honestly.** If you cannot tell whether he can see something, say that, rather
+  than assuming he can.
 
 ---
 
