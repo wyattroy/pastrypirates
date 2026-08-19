@@ -4,16 +4,16 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase: 2
 current_phase_name: Multiplayer Revival
-status: ready-to-execute
-stopped_at: Completed 02-04-PLAN.md — FIX-03's third site (unescaped host HTML) measured and found not to reproduce; no code changed
-last_updated: "2026-08-19T14:37:33.622Z"
+status: executing
+stopped_at: 02-07-PLAN.md tasks 1-2 done — 02-FINDINGS.md written and the one drop pushed (build 2026-08-19a). Task 3 is a blocking human checkpoint: Wyatt plays a real voyage. Phase does not close until he approves.
+last_updated: "2026-08-19T16:32:39.000Z"
 last_activity: 2026-08-19
-last_activity_desc: "02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)"
+last_activity_desc: "02-05 and 02-06 executed: chat given a home in the new stage (ribbon chip, slide-up sheet, flash) and the headless shakeout passed clean; 02-07 drop pushed and awaiting Wyatt's voyage (see .planning/phases/02-multiplayer-revival/02-FINDINGS.md)"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 12
   percent: 11
 ---
 
@@ -57,10 +57,10 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 2 (Multiplayer Revival) — EXECUTING
-Plan: 5 of 7
-Next: 02-02-PLAN.md
-Last activity: 2026-08-19 — 02-01-PLAN.md executed: Firebase tags and Host/Join cards restored in `4/`, host-guest handshake proven headlessly (see .planning/phases/02-multiplayer-revival/02-01-SUMMARY.md)
+Phase: 2 (Multiplayer Revival) — AWAITING WYATT'S VOYAGE
+Plan: 6 of 7 complete; 02-07's tasks 1-2 done, task 3 is the gate
+Next: 02-07-PLAN.md task 3 — Wyatt plays a real voyage at `playpastrypirates.com/4/?bakeoff=0`, build `2026-08-19a`. Nothing in this phase closes on headless evidence (D-09).
+Last activity: 2026-08-19 — 02-05 and 02-06 executed and 02-07 pushed: chat has a home in the new stage, the headless shakeout found no game faults, and `02-FINDINGS.md` is written (see .planning/phases/02-multiplayer-revival/02-FINDINGS.md)
 
 **Phase 1's last open question is answered.** D-07 could not be closed by any measurement, only by
 Wyatt: shown what the pass dubloon did to the bots across 400 identical games, he said **"ship it"**
