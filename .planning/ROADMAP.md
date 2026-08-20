@@ -243,10 +243,28 @@ Plans:
 - [x] 02.1-04-PLAN.md — the one drop: `PP4_STAMP` `2026-08-19c` live at `/4`, and the first real-Safari
   check `4/` has ever had — Wyatt hosted room BVUR in Safari, Claude joined as a driven headless guest
   (PAR-07). **The gate returned a negative result and that is the point of it:** the state layer, day
-  counter and radial bloom held, but a guest draws **no wind pill, no clock pill and no chat bubble**
-  (PAR-02 reopened — the data is right, the bar is not painted), and Wyatt hit two turn-blocking
-  defects. His ruling: close 02.1 on its own scope, open **Phase 02.2** for those. See
-  `02.1-04-SUMMARY.md`.
+  counter and radial bloom held live, and Wyatt hit turn-blocking trouble on both sides of the table.
+  His ruling: close 02.1 on its own scope, open **Phase 02.2**. See `02.1-04-SUMMARY.md`.
+
+  > **CORRECTION, same night, before anyone acted on it.** This row first read *"a guest draws no wind
+  > pill, no clock pill and no chat bubble"*, and PAR-02 was reopened on that basis. **That claim was
+  > asserted from a screenshot read during the opening ceremony, before it had been measured, and it
+  > does not hold.** Re-measured twice against a local server with two real Chromes: host and guest
+  > paint the ribbon, the clock chip and the chat bubble at the **same millisecond** (505ms), and the
+  > wind pill at the same millisecond as each other (3018ms — the instant the first event carries wind
+  > to show, correct on both tiers). Zero gap on every control. No width rule is involved either; the
+  > only breakpoints in `4/index.html` are 600px and 480px and the window was 1100px.
+  >
+  > The first probe that "confirmed" it was itself broken: it tested visibility with
+  > `offsetParent !== null`, which is **always null for a `position:fixed` element**, and `#pp4Pill`
+  > is fixed — so that check reported the pill hidden on *both* tiers and could never have passed for
+  > anyone. Fixed to measure the painted rectangle plus the computed styles that actually remove a
+  > thing from view, and red-proofed against a control known-hidden by design (the ⏩ skip chip, D-04)
+  > and one known-shown (☰).
+  >
+  > **PAR-02 therefore stands as delivered by 02.1-01** and is re-checked, not reopened. Evidence:
+  > `02.2-FINDINGS.md`. Recorded here rather than silently edited, because a requirement marked
+  > failed on a bad measurement rots exactly like one marked complete on a bad one.
 
 **Wave order.** Strictly sequential, 1 -> 2 -> 3 -> 4. Plan 01 is the state-layer fix every later plan's
 own verification assumes is already true (Wyatt's own sequencing ruling). Plans 01 and 03 both touch
@@ -260,6 +278,62 @@ flags that a guest who reloads mid-voyage today rebuilds nothing locally until t
 arrives. It is adjacent to this phase's fix but was never named by ROADMAP's own scope list (prompt
 panel, ribbon, camera, narration, the flat-card bug, Safari verification) — raised here rather than
 silently folded in or silently dropped, per the research's own recommendation.
+
+### Phase 02.2: A Captain Who Cannot Take Their Turn (INSERTED)
+
+**Goal**: No captain, on either side of the table, is ever left holding a turn they cannot take.
+
+**Why this exists — Wyatt's Phase 02.1 gate, 2026-08-19.** He hosted a real crew game in Safari and
+hit turn-blocking trouble twice in about twenty minutes: once as a guest whose prompt never arrived,
+once as a host who could not see an incoming trade offer until he reloaded the page. Both end the
+same way for a player — *the game is waiting for me and I have nothing to answer*. His ruling: close
+02.1 on its own scope, open this phase for these. Neither is a rendering-polish bug; both stop play.
+
+**Read `02.2-FINDINGS.md` before planning a single task.** Five defects were reported at that gate
+and **three of them do not exist** — they were asserted from one screenshot read during the opening
+ceremony, before measurement, and an overnight re-measure with two real Chromes found host and guest
+painting every ribbon control at the identical millisecond. Planning from the gate conversation
+alone would fill this phase with fixes for bugs that aren't there. The same document records the
+probe fault that produced the false alarm (`offsetParent` is always null for a fixed element, so the
+first check condemned the host's own working screen), because that trap will recur.
+
+**Requirements**: PAR-08, PAR-09 *(to be added to `REQUIREMENTS.md` at planning)*
+
+**Depends on**: Phase 02.1
+
+**Success Criteria** (what must be TRUE):
+
+- A guest that joins, reloads, or is replaced mid-voyage while a prompt is waiting for its seat
+  **renders that prompt**, and a red/green proof exists that the same instrument saw it fail before
+  and pass after.
+- When a captain hails the table, every captain the game intends to ask **is asked, on screen**, with
+  no reload — and any captain deliberately *not* asked is filtered by the documented hail rule, with
+  the filtering decision visible rather than inferred.
+- Hails per game is reported beside whatever else changes (TRADE-SYSTEM.md **I1** — non-negotiable).
+- An automated check fails if a prompt addressed to a seat is left unrendered by that seat's client.
+
+**Two rulings this phase inherits, both of which say "measure before you touch":**
+
+1. **Do not fix the `watchPrompt` seat guard blind.** `orchestrator.js:1295` discards a prompt whose
+   seat does not match `appState.mySeat`, and a `value` watcher never re-fires without a change — a
+   plausible one-line fix. But **three reproduction attempts failed** (same-browser reload, fresh
+   browser reclaiming the seat, battle call outstanding), so the guard alone is not sufficient to
+   cause it. The untested difference is that the live guest's previous browser was **killed while
+   still holding the seat**. Reproduce first; this file is one the determinism corpus depends on.
+
+2. **Do not change trade eligibility on a guess.** The host painted nothing for 45s after an offer,
+   measured with a recorder that cannot be raced — but `flow.js:1577` only hails captains for whom
+   something changed since they last said no, and `03a683c` holds hails at ~2.8 a game deliberately.
+   Correct-behaviour and genuine-bug both fit the evidence. The cheap separator is one instrumentation
+   run logging which seats were hailed and which were filtered, named in `02.2-FINDINGS.md` §B.
+
+**Also in scope, carried for a second phase running**: the battle and storm cameras are still
+*correct by mechanism, never photographed* (02.1-01's own D7). No battle occurred in Wyatt's gate
+voyage either. A battle between two captains far apart is the shot most likely to reveal anything the
+sail-window camera would not.
+
+**Explicitly NOT in scope**: the wind pill, the clock chip and the chat bubble. Measured twice, zero
+gap between host and guest. See the correction on 02.1's Wave 4 row.
 
 ### Phase 3: The Safety Net
 
