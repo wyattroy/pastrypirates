@@ -279,86 +279,123 @@ arrives. It is adjacent to this phase's fix but was never named by ROADMAP's own
 panel, ribbon, camera, narration, the flat-card bug, Safari verification) — raised here rather than
 silently folded in or silently dropped, per the research's own recommendation.
 
-### Phase 02.2: A Captain Who Cannot Take Their Turn (INSERTED)
+### Phase 02.2: One Game, Every Captain — Wyatt's Twenty-Two (INSERTED, REWRITTEN 2026-08-20)
 
-**Goal**: No captain, on either side of the table, is ever left holding a turn they cannot take.
+**Goal**: The game a player sees is the same game on both sides of the table, and the first screen is
+free of faults visible at a glance.
 
-> **Scope shrank overnight, and that is the finding.** Five defects were reported at the 02.1 gate.
-> Four of them do not reproduce under measurement — the wind pill, the clock chip and the chat bubble
-> paint at the *same millisecond* on both tiers, and the trade hail reaches a holding host in 3.1
-> seconds with no refresh. **One survives**: a guest that loads while a prompt waits. Even that one
-> resisted three reproduction attempts. Read `02.2-FINDINGS.md` first — planning this phase from the
-> gate conversation would fill it with fixes for bugs that are not there.
+> **This phase was rewritten on 2026-08-20, and the rewrite is the finding.** Its previous scope was
+> ONE defect — a battle prompt that does not draw after a browser is killed mid-turn — which is still
+> **one observation, never reproduced**, after three phases in which no probe has reached a battle.
+> Meanwhile Wyatt played the game on his phone and wrote down **twenty-two** things he saw. The open
+> phase was scoped to the least-confirmed item on the table while he held a list of things he had
+> watched happen. His ruling, 2026-08-20: **his list becomes this phase**, and the battle-prompt
+> defect becomes one line item inside it.
+>
+> **Source of record: `notes/edits for pastry pirates 8-20.pdf`** (13 pages, screenshots included).
+> Read it before planning. Item numbers below are his numbers and must not be renumbered.
 
-**Why this exists — Wyatt's Phase 02.1 gate, 2026-08-19.** He hosted a real crew game in Safari and
-hit turn-blocking trouble twice in about twenty minutes: once as a guest whose prompt never arrived,
-once as a host who could not see an incoming trade offer until he reloaded the page. Both end the
-same way for a player — *the game is waiting for me and I have nothing to answer*. His ruling: close
-02.1 on its own scope, open this phase for these. Neither is a rendering-polish bug; both stop play.
+**The single most important thing in this phase — item 18, which is Wyatt asking a question.** *"You
+were going to redesign the architecture of multiplayer so that guests and hosts are all shown with
+parity, but not from two parallel code paths… Do you remember this work? Did this get done?"*
 
-**Read `02.2-FINDINGS.md` before planning a single task.** Five defects were reported at that gate
-and **three of them do not exist** — they were asserted from one screenshot read during the opening
-ceremony, before measurement, and an overnight re-measure with two real Chromes found host and guest
-painting every ribbon control at the identical millisecond. Planning from the gate conversation
-alone would fill this phase with fixes for bugs that aren't there. The same document records the
-probe fault that produced the false alarm (`offsetParent` is always null for a fixed element, so the
-first check condemned the host's own working screen), because that trap will recur.
+**The honest answer is HALF.** Phase 02.1 unified the **state layer** and that holds — a guest's boat
+positions match `events[last].state` for every seat. It did **not** finish deleting the render
+branches. Measured 2026-08-20: **~43 `isHost`/`isGuest`/`amHost` hits across 7 files in `4/src`**, 21
+of them in `orchestrator.js` alone. That unfinished half is the direct cause of **five** of his
+twenty-two — 17 (duplicated narration behind the opening cards), 19 (the "waiting for yer mateys"
+box fading on a timer instead of on the event), 20 (the host's director snapping back to the host's
+own boat during a guest's turn), 21 (the top-bar boats not updating on a guest). **Fixing those five
+separately would be five patches over one hole.**
 
-**Requirements**: PAR-08, PAR-09 *(to be added to `REQUIREMENTS.md` at planning)*
+**Requirements**: PAR-08 … PAR-13 *(to be added to `REQUIREMENTS.md` at planning)*
 
 **Depends on**: Phase 02.1
 
+---
+
+#### Execution order — Wyatt's pick, 2026-08-20: A → B → C → C′ → D
+
+**Group A — finish the one render path.** Items **17, 18, 19, 20, 21**.
+Delete the remaining host/guest branches in the render tier so the director, the narration queue and
+the top-bar boats all read from one place on both sides. The director follows the **active player**,
+by the same rule the solo game already uses. Narration is not duplicated, is shown on the stage when
+there is a stage, and a "waiting for yer mateys" / "{Player} is deciding" box **clears on the event
+that ends the wait, never on a timer**.
+
+**Group B — the faults visible on the first screen.** Items **1, 2, 3, 5, 11, 14, 22**.
+1 — drop the parentheses from action-prompt button labels. 2 — the one action prompt that renders as
+a flat card ("a broadside, and yer purse won't stretch") uses the same radial fan as every other
+action. 3 — the battle screen centres on the **board**, framing both combatant boats, not on an
+offscreen boat. 5 — the "ovens be roarin'" block (box + Get bakin' + helper text) is centred both
+ways. 11 — no popup appears until the director camera and the ships have stopped moving. 14 — Pass
+is the **bottom** button, and loses its parentheses. 22 — **stopgap only**: desktop renders at the
+phone's aspect ratio (narrow, centred, square board) so both of us debug the same picture. **The
+desktop redesign stays in Phase 8 and is NOT in this phase.**
+
+**Group C — rules and sound.** Items **4, 13**.
+4 — a bot may not pass **and** fire the ovens in one turn; that breaks the standing bots-and-humans
+parity invariant. **Wyatt's ruling: the bot BAKES** — a bot docking at Tortuga with a full recipe
+fires the ovens and forfeits the pass dubloon, because that is what a human would obviously do.
+13 — the sound file: `anchorHold` is listed twice and the second listing silently wins, which both
+strands `fishing.mp3` (downloaded every game, never plays) and makes anchoring fire the 8-second
+storm bed at ~3× intended volume once per anchoring ship. **One deleted line fixes both.** Then set
+the six volumes, which are all still the untouched default — the loudest file is the out-of-time
+sound and the quietest is the victory sound. Read `docs/AUDIO.md` first.
+
+**Group C′ — the economy, measured before touched.** Item **12**.
+Since Pass began paying +1 dubloon, purses have run away and money means nothing. Wyatt's target:
+*every player feels able to do what they want at least once per game, and no player holds more than
+about 10 coins.* His proposed levers: dock output **1–3** instead of 2–5, and/or battle cost **4**.
+**Run the offline balance simulator across a few hundred games at each setting and bring him the
+table — purses over time, battle counts, game length. Change no number until he picks.** He asked
+for the numbers, not for the change.
+
+**Group D — design and copy.** Items **6, 7, 8, 9, 10, 16**.
+6 — the Bake-Off card leaves the screen once you have attempted your bake, so simultaneous bake-offs
+are visible. **Wyatt's ruling: it does NOT come back** — the attempt is locked in and the card has
+nothing left to offer. 7 — the end-of-voyage stat reads **"Bakeries"** and **"3 bakers home"**.
+8 and 9 — **sketch 2–3 throwaway HTML options each and let Wyatt choose before building**: the
+end-of-voyage card must be collapsible (or hold-the-sea) so the final board can be seen, and the
+recipe card needs a gradient that reaches the box edges and *darkens* rather than lightens, with the
+Download PDF and Email buttons clearly above the scrolling recipe. 10 — increase the narration
+maximum display time by 30%. 16 — a joining captain keeps the name they typed: a name held by
+another **human** is refused with a warning under the Yer Captain Name box on JOIN VOYAGE; a name
+held by a **bot** is granted, and the bots swap names to accommodate.
+
+**Group E — the one item carried over from the old scope.** A guest whose browser was **killed**
+while holding the seat comes back to a battle prompt that draws nothing. It is ONE observation and
+has resisted three reproduction attempts; a sail window and an action menu both came back correctly
+after the same kill, so only the battle path (`renderBattleFromSnap()` + the armed coin) is
+implicated. **Reproduce it before writing a fix**, and expect it to surface during the two-tab play
+sessions Group A already requires rather than from a dedicated hunt.
+
+---
+
 **Success Criteria** (what must be TRUE):
 
-- A guest that joins, reloads, or is replaced mid-voyage while a prompt is waiting for its seat
-  **renders that prompt** — and it is REPRODUCED first, with the same instrument seeing it fail
-  before and pass after. Reproduction is the whole job; the fix is probably one line and must not be
-  written until the failure can be summoned on demand.
-- An automated check fails if a prompt addressed to a seat is left unrendered by that seat's client.
-- **Safari is checked by a person**, because the one thing Chrome cannot answer is why Wyatt had to
-  refresh to see a trade offer that renders live Chrome-to-Chrome.
+- **Wyatt plays a crew game on his phone and does not see items 1, 2, 3, 5, 11, 14, 17, 19, 20, 21
+  or 22.** That is the gate. It is his eyes, not a probe.
+- The render tier contains **no host/guest branch that changes what is drawn**. Whatever `isHost`
+  survives decides only who computes the game and who creates the room.
+- A bot never passes and bakes in the same turn, proven from an event stream.
+- `fishing.mp3` plays at the moment it is wired to, and one anchoring ship produces one storm bed.
+- Wyatt has seen the economy table and picked the settings **before** any economy number changed.
+- Wyatt has picked from sketches for items 8 and 9 **before** either was built.
 
-**Two rulings this phase inherits, both of which say "measure before you touch":**
+**How the work reaches him** *(his one-drop-one-test convention)*:
+**One build drop per group**, each with a fresh `PP4_STAMP` in `4/src/ui/stage.js`, and the stamp
+named in the message he reads. **Before any group is handed over, play a two-tab crew game — a real
+host and a real guest — and screenshot BOTH sides.** Four of the seven faults he found at the 02.1
+gate were host/guest divergences, which a single-browser probe cannot see by construction.
 
-1. **A is narrowed, and the seat-guard theory is dead.** Six runs isolated it. The trigger is a
-   browser **KILLED** while holding the seat (a graceful reload always recovers) — but after that
-   same kill, a sail window came back correctly (18 `.sailCell` rects) and an action menu came back
-   correctly (2 buttons). **Only a battle prompt drew nothing.** That fits the code: `watchPrompt`
-   renders a battle down a separate path — `renderBattleFromSnap()` plus the armed flip coin — not
-   the button row every other prompt uses. Delivery is fine; an independent listener fired correctly
-   with `mySeat`, `gameStarted`, `live` and the stage all in order.
+**If Group A balloons past what it looks like** *(Wyatt's ruling, 2026-08-20)*: **land what is safe,
+write down exactly what is left, and move to Group B** — so he comes back to a visibly better game
+either way. Do not stall on A, and do not drop a half-finished rewrite.
 
-   **It is ONE observation, not a reproduction.** A dedicated hunt found no battle in five minutes,
-   and this is the **third phase running** in which no probe has reached one (D7). §5e rules
-   injection out in multiplayer but calls it **safe in solo** — so the cheapest path is to split the
-   question: exercise battle *rendering* in a forced solo battle, separately from the kill+reclaim
-   case that needs two browsers. That would close D7 at the same time.
-
-2. **The trade half is CLOSED, and nothing in the trade path was changed.** `flow.js:1579` hails
-   `holdersOf(offer.want, p)` — only captains **carrying** the wanted crate. The probe that showed a
-   silent host had a host with an **empty hold**, correctly never hailed. Re-run with the host
-   genuinely holding the crate: `holdersOf` returned the host, `worthReAsking` returned **true**, and
-   the host painted *"Claude offers 1 coins for yer Hot Cinnamon — Accept · Ask for summat else ·
-   Deny"* **3.1 seconds later, with no refresh**. A fix here would have damaged a defended invariant
-   (I1, ~2.8 hails a game, `03a683c`) to cure a bug that does not exist. Evidence: `probes/probe-B3.mjs`.
-   **What is still open is Safari-specific**: Wyatt did have to refresh, and Chrome-to-Chrome does
-   not. That is a question for a person on a real Safari, not for another probe.
-
-**D7 is half closed already.** The battle camera and battle rendering were *"correct by mechanism,
-never photographed"* for three phases. They are now **photographed** —
-`probes/probe-battle-solo.mjs` poses a battle in solo (§5e-legal: injection is safe there, forbidden
-in multiplayer) and captured ⚔ Broadside!, the armed FLIP coin measured at 141×141, the dimmed
-board, and the camera framing **both** combatant boats. See `battle-rendered-2026-08-20.png`.
-**The storm camera is closed too** — `probes/probe-storm-solo.mjs`, red-proofed against a
-storm-free round first (§5e warns that this exact check once passed while proving nothing): storm
-arrived at round 3, `storming` set, overlay painted 1200×614 with 4 rain layers, and the viewBox
-moved from `0 156.3 640 327.5` to `43.6 107.5 440.5 225.4`. See `storm-rendered-2026-08-20.png`.
-Caveat recorded honestly in the findings: the rain is measured present but not provable from a still
-frame, because it is an animation. **D7's remaining item is the battle prompt on a
-killed-and-reclaimed guest (above), not the cameras.**
-
-**Explicitly NOT in scope**: the wind pill, the clock chip and the chat bubble. Measured twice, zero
-gap between host and guest. See the correction on 02.1's Wave 4 row.
+**Explicitly NOT in scope**: the desktop redesign (Phase 8 — item 22 gets the aspect-ratio stopgap
+only); the wind pill, clock chip and chat bubble (measured twice, zero gap between host and guest —
+see the correction on 02.1's Wave 4 row); the doubled flip sound (Wyatt's earlier call).
 
 ### Phase 3: The Safety Net
 
@@ -707,6 +744,7 @@ The first phase is independent of every promotion decision and can start immedia
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
 | 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
+| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 0/TBD | Not started | Rewritten 2026-08-20 around his 22-item playtest list |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |

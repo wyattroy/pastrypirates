@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase: 02.1
-current_phase_name: one-game-every-captain-one-render-path-for-host-and-guest
-status: executing
-stopped_at: Completed 02.1-04-PLAN.md
-last_updated: "2026-08-19T23:06:52.721Z"
-last_activity: 2026-08-19
-last_activity_desc: "Overnight 08-19/20: of five defects reported at the 02.1 gate, FOUR do not reproduce under measurement; the fifth is narrowed to a battle prompt lost when a browser is killed. D7's battle and storm cameras photographed at last. A PreToolUse hook now enforces CLAUDE.md rule 17."
+current_phase: 02.2
+current_phase_name: one-game-every-captain-wyatts-twenty-two
+status: planning
+stopped_at: Phase 02.2 rewritten in ROADMAP.md around Wyatt's 22-item list; not yet planned
+last_updated: "2026-08-20T12:31:21.309Z"
+last_activity: 2026-08-20
+last_activity_desc: "2026-08-20: Wyatt played the game on his phone and wrote down 22 faults (notes/edits for pastry pirates 8-20.pdf). Phase 02.2 was rewritten around that list, in his chosen order A-E. Item 18 is him asking whether the host/guest rewrite got done: the answer is half - the state layer holds, but ~43 render branches across 7 files remain and cause five of his 22."
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 2
   total_plans: 17
   completed_plans: 16
-  percent: 20
+  percent: 18
 ---
 
 <!-- ============================================================================
@@ -57,9 +57,32 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — all 4 plans complete
-Plan: 4 of 4 done. **Phase verification has not been run — that is the orchestrator's, not a plan's.**
-Next: open **Phase 02.2** for the two turn-blocking defects the gate found (Wyatt's own ruling).
+Phase: 02.2 (one-game-every-captain-wyatts-twenty-two) — rewritten 2026-08-20, not yet planned
+Plan: none yet. **Start at `ROADMAP.md` → Phase 02.2 and at `notes/edits for pastry pirates 8-20.pdf`.**
+Next: `/gsd-plan-phase 02.2`, planning **Group A** first.
+
+**READ THIS FIRST IF YOU ARE PICKING THIS UP COLD.** On 2026-08-20 Wyatt played the game on his
+phone and wrote down **twenty-two** faults, with screenshots, in `notes/edits for pastry pirates
+8-20.pdf`. Phase 02.2 previously held **one** defect — a battle prompt that does not draw after a
+browser is killed, still never reproduced after three phases. **His ruling: the list becomes the
+phase, and that defect becomes one line item in it.** His order, all four recommendations taken:
+**A** finish the one render path (items 17, 18, 19, 20, 21) → **B** the first-screen faults
+(1, 2, 3, 5, 11, 14, 22) → **C** rules and sound (4, 13) → **C′** simulate the economy and bring him
+the table before changing a number (12) → **D** design and copy (6, 7, 8, 9, 10, 16, with sketches
+for 8 and 9). His three standing rulings for this phase: **a bot bakes rather than passes** at
+Tortuga with a full hold; **the Bake-Off card does not come back** once you have baked; and **if
+Group A balloons, land what is safe, write down the rest, and move to B** rather than stalling.
+
+**Item 18 is Wyatt asking whether the host/guest rewrite got done. It did not, fully.** 02.1
+unified the state layer — that holds, and is not in question. It did not finish deleting the render
+branches: **~43 `isHost`/`isGuest`/`amHost` hits across 7 files in `4/src`**, 21 in
+`orchestrator.js` alone, measured 2026-08-20. That unfinished half causes five of his twenty-two.
+
+**One drop per group**, fresh `PP4_STAMP` each time, and **a two-tab crew game screenshotted on
+both sides before any group is handed to him** (rule 19).
+
+*02.1 remains closed on his ruling, and its own must-have — "Wyatt has played a stretch of the
+voyage himself and said it holds together" — remains NOT met. Nothing below changes that.*
 Last activity: 2026-08-19 — the phase gate ran in real Safari for the first time and returned a
 negative result.
 
@@ -83,6 +106,7 @@ advancing without a reload, the radial bloom on a guest's trade prompt, and the 
    `offsetParent !== null`, which is always null for a `position:fixed` element, so it condemned the
    HOST's working screen too — it could not have passed for anyone. **PAR-02 stands as delivered by
    02.1-01.** Full account: `phases/02.2-.../02.2-FINDINGS.md`.
+
 2. **Defect B — the host does not see an incoming trade offer.** **Also does not reproduce.**
    `flow.js:1579` hails `holdersOf(offer.want, p)` — only captains *carrying* the wanted crate. The
    probe showing a silent host had a host with an **empty hold**, correctly never hailed. Re-run with
@@ -90,6 +114,7 @@ advancing without a reload, the radial bloom on a guest's trade prompt, and the 
    the host painted *"Claude offers 1 coins for yer Hot Cinnamon — Accept · Ask for summat else ·
    Deny"* **3.1 seconds later, no refresh**. Nothing in the trade path was changed — a "fix" would
    have damaged I1's defended ~2.8-hails-a-game to cure a bug that does not exist.
+
 3. **Defect A — a guest never sees a prompt outstanding when it loaded. REAL, and narrowed.** Six
    runs isolated it. The trigger is a browser **KILLED** while holding the seat; a graceful reload
    always recovers. But after that same kill a sail window came back correctly (18 `.sailCell` rects)
@@ -339,6 +364,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 ### Roadmap Evolution
 
 - Phase 02.1 inserted after Phase 2: One render path for host and guest: every renderer reads appState.game, which is live truth on the host and a stale render shell on a guest. Fix the state layer first, then delete the 43 host/guest branches and the duplicate prompt renderer. (URGENT)
+- Phase 02.2 edited: rewritten around Wyatt's 22-item mobile playtest list (notes/edits for pastry pirates 8-20.pdf); scope grew from one unreproduced defect to five groups A-E
 
 ## Deferred Items
 
