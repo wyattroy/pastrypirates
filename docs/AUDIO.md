@@ -4,6 +4,7 @@
 cold session — or Wyatt, months later — can carry on without re-deriving any of it.
 
 - **What Wyatt has already chosen:** [`.planning/research/audio-sourcing/PICKS.json`](../.planning/research/audio-sourcing/PICKS.json)
+- **The brief for Luis (CSV):** [`.planning/research/audio-sourcing/SOUND-BRIEF.csv`](../.planning/research/audio-sourcing/SOUND-BRIEF.csv) — every moment, its context, the duration it has to fit, and which 7 are Luis's to make
 - **The tooling that found them:** [`.planning/research/audio-sourcing/`](../.planning/research/audio-sourcing/)
 - **The audit as a readable page:** https://claude.ai/code/artifact/57892569-287e-4dcc-a1ec-90cb4956864a
 - **Audition galleries** (playable, keep/reject): [round 1](https://claude.ai/code/artifact/f26c0e04-48dc-488d-b589-feb2538b028a) ·
