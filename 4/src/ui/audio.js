@@ -36,13 +36,28 @@ const SFX_FILES = ["battle-swords", "coin-flip", "fishing", "ship-move", "store-
 // Per-stem relative gain — CONTEXT.md "Claude's Discretion": the single tuning point for loudness
 // normalising, so a by-ear browser pass adjusts one number per sound without restructuring
 // anything else. Every stem defaults to 1 (no normalising applied yet).
+// DEFECT-3 (docs/AUDIO.md §1): every value was still 1, so the six stems had never been levelled
+// against each other — a 15.6 dB spread, measured EBU R128. The sword clash was about six times
+// louder than a crate being loaded, and the two extremes sat in the worst possible places: the
+// LOUDEST file is what fires when you run out of time, and the QUIETEST is the victory sound.
+// These are the doc's measured figures, not guesses. Integrated / true peak / gain:
+//   battle-swords   -16.3 LUFS / +0.2 dBFS (clipped IN THE FILE) -> 0.46
+//   fishing         -21.2      / -4.3                            -> 0.81
+//   storm           -21.7      / -1.5                            -> 0.86
+//   coin-flip       -26.8      / -4.3                            -> 1.45  (near the ceiling)
+//   ship-move       -27.7      / -11.3                           -> 1.72
+//   store-ingredient -31.9     / -12.4                           -> 2.79
+// Gains above 1 are safe here BECAUSE the true peaks are so far down: the largest boost, 2.79x on
+// store-ingredient (+8.9 dB against a -12.4 dBFS peak), still lands near -3.5 dBFS.
+// STILL OUTSTANDING and NOT fixed by a gain: battle-swords is clipped inside the file itself
+// (+0.2 dBFS). Turning it down fixes the balance, never the distortion — that needs a fresh export.
 const SFX_VOLUME = {
-  "battle-swords": 1,
-  "coin-flip": 1,
-  "fishing": 1,
-  "ship-move": 1,
-  "store-ingredient": 1,
-  "storm": 1,
+  "battle-swords": 0.46,
+  "coin-flip": 1.45,
+  "fishing": 0.81,
+  "ship-move": 1.72,
+  "store-ingredient": 2.79,
+  "storm": 0.86,
 };
 // pp_-prefixed per-browser preference convention pp_timerOff already established
 // (src/orchestrator.js:168) — mute follows it exactly, same key-naming shape.
@@ -115,8 +130,16 @@ const EVENT_SOUND = {
   // only to push a fresh state snapshot to the Captains panel mid-turn and is invisible by design,
   // so it must never become audible if the unmapped default ever changes.
   purse: null, idle: null, openoffer: null, collab: null,
-  // the anchor biting IS a storm moment — it rides the storm bus like the weather it answers
-  anchorHold: "storm",
+  // NOTE: `anchorHold: "storm"` used to sit here, and it was the whole of DEFECT-1 and DEFECT-2 in
+  // docs/AUDIO.md. `anchorHold` is already mapped to "fishing" above, and in a JS object literal the
+  // LAST key wins — so this line silently overrode it, which (a) stranded fishing.mp3, downloaded
+  // and decoded every game and triggerable by nothing, and (b) made every anchoring ship play the
+  // 8.0-second storm bed. The comment that stood here claimed it "rides the storm bus"; it did not.
+  // soundForEvent() routes to the quiet storm bus ONLY for the pair newround+storm, so STORM_VOLUME
+  // (0.35) never applied and it landed ~3x louder than the storm is mixed to sit. noteStormOutcome()
+  // is per player, so three captains anchoring in one storm stacked three of them on top of the
+  // storm cue that had already played, and fadeStorm() could retire none of them (stormNode is only
+  // set on the newround path). Deleting one line fixed both. DO NOT RE-ADD IT.
   // the ocean look and a blown-into-berth rescue are moments, but quiet ones — the narration and
   // the board already carry them
   pass: null,

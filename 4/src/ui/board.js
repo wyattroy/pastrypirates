@@ -1927,12 +1927,26 @@ export function showStats(){
   // NARR-01: the stats table is hoisted into its own local purely so the wording audit can review it
   // as one unit of copy (art-review/narration-audit.html, `// @copy` below). Pure string hoist — the
   // rendered HTML is byte-identical to the inline version it replaced.
+  /* ITEM 7 (Wyatt, 2026-08-20 playtest): this row said "Bakery" and read `finishOrder.length`, which
+     counts captains who FINISHED a bake (engine/index.js:2859 pushes only the `won` list). It was not
+     miscounting — it was measuring something other than what the word promised. He watched three
+     captains reach Tortuga and start their bakeries and read "one baker home" as simply wrong, which
+     from where he sat it was.
+
+     His ruling: count the captains who GOT HOME. A captain is home once they have reached Tortuga and
+     fired the ovens — `baking` (engine/index.js:2774), which stays true for anyone still baking when
+     the voyage ends — or `done`, set when their bake completed. `done` is not implied by `baking`:
+     :2859 clears `baking` as it sets `done`, so BOTH terms are needed and neither is redundant.
+
+     This is a NEW quantity. `finishOrder` is untouched and still means what it always meant — it
+     orders the finishers and other code depends on that. Do not repoint it at this. */
+  const bakersHome = appState.game.players.filter(p => p.baking || p.done).length;
   // @copy misc.board.statsheadings
   const statsTable=`<table>
     <tr><td>Days</td><td>${appState.game.round}</td></tr>
     <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
     <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
-    <tr><td>Bakery</td><td>${appState.game.finishOrder.length>1?appState.game.finishOrder.length+" bakers, side by side":"one baker home"}</td></tr>
+    <tr><td>Bakeries</td><td>${bakersHome===0?"no bakers home":bakersHome===1?"1 baker home":bakersHome+" bakers home"}</td></tr>
     ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
     </table>`;
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}${victoryPic}${victoryLine}</div>

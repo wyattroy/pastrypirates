@@ -624,7 +624,9 @@ async function asyncBattleRun(att,def){
             setActor(att.idx);
             // @copy prompt.battle.refire
             again=await ask(`${nm(att.idx)}: load another broadside <span class="nobrk">(−${refire}🌕)</span>? ⚪ HEADS and the shot lands.`,
-              [{label:`🔥 Fire again <span class="nobrk">(−${refire}🌕)</span>`,value:true},{label:"🏳️ Break off",value:false}]);
+              // ITEM 1 (Wyatt, 2026-08-20): brackets off the money buttons. Found by the rule-8 consistency
+              // sweep, NOT by his report — the other three live in ui/flow.js and this one is easy to miss.
+              [{label:`🔥 Fire again <span class="nobrk">−${refire}🌕</span>`,value:true},{label:"🏳️ Break off",value:false}]);
             if(appState.turnExpired)again=false;
           }else again=appState.game.wantsRefire(att,def,downwind,rounds.length);
         }

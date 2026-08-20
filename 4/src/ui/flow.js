@@ -1246,7 +1246,7 @@ export async function humanDock(p,port){
       const canBarter=g.canBlackMarket(p,ing);
       const scarcity=(!black&&left<1e9&&left<=1)?` Last one on the island!`:``;
       const opts=[
-        {label:`Buy ${ilabelImg(ing)} <span class="nobrk">(−${price}🌕)</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:"coin",disabled:!canBuy,
+        {label:`Buy ${ilabelImg(ing)} <span class="nobrk">−${price}🌕</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:"coin",disabled:!canBuy,
           why:`It costs ${price}🌕 and ye've ${p.coins}🌕 — ${price-p.coins}🌕 short.`},
       ];
       // @copy misc.blackmarket.barterbtn — draft, Wyatt rewrites
@@ -1763,7 +1763,7 @@ export async function humanAct(p,sailCtx){
   // is checked first because it is the one the captain can actually do something about.
   // @copy adhoc.why.* — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine").
   if(targets.length)
-    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">(−${appState.game.cfg.powder}🌕)</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length,
+    opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">−${appState.game.cfg.powder}🌕</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length,
       why:!canAfford?`Ye can't afford the powder — ${appState.game.cfg.powder}🌕 a broadside, and yer purse won't stretch.`
         :`Their holds are empty — there's nothin' aboard worth takin'.`});
   opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade,
@@ -1829,7 +1829,15 @@ export async function humanAct(p,sailCtx){
   // omission: a button states its amount when the amount is CERTAIN at the moment of the tap. Buy
   // states its price, Attack states its powder, a pass pays a known amount. Dock is a coin flip and
   // Call is conditional on being right, so both put their amounts in the prompt text instead.
-  if(!canOvens)opts.push({label:`🌊 Pass${appState.game.cfg.passCoin?` <span class="nobrk">(+${appState.game.cfg.passCoin}🌕)</span>`:""}`,value:"pass"});
+  // ITEM 1 + ITEM 14 (Wyatt, 2026-08-20): "Remove the () from action prompt buttons – they take too
+  // much space", and Pass "should not have parentheses around the +1". The brackets are gone from all
+  // three money buttons — Buy, Attack, Pass — while the sign, the amount and the coin all stay. The
+  // nobrk span is KEPT: it is what stops "−2" wrapping away from its coin, which is a different job
+  // from the brackets. Buy's `short:` (the radial-fan label) already had no brackets, so this makes
+  // the flat label agree with the fan rather than inventing a style.
+  // NOT changed: the parentheticals in NARRATION (e.g. the sailing-order line, :2260) — item 1 says
+  // action prompt BUTTONS, and narration is prose where a bracket reads normally.
+  if(!canOvens)opts.push({label:`🌊 Pass${appState.game.cfg.passCoin?` <span class="nobrk">+${appState.game.cfg.passCoin}🌕</span>`:""}`,value:"pass"});
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
