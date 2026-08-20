@@ -69,8 +69,9 @@ documents; the rules themselves are all here, in full.
 | 19 | **PLAY THE GAME in two tabs to find what's wrong, and screenshot your own work before handing it over** | [§1](#1-working-with-wyatt) |
 | 20 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
 | 21 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
+| 22 | **READ EVERY SCREENSHOT HE SENDS, PIXEL BY PIXEL. Never skip one** — he built it for you at real cost | [§1](#1-working-with-wyatt) |
 
-> **21 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **22 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -306,6 +307,45 @@ first screen.
 - **CHECK** — before handing any change to Wyatt, look at the rendered picture of it, both sides in
   multiplayer. Earned when he found seven bugs in twenty minutes in a build a session had just
   called green: the checks were honest and were measuring game state, never what was drawn.
+
+### READ EVERY SCREENSHOT HE SENDS. Pixel by pixel. Never skip one.
+
+Wyatt, 2026-08-20: *"When I give you a screenshot, look at it pixel for pixel to learn as much from
+it as you can. Never skip a screenshot. I go to extreme effort to give you screenshots that you can
+learn from. When you skip them, it makes me furious."*
+
+**A screenshot he sends is the most expensive evidence in the project and the most often wasted.**
+He set up the game, reached the exact moment, captured it, cropped it, annotated it, and carried it
+into a document — and a session then reads the sentence next to it and skips the image.
+
+**What it cost, the day the rule was written.** His 22-item playtest PDF contains **side-by-side host
+and guest screenshots** for items 17, 19, 20 and 21. A session read the prose, went to the code,
+counted `isHost` branches, found only a handful that touch rendering, and told him the phase's
+premise was wrong — twice, confidently. **The screenshots showed eight surfaces diverging between
+host and guest**: a duplicated Ahoy message on the guest only, two different sentences for the same
+wait, a host with no narration at all beside a guest still holding its prompt, two cameras pointed at
+different parts of the board, sail squares highlighted on one screen and absent on the other, and a
+CAPTAINS panel in a different row order on each. **Every one of those was visible in an image that
+had been sitting in context, unread.** He had to say *"look at the screenshots and compare them pixel
+by pixel"* before anyone did — and the answer was there in one line of code the moment somebody
+looked.
+
+- **Open every image he sends, and describe what you SEE before you theorise about why.** Not the
+  caption, not the item number next to it — the picture.
+- **When he sends a PAIR, compare them element by element** and write the differences down as a
+  list. Host vs guest, before vs after, two battles at different moments. **The pair is the point;
+  he did not send two images for you to look at one.**
+- **Look past what he flagged.** In 17b he commented on two narration sentences. The same image also
+  showed the host's recipe picker apparently blank where the guest's was populated — worth raising,
+  and it took a direct question to resolve (it was caught mid-animation, and that answer only came
+  because someone finally asked). **Things he did not mention are still evidence.**
+- **His annotations are a floor, not a ceiling.** A red circle marks what he noticed. It does not
+  mark everything the image proves.
+- **This is not rule 19 and does not overlap it.** Rule 19 is about pictures YOU make — playing the
+  game, and screenshotting your own change before handing it over. **Rule 22 is about pictures HE
+  makes.** Different trigger: 19 fires when you are investigating or delivering; 22 fires the moment
+  an image arrives. The two failures are also different — 19 is not looking, 22 is being handed the
+  answer and not opening it.
 
 ### Hold the whole game, not the current ticket — engineer AND designer
 
