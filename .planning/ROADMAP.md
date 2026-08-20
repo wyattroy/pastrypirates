@@ -349,7 +349,13 @@ never photographed"* for three phases. They are now **photographed** —
 `probes/probe-battle-solo.mjs` poses a battle in solo (§5e-legal: injection is safe there, forbidden
 in multiplayer) and captured ⚔ Broadside!, the armed FLIP coin measured at 141×141, the dimmed
 board, and the camera framing **both** combatant boats. See `battle-rendered-2026-08-20.png`.
-**Still open: the STORM camera**, and the battle prompt on a killed-and-reclaimed guest (above).
+**The storm camera is closed too** — `probes/probe-storm-solo.mjs`, red-proofed against a
+storm-free round first (§5e warns that this exact check once passed while proving nothing): storm
+arrived at round 3, `storming` set, overlay painted 1200×614 with 4 rain layers, and the viewBox
+moved from `0 156.3 640 327.5` to `43.6 107.5 440.5 225.4`. See `storm-rendered-2026-08-20.png`.
+Caveat recorded honestly in the findings: the rain is measured present but not provable from a still
+frame, because it is an animation. **D7's remaining item is the battle prompt on a
+killed-and-reclaimed guest (above), not the cameras.**
 
 **Explicitly NOT in scope**: the wind pill, the clock chip and the chat bubble. Measured twice, zero
 gap between host and guest. See the correction on 02.1's Wave 4 row.
