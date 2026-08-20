@@ -4,6 +4,26 @@
 way.** It is deliberately short so that it survives being read. The war stories moved to linked
 documents; the rules themselves are all here, in full.
 
+> # THE POINT. Read this before the table.
+>
+> Wyatt, 2026-08-20: *"I don't really care about the ticket. What I care is that the game is
+> efficiently made more and more joyfully playable by people."*
+>
+> **Every rule below serves that sentence. None of them is a peer of it.** A session that closes its
+> ticket perfectly and leaves the game no more playable has failed, however green its checks.
+>
+> **The check, at the start and end of any task:** *is the game better than it was this morning, in a
+> way a player would notice?* If the honest answer is no, stop and change what you are doing.
+>
+> **And the fastest way to find out what needs fixing is to PLAY IT** — two tabs, host and guest, and
+> look. He finds bugs at a glance that a session will not find in a day of instrumentation. See
+> rule 19.
+>
+> *(Earned 2026-08-20, after two days in which a session reported five defects with three unmeasured —
+> four of the five did not exist — spent an eight-hour window changing zero lines of game code, built
+> tooling nobody needed, and never once played the game, while he held a twenty-point list of real
+> bugs he could not hand over because the workflow wanted a phase closed first.)*
+
 > ### ⚠️ IF YOUR FIRST `git pull` MOVED THIS FILE, RE-READ IT FROM DISK
 >
 > **Your context copy of this file was assembled from the working tree BEFORE you pulled.** If the
@@ -28,30 +48,34 @@ documents; the rules themselves are all here, in full.
 
 | | Rule | §|
 |---|---|---|
-| 1 | **Ask 2–5 clarifying questions before building anything non-trivial** | [§1](#1-working-with-wyatt) |
-| 2 | **Ask with the question UI. Always. Never as prose.** | [§1](#1-working-with-wyatt) |
-| 3 | **Restate every mid-flight instruction in your next reply** | [§1](#1-working-with-wyatt) |
-| 4 | **Talk to Wyatt in plain English — he directs, he does not read the diff** | [§1](#1-working-with-wyatt) |
-| 5 | **Before he walks away, make sure he can still reach the work from his phone** | [§1](#1-working-with-wyatt) |
-| 6 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
-| 7 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
-| 8 | **Read the graveyard** — what was tried and rejected lives in the git log | [§2](#2-design-rules) |
-| 9 | **The narration box reveals top to bottom, in DOM order** | [§2](#2-design-rules) |
-| 10 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
-| 11 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
-| 12 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 13 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 14 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 15 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 16 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 17 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
-| 18 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
-| 19 | **QA your own work in the browser, with screenshots, before handing it to him** | [§1](#1-working-with-wyatt) |
-| 20 | **PLAY THE GAME, in two tabs, and look. The bugs are visible at a glance.** | [§1](#1-working-with-wyatt) |
-| 21 | **Hold the whole game, not the ticket** — the goal is a more joyfully playable game, efficiently | [§1](#1-working-with-wyatt) |
-| 22 | **Every plan states its SIZE** — what a player gets, how much of the problem it covers, what it leaves undone | [§1](#1-working-with-wyatt) |
-| 23 | **Never report a defect as confirmed before you have measured it** | [§1](#1-working-with-wyatt) |
-| 24 | **Do not build tooling when the ask is to fix the game** | [§1](#1-working-with-wyatt) |
+| 1 | **Ask 2–5 clarifying questions before building anything non-trivial — with the question UI, never as prose** | [§1](#1-working-with-wyatt) |
+| 2 | **Restate every mid-flight instruction in your next reply** | [§1](#1-working-with-wyatt) |
+| 3 | **Talk to him in plain English AND state the SIZE** — what a player gets, how much of the problem it covers, what it leaves undone | [§1](#1-working-with-wyatt) |
+| 4 | **Before he walks away, make sure he can still reach the work from his phone** | [§1](#1-working-with-wyatt) |
+| 5 | **Hold the whole game, not the ticket — engineer AND designer.** His list outranks yours; break any process step that blocks him handing it over | [§1](#1-working-with-wyatt) |
+| 6 | **Never report a defect as confirmed before you have measured it** | [§1](#1-working-with-wyatt) |
+| 7 | **Do not build tooling when the ask is to fix the game** | [§1](#1-working-with-wyatt) |
+| 8 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
+| 9 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
+| 10 | **Read the graveyard** — what was tried and rejected lives in the git log | [§2](#2-design-rules) |
+| 11 | **The narration box reveals top to bottom, in DOM order** | [§2](#2-design-rules) |
+| 12 | **The credits and About page are NOT in pirate speak** | [§2](#2-design-rules) |
+| 13 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
+| 14 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 15 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 16 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 17 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 18 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 19 | **PLAY THE GAME in two tabs to find what's wrong, and screenshot your own work before handing it over** | [§1](#1-working-with-wyatt) |
+| 20 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
+| 21 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
+
+> **21 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
+> can size, so they belong together. *QA your own change* and *play the game* competed for the same
+> slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
+> that disclaimer again, merge the rows instead.** A list that reads longer than it is dilutes every
+> line in it.
 
 ---
 
@@ -139,6 +163,22 @@ wearing a costume**.
 **Why this is a rule and not a preference: a sentence he cannot parse is a decision he cannot
 make.** He holds taste, scope, and "how much is enough" (above). Handing him jargon does not merely
 annoy him — it quietly moves his decision onto us.
+
+### …and state the SIZE — rule 3's other half
+
+Wyatt, 2026-08-20, on the overnight plan he approved and then found far smaller than he imagined:
+*"your language was so contextless for me that I couldn't understand it last night."*
+
+**A plan he cannot size is a plan he cannot redirect.** "Fix the guest's wind pill" is plain English
+and still useless to him. "Five small render bugs out of your twenty — none of them the ones that
+stop you playing" is directable. Every proposal says:
+
+1. **what a player will experience differently** afterwards,
+2. **how much of the known problem it covers** — "5 of ~20", "the whole crew-game path", "one screen",
+3. **what it explicitly leaves undone.**
+
+**This is rule 4 with teeth.** Plain words are necessary and not sufficient — plain words with no
+scale still leave him unable to steer.
 
 ### Before he walks away, make sure he can still reach the work from his phone
 
@@ -239,27 +279,6 @@ the one that was broken** — and a passing suite made that invisible.
 - **This is not the same as the phone pass.** D-09 stands: his real voyage is still the gate. This
   rule is about not spending that gate on faults you could have seen yourself in one screenshot.
 
-### THE POINT OF ALL OF THIS — read this before you pick up any task
-
-Wyatt, 2026-08-20, after two days he described as frustrating: *"I don't really care about the
-ticket. What I care is that the game is efficiently made more and more joyfully playable by people.
-And, currently, you're not making the game significantly better. You're just forcing both of us to
-waste a ton of time on individual tiny tickets."*
-
-**That sentence is the north star and every rule below serves it.** A session that closes its ticket
-perfectly and leaves the game no more playable has failed, however green its checks.
-
-**The failure it was written after, so it is not abstract.** Over 2026-08-19/20 a session: reported
-five defects at a phase gate, **three of them without measuring** — four of the five turned out not
-to exist; spent an eight-hour autonomous window changing **zero lines of game code**; ran six probes
-to prove one bug was not real; built a `PreToolUse` hook it offered him mid-fix-window and framed as
-free; and never once simply played the game. Meanwhile **he was holding a twenty-point list of real
-bugs he could not hand over**, because the workflow wanted a phase closed first. His words for the
-result: *"squandering time building thoughtless tool and not really fixing much, period."*
-
-**The tell, and it is easy to check:** ask *"is the game better than it was this morning, in a way a
-player would notice?"* If the honest answer is no, stop and change what you are doing.
-
 ### PLAY THE GAME. In two tabs. And look at it.
 
 Wyatt, 2026-08-20: *"There are so many bugs that I can see at a glance in moments that you would
@@ -281,9 +300,12 @@ first screen.
   instead of playing your way to it. Read it **before** you touch a browser (rule 17), not after you
   are stuck. Sessions have re-derived every one of those lessons the hard way; do not add to the
   count.
-- **Rule 19 is not this rule.** Rule 19 says QA *your own change* before handing it over. This one
-  says play *the game*, routinely, to find what is wrong with it — including things nobody asked
-  about.
+**The two halves of rule 19, which used to be two rules fighting each other:**
+- **FIND** — play the game routinely to discover what is wrong with it, including things nobody
+  asked about. This is the half that keeps getting skipped.
+- **CHECK** — before handing any change to Wyatt, look at the rendered picture of it, both sides in
+  multiplayer. Earned when he found seven bugs in twenty minutes in a build a session had just
+  called green: the checks were honest and were measuring game state, never what was drawn.
 
 ### Hold the whole game, not the current ticket — engineer AND designer
 
@@ -301,22 +323,6 @@ and end up often being completely irrelevant."*
   player, here's why"* is a designer's job and he is explicitly asking for it.
 - **When he hands you a list, triage and recommend BEFORE fixing** (his pick, 2026-08-20): come back
   with what you think the biggest levers are and why, and let him approve the order.
-
-### Every plan states its SIZE
-
-Wyatt, 2026-08-20, on the overnight plan he approved and then found far smaller than he imagined:
-*"your language was so contextless for me that I couldn't understand it last night."*
-
-**A plan he cannot size is a plan he cannot redirect.** "Fix the guest's wind pill" is plain English
-and still useless to him. "Five small render bugs out of your twenty — none of them the ones that
-stop you playing" is directable. Every proposal says:
-
-1. **what a player will experience differently** afterwards,
-2. **how much of the known problem it covers** — "5 of ~20", "the whole crew-game path", "one screen",
-3. **what it explicitly leaves undone.**
-
-**This is rule 4 with teeth.** Plain words are necessary and not sufficient — plain words with no
-scale still leave him unable to steer.
 
 ### Never report a defect as confirmed before you have measured it
 
