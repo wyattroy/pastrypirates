@@ -91,10 +91,28 @@ function camFitCells(cells, maxZoom){
 }
 // frame the whole sail window: bbox of every highlighted cell + my ship, padded; zoom is
 // whatever that window allows, capped at 2.2x — a legal move is never off screen.
-function camFitSail(){
+/* FRAME THE CAPTAIN BEING ASKED, NOT THE CAPTAIN LOOKING — Wyatt, 2026-08-20, from a two-window
+   screenshot: "on guest's turn the host's director moved back up to the host's boat while waiting
+   for guest to sail... it should not center on host at the beginning of their turn at all."
+
+   This took `appState.mySeat` — the seat of whoever is *watching*. pickCell() fires this on every
+   sail prompt from whichever machine runs the engine, which in a crew game is the HOST, so the
+   host's camera jumped to the HOST's own ship at the start of every guest's turn. It then corrected
+   itself the moment the guest actually moved, because the move arrives as narration and the
+   narration path already aims at the right captain (:589, camToSeat(subj)) — which is exactly why
+   it read as a snap-and-recover rather than a stuck camera.
+
+   The `.sailCell` highlights only exist on the client being asked, so on a spectating host the cell
+   list is empty and this collapsed to "fit one cell: my own boat". Passing the seat fixes both
+   halves: the spectator frames the right ship, and the player being asked still gets their own
+   window because their cells ARE drawn locally.
+
+   `seat` is optional and falls back to the viewer, so any future caller with no seat in hand keeps
+   the old local behaviour rather than silently framing seat 0. */
+function camFitSail(seat){
   S.lock = false;                                    // a new turn releases any gesture hold
   const g = appState.game; if (!g) return;
-  const me = g.players[appState.mySeat ?? 0]; if (!me) return;
+  const who = g.players[seat ?? appState.mySeat ?? 0]; if (!who) return;
   // playtest 20: the squares carry their own grid coordinates now (sailHighlightRect writes
   // data-gx/gy). This used to invert that function's inset arithmetic by hand — a second copy of
   // the same maths that had to be kept in step with it, and it stopped being possible at all once
@@ -102,7 +120,7 @@ function camFitSail(){
   const cells = [...document.querySelectorAll(".sailCell")]
     .map(r => [+r.dataset.gx, +r.dataset.gy])
     .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
-  cells.push(me.pos);
+  cells.push(who.pos);
   camFitCells(cells, 2.2);
 }
 // frame a set of captains — both combatants of a fight, whatever the water between them
@@ -1635,7 +1653,7 @@ export function initStage(){
     narr: (html, opts) => (S.active ? stageFlash(html, undefined, undefined, undefined, opts) : null),
     set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
     set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
-    sailCells: () => { if (S.active) camFitSail(); },
+    sailCells: (seat) => { if (S.active) camFitSail(seat); },
     /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called at the top of asyncBattle (before the opening
        line, so the camera is already there when it speaks) and again by every battle-card render.
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two

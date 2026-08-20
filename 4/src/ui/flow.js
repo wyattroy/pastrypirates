@@ -525,13 +525,22 @@ export function pickCell(p,cells){
   setActor(p.idx);
   // /4 stage: frame the whole sail window once the highlight cells exist (they are drawn just
   // after this call returns its promise — a beat later is soon enough for a lerping camera).
-  if(window.__pp4)setTimeout(()=>window.__pp4.sailCells(),180);
+  // p.idx, NOT the viewer: on a spectating host this used to frame the HOST's own ship at the
+  // start of every guest's turn (Wyatt, 2026-08-20). See camFitSail() in ui/stage.js.
+  if(window.__pp4)setTimeout(()=>window.__pp4.sailCells(p.idx),180);
   // @copy misc.draftwait.sailchoosing
   // D-10 DELIVERY (F7): same conversion as ask() — the spectator line is the neutral broadcast and
   // the ACTOR's variant is the empty string (their own board highlighting is their feedback). This
   // used to branch on appState.mySeat, which is the HOST's seat, so one client's answer was sent to
   // the whole table and no guest ever saw "is choosing where to sail".
-  netHandlers().onBroadcast(`${pn(p.idx)} is choosing where to sail…`,[{seat:p.idx,html:""}]);
+  // {wait:true} — ITEM 19, and the half Stage 1 missed. Wyatt, 2026-08-20, from a two-window
+  // screenshot: "the narration line that says 'waiting for wy to sail' disappeared before they
+  // sailed. bad." This was an ORDINARY narration, so it retired on the hold deadline (6.75s ceiling)
+  // whether or not the captain had moved — and what a spectator was left with is a board and no
+  // explanation, which is the exact complaint item 19 is. Stage 1 built the no-deadline wait line
+  // and wired it to the recipe draft; this per-turn line never got it. Fire-and-forget, so it meets
+  // the flag's stated safety condition (see stageFlash's note: a wait line must never be awaited).
+  netHandlers().onBroadcast(`${pn(p.idx)} is choosing where to sail…`,[{seat:p.idx,html:""}],{wait:true});
   armClock(p.idx);
   const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
     :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:sailPickMsg(p.idx)});
@@ -587,7 +596,9 @@ export async function bakeoffPrompt(p,setup,fallback){
     endReplay();
   }
   setActor(p.idx);
-  netHandlers().onBroadcast(`${pn(p.idx)} steps up to the ovens…`,[{seat:p.idx,html:""}]);
+  // {wait:true} — same fault, found by the rule-8 sweep rather than by Wyatt: this is the other
+  // per-turn spectator line whose subject is "nothing is happening yet". Also fire-and-forget.
+  netHandlers().onBroadcast(`${pn(p.idx)} steps up to the ovens…`,[{seat:p.idx,html:""}],{wait:true});
   // NO decisionIsLocal BRANCH, deliberately. v2 ships solo and pass-and-play only — Host a Crew and
   // Join a Crew are gone from the welcome screen (index.html) — and in both of those every human
   // seat is local by definition. A remote branch here would be a path no test can reach and no
