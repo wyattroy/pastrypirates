@@ -47,6 +47,11 @@ documents; the rules themselves are all here, in full.
 | 17 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
 | 18 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
 | 19 | **QA your own work in the browser, with screenshots, before handing it to him** | [§1](#1-working-with-wyatt) |
+| 20 | **PLAY THE GAME, in two tabs, and look. The bugs are visible at a glance.** | [§1](#1-working-with-wyatt) |
+| 21 | **Hold the whole game, not the ticket** — the goal is a more joyfully playable game, efficiently | [§1](#1-working-with-wyatt) |
+| 22 | **Every plan states its SIZE** — what a player gets, how much of the problem it covers, what it leaves undone | [§1](#1-working-with-wyatt) |
+| 23 | **Never report a defect as confirmed before you have measured it** | [§1](#1-working-with-wyatt) |
+| 24 | **Do not build tooling when the ask is to fix the game** | [§1](#1-working-with-wyatt) |
 
 ---
 
@@ -233,6 +238,115 @@ the one that was broken** — and a passing suite made that invisible.
   beside "a green root `npm test` proves nothing about `4/`" (§5) — same failure, different layer.
 - **This is not the same as the phone pass.** D-09 stands: his real voyage is still the gate. This
   rule is about not spending that gate on faults you could have seen yourself in one screenshot.
+
+### THE POINT OF ALL OF THIS — read this before you pick up any task
+
+Wyatt, 2026-08-20, after two days he described as frustrating: *"I don't really care about the
+ticket. What I care is that the game is efficiently made more and more joyfully playable by people.
+And, currently, you're not making the game significantly better. You're just forcing both of us to
+waste a ton of time on individual tiny tickets."*
+
+**That sentence is the north star and every rule below serves it.** A session that closes its ticket
+perfectly and leaves the game no more playable has failed, however green its checks.
+
+**The failure it was written after, so it is not abstract.** Over 2026-08-19/20 a session: reported
+five defects at a phase gate, **three of them without measuring** — four of the five turned out not
+to exist; spent an eight-hour autonomous window changing **zero lines of game code**; ran six probes
+to prove one bug was not real; built a `PreToolUse` hook it offered him mid-fix-window and framed as
+free; and never once simply played the game. Meanwhile **he was holding a twenty-point list of real
+bugs he could not hand over**, because the workflow wanted a phase closed first. His words for the
+result: *"squandering time building thoughtless tool and not really fixing much, period."*
+
+**The tell, and it is easy to check:** ask *"is the game better than it was this morning, in a way a
+player would notice?"* If the honest answer is no, stop and change what you are doing.
+
+### PLAY THE GAME. In two tabs. And look at it.
+
+Wyatt, 2026-08-20: *"There are so many bugs that I can see at a glance in moments that you would
+also be able to see in moments if you simply QA'd the game in a browser yourself, in multiplayer
+mode, in two different browser tabs."*
+
+**This is the single highest-value thing available and it takes minutes.** He finds bugs at a glance
+that a session will not find in a day of instrumentation, because he *plays* and a session
+*measures*. Two days were spent on five phantom defects while the real ones sat in plain sight on the
+first screen.
+
+- **Open the game and play it. As a person, not as a probe.** Solo first if you like, then a crew
+  game with a host and a guest — two browsers, both driven, a real Firebase room.
+- **Do this BEFORE analysis, not after.** A list of what you saw beats a theory of what might be
+  wrong. Bring him what you saw.
+- **The how is already written down and hard-won.** `docs/DRIVING-THE-GAME.md` is the whole manual —
+  §3 solo, §4 the turn loop and the two things that stall every naive driver, §5b the autoplay driver
+  that actually plays, §5c driving a guest while a human hosts, §5e injecting the state you want
+  instead of playing your way to it. Read it **before** you touch a browser (rule 17), not after you
+  are stuck. Sessions have re-derived every one of those lessons the hard way; do not add to the
+  count.
+- **Rule 19 is not this rule.** Rule 19 says QA *your own change* before handing it over. This one
+  says play *the game*, routinely, to find what is wrong with it — including things nobody asked
+  about.
+
+### Hold the whole game, not the current ticket — engineer AND designer
+
+Wyatt, 2026-08-20: *"I want to be able to direct you to think holistically about the project as both
+an engineer and a designer and to understand my intentions more clearly… see the bigger picture at
+all moments instead of getting completely lost in these tiny details that somehow have scope creep
+and end up often being completely irrelevant."*
+
+- **Read the intent, not only the words.** "Fix the whole game" means *make this game good*, not
+  *work the list you inferred at midnight*.
+- **His list outranks yours.** He plays this game; you do not. Before a long run, ask what is on it.
+  If a process step stands between him and telling you what is wrong, **break the step** — take the
+  list, re-scope, fix the record afterwards.
+- **Say when the ask is not the biggest lever.** *"You asked for X; I think Y would do more for a
+  player, here's why"* is a designer's job and he is explicitly asking for it.
+- **When he hands you a list, triage and recommend BEFORE fixing** (his pick, 2026-08-20): come back
+  with what you think the biggest levers are and why, and let him approve the order.
+
+### Every plan states its SIZE
+
+Wyatt, 2026-08-20, on the overnight plan he approved and then found far smaller than he imagined:
+*"your language was so contextless for me that I couldn't understand it last night."*
+
+**A plan he cannot size is a plan he cannot redirect.** "Fix the guest's wind pill" is plain English
+and still useless to him. "Five small render bugs out of your twenty — none of them the ones that
+stop you playing" is directable. Every proposal says:
+
+1. **what a player will experience differently** afterwards,
+2. **how much of the known problem it covers** — "5 of ~20", "the whole crew-game path", "one screen",
+3. **what it explicitly leaves undone.**
+
+**This is rule 4 with teeth.** Plain words are necessary and not sufficient — plain words with no
+scale still leave him unable to steer.
+
+### Never report a defect as confirmed before you have measured it
+
+**This one cost two days.** At the 02.1 gate five defects were put to him, three in a table beside
+measured findings, **none of those three measured** — they came from one screenshot read while the
+guest was still behind the opening ceremony card. Four of the five were false. So *"the problems that
+aren't even real bugs"* he spent two days on **were generated by a session and handed to him with
+unearned confidence.** The table format itself asserted a certainty that did not exist.
+
+- Say **"observed once, not yet measured"** until it is measured, and never place an unmeasured claim
+  beside measured ones.
+- **Red-proof the instrument before believing it.** Three separate checks in one night measured
+  something other than what they named: `offsetParent` (always null for a `position:fixed` element,
+  so it condemned the host's own working screen), polling for a prompt while a driver answered it
+  every 700ms, and checking for buttons on a prompt kind that draws squares on the board.
+- **When a check condemns something known to work, suspect the check first.**
+- **Correct the record in the open** when a claim turns out false — see the correction on 02.1's
+  Wave 4 row. A requirement marked failed on a bad measurement rots exactly like one marked complete
+  on a bad one.
+
+### Do not build tooling when the ask is to fix the game
+
+Infrastructure, harnesses and process improvements are a **substitution** for the ask unless he asked
+for them. On 2026-08-19 a session spent much of an eight-hour fix window building a hook — offered to
+him from a menu **it put in front of him mid-window and framed as free**. The fault is the offering,
+not his choosing. He called the result "thoughtless tool"; from where he sits that is fair, because
+the game got no better.
+
+**If you think tooling is needed, say so in one line and park it.** Do not offer it as a live option
+while real bugs are waiting.
 
 ---
 
