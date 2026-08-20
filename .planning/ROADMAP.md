@@ -299,14 +299,42 @@ free of faults visible at a glance.
 were going to redesign the architecture of multiplayer so that guests and hosts are all shown with
 parity, but not from two parallel code paths… Do you remember this work? Did this get done?"*
 
-**The honest answer is HALF.** Phase 02.1 unified the **state layer** and that holds — a guest's boat
-positions match `events[last].state` for every seat. It did **not** finish deleting the render
-branches. Measured 2026-08-20: **~43 `isHost`/`isGuest`/`amHost` hits across 7 files in `4/src`**, 21
-of them in `orchestrator.js` alone. That unfinished half is the direct cause of **five** of his
-twenty-two — 17 (duplicated narration behind the opening cards), 19 (the "waiting for yer mateys"
-box fading on a timer instead of on the event), 20 (the host's director snapping back to the host's
-own boat during a guest's turn), 21 (the top-bar boats not updating on a guest). **Fixing those five
-separately would be five patches over one hole.**
+**The honest answer is HALF — but not the half this file first named.** Phase 02.1 unified the
+**state layer** and that holds: a guest's boat positions match `events[last].state` for every seat.
+
+> **CORRECTED 2026-08-20, at planning, before any plan was written.** This paragraph previously read
+> *"it did not finish deleting the render branches — ~43 `isHost`/`isGuest`/`amHost` hits across 7
+> files, 21 in `orchestrator.js` alone… that unfinished half is the direct cause of five of his
+> twenty-two."* **All 45 hits were then read, one at a time, and that claim does not hold.** The
+> count was real; the interpretation was not. Classified:
+>
+> | Where | Hits | What they actually decide |
+> |---|---|---|
+> | `orchestrator.js` | 21 | who writes to Firebase (`isHost&&db&&room`, 7×), who creates/joins/leaves the room and restores the session (10×), who runs the live sim, who applies end-meta, one comment |
+> | `ui/util.js` | 13 | the **shot clock** — start/stop/pause/expiry, host-owned by design (D-05/D-06) |
+> | `ui/panel.js` | 3 | one genuine render read (`:135`, whose clock state to draw), one host-broadcast seam, one comment |
+> | `ui/flow.js` | 2 | solo and pass-and-play setup |
+> | `state/index.js` | 2 | the field declaration and a comment |
+> | `ui/lobby.js`, `main.js` | 2 | room creation; the tab-hide clock pause |
+>
+> **That is `CLAUDE.md`'s own sanctioned residue — "who computes the game and who creates the room" —
+> plus the shot clock.** There is no seam of render branches to delete. A plan written to "delete the
+> 43 branches" would find almost nothing to delete, or would delete host authority and take
+> multiplayer down.
+>
+> **Wyatt's diagnosis in item 18 is nonetheless correct, and the measurement was pointed at the wrong
+> noun.** The parallel code paths he names are real, and they are **narration call sites**, not
+> `isHost` conditionals: the host renders "⚓ Waiting for yer mateys…" from `4/src/ui/flow.js:2211`
+> while the guest is told "⚓ Everyone's choosing their recipe…" from `4/src/orchestrator.js:805`.
+> One moment, two code paths, two different sentences — **which is exactly his screenshot 17b.**
+> `netNarrate()` (`orchestrator.js:304`) likewise shows locally *and* broadcasts, which is where
+> duplication (item 17) has to be looked for.
+>
+> **So the five items have five causes, and two are already traced to one line each** (see Group Q).
+> They are not five patches over one hole; they are five separate faults that a wrong headline
+> merged. Recorded here rather than silently edited: a requirement scoped from a bad measurement
+> rots exactly like one marked complete on a bad one — the same lesson this phase already learned
+> once, on 02.1's Wave 4 row above.
 
 **Requirements**: PAR-08 … PAR-13 *(to be added to `REQUIREMENTS.md` at planning)*
 
@@ -314,16 +342,49 @@ separately would be five patches over one hole.**
 
 ---
 
-#### Execution order — Wyatt's pick, 2026-08-20: A → B → C → C′ → D
+#### Execution order — Wyatt's pick, 2026-08-20: **Q → A → B → C → C′ → D**
 
-**Group A — finish the one render path.** Items **17, 18, 19, 20, 21**.
-Delete the remaining host/guest branches in the render tier so the director, the narration queue and
-the top-bar boats all read from one place on both sides. The director follows the **active player**,
-by the same rule the solo game already uses. Narration is not duplicated, is shown on the stage when
-there is a stage, and a "waiting for yer mateys" / "{Player} is deciding" box **clears on the event
-that ends the wait, never on a timer**.
+> **Group Q was added at planning, 2026-08-20, on Wyatt's pick.** Shown the measured sizes — several
+> of his items are one line each — he chose *"quick wins first, then your order."* **His A → B → C →
+> C′ → D sequence is unchanged underneath it**; Q is a first small drop pulled from across the
+> groups, not a resequencing of them. Items keep his numbers and are struck from their home group
+> when Q lands them.
 
-**Group B — the faults visible on the first screen.** Items **1, 2, 3, 5, 11, 14, 22**.
+**Group Q — the one-line wins, shipped first.** Items **13, 10, 20, 15, 1, 14, 7**.
+Each is small and each is noticed immediately. Two are confirmed by reading the code, one is a
+strong candidate that must be reproduced first, and the rest are located but unsized:
+
+- **13 (sound) — CONFIRMED, one deleted line.** `4/src/ui/audio.js` maps `anchorHold` twice inside
+  the *same object literal* — `:94` `anchorHold:"fishing"` and `:118` `anchorHold:"storm"`. The
+  second silently wins. Deleting `:118` restores `fishing.mp3` (downloaded every game, never played)
+  **and** stops anchoring firing the 8-second storm bed once per anchoring ship. Then set the six
+  volumes, all still the untouched default. **Read `docs/AUDIO.md` first.**
+- **10 (narration time) — CONFIRMED, one number.** `4/src/ui/stage.js:578` clamps the hold to
+  `Math.max(2550, Math.min(6750, …))`. +30% on the maximum is `6750 → 8775`.
+- **20 + 15 (the director chasing your own boat) — CANDIDATE, NOT REPRODUCED.**
+  `4/src/ui/stage.js:1220` re-aims with `camToSeat(appState.mySeat ?? 0)` — *my* ship — for every
+  prompt that is not about boats. On a host during a guest's turn, "my ship" is the host's ship.
+  The correct subject is already in scope: `4/src/ui/stage.js:574` does `camToSeat(subj)` on the
+  narration path. **Reproduce in two tabs before changing it** (rule 6) — this block only runs when
+  an action panel exists, and whether the host draws one during a guest's turn is unverified.
+- **1, 14 (button labels and Pass at the bottom), 7 (the "Bakeries" wording)** — small, located,
+  not yet sized. **7 may not be cosmetic:** `4/src/ui/board.js:1935` prints `"one baker home"`
+  whenever `finishOrder.length` is 1, and his screenshot shows that line with three captains home.
+  If the count is wrong, that is a scoring bug wearing a copy bug's clothes. **Measure before
+  fixing.**
+
+**Group A — the one render path, properly diagnosed.** Items **17, 18, 19, 20, 21** — and **15**,
+which this file had dropped (every number 1–22 appeared in these groups except 15; it is the same
+director fault as 20 and is restored here).
+**Do NOT plan this as "delete the host/guest branches" — see the correction above; there are none to
+delete.** The work is the *parallel narration paths*: one moment must produce one sentence from one
+place on both sides. The director follows the **active player**, by the same rule the solo game
+already uses. Narration is not duplicated, is shown on the stage when there is a stage, and a
+"waiting for yer mateys" / "{Player} is deciding" box **clears on the event that ends the wait,
+never on a timer**. Whatever Group Q has already landed is struck from here rather than done twice.
+
+**Group B — the faults visible on the first screen.** Items **2, 3, 5, 11, 22**. *(1 and 14 moved to
+Group Q; both are listed below so the intent survives if Q leaves either undone.)*
 1 — drop the parentheses from action-prompt button labels. 2 — the one action prompt that renders as
 a flat card ("a broadside, and yer purse won't stretch") uses the same radial fan as every other
 action. 3 — the battle screen centres on the **board**, framing both combatant boats, not on an
@@ -333,7 +394,8 @@ is the **bottom** button, and loses its parentheses. 22 — **stopgap only**: de
 phone's aspect ratio (narrow, centred, square board) so both of us debug the same picture. **The
 desktop redesign stays in Phase 8 and is NOT in this phase.**
 
-**Group C — rules and sound.** Items **4, 13**.
+**Group C — rules and sound.** Item **4**. *(13 moved to Group Q — it is one deleted line. Its
+volume-balancing half stays here if Q ships only the deletion; the text below is unchanged.)*
 4 — a bot may not pass **and** fire the ovens in one turn; that breaks the standing bots-and-humans
 parity invariant. **Wyatt's ruling: the bot BAKES** — a bot docking at Tortuga with a full recipe
 fires the ovens and forfeits the pass dubloon, because that is what a human would obviously do.
@@ -351,15 +413,18 @@ about 10 coins.* His proposed levers: dock output **1–3** instead of 2–5, an
 table — purses over time, battle counts, game length. Change no number until he picks.** He asked
 for the numbers, not for the change.
 
-**Group D — design and copy.** Items **6, 7, 8, 9, 10, 16**.
+**Group D — design and copy.** Items **6, 8, 9, 16**. *(7 and 10 moved to Group Q.)*
 6 — the Bake-Off card leaves the screen once you have attempted your bake, so simultaneous bake-offs
 are visible. **Wyatt's ruling: it does NOT come back** — the attempt is locked in and the card has
-nothing left to offer. 7 — the end-of-voyage stat reads **"Bakeries"** and **"3 bakers home"**.
+nothing left to offer.
 8 and 9 — **sketch 2–3 throwaway HTML options each and let Wyatt choose before building**: the
 end-of-voyage card must be collapsible (or hold-the-sea) so the final board can be seen, and the
 recipe card needs a gradient that reaches the box edges and *darkens* rather than lightens, with the
-Download PDF and Email buttons clearly above the scrolling recipe. 10 — increase the narration
-maximum display time by 30%. 16 — a joining captain keeps the name they typed: a name held by
+Download PDF and Email buttons clearly above the scrolling recipe.
+**The sketches ship EARLY — his pick, 2026-08-20: *"sketch early, build in Group D."*** They travel
+with the Group Q drop so he can choose whenever he has a minute, and Group D is built against a
+choice already made. **Nothing in the phase waits on him, and Group D never stalls at a checkpoint.**
+16 — a joining captain keeps the name they typed: a name held by
 another **human** is refused with a warning under the Yer Captain Name box on JOIN VOYAGE; a name
 held by a **bot** is granted, and the bots swap names to accommodate.
 
@@ -374,18 +439,24 @@ sessions Group A already requires rather than from a dedicated hunt.
 
 **Success Criteria** (what must be TRUE):
 
-- **Wyatt plays a crew game on his phone and does not see items 1, 2, 3, 5, 11, 14, 17, 19, 20, 21
-  or 22.** That is the gate. It is his eyes, not a probe.
-- The render tier contains **no host/guest branch that changes what is drawn**. Whatever `isHost`
-  survives decides only who computes the game and who creates the room.
+- **Wyatt plays a crew game and does not see items 1, 2, 3, 5, 11, 14, 15, 17, 19, 20, 21 or 22.**
+  That is the gate. It is his eyes, not a probe.
+- **One moment produces one sentence, from one place, on both sides of the table.** Stated this way
+  because the original criterion — *"the render tier contains no host/guest branch that changes what
+  is drawn"* — was written against a premise that did not survive measurement, and **was already
+  satisfied on the day it was written**: all 45 `isHost`/`isGuest`/`amHost` hits decide who
+  broadcasts, who creates the room, or who owns the shot clock. A criterion that is true before the
+  work starts cannot gate the work. The real, failing condition is the one above: today the host
+  renders "Waiting for yer mateys…" while the guest is told "Everyone's choosing their recipe…" for
+  the same moment, from two different call sites.
 - A bot never passes and bakes in the same turn, proven from an event stream.
 - `fishing.mp3` plays at the moment it is wired to, and one anchoring ship produces one storm bed.
 - Wyatt has seen the economy table and picked the settings **before** any economy number changed.
 - Wyatt has picked from sketches for items 8 and 9 **before** either was built.
 
 **How the work reaches him** *(his one-drop-one-test convention)*:
-**One build drop per group**, each with a fresh `PP4_STAMP` in `4/src/ui/stage.js`, and the stamp
-named in the message he reads. **Before any group is handed over, play a two-tab crew game — a real
+**One build drop per group — Q is the first drop**, each with a fresh `PP4_STAMP` in
+`4/src/ui/stage.js`, and the stamp named in the message he reads. **Before any group is handed over, play a two-tab crew game — a real
 host and a real guest — and screenshot BOTH sides.** Four of the seven faults he found at the 02.1
 gate were host/guest divergences, which a single-browser probe cannot see by construction.
 
@@ -744,7 +815,7 @@ The first phase is independent of every promotion decision and can start immedia
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
 | 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
-| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 0/TBD | Not started | Rewritten 2026-08-20 around his 22-item playtest list |
+| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 0/TBD | Planning | Rewritten 2026-08-20 around his 22-item list; item 15 restored and the "43 render branches" premise corrected at planning |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
