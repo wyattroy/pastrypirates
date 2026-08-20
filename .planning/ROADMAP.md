@@ -385,15 +385,64 @@ strong candidate that must be reproduced first, and the rest are located but uns
   If the count is wrong, that is a scoring bug wearing a copy bug's clothes. **Measure before
   fixing.**
 
-**Group A — the one render path, properly diagnosed.** Items **17, 18, 19, 20, 21** — and **15**,
-which this file had dropped (every number 1–22 appeared in these groups except 15; it is the same
-director fault as 20 and is restored here).
-**Do NOT plan this as "delete the host/guest branches" — see the correction above; there are none to
-delete.** The work is the *parallel narration paths*: one moment must produce one sentence from one
-place on both sides. The director follows the **active player**, by the same rule the solo game
-already uses. Narration is not duplicated, is shown on the stage when there is a stage, and a
-"waiting for yer mateys" / "{Player} is deciding" box **clears on the event that ends the wait,
-never on a timer**. Whatever Group Q has already landed is struck from here rather than done twice.
+**Group A — ONE DIRECTOR.** Items **17, 18, 19, 20, 21** — and **15**, which this file had dropped
+(every number 1–22 appeared in these groups except 15; it is the same director fault as 20 and is
+restored here).
+
+> **REWRITTEN AGAIN, 2026-08-20, after Wyatt said: *"look at the screenshots from my PDF and see how
+> the host screenshots look different than the guest screenshots… compare them pixel by pixel."***
+> Nobody had. Two passes of this section were written from reading code — the first blamed 43 render
+> branches, the second blamed two narration call sites. **Both were reasoning about the code instead
+> of looking at his evidence, and both were too small.** Comparing the images took minutes.
+
+**The root cause, measured at `4/src/orchestrator.js:1654-1655`:**
+
+```js
+if(appState.isHost){ runLiveNet().catch(…); }
+else{ watchEvents(); watchPrompt(); watchNarr(); watchFlip(); watchBattle();
+      watchDraftPrompt(); watchClock(); watchTurnOrder(); watchRecoveryState(); }
+```
+
+**The host's screen is driven by the game loop.** `runLiveNet()` plays the voyage and calls the
+renderers directly as it goes. **The guest's screen is driven by nine independent listeners**, each
+deciding on its own what to draw and when. **The renderers are shared; the orchestration is not** —
+which is exactly why 02.1's state-layer fix helped and why this went unspotted. **These are two
+directors, and that is the "two parallel code paths" Wyatt named in item 18.**
+
+**The fix, his pick — *"do it properly"*: the host becomes a listener to its own broadcast.** It
+computes the game and publishes events, then draws from that same stream exactly as every guest
+does. **One director.** A change to how anything is drawn then reaches both screens *because there
+is only one place it is drawn from* — drift becomes structurally impossible instead of being kept
+away by discipline. He was told plainly this is bigger and riskier than patching the symptoms, and
+that it touches the host path that works for him today.
+
+**The shape to copy already exists one line below the fork, and cannot drift:**
+```js
+watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
+```
+
+**Group A is done when a two-tab session reproduces NONE of these eight** — read off his own
+side-by-side screenshots, and the acceptance list for this group:
+
+| His shot | Host shows | Guest shows |
+|---|---|---|
+| 17a — Ahoy | the message once, in the centre card | **the same message twice** — a dark top strip *and* the centre card |
+| 17b — the wait | "⚓ Waiting for yer mateys…" | "⚓ Everyone's choosing their recipe…" |
+| 17c — drawing lots | the text once | **the text twice** — a bubble behind, plus the card |
+| 19 — waiting | **no narration at all**, board reads as dead | prompt still up |
+| 20 — the director | camera parked elsewhere | camera centred on the active boat |
+| 20 — sail window | **no sail squares** | sail squares highlighted |
+| 20 — CAPTAINS panel | Wyargh's row first | his own row first — **different order** |
+| 21 — top-bar boats | updating with the turn | not updating |
+
+**Two cautions.** The CAPTAINS row-order difference is **observed, not explained** — it may be a
+deliberate "me first" ordering; measure before calling it a bug. And the host's recipe picker looks
+blank beside the guest's in 17b: **that is NOT a fault** — Wyatt: *"the picker works, i just
+screenshotted it before the text finished animating in."*
+
+**`isHost` is still not deleted.** The fork is restructured, not removed — the host still computes
+the game and still creates the room. Whatever Group Q has already landed is struck from here rather
+than done twice.
 
 **Group B — the faults visible on the first screen.** Items **2, 3, 5, 11, 22**. *(1 and 14 moved to
 Group Q; both are listed below so the intent survives if Q leaves either undone.)*
@@ -453,14 +502,23 @@ sessions Group A already requires rather than from a dedicated hunt.
 
 - **Wyatt plays a crew game and does not see items 1, 2, 3, 5, 11, 14, 15, 17, 19, 20, 21 or 22.**
   That is the gate. It is his eyes, not a probe.
-- **One moment produces one sentence, from one place, on both sides of the table.** Stated this way
-  because the original criterion — *"the render tier contains no host/guest branch that changes what
-  is drawn"* — was written against a premise that did not survive measurement, and **was already
-  satisfied on the day it was written**: all 45 `isHost`/`isGuest`/`amHost` hits decide who
-  broadcasts, who creates the room, or who owns the shot clock. A criterion that is true before the
-  work starts cannot gate the work. The real, failing condition is the one above: today the host
-  renders "Waiting for yer mateys…" while the guest is told "Everyone's choosing their recipe…" for
-  the same moment, from two different call sites.
+- **THE HOST AND THE GUEST DRAW FROM THE SAME PLACE — one director, not two.** The host is a
+  listener to its own broadcast, the way `watchChat()` already makes every client both send and
+  listen. **Checkable by a person:** a two-tab crew game reproduces none of the eight divergences in
+  his screenshots (Group A's table above) — no duplicated Ahoy, one sentence for the wait, narration
+  that outlives the wait on both screens, one camera, the same sail window, the same CAPTAINS order,
+  and a top bar that updates for everyone.
+
+  > **This criterion has been rewritten twice, and the reason is worth keeping.** It first read *"the
+  > render tier contains no host/guest branch that changes what is drawn"* — which **was already true
+  > the day it was written**, since all 45 `isHost` hits decide who broadcasts, who creates the room
+  > or who owns the shot clock. A criterion that passes before the work starts cannot gate the work.
+  > It was then narrowed to *"one moment produces one sentence, from one place"* — true, but only
+  > about narration, when his screenshots show the camera, the sail window, the top bar and the
+  > CAPTAINS panel diverging too. **Both versions were written from reading code rather than from
+  > looking at his evidence.** The structural condition above is what he actually asked for: not that
+  > the two screens have been made to agree, but that **there is only one screen-drawing path, so
+  > they cannot disagree.**
 - A bot never passes and bakes in the same turn, proven from an event stream.
 - `fishing.mp3` plays at the moment it is wired to, and one anchoring ship produces one storm bed.
 - Wyatt has seen the economy table and picked the settings **before** any economy number changed.
