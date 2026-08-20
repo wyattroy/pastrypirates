@@ -468,7 +468,30 @@ export function panel(html,needsAction=false){
   // still-fading ghost that the last round measured at 66px -> 26px during the fade.
   const fromH=pinCurrentHeight();
   inner.innerHTML=html;
-  if(ghost){
+  /* A GHOST CROSSFADES ONE SENTENCE INTO ANOTHER. IT MUST NOT SIT OVER A DIFFERENT KIND OF THING.
+     Wyatt, 2026-08-20, with a screenshot: "the Ahoy line is temporarily written into the recipe box,
+     and then faded out immediately upon clicking 'ahoy'. this shouldn't happen." And, on how often:
+     "the bug where stage narrations get temporarily displayed in other action boxes is pervasive and
+     happens many times, especially during pass and play."
+
+     MEASURED, not guessed — a per-animation-frame sampler over a solo game caught two .apMsg nodes
+     alive together twice in the first five seconds, the second one carrying `fadeOut`:
+       2743ms  n=2  "wy, choose yer recipe:"  ||  "Ahoy! Choose a recipe, gather each ingredien…"
+       4257ms  n=2  "The crew draws lots…"    ||  "wy, choose yer recipe:"
+     852ms of overlap against the ghost's own .8s fade. So this is not the Ahoy line specially — it
+     is EVERY transition, which is exactly the "pervasive" he reported.
+
+     The ghost itself is right and stays: fading one narration line into the next reads well, and a
+     great deal of care is pinned into it (position, width, the reduced-motion path, click-through).
+     What is wrong is fading a SENTENCE over a RECIPE PICKER — the old words land inside a box that
+     now belongs to something else, and read as text wrongly written into it.
+
+     So the crossfade survives message->message and is skipped whenever the incoming panel is more
+     than a bare message. Decided from the REAL DOM after the swap rather than by pattern-matching
+     the html string, so a future prompt shape cannot silently opt itself back in. */
+  const incomingIsBareMessage = inner.children.length===1 &&
+    inner.firstElementChild && inner.firstElementChild.classList.contains("apMsg");
+  if(ghost && incomingIsBareMessage){
     ghost.classList.add("fadeOut");
     // Pin the ghost to exactly where it sat and how wide it wrapped — position:absolute alone
     // would otherwise snap it to #apGridInner's padding-box corner (the FIX-16 "jump left" bug).

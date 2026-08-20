@@ -91,6 +91,7 @@ import {
   netCreateRoom, netClaimSeat, netReadRoom, netWatchSeats, netWatchStatus,
   netSetTurnOrder, netWatchTurnOrder, netWatchRecipes,
   netLeaveRoom, netSetFeedback, netReadDlog, netReadEv,
+  netMarkHostGoneOnDisconnect, netClearHostGone,
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
@@ -816,8 +817,23 @@ export async function recipeDraftNet(){
          now reads the same sentence at the same beat, and stageFlash's S.hurry() retires the stale
          wait line as it lands. `wait` because this line's whole subject is that nothing is
          happening yet — item 19. */
+      /* MY OWN REGRESSION, SAME DAY, AND THE VARIANTS ARE THE FIX. Wyatt, 2026-08-20, with a
+         screenshot of a SOLO game: "wy is choosing a recipe…" floating over wy's own screen while
+         wy's recipe card was open in front of him. Told about himself, in the third person, in a
+         game with no one else in it.
+
+         The netBroadcast -> netNarrate change above is right and stays: the host WAS the one screen
+         never told. But netBroadcast never touched the sending screen, so the actor was silenced by
+         accident — and netNarrate draws locally, which removed that accident and exposed that this
+         call passes NO variants. The variants list is what silences a line for the captain it is
+         about; every sibling line already has one (flow.js:543's sail line, util.js:1573's "is
+         deciding"). This one was simply never given one, because until today it never needed one.
+
+         Every PENDING captain is an actor here, not just the first — in the multi-player wording
+         they are all choosing at once — so the whole pending set is silenced, not `pending[0]`. */
       // @copy misc.draftwait.recipechoosing
-      netNarrate(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,undefined,{wait:true});
+      netNarrate(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
+        pending.map(q=>({seat:q.idx,html:""})),{wait:true});
       const results={};
       const jobs=pending.map(p=>{
         setActor(p.idx);
@@ -1113,7 +1129,13 @@ export async function liveResolveEndNet(){
   }else{
     victoryConfetti(appState.game.winner); // EOV-05: a burst of celebration over the board
   }
-  if(appState.db&&appState.room&&!appState.replaying)netUpdateRoom(appState.db,appState.room,{status:"ended"},netFail("game end"));
+  if(appState.db&&appState.room&&!appState.replaying){
+    // CANCEL FIRST, then write "ended". An armed onDisconnect would otherwise overwrite this the
+    // moment the host closes the tab on a game they actually finished, and every guest would be
+    // told the host bailed. Order matters: cancel, then set.
+    netClearHostGone(appState.db,appState.room);
+    netUpdateRoom(appState.db,appState.room,{status:"ended"},netFail("game end"));
+  }
 }
 
 // host (live): append a resolved human decision to the shared, ordered log. Issued BEFORE the
@@ -1638,12 +1660,87 @@ export async function watchRoom(){
   });
   netWatchStatus(appState.db,appState.room,async snap=>{
     const st=snap.val();
+    /* THE HOST LEFT. Only a guest acts on this — the host writing it about itself is not news, and
+       the flag only means anything once a voyage is under way. GRACE PERIOD, not an instant verdict:
+       a momentary drop fires the server-side onDisconnect too, and armHostGone() puts "playing" back
+       the instant the host is connected again. Re-read before believing it, so a wifi hiccup never
+       tells somebody their crewmate walked out. */
+    if(st==="hostgone"&&!appState.isHost&&appState.gameStarted&&!appState.hostGoneShown){
+      appState.hostGoneShown=true;
+      await new Promise(r=>setTimeout(r,4000));
+      const still=(await netReadRoom(appState.db,appState.room)).val();
+      if(!still||still.status==="hostgone"){hostLeftTheVoyage();return;}
+      appState.hostGoneShown=false;                      // false alarm — they sailed back in
+      return;
+    }
     if((st==="playing"||st==="ended")&&!appState.gameStarted){
       const r=(await netReadRoom(appState.db,appState.room)).val();
       appState.roster=[];for(let i=0;i<r.numSeats;i++)appState.roster[i]=(r.seats&&r.seats[i])||{bot:true,strat:seatStrat(i)};
       beginGame(r.cfg,r.seed);
     }
   });
+}
+/* THE VOYAGE IS OVER BECAUSE THE HOST LEFT — Wyatt, 2026-08-20: the guest "must see an error
+   notification, ideally in pirate speak, saying that their matey left the voyage and it's over."
+
+   PIRATE SPEAK IS CORRECT HERE and is not a style choice: this is a message from inside the game
+   world to a captain at sea, which is exactly the side of CLAUDE.md's voice boundary that speaks
+   this way. (The credits and About page are the other side, and stay in Wyatt's own voice.)
+
+   NOT AN alert(). The existing "That game no longer exists." path uses one, and a blocking dialog
+   is indistinguishable from a hung tab (docs/DRIVING-THE-GAME.md §8) — which is a poor way to tell
+   somebody the game stopped. It is also plain English in a pirate game. This card is the shape that
+   path should have had.
+
+   Terminal by design: no way back into a voyage that has no host to compute it. One door, to port. */
+function hostLeftTheVoyage(room){
+  if(document.getElementById("ppHostGone"))return;                 // first one wins
+  let who="Yer matey";
+  try{
+    const hostId=room&&room.host;
+    const seats=(room&&room.seats)||appState.roster||[];
+    for(let i=0;i<seats.length;i++){
+      const s=seats[i];
+      if(s&&s.id&&hostId&&s.id===hostId&&s.name){who=s.name;break;}
+    }
+  }catch(e){}                                                       // a name is a courtesy, never a blocker
+  const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const box=document.createElement("div");
+  box.id="ppHostGone";
+  box.setAttribute("role","alertdialog");
+  box.setAttribute("aria-modal","true");
+  box.style.cssText="position:fixed;inset:0;z-index:99998;display:flex;align-items:center;"+
+    "justify-content:center;padding:22px;background:rgba(8,34,41,.72);backdrop-filter:blur(2px)";
+  box.innerHTML=
+    '<div style="background:#fffdf2;border:2px solid #2aa9b8;border-radius:16px;padding:22px 24px;'+
+    'max-width:26rem;box-shadow:0 10px 40px rgba(0,0,0,.4);text-align:center;'+
+    'font:16px/1.5 system-ui,sans-serif;color:#123">'+
+      '<div style="font-size:34px;line-height:1;margin-bottom:10px">\u2693</div>'+
+      '<h2 style="margin:0 0 10px;font-size:20px;color:#12707c">'+esc(who)+' has left the voyage</h2>'+
+      '<p style="margin:0 0 18px">There be no hand on the wheel, so this ship sails no further. '+
+      'Gather yer crew and set out afresh, captain.</p>'+
+      '<button id="ppHostGoneBtn" style="font:600 16px system-ui,sans-serif;background:#2aa9b8;'+
+      'color:#fff;border:0;border-radius:999px;padding:11px 26px;cursor:pointer">Back to port</button>'+
+    '</div>';
+  document.body.appendChild(box);
+  const btn=document.getElementById("ppHostGoneBtn");
+  btn.onclick=()=>{try{netLeaveRoom();}catch(e){} clearSession(); showHome(); box.remove();};
+  btn.focus();
+}
+
+/* Arming is not once-and-done. Firebase re-sends an armed onDisconnect after a reconnect, but the
+   value it already WROTE during the drop stays written — so a host whose wifi hiccups for a moment
+   comes back to a room marked "hostgone" and a guest who has been told a lie. So on every transition
+   back to connected the host re-asserts "playing" AND re-arms. Paired with the guest's grace period
+   in watchRoom, a blip costs nobody anything. */
+export function armHostGone(){
+  if(!appState.isHost||!appState.db||!appState.room||appState.replaying)return;
+  netMarkHostGoneOnDisconnect(appState.db,appState.room);
+  netWatchConnected(appState.db,snap=>{
+    if(snap.val()!==true||!appState.isHost||!appState.room)return;
+    netUpdateRoom(appState.db,appState.room,{status:"playing"},()=>{});
+    netMarkHostGoneOnDisconnect(appState.db,appState.room);
+  },()=>{});
 }
 export async function startGame(){
   try{
@@ -1662,6 +1759,12 @@ export async function startGame(){
     pingStart(strategies.filter(s=>s==="human").length,"net");
     await netUpdateRoom(appState.db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
       recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
+    /* THE HOST'S HAND ON THE WHEEL — Wyatt, 2026-08-20: "when the host leaves, the guest isn't told
+       anything; the game simply stalls." Armed the moment the voyage actually starts, because a
+       lobby that loses its host is already covered (the room is deleted and watchRoom's existing
+       recovery fires); it is the STARTED voyage that had nothing.
+       Re-armed on every reconnect below, and CANCELLED at a normal finish — see endVoyage. */
+    armHostGone();
   }catch(e){
     console.error("startGame failed",e);
     // @copy misc.mperror.serviceunreachable

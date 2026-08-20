@@ -170,6 +170,39 @@ export function netWriteGameLog(db, ts, payload, onError) {
    project whose rules predate the presence node will permission-deny these, and that's a nice-to-
    have busy indicator, not core gameplay, so it fails quietly rather than surfacing a banner. */
 
+/* ---------- the host's hand on the wheel (host-gone detection) ------------------------------------
+   Wyatt, 2026-08-20: "when the host leaves, the guest isn't told anything; the game simply stalls."
+   He was right that nothing existed. netMarkPresence above is GLOBAL — a site-wide busy counter —
+   and says nothing about whether a particular room still has a host in it. abandonRoom() does delete
+   a room, but it is lobby-only by explicit design ("a room that has already started playing is never
+   deleted here, because that would strand everyone else at the table"). So a host who closed the tab
+   mid-voyage left the room sitting in the database and every guest waiting forever for events that
+   were never coming.
+
+   WHY onDisconnect AND NOT A HEARTBEAT: onDisconnect is armed on the SERVER, so it fires for the
+   cases a client-side goodbye cannot cover — the tab closed, the browser crashed, the wifi dropped.
+   A goodbye handler only covers the one case where the host politely leaves.
+
+   IT WRITES status, NOT A NEW FIELD, on purpose. The guest already watches rooms/<CODE>/status
+   (netWatchStatus, attached in watchRoom), the host already writes it, and /rooms is open in the
+   security rules — so this adds a value to a channel that already exists rather than a node that
+   might be permission-denied on an older project (the trap the presence note above describes).
+
+   CANCELLING IS NOT OPTIONAL. The host sets status:"ended" at a normal finish and then quite
+   reasonably closes the tab — at which point an armed onDisconnect would overwrite that "ended"
+   with "hostgone" and tell everyone the host bailed on a game they actually completed. Every exit
+   that is NOT an abandonment must call netClearHostGone() first. */
+
+export function netMarkHostGoneOnDisconnect(db, room) {
+  if (!db || !room) return;
+  db.ref("rooms/" + room + "/status").onDisconnect().set("hostgone").catch(() => {});
+}
+
+export function netClearHostGone(db, room) {
+  if (!db || !room) return;
+  db.ref("rooms/" + room + "/status").onDisconnect().cancel().catch(() => {});
+}
+
 export function netMarkPresence(db, myId) {
   const myRef = db.ref("presence/" + myId);
   myRef.onDisconnect().remove().catch(() => {});
