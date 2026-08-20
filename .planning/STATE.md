@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase: 02.2
-current_phase_name: one-game-every-captain-wyatts-twenty-two
+current_phase: 02.15
+current_phase_name: one-log-one-display-path
 status: planned
-stopped_at: Phase 02.2 planned - six plans (Q, A, B, C, C-prime, D), checker PASS, nothing executed yet
+stopped_at: Phase 02.15 created and planned (02.15-01); 02.2 replanned to Q/B/C/C-prime/D behind it; four of Group Q shipped early as build 2026-08-20a
 last_updated: "2026-08-20T14:05:00.000Z"
 last_activity: 2026-08-20
-last_activity_desc: "2026-08-20: Phase 02.2 planned into six drops around Wyatt's 22-item list. The phase premise was CORRECTED first: all 45 isHost/isGuest/amHost hits in 4/src were read individually and they decide who broadcasts, who creates the room and who owns the shot clock - there are no render branches to delete. Item 18's real fault is parallel narration call sites (flow.js:2211 vs orchestrator.js:805). Item 15 had been silently dropped from every group and is restored. Wyatt added Group Q (one-line wins) ahead of his own A-D order."
+last_activity_desc: "2026-08-20: Wyatt compared his own host/guest screenshots pixel by pixel and the phase premise changed twice. Final: there are TWO DIRECTORS (orchestrator.js:1654) - the host draws from the game loop, a guest from nine listeners - and his fix (the captain writes a log; multiplayer semaphores the log out) became its own Phase 02.15, running BEFORE the rest of his twenty-two on his ruling. Rules 22 and 23 added to CLAUDE.md. Four of Group Q shipped early as build 2026-08-20a. Earlier the same day: Phase 02.2 planned into six drops around Wyatt's 22-item list. The phase premise was CORRECTED first: all 45 isHost/isGuest/amHost hits in 4/src were read individually and they decide who broadcasts, who creates the room and who owns the shot clock - there are no render branches to delete. Item 18's real fault is parallel narration call sites (flow.js:2211 vs orchestrator.js:805). Item 15 had been silently dropped from every group and is restored. Wyatt added Group Q (one-line wins) ahead of his own A-D order."
 progress:
   total_phases: 11
   completed_phases: 2
@@ -57,9 +57,23 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 02.2 (one-game-every-captain-wyatts-twenty-two) — **planned 2026-08-20, six plans, nothing executed**
-Plan: `02.2-01-PLAN.md` … `02.2-06-PLAN.md`. Read `02.2-CONTEXT.md` (23 locked decisions) first.
-Next: **`/gsd-execute-phase 02.2`** — plan 01 (Group Q) is the tracer and must land before 02–06.
+Phase: **02.15 (one-log-one-display-path)** — created and planned 2026-08-20. **It runs BEFORE 02.2.**
+Plan: `phases/02.15-one-log-one-display-path/02.15-01-PLAN.md` (7 tasks, four stages, safe stop after
+stage 2). Then `02.2-01` and `02.2-03…06`. **Read `02.2-CONTEXT.md` (29 locked decisions) first — it
+is the context for both phases.**
+Next: **`/gsd-execute-phase 02.15`**.
+
+**ALREADY LIVE, ahead of both: build `2026-08-20a` (`54806c6`).** Wyatt: *"yes, ship those three
+today."* Four of Group Q's items that provably do not touch the display path went out rather than
+waiting behind an architecture rewrite — item 13 (the duplicated `anchorHold` deleted, so
+`fishing.mp3` finally plays and anchoring stops firing the 8-second storm bed, plus the six volumes
+levelled from `docs/AUDIO.md`'s measured figures), item 7 (`Bakeries`, counting captains who got
+home), and items 1 + 14's brackets on all **four** money buttons. **Struck at the top of
+`02.2-01-PLAN.md` so they are not done twice.** Still open there: item 14's *other* half (Pass to the
+bottom — never reproduced), `battle-swords` clipped inside the file, and `audio_map_check.js`.
+
+**Whether the sound is RIGHT is his ears.** The map and the six numbers are verified from the live
+module; nothing else can settle it.
 
 **THE PREMISE OF THIS PHASE WAS CORRECTED AT PLANNING. READ THIS BEFORE THE PARAGRAPHS BELOW.**
 This file and `ROADMAP.md` both used to say Group A was *"delete the ~43 `isHost`/`isGuest`/`amHost`
@@ -80,9 +94,11 @@ as two uncoordinated renders. **Item 15 had been silently dropped** — every nu
 the roadmap's groups except 15 — and is restored to Group A. Full account: the boxed correction in
 `ROADMAP.md` § Phase 02.2.
 
-**Wyatt's sequencing, 2026-08-20, after seeing the measured sizes: Q → A → B → C → C′ → D.** Group Q
-is a first drop of one-line wins pulled from across the groups; **his A–D order is unchanged
-underneath it.** His other picks that day: **research before planning**; **sketch items 8 and 9 early
+**Wyatt's sequencing, after two corrections in one day: Phase 02.15 FIRST, then Q → B → C → C′ → D.**
+Group A stopped being a group — it became Phase 02.15 on his ruling *"its own phase, and do it before
+the rest of 02.2"*, taking items 15, 17, 18, 19, 20 and 21 with it. He was told plainly that this
+delays every visible fix and chose it anyway; four of the one-line wins were then shipped early
+(above) precisely because they do not touch the display path. His other picks that day: **research before planning**; **sketch items 8 and 9 early
 and build them in Group D**; the end-of-voyage stat **counts captains who got home**, a quantity the
 game does not track today, rather than relabelling the bakes-finished count it already has; and
 **no UI-SPEC — his notes are the design contract.**
