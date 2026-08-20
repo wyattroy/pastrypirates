@@ -12,3 +12,6 @@ node_modules/
 # gone. Revisit when the tracked total passes ~700 MB (Pages caps a published
 # site at 1 GB): at that point move the whole folder to an orphan
 # `art-archive` branch rather than ignoring it.
+
+# hook scratch: per-session markers for read-the-doc-first
+.claude/hooks/.read-state/

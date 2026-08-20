@@ -8,5 +8,20 @@
       "mcp__github__actions_list",
       "mcp__github__actions_get"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Checking CLAUDE.md §4 — read the doc first"
+          }
+        ]
+      }
+    ]
   }
 }
