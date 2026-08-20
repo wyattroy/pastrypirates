@@ -405,23 +405,67 @@ and 5 conform to instead of imitating whatever the code happens to do.
 - **There is ONE place that decides what is drawn, and every mode reads from it.** Not two paths kept
   in agreement — one path. **The audit question: what would have to be true for the host and a guest
   to disagree? The answer must be "nothing".**
+
 - **A two-tab crew game reproduces none of the seven divergences above**, screenshotted on both
   sides — and **a solo game and a pass-and-play game still play start to finish.**
+
 - **The parity gate runs against `4/` and would FAIL if the paths re-forked** — proven by having
   been seen red against today's tree first, not merely green after.
+
 - **The display rules exist as a document**, written as each piece converted.
 - **Nothing new is broken in the single-player game** — the mode with no room at all, and the one a
   two-tab test cannot see.
 
 **Explicitly NOT in scope:**
+
 - **A guest taking their own bake-off turn.** `bakeoffPrompt` (`4/src/ui/flow.js:565`,`:591`) has no
   remote path at all — left from when `/4` had no multiplayer, so today the guest's bench opens on
   the **host's** screen and the host bakes for them. **That is Phase 4's first success criterion
   already**, and this phase's rewrite will *not* sweep it up. Recorded here so it is not mistaken
   for a regression, and flagged to Phase 4 so it is not mistaken for new.
+
 - Everything else on Wyatt's twenty-two — that is Phase 02.2, which follows this.
 
-**Plans**: TBD — the four-stage structure in `02.2-02-PLAN.md` migrates here.
+**Plans**: 1/1 executed — `02.15-01-PLAN.md`, seven tasks. **Live as `PP4_STAMP` `2026-08-20b`.**
+
+**Stages 1, 2 and 3 landed. Stage 4 was deliberately not attempted** — D-04's safe stop, taken at
+**six of the seven** divergences. Stage 4 is the prompt channel: it is the one that is not
+chat-shaped, because a prompt **blocks the host's loop waiting for an answer**, and its failure mode
+is a captain who cannot take their turn. It buys one divergence — the sail window — at the price of
+the path every player uses on every turn. **Nothing was rolled back.**
+
+| Divergence | Verdict |
+|---|---|
+| 17a Ahoy | **closed** — one card, no duplicate top strip |
+| 17b the wait | **closed** — both screens read the same sentence at the same beat |
+| 17c drawing lots | **closed by the same deleted line as 17a** — but the both-sides pair was never captured. Stated, not rounded up. |
+| 19 waiting | **closed** — the wait line is *replaced* by the event that ends it, never faded on a timer |
+| 20 director | **closed** — identical framing, camera on the active captain on both |
+| 20 sail window | **NOT REACHED** — Stage 4 |
+| 21 top-bar boats | **closed** — the active seat agreed 14/14 where it had disagreed 14/14 |
+
+**The single-player game still plays**, verified independently after the fact — `room: null` with
+`isHost: true`, which is precisely the case that would have crashed had the host been routed through
+Firebase. Pass-and-play still gates the device. **Neither is visible to a two-tab check.**
+
+**The parity gate** was seen **RED** before Stage 1 touched a line, naming `flash`, `setActor` and
+`localAsk` at zero listeners. It ends **green against a declaration that still visibly names
+`localAsk`** — the predicted safe-stop report, and the declaration was **not** widened to fake a full
+green. **It still cannot see content parity:** whether two sentences *read* the same has no automated
+check anywhere, and that is what the two-tab screenshots are for.
+
+**Carried forward, none of it invented at the end:**
+- **Stage 4 / item 20's sail window** — the remaining divergence.
+- **Two unverified observations from a single solo screenshot** (CLAUDE.md rule 6 — one observation
+  is not a reproduction): the "holds are empty" explanation appearing in *two* boxes at once, and a
+  narration bubble reading *"Wyargh is choosing a recipe…"* shown to Wyargh himself in a solo game.
+  **Neither reproduced** — a driver stalls on the two-tap recipe card, which is also where the
+  executor's probe stalled. **Look for both during the next two-tab session; do not pre-write a fix.**
+- `4/scripts/audio_map_check.js` **does not exist** — Group Q never built it, and this plan's Task 7
+  referenced it. Still Group Q's job, still red-first.
+- Task 3's verify asserted a `2550/8775` narration clamp. **Group Q's item 10 has not shipped**, the
+  tree still reads `6750`, and it was correctly left alone rather than quietly changed to make a
+  check pass.
 
 ### Phase 02.2: One Game, Every Captain — Wyatt's Twenty-Two (INSERTED, REWRITTEN 2026-08-20)
 
@@ -490,6 +534,7 @@ Group A and runs BEFORE it, on Wyatt's ruling.
 **Plans:** 6 plans — one per drop, in his order
 
 Plans:
+
 - [ ] 02.2-01-PLAN.md — Group Q: the one-line wins (items 13, 10, 1, 14, 7), the 20/15 reproduction, and the sketches for 8 and 9
 - [ ] 02.2-02-PLAN.md — Group A: one narration path and one director rule (items 17, 18, 19, 21, and 20/15 if Q could not reproduce them)
 - [ ] 02.2-03-PLAN.md — Group B: the faults visible on the first screen (items 2, 3, 5, 11, 22)
@@ -516,14 +561,17 @@ strong candidate that must be reproduced first, and the rest are located but uns
   second silently wins. Deleting `:118` restores `fishing.mp3` (downloaded every game, never played)
   **and** stops anchoring firing the 8-second storm bed once per anchoring ship. Then set the six
   volumes, all still the untouched default. **Read `docs/AUDIO.md` first.**
+
 - **10 (narration time) — CONFIRMED, one number.** `4/src/ui/stage.js:578` clamps the hold to
   `Math.max(2550, Math.min(6750, …))`. +30% on the maximum is `6750 → 8775`.
+
 - **20 + 15 (the director chasing your own boat) — CANDIDATE, NOT REPRODUCED.**
   `4/src/ui/stage.js:1220` re-aims with `camToSeat(appState.mySeat ?? 0)` — *my* ship — for every
   prompt that is not about boats. On a host during a guest's turn, "my ship" is the host's ship.
   The correct subject is already in scope: `4/src/ui/stage.js:574` does `camToSeat(subj)` on the
   narration path. **Reproduce in two tabs before changing it** (rule 6) — this block only runs when
   an action panel exists, and whether the host draws one during a guest's turn is unverified.
+
 - **1, 14 (button labels and Pass at the bottom), 7 (the "Bakeries" wording)** — small, located,
   not yet sized. **7 may not be cosmetic:** `4/src/ui/board.js:1935` prints `"one baker home"`
   whenever `finishOrder.length` is 1, and his screenshot shows that line with three captains home.
@@ -601,10 +649,12 @@ sessions Group A already requires rather than from a dedicated hunt.
 
 - **Wyatt plays a crew game and does not see items 1, 2, 3, 5, 11, 14, 15, 17, 19, 20, 21 or 22.**
   That is the gate. It is his eyes, not a probe.
+
 - **Host/guest parity is NOT this phase's criterion any more — it moved to Phase 02.15**, which
   runs first and which this phase depends on. Items 15, 17, 18, 19, 20 and 21 went with it. If a
   host/guest divergence is still visible when this phase runs, that is 02.15 not having landed,
   **not a new fault to patch here.**
+
 - A bot never passes and bakes in the same turn, proven from an event stream.
 - `fishing.mp3` plays at the moment it is wired to, and one anchoring ship produces one storm bed.
 - Wyatt has seen the economy table and picked the settings **before** any economy number changed.
