@@ -115,7 +115,9 @@ voyage himself and said it holds together" — remains NOT met. Nothing below ch
 Last activity: 2026-08-19 — the phase gate ran in real Safari for the first time and returned a
 negative result.
 
-**The build:** `PP4_STAMP` is **`2026-08-19c`** (commit `4db2c00`), confirmed serving live from
+**The build:** `PP4_STAMP` is **`2026-08-20a`** (commit `54806c6`) — the sound fix, the six
+volumes, `Bakeries`, and the brackets off all four money buttons. The previous stamp was `2026-08-19c`
+(`4db2c00`), confirmed serving live from
 `playpastrypirates.com/4`. One drop carrying all three code plans, per Wyatt's one-drop-one-test
 convention. Bumped exactly once this phase.
 
