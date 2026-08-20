@@ -1017,8 +1017,10 @@ export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.t
 // The explicit-clear path is deliberately preserved: a caller passing empty content still empties
 // and hides the panel. A caller ASKING for an empty box is a different thing from a timer producing
 // one, and only the second is what F6 forbids.
-export function showNarration(html){
-  if(html&&window.__pp4){const h=window.__pp4.narr(html);if(h)return;}
+// `opts.wait` rides through to stageFlash, which then registers no dismissal deadline — see its
+// note. The pre-stage panel path below has no hold of its own to skip, so it needs no branch.
+export function showNarration(html,opts){
+  if(html&&window.__pp4){const h=window.__pp4.narr(html,opts);if(h)return;}
   panel(html?`<div class="apMsg">${html}</div>`:"");
 }
 // netNarrate/netBroadcast remain classic-script globals this wave (they call showNarration bare,
@@ -1219,7 +1221,19 @@ export async function fadeOutPanel(){
   ap.style.display="none";
   ap.classList.remove("needsAction");
 }
-export async function flash(msg,ms,holdMs,variants){
+/* THE ONE PLACE A NARRATION LINE IS DRAWN FROM (02.15-01 Stage 1, D-25).
+   Until 2026-08-20 the host drew its narration here, from the game loop, and a guest drew its own
+   from watchNarr -> showNarration -> __pp4.narr. Two orchestrations, one renderer, and they drifted
+   — four of the seven divergences in Wyatt's side-by-side screenshots were narration.
+   orchestrator.js's watchNarr now calls THIS function, so a guest draws a narration line through
+   exactly the code the host's own loop draws it through, holds included. That is watchChat's shape
+   applied to the game display: one renderer, every client, nothing to keep in step by hand.
+   AND THE HOST STILL NEVER ROUND-TRIPS. It feeds this function directly and mirrors to Firebase
+   only through onNetBroadcast, whose netBroadcast target is guarded by `isHost && db && room`. In
+   solo and pass-and-play there is no room, the mirror is a no-op, and this function is the whole
+   path — which is exactly what it was before. A guest calling it broadcasts nothing for the same
+   reason (it is not the host), so there is no echo and no loop. */
+export async function flash(msg,ms,holdMs,variants,opts){
   // /4 stage: narration renders as a board bubble instead of the panel (solo only; the stage
   // hook returns null before a game is on screen, and the classic path runs unchanged).
   /* CREW GAMES PAINTED EVERY NARRATION LINE TWICE, AND THE SECOND PAINT ATE THE FIRST ONE'S HOLD.
@@ -1249,14 +1263,14 @@ export async function flash(msg,ms,holdMs,variants){
      its own variant, exactly as before. */
   if(window.__pp4){
     const shown=appState.room?pickNarrVariant({html:msg,variants},appState.mySeat):msg;
-    const h=window.__pp4.flash(shown,ms,holdMs,variants);
-    if(h){if(appState.room){const _nh0=netHandlers();if(_nh0.onNetBroadcast)_nh0.onNetBroadcast(msg,variants);}return h;}
+    const h=window.__pp4.flash(shown,ms,holdMs,variants,opts);
+    if(h){if(appState.room){const _nh0=netHandlers();if(_nh0.onNetBroadcast)_nh0.onNetBroadcast(msg,variants,opts);}return h;}
   }
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate
   // is itself still a classic-script global this wave, wired in through the still-present PP
   // bridge by src/main.js's setNetHandlers() call, formalized to a real src/net/ import in 11-06.
-  if(_nh.onBroadcast)_nh.onBroadcast(msg,variants);
+  if(_nh.onBroadcast)_nh.onBroadcast(msg,variants,opts);
   const el=$("actionPanel").querySelector(".apMsg");
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;

@@ -301,10 +301,13 @@ export function watchClock(){
 // viewer-neutral `html` verbatim. That's what lets a host who is themselves the subject of the
 // line read the addressed ("you...") form, while the broadcast `html` field stays neutral for
 // every other seat and for old clients that never read `variants` at all.
-export function netNarrate(html,variants){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat));if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants);}
+// `opts.wait` is item 19's flag and it must CROSS THE WIRE, or the guest's copy of a wait line
+// expires on the hold curve while the host's sits there — a new divergence in the act of closing
+// four. It is a UI-node field only; nothing in the event stream changes, so determinism is untouched.
+export function netNarrate(html,variants,opts){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat),opts);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-export function netBroadcast(html,variants){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants);}
+export function netBroadcast(html,variants,opts){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -803,15 +806,26 @@ export async function recipeDraftNet(){
         picks[p.idx]=i;logDecision(i);
       }
     }else{
+      /* 17b — ONE MOMENT, ONE SENTENCE, FROM ONE PLACE, ON BOTH SIDES (D-07).
+         This was netBroadcast, which is "broadcast to spectators WITHOUT touching this screen's
+         panel" — so every guest read "⚓ Everyone's choosing their recipe…" and the host read
+         NOTHING for this beat, and was left holding netIntroBarrier's older "⚓ Waiting for yer
+         mateys…" from the moment before. That is exactly the pair in his screenshot 17b: not two
+         wordings for one moment, but the host stranded a moment behind because it was the one
+         screen the line was never delivered to. netNarrate draws locally AND mirrors, so the host
+         now reads the same sentence at the same beat, and stageFlash's S.hurry() retires the stale
+         wait line as it lands. `wait` because this line's whole subject is that nothing is
+         happening yet — item 19. */
       // @copy misc.draftwait.recipechoosing
-      netBroadcast(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`);
+      netNarrate(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,undefined,{wait:true});
       const results={};
       const jobs=pending.map(p=>{
         setActor(p.idx);
         if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
           results[p.idx]=i;
           // @copy misc.draftwait.recipechosen
-          if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…");
+          // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
+          if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…",{wait:true});
         });
         return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
       });
@@ -1212,7 +1226,7 @@ export function watchDraftPrompt(){
            The teardown runs unconditionally now; the waiting line, if any, comes after it. */
         delete $("actionPanel").dataset.pp4Stage;
         panel("");
-        if(p.waitMsg)showNarration(p.waitMsg);
+        if(p.waitMsg)showNarration(p.waitMsg,{wait:true}); // item 19: no deadline on a wait line
       };
     });
   });
@@ -1380,14 +1394,30 @@ export function watchPrompt(){
     }
   });
 }
+/* ONE DRAW PATH (02.15-01 Stage 1, D-25). This used to call showNarration(), which reaches the
+   bubble through __pp4.narr — a DIFFERENT entry to the same renderer than the one the host's own
+   game loop uses (narrateCurrent -> flash -> __pp4.flash). Same bubble, two orchestrations, and
+   nothing holding them together: a host line carrying an explicit hold held for one duration on the
+   host and another on a guest, and four of the seven divergences in Wyatt's screenshots were
+   narration. It now calls flash() — the SAME function the host's loop calls — so a guest draws a
+   narration line through exactly the code the host draws it through. watchChat's shape, applied to
+   the game display.
+   NO ECHO AND NO LOOP: flash()'s mirror is netBroadcast, guarded by `isHost && db && room`, so a
+   guest calling flash() broadcasts nothing, and the host never listens to this node at all (this
+   function only runs in the guest branch of beginGame's fork). The host's own screen is still drawn
+   locally and synchronously — it never reads itself back through Firebase, which is what keeps solo
+   and pass-and-play alive.
+   THE RAW PAYLOAD IS PASSED, NOT A PICKED ONE: flash() calls pickNarrVariant itself when
+   appState.room is set, so handing it v.html + v.variants picks exactly once, as before. An old
+   payload with no `variants` key still degrades to v.html.
+   `wait` is item 19's flag — a wait line registers no dismissal deadline (see stageFlash). */
 export function watchNarr(){
   netWatchNarr(appState.db,appState.room,s=>{const v=s.val();
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
     // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
     // letting them overwrite the panel made the battle box flicker away between flips (#9)
-    // D-10: pickNarrVariant degrades an old payload (no `variants` key at all) to `v.html`
-    // exactly as before — a new guest reading an old host's broadcast sees no behavior change.
-    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)showNarration(pickNarrVariant(v,appState.mySeat));});
+    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)
+      Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});});
 }
 
 /* ================= welcome modal ================= */

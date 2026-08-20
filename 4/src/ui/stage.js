@@ -523,7 +523,22 @@ function fxHost(){
 // One live bubble at a time (flash() is awaited sequentially upstream). Captain lines anchor to
 // the speaker's ship under the CURRENT camera; table lines hover top-centre over the water.
 const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
-function stageFlash(msg){
+/* `opts.wait` — A WAIT LINE HAS NO DEADLINE. Item 19, Wyatt 2026-08-20: "It shouldn't disappear by
+   time, it should disappear when their teammates have played — otherwise the game can look stalled
+   with no description as to why or what's going on." A wait line is the one narration whose subject
+   is "nothing is happening yet", so the ordinary hold curve retires it precisely when it is still
+   the only thing on screen explaining the pause, and what is left is a dead board.
+   NOT SOLVED BY A BIGGER NUMBER (CLAUDE.md rule 9) — no constant here is touched, and the ceiling
+   at :578 is untouched. The mechanism already exists: stageFlash's first act is `S.hurry()`, which
+   retires the live bubble the instant a new one is shown, and the next real line is fired by the
+   event that actually ends the wait. So a wait bubble simply never registers a deadline and sits
+   there until something real replaces it.
+   SAFE ONLY BECAUSE NOTHING AWAITS A WAIT LINE. "A UI gate that can wait forever is a game that
+   can hang" (see the deadline note below) — every one of the four wait sites calls this
+   fire-and-forget: netIntroBarrier's waitMsg, watchDraftPrompt's waitMsg, recipeDraftNet's two
+   lines, and ask()'s "…is deciding…" broadcast. None is awaited by the game loop. If a future wait
+   line IS awaited, it must not use this flag. */
+function stageFlash(msg, ms, holdMs, variants, opts){
   if (!S.active) return null;                        // pre-game: let the panel handle it
   /* A REPLAY IS SILENT AND INSTANT — playtest 22, the other half of the stall report (Wyatt: "when
      i refreshed the browser, the game RESTARTED").
@@ -670,12 +685,16 @@ function stageFlash(msg){
        as the fast path; the deadline is the belt that means losing it costs a late line rather than
        the voyage. A tab that comes back from the background finds the line already overdue and the
        game carries straight on. */
-    S.bubDue = Date.now() + hold;
-    S.bubFinish = finish;
+    // A WAIT LINE REGISTERS NEITHER — no deadline, no timeout. S.hurry is still armed above, so
+    // the next real narration retires it, and so does a tap. Every other bubble is unchanged.
+    if (!(opts && opts.wait)){
+      S.bubDue = Date.now() + hold;
+      S.bubFinish = finish;
+    }
     wake();   // a live bubble rides the ship — full frame rate while it's up
     b.addEventListener("pointerdown", finish);
     place();
-    setTimeout(finish, hold);
+    if (!(opts && opts.wait)) setTimeout(finish, hold);
   });
 }
 
@@ -1613,7 +1632,7 @@ export function initStage(){
   // bridge for the classic modules (no import cycles): panel/flow/board call these if present
   window.__pp4 = {
     flash: stageFlash,
-    narr: html => (S.active ? stageFlash(html) : null),
+    narr: (html, opts) => (S.active ? stageFlash(html, undefined, undefined, undefined, opts) : null),
     set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
     set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
     sailCells: () => { if (S.active) camFitSail(); },

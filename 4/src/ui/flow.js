@@ -2190,9 +2190,24 @@ export async function botTurn(p){
 // blocks until every human seat (not just the host) has read msg and clicked through — same
 // per-seat localAsk/remoteDraftPrompt barrier recipeDraftNet() uses, so remote players get a
 // real button instead of read-only narration text they can't dismiss
+/* 17a AND 17c — THE SAME TEXT ARRIVING TWICE ON A GUEST, AND THIS LINE WAS THE SECOND COPY.
+   It used to read `netHandlers().onNetBroadcast(msg);` — a third, redundant delivery of a message
+   the barrier below already hands to EVERY human seat: localAsk for a local one, onRemoteDraftPrompt
+   for a remote one. netBroadcast does not touch the sending screen's panel, so the host never saw
+   it and nothing looked wrong there; on a guest it landed on the `narr` node, watchNarr drew a
+   floating bubble from it, and the draftPrompt card drew the identical words on top a beat later.
+   That is his 17a (a dark top strip AND the centre card) and his 17c (a bubble behind, plus the
+   card), and it is the general fault in miniature: one moment sent down two channels with nothing
+   coordinating them.
+   CHECKED BEFORE DELETING (the plan asked for this explicitly): the room's `narr` node has exactly
+   one consumer in the tree — watchNarr in src/orchestrator.js — and two writers, netNarrate and
+   netBroadcast. Nothing besides the narration bubble depends on it, so removing this write drops a
+   duplicate render and nothing else.
+   NOBODY IS LEFT OUT BY THE DELETION: every browser at the table owns a human seat (a bot seat has
+   no browser), and the barrier walks every human seat. There is no spectator this broadcast was
+   the only delivery for. */
 export async function netIntroBarrier(msg,btnLabel){
   if(appState.replaying)return;
-  netHandlers().onNetBroadcast(msg);
   // /4 playtest 12: the two intro barriers (ahoy + turn order) play CENTER STAGE — board dimmed,
   // message and button centred — instead of a bubble at the top and a lone circle mid-sea
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow",stage:true}];
@@ -2218,7 +2233,7 @@ export async function netIntroBarrier(msg,btnLabel){
   // @copy misc.draftwait.introwait
   const waitMsg=humans.length>1?"⚓ Waiting for yer mateys…":null;
   await Promise.all(humans.map(p=>seatLocal(p.idx)
-    ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg);return i;})
+    ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg,{wait:true});return i;}) // item 19: no deadline on a wait line
     :netHandlers().onRemoteDraftPrompt(p.idx,msg,opts,waitMsg)));
 }
 // the opening backstory/context message — stays up until every human player actually reads it

@@ -1547,7 +1547,15 @@ export function ask(msg,opts,colors,sub,extra){
   // pickNarrVariant on the host and through netSetNarr to watchNarr on every guest, so each client
   // selects for itself. No new copy — both strings already existed.
   // scripts/ui_contract_check.js assertion 7 gates the rule.
-  netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);
+  /* 19 — THE HOST'S DEAD BOARD, and this is the line that was dying on it. While a guest answers,
+     every other screen holds this "…is deciding…" line, and it is the only thing explaining the
+     pause. On the ordinary hold curve it retired after a few seconds and left a board with nothing
+     on it at all — Wyatt's shot 19, where the host reads as dead while the guest still has the
+     prompt up. `wait` means it registers no dismissal deadline and stands until the answer arrives
+     and fires the next real line, which is his own wording for item 19: "it should disappear when
+     their teammates have played". It is fire-and-forget — nothing awaits it — which is what makes
+     an un-deadlined bubble safe here (see stageFlash). */
+  netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}],{wait:true});
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.

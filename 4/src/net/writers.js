@@ -86,8 +86,14 @@ export function netSetResponse(db, room, payload, onError) {
 // payload entirely when absent/empty, so the common-case write stays byte-identical to before
 // this wave (an old client reading a new payload, or a new client reading an old one, both
 // degrade to the payload's own `html` — see src/ui/util.js's pickNarrVariant()).
-export function netSetNarr(db, room, html, onError, variants) {
+// 02.15-01: additive 6th `wait` param, same shape as `variants` above — omitted from the written
+// payload entirely when falsy, so the common-case write stays byte-identical and an old client
+// reading a new payload simply never sees the key. A wait line registers no dismissal deadline on
+// the client that draws it (see stageFlash); without this field the guest's copy would expire on
+// the hold curve while the host's sat there, which is a NEW divergence in the act of closing four.
+export function netSetNarr(db, room, html, onError, variants, wait) {
   const payload = variants && variants.length ? { html, t: Date.now(), variants } : { html, t: Date.now() };
+  if (wait) payload.wait = 1;
   return withReporter(db.ref("rooms/" + room + "/narr").set(payload), onError);
 }
 

@@ -422,7 +422,7 @@ const LISTENERS = ["watchEvents","watchPrompt","watchNarr","watchFlip","watchBat
 // `shared:false` is a DECLARED GAP — still host-loop-only, with the stage that closes it named.
 const ORCHESTRATION_DECL = [
   { fn: "showNarration(", shared: true,  why: "narration text — shared before this phase began" },
-  { fn: "flash(",         shared: false, why: "GAP — the host's real narration path (narrateCurrent -> flash -> stageFlash). Closes at Stage 1." },
+  { fn: "flash(",         shared: true,  why: "shared — PROMOTED BY 02.15-01 STAGE 1, in the same commit that made it true. watchNarr now draws through flash(), the same function the host's loop calls." },
   { fn: "setActor(",      shared: false, why: "GAP — who is acting. Divergences 20-director and 21 in one figure. Closes at Stage 2." },
   { fn: "localAsk(",      shared: false, why: "GAP — the host draws its own prompt from the game loop. Closes at Stage 4, which is abandonable under D-04." },
 ];
@@ -808,20 +808,28 @@ function drill() {
   const orchFixture = (bodies) => NINE.map((w) =>
     `export function ${w}(){\n  const pad="${"x".repeat(70)}";\n  ${bodies[w] || ""}\n}\n`).join("\n");
 
+  /* THE FIXTURES BELOW MUST SATISFY EVERY `shared:true` ENTRY IN ORCHESTRATION_DECL, or a negative
+     control goes red the moment a stage promotes a renderer — which is precisely what happened when
+     Stage 1 promoted `flash` and is the same class of stale-fixture bug drill 2c's note records.
+     A negative control that cannot go green is exactly as broken as an assertion that cannot go red. */
+  const SHARED_NOW = ORCHESTRATION_DECL.filter((d) => d.shared).map((d) => d.fn.replace("(", ""));
+  const allSharedBody = SHARED_NOW.map((f) => `${f}('x');`).join("");
+  const hostDrivesEverything = `export function runLiveNet(){${ORCHESTRATION_DECL.map((d) => `${d.fn.replace("(", "")}('x');`).join("")}}\n`;
+
   // 6a: a renderer DECLARED shared that no listener can reach — the two-directors fault itself
   resetFixture();
-  fixture(ORCH_REL, orchFixture({ watchEvents: "flash('hi');", watchPrompt: "setActor(1);localAsk();" }));
-  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');flash('x');setActor(0);localAsk();}\n`);
+  fixture(ORCH_REL, orchFixture({ watchNarr: allSharedBody.replace("showNarration('x');", "") }));
+  fixture(FLOW_REL, hostDrivesEverything);
   expect("drill 6a (showNarration driven by the host loop, reachable from NO listener)",
     checkOrchestrationParity(tmpRoot), true, "showNarration");
 
   // 6b: STRICT ignores the declared gaps, so a declared gap still red-proofs — this is the reading
   //     that was watched RED against the real 4/ tree on 2026-08-20 before Stage 1 began
   resetFixture();
-  fixture(ORCH_REL, orchFixture({ watchNarr: "showNarration('x');" }));
-  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');flash('x');setActor(0);localAsk();}\n`);
+  fixture(ORCH_REL, orchFixture({ watchNarr: allSharedBody }));
+  fixture(FLOW_REL, hostDrivesEverything);
   expect("drill 6b (STRICT — a DECLARED gap is still a failure when gaps are ignored)",
-    checkOrchestrationParity(tmpRoot, { strict: true }), true, "flash(");
+    checkOrchestrationParity(tmpRoot, { strict: true }), true, "setActor(");
 
   // 6c: ANTI-VACUITY. An EMPTY listener set must FAIL, never pass by finding nothing to complain
   //     about. This is the single most important drill on this assertion: a gate that reports
@@ -840,12 +848,13 @@ function drill() {
   fixture(FLOW_REL, `export function runLiveNet(){render();}\n`);
   expect("drill 6d (a renderer called NOWHERE must not pass as shared)",
     checkOrchestrationParity(tmpRoot), true, "ABSENT");
+  // 6d is deliberately left with NO shared renderer at all, which is what makes ABSENT fire.
 
   // 6e: negative control — a renderer both tiers reach passes
   resetFixture();
-  fixture(ORCH_REL, orchFixture({ watchNarr: "showNarration('x');" }));
-  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');}\n`);
-  expect("drill 6e (negative control — showNarration reachable from a listener passes)",
+  fixture(ORCH_REL, orchFixture({ watchNarr: allSharedBody }));
+  fixture(FLOW_REL, hostDrivesEverything);
+  expect(`drill 6e (negative control — every declared-shared renderer (${SHARED_NOW.join(", ")}) reachable from a listener passes)`,
     checkOrchestrationParity(tmpRoot), false);
 
   // --- final negative control: the REAL tree passes every assertion, which is what proves the
