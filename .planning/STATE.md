@@ -5,10 +5,10 @@ milestone_name: The New Game
 current_phase: 02.1
 current_phase_name: one-game-every-captain-one-render-path-for-host-and-guest
 status: executing
-stopped_at: 02.1-04 Task 1 complete (drop 2026-08-19c); holding at Task 2 human checkpoint
+stopped_at: Completed 02.1-04-PLAN.md
 last_updated: "2026-08-19T23:06:52.721Z"
 last_activity: 2026-08-19
-last_activity_desc: "02.1-04 drop landed — build 2026-08-19c live at /4; awaiting Wyatt's Safari host"
+last_activity_desc: "02.1-04: the real-Safari gate ran and found 2 turn-blocking defects — Wyatt ruled close 02.1, open 02.2"
 progress:
   total_phases: 10
   completed_phases: 2
@@ -57,13 +57,46 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — EXECUTING
-Plan: 4 of 4 — Task 1 done (the drop), HOLDING at Task 2's blocking human checkpoint
-Next: Wyatt hosts a crew game in his own Safari at `playpastrypirates.com/4/?bakeoff=0` and replies
-with the room code; Claude then joins as a driven Chrome guest (Task 3) and compares both screens.
-Last activity: 2026-08-19 — **the phase drop landed: `PP4_STAMP` is `2026-08-19c`**, commit `4db2c00`,
-confirmed serving live from `playpastrypirates.com/4`. It carries all three code plans (02.1-01, -02,
--03) in one build, per Wyatt's one-drop-one-test convention.
+Phase: 02.1 (one-game-every-captain-one-render-path-for-host-and-guest) — all 4 plans complete
+Plan: 4 of 4 done. **Phase verification has not been run — that is the orchestrator's, not a plan's.**
+Next: open **Phase 02.2** for the two turn-blocking defects the gate found (Wyatt's own ruling).
+Last activity: 2026-08-19 — the phase gate ran in real Safari for the first time and returned a
+negative result.
+
+**The build:** `PP4_STAMP` is **`2026-08-19c`** (commit `4db2c00`), confirmed serving live from
+`playpastrypirates.com/4`. One drop carrying all three code plans, per Wyatt's one-drop-one-test
+convention. Bumped exactly once this phase.
+
+**What the gate found.** Wyatt hosted room BVUR in his own Safari — the first time any of `4/` has
+ever run in real Safari — and Claude joined as a driven headless-Chrome guest. Holding up: the state
+layer (guest boat positions identical to `events[last].state` for every seat), the day counter
+advancing without a reload, the radial bloom on a guest's trade prompt, and the CAPTAINS panel
+(which Wyatt confirmed is behaving as designed). **Not holding up:**
+
+1. **A guest draws no wind pill, no clock pill and no chat bubble.** The guest *has* the wind data
+   (`windNow` `"S"`, `windNext` `"W"`) and still does not paint the bar. **Plan 01's state fix was
+   necessary but not sufficient** — this is the single most important finding of the phase, and
+   **PAR-02 is reopened** because of it.
+2. **Defect A, mechanism pinned:** a guest never sees a prompt that was already outstanding when it
+   loaded. `watchPrompt()` bails on `p.seat !== appState.mySeat`, and on a fresh load that callback
+   fires **before `mySeat` is assigned**. Firebase only re-fires on change, so the prompt is never
+   offered again and the table deadlocks with the clock off. Proven by re-calling `watchPrompt()`
+   once `mySeat` was set — the queued turn played immediately.
+3. **Defect B, mechanism NOT established:** the host does not see an incoming trade offer until it
+   refreshes. Hidden-tab throttling is ruled out on Wyatt's own testimony (game visible, still
+   running). `flow.js:186`'s promise chaining is a candidate only.
+
+**His ruling, asked and answered:** *"Close 02.1, open 02.2 for these."* And on the voyage:
+*"Stop — I've seen enough."*
+
+**Say plainly what that ruling is: a scoping decision, not a pass.** Plan 04's must-have *"Wyatt has
+played a stretch of the voyage himself and said it holds together"* is **NOT met** — he played and
+it did not hold together. The phase closes on his ruling. Do not let a later reading turn "closed"
+into "the voyage held."
+
+**Still carried, unproven for a second phase running:** the battle and storm cameras. 02.1-01 called
+them correct by the same mechanism but never photographed them; no battle occurred in this voyage
+either. Name them in 02.2's scope.
 
 **Phase 2 is complete, 7 of 7.** It delivered what it was scoped to: Firebase restored, Host a Crew
 and Join a Crew back on the welcome screen, three never-run crashes closed, the skip gate held in a
@@ -140,6 +173,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.1 P01 | 45min | 3 tasks | 1 files |
 | Phase 02.1 P02 | 20min | 2 tasks | 1 files |
 | Phase 02.1 P03 | 30min | 3 tasks | 4 files |
+| Phase 02.1 P04 | ~2h | 4 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -297,8 +331,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19T23:06:52.713Z
-Stopped at: Completed 02.1-03-PLAN.md
+Last session: 2026-08-19
+Stopped at: Completed 02.1-04-PLAN.md — phase 02.1's four plans are done; phase verification not yet run
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

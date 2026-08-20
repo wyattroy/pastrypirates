@@ -130,3 +130,39 @@ then discovered the gate reads a different tree entirely.
 **The fix is one sentence in that file's header** naming which tree it gates. `4/` now has its own
 (`4/scripts/prompt_field_parity_check.js`), so nothing is uncovered — but the ambiguity costs a
 session's attention every time somebody checks.
+
+---
+
+## D7 — the battle and storm cameras are still unproven, two phases running
+
+**Found during:** 02.1-04 (the phase gate) · **Owner:** Phase 02.2 · **Recorded:** 2026-08-19
+
+`02.1-01-SUMMARY.md` stated plainly that PAR-03's **battle** and **storm** framings are *"correct by
+the same mechanism, not demonstrated"*, and asked for a deliberate look at the gate. **No battle
+occurred in Wyatt's BVUR voyage either**, so they are carried again, unlooked-at.
+
+A battle between two captains far apart is the shot most likely to reveal anything the sail window
+would not. Name it in 02.2's scope rather than carrying it a third time.
+
+---
+
+## D8 — no gate fires at the role switch from dispatching work to doing it
+
+**Found during:** 02.1-04 · **Owner:** the orchestrator (approved by Wyatt, being built separately)
+· **Recorded:** 2026-08-19
+
+The orchestrator passed `docs/DRIVING-THE-GAME.md` to every subagent and then drove a browser itself
+without reading it — CLAUDE.md rule 17 applied to everyone except the agent applying it. Wyatt had to
+ask *"why did i have to tell you to read that?"* Reloading the guest to switch to a visible Chrome is
+what then triggered Defect A **in the middle of his voyage**.
+
+Two aggravating details worth keeping, because they are the shape of the failure and not incidental:
+
+- Even after opening the doc it read **headings plus the one section matching the error in front of
+  it** (§5c, §9), skipping §4 and §5b — the sections about actually playing. **That is lookup, not
+  reading.**
+- It told Wyatt it would not drive its own seat, which **silently stalled his table**: a crew game
+  cannot advance past a human seat that never answers.
+
+**Wyatt approved a `PreToolUse` hook covering the whole CLAUDE.md §4 table** as the structural fix.
+Recorded here so the reasoning survives; **the orchestrator is building it — not a plan's to build.**

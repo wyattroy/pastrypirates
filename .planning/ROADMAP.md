@@ -240,7 +240,13 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 02.1-04-PLAN.md — the one drop: stamp bumped once, Safari host + driven Chrome guest compared directly, Wyatt plays a real voyage — the phase gate (PAR-07)
+- [x] 02.1-04-PLAN.md — the one drop: `PP4_STAMP` `2026-08-19c` live at `/4`, and the first real-Safari
+  check `4/` has ever had — Wyatt hosted room BVUR in Safari, Claude joined as a driven headless guest
+  (PAR-07). **The gate returned a negative result and that is the point of it:** the state layer, day
+  counter and radial bloom held, but a guest draws **no wind pill, no clock pill and no chat bubble**
+  (PAR-02 reopened — the data is right, the bar is not painted), and Wyatt hit two turn-blocking
+  defects. His ruling: close 02.1 on its own scope, open **Phase 02.2** for those. See
+  `02.1-04-SUMMARY.md`.
 
 **Wave order.** Strictly sequential, 1 -> 2 -> 3 -> 4. Plan 01 is the state-layer fix every later plan's
 own verification assumes is already true (Wyatt's own sequencing ruling). Plans 01 and 03 both touch
@@ -601,7 +607,7 @@ The first phase is independent of every promotion decision and can start immedia
 |-------|----------------|--------|-----------|
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
-| 02.1 One Game, Every Captain (INSERTED) | 3/4 | In Progress|  |
+| 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
