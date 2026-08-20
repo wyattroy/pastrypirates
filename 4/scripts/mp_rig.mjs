@@ -86,10 +86,22 @@ export async function attach(dbgPort, { match = null } = {}) {
     if (r.result?.data) fs.writeFileSync(path.join(SHOTS, name), Buffer.from(r.result.data, "base64"));
   };
   const goto = async u => { await send("Page.navigate", { url: u }); await sleep(1400); };
+  /* A CHECK THAT COULD NEVER FAIL, FOUND 2026-08-20 — and it had been lying all day.
+     This wrapped the caller's expression in a SYNCHRONOUS IIFE and coerced the result. Hand it an
+     async expression — which every appState probe in this file is, because src/state/index.js has to
+     be imported — and the IIFE returns a PROMISE. A promise is always truthy, so `waitFor` returned
+     true on the first poll, every time, whatever the page was doing.
+
+     It reported "host: gameStarted" on a host whose game had NOT started, which sent a host-gone
+     investigation looking for a fault in code that had simply never run. `ev()` already passes
+     awaitPromise:true, so the fix is to stop wrapping and let it resolve — then compare the RESOLVED
+     value. CLAUDE.md: check that a check can FAIL before believing it passing. */
   const waitFor = async (expr, ms = 30000, label = expr) => {
     const t0 = Date.now();
     for (let i = 0; Date.now() - t0 < ms && i < 4000; i++) {       // bounded twice
-      if (await ev(`(()=>{try{return !!(${expr})}catch(e){return false}})()`)) return true;
+      let v = false;
+      try { v = await ev(expr); } catch (e) { v = false; }
+      if (v === true) return true;                                 // STRICT: a Promise is not `true`
       await sleep(250);
     }
     throw new Error("timeout waiting for: " + label);

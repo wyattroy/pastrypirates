@@ -1669,7 +1669,10 @@ export async function watchRoom(){
       appState.hostGoneShown=true;
       await new Promise(r=>setTimeout(r,4000));
       const still=(await netReadRoom(appState.db,appState.room)).val();
-      if(!still||still.status==="hostgone"){hostLeftTheVoyage();return;}
+      // Pass the room through — hostLeftTheVoyage() names the departed captain from room.host
+      // matched against the seat list. Verified 2026-08-20: calling it bare made the card read
+      // "Yer matey has left the voyage" when it could have said the name.
+      if(!still||still.status==="hostgone"){hostLeftTheVoyage(still||null);return;}
       appState.hostGoneShown=false;                      // false alarm — they sailed back in
       return;
     }
