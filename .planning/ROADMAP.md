@@ -283,6 +283,13 @@ silently folded in or silently dropped, per the research's own recommendation.
 
 **Goal**: No captain, on either side of the table, is ever left holding a turn they cannot take.
 
+> **Scope shrank overnight, and that is the finding.** Five defects were reported at the 02.1 gate.
+> Four of them do not reproduce under measurement — the wind pill, the clock chip and the chat bubble
+> paint at the *same millisecond* on both tiers, and the trade hail reaches a holding host in 3.1
+> seconds with no refresh. **One survives**: a guest that loads while a prompt waits. Even that one
+> resisted three reproduction attempts. Read `02.2-FINDINGS.md` first — planning this phase from the
+> gate conversation would fill it with fixes for bugs that are not there.
+
 **Why this exists — Wyatt's Phase 02.1 gate, 2026-08-19.** He hosted a real crew game in Safari and
 hit turn-blocking trouble twice in about twenty minutes: once as a guest whose prompt never arrived,
 once as a host who could not see an incoming trade offer until he reloaded the page. Both end the
@@ -304,13 +311,12 @@ first check condemned the host's own working screen), because that trap will rec
 **Success Criteria** (what must be TRUE):
 
 - A guest that joins, reloads, or is replaced mid-voyage while a prompt is waiting for its seat
-  **renders that prompt**, and a red/green proof exists that the same instrument saw it fail before
-  and pass after.
-- When a captain hails the table, every captain the game intends to ask **is asked, on screen**, with
-  no reload — and any captain deliberately *not* asked is filtered by the documented hail rule, with
-  the filtering decision visible rather than inferred.
-- Hails per game is reported beside whatever else changes (TRADE-SYSTEM.md **I1** — non-negotiable).
+  **renders that prompt** — and it is REPRODUCED first, with the same instrument seeing it fail
+  before and pass after. Reproduction is the whole job; the fix is probably one line and must not be
+  written until the failure can be summoned on demand.
 - An automated check fails if a prompt addressed to a seat is left unrendered by that seat's client.
+- **Safari is checked by a person**, because the one thing Chrome cannot answer is why Wyatt had to
+  refresh to see a trade offer that renders live Chrome-to-Chrome.
 
 **Two rulings this phase inherits, both of which say "measure before you touch":**
 
@@ -321,11 +327,15 @@ first check condemned the host's own working screen), because that trap will rec
    cause it. The untested difference is that the live guest's previous browser was **killed while
    still holding the seat**. Reproduce first; this file is one the determinism corpus depends on.
 
-2. **Do not change trade eligibility on a guess.** The host painted nothing for 45s after an offer,
-   measured with a recorder that cannot be raced — but `flow.js:1577` only hails captains for whom
-   something changed since they last said no, and `03a683c` holds hails at ~2.8 a game deliberately.
-   Correct-behaviour and genuine-bug both fit the evidence. The cheap separator is one instrumentation
-   run logging which seats were hailed and which were filtered, named in `02.2-FINDINGS.md` §B.
+2. **The trade half is CLOSED, and nothing in the trade path was changed.** `flow.js:1579` hails
+   `holdersOf(offer.want, p)` — only captains **carrying** the wanted crate. The probe that showed a
+   silent host had a host with an **empty hold**, correctly never hailed. Re-run with the host
+   genuinely holding the crate: `holdersOf` returned the host, `worthReAsking` returned **true**, and
+   the host painted *"Claude offers 1 coins for yer Hot Cinnamon — Accept · Ask for summat else ·
+   Deny"* **3.1 seconds later, with no refresh**. A fix here would have damaged a defended invariant
+   (I1, ~2.8 hails a game, `03a683c`) to cure a bug that does not exist. Evidence: `probes/probe-B3.mjs`.
+   **What is still open is Safari-specific**: Wyatt did have to refresh, and Chrome-to-Chrome does
+   not. That is a question for a person on a real Safari, not for another probe.
 
 **Also in scope, carried for a second phase running**: the battle and storm cameras are still
 *correct by mechanism, never photographed* (02.1-01's own D7). No battle occurred in Wyatt's gate
