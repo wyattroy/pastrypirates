@@ -336,9 +336,21 @@ parity, but not from two parallel code paths… Do you remember this work? Did t
 > rots exactly like one marked complete on a bad one — the same lesson this phase already learned
 > once, on 02.1's Wave 4 row above.
 
-**Requirements**: PAR-08 … PAR-13 *(to be added to `REQUIREMENTS.md` at planning)*
+**Requirements**: PAR-08, PAR-09, PAR-10, PAR-11, PAR-12, PAR-13 *(added to `REQUIREMENTS.md`
+2026-08-20 at planning — one per drop group, each phrased as a condition Wyatt could check by
+playing)*
 
 **Depends on**: Phase 02.1
+
+**Plans:** 6 plans — one per drop, in his order
+
+Plans:
+- [ ] 02.2-01-PLAN.md — Group Q: the one-line wins (items 13, 10, 1, 14, 7), the 20/15 reproduction, and the sketches for 8 and 9
+- [ ] 02.2-02-PLAN.md — Group A: one narration path and one director rule (items 17, 18, 19, 21, and 20/15 if Q could not reproduce them)
+- [ ] 02.2-03-PLAN.md — Group B: the faults visible on the first screen (items 2, 3, 5, 11, 22)
+- [ ] 02.2-04-PLAN.md — Group C: the bot that passes AND bakes (item 4) — **the one engine change in the phase**
+- [ ] 02.2-05-PLAN.md — Group C′: the economy, measured and reported (item 12) — **no game code changes, no stamp bump**
+- [ ] 02.2-06-PLAN.md — Group D: design and copy (items 6, 16, and 8/9 if he has picked)
 
 ---
 

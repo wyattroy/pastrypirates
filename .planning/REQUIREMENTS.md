@@ -62,6 +62,19 @@ divergence inventory.
 - [x] **PAR-06**: A greyed button whose reason text contains an icon-mapped emoji (a coin, most commonly) still renders as a correct radial-or-flat prompt, not a corrupted one, on both host and guest (`emojify()`, `4/src/shared/index.js:113`)
 - [x] **PAR-07**: There is a proven, repeatable way to verify `4/` in real Safari, and this phase's changes have been verified that way — the first time anything in `4/` has been checked against real Safari
 
+**PAR-08 … PAR-13 minted 2026-08-20 at Phase 02.2 planning**, one per drop group, from Wyatt's own
+22-item playtest list (`notes/edits for pastry pirates 8-20.pdf` — **his numbering is authoritative
+and must never be renumbered**). Like PAR-01…07 these sit outside the "51 total" count fixed at
+roadmap creation. Each is written as a condition **he could check by playing**, because the phase
+gate is his eyes and not a probe. The item numbers in brackets are his.
+
+- [ ] **PAR-08**: *(Group Q)* Anchoring a ship plays the fishing sound instead of eight seconds of storm, the six sounds sit at sensible levels against each other, a long narration line holds long enough to read, the Attack and Pass buttons show their coin amount without brackets round it on every screen that draws them, and the end-of-voyage stat is labelled **Bakeries** and counts the captains who actually got home *(items 13, 10, 1, 14, 7)*
+- [ ] **PAR-09**: *(Group A)* A moment in a networked game produces exactly one sentence, from one place, read the same way by the host and by every guest — no Ahoy line arriving twice on a guest, no waiting-for-yer-mateys box that vanishes before the wait is over, and a guest's top ribbon showing whose turn it actually is *(items 17, 18, 19, 21, and 20/15 if Group Q could not reproduce them)*
+- [ ] **PAR-10**: *(Group B)* The first screen is free of faults visible at a glance — the greyed Attack prompt draws as the same radial fan as every other action, a battle frames the two boats fighting rather than a bystander's, the ovens-be-roarin' block is centred both ways, no popup appears until the camera and the ships have stopped moving, and a laptop shows the phone's picture so Wyatt and the session debug the same screen *(items 2, 3, 5, 11, 22 — 22 is a stopgap; the desktop redesign stays in Phase 8)*
+- [ ] **PAR-11**: *(Group C)* A bot that reaches Tortuga with a full recipe fires the ovens and forfeits the pass dubloon, exactly as a human in that position must — in the browser game and in the headless simulator alike, and proven from the event stream rather than asserted *(item 4)*
+- [ ] **PAR-12**: *(Group C′)* Wyatt has read a table of purses over time, battle counts and voyage length across today's economy and each of the settings he named, from a few hundred games each — **and no economy number in the shipping game has changed, because he asked for the numbers, not for the change** *(item 12)*
+- [ ] **PAR-13**: *(Group D)* The Bake-Off card leaves once a captain has attempted their bake and does not come back; a joining captain keeps the name they typed unless another human already holds it, in which case they are told so under the box they typed it in, and a name a bot holds is given up to them; and Wyatt has picked from sketches for the end-of-voyage card and the recipe card **before** either was built *(items 6, 16, 8, 9)*
+
 ### The One New Rule (RULE)
 
 **Wyatt, 2026-08-18:** *"There is just ONE new gameplay rule that i want added to this new build:
@@ -216,6 +229,12 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-05 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
 | PAR-06 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
 | PAR-07 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
+| PAR-08 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group Q, plan 02.2-01 |
+| PAR-09 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group A, plan 02.2-02 |
+| PAR-10 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group B, plan 02.2-03 |
+| PAR-11 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C, plan 02.2-04 |
+| PAR-12 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C′, plan 02.2-05 |
+| PAR-13 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group D, plans 02.2-01 (sketches) and 02.2-06 |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
 | TEST-04 | Phase 3 — The Safety Net | Pending |
 | TEST-05 | Phase 3 — The Safety Net | Pending |
@@ -263,6 +282,10 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 - **Plus 7 PAR requirements** minted 2026-08-19 for the inserted Phase 02.1, all mapped to that phase —
   deliberately kept out of the 51-count above, since Phase 02.1 did not exist when that count was
   fixed at roadmap creation (2026-08-18). See the PAR section above for the full list.
+- **Plus 6 more PAR requirements (PAR-08…PAR-13)** minted 2026-08-20 for the inserted Phase 02.2, one
+  per drop group, all mapped to that phase and likewise outside the 51-count. They are minted from
+  Wyatt's own 22-item playtest list rather than from the roadmap, so the mapping runs
+  item → group → requirement → plan; his item numbers never change.
 
 **Sequencing constraints honored by this mapping:**
 
