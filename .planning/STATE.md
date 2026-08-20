@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase: 02.15
 current_phase_name: one-log-one-display-path
-status: planned
-stopped_at: Phase 02.15 created and planned (02.15-01); 02.2 replanned to Q/B/C/C-prime/D behind it; four of Group Q shipped early as build 2026-08-20a
-last_updated: "2026-08-20T14:05:00.000Z"
+status: complete
+stopped_at: Completed 02.15-01-PLAN.md — six of seven divergences closed, Stage 4 skipped under D-04, build 2026-08-20b
+last_updated: "2026-08-20T17:14:57.350Z"
 last_activity: 2026-08-20
-last_activity_desc: "2026-08-20: Wyatt compared his own host/guest screenshots pixel by pixel and the phase premise changed twice. Final: there are TWO DIRECTORS (orchestrator.js:1654) - the host draws from the game loop, a guest from nine listeners - and his fix (the captain writes a log; multiplayer semaphores the log out) became its own Phase 02.15, running BEFORE the rest of his twenty-two on his ruling. Rules 22 and 23 added to CLAUDE.md. Four of Group Q shipped early as build 2026-08-20a. Earlier the same day: Phase 02.2 planned into six drops around Wyatt's 22-item list. The phase premise was CORRECTED first: all 45 isHost/isGuest/amHost hits in 4/src were read individually and they decide who broadcasts, who creates the room and who owns the shot clock - there are no render branches to delete. Item 18's real fault is parallel narration call sites (flow.js:2211 vs orchestrator.js:805). Item 15 had been silently dropped from every group and is restored. Wyatt added Group Q (one-line wins) ahead of his own A-D order."
+last_activity_desc: "2026-08-20: Phase 02.15 EXECUTED and live as build 2026-08-20b. Six of Wyatt's seven host/guest divergences are closed with both-sides screenshot pairs; the seventh (the host's missing sail squares) was deliberately NOT attempted under D-04 and is named with its one-conditional seam. The guest now draws narration through flash() - the same function the host's loop calls - and both tiers learn whose turn it is from applyActiveSeat(). Solo and pass-and-play were both played end to end, which a two-tab check cannot do. The host/guest parity gate finally scans 4/ instead of the v1 game, and its new orchestration assertion was watched RED before the rewrite began and ends green against a declaration that still visibly names localAsk. Item 10 (D-10, the narration hold ceiling) has NOT shipped and is still Group Q's."
 progress:
-  total_phases: 11
-  completed_phases: 2
+  total_phases: 12
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 16
-  percent: 18
+  completed_plans: 18
+  percent: 33
+current_phase: 02.15
 ---
 
 <!-- ============================================================================
@@ -57,13 +57,26 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **02.15 (one-log-one-display-path)** — created and planned 2026-08-20. **It runs BEFORE 02.2.**
-Plan: `phases/02.15-one-log-one-display-path/02.15-01-PLAN.md` (7 tasks, four stages, safe stop after
-stage 2). Then `02.2-01` and `02.2-03…06`. **Read `02.2-CONTEXT.md` (29 locked decisions) first — it
-is the context for both phases.**
-Next: **`/gsd-execute-phase 02.15`**.
+Phase: **02.15 (one-log-one-display-path)** — **EXECUTED 2026-08-20, live as build `2026-08-20b`.**
+Verdicts, evidence, deviations and everything left open:
+`phases/02.15-one-log-one-display-path/02.15-01-SUMMARY.md`. **Point, do not restate.**
 
-**ALREADY LIVE, ahead of both: build `2026-08-20a` (`54806c6`).** Wyatt: *"yes, ship those three
+**Six of Wyatt's seven divergences are closed; the seventh is named, not lost.** Stage 4 — the host
+drawing its own prompt — **was deliberately not attempted under D-04**, his own ruling that stopping
+at a clean line is a success. It carries one shot (20 — the host's missing sail squares) and reverts
+through one conditional; the summary names the seam. **The gap is enforced rather than remembered:**
+`scripts/host_guest_parity_check.js --tree=4` now scans the game we actually develop, and its
+assertion 6 is green only against a declaration that still visibly names `localAsk`.
+
+Next: **`/gsd-execute-phase 02.2`** — `02.2-01` (the rest of Group Q) then `02.2-03…06`.
+**Read `02.2-CONTEXT.md` (29 locked decisions) first — it is the context for both phases.**
+
+**ITEM 10 (D-10) HAS NOT SHIPPED.** `4/src/ui/stage.js` still clamps the narration hold to
+`Math.max(2550, Math.min(6750, …))`. 02.15 left it untouched deliberately — changing narration
+pacing inside an architecture drop would make a pacing change impossible for him to attribute. Still
+Group Q's.
+
+**Shipped ahead of 02.15: build `2026-08-20a` (`54806c6`).** Wyatt: *"yes, ship those three
 today."* Four of Group Q's items that provably do not touch the display path went out rather than
 waiting behind an architecture rewrite — item 13 (the duplicated `anchorHold` deleted, so
 `fishing.mp3` finally plays and anchoring stops firing the 8-second storm bed, plus the six volumes
@@ -274,6 +287,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.1 P02 | 20min | 2 tasks | 1 files |
 | Phase 02.1 P03 | 30min | 3 tasks | 4 files |
 | Phase 02.1 P04 | ~2h | 4 tasks | 1 files |
+| Phase 02.15 P01 | 1 session | 7 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -344,6 +358,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: One shared optionButtonsHTML() builds every prompt button row (host, guest, draft channel); res(i) and sendResponse(id,i) stay separate — share the builder, not the caller
 - [Phase ?]: The seat field crosses the wire as seats[]; seat 0 is a real captain so both send and read test !=null, never truthiness
 - [Phase ?]: 4/ gets its own parity gate — scripts/host_guest_parity_check.js reads the ROOT game's src/ and never looked at 4/
+- [Phase ?]: 02.15: Stage 4 (the host's own prompt) not attempted — D-04's safe stop taken at six of seven, seam named in the summary
 
 ### Pending Todos
 
@@ -432,8 +447,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-19
-Stopped at: Completed 02.1-04-PLAN.md — phase 02.1's four plans are done; phase verification not yet run
+Last session: 2026-08-20T17:14:30.294Z
+Stopped at: Completed 02.15-01-PLAN.md — six of seven divergences closed, Stage 4 skipped under D-04, build 2026-08-20b
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

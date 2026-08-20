@@ -68,6 +68,32 @@ Hosting instead: `document.getElementById('choiceHost').click()` creates a real 
 first click. **Delete the room afterwards** — `appState.db.ref('rooms/'+room).remove()` — or use the
 back link on the room screen, which calls `abandonRoom()` and tears it down properly.
 
+## 3b. STARTING A CREW GAME — "Start the voyage!" is not the button that starts the voyage
+
+Added 2026-08-20 after it cost a run of the two-window rig, silently. `#btnStart` opens a
+**confirmation** — *"Set sail? / Everyone's aboard? / Wait, not yet"* — and the button that actually
+begins the game is **`#btnConfirmStart`**. It is **not** an `#actionPanel .apBtn`, so a probe that
+clicks Start and then waits for a panel button sits on the lobby screen until it times out, with no
+error and nothing in the console. The failure looks exactly like a hung game.
+
+```js
+document.getElementById('btnStart').click();
+await sleep(900);
+await waitFor(`(()=>{const b=document.getElementById('btnConfirmStart');
+                     return !!(b&&b.getBoundingClientRect().width>10)})()`);
+document.getElementById('btnConfirmStart').click();
+```
+
+Same family as 4a below: **the control you need is not the element whose label matches the verb.**
+
+### 3c. A recipe card takes TWO taps
+
+The first tap highlights that recipe's docks on the board (*"Tap a recipe to highlight its docks"*);
+the second, on the **"Bake this!"** overlay the first tap reveals, commits it. A driver that clicks
+each card once leaves the picker standing and the whole intro stalls behind it — **and the half-tapped
+card renders with dock highlights the other client does not have, which reads exactly like a
+host/guest divergence and is not one.** One was nearly filed as a defect on 2026-08-20.
+
 ## 4. The turn loop — and the two things that stall every naive driver
 
 ### 4a. THE FLIP COIN IS ITS OWN BUTTON
