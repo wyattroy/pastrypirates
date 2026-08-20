@@ -344,10 +344,12 @@ first check condemned the host's own working screen), because that trap will rec
    **What is still open is Safari-specific**: Wyatt did have to refresh, and Chrome-to-Chrome does
    not. That is a question for a person on a real Safari, not for another probe.
 
-**Also in scope, carried for a second phase running**: the battle and storm cameras are still
-*correct by mechanism, never photographed* (02.1-01's own D7). No battle occurred in Wyatt's gate
-voyage either. A battle between two captains far apart is the shot most likely to reveal anything the
-sail-window camera would not.
+**D7 is half closed already.** The battle camera and battle rendering were *"correct by mechanism,
+never photographed"* for three phases. They are now **photographed** —
+`probes/probe-battle-solo.mjs` poses a battle in solo (§5e-legal: injection is safe there, forbidden
+in multiplayer) and captured ⚔ Broadside!, the armed FLIP coin measured at 141×141, the dimmed
+board, and the camera framing **both** combatant boats. See `battle-rendered-2026-08-20.png`.
+**Still open: the STORM camera**, and the battle prompt on a killed-and-reclaimed guest (above).
 
 **Explicitly NOT in scope**: the wind pill, the clock chip and the chat bubble. Measured twice, zero
 gap between host and guest. See the correction on 02.1's Wave 4 row.
