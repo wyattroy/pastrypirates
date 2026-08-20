@@ -38,6 +38,7 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
 
 - [x] **Phase 1: Before the Engine Freezes** - The clock preference stops leaking between the two games, the biggest new module becomes testable, and the one new rule lands — so nothing after this forces the determinism corpus to be recorded twice
 - [ ] **Phase 2: Multiplayer Revival** - The Firebase tags come back and a host and guest play a full networked voyage with the bake-off switched off — which measures what is really broken before the large work is planned
+- [ ] **Phase 02.15: One Log, One Display Path** *(inserted)* - The game is displayed from one place according to one set of rules, on every screen — the host draws from the event log like a guest and the scrubber already do, and Firebase becomes a copier rather than a second way of finding out what happened
 - [ ] **Phase 3: The Safety Net** - A determinism corpus for the v2 engine, the contract gates pointed at the tree being promoted, and host/guest parity gated rather than remembered
 - [ ] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
 - [ ] **Phase 5: Trade Over the Wire** - A multi-captain trade completes inside one turn, counter-offers cross the wire, and a guest gets the same controls as the host
@@ -279,6 +280,149 @@ arrives. It is adjacent to this phase's fix but was never named by ROADMAP's own
 panel, ribbon, camera, narration, the flat-card bug, Safari verification) — raised here rather than
 silently folded in or silently dropped, per the research's own recommendation.
 
+### Phase 02.15: One Log, One Display Path (INSERTED 2026-08-20)
+
+**Goal**: The game is displayed from **one place, according to one set of rules**, on every screen —
+solo, host, or guest. Host and guest stop being two ways of drawing the same voyage.
+
+**Depends on**: Phase 02.1
+**Requirements**: PAR-14 … PAR-16 *(to be added to `REQUIREMENTS.md` at planning)*
+
+> **This is Wyatt's architecture, in his words, and the numbering is deliberate.** `02.15` sorts
+> between `02.1` and `02.2` — it lands **before** the rest of his twenty-two, which is his ruling:
+> *"its own phase, and do it before the rest of 02.2."* He was told plainly that this delays every
+> visible fix, including the one-line sound and narration wins, and chose it anyway.
+
+**What he asked for**, 2026-08-20: *"the Gameboard should just be displayed according to a set of
+rules… We make changes once, and they get propagated to both players. Regardless of whether they're
+host or guests."* And on the architecture itself: *"the captain shouldn't be doing semaphore then —
+he should be writing to a log. Then, if the game is multiplayer, that log is semaphored out to
+Firebase; if playing solo/pass-and-play, the log is simply used to display the game."*
+
+---
+
+#### The shape
+
+**The log already exists.** `Game.ev()` (`4/src/engine/index.js:316`) writes every event stamped with
+round, wind and storm, and bakes in **a full snapshot of every captain** — position, coins,
+ingredients, `done`, `baking`. A guest already draws from it. **The scrubber already draws from it.**
+
+**And the principle is already in the code, applied to exactly one field.** The comment on that line:
+*"`baking` rides in the snapshot so the board can render a captain's out-of-play state **from the
+EVENT rather than from live state** — which is what keeps the scrubber honest when you drag it back
+to before the ovens were lit."* Somebody hit this, solved it for the one field that was biting them,
+wrote down exactly why it was right, and **it was never generalised.**
+
+**So this phase is not "invent a log."** It is: **stop the host drawing from live state, and have it
+draw from the log — as the guest and the scrubber already do.** Firebase stops being how a guest
+learns things and becomes purely a copier that carries the log to other ships.
+
+| Mode | Path |
+|---|---|
+| Solo / pass-and-play | log → display rules → screen. **No copier.** |
+| Host in a crew game | log → display rules → screen. **And a copy goes out.** |
+| Guest | copy arrives → same log → **same display rules** → screen. |
+
+**The trap that makes the naive version wrong, and it must not be forgotten.** `runLiveNet()` drives
+**solo and pass-and-play too** — the fork at `4/src/orchestrator.js:1654` is `if(appState.isHost)`,
+and that is **true in solo, where there is no room at all**. `netSetPrompt` dereferences `db` with no
+null guard (`4/src/net/writers.js:71`). **A host that reads its own screen back through Firebase
+would take the single-player game down.** `watchChat()` escapes this only because chat is switched
+off entirely in solo; the game display cannot be. **So the one director is a LOCAL dispatch both
+tiers draw from — Firebase is transport for remote clients only.** A two-tab session cannot see this
+failure by construction: **every stage must also be played solo.**
+
+**How far `watchChat()` is a model, and where it stops.** Chat is fire-and-forget — nothing waits.
+**A prompt blocks the host's loop on an answer** (`ask()` → `remotePrompt` → promise →
+`sendResponse`). **That split is why most of this is cheap and one part is expensive**: the things
+the game *tells* you convert easily; the thing that *asks* you and waits does not.
+
+---
+
+#### The seven divergences this phase closes
+
+Read off Wyatt's own side-by-side screenshots (`notes/edits for pastry pirates 8-20.pdf`). **This
+phase is done when a two-tab crew game — and a solo game — reproduces none of them.**
+
+| His shot | Host shows | Guest shows |
+|---|---|---|
+| 17a — Ahoy | the message once, in the centre card | **the same message twice** — a dark top strip *and* the centre card |
+| 17b — the wait | "⚓ Waiting for yer mateys…" | "⚓ Everyone's choosing their recipe…" |
+| 17c — drawing lots | the text once | **the text twice** — a bubble behind, plus the card |
+| 19 — waiting | **no narration at all**, board reads as dead | prompt still up |
+| 20 — the director | camera parked elsewhere | camera centred on the active boat |
+| 20 — sail window | **no sail squares** | sail squares highlighted |
+| 21 — top-bar boats | updating with the turn | not updating |
+
+> **An eighth row was removed from this table, and the REASON matters more than the removal.** The
+> CAPTAINS panel showing a different order on each screen is **one rule, not two**.
+>
+> **The rule: whoever is looking sees their own captain on top** — so their recipe and their own
+> progress are there without scrolling. Wyatt, 2026-08-09: *"resort the captains box with the
+> currently active player at the top… currently they have to scroll down too far."* Wyatt again,
+> 2026-08-20, correcting a session that had written this up as a sanctioned divergence: *"hosts and
+> guests should NOT differ — the active player, whether host or guest, should always see their
+> captain's name on top."*
+>
+> **That rule is IDENTICAL on every screen.** `seatOrderFrom(head)` (`4/src/ui/util.js:81`) rotates
+> the sailing order so `head` sits first; `seatDisplayOrder()` (`:76`) passes `appState.mySeat`. One
+> function, one rule, every client. **The output differs only because "me" is a different captain on
+> each screen — and a rule that takes the viewer as an input is not two rules.**
+>
+> **So do not "fix" the ordering. And do not record it as an allowed host/guest exception either** —
+> that framing is what this note exists to kill. Under this phase's architecture, *"host and guest
+> differ"* is never an acceptable sentence; *"one rule, applied to whoever is looking"* is.
+>
+> **One real risk here, CANDIDATE and not measured.** `seatOrderFrom` falls back to raw seat index
+> when `appState.turnOrder` is not yet known — and **turn order is computed only by the host's
+> `runLiveNet()`; a guest receives it through `watchTurnOrder()`**, one of the nine listeners
+> (`4/src/orchestrator.js:1655`, and see the comment at `:1691`). So a guest whose turn order has not
+> landed yet would briefly show the raw seat order instead of itself on top. **That is the same
+> two-directors fault feeding the same panel** — and it is fixed by this phase rather than separately.
+> **Verify it in the two-tab session; do not pre-write a fix for it** (rule 6).
+
+**Two of these are not rendering bugs at all — they are jobs only one side does.** `setActor` (which
+marks whose turn it is) is called **six times in the host's game code and zero times in any of the
+nine guest listeners**; every `__pp4` camera call is likewise host-only. **The guest has no director,
+only a colour sniffed out of narration HTML.** That is items 21 and 20, exactly.
+
+---
+
+#### Write the rules down as you convert — Wyatt's pick, 2026-08-20
+
+*"Yes — write them down as we convert."* As each thing moves onto the log, its display rule is
+recorded in **one** document: **what the log entry is, what gets drawn, and how long it stays.**
+Not written up front and not left to the end — **written in the same commit as the conversion**, so
+it can never describe something that is not true.
+
+This becomes the readable answer to *"how does this game display itself"*, and the thing Phases 4
+and 5 conform to instead of imitating whatever the code happens to do.
+
+---
+
+**Success Criteria** (what must be TRUE):
+
+- **There is ONE place that decides what is drawn, and every mode reads from it.** Not two paths kept
+  in agreement — one path. **The audit question: what would have to be true for the host and a guest
+  to disagree? The answer must be "nothing".**
+- **A two-tab crew game reproduces none of the seven divergences above**, screenshotted on both
+  sides — and **a solo game and a pass-and-play game still play start to finish.**
+- **The parity gate runs against `4/` and would FAIL if the paths re-forked** — proven by having
+  been seen red against today's tree first, not merely green after.
+- **The display rules exist as a document**, written as each piece converted.
+- **Nothing new is broken in the single-player game** — the mode with no room at all, and the one a
+  two-tab test cannot see.
+
+**Explicitly NOT in scope:**
+- **A guest taking their own bake-off turn.** `bakeoffPrompt` (`4/src/ui/flow.js:565`,`:591`) has no
+  remote path at all — left from when `/4` had no multiplayer, so today the guest's bench opens on
+  the **host's** screen and the host bakes for them. **That is Phase 4's first success criterion
+  already**, and this phase's rewrite will *not* sweep it up. Recorded here so it is not mistaken
+  for a regression, and flagged to Phase 4 so it is not mistaken for new.
+- Everything else on Wyatt's twenty-two — that is Phase 02.2, which follows this.
+
+**Plans**: TBD — the four-stage structure in `02.2-02-PLAN.md` migrates here.
+
 ### Phase 02.2: One Game, Every Captain — Wyatt's Twenty-Two (INSERTED, REWRITTEN 2026-08-20)
 
 **Goal**: The game a player sees is the same game on both sides of the table, and the first screen is
@@ -340,7 +484,8 @@ parity, but not from two parallel code paths… Do you remember this work? Did t
 2026-08-20 at planning — one per drop group, each phrased as a condition Wyatt could check by
 playing)*
 
-**Depends on**: Phase 02.1
+**Depends on**: **Phase 02.15** (One Log, One Display Path) — which absorbed this phase's
+Group A and runs BEFORE it, on Wyatt's ruling.
 
 **Plans:** 6 plans — one per drop, in his order
 
@@ -354,7 +499,7 @@ Plans:
 
 ---
 
-#### Execution order — Wyatt's pick, 2026-08-20: **Q → A → B → C → C′ → D**
+#### Execution order — Wyatt's pick, 2026-08-20: **Q → B → C → C′ → D**  *(Group A moved to Phase 02.15, which runs FIRST)*
 
 > **Group Q was added at planning, 2026-08-20, on Wyatt's pick.** Shown the measured sizes — several
 > of his items are one line each — he chose *"quick wins first, then your order."* **His A → B → C →
@@ -385,64 +530,18 @@ strong candidate that must be reproduced first, and the rest are located but uns
   If the count is wrong, that is a scoring bug wearing a copy bug's clothes. **Measure before
   fixing.**
 
-**Group A — ONE DIRECTOR.** Items **17, 18, 19, 20, 21** — and **15**, which this file had dropped
-(every number 1–22 appeared in these groups except 15; it is the same director fault as 20 and is
-restored here).
+**Group A — MOVED OUT. It is now Phase 02.15: One Log, One Display Path.**
 
-> **REWRITTEN AGAIN, 2026-08-20, after Wyatt said: *"look at the screenshots from my PDF and see how
-> the host screenshots look different than the guest screenshots… compare them pixel by pixel."***
-> Nobody had. Two passes of this section were written from reading code — the first blamed 43 render
-> branches, the second blamed two narration call sites. **Both were reasoning about the code instead
-> of looking at his evidence, and both were too small.** Comparing the images took minutes.
-
-**The root cause, measured at `4/src/orchestrator.js:1654-1655`:**
-
-```js
-if(appState.isHost){ runLiveNet().catch(…); }
-else{ watchEvents(); watchPrompt(); watchNarr(); watchFlip(); watchBattle();
-      watchDraftPrompt(); watchClock(); watchTurnOrder(); watchRecoveryState(); }
-```
-
-**The host's screen is driven by the game loop.** `runLiveNet()` plays the voyage and calls the
-renderers directly as it goes. **The guest's screen is driven by nine independent listeners**, each
-deciding on its own what to draw and when. **The renderers are shared; the orchestration is not** —
-which is exactly why 02.1's state-layer fix helped and why this went unspotted. **These are two
-directors, and that is the "two parallel code paths" Wyatt named in item 18.**
-
-**The fix, his pick — *"do it properly"*: the host becomes a listener to its own broadcast.** It
-computes the game and publishes events, then draws from that same stream exactly as every guest
-does. **One director.** A change to how anything is drawn then reaches both screens *because there
-is only one place it is drawn from* — drift becomes structurally impossible instead of being kept
-away by discipline. He was told plainly this is bigger and riskier than patching the symptoms, and
-that it touches the host path that works for him today.
-
-**The shape to copy already exists one line below the fork, and cannot drift:**
-```js
-watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
-```
-
-**Group A is done when a two-tab session reproduces NONE of these eight** — read off his own
-side-by-side screenshots, and the acceptance list for this group:
-
-| His shot | Host shows | Guest shows |
-|---|---|---|
-| 17a — Ahoy | the message once, in the centre card | **the same message twice** — a dark top strip *and* the centre card |
-| 17b — the wait | "⚓ Waiting for yer mateys…" | "⚓ Everyone's choosing their recipe…" |
-| 17c — drawing lots | the text once | **the text twice** — a bubble behind, plus the card |
-| 19 — waiting | **no narration at all**, board reads as dead | prompt still up |
-| 20 — the director | camera parked elsewhere | camera centred on the active boat |
-| 20 — sail window | **no sail squares** | sail squares highlighted |
-| 20 — CAPTAINS panel | Wyargh's row first | his own row first — **different order** |
-| 21 — top-bar boats | updating with the turn | not updating |
-
-**Two cautions.** The CAPTAINS row-order difference is **observed, not explained** — it may be a
-deliberate "me first" ordering; measure before calling it a bug. And the host's recipe picker looks
-blank beside the guest's in 17b: **that is NOT a fault** — Wyatt: *"the picker works, i just
-screenshotted it before the text finished animating in."*
-
-**`isHost` is still not deleted.** The fork is restructured, not removed — the host still computes
-the game and still creates the room. Whatever Group Q has already landed is struck from here rather
-than done twice.
+> **Wyatt's ruling, 2026-08-20: *"its own phase, and do it before the rest of 02.2."*** Group A stopped
+> being a group. Comparing his host/guest screenshots pixel by pixel showed **seven surfaces
+> diverging**, caused by **two directors** (`4/src/orchestrator.js:1654`) — and the fix he described
+> (*"the captain should be writing to a log… if multiplayer, that log is semaphored out"*) is the
+> architecture the bake-off (Phase 4) and trade-over-the-wire (Phase 5) will be built on. **An
+> architecture that governs the rest of the milestone should not be one group inside a bug-fix
+> phase**, and it must land before the two phases that would otherwise each add another fork.
+>
+> **Items 15, 17, 18, 19, 20 and 21 move with it.** They are not fixed there one at a time — they
+> fall out of having one display path. **Everything else on his twenty-two stays here.**
 
 **Group B — the faults visible on the first screen.** Items **2, 3, 5, 11, 22**. *(1 and 14 moved to
 Group Q; both are listed below so the intent survives if Q leaves either undone.)*
@@ -502,23 +601,10 @@ sessions Group A already requires rather than from a dedicated hunt.
 
 - **Wyatt plays a crew game and does not see items 1, 2, 3, 5, 11, 14, 15, 17, 19, 20, 21 or 22.**
   That is the gate. It is his eyes, not a probe.
-- **THE HOST AND THE GUEST DRAW FROM THE SAME PLACE — one director, not two.** The host is a
-  listener to its own broadcast, the way `watchChat()` already makes every client both send and
-  listen. **Checkable by a person:** a two-tab crew game reproduces none of the eight divergences in
-  his screenshots (Group A's table above) — no duplicated Ahoy, one sentence for the wait, narration
-  that outlives the wait on both screens, one camera, the same sail window, the same CAPTAINS order,
-  and a top bar that updates for everyone.
-
-  > **This criterion has been rewritten twice, and the reason is worth keeping.** It first read *"the
-  > render tier contains no host/guest branch that changes what is drawn"* — which **was already true
-  > the day it was written**, since all 45 `isHost` hits decide who broadcasts, who creates the room
-  > or who owns the shot clock. A criterion that passes before the work starts cannot gate the work.
-  > It was then narrowed to *"one moment produces one sentence, from one place"* — true, but only
-  > about narration, when his screenshots show the camera, the sail window, the top bar and the
-  > CAPTAINS panel diverging too. **Both versions were written from reading code rather than from
-  > looking at his evidence.** The structural condition above is what he actually asked for: not that
-  > the two screens have been made to agree, but that **there is only one screen-drawing path, so
-  > they cannot disagree.**
+- **Host/guest parity is NOT this phase's criterion any more — it moved to Phase 02.15**, which
+  runs first and which this phase depends on. Items 15, 17, 18, 19, 20 and 21 went with it. If a
+  host/guest divergence is still visible when this phase runs, that is 02.15 not having landed,
+  **not a new fault to patch here.**
 - A bot never passes and bakes in the same turn, proven from an event stream.
 - `fishing.mp3` plays at the moment it is wired to, and one anchoring ship produces one storm bed.
 - Wyatt has seen the economy table and picked the settings **before** any economy number changed.
@@ -885,7 +971,8 @@ The first phase is independent of every promotion decision and can start immedia
 | 1. Before the Engine Freezes | 6/6 | Complete | 2026-08-19 |
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
 | 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
-| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 0/TBD | Planning | Rewritten 2026-08-20 around his 22-item list; item 15 restored and the "43 render branches" premise corrected at planning |
+| **02.15 One Log, One Display Path (INSERTED)** | 0/TBD | Planning | Wyatt's architecture — the host draws from the log like everyone else. Absorbed 02.2's Group A (items 15, 17, 18, 19, 20, 21) and runs BEFORE it |
+| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 0/TBD | Planning | His 22-item list minus Group A. Depends on 02.15 |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |

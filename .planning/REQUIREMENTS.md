@@ -75,6 +75,24 @@ gate is his eyes and not a probe. The item numbers in brackets are his.
 - [ ] **PAR-12**: *(Group C′)* Wyatt has read a table of purses over time, battle counts and voyage length across today's economy and each of the settings he named, from a few hundred games each — **and no economy number in the shipping game has changed, because he asked for the numbers, not for the change** *(item 12)*
 - [ ] **PAR-13**: *(Group D)* The Bake-Off card leaves once a captain has attempted their bake and does not come back; a joining captain keeps the name they typed unless another human already holds it, in which case they are told so under the box they typed it in, and a name a bot holds is given up to them; and Wyatt has picked from sketches for the end-of-voyage card and the recipe card **before** either was built *(items 6, 16, 8, 9)*
 
+**PAR-14 … PAR-16 minted 2026-08-20** for **Phase 02.15 (One Log, One Display Path)**, which absorbed
+Phase 02.2's Group A on Wyatt's ruling. Phrased as conditions he could check by playing.
+
+- [ ] **PAR-14**: There is **one place** that decides what the game draws, and every mode reads from
+  it — solo, pass-and-play, host and guest alike. **The test is not that the screens agree; it is
+  that nothing could make them disagree.** Asked of any drawn thing, *"what would have to be true for
+  the host and a guest to differ here?"*, the honest answer is *"nothing"* *(items 15, 17, 18, 19, 20, 21)*
+- [ ] **PAR-15**: A two-tab crew game shows none of the seven divergences in Wyatt's screenshots — no
+  Ahoy arriving twice, one sentence for the wait, narration that outlasts the wait on both screens,
+  one camera following the active captain, the same sail squares, and a top bar that updates for
+  everyone — **and a solo game and a pass-and-play game still play start to finish.** The single-player
+  game is the one a two-tab test cannot see, and the one the naive version of this change would break
+- [ ] **PAR-16**: The rules for how the game displays itself **exist as a document**, written as each
+  piece was converted rather than before or after — what the log entry is, what gets drawn, and how
+  long it stays. Wyatt: *"the Gameboard should just be displayed according to a set of rules."* And the
+  parity gate runs against `4/` and **would fail if the paths re-forked** — proven by having been seen
+  red against the two-directors tree first, not merely green afterwards
+
 ### The One New Rule (RULE)
 
 **Wyatt, 2026-08-18:** *"There is just ONE new gameplay rule that i want added to this new build:
@@ -234,6 +252,9 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-10 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group B, plan 02.2-03 |
 | PAR-11 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C, plan 02.2-04 |
 | PAR-12 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C′, plan 02.2-05 |
+| PAR-14 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — plan 02.15-01 |
+| PAR-15 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — plan 02.15-01 |
+| PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — plan 02.15-01 |
 | PAR-13 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group D, plans 02.2-01 (sketches) and 02.2-06 |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
 | TEST-04 | Phase 3 — The Safety Net | Pending |
