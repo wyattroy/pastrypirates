@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase: 02.2
 current_phase_name: one-game-every-captain-wyatts-twenty-two
-status: planning
-stopped_at: Phase 02.2 rewritten in ROADMAP.md around Wyatt's 22-item list; not yet planned
-last_updated: "2026-08-20T12:31:21.309Z"
+status: planned
+stopped_at: Phase 02.2 planned - six plans (Q, A, B, C, C-prime, D), checker PASS, nothing executed yet
+last_updated: "2026-08-20T14:05:00.000Z"
 last_activity: 2026-08-20
-last_activity_desc: "2026-08-20: Wyatt played the game on his phone and wrote down 22 faults (notes/edits for pastry pirates 8-20.pdf). Phase 02.2 was rewritten around that list, in his chosen order A-E. Item 18 is him asking whether the host/guest rewrite got done: the answer is half - the state layer holds, but ~43 render branches across 7 files remain and cause five of his 22."
+last_activity_desc: "2026-08-20: Phase 02.2 planned into six drops around Wyatt's 22-item list. The phase premise was CORRECTED first: all 45 isHost/isGuest/amHost hits in 4/src were read individually and they decide who broadcasts, who creates the room and who owns the shot clock - there are no render branches to delete. Item 18's real fault is parallel narration call sites (flow.js:2211 vs orchestrator.js:805). Item 15 had been silently dropped from every group and is restored. Wyatt added Group Q (one-line wins) ahead of his own A-D order."
 progress:
   total_phases: 11
   completed_phases: 2
-  total_plans: 17
+  total_plans: 23
   completed_plans: 16
   percent: 18
 ---
@@ -57,9 +57,35 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: 02.2 (one-game-every-captain-wyatts-twenty-two) — rewritten 2026-08-20, not yet planned
-Plan: none yet. **Start at `ROADMAP.md` → Phase 02.2 and at `notes/edits for pastry pirates 8-20.pdf`.**
-Next: `/gsd-plan-phase 02.2`, planning **Group A** first.
+Phase: 02.2 (one-game-every-captain-wyatts-twenty-two) — **planned 2026-08-20, six plans, nothing executed**
+Plan: `02.2-01-PLAN.md` … `02.2-06-PLAN.md`. Read `02.2-CONTEXT.md` (23 locked decisions) first.
+Next: **`/gsd-execute-phase 02.2`** — plan 01 (Group Q) is the tracer and must land before 02–06.
+
+**THE PREMISE OF THIS PHASE WAS CORRECTED AT PLANNING. READ THIS BEFORE THE PARAGRAPHS BELOW.**
+This file and `ROADMAP.md` both used to say Group A was *"delete the ~43 `isHost`/`isGuest`/`amHost`
+render branches, and that unfinished half causes five of his twenty-two."* **All 45 hits were then
+read one at a time, and that does not hold.** 21 in `orchestrator.js` are who-writes-to-Firebase and
+who-creates-or-joins-the-room; 13 in `ui/util.js` are the host-owned shot clock; the rest are solo
+setup, a field declaration and comments. **Exactly one (`4/src/ui/panel.js:135`) picks what to
+draw.** That is CLAUDE.md's own sanctioned residue — *"who computes the game and who creates the
+room."* A plan written to delete them finds nothing to delete, or takes multiplayer down.
+
+**Wyatt's item 18 diagnosis was right; the measurement was aimed at the wrong noun.** The parallel
+code paths he named are **narration call sites**: `4/src/ui/flow.js:2211` renders *"⚓ Waiting for yer
+mateys…"* locally while `4/src/orchestrator.js:805` broadcasts *"⚓ Everyone's choosing their
+recipe…"* for the same moment — **his screenshot 17b**. Research then traced item 17 to an exact
+double-emission: `netIntroBarrier` (`4/src/ui/flow.js:2185-2215`) sends the identical ceremony text
+down **two** Firebase channels, `narr` at `:2187` and `draftPrompt` at `:2212`, which land on a guest
+as two uncoordinated renders. **Item 15 had been silently dropped** — every number 1–22 appeared in
+the roadmap's groups except 15 — and is restored to Group A. Full account: the boxed correction in
+`ROADMAP.md` § Phase 02.2.
+
+**Wyatt's sequencing, 2026-08-20, after seeing the measured sizes: Q → A → B → C → C′ → D.** Group Q
+is a first drop of one-line wins pulled from across the groups; **his A–D order is unchanged
+underneath it.** His other picks that day: **research before planning**; **sketch items 8 and 9 early
+and build them in Group D**; the end-of-voyage stat **counts captains who got home**, a quantity the
+game does not track today, rather than relabelling the bakes-finished count it already has; and
+**no UI-SPEC — his notes are the design contract.**
 
 **READ THIS FIRST IF YOU ARE PICKING THIS UP COLD.** On 2026-08-20 Wyatt played the game on his
 phone and wrote down **twenty-two** faults, with screenshots, in `notes/edits for pastry pirates
@@ -74,9 +100,12 @@ Tortuga with a full hold; **the Bake-Off card does not come back** once you have
 Group A balloons, land what is safe, write down the rest, and move to B** rather than stalling.
 
 **Item 18 is Wyatt asking whether the host/guest rewrite got done. It did not, fully.** 02.1
-unified the state layer — that holds, and is not in question. It did not finish deleting the render
-branches: **~43 `isHost`/`isGuest`/`amHost` hits across 7 files in `4/src`**, 21 in
-`orchestrator.js` alone, measured 2026-08-20. That unfinished half causes five of his twenty-two.
+unified the state layer — that holds, and is not in question. ~~It did not finish deleting the render
+branches: ~43 `isHost`/`isGuest`/`amHost` hits across 7 files in `4/src`, 21 in `orchestrator.js`
+alone, measured 2026-08-20. That unfinished half causes five of his twenty-two.~~ **STRUCK
+2026-08-20 at planning — the hits are real and the reading was wrong. See the correction at the top
+of this file: they decide who broadcasts and who creates the room, not what is drawn. The unfinished
+half is the parallel NARRATION paths.**
 
 **One drop per group**, fresh `PP4_STAMP` each time, and **a two-tab crew game screenshotted on
 both sides before any group is handed to him** (rule 19).
@@ -141,9 +170,15 @@ played a stretch of the voyage himself and said it holds together"* is **NOT met
 it did not hold together. The phase closes on his ruling. Do not let a later reading turn "closed"
 into "the voyage held."
 
-**02.2's remaining job is narrow and clear:** make the battle-prompt-after-a-killed-browser failure
-**reproducible**, then fix it. The fix follows the red case, not the other way round. Everything else
-reported at the gate has been measured away.
+~~**02.2's remaining job is narrow and clear:** make the battle-prompt-after-a-killed-browser failure
+**reproducible**, then fix it.~~ **SUPERSEDED — that was written when 02.2 held ONE defect.** Wyatt's
+22-item list is now the phase, and the killed-browser battle prompt is **one line item inside it**
+(Group E, CONTEXT D-21). It is a **watching brief, not a plan**: one observation, three failed
+reproductions, and a sail window and an action menu both came back correctly after the same kill —
+so only the battle path (`renderBattleFromSnap()` + the armed coin) is implicated. **Expect it to
+surface during the two-tab sessions the other groups already require. A dedicated hunt has already
+failed three times; do not run a fourth.** The rest of the sentence stands: the fix follows the red
+case, and everything else reported at the 02.1 gate has been measured away.
 
 **Phase 2 is complete, 7 of 7.** It delivered what it was scoped to: Firebase restored, Host a Crew
 and Join a Crew back on the welcome screen, three never-run crashes closed, the skip gate held in a
