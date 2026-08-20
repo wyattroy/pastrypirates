@@ -1736,13 +1736,36 @@ function hostLeftTheVoyage(room){
    comes back to a room marked "hostgone" and a guest who has been told a lie. So on every transition
    back to connected the host re-asserts "playing" AND re-arms. Paired with the guest's grace period
    in watchRoom, a blip costs nobody anything. */
+/* MY REGRESSION, AND IT BROKE HOSTING ENTIRELY. Wyatt, 2026-08-20: "no game can start properly,
+   because trying to host a new game doesn't load with a button to hit start; and others who join
+   with your code are not put into your voyage."
+
+   netWatchConnected is scope:"session" (net/watchers.js:43) and netLeaveRoom() detaches only
+   scope:"room" (net/registry.js:73). So the watcher below OUTLIVED the room it was armed for — for
+   the rest of the page's life — and its handler read `appState.room`, meaning WHATEVER ROOM THIS
+   BROWSER IS IN NOW. Finish a voyage, create a fresh room, and the orphan fired and stamped
+   status:"playing" onto a brand-new LOBBY. A lobby already marked playing shows no Start button and
+   never admits its joiners, which is exactly the pair of symptoms he reported. Worse, it stacked:
+   every game hosted attached another one, none ever removed.
+
+   THREE GUARDS, and each one alone would have prevented it:
+     - the room is captured at ARM TIME and compared, so it can never act on a later room;
+     - it re-asserts only while this browser is still the host of THAT room;
+     - and only once the voyage is actually under way, so a lobby is never written to at all.
+   Plus one attachment per room rather than one per call, so orphans cannot accumulate even if a
+   future caller arms twice. */
+let _hostGoneArmedFor = null;
 export function armHostGone(){
   if(!appState.isHost||!appState.db||!appState.room||appState.replaying)return;
-  netMarkHostGoneOnDisconnect(appState.db,appState.room);
+  const armedRoom = appState.room;                      // THIS room, not "the current room" later
+  netMarkHostGoneOnDisconnect(appState.db,armedRoom);
+  if(_hostGoneArmedFor===armedRoom)return;              // never stack a second watcher on one room
+  _hostGoneArmedFor=armedRoom;
   netWatchConnected(appState.db,snap=>{
-    if(snap.val()!==true||!appState.isHost||!appState.room)return;
-    netUpdateRoom(appState.db,appState.room,{status:"playing"},()=>{});
-    netMarkHostGoneOnDisconnect(appState.db,appState.room);
+    if(snap.val()!==true)return;
+    if(appState.room!==armedRoom||!appState.isHost||!appState.gameStarted)return;
+    netUpdateRoom(appState.db,armedRoom,{status:"playing"},()=>{});
+    netMarkHostGoneOnDisconnect(appState.db,armedRoom);
   },()=>{});
 }
 export async function startGame(){

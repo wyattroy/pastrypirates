@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20e";
+const PP4_STAMP = "2026-08-20f";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1075,6 +1075,24 @@ function menuButtons(ap){
 function enterCenterStage(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
+  /* A CARD TAKING THE STAGE ENDS THE WAIT IT WAS WAITING FOR. Wyatt, 2026-08-20, twice in a row:
+     "the 'Recipe Chosen! Waiting for the rest of the crew' narration box behind the stage shouldn't
+     persist behind the 'The crew draws lots' box", and "when both host and guest are on recipe
+     choice, the 'waiting for yer mateys' card only appears to host. this is a parity problem."
+
+     Both are one fault and it is MINE, from Stage 1. Wait lines were given NO dismissal deadline
+     (item 19 — "it should disappear when their teammates have played"), on the understanding that
+     stageFlash's S.hurry() retires them the instant the next line lands. That holds for narration.
+     It does not hold for a CENTRE-STAGE CARD, which is not a narration line and never calls
+     stageFlash — so a wait bubble sat behind the ceremony card with nothing on any timer to remove
+     it. It reads as a parity bug because whoever clicked through FIRST is the one holding a wait
+     line when the card arrives; the other captain never had one to strand.
+
+     Here rather than at the call sites, for the same reason the sound dedup went into
+     playForEvent: this is the one function every stage card passes through — the ceremony barriers,
+     the recipe draft and the bake-off (via __pp4.stageCenterNow) — so one line makes it true for
+     all of them, on both tiers, and stays true for the next card someone adds. */
+  if (S.hurry) S.hurry();
   box.style.display = "flex";
   // centre within the water, not the viewport: the captains box owns the bottom of the screen,
   // and a stage column tall enough to reach it (the bake-off intro was first) had its button
