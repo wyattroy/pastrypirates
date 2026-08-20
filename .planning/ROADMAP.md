@@ -320,12 +320,19 @@ first check condemned the host's own working screen), because that trap will rec
 
 **Two rulings this phase inherits, both of which say "measure before you touch":**
 
-1. **Do not fix the `watchPrompt` seat guard blind.** `orchestrator.js:1295` discards a prompt whose
-   seat does not match `appState.mySeat`, and a `value` watcher never re-fires without a change — a
-   plausible one-line fix. But **three reproduction attempts failed** (same-browser reload, fresh
-   browser reclaiming the seat, battle call outstanding), so the guard alone is not sufficient to
-   cause it. The untested difference is that the live guest's previous browser was **killed while
-   still holding the seat**. Reproduce first; this file is one the determinism corpus depends on.
+1. **A is narrowed, and the seat-guard theory is dead.** Six runs isolated it. The trigger is a
+   browser **KILLED** while holding the seat (a graceful reload always recovers) — but after that
+   same kill, a sail window came back correctly (18 `.sailCell` rects) and an action menu came back
+   correctly (2 buttons). **Only a battle prompt drew nothing.** That fits the code: `watchPrompt`
+   renders a battle down a separate path — `renderBattleFromSnap()` plus the armed flip coin — not
+   the button row every other prompt uses. Delivery is fine; an independent listener fired correctly
+   with `mySeat`, `gameStarted`, `live` and the stage all in order.
+
+   **It is ONE observation, not a reproduction.** A dedicated hunt found no battle in five minutes,
+   and this is the **third phase running** in which no probe has reached one (D7). §5e rules
+   injection out in multiplayer but calls it **safe in solo** — so the cheapest path is to split the
+   question: exercise battle *rendering* in a forced solo battle, separately from the kill+reclaim
+   case that needs two browsers. That would close D7 at the same time.
 
 2. **The trade half is CLOSED, and nothing in the trade path was changed.** `flow.js:1579` hails
    `holdersOf(offer.want, p)` — only captains **carrying** the wanted crate. The probe that showed a
