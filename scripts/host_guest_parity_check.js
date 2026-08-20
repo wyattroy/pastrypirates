@@ -74,6 +74,40 @@
 //    AHEAD of the boat it marks. Same defect three times at shrinking amplitude — ~2 squares in the
 //    original bug, a fraction of a square once the ship's own glide was fixed. Every instance was
 //    caught by Wyatt from a recording and none was visible in review. See `notes/tradewinds v5.mov`.
+// 6. ORCHESTRATION PARITY (02.15-01, D-28 — Wyatt's pick, 2026-08-20). Assertions 1-5 all pin
+//    MARKUP. None of them can see WHO CALLS a renderer, and that is where the fault actually
+//    lives: the host's screen is driven by the game loop, a guest's by nine Firebase listeners,
+//    and the renderers are shared while the ORCHESTRATION is not. Assertion 6 fails NAMING any
+//    renderer the host's loop drives that no listener can reach. Declared gaps are explicit and
+//    carry the stage that closes each; --strict ignores them and asserts the rule in full.
+//
+// ============================================================================
+// THE TREE THIS GATE SCANS — read before trusting a green run
+// ============================================================================
+// Until 2026-08-20 this file scanned ONLY the repo root's src/ — the v1 game, which has had no
+// code commit since 2026-08-02 and which nobody is developing. `4/` is the game being built, and
+// every host/guest drift of the last month happened there, unwatched, while this gate reported
+// green. *A gate aimed at the wrong tree is not silent, it is reassuring* (HARD-WON-LESSONS §3).
+//
+// A bare run still scans the root tree, unchanged, so the existing npm test wiring is untouched.
+// Pass `--tree=4` for the game under development. See pickTree() at the foot of this file.
+//
+// MEASURED THE DAY THE SELECTOR LANDED, and recorded so nobody mistakes it for proof of anything:
+//   assertion 1 against 4/  — ALREADY GREEN (6 tokens each side). 02.1-03 unified the button
+//                             builder, so the markup vocabulary genuinely does match. THE RE-AIM
+//                             ALONE PROVES NOTHING; assertion 6 is what was red.
+//   assertion 2 against 4/  — FAIL. `class:"sailCell"` is not built in 4/src/ui/flow.js at all;
+//                             the subject moved or was renamed. NOT a Group A regression.
+//   assertion 3 against 4/  — PASS.
+//   assertion 4 against 4/  — FAIL. animateRimSweepIfAny no longer builds a rimSweepCurve in 4/.
+//                             NOT a Group A regression.
+//   assertion 5 against 4/  — PASS.
+//   assertion 6 against 4/  — FAIL (--strict), naming flash, setActor and localAsk as driven by
+//                             the host's loop and reachable from ZERO of the nine listeners.
+// Assertions 2 and 4 are red against 4/ for reasons unrelated to host/guest parity, so they are
+// REPORTED (`--report`) rather than made to block. Porting them properly is Phase 3 / TEST-06;
+// wiring --tree=4 into root npm test is TEST-05. A red gate for unrelated reasons teaches people
+// to ignore the gate, which costs more than the coverage buys.
 //
 // ============================================================================
 // Comment stripping, and why it is not optional here
@@ -362,8 +396,105 @@ export function checkRingMovesWithShip(root) {
   return res;
 }
 
+
+/* ================= assertion 6: ORCHESTRATION PARITY (02.15-01, D-28) ================= */
+// THE DISEASE ASSERTIONS 1-5 CANNOT SEE. They all pin MARKUP — that two renderers emit the same
+// classes, that one builder serves both tiers. None of them can see WHO CALLS a renderer, and that
+// is where the fault actually lives (D-24): the host's screen is driven by the game loop
+// (runLiveNet), a guest's by nine independent Firebase listeners, and the renderers are shared
+// while the ORCHESTRATION is not. Assertion 1 was measured green against 4/ on 2026-08-20 — 6
+// tokens each side, because 02.1-03 unified the button builder — so re-aiming the existing
+// assertions at 4/ would have gone straight to green and looked like proof of a conversion that had
+// not happened. This assertion exists so something is genuinely RED first.
+//
+// THE RULE, which is CLAUDE.md rule 23 narrowed to something checkable:
+//   a renderer the host's game loop drives must ALSO be reachable from the listener path.
+//
+// DECLARED, NEVER SILENTLY TOLERATED. Reality worse than the declaration FAILS, naming the
+// renderer. A gap is declared explicitly, with the stage that closes it, so stopping early leaves
+// a gate that is green against a declaration anyone can read the holes in — a reviewable statement,
+// not an accident. Widening the declaration to cover a renderer that is still host-only turns this
+// back into the reassuring kind of gate; do not do it.
+const LISTENERS = ["watchEvents","watchPrompt","watchNarr","watchFlip","watchBattle",
+                   "watchDraftPrompt","watchClock","watchTurnOrder","watchRecoveryState"];
+
+// Renderers this gate tracks. `shared:true` means a listener must be able to reach it;
+// `shared:false` is a DECLARED GAP — still host-loop-only, with the stage that closes it named.
+const ORCHESTRATION_DECL = [
+  { fn: "showNarration(", shared: true,  why: "narration text — shared before this phase began" },
+  { fn: "flash(",         shared: false, why: "GAP — the host's real narration path (narrateCurrent -> flash -> stageFlash). Closes at Stage 1." },
+  { fn: "setActor(",      shared: false, why: "GAP — who is acting. Divergences 20-director and 21 in one figure. Closes at Stage 2." },
+  { fn: "localAsk(",      shared: false, why: "GAP — the host draws its own prompt from the game loop. Closes at Stage 4, which is abandonable under D-04." },
+];
+
+// Slice a function body by BRACE MATCHING from its `export function NAME(` header. Located by
+// content, never by line number, for the same reason sliceFn is — a line shift must go loud.
+function fnBody(src, name) {
+  const i = src.indexOf("export function " + name + "(");
+  if (i < 0) return null;
+  const st = src.indexOf("{", i);
+  if (st < 0) return null;
+  let d = 0;
+  for (let j = st; j < src.length; j++) {
+    if (src[j] === "{") d++;
+    else if (src[j] === "}") { d--; if (d === 0) return src.slice(st, j + 1); }
+  }
+  return null;
+}
+
+const countOf = (hay, needle) => hay.split(needle).length - 1;
+
+// `strict` ignores every declared gap and asserts rule 23 in full. That is the RED-PROOF reading
+// and the honest end-state measure — run with --strict. It is NOT what `npm test`-style runs use,
+// because a gate that is red at the end of a SUCCESSFUL partial conversion teaches people to
+// ignore it, which is how the old gate taught people it was fine by passing.
+export function checkOrchestrationParity(root, { strict = false } = {}) {
+  const res = mk(`assertion 6 — orchestration parity: a renderer the host's loop drives is reachable from the listener path${strict ? " [STRICT — declared gaps ignored]" : ""}`);
+  const orchRaw = read(root, ORCH_REL);
+  const flowRaw = read(root, FLOW_REL);
+  if (!orchRaw) { fail(res, `${ORCH_REL} not found under ${root}`); return res; }
+  const orch = stripComments(orchRaw);
+  const flow = flowRaw ? stripComments(flowRaw) : "";
+
+  // ---- ANTI-VACUITY, and it is the whole reason this assertion is trustworthy. An empty or
+  // unrecognisable listener set must FAIL LOUDLY, never pass by finding nothing to complain about.
+  const found = [], missing = [];
+  for (const w of LISTENERS) { const b = fnBody(orch, w); if (b) found.push([w, b]); else missing.push(w); }
+  if (missing.length) fail(res, `PARITY-ORCH-VACUITY: ${missing.length} of ${LISTENERS.length} listener bodies not found in ${ORCH_REL} (${missing.join(", ")}) — this assertion cannot measure a tree it cannot parse, and must not pass one`);
+  const listenerSrc = found.map(([, b]) => b).join("\n");
+  if (listenerSrc.length < 500) { fail(res, `PARITY-ORCH-VACUITY: the listener path is ${listenerSrc.length} chars — too small to be the real one. Refusing to report parity against an empty listener set`); return res; }
+
+  const driven = orch + "\n" + flow;   // where the host's loop reaches its renderers
+  const rows = [];
+  for (const d of ORCHESTRATION_DECL) {
+    const inside = countOf(listenerSrc, d.fn);
+    const outside = countOf(driven, d.fn) - inside;
+    rows.push({ ...d, inside, outside });
+    const mustShare = strict || d.shared;
+    if (!mustShare) continue;
+    if (outside === 0 && inside === 0) {
+      fail(res, `PARITY-ORCH-ABSENT: ${d.fn} is not called anywhere in ${ORCH_REL} or ${FLOW_REL} — a renderer nobody calls cannot prove parity, and must not pass as "shared"`);
+      continue;
+    }
+    if (inside === 0) fail(res, `PARITY-ORCH: ${d.fn} is driven ${outside}x from the host's game loop and is reachable from ZERO of the ${found.length} listeners — the host draws it and a guest cannot. ${d.why}`);
+  }
+
+  for (const r of rows) {
+    const gap = !r.shared && !strict;
+    note(res, `${r.fn.replace("(", "").padEnd(16)} listeners=${r.inside}  host-loop=${r.outside}  ${gap ? "DECLARED " + r.why : r.shared ? "shared" : r.why}`);
+  }
+  const gaps = ORCHESTRATION_DECL.filter((d) => !d.shared).map((d) => d.fn.replace("(", ""));
+  if (!strict) note(res, gaps.length
+    ? `THE DECLARATION STILL NAMES ${gaps.length} GAP(S): ${gaps.join(", ")}. Green here means "no worse than declared", NOT "converted".`
+    : `The declaration names no gaps — every tracked renderer is reachable from both paths.`);
+  return res;
+}
+
 /* ================= Runner ================= */
-function runAll(root, { quiet = false } = {}) {
+// `orchestration` is OPT-IN and defaults OFF, so a bare run (root tree, npm test wiring) behaves
+// byte-identically to before 02.15-01. Assertion 6 describes 4/'s two-directors architecture; the
+// root game is not being developed and making its run red would teach people to ignore the gate.
+function runAll(root, { quiet = false, orchestration = false, strict = false } = {}) {
   const log = quiet ? () => {} : (...args) => console.log(...args);
   const results = [];
 
@@ -391,6 +522,13 @@ function runAll(root, { quiet = false } = {}) {
   log(`${a5.ok ? "PASS" : "FAIL"} ${a5.name}`);
   for (const n of a5.notes) log(`      ${n}`);
   results.push(a5);
+
+  if (orchestration) {
+    const a6 = checkOrchestrationParity(root, { strict });
+    log(`${a6.ok ? "PASS" : "FAIL"} ${a6.name}`);
+    for (const n of a6.notes) log(`      ${n}`);
+    results.push(a6);
+  }
 
   return results;
 }
@@ -660,18 +798,68 @@ function drill() {
   fixture(BOARD_REL, GOOD_RING);
   expect("drill 5d (negative control — ring retuned and restored with the ship)", checkRingMovesWithShip(tmpRoot), false);
 
+  /* --- assertion 6 fixtures: ORCHESTRATION PARITY (02.15-01) ---------------------------------
+     Every fixture below writes a WHOLE synthetic orchestrator.js containing all nine listener
+     names, because the assertion's own anti-vacuity guard refuses to report against a tree it
+     cannot parse — which is the property drill 6c exists to prove. */
+  const NINE = ["watchEvents","watchPrompt","watchNarr","watchFlip","watchBattle",
+                "watchDraftPrompt","watchClock","watchTurnOrder","watchRecoveryState"];
+  // pad each body so the whole listener set clears the 500-char floor without any real call in it
+  const orchFixture = (bodies) => NINE.map((w) =>
+    `export function ${w}(){\n  const pad="${"x".repeat(70)}";\n  ${bodies[w] || ""}\n}\n`).join("\n");
+
+  // 6a: a renderer DECLARED shared that no listener can reach — the two-directors fault itself
+  resetFixture();
+  fixture(ORCH_REL, orchFixture({ watchEvents: "flash('hi');", watchPrompt: "setActor(1);localAsk();" }));
+  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');flash('x');setActor(0);localAsk();}\n`);
+  expect("drill 6a (showNarration driven by the host loop, reachable from NO listener)",
+    checkOrchestrationParity(tmpRoot), true, "showNarration");
+
+  // 6b: STRICT ignores the declared gaps, so a declared gap still red-proofs — this is the reading
+  //     that was watched RED against the real 4/ tree on 2026-08-20 before Stage 1 began
+  resetFixture();
+  fixture(ORCH_REL, orchFixture({ watchNarr: "showNarration('x');" }));
+  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');flash('x');setActor(0);localAsk();}\n`);
+  expect("drill 6b (STRICT — a DECLARED gap is still a failure when gaps are ignored)",
+    checkOrchestrationParity(tmpRoot, { strict: true }), true, "flash(");
+
+  // 6c: ANTI-VACUITY. An EMPTY listener set must FAIL, never pass by finding nothing to complain
+  //     about. This is the single most important drill on this assertion: a gate that reports
+  //     parity against a tree it could not parse is the reassuring kind this project keeps paying
+  //     for (docs/HARD-WON-LESSONS.md §3), and it is exactly how a re-aim at a renamed 4/ would
+  //     have gone silently green.
+  resetFixture();
+  fixture(ORCH_REL, `export function somethingElse(){}\n`);
+  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');}\n`);
+  expect("drill 6c (ANTI-VACUITY — an empty listener set must FAIL, not pass)",
+    checkOrchestrationParity(tmpRoot), true, "VACUITY");
+
+  // 6d: a renderer nobody calls AT ALL must not pass as "shared" — the other vacuity direction
+  resetFixture();
+  fixture(ORCH_REL, orchFixture({ watchNarr: "render();" }));
+  fixture(FLOW_REL, `export function runLiveNet(){render();}\n`);
+  expect("drill 6d (a renderer called NOWHERE must not pass as shared)",
+    checkOrchestrationParity(tmpRoot), true, "ABSENT");
+
+  // 6e: negative control — a renderer both tiers reach passes
+  resetFixture();
+  fixture(ORCH_REL, orchFixture({ watchNarr: "showNarration('x');" }));
+  fixture(FLOW_REL, `export function runLiveNet(){showNarration('x');}\n`);
+  expect("drill 6e (negative control — showNarration reachable from a listener passes)",
+    checkOrchestrationParity(tmpRoot), false);
+
   // --- final negative control: the REAL tree passes every assertion, which is what proves the
   //     fixes and the gate agree ---
   {
     const r = runAll(REAL_ROOT, { quiet: true });
     const ok = r.every((x) => x.ok);
-    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL tree passes all five) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
+    console.log(`${ok ? "PASS" : "FAIL"} drill Z (negative control — the REAL root tree passes assertions 1-5) — expected PASS, got ${ok ? "PASS" : "FAIL"}`);
     for (const x of r) for (const f of x.failures) console.log(`    ${f}`);
     if (!ok) allOk = false;
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "ALL 5 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "ALL 6 ASSERTIONS RED-PROOF DRILLED OK" : "DRILL FAILURE — an assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 
@@ -682,17 +870,56 @@ function drill() {
 // entry block runs on IMPORT and process.exit()s before the caller's own code does, which silently
 // prints this gate's own verdict and looks like the caller's result — a false red-proof.
 const IS_MAIN = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+// ---- THE TREE SELECTOR (02.15-01 / D-28) ----------------------------------------------------
+// This gate has been green for months against `src/` — THE OLD GAME, which nobody is developing —
+// while every host/guest drift it was written to catch was happening in `4/`. A gate aimed at the
+// wrong tree is not silent, it is reassuring (docs/HARD-WON-LESSONS.md §3).
+//
+// The re-aim is a selector, not a rewrite: every checker already took a `root` argument and read
+// through read(root, REL), and 4/ uses the identical internal layout (src/ui/flow.js,
+// src/orchestrator.js, src/ui/board.js). DEFAULT IS UNCHANGED — a bare run still scans the root
+// tree, so the existing npm test wiring behaves exactly as it did.
+//
+//   node scripts/host_guest_parity_check.js                  root tree, assertions 1-5 (unchanged)
+//   node scripts/host_guest_parity_check.js --tree=4         4/, assertions 1-5 + 6
+//   node scripts/host_guest_parity_check.js --tree=4 --strict 4/, assertion 6 with gaps IGNORED
+//   node scripts/host_guest_parity_check.js --tree=4 --report assertions 1-5 reported, never fatal
+//   node scripts/host_guest_parity_check.js --drill          red-proof every assertion
+//
+// Wiring --tree=4 into root `npm test` is Phase 3 / TEST-05, not this phase; a green root run still
+// says nothing about 4/, so run this by name like every other 4/-side gate.
+function pickTree(argv) {
+  const arg = argv.find((a) => a.startsWith("--tree"));
+  if (!arg) return { root: REAL_ROOT, label: "root (the OLD game — not the tree under development)", orchestration: false };
+  const v = arg.includes("=") ? arg.split("=").slice(1).join("=") : "4";
+  if (v === "root") return { root: REAL_ROOT, label: "root (the OLD game — not the tree under development)", orchestration: false };
+  if (v === "4") return { root: path.join(REAL_ROOT, "4"), label: "4/ (the game actually being developed)", orchestration: true };
+  return { root: path.resolve(v), label: path.resolve(v), orchestration: true };
+}
+
 if (!IS_MAIN) {
   // imported for reuse — nothing runs
 } else if (process.argv.includes("--drill")) {
   drill();
 } else {
-  const results = runAll(REAL_ROOT);
+  const { root, label, orchestration } = pickTree(process.argv);
+  const strict = process.argv.includes("--strict");
+  // --report: print every verdict and exit 0 regardless. Assertions 2-5 pin subjects (the sail
+  // rect builder, the rim-sweep stepper, the glide restore, the active ring) that may or may not
+  // exist under 4/ by the same names, and assertion 3's own header warns that an assertion whose
+  // subject does not exist either fails for an unrelated reason or is loose enough to pass an
+  // empty tree. Reporting them is useful; letting them BLOCK this phase would teach people to
+  // ignore the gate, which costs more than the coverage buys. Porting them properly is TEST-06.
+  const reportOnly = process.argv.includes("--report");
+  console.log(`tree: ${label}`);
+  const results = runAll(root, { orchestration, strict });
   const failed = results.filter((r) => !r.ok);
   if (failed.length) {
     console.error("\nFAILURES:");
     for (const r of failed) for (const f of r.failures) console.error(`  - ${f}`);
-    process.exit(1);
+    if (!reportOnly) process.exit(1);
+    console.error("\n(--report: exiting 0 anyway — these are reported, not gating)");
   }
   process.exit(0);
 }
