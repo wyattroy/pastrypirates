@@ -114,7 +114,7 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
-  decisionIsLocal, resolveOpt, setActor, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
+  decisionIsLocal, resolveOpt, setActor, applyActiveSeat, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, waitWhilePaused, sleepMs, applyTimerOff, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
@@ -1283,6 +1283,16 @@ export function watchEvents(){
     // key, so windNext lands undefined and g.forecastWind() returns null through its own stormNext
     // branch, which is exactly what the host shows. pillHTML() calls forecastWind() unmodified.
     if(e.t==="newround"){appState.game.windNext=e.next;appState.game.stormNext=e.nextStorm;}
+    /* 21 AND 20 — WHOSE TURN IT IS, learned from the same place on both tiers (02.15-01 Stage 2).
+       Measured before it was written, fourteen consecutive samples of a real two-tab crew game:
+       host curSeat=1 with the ribbon glowing boat 1, guest curSeat=0 with the glow on boat 0 and
+       never moving. Nothing on this tier had ever written it. Same shared renderer, two sets of
+       callers, one of which did not exist on a guest — D-24 in one figure.
+       `p` rides `turn`, `sail`, `dock`, `pass` and `attack` already; applyActiveSeat skips the
+       events that carry no seat rather than blanking the indicator, and bounds the seat before it
+       is used as an index. Nothing is asked of the engine, so the event schema and the determinism
+       corpus are untouched — the same move this callback already makes for round, wind and storm. */
+    applyActiveSeat(e.p);
     syncLogLines();
     $("scrub").max=Math.max(0,appState.game.events.length-1);
     // ANIMATE BEFORE render(), or the ship has already jumped to its destination and there is

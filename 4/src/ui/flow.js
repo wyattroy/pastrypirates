@@ -58,7 +58,7 @@ import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
-  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, ask, armClock, stepDelay, botBeat, setActor, seatLocal,
+  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, ask, armClock, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
@@ -1925,9 +1925,9 @@ export async function humanAct(p,sailCtx){
   else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;}
 }
 export async function humanTurn(p){
-  if(window.__pp4)window.__pp4.actor(p.idx);
+  applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers — see its note in util.js (02.15-01 Stage 2)
   await passGate(p.idx);
-  setActor(p.idx);
+  applyActiveSeat(p.idx); // ...and again after the gate, exactly as setActor was called before it
   // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
   // flag only ever gets cleared by armClock() deep inside a decision, which is too late to
   // save this turn's own early "did the previous turn just die?" guards below, so clear it
@@ -2119,7 +2119,7 @@ export async function botOpenTradeLive(p){
   return true;
 }
 export async function botTurn(p){
-  if(window.__pp4)window.__pp4.actor(p.idx);
+  applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers (02.15-01 Stage 2)
   const g=appState.game;
   g.ev({t:"turn",p:p.idx});
   await botBeat();

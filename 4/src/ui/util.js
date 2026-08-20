@@ -80,7 +80,22 @@ export function seatDisplayOrder(){ return seatOrderFrom(appState.mySeat); }
 // seat in it.
 export function seatOrderFrom(head){
   const n=appState.game.players.length;
-  if(!appState.turnOrder||appState.turnOrder.length!==n)return appState.game.players.map((_,i)=>i);
+  /* 02.15-01 Stage 3, MEASURED IN A TWO-TAB SESSION 2026-08-20 BEFORE IT WAS TOUCHED. The fallback
+     used to return raw seat index and DROP `head` on the floor, so at the Ahoy beat — screenshotted
+     on both tiers — the guest read "Wyatt, Mate, Dough Hook, Flaky Jack" with its own captain
+     second. Wyatt's rule is "the active player, whether host or guest, should always see their
+     captain's name on top" (2026-08-20), and it was broken for the opening of every game.
+     NOT A HOST/GUEST DIVERGENCE, and the shots prove it: the HOST fell back identically, because
+     runLiveNet does not shuffle turn order until AFTER showAhoyIntro returns, so turn order truly
+     does not exist yet on either tier. The plan's suggested remedy — route turnOrder through the
+     dispatch — could not have fixed this: no delivery mechanism can deliver a value nobody has
+     computed. The site is the fallback, and the reproduction names it (CLAUDE.md rule 6).
+     The rotation is the same one rule, applied to whatever ordering is available. */
+  if(!appState.turnOrder||appState.turnOrder.length!==n){
+    const raw=appState.game.players.map((_,i)=>i);
+    const r=raw.indexOf(head);
+    return r<0?raw:raw.slice(r).concat(raw.slice(0,r));
+  }
   const at=appState.turnOrder.indexOf(head);
   if(at<0)return appState.turnOrder.slice();
   return appState.turnOrder.slice(at).concat(appState.turnOrder.slice(0,at));
@@ -1746,6 +1761,30 @@ export async function narrateCurrent(){
   const L=appState.logLines[appState.evIdx];if(L)await netHandlers().onFlash(L.txt);
 }
 export function setActor(s){appState.curSeat=s;}
+/* ONE ACTIVE SEAT (02.15-01 Stage 2, D-25). THE fault of D-24 in miniature, and it was measured
+   before it was touched: ribbonTick (ui/stage.js) glows the boat at S.activeSeat ?? appState.curSeat;
+   curSeat is written only by setActor and S.activeSeat only by __pp4.actor; and every one of those
+   21 call sites lived in the host's live simulation or a local prompt. Not one of the guest's nine
+   listeners called either. Measured in a two-tab crew game 2026-08-20, fourteen consecutive samples:
+   host curSeat=1 / ribbon glow on boat 1, guest curSeat=0 / glow on boat 0, never moving. That is
+   his shot 21 — "top-bar boats: updating with the turn / not updating" — and, through camToSeat
+   reading the same notion of whose turn it is, his shot 20 as well.
+   ONE FUNCTION, BOTH TIERS, so the two cannot be aimed differently. The host's turn loop calls it
+   (humanTurn, botTurn) and so does watchEvents, off the `p: seat` field every meaningful event
+   already carries. NO ENGINE CHANGE and none is permitted here: ev() records no actor and the
+   schema has no actor field, but `turn`/`sail`/`dock`/`pass`/`attack` all carry `p`. This is the
+   same move watchEvents already makes for round, wind, storm and per-seat state.
+   TWO GUARDS, BOTH DELIBERATE. Events that carry no seat (`newround`, `end`) leave the indicator
+   alone rather than blanking it. And the seat is bounded to the known range before it is used as an
+   index (T-02.2-08) — the `ev` node is host-authoritative, which is the same trust already relied
+   on for board positions, but a bounded index costs nothing and a trusted one eventually does. */
+export function applyActiveSeat(seat){
+  if(seat==null)return;
+  const ps=appState.game&&appState.game.players;
+  if(!ps||!(seat>=0&&seat<ps.length))return;
+  setActor(seat);
+  if(window.__pp4)window.__pp4.actor(seat);
+}
 export function seatLocal(s){return s===appState.mySeat;}
 // D-10: a sentinel seat value no real seat index (0..3) can ever equal — passing it as
 // viewerSeat forces isLocalTo()'s neutral (never-addressed) branch, used to compute the

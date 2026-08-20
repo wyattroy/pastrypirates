@@ -423,8 +423,19 @@ const LISTENERS = ["watchEvents","watchPrompt","watchNarr","watchFlip","watchBat
 const ORCHESTRATION_DECL = [
   { fn: "showNarration(", shared: true,  why: "narration text — shared before this phase began" },
   { fn: "flash(",         shared: true,  why: "shared — PROMOTED BY 02.15-01 STAGE 1, in the same commit that made it true. watchNarr now draws through flash(), the same function the host's loop calls." },
-  { fn: "setActor(",      shared: false, why: "GAP — who is acting. Divergences 20-director and 21 in one figure. Closes at Stage 2." },
-  { fn: "localAsk(",      shared: false, why: "GAP — the host draws its own prompt from the game loop. Closes at Stage 4, which is abandonable under D-04." },
+  /* STAGE 2 CHANGED THIS ROW'S SUBJECT, AND THAT IS A JUDGEMENT CALL, SO IT IS WRITTEN DOWN.
+     `setActor` is not a renderer — it is a one-line assignment to appState.curSeat. What actually
+     draws is ribbonTick and camToSeat, reading curSeat and S.activeSeat, and the pair must be set
+     together or the ribbon and the camera disagree. Stage 2 introduced applyActiveSeat as the ONE
+     function that sets both, called by the host's turn loop AND by watchEvents. So the checkable
+     subject is applyActiveSeat, and setActor is now reached through it on both tiers.
+     THIS IS NOT WIDENING THE DECLARATION TO HIDE A GAP — the gap is CLOSED, and setActor's raw
+     numbers are still measured and printed beside it so the swap is auditable rather than asserted.
+     A `superseded` row asserts nothing; it exists so nobody reads a vanished renderer as a quietly
+     dropped requirement. */
+  { fn: "applyActiveSeat(", shared: true, why: "shared — PROMOTED BY 02.15-01 STAGE 2, in the same commit that made it true. The one function that sets curSeat AND S.activeSeat, called by humanTurn/botTurn and by watchEvents." },
+  { fn: "setActor(",      superseded: "applyActiveSeat(", why: "not a renderer — a one-line assignment to appState.curSeat, now reached by both tiers THROUGH applyActiveSeat. Reported, not asserted." },
+  { fn: "localAsk(",      shared: false, why: "the host draws its own prompt from the game loop. Closes at Stage 4, which is abandonable under D-04." },
 ];
 
 // Slice a function body by BRACE MATCHING from its `export function NAME(` header. Located by
@@ -470,6 +481,7 @@ export function checkOrchestrationParity(root, { strict = false } = {}) {
     const inside = countOf(listenerSrc, d.fn);
     const outside = countOf(driven, d.fn) - inside;
     rows.push({ ...d, inside, outside });
+    if (d.superseded) continue;               // reported below, asserts nothing — see the note above
     const mustShare = strict || d.shared;
     if (!mustShare) continue;
     if (outside === 0 && inside === 0) {
@@ -480,10 +492,13 @@ export function checkOrchestrationParity(root, { strict = false } = {}) {
   }
 
   for (const r of rows) {
-    const gap = !r.shared && !strict;
-    note(res, `${r.fn.replace("(", "").padEnd(16)} listeners=${r.inside}  host-loop=${r.outside}  ${gap ? "DECLARED " + r.why : r.shared ? "shared" : r.why}`);
+    const gap = !r.shared && !r.superseded && !strict;
+    const tag = r.superseded ? `SUPERSEDED by ${r.superseded.replace("(", "")} — ${r.why}`
+              : gap ? "DECLARED GAP — " + r.why
+              : r.shared ? "shared" : r.why;
+    note(res, `${r.fn.replace("(", "").padEnd(18)} listeners=${r.inside}  host-loop=${r.outside}  ${tag}`);
   }
-  const gaps = ORCHESTRATION_DECL.filter((d) => !d.shared).map((d) => d.fn.replace("(", ""));
+  const gaps = ORCHESTRATION_DECL.filter((d) => !d.shared && !d.superseded).map((d) => d.fn.replace("(", ""));
   if (!strict) note(res, gaps.length
     ? `THE DECLARATION STILL NAMES ${gaps.length} GAP(S): ${gaps.join(", ")}. Green here means "no worse than declared", NOT "converted".`
     : `The declaration names no gaps — every tracked renderer is reachable from both paths.`);
@@ -812,9 +827,9 @@ function drill() {
      control goes red the moment a stage promotes a renderer — which is precisely what happened when
      Stage 1 promoted `flash` and is the same class of stale-fixture bug drill 2c's note records.
      A negative control that cannot go green is exactly as broken as an assertion that cannot go red. */
-  const SHARED_NOW = ORCHESTRATION_DECL.filter((d) => d.shared).map((d) => d.fn.replace("(", ""));
+  const SHARED_NOW = ORCHESTRATION_DECL.filter((d) => d.shared && !d.superseded).map((d) => d.fn.replace("(", ""));
   const allSharedBody = SHARED_NOW.map((f) => `${f}('x');`).join("");
-  const hostDrivesEverything = `export function runLiveNet(){${ORCHESTRATION_DECL.map((d) => `${d.fn.replace("(", "")}('x');`).join("")}}\n`;
+  const hostDrivesEverything = `export function runLiveNet(){${ORCHESTRATION_DECL.filter((d) => !d.superseded).map((d) => `${d.fn.replace("(", "")}('x');`).join("")}}\n`;
 
   // 6a: a renderer DECLARED shared that no listener can reach — the two-directors fault itself
   resetFixture();
@@ -828,8 +843,11 @@ function drill() {
   resetFixture();
   fixture(ORCH_REL, orchFixture({ watchNarr: allSharedBody }));
   fixture(FLOW_REL, hostDrivesEverything);
-  expect("drill 6b (STRICT — a DECLARED gap is still a failure when gaps are ignored)",
-    checkOrchestrationParity(tmpRoot, { strict: true }), true, "setActor(");
+  // the marker is DERIVED from the declaration's first live gap, so a stage that closes one does
+  // not leave this drill asserting against a renderer nobody tracks any more
+  const FIRST_GAP = (ORCHESTRATION_DECL.find((d) => !d.shared && !d.superseded) || {}).fn;
+  expect(`drill 6b (STRICT — a DECLARED gap (${FIRST_GAP}) is still a failure when gaps are ignored)`,
+    checkOrchestrationParity(tmpRoot, { strict: true }), true, FIRST_GAP);
 
   // 6c: ANTI-VACUITY. An EMPTY listener set must FAIL, never pass by finding nothing to complain
   //     about. This is the single most important drill on this assertion: a gate that reports
