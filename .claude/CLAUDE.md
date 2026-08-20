@@ -70,8 +70,9 @@ documents; the rules themselves are all here, in full.
 | 20 | **Read the subsystem's own design doc before writing a line** | [§4](#4-before-you-touch-a-subsystem) |
 | 21 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
 | 22 | **READ EVERY SCREENSHOT HE SENDS, PIXEL BY PIXEL. Never skip one** — he built it for you at real cost | [§1](#1-working-with-wyatt) |
+| 23 | **ONE DISPLAY PATH** — host/guest decides who *computes*, never what is *drawn*. Ask: what makes these two agree? | [§2](#2-design-rules) |
 
-> **22 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **23 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -412,6 +413,58 @@ Sanctioned exceptions, each his explicit pick:
 - Hold-the-sea fades every floating box (prompts of all styles, narration bubbles, the stay-put
   confirm) but **not** the centre-stage intros or the flip-ceremony veil (2026-08-12).
 - The credits/About pages are not in pirate speak — see below.
+
+### ONE DISPLAY PATH. Two things that must agree are one thing, or they will drift.
+
+Wyatt, 2026-08-20, on finding the host and guest drawn by two different orchestrations: *"this is
+terrible engineering… it violates my design principles, and it should never have been built."* And,
+stating the principle: *"the Gameboard should just be displayed according to a set of rules… We make
+changes once, and they get propagated to both players. Regardless of whether they're host or
+guests."*
+
+**Host/guest decides who COMPUTES the game and who CREATES the room. It must never decide what a
+player SEES.** The same for any future client type — spectator, replay, a second device.
+
+**THE DESIGN-TIME QUESTION, and it is the whole rule:** *what makes these two agree?* If the honest
+answer is *"nothing — we keep them in step"*, that is the defect, **before a line is written**. Two
+things kept in sync by discipline are two things that will drift; the only durable answer is that
+there is one of them.
+
+**How it gets built, because nobody ever chooses it.** It accretes, and every individual commit is
+locally reasonable:
+
+1. The game is solo-first. The game loop draws the screen. Correct, and simple.
+2. Multiplayer arrives. The host already has a working loop that draws. The cheapest way to give a
+   guest a screen is *"broadcast the state, let the guest listen and draw."*
+3. **The second director is emergent.** `4/src/orchestrator.js:1654` — the host runs `runLiveNet()`
+   and draws from the game loop; the guest attaches **nine independent listeners** that each decide
+   on their own what to draw and when.
+
+**THE TRIGGER — memorise this sentence, because it is the moment the fault is born:** *"the existing
+one already works, I'll just add a listener/branch/path for the new case."* **When a SECOND consumer
+of the same thing appears, CONVERGE: make the FIRST one go through the new path too.** Never run them
+side by side. `watchChat()` is the worked example in this very file — *"every client (including the
+host) both sends and listens"* — built converged because both client types already existed when it
+was written, and it has never drifted.
+
+**Why no test caught it for three phases.** Both paths call the *same* renderers — `showNarration`,
+`localAsk`, `setActor`, `flash`. So every check asking *"does `showNarration` work?"* passes, on both
+sides, honestly. **What differs is not the drawing but the orchestration: who calls it, in what
+order, and when it is cleared.** A gate that tests a renderer cannot see this by construction. **Two
+screens side by side can see it instantly** — which is why rule 19's two-tab pass and rule 22's
+screenshot reading are the live detectors for this whole class.
+
+**And the guard already existed, pointed at the wrong tree.** `scripts/host_guest_parity_check.js`
+checks that the prompt classes the host path emits equal those the guest path emits — written for
+exactly this failure. It reads the ROOT game's `src/`, there is no `4/` copy, and it has been green
+throughout on a game nobody is developing. **A gate aimed at the wrong tree is not silent, it is
+reassuring** (`docs/HARD-WON-LESSONS.md` §3). **When you add a client type, point the parity gate at
+the tree you are actually building.**
+
+**The audit question, when reading existing code:** do not ask whether each branch is individually
+correct — that is one level too low, and it is how this was missed on the day it was found. A branch
+that does not draw anything can still *select which drawing regime runs*. **Ask what would have to be
+true for these two to disagree, and whether anything prevents it.**
 
 ### Nothing is a constant — the game is always shifting
 
