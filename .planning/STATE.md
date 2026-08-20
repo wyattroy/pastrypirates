@@ -8,7 +8,7 @@ status: executing
 stopped_at: Completed 02.1-04-PLAN.md
 last_updated: "2026-08-19T23:06:52.721Z"
 last_activity: 2026-08-19
-last_activity_desc: "02.1-04: the real-Safari gate ran and found 2 turn-blocking defects — Wyatt ruled close 02.1, open 02.2"
+last_activity_desc: "Overnight 08-19/20: of five defects reported at the 02.1 gate, FOUR do not reproduce under measurement; the fifth is narrowed to a battle prompt lost when a browser is killed. D7's battle and storm cameras photographed at last. A PreToolUse hook now enforces CLAUDE.md rule 17."
 progress:
   total_phases: 10
   completed_phases: 2
@@ -73,18 +73,40 @@ layer (guest boat positions identical to `events[last].state` for every seat), t
 advancing without a reload, the radial bloom on a guest's trade prompt, and the CAPTAINS panel
 (which Wyatt confirmed is behaving as designed). **Not holding up:**
 
-1. **A guest draws no wind pill, no clock pill and no chat bubble.** The guest *has* the wind data
-   (`windNow` `"S"`, `windNext` `"W"`) and still does not paint the bar. **Plan 01's state fix was
-   necessary but not sufficient** — this is the single most important finding of the phase, and
-   **PAR-02 is reopened** because of it.
-2. **Defect A, mechanism pinned:** a guest never sees a prompt that was already outstanding when it
-   loaded. `watchPrompt()` bails on `p.seat !== appState.mySeat`, and on a fresh load that callback
-   fires **before `mySeat` is assigned**. Firebase only re-fires on change, so the prompt is never
-   offered again and the table deadlocks with the clock off. Proven by re-calling `watchPrompt()`
-   once `mySeat` was set — the queued turn played immediately.
-3. **Defect B, mechanism NOT established:** the host does not see an incoming trade offer until it
-   refreshes. Hidden-tab throttling is ruled out on Wyatt's own testimony (game visible, still
-   running). `flow.js:186`'s promise chaining is a candidate only.
+1. ~~**A guest draws no wind pill, no clock pill and no chat bubble.**~~ **WITHDRAWN overnight —
+   this does not exist.** It was reported to Wyatt as confirmed *before it was measured*, from one
+   screenshot read while the guest was still behind the opening-ceremony card, and PAR-02 was
+   reopened on that basis. Re-measured with two Chromes against a local server: host and guest paint
+   the ribbon, clock chip and chat bubble at the **same millisecond** (505ms) and the wind pill at
+   the same millisecond as each other (3018ms — the instant the first event carries wind, correct on
+   both tiers). **Zero gap on every control.** The probe that "confirmed" it tested visibility with
+   `offsetParent !== null`, which is always null for a `position:fixed` element, so it condemned the
+   HOST's working screen too — it could not have passed for anyone. **PAR-02 stands as delivered by
+   02.1-01.** Full account: `phases/02.2-.../02.2-FINDINGS.md`.
+2. **Defect B — the host does not see an incoming trade offer.** **Also does not reproduce.**
+   `flow.js:1579` hails `holdersOf(offer.want, p)` — only captains *carrying* the wanted crate. The
+   probe showing a silent host had a host with an **empty hold**, correctly never hailed. Re-run with
+   the host genuinely holding it: `holdersOf` returned the host, `worthReAsking` returned true, and
+   the host painted *"Claude offers 1 coins for yer Hot Cinnamon — Accept · Ask for summat else ·
+   Deny"* **3.1 seconds later, no refresh**. Nothing in the trade path was changed — a "fix" would
+   have damaged I1's defended ~2.8-hails-a-game to cure a bug that does not exist.
+3. **Defect A — a guest never sees a prompt outstanding when it loaded. REAL, and narrowed.** Six
+   runs isolated it. The trigger is a browser **KILLED** while holding the seat; a graceful reload
+   always recovers. But after that same kill a sail window came back correctly (18 `.sailCell` rects)
+   and an action menu came back correctly (2 buttons) — **only a battle prompt drew nothing.** So the
+   `watchPrompt` seat-guard theory is dead, and the tempting one-line fix would have fixed nothing.
+   Delivery is fine (an independent listener fired with `mySeat`, `gameStarted`, `live` and the stage
+   all correct); it is the battle render path — `renderBattleFromSnap()` plus the armed coin — that
+   does not run. **One observation, not yet a reproduction:** a dedicated hunt found no battle in
+   five minutes.
+
+**D7's cameras are CLOSED, after three phases of "correct by mechanism, never photographed".**
+§5e allows injection in **solo** (and forbids it in multiplayer), so both were posed rather than
+waited for. Battle: ⚔ Broadside!, the FLIP coin armed at 141×141, board dimmed, camera framing
+**both** combatant boats (`battle-rendered-2026-08-20.png`). Storm: red-proofed against a storm-free
+round first, then arrived at round 3 with `storming` set, overlay painted 1200×614, 4 rain layers,
+and the viewBox moved (`storm-rendered-2026-08-20.png`). Honest caveat: the rain is *measured*
+present but not provable from a still frame, because it is an animation.
 
 **His ruling, asked and answered:** *"Close 02.1, open 02.2 for these."* And on the voyage:
 *"Stop — I've seen enough."*
@@ -94,9 +116,9 @@ played a stretch of the voyage himself and said it holds together"* is **NOT met
 it did not hold together. The phase closes on his ruling. Do not let a later reading turn "closed"
 into "the voyage held."
 
-**Still carried, unproven for a second phase running:** the battle and storm cameras. 02.1-01 called
-them correct by the same mechanism but never photographed them; no battle occurred in this voyage
-either. Name them in 02.2's scope.
+**02.2's remaining job is narrow and clear:** make the battle-prompt-after-a-killed-browser failure
+**reproducible**, then fix it. The fix follows the red case, not the other way round. Everything else
+reported at the gate has been measured away.
 
 **Phase 2 is complete, 7 of 7.** It delivered what it was scoped to: Firebase restored, Host a Crew
 and Join a Crew back on the welcome screen, three never-run crashes closed, the skip gate held in a
