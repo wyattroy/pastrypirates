@@ -308,7 +308,38 @@ function fadeStorm() {
 // module: all dedup/fade state (stormNode above) lives in this file's own module-locals, never on
 // an object game.ev() produced or that netPushEvent carries — that risks drifting the determinism
 // corpus the v1.3 engine fence exists to protect.
+/* ONCE PER EVENT, IN EVERY MODE — Wyatt, 2026-08-20: "board sounds should be played in consistent
+   places across the different game modes", and, on the symptom: "the same audio file at the
+   beginning of sailing, and again at the beginning of a pass... sometimes they sound robotic as a
+   result when they play twice right on top of each other."
+
+   Two near-identical copies of one waveform a few milliseconds apart interfere — that is the
+   "robotic" he hears, and it is the tell that the SAME sound played twice, not that two sounds
+   played.
+
+   THE CAUSE, and the comment above this function was already asserting the fix as though it were
+   true: this is called "once per event that just arrived", but on the host it is reached through
+   liveRender() (ui/panel.js:302), which plays the sound for whatever the LATEST event is — every
+   time it is called. liveRender() has ~50 call sites. Any two of them firing without a new event
+   in between replay the same sound. Two that do exactly that:
+     ui/flow.js:1896-1898  ev({t:"sail"}); liveRender();  then  tradewind(p) ... liveRender();
+     ui/flow.js:2001       if(appState.passAndPlay) liveRender();   <- no new event at all
+   The second is why pass-and-play is worse, which is exactly where he reported it worst.
+
+   THE FIX BELONGS HERE, NOT IN THE 50 CALLERS. Sound has two triggers — liveRender() on the host,
+   watchEvents() on a guest — and putting the rule in either one leaves the other free to drift.
+   This function is the single place both tiers pass through, so "once per event" becomes true for
+   solo, pass-and-play, host and guest at once, and stays true for a 51st caller nobody has written
+   yet. That is the consistency he asked for, enforced in one place rather than promised in fifty.
+
+   IDENTITY, deliberately: game.ev() mints a fresh object per event, and the guest's watchEvents
+   receives each event once as its own object (child-added, pushed at :1263), so the same reference
+   can only ever mean "this exact event again". Nothing is written onto the event object — the module
+   header forbids it, because an event field would risk drifting the determinism corpus. */
+let lastSounded = null;
 function playForEvent(e) {
+  if (e === lastSounded) return;                 // the same event replayed by a second liveRender()
+  lastSounded = e;
   // The arrival of the next round header or the voyage's end is the exact game-state signal that
   // the storm moment has resolved — fade whatever storm sound is in flight BEFORE possibly
   // starting a fresh one for THIS event, so a freshly-started storm cue is never immediately
