@@ -1555,6 +1555,15 @@
     letter-spacing:.4px; padding:5px 12px; border-radius:9px; white-space:nowrap; pointer-events:none;
     display:none; }
   body.pp4Stage #pp4Pill { display:block; }
+  /* THE MENU IS A CARD, AND NOTHING SHOULD BE SAWN IN HALF BY IT. Found 2026-08-20 while
+     screenshotting the ☰ menu to prove the mute button had come back: the wind pill sits at the top
+     of the stage on z-index 19, the menu card lands over it, and "WIND NOW: E→ • FORECAST: N↑" was
+     left cut clean through the middle by the card's top edge — reading as a rendering fault rather
+     than a thing behind another thing.
+     Faded rather than hidden, matching the hold-the-sea family (`body.pp4Peek` above), which is the
+     one already-decided answer for "a floating box while something else owns the screen". */
+  #pp4Pill { transition:opacity .16s; }
+  body.pp4Foot #pp4Pill { opacity:0; }
   .pp4Spin { display:inline-block; animation:pp4spin 4s linear infinite; }
   @keyframes pp4spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
   @media (prefers-reduced-motion: reduce){ .pp4Spin{ animation:none; opacity:.6; } }
@@ -1752,6 +1761,26 @@
   /* the stage's display:flex on .apBtn defeats the [hidden] UA rule — restated here so "Watch
      again" stays genuinely hidden until the shuffle has run once (its click is not wired before) */
   #pp4Prompt.pp4Center .apBtn[hidden] { display:none !important; }
+  /* THE PASS-THE-WHEEL CARD FITS ITS OWN WORDS. Wyatt, 2026-08-20: it is "far too big", and his
+     pick was "fit the words" — shrink the card to its text, drop the line break, and make the helm
+     button an ordinary pill instead of the 110px stage circle.
+
+     Scoped to [data-pp4-hand] (stamped in src/ui/lobby.js's passGate) rather than loosened for
+     every centre-stage card, because the 420px pin above is LOAD-BEARING for the bake-off: it is
+     what stops a row of bowls whose art has not arrived yet deciding the card's width (playtest 22
+     item 11). This card is six words, one <b> and one 18px icon — all fixed-size — so there is no
+     late image here to renegotiate a content width, which is exactly why width:auto is safe on
+     this one and not on that one.
+
+     The button mirrors .bkoBtns .apBtn above, which already undoes the stage circle for the one
+     other place a centre-stage card carries an ordinary confirm button — same recipe, so the two
+     do not drift (consistency is a core value). The pulse stays: it is how a stage button says
+     "tap me", and a pill pulses just as well as a circle. */
+  #pp4Prompt.pp4Center #actionPanel[data-pp4-hand] { width:auto; max-width:min(320px,90vw); gap:18px; }
+  #pp4Prompt.pp4Center #actionPanel[data-pp4-hand] #apGrid { align-self:auto; width:auto; }
+  #pp4Prompt.pp4Center #actionPanel[data-pp4-hand] .apMsg { text-align:center; }
+  #pp4Prompt.pp4Center #actionPanel[data-pp4-hand] .apBtn { width:auto; height:auto; min-height:44px;
+    border-radius:12px; font-size:15px; padding:10px 22px; }
   /* the intro's recipe now sits INSIDE the stage message box — a touch larger than the shell's
      compact card, since it is the recipe's first and only unhurried read */
   #pp4Prompt.pp4Center .apMsg .bkoCard li { font-size:13.5px; }

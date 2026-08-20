@@ -835,15 +835,28 @@ export async function recipeDraftNet(){
       netNarrate(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
         pending.map(q=>({seat:q.idx,html:""})),{wait:true});
       const results={};
+      /* THE SAME LINE FOR EVERY CAPTAIN, WRITTEN ONCE. Wyatt, 2026-08-20: "when both host and guest
+         are on recipe choice, the waiting card only appears to host. this is a parity problem."
+
+         It was, and it was one missing ARGUMENT. remoteDraftPrompt(seat,msg,opts,waitMsg) carries
+         the wait line to a remote captain in the payload, and watchDraftPrompt shows it the moment
+         they answer — that channel has always worked; the intro barrier (ui/flow.js) passes one and
+         a guest sees it there. This call simply never passed one, so the host got the line from its
+         own localAsk branch and the guest got silence.
+
+         Hoisted to a const so the two branches cannot drift again: whatever a local captain is told
+         is by construction what a remote captain is told. MEASURED before and after in a real
+         two-window game — host saw both wait lines, guest saw only the intro one. */
+      // @copy misc.draftwait.recipechosen
+      // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
+      const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
       const jobs=pending.map(p=>{
         setActor(p.idx);
         if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
           results[p.idx]=i;
-          // @copy misc.draftwait.recipechosen
-          // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
-          if(pending.length>1)showNarration("⚓ Recipe chosen! Waiting for the rest of the crew…",{wait:true});
+          if(draftWait)showNarration(draftWait,{wait:true});
         });
-        return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p)).then(i=>{results[p.idx]=i;});
+        return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p),draftWait).then(i=>{results[p.idx]=i;});
       });
       await Promise.all(jobs);
       for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}

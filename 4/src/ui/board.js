@@ -2013,6 +2013,30 @@ const MIN_SIDEBAR_W=380,MAX_SIDEBAR_W=560;
 export function placeMuteButton(){
   const row=$("controlsRow"), slot=$("muteSlot"), btn=$("btnMute"), clock=$("shotClockPanel");
   if(!row||!slot||!btn)return;
+  /* ON THE STAGE THERE IS ONLY ONE HOME, AND THE MEASUREMENT BELOW WAS SENDING THE BUTTON TO THE
+     OTHER ONE. Wyatt, 2026-08-20: "the host has no mute button (guest does)."
+
+     MEASURED, in a solo /4 game — so this was never a host/guest question at all:
+         #btnMute      parent #controlsRow   rect 0x0   hidden by #controlsRow
+         #controlsRow  parent #pp4Cap        display:none
+         #muteSlot     parent #footerRow     (the ☰ menu — visible when the menu is open)
+     enterStage() parks #controlsRow inside #pp4Cap and index.html's `body.pp4Stage #controlsRow`
+     hides it outright ("the coin + clock left the sheet"), while #muteSlot is moved into the ☰
+     menu on purpose — playtest 10 item 2, "the sound toggle was orphaned at the top-left of the
+     stage… it lives in the ☰ menu now". So on the stage the row is not a smaller home for the
+     button, it is a CLOSED one, and the fit test below was a coin toss between the menu and
+     oblivion.
+
+     That coin toss is also why it looked like a parity bug. The test reads live widths during
+     layout, so two clients answering it a frame apart answer it differently — the guest kept its
+     button in the menu and the host lost its own. Nothing about hosting was involved.
+
+     The fit measurement is still exactly right for the classic layout, where #controlsRow is a real
+     visible row; it is only meaningless once the stage has taken it away. */
+  if(document.body.classList.contains("pp4Stage")){
+    if(btn.parentNode!==slot)slot.appendChild(btn);
+    return;
+  }
   const gap=parseFloat(getComputedStyle(row).gap)||0;
   // Measure with the button OUT of the row, so its own width never counts toward "used".
   const used=[...row.children]

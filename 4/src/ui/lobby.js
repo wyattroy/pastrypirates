@@ -289,14 +289,23 @@ export function passGate(seatIdx){
     return new Promise(res=>{
       const ap=$("actionPanel");
       ap.dataset.pp4Stage="1";
+      /* THE HAND-OFF CARD IS SIZED BY ITS OWN WORDS. Wyatt, 2026-08-20: the "Pass the wheel to /
+         wy" box is "far too big". It was two faults wearing one coat: this hard line break, which
+         put a two-letter name on a line of its own, and the centre-stage card's pinned 420px width
+         plus its 110px pulsing circle — both of which are RIGHT for the bake-off and the ceremony
+         barriers and far too much for six words and a button.
+         The stamp below is what index.html's #actionPanel[data-pp4-hand] rules key off, so only
+         this one card shrinks and every other centre-stage card keeps the width it was given.
+         NO WORDS CHANGE: the @copy block is approved as written and the break is not a word. */
+      ap.dataset.pp4Hand="1";
       if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
       // @copy misc.lobby.passmessage4 — APPROVED as written, Wyatt 2026-08-14
-      panel(`<div class="apMsg">${iconImg(DEVICE_IMG)} Pass the wheel to<br>
+      panel(`<div class="apMsg">${iconImg(DEVICE_IMG)} Pass the wheel to
         <b style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</b></div>
         <div class="apBtns"><button class="apBtn" id="passHelmGo" type="button"
           style="border-color:${HEXCOL[seatIdx]};color:${HEXCOL[seatIdx]}">At the helm!</button></div>`,true);
       const go=$("passHelmGo");
-      const took=()=>{delete ap.dataset.pp4Stage;panel("");appState.mySeat=seatIdx;res();};
+      const took=()=>{delete ap.dataset.pp4Stage;delete ap.dataset.pp4Hand;panel("");appState.mySeat=seatIdx;res();};
       if(!go){took();return;}
       go.onclick=()=>{go.onclick=null;took();};
     });

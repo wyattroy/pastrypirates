@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20f";
+const PP4_STAMP = "2026-08-20g";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -43,6 +43,8 @@ const S = {
   frameKey: "",             // the prompt the director last re-framed for (once per ask, never per frame)
   bubDue: 0,                // when the live bubble is due to retire — a DEADLINE, not a timer
   bubFinish: null,          // …and the resolver the deadline calls. See stageFlash for why.
+  waitFinish: null,         // resolver for a WAIT line specifically — see promptTick
+  hadPrompt: false,         // …and last frame's answer, so the retire is an EDGE, not a level
   raf: 0,
   lastPill: "",
 };
@@ -678,6 +680,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
       if (S.bubFinish === finish){ S.bubFinish = null; S.bubDue = 0; }
       if (S.bubPlace === place) S.bubPlace = null;
       if (S.hurry === finish) S.hurry = null;
+      if (S.waitFinish === finish) S.waitFinish = null;
       b.classList.add("out");
       setTimeout(() => b.remove(), 300);
       res();
@@ -709,6 +712,11 @@ function stageFlash(msg, ms, holdMs, variants, opts){
       S.bubDue = Date.now() + hold;
       S.bubFinish = finish;
     }
+    // …and it registers ONE more thing, which is the whole of retireWait() below: a wait line is
+    // the only bubble that means "you are done, the others are not". The moment this screen is
+    // asked something again that statement is false, so promptTick retires it — precisely, without
+    // touching a narration line that merely happens to be on screen at the same moment.
+    else S.waitFinish = finish;
     wake();   // a live bubble rides the ship — full frame rate while it's up
     b.addEventListener("pointerdown", finish);
     place();
@@ -852,6 +860,16 @@ function recipeGuard(){
     const cp = cellPx(), svg = svgEl();
     // resolve display-name -> ingredient id through the shared table
     import("../shared/index.js").then(sh => {
+      /* THE RINGS OUTLIVED THE CARD THAT ASKED FOR THEM. Found 2026-08-20 while screenshotting a
+         crew game: orange dock rings still on the water two days into the voyage.
+         The commit path is synchronous — second tap calls clearGlow() and lets the click through —
+         but the rings are appended from THIS promise. Commit before it settles and clearGlow has
+         already run on an empty board, so the rings land afterwards with nothing left to remove
+         them. Nobody can hit it on a warm module cache, which is why it has never been seen by
+         hand; a cold first tap of the session is a different story.
+         focusBtn is nulled by the committing tap, so "is this card still the focused one?" is the
+         exact question, and it costs one comparison. */
+      if (focusBtn !== btn) return;
       const ids = names.map(n => Object.entries(sh.ING_NAME || {}).find(([k, v]) => v === n)?.[0]).filter(Boolean);
       ids.forEach(ing => {
         const c = (g.dockOf && g.dockOf[ing]) || (g.islandOf && g.islandOf[ing]); if (!c) return;
@@ -1015,7 +1033,20 @@ function buildStage(){
   // playtest 10 item 2: the sound toggle was orphaned at the top-left of the stage (the horn
   // peeking under the ribbon in Wyatt's screenshots) — it lives in the ☰ menu now
   const ms = $("muteSlot");
-  if (ms && foot){ foot.insertBefore(ms, clockRow); ms.style.cssText = "display:flex;justify-content:center;"; }
+  if (ms && foot){
+    foot.insertBefore(ms, clockRow); ms.style.cssText = "display:flex;justify-content:center;";
+    /* AND BRING THE BUTTON WITH IT. Wyatt, 2026-08-20: "the host has no mute button (guest does)."
+       Moving the SLOT into the menu is not enough, because placeMuteButton() (ui/board.js) may
+       already have moved the BUTTON out of it and into #controlsRow — which enterStage parks inside
+       #pp4Cap and index.html hides outright. Whether it had is a matter of which measurement ran
+       last, so one client kept its mute button and the other lost it, and it looked like a
+       host/guest parity bug when it was a race.
+       board.js now refuses to send the button to #controlsRow while the stage is up; this line is
+       the other half — it retrieves one that was already sent there, at the exact moment the two
+       homes change hands. Together they make the answer the same on every client, every time. */
+    const mb = $("btnMute");
+    if (mb && mb.parentNode !== ms) ms.appendChild(mb);
+  }
   if (foot){
     const stamp = document.createElement("div");
     stamp.id = "pp4Stamp";
@@ -1134,6 +1165,34 @@ function promptTick(){
   const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
   const want = has ? "block" : "none";
   if (box.style.display !== want) box.style.display = want;
+  /* BEING ASKED SOMETHING IS THE END OF WAITING — Wyatt, 2026-08-20, and this is the half of his
+     two wait-line reports that survived the first fix. A screenshot of the HOST at the recipe
+     picker with "⚓ Waiting for yer mateys…" still floating over the sea, overlapping the "tap and
+     hold the sea" hint: he had clicked through the Ahoy barrier first, been told he was waiting,
+     and then been handed his own recipe choice with the wait line still standing.
+
+     A wait line has no deadline and no timeout by design (item 19 — "it should disappear when their
+     teammates have played"), so the ONLY things that retire one are a tap, the next narration line,
+     and — since this morning — a centre-stage card. A recipe sheet is none of those. Neither is a
+     radial bloom, or a battle call, or a trade offer. So whoever finished first sat under a stale
+     "waiting" line through every prompt until narration happened to land.
+
+     ONE PLACE, and it is this one: promptTick runs on both tiers (host and guest render into the
+     same #actionPanel) and covers every prompt style there is or ever will be — no call site has to
+     remember. Deliberately NOT S.hurry(): that would also cut a narration line short the instant a
+     prompt appeared, which is a pacing change nobody asked for. Only the wait line goes.
+
+     A RISING EDGE, NOT A LEVEL — and the level version was written first, shipped nothing, and was
+     caught by measuring my own fix rather than trusting it. A wait line is BORN one beat after its
+     owner answered a prompt, and the panel is not always empty by then; a `has`-is-true test
+     therefore retired the line in the same frame it appeared. Both runs agreed: 0 frames of a live
+     wait line, and the only samples that saw one at all were catching its fade. That is the whole
+     feature deleted while every check still said PASS, because "the line is gone" is what the check
+     was asking for.
+     The honest question is "has a NEW question arrived since you were told to wait", so the panel
+     going empty -> non-empty is the signal, and an already-open panel simply waits for the next one. */
+  if (has && !S.hadPrompt && S.waitFinish) S.waitFinish();
+  S.hadPrompt = has;
   if (!has){
     // full mode teardown — the recipes->lots transition never passes through an empty tick, and a
     // stale .pp4PeekHint left in the box becomes a FLEX SIBLING of the panel on the next centre
