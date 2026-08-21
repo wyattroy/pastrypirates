@@ -77,6 +77,38 @@
    event → `soundForEvent` timing; probably fires on the engine event after narration; move the cue to
    the click (UI tier). Do after `u`.
 
+## FIRST TASK OF THE FRESH SESSION — make the workflow cloud-runnable (Wyatt's ruling, 2026-08-21 ~16:30)
+
+Wyatt: the work should not be gated on his laptop; cloud sessions (claude.ai/code) share the same usage pool,
+keep running when the laptop closes, and are steerable from his phone (no 15-minute remote-control timeout).
+Facts checked against the docs 2026-08-21: Ubuntu 24.04, Node 20–22, Python 3, chromedriver pre-installed,
+4 vCPU / 16 GB; network "Trusted" (allow-list) by default; `~/.claude` does NOT carry over, the repo's
+`.claude/` does. Do these, ~20 minutes, BEFORE Group E:
+
+1. **Install GSD project-local** so a cloud clone has it: `npx -y @opengsd/gsd-core@latest --claude --local`
+   (the error string in execute-phase.md names this exact command). Verify `.claude/gsd-core/bin/gsd-tools.cjs`
+   exists in the repo and `node .claude/gsd-core/bin/gsd-tools.cjs validate health` runs. Commit it.
+2. **Commit the custom agents** the workflows spawn (`gsd-executor`, `gsd-planner`, `gsd-plan-checker`,
+   `gsd-verifier`, `gsd-debugger`, `gsd-code-reviewer`, `gsd-code-fixer`, `gsd-phase-researcher`,
+   `gsd-pattern-mapper`, …) from `~/.claude/agents/` into the repo's `.claude/agents/` — the local install
+   may do this; check, don't assume. Same for any skill the workflow invokes from `~/.claude/skills/`.
+3. **Port the laptop-only memory notes** (`~/.claude/projects/-Users-wyattroy-Documents-Projects-pastrypirates/memory/`)
+   into the repo where a cloud session will read them: the ones not already in CLAUDE.md/docs go into
+   `docs/HARD-WON-LESSONS.md` (headless+muted+unannounced browsers; scoped pkill; real-mouse QA; whole-game
+   QA bar; the phone/handoff rules). Keep it short — CLAUDE.md already carries most.
+4. **Make the mouse-QA driver Linux-aware**: `4/scripts/mouse_qa.mjs` hardcodes the macOS Chrome path —
+   resolve `CHROME` from `process.env.CHROME_BIN || which google-chrome || chromium || chromium-browser ||`
+   the Mac path. Same for `4/scripts/mp_rig.mjs`. Commit.
+5. **Write the cloud environment recipe** into `docs/GIT-AND-DEPLOY.md` (new section): network must be set to
+   **Full** (or a custom allow-list incl. `*.firebaseio.com`, `*.googleapis.com`, `playpastrypirates.com`,
+   `github.com`) or crew-game QA and the live-stamp check silently fail; setup script: `npm ci` (if any) +
+   nothing else; GitHub push goes through the platform's proxy (no local keys needed).
+6. **Prove it in the first cloud session**: run one solo mouse-QA game at 1400×900 to Day 6 and one two-tab
+   crew game (Firebase reachable) — if either fails, the laptop stays the QA machine until fixed, and the
+   handoff says so. Record the verdict in `docs/GIT-AND-DEPLOY.md`.
+
+Then proceed to Group E below. Wyatt's laptop remains the place for HIS play and anything Safari-specific.
+
 ## NEXT (as of ~15:40)
 - **02.2-07-PLAN.md = Group E** (his afternoon list + the flicker fix + storm/black-market + recipe card D-35), 8 tasks
   incl. the drop; planner wrote it (9acb74a); **plan-checker PASSED** (all 12 dimensions, no issues). **Run it with
