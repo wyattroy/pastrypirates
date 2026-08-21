@@ -137,7 +137,9 @@ function main() {
   const content = String(ti.content || ti.new_string || "");
 
   // repo-relative path, so the table's patterns read the way CLAUDE.md writes them
-  const repo = "/Users/wyattroy/Documents/Projects/pastrypirates";
+  // derived, never typed: a cloud clone (2026-08-21) lives under a different path. Claude Code sets
+  // CLAUDE_PROJECT_DIR for hooks; the fallback is this file's own location (.claude/hooks/ -> repo).
+  const repo = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "..", "..");
   const rel = filePath.startsWith(repo) ? filePath.slice(repo.length + 1) : filePath;
 
   /* Only GAME SOURCE counts as touching a subsystem.

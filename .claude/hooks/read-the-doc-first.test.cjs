@@ -18,7 +18,7 @@ const fs = require("fs");
 
 const HOOK = path.join(__dirname, "read-the-doc-first.cjs");
 const STATE = path.join(__dirname, ".read-state");
-const REPO = "/Users/wyattroy/Documents/Projects/pastrypirates";
+const REPO = path.resolve(__dirname, "..", "..");   // derived — the cloud clone lives elsewhere
 fs.rmSync(STATE, { recursive: true, force: true });
 
 const BOARD_FN = "build" + "Stage()";        // split so this file is not its own fixture by accident

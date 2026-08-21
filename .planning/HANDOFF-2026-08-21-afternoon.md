@@ -109,6 +109,15 @@ Facts checked against the docs 2026-08-21: Ubuntu 24.04, Node 20–22, Python 3,
 
 Then proceed to Group E below. Wyatt's laptop remains the place for HIS play and anything Safari-specific.
 
+**STATUS 2026-08-21 ~17:45 — steps 1–5 DONE on the laptop, step 6 NOT RUN (it can only run in a cloud session).**
+Record: `docs/GIT-AND-DEPLOY.md` §7 (the recipe + the proof checklist, status NOT YET RUN), `docs/HARD-WON-LESSONS.md` §8
+(the memory notes, ported), `4/scripts/lib/chrome.mjs` (one Chrome/repo resolver for all drivers), GSD 1.8.0 project-local
+under `.claude/` with every `@file` reference rewritten project-relative. Two things the install taught: pin the SAME version
+as the laptop (npm latest was 1.11.0 — a mid-phase workflow change is a separate decision), and the installer's hooks land
+in the untracked `settings.local.json` with a Mac node path — they are convenience, not load-bearing, and stay per-machine.
+**Interrupted by Wyatt's desktop screenshots (Safari + Chrome, identical fault) — see 02.2-CONTEXT.md "D-31 REOPENED" and
+D-36; his process ruling: a layout GATE that reads the rendered rectangles at five sizes and keeps its screenshots.**
+
 ## NEXT (as of ~15:40)
 - **02.2-07-PLAN.md = Group E** (his afternoon list + the flicker fix + storm/black-market + recipe card D-35), 8 tasks
   incl. the drop; planner wrote it (9acb74a); **plan-checker PASSED** (all 12 dimensions, no issues). **Run it with

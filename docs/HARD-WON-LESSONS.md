@@ -893,3 +893,70 @@ disk unused so multiplayer is two `<script>` tags away. It ships from `main` and
 `playpastrypirates.com/v2/`, kept out of search by `Disallow: /v2/` in the root `robots.txt` plus a
 `noindex` meta. **It must never carry `CNAME`, `robots.txt` or `sitemap.xml` of its own** — see
 `CLAUDE.md` for why that can take the live game down. Rules live in `v2/RULES-V2.md`.
+
+---
+
+## 8. Rules that lived only in the laptop's memory — ported here so a CLOUD session has them
+
+Wyatt, 2026-08-21: *"I want to be able to run all future sessions in the cloud."* A cloud session
+(claude.ai/code) gets the repo's `.claude/` and `docs/` and nothing from the laptop's `~/.claude/`
+— so every rule that had been kept only in the laptop's memory notes is restated here, short, with
+the note's name in brackets. CLAUDE.md already carries the big ones (ask with the UI, plain English
++ size, phone reachability, read every screenshot, measure before reporting, play the game).
+
+- **Browsers: ALWAYS headless, ALWAYS `--mute-audio`, launched from a background shell, and never
+  announce a window to him.** A visible Chrome steals his keyboard focus; an unmuted headless one
+  plays the game's sounds through his speakers (*"the only annoying thing is that I can hear the
+  sounds"*). If he asks to WATCH, `open -na "Google Chrome" --args …` and pin it with CDP
+  `Browser.setWindowBounds {left:60, top:40}` — a window spawned from a shell once opened off his
+  main display after he had been told to look for it. *(feedback_testing_scope)*
+- **Scope every `pkill` to your own port.** A bare `pkill -f remote-debugging-port` kills every
+  other agent's probe on the machine. `pkill -f "remote-debugging-port=${DBG}"`, `"http.server
+  ${PORT}"`. *(same)*
+- **Real-mouse QA is the instrument he trusts, and a DOM clicker is not** — he asked for it by name
+  after an off-screen Dock button sailed through headless QA. `4/scripts/mouse_qa.mjs`: trusted
+  `Input.dispatchMouseEvent` at screen coordinates, gated on inside-viewport + inside-the-column +
+  `elementFromPoint` hits it, a screenshot per action that you then READ. **And KEEP the
+  screenshots** — the build-u desktop pass was declared clean with none kept, and the layout was
+  wrong in both his browsers. *(same; 02.2-MOUSE-QA-2026-08-21.md)*
+- **Match verification effort to the stakes.** Decoration gets a look-at-it check; money,
+  multiplayer state and data loss get rigour. An overnight run that built a contract-checker and a
+  frame meter to decide whether wind dots stutter burned his whole usage allowance; his own test took
+  60 seconds. Say so at wave 1 if a plan is disproportionate. *(same)*
+- **The QA bar is WHOLE games, not stretches** — crew (two windows, both screenshotted and
+  compared at the beats), solo, and pass-and-play, each to its end-of-voyage card, on the FINAL
+  build. Its first night it found a nine-day-old softlock every shallower pass had sailed past. If
+  more drops land after the pass, the pass is stale. *(feedback_qa_bar_whole_games)*
+- **Drive and record at a PHONE viewport (390×844) unless he has said he is on desktop** —
+  `Emulation.setDeviceMetricsOverride` is the only thing that moves `innerWidth`. And POSE the
+  state (§5e of DRIVING-THE-GAME.md) instead of sailing for minutes to reach it.
+  *(feedback_record_at_phone_size)*
+- **Keep the local server running through his testing; stop it only when he says commit.** He
+  always tests before a commit and hated re-asking for the server. *(feedback_server_lifecycle)*
+- **Every time you ask him to look at something, the URL (with port) goes IN that same reply.**
+  Ports change with every rebuild (module cache), so an older link up-thread is usually the wrong
+  build. Say what he should look FOR, not just where. *(feedback_always_include_the_link)*
+- **One topic at a time.** After he answers, reflect it back and invite additions on THAT topic
+  before asking the next question — he dismissed two forms only because they cut off a
+  clarification he was still making. *(feedback_one_topic_at_a_time)*
+- **On the laptop only: tabs you drive in HIS Chrome get renamed `🤖 CLAUDE IS USING THIS`** (title
+  + favicon, re-claimed on an interval) and renamed back the moment you stop — he closed a tab
+  mid-run twice because he could not tell it was yours. Irrelevant in the cloud, which cannot reach
+  his browser at all. *(feedback_label_claude_browser_tabs)*
+- **On the laptop only: `find` is `bfs`**, which rejects relative `-newermt` timestamps; with
+  `2>/dev/null` the error looks like "found nothing". The cloud image has GNU find. Either way,
+  never `2>/dev/null` an exploratory `find`. *(project_find_is_bfs)*
+- **`4/scripts/mp_rig.mjs` is the two-window crew rig**, with three corrections baked in that each
+  cost real time: visibility is the painted rectangle, never `offsetParent` (always null for
+  `position:fixed`); the driver carries the liveness filter / prefer-the-committing-circle / rotate-
+  after-5-failures fixes; a remote seat gets `coinStepper()`'s ± fallback, not the slider, so a
+  first-live-button driver oscillates `+1 → −1` forever — skip steppers. Never drive a crew voyage
+  to its end (`writeGameLog()` is a permanent, undeletable write). *(project_mp_rig)*
+- **The role switch is the trigger for reading the subsystem doc.** Orchestrate for an hour, pick
+  up a browser yourself, and rule 20 will not fire on its own — `.claude/hooks/read-the-doc-first.cjs`
+  now denies the first browser launch / push / board edit / trade edit per session with the doc
+  named. Retry only after actually reading. Precision matters more than coverage in that hook: a
+  gate that fires on prose trains you to dismiss it. *(feedback_read_docs_at_role_switch)*
+- **Safari caches ES modules by URL and a page `?cb=` does NOT bust them** — a fresh server PORT
+  does. Same for Chrome and for image assets. No tool here can drive desktop Safari; a Safari pass
+  is Wyatt's, from his laptop. *(project_safari_storm_module_cache)*

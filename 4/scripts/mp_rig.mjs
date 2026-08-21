@@ -26,37 +26,43 @@ import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-export const REPO = "/Users/wyattroy/Documents/Projects/pastrypirates";
-export const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-export const SHOTS = "/private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/e19c4fa4-2b13-402b-8771-2c246ef86d8e/scratchpad/shots2";
+export { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";   // one resolver for every driver
+import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
+// screenshots: $MP_RIG_SHOTS, else ./mp-rig-shots under the caller's cwd (was a dead scratchpad path)
+export const SHOTS = process.env.MP_RIG_SHOTS || path.join(process.cwd(), "mp-rig-shots");
 fs.mkdirSync(SHOTS, { recursive: true });
 
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 export const log = (...a) => console.log(...a);
 const procs = [];
+const ports = { dbg: [], http: [] };   // so killAll() can scope its pkill to THIS rig's processes only
 
 export function serve(port) {
   const p = spawn("python3", ["-m", "http.server", String(port)], { cwd: REPO, stdio: "ignore" });
-  procs.push(p);
+  procs.push(p); ports.http.push(port);
   return `http://127.0.0.1:${port}/4/`;
 }
 
 export function launch(dbgPort, profile, { headless = true, url = "about:blank" } = {}) {
   fs.rmSync(profile, { recursive: true, force: true });
   const args = [
+    ...LINUX_ARGS,
     ...(headless ? ["--headless=new"] : []),
+    "--mute-audio",   // ALWAYS — his speakers are in the room (HARD-WON-LESSONS.md §8)
     "--disable-gpu", `--remote-debugging-port=${dbgPort}`, `--user-data-dir=${profile}`,
     "--no-first-run", "--no-default-browser-check", "--window-size=1200,950", url
   ];
   const p = spawn(CHROME, args, { stdio: "ignore" });
-  procs.push(p);
+  procs.push(p); ports.dbg.push(dbgPort);
   return p;
 }
 
 export function killAll() {
   for (const p of procs) { try { p.kill("SIGKILL"); } catch {} }
-  try { execSync("pkill -f remote-debugging-port", { stdio: "ignore" }); } catch {}
-  try { execSync("pkill -f 'http.server'", { stdio: "ignore" }); } catch {}
+  // SCOPED to this rig's own ports — a bare `pkill -f remote-debugging-port` kills every other
+  // agent's probe on the machine (HARD-WON-LESSONS.md §8, paid for on 2026-08-21).
+  for (const d of ports.dbg) { try { execSync(`pkill -f "remote-debugging-port=${d}"`, { stdio: "ignore" }); } catch {} }
+  for (const h of ports.http) { try { execSync(`pkill -f "http.server ${h}"`, { stdio: "ignore" }); } catch {} }
 }
 
 export async function attach(dbgPort, { match = null } = {}) {

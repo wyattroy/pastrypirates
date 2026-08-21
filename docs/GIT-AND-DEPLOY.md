@@ -239,3 +239,75 @@ git diff --name-only | grep -v '^4/'   # must print NOTHING when working in 4/
 ```
 
 Full account: `docs/HARD-WON-LESSONS.md` §1.
+
+---
+
+## 7. Running a session in the CLOUD (claude.ai/code) — the recipe, and what is proven
+
+Wyatt, 2026-08-21: *"the work should not be gated on my laptop"* — cloud sessions share the same
+usage pool, keep running when the laptop closes, and are steerable from his phone with no 15-minute
+remote-control timeout (§5 of CLAUDE.md's rule 4). **His laptop remains the place for HIS play and
+anything Safari-specific; nothing in the cloud can reach his browser.**
+
+### What carries over and what does not
+
+| | Cloud has it | Why / what to do |
+|---|---|---|
+| `.claude/CLAUDE.md`, hooks, `docs/`, `.planning/` | **yes** — they are in the repo | nothing to do |
+| GSD tools, workflows, agents | **yes, since 2026-08-21** — installed project-locally under `.claude/` (`gsd-core/`, `agents/`, `commands/`), **pinned to the same version the laptop runs** (`cat .claude/gsd-core/VERSION`) | a laptop/global install and this local one must move together — upgrade both in one commit, never one |
+| GSD's own hooks (update check, context monitor, prompt guard, …) | **no** — the installer wires them into the untracked `settings.local.json`, with this Mac's node path | convenience only; no workflow depends on them. A cloud session that wants them runs `npx -y @opengsd/gsd-core@1.8.0 --claude --local` once — it rewrites identical tracked files and wires its own hooks. **Do not move them into the tracked `settings.json`**: they would run twice on the laptop (global + project) and carry a Mac-only path |
+| `~/.claude/` memory notes | **no** — a cloud sandbox has no `~/.claude` from the laptop | every rule that lived only there is restated in `docs/HARD-WON-LESSONS.md` §8 |
+| `.claude/settings.local.json` (permissions) | **no** — untracked, per-machine | the cloud has its own permission model; expect prompts |
+| Chrome MCP / his Chrome, iOS simulator, Finder | **no** | all laptop-only tools |
+| Safari | **no** | his laptop is the only Safari |
+
+### Environment facts (checked against the docs 2026-08-21 — re-verify if the platform changes)
+
+Ubuntu 24.04, Node 20–22, Python 3, chromedriver pre-installed (so a Chrome/Chromium binary is on
+the image), 4 vCPU / 16 GB. **Network defaults to "Trusted" (an allow-list).** GitHub push goes
+through the platform's proxy — no local keys.
+
+### Network: set it to FULL, or a crew game and the live-stamp check silently fail
+
+`4/` loads Firebase from Google's CDN and talks to the Realtime Database; the deploy loop `curl`s
+the live domain to confirm a stamp. Under the default allow-list all of that fails **quietly** — a
+guest that never joins looks exactly like a multiplayer bug, and a stamp check that cannot reach the
+domain looks exactly like a build that did not land. Either set the session's network to **Full**,
+or allow at least: `*.firebaseio.com`, `*.googleapis.com`, `*.gstatic.com`, `playpastrypirates.com`,
+`github.com`, `registry.npmjs.org`.
+
+**After ANY reinstall or upgrade of the local GSD, re-run this** — the installer writes the installing
+machine's ABSOLUTE path into every command's `@file` reference (61 of 71 files on 2026-08-21), which
+no other clone can resolve:
+
+```bash
+grep -rl "$PWD" .claude/commands .claude/agents .claude/gsd-core | xargs sed -i '' "s#$PWD/##g"   # GNU sed: drop the ''
+```
+
+### Setup script
+
+Nothing beyond a clone — there is no build step and no `package-lock.json`, so no `npm ci`. The
+root `npm test` and every `4/scripts/*_check.js` gate run on bare Node.
+
+### Browser QA in the cloud
+
+`4/scripts/mouse_qa.mjs` and `4/scripts/mp_rig.mjs` resolve Chrome from `$CHROME_BIN`, then the
+PATH (`google-chrome`, `chromium`, `chromium-browser`), then the Mac bundle; on Linux they add
+`--no-sandbox --disable-dev-shm-usage` (a container running as root cannot use Chrome's SUID
+sandbox, and `/dev/shm` is tiny). The repo root is derived from the script's own location. Usage
+is unchanged: `node 4/scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`.
+
+### THE PROOF — status: **NOT YET RUN.** First task of the first cloud session.
+
+A recipe is a claim until it has been run. The verdict goes **here**, with the date, and replaces
+this paragraph:
+
+1. `node .claude/gsd-core/bin/gsd-tools.cjs validate health` runs (project-local GSD works).
+2. One solo mouse-QA game at 1400×900 to Day 6: `node 4/scripts/mouse_qa.mjs /tmp/mq 1400 900 8611 9611`
+   — reaches Day 6 with 0 findings, and the screenshots are readable.
+3. One two-tab crew game through `4/scripts/mp_rig.mjs` — a guest joins a real Firebase room (proves
+   the network setting).
+4. `curl -s https://playpastrypirates.com/4/src/ui/stage.js | grep PP4_STAMP` returns the live stamp.
+
+**If 2 or 3 fails, the laptop stays the QA machine until it is fixed, and the handoff says so.**
+Do not report the cloud as QA-capable on the strength of 1 and 4.

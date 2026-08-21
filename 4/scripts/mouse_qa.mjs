@@ -6,14 +6,13 @@ import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-const REPO = "/Users/wyattroy/Documents/Projects/pastrypirates";
+import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";   // one resolver for every driver
 const OUT = process.argv[2] || path.join(process.cwd(), "mouse-qa-shots");
 const W = +(process.argv[3] || 1400), H = +(process.argv[4] || 900);
 const PORT = +(process.argv[5] || 8477), DBG = +(process.argv[6] || 9377);
 const HEADED = process.argv[7] === "headed";           // only when Wyatt ASKS to watch (2026-08-21: he prefers invisible runs)
 const MUTE = process.argv[8] !== "sound";              // ALWAYS muted unless explicitly asked — his speakers are in the room
 const MAX_MS = 25 * 60 * 1000, TICK = 700, MAX_SHOTS = 170;   // a 15-day voyage used ~90 by day 9 — keep room for the end card
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PROFILE = path.join(OUT, "profile");
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -21,7 +20,7 @@ const log = (...a) => { const s = `[${new Date().toISOString().slice(11,19)}] ` 
 
 // --- serve + launch ---------------------------------------------------------
 const srv = spawn("python3", ["-m", "http.server", String(PORT)], { cwd: REPO, stdio: "ignore" });
-const chromeArgs = [...(HEADED ? [] : ["--headless=new"]), ...(MUTE ? ["--mute-audio"] : []), `--remote-debugging-port=${DBG}`, `--user-data-dir=${PROFILE}`,
+const chromeArgs = [...LINUX_ARGS, ...(HEADED ? [] : ["--headless=new"]), ...(MUTE ? ["--mute-audio"] : []), `--remote-debugging-port=${DBG}`, `--user-data-dir=${PROFILE}`,
   "--no-first-run", "--no-default-browser-check", `--window-size=${W},${H}`, "--autoplay-policy=no-user-gesture-required", "about:blank"];
 // HEADED: launch through LaunchServices so the window belongs to the GUI session (a Chrome spawned from a
 // background shell is not guaranteed to ever appear on screen — 2026-08-21, Wyatt never saw one). Headless
