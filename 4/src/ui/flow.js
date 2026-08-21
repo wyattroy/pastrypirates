@@ -2233,6 +2233,15 @@ export async function botTurn(p){
   // Same rule as the engine's: work the berth under your feet, nothing cleverer.
   const fallbackPort=g.adjPort(p);
   if(fallbackPort&&g.canDock(p,fallbackPort)&&g.doDock(p,fallbackPort)){await botBeat();return;}
+  // ITEM 4 / D-15: a bake-eligible captain never reaches the pass line below. canOvens (:1857,
+  // this same file) already suppresses the human's Pass button the instant g.canBake(p) is true
+  // and shows "Fire up the ovens!" instead — the SAME g.canBake(p), not a second hand-written
+  // test, is what makes "same rule for bots and humans" a property of the code rather than two
+  // sites that happen to agree today (rule 13). Ending the turn here, silently, is enough:
+  // runLiveDayBakeoff's own g.lightOvens(p) call fires the moment this function returns
+  // (4/src/orchestrator.js:934), exactly as it does for a human whose turn ended on the ovens
+  // button — the bot bakes, it does not pass.
+  if(g.cfg.bakeoff&&g.canBake(p))return;
   // v2 rule 3: no fishing. A bot with nothing worth doing looks into the ocean, exactly as a
   // human does — same action, same narration, same dubloon (RULE-01), so the table reads
   // consistently. The shared engine method is what makes "same" a property of the code rather

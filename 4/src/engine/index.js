@@ -2739,6 +2739,15 @@ class Game{
     // Nothing left worth doing this turn — so a bot does exactly what a human does in the same
     // position (rule 3 left no filler action): leans over the rail and looks into the ocean — and
     // is paid the same dubloon a human is paid for it (RULE-01, see doPass).
+    //
+    // UNLESS the captain can bake (item 4, D-15). A human standing in this exact spot never even
+    // sees the Pass button — flow.js's canOvens suppresses it the instant canBake(p) is true
+    // (4/src/ui/flow.js:1857-1902) and shows "Fire up the ovens!" instead. A bot must not have an
+    // affordance a human lacks (rule 13), so it does not pass here either. Ending the turn silently
+    // is enough: playBakeoff()'s own lightOvens(p) call fires unconditionally right after takeTurn
+    // returns (:2947), exactly as it does for a human whose turn ended on the ovens button — so the
+    // ovens still light, the bot just never collects the pass dubloon for looking at the sea.
+    if(this.cfg.bakeoff&&this.canBake(p))return;
     this.doPass(p);
   }
   /* ================= THE BAKE-OFF (v2.1) =================
