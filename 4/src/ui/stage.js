@@ -396,6 +396,123 @@ function stayConfirm(bx, by){
   }, 300);
 }
 
+/* ================= end-of-voyage card: the A+C park gesture (item 8, D-14) =================
+   Wyatt's pick, decoded 2026-08-21: the card starts fully up; scrolling it (normal overflow:auto,
+   already free) reveals whatever is below the fold; pulling past its OWN top — the standard
+   overscroll gesture, same shape as "pull to refresh" — carries the WHOLE card down until only its
+   header (winner + title) is left showing, landing exactly where #pp4Cap (the captains box) already
+   sits, so the board is fully revealed above it. Pulling up from there, or a plain tap on the
+   parked strip, restores it. Symmetric with the dismiss, as he asked.
+
+   NOTHING IS A CONSTANT (rule 9): every distance here is read off the DOM at drag time, not
+   hardcoded —
+     - the PARKED landing spot is #pp4Cap's own `getBoundingClientRect().top` (or, if that would
+       clip the header the card is supposed to still show, the header's own rendered bottom edge —
+       whichever leaves MORE of the header on screen wins, so a long winner name or a two-line
+       victory sentence never gets cut).
+     - the release THRESHOLD is a fraction of that same travel distance, not a fixed pixel count —
+       it scales with the captains box's own height, which itself scales with the number of
+       captains and the screen size.
+   Pointer Events cover touch, mouse-drag and pen in one listener set; wheel is handled separately
+   below because a trackpad/mouse scroll never fires a pointer drag. */
+const EOV_PARK_RELEASE_FRACTION = 0.32; // a UI-feel ratio (how much of the travel counts as "let
+  // go of it"), not a game quantity — CLAUDE.md rule 9 governs prices, thresholds and caps the
+  // economy computes, not an interaction's own release feel. What IS derived is the pixel distance
+  // this fraction is taken OF (see eovParkGeometry) — that is what changes per device and per game.
+function eovTranslateY(wrap){
+  const m = /translateY\(([-\d.]+)px\)/.exec(wrap.style.transform || "");
+  return m ? parseFloat(m[1]) : 0;
+}
+function eovParkGeometry(wrap){
+  const banner = wrap.querySelector(".winner-banner");
+  const h3 = wrap.querySelector("h3");
+  const cap = $("pp4Cap");
+  const wrapRect = wrap.getBoundingClientRect();
+  const T0 = wrapRect.top - eovTranslateY(wrap);           // the card's resting top, transform-free
+  const VB = vhPx();
+  const capTop = cap ? cap.getBoundingClientRect().top : VB;
+  // headerH: how tall "winner + title" actually renders THIS voyage — read off the DOM, because a
+  // long captain name or a two-line victory sentence changes it. Transform-safe: both wrapRect and
+  // the banner's rect move together under the same translateY, so their difference does not.
+  const headerBottom = banner ? banner.getBoundingClientRect().bottom
+    : (h3 ? h3.getBoundingClientRect().bottom : wrapRect.top);
+  const headerH = Math.max(0, headerBottom - wrapRect.top);
+  // MEASURED, 2026-08-21: a naive Math.min(capTop, VB-headerH) parks the strip AT capTop whenever
+  // the header is shorter than the captains box's own slot (the common case — a short winner name,
+  // one-line victory sentence) — which leaves genuine dead space inside the strip, and the awards
+  // row's own top edge shows through it, mid-card. Wyatt's "the rest of the card is off-screen
+  // below" means NOTHING past the header shows, ever — so the strip's height is the SMALLER of the
+  // two derived quantities (never taller than the captains box's own slot, never taller than the
+  // header needs), which is Math.max on the TOP coordinate (a larger top = a shorter, tighter
+  // window). In the rare case the header itself is taller than the captains box's slot (a long
+  // captain name, a two-line victory sentence), this still refuses to eat MORE board than the
+  // captains box itself used to cover — the header's own last line/word clips instead, a much
+  // smaller cost than covering board the box never covered.
+  const parkedTop = Math.max(capTop, VB - headerH);
+  const dY = Math.max(0, parkedTop - T0);
+  return { dY, T0, VB };
+}
+let eovDrag = null;
+function wireEovDrag(){
+  const wrap = $("statsWrap"); if (!wrap || wrap._pp4DragWired) return;
+  wrap._pp4DragWired = true;
+  const settle = (y, park) => {
+    wrap.classList.remove("pp4EovDrag");
+    wrap.style.transform = y ? `translateY(${y}px)` : "";
+    wrap.classList.toggle("pp4EovParked", park);
+  };
+  wrap.addEventListener("pointerdown", e => {
+    if (e.target.closest("button,a")) return;              // Play Again etc. keep their own tap
+    // only capture the pull when there is nowhere further to scroll — the top of the content (a
+    // normal scroll down to see below the fold stays a normal scroll) — or the card is already
+    // parked, so pulling up from the strip can restore it from anywhere on the strip
+    if (!wrap.classList.contains("pp4EovParked") && wrap.scrollTop > 0) return;
+    eovDrag = { id: e.pointerId, startY: e.clientY, base: eovTranslateY(wrap), moved: 0 };
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener("pointermove", e => {
+    if (!eovDrag || eovDrag.id !== e.pointerId) return;
+    const raw = e.clientY - eovDrag.startY;
+    eovDrag.moved = Math.max(eovDrag.moved, Math.abs(raw));
+    if (eovDrag.moved < 4) return;                          // noise floor before this counts as a drag
+    const g = eovParkGeometry(wrap);
+    if (g.dY <= 0) return;                                  // degenerate geometry: no room to park
+    const y = Math.max(0, Math.min(g.dY, eovDrag.base + raw));
+    wrap.classList.add("pp4EovDrag");
+    wrap.style.transform = `translateY(${y}px)`;
+    e.preventDefault();
+  });
+  const up = e => {
+    if (!eovDrag || eovDrag.id !== e.pointerId) return;
+    const wasParked = wrap.classList.contains("pp4EovParked");
+    const g = eovParkGeometry(wrap);
+    if (eovDrag.moved < 4){
+      // a TAP, not a drag — symmetric with the pull-down dismiss: tapping the parked strip restores
+      if (wasParked) settle(0, false);
+    } else if (g.dY > 0){
+      const y = eovTranslateY(wrap);
+      const threshold = g.dY * EOV_PARK_RELEASE_FRACTION;
+      const park = wasParked ? y > threshold : y > (g.dY - threshold);
+      settle(park ? g.dY : 0, park);
+    }
+    eovDrag = null;
+  };
+  wrap.addEventListener("pointerup", up);
+  wrap.addEventListener("pointercancel", up);
+  // desktop wheel: scrolling further down while already at the top of the content parks it;
+  // scrolling up while parked restores it — same rule as the drag, driven by delta instead of a
+  // pointer position, because a trackpad/mouse wheel never fires a pointer drag at all
+  wrap.addEventListener("wheel", e => {
+    const parked = wrap.classList.contains("pp4EovParked");
+    if (!parked && wrap.scrollTop <= 0 && e.deltaY > 0){
+      const g = eovParkGeometry(wrap);
+      if (g.dY > 0){ settle(g.dY, true); e.preventDefault(); }
+    } else if (parked && e.deltaY < 0){
+      settle(0, false); e.preventDefault();
+    }
+  }, { passive: false });
+}
+
 /* ================= wind pill ================= */
 function pillHTML(){
   const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return "";
@@ -1137,6 +1254,7 @@ function buildStage(){
   const shipsSvg = $("boardShips");
   if (shipsSvg) shipsSvg.setAttribute("preserveAspectRatio", "xMidYMin meet");
   gestures(wrap);
+  wireEovDrag();   // item 8 (D-14): the end-of-voyage card's pull-to-park gesture
   camFull();
   S.active = true;
 }

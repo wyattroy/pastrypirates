@@ -1472,7 +1472,12 @@
   body.pp4Peek #pp4Prompt,
   body.pp4Peek .pp4Bub,
   body.pp4Peek .pp4Stay,
-  body.pp4Peek #pp4ChatFlash { opacity:.13; pointer-events:none; }
+  body.pp4Peek #pp4ChatFlash,
+  /* item 8 (D-14, CLAUDE.md rule 8): the end-of-voyage card is a floating box like every other one
+     here, so a hold on the sea fades it exactly the same way — it is NOT one of the two sanctioned
+     exceptions (centre-stage intros, the flip veil), and this is in addition to, not instead of,
+     its own pull-to-park gesture below. */
+  body.pp4Peek #statsWrap { opacity:.13; pointer-events:none; }
   body.pp4Peek #pp4Prompt.pp4Center { opacity:1; pointer-events:auto; }
   .pp4Stay { transition:opacity .16s; }
   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
@@ -1908,7 +1913,18 @@
      end). The ribbon rides above it so the ☰ stays reachable. */
   body.pp4Stage #statsWrap { position:fixed; left:0; right:0; bottom:0;
     top:calc(44px + env(safe-area-inset-top)); z-index:32; overflow:auto;
-    background:rgba(232,244,238,.98); padding:14px; }
+    background:rgba(232,244,238,.98); padding:14px;
+    /* item 8 (D-14): the A+C park gesture, wired in stage.js's wireEovDrag(). touch-action:pan-y
+       keeps the browser's own vertical-scroll recognition (so scrolling down to the below-the-fold
+       content stays free and native) while the JS only takes over once the pull goes PAST the top —
+       the same shape as a native pull-to-refresh. transform is the only thing either gesture ever
+       animates, so this never triggers layout mid-drag (HARD-WON-LESSONS: compositor-only motion). */
+    touch-action:pan-y; transition:transform .25s cubic-bezier(.2,.9,.3,1.15); }
+  /* mid-drag: no transition, or the card would lag a live finger/mouse by 250ms */
+  body.pp4Stage #statsWrap.pp4EovDrag { transition:none; }
+  /* parked: freeze the internal scroll so the strip's own content can't drift under it while it
+     sits over #pp4Cap's old spot — only the translateY set by wireEovDrag ever moves it now */
+  body.pp4Stage #statsWrap.pp4EovParked { overflow:hidden; cursor:pointer; }
   body.pp4Stage #pp4Ribbon { z-index:40; }
   /* playtest 13: the big way out at the bottom of End of Voyage */
   #statsPanel .pp4Again { display:block; width:100%; margin:18px 0 10px; padding:16px;
