@@ -68,7 +68,7 @@ and must never be renumbered**). Like PAR-01…07 these sit outside the "51 tota
 roadmap creation. Each is written as a condition **he could check by playing**, because the phase
 gate is his eyes and not a probe. The item numbers in brackets are his.
 
-- [ ] **PAR-08**: *(Group Q)* Anchoring a ship plays the fishing sound instead of eight seconds of storm, the six sounds sit at sensible levels against each other, a long narration line holds long enough to read, the Attack and Pass buttons show their coin amount without brackets round it on every screen that draws them, and the end-of-voyage stat is labelled **Bakeries** and counts the captains who actually got home *(items 13, 10, 1, 14, 7)*
+- [x] **PAR-08**: *(Group Q)* Anchoring a ship plays the fishing sound instead of eight seconds of storm, the six sounds sit at sensible levels against each other, a long narration line holds long enough to read, the Attack and Pass buttons show their coin amount without brackets round it on every screen that draws them, and the end-of-voyage stat is labelled **Bakeries** and counts the captains who actually got home *(items 13, 10, 1, 14, 7)*
 - [ ] **PAR-09**: *(Group A)* A moment in a networked game produces exactly one sentence, from one place, read the same way by the host and by every guest — no Ahoy line arriving twice on a guest, no waiting-for-yer-mateys box that vanishes before the wait is over, and a guest's top ribbon showing whose turn it actually is *(items 17, 18, 19, 21, and 20/15 if Group Q could not reproduce them)*
 - [ ] **PAR-10**: *(Group B)* The first screen is free of faults visible at a glance — the greyed Attack prompt draws as the same radial fan as every other action, a battle frames the two boats fighting rather than a bystander's, the ovens-be-roarin' block is centred both ways, no popup appears until the camera and the ships have stopped moving, and a laptop shows the phone's picture so Wyatt and the session debug the same screen *(items 2, 3, 5, 11, 22 — 22 is a stopgap; the desktop redesign stays in Phase 8)*
 - [ ] **PAR-11**: *(Group C)* A bot that reaches Tortuga with a full recipe fires the ovens and forfeits the pass dubloon, exactly as a human in that position must — in the browser game and in the headless simulator alike, and proven from the event stream rather than asserted *(item 4)*
@@ -249,7 +249,7 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-05 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
 | PAR-06 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
 | PAR-07 | Phase 02.1 — One Game, Every Captain (inserted) | Complete |
-| PAR-08 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group Q, plan 02.2-01 |
+| PAR-08 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Complete — Group Q, plan 02.2-01 |
 | PAR-09 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group A, plan 02.2-02 |
 | PAR-10 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group B, plan 02.2-03 |
 | PAR-11 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C, plan 02.2-04 |

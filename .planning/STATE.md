@@ -5,14 +5,14 @@ milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
 stopped_at: Completed 02.2-01-PLAN.md — audio_map_check.js built and red-proofed, item 10's ceiling literally raised but measured to be a no-op, six sketches for items 8/9 shipped, battle-swords parked, live at 2026-08-20n
-last_updated: "2026-08-21T07:05:00.000Z"
-last_activity: 2026-08-21
-last_activity_desc: Group Q's remaining items executed; a real measurement found item 10's fix currently has no player-visible effect
+last_updated: "2026-08-21T07:16:47.154Z"
+last_activity: 2026-08-19
+last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
-  total_plans: 25
-  completed_plans: 21
+  total_plans: 24
+  completed_plans: 20
   percent: 33
 current_phase: 02.2
 ---
@@ -57,19 +57,25 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **02.2 (a-captain-who-cannot-take-their-turn), plan 01 EXECUTED, live as build `2026-08-20n`.**
-`02.2-01-SUMMARY.md` has the full account. Not yet done: item 10's real fix (see below),
+Phase: **02.2 (a-captain-who-cannot-take-their-turn), plan 01 EXECUTED, live as build `2026-08-20o`.**
+`02.2-01-SUMMARY.md` has the full account. PAR-08 is complete. Not yet done:
 `battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans 02.2-02..06.
 
-**ITEM 10, MEASURED AND FOUND INERT — read before touching narration pacing again.** The literal
-D-10 edit (`stage.js`'s outer ceiling 6750→8775) shipped exactly as specified, but a live two-tab
-measurement (`MutationObserver` on `.pp4Bub`, real driven crew game) found it changes nothing: the
-longest bubble held was 3305ms/3304ms (host/guest, matching to 1ms), because `4/src/ui/util.js`'s
-`msgHoldMs()` caps its own return at `HOLD_CEILING_MS=2000` **before** stage.js's `*1.5` and outer
-clamp ever run — `2000*1.5=3000` is always below both the old 6750 and the new 8775. **The number
-that actually needs raising, if Wyatt still wants a longer hold, is `HOLD_CEILING_MS` in
-`util.js:1220` — a different constant in a different file than D-10 named**, and that's a scope
-call for him, not something this run decided alone.
+**ITEM 10 — MEASURED INERT, THEN RELOCATED AND FIXED. Read before touching narration pacing
+again.** The literal D-10 edit (`stage.js`'s outer ceiling 6750→8775) shipped first exactly as
+specified, but a live two-tab measurement (`MutationObserver` on `.pp4Bub`, real driven crew game)
+found it changed nothing: the longest bubble held was 3305ms/3304ms (host/guest), because
+`4/src/ui/util.js`'s `msgHoldMs()` caps its own return at `HOLD_CEILING_MS=2000` **before**
+stage.js's `*1.5` and outer clamp ever run — `2000*1.5=3000` is always below both 6750 and 8775.
+**Resolved from the record, not left parked:** D-10's ruling names the quantity (~2s longer,
+ceiling only), not the specific line the plan diagnosed — only the LEVER's location was wrong.
+Blast-radius checked first (`HOLD_CEILING_MS` has exactly one other live consumer, `panel.js`'s
+`flash()` fallback, dead in practice once the stage boots; no shot-clock/prompt/wait-line reads
+it), then `msgHoldMs()` gained an optional, scoped second parameter — every other caller
+byte-identical — and `stage.js`'s narration-bubble call site alone passes
+`NARRATION_HOLD_CEILING_MS=3330`. Re-measured live: **5304ms/5297ms and 5296ms/5294ms** (host/guest,
+two independent long lines) — up from ~3305ms, parity held to within 7ms, short lines confirmed
+unchanged. Build `2026-08-20o`. Commit `0bd0541`.
 
 Phase: **02.15 (one-log-one-display-path)** — **BOTH PLANS EXECUTED, live as build `2026-08-20l`.**
 Plan 01's verdicts, evidence, deviations: `phases/02.15-one-log-one-display-path/02.15-01-SUMMARY.md`.
@@ -93,10 +99,11 @@ games, not stretches" ruling asked for. Item 20's sail-window row remains **not 
 Next: **`/gsd-execute-phase 02.2`** — `02.2-01` (the rest of Group Q) then `02.2-03…06`.
 **Read `02.2-CONTEXT.md` (29 locked decisions) first — it is the context for both phases.**
 
-**ITEM 10 (D-10) HAS NOT SHIPPED.** `4/src/ui/stage.js` still clamps the narration hold to
-`Math.max(2550, Math.min(6750, …))`. 02.15 left it untouched deliberately — changing narration
-pacing inside an architecture drop would make a pacing change impossible for him to attribute. Still
-Group Q's.
+~~**ITEM 10 (D-10) HAS NOT SHIPPED.** `4/src/ui/stage.js` still clamps the narration hold to
+`Math.max(2550, Math.min(6750, …))`.~~ **SUPERSEDED — see the top of this section.** 02.15 left it
+untouched deliberately (changing narration pacing inside an architecture drop would make a pacing
+change impossible for him to attribute), and it shipped, was measured inert, then relocated and
+fixed in `02.2-01`, build `2026-08-20o`.
 
 **Shipped ahead of 02.15: build `2026-08-20a` (`54806c6`).** Wyatt: *"yes, ship those three
 today."* Four of Group Q's items that provably do not touch the display path went out rather than
@@ -387,6 +394,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 02.2-01: item 10's literal fix (stage.js ceiling 6750→8775) shipped but measured inert — util.js's own HOLD_CEILING_MS=2000 caps msgHoldMs() before the outer clamp ever binds; the real lever is a different constant in a different file, flagged for Wyatt rather than changed unilaterally
 - [Phase ?]: 02.2-01: battle-swords.mp3 is a shared asset across the live root game, /v2, /v2bakeoff, /3 and /4 (confirmed by grep) — parked rather than re-exported, since editing it touches the live game and no session can judge whether a re-export sounds right
 - [Phase ?]: 02.2-01: notes/ is gitignored repo-wide; the two sketch folders (items 8/9) were force-added (git add -f) rather than editing .gitignore, keeping Wyatt's private notes files un-pushed while publishing exactly the two folders needed at a real URL
+- [Phase ?]: 02.2-01: item 10 relocated to the lever that actually binds (msgHoldMs's own HOLD_CEILING_MS, scoped via an optional parameter) after the literal stage.js edit was measured live to be a no-op; resolved from D-10's own ruling on the quantity, not the plan's wrong line-number diagnosis. PAR-08 complete.
 
 ### Pending Todos
 
