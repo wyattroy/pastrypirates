@@ -5,8 +5,14 @@
 **stale**. Group E is still real and still unstarted, but four things happened after it was written
 and they change what to do first.
 
-**Live build:** `PP4_STAMP` **`2026-08-20y`** (`76cbdbe`). Everything below is pushed; `main` and
-`origin/main` were both zero-ahead/zero-behind at handoff time.
+**Live build:** `PP4_STAMP` **`2026-08-21g`**. Everything below is pushed; `main` and `origin/main`
+were both zero-ahead/zero-behind at handoff time.
+
+> **THIS FILE WAS WRITTEN IN TWO PASSES.** The sections down to "STILL NOT DONE" were written when
+> Wyatt stepped away and several things were still open. **The "UPDATE, LATE EVENING" section near
+> the bottom supersedes them** — the gate has since run all four modes to completion and the bugs
+> listed as open below were fixed. Read the update first; the earlier sections are kept because the
+> reasoning in them is still the record of how each bug was found.
 
 ---
 
@@ -95,10 +101,9 @@ do not report as confirmed until it is** (rule 6 of CLAUDE.md).
 
 ## STILL NOT DONE
 
-- **The other three gate legs have never been run**: `solo-phone`, `passplay-phone`, `crew-desktop`.
-  The crew leg is the risky one (Firebase, two browsers, plays to the true end as `test1`/`test2`).
-- **The vision judge has never run inside a full gate pass** (every run so far used `--judge=off` to
-  debug the driver mechanics first). It is proven standalone; it is not proven in the pipeline.
+- ~~The other three gate legs have never been run~~ — **DONE, see the update below: all four legs
+  played complete voyages, crew included.**
+- ~~The vision judge has never run inside a full gate pass~~ — **DONE, and it produced 53 findings.**
 - **Group E (`02.2-07-PLAN.md`)** — Wyatt's afternoon list + the narration flicker fix +
   storm/black-market + recipe card D-35. Planner wrote it, plan-checker passed it, nothing executed.
   Its item 5 (wind pill from frame one) shipped today; the rest stands.
