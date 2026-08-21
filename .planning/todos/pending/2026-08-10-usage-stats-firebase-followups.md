@@ -137,3 +137,38 @@ slipping in, since it is a deliberate no-auth design and not an oversight.
 entries are permanent and unremovable by anyone, Wyatt included". It is inert (`stats.html:119`
 skips any entry with no `names` field) but it is permanent, and I should not have written a probe to
 an append-only node. **Probe `rooms`, never `gamelogs`.**
+
+---
+
+## RESOLVED 2026-08-20 — steps 1 and 2 are done and VERIFIED END TO END
+
+Wyatt added the rules from the console the same evening. Measured immediately after, against the
+live database:
+
+| check | result |
+|---|---|
+| `visits` / `starts` / `fins` readable | **200** (were 401) |
+| a real page load writes a visit row | **PASS** — `1787280662894-claude-verify-20260820` = `"v4"` |
+| create-only refuses a rewrite of that key | **PASS** — HTTP 401, value unchanged |
+| `stats.html` renders without the read-error banner | **PASS** — table, captains and devices panels all populate |
+
+**He took the stricter shape, not the blanket one.** The three new nodes use
+`"$id": {".write": "!data.exists()"}` — the same create-only pattern `gamelogs` and `feedback`
+already had — rather than `".write": true`. Checked before recommending it: `usage.js`'s `put()`
+takes `keepalive` as its third argument, not an overwrite flag, and every key is a unique
+`<ts>-<pid>`, so nothing ever needs to rewrite a row. The upshot is that nobody can wipe or tamper
+with the stats, only add to them — proven by the 401 above.
+
+**His pasted JSON did not parse** — a missing comma after the `presence` block. Worth remembering
+that rules are pasted by hand into a console with no linter: parse the JSON before handing it over.
+
+**One row in `visits` is mine**, keyed `…-claude-verify-20260820`, written deliberately to prove the
+pipeline and labelled so it cannot be mistaken for a player. It is permanent by the same create-only
+rule. `stats.html`'s device chips can mark it as "also you" to keep it out of the "others" count.
+
+**Counters therefore begin 2026-08-20, not 2026-08-10** — the ten days in between recorded nothing,
+because the rules were never added. Nothing was lost that was ever captured; it simply never was.
+
+**Steps 3 and 4 remain open and optional** (letting a session query the database directly; making
+rule changes Claude's job). Neither is needed now that reads are public — this session queried
+everything above with plain `curl`.
