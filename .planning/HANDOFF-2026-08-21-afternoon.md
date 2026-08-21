@@ -32,7 +32,8 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
   mouse-QA passes + non-browser gates" — i.e. the layout was built but UNVERIFIED. Next session: `git stash
   pop`, read the diff against D-31's picks, then run the gate it was given (mouse-QA at 390/960/1400/1920 +
   a host/guest pair + all named gates) before any stamp. The live build stays `t`.
-- **Narration-timing trace — partial, preserved.** `.planning/debug/tails-narration-vanishes.md` (status:
+- **Narration-timing trace — DONE (`.planning/debug/tails-narration-vanishes.md`, commits d7c0196/c4df244).** ONE mechanism for A/B/C/D: `ask()` posts a broadcast-mirror wait-line bubble (util.js:1656) that `promptTick()`'s wait-line cleanup (stage.js:1513, from 3a80839 = build g, last night) retires ~2ms later; the real prompt reveals 0.7–1.2s later behind its (correct) settle gate. NOT D-30. Item 11's gate exonerated (0 violations). Two extra bugs: veil z-order (index.html:1721/1733) hides the flip-result bubble ~47% of its hold; Buy-pill overhang = stale `offsetWidth` before the ingredient `<img>` decodes (stage.js:1715), 63px. Fixes are tasks in **02.2-07-PLAN.md** (Group E, being planned). Original note kept below for the record:
+  *(was)* partial, preserved. `.planning/debug/tails-narration-vanishes.md` (status:
   investigating) holds the hypothesis and the exact instrument plan; its repro driver was
   `scratchpad/tails_repro.mjs` (scratchpad — gone; rebuild from `4/scripts/mouse_qa.mjs` + the plan in the
   doc). Its last words before the kill: the in-page timeline sampler WORKED (488 entries) and was about to be
