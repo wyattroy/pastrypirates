@@ -24,7 +24,15 @@ export const MEASURE = `(() => {
     const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
     const hit = document.elementFromPoint(cx, cy);
     const top = !!(hit && (hit === el || el.contains(hit) || hit.contains(el)));
-    return { id: mark(el), chain: (() => { const out = []; let n = el; while (n && n !== document.body) { if (n.__qaId) out.push(n.__qaId); n = n.parentElement; } return out; })(),
+    // ROUND CONTROLS ARE ROUND. The prompt circles are 66px with border-radius:50%, and a
+    // box-vs-box test calls two diagonal neighbours "overlapping" when their corners clip by a few
+    // pixels while the circles themselves are comfortably apart. Measured on the phone leg: centres
+    // 73.5px apart, diameter 66 — visibly not touching — reported as a pile three times a voyage.
+    // A gate that cries wolf teaches its reader to dismiss it, so the shape has to be part of the
+    // measurement rather than an assumption.
+    const br = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+    const round = br >= Math.min(el.getBoundingClientRect().width, el.getBoundingClientRect().height) / 2 - 1;
+    return { id: mark(el), round, chain: (() => { const out = []; let n = el; while (n && n !== document.body) { if (n.__qaId) out.push(n.__qaId); n = n.parentElement; } return out; })(),
       tag: el.className.toString().slice(0,40) || el.id, text: (el.textContent||'').trim().slice(0,24), rect: R(el), topmost: top,
       // WHAT covers it, not just THAT it is covered — a finding you cannot act on is half a finding.
       coveredBy: top ? null : (hit ? ((hit.id ? '#'+hit.id : '') + '.' + String(hit.className||'').trim().split(/\s+/).slice(0,2).join('.') + ' <' + hit.tagName.toLowerCase() + '>').slice(0,60) : 'nothing (outside any element)'),
@@ -64,7 +72,26 @@ export function structuralChecks(m) {
   const out = []; const F = (ok, rule, what) => out.push({ ok, rule, what });
   const IB = 2;                                     // sub-pixel tolerance
   const withinVP = r => r.l >= -IB && r.t >= -IB && r.r <= m.iw + IB && r.b <= m.ih + IB;
-  const overlaps = (a, b, tol = 3) => Math.min(a.r, b.r) - Math.max(a.l, b.l) > tol && Math.min(a.b, b.b) - Math.max(a.t, b.t) > tol;
+  const boxOverlap = (a, b, tol = 3) => Math.min(a.r, b.r) - Math.max(a.l, b.l) > tol && Math.min(a.b, b.b) - Math.max(a.t, b.t) > tol;
+const overlaps = (a, b, tol = 3) => boxOverlap(a, b, tol);
+/* Shape-aware: a circle is a circle. Falls back to boxes whenever either side is rectangular, so
+   nothing that used to be caught stops being caught — it only stops reporting two round buttons
+   whose CORNERS clip while the buttons themselves are apart. */
+const cx = r => r.l + r.w / 2, cy = r => r.t + r.h / 2;
+function shapeOverlap(A, B, tol = 3) {
+  const a = A.rect, b = B.rect;
+  if (A.round && B.round) {
+    const ra = Math.min(a.w, a.h) / 2, rb = Math.min(b.w, b.h) / 2;
+    return Math.hypot(cx(a) - cx(b), cy(a) - cy(b)) < ra + rb - tol;
+  }
+  if (A.round !== B.round) {                       // circle vs rectangle: nearest point on the box
+    const C = A.round ? a : b, Rr = A.round ? b : a;
+    const r = Math.min(C.w, C.h) / 2;
+    const px = Math.max(Rr.l, Math.min(cx(C), Rr.r)), py = Math.max(Rr.t, Math.min(cy(C), Rr.b));
+    return Math.hypot(cx(C) - px, cy(C) - py) < r - tol;
+  }
+  return boxOverlap(a, b, tol);
+}
 
   // 1. every clickable control is fully on screen (nothing a player must reach is off the edge)
   const off = m.interactive.filter(e => !e.disabled && !withinVP(e.rect)).map(e => `${e.text || e.tag}`);
@@ -77,7 +104,7 @@ export function structuralChecks(m) {
   // 3. no two DISTINCT clickable controls overlap (piled buttons, a control on a control)
   const piles = [];
   for (let i = 0; i < m.interactive.length; i++) for (let j = i+1; j < m.interactive.length; j++)
-    if (overlaps(m.interactive[i].rect, m.interactive[j].rect)) piles.push(`${m.interactive[i].text||m.interactive[i].tag}/${m.interactive[j].text||m.interactive[j].tag}`);
+    if (shapeOverlap(m.interactive[i], m.interactive[j])) piles.push(`${m.interactive[i].text||m.interactive[i].tag}/${m.interactive[j].text||m.interactive[j].tag}`);
   F(piles.length === 0, "no-pile", piles.length ? `overlapping controls: ${piles.slice(0,5).join(", ")}` : "no overlapping controls");
 
   // 4. no readable text is clipped by its own box (name into coin, label cut off)
@@ -97,7 +124,7 @@ export function structuralChecks(m) {
   const onSail = [];
   for (const cell of sail) {
     if (!cell.topmost && cell.coveredBy) onSail.push(`a sail square <- ${cell.coveredBy}`);
-    for (const o of others) if (overlaps(o.rect, cell.rect, 4)) onSail.push(`"${o.text || o.tag}" over a sail square`);
+    for (const o of others) if (shapeOverlap(o, cell, 4)) onSail.push(`"${o.text || o.tag}" over a sail square`);
   }
   F(onSail.length === 0, "sail-clickable", onSail.length ? `${onSail.length} sail square(s) covered: ${[...new Set(onSail)].slice(0,4).join(", ")}` : `every sail square clickable (${sail.length})`);
 
@@ -110,7 +137,7 @@ export function structuralChecks(m) {
   for (const ctl of m.interactive) for (const t of askText) {
     if (!t.text) continue;
     if (ctl.chain && t.chain && (ctl.chain.includes(t.id) || t.chain.includes(ctl.id))) continue;   // nested — fine
-    if (overlaps(ctl.rect, t.rect, 4)) covers.push(`"${ctl.text || ctl.tag}" over "${t.text}"`);
+    if (shapeOverlap(ctl, { rect: t.rect, round: false }, 4)) covers.push(`"${ctl.text || ctl.tag}" over "${t.text}"`);
   }
   F(covers.length === 0, "no-cover-ask", covers.length ? `control covering the question it answers: ${covers.slice(0,4).join(", ")}` : "the question is never covered by its own buttons");
 
