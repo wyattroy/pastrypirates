@@ -545,7 +545,8 @@ playing)*
 **Depends on**: **Phase 02.15** (One Log, One Display Path) — which absorbed this phase's
 Group A and runs BEFORE it, on Wyatt's ruling.
 
-**Plans:** 4/5 plans executed
+**Plans:** 7 plans — see the list below for which are executed (the count was hand-typed and had
+already gone stale at 4/5 with six plans on the list; the checkboxes are the record).
 
 Plans:
 
@@ -555,6 +556,11 @@ Plans:
 - [x] 02.2-04-PLAN.md — Group C: the bot that passes AND bakes (item 4) — **the one engine change in the phase**
 - [x] 02.2-05-PLAN.md — Group C′: the economy, measured and reported (item 12) — **no game code changes, no stamp bump**
 - [ ] 02.2-06-PLAN.md — Group D: design and copy (items 6, 16, and 8/9 if he has picked)
+- [ ] 02.2-07-PLAN.md — Group E: Wyatt's afternoon solo list on build `t` — all nine items (the
+  wait-line race behind his 2 and 8, the storm summary, the black market, reading-speed narration,
+  the petal pulse, the Dock label, the wind pill, the crate cue). **A new list, not his twenty-two**
+  — item numbers here are his afternoon numbering, recorded in
+  `.planning/HANDOFF-2026-08-21-afternoon.md`, and do not renumber his original twenty-two.
 
 ---
 
