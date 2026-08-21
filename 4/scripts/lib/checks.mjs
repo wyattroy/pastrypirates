@@ -15,9 +15,17 @@ export const MEASURE = `(() => {
   const uniq = new Set();
   // THINGS A PLAYER CLICKS — every interactive control the game presents, by class, deduped.
   const clickSel = '.apBtn, .btlBtn, .sailCell, .recipeCard, .bkoCard, .apSlider, #flipCoinWrap.active, .recipeList button';
+  // vis() already excludes display:none / visibility:hidden / zero-size — so a lobby control that
+  // does not exist for this mode (#btnStart is display:none in solo) is never treated as "offered
+  // to the player". A gate that fires on something the player cannot see teaches its reader to
+  // dismiss it, which is worse than no gate (HARD-WON-LESSONS.md).
   const interactive = [...document.querySelectorAll(clickSel)].filter(vis).map(el => {
     const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
-    return { tag: el.className.toString().slice(0,40) || el.id, text: (el.textContent||'').trim().slice(0,24), rect: R(el), topmost: topmostAt(el, cx, cy),
+    const hit = document.elementFromPoint(cx, cy);
+    const top = !!(hit && (hit === el || el.contains(hit) || hit.contains(el)));
+    return { tag: el.className.toString().slice(0,40) || el.id, text: (el.textContent||'').trim().slice(0,24), rect: R(el), topmost: top,
+      // WHAT covers it, not just THAT it is covered — a finding you cannot act on is half a finding.
+      coveredBy: top ? null : (hit ? ((hit.id ? '#'+hit.id : '') + '.' + String(hit.className||'').trim().split(/\s+/).slice(0,2).join('.') + ' <' + hit.tagName.toLowerCase() + '>').slice(0,60) : 'nothing (outside any element)'),
       disabled: el.disabled || el.classList.contains('apDisabled') || el.getAttribute('aria-disabled') === 'true' }; });
   // THINGS A PLAYER READS — text that must not be clipped or overrun.
   const textSel = '.pname, .apMsg, .pp4Bub:not(.ambient), .prowRecipe, .pp4CerTitle, .coins, .bkoName';
@@ -51,7 +59,7 @@ export function structuralChecks(m) {
   F(off.length === 0, "on-screen", off.length ? `clickable off-screen: ${off.slice(0,6).join(", ")}` : "all clickables on screen");
 
   // 2. every clickable control is the topmost thing at its own centre (not hidden under something)
-  const occ = m.interactive.filter(e => !e.disabled && withinVP(e.rect) && !e.topmost).map(e => `${e.text || e.tag}`);
+  const occ = m.interactive.filter(e => !e.disabled && withinVP(e.rect) && !e.topmost).map(e => `${e.text || e.tag} <- covered by ${e.coveredBy}`);
   F(occ.length === 0, "not-occluded", occ.length ? `clickable covered by something else: ${occ.slice(0,6).join(", ")}` : "all clickables reachable");
 
   // 3. no two DISTINCT clickable controls overlap (piled buttons, a control on a control)

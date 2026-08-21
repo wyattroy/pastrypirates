@@ -40,9 +40,19 @@ const SIG_SRC = `(() => {
   const sail = document.querySelectorAll('.sailCell').length;
   const flip = document.querySelector('#flipCoinWrap.active') ? 'FLIP' : '';
   const eov = (() => { const s = document.getElementById('statsWrap'); return s && s.style.display !== 'none' ? 'EOV' : ''; })();
+  // SELECTION STATE IS A REAL CHANGE. Two-step confirm controls (the recipe card is the worked
+  // example: first tap is preventDefault'd and only adds a focus class + a "Bake this!" pill,
+  // second tap on the SAME card commits) change nothing else on screen. Without this the driver
+  // read its own first tap as "dead button" and coverage-first then chose the OTHER card, toggling
+  // forever. Selection is part of what screen you are on, so it belongs in the signature.
+  const sel = [...document.querySelectorAll('.pp4Focus, .selected, [aria-selected="true"], .pp4Bake')].map(e => (e.className||'') + ':' + (e.textContent||'').trim().slice(0,8)).join(',');
   const msg = (document.querySelector('#pp4Prompt .apMsg, .bko') || {textContent:''}).textContent.trim().slice(0, 40);
-  return [cls.trim(), btns, 'sail:'+(sail?1:0), flip, eov, msg].join(' ~ ');
+  return [cls.trim(), btns, 'sail:'+(sail?1:0), flip, eov, 'sel:'+sel, msg].join(' ~ ');
 })()`;
+
+// THE one button query. Both the survey and the click-locator index into this exact list, so an
+// index always means the same element (see the label-matching stall this replaced).
+const BTN_Q = `[...document.querySelectorAll('#pp4Prompt .apBtn, #actionPanel .apBtn, .btlBtn')].filter(b => { const cs = getComputedStyle(b); if (cs.visibility === 'hidden' || cs.display === 'none') return false; const r = b.getBoundingClientRect(); return r.width > 0 || r.height > 0; })`;
 
 export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
   const P = {
@@ -57,9 +67,15 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
 
   const ev = c.ev.bind(c);
   const sig = () => ev(SIG_SRC);
-  const state = () => ev(`(()=>{try{const g=appState.game; if(!g) return {ev:0,day:0};
+  // appState is NOT a window global (DRIVING-THE-GAME.md §6) — import it once and cache it on
+  // window, exactly as mouse_qa.mjs does. Without this every read threw, was swallowed, and the
+  // gate reported DAY 0 forever and could never see the end of voyage. A silent zero, not an error.
+  const state = () => ev(`(async()=>{try{
+    if(!window.appState){const m=await import('/4/src/state/index.js');window.appState=m.appState;}
+    const g=window.appState.game; if(!g) return {ev:0,day:0,over:false};
     return {ev:(g.log||g.events||[]).length, day:g.round||0,
-      over:(()=>{const s=document.getElementById('statsWrap');return !!(s&&s.style.display!=='none');})()};}catch(e){return {ev:0,day:0}}})()`);
+      over:(()=>{const s=document.getElementById('statsWrap');return !!(s&&s.style.display!=='none');})()};
+  }catch(e){return {ev:0,day:0,over:false,err:String(e.message).slice(0,60)}}})()`);
 
   const cover = (kind, field) => { const r = P.coverage.get(kind) || { seen: 0, clicked: 0 }; r[field]++; P.coverage.set(kind, r); };
 
@@ -88,8 +104,7 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
   // naive driver oscillates ± forever — mp_rig lesson); records every label it SAW.
   async function answerButtons() {
     const btns = await ev(`(() => {
-      const list = [...document.querySelectorAll('#pp4Prompt .apBtn, #actionPanel .apBtn, .btlBtn')]
-        .filter(b => getComputedStyle(b).visibility !== 'hidden');
+      const list = ${BTN_Q};
       return list.map((b, i) => ({ i, label: (b.textContent||'').trim().slice(0, 30),
         disabled: b.disabled || b.classList.contains('apDisabled') || b.getAttribute('aria-disabled') === 'true',
         g: __gate(b) }));
@@ -100,7 +115,10 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
     const isMinus = b => /^−|^-\s*1|minus/i.test(b.label);
     const live = btns.filter(b => !b.disabled && !isBack(b) && !isMinus(b));
     // unreachable-control finding, with grace (intros park buttons at zero size legitimately)
-    const blocked = live.filter(b => !b.g.ok);
+    // "zero size" here means a hidden/parked control, not a mispositioned one — intros legitimately
+    // park buttons at zero size, and a display:none lobby control (e.g. #btnStart in solo) is simply
+    // not offered. Only controls that ARE rendered but cannot be reached are findings.
+    const blocked = live.filter(b => !b.g.ok && b.g.why !== 'zero size');
     for (const b of blocked) {
       const k = "unreachable:" + kindOf(b.label) + ":" + b.g.why.replace(/\d+/g, "#");
       const n = (P.pending.get(k) || 0) + 1; P.pending.set(k, n);
@@ -115,14 +133,31 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
     for (const b of usable) { const pre = "unreachable:" + kindOf(b.label);
       for (const k of [...P.pending.keys()]) if (k.startsWith(pre)) P.pending.delete(k); }
     // stepper: exercise +1 once per stepper visit, then confirm (the primary)
+    // TWO-STEP CONFIRM: if a control we just tapped is now SELECTED (focus class / "Bake this!"
+    // pill), the committing gesture is another tap on that SAME control — not a different one.
+    // General to any select-then-confirm control, not specific to the recipe picker.
+    const selIdx = await ev(`(() => { const list = ${BTN_Q};
+      for (let i = 0; i < list.length; i++) { const b = list[i];
+        if (b.classList.contains('pp4Focus') || b.classList.contains('selected') || b.querySelector('.pp4Bake')) return i; }
+      return -1; })()`);
+    if (selIdx >= 0) {
+      const lab = (btns[selIdx] && btns[selIdx].label) || "selected card";
+      await clickAndVerify(`__gate(${BTN_Q}[${selIdx}])`, lab + " (commit)");
+      return true;
+    }
+    // LOCATE BY INDEX, NEVER BY LABEL. Labels are truncated to 30 chars for the coverage ledger,
+    // and a locator comparing that truncated string to the element's real textContent matches
+    // NOTHING — every click silently no-oped and the gate stalled on the recipe picker forever
+    // (measured 2026-08-21). The index is into BTN_Q, the one query both sides share.
+    const at = i => `__gate(${BTN_Q}[${i}])`;
     const plus = usable.find(b => /^\+\s*1|plus/i.test(b.label));
     if (plus && !P._steppedThisPrompt) { P._steppedThisPrompt = true;
-      await clickAndVerify(`__gate([...document.querySelectorAll('#pp4Prompt .apBtn, #actionPanel .apBtn')].filter(x=>(x.textContent||'').trim()===${JSON.stringify(plus.label)})[0])`, plus.label); return true; }
+      await clickAndVerify(at(plus.i), plus.label); return true; }
     P._steppedThisPrompt = false;
     // coverage-first pick: least-clicked kind, then leftmost
     usable.sort((a, b2) => ((P.coverage.get(kindOf(a.label))||{clicked:0}).clicked - (P.coverage.get(kindOf(b2.label))||{clicked:0}).clicked));
     const pick = usable[0];
-    await clickAndVerify(`__gate([...document.querySelectorAll('#pp4Prompt .apBtn, #actionPanel .apBtn, .btlBtn')].filter(x=>(x.textContent||'').trim()===${JSON.stringify(pick.label)} && getComputedStyle(x).visibility!=='hidden')[0])`, pick.label);
+    await clickAndVerify(at(pick.i), pick.label);
     return true;
   }
 
