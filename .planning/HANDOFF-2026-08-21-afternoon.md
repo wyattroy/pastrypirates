@@ -80,7 +80,10 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
 
 ## NEXT (as of ~15:40)
 - **02.2-07-PLAN.md = Group E** (his afternoon list + the flicker fix + storm/black-market + recipe card D-35), 8 tasks
-  + the drop; planner wrote it, plan-checker next, then `/gsd-execute-phase 02.2` runs it — **only after `u` is live**
+  incl. the drop; planner wrote it (9acb74a), plan-checker verdict pending/at `02.2-07` notes. **Run it with
+  `/gsd-execute-phase 02.2 --plan 07`-equivalent scoping — i.e. execute ONLY 02.2-07**: a bare
+  `/gsd-execute-phase 02.2` would also pick up 02.2-06 (no SUMMARY by design — items 6 and 16 remain, its
+  strike-box says what shipped). Execute 07 **only after `u` is live**
   (sequencing ruling: D-31 ships first; Group E's stamp is the next letter after whatever is live).
 - D-35: recipe card = option C + more image padding + the top gradient reaching the title separator.
 
