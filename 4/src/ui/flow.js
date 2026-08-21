@@ -65,6 +65,7 @@ import {
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS, isDisabledBtn,
   SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS, MOTION_BRIDGE_TICKS, MAX_NAME_LEN,
+  vwPx, fixedRect,
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
@@ -156,7 +157,14 @@ export function showWhy(b){
   clearWhy();
   const why=b&&b.dataset&&b.dataset.why;
   if(!why)return;                       // nothing to say — stay silent rather than show an empty box
-  const r=b.getBoundingClientRect();
+  // RED ALERT FIX (2026-08-21, D-18 follow-up — util.js's fixedOrigin() note has the full account):
+  // fixedRect(), not a raw getBoundingClientRect() — `d` (.apWhy, index.html) is position:fixed on
+  // body like every other stage overlay, so a viewport-absolute button rect written into its
+  // left/top is off by body's own offset the instant item 22's desktop stopgap is active. Also
+  // vwPx(), not window.innerWidth — this file's own established rule (stage.js's header comment,
+  // playtest 19 item 3): innerWidth is the Safari *visual* viewport, and on desktop it is additionally
+  // the TRUE (uncapped) width rather than the phone-shaped column every other clamp in this game uses.
+  const r=fixedRect(b);
   const d=document.createElement("div");
   d.className="apWhy";
   d.textContent=why;                    // textContent: the reason is prose, never markup
@@ -165,7 +173,7 @@ export function showWhy(b){
   // 390px phone would otherwise hang its bubble off the screen
   const w=d.offsetWidth,h=d.offsetHeight;
   const cx=r.left+r.width/2;
-  d.style.left=Math.min(Math.max(cx-w/2,8),Math.max(8,window.innerWidth-w-8))+"px";
+  d.style.left=Math.min(Math.max(cx-w/2,8),Math.max(8,vwPx()-w-8))+"px";
   // above the button by preference; below it when there is no room up there
   const above=r.top-h-10;
   d.style.top=(above>=8?above:r.bottom+10)+"px";

@@ -1499,15 +1499,33 @@
     padding:6px 14px; box-shadow:0 5px 16px rgba(0,0,0,.3); margin:0; width:max-content;
     max-width:min(300px,84vw); }
   #pp4Prompt.radial .apSlider { width:170px; }
+  /* RED ALERT FIX (2026-08-21, D-18 follow-up): 80%, not 80vw — this is the exact element behind
+     Wyatt's report ("the tool top 'No one's holding card to trade for yet' is floating nowhere near
+     its button"). Its LEFT/TOP were the coordinate-offset bug (stage.js's toScreen(), see
+     util.js's fixedOrigin() note); this is the other half of the same bug class item 22 (94adceb)
+     already fixed for #boardwrap/.radial/.pp4Center — a raw vw unit ignores the capped column
+     entirely. `.apSub` is `position:fixed` right here in this rule, so once the stopgap is active
+     its containing block is body and `%` follows the capped column the same way `100%` already does
+     elsewhere; on phone (no transformed ancestor) `%` resolves against the true viewport, same as
+     `vw` did — no change there (D-18). */
   #pp4Prompt.radial .apSub { display:block; position:fixed; background:rgba(255,253,242,.9);
     border-radius:9px; padding:4px 10px; font-size:11px; font-style:italic; color:#4a3223;
-    width:max-content; max-width:80vw; box-shadow:0 4px 12px rgba(0,0,0,.25); margin:0; }
+    width:max-content; max-width:80%; box-shadow:0 4px 12px rgba(0,0,0,.25); margin:0; }
   #pp4Prompt.radial .apBack { display:flex; position:fixed; width:38px; height:38px;
     border-radius:50%; align-items:center; justify-content:center; pointer-events:auto;
     background:#fffdf2; border:2.5px solid #177; color:#0e3b3b; font-size:20px; padding:0;
     box-shadow:0 5px 14px rgba(0,0,0,.3); }
+  /* RED ALERT FIX (2026-08-21, D-18 follow-up): 88%, not 88vw — found while verifying the toScreen()
+     fix (util.js's fixedOrigin() note has the full account), on a battle-call prompt ("Call Flaky
+     Jack" / "Call Crustbeard") whose ask pill rendered 562px wide on a 430px-capped column, spilling
+     54% of its own width past the column's right edge. Same bug item 22 (94adceb) already found and
+     fixed for #boardwrap/.radial/.pp4Center's 100vw/100vh — this ONE vw sizing on .apMsg was missed
+     by that sweep. `msg` is made position:fixed by JS a few lines below (stage.js), so once item
+     22's stopgap is active its containing block is body — `%` follows that capped column exactly
+     the way `100%` already does for the other three; on phone (no transformed ancestor) `%` resolves
+     against the true viewport, same as `vw` did, so this is a no-op there (D-18: byte-identical). */
   #pp4Prompt.radial .apMsg { background:rgba(255,253,242,.97); border:2px solid #177;
-    border-radius:11px; padding:7px 12px; font-size:13px; width:max-content; max-width:88vw;
+    border-radius:11px; padding:7px 12px; font-size:13px; width:max-content; max-width:88%;
     margin:0; box-shadow:0 5px 16px rgba(0,0,0,.3); }
   /* The panel reveals .apBtns only after the (hidden) message types. The radial bloom used to
      force itself visible unconditionally — "radial IS the reveal" — which meant the ONE prompt
@@ -1719,8 +1737,14 @@
      measures the board's own rect and sets `top`) so it is not dragged around by the sheet. */
   .pp4PeekHint { position:fixed; left:0; right:0; display:flex; justify-content:center;
     pointer-events:none; z-index:6; }
+  /* RED ALERT SWEEP (2026-08-21, D-18 follow-up): 92%, not 92vw — same bug class as .apMsg/.apSub
+     above (util.js's fixedOrigin() note has the full account), found while sweeping every
+     board-anchored overlay rather than reported directly. The parent `.pp4PeekHint` is
+     `left:0;right:0` against ITS OWN containing block (body, once item 22's stopgap is active), so
+     `%` here tracks that same capped column; `vw` would not (D-18: unaffected on phone, where the
+     parent's width already equals the true viewport either way). */
   .pp4PeekHint span { background:rgba(9,42,52,.78); color:#fffdf2; font-size:11.5px;
-    font-style:italic; border-radius:999px; padding:3px 12px; width:max-content; max-width:92vw; }
+    font-style:italic; border-radius:999px; padding:3px 12px; width:max-content; max-width:92%; }
   /* playtest 21 item 4: the recipe hint moves INSIDE the card — small italics under the ask and
      above the cards it is about. Muted, because it explains the choice rather than being part of it. */
   .pp4RecipeHint { font-size:11.5px; font-style:italic; font-weight:600; color:#6b7f86;

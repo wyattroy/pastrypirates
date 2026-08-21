@@ -1314,7 +1314,7 @@ export function isDisabledBtn(b){return !!b&&b.getAttribute("aria-disabled")==="
    same fallback path and is unaffected either way. Zero-risk default (D-18).
    TO REVERT (Phase 8): delete this branch and the matching `@media (min-width:601px)` rule in
    index.html — both are additive over the pre-stopgap behaviour below. */
-function stageCappedRect(){
+export function stageCappedRect(){
   if(typeof document==="undefined")return null;
   const b=document.body;
   if(!b||!b.classList.contains("pp4Stage"))return null;
@@ -1330,6 +1330,32 @@ function stageCappedRect(){
 }
 export const vwPx=()=>{const r=stageCappedRect();return r?r.width:(document.documentElement.clientWidth||window.innerWidth);};
 export const vhPx=()=>{const r=stageCappedRect();return r?r.height:(document.documentElement.clientHeight||window.innerHeight);};
+/* THE OTHER HALF OF ITEM 22 (RED ALERT, 2026-08-21, D-18 follow-up): stageCappedRect() above fixes
+   WIDTH/HEIGHT for anything reading vwPx()/vhPx() — but the same transform that narrows body also
+   MOVES it: `margin:0 auto` on a capped-width body sits its own left edge partway into the true
+   viewport, not at 0. getBoundingClientRect() always answers relative to the true viewport (CSS
+   spec, unaffected by any ancestor transform), so a `left`/`top` copied from one gBCR reading
+   straight onto a DIFFERENT position:fixed element (now measured against body's shifted box, not
+   the viewport) lands off by exactly that shift. Confirmed as the root cause of Wyatt's 7am
+   game-stopping report (docs/HARD-WON-LESSONS.md): the radial fan's own placement search requires
+   candidates to land inside a body-relative band (via vwPx()), but was fed viewport-absolute
+   coordinates for the ship itself — every candidate failed, and the fallback stacked all four
+   buttons (Dock/Trade/Attack/Pass) on the same clamped corner, hiding three of them under the one
+   left visibly clickable.
+   fixedOrigin() is that same shift, read the same way stageCappedRect() reads its own guard — zero
+   on phone, zero whenever the stopgap isn't active, never re-derived as 430px or the breakpoint.
+   fixedRect(el) applies it to one element's own rendered box for the handful of call sites that
+   read a DIFFERENT element's rect (a sail-highlight square, an already-placed pill) to place
+   something else — width/height are untouched, since a translation cannot change a size. */
+export function fixedOrigin(){
+  const r=stageCappedRect();
+  return r?{x:r.left,y:r.top}:{x:0,y:0};
+}
+export function fixedRect(el){
+  const r=el.getBoundingClientRect();
+  const o=fixedOrigin();
+  return {left:r.left-o.x,right:r.right-o.x,top:r.top-o.y,bottom:r.bottom-o.y,width:r.width,height:r.height};
+}
 export const SHIP_GLIDE_MS=700;
 /* How long the finished board is left alone before the End of Voyage banner covers it (playtest 22
    item 12). Long enough to read the sea and take a screenshot, short enough that it does not read

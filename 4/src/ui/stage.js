@@ -16,7 +16,7 @@
 "use strict";
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
-import { msgHoldMs, vwPx, vhPx, isDisabledBtn } from "./util.js";
+import { msgHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
 
@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20r";
+const PP4_STAMP = "2026-08-20s";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -131,11 +131,20 @@ function camFitSeats(seats){
   camFitCells(seats.map(i => g.players[i] && g.players[i].pos).filter(Boolean), 2.2);
 }
 // user SVG units -> screen px under the current camera ('meet' fit inside the wrap)
+/* RED ALERT FIX (2026-08-21, D-18 follow-up — see fixedOrigin()'s note in util.js): svg's own
+   getBoundingClientRect() is viewport-absolute (CSS spec, immune to any ancestor transform), but
+   every caller of toScreen() writes its result into a position:fixed element's left/top — which,
+   once item 22's stopgap has made body the containing block, is measured from BODY's own box, not
+   the viewport. Subtracting fixedOrigin() here, once, converts the ship's screen position into the
+   same frame vwPx()/vhPx() already use for the clamps every consumer below builds against — the
+   fan buttons, the ask pill, the apSub tooltip, the back button, the slider, the card fallback, and
+   the narration bubble + its pointer tail (boatUXY() -> toScreen() is how all of them find a ship). */
 function toScreen(ux, uy){
   const svg = svgEl(); if (!svg) return [0, 0];
   const br = svg.getBoundingClientRect();
   const sc = br.width / S.cam.w;
-  return [(ux - S.cam.x) * sc + br.left, (uy - (S.vy ?? S.cam.y)) * sc + br.top];
+  const o = fixedOrigin();
+  return [(ux - S.cam.x) * sc + br.left - o.x, (uy - (S.vy ?? S.cam.y)) * sc + br.top - o.y];
 }
 /* WAIT FOR THE BOAT TO ARRIVE BEFORE BLOOMING THE FAN — playtest 21 item 2 (Wyatt: "only appear
    the action prompt fan buttons AFTER the boat has finished moving — currently, they appear before
@@ -1566,7 +1575,11 @@ function promptTick(){
     const placed = [];
     // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
     // so every sail highlight is an obstacle nothing of ours may cover
-    const cellRects = [...document.querySelectorAll(".sailCell")].map(r => r.getBoundingClientRect());
+    // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — these obstacle
+    // boxes are compared against sx/sy (now body-relative, per toScreen()'s own fix above) and feed
+    // the fan's placement search and the sail-window card dodge below; a raw viewport-absolute rect
+    // mixed into that arithmetic is the same offset bug in a different spot.
+    const cellRects = [...document.querySelectorAll(".sailCell")].map(r => fixedRect(r));
     let cb = null;
     if (cellRects.length){
       cb = { l: 1e9, t: 1e9, r: -1e9, b: -1e9 };
@@ -1633,7 +1646,11 @@ function promptTick(){
       }
       msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), vwPx() - mw - 10) + "px";
       msg.style.top = mTop + "px";
-      pillB = msg.getBoundingClientRect();
+      // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — msg is itself
+      // position:fixed, so its rendered box is always viewport-absolute regardless of what we just
+      // wrote; the back button below (also position:fixed) needs it back in the same body-relative
+      // frame everything else in this function is now working in.
+      pillB = fixedRect(msg);
       // the back option, when present, is a small circle on the pill's shoulder
       const back = ap.querySelector(".apBack");
       if (back){
@@ -1788,7 +1805,10 @@ function promptTick(){
     // promised every legal square stays visible, so the card dodges to the clearest band:
     // below the window, above it, or hugging the captains box, recomputed as the camera moves.
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    cells.forEach(c => { const r = c.getBoundingClientRect();
+    // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — x0/x1 feed
+    // `left` below, clamped against vwPx() (body-relative); a raw viewport-absolute rect here is
+    // the same seam this whole fix is about, just in the card-mode fallback instead of the radial one.
+    cells.forEach(c => { const r = fixedRect(c);
       x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
       x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); });
     left = Math.min(Math.max((x0 + x1) / 2 - W / 2, 8), vwPx() - W - 8);
