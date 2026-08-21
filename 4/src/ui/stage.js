@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21f";
+const PP4_STAMP = "2026-08-21g";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1946,7 +1946,11 @@ function promptTick(){
          phone leg: "trade prompt text box is clipped by the right screen edge, cutting off the
          first line mid-word ('Speckled Eggs the t...')". Capping the box makes it WRAP instead,
          which is what the clamp was always assuming had happened. */
-      msg.style.maxWidth = (vwPx() - 20) + "px";
+      // NEVER WIDER THAN THE STYLESHEET ALREADY ALLOWS. index.html caps this box at `max-width:88%`;
+      // an inline `vwPx()-20` is LARGER than that on a phone (370 vs 343) and, being inline, wins —
+      // so the first version of this cap made the very overflow it was meant to stop slightly worse.
+      // Take the tighter of the two and the cap can only ever help.
+      msg.style.maxWidth = Math.min(vwPx() - 20, Math.round(vwPx() * 0.88)) + "px";
       msg.style.boxSizing = "border-box";
       // playtest 15 (Wyatt: "over the course of a single turn, it doesn't move around"): the
       // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
@@ -2026,7 +2030,7 @@ function promptTick(){
         // SAME BUG AS THE ASK PILL, ONE ELEMENT OVER: the width was clamped to choose a left edge
         // while the element kept its natural width, so "Attacking costs ye 2 for powder. Firing
         // downwind wins ties!" ran clean off the right of a 390px phone. Cap it so it wraps.
-        sub.style.maxWidth = (vwPx() - 20) + "px";
+        sub.style.maxWidth = Math.min(vwPx() - 20, Math.round(vwPx() * 0.88)) + "px";
         sub.style.boxSizing = "border-box";
         const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
         sub.style.left = Math.min(Math.max(cxS - sw / 2, 10), vwPx() - sw - 10) + "px";
