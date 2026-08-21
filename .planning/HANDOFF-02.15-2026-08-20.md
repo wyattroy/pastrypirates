@@ -1,6 +1,6 @@
 # Handoff — Phase 02.15, evening of 2026-08-20 (WORKED THROUGH; second pass)
 
-**Live build: `PP4_STAMP` `2026-08-20h` (commit `b76983d`).** Previous handoff's tasks 0–2 are done
+**Live build: `PP4_STAMP` `2026-08-20i`.** Previous handoff's tasks 0–2 are done
 and measured; what is left is at the bottom.
 
 ---
@@ -64,6 +64,32 @@ candidate — this is worth reproducing. It has not been.
 | e | **A "TREASURE!" prompt flashing ~229ms** | **NOT A FLASH.** The dock-flip prompt is a real `ask()` that waits for the captain. Posed on a dock with nothing clicking, the prompt sat **30s+** and was still up when the watch ended. Caveat: the flip came up tails, so what was held for 30s was the TAILS face — the *same* `ask()` call, differing only in the interpolated label, so the lifetime cannot differ by face. The original ~229ms is the 700ms driver answering it. **Also: my first probe matched `/TREASURE/i` and caught the narration line "Docking at … — dig for treasure!", reporting a 2502ms "prompt" with zero buttons.** A prompt has buttons; the empty button list is what caught it. |
 | f | **Trade-wind preview clipped offscreen** | Left parked, as he asked. |
 
+### (c) again — he asked me to keep digging, so I did, and it is still clean
+
+He chose *"keep digging without a screenshot"*. Two more angles, both measured, both negative:
+
+**My best theory, and it was WRONG.** `buildRimFlow()` wipes `#rimHost` and rebuilds all 40 arrows,
+and each arrow's drift is a CSS animation with a per-cell delay — so *if* it ran on every render,
+every rebuild would restart the whole current from zero, and pass & play renders more often than
+solo (there is an extra `liveRender()` at each turn's end). Same code, different rate, would look
+exactly like "the trade winds differ by mode".
+
+**Measured over 60 seconds of driven play in each mode: 0 rebuilds and 0 animation restarts, both
+times.** One arrow's animation clock ran **66,297ms uninterrupted in solo and 69,481ms in pass &
+play**, climbing smoothly 200ms per sample. `buildRimFlow` is called from `drawBoard()`, not from the
+per-frame render. The current flows continuously and identically in both modes. **Theory disproved,
+recorded rather than dropped.**
+
+**And the branch count.** There are exactly three `passAndPlay` branches in the whole render layer,
+and all three are his own rulings: the recipe reveal (`board.js`), the ⏩ skip chip (`stage.js`), and
+an end-of-turn refresh so the check-my-recipe button is not left frozen behind the hand-off screen
+(`flow.js`). **None of them touches wind, rim or sweep.** `animateRimSweepIfAny()` has no mode branch
+either.
+
+**Three independent measurements now say the trade winds are the same thing in both modes.** I have
+run out of honest angles without knowing what he saw. **A side-by-side screenshot is the whole
+remaining cost of settling this.**
+
 ---
 
 ## 3. Found by looking, and fixed (his standing instruction)
@@ -75,10 +101,13 @@ candidate — this is worth reproducing. It has not been.
 - **The wind pill was sawn in half by the ☰ menu card** — reading as a rendering fault rather than a
   thing behind another thing. Faded, matching the hold-the-sea family.
 
-**Noted, not changed (his call):** in the ☰ menu the mute control is a bare 34×28 icon floating
-above a list of 600px full-width rows. It works and it is where playtest 10 put it, but it does not
-match its neighbours. A row reading "🔊 Sound: ON", like the turn-clock row directly beneath it,
-would — that is new copy, so it waits for him.
+**And then changed, at his word.** He picked *"make it a row like the others"*, so the ☰ menu's sound
+control is now a full-width row — same values as `#pp4ClockRow` beside it, so the menu's two live
+toggles read as a pair. **The label is CSS `content` keyed off `aria-pressed`, not a second writer**:
+`setClockUI()` already publishes the mute state and already writes the megaphone pair twice a second,
+and a second source for the same fact is the same drift this whole phase has been unpicking, one
+scale down. Measured both states: 600px against the clock row's 600px, 40px against 39px, label
+flips with the state, and it collapses back to the icon the moment the menu closes.
 
 ---
 
@@ -113,7 +142,16 @@ stray buttons — 14 events, round 2, frontiers equal. Solo (the case two window
 events 1→21, round 1→2, two sail windows opened and answered — one per round, the correct rate.
 
 **Still open:**
-- **Stage 4's wide half — the prompt channel itself.** Untouched, deliberately.
+- **Stage 4's wide half — the prompt channel itself.** Untouched, deliberately. **He named it the
+  biggest lever for the next session (2026-08-20), so it is that session's first job** — started
+  fresh with a plan, not begun at the tail of a long one, which is what D-04 is for.
+  **Groundwork already laid, so the next session does not start cold:** the *rendering* is largely
+  converged already — `optionButtonsHTML` for the ask channel (02.1-03) and now `sailPanelHTML` for
+  the pick channel. What is NOT converged is the ORCHESTRATION: `localAsk` resolves a promise in this
+  browser while `watchPrompt` answers over the wire, and the host's loop BLOCKS on that promise. The
+  shape of the answer is one "current prompt" both tiers render from, with only the response
+  mechanism differing. That is a substantial change to `ask()`/`localAsk()`/`watchPrompt()` and its
+  failure mode is a captain who cannot take their turn.
 - **PAR-16 — the display-rules document.** Not written.
 - **Not investigated, seen in one guest screenshot:** the sail highlight squares were hard to make
   out on the guest's board (`s4-guest-sail.png` — the card recorded 3 cells and none read clearly as
