@@ -208,12 +208,18 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
   async function ensureVisible() {
     const hidden = await ev("document.hidden === true");
     if (!hidden) return false;
+    await c.send("Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
     await c.send("Page.bringToFront").catch(() => {});
     await sleep(300);
     const still = await ev("document.hidden === true");
-    log(still ? "WARNING: tab is hidden and would not come to front — timings and pauses are not trustworthy"
-              : "note: tab had gone hidden (game auto-pauses); brought back to front");
-    return true;
+    // ONCE per leg, not once per tick — the first version logged every second for six minutes,
+    // which buries the real findings it sits among and is its own kind of gate-that-cries-wolf.
+    if (!P._hiddenSaid){
+      P._hiddenSaid = true;
+      log(still ? "WARNING: tab is hidden and will not come to front — the game auto-pauses, so timings and any 'stall' from here are NOT trustworthy"
+                : "note: tab had gone hidden (game auto-pauses); focus re-asserted");
+    }
+    return still;
   }
 
   // one tick: answer whatever the game is asking, in priority order (flip first — §4a).

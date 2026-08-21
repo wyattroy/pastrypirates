@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21b";
+const PP4_STAMP = "2026-08-21c";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -2117,6 +2117,25 @@ function promptTick(){
         const startX = Math.min(Math.max(sx - rowW / 2, xMin), Math.max(xMin, xMax - (rowW - D)));
         return [startX + c * step, topY + r * step];
       });
+    }
+    /* THE QUESTION MUST SURVIVE ITS OWN ANSWERS. D-38 lets the fan cover the BOARD, and holding
+       the sea reveals what is underneath — but holding the sea does not reveal text sitting under
+       a button, so a circle parked on the ask pill hides the very sentence it is answering. The
+       formation search already treats the pill as an obstacle; the cornered GRID fallback above
+       cannot, because it is what runs precisely when nothing avoidable is left. So the pill gives
+       way instead: it lifts to just above the block, still inside the band. Measured repeatedly by
+       the playtest gate ("no-cover-ask: 'Toasty Wheat' over 'What do ye WANT from the table'"). */
+    if (msg && pillB){
+      const hit = pts.some(p => p[0] < pillB.right && p[0] + D > pillB.left &&
+                                p[1] < pillB.bottom && p[1] + D > pillB.top);
+      if (hit){
+        const blockTop = Math.min(...pts.map(p => p[1]));
+        const lifted = Math.max(tSafe - 34, blockTop - pillB.height - 10);
+        msg.style.top = lifted + "px";
+        pillB = fixedRect(msg);
+        const back = ap.querySelector(".apBack");
+        if (back){ back.style.top = (pillB.top + (pillB.height - 38) / 2) + "px"; }
+      }
     }
     menu.forEach((b, i) => {
       const spot = pts[i];

@@ -31,6 +31,15 @@ export async function openChrome({ W, H, dbgPort, httpPort, serveRoot, profileDi
   const ev = async (expr) => { const r = await send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
     if (r.result?.exceptionDetails) return { __err: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text }; return r.result?.result?.value; };
   await send("Page.enable"); await send("Runtime.enable");
+  /* THE PAGE MUST BELIEVE IT IS FOCUSED AND VISIBLE, OR THE GAME CORRECTLY PAUSES ITSELF.
+     A headless tab that loses foreground reports `document.hidden === true`; Pastry Pirates then
+     does exactly the right thing and pauses (its tab-hide gate), `waitWhilePaused()` waits forever,
+     and the harness reports a frozen event stream — an immaculate forgery of a game-stopping stall
+     (see docs/HARD-WON-LESSONS.md, 2026-08-21). `Page.bringToFront` was tried first and does not
+     hold in headless: the gate logged "would not come to front" once a second for six minutes.
+     setFocusEmulationEnabled is the API meant for this — it makes the page permanently believe it
+     is focused and active, so the pause can never be triggered by the harness's own backgrounding. */
+  await send("Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
   await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: dsf, mobile });
   let shotN = 0;
   const shot = async (file) => { const r = await send("Page.captureScreenshot", { format: "png" }); fs.writeFileSync(file, Buffer.from(r.result.data, "base64")); return file; };
