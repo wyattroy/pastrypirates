@@ -8,11 +8,12 @@
 // MEASURE — an in-page expression string. Collects role-based element sets with the rects and flags
 // each rule needs. Returns null-safe plain data (returnByValue over CDP).
 export const MEASURE = `(() => {
+  let __uid0 = 0;
   const vis = el => { const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < 0.05) return false;
     const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; };
   const R = el => { const r = el.getBoundingClientRect(); return { l:r.left, t:r.top, r:r.right, b:r.bottom, w:r.width, h:r.height }; };
+  const mark = el => { if (!el.__qaId) el.__qaId = 'q' + (++__uid0); return el.__qaId; };
   const topmostAt = (el, x, y) => { const hit = document.elementFromPoint(x, y); return !!(hit && (hit === el || el.contains(hit) || hit.contains(el))); };
-  const uniq = new Set();
   // THINGS A PLAYER CLICKS — every interactive control the game presents, by class, deduped.
   const clickSel = '.apBtn, .btlBtn, .sailCell, .recipeCard, .bkoCard, .apSlider, #flipCoinWrap.active, .recipeList button';
   // vis() already excludes display:none / visibility:hidden / zero-size — so a lobby control that
@@ -23,7 +24,8 @@ export const MEASURE = `(() => {
     const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
     const hit = document.elementFromPoint(cx, cy);
     const top = !!(hit && (hit === el || el.contains(hit) || hit.contains(el)));
-    return { tag: el.className.toString().slice(0,40) || el.id, text: (el.textContent||'').trim().slice(0,24), rect: R(el), topmost: top,
+    return { id: mark(el), chain: (() => { const out = []; let n = el; while (n && n !== document.body) { if (n.__qaId) out.push(n.__qaId); n = n.parentElement; } return out; })(),
+      tag: el.className.toString().slice(0,40) || el.id, text: (el.textContent||'').trim().slice(0,24), rect: R(el), topmost: top,
       // WHAT covers it, not just THAT it is covered — a finding you cannot act on is half a finding.
       coveredBy: top ? null : (hit ? ((hit.id ? '#'+hit.id : '') + '.' + String(hit.className||'').trim().split(/\s+/).slice(0,2).join('.') + ' <' + hit.tagName.toLowerCase() + '>').slice(0,60) : 'nothing (outside any element)'),
       disabled: el.disabled || el.classList.contains('apDisabled') || el.getAttribute('aria-disabled') === 'true' }; });
@@ -31,7 +33,10 @@ export const MEASURE = `(() => {
   const textSel = '.pname, .apMsg, .pp4Bub:not(.ambient), .prowRecipe, .pp4CerTitle, .coins, .bkoName';
   const text = [...document.querySelectorAll(textSel)].filter(vis).map(el => {
     const inner = el.firstElementChild && getComputedStyle(el).overflow !== 'visible' ? el.firstElementChild : el;
-    return { text: (el.textContent||'').trim().slice(0,30), rect: R(el), scrollW: el.scrollWidth, clientW: el.clientWidth,
+    return { id: mark(el), text: (el.textContent||'').trim().slice(0,30), rect: R(el), scrollW: el.scrollWidth, clientW: el.clientWidth,
+      // the chain of ids from this node up, so a control INSIDE a text block (or vice versa) is
+      // never mistaken for one covering the other
+      chain: (() => { const out = []; let n = el; while (n && n !== document.body) { if (n.__qaId) out.push(n.__qaId); n = n.parentElement; } return out; })(),
       innerScrollW: el.firstElementChild ? el.firstElementChild.scrollWidth : el.scrollWidth }; });
   // CONTAINERS that should hug their content, not stretch empty. A full-viewport backdrop (a dim
   // overlay) is exempt — big empty space is its job. Everything else is a card and should fit.
@@ -71,6 +76,18 @@ export function structuralChecks(m) {
   // 4. no readable text is clipped by its own box (name into coin, label cut off)
   const clip = m.text.filter(t => t.innerScrollW > t.clientW + 3).map(t => `"${t.text}" (${t.innerScrollW}>${t.clientW})`);
   F(clip.length === 0, "no-clip", clip.length ? `text clipped by its box: ${clip.slice(0,5).join(", ")}` : "no clipped text");
+
+  // 6. NOTHING YOU MUST CLICK MAY COVER SOMETHING YOU MUST READ. Buttons drawn over the message
+  //    that explains them is the same family as piled buttons — the game is asking a question whose
+  //    text the player cannot finish reading. Ancestor/descendant pairs are excluded (a recipe card
+  //    IS a button that contains its own text), so only genuinely unrelated overlaps are flagged.
+  const covers = [];
+  for (const ctl of m.interactive) for (const t of m.text) {
+    if (!t.text) continue;
+    if (ctl.chain && t.chain && (ctl.chain.includes(t.id) || t.chain.includes(ctl.id))) continue;   // nested — fine
+    if (overlaps(ctl.rect, t.rect, 4)) covers.push(`"${ctl.text || ctl.tag}" over "${t.text}"`);
+  }
+  F(covers.length === 0, "no-cover-text", covers.length ? `control covering text: ${covers.slice(0,5).join(", ")}` : "no control covers readable text");
 
   // 5. no content card is stretched far past its content (the empty-tower class). Backdrops exempt.
   const empty = m.panels.filter(p => !p.backdrop && p.content && p.rect.h > p.contentH + 90).map(p => `${p.tag} (${p.rect.h|0}px box vs ${p.contentH|0}px content)`);
