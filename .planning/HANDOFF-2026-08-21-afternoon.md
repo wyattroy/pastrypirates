@@ -33,7 +33,7 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
 | Narration-timing trace | `.planning/debug/tails-narration-vanishes.md` | covers: tails result vanishes; "battle's brewing" pop→vanish→reappear (item 2); prompts appear before boats stop then jump (item 8); morning item 3. Hypothesis: ONE reveal/clear gate (item 11's `pendingReveal`/`stageSettled()`) firing on the wrong signal. It was told NOT to edit index.html/stage.js/util.js — the fix is probably queued, not applied |
 | Storm summary + black market | `.planning/debug/storm-summary-and-black-market.md` | item 3 is CONDITIONAL (summary happened once, later; per-captain lines earlier) — find the predicate; item 7 the black-market narration |
 
-## Wyatt's afternoon solo list (build t) — triage, nothing started except the investigations above
+## Wyatt's afternoon solo list (build t) — triage; HIS PICKS for 1, 4, 6 are recorded as D-32/D-33/D-34 in 02.2-CONTEXT.md (build them, don't re-ask)
 
 1. **Prompt buttons hard to notice** — wants the established attention effect on the fan petals.
    Homework done: the candidates that exist in `4/index.html` are `flipglow` (the FLIP coin, 1s glow —
