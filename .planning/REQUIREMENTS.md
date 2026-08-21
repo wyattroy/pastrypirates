@@ -78,12 +78,12 @@ gate is his eyes and not a probe. The item numbers in brackets are his.
 **PAR-14 … PAR-16 minted 2026-08-20** for **Phase 02.15 (One Log, One Display Path)**, which absorbed
 Phase 02.2's Group A on Wyatt's ruling. Phrased as conditions he could check by playing.
 
-- [x] **PAR-14**: There is **one place** that decides what the game draws, and every mode reads from
+- [ ] **PAR-14** *(partial — corrected 2026-08-21 at verification: the pick/sail, narration and active-seat channels are converged; the `ask()` channel is parked at a named seam, so "nothing could make them disagree" does not yet hold for it. See `02.15-VERIFICATION.md`)*: There is **one place** that decides what the game draws, and every mode reads from
   it — solo, pass-and-play, host and guest alike. **The test is not that the screens agree; it is
   that nothing could make them disagree.** Asked of any drawn thing, *"what would have to be true for
   the host and a guest to differ here?"*, the honest answer is *"nothing"* *(items 15, 17, 18, 19, 20, 21)*
 
-- [x] **PAR-15**: A two-tab crew game shows none of the seven divergences in Wyatt's screenshots — no
+- [ ] **PAR-15** *(partial — corrected 2026-08-21 at verification: three whole voyages driven to end-of-voyage on the live build, but the "same sail squares" item is recorded NOT REACHED in both SUMMARYs. See `02.15-VERIFICATION.md`)*: A two-tab crew game shows none of the seven divergences in Wyatt's screenshots — no
   Ahoy arriving twice, one sentence for the wait, narration that outlasts the wait on both screens,
   one camera following the active captain, the same sail squares, and a top bar that updates for
   everyone — **and a solo game and a pass-and-play game still play start to finish.** The single-player
@@ -254,9 +254,9 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-10 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group B, plan 02.2-03 |
 | PAR-11 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C, plan 02.2-04 |
 | PAR-12 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C′, plan 02.2-05 |
-| PAR-14 | **Phase 02.15 — One Log, One Display Path (inserted)** | Partial — 02.15-01 (narration + active seat converged); prompt channel is 02.15-02 |
-| PAR-15 | **Phase 02.15 — One Log, One Display Path (inserted)** | Partial — 6 of 7 divergences closed by 02.15-01; whole-game QA on three tiers is 02.15-02 |
-| PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — `docs/DISPLAY-RULES.md` is written by 02.15-02 Task 2 |
+| PAR-14 | **Phase 02.15 — One Log, One Display Path (inserted)** | Partial — narration, active seat AND the pick/sail channel converged (02.15-02); the ask() channel is parked at a named seam. See 02.15-VERIFICATION.md |
+| PAR-15 | **Phase 02.15 — One Log, One Display Path (inserted)** | Partial — three whole voyages driven to end-of-voyage live (02.15-02); the sail-squares item is NOT REACHED. See 02.15-VERIFICATION.md |
+| PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Satisfied — `docs/DISPLAY-RULES.md` exists; 5 code claims spot-checked at verification. See 02.15-VERIFICATION.md |
 | PAR-13 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group D, plans 02.2-01 (sketches) and 02.2-06 |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
 | TEST-04 | Phase 3 — The Safety Net | Pending |

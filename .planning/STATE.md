@@ -6,8 +6,8 @@ current_phase_name: one-log-one-display-path
 status: complete
 stopped_at: Completed 02.15-02-PLAN.md — pick channel converged and shipped, ask/battle channels parked/not-reached under D-04, three whole voyages verified
 last_updated: "2026-08-21T06:14:39.671Z"
-last_activity: 2026-08-19
-last_activity_desc: the phase gate ran in real Safari for the first time and returned a
+last_activity: 2026-08-21
+last_activity_desc: "2026-08-21 overnight: 02.15-02 executed and verified (verdict partial, gaps named under D-04) — pick channel converged, live as 2026-08-20m; code review 2 warnings fixed; three whole voyages QA-d. Next: 02.2 (Q tail then B)."
 progress:
   total_phases: 12
   completed_phases: 4
