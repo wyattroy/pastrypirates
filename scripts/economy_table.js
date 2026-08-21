@@ -119,6 +119,10 @@ function run() {
   const cfg = buildCfg();
 
   const purseSamples = [];
+  let worstPurseEverHeld = 0; // tracked incrementally — Math.max(...purseSamples) blows the call
+  // stack once a few hundred games pile thousands of samples into one spread (measured: crashes
+  // silently past ~150 games, RangeError "Maximum call stack size exceeded", caught by this
+  // script's own verify run before the matrix was trusted)
   let totalBattles = 0, totalAttWins = 0, totalRounds = 0, unfinished = 0, played = 0;
   let totalTurns = 0;
   let turnsWithAttackReason = 0, turnsPricedOutOfAttack = 0;
@@ -147,6 +151,7 @@ function run() {
       for (let i = 0; i < e.state.length; i++) {
         purseSamples.push(e.state[i].coins);
         if (e.state[i].coins > maxCoinsThisGame[i]) maxCoinsThisGame[i] = e.state[i].coins;
+        if (e.state[i].coins > worstPurseEverHeld) worstPurseEverHeld = e.state[i].coins;
       }
       if (e.t !== "turn") continue; // Attack/Dock are only legal on the actor's own turn
       totalTurns++;
@@ -205,7 +210,7 @@ function run() {
     powder: cfg.powder,
     strategies: STRATS,
     typicalPurse: median(purseSamples),
-    worstPurseEverHeld: purseSamples.length ? Math.max(...purseSamples) : null,
+    worstPurseEverHeld: purseSamples.length ? worstPurseEverHeld : null,
     battlesPerGame: round2(totalBattles / GAMES),
     attackWinsPerGame: round2(totalAttWins / GAMES),
     daysPerVoyage: round2(totalRounds / GAMES),
