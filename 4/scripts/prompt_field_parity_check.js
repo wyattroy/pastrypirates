@@ -465,7 +465,7 @@ function drill() {
   //      present and correct and the card still not match what sailPanelHTML would have built,
   //      which is what .apSub was.
   reset();
-  write(FLOW_REL, surgery(realFlow, `  panel(sailPanelHTML(spec.msg,spec.hint),true);`,
+  write(FLOW_REL, surgery(realFlow, `  panel(sailPanelHTML(spec.msg||sailPickMsg(appState.mySeat),spec.hint),true);`,
                                     `  panel(\`<div class="apMsg">\${spec.msg}</div>\`,true);`));
   expect("drill 2c (renderPickPrompt hand-writes the sail card again)", checkSailFieldParity(tmpRoot), true, "PARITY-SAIL-BUILDER");
 

@@ -541,7 +541,15 @@ export function renderPickPrompt(spec,answer){
   });
   // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
   // top-to-bottom reveal rule for anything added to #actionPanel.
-  panel(sailPanelHTML(spec.msg,spec.hint),true);
+  // FALLBACK RESTORED (02.15-REVIEW WR-02): the retired remotePickHighlights() fell back to
+  // sailPickMsg(mySeat) for an older host payload with no msg field, "so a mid-game version skew
+  // still reads sensibly." THE TRACER dropped it when both callers converged on this one renderer.
+  // pickCell() always populates spec.msg locally, so this never fires on the tracer's own path —
+  // it only guards a guest on a stale build receiving a payload from a host on a newer one (or the
+  // reverse), which docs/GIT-AND-DEPLOY.md's mid-session ship-to-live model makes a real scenario.
+  // Pure plumbing: no currently-reachable call passes a falsy spec.msg, so today's rendered text is
+  // unchanged.
+  panel(sailPanelHTML(spec.msg||sailPickMsg(appState.mySeat),spec.hint),true);
   $("apStay").onclick=()=>done(null);
   return teardown;
 }
