@@ -267,7 +267,35 @@ Ubuntu 24.04, Node 20–22, Python 3, chromedriver pre-installed (so a Chrome/Ch
 the image), 4 vCPU / 16 GB. **Network defaults to "Trusted" (an allow-list).** GitHub push goes
 through the platform's proxy — no local keys.
 
-### Network: set it to FULL, or a crew game and the live-stamp check silently fail
+### Network: the EXACT hosts, read from the code (2026-08-21)
+
+**Essential — multiplayer cannot work without these two:**
+
+```
+www.gstatic.com
+*.firebaseio.com
+```
+
+- `www.gstatic.com` — the Firebase SDK is two `<script>` tags in `4/index.html`
+  (`firebase-app-compat.js` and `firebase-database-compat.js`, v12.15.0). Blocked, Firebase never
+  loads and Host/Join do nothing at all.
+- `*.firebaseio.com` — the database is `pastry-pirates-default-rtdb.firebaseio.com`
+  (`4/src/net/index.js`). **The wildcard matters:** the Realtime Database redirects clients onto
+  regional shard hosts (`s-usc1c-nss-####.firebaseio.com`), so an exact-host allowlist connects and
+  then dies on the redirect — indistinguishable, from the seat, from "multiplayer is broken".
+
+**Worth adding:** `*.googleapis.com` — `firebase-app` pings installations/config on init.
+
+**For the rest of the loop, not multiplayer itself:** `playpastrypirates.com` (the live-stamp
+check), `github.com` (push), `registry.npmjs.org` (npx/npm).
+
+**NOT needed:** the config also carries `pastry-pirates.firebaseapp.com` (auth) and
+`pastry-pirates.firebasestorage.app` (storage). The game calls neither.
+
+**If the UI has no wildcards, set the network to Full.** A partial allowlist fails SILENTLY, which
+is the worst possible failure mode for a QA run.
+
+### Why this matters: a crew game and the live-stamp check fail silently without it
 
 `4/` loads Firebase from Google's CDN and talks to the Realtime Database; the deploy loop `curl`s
 the live domain to confirm a stamp. Under the default allow-list all of that fails **quietly** — a
