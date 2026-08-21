@@ -545,7 +545,7 @@ playing)*
 **Depends on**: **Phase 02.15** (One Log, One Display Path) — which absorbed this phase's
 Group A and runs BEFORE it, on Wyatt's ruling.
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 
@@ -553,7 +553,7 @@ Plans:
 - [ ] 02.2-02-PLAN.md — Group A: one narration path and one director rule (items 17, 18, 19, 21, and 20/15 if Q could not reproduce them)
 - [x] 02.2-03-PLAN.md — Group B: the faults visible on the first screen (items 2, 3, 5, 11, 22)
 - [x] 02.2-04-PLAN.md — Group C: the bot that passes AND bakes (item 4) — **the one engine change in the phase**
-- [ ] 02.2-05-PLAN.md — Group C′: the economy, measured and reported (item 12) — **no game code changes, no stamp bump**
+- [x] 02.2-05-PLAN.md — Group C′: the economy, measured and reported (item 12) — **no game code changes, no stamp bump**
 - [ ] 02.2-06-PLAN.md — Group D: design and copy (items 6, 16, and 8/9 if he has picked)
 
 ---

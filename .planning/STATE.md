@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "Completed 02.2-04-PLAN.md — Group C: item 4 fixed at both bot fallback sites, bot_bake_pass_check.js red-proofed, live at 2026-08-20q"
-last_updated: "2026-08-21T08:33:12.031Z"
+stopped_at: "Completed 02.2-05-PLAN.md — Group C': the economy MEASURED (item 12, D-17), no game code changed, no stamp bumped — Wyatt asked to pick"
+last_updated: "2026-08-21T09:00:00.000Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
   percent: 33
 current_phase: 02.2
 ---
@@ -57,9 +57,10 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01, 03 and 04 EXECUTED, live as build
-`2026-08-20q`.** `02.2-01-SUMMARY.md`, `02.2-03-SUMMARY.md` and `02.2-04-SUMMARY.md` have the full
-accounts. PAR-08, PAR-10 and PAR-11 are complete. **02.2-03 (Group B — the first-screen faults)
+Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01, 03, 04 and 05 EXECUTED, live as
+build `2026-08-20q`** (unchanged since 04 — 05 shipped no game code, so no new stamp).
+`02.2-01-SUMMARY.md`, `02.2-03-SUMMARY.md`, `02.2-04-SUMMARY.md` and `02.2-05-SUMMARY.md` have the
+full accounts. PAR-08, PAR-10, PAR-11 and PAR-12 are complete. **02.2-03 (Group B — the first-screen faults)
 measured items 2, 3 and 5 and found none of them reproduce** (each already covered by an earlier
 commit — 2275d71 for item 2, fcdcf34 for item 3, and item 5's stage flag was already set by the
 caller one line before the plan's own diagnosis looked) **— item 11 was the one real defect**, and
@@ -85,8 +86,24 @@ pass event in this exact scenario — costs nothing today since the determinism 
 yet (Phase 3/TEST-03 captures it), but the door closes the moment it does, so this was the cheapest
 possible moment to do it.
 
-Not yet done: `battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans
-02.2-05..06 (Groups C′, D).
+**02.2-05 (Group C' — the economy, item 12, D-17) MEASURED, NOT CHANGED, exactly as ordered.**
+Wyatt: *"Run the numbers."* D-17: *"Change no number until he picks."* A new headless script,
+`scripts/economy_table.js`, ran today's economy and both of his candidate levers (dock 1-3, battle
+cost 4, and both together) at 300 games each, red-proofed against `bot_ladder4.js` first (100
+games, identical 14.77 mean rounds/voyage, 0 unfinished, matched exactly). **Headline: his dock-price
+idea makes purses WORSE against his own target** — cheaper crates mean less spent, so more coin sits
+in a captain's purse; the share of games where somebody holds over 10 coins rises from 52% today to
+85% under his 1-3 idea. His battle-cost idea barely moves purses (a battle's prize was never coins,
+it's a crate) and prices a few more captains out of ever affording a fight they wanted (2.0% → 5.3%
+"boxed out all game"). Neither lever, alone or together, gets him to his stated target. Full table:
+`02.2-ECONOMY-TABLE.md`. **A Rule 1 bug was caught and fixed inside this plan's own tasks**: the
+first draft's `Math.max(...purseSamples)` blew the call stack past ~150 games (silent 0-byte output,
+clean-looking exit) — fixed by tracking the max incrementally, re-red-proofed after the fix, before
+the real matrix was trusted. `4/src/engine/index.js` still ships `crateBase:6`, `powder:2` — nothing
+a player can see changed, no `PP4_STAMP` bump. **Wyatt has been asked to pick; no setting applied.**
+
+Not yet done: `battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, Wyatt's pick on
+the economy (02.2-05, above — not blocking), and plan 02.2-06 (Group D).
 
 **ITEM 10 — MEASURED INERT, THEN RELOCATED AND FIXED. Read before touching narration pacing
 again.** The literal D-10 edit (`stage.js`'s outer ceiling 6750→8775) shipped first exactly as
@@ -123,8 +140,8 @@ their end-of-voyage cards on the live build, zero console errors**, which is wha
 games, not stretches" ruling asked for. Item 20's sail-window row remains **not reliably measured**
 (said so honestly rather than guessed — see the summary's timing-artifact note).
 
-Next: **`/gsd-execute-phase 02.2`** — `02.2-01`, `02.2-03` and `02.2-04` are done; `02.2-05…06`
-(Groups C′, D) remain.
+Next: **`/gsd-execute-phase 02.2`** — `02.2-01`, `02.2-03`, `02.2-04` and `02.2-05` are done;
+`02.2-06` (Group D) remains.
 **Read `02.2-CONTEXT.md` (29 locked decisions) first — it is the context for both phases.**
 
 ~~**ITEM 10 (D-10) HAS NOT SHIPPED.** `4/src/ui/stage.js` still clamps the narration hold to
@@ -349,6 +366,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.2 P01 | 50min | 3 tasks | 10 files |
 | Phase 02.2 P03 | ~5h | 5 tasks | 3 files |
 | Phase 02.2 P04 | ~2h | 3 tasks | 4 files |
+| Phase 02.2 P05 | ~1h | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -426,6 +444,8 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 02.2-01: notes/ is gitignored repo-wide; the two sketch folders (items 8/9) were force-added (git add -f) rather than editing .gitignore, keeping Wyatt's private notes files un-pushed while publishing exactly the two folders needed at a real URL
 - [Phase ?]: 02.2-01: item 10 relocated to the lever that actually binds (msgHoldMs's own HOLD_CEILING_MS, scoped via an optional parameter) after the literal stage.js edit was measured live to be a no-op; resolved from D-10's own ruling on the quantity, not the plan's wrong line-number diagnosis. PAR-08 complete.
 - [Phase ?]: 02.2-03: items 2, 3 and 5 measured NOT to reproduce (each already covered by a pre-existing commit); item 11 genuinely fixed by extending panel.js's pendingReveal gate to the whole popup, not just its buttons; item 22 shipped as a reversible desktop stopgap via a body-transform containing-block trick. PAR-10 complete.
+- [Phase ?]: 02.2-04: item 4 (bot passes AND bakes) fixed at both bot fallback sites with the same canBake(p) predicate the human menu already uses; proven from the event stream via a red-proofed check (99 violations pre-fix, 0 post-fix). PAR-11 complete.
+- [Phase ?]: 02.2-05: item 12 (the economy) MEASURED, not changed, per D-17. New scripts/economy_table.js, red-proofed against bot_ladder4.js, ran today's settings and both of Wyatt's candidate levers at 300 games each. Finding: his dock-price idea makes purses worse against his own target (52%→85% of games with someone over 10 coins); his battle-cost idea barely moves purses and boxes out more captains. Neither gets him to target. No game code changed, no PP4_STAMP bumped. Wyatt asked to pick. PAR-12 complete.
 - [Phase ?]: 02.2-04: item 4 (bot passes AND bakes) fixed at both bot fallback sites (canBake(p), same predicate as the human menu's canOvens); bot_bake_pass_check.js red-proofed (99 violations pre-fix, 0 post-fix, 60 seeded games); live 2026-08-20q. PAR-11 complete.
 
 ### Pending Todos
