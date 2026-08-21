@@ -36,7 +36,15 @@
  * ============================================================================
  * WHAT IT ASSERTS, AND WHAT IT DELIBERATELY DOES NOT
  * ============================================================================
- * ONE assertion, in two parts:
+ * THIS FILE NOW HOLDS THREE ASSERTIONS (grew from one, then to three — each addition has its own
+ * header where it is defined, below). Assertion 1, in two parts, is the ask-channel wire/builder
+ * check this header describes. Assertion 2 is the sail (pick) channel's sibling. Assertion 3 is the
+ * standing static solo guard (02.15-02 Task 3 item 8 / 02.15-REVIEW WR-01) — a different KIND of
+ * check, not a field comparison: it declares the pick channel's LOCAL render-and-resolve path and
+ * asserts it never references a Firebase prompt writer, which is what keeps a solo game
+ * (appState.db===null) alive on that path.
+ *
+ * Assertion 1, in two parts:
  *
  *   (A) THE WIRE.  The set of keys ask()'s remote payload WRITES equals the set of `p.<name>`
  *       properties watchPrompt()'s ask branch READS, modulo a short allow-list named below with a
@@ -347,6 +355,71 @@ export function checkSailFieldParity(root) {
   return res;
 }
 
+/* ================= assertion 3 — THE STANDING STATIC SOLO GUARD =================
+ * 02.15-02-PLAN.md Task 3, action item 8 (T-02.15-06 / 02.15-VALIDATION.md's Wave 0 gap): the
+ * highest-severity failure mode in the whole pick-channel conversion is the LOCAL render-and-resolve
+ * path reaching a Firebase prompt writer. netSetPrompt (src/net/writers.js) is a bare db.ref(...)
+ * with NO null guard, and runLiveNet() drives solo and pass-and-play too (the host fork is
+ * `if(appState.isHost)`, true in solo, where appState.db is null) — so the very first sail prompt of
+ * a solo game throws, and a two-tab crew check cannot see this by construction (it always has a
+ * room). This assertion was RUN ONCE, by hand, as a one-off `node -e` embedded in the PLAN's own
+ * <verify> block during Task 3's execution, and never persisted into a committed, drillable gate —
+ * 02.15-REVIEW.md WR-01. This is that persistence.
+ *
+ * WHAT IT DECLARES: the functions that make up the pick channel's LOCAL render-and-resolve path —
+ * renderPickPrompt() (the shared renderer) and localPickCell() (the local response mechanism that
+ * wraps it). Comment-stripped, neither may reference any Firebase prompt writer or publisher.
+ *
+ * STATED LIMIT, IN THE ASSERTION'S OWN HEADER, so nobody mistakes a green run for more than it is:
+ * a static scan proves the CALL IS NOT WRITTEN. It cannot prove a solo game RUNS — that proof is a
+ * driven whole solo voyage, and it stays manual, exactly as 02.15-01 accepted and 02.15-02 wrote
+ * down instead of assumed.
+ *
+ * ANTI-VACUITY: if neither declared function can be located, this FAILS rather than passing over a
+ * tree it cannot parse — the same posture assertion 6 of scripts/host_guest_parity_check.js takes for
+ * an unrecognisable listener set.
+ */
+const LOCAL_PICK_PATH_FNS = ["renderPickPrompt", "localPickCell"];
+const FIREBASE_PROMPT_WRITER_RE = /\b(netSetPrompt|netRemovePrompt|netSetResponse|remotePrompt|onRemotePrompt)\b/;
+
+// Brace-matched function-body slice, located by CONTENT not line number — mirrors fnBody() in
+// scripts/host_guest_parity_check.js's assertion 6, which this assertion is the sibling of.
+function fnBody(src, name) {
+  const header = `export function ${name}(`;
+  const i = src.indexOf(header);
+  if (i < 0) return null;
+  const st = src.indexOf("{", i);
+  if (st < 0) return null;
+  const end = matchBracket(src, st);
+  return end < 0 ? null : src.slice(st, end + 1);
+}
+
+export function checkSoloGuard(root) {
+  const res = mk("assertion 3 — the standing static solo guard: the local pick-channel path never references a Firebase prompt writer (02.15-02 Task 3 item 8)");
+  const flowRaw = read(root, FLOW_REL);
+  if (flowRaw === null) { fail(res, `PARITY-SOLOGUARD: ${FLOW_REL} is missing — the local render-and-resolve path has nothing to scan.`); return res; }
+  const flow = stripComments(flowRaw);
+
+  let located = 0;
+  for (const name of LOCAL_PICK_PATH_FNS) {
+    const body = fnBody(flow, name);
+    if (!body) {
+      fail(res, `PARITY-SOLOGUARD: ${name}() was not located in ${FLOW_REL} — the local render-and-resolve path this guard declares does not exist where expected. Re-anchor this assertion rather than deleting it; a static check that cannot find its subject must not pass silently.`);
+      continue;
+    }
+    located++;
+    const m = body.match(FIREBASE_PROMPT_WRITER_RE);
+    if (m) {
+      fail(res, `PARITY-SOLOGUARD: ${name}() (${FLOW_REL}) references ${m[1]} — the LOCAL render-and-resolve path must never reach a Firebase prompt writer or publisher. netSetPrompt (src/net/writers.js) is a bare db.ref(...) with NO null guard, and a solo/pass-and-play game has appState.db===null; the first sail prompt this reaches throws and a captain cannot take their turn.`);
+    }
+  }
+  if (located === 0) { fail(res, `PARITY-SOLOGUARD-VACUITY: none of the ${LOCAL_PICK_PATH_FNS.length} declared local-path functions (${LOCAL_PICK_PATH_FNS.join(", ")}) were found in ${FLOW_REL} — refusing to report a guard against a tree it cannot parse.`); return res; }
+
+  note(res, `local render-and-resolve path scanned: ${LOCAL_PICK_PATH_FNS.join(", ")} (${located}/${LOCAL_PICK_PATH_FNS.length} located), comment-stripped — none reference netSetPrompt | netRemovePrompt | netSetResponse | remotePrompt | onRemotePrompt`);
+  note(res, `LIMIT: this is a static scan. It proves the call is not WRITTEN; it cannot prove a solo game RUNS — that proof is a driven whole solo voyage, and it stays manual.`);
+  return res;
+}
+
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (s) => console.log(s);
   const a1 = checkPromptFieldParity(root);
@@ -355,7 +428,10 @@ function runAll(root, { quiet = false } = {}) {
   const a2 = checkSailFieldParity(root);
   log(`${a2.ok ? "PASS" : "FAIL"} ${a2.name}`);
   for (const n of a2.notes) log(`      ${n}`);
-  return [a1, a2];
+  const a3 = checkSoloGuard(root);
+  log(`${a3.ok ? "PASS" : "FAIL"} ${a3.name}`);
+  for (const n of a3.notes) log(`      ${n}`);
+  return [a1, a2, a3];
 }
 
 /* ================= --drill: prove the assertion CAN fail ================= */
@@ -491,6 +567,34 @@ function drill() {
   write(FLOW_REL, realFlow + `\nexport function ghostPickRenderer(spec){return sailPanelHTML(spec.msg,spec.hint);}\n`);
   expect("drill 2f (a SECOND caller of sailPanelHTML reappears — the two-directors fault, reborn)", checkSailFieldParity(tmpRoot), true, "expected exactly 1");
 
+  /* ===== assertion 3's own red-proof — THE STANDING STATIC SOLO GUARD (02.15-REVIEW WR-01) =====
+     Same discipline as 1a-2f: one synthetic violation at a time, caught BY NAME. This is the check
+     the PLAN required as Task 3 item 8 and that was run once by hand and never persisted — this
+     drill is what makes it a STANDING gate rather than a one-off reading. */
+
+  // 3a — renderPickPrompt (the shared renderer) grows a call to a Firebase prompt writer. This is
+  //      the exact shape of the concrete failure scenario: a future "mirror the host's own prompt
+  //      for spectators" refactor landing a write on the path a solo game (db===null) also takes.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `appState.currentPrompt=spec;`, `appState.currentPrompt=spec;netSetPrompt(spec);`));
+  expect("drill 3a (renderPickPrompt grows a call to netSetPrompt)", checkSoloGuard(tmpRoot), true, "netSetPrompt");
+
+  // 3b — localPickCell (the local response mechanism) reaches a writer instead. Different function,
+  //      same disease: the LOCAL path is the one a solo/pass-and-play game's db===null cannot survive.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `const pre=ffEndNow();\n  if(pre)return pre.then(()=>localPickCell(p,spec));`,
+                                    `const pre=ffEndNow();\n  if(pre)return pre.then(()=>localPickCell(p,spec));\n  remotePrompt(p,spec);`));
+  expect("drill 3b (localPickCell grows a call to remotePrompt)", checkSoloGuard(tmpRoot), true, "remotePrompt");
+
+  // 3c — ANTI-VACUITY: both declared local-path functions vanish. The guard must FAIL rather than
+  //      pass over a tree it cannot parse — the same posture assertion 6 of
+  //      scripts/host_guest_parity_check.js takes for an unrecognisable listener set.
+  reset();
+  write(FLOW_REL, surgery(
+    surgery(realFlow, `export function renderPickPrompt(spec,answer){`, `export function renderPickPromptGONE(spec,answer){`),
+    `export function localPickCell(p,spec){`, `export function localPickCellGONE(p,spec){`));
+  expect("drill 3c (anti-vacuity — both local-path functions renamed away must FAIL, not silently pass)", checkSoloGuard(tmpRoot), true, "PARITY-SOLOGUARD");
+
   // Z — negative control: the REAL, unmodified tree passes. Without this the drill only proves the
   //     gate can shout, not that it can ever be quiet.
   {
@@ -502,7 +606,7 @@ function drill() {
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 13 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 16 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 
