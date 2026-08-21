@@ -66,14 +66,31 @@
 //     total — dock only has the one reading, because "worth docking for" already means "my recipe
 //     needs this," there is no looser variant to compare it against.)
 //
-// LOCKED-OUT CAPTAIN (Wyatt's exact target metric, 2026-08-21): "did that captain have a reason to
+// LOCKED-OUT CAPTAIN (Wyatt's first correction, 2026-08-21): "did that captain have a reason to
 // act and never once, the entire game, could afford it" — per captain per game. This is the SAME
 // computation the first matrix called "boxed out," reported a new way: instead of one rate over all
 // player-games, tallied PER GAME so it can answer "how many games have at least one shut-out
 // captain in them, and how many captains does a typical bad game shut out." Two independent
 // tallies, one per ATTACK reading ("any" / "need"), because a captain locked out under "any crate
 // nearby" and a captain locked out under "only a crate my recipe needs" are different (weaker)
-// claims and Wyatt asked to see both.
+// claims and Wyatt asked to see both. KEPT as a legacy field below — see the SECOND correction,
+// which is what this file's third matrix actually reports as the headline.
+//
+// THE BAND METRIC (Wyatt's SECOND correction, 2026-08-21, same day): "i want players to be unable
+// to afford a desirable action AT LEAST ONCE but NOT MORE THAN 3 TIMES per game: a balanced economy
+// gives them just enough money at just the right time, most of the time -- so they value money, but
+// don't squander it." The locked-out metric above only asked a yes/no question (never once vs. at
+// least once) — it cannot see the difference between a captain priced out once (probably healthy —
+// money mattered, once) and a captain priced out nine times (money is a wall, not a texture). N is
+// the count, not a boolean: for each captain, N = the number of that captain's OWN turns, across the
+// whole voyage, where a desirable action was in reach (his restated definition: "adjacent rival with
+// a crate" — the "any" reading — "or dock selling a recipe-needed crate") and they could not afford
+// it. A turn where BOTH an attack and a dock purchase were in reach and unaffordable counts as ONE
+// moment, not two — N counts TURNS with a miss in them, not individual desires. Balanced = 1<=N<=3.
+// N=0 means money never once bit (can't tell if the economy is generous or just never tested). N>=4
+// means money is stifling, not teaching. Both readings ("any"/"need") are still computed and
+// reported — his restated definition matches "any," which is the headline; "need" is the stricter
+// companion, same as the locked-out metric above.
 //
 // THE HELD-OUT SEED FAMILY STAYS HELD OUT. bot_ladder4.js reserves a second seed multiplier for
 // close calls; that literal is never written here, on purpose — grep this file for it and find
@@ -89,7 +106,9 @@
 // actually recorded; a reason-to-act was observed at least once (a run that never sees a single
 // reason is measuring something other than the game); priced-out counts never exceed the reason
 // counts they are a subset of; the two attack readings' priced-out counts never exceed their own
-// reason counts either; the locked-out-per-game distribution sums back to the game count.
+// reason counts either; the locked-out-per-game distribution sums back to the game count; the band
+// metric's N-distribution buckets sum back to the player-game count, and its three-way split
+// (in-band / N=0 / N>=4) partitions every player-game exactly once.
 
 import { Game, roundCfg } from "../4/src/engine/index.js";
 import { man } from "../4/src/shared/index.js";
@@ -166,11 +185,21 @@ function run() {
   let boxedOutPlayerGames = 0, over10PlayerGames = 0;
   const totalPlayerGames = GAMES * STRATS.length;
 
-  // Wyatt's exact target metric (2026-08-21): tallied PER GAME, one tally per attack reading.
+  // Wyatt's FIRST correction (2026-08-21): tallied PER GAME, one tally per attack reading. Legacy —
+  // see the band metric below, which is what this file's third matrix reports as the headline.
   const lockedOutDistAny = new Array(STRATS.length + 1).fill(0); // index = # locked-out captains that game
   const lockedOutDistNeed = new Array(STRATS.length + 1).fill(0);
   let gamesWithAnyLockedOutAny = 0, gamesWithAnyLockedOutNeed = 0;
   let sumLockedOutAny = 0, sumLockedOutNeed = 0;
+
+  // Wyatt's SECOND correction (2026-08-21), THE headline: N = count of a captain's own turns, across
+  // the whole voyage, with a desirable action in reach and unaffordable. Bucketed 0,1,2,3,4,5+ (index
+  // 5 catches 5 and everything above it) — per player-GAME, one bucket set per attack reading.
+  const BAND_BUCKETS = 6; // 0,1,2,3,4,"5+"
+  const nDistAny = new Array(BAND_BUCKETS).fill(0);
+  const nDistNeed = new Array(BAND_BUCKETS).fill(0);
+  let inBandAny = 0, zeroAny = 0, highAny = 0;
+  let inBandNeed = 0, zeroNeed = 0, highNeed = 0;
 
   for (let s = 1; s <= GAMES; s++) {
     const g = new Game(cfg, s * SEEDMULT, true);
@@ -189,6 +218,9 @@ function run() {
     const hadReasonNeed = STRATS.map(() => false);
     const hadAffordableNeed = STRATS.map(() => false);
     const maxCoinsThisGame = STRATS.map(() => 0);
+    // band metric: count of MISS turns this voyage, per player, one count per attack reading
+    const nMissAny = STRATS.map(() => 0);
+    const nMissNeed = STRATS.map(() => 0);
 
     for (const e of g.events) {
       if (!e.state) continue; // every recorded event carries one; defensive only
@@ -230,7 +262,9 @@ function run() {
       }
 
       const ing = g.adjPort({ pos: me.pos }); // the engine's own method, reconstructed pos only
+      let dockReason = false, dockMiss = false; // dockMiss only meaningful when dockReason is true
       if (ing && myNeeds.includes(ing)) {
+        dockReason = true;
         turnsWithCrateReason++;
         hadReasonAny[actor] = true;
         hadReasonNeed[actor] = true;
@@ -240,8 +274,19 @@ function run() {
           hadAffordableNeed[actor] = true;
         } else if (price != null) {
           turnsPricedOutOfCrate++;
+          dockMiss = true;
         }
+        // price == null (no recorded stock for this ingredient) is left un-scored, exactly as the
+        // legacy proxy above already treats it — not a miss, not an afford, just unmeasurable.
       }
+
+      // THE BAND METRIC'S PER-TURN MOMENT: did THIS turn contain an unaffordable desirable action?
+      // One moment per turn even when both attack and dock miss simultaneously (rare) — N counts
+      // turns-with-a-miss, not the number of separate desires inside one turn.
+      const missAny = (attackReasonAny && !canAffordAttack) || dockMiss;
+      const missNeed = (attackReasonNeed && !canAffordAttack) || dockMiss;
+      if (missAny) nMissAny[actor]++;
+      if (missNeed) nMissNeed[actor]++;
     }
 
     let lockedOutThisGameAny = 0, lockedOutThisGameNeed = 0;
@@ -258,6 +303,15 @@ function run() {
     sumLockedOutNeed += lockedOutThisGameNeed;
     if (lockedOutThisGameAny > 0) gamesWithAnyLockedOutAny++;
     if (lockedOutThisGameNeed > 0) gamesWithAnyLockedOutNeed++;
+
+    // band metric: bucket each player's N for this voyage
+    for (let i = 0; i < STRATS.length; i++) {
+      const nA = nMissAny[i], nN = nMissNeed[i];
+      nDistAny[Math.min(nA, BAND_BUCKETS - 1)]++;
+      nDistNeed[Math.min(nN, BAND_BUCKETS - 1)]++;
+      if (nA === 0) zeroAny++; else if (nA <= 3) inBandAny++; else highAny++;
+      if (nN === 0) zeroNeed++; else if (nN <= 3) inBandNeed++; else highNeed++;
+    }
   }
 
   const totalReasonTurns = turnsWithAttackReasonAny + turnsWithCrateReason;
@@ -321,6 +375,35 @@ function run() {
         distribution: lockedOutDistNeed,
       },
     },
+    // Wyatt's SECOND correction (2026-08-21) — THE HEADLINE of this file's third matrix. N = count
+    // of a captain's own turns this voyage with an unaffordable desirable action in reach. Balanced
+    // = 1<=N<=3 ("captains value money but aren't squandering it"). N=0 = money never bit. N>=4 =
+    // money stifling. "any" reading matches his restated definition verbatim; "need" is the
+    // stricter companion, reported for the same reason the locked-out metric reports both.
+    band: {
+      any: {
+        definition: "N = count of turns with an adjacent rival holding ANY crate, or standing on a dock selling a recipe-needed crate, that this captain could not afford — summed across the whole voyage",
+        totalPlayerGames,
+        inBandCount: inBandAny,
+        inBandShare: round4(inBandAny / totalPlayerGames),
+        zeroCount: zeroAny,
+        zeroShare: round4(zeroAny / totalPlayerGames),
+        highCount: highAny,
+        highShare: round4(highAny / totalPlayerGames),
+        distribution: nDistAny, // index 0..4 = N exactly that value; index 5 = "5+"
+      },
+      need: {
+        definition: "N = count of turns with an adjacent rival holding a crate THIS captain's own recipe needs, or standing on a dock selling a recipe-needed crate, that this captain could not afford — summed across the whole voyage",
+        totalPlayerGames,
+        inBandCount: inBandNeed,
+        inBandShare: round4(inBandNeed / totalPlayerGames),
+        zeroCount: zeroNeed,
+        zeroShare: round4(zeroNeed / totalPlayerGames),
+        highCount: highNeed,
+        highShare: round4(highNeed / totalPlayerGames),
+        distribution: nDistNeed,
+      },
+    },
     harnessControls: [
       {
         name: "every game accounted for",
@@ -366,6 +449,20 @@ function run() {
         actual: `any=${lockedOutDistAny.reduce((a, b) => a + b, 0)}, need=${lockedOutDistNeed.reduce((a, b) => a + b, 0)}`,
         holds: lockedOutDistAny.reduce((a, b) => a + b, 0) === GAMES && lockedOutDistNeed.reduce((a, b) => a + b, 0) === GAMES,
       },
+      {
+        name: "band metric's N-distribution sums back to the player-game count",
+        why: "every player-game must land in exactly one N bucket (0,1,2,3,4,5+) — a mismatch means one was double-counted or dropped",
+        expected: totalPlayerGames,
+        actual: `any=${nDistAny.reduce((a, b) => a + b, 0)}, need=${nDistNeed.reduce((a, b) => a + b, 0)}`,
+        holds: nDistAny.reduce((a, b) => a + b, 0) === totalPlayerGames && nDistNeed.reduce((a, b) => a + b, 0) === totalPlayerGames,
+      },
+      {
+        name: "band metric's in-band/zero/high split partitions every player-game exactly once",
+        why: "inBand + zero + high must equal every player-game, with no overlap (a player-game with N=2 is in-band and NOT also counted as zero or high)",
+        expected: totalPlayerGames,
+        actual: `any=${inBandAny + zeroAny + highAny}, need=${inBandNeed + zeroNeed + highNeed}`,
+        holds: inBandAny + zeroAny + highAny === totalPlayerGames && inBandNeed + zeroNeed + highNeed === totalPlayerGames,
+      },
     ],
   };
 }
@@ -388,7 +485,15 @@ if (JSON_OUT) {
   console.log(`  battles per game:                            ${record.battlesPerGame}`);
   console.log(`  days (rounds) per voyage:                    ${record.daysPerVoyage}`);
   console.log(`  unfinished voyages:                          ${record.unfinishedVoyages} of ${GAMES}`);
-  console.log(`\n  LOCKED-OUT CAPTAINS (Wyatt's target metric, per game):`);
+  console.log(`\n  THE BAND METRIC (Wyatt's headline, per captain per game): balanced = 1<=N<=3`);
+  for (const [label, r] of [["any crate", record.band.any], ["recipe-need crate", record.band.need]]) {
+    console.log(`    [attack reading: ${label}]`);
+    console.log(`      IN BAND (1<=N<=3):   ${r.inBandCount}/${r.totalPlayerGames} (${(100 * r.inBandShare).toFixed(1)}%)`);
+    console.log(`      N=0 (money never bit):    ${r.zeroCount}/${r.totalPlayerGames} (${(100 * r.zeroShare).toFixed(1)}%)`);
+    console.log(`      N>=4 (money stifling):    ${r.highCount}/${r.totalPlayerGames} (${(100 * r.highShare).toFixed(1)}%)`);
+    console.log(`      distribution (N=0,1,2,3,4,5+):  [${r.distribution.join(", ")}]`);
+  }
+  console.log(`\n  LOCKED-OUT CAPTAINS (Wyatt's first correction, legacy, per game):`);
   for (const [label, r] of [["any crate", record.lockedOut.any], ["recipe-need crate", record.lockedOut.need]]) {
     console.log(`    [attack reading: ${label}]`);
     console.log(`      games with >=1 locked-out captain:   ${r.gamesWithAtLeastOneLockedOutCaptain}/${r.totalGames} (${(100 * r.shareOfGames).toFixed(1)}%)`);
