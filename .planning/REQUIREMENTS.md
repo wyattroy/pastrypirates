@@ -78,16 +78,18 @@ gate is his eyes and not a probe. The item numbers in brackets are his.
 **PAR-14 … PAR-16 minted 2026-08-20** for **Phase 02.15 (One Log, One Display Path)**, which absorbed
 Phase 02.2's Group A on Wyatt's ruling. Phrased as conditions he could check by playing.
 
-- [ ] **PAR-14**: There is **one place** that decides what the game draws, and every mode reads from
+- [x] **PAR-14**: There is **one place** that decides what the game draws, and every mode reads from
   it — solo, pass-and-play, host and guest alike. **The test is not that the screens agree; it is
   that nothing could make them disagree.** Asked of any drawn thing, *"what would have to be true for
   the host and a guest to differ here?"*, the honest answer is *"nothing"* *(items 15, 17, 18, 19, 20, 21)*
-- [ ] **PAR-15**: A two-tab crew game shows none of the seven divergences in Wyatt's screenshots — no
+
+- [x] **PAR-15**: A two-tab crew game shows none of the seven divergences in Wyatt's screenshots — no
   Ahoy arriving twice, one sentence for the wait, narration that outlasts the wait on both screens,
   one camera following the active captain, the same sail squares, and a top bar that updates for
   everyone — **and a solo game and a pass-and-play game still play start to finish.** The single-player
   game is the one a two-tab test cannot see, and the one the naive version of this change would break
-- [ ] **PAR-16**: The rules for how the game displays itself **exist as a document**, written as each
+
+- [x] **PAR-16**: The rules for how the game displays itself **exist as a document**, written as each
   piece was converted rather than before or after — what the log entry is, what gets drawn, and how
   long it stays. Wyatt: *"the Gameboard should just be displayed according to a set of rules."* And the
   parity gate runs against `4/` and **would fail if the paths re-forked** — proven by having been seen
@@ -303,6 +305,7 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 - **Plus 7 PAR requirements** minted 2026-08-19 for the inserted Phase 02.1, all mapped to that phase —
   deliberately kept out of the 51-count above, since Phase 02.1 did not exist when that count was
   fixed at roadmap creation (2026-08-18). See the PAR section above for the full list.
+
 - **Plus 6 more PAR requirements (PAR-08…PAR-13)** minted 2026-08-20 for the inserted Phase 02.2, one
   per drop group, all mapped to that phase and likewise outside the 51-count. They are minted from
   Wyatt's own 22-item playtest list rather than from the roadmap, so the mapping runs

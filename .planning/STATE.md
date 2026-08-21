@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: one-log-one-display-path
 status: complete
-stopped_at: Completed 02.15-01-PLAN.md — six of seven divergences closed, Stage 4 skipped under D-04, build 2026-08-20b
-last_updated: "2026-08-20T17:14:57.350Z"
-last_activity: 2026-08-20
-last_activity_desc: "2026-08-20: Phase 02.15 EXECUTED and live as build 2026-08-20b. Six of Wyatt's seven host/guest divergences are closed with both-sides screenshot pairs; the seventh (the host's missing sail squares) was deliberately NOT attempted under D-04 and is named with its one-conditional seam. The guest now draws narration through flash() - the same function the host's loop calls - and both tiers learn whose turn it is from applyActiveSeat(). Solo and pass-and-play were both played end to end, which a two-tab check cannot do. The host/guest parity gate finally scans 4/ instead of the v1 game, and its new orchestration assertion was watched RED before the rewrite began and ends green against a declaration that still visibly names localAsk. Item 10 (D-10, the narration hold ceiling) has NOT shipped and is still Group Q's."
+stopped_at: Completed 02.15-02-PLAN.md — pick channel converged and shipped, ask/battle channels parked/not-reached under D-04, three whole voyages verified
+last_updated: "2026-08-21T06:14:39.671Z"
+last_activity: 2026-08-19
+last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
-  total_plans: 23
-  completed_plans: 18
+  total_plans: 24
+  completed_plans: 19
   percent: 33
 current_phase: 02.15
 ---
@@ -57,16 +57,24 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **02.15 (one-log-one-display-path)** — **EXECUTED 2026-08-20, live as build `2026-08-20b`.**
-Verdicts, evidence, deviations and everything left open:
-`phases/02.15-one-log-one-display-path/02.15-01-SUMMARY.md`. **Point, do not restate.**
+Phase: **02.15 (one-log-one-display-path)** — **BOTH PLANS EXECUTED, live as build `2026-08-20l`.**
+Plan 01's verdicts, evidence, deviations: `phases/02.15-one-log-one-display-path/02.15-01-SUMMARY.md`.
+Plan 02's (THE PROMPT SEAM — the wide half): `phases/02.15-one-log-one-display-path/02.15-02-SUMMARY.md`.
+**Point, do not restate.**
 
-**Six of Wyatt's seven divergences are closed; the seventh is named, not lost.** Stage 4 — the host
-drawing its own prompt — **was deliberately not attempted under D-04**, his own ruling that stopping
-at a clean line is a success. It carries one shot (20 — the host's missing sail squares) and reverts
-through one conditional; the summary names the seam. **The gap is enforced rather than remembered:**
-`scripts/host_guest_parity_check.js --tree=4` now scans the game we actually develop, and its
-assertion 6 is green only against a declaration that still visibly names `localAsk`.
+**Plan 02, tonight (overnight, 2026-08-20/21): one of five prompt forks converged.** `pickCell()` (the
+sail/pick channel) is THE TRACER — one converged renderer, `renderPickPrompt`, named directly by
+both the host's local response mechanism and a guest's `watchPrompt` listener. Shipped alone, as
+`2026-08-20l`, per its own "costly" reversibility rating. The `ask()` channel (Task 4) was **parked**,
+not half-converted, on a real structural divergence found in the flip sub-case (the ceremony's
+`window.__pp4.flipMsg` stash is host/local-decider-only; a guest asked to flip their OWN turn would
+see an empty ceremony card — source-verified, not fixed tonight, since fixing it is a visible change
+the pure-plumbing constraint forbids). The `battleAsk()` channel (Task 5) was not reached — precondition
+unmet since Task 4 didn't land, exactly the D-04 exit condition working as designed. **Three whole
+voyages — crew (Day 19), solo (Day 18), pass-and-play (Day 16, 33 hand-offs) — were all played to
+their end-of-voyage cards on the live build, zero console errors**, which is what Wyatt's "whole
+games, not stretches" ruling asked for. Item 20's sail-window row remains **not reliably measured**
+(said so honestly rather than guessed — see the summary's timing-artifact note).
 
 Next: **`/gsd-execute-phase 02.2`** — `02.2-01` (the rest of Group Q) then `02.2-03…06`.
 **Read `02.2-CONTEXT.md` (29 locked decisions) first — it is the context for both phases.**
@@ -288,6 +296,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.1 P03 | 30min | 3 tasks | 4 files |
 | Phase 02.1 P04 | ~2h | 4 tasks | 1 files |
 | Phase 02.15 P01 | 1 session | 7 tasks | 7 files |
+| Phase 02.15 P02 | overnight session | 3 landed, 2 parked/skipped, 2 QA/docs tasks | 8 files |
 
 ## Accumulated Context
 
@@ -359,6 +368,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: The seat field crosses the wire as seats[]; seat 0 is a real captain so both send and read test !=null, never truthiness
 - [Phase ?]: 4/ gets its own parity gate — scripts/host_guest_parity_check.js reads the ROOT game's src/ and never looked at 4/
 - [Phase ?]: 02.15: Stage 4 (the host's own prompt) not attempted — D-04's safe stop taken at six of seven, seam named in the summary
+- [Phase ?]: 02.15-02: THE TRACER (pickCell) converged and shipped as 2026-08-20l; ask() channel parked at Task 4 on a real flip-ceremony divergence (window.__pp4.flipMsg is local-decider-only); battle channel not reached; three whole voyages (crew/solo/pass-and-play) played to end-of-voyage with zero console errors
 
 ### Pending Todos
 
@@ -447,8 +457,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-20T17:14:30.294Z
-Stopped at: Completed 02.15-01-PLAN.md — six of seven divergences closed, Stage 4 skipped under D-04, build 2026-08-20b
+Last session: 2026-08-21T06:14:39.661Z
+Stopped at: Completed 02.15-02-PLAN.md — pick channel converged and shipped, ask/battle channels parked/not-reached under D-04, three whole voyages verified
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

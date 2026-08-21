@@ -430,6 +430,7 @@ and 5 conform to instead of imitating whatever the code happens to do.
 
 - [x] `02.15-01-PLAN.md` — one narration path, one active seat, the parity gate re-aimed at `4/`.
       Seven tasks. **Live as `PP4_STAMP` `2026-08-20b`.** Six of seven divergences closed.
+
 - [ ] `02.15-02-PLAN.md` — **THE PROMPT SEAM (the wide half)**: converge the prompt ORCHESTRATION so
       the host draws its own prompt from the same "current prompt" a guest draws from, with only the
       response mechanism differing. Seven tasks, one whole fork per task, tracer-first on `pickCell()`.
@@ -465,14 +466,17 @@ green. **It still cannot see content parity:** whether two sentences *read* the 
 check anywhere, and that is what the two-tab screenshots are for.
 
 **Carried forward, none of it invented at the end:**
+
 - **Stage 4 / item 20's sail window** — the remaining divergence.
 - **Two unverified observations from a single solo screenshot** (CLAUDE.md rule 6 — one observation
   is not a reproduction): the "holds are empty" explanation appearing in *two* boxes at once, and a
   narration bubble reading *"Wyargh is choosing a recipe…"* shown to Wyargh himself in a solo game.
   **Neither reproduced** — a driver stalls on the two-tap recipe card, which is also where the
   executor's probe stalled. **Look for both during the next two-tab session; do not pre-write a fix.**
+
 - `4/scripts/audio_map_check.js` **does not exist** — Group Q never built it, and this plan's Task 7
   referenced it. Still Group Q's job, still red-first.
+
 - Task 3's verify asserted a `2550/8775` narration clamp. **Group Q's item 10 has not shipped**, the
   tree still reads `6750`, and it was correctly left alone rather than quietly changed to make a
   check pass.
