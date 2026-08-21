@@ -1439,7 +1439,24 @@
      belongs in this number) and the captains panel's OWN rendered content (never a typed number).
      The 430px fallback covers only the one frame before that first measurement lands. */
   @media (min-width: 601px) {
-    html { background:#1c2f38; }
+    /* THE SEA AROUND THE BOARD (Wyatt, 2026-08-21: "the background color is pretty gruesome — use a
+       blue scattered radial gradient that matches the board better"). Every colour below is SAMPLED
+       FROM assets/board.png rather than picked by eye — the art's own dominant blues, in order of
+       how much of the ocean they cover: #186078 (deep, ~44% of sea pixels), #306090, #307890,
+       #4890a8, with #60a8a8 as the rare highlight. The base is a darkened #186078 so the board
+       still reads as the brightest thing on screen, and the scattered ellipses echo the swirl of
+       the water without competing with it. Desktop only — the phone's board fills the viewport, so
+       there is no surround to paint (D-18/D-31: the phone stays byte-identical). */
+    html {
+      background-color:#0c3442;
+      background-image:
+        radial-gradient(ellipse 55% 45% at 12% 16%, rgba(48,120,144,.50), transparent 70%),
+        radial-gradient(ellipse 48% 40% at 88% 24%, rgba(48,96,144,.45), transparent 72%),
+        radial-gradient(ellipse 62% 46% at 80% 84%, rgba(24,96,120,.55), transparent 74%),
+        radial-gradient(ellipse 50% 38% at 18% 86%, rgba(72,144,168,.28), transparent 70%),
+        radial-gradient(circle at 50% 52%, rgba(96,168,168,.13), transparent 62%);
+      background-attachment:fixed;
+    }
     /* min-height, not height: <body> holds no in-flow content once the stage is up (every stage
        element is position:fixed, per the note above), so its own box collapses to near-0 tall
        without this — and util.js's vwPx()/vhPx() read that same box, so a collapsed body would
@@ -1665,6 +1682,19 @@
     letter-spacing:.4px; padding:5px 12px; border-radius:9px; white-space:nowrap; pointer-events:none;
     display:none; }
   body.pp4Stage #pp4Pill { display:block; }
+  /* THE WIND RIDES IN THE HEADER ROW WHEREVER THERE IS ROOM FOR IT (Wyatt, 2026-08-21: "the wind
+     forecast should move up into the header row whenever there's space. on mobile there isn't — but
+     on desktop and tablet, there is."). The ribbon carries DAY + the captain boats on the left and
+     the ☰ on the right; its middle is empty at every width above the phone breakpoint, which is
+     exactly the space he means. The pill stays `position:fixed` and centred — it simply sits ON the
+     ribbon's row instead of below it, so nothing about how it is built or updated changes.
+     It also gives the board back the ~45px band the pill used to occupy: camFrame()'s topBandPx()
+     takes the LOWER of the ribbon's bottom and the pill's, so a pill inside the ribbon stops
+     pushing the board down at all — the square simply grows. No code needed for that; it falls out
+     of the one measurement both the camera and computeStageGeometry() already share. */
+  @media (min-width: 601px) {
+    body.pp4Stage #pp4Pill { top:calc(11px + env(safe-area-inset-top)); background:rgba(9,42,52,.34); }
+  }
   /* THE MENU IS A CARD, AND NOTHING SHOULD BE SAWN IN HALF BY IT. Found 2026-08-20 while
      screenshotting the ☰ menu to prove the mute button had come back: the wind pill sits at the top
      of the stage on z-index 19, the menu card lands over it, and "WIND NOW: E→ • FORECAST: N↑" was

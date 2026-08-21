@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20w";
+const PP4_STAMP = "2026-08-20x";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -248,7 +248,24 @@ const isSideBySide = () => typeof document !== "undefined" && document.body.clas
    hugs its content (index.html); only the width is pinned. This is a layout dimension, not a game
    quantity, so it does not fall under "nothing is a constant" (that rule is about values that shift
    with game state — this one must NOT shift, which is the whole point). */
-const SIDE_CAP_W = 300;
+const SIDE_CAP_MIN = 300;
+/* …and it GROWS into the room a wide window actually has (Wyatt, 2026-08-21: "there is absolutely
+   no reason on this wide screen that the captain's box is so narrow that the ingredients must move
+   onto a second line. The captain's box should take up more horizontal space, as needed and
+   available."). The ideal is DERIVED from index.html's own container query, not picked: `@container
+   captains (max-width:460px)` is what drops the chips onto their own row, and that 460px threshold
+   is itself derived there (name 106 + coins 40 + two 6px gaps = 158, plus 8 chips at 37px-3 = 293).
+   So a container just past 460px keeps a full hold inline; + #pp4Cap's own 12px side padding = 484,
+   rounded to 492 for daylight. The column takes min(ideal, what the window has spare) and never
+   less than SIDE_CAP_MIN, so a merely-wide-enough screen behaves exactly as before. */
+const SIDE_CAP_IDEAL = 540;
+/* 540, not 492, and the difference was MEASURED rather than reasoned (BOARD-RENDERING.md §7 — ask
+   the renderer, never your own arithmetic). At a 492px column the captains PANEL measured 468px
+   wide with a 466px client box, and its content box therefore landed just under the container
+   query's 460px threshold — so the chips still wrapped, which is the exact thing Wyatt asked to
+   stop. The markup costs ~34px between the column's outer width and the panel's content box, so
+   clearing 460 needs ~494 at the very edge; 540 leaves real daylight and still fits comfortably at
+   1400×900 (which has ~503px spare and simply takes what it has). */
 /* D-36 — ON DESKTOP THE DIRECTOR ZOOMS IN LESS (Wyatt, 2026-08-21): "zooming is important on mobile
    because there's so much less screen real estate. on desktop, players want/need to see more of the
    board in order to make strategic decisions." The zoom a phone needs is the zoom that makes a cell
@@ -569,8 +586,14 @@ function wireEovDrag(){
 }
 
 /* ================= wind pill ================= */
+/* THE PILL IS ALWAYS ON SCREEN (Wyatt's afternoon list, item 5: "Wind pill from frame one —
+   `WIND NOW: ? · FORECAST: ?` placeholder so the board never jumps when the pill appears").
+   Before the first wind is rolled there is nothing to report, and this used to return "" — so
+   pillTick() hid the pill, boardBand() stopped reserving its strip, and the board sat that much
+   taller until the first wind landed and shoved everything down, once, in every single voyage.
+   Saying "?" costs one line and makes the band constant from the first frame. */
 function pillHTML(){
-  const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return "";
+  const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return "WIND NOW: ? · FORECAST: ?";
   const now = g.windNow, fc = g.forecastWind();
   const nowS = `WIND NOW: ${now}${AR[now]}`;
   const fcS = g.stormNext
@@ -585,7 +608,9 @@ function pillTick(){
   // statsWrap's visibility is toggled via its inline style — read that, never getComputedStyle
   // (which forces style recalc and was running every frame; see the HOT-PHONE note above)
   const sw = $("statsWrap");
-  const want = (!h || (sw && sw.style.display !== "none")) ? "none" : "";
+  // only the End of Voyage card takes the pill off screen now — `!h` can no longer be true (see
+  // pillHTML's note), and hiding on it was the source of the one-time board jump.
+  const want = (sw && sw.style.display !== "none") ? "none" : "";
   if (p.style.display !== want) p.style.display = want;
 }
 
@@ -1393,8 +1418,11 @@ function computeStageGeometry(){
   const topBand = topBandPx();
   const boardSideFull = Math.max(240, ih - topBand);
   const capGap = parseFloat(getComputedStyle(body).getPropertyValue("--pp4CapGap")) || 0;
-  const capColW = SIDE_CAP_W;   // fixed, stable — see the constant's note
-  if (iw >= boardSideFull + capGap + capColW){
+  // ENTER side-by-side on the MINIMUM (so widening the column never costs a screen the layout it
+  // already qualified for), then GROW the column into whatever is actually spare.
+  if (iw >= boardSideFull + capGap + SIDE_CAP_MIN){
+    const spare = iw - boardSideFull - capGap - 28;      // 28 = breathing room at the window's edge
+    const capColW = Math.round(Math.max(SIDE_CAP_MIN, Math.min(SIDE_CAP_IDEAL, spare)));
     // SIDE-BY-SIDE (Wyatt's "full desktop"): the board takes the whole height under the band; the
     // captains column sits beside it, level with the board's top, at a fixed comfortable width and
     // hugging its own content height (index.html).
