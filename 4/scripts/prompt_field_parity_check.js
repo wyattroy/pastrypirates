@@ -253,12 +253,86 @@ export function checkPromptFieldParity(root) {
   return res;
 }
 
+/* ================= assertion 2 — the OTHER prompt channel =================
+ * THIS GATE WAS AIMED AT ONE CHANNEL AND THERE ARE TWO. Assertion 1 above covers kind:"ask" — the
+ * button-row prompt — and it is the channel all seven historic drifts happened on. But pickCell()
+ * (src/ui/flow.js) sends a SECOND payload, kind:"pick", which is the sail window: the prompt every
+ * captain answers on every turn of every voyage. Nothing was watching it, and it had already
+ * drifted the same way: the guest's renderer had no .apSub, so the sail self-check's shout could
+ * not reach a guest even in principle.
+ *
+ * Wyatt's standing instruction, 2026-08-20: "when a renderer has two callers, fix it in the ONE
+ * place both pass through, and widen the parity gate so a second caller fails the build." The fix
+ * went into sailPanelHTML(); this is the widening. Same shape as assertion 1 deliberately — a
+ * reader who understands one understands both.
+ *
+ * The floor is lower (3, not 8) because this payload is genuinely small — kind, cells, msg, hint.
+ * It still cannot pass over an empty read, which is the only thing a floor is for. */
+const PICK_MIN_FIELDS = 3;
+const PICK_GUEST_ONLY_OK = {
+  id:     "stamped by remotePrompt() (orchestrator.js), not by pickCell() — the round-trip's own identifier",
+  seat:   "stamped by remotePrompt() alongside id, and read by watchPrompt BEFORE the pick branch to decide whose prompt this is",
+  kind:   "the discriminant itself — read to choose this branch, never a field the renderer draws",
+};
+export function checkSailFieldParity(root) {
+  const res = mk('assertion 2 — sail wire-field parity (pickCell\'s kind:"pick" payload vs watchPrompt\'s pick branch)');
+  const flowRaw = read(root, FLOW_REL);
+  const orchRaw = read(root, ORCH_REL);
+  if (flowRaw === null) { fail(res, `PARITY-SAIL: ${FLOW_REL} is missing — the host's sail payload has nothing to read.`); return res; }
+  if (orchRaw === null) { fail(res, `PARITY-SAIL: ${ORCH_REL} is missing — the guest's sail reader has nothing to read.`); return res; }
+  const flow = stripComments(flowRaw), orch = stripComments(orchRaw);
+
+  /* ---- (A) the wire ---- */
+  const pickI = flow.indexOf('{kind:"pick"');
+  if (pickI < 0) { fail(res, `PARITY-SAIL: no {kind:"pick"...} payload found in ${FLOW_REL} — the sail window is not being sent to remote captains at all, or this gate is reading the wrong region. Re-anchor it rather than deleting it.`); return res; }
+  const pClose = matchBracket(flow, pickI);
+  if (pClose < 0) { fail(res, `PARITY-SAIL: the kind:"pick" payload literal in ${FLOW_REL} does not close — this gate could not read it.`); return res; }
+  const hostFields = new Set(payloadKeys(flow.slice(pickI, pClose + 1)));
+
+  /* ---- (B) the guest ---- */
+  const wp = sliceFn(orch, "export function watchPrompt(");
+  if (!wp) { fail(res, `PARITY-SAIL: watchPrompt() was not located in ${ORCH_REL} — if it was renamed, re-anchor this gate; do NOT delete the assertion.`); return res; }
+  const bI = wp.indexOf('if(p.kind==="pick")');
+  if (bI < 0) { fail(res, `PARITY-SAIL: watchPrompt() in ${ORCH_REL} has no kind==="pick" branch — a guest cannot be shown a sail window at all, or this gate is reading the wrong region. Either way it must FAIL rather than pass over an absent branch.`); return res; }
+  const bOpen = wp.indexOf("{", bI + 'if(p.kind==="pick")'.length - 1);
+  const bClose = matchBracket(wp, bOpen);
+  if (bClose < 0) { fail(res, `PARITY-SAIL: watchPrompt()'s pick branch in ${ORCH_REL} does not close — this gate could not read it.`); return res; }
+  const guestFields = new Set([...wp.slice(bI, bClose + 1).matchAll(/\bp\.([A-Za-z_$][\w$]*)/g)].map((m) => m[1]));
+
+  if (hostFields.size < PICK_MIN_FIELDS) fail(res, `PARITY-SAIL-VACUITY: only ${hostFields.size} field(s) read out of the kind:"pick" payload in ${FLOW_REL} (expected at least ${PICK_MIN_FIELDS}) — this gate is reading almost nothing, so its PASS would mean nothing.`);
+  if (guestFields.size < PICK_MIN_FIELDS) fail(res, `PARITY-SAIL-VACUITY: only ${guestFields.size} p.<field> read(s) found in watchPrompt's pick branch in ${ORCH_REL} (expected at least ${PICK_MIN_FIELDS}) — this gate is reading almost nothing, so its PASS would mean nothing.`);
+
+  for (const f of [...hostFields].sort()) {
+    if (f === "kind" || guestFields.has(f)) continue;
+    fail(res, `PARITY-SAIL: pickCell() (${FLOW_REL}) SENDS "${f}" on the sail payload and watchPrompt's pick branch (${ORCH_REL}) never reads p.${f} — the captain on this device sees that field and a remote captain does not. That is exactly how the self-check's shout stayed host-only. Read it on the guest, or stop sending it.`);
+  }
+  for (const f of [...guestFields].sort()) {
+    if (hostFields.has(f) || f in PICK_GUEST_ONLY_OK) continue;
+    fail(res, `PARITY-SAIL: watchPrompt's pick branch (${ORCH_REL}) reads p.${f} and pickCell() (${FLOW_REL}) never sends "${f}" — the guest is reading a field that is never on the wire, so it silently falls back on every sail prompt. Send it, or stop reading it.`);
+  }
+
+  /* ---- (C) ONE builder, so the markup cannot drift the way the fields did ---- */
+  const defs = (flow.match(/export function sailPanelHTML\s*\(/g) || []).length;
+  if (defs !== 1) fail(res, `PARITY-SAIL-BUILDER: expected exactly 1 definition of sailPanelHTML() in ${FLOW_REL}, found ${defs}. Both sail renderers must build their card from ONE function or the markup drifts again — the guest's card had no .apSub for exactly this reason.`);
+  for (const fn of ["export function localPickCell(", "export function remotePickHighlights("]) {
+    const body = sliceFn(flow, fn);
+    if (!body) { fail(res, `PARITY-SAIL-BUILDER: ${fn.replace("export function ", "").replace("(", "")}() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting it.`); continue; }
+    if (!/sailPanelHTML\s*\(/.test(body))
+      fail(res, `PARITY-SAIL-BUILDER: ${fn.replace("export function ", "").replace("(", "")}() in ${FLOW_REL} does not build its card through sailPanelHTML() — it is hand-writing the sail card again, which is the second copy this assertion exists to stop.`);
+  }
+  note(res, `sail payload fields: ${[...hostFields].sort().join(", ")}`);
+  return res;
+}
+
 function runAll(root, { quiet = false } = {}) {
   const log = quiet ? () => {} : (s) => console.log(s);
   const a1 = checkPromptFieldParity(root);
   log(`${a1.ok ? "PASS" : "FAIL"} ${a1.name}`);
   for (const n of a1.notes) log(`      ${n}`);
-  return [a1];
+  const a2 = checkSailFieldParity(root);
+  log(`${a2.ok ? "PASS" : "FAIL"} ${a2.name}`);
+  for (const n of a2.notes) log(`      ${n}`);
+  return [a1, a2];
 }
 
 /* ================= --drill: prove the assertion CAN fail ================= */
@@ -344,6 +418,39 @@ function drill() {
   write(UTIL_REL, surgery(realUtil, SEND_SEATS, `/* the payload used to carry seats:opts.map(o=>o.seat) here */`));
   expect("drill 1g (a `seats:` named only in a COMMENT does not count as sent)", checkPromptFieldParity(tmpRoot), true, "never sends \"seats\"");
 
+  /* ===== assertion 2's own red-proof — the SAIL channel =====
+     Same discipline as 1a-1g: one synthetic violation at a time, and each must be caught BY NAME.
+     A gate nobody has seen fail is a gate nobody has tested, and this one was written the same
+     afternoon the drift it watches for was found. */
+
+  // 2a — the host stops SENDING hint while the guest still reads it. This is the state the tree was
+  //      in this morning, expressed as a drill: the self-check's shout composed for a local captain
+  //      and nothing on the wire for a remote one.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `,hint:bug||null}`, `}`));
+  expect("drill 2a (sail payload stops sending hint)", checkSailFieldParity(tmpRoot), true, "never sends");
+
+  // 2b — the reverse: the guest stops READING it. Identical damage, opposite side, and the reason
+  //      this assertion is symmetric rather than one-directional.
+  reset();
+  write(ORCH_REL, surgery(realOrch, `remotePickHighlights(p.cells||[],p.id,p.msg,p.hint||null);`,
+                                    `remotePickHighlights(p.cells||[],p.id,p.msg);`));
+  expect("drill 2b (guest's pick branch stops reading p.hint)", checkSailFieldParity(tmpRoot), true, "never reads p.hint");
+
+  // 2c — the markup drifts back apart: the guest hand-writes its own sail card again. The fields can
+  //      all be present and correct and the two cards still not match, which is what .apSub was.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `  panel(sailPanelHTML(msg||sailPickMsg(appState.mySeat),hint),true);`,
+                                    `  panel(\`<div class="apMsg">\${msg}</div>\`,true);`));
+  expect("drill 2c (guest renderer hand-writes the sail card again)", checkSailFieldParity(tmpRoot), true, "PARITY-SAIL-BUILDER");
+
+  // 2d — the branch this gate reads disappears entirely. It must go LOUD, not quiet: a gate that
+  //      passes over an absent branch is the reassuring-green failure docs/HARD-WON-LESSONS.md §3
+  //      is about.
+  reset();
+  write(ORCH_REL, surgery(realOrch, `}else if(p.kind==="pick"){`, `}else if(p.kind==="nope"){`));
+  expect("drill 2d (the guest's pick branch vanishes)", checkSailFieldParity(tmpRoot), true, "no kind===\"pick\" branch");
+
   // Z — negative control: the REAL, unmodified tree passes. Without this the drill only proves the
   //     gate can shout, not that it can ever be quiet.
   {
@@ -355,7 +462,7 @@ function drill() {
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 7 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 11 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 

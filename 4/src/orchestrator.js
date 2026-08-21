@@ -1435,7 +1435,9 @@ export function watchPrompt(){
       setFlipActive(null);
       // D-35: thread the host-composed message through — remotePickHighlights renders it, never
       // authors its own.
-      remotePickHighlights(p.cells||[],p.id,p.msg);
+      // `hint` is the sail self-check's shout, composed by pickCell for EVERY captain since 02.15
+      // Stage 4 — rendered here, never authored here, exactly like `msg` (D-35).
+      remotePickHighlights(p.cells||[],p.id,p.msg,p.hint||null);
     }
   });
 }

@@ -380,6 +380,19 @@ export function sailPickMsg(seat){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
   return `${pn(seat)}: tap to sail`;   // /4 playtest 6: one line — the card must stay small
 }
+/* THE SAIL CARD, BUILT ONCE. 02.15 Stage 4, the narrow half — see pickCell for the wide one.
+   The host's localPickCell() and the guest's remotePickHighlights() each wrote this markup out by
+   hand, and the two copies had already drifted: the guest's had no .apSub at all, so the sail
+   self-check's red shout could not be shown on a guest even in principle. That is the same drift
+   class 02.1-03 closed for the option row with optionButtonsHTML, and the same answer — one
+   builder, so there is nothing left to keep in step.
+   The .apSub is LAST, per the standing top-to-bottom reveal rule for anything in #actionPanel. */
+export function sailPanelHTML(msg,hint){
+  // @copy prompt.sail.pickpanel
+  return `<div class="apMsg">${msg}</div>`+
+    `<div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
+    (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``);
+}
 // The wind's effect on THIS move, spelled out at the moment the move is made. The highlighted
 // squares already encode rule 1 exactly, but they encode it silently: a captain who misreads the
 // compass reads the highlights as a bug rather than as the rule. Naming the direction and both
@@ -542,8 +555,19 @@ export function pickCell(p,cells){
   // the flag's stated safety condition (see stageFlash's note: a wait line must never be awaited).
   netHandlers().onBroadcast(`${pn(p.idx)} is choosing where to sail…`,[{seat:p.idx,html:""}],{wait:true});
   armClock(p.idx);
-  const base=decisionIsLocal(p.idx)?localPickCell(p,cells)
-    :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:sailPickMsg(p.idx)});
+  /* EVERY CAPTAIN'S SQUARES ARE CHECKED, NOT JUST THE ONES ON THIS DEVICE. G6 (Wyatt-approved
+     2026-07-30) is "yes, build this check and apply it to all situations", and it was applied to
+     one: sailSelfCheck ran inside localPickCell, so it covered a captain whose decision is LOCAL
+     and silently skipped every remote one. The host builds a guest's `cells` with the same
+     reachable() call and then shipped them over the wire unchecked — and the guest's renderer had
+     no .apSub to shout into even if it had been checked. So the report this whole check exists for
+     ("I sailed 3 squares upwind") is exactly the report a guest cannot generate.
+     Hoisted here, ahead of the fork, where the answer is the same for both tiers by construction.
+     It is a pure read — geometry over the live game, no RNG, no mutation — so it is safe on the
+     host's authoritative state and cannot fork the determinism stream. */
+  const bug=sailSelfCheck(p,cells);
+  const base=decisionIsLocal(p.idx)?localPickCell(p,cells,bug)
+    :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null});
   const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
@@ -639,10 +663,10 @@ function fillLocked(bake,guess){
   return guess.map((bowl,k)=>bowl==null?bake.slots.indexOf(bake.order[k]):bowl);
 }
 
-export function localPickCell(p,cells){
+export function localPickCell(p,cells,hint){
   // his sail prompt — the natural end of every full-round skip; recap first, prompt after
   const pre=ffEndNow();
-  if(pre)return pre.then(()=>localPickCell(p,cells));
+  if(pre)return pre.then(()=>localPickCell(p,cells,hint));
   return new Promise(res=>{
     const svg=$("board"),hs=[];
     const done=v=>{hs.forEach(h=>h.remove());panel("");appState.activePickCleanup=null;res(v);};
@@ -659,19 +683,13 @@ export function localPickCell(p,cells){
       r.addEventListener("click",()=>done(c));
       hs.push(r);
     });
-    // @copy prompt.sail.pickpanel
     // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
     // top-to-bottom rule for anything added to #actionPanel.
-    // the self-check's shout, if it ever fires, REPLACES the ordinary hint — it is the only thing
-    // that matters on screen at that point
-    const bug=sailSelfCheck(p,cells);
     // /4 playtest 6: the standing wind-helper line leaves the sail card (the pill carries the
     // wind; the card must stay one line tall for placement freedom). The self-check's red shout
     // still renders when it fires — that one is a bug report, not a hint.
-    const hint=bug;
-    panel(`<div class="apMsg">${sailPickMsg(p.idx)}</div>
-      <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
-      (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``),true);
+    // The check itself now runs in pickCell, once, for local and remote captains alike.
+    panel(sailPanelHTML(sailPickMsg(p.idx),hint),true);
     $("apStay").onclick=()=>done(null);
   });
 }
@@ -2499,7 +2517,7 @@ export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
 // D-35 (Wyatt-approved 2026-07-29): `msg` is what the host composed (sailPickMsg, via pickCell's
 // onRemotePrompt payload) — rendered here, never re-authored. Falls back to sailPickMsg(mySeat) for
 // an older host payload with no `msg` field, so a mid-game version skew still reads sensibly.
-export function remotePickHighlights(cells,promptId,msg){
+export function remotePickHighlights(cells,promptId,msg,hint){
   const svg=$("board"),hs=[];
   const done=v=>{hs.forEach(h=>h.remove());panel("");netHandlers().onRespond?.(promptId,v);};
   const cellPx=boardCell(); // notes/edits 11-03: cell now lives in src/ui/board.js
@@ -2513,9 +2531,11 @@ export function remotePickHighlights(cells,promptId,msg){
     r.addEventListener("click",()=>done(c));
     hs.push(r);
   }
-  // @copy prompt.sail.remotepickpanel
-  panel(`<div class="apMsg">${msg||sailPickMsg(appState.mySeat)}</div>
-    <div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`,true);
+  // The SAME builder localPickCell uses (sailPanelHTML above) — this was the last hand-written
+  // second copy of the sail card, and its missing .apSub is what kept the self-check's shout off a
+  // guest's screen entirely. `hint` arrives on the wire from pickCell, so a guest is now told the
+  // same thing about their own squares that a local captain is.
+  panel(sailPanelHTML(msg||sailPickMsg(appState.mySeat),hint),true);
   $("apStay").onclick=()=>done(null);
 }
 // leave replay mode: the recorded log is exhausted (or the game replayed to its end). Reconcile
