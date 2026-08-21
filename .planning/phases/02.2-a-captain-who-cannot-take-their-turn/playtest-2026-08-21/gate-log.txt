@@ -1,0 +1,174 @@
+[9s]   [solo-phone] DAY 0
+[9s]   [solo-desktop] DAY 0
+[20s]   [solo-phone] DAY 1
+[20s]   [solo-desktop] DAY 1
+[82s]   [solo-phone] DAY 2
+[91s]   [solo-desktop] DAY 2
+[136s]   [solo-phone] DAY 3
+[139s]   [solo-desktop] DAY 3
+[199s]   [solo-phone] DAY 4
+[200s]   [solo-desktop] DAY 4
+[247s]   [solo-desktop] DAY 5
+[253s]   [solo-phone] DAY 5
+[306s]   [solo-desktop] DAY 6
+[311s]   [solo-phone] DAY 6
+[354s]   [solo-desktop] DAY 7
+[368s]   [solo-phone] DAY 7
+[419s]   [solo-desktop] DAY 8
+[441s]   [solo-phone] DAY 8
+[463s]   [solo-desktop] DAY 9
+[499s]   [solo-phone] STRUCT FAIL no-cover-ask: control covering the question it answers: "Dough Hook+8" over "Fer yer  Crystal Sugar the tab"
+[504s]   [solo-phone] DAY 9
+[563s]   [solo-phone] DAY 10
+[572s]   [solo-desktop] DAY 10
+[658s]   [solo-desktop] DAY 11
+[677s]   [solo-phone] DAY 11
+[729s]   [solo-desktop] DAY 12
+[763s]   [solo-phone] DAY 12
+[787s]   [solo-desktop] DAY 13
+[844s]   [solo-phone] DAY 13
+[860s]   [solo-desktop] DAY 14
+[904s]   [solo-phone] DAY 14
+[914s]   [solo-desktop] DAY 15
+[957s]   [solo-phone] DAY 15
+[987s]   [solo-desktop] DAY 16
+[1018s]   [solo-phone] END OF VOYAGE at day 15
+[1019s] [solo-phone] vision-judging 29 screen(s)…
+[1034s]   [solo-desktop] DAY 17
+[1067s]   [judge FAIL] solo-phone-002.png: large empty dead space below the CAPTAINS panel — roughly the bottom third of the screen is blank dark teal/grey with no content, cards, or UI elements on it
+[1101s]   [judge FAIL] solo-phone-004.png: a background panel ("CAPTAINS" heading plus a pretzel/star icon) bleeds out from behind the recipe-picker card and is clipped by the left and right screen edges; the left recipe card ("Chocolate Fudge Torte") has faint ghosted text overlapping its divider line under the title, while the right card's divider is clean — asymmetric rendering artifact
+[1102s]   [solo-desktop] END OF VOYAGE at day 17
+[1102s] [solo-desktop] vision-judging 26 screen(s)…
+[1115s]   [judge FAIL] solo-phone-005.png: a 'CAPTAINS' panel and other background content bleed through/peek out along the left and right edges of the recipe-picker card, behind the modal; a pretzel/star icon and a separate white curved panel edge are visible peeking out at the top-right of the modal, as if a hidden screen underneath isn't fully covered
+[1119s]   [judge FAIL] solo-phone-006.png: large empty gray dead space below the CAPTAINS panel, roughly a third of the screen height, with nothing in it
+[1126s]   [judge FAIL] solo-phone-007.png: large empty white dead space below the CAPTAINS card, roughly a third of the screen height, with no content
+[1127s]   [judge FAIL] solo-desktop-004.png: recipe-choice card bottom edge is cut off by the screen/viewport edge; card overlaps and obscures the board beneath it including islands and the pink flag marker
+[1173s]   [judge FAIL] solo-desktop-009.png: Pastry Pirates logo badge in the top-left corner of the board is clipped by the left screen edge — only 'ASTRY' and 'RATES' are visible, the leading letters are cut off
+[1196s]   [judge FAIL] solo-desktop-011.png: Pastry Pirates logo/crest in the top-left of the board is clipped by the left screen edge, cutting off the leading letters of both words ('P' missing from PASTRY and PIRATES)
+[1201s]   [judge FAIL] solo-desktop-014.png: 'Stay put' bubble at bottom center is clipped/cut off by the bottom screen edge, showing only its top sliver; 'Click and hold the sea to reveal the board' tooltip below it is also cut off at the very bottom edge
+[1203s]   [judge FAIL] solo-phone-013.png: narration bubble ('TAILS – a turn on the docks...') is clipped by the right screen edge, missing its right border/rounded corner; top-right island and a ship are cut off by the right screen edge
+[1224s]   [judge FAIL] solo-phone-017.png: the narration pill 'Ye're GIVIN' Speckled Eggs for Toasty...' is cut off by the right screen edge, mid-word
+[1239s]   [judge FAIL] solo-phone-018.png: narration/ask box is clipped by the right screen edge — text reads "offers 4 coins for y" cut off mid-word, box extends off-screen
+[1268s]   [judge FAIL] solo-phone-019.png: Treasure message banner ("TREASURE! Buy a dozen Sand-Speckle...") is clipped by the right screen edge — its border and text run off-screen and the item name is unreadable; small orange sail/boat icon at top-left is clipped by the top-left corner of the screen
+[1280s]   [judge FAIL] solo-desktop-022.png: accept/decline buttons (check and no-entry icons) for the 'Take a deal, or walk away?' prompt are floating at the bottom of the board, detached from the narration box at the top that asks the question; those same two buttons sit directly on top of/overlapping the unrelated 'Click and hold the sea to reveal the board' hint text, making both hard to read
+[1296s]   [judge FAIL] solo-phone-021.png: Narration box text clipped by right screen edge on 3 lines ("...Crystal Sugar the table answers:", "Dough Hook wants 🥚 Speckled Eggs +", "Flaky Jack takes yer 🥚 Speckled Eggs +"); white "Crustbeard declines" pill overlaps the narration text and bag icon above it
+[1309s]   [judge FAIL] solo-phone-022.png: narration bubble ('Davy Scones – a battle's brewing! Call th...') is clipped by the right screen edge, cutting off mid-word and mid-sentence
+[1318s]   [judge FAIL] solo-phone-020.png: 'Stay put' circle badge overlaps/collides with the 'Tap and hold the sea to reveal the board' pill directly below it — the circle's bottom edge and text sit on top of the pill's top edge instead of having clear space between them
+[1326s]   [judge FAIL] solo-phone-023.png: top narration bubble ('Attacking costs ye 2 🦁 for powder. Firin...') is clipped by the right screen edge, cutting off mid-word
+[1328s]   [judge ERROR] solo-phone-016.png: vision call timed out
+[1331s]   [judge FAIL] solo-phone-024.png: ask bubble text 'Davy Scones: what o' Dough H...instead?' is clipped at the right screen edge, cutting off the name and rest of the sentence; the fan of radial buttons (Deny/Coin/bottle/cocoa) overlaps the ask bubble and runs off/behind the right edge of the map
+[1343s]   [judge FAIL] solo-phone-027.png: narration message box text is clipped at the right screen edge, cutting off mid-word ("Call th—"); the message box itself has no visible right edge — it runs off-screen
+[1344s]   [judge FAIL] solo-phone-026.png: prompt text clipped by right screen edge ('the t...', 'Cry...' cut off mid-word; 'Crustbeard declines' bubble overlapped/obscured by the white prompt box stacked on top of it
+[1345s]   [judge FAIL] solo-phone-025.png: the 'Davy Scones: ye're ASKIN' 1 [coin]' message bubble is cut off by the right screen edge, clipping the coin icon/amount
+[1355s]   [judge FAIL] solo-phone-028.png: End of Voyage card is clipped at the bottom edge of the screen, cutting off the last award card's text ('Farthest traveled'); content extends past the visible viewport requiring scroll, bottom row of stat cards is cut off mid-text
+[1357s]   [judge FAIL] solo-phone-eov.png: bottom award card (Horizon-Chaser's Compass) is cut off at the bottom screen edge, its stat line 'Farthest travelled – 71 sq' truncated; main content panel appears clipped/cut off on both left and right edges behind the top ribbon area, showing partial pastry icons peeking out
+[1360s] [solo-phone] contact sheet: /private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/91e57721-f5bb-4cd1-8845-2233c96ab54c/scratchpad/final/contact-solo-phone.png
+[1369s]   [passplay-phone] DAY 0
+[1386s]   [passplay-phone] DAY 1
+[1392s] [solo-desktop] contact sheet: /private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/91e57721-f5bb-4cd1-8845-2233c96ab54c/scratchpad/final/contact-solo-desktop.png
+[1400s] [crew-desktop] room KHGF created by test1
+[1408s] [crew-desktop] test2 joined KHGF
+[1411s]   [crew-desktop-guest] DAY 0
+[1411s]   [crew-desktop-host] DAY 0
+[1421s]   [crew-desktop-guest] DAY 1
+[1422s]   [crew-desktop-host] DAY 1
+[1458s]   [passplay-phone] DAY 2
+[1494s]   [crew-desktop-guest] DAY 2
+[1494s]   [crew-desktop-host] DAY 2
+[1517s]   [passplay-phone] DAY 3
+[1571s]   [crew-desktop-guest] DAY 3
+[1571s]   [crew-desktop-host] DAY 3
+[1598s]   [passplay-phone] DAY 4
+[1651s]   [crew-desktop-host] DAY 4
+[1651s]   [crew-desktop-guest] DAY 4
+[1662s]   [passplay-phone] DAY 5
+[1696s]   [crew-desktop-host] DAY 5
+[1696s]   [crew-desktop-guest] DAY 5
+[1723s]   [passplay-phone] DAY 6
+[1733s]   [passplay-phone] STRUCT FAIL not-occluded: clickable covered by something else: sailCell sailSwept <- covered by #apStay.apBtn <button>, sailCell sailSwept <- covered by #apStay.apBtn <button>, sailCell <- covered by #apStay.apBtn <button>
+[1733s]   [passplay-phone] STRUCT FAIL no-pile: overlapping controls: sailCell sailSwept/Stay put, sailCell/Stay put, sailCell/Stay put, sailCell sailSwept/Stay put, sailCell/Stay put
+[1733s]   [passplay-phone] STRUCT FAIL sail-clickable: 9 sail square(s) covered: a sail square <- #apStay.apBtn <button>, "Stay put" over a sail square
+[1777s]   [crew-desktop-guest] DAY 6
+[1777s]   [crew-desktop-host] DAY 6
+[1802s]   [passplay-phone] DAY 7
+[1830s]   [crew-desktop-guest] DAY 7
+[1830s]   [crew-desktop-host] DAY 7
+[1875s]   [passplay-phone] DAY 8
+[1916s]   [crew-desktop-guest] DAY 8
+[1917s]   [crew-desktop-host] DAY 8
+[1937s]   [passplay-phone] DAY 9
+[1983s]   [crew-desktop-host] DAY 9
+[1983s]   [crew-desktop-guest] DAY 9
+[1999s]   [passplay-phone] DAY 10
+[2054s]   [crew-desktop-guest] DAY 10
+[2054s]   [crew-desktop-host] DAY 10
+[2102s]   [crew-desktop-host] DAY 11
+[2102s]   [crew-desktop-guest] DAY 11
+[2121s]   [passplay-phone] DAY 11
+[2174s]   [crew-desktop-guest] DAY 12
+[2174s]   [crew-desktop-host] DAY 12
+[2187s]   [passplay-phone] DAY 12
+[2222s]   [crew-desktop-guest] DAY 13
+[2222s]   [crew-desktop-host] DAY 13
+[2249s]   [passplay-phone] DAY 13
+[2304s]   [crew-desktop-host] DAY 14
+[2304s]   [crew-desktop-guest] DAY 14
+[2322s]   [passplay-phone] DAY 14
+[2340s]   [crew-desktop-guest] DAY 15
+[2340s]   [crew-desktop-host] DAY 15
+[2386s]   [passplay-phone] END OF VOYAGE at day 14
+[2386s] [passplay-phone] vision-judging 30 screen(s)…
+[2389s]   [crew-desktop-guest] END OF VOYAGE at day 15
+[2395s]   [crew-desktop-host] END OF VOYAGE at day 15
+[2396s] [crew-desktop] vision-judging 30 screen(s)…
+[2411s]   [judge FAIL] passplay-phone-001.png: large empty dead space filling the bottom third+ of the screen below the CAPTAINS panel, with no content anchoring it; context indicates an 'Ahoy! Choose a...' prompt should be present but it is missing from the screen entirely
+[2426s]   [judge FAIL] passplay-phone-002.png: large empty gray dead space filling roughly the bottom third of the screen below the CAPTAINS panel, with no content in it; the gold glow behind the 'Arrgh!' pill overlaps into the bottom edge of the narration box above it, making the pill look like it's crashing into the box rather than sitting cleanly below it
+[2433s]   [judge FAIL] passplay-phone-004.png: ghost text bleeding through the recipe card: faint 'CAPTAINS' visible under the 'Tap a recipe to highlight its docks' subtitle, and faint text (looks like 'Davy Scones' / a captain name) overlapping under the 'Mexican Chocolate Pots' and 'Cinnamon-Sugar Churros' titles — a panel underneath is showing through the card, causing text-on-text overlap; decorative pretzel/star icons clipped by the left and right screen edges
+[2440s]   [judge FAIL] crew-desktop-guest-002.png: Narration message box overlaps/clips the top of the circular 'Arrgh!' bubble directly below it
+[2471s]   [judge FAIL] passplay-phone-005.png: translucent recipe-picker card lets background text (a 'CAPTAINS' panel and other faded rows) bleed through and overlap the card's own content; large empty cream dead-space band below the recipe card, roughly 1/6 of the screen height, with nothing in it
+[2511s]   [judge FAIL] passplay-phone-007.png: a faded 'CAPTAINS' panel with icons (phone, moon, star, pretzel) peeks out from behind the recipe-choice modal on both left and right edges; a rounded white panel edge is visible peeking out on the right side, detached and behind the modal
+[2535s]   [judge FAIL] crew-desktop-host-007.png: Pastry Pirates logo/crest sign in the top-left is clipped by the left screen edge — reads 'ASTRY...RATES' instead of 'PASTRY PIRATES', with the 'P' and leading letters cut off; Narration bubble ('Ahoy, test1 – yer turn!...') floats directly over the board with low-contrast grayish text blending into the yellow highlighted movement tiles behind it, hurting readability
+[2539s]   [judge FAIL] passplay-phone-008.png: ghost text ('CAPTAINS', 'Day…') bleeding through behind the left recipe card, overlapping the 'Chocolate Genoise Sponge Cake' title; large empty blank space below the recipe card taking up roughly the bottom sixth of the screen
+[2541s]   [judge FAIL] passplay-phone-009.png: large empty dead gray space below the CAPTAINS panel, roughly the bottom quarter of the screen with no content
+[2583s]   [judge FAIL] crew-desktop-guest-009.png: the 'Vanilla Beans' choice pill breaks the clean 2-column grid the other six pills form and sits crookedly, rotated/offset instead of aligned; that pill is rendered semi-transparent, letting the island's dock, crate, and cinnamon-stick artwork show through underneath it, making its icon/text hard to read
+[2619s]   [judge FAIL] crew-desktop-guest-010.png: the '– coins only –' pill floats isolated in open water with no visible connection/stem to the highlighted ship or the prompt bubble above it; only one radial option button is present near the ringed ship, looking like a stray label rather than an intentional control
+[2621s]   [judge FAIL] passplay-phone-014.png: circular clock/timer icon in the top-left corner is clipped by the top screen edge, only the bottom half visible
+[2627s]   [judge FAIL] passplay-phone-015.png: circular clock/timer icon in the top-left corner is clipped by the top screen edge — only its bottom half is visible
+[2645s]   [judge FAIL] passplay-phone-018.png: Narration text 'Firing downwind win...' is cut off by the right screen edge mid-sentence, no ellipsis or wrap
+[2651s] [crew-desktop] contact sheet: /private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/91e57721-f5bb-4cd1-8845-2233c96ab54c/scratchpad/final/contact-crew-desktop.png
+[2658s]   [judge FAIL] passplay-phone-019.png: the Davy Scones narration/prompt box is clipped by the right screen edge, cutting off text mid-word ("Call th" over runs off-screen)
+[2660s]   [judge FAIL] passplay-phone-017.png: message/prompt box is clipped by the right screen edge — text ('...the table') and the coin icon after 'takes yer 4' run off-screen with no visible right border
+[2667s]   [judge FAIL] passplay-phone-016.png: clock/timer icon top-left is clipped by the top screen edge — only its bottom half is visible
+[2678s]   [judge FAIL] passplay-phone-022.png: ask prompt text 'What will ye GIVE for Crystal S...' clipped by the right screen edge; '– coins only –' radial pill and the bottle-icon pill overlap each other significantly
+[2697s]   [judge FAIL] passplay-phone-023.png: prompt message text clipped by right screen edge ("the tab" and "Fre" cut off mid-word); action buttons (checkmark/Walk away) are detached far below the message card, floating separately over the board instead of attached to the prompt
+[2722s]   [judge FAIL] passplay-phone-026.png: top narration bubble text is clipped at the right screen edge ("ye can take..." cuts off mid-sentence); second message bubble (Davy Scones offer) is also clipped at the right screen edge, cutting off words
+[2726s]   [judge FAIL] passplay-phone-024.png: the 'Stay put' circular button overlaps the dark 'Tap and hold the sea to reveal the board' hint bar beneath it, covering part of that text
+[2742s]   [judge FAIL] passplay-phone-029.png: narration message box is clipped by the right screen edge, cutting off mid-word ('Call th'); the orange 'Call [Flaky Jack]' pill button is overlapped/obscured by the dark 'Tap and hold the sea...' tooltip bubble, hiding its second line of text
+[2753s]   [judge FAIL] passplay-phone-030.png: bottom award card (Horizon-Chaser's Compass) text clipped at bottom screen edge, 'Farthest traveled' stat cut off
+[2770s]   [judge FAIL] passplay-phone-027.png: The green ship directly above the buttons is largely hidden behind the white 'Walk away' pill — only its sail pokes out above the button, its hull is clipped by the button edge; The pink 'Davy Scones' button overlaps the dock/anchor icon of the island behind it
+[2816s]   [judge FAIL] passplay-phone-028.png: A dark clock/timer icon is clipped by the top-left screen edge, its bottom edge overlapping the 'DAY 8' text; The three radial choice bubbles (coins-only, wheat, bottle) and the prompt box above them are packed with almost no gap between them, reading as one crowded cluster
+[2819s] [passplay-phone] contact sheet: /private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/91e57721-f5bb-4cd1-8845-2233c96ab54c/scratchpad/final/contact-passplay-phone.png
+[2819s] 
+== solo-desktop: FAIL
+[2819s]    ✗ vision judge FAILED 5 screen(s)
+[2819s]    coverage: arrgh:1/1  mayan cocoa souffléa soa:2/2  vanilla bean crème brûlé:0/2  start:1/1  sail square:25/25  trade:8/17  pass #:7/17  fresh milk:2/9  coins only:4/8  slider:8/8  offer it:8/8  menu:0/1  menu open:1/0  menu close:1/0  hot cinnamon:1/9  vanilla beans:1/7  toasty wheat:2/7  speckled eggs:2/6  call dough hook:1/1  call flaky jack:0/1  attack #:2/2  flip coin:3/3  cacao pods:2/4  (icon):4/11  dough hook:1/1  walk away:0/1  accept:1/1  counter:0/1  deny:0/1
+[2819s] 
+== solo-phone: FAIL
+[2819s]    ✗ 1 structural check failure(s)
+[2819s]    ✗ offered but never exercised: deny
+[2819s]    ✗ vision judge FAILED 19 screen(s)
+[2819s]    ✗ vision judge errored on 1 screen(s) — those screens are NOT cleared
+[2819s]    coverage: arrgh:1/1  chocolate fudge tortea p:2/2  snickerdoodle bitespillo:0/2  start:1/1  sail square:18/18  attack #:2/2  trade:6/15  pass #:5/15  flip coin:4/4  menu:0/1  menu open:1/0  menu close:1/0  dock:2/2  buy #:1/2  nah:1/2  toasty wheat:1/6  fresh milk:1/6  cacao pods:1/6  hot cinnamon:1/6  (icon):3/8  coins only:3/6  slider:6/6  offer it:6/6  accept:1/2  counter:1/2  deny:0/3  crystal sugar:1/5  speckled eggs:1/5  dough hook#:1/1  flaky jack:0/1  walk away:0/2  call crustbeard:1/1  call flaky jack:0/2  coin:1/1  ask it:1/1  dough hook:1/1  call dough hook:1/1  vanilla beans:0/1
+[2819s] 
+== passplay-phone: FAIL
+[2819s]    ✗ 3 structural check failure(s)
+[2819s]    ✗ vision judge FAILED 21 screen(s)
+[2819s]    coverage: arrgh:1/1  mexican chocolate potssi:2/2  cinnamonsugar churroscri:0/2  at the helm:28/28  chocolate genoise sponge:2/2  crispy cocoa snapsthin h:0/2  start:1/1  sail square:37/37  pass #:12/28  trade:13/27  fresh milk:2/14  coins only:7/10  slider:10/10  offer it:13/13  dough hook:1/2  walk away:1/5  menu:0/1  menu open:1/0  menu close:1/0  speckled eggs:2/12  attack #:3/3  call peg leg meg:1/2  call dough hook:1/2  flip coin:3/3  crystal sugar:2/12  vanilla beans:2/10  (icon):6/10  flaky jack:2/2  toasty wheat:2/9  accept:1/1  counter:0/1  deny:0/1  davy scones:1/1  cacao pods:2/7  hot cinnamon:2/5  call davy scones:1/1  call flaky jack:0/1
+[2819s] 
+== crew-desktop: FAIL
+[2819s]    ✗ offered but never exercised: vanilla beans
+[2819s]    ✗ 1 console error(s): ERR [src/net/registry.js] duplicate attach refused for key "session|https://pastry-pirates-default-rtdb.firebaseio.com/.info/connected|value|connected" — was the caller's setup entry point invoked twice?
+[2819s]    ✗ vision judge FAILED 4 screen(s)
+[2819s]    coverage: arrgh:1/1  crispy cocoa snapsthin h:2/2  caramel slicea toastedco:0/2  start:1/1  sail square:15/15  trade:6/14  pass #:6/16  speckled eggs:1/5  coins only:5/5  slider:4/4  offer it:5/5  menu:0/1  menu open:1/0  menu close:1/0  chat:1/1  chat open:1/0  chat close:1/0  attack #:2/2  flip coin:5/5  fire again #:1/1  break off:0/1  dock:2/2  nah:2/2  toasty wheat:1/4  crystal sugar:1/4  hot cinnamon:1/4  vanilla beans:0/3  fresh milk:1/1
+[2819s] 
+RESULT: FAIL
