@@ -105,11 +105,65 @@ do not report as confirmed until it is** (rule 6 of CLAUDE.md).
 - **Cloud-runnable step 6** — `docs/GIT-AND-DEPLOY.md` §7's proof checklist can only be run from
   inside a cloud session. Until it passes, the laptop stays the QA machine.
 
+## UPDATE, LATE EVENING — the gate is built, run, and green enough to trust; the PHONE is next
+
+**Live build: `PP4_STAMP` `2026-08-21g`.** Everything below is pushed.
+
+### The gate now does what Wyatt specified, end to end
+`node 4/scripts/playtest_gate.mjs --out=DIR` played a COMPLETE voyage in every mode:
+solo-desktop (day 17), solo-phone (day 15), passplay-phone (day 14) and **crew-desktop, host
+AND guest both to day 15** as `test1`/`test2` in a real Firebase room. Evidence, including the
+four contact sheets and every judge finding in its own words:
+`phases/02.2-…/playtest-2026-08-21/`. **Open the contact sheets before anything else.**
+
+### THE HEADLINE FINDING: desktop landed, the phone is the next body of work
+53 vision-judge failures, and the distribution is the whole story — **solo-phone 19 and
+passplay-phone 21 against desktop 5 and crew 4.** By theme: 33 clipped at a screen edge, 21
+overlapping or obscured, 8 empty dead space. The phone has the same class of faults desktop had
+yesterday morning, and nobody has yet done for it what today did for desktop. **That is the next
+job, and it is unusually well evidenced.**
+
+### Bugs found by the gate and FIXED today (each verified by a later clean run)
+1. The board band ended at the captains card's top even when the card sits BESIDE the board —
+   one wrong reading in three places. It inverted the prompt band (yMin 85, yMax −29), which is
+   why side-bet circles piled under the ribbon and a driver STALLED on them. `capBandBottom()`.
+2. The trade slider was placed only inside `if (message exists)` and so was never positioned on
+   prompts without one — rendering under the ribbon, unusable, for six straight voyages.
+3. The radial memo could skip placing a prompt's buttons ENTIRELY: two similar prompts in a row
+   share a cache key, and the second prompt's brand-new buttons never got positioned.
+4. Narration bubbles covered sail squares (D-38's one exception).
+5. The cornered fan laid 8 buttons in one row and clamped them into a 308px band, piling them.
+6. The ask pill and helper line ran off the right edge instead of wrapping.
+
+### TWO THINGS THAT WERE THE INSTRUMENT, NOT THE GAME — and both nearly reached Wyatt
+- **A "game-stopping stall at day 15."** Event stream frozen, clean console, plausible culprit in
+  the last events. It was `document.hidden`: the game correctly paused itself and
+  `waitWhilePaused()` correctly waited forever. Closed with `Emulation.setFocusEmulationEnabled`.
+  Written up in `docs/HARD-WON-LESSONS.md`.
+- **A "buttons overlapping" alarm that survived three fixes.** The buttons are 66px CIRCLES 73.5px
+  apart — visibly not touching — and the rule compared bounding boxes. The gate's overlap test is
+  now shape-aware. Three real fixes went in chasing an alarm that, in that instance, was false.
+- **And one regression of my own:** the inline ask-pill cap (`vwPx()-20`) was LOOSER than the
+  stylesheet's existing `max-width:88%` and, being inline, won — so a fix for clipping slightly
+  widened the box. It now takes the tighter of the two.
+
+### Still open
+- **The phone layout pass** (above) — the big one.
+- 4 structural failures remain across the four legs: one `no-cover-ask`, one `no-pile`, one
+  `not-occluded`, one `sail-clickable`. Each names its screenshot in the gate log.
+- The empty dead space below the captains card **on phone**, flagged 8 times by the judge. It is
+  a real look, but changing it is a phone layout change and D-18/D-31 promised the phone stays
+  untouched — **Wyatt's call, not a session's.**
+- Group E (`02.2-07-PLAN.md`) — untouched. Its item 5 (wind pill from frame one) shipped today.
+
 ## SUGGESTED ORDER
 
-1. Re-run the solo-desktop gate leg to close out the side-bet verification (~20 min, unattended).
-2. Fix the slider-under-the-ribbon bug (#2) — a player-blocking control, and already diagnosed.
-3. Run the remaining three legs, with `--judge=on`, and read the contact sheets.
+1. **Open `playtest-2026-08-21/contact-solo-phone.png` and `contact-passplay-phone.png`.** Read
+   them the way Wyatt reads a screenshot. The next job is written on them.
+2. Do for the phone what 2026-08-21 did for desktop: one pass over clipping at the right edge,
+   overlapping prompts, and the empty band under the captains card. 40 of 53 findings live there.
+3. Re-run `node 4/scripts/playtest_gate.mjs --out=DIR` after each drop — it is ~45 minutes
+   unattended for all four modes and it keeps its own evidence.
 4. Then Group E.
 
 ## STANDING RULINGS THAT BIND THE NEXT SESSION
