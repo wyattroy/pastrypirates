@@ -76,3 +76,19 @@ so the same explanation would be shown over and over in one fight. That repetiti
 Wyatt rejected, twice.
 
 **Neither the narration nor the button. The branch renders nothing, on purpose.**
+
+## Checked against the 2026-08-21 trade-dead-end fix — NOT the same fault, this ruling stands
+
+A separate fault this same night (`.planning/debug/resolved/captain-cannot-take-turn.md`,
+`.planning/phases/02.2-a-captain-who-cannot-take-their-turn/02.2-FINAL-QA-2026-08-21.md`) was a
+broke captain getting soft-locked in a trade give-prompt with no escape — surface-similar
+("broke captain denied something"), so it was checked against this ruling before being touched.
+
+**They are different fault-families and the fix does not touch this branch.** The trade dead end
+was a genuine SOFTLOCK — the whole table waited on a captain with literally no valid move, forever,
+once per turn at most. This flee gate is a HIGH-FREQUENCY, NON-BLOCKING omission — the option
+silently vanishes and the battle continues fine without it, and it can recur many times inside one
+fight, which is exactly why Wyatt rejected a greyed button + reason here (see above). The trade fix
+added a greyed button + reason (matching the D-41 family this branch is deliberately exempt from);
+it did not add anything to `orchestrator.js:536`'s `def.coins>=1` gate, and nothing about the fix
+generalizes to it. **This ruling is unchanged and still in force.**
