@@ -29,4 +29,20 @@ buttons visible while you scroll.
 buttons are always visible with the least new mechanism. Option C is worth a look if screen space on
 a phone is tight, since it doesn't spend a whole row on the buttons.
 
-Open any file directly in a browser — no server needed, no imports, nothing else on the page.
+- **Option C, with the real recipe art.** `option-c-real-art.html`
+  Wyatt picked C, then asked to see it with the actual game content before deciding further. Same
+  sticky-icon-header mechanism, byte-for-byte — only the recipe below the title changed. It now shows
+  two real entries straight from the live game's own recipe book (`4/src/ui/recipe.js` →
+  `RECIPE_BOOK`): the real illustration (the same PNG the in-game recipe modal uses), the real name,
+  description, yield, ingredients and steps — one short recipe and one with one of the longest titles
+  in the book, so the sticky title row gets stress-tested next to the two icon buttons. A and B were
+  **not** refreshed with real art: their button markup (a labeled toolbar row, a floating pill shelf)
+  isn't a copy-paste of C's icon-only buttons, so swapping in real content there would be a second,
+  separate build, not a free comparison — ask if that's wanted.
+  **Not served over `file://`** like the other three: it references the live pastry art at
+  `../../../assets/...`, a path that only resolves when served from the repo root (works locally over
+  `http://` and at `playpastrypirates.com/notes/sketches/09-recipe-card/option-c-real-art.html`).
+
+Open any of the first four files directly in a browser — no server needed, no imports, nothing else
+on the page. `option-c-real-art.html` needs to be served from the repo root (or viewed live) so its
+real-art image paths resolve.

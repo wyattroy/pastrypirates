@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 9, Option C — real recipe art, same sticky-icon-header mechanism</title>
+<style>
+  :root { --teal: #29a3b2; --accent: #f59f2d; --ink: #1f4249; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%);
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
+    padding: 40px 16px 60px;
+  }
+  .heading { max-width: 900px; text-align: center; }
+  .heading h1 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; margin: 0 0 6px; }
+  .heading p { font-size: 13px; line-height: 1.5; margin: 0; opacity: .8; }
+
+  /* the two real cards sit side by side on desktop, stacked on a phone-width screen.
+     width:100% is load-bearing: body is a column flexbox with align-items:center, so without an
+     explicit width the gallery sizes to its own max-content (both cards side by side, unbounded)
+     and never gets narrow enough to trigger flex-wrap — the second card is then pushed off the
+     right edge of the viewport instead of wrapping below. Caught by actually screenshotting at
+     390px; do not remove this without re-checking that width at that size. */
+  .gallery { display: flex; flex-wrap: wrap; gap: 26px; justify-content: center; align-items: flex-start;
+    width: 100%; max-width: 940px; }
+
+  /* ---- SAME mechanism as option-c-sticky-icon-header.html, unchanged: icon-only buttons pinned
+     into the title row, and that row is `position: sticky; top: 0` WITHIN the scrolling card body
+     — scrolls away with the title at first, then locks to the top and stays there. Only the recipe
+     CONTENT below is new (real art, real names, real ingredients/steps from RECIPE_BOOK). ---- */
+  .card {
+    width: min(440px, 92vw); max-height: 82vh; overflow-y: auto;
+    border-radius: 20px; border: 3px solid var(--teal);
+    box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18);
+    background: linear-gradient(165deg, #3d2817 0%, #1f130a 100%);
+  }
+  .titleRow {
+    position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px;
+    padding: 16px 18px; background: linear-gradient(165deg, #4a2f18f2, #2c1a0cf2);
+    border-bottom: 2px solid rgba(253,182,61,.35);
+    backdrop-filter: blur(2px);
+  }
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 17px; margin: 0; color: #fff6c0;
+    flex: 1; line-height: 1.25; }
+  .iconBtn {
+    width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(253,182,61,.5);
+    background: rgba(255,255,255,.08); color: #fff6c0; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .iconBtn:hover { background: rgba(255,255,255,.18); }
+
+  .body { padding: 4px 22px 22px; }
+
+  /* the actual recipe illustration — same element/sizing intent as the live game's
+     #recipeModalBody .recipeModalThumb (4/index.html:305): full width, height-capped, contain-fit,
+     sitting directly under the sticky title row */
+  .thumbWrap {
+    margin: 14px -22px 4px; padding: 0 22px;
+    background: radial-gradient(ellipse at 50% 40%, rgba(253,182,61,.10), transparent 70%);
+  }
+  .thumb { display: block; width: 100%; height: 170px; object-fit: contain; margin: 0 auto; }
+
+  .desc { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13px;
+    color: #e8d3ae; margin-bottom: 12px; }
+  .sub { font-size: 12.5px; font-weight: 700; color: var(--accent); text-transform: uppercase;
+    letter-spacing: .5px; margin: 14px 0 4px; }
+  ul, ol { margin: 4px 0 0; padding-left: 20px; font-size: 13.5px; line-height: 1.55; color: #f0e3c8; }
+  li { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed rgba(253,182,61,.2); }
+  li:last-child { border-bottom: none; }
+
+  .caption { max-width: 440px; font-size: 12px; text-align: center; opacity: .65; margin-top: -8px; }
+</style>
+</head>
+<body>
+  <div class="heading">
+    <h1>Item 9, Option C — with the real recipe art</h1>
+    <p>Same mechanism as <code>option-c-sticky-icon-header.html</code> — nothing about the sticky
+      title row or the icon buttons changed. Only the recipe below the title is now real: the actual
+      illustration, name, description, yield, ingredients and steps the live game uses in the recipe
+      modal (<code>4/src/ui/recipe.js</code> → <code>RECIPE_BOOK</code>), for two different recipes
+      so you can see it against a short list and a long one.</p>
+  </div>
+
+  <div class="gallery">
+
+    <div>
+      <div class="card">
+        <div class="titleRow">
+          <h2>Spiced Cocoa Shortbread</h2>
+          <button class="iconBtn" title="Download PDF">🖨️</button>
+          <button class="iconBtn" title="Email to myself">✉️</button>
+        </div>
+        <div class="body">
+          <div class="thumbWrap"><img class="thumb" src="../../../assets/pastries/01-spiced-cocoa-shortbread.png" alt="Spiced Cocoa Shortbread"></div>
+          <div class="desc">Buttery, melt-in-your-mouth shortbread biscuits infused with warm cinnamon and rich cocoa.</div>
+          <div class="sub">Yield</div>
+          <div style="color:#f0e3c8">About 24 cookies</div>
+          <div class="sub">Ingredients</div>
+          <ul>
+            <li>225 g (1 cup / 2 sticks) unsalted butter, softened</li>
+            <li>100 g (½ cup) granulated sugar, plus 2 tbsp extra for rolling</li>
+            <li>2 tbsp (30 ml) whole milk</li>
+            <li>250 g (2 cups) all-purpose flour</li>
+            <li>40 g (⅓ cup) unsweetened cocoa powder</li>
+            <li>2 tsp ground cinnamon, plus 1 tsp extra for rolling</li>
+            <li>½ tsp fine sea salt</li>
+            <li>100 g (3.5 oz) dark chocolate, chopped (optional, for dipping)</li>
+          </ul>
+          <div class="sub">Steps</div>
+          <ol>
+            <li>Cream the butter and sugar together on medium speed for 2–3 minutes until pale and fluffy. Beat in the milk.</li>
+            <li>Whisk together the flour, cocoa powder, 2 tsp cinnamon, and salt in a separate bowl, then add to the butter mixture and mix on low until just combined.</li>
+            <li>Turn the dough onto plastic wrap and shape into a log about 5 cm (2 in) in diameter. Chill for at least 2 hours (or freeze 30 minutes).</li>
+            <li>Preheat oven to 165°C (325°F). Mix the extra sugar and cinnamon on a plate. Slice the log into 1 cm (⅓ in) rounds and roll edges in the cinnamon-sugar.</li>
+            <li>Bake 15–18 minutes until set but not browned. Cool completely on the pan.</li>
+            <li>Optional: melt the chopped chocolate and dip half of each cookie, then let set on parchment.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="caption">Real recipe #1 of 21 — shortest ingredient list in the book, for the low end.</div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="titleRow">
+          <h2>Vanilla Bean Crème Brûlée</h2>
+          <button class="iconBtn" title="Download PDF">🖨️</button>
+          <button class="iconBtn" title="Email to myself">✉️</button>
+        </div>
+        <div class="body">
+          <div class="thumbWrap"><img class="thumb" src="../../../assets/pastries/19-vanilla-bean-creme-brulee.png" alt="Vanilla Bean Crème Brûlée"></div>
+          <div class="desc">Velvety baked custard topped with a satisfying, blowtorched glass-like caramelized sugar crust.</div>
+          <div class="sub">Yield</div>
+          <div style="color:#f0e3c8">6 ramekins</div>
+          <div class="sub">Ingredients</div>
+          <ul>
+            <li>500 ml (2 cups) heavy cream</li>
+            <li>200 ml (¾ cup + 2 tbsp) whole milk</li>
+            <li>1 vanilla bean, split and scraped (or 2 tsp vanilla bean paste/extract)</li>
+            <li>1 tsp ground cinnamon</li>
+            <li>6 large egg yolks</li>
+            <li>100 g (½ cup) granulated sugar, plus extra for the brûlée topping</li>
+            <li>Pinch of salt</li>
+          </ul>
+          <div class="sub">Steps</div>
+          <ol>
+            <li>Preheat oven to 150°C (300°F). Combine the cream, milk, vanilla bean (pod and scraped seeds), and cinnamon in a saucepan and heat until just simmering. Remove from heat, cover, and steep 15 minutes; remove the pod.</li>
+            <li>Whisk the egg yolks, sugar, and salt together until pale. Slowly whisk in the warm cream mixture to temper.</li>
+            <li>Strain through a fine sieve and divide among six 150 ml (5 oz) ramekins. Place in a deep baking dish and add hot water halfway up the sides.</li>
+            <li>Bake 35–40 minutes until set at the edges but still slightly jiggly in the center. Cool, then chill at least 4 hours (overnight is best).</li>
+            <li>Before serving, blot any surface moisture, sprinkle an even, thin layer of sugar over each custard, and caramelize with a kitchen torch until deep amber and crackly. Let sit 1–2 minutes for the sugar to harden before serving.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="caption">Real recipe #19 of 21 — one of the longest titles in the book (stress-tests the sticky title row for wrap/overflow next to the two icon buttons).</div>
+    </div>
+
+  </div>
+</body>
+</html>
