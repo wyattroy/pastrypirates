@@ -78,6 +78,12 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
    event → `soundForEvent` timing; probably fires on the engine event after narration; move the cue to
    the click (UI tier). Do after `u`.
 
+## NEXT (as of ~15:40)
+- **02.2-07-PLAN.md = Group E** (his afternoon list + the flicker fix + storm/black-market + recipe card D-35), 8 tasks
+  + the drop; planner wrote it, plan-checker next, then `/gsd-execute-phase 02.2` runs it — **only after `u` is live**
+  (sequencing ruling: D-31 ships first; Group E's stamp is the next letter after whatever is live).
+- D-35: recipe card = option C + more image padding + the top gradient reaching the title separator.
+
 ## Standing rulings that bind the next session (all recorded in 02.2-CONTEXT.md unless noted)
 D-04 clean lines · D-23 his notes are the design contract · D-30 economy philosophy · D-31 desktop
 picks · whole-game QA bar (memory `feedback_qa_bar_whole_games`) · browsers headless+muted+unannounced
