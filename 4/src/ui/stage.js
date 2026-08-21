@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20x";
+const PP4_STAMP = "2026-08-20y";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1886,22 +1886,51 @@ function promptTick(){
     const xMin = 8, xMax = vwPx() - D - 8, yMin = tSafe, yMax = capT - D - 8;
     // ---- each circle on the boat it names (see `onBoats` above) ----
     if (onBoats){
-      const spots = anchors.map(([ax, ay]) => [ax - D / 2, ay + 26]);   // just off the stern
-      // two adjacent ships would stack their circles: push any overlapping pair apart along the
-      // line between them, so the pairing with the boats survives even at a point-blank fight
-      for (let i = 0; i < spots.length; i++)
-        for (let j = i + 1; j < spots.length; j++){
-          const dx = spots[j][0] - spots[i][0], dy = spots[j][1] - spots[i][1];
-          const d = Math.hypot(dx, dy), need = D + 6;
-          if (d >= need) continue;
-          const ux = d > 0.5 ? dx / d : 1, uy = d > 0.5 ? dy / d : 0, push = (need - d) / 2;
-          spots[i][0] -= ux * push; spots[i][1] -= uy * push;
-          spots[j][0] += ux * push; spots[j][1] += uy * push;
-        }
+      /* SEPARATE, THEN CLAMP, THEN SEPARATE AGAIN — and the ORDER is the whole bug. This used to
+         push overlapping circles apart and THEN clamp each one into the band, so two boats near the
+         top of the board had their circles pushed apart vertically and then squashed straight back
+         together by the clamp: both landed on yMin, piled on each other, with the upper one partly
+         under the ribbon where nothing can click it. Found twice by 4/scripts/playtest_gate.mjs
+         inside one voyage ("overlapping controls: Call Crustbeard/Call Flaky Jack") and again by
+         stage_layout_check at 1920×1080, where the driver STALLED on it exactly as a player would —
+         a side bet you cannot answer and cannot dismiss.
+         Clamping first and re-separating after means separation is the last word, and running it a
+         few times lets a pair that is pinned against one edge walk along that edge instead of
+         through it. */
+      const clampSpot = s => [Math.min(Math.max(s[0], xMin), xMax), Math.min(Math.max(s[1], yMin), yMax)];
+      let spots = anchors.map(([ax, ay]) => clampSpot([ax - D / 2, ay + 26]));   // just off the stern
+      const NEED = D + 6;
+      for (let pass = 0; pass < 4; pass++){
+        let moved = false;
+        for (let i = 0; i < spots.length; i++)
+          for (let j = i + 1; j < spots.length; j++){
+            const dx = spots[j][0] - spots[i][0], dy = spots[j][1] - spots[i][1];
+            const d = Math.hypot(dx, dy);
+            if (d >= NEED) continue;
+            moved = true;
+            // when two circles land exactly on top of each other the direction is undefined —
+            // separate them ALONG THE BAND (horizontally), which is the axis that always has room,
+            // rather than vertically into the edge that just clamped them together.
+            const ux = d > 0.5 ? dx / d : 1, uy = d > 0.5 ? dy / d : 0, push = (NEED - d) / 2 + 0.5;
+            spots[i] = [spots[i][0] - ux * push, spots[i][1] - uy * push];
+            spots[j] = [spots[j][0] + ux * push, spots[j][1] + uy * push];
+          }
+        spots = spots.map(clampSpot);
+        if (!moved) break;
+      }
+      // LAST RESORT, so the fan can never come out piled: if the band is too tight for the circles
+      // to separate at all, lay them out as an even row across the band's own width.
+      const stillPiled = spots.some((a, i) => spots.some((b2, j) => j > i && Math.hypot(a[0] - b2[0], a[1] - b2[1]) < NEED - 1));
+      if (stillPiled){
+        const n = spots.length, span = Math.min((n - 1) * NEED, Math.max(0, xMax - xMin));
+        const startX = Math.min(Math.max(spots.reduce((t, p) => t + p[0], 0) / n - span / 2, xMin), Math.max(xMin, xMax - span));
+        const rowY = Math.min(Math.max(spots.reduce((t, p) => t + p[1], 0) / n, yMin), yMax);
+        spots = spots.map((_, i) => [startX + (n > 1 ? (span / (n - 1)) * i : 0), rowY]);
+      }
       menu.forEach((b, i) => {
         b.style.position = "fixed";
-        b.style.left = Math.min(Math.max(spots[i][0], xMin), xMax) + "px";
-        b.style.top = Math.min(Math.max(spots[i][1], yMin), yMax) + "px";
+        b.style.left = spots[i][0] + "px";
+        b.style.top = spots[i][1] + "px";
       });
       return;
     }
