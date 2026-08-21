@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20j";
+const PP4_STAMP = "2026-08-20k";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -937,6 +937,25 @@ function sweepGuard(){
     e.stopPropagation(); e.preventDefault();                           // first tap: show the ride
     sweepBtn = cell;
     clearSweep();
+    /* ZOOM OUT TO SHOW HOW FAR THE BOAT WOULD GO — Wyatt, 2026-08-20, in those words, after
+       watching a screen recording of a trade-wind ride at PHONE width.
+
+       The preview's whole job is to answer "where would I end up", and at 390px it usually could
+       not: the current carries a ship most of the way round the board, so the destination is off
+       camera far more often than not, and what he saw was a dashed line leaving the corner of the
+       screen with no end circle and no ghost hull. A preview that runs off the screen answers
+       nothing — it is the question restated.
+
+       The SAME call the real ride already makes (__pp4.sweepCam, used by animateRimSweepRun in
+       ui/flow.js) rather than a second framing rule of its own: the preview is a promise about what
+       the ride will look like, so it must be framed the way the ride is framed, or the promise is
+       about a different shot. Consistency is a core value, and this is the cheap kind — one
+       existing call, no new numbers.
+
+       Safe against the two-tap gesture, checked rather than assumed: the camera moves by writing
+       the SVG's viewBox (tick(), :270), never by redrawing the board, so `cell` is the same element
+       on the second tap and `sweepBtn === cell` still commits. */
+    S.lock = false; camFull();
     const to = (cell.dataset.sweptTo || "").split(",").map(Number);
     const g = appState.game, svg = svgEl();
     if (!g || !svg || to.length !== 2 || !isFinite(to[0])) return;
