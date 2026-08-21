@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 9, Option C — Icon buttons pinned beside the title, sticky while scrolling</title>
+<style>
+  :root { --teal: #29a3b2; --accent: #f59f2d; --ink: #1f4249; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%);
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+  }
+
+  /* ---- Option C: the buttons are icon-only, pinned into the title row itself, and that whole
+     row is `position: sticky; top: 0` WITHIN the scrolling body — so unlike Option A (buttons
+     structurally outside the scroll area) they scroll away initially with the title, then STICK
+     to the top the moment you scroll past them and stay there for the rest of the read. A third,
+     technically distinct mechanism: sticky-in-scroll rather than fixed-outside-scroll or
+     floating-above. ---- */
+  .card {
+    width: min(440px, 92vw); max-height: 82vh; overflow-y: auto;
+    border-radius: 20px; border: 3px solid var(--teal);
+    box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18);
+    background: linear-gradient(165deg, #3d2817 0%, #1f130a 100%);
+  }
+  .titleRow {
+    position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px;
+    padding: 16px 18px; background: linear-gradient(165deg, #4a2f18f2, #2c1a0cf2);
+    border-bottom: 2px solid rgba(253,182,61,.35);
+    backdrop-filter: blur(2px);
+  }
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 18px; margin: 0; color: #fff6c0;
+    flex: 1; }
+  .iconBtn {
+    width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(253,182,61,.5);
+    background: rgba(255,255,255,.08); color: #fff6c0; font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .iconBtn:hover { background: rgba(255,255,255,.18); }
+
+  .body { padding: 4px 22px 22px; }
+  .desc { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13px;
+    color: #e8d3ae; margin-bottom: 12px; }
+  .sub { font-size: 12.5px; font-weight: 700; color: var(--accent); text-transform: uppercase;
+    letter-spacing: .5px; margin: 14px 0 4px; }
+  ul, ol { margin: 4px 0 0; padding-left: 20px; font-size: 13.5px; line-height: 1.55; color: #f0e3c8; }
+  li { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed rgba(253,182,61,.2); }
+  li:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="titleRow">
+      <h2>Spiced Cocoa Shortbread</h2>
+      <button class="iconBtn" title="Download PDF">🖨️</button>
+      <button class="iconBtn" title="Email to myself">✉️</button>
+    </div>
+    <div class="body">
+      <div class="desc">Buttery, melt-in-your-mouth shortbread biscuits infused with warm cinnamon and rich cocoa.</div>
+      <div class="sub">Yield</div>
+      <div style="color:#f0e3c8">About 24 cookies</div>
+      <div class="sub">Ingredients</div>
+      <ul>
+        <li>225 g unsalted butter, softened</li>
+        <li>100 g granulated sugar, plus 2 tbsp extra for rolling</li>
+        <li>2 tbsp whole milk</li>
+        <li>250 g all-purpose flour</li>
+        <li>40 g unsweetened cocoa powder</li>
+        <li>2 tsp ground cinnamon, plus 1 tsp extra for rolling</li>
+        <li>½ tsp fine sea salt</li>
+        <li>100 g dark chocolate, chopped (optional, for dipping)</li>
+      </ul>
+      <div class="sub">Steps</div>
+      <ol>
+        <li>Cream the butter and sugar together for 2–3 minutes until pale and fluffy. Beat in the milk.</li>
+        <li>Whisk together the flour, cocoa powder, cinnamon and salt, then add to the butter mixture and mix on low until just combined.</li>
+        <li>Shape into a log, chill for at least 2 hours.</li>
+        <li>Preheat oven to 165°C. Slice into rounds, roll edges in cinnamon-sugar.</li>
+        <li>Bake 15–18 minutes until set but not browned. Cool completely.</li>
+        <li>Optional: dip half of each cookie in melted chocolate.</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

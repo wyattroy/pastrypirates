@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 9, Option A — Fixed top toolbar</title>
+<style>
+  :root { --teal: #29a3b2; --accent: #f59f2d; --ink: #1f4249; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%);
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+  }
+
+  /* ---- Option A: the Download/Email row is OUTSIDE the scrolling body entirely — a fixed
+     toolbar at the top of the card, structurally separate from #body's overflow-y. Simplest of
+     the three mechanisms: no sticky positioning trickery, the buttons simply cannot scroll away
+     because they are not inside the element that scrolls. ---- */
+  .card {
+    width: min(440px, 92vw); max-height: 82vh; display: flex; flex-direction: column;
+    border-radius: 20px; overflow: hidden;
+    border: 3px solid var(--teal);
+    box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18);
+    /* THE GRADIENT: darkens toward the corners and reaches every edge — no inset radial stains
+       leaving a lighter halo the way the shipped version does. Chocolate-parchment, dark. */
+    background: linear-gradient(155deg, #4a2f18 0%, #2c1a0c 100%);
+  }
+  .toolbar {
+    display: flex; gap: 8px; padding: 14px 16px 12px;
+    background: linear-gradient(155deg, #6b4423 0%, #3d2817 100%);
+    border-bottom: 2px solid rgba(253,182,61,.35);
+  }
+  .toolbar button {
+    flex: 1; font-family: inherit; font-weight: 800; font-size: 13px;
+    padding: 10px 8px; border-radius: 10px; border: 2px solid rgba(253,182,61,.5);
+    background: rgba(255,255,255,.08); color: #fff6c0; cursor: pointer;
+  }
+  .toolbar button:hover { background: rgba(255,255,255,.16); }
+
+  .body { overflow-y: auto; padding: 18px 22px 22px; }
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; margin: 0 0 8px;
+    color: #fff6c0; border-bottom: 3px double rgba(253,182,61,.5); padding-bottom: 8px; }
+  .desc { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13px;
+    color: #e8d3ae; margin-bottom: 12px; }
+  .sub { font-size: 12.5px; font-weight: 700; color: var(--accent); text-transform: uppercase;
+    letter-spacing: .5px; margin: 14px 0 4px; }
+  ul, ol { margin: 4px 0 0; padding-left: 20px; font-size: 13.5px; line-height: 1.55; color: #f0e3c8; }
+  li { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed rgba(253,182,61,.2); }
+  li:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="toolbar">
+      <button>🖨️ Download PDF</button>
+      <button>✉️ Email to myself</button>
+    </div>
+    <div class="body">
+      <h2>Spiced Cocoa Shortbread</h2>
+      <div class="desc">Buttery, melt-in-your-mouth shortbread biscuits infused with warm cinnamon and rich cocoa.</div>
+      <div class="sub">Yield</div>
+      <div style="color:#f0e3c8">About 24 cookies</div>
+      <div class="sub">Ingredients</div>
+      <ul>
+        <li>225 g unsalted butter, softened</li>
+        <li>100 g granulated sugar, plus 2 tbsp extra for rolling</li>
+        <li>2 tbsp whole milk</li>
+        <li>250 g all-purpose flour</li>
+        <li>40 g unsweetened cocoa powder</li>
+        <li>2 tsp ground cinnamon, plus 1 tsp extra for rolling</li>
+        <li>½ tsp fine sea salt</li>
+        <li>100 g dark chocolate, chopped (optional, for dipping)</li>
+      </ul>
+      <div class="sub">Steps</div>
+      <ol>
+        <li>Cream the butter and sugar together for 2–3 minutes until pale and fluffy. Beat in the milk.</li>
+        <li>Whisk together the flour, cocoa powder, cinnamon and salt, then add to the butter mixture and mix on low until just combined.</li>
+        <li>Shape into a log, chill for at least 2 hours.</li>
+        <li>Preheat oven to 165°C. Slice into rounds, roll edges in cinnamon-sugar.</li>
+        <li>Bake 15–18 minutes until set but not browned. Cool completely.</li>
+        <li>Optional: dip half of each cookie in melted chocolate.</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

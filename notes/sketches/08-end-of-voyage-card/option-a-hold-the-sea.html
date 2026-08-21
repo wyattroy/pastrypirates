@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 8, Option A — Hold-the-sea</title>
+<style>
+  :root {
+    --teal: #29a3b2; --mint: #45dfa6; --orange: #fdb63d; --lemon: #fef48b; --pink: #fdaecb;
+    --sea: #d3f0f4; --sea2: #bfe8ee; --ink: #1f4249; --parch2: #fff6c0; --accent: #f59f2d;
+    --p0: #f2679e; --p1: #1d96a6; --p2: #27c78d; --p3: #f5a623;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%);
+    overflow: hidden;
+  }
+
+  /* ---- the "final board" behind the card — a simple placeholder, not the real game ---- */
+  #board {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, #cdeef2 0 8%, transparent 8.5%),
+      radial-gradient(circle at 70% 20%, #cdeef2 0 6%, transparent 6.5%),
+      radial-gradient(circle at 55% 65%, #cdeef2 0 10%, transparent 10.5%),
+      radial-gradient(circle at 85% 75%, #cdeef2 0 7%, transparent 7.5%),
+      linear-gradient(160deg, #a9dde6, #7fc6d4);
+  }
+  #board::after {
+    content: "🏝️ 🏝️ 🏝️  — the final board, visible through the card once held —";
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 15px; font-weight: 700; color: rgba(31,66,73,.55); text-align: center; width: 80%;
+  }
+
+  .hint {
+    position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+    font-size: 12.5px; font-style: italic; color: rgba(31,66,73,.65);
+    background: rgba(255,255,255,.75); padding: 5px 12px; border-radius: 999px;
+    z-index: 30;
+  }
+
+  /* ---- the end-of-voyage card, styled exactly on the game's existing modal shape ---- */
+  #card {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(420px, 92vw); max-height: 82vh; overflow-y: auto;
+    background: linear-gradient(175deg, #ffffff, var(--parch2) 250%);
+    border: 3px solid var(--teal); border-radius: 20px;
+    padding: 24px 26px 20px; text-align: center;
+    box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18);
+    /* THE ONLY MECHANISM CHANGE FROM THE GAME'S EXISTING GESTURE: none. This option reuses
+       hold-the-sea verbatim — same class, same transition, same opacity, same pointer-events
+       toggle — because CLAUDE.md rule 8 (consistency) says a floating box that already has a
+       one-gesture-fits-all fade should keep using it unless there's a reason not to. */
+    transition: opacity .16s;
+    z-index: 20;
+  }
+  body.peek #card { opacity: .13; pointer-events: none; }
+
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; margin: 4px 0 10px; color: #5b3a1f; }
+  .stat { display: flex; justify-content: space-between; gap: 10px; padding: 7px 2px; font-size: 14px; overflow: hidden;
+    border-bottom: 1px dashed rgba(120,80,40,.3); }
+  .stat span { min-width: 0; flex: 1 1 auto; } .stat b { color: var(--teal); flex: 0 1 auto; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crownRow { font-size: 26px; margin: 10px 0; }
+  .close { position: absolute; top: 8px; right: 10px; width: 30px; height: 30px; border: none;
+    background: transparent; font-size: 18px; opacity: .5; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div id="board"></div>
+  <div id="card">
+    <button class="close" title="close">✕</button>
+    <div class="crownRow">👑 🥧 👑</div>
+    <h2>End of the Voyage</h2>
+    <div class="stat"><span>Bakeries</span><b>3 bakers home</b></div>
+    <div class="stat"><span>Dubloons banked</span><b>Capt. Dough Hook — 14</b></div>
+    <div class="stat"><span>Trades made</span><b>9</b></div>
+    <div class="stat"><span>Battles fought</span><b>2</b></div>
+    <div class="stat"><span>Storms weathered</span><b>1</b></div>
+  </div>
+  <div class="hint">Press and hold anywhere to peek at the final board</div>
+  <script>
+    // Reproduces stage.js's existing pointerdown/pointerup handling faithfully enough to
+    // demonstrate the gesture — the real implementation lives in 4/src/ui/stage.js:322,348 and
+    // is NOT duplicated here beyond what's needed for this standalone preview.
+    const ptrs = new Set();
+    function peekOn(id) { ptrs.add(id); document.body.classList.add("peek"); }
+    function peekOff(id) {
+      ptrs.delete(id);
+      if (ptrs.size === 0) setTimeout(() => document.body.classList.remove("peek"), 140);
+    }
+    window.addEventListener("pointerdown", e => peekOn(e.pointerId));
+    window.addEventListener("pointerup", e => peekOff(e.pointerId));
+    window.addEventListener("pointercancel", e => peekOff(e.pointerId));
+  </script>
+</body>
+</html>

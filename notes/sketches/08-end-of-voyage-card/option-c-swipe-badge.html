@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 8, Option C — Swipe to a corner badge</title>
+<style>
+  :root { --teal: #29a3b2; --parch2: #fff6c0; --accent: #f59f2d; --ink: #1f4249; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%);
+    overflow: hidden;
+  }
+  #board { position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, #cdeef2 0 8%, transparent 8.5%),
+      radial-gradient(circle at 70% 20%, #cdeef2 0 6%, transparent 6.5%),
+      radial-gradient(circle at 55% 65%, #cdeef2 0 10%, transparent 10.5%),
+      radial-gradient(circle at 85% 75%, #cdeef2 0 7%, transparent 7.5%),
+      linear-gradient(160deg, #a9dde6, #7fc6d4); }
+  #board::after { content: "🏝️ 🏝️ 🏝️  — the final board — drag the card down, or tap the badge to restore it —";
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 14.5px; font-weight: 700; color: rgba(31,66,73,.55); text-align: center; width: 78%; }
+
+  /* ---- a THIRD, distinct mechanism: drag-to-minimize into a small persistent badge that sits
+     out of the way in a corner, tap to restore. Different affordance from both A (hold, momentary,
+     auto-restores) and B (tap a handle, stays docked at the bottom edge). ---- */
+  #card {
+    position: fixed; left: 50%; top: 46%; transform: translate(-50%, -50%);
+    width: min(400px, 90vw); max-height: 74vh; overflow-y: auto;
+    background: linear-gradient(175deg, #ffffff, var(--parch2) 250%);
+    border: 3px solid var(--teal); border-radius: 20px;
+    padding: 22px 24px 18px; text-align: center;
+    box-shadow: 0 20px 50px rgba(10,35,40,.5), 0 0 0 6px rgba(253,182,61,.18);
+    transition: transform .3s ease, opacity .3s ease;
+    cursor: grab; z-index: 20; touch-action: none;
+  }
+  #card.dragging { transition: none; cursor: grabbing; }
+  #card.minimized { opacity: 0; pointer-events: none; transform: translate(-50%, 40vh) scale(.3); }
+
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; margin: 4px 0 10px; color: #5b3a1f; }
+  .stat { display: flex; justify-content: space-between; gap: 10px; padding: 7px 2px; font-size: 14px; overflow: hidden;
+    border-bottom: 1px dashed rgba(120,80,40,.3); }
+  .stat span { min-width: 0; flex: 1 1 auto; } .stat b { color: var(--teal); flex: 0 1 auto; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crownRow { font-size: 26px; margin: 8px 0; }
+  .dragHint { font-size: 11px; font-style: italic; opacity: .55; margin-top: 8px; }
+
+  #badge {
+    position: fixed; right: 16px; bottom: 16px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--teal); border: 3px solid #177; color: #fff; font-size: 26px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,.3);
+    transform: scale(0); transition: transform .3s cubic-bezier(.3,1.6,.5,1);
+    z-index: 25;
+  }
+  #badge.visible { transform: scale(1); }
+</style>
+</head>
+<body>
+  <div id="board"></div>
+  <div id="card">
+    <div class="crownRow">👑 🥧 👑</div>
+    <h2>End of the Voyage</h2>
+    <div class="stat"><span>Bakeries</span><b>3 bakers home</b></div>
+    <div class="stat"><span>Dubloons banked</span><b>Capt. Dough Hook — 14</b></div>
+    <div class="stat"><span>Trades made</span><b>9</b></div>
+    <div class="stat"><span>Battles fought</span><b>2</b></div>
+    <div class="stat"><span>Storms weathered</span><b>1</b></div>
+    <div class="dragHint">↓ drag down to see the board</div>
+  </div>
+  <div id="badge" title="View voyage recap">👑</div>
+  <script>
+    const card = document.getElementById("card");
+    const badge = document.getElementById("badge");
+    let startY = null, dragged = 0;
+
+    card.addEventListener("pointerdown", e => {
+      startY = e.clientY; dragged = 0;
+      card.classList.add("dragging");
+      card.setPointerCapture(e.pointerId);
+    });
+    card.addEventListener("pointermove", e => {
+      if (startY == null) return;
+      dragged = Math.max(0, e.clientY - startY);
+      card.style.transform = `translate(-50%, calc(-50% + ${dragged}px))`;
+    });
+    function endDrag() {
+      if (startY == null) return;
+      card.classList.remove("dragging");
+      card.style.transform = "";
+      if (dragged > 90) minimize(); else card.style.transform = "translate(-50%, -50%)";
+      startY = null;
+    }
+    card.addEventListener("pointerup", endDrag);
+    card.addEventListener("pointercancel", endDrag);
+
+    function minimize() {
+      card.classList.add("minimized");
+      badge.classList.add("visible");
+    }
+    badge.addEventListener("click", () => {
+      card.classList.remove("minimized");
+      badge.classList.remove("visible");
+    });
+  </script>
+</body>
+</html>

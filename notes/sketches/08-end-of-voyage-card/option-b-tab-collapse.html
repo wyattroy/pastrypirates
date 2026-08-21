@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 8, Option B — Tab collapse</title>
+<style>
+  :root {
+    --teal: #29a3b2; --parch2: #fff6c0; --accent: #f59f2d;
+    --ink: #1f4249;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Avenir Next', Avenir, 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #dcece9 0%, #e6efe1 45%, #f5f0dd 100%);
+    overflow: hidden;
+  }
+  #board { position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, #cdeef2 0 8%, transparent 8.5%),
+      radial-gradient(circle at 70% 20%, #cdeef2 0 6%, transparent 6.5%),
+      radial-gradient(circle at 55% 65%, #cdeef2 0 10%, transparent 10.5%),
+      radial-gradient(circle at 85% 75%, #cdeef2 0 7%, transparent 7.5%),
+      linear-gradient(160deg, #a9dde6, #7fc6d4); }
+  #board::after { content: "🏝️ 🏝️ 🏝️  — the final board, revealed once the card is tucked away —";
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 15px; font-weight: 700; color: rgba(31,66,73,.55); text-align: center; width: 80%; }
+
+  /* ---- the card lives in a wrapper that TRANSLATES, rather than fading opacity. Explicit,
+     persistent state (open by default; a TAP collapses it, not a hold) — different mechanism
+     from hold-the-sea, on purpose (D-14: three different answers, not three colourways). ---- */
+  #cardWrap {
+    position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 0);
+    width: min(420px, 92vw);
+    transition: transform .32s cubic-bezier(.2,.8,.3,1);
+    z-index: 20;
+  }
+  #cardWrap.collapsed { transform: translate(-50%, calc(100% - 46px)); }
+
+  #card {
+    max-height: 76vh; overflow-y: auto;
+    background: linear-gradient(175deg, #ffffff, var(--parch2) 250%);
+    border: 3px solid var(--teal); border-radius: 20px 20px 0 0;
+    padding: 22px 26px 18px; text-align: center;
+    box-shadow: 0 -10px 40px rgba(10,35,40,.4), 0 0 0 6px rgba(253,182,61,.18);
+  }
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; margin: 4px 0 10px; color: #5b3a1f; }
+  .stat { display: flex; justify-content: space-between; gap: 10px; padding: 7px 2px; font-size: 14px; overflow: hidden;
+    border-bottom: 1px dashed rgba(120,80,40,.3); }
+  .stat span { min-width: 0; flex: 1 1 auto; } .stat b { color: var(--teal); flex: 0 1 auto; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crownRow { font-size: 26px; margin: 8px 0; }
+
+  /* the pull-tab / handle — always visible, tap toggles. Sits ABOVE the card's own border so it
+     reads as a handle you grab, not another button in a list of buttons. */
+  #handle {
+    position: relative; margin: -18px auto 0; width: 150px; height: 40px;
+    background: var(--teal); border: 3px solid #177; border-bottom: none;
+    border-radius: 14px 14px 0 0; color: #fff; font-weight: 800; font-size: 12.5px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+    box-shadow: 0 -4px 14px rgba(0,0,0,.25);
+  }
+  #handle .arrow { transition: transform .32s; display: inline-block; }
+  #cardWrap.collapsed #handle .arrow { transform: rotate(180deg); }
+</style>
+</head>
+<body>
+  <div id="board"></div>
+  <div id="cardWrap">
+    <div id="handle"><span class="arrow">▼</span> <span id="handleLabel">Tuck away the recap</span></div>
+    <div id="card">
+      <div class="crownRow">👑 🥧 👑</div>
+      <h2>End of the Voyage</h2>
+      <div class="stat"><span>Bakeries</span><b>3 bakers home</b></div>
+      <div class="stat"><span>Dubloons banked</span><b>Capt. Dough Hook — 14</b></div>
+      <div class="stat"><span>Trades made</span><b>9</b></div>
+      <div class="stat"><span>Battles fought</span><b>2</b></div>
+      <div class="stat"><span>Storms weathered</span><b>1</b></div>
+    </div>
+  </div>
+  <script>
+    const wrap = document.getElementById("cardWrap");
+    const handle = document.getElementById("handle");
+    const label = document.getElementById("handleLabel");
+    handle.addEventListener("click", () => {
+      wrap.classList.toggle("collapsed");
+      label.textContent = wrap.classList.contains("collapsed") ? "See the recap again" : "Tuck away the recap";
+    });
+  </script>
+</body>
+</html>
