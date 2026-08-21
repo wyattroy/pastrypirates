@@ -157,7 +157,10 @@ async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
     if (!untilOver && st && st.day >= 3) { rec.finished = true; return; }   // (unused today; kept for cheap smoke legs)
   }
   rec.finished = false;
-  log(`  [${tag}] TIMED OUT after ${MAX_MS / 60000} min without reaching the end of voyage`);
+  // never report a stall without first ruling out the environment (see ensureVisible)
+  const wasHidden = await player.ensureVisible();
+  log(`  [${tag}] TIMED OUT after ${MAX_MS / 60000} min without reaching the end of voyage` +
+      (wasHidden ? " — BUT THE TAB WAS HIDDEN, so the game had correctly paused itself; this is NOT a game stall" : ""));
 }
 
 // ---------- verdicts --------------------------------------------------------------------------

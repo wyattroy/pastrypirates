@@ -960,3 +960,41 @@ the note's name in brackets. CLAUDE.md already carries the big ones (ask with th
 - **Safari caches ES modules by URL and a page `?cb=` does NOT bust them** — a fresh server PORT
   does. Same for Chrome and for image assets. No tool here can drive desktop Safari; a Safari pass
   is Wyatt's, from his laptop. *(project_safari_storm_module_cache)*
+
+### 2026-08-21 — A HIDDEN TAB IS A PERFECT FORGERY OF A GAME-STOPPING BUG
+
+`DRIVING-THE-GAME.md` §8b already says a hidden tab is a fake freeze. It was read this session, and
+the trap was walked into anyway — which is the point §0 makes about re-reading a lesson at its
+TRIGGER rather than at session start.
+
+`playtest_gate.mjs` was 15 days into a solo voyage when the event stream froze: 234 events, no
+prompt, no buttons, no end-of-voyage card, **and a completely clean console**. That is, precisely,
+the signature §1b gives for a throw in the turn chain. The last three events read
+`turn:1 → sail:1 → tradewind:1`, so it even had a plausible culprit — a captain sails into a trade
+wind and the game dies. It came within one sentence of being reported to Wyatt as a game-stopping
+bug at day 15.
+
+It was the harness. `document.hidden` was `true`, the game had done exactly the right thing and
+paused itself (its tab-hide gate), and `waitWhilePaused()` — a promise that resolves only when
+`shotClockPaused` clears — was correctly waiting forever, mid-ride.
+
+**Two instrument failures, both worth copying out:**
+
+1. **The first probe measured a property that does not exist.** It read `g.turn` and reported
+   `undefined`, which read as "the turn pointer is corrupt". There is no `this.turn` in
+   `4/src/engine/index.js` and never has been. A probe that names a field the code does not have
+   returns `undefined` for a healthy game and a dead one alike — it cannot fail, so it cannot be
+   evidence. **Grep the property before you believe a reading of it.**
+2. **The honest instrument was the one with a control**: sample `game.events.length` twice, 25s
+   apart. Frozen means frozen. That took one probe and settled it.
+
+**The rule, now enforced in code rather than remembered:** `lib/player.mjs` repairs visibility every
+tick (`Page.bringToFront`) and logs when it had to; and the gate refuses to report a timeout as a
+stall without first ruling the hidden tab out, saying so in the same line. A gate that quietly fixes
+its own environment hides how often the environment is the thing that is broken.
+
+**And the reason this matters beyond one evening:** every finding in that run up to day 15 was real
+and clean (0 piled controls, 0 off-screen controls, 0 dead sliders, 0 ribbon occlusions — all four
+classes that had been failing). Had the phantom stall been reported alongside them, it would have
+put every one of those true results in doubt. **An unmeasured claim shipped beside measured ones
+does not merely add noise; it discredits the measurements it travels with** (CLAUDE.md rule 6).

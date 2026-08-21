@@ -195,8 +195,30 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
     return !!r;
   }
 
+  /* A HIDDEN TAB LOOKS EXACTLY LIKE A GAME-STOPPING BUG, AND IS NOT ONE.
+     DRIVING-THE-GAME.md §8b says it outright, and this gate reproduced it anyway on 2026-08-21:
+     the tab went `document.hidden`, the game did the correct thing and paused itself (its tab-hide
+     gate), `waitWhilePaused()` legitimately never resolved mid trade-wind ride, and the event
+     stream froze at 234 events with a clean console — the precise signature of a throw in the turn
+     chain. It cost a real investigation and came within one sentence of being reported to Wyatt as
+     a game-stopping stall at day 15. It was the instrument.
+     So the driver now REPAIRS visibility every tick rather than trusting it, and says so out loud
+     if it ever has to — a gate that silently fixes its own environment is a gate that hides how
+     often the environment is wrong. */
+  async function ensureVisible() {
+    const hidden = await ev("document.hidden === true");
+    if (!hidden) return false;
+    await c.send("Page.bringToFront").catch(() => {});
+    await sleep(300);
+    const still = await ev("document.hidden === true");
+    log(still ? "WARNING: tab is hidden and would not come to front — timings and pauses are not trustworthy"
+              : "note: tab had gone hidden (game auto-pauses); brought back to front");
+    return true;
+  }
+
   // one tick: answer whatever the game is asking, in priority order (flip first — §4a).
   async function tick() {
+    await ensureVisible();
     await ev(GATE_SRC);
     if (await answerFlip()) return "acted";
     if (await answerSail()) return "acted";
@@ -217,7 +239,7 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
     return f;
   }
 
-  return { P, tick, captureIfNew, sig, state, clickAndVerify, cover };
+  return { P, tick, captureIfNew, sig, state, clickAndVerify, cover, ensureVisible };
 }
 
 // side quests — the buttons OUTSIDE the turn loop that "click all the buttons" must also cover.

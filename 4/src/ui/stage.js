@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20z";
+const PP4_STAMP = "2026-08-21a";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -249,6 +249,38 @@ const isSideBySide = () => typeof document !== "undefined" && document.body.clas
    of the screen, behind the ribbon (z40 over the prompt's z30) where nothing could click them —
    which is where a real driver stalled, exactly as a player would. Beside the board the card takes
    nothing off the bottom, so the band simply runs to the foot of the stage. */
+/* D-39/D-40 — THE PEEK HINT TEACHES UNTIL LEARNED, AND SAYS THE RIGHT VERB.
+   D-38 lets a prompt sit over the board, and the thing that makes that safe is the hold-the-sea
+   gesture. Before tonight the gesture was taught in exactly ONE place — the recipe picker on day 1
+   — and never again, which is too little for something now load-bearing; Wyatt's own suggestion was
+   a hint on every turn, and we landed on the middle: show it while a prompt is over the board on
+   your turn, and retire it for good once the player has actually USED the hold three times. Every
+   turn forever is clutter that competes with the narration it explains and goes unread by day 3.
+   The counter is localStorage, the same idiom pp4_timerOff already uses, and a browser that
+   refuses storage is treated as "already learned" so a private window is never nagged forever.
+   D-40: "tap" is wrong with a mouse. Pointer type, not width — a touch laptop gets the right verb. */
+const PEEK_KEY = "pp4_peekUsed", PEEK_LEARNED = 3, PEEK_HOLD_MS = 450;
+let peekArmedAt = 0;
+function peekUses(){ try { return +localStorage.getItem(PEEK_KEY) || 0; } catch (e) { return PEEK_LEARNED; } }
+function notePeekUse(){ try { localStorage.setItem(PEEK_KEY, String(Math.min(PEEK_LEARNED, peekUses() + 1))); } catch (e) {} }
+function holdVerb(){
+  try { return matchMedia("(pointer: coarse)").matches ? "Tap and hold" : "Click and hold"; }
+  catch (e) { return "Tap and hold"; }
+}
+export function peekHintText(){ return `${holdVerb()} the sea to reveal the board`; }
+/* Shows/hides the hint inside whichever prompt box is up. Placed at the FOOT of the board band so
+   it never joins the crowd around the boat (which is where D-38 has just sent everything else). */
+function peekHintTick(box){
+  let hint = box.querySelector(".pp4PeekHint");
+  if (peekUses() >= PEEK_LEARNED){ if (hint) hint.remove(); return; }
+  if (!hint){
+    hint = document.createElement("div"); hint.className = "pp4PeekHint";
+    hint.innerHTML = `<span>${peekHintText()}</span>`;
+    box.appendChild(hint);
+  }
+  const band = boardBand();
+  hint.style.top = Math.round(Math.max(band.top, band.bottom - 44)) + "px";
+}
 function capBandBottom(){
   const cap = $("pp4Cap");
   if (!cap || isSideBySide()) return vhPx();
@@ -408,6 +440,10 @@ function gestures(wrap){
     // (centre-stage intros, the flip veil) are what the body.pp4Peek CSS selector list excludes
     // (index.html), not this arm site.
     document.body.classList.add("pp4Peek");
+    // D-39: a HOLD is what teaches the gesture, and pp4Peek arms on any sea touch — including the
+    // tap that answers a sail square. Counting here would retire the hint after three ordinary
+    // taps and teach nobody. The duration is judged on release instead (see `up`).
+    peekArmedAt = Date.now();
     ptrs.set(e.pointerId, [e.clientX, e.clientY]); moved = false;
     if (ptrs.size === 2){ const p = [...ptrs.values()]; pinch0 = { d: Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]), w: S.cam.tw }; }
     else panLast = [e.clientX, e.clientY];
@@ -434,6 +470,11 @@ function gestures(wrap){
   });
   const up = e => {
     if (ptrs.size <= 1) setTimeout(() => document.body.classList.remove("pp4Peek"), 140);
+    // D-39: count it only if they actually HELD — long enough for the board to have been revealed
+    // and looked at. PEEK_HOLD_MS is the same 450ms a person needs before the fade reads as
+    // deliberate rather than as a tap that happened to linger.
+    if (peekArmedAt && Date.now() - peekArmedAt > PEEK_HOLD_MS) notePeekUse();
+    peekArmedAt = 0;
     ptrs.delete(e.pointerId); pinch0 = null;
     if (ptrs.size === 0 && !moved){
       const now = Date.now();
@@ -1672,7 +1713,7 @@ function promptTick(){
        top-to-bottom reveal rule carries it for free: back, message, this, cards. */
     if (!hint){
       hint = document.createElement("div"); hint.className = "pp4PeekHint";
-      hint.innerHTML = `<span>Tap and hold the sea to reveal the board</span>`;
+      hint.innerHTML = `<span>${peekHintText()}</span>`;   // D-40: one sentence, device-correct verb
       box.insertBefore(hint, ap);
     }
     // over the SEA, high on the board — measured off the board's own rect rather than a guessed
@@ -1703,6 +1744,7 @@ function promptTick(){
   const uu = boatUXY(appState.mySeat ?? 0);
   if (menu && uu){
     box.classList.add("radial"); box.classList.remove("centered");
+    peekHintTick(box);      // D-39: a prompt IS over the board here — teach the gesture until learned
     // ITEM 22 (D-18): 100%, not 100vw — an inline style always wins the cascade, so this literal
     // viewport-width string would have overridden the CSS %-based fix (index.html) and kept the
     // radial fan's box pinned to the true desktop width regardless of item 22's stopgap cap.
