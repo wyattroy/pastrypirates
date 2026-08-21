@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21e";
+const PP4_STAMP = "2026-08-21f";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -280,6 +280,28 @@ function peekHintTick(box){
   }
   const band = boardBand();
   hint.style.top = Math.round(Math.max(band.top, band.bottom - 44)) + "px";
+}
+/* Lifts the ask pill clear of any prompt circle already sitting on it (see the call site). */
+function liftAskClearOfFan(ap, tSafeV, capTV){
+  const msg = ap.querySelector(".apMsg"); if (!msg || !msg.style.top) return;
+  const btns = [...ap.querySelectorAll(".apBtn")].filter(b => b.style.left && b.offsetWidth > 4);
+  if (!btns.length) return;
+  const mr = fixedRect(msg);
+  if (!(mr.width > 0 && mr.height > 0)) return;
+  const sits = btns.some(b => {
+    const r = fixedRect(b);
+    const bx = r.left + r.width / 2, by = r.top + r.height / 2, rad = Math.min(r.width, r.height) / 2;
+    const px = Math.max(mr.left, Math.min(bx, mr.right)), py = Math.max(mr.top, Math.min(by, mr.bottom));
+    return Math.hypot(bx - px, by - py) < rad - 2;
+  });
+  if (!sits) return;
+  const blockTop = Math.min(...btns.map(b => fixedRect(b).top));
+  const lifted = Math.max(tSafeV - 34, Math.min(blockTop - mr.height - 10, capTV - mr.height - 8));
+  if (Math.abs((parseFloat(msg.style.top) || 0) - lifted) > 1){
+    msg.style.top = lifted + "px";
+    const back = ap.querySelector(".apBack");
+    if (back){ const nb = fixedRect(msg); back.style.top = (nb.top + (nb.height - 38) / 2) + "px"; }
+  }
 }
 function capBandBottom(){
   const cap = $("pp4Cap");
@@ -1900,6 +1922,16 @@ function promptTick(){
        reporting, and it is not a placement failure but a placement that never ran.
        Checking that every button actually carries a position is cheap, and it is a fact about the
        DOM rather than another thing to remember to put in the key. */
+    /* THE PILL AND THE FAN CAN DRIFT INTO EACH OTHER AFTER PLACEMENT, so this runs on EVERY tick,
+       above the memo. formationOK already refuses any layout that overlaps the ask pill — and the
+       measurement showed a circle sitting on the pill anyway, with the pill still at the top the
+       placement pass gave it. The reason is that the pill is not the size it will be when the fan
+       is placed: `.apMsg` reveals progressively, so its rect is captured small, the fan legitimately
+       avoids that small box, and the pill then grows into the circles while the layout is frozen by
+       the memo. Re-checking is cheap (a handful of rects) and it is the only version that cannot be
+       out of date. Shape-aware for the same reason the gate is: these are circles, and a corner
+       clipping a text box is not a circle sitting on it. */
+    liftAskClearOfFan(ap, tSafe, capT);
     const unplaced = menu.some(b => !b.style.left);
     if (radKey === S.radKey && !unplaced) return;
     S.radKey = radKey;
