@@ -637,10 +637,25 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   return new Promise(res => {
     // playtest 11 (Wyatt: "the game currently feels like it's in rush mode and i cant read
     // anything") — every narration hold runs 50% longer than the panel's own curve
-    // D-10 (Wyatt, 2026-08-20, playtest item 10): +30% on the CEILING only — 6750 -> 8775. The
-    // floor (2550) and the *1.5 multiplier are the playtest-11 fix above and stay untouched; he
-    // asked for the maximum only.
-    const hold = Math.max(2550, Math.min(8775, Math.round((msgHoldMs ? msgHoldMs(msg) : 1700) * 1.5)));
+    // D-10 (Wyatt, 2026-08-20, playtest item 10): a long narration line should hold about two
+    // seconds longer than it did — CEILING only, floor (2550) and *1.5 multiplier untouched.
+    //
+    // FIRST ATTEMPT (kept only in git history): raised THIS outer 6750 to 8775 and shipped it —
+    // then measured, live in a two-tab crew game, that it changed nothing. msgHoldMs()'s OWN
+    // ceiling (util.js's HOLD_CEILING_MS=2000) was already capping every message before this
+    // outer clamp ever saw it: 2000*1.5=3000 sits well under 6750 regardless. Re-ruled by the
+    // orchestrator 2026-08-21: the lever moves to msgHoldMs()'s own ceiling, scoped to THIS call
+    // site only via its new optional second argument (util.js) — every other caller of
+    // msgHoldMs(), including panel.js's classic-path fallback, is untouched.
+    //
+    // NARRATION_HOLD_CEILING_MS back-computed from the live measurement: the old path's longest
+    // observed bubble was 3305ms/3304ms (host/guest), which is round(2000*1.5) + the ~300ms fade
+    // tail in finish() below. Solving for a ~5300ms final hold — "about two seconds longer" —
+    // gives round(3330*1.5)+300 = 4995+300 = 5295, close enough to his ask that no further tuning
+    // is warranted without his own re-measurement. This outer clamp's 8775 is UNCHANGED and does
+    // not re-bind: 3330*1.5=4995 is still well under it.
+    const NARRATION_HOLD_CEILING_MS = 3330;
+    const hold = Math.max(2550, Math.min(8775, Math.round((msgHoldMs ? msgHoldMs(msg, NARRATION_HOLD_CEILING_MS) : 1700) * 1.5)));
     const b = document.createElement("div");
     b.className = "pp4Bub" + (subj == null ? " ambient" : "");
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";

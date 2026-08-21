@@ -1218,14 +1218,35 @@ export function assignBadges(){
 // signals "this is about to leave". That was his stated purpose for lengthening it.
 const HOLD_BASE_MS=500, HOLD_MS_PER_CHAR=20, HOLD_PAUSE_MS=300;
 export const HOLD_FLOOR_MS=800, HOLD_CEILING_MS=2000;
-export function msgHoldMs(text){
+// D-10 (Wyatt, 2026-08-20 playtest item 10; re-ruled by the orchestrator 2026-08-21 after the
+// literal stage.js edit was measured to have zero player-visible effect): "a long narration line
+// stays on screen about two seconds longer" — the CEILING only, floor and formula untouched.
+//
+// THE LEVER WAS HERE, NOT AT stage.js's OUTER CLAMP. `msgHoldMs()` was already returning at most
+// HOLD_CEILING_MS (2000) BEFORE stage.js's `*1.5` and its own outer Math.min ever run, so
+// 2000*1.5=3000 sat well under stage.js's clamp regardless of what number that clamp named —
+// raising 6750 to 8775 there could never bind. Live-measured, two-tab, real driven crew game:
+// longest bubble held 3305ms/3304ms (host/guest), matching 2000*1.5 + the ~300ms fade tail in
+// stage.js's finish(), not the outer ceiling.
+//
+// SCOPED, NOT GLOBAL: msgHoldMs() gained an OPTIONAL second parameter rather than HOLD_CEILING_MS
+// itself being raised, because this function has a second live consumer — panel.js's flash()
+// falls back to `msgHoldMs(text)` (no override) whenever `window.__pp4` is unset. In practice that
+// path is dead once a game is on screen (stage.js's initStage() sets window.__pp4 unconditionally
+// at boot), but it is a real second reader of this exact constant and D-10 asked only about the
+// narration BUBBLE, not every future caller. Every existing call site — including panel.js's
+// fallback and any script harness reading HOLD_CEILING_MS directly — behaves byte-identically:
+// the parameter defaults to HOLD_CEILING_MS itself, so omitting it reproduces today's clamp
+// exactly. Only stage.js's narration-bubble call (the sole live consumer) passes the override.
+export function msgHoldMs(text,ceilingMs){
   if(appState.ff)return 0;   // ⏩ fast-forward: no holds — pacing belongs to the skip until a prompt lands
   text=text||"";
   let raw=HOLD_BASE_MS+text.length*HOLD_MS_PER_CHAR;
   const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
   const pauses=(body.match(/[,!?.]/g)||[]).length;
   raw+=pauses*HOLD_PAUSE_MS;
-  return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),HOLD_CEILING_MS));
+  const ceiling=typeof ceilingMs==="number"?ceilingMs:HOLD_CEILING_MS;
+  return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),ceiling));
 }
 // D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
 // snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);
