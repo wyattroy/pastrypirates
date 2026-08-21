@@ -16,7 +16,7 @@
 "use strict";
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
-import { msgHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect } from "./util.js";
+import { msgHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
 
@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20t";
+const PP4_STAMP = "2026-08-20u";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -47,6 +47,8 @@ const S = {
   hadPrompt: false,         // …and last frame's answer, so the retire is an EDGE, not a level
   raf: 0,
   lastPill: "",
+  geomAt: 0,                // D-31: Date.now() of the last computeStageGeometry() measurement pass
+  geomBound: false,         // …and whether the resize listener has been registered yet
 };
 
 /* ================= camera ================= */
@@ -545,6 +547,12 @@ function pillTick(){
 
 /* ================= ribbon ================= */
 function ribbonTick(){
+  // D-31: a captain's held ingredients change every turn, which changes the captains card's own
+  // natural width/height — the same tick that already runs every ~100ms is the cheapest existing
+  // pulse to keep that current, throttled here (not every tick — this forces a layout reflow to
+  // measure) rather than on its own timer, so there is exactly one clock deciding cadence for the
+  // whole stage, not two that can drift apart.
+  if (Date.now() - S.geomAt > 900) computeStageGeometry();
   const r = $("pp4Round"), g = appState.game;
   if (r && g) r.textContent = "DAY " + (g.round || 1);
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
@@ -1266,6 +1274,133 @@ function buildStage(){
   wireEovDrag();   // item 8 (D-14): the end-of-voyage card's pull-to-park gesture
   camFull();
   S.active = true;
+  computeStageGeometry();   // D-31: size the stage before the first paint, not after
+  if (!S.geomBound){
+    S.geomBound = true;
+    let t = 0;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(computeStageGeometry, 120);   // debounced — a drag-resize fires dozens of times
+    });
+  }
+}
+
+/* ================= D-31: the desktop stage's own size ================= */
+/* Derives body's own capped box (`--pp4W`) and, in side-by-side mode, the captains column's own
+   width (`--pp4CapColW`) from the window's real geometry and the captains panel's OWN rendered
+   content — never a breakpoint table (CLAUDE.md, "nothing is a constant"). Everything downstream
+   of body's own rect — `stageCappedRect()`/`vwPx()`/`vhPx()`/`fixedOrigin()`/`fixedRect()`/
+   `toScreen()` (util.js, this file) — is completely unchanged by this: it already reads body's
+   own rendered box, so handing that box a computed width instead of a literal 430px is invisible
+   to every board-anchored overlay (rule 23, ONE DISPLAY PATH — nothing about WHAT is drawn moved,
+   only how wide the "screen" it is drawn against is).
+   PHONE (<=600px) IS UNTOUCHED: this function returns having cleared every custom property/class
+   it might have left behind (a window resized DOWN through the breakpoint mid-game must not carry
+   a leftover --pp4W into the phone's own `@media(min-width:601px)`-gated CSS, which never applies
+   there regardless — this clears the properties for exactly the same reason a stale inline style
+   would otherwise sit there unused but discoverable, which is the kind of thing a future debugging
+   session should never have to explain away). */
+function measureCapNaturalWidth(){
+  // Ask the RENDERER, not arithmetic (BOARD-RENDERING.md §7) — a hidden clone at `width:max-content`
+  // reports exactly what THIS voyage's own captain names/coins/holds need, this instant, bounded
+  // only by MAX_NAME_LEN (util.js) already capping how long any one name can make it.
+  // D-31 BUG (found in verification, fixed here): #pp4Cap's OWN base rule is `position:fixed;
+  // left:0; right:0; bottom:0` (index.html). This override sets `left`/`width` but never touched
+  // `right` or `bottom` — which is why `right` was harmless here (an explicit `width` wins the
+  // left/width/right over-constraint per the CSS spec, so the stale `right:0` is silently
+  // discarded) but is NOT harmless for measureCapNaturalHeight below, where `height:auto` sandwiched
+  // between an explicit `top:0` and a STILL-ACTIVE `bottom:0` stretches to fill the viewport
+  // instead of reporting content height — see that function's own note for the measured proof.
+  // `right:auto` costs nothing here and matches the height fix for symmetry.
+  const cap = $("pp4Cap"); if (!cap) return 0;
+  const save = cap.getAttribute("style") || "";
+  cap.style.cssText = "position:fixed;visibility:hidden;left:-9999px;top:0;right:auto;bottom:auto;" +
+    "width:max-content;max-width:420px;height:auto;max-height:none;";
+  void cap.getBoundingClientRect();   // force layout before reading it back — see BOARD-RENDERING.md §6
+  const w = Math.ceil(cap.getBoundingClientRect().width);
+  cap.setAttribute("style", save);
+  return Math.max(220, w);
+}
+function measureCapNaturalHeight(widthPx){
+  // D-31 BUG, FOUND BY THE VERIFICATION GATE ITSELF (not a code read): stacked mode at 960x1080
+  // pinned the board to the 240px FLOOR — every derived width, unrelated to the window — and the
+  // radial fan's "cornered beyond hope" fallback (this file, promptTick) then stacked three trade
+  // buttons on top of each other, unclickable, exactly the RED ALERT failure mode
+  // (`.planning/debug/resolved/desktop-radial-fan-offset.md`) this file was already once fixed for.
+  // Measured root cause (probe: sampled `cap.scrollHeight` at widths 240..900px — EVERY width
+  // reported the identical 993px, which is what "the box stretched to fill, not to its content"
+  // looks like as a number): this function's inline override sets `top:0` and `height:auto` but,
+  // like measureCapNaturalWidth above, never touches `bottom` — which #pp4Cap's OWN base rule
+  // (index.html) sets to `0`. For a `position:fixed` box, `height:auto` sandwiched between two
+  // EXPLICIT insets (`top:0` here, `bottom:0` inherited) does not ask the content how tall it is —
+  // per the CSS spec it stretches to fill the gap between them. So `scrollHeight` read back
+  // (near-)the full viewport height every single time, regardless of `widthPx` — which is exactly
+  // why `boardSideStacked = ih - capH` collapsed to the `Math.max(240, …)` floor: `ih - capH` was
+  // reliably negative. `bottom:auto` frees `height:auto` to do what its name says — size to content.
+  const cap = $("pp4Cap"); if (!cap) return 0;
+  const save = cap.getAttribute("style") || "";
+  cap.style.cssText = `position:fixed;visibility:hidden;left:-9999px;top:0;right:auto;bottom:auto;width:${widthPx}px;` +
+    "height:auto;max-height:none;";
+  void cap.getBoundingClientRect();
+  const h = Math.ceil(cap.scrollHeight);
+  cap.setAttribute("style", save);
+  return h;
+}
+function computeStageGeometry(){
+  if (typeof document === "undefined") return;
+  const body = document.body;
+  if (!body.classList.contains("pp4Stage")) return;
+  S.geomAt = Date.now();
+  const iw = document.documentElement.clientWidth || window.innerWidth;
+  const ih = document.documentElement.clientHeight || window.innerHeight;
+  const cap = $("pp4Cap");
+  if (iw <= 600){
+    // PHONE: the `@media(min-width:601px)` rule this feeds never matches here regardless, but
+    // clear the properties anyway (see the function-header note) — D-18's byte-identical promise.
+    body.classList.remove("pp4Side");
+    body.style.removeProperty("--pp4W"); body.style.removeProperty("--pp4CapColW");
+    if (cap) cap.style.removeProperty("max-height");
+    refreshNameMarquees();   // the column just widened back to full — drop any stale scroll
+    return;
+  }
+  const capColW = measureCapNaturalWidth();
+  // The board's own full-height square side. No ribbon-height subtraction: the ribbon OVERLAYS the
+  // board's top edge (z-index, buildStage()) rather than displacing it — exactly as it already does
+  // on phone, where body's height is likewise the full viewport, not viewport-minus-ribbon.
+  const boardSideFull = Math.max(240, ih);
+  if (iw >= boardSideFull + capColW){
+    // SIDE-BY-SIDE (Wyatt's "full desktop"): the board takes the whole height; the captains column
+    // sits beside it, sized to its own measured content, never wider than it needs to be.
+    body.classList.add("pp4Side");
+    body.style.setProperty("--pp4W", boardSideFull + "px");
+    body.style.setProperty("--pp4CapColW", capColW + "px");
+    if (cap) cap.style.removeProperty("max-height");
+    // D-31 fix: buildPlayerRows()'s own marquee check ran (if at all) against whatever column
+    // width was live BEFORE this geometry pass — usually wider, sometimes the 430px fallback —
+    // so a name that fits THAT column but not this narrower derived one was never marked to
+    // scroll, and sat statically clipped with no cue anything was hidden. Re-check now that the
+    // column's real width is on the page.
+    refreshNameMarquees();
+    return;
+  }
+  // STACKED (Wyatt's "half desktop"): same overlay architecture as phone (board full-bleed behind
+  // the ribbon, captains card floats over the void the letterboxed square leaves below it) — the
+  // ONLY lever available is how wide (== how tall, since the board is square) that letterboxed
+  // square is allowed to be. Shrinking it WIDENS the void, which is where the derivation happens:
+  // measure the captains card's natural height at a first-pass candidate width, then narrow the
+  // board by exactly that much so the void is never smaller than the card actually needs.
+  // `max-height` + `overflow-y:auto` (already on #pp4Cap) is kept as a backstop regardless — a
+  // single measurement pass is an estimate, not a fixed-point solve, and the backstop is what turns
+  // any remaining error into an internal scrollbar instead of a clipped top row.
+  body.classList.remove("pp4Side");
+  body.style.removeProperty("--pp4CapColW");
+  const candidate = Math.max(240, Math.min(boardSideFull, iw));
+  const capH = measureCapNaturalHeight(candidate);
+  const boardSideStacked = Math.max(240, Math.min(candidate, ih - capH));
+  body.style.setProperty("--pp4W", boardSideStacked + "px");
+  if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked) + "px");
+  refreshNameMarquees();   // same reason as the side-by-side branch above — the board (and with
+                           // it the name column, which spans the same derived width) just resized
 }
 
 // a menu is 1-5 apBtn choices with SHORT labels and no rich content — the N4 radial case.

@@ -119,18 +119,24 @@ loops there forever. Filter it out:
 [...document.querySelectorAll('#actionPanel .apBtn')].filter(b => !/back|←|‹/i.test(b.textContent))
 ```
 
-### 4c. Sailing — derive the grid cell from the rect
+### 4c. Sailing — read the grid cell straight off the element
 
-Highlighted squares are `.sailCell` rects. Their geometry comes from `sailHighlightRect()`
-(`src/ui/flow.js`), which insets by `SAIL_HL_SCALE`, so invert that to get board coordinates:
+**STALE UNTIL 2026-08-21, corrected here after D-31's verification pass found real drivers reading
+it.** `.sailCell` used to be an SVG `<rect>`, positioned/sized in board units, so a driver had to
+invert `sailHighlightRect()`'s own `SAIL_HL_SCALE` inset arithmetic to recover which square it was.
+It is an **HTML `<div>` now** (`sailHighlightRect()`, `src/ui/flow.js`) — sized in `cqw` against
+`#boardwrap`'s own container query, same geometry, same inset, no scale factor to keep in sync on
+resize — and it carries its grid coordinates directly, so there is nothing left to invert:
 
 ```js
-const side  = parseFloat(rect.getAttribute('width'));
-const px    = (side / 0.9) + 4;          // 0.9 === SAIL_HL_SCALE
-const inset = (px - side) / 2;
-const gx = Math.round((parseFloat(rect.getAttribute('x')) - inset) / px);
-const gy = Math.round((parseFloat(rect.getAttribute('y')) - inset) / px);
+const gx = +cell.dataset.gx, gy = +cell.dataset.gy;   // cell = a `.sailCell` element
 ```
+
+`mouse_qa.mjs`'s own `cellOf()` reads `data-gx`/`data-gy` this way — copy it rather than
+re-deriving the old rect arithmetic. **`mp_rig.mjs`'s `DRIVER_SRC` does NOT** — its `cellOf()` still
+does the old SVG-rect inversion (`r.getAttribute('width'|'x'|'y')`), which returns `null`/`NaN`
+against an HTML `<div>` with no such attributes. Found during D-31's verification (2026-08-21),
+out of D-31's scope to fix (test infrastructure, not game code) — logged as a deferred item.
 
 ### 4d. Battle prompts use `.btlBtn`, not `.apBtn`.
 

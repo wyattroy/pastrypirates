@@ -161,13 +161,28 @@ export function buildPlayerRows(){
       </div></div>`;
   }
   $("players").innerHTML=html;
-  // names have a fixed column width to keep coins/hold aligned across every row — a name that
-  // overflows it scrolls instead of blowing out the layout or truncating unreadably
-  for(const i of order){
+  refreshNameMarquees();
+}
+// D-31: the name-overflow check used to live inline in buildPlayerRows(), which only runs when
+// the TURN ORDER changes (orchestrator.js) — never when the CAPTAINS COLUMN's own width changes,
+// which the desktop layout now does live (stage.js computeStageGeometry(), every resize and every
+// ~900ms while the stage is up). A name that fit the old fixed 106px/36% column and no longer fits
+// a narrower derived one stayed marquee:false forever — statically clipped, never scrolling, with
+// no error and no visual cue that anything was hidden. Exported so computeStageGeometry() can
+// re-run this exact check after it changes the column's width, without rebuilding the whole
+// captains list (which the comment below warns against — it would cancel any in-flight marquee).
+// names have a fixed column width to keep coins/hold aligned across every row — a name that
+// overflows it scrolls instead of blowing out the layout or truncating unreadably
+export function refreshNameMarquees(){
+  const $=id=>document.getElementById(id);
+  for(const i of seatDisplayOrder()){
     const wrap=$("pname"+i),inner=wrap&&wrap.firstElementChild;
     if(!wrap||!inner)continue;
     const overflow=inner.scrollWidth-wrap.clientWidth;
     if(overflow>0){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
+    // a column that GREW (side-by-side vs stacked, or a live resize) can un-clip a name that used
+    // to need the scroll — drop the class and stop animating something with nothing left to reveal.
+    else if(wrap.classList.contains("marquee")){wrap.classList.remove("marquee");wrap.style.removeProperty("--scrollDist");}
   }
 }
 // dock.png is authored facing right (+x, East) in a slightly perspective/isometric style —

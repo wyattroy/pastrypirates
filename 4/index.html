@@ -1409,9 +1409,9 @@
 
   /* ================= /4 stage ================= */
   body.pp4Stage { overflow:hidden; background:#3d7d99; }
-  /* ITEM 22 STOPGAP ONLY (D-18) — desktop renders at the phone's aspect ratio so Wyatt and the
-     session debug the same picture. The DESKTOP REDESIGN stays in Phase 8 (DESK-01…DESK-08); do
-     not "improve" this, only match the phone.
+  /* D-31 (2026-08-21) — REPLACES the item-22 stopgap (D-18). Wyatt's ruling: two real desktop
+     sizes, both DERIVED from the window's own geometry, never a breakpoint table. The mechanism
+     item 22 built stays — it is exactly right, just fed a computed number instead of a literal one.
      Every piece of the stage — #boardwrap, #pp4Ribbon, #pp4Prompt, #pp4Cap, #pp4Pill,
      #pp4ChatSheet — is `position:fixed` and attaches directly to <body> (buildStage() in stage.js
      appends every one of them to document.body, never to #game/#layout/#boardwrap), so capping
@@ -1419,22 +1419,50 @@
      one ancestor common to all of them is <body> itself.
      `transform` on an ancestor makes IT the containing block for `position:fixed` descendants
      (CSS spec) — the only construct that can narrow a `position:fixed` box at all. So capping
-     <body>'s own width AND giving it a transform turns <body> into the phone-shaped "screen" every
-     fixed element on the stage is measured against, with no change to a single one of them.
+     <body>'s own width AND giving it a transform turns <body> into the "screen" every fixed
+     element on the stage is measured against, with no change to a single one of them — and
+     therefore no change to `stageCappedRect()`/`vwPx()`/`vhPx()`/`fixedOrigin()`/`fixedRect()`/
+     `toScreen()` (util.js/stage.js) either: they already derive everything from body's OWN
+     rendered rect, never from the literal 430px, so widening that rect from a phone-shaped column
+     to a derived square is invisible to all of them — this is the one seam the RED ALERT fix
+     (`.planning/debug/resolved/desktop-radial-fan-offset.md`) already made truthful, and D-31
+     keeps it that way rather than opening a second one.
      `translateZ(0)` is the least visually eventful transform that still qualifies — it does not
      rotate, scale or skew anything, so it is a no-op everywhere except establishing the containing
      block this rule exists for. Scoped to `body.pp4Stage`, so the welcome/lobby screens (before a
      game exists) are completely untouched, and to `min-width:601px` so a phone never sees this at
      all — the existing `max-width:600px`/`480px` rules already own that territory and are
-     untouched (D-18: the phone layout must be pixel-identical to before this).
-     TO REVERT (Phase 8): delete this rule and the matching branch in vwPx()/vhPx() (util.js). */
+     untouched (D-18/D-31: the phone layout must stay pixel-identical).
+     `--pp4W` is written by `computeStageGeometry()` (stage.js) every resize and every ~600ms while
+     the stage is live, from `innerHeight` (the board's own square side — the ribbon overlays it
+     rather than displacing it, exactly as it already does on phone, so no ribbon-height subtraction
+     belongs in this number) and the captains panel's OWN rendered content (never a typed number).
+     The 430px fallback covers only the one frame before that first measurement lands. */
   @media (min-width: 601px) {
     html { background:#1c2f38; }
     /* min-height, not height: <body> holds no in-flow content once the stage is up (every stage
        element is position:fixed, per the note above), so its own box collapses to near-0 tall
        without this — and util.js's vwPx()/vhPx() read that same box, so a collapsed body would
        have handed every camera/layout calculation on the page a ~56px-tall "screen". */
-    body.pp4Stage { max-width:430px; min-height:100vh; margin:0 auto; transform:translateZ(0); }
+    body.pp4Stage { max-width:var(--pp4W, 430px); min-height:100vh; margin:0 auto;
+      transform:translateZ(0); }
+  }
+  /* D-31 SIDE-BY-SIDE — computeStageGeometry() adds this class only when the window is wide
+     enough, by its own derived threshold (innerWidth >= the board's full-height square side +
+     the captains panel's own measured natural width), to hold both at once. #pp4Cap becomes a
+     fixed sibling positioned OUTSIDE body's own capped box: `left:100%` is relative to body's own
+     containing-block box (CSS spec), which is exactly body's own rect — the same rect
+     stageCappedRect() already reads — so the board-anchored overlays stay completely unaware
+     anything sits beside them (rule 23, ONE DISPLAY PATH: nothing about what draws on the board
+     changed, only where a second, un-board-anchored panel lives). `overflow:visible` on this one
+     variant undoes body's own `overflow:hidden` (present everywhere else purely to suppress page
+     scroll — there is no in-flow content on the stage for it to scroll) so the column is not
+     clipped to body's own narrower box now that a sibling is deliberately placed outside it. */
+  body.pp4Stage.pp4Side { overflow:visible; }
+  body.pp4Stage.pp4Side #pp4Cap {
+    left:calc(100% + 14px); right:auto; top:0; bottom:0;
+    width:var(--pp4CapColW, 300px); max-width:none;
+    border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.28); overflow-y:auto;
   }
   body.pp4Stage #layout, body.pp4Stage #left { display:block; }
   /* THE BOARD STRIP CLIPS ITS OWN LAYERS — playtest 22 (Wyatt: "the trade winds are not occluded
