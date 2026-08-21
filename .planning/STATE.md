@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "Completed quick task 260821-aig: economy matrix, band metric (1<=N<=3) — his 1/3 dock idea confirmed best-performing setting"
+stopped_at: "Desktop layout rebuilt (build y); the piecemeal gates replaced by one general playtest gate (D-37); Wyatt's 3 desktop design notes shipped. READ .planning/HANDOFF-2026-08-21-evening.md"
 last_updated: "2026-08-21T12:12:18.815Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
@@ -56,6 +56,12 @@ players). `playpastrypirates.com/4` serves `4/` (the game being promoted). Both 
 build step — nothing here is ever a cache.
 
 ## Current Position
+
+**→ START HERE: [`HANDOFF-2026-08-21-evening.md`](./HANDOFF-2026-08-21-evening.md)** — written 2026-08-21 when Wyatt
+stepped away. It supersedes the afternoon handoff (whose "next action: Group E" is stale) and holds
+today's full state: the desktop rebuild, the new playtest gate (D-37), his three design notes, and
+the two bugs the gate found (one fixed-but-unverified, one diagnosed-not-fixed).
+
 
 Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01, 03, 04 and 05 EXECUTED, live as
 build `2026-08-20q`** (unchanged since 04 — 05 shipped no game code, so no new stamp).
