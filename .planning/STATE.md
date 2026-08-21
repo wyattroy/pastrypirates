@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "Completed 02.2-03-PLAN.md — Group B: item 11 fixed, item 22 shipped as stopgap, items 2/3/5 confirmed already correct, live at 2026-08-20p"
-last_updated: "2026-08-21T08:09:58.568Z"
+stopped_at: "Completed 02.2-04-PLAN.md — Group C: item 4 fixed at both bot fallback sites, bot_bake_pass_check.js red-proofed, live at 2026-08-20q"
+last_updated: "2026-08-21T08:33:12.031Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 24
-  completed_plans: 21
+  completed_plans: 22
   percent: 33
 current_phase: 02.2
 ---
@@ -57,18 +57,36 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01 and 03 EXECUTED, live as build
-`2026-08-20p`.** `02.2-01-SUMMARY.md` and `02.2-03-SUMMARY.md` have the full accounts. PAR-08 and
-PAR-10 are complete. **02.2-03 (Group B — the first-screen faults) measured items 2, 3 and 5 and
-found none of them reproduce** (each already covered by an earlier commit — 2275d71 for item 2,
-fcdcf34 for item 3, and item 5's stage flag was already set by the caller one line before the plan's
-own diagnosis looked) **— item 11 was the one real defect**, and is fixed: `panel.js`'s existing
-`pendingReveal` gate (already wired to `stageSettled()`, camera+ship) now covers the WHOLE popup, not
-just its buttons, at both sites that were showing it early. **Item 22 shipped as an explicitly
-reversible desktop stopgap** (D-18) — `body.pp4Stage` capped to a phone-width column via a CSS
-`transform` containing-block trick, plus three `vw`/`vh`→`%` conversions the trick alone could not
-reach. Not yet done: `battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans
-02.2-04..06 (Groups C, C′, D).
+Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01, 03 and 04 EXECUTED, live as build
+`2026-08-20q`.** `02.2-01-SUMMARY.md`, `02.2-03-SUMMARY.md` and `02.2-04-SUMMARY.md` have the full
+accounts. PAR-08, PAR-10 and PAR-11 are complete. **02.2-03 (Group B — the first-screen faults)
+measured items 2, 3 and 5 and found none of them reproduce** (each already covered by an earlier
+commit — 2275d71 for item 2, fcdcf34 for item 3, and item 5's stage flag was already set by the
+caller one line before the plan's own diagnosis looked) **— item 11 was the one real defect**, and
+is fixed: `panel.js`'s existing `pendingReveal` gate (already wired to `stageSettled()`, camera+ship)
+now covers the WHOLE popup, not just its buttons, at both sites that were showing it early. **Item 22
+shipped as an explicitly reversible desktop stopgap** (D-18) — `body.pp4Stage` capped to a
+phone-width column via a CSS `transform` containing-block trick, plus three `vw`/`vh`→`%` conversions
+the trick alone could not reach.
+
+**02.2-04 (Group C — the bot that passes AND bakes, item 4) is fixed at BOTH bot code paths.**
+`canBake(p)` — the SAME predicate `flow.js`'s `canOvens` already uses to suppress the human's Pass
+button — now guards the fallback `doPass(p)` in `4/src/engine/index.js`'s headless `takeTurn()` AND
+`4/src/ui/flow.js`'s animated `botTurn()`; a bake-eligible bot ends its turn silently and
+`lightOvens(p)` still fires unconditionally from the day loop, exactly as it already did for a human
+who pressed "Fire up the ovens!" **Proven from the event stream, not asserted**: the new
+`4/scripts/bot_bake_pass_check.js` was red-proofed against the pre-fix commit (99 violations across
+60 seeded games, exit 1) before being trusted green (0 violations, exit 0). A live, screenshotted
+solo session (state-injected per DRIVING-THE-GAME.md §5e — multiplayer injection is forbidden)
+confirmed it directly: a pirate-personality bot's full turn history was `pass` (not yet home-adjacent)
+→ `dock` (still not adjacent) → `ovens` (adjacent, empty hold — no pass in that turn), purse
+unchanged across the baking turn. **ENGINE-EMISSION CHANGE, disclosed**: `takeTurn()` now emits no
+pass event in this exact scenario — costs nothing today since the determinism corpus does not exist
+yet (Phase 3/TEST-03 captures it), but the door closes the moment it does, so this was the cheapest
+possible moment to do it.
+
+Not yet done: `battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans
+02.2-05..06 (Groups C′, D).
 
 **ITEM 10 — MEASURED INERT, THEN RELOCATED AND FIXED. Read before touching narration pacing
 again.** The literal D-10 edit (`stage.js`'s outer ceiling 6750→8775) shipped first exactly as
@@ -105,7 +123,8 @@ their end-of-voyage cards on the live build, zero console errors**, which is wha
 games, not stretches" ruling asked for. Item 20's sail-window row remains **not reliably measured**
 (said so honestly rather than guessed — see the summary's timing-artifact note).
 
-Next: **`/gsd-execute-phase 02.2`** — `02.2-01` (the rest of Group Q) then `02.2-03…06`.
+Next: **`/gsd-execute-phase 02.2`** — `02.2-01`, `02.2-03` and `02.2-04` are done; `02.2-05…06`
+(Groups C′, D) remain.
 **Read `02.2-CONTEXT.md` (29 locked decisions) first — it is the context for both phases.**
 
 ~~**ITEM 10 (D-10) HAS NOT SHIPPED.** `4/src/ui/stage.js` still clamps the narration hold to
@@ -329,6 +348,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.15 P02 | overnight session | 3 landed, 2 parked/skipped, 2 QA/docs tasks | 8 files |
 | Phase 02.2 P01 | 50min | 3 tasks | 10 files |
 | Phase 02.2 P03 | ~5h | 5 tasks | 3 files |
+| Phase 02.2 P04 | ~2h | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -406,6 +426,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 02.2-01: notes/ is gitignored repo-wide; the two sketch folders (items 8/9) were force-added (git add -f) rather than editing .gitignore, keeping Wyatt's private notes files un-pushed while publishing exactly the two folders needed at a real URL
 - [Phase ?]: 02.2-01: item 10 relocated to the lever that actually binds (msgHoldMs's own HOLD_CEILING_MS, scoped via an optional parameter) after the literal stage.js edit was measured live to be a no-op; resolved from D-10's own ruling on the quantity, not the plan's wrong line-number diagnosis. PAR-08 complete.
 - [Phase ?]: 02.2-03: items 2, 3 and 5 measured NOT to reproduce (each already covered by a pre-existing commit); item 11 genuinely fixed by extending panel.js's pendingReveal gate to the whole popup, not just its buttons; item 22 shipped as a reversible desktop stopgap via a body-transform containing-block trick. PAR-10 complete.
+- [Phase ?]: 02.2-04: item 4 (bot passes AND bakes) fixed at both bot fallback sites (canBake(p), same predicate as the human menu's canOvens); bot_bake_pass_check.js red-proofed (99 violations pre-fix, 0 post-fix, 60 seeded games); live 2026-08-20q. PAR-11 complete.
 
 ### Pending Todos
 
@@ -494,8 +515,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-21T08:09:58.560Z
-Stopped at: Completed 02.2-03-PLAN.md — Group B: item 11 fixed, item 22 shipped as stopgap, items 2/3/5 confirmed already correct, live at 2026-08-20p
+Last session: 2026-08-21T08:33:12.022Z
+Stopped at: Completed 02.2-04-PLAN.md — Group C: item 4 fixed at both bot fallback sites, bot_bake_pass_check.js red-proofed, live at 2026-08-20q
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
