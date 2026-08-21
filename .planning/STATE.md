@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "Desktop layout rebuilt (build y); the piecemeal gates replaced by one general playtest gate (D-37); Wyatt's 3 desktop design notes shipped. READ .planning/HANDOFF-2026-08-21-evening.md"
+stopped_at: "2026-08-21 evening session RESUMED: phone pass (quick task) -> Group E (02.2-07) -> Group D leftovers (02.2-06) -> one full gate, one playtest (D-41..43). Previous: Desktop layout rebuilt (build y); the piecemeal gates replaced by one general playtest gate (D-37); Wyatt's 3 desktop design notes shipped. READ .planning/HANDOFF-2026-08-21-evening.md"
 last_updated: "2026-08-21T12:12:18.815Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
