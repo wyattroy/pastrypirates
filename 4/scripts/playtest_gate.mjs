@@ -211,10 +211,15 @@ async function contactSheet(rec, tag, idx) {
 }
 
 // ---------- legs ------------------------------------------------------------------------------
+/* `mobile` and `dsf` are not decoration: without them a 390px window still reports
+   `pointer: fine`, so the phone legs were exercising the DESKTOP branch of anything that asks what
+   kind of pointer it has — D-40's "Tap and hold" vs "Click and hold" among them, which is how a
+   phone screenshot came back saying "Click". A phone leg that does not emulate a phone is testing
+   the wrong game. */
 const legDefs = {
   "solo-desktop":  { W: 1890, H: 960 },
-  "solo-phone":    { W: 390, H: 844 },
-  "passplay-phone":{ W: 390, H: 844 },
+  "solo-phone":    { W: 390, H: 844, mobile: true, dsf: 2 },
+  "passplay-phone":{ W: 390, H: 844, mobile: true, dsf: 2 },
   "crew-desktop":  { W: 1890, H: 960, guestW: 1400, guestH: 900 },
 };
 
@@ -225,7 +230,8 @@ async function runLeg(name, idx) {
   ownPorts.dbg.add(dbg); ownPorts.dbg.add(dbg + 1);
   let host = null, guest = null;
   try {
-    host = await openChrome({ W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-a`) });
+    host = await openChrome({ W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO,
+      profileDir: path.join(OUT, `prof-${name}-a`), mobile: !!def.mobile, dsf: def.dsf || 1 });
     host.httpPort = PORT0;   // navigate against the run's shared server
     if (name === "crew-desktop") {
       // Wyatt's ruling: crew plays to the TRUE end; players are test1/test2 so the permanent

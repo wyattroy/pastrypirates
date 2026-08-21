@@ -48,7 +48,13 @@ export const MEASURE = `(() => {
           l: Math.min(...kids.map(k=>k.getBoundingClientRect().left)), r: Math.max(...kids.map(k=>k.getBoundingClientRect().right)) } : null;
     const cs = getComputedStyle(el); const bg = cs.backgroundColor;
     const rect = R(el); const backdrop = rect.w > innerWidth*0.85 && rect.h > innerHeight*0.85;
-    return { tag: el.id || el.className.toString().slice(0,30), rect, content: box, backdrop,
+    // A FULL-WIDTH BOTTOM SHEET IS ALLOWED TO FILL ITS BAND; A FLOATING CARD IS NOT. On phone the
+    // captains box is pinned edge-to-edge at the foot of the screen and rises to meet the board —
+    // playtest 4's design, and the space under its rows is deliberate. Beside the board on desktop
+    // it is a floating card, and the same slack is the empty cream tower Wyatt objected to. The
+    // discriminator is structural (spans the full width AND sits on the bottom edge), not a name.
+    const sheet = rect.w >= innerWidth - 2 && rect.b >= innerHeight - 2;
+    return { tag: el.id || el.className.toString().slice(0,30), rect, content: box, backdrop, sheet,
       contentH: box ? box.b - box.t : rect.h, contentW: box ? box.r - box.l : rect.w }; });
   return { iw: innerWidth, ih: innerHeight, interactive, text, panels };
 })()`;
@@ -109,7 +115,7 @@ export function structuralChecks(m) {
   F(covers.length === 0, "no-cover-ask", covers.length ? `control covering the question it answers: ${covers.slice(0,4).join(", ")}` : "the question is never covered by its own buttons");
 
   // 5. no content card is stretched far past its content (the empty-tower class). Backdrops exempt.
-  const empty = m.panels.filter(p => !p.backdrop && p.content && p.rect.h > p.contentH + 90).map(p => `${p.tag} (${p.rect.h|0}px box vs ${p.contentH|0}px content)`);
+  const empty = m.panels.filter(p => !p.backdrop && !p.sheet && p.content && p.rect.h > p.contentH + 90).map(p => `${p.tag} (${p.rect.h|0}px box vs ${p.contentH|0}px content)`);
   F(empty.length === 0, "hug-content", empty.length ? `panel stretched empty: ${empty.join(", ")}` : "panels hug their content");
   return out;
 }

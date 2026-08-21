@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21a";
+const PP4_STAMP = "2026-08-21b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -959,17 +959,44 @@ function stageFlash(msg, ms, holdMs, variants, opts){
       // MEASURED, not computed: the clamp and the tail both need the width the renderer actually
       // gave the box, which is now the text's width and no longer a number this file chose.
       const W = bw || cap;
-      const left = Math.min(Math.max(sx - W / 2, band.left), band.right - W);
+      let left = Math.min(Math.max(sx - W / 2, band.left), band.right - W);
       /* ABOVE THE SHIP WHEN THERE IS ROOM, BELOW IT WHEN THERE IS NOT — playtest 22 item 4:
          "When the boats are at the top of the map, the narration box should appear below them, so
          that it doesnt cover them up." The old line clamped to a flat 54px, which for a ship near
          the top meant the bubble was pushed DOWN onto the boat it was talking about. Flipping is
          the only placement that keeps both the ship and the words visible. */
       const above = sy - bh - 40;
-      const top = (above >= band.top) ? above : Math.min(sy + 44, band.bottom - bh - 4);
+      const belowY = Math.min(sy + 44, band.bottom - bh - 4);
+      let top = (above >= band.top) ? above : belowY;
+      /* …AND NEVER OVER A SQUARE YOU HAVE TO CLICK — D-38 (Wyatt, 2026-08-21): "always keep the
+         prompt and buttons closer to the boat, even if they start to block some of the board
+         elements. One exception to this rule is for sailing squares, which you have to click and
+         you cannot click them if they are covered by something."
+         A bubble covering the sea, an island or a ship is now explicitly fine; a bubble covering a
+         legal move is not, because the move becomes unreachable. Measured by the playtest gate on
+         phone, where four sail squares at once sat under a bubble and its tail.
+         The search is deliberately tiny — the same two vertical spots this already chose between,
+         each also tried flush left and flush right in the band — and it takes the first placement
+         that covers NO square, else the least-bad one. It cannot wander, because every candidate
+         is one the old code would already have been happy with. */
+      const cells = [...document.querySelectorAll(".sailCell")].map(r => fixedRect(r));
+      if (cells.length){
+        const hits = (x, y) => cells.reduce((n, r) =>
+          n + ((x < r.right && x + W > r.left && y < r.bottom && y + bh > r.top) ? 1 : 0), 0);
+        const ys = (above >= band.top) ? [above, belowY] : [belowY, above];
+        const xs = [left, band.left, Math.max(band.left, band.right - W)];
+        let best = null;
+        for (const y of ys) for (const x of xs){
+          if (y < band.top || y > band.bottom - bh) continue;
+          const n = hits(x, y);
+          if (n === 0){ best = [x, y, 0]; break; }
+          if (!best || n < best[2]) best = [x, y, n];
+        }
+        if (best){ left = best[0]; top = best[1]; }
+      }
       b.style.left = (left - 0) + "px";
       b.style.top = (Math.max(band.top, Math.min(top, band.bottom - bh - 4)) - band.top) + "px";
-      b.classList.toggle("below", above < band.top);
+      b.classList.toggle("below", top > sy);
       const t = b.querySelector(".pp4Tail");
       // the tail tracks the ship, clamped INSIDE the box — and the box can now be narrow, so the
       // two bounds are ordered rather than nested: with a fixed 290px width `Math.max(16, …W-32)`
@@ -2066,10 +2093,30 @@ function promptTick(){
       }
     }
     if (!pts){
-      // cornered beyond hope (tiny viewport): the group docks as a symmetric strip above the captains
-      pts = menu.map((b, n) =>
-        [Math.min(Math.max(sx - D / 2 + (n - (menu.length - 1) / 2) * (D + 6), xMin), xMax),
-         Math.max(yMin, capT - D - 10)]);
+      /* CORNERED BEYOND HOPE (a phone-narrow band): the group docks as a compact GRID above the
+         captains box. It used to dock as a single ROW, spaced D+6 apart, and then clamp each circle
+         into the band — and a row of eight at 72px apart needs 504px, which a 390px phone does not
+         have, so the outer circles clamped straight onto their neighbours and a trade prompt came
+         out as a pile of unclickable crates. Measured by the playtest gate's phone leg, repeatedly:
+         "overlapping controls: Fresh Milk/Cacao Pods, Cacao Pods/Speckled Eggs".
+         This is the SAME mistake the anchored-boats branch above was fixed for an hour earlier —
+         spread first, clamp second, and let the clamp undo the spreading. The cure is the same in
+         spirit: never lay out more per row than the band genuinely holds. Wrap instead, and stack
+         the rows upward from the captains box. */
+      const gap = 6, step = D + gap;
+      const perRow = Math.max(1, Math.floor((xMax - xMin + gap) / step));
+      const rowsN = Math.ceil(menu.length / perRow);
+      const blockH = rowsN * step - gap;
+      const topY = Math.max(yMin, Math.min(capT - blockH - 10, Math.max(yMin, yMax)));
+      pts = menu.map((b, n) => {
+        const r = Math.floor(n / perRow), c = n % perRow;
+        const inRow = Math.min(perRow, menu.length - r * perRow);
+        const rowW = inRow * step - gap;                        // left-edge span of this row
+        // xMax is the greatest LEFT coordinate a circle may take, so the row's own start is bounded
+        // by xMax minus the row's width beyond its first circle.
+        const startX = Math.min(Math.max(sx - rowW / 2, xMin), Math.max(xMin, xMax - (rowW - D)));
+        return [startX + c * step, topY + r * step];
+      });
     }
     menu.forEach((b, i) => {
       const spot = pts[i];
