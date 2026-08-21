@@ -119,7 +119,10 @@ do not report as confirmed until it is** (rule 6 of CLAUDE.md).
 solo-desktop (day 17), solo-phone (day 15), passplay-phone (day 14) and **crew-desktop, host
 AND guest both to day 15** as `test1`/`test2` in a real Firebase room. Evidence, including the
 four contact sheets and every judge finding in its own words:
-`phases/02.2-…/playtest-2026-08-21/`. **Open the contact sheets before anything else.**
+`.planning/phases/02.2-a-captain-who-cannot-take-their-turn/playtest-2026-08-21/` — the file to
+read is **`judge-findings.txt`** (all 53 findings in the judge's own words, each naming its
+screenshot). **The contact sheets that used to be here were 404 screenshots and have been deleted**
+— see that folder's README; `4/scripts/contact_sheet.mjs` is the fixed builder.
 
 ### THE HEADLINE FINDING: desktop landed, the phone is the next body of work
 53 vision-judge failures, and the distribution is the whole story — **solo-phone 19 and
@@ -163,8 +166,8 @@ job, and it is unusually well evidenced.**
 
 ## SUGGESTED ORDER
 
-1. **Open `playtest-2026-08-21/contact-solo-phone.png` and `contact-passplay-phone.png`.** Read
-   them the way Wyatt reads a screenshot. The next job is written on them.
+1. **Read `playtest-2026-08-21/judge-findings.txt`** — 53 findings, 40 of them on the phone, each
+   naming the screen it came from. That is the queue. Re-run the gate to see the screens again.
 2. Do for the phone what 2026-08-21 did for desktop: one pass over clipping at the right edge,
    overlapping prompts, and the empty band under the captains card. 40 of 53 findings live there.
 3. Re-run `node 4/scripts/playtest_gate.mjs --out=DIR` after each drop — it is ~45 minutes
