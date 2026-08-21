@@ -1188,7 +1188,17 @@ function enterCenterStage(){
      the recipe draft and the bake-off (via __pp4.stageCenterNow) — so one line makes it true for
      all of them, on both tiers, and stays true for the next card someone adds. */
   if (S.hurry) S.hurry();
-  box.style.display = "flex";
+  /* D-20 (item 11): promptTick()'s own `want` gate (below) never runs for a centre-stage prompt —
+     the `ap.dataset.pp4Stage || ap.querySelector(".bko")` branch calls straight into this function
+     and returns before reaching it, so a ceremony card (the ahoy barrier, "the crew draws lots",
+     the bake-off intro) was popping its dimmed box up here, unconditionally, on every tick this
+     runs — the exact "popup before the camera/ships settle" complaint, just via a second display
+     assignment promptTick's own fix never touched. Same flag, same reasoning: `pendingReveal` is
+     the one thing that already tracks "is this prompt's reveal (typewriter AND stageSettled())
+     done yet", so re-checking it here rather than adding a second clock keeps the two gates unable
+     to disagree. Evaluated fresh on every call (not just the pp4Center class transition below),
+     because promptTick() calls this function on every tick a stage-flagged prompt is up. */
+  box.style.display = ap.classList.contains("pendingReveal") ? "none" : "flex";
   // centre within the water, not the viewport: the captains box owns the bottom of the screen,
   // and a stage column tall enough to reach it (the bake-off intro was first) had its button
   // clipped mid-letter at the panel's top edge. Padding, not a shorter box — the dim paints
@@ -1227,7 +1237,22 @@ function promptTick(){
   if (!box || !ap) return;
   // textContent, not innerText — innerText forces a layout pass, and this runs every frame
   const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
-  const want = has ? "block" : "none";
+  /* D-20 (playtest 22 item 11 / 02.2 item 11, Wyatt): "no popup appears until the director camera
+     AND the ships have stopped moving." panel.js's `pendingReveal` gate already exists and already
+     waits on exactly that — stageSettled() (the camera tween AND the ship's rendered transform,
+     hard-bounded by SETTLE_CAP_MS) alongside the typewriter reveal — but it was only ever applied
+     to hide the BUTTON ROW (.apBtns/.apSub/.apBack) inside an already-visible box. The box itself,
+     and the board-dimming backdrop this wrapper owns, still popped up the instant panel() gave the
+     actionPanel any content, so a captain could watch an empty white card with a dimmed board
+     arrive while their ship (or the director) was still gliding into place — the button fan simply
+     bloomed into it a beat later.
+     Reusing the SAME flag for the wrapper's own visibility (rather than inventing a second gate
+     that could disagree with the first) means the whole popup — box, dim and buttons alike — now
+     waits together. `pendingReveal` is only ever added when the prompt HAS buttons (panel.js:546),
+     so a buttonless wait-line or battle flip-card (already framed synchronously by
+     window.__pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
+     appearing immediately, exactly as before. */
+  const want = (has && !ap.classList.contains("pendingReveal")) ? "block" : "none";
   if (box.style.display !== want) box.style.display = want;
   /* BEING ASKED SOMETHING IS THE END OF WAITING — Wyatt, 2026-08-20, and this is the half of his
      two wait-line reports that survived the first fix. A screenshot of the HOST at the recipe
