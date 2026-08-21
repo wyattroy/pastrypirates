@@ -1,6 +1,6 @@
 # Handoff — Phase 02.15, evening of 2026-08-20 (WORKED THROUGH; second pass)
 
-**Live build: `PP4_STAMP` `2026-08-20g` (commit `3a80839`).** Previous handoff's tasks 0–2 are done
+**Live build: `PP4_STAMP` `2026-08-20h` (commit `b76983d`).** Previous handoff's tasks 0–2 are done
 and measured; what is left is at the bottom.
 
 ---
@@ -82,13 +82,43 @@ would — that is new copy, so it waits for him.
 
 ---
 
-## 4. What is left
+## 4. Stage 4 — the narrow half is closed; the wide half is NOT
 
-- **Stage 4 — the seventh divergence (the sail window).** Still not attempted. His ruling this
-  session: *"only if everything else lands"*, and everything else has. It is the prompt channel — a
-  prompt blocks the host's loop waiting for an answer — and its failure mode is a captain who cannot
-  take their turn. **Abandon rather than half-land it** (D-04).
+**Read this before assuming Stage 4 is done. It is not.** The prompt-channel convergence — routing
+the host through the same path a guest renders from — was **not** attempted, and D-04 still stands
+over it: a prompt blocks the host's loop waiting for an answer, and its failure mode is a captain
+who cannot take their turn.
+
+**What WAS closed is the sail window's own divergence, which turned out to be small and already
+leaking:**
+
+- **`sailSelfCheck()` covered one captain in every game.** It ran inside `localPickCell()`, so a
+  captain whose decision is LOCAL got their squares checked and every remote one did not — the host
+  builds a guest's `cells` with the same `reachable()` call and shipped them unchecked. And the
+  guest's renderer had **no `.apSub` at all**, so the shout could not have been displayed even if it
+  had fired. G6 is *"apply it to all situations"*; it was applied to one. Hoisted to `pickCell()`,
+  ahead of the local/remote fork. Pure read — no RNG, no mutation, replay branch returns before it.
+- **The sail card is one builder now** (`sailPanelHTML`). Both renderers hand-wrote that markup, and
+  the missing `.apSub` is what the second copy had already cost. Same drift class `02.1-03` closed
+  for the option row with `optionButtonsHTML`.
+- **The parity gate was aimed at one channel and there are two.** `prompt_field_parity_check.js`
+  watched `kind:"ask"` — where all seven historic drifts happened — and **nothing watched
+  `kind:"pick"`, the prompt every captain answers on every turn of every voyage.** Assertion 2 now
+  does, both directions, plus proof that both renderers go through the one builder. **Red-proofed
+  with four new drills** (host stops sending `hint`; guest stops reading it; guest hand-writes its
+  card again; the pick branch vanishes). 11 synthetic violations caught, real tree clean.
+
+**Verified on three tiers.** Crew: host and guest cards identical — "tap to sail" + Stay put, no
+stray buttons — 14 events, round 2, frontiers equal. Solo (the case two windows cannot see):
+events 1→21, round 1→2, two sail windows opened and answered — one per round, the correct rate.
+
+**Still open:**
+- **Stage 4's wide half — the prompt channel itself.** Untouched, deliberately.
 - **PAR-16 — the display-rules document.** Not written.
+- **Not investigated, seen in one guest screenshot:** the sail highlight squares were hard to make
+  out on the guest's board (`s4-guest-sail.png` — the card recorded 3 cells and none read clearly as
+  amber in that frame). The rect builder is shared and was not touched here, so this is either the
+  bounce animation caught at low opacity or something older. **Observed once, not measured.**
 
 ---
 
@@ -99,6 +129,12 @@ would — that is new copy, so it waits for him.
   green.
 - **Match the prompt, not the word.** `/TREASURE/i` caught a narration line. A prompt has buttons.
 - **A driver that clicks every 700ms cannot measure how long anything lasts.** Freeze it first.
+- **An external poll cannot see a guest's sail card.** The guest's driver answers inside 700ms and a
+  browser round-trip is 1–2s, so polling from outside reported "the guest never got a sail window"
+  when it plainly had. Record in-page, at page speed.
+- **Two of today's FAILs were my own thresholds, not the game.** "Solo still sails" demanded 3 sail
+  windows inside a 2-round watch, and a solo game opens exactly one per round. Check what a number
+  should be before believing the red.
 - **A driver that prefers the first live button will trade forever** — Trade opens a multi-step
   sub-prompt it then loops inside, and the ship never reaches a dock. Exclude trade/attack/offer/call
   when you are driving somewhere.
