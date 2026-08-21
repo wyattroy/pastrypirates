@@ -1359,7 +1359,10 @@ function promptTick(){
   const uu = boatUXY(appState.mySeat ?? 0);
   if (menu && uu){
     box.classList.add("radial"); box.classList.remove("centered");
-    box.style.left = "0px"; box.style.top = "0px"; box.style.width = "100vw";
+    // ITEM 22 (D-18): 100%, not 100vw — an inline style always wins the cascade, so this literal
+    // viewport-width string would have overridden the CSS %-based fix (index.html) and kept the
+    // radial fan's box pinned to the true desktop width regardless of item 22's stopgap cap.
+    box.style.left = "0px"; box.style.top = "0px"; box.style.width = "100%";
     // playtest 10: circles carry the SHORT form of a long action (Wyatt's pick: "short verbs,
     // details in the pill") — the full label is kept for the card fallback and restored there
     menu.forEach(b => {

@@ -1292,8 +1292,44 @@ export function msgHoldMs(text,ceilingMs){
    It lives in util.js rather than flow.js because stage.js needs it too and flow.js must not be
    imported there: module_graph_check.js forbids the cycle. */
 export function isDisabledBtn(b){return !!b&&b.getAttribute("aria-disabled")==="true";}
-export const vwPx=()=>document.documentElement.clientWidth||window.innerWidth;
-export const vhPx=()=>document.documentElement.clientHeight||window.innerHeight;
+/* ITEM 22 STOPGAP (D-18, 02.2-03): on a desktop-width screen, index.html caps `body.pp4Stage` to a
+   phone-shaped column (`max-width:430px`) and gives it a `transform`, which — by the CSS spec — is
+   what makes `body` the containing block for every `position:fixed` stage element (the ribbon, the
+   prompt box, the captains panel, the board itself: buildStage() in stage.js appends all of them
+   straight to `document.body`). So the WIDTH those elements actually render at is `body`'s own box,
+   not the true viewport — but `document.documentElement.clientWidth` only ever answers "how wide is
+   the viewport", never "how wide is the box everything is actually measured against". Every camera
+   fit, every `cqw` calculation and every board-mapped overlay in stage.js reads `vwPx()`/`vhPx()`
+   for that number, so left unchanged they would keep computing against the full desktop width while
+   everything they position renders inside the narrower, capped column — the exact mismatch a
+   200px phantom bug came from once already (`docs/BOARD-RENDERING.md` §7).
+   `document.body.getBoundingClientRect()` is what the renderer's own fixed-position math is
+   actually keyed to (BOARD-RENDERING.md §7's rule: compare against what the renderer produced, not
+   against arithmetic re-derived by hand) — so read it directly, rather than re-deriving 430px or
+   the media query's breakpoint here as a second copy of either number.
+   FALLS BACK to today's behaviour whenever the stage isn't active, the container has no box yet
+   (a game not yet on screen — 0×0 is a real width, so its emptiness, not a falsy check, is what
+   triggers the fallback), or `pp4Stage` never got the class in the first place — a phone, where the
+   min-width media query never applies and body's own rect equals the viewport anyway, takes this
+   same fallback path and is unaffected either way. Zero-risk default (D-18).
+   TO REVERT (Phase 8): delete this branch and the matching `@media (min-width:601px)` rule in
+   index.html — both are additive over the pre-stopgap behaviour below. */
+function stageCappedRect(){
+  if(typeof document==="undefined")return null;
+  const b=document.body;
+  if(!b||!b.classList.contains("pp4Stage"))return null;
+  const vw=document.documentElement.clientWidth||window.innerWidth;
+  const r=b.getBoundingClientRect();
+  // Trust body's own box ONLY once the desktop-only media query has genuinely narrowed it below
+  // the true viewport. On a phone that query never matches, so body's rect always equals the
+  // viewport width — `r.width>=vw` catches that (and any other width-uncapped state) and falls
+  // through to the untouched pre-stopgap path, which is what keeps a phone byte-identical (D-18)
+  // regardless of anything this branch does on desktop.
+  if(r.width<=0||r.height<=0||r.width>=vw)return null;
+  return r;
+}
+export const vwPx=()=>{const r=stageCappedRect();return r?r.width:(document.documentElement.clientWidth||window.innerWidth);};
+export const vhPx=()=>{const r=stageCappedRect();return r?r.height:(document.documentElement.clientHeight||window.innerHeight);};
 export const SHIP_GLIDE_MS=700;
 /* How long the finished board is left alone before the End of Voyage banner covers it (playtest 22
    item 12). Long enough to read the sea and take a screenshot, short enough that it does not read

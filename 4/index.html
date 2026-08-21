@@ -1409,6 +1409,33 @@
 
   /* ================= /4 stage ================= */
   body.pp4Stage { overflow:hidden; background:#3d7d99; }
+  /* ITEM 22 STOPGAP ONLY (D-18) — desktop renders at the phone's aspect ratio so Wyatt and the
+     session debug the same picture. The DESKTOP REDESIGN stays in Phase 8 (DESK-01…DESK-08); do
+     not "improve" this, only match the phone.
+     Every piece of the stage — #boardwrap, #pp4Ribbon, #pp4Prompt, #pp4Cap, #pp4Pill,
+     #pp4ChatSheet — is `position:fixed` and attaches directly to <body> (buildStage() in stage.js
+     appends every one of them to document.body, never to #game/#layout/#boardwrap), so capping
+     any DESCENDANT's width would leave every fixed sibling still spanning the true viewport. The
+     one ancestor common to all of them is <body> itself.
+     `transform` on an ancestor makes IT the containing block for `position:fixed` descendants
+     (CSS spec) — the only construct that can narrow a `position:fixed` box at all. So capping
+     <body>'s own width AND giving it a transform turns <body> into the phone-shaped "screen" every
+     fixed element on the stage is measured against, with no change to a single one of them.
+     `translateZ(0)` is the least visually eventful transform that still qualifies — it does not
+     rotate, scale or skew anything, so it is a no-op everywhere except establishing the containing
+     block this rule exists for. Scoped to `body.pp4Stage`, so the welcome/lobby screens (before a
+     game exists) are completely untouched, and to `min-width:601px` so a phone never sees this at
+     all — the existing `max-width:600px`/`480px` rules already own that territory and are
+     untouched (D-18: the phone layout must be pixel-identical to before this).
+     TO REVERT (Phase 8): delete this rule and the matching branch in vwPx()/vhPx() (util.js). */
+  @media (min-width: 601px) {
+    html { background:#1c2f38; }
+    /* min-height, not height: <body> holds no in-flow content once the stage is up (every stage
+       element is position:fixed, per the note above), so its own box collapses to near-0 tall
+       without this — and util.js's vwPx()/vhPx() read that same box, so a collapsed body would
+       have handed every camera/layout calculation on the page a ~56px-tall "screen". */
+    body.pp4Stage { max-width:430px; min-height:100vh; margin:0 auto; transform:translateZ(0); }
+  }
   body.pp4Stage #layout, body.pp4Stage #left { display:block; }
   /* THE BOARD STRIP CLIPS ITS OWN LAYERS — playtest 22 (Wyatt: "the trade winds are not occluded
      by the board area"), a chevron of the current sitting on the wind/forecast pill above the sea.
@@ -1422,7 +1449,14 @@
      inset:0 and cannot overflow, and the classic layout's chat bubbles ride over the board edge on
      purpose. #pp4Prompt and the narration bubbles are position:fixed on <body>, so the clip cannot
      reach them. */
-  body.pp4Stage #boardwrap { position:fixed; inset:0; width:100vw; height:100vh; max-width:none;
+  /* ITEM 22 (D-18): `inset:0` alone already stretches a position:fixed box to fill its containing
+     block with no explicit width/height needed — the explicit `100vw`/`100vh` this used to carry
+     did the same thing whenever body has no transformed ancestor (every case before this stopgap),
+     but pins the box to the TRUE viewport regardless of ancestors, exactly what would have made
+     this ignore the phone-shaped cap on body.pp4Stage above. Letting inset:0 do the sizing means
+     this box automatically follows whichever containing block is actually in force — the viewport
+     normally, body's own capped column once the desktop stopgap's transform applies. */
+  body.pp4Stage #boardwrap { position:fixed; inset:0; max-width:none;
     margin:0; border-radius:0; z-index:5; overflow:hidden; }
   body.pp4Stage #board { width:100%; height:100%; }
   #pp4Cap { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
@@ -1445,7 +1479,10 @@
     width:min(348px, 94vw) !important; max-height:78vh; overflow:auto; }
   #pp4Prompt #actionPanel { margin:0; box-shadow:0 10px 30px rgba(0,0,0,.35); border-radius:13px; }
   /* N4 radial: the menu blooms around the ship as circular choices */
-  #pp4Prompt.radial { height:100vh; pointer-events:none; opacity:1; }
+  /* ITEM 22 (D-18): 100%, not 100vh — see the #boardwrap note above; a percentage height on a
+     position:fixed box follows whatever containing block is actually in force (body's capped
+     column once item 22's desktop stopgap applies, the true viewport everywhere else). */
+  #pp4Prompt.radial { height:100%; pointer-events:none; opacity:1; }
   #pp4Prompt.radial #actionPanel { background:none; border:none; box-shadow:none; padding:0; margin:0; }
   /* playtest 10: sub and back survive the radial — the sub as a small note under the pill (it
      explains greyed circles), the back as its own little circle beside the pill */
@@ -1701,7 +1738,10 @@
   }
   /* playtest 12 item 1/3: intro barriers play CENTER STAGE — dim sea, message centred, the
      button pulsing hard right beneath it */
-  #pp4Prompt.pp4Center { left:0 !important; top:0 !important; width:100vw !important; height:100vh;
+  /* ITEM 22 (D-18): 100%, not 100vw/100vh — same reasoning as the two notes above; this is the
+     board-dimming backdrop itself, so leaving it in viewport units would have dimmed the true full
+     desktop width while the capped column of content sat centred in only part of it. */
+  #pp4Prompt.pp4Center { left:0 !important; top:0 !important; width:100% !important; height:100%;
     background:rgba(4,16,22,.6); display:flex; align-items:center; justify-content:center; }
   /* WIDTH IS DECIDED BY THE STAGE, NOT BY WHAT HAS FINISHED LOADING — playtest 22 item 11 (Wyatt):
      "something strange happens with the bakeoff screen when you reveal the ingredients — it gets
