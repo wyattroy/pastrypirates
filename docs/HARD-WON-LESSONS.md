@@ -645,6 +645,40 @@ Immune to params, bodies, template literals and nesting alike.
 - **`appState` is not a window global.** `const st = (await import('/v2/src/state/index.js')).appState;`
   — a probe reading `window.appState` throws, and the resulting error looks exactly like a game bug.
 
+### 2026-08-21 — a DOM-clicking driver cannot see an off-screen button, and a `transform` on `body` changes the coordinate space of every fixed overlay
+
+Wyatt's 7am solo playtest found the radial fan, the ask pill, the apSub tooltip and every narration
+bubble+pointer pushed off toward a corner on desktop, with Dock/Trade/Attack stacked invisibly
+under Pass — game-stopping, could not dock. The build that shipped it had passed every existing
+`4/scripts/*_check.js` gate and the overnight QA that preceded it, because **every one of those
+checks asks whether a renderer FUNCTION ran, never where on screen the thing it drew actually
+landed.** A driven-game QA pass would have missed it too, for a related but distinct reason:
+
+**A DOM-clicking driver (`element.click()`, `dispatchEvent(new MouseEvent(...))`) fires a listener
+regardless of whether the element is visible, on-screen, or stacked under something else.** It
+proves the button EXISTS and HAS a handler; it proves nothing about whether a real player could
+have seen or reached it. This build's Dock button was exactly that: present, positioned, and
+completely invisible, pixel-stacked under Pass — a scripted driver clicking `.apBtn` selectors
+would sail straight through it without ever noticing, which is why no automated QA pass caught this
+before Wyatt did with his own eyes. **A QA driver must assert on-screen visibility — the rendered
+rect is non-empty, inside the viewport, and not fully covered by a later sibling — before every
+click it makes**, not just that `querySelector` found something with a listener attached.
+
+**The root cause, for the next time a `transform` is put on an ancestor to solve a sizing
+problem:** `getBoundingClientRect()` always resolves to the TRUE viewport, regardless of any
+transform on any ancestor (CSS spec, unconditional). But a `transform` on an ancestor makes THAT
+ancestor the containing block for every `position:fixed` descendant (also CSS spec, unconditional).
+The moment those two facts coexist — a transformed ancestor AND code that reads a viewport-relative
+rect to place a `position:fixed` descendant — every such placement is off by the transformed
+ancestor's own offset from the true viewport. It is invisible in code review (each line reads
+correctly in isolation) and invisible to any check that only asks "did the renderer run", and it
+reproduces at 100% on every desktop width the moment the transformed ancestor centres itself
+(`margin:auto`) rather than sitting flush with the viewport's own origin. **Before adding a
+`transform` to an ancestor for any reason, grep every descendant for `getBoundingClientRect()` and
+`position:fixed` — every one of the former feeding a `left`/`top` write on the latter needs the
+ancestor's own offset subtracted, once, at the seam, not at each of the (in this case, dozens of)
+call sites separately.** Full account: `.planning/debug/resolved/desktop-radial-fan-offset.md`.
+
 ---
 
 ## 5. Design and code lessons
