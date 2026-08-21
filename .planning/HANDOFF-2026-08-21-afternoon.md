@@ -15,8 +15,8 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
 - Economy: his lever was the DOCK FLIP, not crate price. Band metric (1–3 priced-out moments per
   captain) → his 1/3 wins (41% in band). Shipped `t`. **D-30** = the philosophy: priced-out is pressure,
   not a defect. `02.2-ECONOMY-TABLE.md` (second dated section).
-- Real-mouse QA (`scratchpad/mouse_qa.mjs` — copy it into the session before the scratchpad is gone;
-  pattern described in `02.2-MOUSE-QA-2026-08-21.md`): three whole voyages at 960/1400/1920, 0 findings.
+- Real-mouse QA (`4/scripts/mouse_qa.mjs` — kept in the repo; usage `node 4/scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`,
+  headless + muted by default; pattern described in `02.2-MOUSE-QA-2026-08-21.md`): three whole voyages at 960/1400/1920, 0 findings.
   Rules learned: ALWAYS headless + `--mute-audio`, launched from a background shell, never announce a
   window; scope every `pkill` to your own port.
 - D-31 (desktop layout: bigger board + CAPTAINS beside it at 16:9; stacked-and-fitted at 8:9; layout
@@ -38,14 +38,13 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
 1. **Prompt buttons hard to notice** — wants the established attention effect on the fan petals.
    Homework done: the candidates that exist in `4/index.html` are `flipglow` (the FLIP coin, 1s glow —
    the "needs your tap" look), `pp4FocusPulse` (1s), `pp4StagePulse` (1.1s), `ahoyglow` (1.4s),
-   `goldShimmer` (6s shimmer). Sail squares pulse via `.sailCell`'s own keyframes. **Ask him which
-   (recommend `flipglow` — it already means "tap me" in this game; rule 8), applied to the petals via
-   the same class, not a new keyframe.**
+   `goldShimmer` (6s shimmer). Sail squares pulse via `.sailCell`'s own keyframes. **HIS PICK (D-32):
+   the sail squares' pulse, applied to the petals via the same class/keyframes — not a new effect.**
 2. battle's-brewing pop/vanish/reappear — in the trace.
 3. storm summary conditional — in the hunt.
-4. **Dock prompt label:** drop the anchor; show `{ingredient image} Dock +🪙`. **Ask: is the + a number
-   (the flip pays 1 or 3 — "+1/+3"?) or just the coin?** Then one-line change in the fan label builder;
-   sweep host/guest/draft (optionButtonsHTML reaches all three).
+4. **Dock prompt label:** drop the anchor; show `{ingredient image} Dock +🪙`. **HIS PICK (D-33): the
+   coin only, no number.** One-line change in the fan label builder; sweep host/guest/draft
+   (optionButtonsHTML reaches all three).
 5. **Wind pill from frame one** — `WIND NOW: ? · FORECAST: ?` placeholder so the board never jumps when
    the pill appears. Touches the ribbon in stage.js — do AFTER `u` lands.
 6. **Medium lines drag.** Measured: `msgHoldMs` = 500 + 20/char + 300/pause, clamped [800, 2000] in
@@ -55,7 +54,8 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
    **The floor is the drag.** Two honest options to put to him with these numbers: (a) lower stage.js's
    2550 floor (e.g. to ~1800 → medium lines 1.8–2.0s, long lines untouched); (b) replace floor+per-char
    with a reading-speed model (hold = overhead + chars ÷ reading rate), which makes 27 chars ≈ 2.1s,
-   75 chars ≈ 4.5s, long unchanged — more honest, one more quantity to derive. Ask with the UI.
+   75 chars ≈ 4.5s, long unchanged. **HIS PICK (D-34): the reading-speed model.** Derive the rate
+   once; keep the approved long-line ceiling; re-measure both tiers before/after.
 7. black-market narration — in the hunt.
 8. prompts before boats stop — in the trace.
 9. **Crate SFX + animation on "Buy", not after the summary fades** — `docs/AUDIO.md` first; the purchase
