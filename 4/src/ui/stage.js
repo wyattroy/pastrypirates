@@ -637,7 +637,10 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   return new Promise(res => {
     // playtest 11 (Wyatt: "the game currently feels like it's in rush mode and i cant read
     // anything") — every narration hold runs 50% longer than the panel's own curve
-    const hold = Math.max(2550, Math.min(6750, Math.round((msgHoldMs ? msgHoldMs(msg) : 1700) * 1.5)));
+    // D-10 (Wyatt, 2026-08-20, playtest item 10): +30% on the CEILING only — 6750 -> 8775. The
+    // floor (2550) and the *1.5 multiplier are the playtest-11 fix above and stay untouched; he
+    // asked for the maximum only.
+    const hold = Math.max(2550, Math.min(8775, Math.round((msgHoldMs ? msgHoldMs(msg) : 1700) * 1.5)));
     const b = document.createElement("div");
     b.className = "pp4Bub" + (subj == null ? " ambient" : "");
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
