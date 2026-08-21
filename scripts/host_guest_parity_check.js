@@ -436,6 +436,14 @@ const ORCHESTRATION_DECL = [
   { fn: "applyActiveSeat(", shared: true, why: "shared — PROMOTED BY 02.15-01 STAGE 2, in the same commit that made it true. The one function that sets curSeat AND S.activeSeat, called by humanTurn/botTurn and by watchEvents." },
   { fn: "setActor(",      superseded: "applyActiveSeat(", why: "not a renderer — a one-line assignment to appState.curSeat, now reached by both tiers THROUGH applyActiveSeat. Reported, not asserted." },
   { fn: "localAsk(",      shared: false, why: "the host draws its own prompt from the game loop. Closes at Stage 4, which is abandonable under D-04." },
+  /* 02.15-02 Task 1: THE PICK CHANNEL'S OWN DECLARED GAP, watched RED before a line of game code
+     moved. The host draws its own sail window from localPickCell(), called directly from the game
+     loop's pickCell() fork; a guest's is drawn by remotePickHighlights(), called from watchPrompt's
+     kind==="pick" branch. Two orchestrations, one channel (sailPanelHTML + sailHighlightRect,
+     already shared since b76983d). This row closes — via the `superseded` precedent, not a
+     widening — the moment a listener names the converged renderer by name. See 02.15-02-PLAN.md
+     Task 3. */
+  { fn: "localPickCell(", shared: false, why: "the host draws its own sail window from the game loop (pickCell's local branch); a guest's is drawn by remotePickHighlights from watchPrompt. Two orchestrations, one channel. Closes at 02.15-02 Task 3 (THE TRACER)." },
 ];
 
 // Slice a function body by BRACE MATCHING from its `export function NAME(` header. Located by
