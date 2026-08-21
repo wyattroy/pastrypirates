@@ -94,3 +94,46 @@ worth it.
 - Dashboard: `stats.html` at repo root — source comment repeats the rules snippet.
 - Wiring: each build's `orchestrator.js` (boot → visit, startGame → net start, writeGameLog → fin)
   and `ui/flow.js` (solo + pass&play starts).
+
+---
+
+## MEASURED 2026-08-20 — step 1 is answered, and the answer is "yes, the rules are needed"
+
+Wyatt hit the console error himself on the live site (Safari, `/4`): a red
+`401 (Unauthorized)` on `https://pastry-pirates-default-rtdb.firebaseio.com/visits/<ts>-<pid>.json`,
+on every page boot. Probed each node directly with curl against the live database:
+
+| node | read | write | |
+|---|---|---|---|
+| `rooms` | 200 | 200 | multiplayer — fine |
+| `gamelogs` | 200 | 200 | the long-standing completed-voyage log — fine |
+| `visits` | **401** | **401** | one ping per page boot |
+| `starts` | **401** | **401** | one per new voyage |
+| `fins` | **401** | **401** | one per completed voyage |
+
+**So the three usage nodes have never recorded anything.** The rules grant `rooms` and `gamelogs`
+and nothing else. `stats.html` reads all four, so its usage panels have been empty since the
+2026-08-10 merge, and its own header comment (lines 21-26) already names the exact fix.
+
+**Gameplay is unaffected and always was** — `usage.js` is fire-and-forget with every failure
+swallowed. The red console line is the browser reporting a failed request; no code change can
+suppress that, and suppressing it would be the wrong instinct anyway.
+
+**The fix is not in this repo.** Firebase console -> Realtime Database -> Rules, add alongside the
+existing `rooms`/`gamelogs` entries:
+
+```json
+"visits": { ".read": true, ".write": true },
+"starts": { ".read": true, ".write": true },
+"fins":   { ".read": true, ".write": true }
+```
+
+Same public posture `rooms` and `gamelogs` already have — worth stating out loud rather than
+slipping in, since it is a deliberate no-auth design and not an oversight.
+
+**And a mess I made and cannot clear up.** Probing write access, I PUT a throwaway
+`gamelogs/claude-probe = {"probe":1}`. `gamelogs` turns out to be create-only — DELETE and
+`PUT null` both return 401 — which is the same property the 02.15 handoff records as "writeGameLog's
+entries are permanent and unremovable by anyone, Wyatt included". It is inert (`stats.html:119`
+skips any entry with no `names` field) but it is permanent, and I should not have written a probe to
+an append-only node. **Probe `rooms`, never `gamelogs`.**
