@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20y";
+const PP4_STAMP = "2026-08-20z";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -239,6 +239,22 @@ function topBandPx(){
   return ribHCache;
 }
 const isSideBySide = () => typeof document !== "undefined" && document.body.classList.contains("pp4Side");
+/* WHERE THE BOARD BAND ENDS — one answer, read by everything that has to place a floater above the
+   captains card. THE BUG THIS EXISTS TO KILL: three separate places each did
+   `cap.getBoundingClientRect().top`, which is the right bottom-boundary only while the captains
+   card sits BELOW the board (phone and stacked). In D-31's side-by-side the card sits BESIDE the
+   board with its top at the ribbon, so that read returned ~45 — and the radial fan's band became
+   `yMin 85 … yMax -29`, inverted. Every circle then clamped to a NEGATIVE y: all of them at the
+   same spot (the "overlapping controls: Call X/Call Y" the playtest gate found twice), off the top
+   of the screen, behind the ribbon (z40 over the prompt's z30) where nothing could click them —
+   which is where a real driver stalled, exactly as a player would. Beside the board the card takes
+   nothing off the bottom, so the band simply runs to the foot of the stage. */
+function capBandBottom(){
+  const cap = $("pp4Cap");
+  if (!cap || isSideBySide()) return vhPx();
+  const r = cap.getBoundingClientRect();
+  return (r.height > 0 && r.top > 0) ? r.top : vhPx();
+}
 /* THE DESKTOP CAPTAINS COLUMN IS A FIXED, STABLE WIDTH — not re-measured every tick. Re-measuring
    made it (a) collapse to a 220px floor at the opening, where empty holds gave it nothing to
    measure, squeezing every name onto its coin (Wyatt's 2026-08-21 screenshot), and (b) jitter as
@@ -748,7 +764,7 @@ export function boardBand(){
      and an empty pill must not reserve a band it is not occupying. */
   const pillB = shown($("pp4Pill")) ? $("pp4Pill").getBoundingClientRect().bottom : 0;
   const top = Math.max(ribB, pillB) + 8;
-  const bottom = capVisible ? cap.getBoundingClientRect().top : vhPx();
+  const bottom = capVisible ? capBandBottom() : vhPx();
   return { top, bottom, left: 8, right: vwPx() - 8 };
 }
 // the clipped host every board-anchored floater lives in. Re-sized from the band on the same tick
@@ -1713,7 +1729,7 @@ function promptTick(){
     // the SEATS those anchors belong to — the framing needs captains, not screen points
     const anchorSeats = menu.map(b => b.dataset ? +b.dataset.seat : NaN).filter(n => Number.isFinite(n));
     const cap = $("pp4Cap");
-    const capT = cap ? cap.getBoundingClientRect().top : vhPx();
+    const capT = capBandBottom();   // NOT the card's own top — see capBandBottom()
     /* DERIVED FROM THE BAND, NOT RE-DERIVED FROM THE RIBBON. This line used to compute its own
        answer to "where does the board start" while boardBand() computed another — two things kept
        in step by nobody, which is the fault this whole phase has been unpicking, one scale down.
@@ -1808,7 +1824,7 @@ function promptTick(){
       anchors.map(a => a ? (a[0] | 0) + "," + (a[1] | 0) : "-").join(";")].join("|");
     if (radKey === S.radKey) return;
     S.radKey = radKey;
-    let pillB = null;
+    let pillB = null, stackAt = null, stackCx = null;
     if (msg){
       const mw = Math.min(msg.offsetWidth || 200, vwPx() - 20);
       msg.style.position = "fixed";
@@ -1858,24 +1874,38 @@ function promptTick(){
         back.style.left = Math.max(4, pillB.left - 46) + "px";
         back.style.top = (pillB.top + (pillB.height - 38) / 2) + "px";
       }
-      // playtest 21 item 7: the quantity slider sits directly under the ask pill — between the
-      // message it edits and the arc of actions, which is the same top-to-bottom order the
-      // narration box uses everywhere else. Placed BEFORE the helper text so the helper, when both
-      // are present, is pushed below it rather than landing on top of it.
+      stackAt = pillB.bottom + 6; stackCx = cxA;
+    }
+    /* THE SLIDER AND THE HELPER LINE ARE PLACED WHETHER OR NOT THERE IS AN ASK PILL, AND ARE
+       ALWAYS CLAMPED INTO THE BAND. Both used to live inside `if (msg)`, hanging off the pill's
+       bottom — so a prompt that carries a slider but no `.apMsg` never gave the slider a `top` at
+       all. `.apSliderWrap` is `position:fixed` by CSS in this mode, and a fixed element with no
+       offsets renders at its STATIC position, which on this stage is up inside the ribbon's band —
+       and the ribbon is z-index 40 against the prompt's 30, so it sits ON TOP and eats the click.
+       Measured by 4/scripts/playtest_gate.mjs, which named the occluder outright
+       ("apSlider <- covered by #pp4Ribbon") after six straight voyages of
+       "slider click did not move its readout": the counter-offer slider could not be dragged at
+       all. Same family as the side-bet circles, same cure — nothing a player must touch may be
+       placed without being clamped below the band.
+       playtest 21 item 7's ordering is kept: slider first, helper text pushed below it. */
+    {
+      const cxS = stackCx != null ? stackCx : sx;
+      let stackTop = stackAt != null ? stackAt : tSafe;
+      const floor = tSafe;                       // never above the band…
+      const ceil = Math.max(floor, capT - 60);   // …and never under the captains card
       const slw = ap.querySelector(".apSliderWrap");
-      let stackTop = pillB.bottom + 6;
       if (slw){
         const qw = Math.min(slw.offsetWidth || 220, vwPx() - 20);
-        slw.style.left = Math.min(Math.max(cxA - qw / 2, 10), vwPx() - qw - 10) + "px";
-        slw.style.top = stackTop + "px";
-        stackTop += (slw.offsetHeight || 40) + 6;
+        slw.style.left = Math.min(Math.max(cxS - qw / 2, 10), vwPx() - qw - 10) + "px";
+        slw.style.top = Math.min(Math.max(stackTop, floor), ceil) + "px";
+        stackTop = Math.min(Math.max(stackTop, floor), ceil) + (slw.offsetHeight || 40) + 6;
       }
       // helper text (greyed-circle reasons) rides just beneath the pill
       const sub = ap.querySelector(".apSub");
       if (sub){
         const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
-        sub.style.left = Math.min(Math.max(cxA - sw / 2, 10), vwPx() - sw - 10) + "px";
-        sub.style.top = stackTop + "px";
+        sub.style.left = Math.min(Math.max(cxS - sw / 2, 10), vwPx() - sw - 10) + "px";
+        sub.style.top = Math.min(Math.max(stackTop, floor), Math.max(floor, capT - 30)) + "px";
       }
     }
     // ---- playtest 15, ONE placement rule (Wyatt's pick): a TIGHT FAN on the open side ----
@@ -2022,7 +2052,7 @@ function promptTick(){
   box.style.width = W + "px";
   const H = box.offsetHeight;
   const cap = $("pp4Cap");
-  const capTop = cap ? cap.getBoundingClientRect().top : vhPx();
+  const capTop = capBandBottom();
   const pill = $("pp4Pill");
   const topSafe = (pill && pill.style.display !== "none")
     ? pill.getBoundingClientRect().bottom + 8
