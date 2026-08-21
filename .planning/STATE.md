@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: The New Game
-current_phase_name: one-log-one-display-path
-status: complete
-stopped_at: Completed 02.15-02-PLAN.md — pick channel converged and shipped, ask/battle channels parked/not-reached under D-04, three whole voyages verified
-last_updated: "2026-08-21T06:14:39.671Z"
+current_phase_name: a-captain-who-cannot-take-their-turn
+status: in-progress
+stopped_at: Completed 02.2-01-PLAN.md — audio_map_check.js built and red-proofed, item 10's ceiling literally raised but measured to be a no-op, six sketches for items 8/9 shipped, battle-swords parked, live at 2026-08-20n
+last_updated: "2026-08-21T07:05:00.000Z"
 last_activity: 2026-08-21
-last_activity_desc: "2026-08-21 overnight: 02.15-02 executed and verified (verdict partial, gaps named under D-04) — pick channel converged, live as 2026-08-20m; code review 2 warnings fixed; three whole voyages QA-d. Next: 02.2 (Q tail then B)."
+last_activity_desc: Group Q's remaining items executed; a real measurement found item 10's fix currently has no player-visible effect
 progress:
   total_phases: 12
   completed_phases: 4
-  total_plans: 24
-  completed_plans: 19
+  total_plans: 25
+  completed_plans: 21
   percent: 33
-current_phase: 02.15
+current_phase: 02.2
 ---
 
 <!-- ============================================================================
@@ -56,6 +56,20 @@ players). `playpastrypirates.com/4` serves `4/` (the game being promoted). Both 
 build step — nothing here is ever a cache.
 
 ## Current Position
+
+Phase: **02.2 (a-captain-who-cannot-take-their-turn), plan 01 EXECUTED, live as build `2026-08-20n`.**
+`02.2-01-SUMMARY.md` has the full account. Not yet done: item 10's real fix (see below),
+`battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans 02.2-02..06.
+
+**ITEM 10, MEASURED AND FOUND INERT — read before touching narration pacing again.** The literal
+D-10 edit (`stage.js`'s outer ceiling 6750→8775) shipped exactly as specified, but a live two-tab
+measurement (`MutationObserver` on `.pp4Bub`, real driven crew game) found it changes nothing: the
+longest bubble held was 3305ms/3304ms (host/guest, matching to 1ms), because `4/src/ui/util.js`'s
+`msgHoldMs()` caps its own return at `HOLD_CEILING_MS=2000` **before** stage.js's `*1.5` and outer
+clamp ever run — `2000*1.5=3000` is always below both the old 6750 and the new 8775. **The number
+that actually needs raising, if Wyatt still wants a longer hold, is `HOLD_CEILING_MS` in
+`util.js:1220` — a different constant in a different file than D-10 named**, and that's a scope
+call for him, not something this run decided alone.
 
 Phase: **02.15 (one-log-one-display-path)** — **BOTH PLANS EXECUTED, live as build `2026-08-20l`.**
 Plan 01's verdicts, evidence, deviations: `phases/02.15-one-log-one-display-path/02.15-01-SUMMARY.md`.
@@ -297,6 +311,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.1 P04 | ~2h | 4 tasks | 1 files |
 | Phase 02.15 P01 | 1 session | 7 tasks | 7 files |
 | Phase 02.15 P02 | overnight session | 3 landed, 2 parked/skipped, 2 QA/docs tasks | 8 files |
+| Phase 02.2 P01 | 50min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -369,6 +384,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 4/ gets its own parity gate — scripts/host_guest_parity_check.js reads the ROOT game's src/ and never looked at 4/
 - [Phase ?]: 02.15: Stage 4 (the host's own prompt) not attempted — D-04's safe stop taken at six of seven, seam named in the summary
 - [Phase ?]: 02.15-02: THE TRACER (pickCell) converged and shipped as 2026-08-20l; ask() channel parked at Task 4 on a real flip-ceremony divergence (window.__pp4.flipMsg is local-decider-only); battle channel not reached; three whole voyages (crew/solo/pass-and-play) played to end-of-voyage with zero console errors
+- [Phase ?]: 02.2-01: item 10's literal fix (stage.js ceiling 6750→8775) shipped but measured inert — util.js's own HOLD_CEILING_MS=2000 caps msgHoldMs() before the outer clamp ever binds; the real lever is a different constant in a different file, flagged for Wyatt rather than changed unilaterally
+- [Phase ?]: 02.2-01: battle-swords.mp3 is a shared asset across the live root game, /v2, /v2bakeoff, /3 and /4 (confirmed by grep) — parked rather than re-exported, since editing it touches the live game and no session can judge whether a re-export sounds right
+- [Phase ?]: 02.2-01: notes/ is gitignored repo-wide; the two sketch folders (items 8/9) were force-added (git add -f) rather than editing .gitignore, keeping Wyatt's private notes files un-pushed while publishing exactly the two folders needed at a real URL
 
 ### Pending Todos
 
@@ -457,8 +475,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-21T06:14:39.661Z
-Stopped at: Completed 02.15-02-PLAN.md — pick channel converged and shipped, ask/battle channels parked/not-reached under D-04, three whole voyages verified
+Last session: 2026-08-21T07:05:00.000Z
+Stopped at: Completed 02.2-01-PLAN.md — Group Q's remaining items shipped, item 10 measured inert, sketches ready for Wyatt's pick, live at 2026-08-20n
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
