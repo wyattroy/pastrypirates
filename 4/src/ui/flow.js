@@ -320,10 +320,11 @@ export function reachable(p){
   return [...appState.game.sailStates(p,{throughRim:true}).keys()].map(k=>k.split(",").map(Number));
 }
 // D-25/D-35 (Wyatt-approved 2026-07-29): the one sail-prompt message, shared by BOTH transports —
-// the host's own localPickCell() and a guest's remotePickHighlights(). Previously the guest path
-// hardcoded its own separate sentence instead of rendering what the host composed, so the same
-// player read two different prompts depending on whether they happened to be the host or a guest
-// (D-35's sweep finding: guest-side code must render text, never author it).
+// composed once in pickCell() and rendered by the ONE converged renderer, renderPickPrompt()
+// (02.15-02 Task 3), whichever tier calls it. Previously the guest path hardcoded its own separate
+// sentence instead of rendering what the host composed, so the same player read two different
+// prompts depending on whether they happened to be the host or a guest (D-35's sweep finding:
+// guest-side code must render text, never author it).
 /* A SELF-CHECK, run every time a human is shown their sail options.
    Wyatt reported being able to sail 3 squares upwind. Everything testable says that cannot happen:
    an independent brute force over every path of length <= 4 agrees with the game's own reachability
@@ -380,12 +381,13 @@ export function sailPickMsg(seat){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
   return `${pn(seat)}: tap to sail`;   // /4 playtest 6: one line — the card must stay small
 }
-/* THE SAIL CARD, BUILT ONCE. 02.15 Stage 4, the narrow half — see pickCell for the wide one.
-   The host's localPickCell() and the guest's remotePickHighlights() each wrote this markup out by
-   hand, and the two copies had already drifted: the guest's had no .apSub at all, so the sail
-   self-check's red shout could not be shown on a guest even in principle. That is the same drift
-   class 02.1-03 closed for the option row with optionButtonsHTML, and the same answer — one
-   builder, so there is nothing left to keep in step.
+/* THE SAIL CARD, BUILT ONCE. 02.15-01, the narrow half — see renderPickPrompt (02.15-02 Task 3,
+   THE TRACER) for the wide one, which converged the ORCHESTRATION around this same builder.
+   The host's localPickCell() and the (now-retired) guest's remotePickHighlights() used to each
+   write this markup out by hand, and the two copies had already drifted: the guest's had no
+   .apSub at all, so the sail self-check's red shout could not be shown on a guest even in
+   principle. That is the same drift class 02.1-03 closed for the option row with
+   optionButtonsHTML, and the same answer — one builder, so there is nothing left to keep in step.
    The .apSub is LAST, per the standing top-to-bottom reveal rule for anything in #actionPanel. */
 export function sailPanelHTML(msg,hint){
   // @copy prompt.sail.pickpanel
@@ -513,6 +515,36 @@ export function sailHighlightRect(c,cellPx,svg){
   host.appendChild(d);
   return d;
 }
+// THE TRACER's converged renderer (02.15-02 Task 3, D-25/PAR-14). ONE function, named directly by
+// the host's local response mechanism (localPickCell, below) AND by a guest's watchPrompt listener
+// (src/orchestrator.js's kind==="pick" branch) — nothing else draws a sail window. Draws the
+// highlighted squares and the sail card, wires their clicks to `answer`, and tears everything down
+// (squares removed, panel cleared, appState.currentPrompt cleared) BEFORE calling `answer`, never
+// after — same teardown-before-resolve shape sendResponse's own comment describes for the ask
+// channel. Knows nothing about Firebase, promises or seats: it imports nothing from src/net/, by
+// construction (T-02.15-01) — the local caller below never lets this renderer anywhere near a
+// writer, which is what keeps a solo game (db===null) alive on this path.
+// Returns its own teardown so a caller that owns a shot clock (localPickCell only — activePickCleanup
+// stays a LOCAL-caller concern, per Task 3's ruling: registering it on the guest tier too would be a
+// behaviour change on a path only the host's own shot clock reads) can register it and abandon an
+// unanswered prompt without waiting for or forcing this renderer's own promise.
+export function renderPickPrompt(spec,answer){
+  const svg=$("board"),hs=[];
+  appState.currentPrompt=spec;
+  const teardown=()=>{hs.forEach(h=>h.remove());panel("");appState.currentPrompt=null;};
+  const done=v=>{teardown();answer(v);};
+  const cellPx=boardCell();
+  (spec.cells||[]).forEach(c=>{
+    const r=sailHighlightRect(c,cellPx,svg);
+    r.addEventListener("click",()=>done(c));
+    hs.push(r);
+  });
+  // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
+  // top-to-bottom reveal rule for anything added to #actionPanel.
+  panel(sailPanelHTML(spec.msg,spec.hint),true);
+  $("apStay").onclick=()=>done(null);
+  return teardown;
+}
 export function pickCell(p,cells){
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){
@@ -566,8 +598,13 @@ export function pickCell(p,cells){
      It is a pure read — geometry over the live game, no RNG, no mutation — so it is safe on the
      host's authoritative state and cannot fork the determinism stream. */
   const bug=sailSelfCheck(p,cells);
-  const base=decisionIsLocal(p.idx)?localPickCell(p,cells,bug)
-    :netHandlers().onRemotePrompt(p.idx,{kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null});
+  // THE TRACER (02.15-02 Task 3): ONE spec, built ONCE, handed to BOTH branches — the local render
+  // and the remote wire payload can never drift apart because they are literally the same object.
+  // Exactly kind/cells/msg/hint on the wire — id and seat keep being stamped by remotePrompt()
+  // (orchestrator.js), never added here.
+  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null};
+  const base=decisionIsLocal(p.idx)?localPickCell(p,spec)
+    :netHandlers().onRemotePrompt(p.idx,spec);
   const cellP=withShotClock(p.idx,base,null);
   return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
@@ -663,34 +700,22 @@ function fillLocked(bake,guess){
   return guess.map((bowl,k)=>bowl==null?bake.slots.indexOf(bake.order[k]):bowl);
 }
 
-export function localPickCell(p,cells,hint){
+// THE LOCAL RESPONSE MECHANISM (02.15-02 Task 3) — NOT a renderer any more. Wraps the ONE
+// converged renderer, renderPickPrompt(), in a Promise and resolves it from the answer callback.
+// Reached through pickCell()'s decisionIsLocal() fork; `spec` is the SAME {kind,cells,msg,hint}
+// object the remote branch hands to netHandlers().onRemotePrompt, never re-authored here.
+export function localPickCell(p,spec){
   // his sail prompt — the natural end of every full-round skip; recap first, prompt after
   const pre=ffEndNow();
-  if(pre)return pre.then(()=>localPickCell(p,cells,hint));
+  if(pre)return pre.then(()=>localPickCell(p,spec));
   return new Promise(res=>{
-    const svg=$("board"),hs=[];
-    const done=v=>{hs.forEach(h=>h.remove());panel("");appState.activePickCleanup=null;res(v);};
-    appState.activePickCleanup=()=>{hs.forEach(h=>h.remove());panel("");};
-    // notes/edits UI-06: the sail squares read as obviously tappable — brighter fill, a soft bounce
-    // so they draw the eye, and a hover state that pops the square and deepens the colour. Each
-    // square's bounce is phase-offset a touch by its board position so they shimmer rather than
-    // pulse in dead unison. transform-box:fill-box + centered origin keeps the scale centered.
-    // G25: those attributes now live in sailHighlightRect() above, shared with the guest path.
-    // notes/edits 11-03: cellPx now read via boardCell() — cell itself lives in src/ui/board.js.
-    const cellPx=boardCell();
-    cells.forEach(c=>{
-      const r=sailHighlightRect(c,cellPx,svg);
-      r.addEventListener("click",()=>done(c));
-      hs.push(r);
-    });
-    // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
-    // top-to-bottom rule for anything added to #actionPanel.
-    // /4 playtest 6: the standing wind-helper line leaves the sail card (the pill carries the
-    // wind; the card must stay one line tall for placement freedom). The self-check's red shout
-    // still renders when it fires — that one is a bug report, not a hint.
-    // The check itself now runs in pickCell, once, for local and remote captains alike.
-    panel(sailPanelHTML(sailPickMsg(p.idx),hint),true);
-    $("apStay").onclick=()=>done(null);
+    // activePickCleanup is a LOCAL-caller concern, exactly as it was before this task: the host's
+    // own shot clock (expireShotClock, src/orchestrator.js) reads it to abandon an unanswered
+    // prompt's DOM without waiting for or forcing this promise. It is renderPickPrompt's own
+    // teardown, returned — registering it on the guest tier too would be a behaviour change on a
+    // path only the host reads, which tonight's pure-plumbing constraint forbids.
+    const teardown=renderPickPrompt(spec,v=>{appState.activePickCleanup=null;res(v);});
+    appState.activePickCleanup=teardown;
   });
 }
 // v2 rules 2 and 8 delete three v1 helpers outright rather than leaving them dormant:
@@ -2503,7 +2528,7 @@ export function startPassAndPlay(names){
 // canReveal/offerCheckBtn logic and the recipeRevealed re-lock points inside humanTurn.
 export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
 
-/* ================= recovery/replay seam trio + remotePickHighlights ================= */
+/* ================= recovery/replay seam trio ================= */
 // This section resolves the final 3 of the milestone's 6 UI->orchestration edges (RESEARCH.md
 // Q1b) through src/ui/handlers.js's injected-handler seam — 11-04 resolved the first 2
 // (flash->onBroadcast, liveRender->onEvents). Each function below replaces a direct call to a
@@ -2512,32 +2537,14 @@ export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
 // src/main.js's composition root wires onRespond/onRecovery/onLeave alongside the existing
 // onBroadcast/onEvents, still pointing at the classic globals via the PP bridge this wave —
 // formalized to real src/net/ imports in 11-06.
+//
+// remotePickHighlights() USED TO LIVE HERE and is RETIRED (02.15-02 Task 3, THE TRACER). It drew
+// the same highlighted cells remotePickHighlights on a REMOTE player's board and posted their
+// choice back through netHandlers().onRespond — that job now belongs to the ONE converged
+// renderer, renderPickPrompt() (above, beside pickCell), named directly by watchPrompt's
+// kind==="pick" branch in src/orchestrator.js. onRespond itself is left wired at
+// src/main.js:74 with no consumer — see that file's own note.
 
-// draw the same highlighted cells on a REMOTE player's board and post their choice back.
-// D-35 (Wyatt-approved 2026-07-29): `msg` is what the host composed (sailPickMsg, via pickCell's
-// onRemotePrompt payload) — rendered here, never re-authored. Falls back to sailPickMsg(mySeat) for
-// an older host payload with no `msg` field, so a mid-game version skew still reads sensibly.
-export function remotePickHighlights(cells,promptId,msg,hint){
-  const svg=$("board"),hs=[];
-  const done=v=>{hs.forEach(h=>h.remove());panel("");netHandlers().onRespond?.(promptId,v);};
-  const cellPx=boardCell(); // notes/edits 11-03: cell now lives in src/ui/board.js
-  // D-55/D-56 CLOSED by G25 (Wyatt-approved 2026-07-30). This loop used to build its own rect —
-  // rx:5, fill:#fdb63d, opacity:.4, no class — so a guest's squares were a different orange,
-  // dimmer, unanimated and unhoverable. It now calls sailHighlightRect(), the SAME builder the
-  // host's localPickCell() calls, so the two cannot drift again by construction. The click handler
-  // and hs.push stay here, where they differ legitimately (this path responds over the wire).
-  for(const c of cells){
-    const r=sailHighlightRect(c,cellPx,svg);
-    r.addEventListener("click",()=>done(c));
-    hs.push(r);
-  }
-  // The SAME builder localPickCell uses (sailPanelHTML above) — this was the last hand-written
-  // second copy of the sail card, and its missing .apSub is what kept the self-check's shout off a
-  // guest's screen entirely. `hint` arrives on the wire from pickCell, so a guest is now told the
-  // same thing about their own squares that a local captain is.
-  panel(sailPanelHTML(msg||sailPickMsg(appState.mySeat),hint),true);
-  $("apStay").onclick=()=>done(null);
-}
 // leave replay mode: the recorded log is exhausted (or the game replayed to its end). Reconcile
 // the broadcast frontier so we push only events the crew hasn't already seen, then render live.
 export function endReplay(){

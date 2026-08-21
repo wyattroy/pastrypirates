@@ -101,7 +101,7 @@ import {
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
-  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, remotePickHighlights, wireRestoreFail,
+  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, wireRestoreFail,
   startPassAndPlay,
   endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
@@ -1433,11 +1433,14 @@ export function watchPrompt(){
     }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
-      // D-35: thread the host-composed message through — remotePickHighlights renders it, never
-      // authors its own.
+      // THE TRACER (02.15-02 Task 3, D-25/PAR-14): names the ONE converged renderer DIRECTLY —
+      // this is what makes the pick channel's orchestration parity gate (assertion 6,
+      // scripts/host_guest_parity_check.js) see the convergence, not merely a guest-only wrapper
+      // that happens to call it. `answer` writes the guest's choice back over the wire; the
+      // renderer itself never touches Firebase.
       // `hint` is the sail self-check's shout, composed by pickCell for EVERY captain since 02.15
       // Stage 4 — rendered here, never authored here, exactly like `msg` (D-35).
-      remotePickHighlights(p.cells||[],p.id,p.msg,p.hint||null);
+      renderPickPrompt({cells:p.cells||[],msg:p.msg,hint:p.hint||null},cell=>sendResponse(p.id,cell));
     }
   });
 }

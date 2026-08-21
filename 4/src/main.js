@@ -71,6 +71,9 @@ if (typeof window !== "undefined") {
   ui.setNetHandlers({
     onBroadcast: orchestrator.netNarrate,
     onEvents: orchestrator.pushEvents,
+    // onRespond: 02.15-02 Task 3 retired remotePickHighlights(), its only consumer. Left wired,
+    // deliberately unused — deleting a composition-root entry is a cleanup, not part of an
+    // architecture drop, and touching this file here would widen the diff for no player benefit.
     onRespond: orchestrator.sendResponse,
     onRecovery: orchestrator.setRecoveryState,
     onLeave: orchestrator.leaveGame,

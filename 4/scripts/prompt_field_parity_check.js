@@ -311,15 +311,38 @@ export function checkSailFieldParity(root) {
     fail(res, `PARITY-SAIL: watchPrompt's pick branch (${ORCH_REL}) reads p.${f} and pickCell() (${FLOW_REL}) never sends "${f}" — the guest is reading a field that is never on the wire, so it silently falls back on every sail prompt. Send it, or stop reading it.`);
   }
 
-  /* ---- (C) ONE builder, so the markup cannot drift the way the fields did ---- */
+  /* ---- (C) ONE renderer, so the markup cannot drift the way the fields did ----
+     RE-ANCHORED 02.15-02 Task 3 (THE TRACER). localPickCell and remotePickHighlights used to be
+     the TWO ORCHESTRATIONS that each built the sail card through sailPanelHTML — a comparison of
+     "do both callers use the shared builder?" With THE TRACER they converged into ONE renderer,
+     renderPickPrompt, named directly by localPickCell (the local response mechanism, which no
+     longer touches sailPanelHTML itself) and by watchPrompt's pick branch. With one renderer left
+     there is NOTHING TO COMPARE — a two-name check would pass vacuously forever the moment the
+     second name stopped existing (T-02.15-06). Replaced with a COUNT: exactly one definition of
+     sailPanelHTML, exactly one definition of renderPickPrompt, renderPickPrompt's body builds the
+     card through sailPanelHTML, and sailPanelHTML is CALLED from exactly one place in flow.js. A
+     synthetic tree where a second caller hand-builds the sail card must go RED — see drills
+     2e/2f below, and the count must go UP, not stay flat. */
   const defs = (flow.match(/export function sailPanelHTML\s*\(/g) || []).length;
-  if (defs !== 1) fail(res, `PARITY-SAIL-BUILDER: expected exactly 1 definition of sailPanelHTML() in ${FLOW_REL}, found ${defs}. Both sail renderers must build their card from ONE function or the markup drifts again — the guest's card had no .apSub for exactly this reason.`);
-  for (const fn of ["export function localPickCell(", "export function remotePickHighlights("]) {
-    const body = sliceFn(flow, fn);
-    if (!body) { fail(res, `PARITY-SAIL-BUILDER: ${fn.replace("export function ", "").replace("(", "")}() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting it.`); continue; }
-    if (!/sailPanelHTML\s*\(/.test(body))
-      fail(res, `PARITY-SAIL-BUILDER: ${fn.replace("export function ", "").replace("(", "")}() in ${FLOW_REL} does not build its card through sailPanelHTML() — it is hand-writing the sail card again, which is the second copy this assertion exists to stop.`);
+  if (defs !== 1) fail(res, `PARITY-SAIL-BUILDER: expected exactly 1 definition of sailPanelHTML() in ${FLOW_REL}, found ${defs}. The ONE sail renderer must build its card from ONE function or the markup drifts again — the guest's card had no .apSub for exactly this reason.`);
+
+  const rppDefs = (flow.match(/export function renderPickPrompt\s*\(/g) || []).length;
+  if (rppDefs !== 1) fail(res, `PARITY-SAIL-BUILDER: expected exactly 1 definition of renderPickPrompt() in ${FLOW_REL}, found ${rppDefs} — the converged renderer either does not exist or has been duplicated, both of which reopen the two-orchestrations fault.`);
+
+  const rppBody = sliceFn(flow, "export function renderPickPrompt(");
+  if (!rppBody) {
+    fail(res, `PARITY-SAIL-BUILDER: renderPickPrompt() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting it.`);
+  } else if (!/sailPanelHTML\s*\(/.test(rppBody)) {
+    fail(res, `PARITY-SAIL-BUILDER: renderPickPrompt() in ${FLOW_REL} does not build its card through sailPanelHTML() — it is hand-writing the sail card again, which is the second copy this assertion exists to stop.`);
   }
+
+  // The one-caller count. Total mentions of `sailPanelHTML(` minus its own `export function`
+  // definition is the number of CALL SITES — must be exactly 1, or a second orchestration is
+  // hand-building the sail card again and the count alone proves it.
+  const totalSailPanelMentions = (flow.match(/sailPanelHTML\(/g) || []).length;
+  const sailPanelCallSites = totalSailPanelMentions - (defs >= 1 ? defs : 0);
+  if (sailPanelCallSites !== 1) fail(res, `PARITY-SAIL-BUILDER: sailPanelHTML( is called from ${sailPanelCallSites} place(s) in ${FLOW_REL}, expected exactly 1 (renderPickPrompt). With one converged renderer there is nothing left to keep in step if a second caller reappears.`);
+
   note(res, `sail payload fields: ${[...hostFields].sort().join(", ")}`);
   return res;
 }
@@ -433,16 +456,18 @@ function drill() {
   // 2b — the reverse: the guest stops READING it. Identical damage, opposite side, and the reason
   //      this assertion is symmetric rather than one-directional.
   reset();
-  write(ORCH_REL, surgery(realOrch, `remotePickHighlights(p.cells||[],p.id,p.msg,p.hint||null);`,
-                                    `remotePickHighlights(p.cells||[],p.id,p.msg);`));
+  write(ORCH_REL, surgery(realOrch, `renderPickPrompt({cells:p.cells||[],msg:p.msg,hint:p.hint||null},cell=>sendResponse(p.id,cell));`,
+                                    `renderPickPrompt({cells:p.cells||[],msg:p.msg},cell=>sendResponse(p.id,cell));`));
   expect("drill 2b (guest's pick branch stops reading p.hint)", checkSailFieldParity(tmpRoot), true, "never reads p.hint");
 
-  // 2c — the markup drifts back apart: the guest hand-writes its own sail card again. The fields can
-  //      all be present and correct and the two cards still not match, which is what .apSub was.
+  // 2c — RE-ANCHORED 02.15-02 Task 3 (THE TRACER): renderPickPrompt (the ONE converged renderer)
+  //      hand-writes its own sail card instead of calling sailPanelHTML. The fields can all be
+  //      present and correct and the card still not match what sailPanelHTML would have built,
+  //      which is what .apSub was.
   reset();
-  write(FLOW_REL, surgery(realFlow, `  panel(sailPanelHTML(msg||sailPickMsg(appState.mySeat),hint),true);`,
-                                    `  panel(\`<div class="apMsg">\${msg}</div>\`,true);`));
-  expect("drill 2c (guest renderer hand-writes the sail card again)", checkSailFieldParity(tmpRoot), true, "PARITY-SAIL-BUILDER");
+  write(FLOW_REL, surgery(realFlow, `  panel(sailPanelHTML(spec.msg,spec.hint),true);`,
+                                    `  panel(\`<div class="apMsg">\${spec.msg}</div>\`,true);`));
+  expect("drill 2c (renderPickPrompt hand-writes the sail card again)", checkSailFieldParity(tmpRoot), true, "PARITY-SAIL-BUILDER");
 
   // 2d — the branch this gate reads disappears entirely. It must go LOUD, not quiet: a gate that
   //      passes over an absent branch is the reassuring-green failure docs/HARD-WON-LESSONS.md §3
@@ -450,6 +475,21 @@ function drill() {
   reset();
   write(ORCH_REL, surgery(realOrch, `}else if(p.kind==="pick"){`, `}else if(p.kind==="nope"){`));
   expect("drill 2d (the guest's pick branch vanishes)", checkSailFieldParity(tmpRoot), true, "no kind===\"pick\" branch");
+
+  // 2e — RE-ANCHORED (part C): renderPickPrompt vanishes entirely — anti-vacuity for the
+  //      converged-renderer count, the same way 1c/1d red-proof assertion 1.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `export function renderPickPrompt(spec,answer){`,
+                                    `export function renderPickPromptRENAMED(spec,answer){`));
+  expect("drill 2e (renderPickPrompt renamed out of existence)", checkSailFieldParity(tmpRoot), true, "renderPickPrompt() was not located");
+
+  // 2f — A SECOND CALLER of sailPanelHTML reappears — the two-directors fault reborn on THIS
+  //      channel, exactly as 2b of host_guest_parity_check.js's re-anchor tests for
+  //      sailHighlightRect. The count must go UP and catch it, or this re-anchor weakened the
+  //      gate instead of strengthening it (T-02.15-06).
+  reset();
+  write(FLOW_REL, realFlow + `\nexport function ghostPickRenderer(spec){return sailPanelHTML(spec.msg,spec.hint);}\n`);
+  expect("drill 2f (a SECOND caller of sailPanelHTML reappears — the two-directors fault, reborn)", checkSailFieldParity(tmpRoot), true, "expected exactly 1");
 
   // Z — negative control: the REAL, unmodified tree passes. Without this the drill only proves the
   //     gate can shout, not that it can ever be quiet.
@@ -462,7 +502,7 @@ function drill() {
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 11 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 13 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 

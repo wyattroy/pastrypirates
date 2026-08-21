@@ -94,6 +94,37 @@ nothing and a trusted one eventually does.
 `SUPERSEDED` in the parity gate, reached through `applyActiveSeat` on both tiers. Promoted to shared
 in **02.15-01 Stage 2**.
 
+### The sail prompt — `renderPickPrompt()` (02.15-02 Task 3, THE TRACER — first prompt-channel fork converged)
+
+**Entry point:** `renderPickPrompt(spec, answer)`, `4/src/ui/flow.js`. Both tiers name it directly:
+the host's local response mechanism (`localPickCell`, wraps it in a Promise, resolves from the
+answer callback) and a guest's `watchPrompt` listener (`4/src/orchestrator.js`, writes the answer to
+Firebase from the answer callback via `sendResponse`). Promoted to shared in **02.15-02 Task 3**, in
+the same commit that made it true.
+
+**What is drawn:** the highlighted sail squares (`sailHighlightRect`, one per legal cell) and the
+sail card (`sailPanelHTML`) — both already shared builders since the narrow half (`b76983d`); what
+was NOT shared until this task was who calls them and when. `renderPickPrompt` owns drawing AND
+teardown; it knows nothing about Firebase, promises or seats, and imports nothing from `4/src/net/`.
+
+**How long it stays:** until the captain taps a square or "Stay put" (`answer` fires immediately
+after teardown), or the shot clock forces it via `appState.activePickCleanup` — the LOCAL caller's
+teardown, registered only by `localPickCell` (a deliberate asymmetry, not an oversight: registering
+it on the guest tier too would be a behaviour change on a path only the host's own shot clock reads,
+which tonight's pure-plumbing constraint forbids).
+
+**Where the promise is created, resolved, rejected:** created in `localPickCell` (local) or by
+`remotePrompt` (remote, `4/src/orchestrator.js`); resolved on a square click, on `#apStay`, or from
+`appState.shotClockForce` at 30s. **No reject path** — a dropped prompt does not throw, it simply
+never settles, exactly as before this task. `renderPickPrompt` does not add a second way to reach
+that state.
+
+**The wire is unchanged** — exactly `kind`, `cells`, `msg`, `hint`; `id` and `seat` are still stamped
+by `remotePrompt`, never added to the literal built in `pickCell()`.
+
+**`appState.currentPrompt`** holds the spec `renderPickPrompt` is currently drawing — Wyatt's "one
+current prompt", in one place, on every tier. Set inside the renderer, cleared inside its teardown.
+
 ### The captains list order — `seatOrderFrom(head)` via `seatDisplayOrder()`
 
 **Entry point:** `seatDisplayOrder()` → `seatOrderFrom(appState.mySeat)`, `4/src/ui/util.js`.
@@ -144,10 +175,9 @@ orchestration parity (see §4 below for the distinction that matters for the pro
 ### Rule A — MIRROR WHEN REMOTE. The host's own screen never round-trips through Firebase.
 
 `runLiveNet()` drives **solo and pass-and-play as well as a networked host**
-(`4/src/orchestrator.js:1839` forks on `if(appState.isHost)`, which is true in solo, where
-`appState.db` is null). Every raw Firebase writer in `4/src/net/writers.js` — `netSetPrompt`
-included — is a bare `db.ref(...)` with **no null guard**, and throws on the first write attempted
-against a null `db`.
+(`4/src/orchestrator.js:1839` forks on `if(appState.isHost)`, which is true in solo too). Every raw
+Firebase writer in `4/src/net/writers.js` — `netSetPrompt` included — is a bare `db.ref(...)` with
+**no null guard**.
 
 **The guard, copied verbatim from `netNarrate`:**
 
@@ -155,9 +185,19 @@ against a null `db`.
 if(appState.isHost && appState.db && appState.room) /* write to Firebase */
 ```
 
-**Local render always. A Firebase write happens only under this guard.** A two-tab test cannot see a
-missing guard by construction — it always has a room. Only a full **solo voyage** (`db===null`,
-`room===null`) can catch this class of fault.
+**Local render always. A Firebase write happens only under this guard.**
+
+**MEASURED CORRECTION (02.15-02 Task 3), because an earlier framing here was wrong and it is worth
+recording why.** `4/index.html` loads the real Firebase SDK (multiplayer was restored in Phase 2),
+so `fbInit()` runs unconditionally at `boot()` and **`appState.db` is a real, truthy Firebase handle
+in EVERY mode, including solo** — not null. What is reliably null in solo is `appState.room`: no
+`createRoom()`/`joinRoom()` call ever runs there. Since the guard is an AND of `db`, `isHost` and
+`room`, `room` alone is sufficient to keep it false in solo — **the safety property holds**, but
+"solo has `db===null`" is not the reason; "solo has `room===null`" is. Measured directly: a driven
+headless solo voyage read `{dbTruthy:true, room:null, isHost:true}` and reached multiple sail
+prompts with zero console errors. **A two-tab test cannot see a missing guard by construction — it
+always has a room. Only a full solo voyage (`room===null`) can catch this class of fault**, and any
+future static check for this must assert against `room`, not `db`.
 
 ### Rule B — `decisionIsLocal(seat)`, NEVER `isHost` and NEVER `seatLocal`.
 
@@ -198,7 +238,10 @@ force-resolves at zero: the 30-second auto-skip every player relies on stops fir
 
 ---
 
-## 4. NOT YET CONVERGED — all five prompt forks, named
+## 4. THE FIVE PROMPT FORKS, NAMED — converged or not
+
+**Fork 1 (`pickCell()`) converged 02.15-02 Task 3.** See §2's "The sail prompt" row above. The
+remaining four are below.
 
 **"The prompt channel" is not one thing. It is these five fork sites**, confirmed by reading the
 tree at build `2026-08-20k`. This table is this document's honesty — it is what stops a reader who
@@ -206,7 +249,7 @@ sees the narration and active-seat channels converged from concluding the prompt
 
 | # | Fork | File:line | Rendering shared? | State |
 |---|---|---|---|---|
-| 1 | `pickCell()` | `4/src/ui/flow.js:569` | **Yes** — `sailPanelHTML` + `sailHighlightRect`, both gated | **NOT YET CONVERGED** — orchestration: `localPickCell` (host loop) vs `remotePickHighlights` (guest listener). Declared gap in the parity gate as of 02.15-02 Task 1. Target of 02.15-02 Task 3 (THE TRACER). |
+| 1 | `pickCell()` | `4/src/ui/flow.js:605` | **Yes** — `sailPanelHTML` + `sailHighlightRect`, both gated | **CONVERGED 02.15-02 Task 3 (THE TRACER).** One renderer, `renderPickPrompt`, named directly by `localPickCell` (local response mechanism) and `watchPrompt`'s pick branch. `localPickCell` is `superseded` in the parity gate. |
 | 2 | `ask()` | `4/src/ui/util.js:1577` | **Yes** — `optionButtonsHTML`, gated | **NOT YET CONVERGED** — orchestration: `localAsk` (host loop) vs `watchPrompt`'s ask branch. Target of 02.15-02 Task 4. |
 | 3 | `battleAsk()` | `4/src/orchestrator.js:443` | **Yes, more than expected** — `renderBattleFromSnap` delegates to `renderBattle`, so both tiers already end in one card builder | **NOT YET CONVERGED** — only the CONTROL WIRING (arming the coin, wiring `.btlBtn`) differs, not the card. Target of 02.15-02 Task 5, expected NOT to be reached under D-04. |
 | 4 | `recipeDraftNet()` | `4/src/orchestrator.js:855` | Yes — `optionButtonsHTML` via `watchDraftPrompt` | **LEFT — not a task in 02.15-02.** Forks on `seatLocal(s)`, not `decisionIsLocal(s)`. See Rule B above — the landmine is real and disarming it is its own piece of work. |

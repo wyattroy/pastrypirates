@@ -121,6 +121,11 @@ export const appState = {
   clockPendingLocal: false,
   clockPendingText: "",
   activePickCleanup: null,
+  // 02.15-02 Task 3: the "one current prompt" of Wyatt's shape for this whole plan — the spec
+  // renderPickPrompt() is CURRENTLY drawing. Set inside the renderer, cleared inside its teardown,
+  // on every tier alike. null while a captain is visibly being asked is the signature of an
+  // orphaned prompt (see docs/DRIVING-THE-GAME.md §6's state-inspection technique).
+  currentPrompt: null,
   replaying: false,
   dlog: [],
   dlogIdx: 0,

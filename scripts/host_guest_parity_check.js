@@ -198,37 +198,81 @@ export function checkOneSailHighlightBuilder(root) {
   if (!/export function sailHighlightRect\(/.test(live)) {
     fail(res, `PARITY-SAILRECT: the shared builder sailHighlightRect() is not exported from ${FLOW_REL} — without it there is nothing for the two pick paths to share.`);
   }
-  for (const fn of ["localPickCell", "remotePickHighlights"]) {
-    const body = sliceFn(live, `export function ${fn}(`);
-    if (!body) { fail(res, `PARITY-SAILRECT: ${fn}() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting the assertion.`); continue; }
-    if (!/sailHighlightRect\(/.test(body)) fail(res, `PARITY-SAILRECT: ${fn}() does not call sailHighlightRect() — it is drawing its own sail squares, which is exactly the drift D-55 recorded.`);
-    if (/el\("rect"/.test(body)) fail(res, `PARITY-SAILRECT: ${fn}() still builds an el("rect" of its own — move those attributes into sailHighlightRect() so there is one place that decides what a sail square looks like.`);
+  /* 02.15-02 Task 3, RE-ANCHORED (THE TRACER) — 4/ ONLY. `localPickCell` and `remotePickHighlights`
+     used to be the two ORCHESTRATIONS that each called sailHighlightRect() — the host's game loop
+     and a guest's watchPrompt listener. THE TRACER converged them into ONE renderer,
+     renderPickPrompt(), named directly by both `localPickCell` (the local response mechanism) and
+     `watchPrompt`'s pick branch. With one renderer there is NOTHING LEFT TO COMPARE — a two-name
+     comparison would pass vacuously forever the instant the second name stopped existing, which is
+     precisely the reassuring-gate failure this phase exists to kill (T-02.15-06). Replaced with a
+     COUNT: exactly one function calls sailHighlightRect(, and it is renderPickPrompt. A synthetic
+     tree where a SECOND caller reappears must go RED — see drill 2a/2b below, and the count must go
+     UP, not stay flat, or this re-anchor weakened the gate rather than strengthening it.
+
+     DUAL-MODE, DELIBERATELY — NOT a re-widening. This script scans TWO DIFFERENT TREES (the
+     tree-selector, D-28): the root game (`src/`, unmodified since 2026-08-02, still on the
+     PRE-CONVERGENCE two-orchestration shape) and `4/` (converged by this task). Hardcoding
+     `renderPickPrompt` as the only acceptable shape would fail assertion 2 against the ROOT tree —
+     which this script is wired into root `npm test` FOR — for a reason that has nothing to do with
+     any drift on that tree. That is the exact "gate red for reasons unrelated to what it measures"
+     failure this file's own header warns against (§ "THE TREE THIS GATE SCANS"). So: detect which
+     shape the scanned tree is actually in, and apply the check that shape earns. This is not two
+     things kept in sync by discipline — it is one script correctly describing two different,
+     internally-consistent trees, exactly as ORCHESTRATION_DECL's `--tree=4` selector already does. */
+  const converged = /export function renderPickPrompt\(/.test(live);
+  if (converged) {
+    const body = sliceFn(live, `export function renderPickPrompt(`);
+    if (!body) {
+      fail(res, `PARITY-SAILRECT: renderPickPrompt() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting the assertion.`);
+    } else {
+      if (!/sailHighlightRect\(/.test(body)) fail(res, `PARITY-SAILRECT: renderPickPrompt() does not call sailHighlightRect() — it is drawing its own sail squares, which is exactly the drift D-55 recorded.`);
+      if (/el\("rect"/.test(body)) fail(res, `PARITY-SAILRECT: renderPickPrompt() still builds an el("rect" of its own — move those attributes into sailHighlightRect() so there is one place that decides what a sail square looks like.`);
+      if (!/const\s+cellPx\s*=\s*boardCell\(\)/.test(body)) {
+        fail(res, `PARITY-SAILRECT-GEOM: renderPickPrompt() does not derive cellPx from boardCell() — the ONE renderer both tiers share must size its squares from the same source every call, or a stale cellPx renders different-sized highlights from one call to the next.`);
+      }
+    }
+  } else {
+    // LEGACY SHAPE — the root v1 game, untouched by 02.15. Two named orchestrations each call
+    // sailHighlightRect() directly. Byte-identical to this assertion's behaviour before Task 3.
+    for (const fn of ["localPickCell", "remotePickHighlights"]) {
+      const body = sliceFn(live, `export function ${fn}(`);
+      if (!body) { fail(res, `PARITY-SAILRECT: ${fn}() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting the assertion.`); continue; }
+      if (!/sailHighlightRect\(/.test(body)) fail(res, `PARITY-SAILRECT: ${fn}() does not call sailHighlightRect() — it is drawing its own sail squares, which is exactly the drift D-55 recorded.`);
+      if (/el\("rect"/.test(body)) fail(res, `PARITY-SAILRECT: ${fn}() still builds an el("rect" of its own — move those attributes into sailHighlightRect() so there is one place that decides what a sail square looks like.`);
+    }
   }
   if (/fill:"#fdb63d"/.test(live)) {
     fail(res, `PARITY-SAILRECT: the guest's old #fdb63d fill survives in ${FLOW_REL} — the host's #ffc23a is the approved colour on both seats.`);
   }
 
-  // GEOMETRY PARITY (added 2026-07-31, with UI-03's 10% shrink).
-  //
-  // Everything above proves the two paths call ONE builder. That is necessary and it is not
-  // sufficient: same builder + different arguments is still two different squares on two screens.
-  // A one-character edit — `sailHighlightRect(c,cellPx*0.9,svg)` in one caller — recreates D-55
-  // exactly while every assertion above stays green. WR-13 already recorded that this gate is
-  // symmetric-only; this closes that hole for the argument that decides SIZE.
-  const calls = [];
-  for (const fn of ["localPickCell", "remotePickHighlights"]) {
-    const body = sliceFn(live, `export function ${fn}(`);
-    if (!body) continue; // already failed loudly above
-    const m = body.match(/sailHighlightRect\(([^)]*)\)/);
-    if (!m) continue;    // already failed loudly above
-    // normalise whitespace only — never the argument names themselves
-    calls.push({ fn, args: m[1].replace(/\s+/g, "") });
-    if (!/const\s+cellPx\s*=\s*boardCell\(\)/.test(body)) {
-      fail(res, `PARITY-SAILRECT-GEOM: ${fn}() does not derive cellPx from boardCell() — both pick paths must size their squares from the same source, or host and guest render different-sized highlights from the same builder.`);
+  // THE ONE-CALLER COUNT for the CONVERGED shape (was the two-caller GEOMETRY comparison,
+  // 2026-07-31/UI-03; superseded by the convergence above, 4/ only). Total mentions of
+  // `sailHighlightRect(` minus its own `export function` definition is the number of CALL SITES.
+  // Exactly one, or a second orchestration has reappeared and there is nothing left stopping it
+  // from feeding the shared builder different geometry again.
+  let calls = [], callSites = null;
+  if (converged) {
+    const totalMentions = (live.match(/sailHighlightRect\(/g) || []).length;
+    const hasDef = /export function sailHighlightRect\(/.test(live);
+    callSites = totalMentions - (hasDef ? 1 : 0);
+    if (callSites !== 1) {
+      fail(res, `PARITY-SAILRECT-GEOM: sailHighlightRect( is called from ${callSites} place(s) in ${FLOW_REL}, expected exactly 1 (renderPickPrompt). With one converged renderer there is nothing left to keep in step if a second caller reappears — that second caller is the defect, not a variant to reconcile.`);
     }
-  }
-  if (calls.length === 2 && calls[0].args !== calls[1].args) {
-    fail(res, `PARITY-SAILRECT-GEOM: the two pick paths pass DIFFERENT arguments to sailHighlightRect() — ${calls[0].fn}(${calls[0].args}) vs ${calls[1].fn}(${calls[1].args}). One shared builder does not help if it is fed different geometry.`);
+  } else {
+    // LEGACY two-caller GEOMETRY comparison, unchanged from before Task 3 — root tree only.
+    for (const fn of ["localPickCell", "remotePickHighlights"]) {
+      const body = sliceFn(live, `export function ${fn}(`);
+      if (!body) continue; // already failed loudly above
+      const m = body.match(/sailHighlightRect\(([^)]*)\)/);
+      if (!m) continue;    // already failed loudly above
+      calls.push({ fn, args: m[1].replace(/\s+/g, "") });
+      if (!/const\s+cellPx\s*=\s*boardCell\(\)/.test(body)) {
+        fail(res, `PARITY-SAILRECT-GEOM: ${fn}() does not derive cellPx from boardCell() — both pick paths must size their squares from the same source, or host and guest render different-sized highlights from the same builder.`);
+      }
+    }
+    if (calls.length === 2 && calls[0].args !== calls[1].args) {
+      fail(res, `PARITY-SAILRECT-GEOM: the two pick paths pass DIFFERENT arguments to sailHighlightRect() — ${calls[0].fn}(${calls[0].args}) vs ${calls[1].fn}(${calls[1].args}). One shared builder does not help if it is fed different geometry.`);
+    }
   }
 
   // and the scale constant lives in exactly one place, so "10% smaller" cannot become two numbers
@@ -237,7 +281,7 @@ export function checkOneSailHighlightBuilder(root) {
     fail(res, `PARITY-SAILRECT-GEOM: ${scaleDefs} definition(s) of SAIL_HL_SCALE in ${FLOW_REL}, expected exactly 1 — the highlight's size must be decided in one place for both seats.`);
   }
 
-  note(res, `sail-highlight builders carrying the sailCell class: ${builders}; call sites agreeing on geometry: ${calls.length}`);
+  note(res, `sail-highlight builders carrying the sailCell class: ${builders}; ${converged ? `sailHighlightRect call sites: ${callSites} (expected 1, renderPickPrompt)` : `call sites agreeing on geometry: ${calls.length} (legacy two-orchestration shape)`}`);
   return res;
 }
 
@@ -436,14 +480,17 @@ const ORCHESTRATION_DECL = [
   { fn: "applyActiveSeat(", shared: true, why: "shared — PROMOTED BY 02.15-01 STAGE 2, in the same commit that made it true. The one function that sets curSeat AND S.activeSeat, called by humanTurn/botTurn and by watchEvents." },
   { fn: "setActor(",      superseded: "applyActiveSeat(", why: "not a renderer — a one-line assignment to appState.curSeat, now reached by both tiers THROUGH applyActiveSeat. Reported, not asserted." },
   { fn: "localAsk(",      shared: false, why: "the host draws its own prompt from the game loop. Closes at Stage 4, which is abandonable under D-04." },
-  /* 02.15-02 Task 1: THE PICK CHANNEL'S OWN DECLARED GAP, watched RED before a line of game code
-     moved. The host draws its own sail window from localPickCell(), called directly from the game
-     loop's pickCell() fork; a guest's is drawn by remotePickHighlights(), called from watchPrompt's
-     kind==="pick" branch. Two orchestrations, one channel (sailPanelHTML + sailHighlightRect,
-     already shared since b76983d). This row closes — via the `superseded` precedent, not a
-     widening — the moment a listener names the converged renderer by name. See 02.15-02-PLAN.md
-     Task 3. */
-  { fn: "localPickCell(", shared: false, why: "the host draws its own sail window from the game loop (pickCell's local branch); a guest's is drawn by remotePickHighlights from watchPrompt. Two orchestrations, one channel. Closes at 02.15-02 Task 3 (THE TRACER)." },
+  /* 02.15-02 Task 3 (THE TRACER) CLOSED THIS ROW. localPickCell was the DECLARED GAP watched RED
+     by Task 1 — the host drew its own sail window from the game loop; a guest's was drawn by a
+     separate wrapper, remotePickHighlights, called from watchPrompt. Task 3 converged both into
+     ONE renderer, renderPickPrompt (below), named DIRECTLY by watchPrompt's kind==="pick" branch —
+     not through a guest-only wrapper, which is what lets this gate see the convergence instead of
+     asserting nothing. localPickCell is not a renderer any more: it is the LOCAL RESPONSE
+     MECHANISM, reached THROUGH renderPickPrompt by construction. Same `superseded` precedent as
+     Stage 2's setActor→applyActiveSeat swap — measured and printed, asserts nothing, so the swap
+     is auditable rather than asserted. */
+  { fn: "localPickCell(", superseded: "renderPickPrompt(", why: "not a renderer any more — the LOCAL RESPONSE MECHANISM, reached THROUGH renderPickPrompt on both tiers. 02.15-02 Task 3 (THE TRACER)." },
+  { fn: "renderPickPrompt(", shared: true, why: "shared — PROMOTED BY 02.15-02 TASK 3 (THE TRACER), in the same commit that made it true. The ONE sail-window renderer, named directly by localPickCell (the local response mechanism) and by watchPrompt's kind===\"pick\" branch." },
 ];
 
 // Slice a function body by BRACE MATCHING from its `export function NAME(` header. Located by
@@ -630,47 +677,44 @@ function drill() {
   fixture(ORCH_REL, GOOD_GUEST_ASK);
   expect("drill 1d (negative control — a matched pair passes)", checkPromptClassParity(tmpRoot), false);
 
-  // --- assertion 2 fixtures ---
+  // --- assertion 2 fixtures — RE-ANCHORED 02.15-02 Task 3 (THE TRACER). GOOD_PICK now reflects the
+  //     CONVERGED shape: ONE renderer, renderPickPrompt, named by construction (the fixture stands
+  //     in for both "the local caller wraps it" and "the listener names it directly" — the count
+  //     check below can't tell WHO calls it, only how many places do, which is exactly what makes a
+  //     resurrected second caller visible again in 2a/2b). ---
   const GOOD_PICK = [
-    // PRE-EXISTING FIXTURE BUG, found 2026-07-31 while merging: Phase 16 added the
-    // PARITY-SAILRECT-GEOM sub-check (one SAIL_HL_SCALE definition) to assertion 2 but did not add
-    // the constant to this negative-control fixture, so drill 2c has been failing against a tree it
-    // is supposed to approve. The assertion itself is fine — the REAL flow.js passes it — but a
-    // negative control that cannot go green is exactly as broken as an assertion that cannot go red,
-    // and it makes `--drill` report DRILL FAILURE for a healthy tree.
     `const SAIL_HL_SCALE=0.9;`,
     `export function sailHighlightRect(c,cellPx,svg){`,
     `  return el("rect",{x:c[0]*cellPx+2,rx:6,fill:"#ffc23a",class:"sailCell"},svg);`,
     `}`,
-    `export function localPickCell(p,cells){`,
+    `export function renderPickPrompt(spec,answer){`,
     `  const cellPx=boardCell();`,
-    `  cells.forEach(c=>{const r=sailHighlightRect(c,cellPx,svg);hs.push(r);});`,
-    `}`,
-    `export function remotePickHighlights(cells,promptId,msg){`,
-    `  const cellPx=boardCell();`,
-    `  for(const c of cells){const r=sailHighlightRect(c,cellPx,svg);hs.push(r);}`,
+    `  spec.cells.forEach(c=>{const r=sailHighlightRect(c,cellPx,svg);hs.push(r);});`,
     `}`,
     ``,
   ].join("\n");
 
-  // 2a: the guest path builds its own class-less rect again — D-55, exactly as it was
+  // 2a: the ONE renderer stops calling the shared builder and hand-builds its own class-less rect
+  //     again — D-55, exactly as it was, now visible as renderPickPrompt itself drifting rather
+  //     than as a divergence between two orchestrations (there is only one left to drift).
   resetFixture();
   fixture(FLOW_REL, GOOD_PICK.replace(
-    `  for(const c of cells){const r=sailHighlightRect(c,cellPx,svg);hs.push(r);}`,
-    `  for(const c of cells){const r=el("rect",{rx:5,fill:"#fdb63d",opacity:.4},svg);hs.push(r);}`));
-  expect("drill 2a (guest rebuilds its own class-less rect — D-55 reintroduced)", checkOneSailHighlightBuilder(tmpRoot), true, "PARITY-SAILRECT");
+    `  spec.cells.forEach(c=>{const r=sailHighlightRect(c,cellPx,svg);hs.push(r);});`,
+    `  spec.cells.forEach(c=>{const r=el("rect",{rx:5,fill:"#fdb63d",opacity:.4},svg);hs.push(r);});`));
+  expect("drill 2a (renderPickPrompt stops calling sailHighlightRect, hand-builds its own rect — D-55 reintroduced)", checkOneSailHighlightBuilder(tmpRoot), true, "PARITY-SAILRECT");
 
-  // 2b: two builders both carry the class — the "match by discipline" state D-56 warned about
+  // 2b: A SECOND CALLER REAPPEARS — the two-directors fault reborn on this exact channel. Something
+  //     (a resurrected remotePickHighlights, or any new orchestration) calls sailHighlightRect()
+  //     again outside renderPickPrompt. The count must go UP and the drill must catch it, or this
+  //     re-anchor weakened the gate instead of strengthening it (T-02.15-06).
   resetFixture();
-  fixture(FLOW_REL, GOOD_PICK.replace(
-    `  for(const c of cells){const r=sailHighlightRect(c,cellPx,svg);hs.push(r);}`,
-    `  for(const c of cells){const r=el("rect",{rx:6,fill:"#ffc23a",class:"sailCell"},svg);hs.push(r);}`));
-  expect("drill 2b (two builders carry the class — matching by discipline, not structure)", checkOneSailHighlightBuilder(tmpRoot), true, "expected exactly 1");
+  fixture(FLOW_REL, GOOD_PICK + `export function remotePickHighlights(cells){\n  const cellPx=boardCell();\n  for(const c of cells){const r=sailHighlightRect(c,cellPx,svg);hs.push(r);}\n}\n`);
+  expect("drill 2b (a SECOND caller of sailHighlightRect reappears — the two-directors fault, reborn)", checkOneSailHighlightBuilder(tmpRoot), true, "expected exactly 1");
 
-  // 2c: negative control
+  // 2c: negative control — one renderer, one caller, converged
   resetFixture();
   fixture(FLOW_REL, GOOD_PICK);
-  expect("drill 2c (negative control — one builder, both callers)", checkOneSailHighlightBuilder(tmpRoot), false);
+  expect("drill 2c (negative control — one renderer, one caller, converged)", checkOneSailHighlightBuilder(tmpRoot), false);
 
   // --- assertion 3 fixtures ---
   const GOOD_SWEEP_FLOW = `export function rimSweepPath(game,from){return [];}\nexport async function animateRimSweepIfAny(){}\n`;
