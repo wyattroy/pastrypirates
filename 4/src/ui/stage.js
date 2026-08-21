@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21d";
+const PP4_STAMP = "2026-08-21e";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1891,7 +1891,17 @@ function promptTick(){
     const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
       cellRects.length, vwPx(), hasSlider, menu.map(b => b.textContent.length).join(","),
       anchors.map(a => a ? (a[0] | 0) + "," + (a[1] | 0) : "-").join(";")].join("|");
-    if (radKey === S.radKey) return;
+    /* THE MEMO KEY DESCRIBES THE LAYOUT, NOT THE BUTTONS — so two consecutive prompts that happen
+       to agree on it (same count, same label lengths, same ship square: two trade offers in a row
+       are exactly this) produced the same key, the placement early-returned, and the prompt's
+       BRAND NEW buttons were never positioned at all. Unpositioned radial buttons are
+       `position:fixed` with no offsets, so they render stacked at the panel's static spot — which
+       is precisely the "overlapping controls: Dough Hook/Walk away" the playtest gate kept
+       reporting, and it is not a placement failure but a placement that never ran.
+       Checking that every button actually carries a position is cheap, and it is a fact about the
+       DOM rather than another thing to remember to put in the key. */
+    const unplaced = menu.some(b => !b.style.left);
+    if (radKey === S.radKey && !unplaced) return;
     S.radKey = radKey;
     let pillB = null, stackAt = null, stackCx = null;
     if (msg){
@@ -1981,6 +1991,11 @@ function promptTick(){
       // helper text (greyed-circle reasons) rides just beneath the pill
       const sub = ap.querySelector(".apSub");
       if (sub){
+        // SAME BUG AS THE ASK PILL, ONE ELEMENT OVER: the width was clamped to choose a left edge
+        // while the element kept its natural width, so "Attacking costs ye 2 for powder. Firing
+        // downwind wins ties!" ran clean off the right of a 390px phone. Cap it so it wraps.
+        sub.style.maxWidth = (vwPx() - 20) + "px";
+        sub.style.boxSizing = "border-box";
         const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
         sub.style.left = Math.min(Math.max(cxS - sw / 2, 10), vwPx() - sw - 10) + "px";
         sub.style.top = Math.min(Math.max(stackTop, floor), Math.max(floor, capT - 30)) + "px";

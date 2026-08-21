@@ -41,6 +41,12 @@ export async function openChrome({ W, H, dbgPort, httpPort, serveRoot, profileDi
      is focused and active, so the pause can never be triggered by the harness's own backgrounding. */
   await send("Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
   await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: dsf, mobile });
+  /* `mobile:true` alone does NOT make `matchMedia('(pointer: coarse)')` true — it governs viewport
+     meta and text autosizing. Touch emulation is what flips the pointer type, and without it a
+     390x844 leg still takes every DESKTOP branch of anything that asks what kind of pointer it has.
+     Measured: the phone leg's screenshot came back reading "Click and hold the sea" where a real
+     phone says "Tap and hold" (D-40). A phone leg that does not emulate a phone tests the wrong game. */
+  if (mobile) await send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 }).catch(() => {});
   let shotN = 0;
   const shot = async (file) => { const r = await send("Page.captureScreenshot", { format: "png" }); fs.writeFileSync(file, Buffer.from(r.result.data, "base64")); return file; };
   const clickXY = async (x, y) => {
