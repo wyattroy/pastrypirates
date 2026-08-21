@@ -1563,6 +1563,14 @@ async function coinStepper(msgFor,start,min,max,confirmLabel,extraOpt){
 export async function humanTrade(p){
   setActor(p.idx);
   const g=appState.game;
+  // DEFENSE IN DEPTH, symmetric with step 0's "nobody has cargo I want" guard four lines below:
+  // a captain with nothing at all to give (0 coins AND an empty hold) can never complete step 1
+  // regardless of what they WANT — step 1 is built purely from p.ing/p.coins, never from st.want —
+  // so decline here, before the want prompt even renders, instead of dead-ending them one screen
+  // deeper with no way out. humanAct's own canOffer gate (the button itself) is the real fix and
+  // makes this unreachable through the normal menu; this guard exists for any other caller.
+  // @copy adhoc.trade.nothingtogive
+  if(!p.coins&&!p.ing.length){await flash(`${pn(p.idx)} has nothin' to trade.`);return false;}
   const st={want:undefined,baseIng:undefined,extraCoins:undefined};
   let step=0;
   while(step<3){
@@ -1808,7 +1816,21 @@ export async function humanAct(p,sailCtx){
   // from it, following the same pattern already used for Attack.
   // v2 rule 4: a trade reaches the WHOLE TABLE from wherever ye happen to be floating — there is
   // no partner to be adjacent to. It is available whenever anybody, anywhere, is holding cargo.
-  const canTrade=appState.game.players.some(q=>q!==p&&!q.done&&q.ing.length>0);
+  //
+  // 02.2 FINAL-QA FIX (a captain who cannot take their turn): a captain with NOTHING TO OFFER —
+  // 0 coins AND an empty hold — could still click an enabled Trade button (this line used to check
+  // only whether an OPPONENT held cargo, never whether P did). humanTrade()'s "what will ye GIVE"
+  // step is built purely from p.ing/p.coins, independent of what P chose to WANT, so that captain
+  // was guaranteed to reach a give-prompt with one permanently-disabled button and no possible way
+  // forward — Back only re-asks WANT (step 0), which can never fix a GIVE-side problem, so the
+  // captain (and the whole table, which waits on their turn) was stuck forever. Same defect shape
+  // Attack already had and already fixed here: two INDEPENDENT conditions must each get their own
+  // `if`, never folded into one, or one silently suppresses the other's reason (see the Attack
+  // comment just below). Bot parity check: engine/index.js's composeOffer already refuses to hail
+  // when `!giveIng&&!giveCoins` — bots have always declined this state cleanly; canOffer brings the
+  // human path to the same rule (rule 13, bot/human parity), not a new behaviour.
+  const canOffer=p.coins>0||p.ing.length>0;
+  const canTrade=canOffer&&appState.game.players.some(q=>q!==p&&!q.done&&q.ing.length>0);
   const opts=[];
   // F5 (Wyatt-approved 2026-07-29), his own example: *"In the 'Dock at Full Cream Folly' the icon
   // should go directly in front of the island name — 'Dock at 🥛 Full Cream Folly'"*. The icon used
@@ -1828,8 +1850,10 @@ export async function humanAct(p,sailCtx){
     opts.push({label:`⚔️ Attack${appState.game.cfg.powder?` <span class="nobrk">−${appState.game.cfg.powder}🌕</span>`:""}`,value:"attack",disabled:!canAfford||!attackable.length,
       why:!canAfford?`Ye can't afford the powder — ${appState.game.cfg.powder}🌕 a broadside, and yer purse won't stretch.`
         :`Their holds are empty — there's nothin' aboard worth takin'.`});
+  // @copy adhoc.why.nothingtotrade
   opts.push({label:"🤝 Trade",value:"trade",disabled:!canTrade,
-    why:`Not a captain on the water is carryin' cargo to trade for.`});
+    why:!canOffer?`Ye've nothin' to trade — an empty hold and an empty purse.`
+      :`Not a captain on the water is carryin' cargo to trade for.`});
   // v2.1: dead under the bake-off, and gated EXPLICITLY rather than left to be dead by accident.
   // The bake-off lights the ovens from the turn loop the moment a full recipe reaches Tortuga, so
   // this button can never be the thing that starts a bakery — offering it would promise a finish
@@ -1920,7 +1944,11 @@ export async function humanAct(p,sailCtx){
   let sub=null;
   if(targets.length&&!canAfford)sub=`Yer too poor to afford powder — ye need ${appState.game.cfg.powder}🌕 to fire.`;
   if(targets.length&&canAfford&&!attackable.length)sub=[sub,`Their holds are empty — nothin' to plunder.`].filter(Boolean).join(" ");
-  if(!canTrade)sub=[sub,`No one's holding cargo to trade for yet.`].filter(Boolean).join(" ");
+  // independent conditions, independent `if`s (same lesson as Attack, two lines up): canOffer and
+  // "does anyone else hold cargo" are unrelated facts, so a broke captain's own reason must never
+  // be silently swallowed by the other one firing first.
+  if(!canOffer)sub=[sub,`Ye've nothin' to trade — an empty hold and an empty purse.`].filter(Boolean).join(" ");
+  else if(!canTrade)sub=[sub,`No one's holding cargo to trade for yet.`].filter(Boolean).join(" ");
   if(!sub&&targets.length)sub=`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Firing downwind wins ties!`;
   // v2 rule 2: sailing is free, so an empty purse never stops the crew — the old broke-captain
   // reframing of this prompt is gone with it.
@@ -1984,7 +2012,14 @@ export async function humanAct(p,sailCtx){
     await netHandlers().onAsyncBattle(p,t);
     await narrateLastEvent();
   }
-  else if(v==="trade"){const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;}
+  else if(v==="trade"){
+    // #5d: safety net, same shape as Attack's own two lines up — the button is disabled when P
+    // has nothing to offer or no one else holds cargo, but guard the action too (e.g. a
+    // forced/edge selection) so we never enter a trade P cannot possibly complete.
+    // @copy adhoc.act.notrade
+    if(!canTrade){await flash(`${pn(p.idx)} can't trade.`,1400,undefined,[{seat:p.idx,html:`Ye can't trade — nothin' to offer, or no cargo on the water.`}]);await humanAct(p,sailCtx);return;}
+    const done=await humanTrade(p);if(!done){await humanAct(p,sailCtx);}return;
+  }
 }
 export async function humanTurn(p){
   applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers — see its note in util.js (02.15-01 Stage 2)
