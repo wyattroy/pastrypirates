@@ -561,6 +561,9 @@ Plans:
   the petal pulse, the Dock label, the wind pill, the crate cue). **A new list, not his twenty-two**
   — item numbers here are his afternoon numbering, recorded in
   `.planning/HANDOFF-2026-08-21-afternoon.md`, and do not renumber his original twenty-two.
+  **Also carries the recipe card — item 9 of his TWENTY-TWO (D-35, option C with his two changes)**,
+  which moved here because he ruled on it after 02.2-06 was written. PAR-13 stays with 02.2-06.
+  **Sequenced after D-31: starts only once `u` is live on `origin/main` and `4/` is clean.**
 
 ---
 
