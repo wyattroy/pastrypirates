@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21c";
+const PP4_STAMP = "2026-08-21d";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1897,6 +1897,15 @@ function promptTick(){
     if (msg){
       const mw = Math.min(msg.offsetWidth || 200, vwPx() - 20);
       msg.style.position = "fixed";
+      /* THE ASK PILL MUST FIT THE SCREEN, NOT JUST BE AIMED AT IT. `mw` was clamped to
+         `vwPx() - 20` and then used only to CHOOSE a left edge — the element itself kept its
+         natural width, so a long ask on a phone stayed wider than the screen and ran off the right
+         edge, cutting the first line mid-word. The vision judge caught it in plain words on the
+         phone leg: "trade prompt text box is clipped by the right screen edge, cutting off the
+         first line mid-word ('Speckled Eggs the t...')". Capping the box makes it WRAP instead,
+         which is what the clamp was always assuming had happened. */
+      msg.style.maxWidth = (vwPx() - 20) + "px";
+      msg.style.boxSizing = "border-box";
       // playtest 15 (Wyatt: "over the course of a single turn, it doesn't move around"): the
       // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
       // same turn reuses it — only the width re-clamps so a longer ask stays on screen.
