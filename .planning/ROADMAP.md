@@ -545,13 +545,13 @@ playing)*
 **Depends on**: **Phase 02.15** (One Log, One Display Path) — which absorbed this phase's
 Group A and runs BEFORE it, on Wyatt's ruling.
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 
 - [x] 02.2-01-PLAN.md — Group Q: the one-line wins (items 13, 10, 1, 14, 7), the 20/15 reproduction, and the sketches for 8 and 9
 - [ ] 02.2-02-PLAN.md — Group A: one narration path and one director rule (items 17, 18, 19, 21, and 20/15 if Q could not reproduce them)
-- [ ] 02.2-03-PLAN.md — Group B: the faults visible on the first screen (items 2, 3, 5, 11, 22)
+- [x] 02.2-03-PLAN.md — Group B: the faults visible on the first screen (items 2, 3, 5, 11, 22)
 - [ ] 02.2-04-PLAN.md — Group C: the bot that passes AND bakes (item 4) — **the one engine change in the phase**
 - [ ] 02.2-05-PLAN.md — Group C′: the economy, measured and reported (item 12) — **no game code changes, no stamp bump**
 - [ ] 02.2-06-PLAN.md — Group D: design and copy (items 6, 16, and 8/9 if he has picked)
@@ -1036,7 +1036,7 @@ The first phase is independent of every promotion decision and can start immedia
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
 | 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
 | **02.15 One Log, One Display Path (INSERTED)** | 0/TBD | Planning | Wyatt's architecture — the host draws from the log like everyone else. Absorbed 02.2's Group A (items 15, 17, 18, 19, 20, 21) and runs BEFORE it |
-| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 1/5 | In Progress|  |
+| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 2/5 | In Progress|  |
 | 3. The Safety Net | 0/TBD | Not started | - |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |

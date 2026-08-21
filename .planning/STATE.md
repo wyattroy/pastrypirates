@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: Completed 02.2-01-PLAN.md — audio_map_check.js built and red-proofed, item 10's ceiling literally raised but measured to be a no-op, six sketches for items 8/9 shipped, battle-swords parked, live at 2026-08-20n
-last_updated: "2026-08-21T07:16:47.154Z"
+stopped_at: "Completed 02.2-03-PLAN.md — Group B: item 11 fixed, item 22 shipped as stopgap, items 2/3/5 confirmed already correct, live at 2026-08-20p"
+last_updated: "2026-08-21T08:09:58.568Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 24
-  completed_plans: 20
+  completed_plans: 21
   percent: 33
 current_phase: 02.2
 ---
@@ -57,9 +57,18 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-Phase: **02.2 (a-captain-who-cannot-take-their-turn), plan 01 EXECUTED, live as build `2026-08-20o`.**
-`02.2-01-SUMMARY.md` has the full account. PAR-08 is complete. Not yet done:
-`battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans 02.2-02..06.
+Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01 and 03 EXECUTED, live as build
+`2026-08-20p`.** `02.2-01-SUMMARY.md` and `02.2-03-SUMMARY.md` have the full accounts. PAR-08 and
+PAR-10 are complete. **02.2-03 (Group B — the first-screen faults) measured items 2, 3 and 5 and
+found none of them reproduce** (each already covered by an earlier commit — 2275d71 for item 2,
+fcdcf34 for item 3, and item 5's stage flag was already set by the caller one line before the plan's
+own diagnosis looked) **— item 11 was the one real defect**, and is fixed: `panel.js`'s existing
+`pendingReveal` gate (already wired to `stageSettled()`, camera+ship) now covers the WHOLE popup, not
+just its buttons, at both sites that were showing it early. **Item 22 shipped as an explicitly
+reversible desktop stopgap** (D-18) — `body.pp4Stage` capped to a phone-width column via a CSS
+`transform` containing-block trick, plus three `vw`/`vh`→`%` conversions the trick alone could not
+reach. Not yet done: `battle-swords`'s re-export, Wyatt's pick from the item 8/9 sketches, and plans
+02.2-04..06 (Groups C, C′, D).
 
 **ITEM 10 — MEASURED INERT, THEN RELOCATED AND FIXED. Read before touching narration pacing
 again.** The literal D-10 edit (`stage.js`'s outer ceiling 6750→8775) shipped first exactly as
@@ -319,6 +328,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.15 P01 | 1 session | 7 tasks | 7 files |
 | Phase 02.15 P02 | overnight session | 3 landed, 2 parked/skipped, 2 QA/docs tasks | 8 files |
 | Phase 02.2 P01 | 50min | 3 tasks | 10 files |
+| Phase 02.2 P03 | ~5h | 5 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -395,6 +405,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 02.2-01: battle-swords.mp3 is a shared asset across the live root game, /v2, /v2bakeoff, /3 and /4 (confirmed by grep) — parked rather than re-exported, since editing it touches the live game and no session can judge whether a re-export sounds right
 - [Phase ?]: 02.2-01: notes/ is gitignored repo-wide; the two sketch folders (items 8/9) were force-added (git add -f) rather than editing .gitignore, keeping Wyatt's private notes files un-pushed while publishing exactly the two folders needed at a real URL
 - [Phase ?]: 02.2-01: item 10 relocated to the lever that actually binds (msgHoldMs's own HOLD_CEILING_MS, scoped via an optional parameter) after the literal stage.js edit was measured live to be a no-op; resolved from D-10's own ruling on the quantity, not the plan's wrong line-number diagnosis. PAR-08 complete.
+- [Phase ?]: 02.2-03: items 2, 3 and 5 measured NOT to reproduce (each already covered by a pre-existing commit); item 11 genuinely fixed by extending panel.js's pendingReveal gate to the whole popup, not just its buttons; item 22 shipped as a reversible desktop stopgap via a body-transform containing-block trick. PAR-10 complete.
 
 ### Pending Todos
 
@@ -483,8 +494,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-21T07:05:00.000Z
-Stopped at: Completed 02.2-01-PLAN.md — Group Q's remaining items shipped, item 10 measured inert, sketches ready for Wyatt's pick, live at 2026-08-20n
+Last session: 2026-08-21T08:09:58.560Z
+Stopped at: Completed 02.2-03-PLAN.md — Group B: item 11 fixed, item 22 shipped as stopgap, items 2/3/5 confirmed already correct, live at 2026-08-20p
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
