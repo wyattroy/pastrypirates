@@ -1,0 +1,275 @@
+// stage_layout_check.mjs — THE LAYOUT GATE. Boots a solo voyage to its first sail prompt and its
+// first action menu at several window sizes, reads the RENDERED rectangles (never arithmetic of its
+// own — BOARD-RENDERING.md §7), fails on the faults a human sees at a glance, and KEEPS the
+// screenshots, stitched into one contact sheet that must be looked at before any drop is shown.
+//
+// WHY THIS EXISTS (Wyatt, 2026-08-21): "how did this get past your QA? I thought I told you to QA
+// everything in browser, with a mouse, by looking at the pixels. fix your process, even if it means
+// writing a gate." The real-mouse run before it asked one question — can every button be clicked —
+// and every button could, so it said "clean" while the board was cropped to 630px, the CAPTAINS card
+// hung off the bottom of the window, every name marquee-scrolled, and a legal sail square was cut in
+// half. None of those is a click failure. All of them are rectangles. And the "four clean passes"
+// kept no screenshots, so nobody looked.
+//
+// Usage:  node 4/scripts/stage_layout_check.mjs [--sizes=390x844,960x1080,1400x900,1890x960,1920x1080]
+//                                               [--out=DIR] [--port=N] [--dbg=N] [--parallel=2]
+// Exit 1 on any FAIL. Prints one line per check per size, then the contact sheet's path.
+// Hygiene: headless, muted, own ports, kills only its own Chrome/server (HARD-WON-LESSONS.md §8).
+import { spawn, execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
+
+const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
+const SIZES = arg("sizes", "390x844,960x1080,1400x900,1890x960,1920x1080").split(",").map(s => s.split("x").map(Number));
+const OUT = path.resolve(arg("out", path.join(process.cwd(), "layout-check-shots")));
+const PORT = +arg("port", 8720), DBG0 = +arg("dbg", 9720);
+const PAR = Math.max(1, +arg("parallel", 2));   // sizes run PAR at a time — five Chromes at once would heat his laptop; one at a time took >10 min
+const PHONE_MAX_W = 600;                       // the CSS boundary: `@media (min-width:601px)` in 4/index.html
+const REACH_MS = 150_000;                       // to reach the first sail prompt (intro + recipe pick + bots)
+fs.mkdirSync(OUT, { recursive: true });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const T0 = Date.now();
+const log = (...a) => { const s = `[${((Date.now() - T0) / 1000).toFixed(0).padStart(4)}s] ` + a.join(" "); console.log(s); fs.appendFileSync(path.join(OUT, "log.txt"), s + "\n"); };
+
+// --- one server for the whole run, a fresh port (module cache is per URL — DRIVING-THE-GAME.md §1)
+const srv = spawn("python3", ["-m", "http.server", String(PORT)], { cwd: REPO, stdio: "ignore" });
+const own = { dbg: [] };
+const killAll = () => {
+  try { srv.kill("SIGKILL"); } catch {}
+  for (const d of own.dbg) { try { execSync(`pkill -f "remote-debugging-port=${d}"`, { stdio: "ignore" }); } catch {} }
+  try { execSync(`pkill -f "http.server ${PORT}"`, { stdio: "ignore" }); } catch {}
+};
+process.on("exit", killAll); for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => { killAll(); process.exit(1); });   // a timed-out caller sends SIGTERM, which skips "exit" handlers
+await sleep(800);
+
+// --- CDP plumbing ---------------------------------------------------------------------------
+async function openChrome(W, H, dbg) {
+  const profile = path.join(OUT, `profile-${W}x${H}`); fs.rmSync(profile, { recursive: true, force: true });
+  const args = [...LINUX_ARGS, "--headless=new", "--mute-audio", `--remote-debugging-port=${dbg}`, `--user-data-dir=${profile}`,
+    "--no-first-run", "--no-default-browser-check", `--window-size=${W},${H}`, "--autoplay-policy=no-user-gesture-required", "about:blank"];
+  const proc = spawn(CHROME, args, { stdio: "ignore" }); own.dbg.push(dbg);
+  let tgt; for (let i = 0; i < 30 && !tgt; i++) { try { tgt = await (await fetch(`http://127.0.0.1:${dbg}/json/new?about:blank`, { method: "PUT" })).json(); } catch { await sleep(300); } }
+  if (!tgt) throw new Error("chrome never came up on " + dbg);
+  const ws = new WebSocket(tgt.webSocketDebuggerUrl);
+  let id = 0; const pend = new Map(); const errs = [];
+  await new Promise(r => ws.onopen = r);
+  ws.onmessage = e => { const m = JSON.parse(e.data);
+    if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); }
+    if (m.method === "Runtime.exceptionThrown") errs.push("EXC " + (m.params.exceptionDetails?.exception?.description || m.params.exceptionDetails?.text || "").slice(0, 160));
+    if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") errs.push("ERR " + m.params.args.map(a => a.value ?? a.description ?? "").join(" ").slice(0, 160)); };
+  const send = (method, params = {}) => new Promise(res => { const i = ++id; pend.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
+  const ev = async expr => { const r = await send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
+    if (r.result?.exceptionDetails) return { __err: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text }; return r.result?.result?.value; };
+  await send("Page.enable"); await send("Runtime.enable");
+  await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: 1, mobile: false });
+  const shot = async file => { const r = await send("Page.captureScreenshot", { format: "png" }); fs.writeFileSync(file, Buffer.from(r.result.data, "base64")); return file; };
+  const close = () => { try { ws.close(); } catch {} try { proc.kill("SIGKILL"); } catch {} try { execSync(`pkill -f "remote-debugging-port=${dbg}"`, { stdio: "ignore" }); } catch {} };
+  return { send, ev, shot, close, errs };
+}
+
+// the same on-screen gate the real-mouse driver uses: a click is allowed only at a point that is
+// inside the viewport, inside body's column, and where elementFromPoint hits the element
+const GATE = `window.__gate = (el) => {
+  if (!el) return {ok:false, why:'no element'};
+  const r = el.getBoundingClientRect(); const b = document.body.getBoundingClientRect();
+  const cx = r.left + r.width/2, cy = r.top + r.height/2;
+  if (r.width < 4 || r.height < 4) return {ok:false, why:'zero size'};
+  if (r.left < 0 || r.top < 0 || r.right > innerWidth || r.bottom > innerHeight) return {ok:false, why:'outside viewport'};
+  if (r.left < b.left - 1 || r.right > b.right + 1) return {ok:false, why:'outside body column'};
+  const hit = document.elementFromPoint(cx, cy);
+  if (!hit || !(hit === el || el.contains(hit) || hit.contains(el))) return {ok:false, why:'occluded by '+(hit?(hit.id||hit.className||hit.tagName):'nothing')};
+  return {ok:true, x:cx, y:cy};
+};`;
+
+async function mouseClick(c, x, y) {
+  await c.send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
+  await c.send("Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 });
+  await c.send("Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", clickCount: 1 });
+}
+async function clickSel(c, selector, filterSrc = "() => true") {
+  const g = await c.ev(`(() => { const els=[...document.querySelectorAll(${JSON.stringify(selector)})].filter(${filterSrc});
+     for (const el of els) { const g = __gate(el); if (g.ok) return {ok:true, x:g.x, y:g.y, txt:(el.textContent||'').trim().slice(0,24)}; }
+     return {ok:false, n:els.length}; })()`);
+  if (g && g.ok) { await mouseClick(c, g.x, g.y); return g.txt || "?"; }
+  return null;
+}
+
+// --- boot a solo game to the first SAIL prompt (DRIVING-THE-GAME.md §3, §3c, §4a, §4b) ---------
+async function bootToSail(c) {
+  await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2200);
+  await c.ev("localStorage.clear(); 1"); await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2500);
+  await c.ev(GATE);
+  if (!await clickSel(c, "#choiceSolo")) throw new Error("solo card not clickable"); await sleep(900);
+  const ni = await c.ev("(()=>{const el=document.getElementById('nameModalInput'); if(!el) return null; const g=__gate(el); return g.ok?g:null;})()");
+  if (ni) { await c.send("Input.dispatchMouseEvent", { type: "mousePressed", x: ni.x, y: ni.y, button: "left", clickCount: 3 });
+    await c.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: ni.x, y: ni.y, button: "left", clickCount: 3 });
+    await c.send("Input.insertText", { text: "Gate" }); }
+  if (!await clickSel(c, "#btnNameConfirm")) throw new Error("name confirm not clickable");
+  const t0 = Date.now(); let started = false;
+  while (Date.now() - t0 < 25_000 && !started) { await sleep(400);
+    started = await c.ev("(async()=>{try{const m=await import('/4/src/state/index.js');window.appState=m.appState;return !!(m.appState.game&&m.appState.game.players.some(p=>p.strategy==='human'))}catch(e){return false}})()"); }
+  if (!started) throw new Error("solo game did not start");
+  // answer whatever stands between us and the sail window: the flip coin first (§4a), never Back (§4b)
+  const t1 = Date.now();
+  while (Date.now() - t1 < REACH_MS) {
+    await sleep(700); await c.ev(GATE);
+    const sail = await c.ev("document.querySelectorAll('.sailCell').length");
+    if (sail > 0) return true;
+    if (await clickSel(c, "#flipCoinWrap.active")) continue;
+    if (await clickSel(c, ".btlBtn", "b => !/back|←|‹/i.test(b.textContent)")) continue;
+    await clickSel(c, "#actionPanel .apBtn", "b => !/back|←|‹|anchor/i.test(b.textContent) && b.getAttribute('aria-disabled')!=='true'");
+  }
+  throw new Error("no sail prompt within " + REACH_MS / 1000 + "s");
+}
+// wait for the prompt's reveal gate and for the camera to stop moving — both read from the renderer
+async function settle(c) {
+  let last = "", still = 0; const t0 = Date.now();
+  while (Date.now() - t0 < 15_000) { await sleep(200);
+    const vb = await c.ev("(()=>{const s=document.getElementById('board'); const ap=document.getElementById('actionPanel'); return (s?s.getAttribute('viewBox'):'')+'|'+(ap&&ap.classList.contains('pendingReveal')?'pending':'ready');})()");
+    if (vb === last && /ready$/.test(vb)) { if (++still >= 4) return; } else still = 0;
+    last = vb; }
+}
+
+// --- THE MEASUREMENT: rectangles the renderer drew, nothing computed here ---------------------
+const MEASURE = `(() => {
+  const R = el => { if (!el) return null; const r = el.getBoundingClientRect(); return {l:r.left, t:r.top, r:r.right, b:r.bottom, w:r.width, h:r.height}; };
+  const vis = el => { const cs = getComputedStyle(el); return cs.visibility !== 'hidden' && cs.display !== 'none' && parseFloat(cs.opacity) > 0.05; };
+  const cap = document.getElementById('pp4Cap');
+  const names = [...document.querySelectorAll('.player-row .pname')].map(w => ({ text:(w.textContent||'').trim(), marquee:w.classList.contains('marquee'), inner:w.firstElementChild?w.firstElementChild.scrollWidth:0, box:w.clientWidth }));
+  const cells = [...document.querySelectorAll('.sailCell')].map(R);
+  const bubs = [...document.querySelectorAll('.pp4Bub:not(.ambient)')].filter(vis).map(b => ({ r:R(b), text:(b.textContent||'').trim().slice(0,40), tail:!!b.querySelector('.pp4Tail') }));
+  const prompt = document.getElementById('pp4Prompt');
+  const radial = !!(prompt && prompt.classList.contains('radial'));
+  const petals = [...document.querySelectorAll('#pp4Prompt .apBtn')].filter(b => vis(b) && b.getBoundingClientRect().width > 4).map(b => {
+    const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width/2, r.top + r.height/2);
+    return { r:R(b), text:(b.textContent||'').trim().slice(0,20), hit: !!(hit && (hit === b || b.contains(hit) || hit.contains(b))) }; });
+  const stampEl = document.getElementById('pp4Stamp');
+  return {
+    iw: innerWidth, ih: innerHeight, side: document.body.classList.contains('pp4Side'),
+    pp4W: getComputedStyle(document.body).getPropertyValue('--pp4W').trim(),
+    body: R(document.body), board: R(document.getElementById('boardwrap')), ribbon: R(document.getElementById('pp4Ribbon')),
+    pill: R(document.getElementById('pp4Pill')), cap: R(cap), capScroll: cap ? cap.scrollHeight : 0, capClient: cap ? cap.clientHeight : 0,
+    names, cells, bubs, radial, petals, stamp: stampEl ? stampEl.textContent : '',
+    viewBox: (document.getElementById('board')||{}).getAttribute ? document.getElementById('board').getAttribute('viewBox') : ''
+  };
+})()`;
+
+const inside = (a, b, tol = 1.5) => a && b && a.l >= b.l - tol && a.t >= b.t - tol && a.r <= b.r + tol && a.b <= b.b + tol;
+const overlap = (a, b, tol = 2) => a && b && Math.min(a.r, b.r) - Math.max(a.l, b.l) > tol && Math.min(a.b, b.b) - Math.max(a.t, b.t) > tol;
+const VP = (m) => ({ l: 0, t: 0, r: m.iw, b: m.ih });
+
+// assertions — each is one sentence a player would recognise
+function judge(m, moment) {
+  const out = []; const F = (ok, what) => out.push({ ok, what });
+  const desktop = m.iw > PHONE_MAX_W;
+  F(!!m.board && inside(m.board, VP(m)), `board box inside the window`);
+  if (m.pill && m.pill.h > 0 && m.board) F(m.board.t >= m.pill.b - 1, `board starts below the wind pill (not under it)`);
+  if (desktop && m.side) {
+    F(Math.abs(m.board.w - m.board.h) <= 2, `side-by-side: board is a square (${m.board.w|0}×${m.board.h|0})`);
+    F(m.board.b >= m.ih - 2, `side-by-side: board reaches the bottom of the window (no empty band; bottom=${m.board.b|0} of ${m.ih})`);
+    F(m.cap && m.cap.l >= m.board.r - 1, `side-by-side: captains column stands beside the board, not under it`);
+  }
+  if (desktop && !m.side && m.cap && m.board) F(m.cap.t >= m.board.b - 2, `stacked: captains card sits below the board`);
+  if (desktop) {
+    F(m.cap && inside(m.cap, VP(m)), `captains card fully inside the window (bottom=${m.cap ? m.cap.b|0 : '?'} of ${m.ih})`);
+    F(!(m.cap && m.board && overlap(m.cap, m.board)), `captains card does not cover the board`);
+    F(m.capScroll <= m.capClient + 2, `no captain row hidden behind an internal scroll (${m.capScroll} content vs ${m.capClient} visible)`);
+    const mq = m.names.filter(n => n.marquee).map(n => n.text);
+    F(mq.length === 0, `no captain name scrolling/clipped (${mq.length ? mq.join(", ") : "all fit"})`);
+    const clipped = m.names.filter(n => n.inner > n.box + 1).map(n => `${n.text} (${n.inner}px in ${n.box}px)`);
+    F(clipped.length === 0, `every captain name fits its column (${clipped.length ? clipped.join(", ") : "all fit"})`);
+  }
+  if (moment === "sail") {
+    F(m.cells.length > 0, `legal sail squares are drawn (${m.cells.length})`);
+    const cut = m.cells.filter(c => !inside(c, m.board, 2)).length;
+    F(cut === 0, `every legal sail square is fully inside the board (${cut} cropped)`);
+  }
+  for (const b of m.bubs) {
+    F(inside(b.r, VP(m)), `narration bubble "${b.text}" inside the window`);
+    const onCell = m.cells.some(c => overlap(b.r, c)); const onPetal = m.petals.some(p => overlap(b.r, p.r));
+    F(!onCell && !onPetal, `narration bubble "${b.text}" does not cover a choice (${onCell ? "on a sail square" : onPetal ? "on a button" : "clear"})`);
+  }
+  if (m.radial && m.petals.length) {
+    // on phone body is not a capped column (that CSS is desktop-only), so the window is the column
+    const off = m.petals.filter(p => !inside(p.r, VP(m)) || (desktop && !inside(p.r, m.body))).map(p => p.text);
+    F(off.length === 0, `every prompt button on screen and inside the column (${off.length ? off.join(", ") : m.petals.length + " ok"})`);
+    const piles = []; for (let i = 0; i < m.petals.length; i++) for (let j = i + 1; j < m.petals.length; j++) if (overlap(m.petals[i].r, m.petals[j].r)) piles.push(m.petals[i].text + "/" + m.petals[j].text);
+    F(piles.length === 0, `no two prompt buttons stacked on each other (${piles.length ? piles.join(", ") : "none"})`);
+    const hid = m.petals.filter(p => !p.hit).map(p => p.text);
+    F(hid.length === 0, `every prompt button is the thing under the mouse at its centre (${hid.length ? "covered: " + hid.join(", ") : "all reachable"})`);
+  }
+  return out;
+}
+
+// --- run -------------------------------------------------------------------------------------
+const report = []; let anyFail = false;
+async function runSize(i) {
+  const [W, H] = SIZES[i]; const tag = `${W}x${H}`; const rec = { tag, W, H, moments: [], errors: [] }; report[i] = rec; const t0 = Date.now();
+  let c;
+  try {
+    c = await openChrome(W, H, DBG0 + i);
+    await bootToSail(c); await settle(c);
+    let m = await c.ev(MEASURE); if (m && m.__err) throw new Error(m.__err);
+    rec.stamp = m.stamp; rec.side = m.side; rec.pp4W = m.pp4W; rec.board = m.board; rec.cap = m.cap;
+    let checks = judge(m, "sail"); let f = await c.shot(path.join(OUT, `${tag}-1-sail.png`));
+    rec.moments.push({ name: "sail prompt", shot: f, checks, m });
+    // click a legal square with the real mouse, then measure the ACTION MENU — where petals pile up
+    await c.ev(GATE);
+    const cell = await c.ev("(()=>{for (const el of document.querySelectorAll('.sailCell')){const g=__gate(el); if(g.ok) return g;} return null;})()");
+    if (cell) {
+      await mouseClick(c, cell.x, cell.y);
+      const t0 = Date.now(); let menu = 0;
+      while (Date.now() - t0 < 30_000 && menu < 2) { await sleep(500);
+        menu = await c.ev("[...document.querySelectorAll('#pp4Prompt .apBtn')].filter(b=>getComputedStyle(b).visibility!=='hidden'&&b.getBoundingClientRect().width>4).length"); }
+      await settle(c);
+      m = await c.ev(MEASURE);
+      checks = judge(m, "menu"); f = await c.shot(path.join(OUT, `${tag}-2-menu.png`));
+      rec.moments.push({ name: "action menu", shot: f, checks, m });
+    } else rec.errors.push("no clickable sail square to reach the action menu");
+    rec.errors.push(...c.errs);
+  } catch (e) {
+    rec.errors.push(String(e.message || e));
+    try { if (c) rec.moments.push({ name: "FAILED TO REACH", shot: await c.shot(path.join(OUT, `${tag}-0-stuck.png`)), checks: [{ ok: false, what: String(e.message || e) }] }); } catch {}
+  } finally { if (c) c.close(); }
+  const fails = rec.moments.flatMap(mo => mo.checks.filter(k => !k.ok));
+  if (fails.length || rec.errors.length) anyFail = true;
+  // one contiguous block per size (no awaits between these lines, so parallel sizes never interleave)
+  log(`\n== ${tag}  ${rec.side ? "SIDE-BY-SIDE" : (W > PHONE_MAX_W ? "STACKED" : "PHONE")}  --pp4W=${rec.pp4W || "-"}  ${rec.stamp || ""}  (${((Date.now() - t0) / 1000) | 0}s)`);
+  for (const mo of rec.moments) { log(`  [${mo.name}] ${path.basename(mo.shot)}`); for (const k of mo.checks) log(`    ${k.ok ? "ok  " : "FAIL"} ${k.what}`); }
+  for (const e of rec.errors) log(`    ERR  ${e}`);
+}
+{ let next = 0; await Promise.all(Array.from({ length: Math.min(PAR, SIZES.length) }, async () => { while (next < SIZES.length) await runSize(next++); })); }
+
+// --- the contact sheet: one picture to open before anything is shown to Wyatt -----------------
+// A real file on disk, loaded over file:// with RELATIVE image paths — the first version navigated
+// to a multi-megabyte data: URL, which Chrome silently refused, and screenshotted a blank page. A
+// blank sheet that looks like a rendering hiccup is exactly the reassuring-green trap this gate
+// exists to close, so the sheet now also asserts that every image actually loaded.
+const withTimeout = (pr, ms, label) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error(label + " timed out")), ms))]);
+try {
+  await withTimeout((async () => {
+  const c = await openChrome(1700, 1000, DBG0 + 50);
+  const tiles = report.flatMap(r => r.moments.map(mo => { const fails = mo.checks.filter(k => !k.ok);
+    return { cap: `${r.tag} · ${mo.name} · ${fails.length ? "FAIL ×" + fails.length : "ok"}`, fails: fails.map(k => k.what), src: path.basename(mo.shot) }; }));
+  const html = `<!doctype html><html><body style="margin:0;background:#1c2f38;color:#fff;font:13px/1.3 -apple-system,Helvetica,sans-serif"><div style="padding:14px 16px 4px;font-size:16px">stage_layout_check — ${new Date().toISOString().slice(0, 16)} — ${report[0]?.stamp || ""} — ${anyFail ? "FAILURES" : "all green"}</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:10px 16px 16px">${tiles.map(t => `<div style="background:#0f1d24;border:2px solid ${t.fails.length ? "#ff2d55" : "#27c78d"};border-radius:8px;padding:8px">
+    <div style="font-weight:bold;margin-bottom:6px">${t.cap}</div><img src="${t.src}" style="width:100%;display:block;border-radius:4px;background:#000">
+    ${t.fails.map(f => `<div style="color:#ff8fa5;margin-top:4px">✗ ${f.replace(/</g, "&lt;")}</div>`).join("")}</div>`).join("")}</div></body></html>`;
+  const htmlFile = path.join(OUT, "contact-sheet.html"); fs.writeFileSync(htmlFile, html);
+  // over HTTP, not file:// — headless Chrome blocks file:// and the navigate hangs (it did, 90s).
+  // OUT is under REPO (the server's root), so the sheet and its sibling PNGs are both reachable.
+  const rel = path.relative(REPO, htmlFile).split(path.sep).join("/");
+  await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/${rel}` }); await sleep(800);
+  const loaded = await c.ev("Promise.all([...document.images].map(i => i.complete ? i.naturalWidth : new Promise(r => { i.onload = () => r(i.naturalWidth); i.onerror = () => r(0); }))).then(ws => ws)");
+  const bad = Array.isArray(loaded) ? loaded.filter(w => !w).length : tiles.length;
+  const hgt = await c.ev("document.documentElement.scrollHeight");
+  await c.send("Emulation.setDeviceMetricsOverride", { width: 1700, height: Math.max(400, Math.min(hgt || 0, 16000)), deviceScaleFactor: 1, mobile: false }); await sleep(500);
+  const sheet = await c.shot(path.join(OUT, "contact-sheet.png")); c.close();
+  if (bad || !Array.isArray(loaded) || loaded.length !== tiles.length) { anyFail = true; log(`\nCONTACT SHEET INCOMPLETE: ${bad} of ${tiles.length} images failed to load — do not trust it`); }
+  log(`\nCONTACT SHEET (open it and READ it before showing anyone anything): ${sheet}  [${tiles.length} tiles, ${hgt}px tall]`);
+  })(), 90_000, "contact sheet");
+} catch (e) { log("contact sheet skipped: " + e.message + " (screenshots on disk are unaffected)"); }
+fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(report, (k, v) => k === "m" ? undefined : v, 2));
+log(anyFail ? "\nRESULT: FAIL" : "\nRESULT: PASS");
+killAll(); process.exit(anyFail ? 1 : 0);

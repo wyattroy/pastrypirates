@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20u";
+const PP4_STAMP = "2026-08-20v";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -68,7 +68,7 @@ function camTo(x, y, w, immediate){
 const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 function camFull(){ camTo(0, 0, 640); }
 function camToCell(c, zoom){
-  const w = 640 / (zoom || 1.9);
+  const w = 640 / zoomCap(zoom || 1.9);              // D-36: less zoom on a big board
   camTo((c[0] + 0.5) * cellPx() - w / 2, (c[1] + 0.5) * cellPx() - w / 2, w);
 }
 function camToSeat(i){
@@ -89,7 +89,7 @@ function camFitCells(cells, maxZoom){
   const P = CAM_FIT_PAD;
   const bw = (x1 - x0 + 1 + 2 * P) * cp, bh = (y1 - y0 + 1 + 2 * P) * cp;
   let side = Math.max(bw, bh);
-  side = Math.max(side, 640 / (maxZoom || 2.2));
+  side = Math.max(side, 640 / zoomCap(maxZoom || 2.2));   // D-36: less zoom on a big board
   side = Math.min(side, 640);
   camTo((x0 - P) * cp + bw / 2 - side / 2, (y0 - P) * cp + bh / 2 - side / 2, side);
 }
@@ -218,6 +218,42 @@ function boatUXY(i){
 // See where it is applied below for why this is a list rather than two named consts.
 const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost"];
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
+/* THE TOP BAND — where the board's top edge goes: the bottom of the ribbon, or of the wind pill
+   when that sits lower (playtest 17, Wyatt: "the wind/forecast pip covers the top of the trade
+   winds — move the board down slightly"). Measured from the rendered elements, cached ~2×/second
+   (playtest 11, a hot phone). Read by camFrame() every frame AND by computeStageGeometry() when it
+   sizes the desktop board — one measurement, so the square it derives and the strip the camera
+   paints cannot drift apart (rule 23). */
+function topBandPx(){
+  if (performance.now() - ribHAt > 500){
+    const rib = $("pp4Ribbon");
+    let topEdge = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+    const pill = $("pp4Pill");
+    if (pill){
+      const pr = pill.getBoundingClientRect();
+      if (pr.height > 0) topEdge = Math.max(topEdge, Math.ceil(pr.bottom) + 6);
+    }
+    ribHCache = topEdge;
+    ribHAt = performance.now();
+  }
+  return ribHCache;
+}
+const isSideBySide = () => typeof document !== "undefined" && document.body.classList.contains("pp4Side");
+/* D-36 — ON DESKTOP THE DIRECTOR ZOOMS IN LESS (Wyatt, 2026-08-21): "zooming is important on mobile
+   because there's so much less screen real estate. on desktop, players want/need to see more of the
+   board in order to make strategic decisions." The zoom a phone needs is the zoom that makes a cell
+   finger-sized on a ≤600px board; on a bigger board the same cell size is reached at a lower zoom,
+   so the ceiling scales DOWN with the board's own rendered width and never below 1 (no zoom at all).
+   PHONE_MAX_W is index.html's own boundary — `@media (min-width:601px)` is where desktop begins —
+   so a phone board (≤600px wide) keeps today's framing byte-for-byte. Nothing here is a new number:
+   at his 1890×960 (876px board) a 2.2 ceiling becomes 1.51; at 1920×1080 (996px) 1.33. */
+const PHONE_MAX_W = 600;
+function zoomCap(z){
+  const bw = $("boardwrap");
+  const px = bw ? bw.getBoundingClientRect().width : 0;
+  if (!(px > PHONE_MAX_W)) return z;
+  return Math.max(1, z * PHONE_MAX_W / px);
+}
 // TEST-01: guarded because there is no browser global to bind to under Node, and a bare
 // `addEventListener(` at module scope threw a ReferenceError the instant anything imported this
 // file — the largest module in the new game at 1,545 lines, and the one every 4/ gate has to be
@@ -240,22 +276,16 @@ function camFrame(){
   // never hide under DAY + the captain circles) down to the captains box, which is always
   // visible. When the zoomed-out board leaves blank water, the captains box rises to meet it.
   const wrap = $("boardwrap"), cap = $("pp4Cap");
-  const rib = $("pp4Ribbon");
-  if (performance.now() - ribHAt > 500){
-    let topEdge = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
-    // playtest 17 (Wyatt: "the wind/forecast pip covers the top of the trade winds — move the
-    // board down slightly"): the wind pill floats just under the ribbon, so the stage strip now
-    // starts below whichever is lower — the board's top row of chevrons clears the pill.
-    const pill = $("pp4Pill");
-    if (pill){
-      const pr = pill.getBoundingClientRect();
-      if (pr.height > 0) topEdge = Math.max(topEdge, Math.ceil(pr.bottom) + 6);
-    }
-    ribHCache = topEdge;
-    ribHAt = performance.now();
-  }
-  const ribH = ribHCache;
-  const CAP_BASE = Math.min(250, Math.round(vhPx() * 0.30));
+  const ribH = topBandPx();
+  /* D-31 REOPENED (2026-08-21, Wyatt's two screenshots — Safari and Chrome, identical): this
+     function kept running the PHONE layout's arithmetic in side-by-side mode — reserving CAP_BASE
+     under the board for a captains card that D-31 had already moved BESIDE it, and writing the
+     card's `top` inline every frame, which beats the column's own CSS by the cascade. Result: a
+     960×630 board with 250px of empty teal under it and the card hanging off the bottom of the
+     window. ONE decision (computeStageGeometry's `pp4Side` class) is now read here too, so the
+     two can no longer disagree: beside the board means no reservation and no inline `top`. */
+  const side = isSideBySide();
+  const CAP_BASE = side ? 0 : Math.min(250, Math.round(vhPx() * 0.30));
   const availH = Math.max(200, vhPx() - ribH - CAP_BASE);
   if (wrap){
     if (Math.abs((parseFloat(wrap.style.top) || 0) - ribH) > 1) wrap.style.top = ribH + "px";
@@ -268,8 +298,12 @@ function camFrame(){
   let vy = cy - h / 2;
   vy = Math.max(0, Math.min(640 - h, vy));
   S.vh = h; S.vy = vy;
-  // rendered board bottom (meet, width-limited when h is clamped): captains rise to meet it
-  if (cap){
+  // rendered board bottom (meet, width-limited when h is clamped): captains rise to meet it —
+  // STACKED/PHONE ONLY. Beside the board (D-31 side-by-side) the column's CSS owns `top`/`bottom`,
+  // and a stale inline `top` from a window that was resized DOWN then UP must be cleared, not left.
+  if (cap && side){
+    if (cap.style.top) cap.style.removeProperty("top");
+  } else if (cap){
     const scale = vwPx() / c.w;
     const boardBottom = ribH + Math.min(availH, h * scale);
     const top = Math.round(Math.min(ribH + availH, boardBottom));
@@ -1312,12 +1346,23 @@ function measureCapNaturalWidth(){
   // between an explicit `top:0` and a STILL-ACTIVE `bottom:0` stretches to fill the viewport
   // instead of reporting content height — see that function's own note for the measured proof.
   // `right:auto` costs nothing here and matches the height fix for symmetry.
+  // D-31 REOPENED (2026-08-21, measured): #captainsPanel is `container-type: inline-size`
+  // (index.html:122, for the chips' container query) — and inline-size CONTAINMENT makes an
+  // element's intrinsic width ignore its own contents (CSS Containment spec), so `width:max-content`
+  // here measured padding and nothing else, and this function could only ever return its 220px
+  // floor. Every name then "fit" a ~55px column by marquee-scrolling — Wyatt's "avy Sco / ough Ho".
+  // `.pp4Measuring` (index.html) lifts the containment, lets the name column grow to its text and
+  // un-clips it, for the one frame this measures. The ceiling is derived from the window, not typed:
+  // the column may take up to 30% of the width it shares with the board.
   const cap = $("pp4Cap"); if (!cap) return 0;
   const save = cap.getAttribute("style") || "";
+  const iw = document.documentElement.clientWidth || window.innerWidth;
+  cap.classList.add("pp4Measuring");
   cap.style.cssText = "position:fixed;visibility:hidden;left:-9999px;top:0;right:auto;bottom:auto;" +
-    "width:max-content;max-width:420px;height:auto;max-height:none;";
+    `width:max-content;max-width:${Math.round(iw * 0.30)}px;height:auto;max-height:none;`;
   void cap.getBoundingClientRect();   // force layout before reading it back — see BOARD-RENDERING.md §6
   const w = Math.ceil(cap.getBoundingClientRect().width);
+  cap.classList.remove("pp4Measuring");
   cap.setAttribute("style", save);
   return Math.max(220, w);
 }
@@ -1358,23 +1403,33 @@ function computeStageGeometry(){
     // PHONE: the `@media(min-width:601px)` rule this feeds never matches here regardless, but
     // clear the properties anyway (see the function-header note) — D-18's byte-identical promise.
     body.classList.remove("pp4Side");
-    body.style.removeProperty("--pp4W"); body.style.removeProperty("--pp4CapColW");
+    body.style.removeProperty("--pp4W"); body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
     if (cap) cap.style.removeProperty("max-height");
     refreshNameMarquees();   // the column just widened back to full — drop any stale scroll
     return;
   }
   const capColW = measureCapNaturalWidth();
-  // The board's own full-height square side. No ribbon-height subtraction: the ribbon OVERLAYS the
-  // board's top edge (z-index, buildStage()) rather than displacing it — exactly as it already does
-  // on phone, where body's height is likewise the full viewport, not viewport-minus-ribbon.
-  const boardSideFull = Math.max(240, ih);
-  if (iw >= boardSideFull + capColW){
-    // SIDE-BY-SIDE (Wyatt's "full desktop"): the board takes the whole height; the captains column
-    // sits beside it, sized to its own measured content, never wider than it needs to be.
+  // The board's own full-height square side — the height UNDER the ribbon/wind-pill band. The
+  // original D-31 note said "no ribbon-height subtraction: the ribbon overlays the board", and the
+  // measurement said otherwise: camFrame() has always started the board strip BELOW the band
+  // (playtest 4/17), so a square of the full height was 84px too tall for the strip it was given
+  // and the camera cropped it. Same measurement camFrame uses (topBandPx), so they agree by
+  // construction.
+  const topBand = topBandPx();
+  const boardSideFull = Math.max(240, ih - topBand);
+  const capGap = parseFloat(getComputedStyle(body).getPropertyValue("--pp4CapGap")) || 0;
+  if (iw >= boardSideFull + capGap + capColW){
+    // SIDE-BY-SIDE (Wyatt's "full desktop"): the board takes the whole height under the band; the
+    // captains column sits beside it, level with the board's top, sized to its own measured content.
     body.classList.add("pp4Side");
     body.style.setProperty("--pp4W", boardSideFull + "px");
+    body.style.setProperty("--pp4Top", topBand + "px");
     body.style.setProperty("--pp4CapColW", capColW + "px");
-    if (cap) cap.style.removeProperty("max-height");
+    // centre the PAIR, not the board: body's own `margin:0 auto` centres the board and then hangs
+    // the column off its right edge — at 1400×900 the column ran 141px past the window (measured by
+    // stage_layout_check.mjs). The left margin is what centres board+gap+column as one unit.
+    body.style.setProperty("--pp4Left", Math.max(0, Math.round((iw - boardSideFull - capGap - capColW) / 2)) + "px");
+    if (cap){ cap.style.removeProperty("max-height"); cap.style.removeProperty("top"); }
     // D-31 fix: buildPlayerRows()'s own marquee check ran (if at all) against whatever column
     // width was live BEFORE this geometry pass — usually wider, sometimes the 430px fallback —
     // so a name that fits THAT column but not this narrower derived one was never marked to
@@ -1393,7 +1448,7 @@ function computeStageGeometry(){
   // single measurement pass is an estimate, not a fixed-point solve, and the backstop is what turns
   // any remaining error into an internal scrollbar instead of a clipped top row.
   body.classList.remove("pp4Side");
-  body.style.removeProperty("--pp4CapColW");
+  body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
   const candidate = Math.max(240, Math.min(boardSideFull, iw));
   const capH = measureCapNaturalHeight(candidate);
   const boardSideStacked = Math.max(240, Math.min(candidate, ih - capH));

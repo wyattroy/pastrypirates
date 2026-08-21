@@ -1445,7 +1445,7 @@
        without this — and util.js's vwPx()/vhPx() read that same box, so a collapsed body would
        have handed every camera/layout calculation on the page a ~56px-tall "screen". */
     body.pp4Stage { max-width:var(--pp4W, 430px); min-height:100vh; margin:0 auto;
-      transform:translateZ(0); }
+      transform:translateZ(0); --pp4CapGap:14px; }   /* the gap between board and captains column — read by computeStageGeometry() too, so it is written once */
   }
   /* D-31 SIDE-BY-SIDE — computeStageGeometry() adds this class only when the window is wide
      enough, by its own derived threshold (innerWidth >= the board's full-height square side +
@@ -1458,12 +1458,35 @@
      variant undoes body's own `overflow:hidden` (present everywhere else purely to suppress page
      scroll — there is no in-flow content on the stage for it to scroll) so the column is not
      clipped to body's own narrower box now that a sibling is deliberately placed outside it. */
-  body.pp4Stage.pp4Side { overflow:visible; }
+  body.pp4Stage.pp4Side { overflow:visible; margin:0 0 0 var(--pp4Left, auto); }   /* the board+column PAIR is centred (computeStageGeometry), not the board alone */
   body.pp4Stage.pp4Side #pp4Cap {
-    left:calc(100% + 14px); right:auto; top:0; bottom:0;
+    left:calc(100% + var(--pp4CapGap)); right:auto; top:var(--pp4Top, 0px); bottom:0;
     width:var(--pp4CapColW, 300px); max-width:none;
     border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.28); overflow-y:auto;
   }
+  /* D-31 REOPENED (2026-08-21): on DESKTOP the captain name grows to fit and never scrolls — "avy
+     Sco" / "ough Hook" (a 2px marquee overflow) was the first thing Wyatt saw. The name marquee
+     exists for the PHONE, where an 18-char name (MAX_NAME_LEN) genuinely cannot fit the 106px
+     column; on desktop the card is measured wide enough for the longest name, so the name track
+     grows to its content and `overflow:visible` lets a sub-pixel rounding overhang show rather than
+     trip the scroll. refreshNameMarquees() (util.js) skips the marquee entirely above 600px to
+     match. Scoped to `min-width:601px` — index.html's own desktop boundary — so the phone is
+     byte-identical (D-18/D-31). */
+  @media (min-width: 601px) {
+    body.pp4Stage .prowTop { grid-template-columns:minmax(106px, max-content) 40px 1fr; }
+    /* overflow:visible + a real gap to the coins: the name track is max-content, and a sub-pixel
+       rounding left the glyph box ~2px wider than the track (Dough Hook "83px in 81px"), so the
+       last letter kissed the coin. padding-right makes the box always exceed the text AND reads as
+       a deliberate gap. box-sizing:border-box so the padding is inside the measured column. */
+    body.pp4Stage .player-row .pname { overflow:visible; padding-right:6px; box-sizing:border-box; }
+  }
+  /* While computeStageGeometry() measures the card's natural width (stage.js measureCapNaturalWidth):
+     lift #captainsPanel's inline-size containment — which makes its intrinsic width ignore its own
+     content, so `max-content` measured padding and the card always got its 220px floor — and let
+     each name report its full text width. One hidden frame, never seen. */
+  #pp4Cap.pp4Measuring #captainsPanel { container-type:normal; }
+  #pp4Cap.pp4Measuring .prowTop { grid-template-columns:max-content 40px max-content; }
+  #pp4Cap.pp4Measuring .pname { overflow:visible; }
   body.pp4Stage #layout, body.pp4Stage #left { display:block; }
   /* THE BOARD STRIP CLIPS ITS OWN LAYERS — playtest 22 (Wyatt: "the trade winds are not occluded
      by the board area"), a chevron of the current sitting on the wind/forecast pill above the sea.

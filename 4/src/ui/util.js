@@ -175,9 +175,15 @@ export function buildPlayerRows(){
 // overflows it scrolls instead of blowing out the layout or truncating unreadably
 export function refreshNameMarquees(){
   const $=id=>document.getElementById(id);
+  // DESKTOP (>600px): the name column grows to fit (index.html @media min-width:601px), so a name
+  // NEVER needs to scroll — and a 2px rounding overhang would otherwise trip the marquee and scroll
+  // the first letter off ("ough Hook", Wyatt 2026-08-21). The marquee is a PHONE affordance, where
+  // an 18-char name genuinely cannot fit the fixed 106px column. Clear any stale scroll and stop.
+  const desktop=(document.documentElement.clientWidth||window.innerWidth)>600;
   for(const i of seatDisplayOrder()){
     const wrap=$("pname"+i),inner=wrap&&wrap.firstElementChild;
     if(!wrap||!inner)continue;
+    if(desktop){ if(wrap.classList.contains("marquee")){wrap.classList.remove("marquee");wrap.style.removeProperty("--scrollDist");} continue; }
     const overflow=inner.scrollWidth-wrap.clientWidth;
     if(overflow>0){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
     // a column that GREW (side-by-side vs stacked, or a live resize) can un-clip a name that used
