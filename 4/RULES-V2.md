@@ -54,7 +54,8 @@ Every line below is Wyatt's answer to a clarifying question, 2026-08-04.
   Read once per game and carried in the solo save, so a resumed voyage replays the same sightings
   it showed live. Bots walk their own derived offsets and never touch your cursor.
 
-- Coins enter play only via dock flips (6 or 2) and correct battle calls (+2). Intentionally tight.
+- Coins enter play only via dock flips (3 or 1, D-30 2026-08-21 — was 5 or 2) and correct battle
+  calls (+2). Intentionally tight.
 - Fish art and the `fishing` sfx stay on disk in the shared assets; v2 just stops referencing them.
 
 ## 4. Table-wide open trade
@@ -183,10 +184,12 @@ ever shows everyone parking against land, the lever is storm distance or frequen
 
 ## 10. Docking
 
-- Flip: **heads = 6🌕** treasure found; **tails = 2🌕** working as a dockhand.
+- Flip: **heads = 3🌕** treasure found; **tails = 1🌕** working as a dockhand. (D-30, 2026-08-21:
+  was 5/2, then 6/2 before that — see `4/src/engine/index.js` `dockHeads`/`dockTails` for the
+  shipping numbers; this doc is descriptive, not authoritative — the cfg field is.)
 - **No free crate on heads.** Crates come only from buying, battle, or trade.
 - After **either** outcome you may buy a crate, **on the same turn**, with the coins just earned.
-- An empty island still pays 6/2 — there is simply nothing to buy.
+- An empty island still pays 3/1 — there is simply nothing to buy.
 - You may stay in the berth and re-flip each turn (v1's current `unlimitedDock` behaviour).
 
 ## 11. Crate prices

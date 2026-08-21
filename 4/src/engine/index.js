@@ -3046,7 +3046,7 @@ function roundCfg(strategies){
     // income. What mattered is the last column: a captain reaching the ovens with 6 coins can buy
     // six looks at the same three swaps, which stops being a memory test. 5 halves that to three
     // looks while leaving the midgame able to fund itself. The peek price is deliberately untouched.
-    dockHeads:5,dockTails:2,crateBase:6,
+    dockHeads:3,dockTails:1,crateBase:6,
     // RULE-01: what a pass pays. A FIELD rather than a number written into the method, for the
     // reason every other amount on this object is one — nothing here is a constant, the game shifts
     // under it, and three copies of an amount that must move together is how the interface ends up
