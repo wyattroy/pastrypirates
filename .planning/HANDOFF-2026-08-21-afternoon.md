@@ -1,8 +1,7 @@
 # Handoff — 2026-08-21 afternoon (written so Wyatt can clear a very long session)
 
 **Read first:** `.claude/CLAUDE.md`, `docs/HARD-WON-LESSONS.md` (the 2026-08-21 entry), then this file.
-**Live build when this was written:** `PP4_STAMP` **`2026-08-20t`** (desktop coordinate fix `s` + end-of-
-voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed since — check `git log`.
+**Live build:** `PP4_STAMP` **`2026-08-20u`** (772c9c0) — desktop layout D-31 SHIPPED and verified at 390/960/1400/1920 by real-mouse QA (two bugs caught by the gate and fixed: stale name-scroll on resize; a 960×1080 CSS measurement that crushed the board and stacked trade buttons). **NEXT ACTION for the fresh session: execute 02.2-07 (Group E) — its precondition (u live, tree clean) is now met.**
 
 ## What happened today, in one screen
 
@@ -27,7 +26,7 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
 
 ## PAUSED by Wyatt at ~15:00 — state of the two runs that were stopped mid-flight
 
-- **D-31 desktop layout — NOT shipped.** Its uncommitted edits to `4/index.html` and `4/src/ui/stage.js` are in
+- **D-31 desktop layout — SHIPPED as `u` (772c9c0), stash dropped.** *(history:)* its uncommitted edits to `4/index.html` and `4/src/ui/stage.js` are in
   `git stash` as **`d31-desktop-layout-wip-2026-08-21`** (`git stash list`). It had reached "running the four
   mouse-QA passes + non-browser gates" — i.e. the layout was built but UNVERIFIED. Next session: `git stash
   pop`, read the diff against D-31's picks, then run the gate it was given (mouse-QA at 390/960/1400/1920 +
