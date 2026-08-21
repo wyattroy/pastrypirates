@@ -4,8 +4,8 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "Completed 02.2-05-PLAN.md — Group C': the economy MEASURED (item 12, D-17), no game code changed, no stamp bumped — Wyatt asked to pick"
-last_updated: "2026-08-21T09:00:00.000Z"
+stopped_at: "Completed quick task 260821-aig: economy matrix re-run on the dock-flip lever + locked-out metric + 3 alternatives"
+last_updated: "2026-08-21T11:47:16.493Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
@@ -516,6 +516,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260818-vot | Pass payout in config, shown on the Pass button | 2026-08-18 | 831abd2 | [260818-vot-pass-payout-in-config](./quick/260818-vot-pass-payout-in-config/) |
+| 260821-aig | Corrected economy matrix: dock-flip lever + locked-out-captain metric + 3 alternatives | 2026-08-21 | c6b4688 | [260821-aig-re-run-02-2-05-economy-matrix-with-dock-](./quick/260821-aig-re-run-02-2-05-economy-matrix-with-dock-/) |
 
 ### Roadmap Evolution
 
@@ -535,8 +536,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-21T08:33:12.022Z
-Stopped at: Completed 02.2-04-PLAN.md — Group C: item 4 fixed at both bot fallback sites, bot_bake_pass_check.js red-proofed, live at 2026-08-20q
+Last session: 2026-08-21T11:47:16.472Z
+Stopped at: Completed quick task 260821-aig: economy matrix re-run on the dock-flip lever + locked-out metric + 3 alternatives
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
