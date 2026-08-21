@@ -55,9 +55,19 @@ process.on("exit", () => { try { SRV.kill("SIGKILL"); } catch {} });
 await sleep(900);
 
 // ---------- boot flows (from docs/DRIVING-THE-GAME.md §3/§3b/§5c — the documented ways in) -------
-async function freshPage(c) {
+/* THE GATE'S GAMES ARE STAMPED SO REAL PLAYER DATA CAN BE READ WITHOUT THEM (Wyatt, 2026-08-21).
+   A finished game writes a permanent, undeletable row to the shared `gamelogs/` node, and that
+   payload records `names` (what each player typed) and `pid` (the browser's stored player id) —
+   verified in orchestrator.js writeGameLog(). His plan is to name the players test1/test2 so the
+   rows filter out of any later analysis; this pins the id too, so there are TWO independent
+   handles and a real player who happens to type "test1" is never mistaken for the harness.
+   Nothing in the game reads gamelogs back, so these rows cannot affect what any player sees. */
+const QA_PLAYER_ID = "qa-playtest-gate";
+async function freshPage(c, idSuffix = "a") {
   await c.nav(`http://127.0.0.1:${c.httpPort}/4/`); await sleep(2200);
-  await c.ev("localStorage.clear(); 1");
+  // each browser needs its OWN id or the second one rejoins as the first's seat (§5c) — the shared
+  // prefix is what makes both filterable, the suffix is what keeps them distinct captains.
+  await c.ev(`localStorage.clear(); localStorage.setItem('pp_id', ${JSON.stringify(QA_PLAYER_ID)} + '-' + ${JSON.stringify(idSuffix)}); 1`);
   await c.nav(`http://127.0.0.1:${c.httpPort}/4/`); await sleep(2600);
   await c.ev(GATE_SRC);
 }
@@ -72,12 +82,12 @@ async function nameModal(c, name) {
   await c.clickXY(b.x, b.y);
 }
 async function bootSolo(c, name) {
-  await freshPage(c);
+  await freshPage(c, "solo");
   const g = await c.ev(`__gate(document.getElementById('choiceSolo'))`); if (!g || !g.ok) throw new Error("solo card not clickable");
   await c.clickXY(g.x, g.y); await nameModal(c, name);
 }
 async function bootPassPlay(c, names) {
-  await freshPage(c);
+  await freshPage(c, "pp");
   const g = await c.ev(`__gate(document.getElementById('choicePassPlay'))`); if (!g || !g.ok) throw new Error("pass&play card not clickable");
   await c.clickXY(g.x, g.y); await nameModal(c, names[0]); await sleep(700);
   await c.ev(`(() => { const v = ${JSON.stringify(names)}; for (let i = 0; i < 4; i++) { const el = document.getElementById('ppName' + i); if (el) el.value = v[i] || ''; } return 1; })()`);
@@ -85,7 +95,7 @@ async function bootPassPlay(c, names) {
   await c.clickXY(s.x, s.y);
 }
 async function bootHost(c, name) {
-  await freshPage(c);
+  await freshPage(c, "host");
   const g = await c.ev(`__gate(document.getElementById('choiceHost'))`); if (!g || !g.ok) throw new Error("host card not clickable");
   await c.clickXY(g.x, g.y); await nameModal(c, name);
   // UI-05: hosting creates the room outright; wait for the 4-letter code
@@ -96,7 +106,7 @@ async function bootHost(c, name) {
   throw new Error("room code never appeared: " + JSON.stringify(code));
 }
 async function bootJoin(c, name, code) {
-  await freshPage(c);
+  await freshPage(c, "guest");
   const g = await c.ev(`__gate(document.getElementById('choiceJoin'))`); if (!g || !g.ok) throw new Error("join card not clickable");
   await c.clickXY(g.x, g.y); await nameModal(c, name); await sleep(700);
   await c.ev(`(() => { const jc = document.getElementById('joinCode'); if (jc) jc.value = ${JSON.stringify(code)};

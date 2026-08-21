@@ -33,7 +33,8 @@ export const MEASURE = `(() => {
   const textSel = '.pname, .apMsg, .pp4Bub:not(.ambient), .prowRecipe, .pp4CerTitle, .coins, .bkoName';
   const text = [...document.querySelectorAll(textSel)].filter(vis).map(el => {
     const inner = el.firstElementChild && getComputedStyle(el).overflow !== 'visible' ? el.firstElementChild : el;
-    return { id: mark(el), text: (el.textContent||'').trim().slice(0,30), rect: R(el), scrollW: el.scrollWidth, clientW: el.clientWidth,
+    return { id: mark(el), tag: (el.className||'').toString().slice(0,30), isAsk: el.classList.contains('apMsg'),
+      text: (el.textContent||'').trim().slice(0,30), rect: R(el), scrollW: el.scrollWidth, clientW: el.clientWidth,
       // the chain of ids from this node up, so a control INSIDE a text block (or vice versa) is
       // never mistaken for one covering the other
       chain: (() => { const out = []; let n = el; while (n && n !== document.body) { if (n.__qaId) out.push(n.__qaId); n = n.parentElement; } return out; })(),
@@ -77,17 +78,35 @@ export function structuralChecks(m) {
   const clip = m.text.filter(t => t.innerScrollW > t.clientW + 3).map(t => `"${t.text}" (${t.innerScrollW}>${t.clientW})`);
   F(clip.length === 0, "no-clip", clip.length ? `text clipped by its box: ${clip.slice(0,5).join(", ")}` : "no clipped text");
 
-  // 6. NOTHING YOU MUST CLICK MAY COVER SOMETHING YOU MUST READ. Buttons drawn over the message
-  //    that explains them is the same family as piled buttons — the game is asking a question whose
-  //    text the player cannot finish reading. Ancestor/descendant pairs are excluded (a recipe card
-  //    IS a button that contains its own text), so only genuinely unrelated overlaps are flagged.
+  // 6. NOTHING MAY COVER A SAIL SQUARE — D-38, Wyatt 2026-08-21: "I think my preference would be to
+  //    always keep the prompt and buttons closer to the boat, even if they start to block some of
+  //    the board elements. One exception to this rule is for sailing squares, which you have to
+  //    click and you cannot click them if they are covered by something."
+  //    So covering the BOARD is sanctioned (holding the sea makes prompts transparent, so nothing
+  //    is truly lost) and this gate must NOT flag it. What is never acceptable is covering a
+  //    control the player has to hit. The sail squares are the case he named, and rules 2 and 3
+  //    above already carry the general form for every other control.
+  const sail = m.interactive.filter(e => /sailCell/.test(e.tag));
+  const others = m.interactive.filter(e => !/sailCell/.test(e.tag));
+  const onSail = [];
+  for (const cell of sail) {
+    if (!cell.topmost && cell.coveredBy) onSail.push(`a sail square <- ${cell.coveredBy}`);
+    for (const o of others) if (overlaps(o.rect, cell.rect, 4)) onSail.push(`"${o.text || o.tag}" over a sail square`);
+  }
+  F(onSail.length === 0, "sail-clickable", onSail.length ? `${onSail.length} sail square(s) covered: ${[...new Set(onSail)].slice(0,4).join(", ")}` : `every sail square clickable (${sail.length})`);
+
+  // 6b. A control covering the QUESTION IT ANSWERS is still a fault — D-38 sanctions covering the
+  //     board, not covering the game's own words: hold-the-sea reveals the board beneath a prompt,
+  //     it does not reveal text beneath a button. Scoped to the prompt's own message so narration
+  //     bubbles over the sea (which D-38 explicitly permits) are left alone.
+  const askText = m.text.filter(t => /apMsg/.test(t.tag || "") || t.isAsk);
   const covers = [];
-  for (const ctl of m.interactive) for (const t of m.text) {
+  for (const ctl of m.interactive) for (const t of askText) {
     if (!t.text) continue;
     if (ctl.chain && t.chain && (ctl.chain.includes(t.id) || t.chain.includes(ctl.id))) continue;   // nested — fine
     if (overlaps(ctl.rect, t.rect, 4)) covers.push(`"${ctl.text || ctl.tag}" over "${t.text}"`);
   }
-  F(covers.length === 0, "no-cover-text", covers.length ? `control covering text: ${covers.slice(0,5).join(", ")}` : "no control covers readable text");
+  F(covers.length === 0, "no-cover-ask", covers.length ? `control covering the question it answers: ${covers.slice(0,4).join(", ")}` : "the question is never covered by its own buttons");
 
   // 5. no content card is stretched far past its content (the empty-tower class). Backdrops exempt.
   const empty = m.panels.filter(p => !p.backdrop && p.content && p.rect.h > p.contentH + 90).map(p => `${p.tag} (${p.rect.h|0}px box vs ${p.contentH|0}px content)`);
