@@ -1,0 +1,983 @@
+[
+  {
+    "tag": "390x844",
+    "W": 390,
+    "H": 844,
+    "moments": [
+      {
+        "name": "opening",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/390x844-0-opening.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony sits below the ribbon, not clipped by it (top=208, ribbon bottom=45)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony is on the board (top=208, bottom=435, board 45–594)"
+          }
+        ]
+      },
+      {
+        "name": "sail prompt",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/390x844-1-sail.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "legal sail squares are drawn (5)"
+          },
+          {
+            "ok": true,
+            "what": "every legal sail square is fully inside the board (0 cropped)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (1 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      },
+      {
+        "name": "action menu",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/390x844-2-menu.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (3 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "stamp": "v4 · build 2026-08-20v",
+    "side": false,
+    "pp4W": "",
+    "board": {
+      "l": 0,
+      "t": 86,
+      "r": 390,
+      "b": 594,
+      "w": 390,
+      "h": 508
+    },
+    "cap": {
+      "l": 0,
+      "t": 594,
+      "r": 390,
+      "b": 844,
+      "w": 390,
+      "h": 250
+    }
+  },
+  {
+    "tag": "960x1080",
+    "W": 960,
+    "H": 1080,
+    "moments": [
+      {
+        "name": "opening",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/960x1080-0-opening.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "stacked: captains card sits below the board"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=1054 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (224 content vs 224 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 224px vs content 204px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony sits below the ribbon, not clipped by it (top=439, ribbon bottom=45)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony is on the board (top=439, bottom=642, board 45–830)"
+          }
+        ]
+      },
+      {
+        "name": "sail prompt",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/960x1080-1-sail.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "stacked: captains card sits below the board"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=1075 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (245 content vs 245 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 245px vs content 225px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "legal sail squares are drawn (21)"
+          },
+          {
+            "ok": true,
+            "what": "every legal sail square is fully inside the board (0 cropped)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (1 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      },
+      {
+        "name": "action menu",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/960x1080-2-menu.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "stacked: captains card sits below the board"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=1075 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (245 content vs 245 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 245px vs content 225px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (2 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "stamp": "v4 · build 2026-08-20v",
+    "side": false,
+    "pp4W": "856px",
+    "board": {
+      "l": 62.5,
+      "t": 86,
+      "r": 897.5,
+      "b": 830,
+      "w": 835,
+      "h": 744
+    },
+    "cap": {
+      "l": 62.5,
+      "t": 830,
+      "r": 897.5,
+      "b": 1075,
+      "w": 835,
+      "h": 245
+    }
+  },
+  {
+    "tag": "1400x900",
+    "W": 1400,
+    "H": 900,
+    "moments": [
+      {
+        "name": "opening",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1400x900-0-opening.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (855×855)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=900 of 900)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=269 of 900)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (224 content vs 224 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 224px vs content 204px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony sits below the ribbon, not clipped by it (top=349, ribbon bottom=45)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony is on the board (top=349, bottom=550, board 45–900)"
+          }
+        ]
+      },
+      {
+        "name": "sail prompt",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1400x900-1-sail.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (814×814)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=900 of 900)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=339 of 900)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (253 content vs 253 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 253px vs content 233px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "legal sail squares are drawn (7)"
+          },
+          {
+            "ok": true,
+            "what": "every legal sail square is fully inside the board (0 cropped)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (1 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      },
+      {
+        "name": "action menu",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1400x900-2-menu.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (814×814)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=900 of 900)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=339 of 900)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (253 content vs 253 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 253px vs content 233px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (3 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "stamp": "v4 · build 2026-08-20v",
+    "side": true,
+    "pp4W": "855px",
+    "board": {
+      "l": 136,
+      "t": 86,
+      "r": 950,
+      "b": 900,
+      "w": 814,
+      "h": 814
+    },
+    "cap": {
+      "l": 964,
+      "t": 86,
+      "r": 1264,
+      "b": 339,
+      "w": 300,
+      "h": 253
+    }
+  },
+  {
+    "tag": "1890x960",
+    "W": 1890,
+    "H": 960,
+    "moments": [
+      {
+        "name": "opening",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1890x960-0-opening.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (915×915)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=960 of 960)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=269 of 960)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (224 content vs 224 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 224px vs content 204px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony sits below the ribbon, not clipped by it (top=379, ribbon bottom=45)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony is on the board (top=379, bottom=580, board 45–960)"
+          }
+        ]
+      },
+      {
+        "name": "sail prompt",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1890x960-1-sail.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (874×874)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=960 of 960)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=339 of 960)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (253 content vs 253 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 253px vs content 233px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "legal sail squares are drawn (7)"
+          },
+          {
+            "ok": true,
+            "what": "every legal sail square is fully inside the board (0 cropped)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (1 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      },
+      {
+        "name": "action menu",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1890x960-2-menu.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (874×874)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=960 of 960)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=339 of 960)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (253 content vs 253 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 253px vs content 233px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (3 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "stamp": "v4 · build 2026-08-20v",
+    "side": true,
+    "pp4W": "915px",
+    "board": {
+      "l": 351,
+      "t": 86,
+      "r": 1225,
+      "b": 960,
+      "w": 874,
+      "h": 874
+    },
+    "cap": {
+      "l": 1239,
+      "t": 86,
+      "r": 1539,
+      "b": 339,
+      "w": 300,
+      "h": 253
+    }
+  },
+  {
+    "tag": "1920x1080",
+    "W": 1920,
+    "H": 1080,
+    "moments": [
+      {
+        "name": "opening",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1920x1080-0-opening.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (1035×1035)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=1080 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=269 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (224 content vs 224 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 224px vs content 204px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony sits below the ribbon, not clipped by it (top=439, ribbon bottom=45)"
+          },
+          {
+            "ok": true,
+            "what": "opening ceremony is on the board (top=439, bottom=642, board 45–1080)"
+          }
+        ]
+      },
+      {
+        "name": "sail prompt",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1920x1080-1-sail.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (994×994)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=1080 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=353 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (267 content vs 267 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 267px vs content 247px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "legal sail squares are drawn (20)"
+          },
+          {
+            "ok": true,
+            "what": "every legal sail square is fully inside the board (0 cropped)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (1 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      },
+      {
+        "name": "action menu",
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/shots/layout-w/1920x1080-2-menu.png",
+        "checks": [
+          {
+            "ok": true,
+            "what": "board box inside the window"
+          },
+          {
+            "ok": true,
+            "what": "board starts below the wind pill (not under it)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board is a square (994×994)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: board reaches the bottom of the window (no empty band; bottom=1080 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "side-by-side: captains column stands beside the board, not under it"
+          },
+          {
+            "ok": true,
+            "what": "captains card fully inside the window (bottom=353 of 1080)"
+          },
+          {
+            "ok": true,
+            "what": "captains card does not cover the board"
+          },
+          {
+            "ok": true,
+            "what": "no captain row hidden behind an internal scroll (267 content vs 267 visible)"
+          },
+          {
+            "ok": true,
+            "what": "captains card hugs its content — no empty tower (card 267px vs content 247px)"
+          },
+          {
+            "ok": true,
+            "what": "no captain name scrolling/clipped (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name fits its column (all fit)"
+          },
+          {
+            "ok": true,
+            "what": "every captain name clears the coin (all clear)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button on screen and inside the column (2 ok)"
+          },
+          {
+            "ok": true,
+            "what": "no two prompt buttons stacked on each other (none)"
+          },
+          {
+            "ok": true,
+            "what": "every prompt button is the thing under the mouse at its centre (all reachable)"
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "stamp": "v4 · build 2026-08-20v",
+    "side": true,
+    "pp4W": "1035px",
+    "board": {
+      "l": 306,
+      "t": 86,
+      "r": 1300,
+      "b": 1080,
+      "w": 994,
+      "h": 994
+    },
+    "cap": {
+      "l": 1314,
+      "t": 86,
+      "r": 1614,
+      "b": 353,
+      "w": 300,
+      "h": 267
+    }
+  }
+]

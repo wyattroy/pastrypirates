@@ -96,7 +96,11 @@ async function clickSel(c, selector, filterSrc = "() => true") {
 }
 
 // --- boot a solo game to the first SAIL prompt (DRIVING-THE-GAME.md §3, §3c, §4a, §4b) ---------
-async function bootToSail(c) {
+// boot to the STAGE and stop at the OPENING — the ceremony/recipe screen a player sees FIRST. The
+// gate used to drive straight past this to the sail prompt, which is exactly why the empty captains
+// tower, the clipped names and the ribbon-clipped "Arrgh" all reached Wyatt: the first screen was
+// never measured.
+async function bootToStage(c) {
   await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2200);
   await c.ev("localStorage.clear(); 1"); await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2500);
   await c.ev(GATE);
@@ -104,13 +108,20 @@ async function bootToSail(c) {
   const ni = await c.ev("(()=>{const el=document.getElementById('nameModalInput'); if(!el) return null; const g=__gate(el); return g.ok?g:null;})()");
   if (ni) { await c.send("Input.dispatchMouseEvent", { type: "mousePressed", x: ni.x, y: ni.y, button: "left", clickCount: 3 });
     await c.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: ni.x, y: ni.y, button: "left", clickCount: 3 });
-    await c.send("Input.insertText", { text: "Gate" }); }
+    await c.send("Input.insertText", { text: "Davy Scones" }); }   // a long name — the one that clipped
   if (!await clickSel(c, "#btnNameConfirm")) throw new Error("name confirm not clickable");
-  const t0 = Date.now(); let started = false;
-  while (Date.now() - t0 < 25_000 && !started) { await sleep(400);
-    started = await c.ev("(async()=>{try{const m=await import('/4/src/state/index.js');window.appState=m.appState;return !!(m.appState.game&&m.appState.game.players.some(p=>p.strategy==='human'))}catch(e){return false}})()"); }
-  if (!started) throw new Error("solo game did not start");
-  // answer whatever stands between us and the sail window: the flip coin first (§4a), never Back (§4b)
+  // wait for the stage AND the opening prompt to be up and settled (the captains rows exist, and a
+  // visible centred ceremony OR a recipe list has appeared and stopped moving)
+  const t0 = Date.now();
+  while (Date.now() - t0 < 25_000) { await sleep(400);
+    const on = await c.ev("(()=>{const cap=document.querySelector('.player-row'); const p=document.getElementById('pp4Prompt'); const vis=p&&getComputedStyle(p).display!=='none'&&p.getBoundingClientRect().width>50; return !!(cap&&vis);})()");
+    if (on) return true;
+  }
+  throw new Error("stage/opening prompt never appeared");
+}
+// from the opening, answer whatever stands between us and the sail window: flip coin first (§4a),
+// tap recipe cards to draft, never Back (§4b).
+async function driveToSail(c) {
   const t1 = Date.now();
   while (Date.now() - t1 < REACH_MS) {
     await sleep(700); await c.ev(GATE);
@@ -118,7 +129,9 @@ async function bootToSail(c) {
     if (sail > 0) return true;
     if (await clickSel(c, "#flipCoinWrap.active")) continue;
     if (await clickSel(c, ".btlBtn", "b => !/back|←|‹/i.test(b.textContent)")) continue;
-    await clickSel(c, "#actionPanel .apBtn", "b => !/back|←|‹|anchor/i.test(b.textContent) && b.getAttribute('aria-disabled')!=='true'");
+    // recipe draft (two-tap: card, then "Bake this!") and every centred/radial barrier
+    if (await clickSel(c, "#pp4Prompt .recipeCard, #pp4Prompt .bkoCard", "() => true")) { await sleep(500); }
+    await clickSel(c, "#pp4Prompt .apBtn, #actionPanel .apBtn", "b => !/back|←|‹|anchor/i.test(b.textContent) && b.getAttribute('aria-disabled')!=='true'");
   }
   throw new Error("no sail prompt within " + REACH_MS / 1000 + "s");
 }
@@ -136,7 +149,22 @@ const MEASURE = `(() => {
   const R = el => { if (!el) return null; const r = el.getBoundingClientRect(); return {l:r.left, t:r.top, r:r.right, b:r.bottom, w:r.width, h:r.height}; };
   const vis = el => { const cs = getComputedStyle(el); return cs.visibility !== 'hidden' && cs.display !== 'none' && parseFloat(cs.opacity) > 0.05; };
   const cap = document.getElementById('pp4Cap');
-  const names = [...document.querySelectorAll('.player-row .pname')].map(w => ({ text:(w.textContent||'').trim(), marquee:w.classList.contains('marquee'), inner:w.firstElementChild?w.firstElementChild.scrollWidth:0, box:w.clientWidth }));
+  // per-row: does the name's own text box run into the coin? (measured rects, not the grid track)
+  const names = [...document.querySelectorAll('.player-row')].map(row => {
+    const w = row.querySelector('.pname'), inner = w && w.firstElementChild, coin = row.querySelector('.coinsWrap, .coins');
+    const ir = inner && inner.getBoundingClientRect(), cr = coin && coin.getBoundingClientRect();
+    return { text:(w?w.textContent:'').trim(), marquee:w?w.classList.contains('marquee'):false,
+      inner:inner?inner.scrollWidth:0, box:w?w.clientWidth:0,
+      textRight: ir?ir.right:0, coinLeft: cr?cr.left:1e9 };
+  });
+  // the centred ceremony/intro (pp4Center): union box of its visible message + button, to check it
+  // is not jammed under the ribbon nor off the board (Wyatt: "the ARRGH button is the only thing visible!")
+  const cprompt = document.querySelector('#pp4Prompt.pp4Center');
+  let center = null;
+  if (cprompt && getComputedStyle(cprompt).display !== 'none') {
+    const els = [...cprompt.querySelectorAll('.apMsg, .apBtn')].filter(vis).map(R).filter(Boolean);
+    if (els.length) center = { l: Math.min(...els.map(e=>e.l)), t: Math.min(...els.map(e=>e.t)), r: Math.max(...els.map(e=>e.r)), b: Math.max(...els.map(e=>e.b)) };
+  }
   const cells = [...document.querySelectorAll('.sailCell')].map(R);
   const bubs = [...document.querySelectorAll('.pp4Bub:not(.ambient)')].filter(vis).map(b => ({ r:R(b), text:(b.textContent||'').trim().slice(0,40), tail:!!b.querySelector('.pp4Tail') }));
   const prompt = document.getElementById('pp4Prompt');
@@ -150,6 +178,7 @@ const MEASURE = `(() => {
     pp4W: getComputedStyle(document.body).getPropertyValue('--pp4W').trim(),
     body: R(document.body), board: R(document.getElementById('boardwrap')), ribbon: R(document.getElementById('pp4Ribbon')),
     pill: R(document.getElementById('pp4Pill')), cap: R(cap), capScroll: cap ? cap.scrollHeight : 0, capClient: cap ? cap.clientHeight : 0,
+    capPanel: R(document.getElementById('captainsPanel')), center,
     names, cells, bubs, radial, petals, stamp: stampEl ? stampEl.textContent : '',
     viewBox: (document.getElementById('board')||{}).getAttribute ? document.getElementById('board').getAttribute('viewBox') : ''
   };
@@ -175,10 +204,24 @@ function judge(m, moment) {
     F(m.cap && inside(m.cap, VP(m)), `captains card fully inside the window (bottom=${m.cap ? m.cap.b|0 : '?'} of ${m.ih})`);
     F(!(m.cap && m.board && overlap(m.cap, m.board)), `captains card does not cover the board`);
     F(m.capScroll <= m.capClient + 2, `no captain row hidden behind an internal scroll (${m.capScroll} content vs ${m.capClient} visible)`);
+    // THE EMPTY-TOWER CHECK (Wyatt's screenshot): the card box must hug its rows, not stretch far
+    // past them. capPanel is the header+rows; a card taller than that + padding is dead cream.
+    if (m.cap && m.capPanel) F(m.cap.h <= m.capPanel.h + 48, `captains card hugs its content — no empty tower (card ${m.cap.h|0}px vs content ${m.capPanel.h|0}px)`);
     const mq = m.names.filter(n => n.marquee).map(n => n.text);
     F(mq.length === 0, `no captain name scrolling/clipped (${mq.length ? mq.join(", ") : "all fit"})`);
     const clipped = m.names.filter(n => n.inner > n.box + 1).map(n => `${n.text} (${n.inner}px in ${n.box}px)`);
     F(clipped.length === 0, `every captain name fits its column (${clipped.length ? clipped.join(", ") : "all fit"})`);
+    // THE NAME-INTO-COIN CHECK: the name's rendered text must not reach the coin (Wyatt's "Davy Scon🪙")
+    const jam = m.names.filter(n => n.textRight > n.coinLeft + 1).map(n => `${n.text} (+${(n.textRight-n.coinLeft)|0}px)`);
+    F(jam.length === 0, `every captain name clears the coin (${jam.length ? "overlapping: " + jam.join(", ") : "all clear"})`);
+  }
+  // THE CEREMONY CHECK (the opening "Arrgh"): its message+button must sit below the ribbon (not
+  // clipped by it) and within the board — not jammed to the top edge, which is how the phone-era
+  // lift math mispositioned it in side-by-side.
+  if (m.center) {
+    const ribB = m.ribbon ? m.ribbon.b : 0;
+    F(m.center.t >= ribB - 2, `opening ceremony sits below the ribbon, not clipped by it (top=${m.center.t|0}, ribbon bottom=${ribB|0})`);
+    if (m.board) F(m.center.b <= m.board.b + 2 && m.center.t >= m.board.t - 2, `opening ceremony is on the board (top=${m.center.t|0}, bottom=${m.center.b|0}, board ${m.board.t|0}–${m.board.b|0})`);
   }
   if (moment === "sail") {
     F(m.cells.length > 0, `legal sail squares are drawn (${m.cells.length})`);
@@ -209,10 +252,18 @@ async function runSize(i) {
   let c;
   try {
     c = await openChrome(W, H, DBG0 + i);
-    await bootToSail(c); await settle(c);
+    // MOMENT 0 — the OPENING: the first screen a player sees (ceremony / recipe pick). Its blind
+    // spot is the whole reason build v's empty tower + clipped names + top-jammed Arrgh shipped.
+    await bootToStage(c); await settle(c);
     let m = await c.ev(MEASURE); if (m && m.__err) throw new Error(m.__err);
-    rec.stamp = m.stamp; rec.side = m.side; rec.pp4W = m.pp4W; rec.board = m.board; rec.cap = m.cap;
-    let checks = judge(m, "sail"); let f = await c.shot(path.join(OUT, `${tag}-1-sail.png`));
+    rec.stamp = m.stamp; rec.side = m.side; rec.pp4W = m.pp4W;
+    let checks = judge(m, "opening"); let f = await c.shot(path.join(OUT, `${tag}-0-opening.png`));
+    rec.moments.push({ name: "opening", shot: f, checks, m });
+    // MOMENT 1 — the SAIL prompt
+    await driveToSail(c); await settle(c);
+    m = await c.ev(MEASURE); if (m && m.__err) throw new Error(m.__err);
+    rec.board = m.board; rec.cap = m.cap;
+    checks = judge(m, "sail"); f = await c.shot(path.join(OUT, `${tag}-1-sail.png`));
     rec.moments.push({ name: "sail prompt", shot: f, checks, m });
     // click a legal square with the real mouse, then measure the ACTION MENU — where petals pile up
     await c.ev(GATE);
@@ -268,7 +319,7 @@ try {
   const sheet = await c.shot(path.join(OUT, "contact-sheet.png")); c.close();
   if (bad || !Array.isArray(loaded) || loaded.length !== tiles.length) { anyFail = true; log(`\nCONTACT SHEET INCOMPLETE: ${bad} of ${tiles.length} images failed to load — do not trust it`); }
   log(`\nCONTACT SHEET (open it and READ it before showing anyone anything): ${sheet}  [${tiles.length} tiles, ${hgt}px tall]`);
-  })(), 90_000, "contact sheet");
+  })(), 40_000, "contact sheet");
 } catch (e) { log("contact sheet skipped: " + e.message + " (screenshots on disk are unaffected)"); }
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(report, (k, v) => k === "m" ? undefined : v, 2));
 log(anyFail ? "\nRESULT: FAIL" : "\nRESULT: PASS");

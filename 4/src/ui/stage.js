@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20v";
+const PP4_STAMP = "2026-08-20w";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -239,6 +239,16 @@ function topBandPx(){
   return ribHCache;
 }
 const isSideBySide = () => typeof document !== "undefined" && document.body.classList.contains("pp4Side");
+/* THE DESKTOP CAPTAINS COLUMN IS A FIXED, STABLE WIDTH — not re-measured every tick. Re-measuring
+   made it (a) collapse to a 220px floor at the opening, where empty holds gave it nothing to
+   measure, squeezing every name onto its coin (Wyatt's 2026-08-21 screenshot), and (b) jitter as
+   holds filled and emptied through the voyage (rule 8, consistency). 300px comfortably holds the
+   game's widest row — a full 8-crate hold laid out on its own line (8×34px chips + 7×3px gaps ≈
+   293) — and any name up to MAX_NAME_LEN (18) in the name column above it. The card's HEIGHT still
+   hugs its content (index.html); only the width is pinned. This is a layout dimension, not a game
+   quantity, so it does not fall under "nothing is a constant" (that rule is about values that shift
+   with game state — this one must NOT shift, which is the whole point). */
+const SIDE_CAP_W = 300;
 /* D-36 — ON DESKTOP THE DIRECTOR ZOOMS IN LESS (Wyatt, 2026-08-21): "zooming is important on mobile
    because there's so much less screen real estate. on desktop, players want/need to see more of the
    board in order to make strategic decisions." The zoom a phone needs is the zoom that makes a cell
@@ -1334,38 +1344,6 @@ function buildStage(){
    there regardless — this clears the properties for exactly the same reason a stale inline style
    would otherwise sit there unused but discoverable, which is the kind of thing a future debugging
    session should never have to explain away). */
-function measureCapNaturalWidth(){
-  // Ask the RENDERER, not arithmetic (BOARD-RENDERING.md §7) — a hidden clone at `width:max-content`
-  // reports exactly what THIS voyage's own captain names/coins/holds need, this instant, bounded
-  // only by MAX_NAME_LEN (util.js) already capping how long any one name can make it.
-  // D-31 BUG (found in verification, fixed here): #pp4Cap's OWN base rule is `position:fixed;
-  // left:0; right:0; bottom:0` (index.html). This override sets `left`/`width` but never touched
-  // `right` or `bottom` — which is why `right` was harmless here (an explicit `width` wins the
-  // left/width/right over-constraint per the CSS spec, so the stale `right:0` is silently
-  // discarded) but is NOT harmless for measureCapNaturalHeight below, where `height:auto` sandwiched
-  // between an explicit `top:0` and a STILL-ACTIVE `bottom:0` stretches to fill the viewport
-  // instead of reporting content height — see that function's own note for the measured proof.
-  // `right:auto` costs nothing here and matches the height fix for symmetry.
-  // D-31 REOPENED (2026-08-21, measured): #captainsPanel is `container-type: inline-size`
-  // (index.html:122, for the chips' container query) — and inline-size CONTAINMENT makes an
-  // element's intrinsic width ignore its own contents (CSS Containment spec), so `width:max-content`
-  // here measured padding and nothing else, and this function could only ever return its 220px
-  // floor. Every name then "fit" a ~55px column by marquee-scrolling — Wyatt's "avy Sco / ough Ho".
-  // `.pp4Measuring` (index.html) lifts the containment, lets the name column grow to its text and
-  // un-clips it, for the one frame this measures. The ceiling is derived from the window, not typed:
-  // the column may take up to 30% of the width it shares with the board.
-  const cap = $("pp4Cap"); if (!cap) return 0;
-  const save = cap.getAttribute("style") || "";
-  const iw = document.documentElement.clientWidth || window.innerWidth;
-  cap.classList.add("pp4Measuring");
-  cap.style.cssText = "position:fixed;visibility:hidden;left:-9999px;top:0;right:auto;bottom:auto;" +
-    `width:max-content;max-width:${Math.round(iw * 0.30)}px;height:auto;max-height:none;`;
-  void cap.getBoundingClientRect();   // force layout before reading it back — see BOARD-RENDERING.md §6
-  const w = Math.ceil(cap.getBoundingClientRect().width);
-  cap.classList.remove("pp4Measuring");
-  cap.setAttribute("style", save);
-  return Math.max(220, w);
-}
 function measureCapNaturalHeight(widthPx){
   // D-31 BUG, FOUND BY THE VERIFICATION GATE ITSELF (not a code read): stacked mode at 960x1080
   // pinned the board to the 240px FLOOR — every derived width, unrelated to the window — and the
@@ -1408,26 +1386,25 @@ function computeStageGeometry(){
     refreshNameMarquees();   // the column just widened back to full — drop any stale scroll
     return;
   }
-  const capColW = measureCapNaturalWidth();
-  // The board's own full-height square side — the height UNDER the ribbon/wind-pill band. The
-  // original D-31 note said "no ribbon-height subtraction: the ribbon overlays the board", and the
-  // measurement said otherwise: camFrame() has always started the board strip BELOW the band
-  // (playtest 4/17), so a square of the full height was 84px too tall for the strip it was given
-  // and the camera cropped it. Same measurement camFrame uses (topBandPx), so they agree by
-  // construction.
+  // The board's own full-height square side — the height UNDER the ribbon/wind-pill band. camFrame()
+  // has always started the board strip BELOW the band (playtest 4/17), so a square of the full
+  // viewport height was too tall for the strip and the camera cropped it. topBandPx() is the same
+  // measurement camFrame uses, so the derived square and the painted strip agree by construction.
   const topBand = topBandPx();
   const boardSideFull = Math.max(240, ih - topBand);
   const capGap = parseFloat(getComputedStyle(body).getPropertyValue("--pp4CapGap")) || 0;
+  const capColW = SIDE_CAP_W;   // fixed, stable — see the constant's note
   if (iw >= boardSideFull + capGap + capColW){
     // SIDE-BY-SIDE (Wyatt's "full desktop"): the board takes the whole height under the band; the
-    // captains column sits beside it, level with the board's top, sized to its own measured content.
+    // captains column sits beside it, level with the board's top, at a fixed comfortable width and
+    // hugging its own content height (index.html).
     body.classList.add("pp4Side");
     body.style.setProperty("--pp4W", boardSideFull + "px");
     body.style.setProperty("--pp4Top", topBand + "px");
     body.style.setProperty("--pp4CapColW", capColW + "px");
     // centre the PAIR, not the board: body's own `margin:0 auto` centres the board and then hangs
-    // the column off its right edge — at 1400×900 the column ran 141px past the window (measured by
-    // stage_layout_check.mjs). The left margin is what centres board+gap+column as one unit.
+    // the column off its right edge — at 1400×900 the column ran 141px past the window. The left
+    // margin centres board+gap+column as one unit.
     body.style.setProperty("--pp4Left", Math.max(0, Math.round((iw - boardSideFull - capGap - capColW) / 2)) + "px");
     if (cap){ cap.style.removeProperty("max-height"); cap.style.removeProperty("top"); }
     // D-31 fix: buildPlayerRows()'s own marquee check ran (if at all) against whatever column
@@ -1531,7 +1508,13 @@ function enterCenterStage(){
      with align-items:center a lift of N costs 2N of bottom padding. A card that already clears the
      captains box gets no padding at all and is centred on the stage, which is the ask. */
   const cap = $("pp4Cap");
-  const capH = cap ? Math.max(0, Math.round(vhPx() - cap.getBoundingClientRect().top)) : 0;
+  // D-31 REOPENED (2026-08-21, Wyatt: "the ARRGH button is the only thing visible!"): this lift
+  // clears the captains box, which on phone/stacked sits BELOW the board — so capH is the height it
+  // eats off the bottom. In SIDE-BY-SIDE the captains box is BESIDE the board, not under it, and
+  // reading its `top` (~45px) made capH ≈ the whole viewport height, shoving the ceremony button up
+  // to the ribbon and clipping it. Beside the board there is nothing below the centre to clear, so
+  // capH is 0 and the ceremony centres on the board exactly as intended.
+  const capH = (cap && !isSideBySide()) ? Math.max(0, Math.round(vhPx() - cap.getBoundingClientRect().top)) : 0;
   const need = ap.offsetHeight || 0;
   const dip = Math.max(0, Math.round((vhPx() + need) / 2 - (vhPx() - capH)));
   const pad = dip > 0 ? Math.min(capH, dip * 2) + "px" : "";
