@@ -252,9 +252,9 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-10 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group B, plan 02.2-03 |
 | PAR-11 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C, plan 02.2-04 |
 | PAR-12 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group C′, plan 02.2-05 |
-| PAR-14 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — plan 02.15-01 |
-| PAR-15 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — plan 02.15-01 |
-| PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — plan 02.15-01 |
+| PAR-14 | **Phase 02.15 — One Log, One Display Path (inserted)** | Partial — 02.15-01 (narration + active seat converged); prompt channel is 02.15-02 |
+| PAR-15 | **Phase 02.15 — One Log, One Display Path (inserted)** | Partial — 6 of 7 divergences closed by 02.15-01; whole-game QA on three tiers is 02.15-02 |
+| PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Pending — `docs/DISPLAY-RULES.md` is written by 02.15-02 Task 2 |
 | PAR-13 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group D, plans 02.2-01 (sketches) and 02.2-06 |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
 | TEST-04 | Phase 3 — The Safety Net | Pending |

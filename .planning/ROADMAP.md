@@ -286,7 +286,7 @@ silently folded in or silently dropped, per the research's own recommendation.
 solo, host, or guest. Host and guest stop being two ways of drawing the same voyage.
 
 **Depends on**: Phase 02.1
-**Requirements**: PAR-14 … PAR-16 *(to be added to `REQUIREMENTS.md` at planning)*
+**Requirements**: PAR-14, PAR-15, PAR-16 *(minted in `REQUIREMENTS.md` 2026-08-20)*
 
 > **This is Wyatt's architecture, in his words, and the numbering is deliberate.** `02.15` sorts
 > between `02.1` and `02.2` — it lands **before** the rest of his twenty-two, which is his ruling:
@@ -426,7 +426,17 @@ and 5 conform to instead of imitating whatever the code happens to do.
 
 - Everything else on Wyatt's twenty-two — that is Phase 02.2, which follows this.
 
-**Plans**: 1/1 executed — `02.15-01-PLAN.md`, seven tasks. **Live as `PP4_STAMP` `2026-08-20b`.**
+**Plans**: 2 plans — 1 executed, 1 pending.
+
+- [x] `02.15-01-PLAN.md` — one narration path, one active seat, the parity gate re-aimed at `4/`.
+      Seven tasks. **Live as `PP4_STAMP` `2026-08-20b`.** Six of seven divergences closed.
+- [ ] `02.15-02-PLAN.md` — **THE PROMPT SEAM (the wide half)**: converge the prompt ORCHESTRATION so
+      the host draws its own prompt from the same "current prompt" a guest draws from, with only the
+      response mechanism differing. Seven tasks, one whole fork per task, tracer-first on `pickCell()`.
+
+> **The plan-02 work is NOT called "Stage 4".** Commit `b76983d` and a live code comment already use
+> that label, truthfully, for the sail-window NARROW half. Two commits claiming the same stage is the
+> exact ambiguity this phase exists to remove — `02.15-02` names its tasks by FORK instead.
 
 **Stages 1, 2 and 3 landed. Stage 4 was deliberately not attempted** — D-04's safe stop, taken at
 **six of the seven** divergences. Stage 4 is the prompt channel: it is the one that is not
