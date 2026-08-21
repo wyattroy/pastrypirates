@@ -1590,6 +1590,38 @@
   #pp4ClockRow { display:block; width:100%; font-family:inherit; font-size:13.5px; font-weight:700;
     padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
     color:#177; margin-bottom:8px; }
+  /* THE SOUND CONTROL READS LIKE ITS NEIGHBOURS. Wyatt's pick, 2026-08-20: in the ☰ menu it was a
+     bare 34×28 icon floating above a stack of full-width rows, so the one control in that list that
+     did not look like a control was the only one you might actually want mid-voyage.
+
+     Same values as #pp4ClockRow directly above, on purpose — that row is the menu's other live
+     toggle and the two now read as a pair ("Turn clock: ON — 30s a turn" / "Sound: ON"), rather
+     than one row and one orphan. Consistency is a core value; a second recipe here would be a
+     second thing to keep in step.
+
+     THE LABEL IS CSS, NOT innerHTML, AND THAT IS THE POINT. setClockUI() (src/ui/panel.js) already
+     writes the megaphone pair into this button twice a second and already writes aria-pressed to
+     carry the mute state. Adding a second writer for the words would be two sources for one fact —
+     they would drift the first time someone changed one. `content` keyed off aria-pressed means the
+     words are DERIVED from the state the button already publishes, so they cannot disagree with the
+     icon beside them.
+
+     ::after is the tap-target pseudo-element (see #btnMute::after above) — a 44×44 invisible hit
+     area that exists because the icon button is ~33px. A full-width row is already far past 44px in
+     both directions, so here it is repurposed rather than fought with: position:static returns it
+     to the flow as the label. Nothing outside the open menu is affected. */
+  body.pp4Foot #footerRow #muteSlot { display:block !important; width:100%; margin:0; }
+  body.pp4Foot #footerRow #btnMute { display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; box-sizing:border-box; font-family:inherit; font-size:13.5px; font-weight:700;
+    padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
+    color:#177; line-height:1.2; }
+  body.pp4Foot #footerRow #btnMute:hover { background:#f2fbfa; filter:none; }
+  body.pp4Foot #footerRow #btnMute img { width:20px; height:20px; }
+  /* @copy misc.stage.soundrow — plain register, matching "Turn clock: ON — 30s a turn" beside it.
+     The ☰ menu speaks to the person holding the device, not to a captain. */
+  body.pp4Foot #footerRow #btnMute::after { content:"Sound: ON"; position:static; width:auto;
+    height:auto; transform:none; font:inherit; }
+  body.pp4Foot #footerRow #btnMute[aria-pressed="true"]::after { content:"Sound: OFF"; }
   body.pp4Stage #actionPanel { margin:0; }
 
   /* playtest 22 item 7: the clipped host every board-anchored floater lives in. It spans the
