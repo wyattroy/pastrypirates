@@ -25,7 +25,22 @@ voyage card, dock flip 1/3 `t`). `u` (desktop layout, D-31) may have landed sinc
 - Item 9 recipe card: he likes **option C**; real-art version at
   `notes/sketches/09-recipe-card/option-c-real-art.html` (live URL under /notes/…). Awaiting his pick.
 
-## IN FLIGHT when the session was cleared (their reports land on disk — look for these files)
+## PAUSED by Wyatt at ~15:00 — state of the two runs that were stopped mid-flight
+
+- **D-31 desktop layout — NOT shipped.** Its uncommitted edits to `4/index.html` and `4/src/ui/stage.js` are in
+  `git stash` as **`d31-desktop-layout-wip-2026-08-21`** (`git stash list`). It had reached "running the four
+  mouse-QA passes + non-browser gates" — i.e. the layout was built but UNVERIFIED. Next session: `git stash
+  pop`, read the diff against D-31's picks, then run the gate it was given (mouse-QA at 390/960/1400/1920 +
+  a host/guest pair + all named gates) before any stamp. The live build stays `t`.
+- **Narration-timing trace — partial, preserved.** `.planning/debug/tails-narration-vanishes.md` (status:
+  investigating) holds the hypothesis and the exact instrument plan; its repro driver was
+  `scratchpad/tails_repro.mjs` (scratchpad — gone; rebuild from `4/scripts/mouse_qa.mjs` + the plan in the
+  doc). Its last words before the kill: the in-page timeline sampler WORKED (488 entries) and was about to be
+  analysed. Scope: tails vanish, battle's-brewing pop→vanish→reappear (item 2), prompts-before-boats-stop
+  (item 8), morning item 3; hypothesis = item 11's `pendingReveal`/`stageSettled()` gate firing on the
+  wrong signal. Also to settle: the Buy pill overhanging the board's right edge at 1400 (his screenshot).
+
+## What had been IN FLIGHT (for the record)
 
 | Agent | Writes to | Then |
 |---|---|---|
