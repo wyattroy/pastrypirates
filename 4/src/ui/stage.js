@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-20i";
+const PP4_STAMP = "2026-08-20j";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -517,7 +517,34 @@ export function boardBand(){
   const cap = $("pp4Cap");
   const rib = $("pp4Ribbon");
   const capVisible = cap && getComputedStyle(cap).display !== "none";
-  const top = (rib && getComputedStyle(rib).display !== "none" ? rib.getBoundingClientRect().bottom : 44) + 8;
+  const shown = el => {
+    if (!el) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== "none" && el.getBoundingClientRect().height > 0 && !!(el.textContent || "").trim();
+  };
+  const ribB = (rib && getComputedStyle(rib).display !== "none") ? rib.getBoundingClientRect().bottom : 44;
+  /* THE WIND PILL IS CHROME, NOT BOARD. Wyatt, 2026-08-20, after asking for a screen recording of
+     sailing into the trade winds in pass & play against solo — which is the check that found this,
+     and which three rounds of state measurement could not.
+
+     The recording showed "Mate: tap to sail" drawn straight over "WIND NOW: S↓ · FORECAST: …",
+     cutting the forecast off mid-word. MEASURED afterwards over eighteen sail prompts: the wind
+     pill occupies y 52–80, the ribbon ends at 45, and the ask pill was allowed anywhere from 51
+     down — so 1 in 5 sail prompts landed on the one readout that EXPLAINS the highlighted squares.
+     SOLO 1/9 and PASS & PLAY 2/9: the same placement rule, not a mode difference. His report that
+     "pass-and-play trade winds differ from solo" is very likely this — the winds are identical
+     (three independent measurements say so), but whether you can READ them is not.
+
+     The band already exists to answer "where is the board actually visible", and the pill sits
+     inside what it was calling board. Adding it here rather than at the pill's own placement is the
+     point: this function has three consumers (the clip host, the bubble placer, the ask pill), so
+     every board-anchored floater clears the wind readout from one edit — and the next one somebody
+     adds does too, without knowing the pill exists.
+
+     Guarded on having TEXT, not merely a box: pillHTML() returns "" before the first wind is rolled,
+     and an empty pill must not reserve a band it is not occupying. */
+  const pillB = shown($("pp4Pill")) ? $("pp4Pill").getBoundingClientRect().bottom : 0;
+  const top = Math.max(ribB, pillB) + 8;
   const bottom = capVisible ? cap.getBoundingClientRect().top : vhPx();
   return { top, bottom, left: 8, right: vwPx() - 8 };
 }
@@ -1294,8 +1321,25 @@ function promptTick(){
     const anchorSeats = menu.map(b => b.dataset ? +b.dataset.seat : NaN).filter(n => Number.isFinite(n));
     const cap = $("pp4Cap");
     const capT = cap ? cap.getBoundingClientRect().top : vhPx();
-    const rib = $("pp4Ribbon");
-    const tSafe = (rib ? rib.getBoundingClientRect().bottom : 44) + 40;
+    /* DERIVED FROM THE BAND, NOT RE-DERIVED FROM THE RIBBON. This line used to compute its own
+       answer to "where does the board start" while boardBand() computed another — two things kept
+       in step by nobody, which is the fault this whole phase has been unpicking, one scale down.
+       boardBand()'s own note says it out loud: "capT and tSafe were already computed for the radial
+       placement, but privately — which is why the bubbles never learned about them." tSafe never
+       learned about the band either, so teaching the band about the wind pill would have fixed the
+       bubbles and left the ask pill still sitting on it.
+       ARITHMETICALLY IDENTICAL to what it replaced whenever there is no wind pill: the band is
+       ribbonBottom + 8 and this was ribbonBottom + 40, so +32 preserves every existing number. */
+    const tSafe = boardBand().top + 32;
+    /* THE FALLBACK HAD NO FLOOR, AND MY OWN CHECK FOUND IT. Walking the placement rule across every
+       sail-window top (rather than trusting the live sample, which had not produced one) showed the
+       "put it BELOW instead" branch landing back on the wind pill: `Math.min(cb.b + 8, capT - 44)`
+       clamps how far DOWN the pill may go and never how far up, so a sail window whose bottom edge
+       is itself high on screen puts the pill straight back where it was not allowed to be.
+       Pre-existing, not introduced by the tSafe change above — and it would have quietly undone it.
+       The anchored-boats branch a few lines down has carried this Math.max all along; these two
+       simply never got it. */
+    const clampTop = y => Math.max(tSafe - 34, y);
     /* THE BOAT BEING ASKED IS ALWAYS ON THE WATER — playtest 22 (Wyatt: "the director did not
        correctly center my boat, so the board looks weird"), from a screenshot with his own ship
        drawn up over the ribbon and the wind pill, its action fan hanging beneath it.
@@ -1398,10 +1442,10 @@ function promptTick(){
         cxA = sx;
         // above the boat when the band has room, below it when it does not — the same rule the
         // narration bubble now follows (item 4), so one gesture has one behaviour
-        mTop = (sy - R - 96 >= tSafe - 34) ? sy - R - 96 : Math.min(sy + R + 34, capT - 44);
+        mTop = (sy - R - 96 >= tSafe - 34) ? sy - R - 96 : clampTop(Math.min(sy + R + 34, capT - 44));
         // a sail prompt's pill dodges the whole sail window: above it if there's room under
         // the ribbon, else just below it
-        if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : Math.min(cb.b + 8, capT - 44); }
+        if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : clampTop(Math.min(cb.b + 8, capT - 44)); }
         S.pillLock = { key: S.turnSerial, at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
       }
       msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), vwPx() - mw - 10) + "px";
