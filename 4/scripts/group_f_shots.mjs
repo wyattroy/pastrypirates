@@ -135,6 +135,58 @@ await ev(`(async()=>{ window.__F = {
   flow:await import('/4/src/ui/flow.js'),
   board:await import('/4/src/ui/board.js'),
   orch:await import('/4/src/orchestrator.js') }; return 1; })()`);
+/* ---- SCENE: the RECIPE SHEET, caught on the way past (D-46 faults 3, 4 and 5) ----
+   It is the first screen of every voyage, so it is posed by simply not dismissing it yet. Three of
+   Wyatt's five phone leftovers live on this one screen: a captain row sliced by the bottom edge
+   behind the sheet, the two recipe cards' ingredient rows misaligning when a title wraps, and the
+   stray "hov." text a judge read off a board tile. */
+if (SCENES.includes("recipes")) {
+  const r = out.scenes.recipes = {};
+  for (let i = 0; i < 40; i++) {
+    if (await ev("!!document.querySelector('#pp4Prompt .recipeList')")) break;
+    await sleep(500);
+    await clickSel("#pp4Prompt .apBtn", "b => !/back|←|‹/i.test(b.textContent)");
+  }
+  /* WAIT FOR THE SHEET TO BE VISIBLE, not merely present. panel.js's `pendingReveal` gate holds
+     the whole prompt hidden until the camera and ships settle (D-20), so a measurement taken on
+     the DOM's existence alone reads every rect as zero — which is exactly the "measured a box that
+     had not been laid out yet" class 260821-qwv spent a night unpicking. */
+  for (let i = 0; i < 40; i++) {
+    if (await ev("(()=>{const c=document.querySelector('#pp4Prompt .apBtn .recipeList'); return !!(c&&c.getBoundingClientRect().width>10);})()")) break;
+    await sleep(400);
+  }
+  await sleep(900);
+  r.measured = await ev(`(() => {
+    const R = el => { if (!el) return null; const b = el.getBoundingClientRect(); return {l:+b.left.toFixed(1),t:+b.top.toFixed(1),r:+b.right.toFixed(1),b:+b.bottom.toFixed(1),w:+b.width.toFixed(1),h:+b.height.toFixed(1)}; };
+    const cards = [...document.querySelectorAll('#pp4Prompt .apBtn')].filter(c=>c.querySelector('.recipeList'));
+    // FAULT 5: do the two ingredient lists START at the same y? That is the whole complaint.
+    const lists = cards.map(c => R(c.querySelector('.recipeList')));
+    const titles = cards.map(c => { const t=c.querySelector('.recipeTitle'); return {r:R(t), text:(t?t.textContent:'').trim().slice(0,30),
+      lines: t ? Math.round(t.getBoundingClientRect().height / parseFloat(getComputedStyle(t).lineHeight||'1')) : 0}; });
+    // FAULT 3: is a captain ROW cut by the window's bottom edge, or hidden behind the card's scroll?
+    const rows = [...document.querySelectorAll('.player-row')].map(e => ({ text:(e.textContent||'').trim().replace(/\s+/g,' ').slice(0,24), r:R(e) }));
+    const cap = document.getElementById('pp4Cap');
+    // FAULT 4: is there ANY text node anywhere reading "hov"? Asked of the whole document, so a
+    // "not reproducing" is a measurement and not a shrug.
+    const hov = [];
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) if (/hov/i.test(n.nodeValue||'')) hov.push((n.nodeValue||'').trim().slice(0,40));
+    const attrHov = [...document.querySelectorAll('*')].filter(e => [...e.attributes].some(a => /hov/i.test(a.value||''))).slice(0,5)
+      .map(e => (e.id||e.className||e.tagName)+'='+[...e.attributes].filter(a=>/hov/i.test(a.value||'')).map(a=>a.name+':'+a.value.slice(0,24)).join(','));
+    return { ih: innerHeight,
+      titles, listTops: lists.map(l => l && l.t), listTopSpread: lists.length===2 && lists[0] && lists[1] ? +Math.abs(lists[0].t - lists[1].t).toFixed(1) : null,
+      rows, rowsCutByWindow: rows.filter(x => x.r && x.r.b > innerHeight + 0.5).map(x=>x.text),
+      capScrollHidden: cap ? Math.max(0, cap.scrollHeight - cap.clientHeight) : null,
+      hovText: hov, hovAttr: attrHov };
+  })()`);
+  r.shot = await shot("recipes");
+  const m = r.measured;
+  log(`recipes: titles=${JSON.stringify(m.titles.map(t=>t.text+' ('+t.lines+' lines, h'+(t.r&&t.r.h)+')'))}`);
+  log(`recipes FAULT 5 — ingredient lists start at y ${JSON.stringify(m.listTops)}, spread ${m.listTopSpread}px`);
+  log(`recipes FAULT 3 — rows cut by the window edge: [${m.rowsCutByWindow.join(", ")}]; captains card hides ${m.capScrollHidden}px behind its own scroll`);
+  log(`recipes FAULT 4 — "hov" in any text node: ${JSON.stringify(m.hovText)}; in any attribute: ${JSON.stringify(m.hovAttr)}`);
+}
+
 // clear the intro barriers so the board is the thing on screen (§3c: a recipe card takes TWO taps)
 for (let i = 0; i < 26; i++) {
   const n = await ev("[...document.querySelectorAll('#pp4Prompt .apBtn')].filter(b=>b.getBoundingClientRect().width>4).length");
@@ -318,6 +370,36 @@ if (SCENES.includes("menu")) {
   s.offWindow = fin.rect ? (fin.rect.b > m.ih + 1 || fin.rect.r > m.iw + 1 || fin.rect.l < -1 || fin.rect.t < -1) : null;
   s.overCap = (m.side && ov(fin.rect, m.cap)) ? olap(fin.rect, m.cap) : null;
   log(`menu verdict: turn-clock row=[${s.clockRow.join(", ")}] offWindow=${s.offWindow} overCap=${s.overCap}`);
+}
+
+/* ---- SCENE: the End of Voyage card's way out (D-46 fault 2) ----
+   The summary is taller than a 664px phone, so the one CONTROL on it — "Play again!" — sat below
+   the fold and the vision judge read it twice as "a bottom toolbar clipped by the screen edge".
+   Posed rather than sailed to: showStats() is exported and is the same function the end of the
+   voyage calls. RED-PROOF: the card must be ABSENT before and present after, and the button must
+   be measured against the window's own bottom edge, which is the thing that was cutting it. */
+if (SCENES.includes("eov")) {
+  const e = out.scenes.eov = {};
+  e.before = await ev("(()=>{const w=document.getElementById('statsWrap');return w?w.style.display:'?';})()");
+  await ev(`(()=>{ const {st,board} = window.__F; const g = st.game;
+    // give the summary something to summarise, then show it through the game's own entry point
+    g.players.forEach(p => { if (!p.ing.length && p.recipe) p.ing = p.recipe.slice(0, 2); });
+    board.render && board.render();
+    board.showStats(); return 1; })()`);
+  await sleep(1800);
+  e.after = await ev(`(() => {
+    const R = el => { if (!el) return null; const b = el.getBoundingClientRect(); return {t:+b.top.toFixed(1),b:+b.bottom.toFixed(1),h:+b.height.toFixed(1)}; };
+    const w = document.getElementById('statsWrap'), btn = document.querySelector('.pp4Again');
+    return { shown: w ? getComputedStyle(w).display !== 'none' : false,
+      panelText: (document.getElementById('statsPanel')||{textContent:''}).textContent.trim().slice(0,60),
+      scrollable: w ? Math.max(0, w.scrollHeight - w.clientHeight) : null,
+      again: R(btn), againSticky: btn ? getComputedStyle(btn).position : null,
+      againCutBy: btn ? +(btn.getBoundingClientRect().bottom - innerHeight).toFixed(1) : null,
+      ih: innerHeight }; })()`);
+  e.shot = await shot("eov");
+  log(`eov: statsWrap before="${e.before}" after shown=${e.after.shown} scrollable=${e.after.scrollable}px`);
+  log(`eov: "Play again!" ${JSON.stringify(e.after.again)} position=${e.after.againSticky} cut off the bottom by ${e.after.againCutBy}px (window ${e.after.ih})`);
+  log(`eov: panel says "${e.after.panelText}"`);
 }
 
 /* ---- SCENE: every coin flip takes the same time (D-49) ---- */

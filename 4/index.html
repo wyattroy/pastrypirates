@@ -2170,6 +2170,24 @@
     text-shadow:0 1px 8px rgba(0,0,0,.6); }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:5px 5px 6px; }
+  /* D-46 fault 5 — THE TWO RECIPES ARE ONE TABLE, SO THEIR ROWS LINE UP.
+     Measured at 390x664: "Vanilla Bean Crème Brûlée" wraps to two lines, "Mexican Chocolate Torte"
+     to three, and the two ingredient lists therefore start 7.8px apart — so Hot Cinnamon sits half
+     a row above Speckled Eggs and every line after it is out of step. Only visible now that the
+     picker is opaque (260821-qwv fixed the ghosting that was hiding it).
+     A min-height on the title would be a typed number that is wrong for the first four-line recipe
+     anybody writes. SUBGRID is the version with no number in it: the two cards adopt the ROW track
+     of the grid that already holds them, so the title row is as tall as the taller title and the
+     lists begin on the same line by construction — one grid, not two kept in step (rule 23).
+     The three in-flow children are the thumb, the title and the list; .recipeDesc is display:none
+     here and the "Bake this!" pill is position:absolute, so neither is a track.
+     @supports-gated, so a browser without subgrid (Safari before 16) gets exactly today's layout
+     rather than a broken one — this is a cosmetic alignment, never a reason to risk the picker. */
+  @supports (grid-template-rows: subgrid) {
+    body.pp4Stage #actionPanel .apBtns:has(.recipeList) { grid-template-rows:auto auto 1fr; }
+    body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn {
+      display:grid; grid-row:span 3; grid-template-rows:subgrid; align-content:start; }
+  }
   body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }
   body.pp4Stage #actionPanel .apBtn .recipeThumb { height:54px; width:auto; display:block; margin:0 auto 2px; }
   body.pp4Stage #actionPanel .apBtn .recipeDesc { display:none; }
@@ -2230,10 +2248,23 @@
      sits over #pp4Cap's old spot — only the translateY set by wireEovDrag ever moves it now */
   body.pp4Stage #statsWrap.pp4EovParked { overflow:hidden; cursor:pointer; }
   body.pp4Stage #pp4Ribbon { z-index:40; }
-  /* playtest 13: the big way out at the bottom of End of Voyage */
-  #statsPanel .pp4Again { display:block; width:100%; margin:18px 0 10px; padding:16px;
+  /* playtest 13: the big way out at the bottom of End of Voyage.
+     D-46 fault 2 — AND IT MUST NEVER BE THE THING THE SCREEN EDGE CUTS IN HALF. On the honest
+     390x664 phone the summary is taller than the window, so this button sat below the fold and the
+     vision judge read it as "a bottom toolbar clipped by the screen edge" on two separate screens
+     (solo-phone-024, solo-phone-eov). D-43's accepted line — "a scrollable card may be cut at the
+     bottom" — is about CONTENT; this is the one CONTROL on the card, and D-38's ruling is that a
+     control you cannot hit is the one unacceptable outcome.
+     Sticky inside #statsWrap, which is already the scroll container, so the way out is on screen
+     from the first frame at any window height and the awards still scroll freely behind it. The
+     backdrop is the card's own background colour, so nothing reads through it as it passes under. */
+  #statsPanel .pp4Again { display:block; width:100%; margin:18px 0 0; padding:16px;
     font-size:18px; font-weight:800; border-radius:14px; border:3px solid #0e5c5c;
-    background:#177; color:#fffdf2; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+    background:#177; color:#fffdf2; box-shadow:0 8px 24px rgba(0,0,0,.25);
+    position:sticky; bottom:0; z-index:1; }
+  /* the air under a sticky button has to belong to the SCROLLER, not to the button, or the button
+     lifts off the card's bottom edge by its own margin and floats */
+  body.pp4Stage #statsPanel { padding-bottom:10px; }
   /* playtest 13: the recipe scroll hints at more — a parchment fade at the cut edge */
   #recipeModalBody::after { content:""; position:sticky; bottom:-1px; display:block; height:30px;
     margin-top:-30px; background:linear-gradient(to bottom, rgba(31,19,10,0), rgba(31,19,10,.95));

@@ -24,7 +24,13 @@ const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)
 // D-42: the phone size is 390x664 — the viewport a real iPhone-class Safari/Chrome gives the page
 // once its bottom bar is accounted for, not the 390x844 screen. Kept in step with playtest_gate's
 // phone legs deliberately: two gates disagreeing about what a phone is would be two phones.
-const SIZES = arg("sizes", "390x664,960x1080,1400x900,1890x960,1920x1080").split(",").map(s => s.split("x").map(Number));
+// D-52: 820x1180 is the STACKED/TABLET shape, and until 2026-08-22 this gate had never seen it.
+// Every other size lands in either the phone branch or the side-by-side one, which is exactly how
+// the fast-forward button drawn on top of the wind pill, and a captains card 84px taller than its
+// own rows, reached Wyatt in a screenshot. Adding a SIZE is coverage, not a per-bug assertion, so
+// D-37 permits it — and the branch-coverage check at the bottom of this file is what stops the
+// size silently drifting back out of the branch it was added to cover.
+const SIZES = arg("sizes", "390x664,820x1180,960x1080,1400x900,1890x960,1920x1080").split(",").map(s => s.split("x").map(Number));
 const OUT = path.resolve(arg("out", path.join(process.cwd(), "layout-check-shots")));
 const PORT = +arg("port", 8720), DBG0 = +arg("dbg", 9720);
 const PAR = Math.max(1, +arg("parallel", 2));   // sizes run PAR at a time — five Chromes at once would heat his laptop; one at a time took >10 min
@@ -294,6 +300,20 @@ async function runSize(i) {
   for (const e of rec.errors) log(`    ERR  ${e}`);
 }
 { let next = 0; await Promise.all(Array.from({ length: Math.min(PAR, SIZES.length) }, async () => { while (next < SIZES.length) await runSize(next++); })); }
+
+/* EVERY BRANCH OF THE LAYOUT MUST BE COVERED BY SOMETHING (D-52). The game draws three different
+   shapes — phone, stacked and side-by-side — and this gate used to sample five sizes that between
+   them hit only two of them. A gate aimed at the wrong shape is not silent, it is reassuring
+   (HARD-WON-LESSONS section 3). This is coverage, not a per-bug assertion: it names no defect and
+   no element, it only refuses to call a run complete while a whole branch of the layout went
+   unlooked-at. It also catches the drift case — a stacked size stops being stacked the moment the
+   side-by-side threshold moves, and then the coverage quietly vanishes with nothing to say so. */
+{
+  const seen = new Set(report.filter(Boolean).map(r => r.side ? "side-by-side" : (r.W > PHONE_MAX_W ? "stacked" : "phone")));
+  const missing = ["phone", "stacked", "side-by-side"].filter(b => !seen.has(b));
+  if (missing.length) { anyFail = true; log(`\nBRANCH COVERAGE FAIL: no size in this run landed in the ${missing.join(" or ")} branch (saw ${[...seen].join(", ") || "nothing"})`); }
+  else log(`\nbranch coverage: ${[...seen].sort().join(", ")} — all three shapes measured`);
+}
 
 // --- the contact sheet: one picture to open before anything is shown to Wyatt -----------------
 // A real file on disk, loaded over file:// with RELATIVE image paths — the first version navigated

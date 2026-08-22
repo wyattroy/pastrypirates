@@ -502,7 +502,10 @@ function camFrame(){
      window. ONE decision (computeStageGeometry's `pp4Side` class) is now read here too, so the
      two can no longer disagree: beside the board means no reservation and no inline `top`. */
   const side = isSideBySide();
-  const CAP_BASE = side ? 0 : Math.min(250, Math.round(vhPx() * 0.30));
+  // D-46 fault 3: what the card NEEDS (measured on the geometry clock), never 30% of the window.
+  // Falls back to the old fraction until the first measurement lands, so the very first frames of
+  // a voyage look exactly as they always did.
+  const CAP_BASE = side ? 0 : Math.min(250, S.capNeed || Math.round(vhPx() * 0.30));
   const availH = Math.max(200, vhPx() - ribH - CAP_BASE);
   if (wrap){
     if (Math.abs((parseFloat(wrap.style.top) || 0) - ribH) > 1) wrap.style.top = ribH + "px";
@@ -1694,6 +1697,18 @@ function computeStageGeometry(){
     mountColumn(false);
     body.style.removeProperty("--pp4W"); body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
     if (cap) cap.style.removeProperty("max-height");
+    /* D-46 fault 3 — HOW MUCH ROOM THE CAPTAINS NEED IS A MEASUREMENT, NOT A PERCENTAGE.
+       camFrame() reserves the band under the board for this card and reserved 30% of the window
+       for it. At the honest phone height (390x664, D-42) 30% is 199px and four captain rows are
+       231px, so the fourth row — "Flaky Jack" — was sliced by the bottom edge of the screen and
+       25px of the card lived behind its own scrollbar. Measured, not inferred: cap.scrollHeight
+       minus cap.clientHeight came back 25 on the recipe screen.
+       A percentage cannot be right for a table that has two, three or four captains and a hold
+       that grows all voyage (rule 9). measureCapNaturalHeight() already computes the honest answer
+       for the desktop branches; caching it here on the geometry clock — which is the same ~900ms
+       beat the card's own width already rides — lets camFrame read it without a reflow per frame.
+       The 250px ceiling is unchanged: it is what stops a big roster crushing the board. */
+    S.capNeed = measureCapNaturalHeight(iw);
     refreshNameMarquees();   // the column just widened back to full — drop any stale scroll
     return;
   }
@@ -1753,6 +1768,7 @@ function computeStageGeometry(){
   const insetCard = pillRidesRibbon();                 // the same @media (min-width:601px) boundary
   const capInset = insetCard ? capGap : 0;
   const capH = measureCapNaturalHeight(Math.max(240, candidate - capInset * 2));
+  S.capNeed = capH;   // camFrame's band reservation reads the same measurement (D-46 fault 3)
   const boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capInset));
   body.style.setProperty("--pp4W", boardSideStacked + "px");
   if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked - capInset) + "px");
@@ -1864,6 +1880,33 @@ function enterCenterStage(){
    frame's layout. One call site, so nothing has to remember: the radial prompt is the only style
    that teaches the gesture (D-39), and every other style has already removed the hint by the time
    this runs. */
+/* ONE MOMENT SAYS ITS WORDS ONCE (D-46 fault 1, and it is rule 23's own signature).
+   The dock flip put the SAME sentence on screen twice — "Docking at Glitter Bay – dig for
+   treasure!" as the ceremony's big cream title, and again as a narration bubble half-hidden behind
+   the coin (solo-phone-017/018). Two paths, one moment: ask() broadcasts the ask as a narration
+   line for the deciding seat, and localAsk stashes the same words for the flip ceremony's title.
+   The de-dupe for this already existed — it lived inside the radial branch and compared the live
+   bubble against `.apMsg` — but A PURE FLIP RENDERS NO PANEL AT ALL, so there was no `.apMsg` to
+   compare against and the check could not fire. That is the seam, and it is the second time a
+   prompt style has fallen out of a rule written for one of them.
+   So the question is asked properly and in one place: is the live bubble already being said by
+   whatever is ASKING right now? The ask pill and the ceremony title are the two things that ever
+   are, and this runs every tick from tick(), for every prompt style there is or ever will be,
+   rather than from inside the one branch that happens to have a panel.
+   An empty bubble is not a duplicate of an empty title — the typewriter blanks both for their
+   first frames, and `"" === ""` once retired a perfectly good narration line. */
+function retireEchoBubble(){
+  if (!S.hurry) return;
+  const bub = document.querySelector(".pp4Bub");
+  if (!bub) return;
+  const bubT = plain(bub.textContent);
+  if (!bubT) return;
+  const asking = [$("actionPanel") && $("actionPanel").querySelector(".apMsg"),
+                  document.querySelector("#pp4Veil .pp4CerTitle")];
+  for (const a of asking){
+    if (a && plain(a.textContent) === bubT){ S.hurry(); return; }
+  }
+}
 function peekHintLast(){
   const box = $("pp4Prompt");
   if (!box || !box.classList.contains("radial")) return;
@@ -2160,8 +2203,10 @@ function promptTick(){
        for its first frames, and an ask pill mid-reveal is blank too — so `"" === ""` matched and
        this dedup retired a perfectly good narration line the instant any prompt was on screen.
        An empty bubble is not a duplicate of an empty pill. */
-    const bubT = bub ? plain(bub.textContent) : "", msgT = msg ? plain(msg.textContent) : "";
-    if (bubT && msgT && bubT === msgT && S.hurry) S.hurry();
+    /* the de-dupe that used to be written out here now lives in retireEchoBubble(), called from
+       tick() for EVERY prompt style — a pure flip renders no panel, so this branch could never see
+       the one case that was actually duplicating (D-46 fault 1). `bub` is still read above because
+       the fan's own placement wants to know whether a bubble is on screen. */
     // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
     // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
     // playtest 21 item 7: the slider's presence is part of the placement key. Without it a prompt
@@ -2679,6 +2724,7 @@ function tick(){
     // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
     if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
     promptTick();
+    retireEchoBubble();   // D-46: one moment, one sentence — every prompt style, not just the fan
     peekHintLast();   // SEAM (a): the hint is the LAST thing placed, so it dodges this tick's layout
 
   }
