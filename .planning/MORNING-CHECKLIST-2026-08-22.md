@@ -1,7 +1,7 @@
 # What to playtest — morning of 2026-08-22
 
-**Build to look for:** the stamp in the ☰ menu must read **`v4 · build 2026-08-21…`** with the FINAL
-letter recorded at the bottom of this file. **If it shows an older letter, stop and say so** — there
+**Build to look for: `2026-08-22b`.** On a phone it is in the ☰ menu; on desktop the ☰ is gone and
+the stamp sits at the bottom of the new menu block under the captains box. **If it shows an older letter, stop and say so** — there
 is no build step and nothing is ever a cache, so an old stamp means the work is not on `main`.
 
 **Where:** `playpastrypirates.com/4` — the same place you always playtest.
@@ -90,6 +90,7 @@ complaint. **Making them louder is your taste call.** Tell me how much louder.
 | 22 | **Phone: docking** | "Docking at…" appears **once**. | It was printing twice, one copy hidden behind the flip coin. |
 | 23 | **Phone: the captains list** | The fourth captain is not sliced by the bottom edge. | |
 | 24 | **Phone: the recipe picker** | The two cards' ingredient lists line up even when one title wraps to three lines. | |
+| 25 | **Phone: the recipe picker, first screen of the game** | **Both recipe cards fit on screen** — you can see all five ingredients and the bottom edge of each card. | They used to be cut off mid-list by the bottom of the screen, with no cue that it scrolled. Cards ended 1px from the edge; now 12px clear. |
 
 **One of your five did not reproduce.** The faint **"hov."** text on a board tile: every text node
 and every attribute in the document was walked at phone size, and it is in neither — nor anywhere in
@@ -195,4 +196,27 @@ pre-existing, and it is not something Group D touched.
 
 ## The record
 
-*(Build stamp, what landed, and the numbers — filled in at the end of the night.)*
+**Build `2026-08-22b`**, live at `playpastrypirates.com/4`. It carries Groups E, F and D plus the
+recipe-picker fix.
+
+**How well was it checked?** Honestly: **less than I wanted.** The four-mode gate did not complete.
+
+| | |
+|---|---|
+| solo-desktop | complete voyage to the end card, day 13 |
+| solo-phone | **17 days, clean** — 3 structural failures, all at the recipe picker, now fixed |
+| passplay-phone | reached day 19 |
+| crew-desktop | **never ran** |
+| vision judge | **produced nothing** — see below |
+
+**Why the vision half is missing, and it needs YOU:** the `claude` CLI on this machine has an
+expired login — *"OAuth session expired and could not be refreshed"*. All 67 judge calls got that
+back instead of a verdict. Re-authenticating in a terminal fixes it; I cannot do it for you.
+
+**And the gate itself misbehaved:** it treated the auth failure as 67 bad replies rather than
+stopping on the first, then hung instead of exiting and left ten headless Chromes running at 47% of
+your CPU for three hours. Killed. The gate needs a fix so it cannot do that again.
+
+**One thing that did NOT reproduce:** in the failed run, solo-phone froze at day 5. On a clean
+re-run it played 17 days steadily. Most likely the driver or the machine under load, not the game —
+but recorded as did-not-reproduce rather than proven-fine.
