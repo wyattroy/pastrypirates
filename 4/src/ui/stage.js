@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-22a";
+const PP4_STAMP = "2026-08-22b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -1993,6 +1993,16 @@ function promptTick(){
   let hint = box.querySelector(".pp4PeekHint");
   if (recipes){
     box.classList.remove("radial", "centered");
+    /* THE PICKER SITS AS LOW AS IT CAN WHILE STILL FITTING — it is no longer a flat 45% of the
+       viewport. 0.45 is a constant standing in for a quantity that moves (rule 9), and the honest
+       phone height found it out: at 844 tall it leaves 456px for a card that wants ~370 and all is
+       well, but at the 664 a real iPhone Safari actually gives the page it leaves 357, so BOTH
+       recipe cards were cut off by the bottom edge of the screen with no visible cue that the panel
+       scrolls — on the very first screen of the game. Measured before the fix at 390x664: cards
+       ended at y=663 of a 664-tall viewport, and the panel's content was 370px in a 353px box.
+       The 844 emulation hid it completely, which is D-42's whole point.
+       The lift itself is applied after the cards exist and can be measured — see the note by the
+       maxHeight cap below. This stays the STARTING point, so nothing changes on a tall screen. */
     const top = Math.round(vhPx() * 0.45);
     box.style.left = "8px"; box.style.top = top + "px";
     box.style.width = (vwPx() - 16) + "px";
@@ -2028,7 +2038,22 @@ function promptTick(){
     // hint's height as extra allowance and it ran off the bottom of the screen by exactly that
     // much — 47px, seen when slow-loading art made the cards tall enough to reach the cap.
     const apTop = ap.getBoundingClientRect().top;
-    const capFrom = apTop > 0 ? apTop : top;
+    /* LIFT THE WHOLE BOX IF THE CARDS DO NOT FIT UNDER IT (D-42's find, see the note at `top`).
+       Measure what the panel actually wants — scrollHeight is the content's own height, produced by
+       the renderer rather than by any arithmetic here — and if the starting 45% cannot hold it,
+       raise the box by exactly the shortfall. Never RAISE it on a screen where it already fits (the
+       min() keeps a tall phone byte-identical), and never lift it above the board's own top band,
+       which is where the ribbon and the wind pill live. */
+    if (apTop > 0){
+      const want = ap.scrollHeight + (apTop - parseFloat(box.style.top || 0)) + 8;
+      const floor = topBandPx();
+      const fitTop = Math.max(floor, vhPx() - want);
+      if (fitTop < apTop - 1){
+        box.style.top = Math.round(Math.min(parseFloat(box.style.top || 0), fitTop)) + "px";
+      }
+    }
+    const apTop2 = ap.getBoundingClientRect().top;
+    const capFrom = apTop2 > 0 ? apTop2 : top;
     ap.style.maxHeight = Math.max(160, vhPx() - capFrom - 8) + "px";
     return;
   }
