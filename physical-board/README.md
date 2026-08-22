@@ -21,7 +21,7 @@ sheets, and every group of pieces; tick "approved" per group, leave notes, copy 
 | The pier (`assets/dock.png`): upright planks, corner posts, an anchor | The dock tile's engraving. |
 | The wind chevron (`assets/wind-arrow.png`) | One per ring square, rotated to the ring's clockwise tangent as `buildRimFlow()` does. |
 | The whirlpool (`assets/trade-swirl.png`) | Two-armed swirl on the four whirlpool tiles. |
-| The board's concentric ripples | Five fine wavy rings on open water between the berths and the rim. |
+| The board's water: short brushy wave strokes in concentric passes | About 170 tapered strokes, 9 mm between passes, from outside the berths to the rim. |
 | The compass: scrolled ring, N/E/S/W medallions, fleur-de-lis needle | The spinner's dial and needle. |
 | The boats: jib and mainsail, hull with portholes | Three-piece ships: a 6 mm hull seen from above with two slots, a 3 mm mainsail and a 3 mm jib that drop in — told apart by the sail patterns. |
 
