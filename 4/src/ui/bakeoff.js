@@ -23,6 +23,11 @@ import { ING_IMG, iconImg, CUPCAKE_IMG, COIN_IMG } from "../shared/index.js";
 import { recipeTitle, escHtml } from "./recipe.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { panel, setNeedsAction, GHOST_FADE_MS } from "./panel.js";
+// narrationHoldMs — the ONE reading-speed model this game paces every line of words by (D-34/D-45).
+// util.js sits BELOW panel.js in the graph (panel.js imports this same function from it, and util.js
+// imports neither panel.js nor this file), so this adds no cycle — see the note beside the bake-off's
+// export in ./index.js, updated in this same commit.
+import { narrationHoldMs } from "./util.js";
 
 const $=(id)=>document.getElementById(id);
 // module-local, as every other src/ui/ file keeps its own
@@ -184,6 +189,47 @@ function bakeoffIntroCard(bake){
   });
 }
 
+/* ================= the card's exit ================= */
+
+// retireBakeCard() — THE ONE PLACE THE BAKE-OFF CARD LEAVES THE SCREEN (item 6, D-16).
+//
+// WYATT'S RULING: the card does NOT come back once you have attempted your bake — the attempt is
+// locked in and the card has nothing left to offer, and while it is up you cannot see the other
+// captains' simultaneous bake-offs.
+//
+// WHAT A PLAYER WAS ACTUALLY GETTING, measured on a real solo voyage at `?ovens=1` rather than
+// inferred from the code (4/scripts/bakeoff_shots.mjs, shots 06 and 08): the shell went up when the
+// ovens lit and NEVER LEFT. Twenty-five seconds after the guess resolved it was still on the glass —
+// spent, its button greyed to "In the oven…", its own verdict line still reading "2 of 5 in place" —
+// with DAY 2 running behind it: three narration lines stacked unreadably in the top-left corner, the
+// board dimmed, the captains' holds changing under a card nobody could dismiss. Then attempt 2's
+// bench rendered straight into the same box. So "it comes back" understates the fault by a distance:
+// it never went away, and the voyage carried on for days behind it.
+//
+// THIS IS A CONSISTENCY FAULT, NOT A ONE-OFF (CLAUDE.md rule 8). Every other centre-stage card in
+// this game already ends itself with exactly these two statements. The bake-off was the only one of
+// the four that did not:
+//   - localAsk's done()            4/src/ui/flow.js:221   delete pp4Stage; panel("")
+//   - dryCeremony's button         4/src/ui/panel.js:1219  delete pp4Stage; panel("")
+//   - passGate's hand-off took()   4/src/ui/lobby.js:307   delete pp4Stage; delete pp4Hand; panel("")
+// So this invents no mechanism and adds no flag. It makes the fourth card do what its three siblings
+// have always done, through the same one call.
+//
+// NO NEW STATE, DELIBERATELY. "Has this captain attempted their bake?" is already answered by the
+// engine — the reveal only ever runs after Game.bakeResolve has scored, so reaching the end of
+// bakeoffReveal IS the attempt being spent. A UI-only "hasBaked" flag would be a second copy of a
+// fact the engine already holds, kept in step by discipline (rule 23).
+//
+// GUARDED ON OUR OWN CONTENT. panel("") is a GLOBAL clear of #actionPanel (deferred CLEAR_GRACE_MS,
+// so a replacement one statement away cancels it rather than flickering). Fired when the panel has
+// already moved on to something else it would take THAT down instead — so it only runs while a .bko
+// is still the thing on screen. That is what makes this safe to call from every exit below,
+// including the ones that can race a shot-clock forfeit.
+function retireBakeCard(){
+  delete $("actionPanel").dataset.pp4Stage;
+  if(document.querySelector("#actionPanel .bko"))panel("");
+}
+
 /* ================= the interaction ================= */
 
 // playBakeoffLive(p) — the whole human attempt, start to finish, resolving to a guess: an array of
@@ -239,7 +285,9 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // intro's flag can go (see the note at the top of this function)
   delete $("actionPanel").dataset.pp4Stage;
   const row=document.querySelector("#actionPanel .bkoRow");
-  if(!row){delete $("actionPanel").dataset.pp4Stage;return null;}
+  // The shell rendered but has no bench in it — nothing here is playable, so it is a spent card by
+  // definition and leaves through the same one exit as a finished attempt (item 6).
+  if(!row){retireBakeCard();return null;}
   const bowls=[...row.querySelectorAll(".bkoBowl")];
 
   // MEASURED ONCE, never per frame: the centre-to-centre distance between two bowls, used for the
@@ -494,7 +542,8 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
 export async function bakeoffReveal(p,result){
   const bake=p.bake;
   const row=document.querySelector("#actionPanel .bkoRow");
-  if(!row){delete $("actionPanel").dataset.pp4Stage;return;}
+  // Nothing left to reveal onto — the attempt is still spent, so the card still leaves (item 6).
+  if(!row){retireBakeCard();return;}
   const bowls=[...row.querySelectorAll(".bkoBowl")];
   const hint=$("bkoHint");
   // The confirm button is spent — the guess is already scored. Left live it stayed fully enabled and
@@ -520,8 +569,28 @@ export async function bakeoffReveal(p,result){
     hint.textContent=result.perfect?"Every crate in its place — ye baked it!"
       :`${got} of 5 in place. Those stay put; the rest get shuffled again tomorrow.`;
   }
-  await sleep(VERDICT_MS);
-  // belt only: the flag was already dropped when the shell rendered, and the stage itself ends
-  // when the narration that follows replaces the .bko content (see promptTick)
-  delete $("actionPanel").dataset.pp4Stage;
+  // THE VERDICT'S HOLD IS SIZED BY ITS OWN WORDS, and it has to be now that the card LEAVES at the
+  // end of it. Until this change the flat VERDICT_MS did not have to be long enough to read by —
+  // the card stood on screen indefinitely, so a slow reader simply kept looking. Retiring the card
+  // makes this hold the ENTIRE reading window, which turns a fixed number into a price list standing
+  // in for a reading time: it would hand "2 of 5 in place. Those stay put; the rest get shuffled
+  // again tomorrow." (70 characters) the same beat as "Every crate in its place — ye baked it!" (39).
+  // CLAUDE.md rule 9 — derive it from something the game already computes.
+  //
+  // narrationHoldMs() IS that thing: the one reading-speed model every line of narration in this game
+  // is paced by (D-34/D-45), reused rather than re-derived, so the bake's verdict and a narration
+  // sentence can never disagree about how long the same words take to read (rule 23).
+  //
+  // VERDICT_MS SURVIVES AS THE FLOOR, so nothing that already shipped gets shorter — only a longer
+  // verdict gains. It also covers the fast-forward branch: narrationHoldMs returns 0 when appState.ff
+  // is set, which is unreachable here anyway (bakeoffPrompt awaits ffEndNow() before a human's bake
+  // begins), but a floor means that never has to be re-reasoned about from this end.
+  await sleep(Math.max(VERDICT_MS,narrationHoldMs(hint?hint.textContent:"")));
+  // ...AND THE CARD GOES. This line is item 6. The old comment here called the stage-flag delete a
+  // "belt only", on the stated expectation that "the stage itself ends when the narration that
+  // follows replaces the .bko content (see promptTick)" — measured 2026-08-22, that replacement never
+  // happens: narration in this game draws into its own bubble, not into #actionPanel, so nothing
+  // downstream was ever going to take this card down. See retireBakeCard's note for what that looked
+  // like on screen.
+  retireBakeCard();
 }
