@@ -305,7 +305,11 @@ export function watchClock(){
 // `opts.wait` is item 19's flag and it must CROSS THE WIRE, or the guest's copy of a wait line
 // expires on the hold curve while the host's sits there — a new divergence in the act of closing
 // four. It is a UI-node field only; nothing in the event stream changes, so determinism is untouched.
-export function netNarrate(html,variants,opts){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat),opts);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
+// `variants` now rides along to showNarration as well as being picked from (02.2-07): the renderer
+// asks the payload one question the picked STRING cannot answer — is this wait line about a
+// question arriving at this browser. Handing the render seam what a guest's watchNarr already
+// hands it is the convergence PAR-14 names; the picked line it draws is unchanged.
+export function netNarrate(html,variants,opts){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat),opts,variants);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
 export function netBroadcast(html,variants,opts){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}

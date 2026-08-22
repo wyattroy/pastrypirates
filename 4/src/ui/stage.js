@@ -16,7 +16,8 @@
 "use strict";
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
-import { msgHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees } from "./util.js";
+import { msgHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
+  waitLineIsSelfAddressed } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
 
@@ -988,6 +989,13 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   // would bubble the same words twice — the pill already says it
   const liveMsg = document.querySelector("#actionPanel .apMsg");
   if (liveMsg && typeof msg === "string" && plain(msg) && plain(msg) === plain(liveMsg.innerHTML)) return Promise.resolve();
+  /* …AND THE SAME LINE ARRIVING BEFORE THE PILL EXISTS. The dedup above can only see a prompt that
+     is ALREADY in the DOM, and ask()'s mirror is posted two milliseconds BEFORE panel() builds one
+     — which is the whole of Wyatt's items 2 and 8. The predicate is in util.js, evaluated here
+     because this is the one renderer the host's own game loop and a guest's watchNarr both reach:
+     a wait line for a captain sitting at THIS browser is not drawn, because they are getting the
+     question itself. Everyone else still reads "…is deciding…". */
+  if (waitLineIsSelfAddressed(variants, opts)) return Promise.resolve();
   let subj = S.subject; S.subject = null;
   if (subj == null && typeof msg === "string"){
     // turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour
@@ -1157,19 +1165,42 @@ function stageFlash(msg, ms, holdMs, variants, opts){
        game carries straight on. */
     // A WAIT LINE REGISTERS NEITHER — no deadline, no timeout. S.hurry is still armed above, so
     // the next real narration retires it, and so does a tap. Every other bubble is unchanged.
-    if (!(opts && opts.wait)){
-      S.bubDue = Date.now() + hold;
-      S.bubFinish = finish;
-    }
     // …and it registers ONE more thing, which is the whole of retireWait() below: a wait line is
     // the only bubble that means "you are done, the others are not". The moment this screen is
     // asked something again that statement is false, so promptTick retires it — precisely, without
-    // touching a narration line that merely happens to be on screen at the same moment.
-    else S.waitFinish = finish;
+    // touching a narration line that merely happens to be on screen at the same moment. That
+    // registration is IMMEDIATE and is never deferred by the veil rule below: a wait line has no
+    // reading deadline to protect, and a promptTick that cannot find it is 3a80839's bug again.
+    const armHold = () => {
+      if (done) return;
+      S.bubDue = Date.now() + hold;
+      S.bubFinish = finish;
+      setTimeout(finish, hold);
+    };
+    /* A HOLD IS A DEADLINE FOR READING, AND IT MUST NOT RUN WHILE THE LINE CANNOT BE SEEN.
+       Measured on build h: "Claude flips TAILS" was on screen for 2862ms and spent 1140ms of that
+       — forty per cent — drawn UNDERNEATH the full-screen flip veil, because .pp4Bub's stacking
+       context #pp4Fx is z-index 21 and #pp4Veil is 44. The bubble's tail points at a boat the veil
+       is covering, and the veil is Wyatt's own sanctioned exception to hold-the-sea, so raising the
+       bubble above it would be wrong twice over. Fix the clock, not the z-order.
+       BOUNDED, BECAUSE THIS IS THE CRITICAL CLASS. Every narration hold is awaited by the game
+       loop, and "the game just completely stalled" is a playtest-22 finding — a deferral that can
+       wait forever is a stall with a good excuse. The cap is the ceremony's own two clocks added
+       together (the longest the veil can legitimately stand), not a new number; the poll runs on
+       the same 120ms beat cerWatchResult uses and clears itself on the first of three conditions. */
+    if (opts && opts.wait) S.waitFinish = finish;
+    else if (!$("pp4Veil")) armHold();
+    else {
+      const veilT0 = Date.now();
+      const veilIv = setInterval(() => {
+        if (done || !$("pp4Veil") || Date.now() - veilT0 >= CER_VEIL_WAIT_CAP_MS){
+          clearInterval(veilIv); armHold();
+        }
+      }, 120);
+    }
     wake();   // a live bubble rides the ship — full frame rate while it's up
     b.addEventListener("pointerdown", finish);
     place();
-    if (!(opts && opts.wait)) setTimeout(finish, hold);
   });
 }
 
@@ -1187,6 +1218,13 @@ function cerTeardown(){
   if (window.__pp4) window.__pp4.flipMsg = null;   // a later ceremony never inherits these words
   S.cerHome = null;
 }
+/* THE CEREMONY'S OWN TWO CLOCKS, named rather than typed twice. CER_REVEAL_MS is how long the
+   landed face is shown before the veil leaves; CER_FALLBACK_MS is the veil's own teardown when no
+   face ever lands. Their SUM is the longest the veil can legitimately stand, and that is the only
+   number a hold deferred behind the veil is allowed to derive its cap from (nothing in this game
+   is a constant, and a new one here would be a third clock to keep in step with these two). */
+const CER_REVEAL_MS = 1100, CER_FALLBACK_MS = 6000;
+const CER_VEIL_WAIT_CAP_MS = CER_FALLBACK_MS + CER_REVEAL_MS;
 function cerWatchResult(){
   // the flip flow swaps faces on #flipCoinWrap: spin -> heads/tails. Hold the veil until a face
   // lands, show it a beat, then leave. Fallback teardown if nothing lands (e.g. prompt cancelled).
@@ -1201,10 +1239,10 @@ function cerWatchResult(){
       // playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare
       c.classList.add("pp4Land");
       setTimeout(() => c.classList.remove("pp4Land"), 700);
-      setTimeout(() => { if (!$("flipCoinWrap")?.classList.contains("active")) cerTeardown(); }, 1100);
+      setTimeout(() => { if (!$("flipCoinWrap")?.classList.contains("active")) cerTeardown(); }, CER_REVEAL_MS);
     }
     else if (armedAgain){ clearInterval(iv); }        // a new flip re-armed: veil stays, caption returns
-    else if (performance.now() - t0 > 6000){ clearInterval(iv); cerTeardown(); }
+    else if (performance.now() - t0 > CER_FALLBACK_MS){ clearInterval(iv); cerTeardown(); }
   }, 120);
 }
 function flipArmed(el, onClick){
@@ -1995,7 +2033,13 @@ function promptTick(){
     // the ask's broadcast mirror can land as a bubble BEFORE the panel exists — if a live
     // bubble is just this pill's own words, retire it (the pill already says it)
     const bub = document.querySelector(".pp4Bub");
-    if (bub && msg && plain(bub.textContent) === plain(msg.textContent) && S.hurry) S.hurry();
+    /* BOTH SIDES MUST ACTUALLY SAY SOMETHING. Found by the Group E instrument, which could not
+       measure a hold at all until it was explained: the typewriter reveal blanks a bubble's text
+       for its first frames, and an ask pill mid-reveal is blank too — so `"" === ""` matched and
+       this dedup retired a perfectly good narration line the instant any prompt was on screen.
+       An empty bubble is not a duplicate of an empty pill. */
+    const bubT = bub ? plain(bub.textContent) : "", msgT = msg ? plain(msg.textContent) : "";
+    if (bubT && msgT && bubT === msgT && S.hurry) S.hurry();
     // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
     // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
     // playtest 21 item 7: the slider's presence is part of the placement key. Without it a prompt
@@ -2558,7 +2602,12 @@ export function initStage(){
   // bridge for the classic modules (no import cycles): panel/flow/board call these if present
   window.__pp4 = {
     flash: stageFlash,
-    narr: (html, opts) => (S.active ? stageFlash(html, undefined, undefined, undefined, opts) : null),
+    /* `variants` USED TO BE DROPPED HERE, AND THAT WAS PAR-14's OWN SEAM. netNarrate picked a
+       variant and handed this entry a bare string; watchNarr handed flash() the RAW payload and
+       flash() picked for itself — two shapes for one drawn thing, and the shape the HOST used
+       could not carry the fact the renderer needed. It is forwarded now, so both tiers hand
+       stageFlash the same five arguments and any rule about a payload is written exactly once. */
+    narr: (html, opts, variants) => (S.active ? stageFlash(html, undefined, undefined, variants, opts) : null),
     set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
     set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
     sailCells: (seat) => { if (S.active) camFitSail(seat); },

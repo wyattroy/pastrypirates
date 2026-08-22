@@ -1042,8 +1042,13 @@ export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.t
 // one, and only the second is what F6 forbids.
 // `opts.wait` rides through to stageFlash, which then registers no dismissal deadline — see its
 // note. The pre-stage panel path below has no hold of its own to skip, so it needs no branch.
-export function showNarration(html,opts){
-  if(html&&window.__pp4){const h=window.__pp4.narr(html,opts);if(h)return;}
+/* `variants` is FORWARDED, not read here (02.2-07, PAR-14). The renderer needs the payload's own
+   per-seat array to answer one question — is this wait line about a question coming to THIS
+   browser — and until now the host's entry into the renderer dropped it while a guest's kept it.
+   Same drawn thing, two shapes; the shape the host used could not carry the fact. Additive: every
+   two-argument caller behaves exactly as before, since `undefined` forwards as `undefined`. */
+export function showNarration(html,opts,variants){
+  if(html&&window.__pp4){const h=window.__pp4.narr(html,opts,variants);if(h)return;}
   panel(html?`<div class="apMsg">${html}</div>`:"");
 }
 // netNarrate/netBroadcast remain classic-script globals this wave (they call showNarration bare,

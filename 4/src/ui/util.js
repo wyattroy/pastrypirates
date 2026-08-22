@@ -1040,6 +1040,42 @@ export function narrationVariants(e){
 // a null payload, a missing/empty variants array, and a null asking seat, so an old host's
 // payload (no variants key at all) and a viewer with no seat both degrade to the payload's own
 // html rather than ever returning undefined/null.
+/* A WAIT LINE ADDRESSED TO THE VERY CAPTAIN WHO IS ABOUT TO BE ASKED IS NOT DRAWN ON THAT
+   CAPTAIN'S OWN SCREEN — they are getting the question itself. Everyone else still reads
+   "…is deciding…", with no dismissal deadline, exactly as item 19 requires.
+
+   THE DEFECT THIS CLOSES, measured to the millisecond twice (`.planning/debug/tails-narration-
+   vanishes.md`, then again by 4/scripts/narration_timeline.mjs on build h). ask() posts a wait-line
+   bubble carrying the same words as the prompt it is about to build; two milliseconds later, in the
+   SAME synchronous turn, panel()'s trailing syncPrompt() runs promptTick(), which sees the action
+   panel go empty -> non-empty and retires whatever wait line is registered — including the one
+   ask() itself just posted. The bubble pops in and is marked for its 300ms fade before a word of it
+   can be read. Measured on build h: the post-sail menu 0ms, the dock's Buy mirror 0ms, the
+   crow's-nest call 1ms. That is Wyatt's "popped up and immediately disappeared", four times over.
+
+   THE FIX GOES AT THE MIRROR, NOT AT promptTick, AND THE CODEBASE ALREADY DECIDED THIS. The radial
+   fan carries a dedup whose own comment says the quiet part out loud — "if a live bubble is just
+   this pill's own words, retire it (the pill already says it)". The mirror is redundant with the
+   prompt by this project's own prior ruling, so teaching promptTick to spare the line would either
+   leave a genuine duplicate standing or be cancelled two lines later by that dedup. And the
+   retirement it would weaken is 3a80839's, which closed a real defect Wyatt reported — a "waiting
+   for yer mateys" card outliving the prompt it announced. That still works after this.
+
+   DERIVED FROM WHAT THE PAYLOAD ALREADY CARRIES — no new wire field, no new state (rule 9). `wait`
+   already crosses (netSetNarr's own note records why a display flag must), and so does `variants`.
+   A wait line for which a seat AT THIS BROWSER has an addressed variant is, by construction, a wait
+   line about a question coming to this browser. decisionIsLocal() is the same test ask() itself
+   uses one line later to decide whether to build the prompt here or send it over the wire, so the
+   two can never disagree about who is being asked.
+
+   ONE PLACE, BOTH TIERS (rule 23, PAR-14). This is called from stageFlash — the single renderer the
+   host's own loop and a guest's watchNarr both reach — never from the two call shapes above it. */
+export function waitLineIsSelfAddressed(variants,opts){
+  if(!(opts&&opts.wait))return false;
+  if(!Array.isArray(variants))return false;
+  try{return variants.some(v=>v&&v.seat!=null&&decisionIsLocal(v.seat));}
+  catch(e){return false;}   // pre-game, or a seat the table does not have: draw it, as before
+}
 export function pickNarrVariant(payload,seat){
   if(!payload)return "";
   const variants=payload.variants;
