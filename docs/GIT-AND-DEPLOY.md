@@ -325,17 +325,71 @@ PATH (`google-chrome`, `chromium`, `chromium-browser`), then the Mac bundle; on 
 sandbox, and `/dev/shm` is tiny). The repo root is derived from the script's own location. Usage
 is unchanged: `node 4/scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`.
 
-### THE PROOF — status: **NOT YET RUN.** First task of the first cloud session.
+### THE PROOF — RAN 2026-08-21, all four items passed.
 
-A recipe is a claim until it has been run. The verdict goes **here**, with the date, and replaces
-this paragraph:
+Run by the first cloud session, branch `claude/pastry-pirates-cloud-qa-a9jkeg`. Item 3 passed only
+after a two-part browser TLS fix — **now applied AUTOMATICALLY at session start** by
+`.claude/hooks/cloud-session-start.sh` (a SessionStart hook in `.claude/settings.json`, added
+2026-08-21 at Wyatt's ask: *"I want this to work, now and always"*). It no-ops on the laptop
+(`CLAUDE_CODE_REMOTE` guard), is idempotent, and installs the fixed browser as `chromium` on PATH
+so `4/scripts/lib/chrome.mjs` resolves it with no env var. The manual recipe stays below as the
+fallback if the hook ever reports "skipped" — and as the record of what the fix IS.
 
-1. `node .claude/gsd-core/bin/gsd-tools.cjs validate health` runs (project-local GSD works).
-2. One solo mouse-QA game at 1400×900 to Day 6: `node 4/scripts/mouse_qa.mjs /tmp/mq 1400 900 8611 9611`
-   — reaches Day 6 with 0 findings, and the screenshots are readable.
-3. One two-tab crew game through `4/scripts/mp_rig.mjs` — a guest joins a real Firebase room (proves
-   the network setting).
-4. `curl -s https://playpastrypirates.com/4/src/ui/stage.js | grep PP4_STAMP` returns the live stamp.
+1. **Project-local GSD works.** `node .claude/gsd-core/bin/gsd-tools.cjs validate health` ran —
+   known-noise W019s only. Also verified: `state get`, `progress` and the full command list all
+   respond; **zero laptop-absolute paths** remain in `.claude/commands`, `.claude/agents`,
+   `.claude/gsd-core`; GSD **1.8.0 project-local**.
+2. **Solo mouse-QA at 1400×900, past the bar.** `node 4/scripts/mouse_qa.mjs <out> 1400 900 8611
+   9611` — the bar was Day 6; the run played a full voyage to the end-of-voyage card at **Day 14**:
+   1158 ticks, 72 real-mouse actions, 115 screenshots, **0 findings, 0 console errors**. The
+   screenshots were verified readable by eye (the Day-1 board and the end-of-voyage card).
+3. **Two-Chrome crew game via `mp_rig.mjs` — passed, after the environment fix below.** Host
+   created real Firebase room **AGHR**, guest joined; both sides screenshotted and compared —
+   rosters identical, each side's own seat highlighted, host showing "Start the voyage!" against
+   the guest's "Waiting for the host…". Room torn down, processes killed.
+4. **The live stamp reads.** `curl -s https://playpastrypirates.com/4/src/ui/stage.js | grep
+   PP4_STAMP` returned **`2026-08-21g`**, the live stamp.
 
-**If 2 or 3 fails, the laptop stays the QA machine until it is fixed, and the handoff says so.**
-Do not report the cloud as QA-capable on the strength of 1 and 4.
+Also proven: the root `npm test` and all eight `4/scripts` static gates pass on bare Node in the
+container, and the repo's `.claude/hooks` (read-the-doc-first) fire correctly in the cloud.
+
+#### The environment fix — automatic via the SessionStart hook; manual fallback below
+
+Without it, item 3 fails **exactly as this section's own "fails SILENTLY" warning predicts**: the
+Firebase SDK never loads and a Host click produces **no room code at all**. The cloud container
+routes HTTPS through Anthropic's TLS-inspecting egress proxy; `curl` works out of the box,
+**Chromium does not, for two separate reasons**, both fixable in-container:
+
+**(a) Chromium's cert store does not trust the proxy.** Install `libnss3-tools`, split
+`/root/.ccr/ca-bundle.crt` into one file per certificate, and import each into
+`sql:$HOME/.pki/nssdb` — the load-bearing certs are the Anthropic egress-gateway CAs:
+
+```bash
+apt-get update && apt-get install -y libnss3-tools
+mkdir -p "$HOME/.pki/nssdb"
+csplit -s -z -f /tmp/ccr-ca- /root/.ccr/ca-bundle.crt '/-----BEGIN CERTIFICATE-----/' '{*}'
+for c in /tmp/ccr-ca-*; do
+  certutil -A -n "ccr-$(basename "$c")" -t "C,," -i "$c" -d sql:$HOME/.pki/nssdb
+done
+```
+
+**(b) The gateway RESETS Chromium's TLS 1.3 ClientHello mid-handshake** (net_error **-101**;
+curl's TLS 1.3 passes; feature-flag disables for ML-KEM/ECH did not help). Workaround: launch
+Chromium with `--ssl-version-max=tls1.2` — **TLS verification stays ON.** Cleanest as a two-line
+wrapper exported via `CHROME_BIN` (the scripts' resolver honors it):
+
+```bash
+printf '#!/bin/sh\nexec /opt/pw-browsers/chromium --ssl-version-max=tls1.2 "$@"\n' > /tmp/chromium-tls12
+chmod +x /tmp/chromium-tls12
+export CHROME_BIN=/tmp/chromium-tls12
+```
+
+- **The real binary is `/opt/pw-browsers/chromium`** (a symlink to
+  `chromium-1194/chrome-linux/chrome`); the image ships nothing matching on PATH. The hook fixes
+  that by installing the wrapper as `/usr/local/bin/chromium` — so `CHROME_BIN` only needs setting
+  when running WITHOUT the hook.
+- **The network policy itself needed nothing**: gstatic, `*.firebaseio.com`, googleapis,
+  `playpastrypirates.com`, and GitHub push were all reachable through the proxy.
+
+The boundary that stands: the cloud is proven QA-capable for solo and crew browser QA — **Safari
+and Wyatt's own play remain laptop-only**, as the top of this section already says.

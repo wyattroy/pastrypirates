@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: Completed 02.2-08-PLAN.md (Group F) — no stamp bump, no push; Group D still to land
-last_updated: "2026-08-22T10:45:46.701Z"
+stopped_at: "2026-08-22 overnight COMPLETE and PUSHED as PP4_STAMP 2026-08-22a: Groups E (02.2-07), F (02.2-08) and D (02.2-06) on ONE build. Wyatt has .planning/MORNING-CHECKLIST-2026-08-22.md. FOUR THINGS OPEN, none of them a shipped game fault: (1) the vision judge is DEAD — the claude CLI OAuth session expired, only Wyatt can re-auth, and every judge call returns that error as an unparseable reply; (2) playtest_gate.mjs HANGS instead of exiting when the judge fails and does not kill its browsers — it left 10 Chromes at 47% CPU for 3 hours on his laptop; (3) solo-phone stalled at day 5 in that run — driver suspected, NOT established; (4) the recipe picker fails no-pile/on-screen at 390x664 on the first screen — reproducible, not yet diagnosed, and probably a fault the old 390x844 emulation was hiding rather than a regression."
+last_updated: "2026-08-22T16:54:01.000Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 33
 current_phase: 02.2
 ---
