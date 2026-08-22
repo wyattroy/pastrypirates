@@ -35,7 +35,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
 import { driver, driverOff } from "./mp_rig.mjs";
-import { PROBE_SRC, BOARD_SAMPLER_SRC, PILL_PROBE_SRC, HOLD_TEXTS, measureHold, measureHoldTwice } from "./lib/narration_probe.mjs";
+import { PROBE_SRC, BOARD_SAMPLER_SRC, PILL_PROBE_SRC, RECIPE_PROBE_SRC, HOLD_TEXTS, measureHold, measureHoldTwice } from "./lib/narration_probe.mjs";
 
 const OUT = process.argv[2] || path.join(process.cwd(), "narration-timeline");
 const W = +(process.argv[3] || 1400), H = +(process.argv[4] || 900);
@@ -361,6 +361,113 @@ async function soloLeg(url, out) {
   out.blackmarket_solo = await C.ev(`(() => { const g = appState.game;
     return { drySeen: !!g.drySeen, dryEvents: g.events.filter(e => e && e.firstDry).length,
       dryBySeat: g.events.filter(e => e && e.firstDry).map(e => ({ seat: e.p, human: g.players[e.p].strategy === "human" })) }; })()`);
+
+  /* ---- HIS ITEM 7: does a BOT emptying the first shelf reach the ceremony? -----------------
+     Driven, not code-derived, but stated exactly for what it is: the real bot narration path
+     (botBeat -> narrateCurrent -> eventCeremony -> the onDryCeremony handler -> panel.js's
+     dryCeremony) is run against a real firstDry dock event injected at DRIVING-THE-GAME §5e,
+     rather than a thirty-turn voyage played until a bot happens to claim a shelf. It exercises
+     every link in the converged chain. It does NOT prove the engine stamps firstDry correctly —
+     that is unchanged code and is measured headlessly over 500 games in the debug document.
+     RED-PROOFED IN PLACE: the same injection is run first with the handler unregistered, which
+     must show no card. A sampler that cannot go red is not believed. */
+  out.blackmarket = await C.ev(`(async () => {
+    const g = appState.game, ui = await import("/4/src/ui/index.js");
+    const botSeat = g.players.findIndex(p => p.strategy !== "human");
+    const h = (await import("/4/src/ui/handlers.js")).netHandlers();
+    const real = h.onDryCeremony;
+    // narrateCurrent() ALONE is the precise unit under test: it is the bot narration path, and it
+    // is the function that had no knowledge of firstDry. botBeat() is just onLiveRender() + this,
+    // and onLiveRender would try to draw a board state a synthetic event does not describe.
+    const fire = async () => {
+      g.events.push({ t: "dock", p: botSeat, ing: "sugar", heads: 1, got: "bought", price: 1, black: 0, wentDry: 1, firstDry: 1 });
+      appState.evIdx = g.events.length - 1;
+      appState.logLines[appState.evIdx] = { txt: "A bot buys the last crate." };
+      await Promise.race([ ui.narrateCurrent(), new Promise(r => setTimeout(r, 6000)) ]);
+      const card = document.getElementById("bmCerGo");
+      const seen = !!card && card.getBoundingClientRect().width > 4;
+      if (card) card.click();
+      await new Promise(r => setTimeout(r, 400));
+      return seen;
+    };
+    h.onDryCeremony = undefined;                    // RED
+    const red = await fire();
+    h.onDryCeremony = real;                         // GREEN
+    const green = await fire();
+    return { bot_seat: botSeat, bot_is_bot: g.players[botSeat].strategy !== "human",
+      redproof_no_handler_shows_nothing: red === false,
+      bot_first_ceremony_shown: green,
+      handler_registered: typeof real === "function" };
+  })()`);
+  log("black market (bot path):", JSON.stringify(out.blackmarket));
+  if (out.blackmarket && out.blackmarket.bot_first_ceremony_shown) {
+    // re-fire once purely to photograph it, then dismiss
+    await C.ev(`(async () => { const g = appState.game, ui = await import("/4/src/ui/index.js");
+      const b = g.players.findIndex(p => p.strategy !== "human");
+      g.events.push({ t:"dock", p:b, ing:"sugar", heads:1, got:"bought", price:1, black:0, wentDry:1, firstDry:1 });
+      appState.evIdx = g.events.length - 1;
+      appState.logLines[appState.evIdx] = { txt: "A bot buys the last crate." };
+      ui.narrateCurrent(); return true; })()`);
+    await sleep(2500); await C.shot("e-blackmarket-bot.png");
+    await C.ev(`(() => { const b = document.getElementById("bmCerGo"); if (b) b.click(); return true; })()`);
+    await sleep(600);
+  }
+
+  /* ---- HIS ITEM 3: one storm, posed so a ship really is blocked by another ship ------------
+     §5e posing, solo only. Two captains are placed one square apart along the storm's own push
+     direction and the round's weather is forced, so the collision is certain rather than waited
+     for. `inline_lines` counts narration bubbles raised BETWEEN the storm starting and its
+     summary landing — the thing Wyatt saw as "it described player actions one by one". */
+  out.storm = await C.ev(`(async () => {
+    const g = appState.game, ui = await import("/4/src/ui/index.js");
+    const mark = window.__NT.bubbles.length;
+    /* WHY THE OBVIOUS POSE DOES NOT WORK, recorded so nobody re-derives it. stormOrder() resolves
+       ships FURTHEST DOWNWIND FIRST, precisely so a lead ship clears its square before the one
+       behind arrives (rule 7b). Two adjacent ships along the push direction therefore do NOT
+       collide — the leader moves off first. A follower is only ever blocked when the LEADER
+       CANNOT MOVE. So the leader is placed hard against land in the push direction (it takes the
+       landHeld anchor) and the follower is placed one square behind it. */
+    const water = ([x,y]) => x>0 && y>0 && x<15 && y<15 &&
+      !g.blocked([x,y]) && !g.isIsland([x,y]) && !g.isHome([x,y]) && !g.onRim([x,y]);
+    const wall  = ([x,y]) => g.blocked([x,y]) || g.isIsland([x,y]) || g.isHome([x,y]);
+    let lead = null;
+    for (let x = 1; x < 15 && !lead; x++) for (let y = 2; y < 15; y++) {
+      if (water([x,y]) && wall([x, y-1]) && water([x, y+1])) { lead = [x,y]; break; }
+    }
+    if (!lead) return { posed: false, why: "no water square with land to its north and water behind" };
+    g.players[0].pos = [lead[0], lead[1]];          // pinned by land to the north
+    g.players[1].pos = [lead[0], lead[1] + 1];      // one behind, will find a hull dead ahead
+    for (let i = 2; i < g.players.length; i++) g.players[i].pos = [g.home[0], g.home[1]];
+    for (const p of g.players) p.stormNote = null;
+    const before = g.events.length;
+    await ui.runStormLive("N");
+    const raised = window.__NT.bubbles.slice(mark);
+    const evs = g.events.slice(before);
+    const sum = evs.filter(e => e.t === "stormSummary").pop() || null;
+    const blocked = evs.filter(e => e.t === "blocked");
+    const named = sum ? new Set([...(sum.moved||[]),...(sum.held||[]),...(sum.shipHeld||[]),...(sum.blown||[])]) : new Set();
+    // "one line per captain" is what he complained about. A bubble raised during the storm that is
+    // not the summary is exactly that. Texts are reported too, so the count can be read, not trusted.
+    const isSummary = t => /storm (drives|hurls)|a gale tears/i.test(t);
+    const inline = raised.filter(b => !isSummary(b.text));
+    return { posed: true, lead: lead, blocked_events: blocked.length,
+      inline_lines: inline.length,
+      inline_texts: inline.map(b => b.text.slice(0, 70)),
+      bubbles_raised: raised.length,
+      summary_line: (raised.filter(b => isSummary(b.text)).pop() || {}).text || null,
+      shipHeld: sum ? (sum.shipHeld || null) : null,
+      blocked_captains_in_summary: blocked.length ? blocked.every(b => named.has(b.p)) : null };
+  })()`);
+  log("storm (posed, one collision):", JSON.stringify(out.storm));
+  await C.shot("e-storm-summary.png");
+
+  /* ---- D-35: the recipe modal, measured at this leg's width ------------------------------- */
+  out.recipe_card = out.recipe_card || {};
+  out.recipe_card["w" + W] = await C.ev(RECIPE_PROBE_SRC);
+  log("recipe card at " + W + ":", JSON.stringify(out.recipe_card["w" + W]));
+  if (out.recipe_card["w" + W] && !out.recipe_card["w" + W].missing) await C.shot("e-recipe-" + W + ".png");
+  await C.ev(`(() => { const b = document.querySelector("#recipeModal .apBtn, #recipeModalClose, .recipeModalClose"); if (b) b.click(); return true; })()`);
+
   out.consoleErrors = C.errs.slice(0, 10);
   await C.shot("e-solo-final.png");
   return out;

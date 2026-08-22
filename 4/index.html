@@ -1739,6 +1739,17 @@
      transform in a running keyframe would win over anything a :hover rule tried to set.
      The reduced-motion opt-out travels WITH the animation. A pulse copied without the rule that
      stops it is a regression wearing a feature's clothes. */
+  /* ⚠ MEASURED AFTER THE FACT, AND IT QUALIFIES THE CLAIM — read this before assuming item 1 is
+     solved. Driving a solo game at 1400x900 AND at 390x844 and posing the action menu at a dock,
+     #pp4Prompt came up `pp4Center` BOTH times, never `radial`. The pp4Center circles are excluded
+     below and they ALREADY carry pp4StagePulse — scale 1.09 on a 1.1s cycle plus a 16px orange ring
+     at 28% alpha which, read off the screenshot, is invisible against the teal sea. sailBounce is
+     scale 1.11 on a 1.15s cycle: near enough the same movement.
+     SO: this rule is a real gain for the flat button rows and the battle buttons, which had NO
+     pulse at all. It is NOT yet proven on a live radial petal, and if the menu Wyatt was looking at
+     was the pp4Center one, then his item 1 ("the prompt buttons are hard to notice") is about
+     buttons that were already pulsing — which means a pulse is not the answer and the next step is
+     HIS call, not a bigger number picked here. Stated rather than quietly claimed as fixed. */
   #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]) {
     --pulseLo:1; --pulseHi:1;
     animation: sailBounce 1.15s ease-in-out infinite; }
