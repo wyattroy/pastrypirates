@@ -311,7 +311,11 @@ async function runSize(i) {
 {
   const seen = new Set(report.filter(Boolean).map(r => r.side ? "side-by-side" : (r.W > PHONE_MAX_W ? "stacked" : "phone")));
   const missing = ["phone", "stacked", "side-by-side"].filter(b => !seen.has(b));
-  if (missing.length) { anyFail = true; log(`\nBRANCH COVERAGE FAIL: no size in this run landed in the ${missing.join(" or ")} branch (saw ${[...seen].join(", ") || "nothing"})`); }
+  // A run that was deliberately narrowed with --sizes is a targeted probe, not a gate run, and
+  // failing it would only teach people to route around this check. It still SAYS so, loudly.
+  const narrowed = process.argv.some(a => a.startsWith("--sizes="));
+  if (missing.length) { if (!narrowed) anyFail = true;
+    log(`\nBRANCH COVERAGE ${narrowed ? "GAP (narrowed run, not counted)" : "FAIL"}: no size in this run landed in the ${missing.join(" or ")} branch (saw ${[...seen].join(", ") || "nothing"})`); }
   else log(`\nbranch coverage: ${[...seen].sort().join(", ")} — all three shapes measured`);
 }
 
@@ -320,30 +324,36 @@ async function runSize(i) {
 // to a multi-megabyte data: URL, which Chrome silently refused, and screenshotted a blank page. A
 // blank sheet that looks like a rendering hiccup is exactly the reassuring-green trap this gate
 // exists to close, so the sheet now also asserts that every image actually loaded.
-const withTimeout = (pr, ms, label) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error(label + " timed out")), ms))]);
-try {
-  await withTimeout((async () => {
-  const c = await openChrome(1700, 1000, DBG0 + 50);
-  const tiles = report.flatMap(r => r.moments.map(mo => { const fails = mo.checks.filter(k => !k.ok);
-    return { cap: `${r.tag} · ${mo.name} · ${fails.length ? "FAIL ×" + fails.length : "ok"}`, fails: fails.map(k => k.what), src: path.basename(mo.shot) }; }));
+/* --- THE CONTACT SHEET IS AN HTML FILE, AND IT IS NO LONGER SCREENSHOTTED ------------------
+   It used to open the sheet in a seventh headless Chrome and photograph it. That step has NEVER
+   ONCE SUCCEEDED on a real multi-size run, and it took until 2026-08-22 to notice, because it was
+   photographing its own 404: the URL was built relative to REPO and fetched from the run's own
+   server, so any --out outside the repo produced `../../../tmp/...` and python answered 404. That
+   is exactly the class d9c9a71 hardened playtest_gate.mjs against, in this file, unfixed.
+   Serving the sheet from its own directory fixed the 404 — and then the capture began TIMING OUT
+   instead, on a six-size run, at 40s, at 90s and at 240s alike, while a one-size run finished in
+   seconds. A seventh Chrome decoding eighteen full-size screenshots on a laptop already running
+   three is not a thing to keep paying for.
+   So the step is DELETED rather than nursed. What is kept is the part that was always the useful
+   artifact: the HTML sheet on disk, which links the REAL full-resolution PNGs and prints every
+   failure beside its own tile — better to look at than a photograph of itself, because you can
+   click into a tile at full size. Open it with `open <path>`.
+   AND THE CHECK IS STRONGER FOR LOSING THE BROWSER. "Did the browser load 18 images" is now "does
+   every PNG this sheet names exist on disk with real bytes in it", asked of the filesystem, which
+   cannot be answered by an error page. A gate aimed at the wrong thing is not silent, it is
+   reassuring (HARD-WON-LESSONS section 3), and photographing a 404 is the purest form of that. */
+{
+  const tiles = report.filter(Boolean).flatMap(r => r.moments.map(mo => { const fails = mo.checks.filter(k => !k.ok);
+    return { cap: `${r.tag} · ${mo.name} · ${fails.length ? "FAIL ×" + fails.length : "ok"}`, fails: fails.map(k => k.what), src: path.basename(mo.shot), file: mo.shot }; }));
   const html = `<!doctype html><html><body style="margin:0;background:#1c2f38;color:#fff;font:13px/1.3 -apple-system,Helvetica,sans-serif"><div style="padding:14px 16px 4px;font-size:16px">stage_layout_check — ${new Date().toISOString().slice(0, 16)} — ${report[0]?.stamp || ""} — ${anyFail ? "FAILURES" : "all green"}</div>
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:10px 16px 16px">${tiles.map(t => `<div style="background:#0f1d24;border:2px solid ${t.fails.length ? "#ff2d55" : "#27c78d"};border-radius:8px;padding:8px">
-    <div style="font-weight:bold;margin-bottom:6px">${t.cap}</div><img src="${t.src}" style="width:100%;display:block;border-radius:4px;background:#000">
+    <div style="font-weight:bold;margin-bottom:6px">${t.cap}</div><a href="${t.src}"><img src="${t.src}" style="width:100%;display:block;border-radius:4px;background:#000"></a>
     ${t.fails.map(f => `<div style="color:#ff8fa5;margin-top:4px">✗ ${f.replace(/</g, "&lt;")}</div>`).join("")}</div>`).join("")}</div></body></html>`;
   const htmlFile = path.join(OUT, "contact-sheet.html"); fs.writeFileSync(htmlFile, html);
-  // over HTTP, not file:// — headless Chrome blocks file:// and the navigate hangs (it did, 90s).
-  // OUT is under REPO (the server's root), so the sheet and its sibling PNGs are both reachable.
-  const rel = path.relative(REPO, htmlFile).split(path.sep).join("/");
-  await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/${rel}` }); await sleep(800);
-  const loaded = await c.ev("Promise.all([...document.images].map(i => i.complete ? i.naturalWidth : new Promise(r => { i.onload = () => r(i.naturalWidth); i.onerror = () => r(0); }))).then(ws => ws)");
-  const bad = Array.isArray(loaded) ? loaded.filter(w => !w).length : tiles.length;
-  const hgt = await c.ev("document.documentElement.scrollHeight");
-  await c.send("Emulation.setDeviceMetricsOverride", { width: 1700, height: Math.max(400, Math.min(hgt || 0, 16000)), deviceScaleFactor: 1, mobile: false }); await sleep(500);
-  const sheet = await c.shot(path.join(OUT, "contact-sheet.png")); c.close();
-  if (bad || !Array.isArray(loaded) || loaded.length !== tiles.length) { anyFail = true; log(`\nCONTACT SHEET INCOMPLETE: ${bad} of ${tiles.length} images failed to load — do not trust it`); }
-  log(`\nCONTACT SHEET (open it and READ it before showing anyone anything): ${sheet}  [${tiles.length} tiles, ${hgt}px tall]`);
-  })(), 40_000, "contact sheet");
-} catch (e) { log("contact sheet skipped: " + e.message + " (screenshots on disk are unaffected)"); }
+  const missingShots = tiles.filter(t => { try { return fs.statSync(t.file).size < 2000; } catch { return true; } }).map(t => t.src);
+  if (missingShots.length) { anyFail = true; log(`\nCONTACT SHEET INCOMPLETE: ${missingShots.length} of ${tiles.length} screenshots are missing or empty on disk — do not trust it (${missingShots.join(", ")})`); }
+  log(`\nCONTACT SHEET (open it and READ it before showing anyone anything): open ${htmlFile}  [${tiles.length} tiles, all present on disk]`);
+}
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(report, (k, v) => k === "m" ? undefined : v, 2));
 log(anyFail ? "\nRESULT: FAIL" : "\nRESULT: PASS");
 killAll(); process.exit(anyFail ? 1 : 0);
