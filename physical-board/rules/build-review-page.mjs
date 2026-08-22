@@ -213,8 +213,8 @@ const RUNTIME = `
     var json=JSON.stringify(doc).replace(/</g,'\\\\u003c');
     var html='<!doctype html>\\n<html lang="en">\\n<head>\\n<meta charset="utf-8">\\n'
       +'<meta name="viewport" content="width=device-width, initial-scale=1">\\n'
-      +'<title>'+document.title+'</title>\\n'
-      +'<style>'+document.querySelector('style').textContent+'</style>\\n</head>\\n<body>\\n'
+      +'<title>Pastry Pirates Rulebook</title>\\n'
+      +'<style id="ss">'+$('ss').textContent+'</style>\\n</head>\\n<body>\\n'
       +'<div id="app"></div>\\n'
       +$('tpl').outerHTML+'\\n'
       +'<scr'+'ipt id="imgs" type="application/json">'+$('imgs').textContent+'</scr'+'ipt>\\n'
@@ -237,25 +237,17 @@ const RUNTIME = `
 
 const esc = s => s; // sections come from our own trusted source
 const IMGJSON = JSON.stringify(IMG);
-const html = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pastry Pirates Rulebook</title>
-<style>${STYLE}</style>
-</head>
-<body>
+const DOCJSON = (fs.existsSync(process.argv[3] || '') ? fs.readFileSync(process.argv[3], 'utf8') : '{}').replace(/</g, '\\u003c');
+const html = `<title>Pastry Pirates Rulebook</title>
+<style id="ss">${STYLE}</style>
 <div id="app"></div>
 <template id="tpl">
 ${sections.map(esc).join('\n')}
 ${notes}
 </template>
 <script id="imgs" type="application/json">${IMGJSON}</script>
-<script id="doc" type="application/json">{}</script>
-<script id="rt">${RUNTIME}</script>
-</body>
-</html>`;
+<script id="doc" type="application/json">${DOCJSON}</script>
+<script id="rt">${RUNTIME}</script>`;
 
 if (html.includes('src="images/') || html.includes('src="../../assets/')) throw new Error('unconverted image src remains');
 fs.writeFileSync(OUT, html);
