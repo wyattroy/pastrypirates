@@ -1103,3 +1103,34 @@ A verification re-run boot-failed with *"solo card not clickable"* at 7 seconds.
 test: another agent was driving browsers on the same laptop and the page never finished loading in
 the boot window. **Check for other agents' Chromes before launching, and scope the conclusion when
 you do not** — that failure was nearly filed against the settle detector.
+
+### A JUDGE READING A STILL FRAME CANNOT TELL "FADED" FROM "UNDERNEATH", OR A PULSE FROM A GAP
+
+2026-08-22, and this one is about the vision judge itself — which since D-53 is a Claude session
+reading screenshots, so it is about *us*. Judging 46 gate screenshots produced 8 failures. **Two of
+the six distinct faults did not exist**, and both were the same mistake: **a positional claim
+inferred from a still frame and reported as a finding.**
+
+- *"The narration bubble is drawn UNDERNEATH the sail-square highlights — only the fragments 'Ahoy'
+  and 'turn!' are visible between the squares."* Measured: the bubble is in `#pp4Fx` at z-index 21,
+  the squares in `#boardwrap` at 5, siblings in one stacking context, and it stood on **0 of 19**
+  squares while fully opaque. Sampling the screenshot's own pixels put it at ~18% transparency,
+  agreeing across all three colour channels. It was **on top and faded** — hold-the-sea, Wyatt's own
+  gesture, caught mid-tap. The fragments were the board showing THROUGH it, not over it.
+- *"Two battle circles sit about 10px apart, tighter than the derived gap."* Measured: 82.98px
+  centre-to-centre against an ordinary fan's 83.07 — identical. The "10px" was the **tap-me pulse**:
+  two 66px circles rendered at 109% leave exactly 11.1px of white between them in a still.
+
+**A still frame cannot distinguish transparency from occlusion, or a mid-animation scale from a
+layout gap.** Both are questions about state over time, and a screenshot has none.
+
+**So the rule for the judge — the one this file now has to carry, because the judge is a session:
+REPORT WHAT YOU SEE, NAME WHAT IT MIGHT BE, AND NEVER STATE THE MECHANISM.** *"The bubble's text is
+broken up by the sail squares"* is a true observation worth acting on. *"The bubble is underneath the
+sail squares"* is a diagnosis, it was wrong, and it sent a fix at the wrong layer. CLAUDE.md rule 6
+already says never report a defect as confirmed before measuring it; this is that rule arriving at
+the one place in the pipeline whose whole job is to look rather than measure.
+
+**Both were still worth chasing.** Investigating the false one is what found the real desktop
+subtitle clipping, and what found the drag-off-the-board deafness below. **Chase the phantom; just
+never hand it over wearing a mechanism.**
