@@ -34,6 +34,9 @@
   .layer-cut * { stroke-width:.6px; vector-effect:non-scaling-stroke; }
   body.hide-cut .layer-cut { display:none; }
   body.hide-raster .layer-raster { display:none; }
+  .layer-guide { opacity:.9; }
+  .fb .row { display:flex; gap:10px; align-items:center; justify-content:space-between; }
+  .fb button.clear { border:1px solid var(--line); background:#fff; border-radius:6px; padding:3px 9px; font-size:12px; cursor:pointer; color:#7a6a4a; }
   .meta { padding:10px 14px; font-size:13px; color:#5a5243; border-top:1px solid var(--line); }
   .meta b { color:var(--ink); }
   .meta .notes { margin:6px 0 0; }
@@ -75,6 +78,7 @@
     <div class="actions">
       <button id="copy">Copy all feedback</button>
       <button id="download" class="alt">Download feedback.md</button>
+      <button id="clearAll" class="alt" title="forget every note and approval on this page">Clear all feedback</button>
       <span class="status" id="saved">Your approvals and notes save in this browser as you type.</span>
     </div>
   </section>
@@ -89,7 +93,7 @@
   const fb = JSON.parse(localStorage.getItem(KEY) || "{}");
   const save = () => { localStorage.setItem(KEY, JSON.stringify(fb)); document.getElementById("saved").textContent = "Saved " + new Date().toLocaleTimeString(); };
   document.getElementById("dims").textContent = `${D.cell} mm squares · ${D.material} mm material · kerf ${D.kerf} mm · bed ${D.bed[0]} × ${D.bed[1]} mm · generated ${D.generated}`;
-  if (single) { document.getElementById("h1").textContent = `Pastry Pirates — ${D.versions[0].name}`; document.getElementById("sub").textContent = "Styled after the game's own art: its ingredient drawings cut out as tokens, its compass, its pier, its chevrons, Georgia and Avenir lettering. Black = engraved, red hairline = cut. Dashed-bordered sheets are the files to cut (6 mm board and tokens, 3 mm spinner, crates, chests and cards) — their lines already include the kerf. Everything else is a design view."; }
+  if (single) { document.getElementById("h1").textContent = `Pastry Pirates — ${D.versions[0].name}`; document.getElementById("sub").textContent = "Styled after the game's own art: its ingredient drawings cut out as tokens, its compass, its pier, its chevrons, Georgia and Avenir lettering. Black = engraved, red hairline = cut, blue = notes for you only (never cut or engraved). Dashed-bordered sheets are the files to cut (6 mm board and tokens, 3 mm spinner, crates, chests and cards) — their lines already include the kerf. Everything else is a design view."; }
   else document.getElementById("sub").textContent = "Pick one version per piece and leave notes. Black = engraved, red hairline = cut.";
   document.getElementById("cols").style.gridTemplateColumns = single ? "1fr" : `repeat(${D.versions.length}, minmax(0,1fr))`;
 
@@ -110,11 +114,12 @@
         <div class="art ${kind === "sheet" ? "sheet" : ""}" title="click to enlarge">${g.svg}</div>
         <div class="meta">${kind === "mockup" ? "" : `<b>${g.count}</b> piece${g.count === 1 ? "" : "s"} · <b>${g.w} × ${g.h} mm</b>`}<p class="notes">${g.notes}</p></div>
         <div class="links"><a href="${v.dir}/${g.id}.svg" target="_blank">SVG</a>${kind === "mockup" ? "" : `<a href="${v.dir}/${g.id}.dxf" download>DXF</a>`}</div>
-        <div class="fb"><label class="pick">${single ? `<input type="checkbox" ${f.ok ? "checked" : ""}> approved` : `<input type="radio" name="pick-${cur}" value="${v.id}" ${f.pick === v.id ? "checked" : ""}> this one`}</label>
+        <div class="fb"><div class="row"><label class="pick">${single ? `<input type="checkbox" ${f.ok ? "checked" : ""}> approved` : `<input type="radio" name="pick-${cur}" value="${v.id}" ${f.pick === v.id ? "checked" : ""}> this one`}</label><button class="clear" title="forget the notes and approval for this group">clear this group</button></div>
         <textarea placeholder="Notes…">${f.notes[v.id] || ""}</textarea></div>`;
       card.querySelector(".art").onclick = () => { document.getElementById("overlayWrap").innerHTML = g.svg; document.getElementById("overlay").classList.add("on"); };
       card.querySelector(".fb input").onchange = e => { if (single) f.ok = e.target.checked; else f.pick = v.id; save(); render(); };
       card.querySelector("textarea").oninput = e => { f.notes[v.id] = e.target.value; save(); };
+      card.querySelector("button.clear").onclick = () => { delete fb[cur]; save(); render(); };
       cols.appendChild(card);
     }
   }
@@ -135,6 +140,7 @@
     return lines.join("\n");
   }
   document.getElementById("copy").onclick = async () => { try { await navigator.clipboard.writeText(markdown()); document.getElementById("saved").textContent = "Copied — paste it to Claude."; } catch { prompt("Copy this:", markdown()); } };
+  document.getElementById("clearAll").onclick = () => { if (!confirm("Forget every note and approval?")) return; for (const k of Object.keys(fb)) delete fb[k]; gen.value = ""; save(); render(); };
   document.getElementById("download").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([markdown()], { type:"text/markdown" })); a.download = "physical-board-feedback.md"; a.click(); };
   render();
 })();
