@@ -101,15 +101,15 @@
     const cols = document.getElementById("cols"); cols.innerHTML = "";
     const f = fb[cur] = fb[cur] || { pick:"", ok:false, notes:{} };
     const kind = groups.find(g => g.id === cur).kind;
-    document.getElementById("intro").textContent = kind === "sheet" ? "A cutting sheet at the size of your bed. Red lines are offset by half the kerf, so cut exactly on them. Click to enlarge." : kind === "design" ? "How it looks once the five pieces are together. Not a cutting file. Click to enlarge." : "Design view of this group of pieces — the same parts appear, kerf-compensated, on the cutting sheets. Click to enlarge.";
+    document.getElementById("intro").textContent = kind === "mockup" ? "A picture of the assembled piece, built from the same cut files. Not a laser file. Click to enlarge." : kind === "sheet" ? "A cutting sheet at the size of your bed. Red lines are offset by half the kerf, so cut exactly on them. Click to enlarge." : kind === "design" ? "How it looks once the five pieces are together. Not a cutting file. Click to enlarge." : "Design view of this group of pieces — the same parts appear, kerf-compensated, on the cutting sheets. Click to enlarge.";
     for (const v of D.versions) {
       const g = v.groups.find(x => x.id === cur);
       const card = document.createElement("div"); card.className = "card" + ((single ? f.ok : f.pick === v.id) ? " ok" : "");
-      const badge = kind === "sheet" ? `<span class="badge sheet">cutting sheet · ${g.mat} mm · kerf ${D.kerf}</span>` : kind === "design" ? `<span class="badge design">assembled view</span>` : `<span class="badge">design view</span>`;
+      const badge = kind === "mockup" ? `<span class="badge design">mockup</span>` : kind === "sheet" ? `<span class="badge sheet">cutting sheet · ${g.mat} mm · kerf ${D.kerf}</span>` : kind === "design" ? `<span class="badge design">assembled view</span>` : `<span class="badge">design view</span>`;
       card.innerHTML = `<h2>${single ? g.title : v.name} ${badge}</h2><p class="blurb">${cur === "board-assembled" || cur === "board" ? v.blurb : ""}</p>
         <div class="art ${kind === "sheet" ? "sheet" : ""}" title="click to enlarge">${g.svg}</div>
-        <div class="meta"><b>${g.count}</b> piece${g.count === 1 ? "" : "s"} · <b>${g.w} × ${g.h} mm</b><p class="notes">${g.notes}</p></div>
-        <div class="links"><a href="${v.dir}/${g.id}.svg" target="_blank">SVG</a><a href="${v.dir}/${g.id}.dxf" download>DXF</a></div>
+        <div class="meta">${kind === "mockup" ? "" : `<b>${g.count}</b> piece${g.count === 1 ? "" : "s"} · <b>${g.w} × ${g.h} mm</b>`}<p class="notes">${g.notes}</p></div>
+        <div class="links"><a href="${v.dir}/${g.id}.svg" target="_blank">SVG</a>${kind === "mockup" ? "" : `<a href="${v.dir}/${g.id}.dxf" download>DXF</a>`}</div>
         <div class="fb"><label class="pick">${single ? `<input type="checkbox" ${f.ok ? "checked" : ""}> approved` : `<input type="radio" name="pick-${cur}" value="${v.id}" ${f.pick === v.id ? "checked" : ""}> this one`}</label>
         <textarea placeholder="Notes…">${f.notes[v.id] || ""}</textarea></div>`;
       card.querySelector(".art").onclick = () => { document.getElementById("overlayWrap").innerHTML = g.svg; document.getElementById("overlay").classList.add("on"); };

@@ -70,24 +70,36 @@ def area(pts):
     return sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1] for i in range(len(pts))) / 2
 
 ING = ["wheat", "dairy", "sugar", "eggs", "cocoa", "spice", "vanilla"]
-INK = {"sugar": 205, "eggs": 150, "dairy": 150}   # lighter art needs a lighter ink threshold
+# per-asset settings: ink = luminance below which a pixel is engraved (lower = outlines only, for painting over);
+# alpha = silhouette threshold; close = morphological closing radius to heal small notches in the cut line
+ASSETS = {**{ing: dict(path=f"{REPO}/assets/ingredients/{ing}.png", ink=112, alpha=110, close=3) for ing in ING},
+          "sugar": dict(path=f"{REPO}/assets/ingredients/sugar.png", ink=205, alpha=110, close=3),
+          "eggs": dict(path=f"{REPO}/assets/ingredients/eggs.png", ink=150, alpha=110, close=5),
+          "dairy": dict(path=f"{REPO}/assets/ingredients/dairy.png", ink=150, alpha=110, close=3),
+          "cocoa": dict(path=f"{REPO}/assets/ingredients/cocoa.png", ink=52, alpha=110, close=5),   # outlines only — it gets painted
+          "spice": dict(path=f"{REPO}/assets/ingredients/spice.png", ink=100, alpha=110, close=5),
+          "swirl": dict(path=f"{REPO}/assets/trade-swirl.png", ink=105, alpha=200, close=3),
+          "skull": dict(path=f"{REPO}/assets/icons/skull.png", ink=120, alpha=110, close=3),
+          "coin": dict(path=f"{REPO}/assets/icons/coin-emoji.png", ink=110, alpha=110, close=3),
+          "storm": dict(path=f"{REPO}/assets/icons/storm-cloud.png", ink=110, alpha=110, close=3)}
 out = {}
-for ing in ING:
-    im = Image.open(f"{REPO}/assets/ingredients/{ing}.png").convert("RGBA")
+for key, cfg in ASSETS.items():
+    im = Image.open(cfg["path"]).convert("RGBA")
     w, h = im.size
     a = im.split()[3]
-    sil = a.point(lambda v: 255 if v > 110 else 0).filter(ImageFilter.MaxFilter(5))   # dilate ~2px
+    c = cfg["close"]
+    sil = a.point(lambda v, t=cfg["alpha"]: 255 if v > t else 0).filter(ImageFilter.MaxFilter(2 * c + 1)).filter(ImageFilter.MinFilter(2 * c - 1))   # dilate ~1px net, heal notches
     px = im.load(); silpx = sil.load()
     silmask = [[1 if silpx[x, y] else 0 for x in range(w)] for y in range(h)]
-    dark = [[1 if (px[x, y][3] > 110 and (0.299 * px[x, y][0] + 0.587 * px[x, y][1] + 0.114 * px[x, y][2]) < INK.get(ing, 112)) else 0 for x in range(w)] for y in range(h)]
-    cut = [dp(smooth(l, 2), 0.9) for l in trace(silmask, w, h)]
+    dark = [[1 if (px[x, y][3] > 110 and (0.299 * px[x, y][0] + 0.587 * px[x, y][1] + 0.114 * px[x, y][2]) < cfg["ink"]) else 0 for x in range(w)] for y in range(h)]
+    cut = [dp(smooth(l, 3), 1.0) for l in trace(silmask, w, h)]
     ras = [dp(smooth(l, 1), 0.6) for l in trace(dark, w, h)]
     big = max(abs(area(l)) for l in cut)
     cut = [l for l in cut if abs(area(l)) > big * 0.02]          # drop specks; keep real holes
     ras = [l for l in ras if abs(area(l)) > 6]
     xs = [p[0] for l in cut for p in l]; ys = [p[1] for l in cut for p in l]
-    out[ing] = {"w": w, "h": h, "bbox": [min(xs), min(ys), max(xs), max(ys)],
+    out[key] = {"w": w, "h": h, "bbox": [min(xs), min(ys), max(xs), max(ys)],
                 "cut": [[[round(x, 1), round(y, 1)] for x, y in l] for l in cut],
                 "raster": [[[round(x, 1), round(y, 1)] for x, y in l] for l in ras]}
-    print(ing, "cut loops", len(cut), "raster loops", len(ras), "bbox", out[ing]["bbox"], file=sys.stderr)
+    print(key, "cut loops", len(cut), "raster loops", len(ras), file=sys.stderr)
 json.dump(out, open(sys.argv[1], "w"))

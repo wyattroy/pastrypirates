@@ -266,13 +266,16 @@ function offsetPoly(ptsRaw, d) {
     const nx = dy / l, ny = -dx / l; // outward normal for CW in y-down
     lines.push({ a: [a[0] + nx * d, a[1] + ny * d], dx, dy });
   }
-  const out = [];
+  const out = [], limit = Math.abs(d) * 2.5;
   for (let i = 0; i < n; i++) {
-    const L1 = lines[(i + n - 1) % n], L2 = lines[i];
+    const L1 = lines[(i + n - 1) % n], L2 = lines[i], V = pts[i];
     const den = L1.dx * L2.dy - L1.dy * L2.dx;
     if (Math.abs(den) < 1e-9) { out.push(L2.a); continue; }
     const t = ((L2.a[0] - L1.a[0]) * L2.dy - (L2.a[1] - L1.a[1]) * L2.dx) / den;
-    out.push([L1.a[0] + L1.dx * t, L1.a[1] + L1.dy * t]);
+    const X = [L1.a[0] + L1.dx * t, L1.a[1] + L1.dy * t];
+    // mitre limit: a near-parallel pair of edges would send the join off to infinity — bevel it instead
+    if (Math.hypot(X[0] - V[0], X[1] - V[1]) > limit) { const l1 = Math.hypot(L1.dx, L1.dy), e1 = [L1.a[0] + L1.dx, L1.a[1] + L1.dy]; out.push(e1, L2.a); void l1; }
+    else out.push(X);
   }
   return out;
 }
@@ -341,15 +344,22 @@ const MAT3 = 3; // the thin material: spinner, crates, chests, cards
 // the ingredient art itself, traced by art/trace.py: cut = silhouette loops, raster = the drawing's ink
 const ART = JSON.parse(fs.readFileSync(path.join(HERE, "art", "ingredients.json"), "utf8"));
 const TOKEN_MM = 20; // the longest side of a token; one sits on each island square of 25
-function artToken(name, cx, cy, size = TOKEN_MM, { cut = true, ink = true, solid = false } = {}) {
+function artToken(name, cx, cy, size = TOKEN_MM, { cut = true, ink = true, solid = false, outline = 0, rot = 0 } = {}) {
   const a = ART[name], [x0, y0, x1, y1] = a.bbox, k = size / Math.max(x1 - x0, y1 - y0), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
-  const L = loop => polyCmds(loop.map(([x, y]) => [cx + (x - mx) * k, cy + (y - my) * k]));
+  const co = Math.cos(rad(rot)), si = Math.sin(rad(rot));
+  const T = ([x, y]) => { const u = (x - mx) * k, v = (y - my) * k; return [cx + u * co - v * si, cy + u * si + v * co]; };
+  const L = loop => polyCmds(loop.map(T));
   const out = [];
   if (cut) out.push(item(CU, a.cut.map(L)));
   if (solid) out.push(item(RA, a.cut.map(L)));
-  else if (ink) out.push(item(RA, a.raster.map(L)));
+  else {
+    if (outline) for (const loop of a.cut) { const pts = loop.map(T); out.push(item(RA, [polyCmds(offsetPoly(pts, outline / 2)), reverseSub(polyCmds(offsetPoly(pts, -outline / 2)))])); }
+    if (ink) out.push(item(RA, a.raster.map(L)));
+  }
   return out;
 }
+// the game's coin, as an inline glyph — Wyatt: "Never write 'coins', use the game art"
+function coinGlyph(cx, cy, d) { return artToken("coin", cx, cy, d, { cut: false, outline: 0.3 }); }
 
 /* =========================================================================================
    5. Icons — each authored in a 100x100 box, RASTER, outer outlines CW and holes CCW
@@ -438,8 +448,7 @@ const ICONS = {
   pier() {
     const deck = roundCorners([[22, 28], [98, 28], [98, 72], [22, 72]], 2);
     const slits = [36, 50, 64, 78, 92].map(x => reverseSub(polyCmds([[x - 1.1, 31], [x + 1.1, 31], [x + 1.1, 69], [x - 1.1, 69]])));
-    const anchorHole = icon("anchor", 50, 50, 30).map(reverseItem).flatMap(i => i.sub);
-    return [item(RA, [deck, ...slits, ...anchorHole]), circ(RA, 22, 24, 5), circ(RA, 22, 76, 5), circ(RA, 98, 24, 5), circ(RA, 98, 76, 5)];
+    return [item(RA, [deck, ...slits]), circ(RA, 22, 24, 5), circ(RA, 22, 76, 5), circ(RA, 98, 24, 5), circ(RA, 98, 76, 5)];
   },
   // a grass tuft: three short blades
   tuft() { return [poly(RA, [[44, 70], [50, 40], [52, 70]]), poly(RA, [[30, 72], [38, 48], [44, 72]]), poly(RA, [[56, 72], [64, 50], [70, 72]])]; },
@@ -494,7 +503,7 @@ const TOKEN = {
   v3: { // the ingredient art itself, cut along its own outline (Wyatt, 2026-08-22); on cards, its silhouette in the app's rounded-square chip
     crate(name, cx, cy) { return artToken(name, cx, cy); },
     marker(name, cx, cy) { return artToken(name, cx, cy); },
-    recipeIcon(name, cx, cy, d) { return [...frameBand(cx, cy, d + 1.8, d + 1.8, 0.4, (d + 1.8) / 4), ...artToken(name, cx, cy, d * 0.84, { cut: false, solid: true })]; },
+    recipeIcon(name, cx, cy, d) { return [...frameBand(cx, cy, d + 1.8, d + 1.8, 0.4, (d + 1.8) / 4), ...artToken(name, cx, cy, d * 0.86, { cut: false, outline: 0.32 })]; },
   },
 };
 function frameBand(cx, cy, w, h, t, rx) { // a rectangular band of thickness t (RASTER)
@@ -554,16 +563,18 @@ function homeSquareMarks(cx, cy) {
 function rippleRings() {
   const C = CENTER, out = [];
   let seed = 20260822; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-  const r0 = CELL * 1.75, r1 = CELL * 6.05, pitch = 9;
+  // "more wavy, jittery, scattered" (Wyatt): shorter strokes, each on its own wobble, scattered off the pass by
+  // up to half the pitch, so no two strokes line up into a ring
+  const r0 = CELL * 1.75, r1 = CELL * 6.05, pitch = 7.5;
   for (let R0 = r0; R0 <= r1; R0 += pitch) {
     let th = rnd() * Math.PI * 2; const end = th + Math.PI * 2;
-    const wob = 9 + Math.floor(rnd() * 5), ph = rnd() * Math.PI * 2;
     while (th < end) {
-      const len = 16 + rnd() * 42, gap = 7 + rnd() * 18, dTh = len / R0, drift = (rnd() - .5) * 1.6, thick = 0.34 + rnd() * 0.18;
+      const len = 7 + rnd() * 20, gap = 4 + rnd() * 14, dTh = len / R0, drift = (rnd() - .5) * pitch * 0.9, thick = 0.3 + rnd() * 0.2;
+      const wob = 14 + rnd() * 22, ph = rnd() * Math.PI * 2, amp = 0.5 + rnd() * 0.9;
       if (th + dTh > end) break;
-      const n = Math.max(6, Math.round(len / 2.5)), outer = [], inner = [];
+      const n = Math.max(6, Math.round(len / 1.6)), outer = [], inner = [];
       for (let i = 0; i <= n; i++) {
-        const t = i / n, a = th + dTh * t, r = R0 + drift + 0.45 * Math.sin(wob * a + ph), w = thick * Math.sin(Math.PI * t) + 0.02;
+        const t = i / n, a = th + dTh * t, r = R0 + drift + amp * Math.sin(wob * a + ph), w = thick * Math.sin(Math.PI * t) + 0.02;
         outer.push([C + (r + w / 2) * Math.cos(a), C + (r + w / 2) * Math.sin(a)]); inner.push([C + (r - w / 2) * Math.cos(a), C + (r - w / 2) * Math.sin(a)]);
       }
       out.push(poly(RA, [...outer, ...inner.reverse()]));
@@ -641,6 +652,34 @@ function shipStanding(kind, captain) {
 // 3mm, bottom in 6mm." The hull is the boat seen from above — pointed bow, round stern, deck planks — with two
 // slots along its centreline; the main sail and the jib each carry a tab that drops through a slot.
 function ship3d(c) {
+  // Wyatt: "model the ship off an old pirate ship, not a modern yacht ... rotate the hull notches 90 degrees so that the
+  // sails can be perpendicular to the direction of the ship; make the sails square-ish; draw the game art skull and
+  // crossbones on the sails" — assets/icons/sailboat.png is the reference: square sail, skull and bones, wooden hull.
+  const L = 24, B = 12, sw = MAT3 + .2, sl = 7, hull = [];
+  hull.push(item(CU, [{ cmds: [["M", 3, 0.8], ["L", 14, 0.8], ["C", 18.5, 0.8, 21.5, B * .22, L, B / 2], ["C", 21.5, B * .78, 18.5, B - .8, 14, B - .8], ["L", 3, B - .8], ["C", 0.6, B - .8, 0.6, 0.8, 3, 0.8], ["Z"]] }]));
+  hull.push(rect(CU, 7.5 - sw / 2, B / 2 - sl / 2, sw, sl), rect(CU, 15.5 - sw / 2, B / 2 - sl / 2, sw, sl));   // slots athwartships
+  for (const py of [B * .25, B * .5, B * .75]) hull.push(rect(RA, 3.2, py - .22, 16.5, .44));                       // deck planks
+  hull.push(rect(RA, 1.6, B / 2 - .3, 1.6, .6));                                                                   // tiller
+  const sail = (w, hgt, pat) => { const mh = hgt + 14, y0 = 2, y1 = 2 + hgt; const pts = [[0, 0], [2.6, 0], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 1.2], [-(w / 2 - 1.3), y1 + 2.2], [-(w / 2 - 1.3), y0], [-(w / 2 - 1.3) + 0, y0], [0, y0]];
+    // one outline: mast, a square sail hung left AND right of the mast, its foot bellying down
+    const sq = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [1.3, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
+    const foot = sq.findIndex(p => p[0] === 0 && p[1] === y0 && sq.indexOf(p) > 0);
+    const outline = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [2.6, y1 + 2.4], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
+    const cx = 1.3, cy = y0 + hgt * .42;
+    return [item(CU, [polyCmds(outline)]), rect(RA, -(w / 2 - 1.3), y0 + .6, w, .5), ...artToken("skull", cx, cy - 1.2, hgt * .42, { cut: false }), ...crossbones(cx, cy + hgt * .24, w * .36), ...sailPattern(pat, [[-(w / 2 - 2.2), y1 - 2.4], [w / 2 + 0.4, y1 - 2.4], [w / 2 + 0.4, y1 - .4], [-(w / 2 - 2.2), y1 - .4]])];
+  };
+  const main = sail(15, 13, c), fore = sail(12, 11, c);
+  return [{ ...part(`ship-${CAPTAINS[c]}-hull`, hull), mat: MAT }, { ...part(`ship-${CAPTAINS[c]}-main`, main), mat: MAT3 }, { ...part(`ship-${CAPTAINS[c]}-fore`, fore), mat: MAT3 }];
+}
+const tab_ = sl => sl - 0.3;
+// crossed bones as ONE polygon (a plus turned 45°) so no two fills overlap, with a knob at each end
+function crossbones(cx, cy, L) {
+  const w = L * .22, plus = [[-L, -w / 2], [-w / 2, -w / 2], [-w / 2, -L], [w / 2, -L], [w / 2, -w / 2], [L, -w / 2], [L, w / 2], [w / 2, w / 2], [w / 2, L], [-w / 2, L], [-w / 2, w / 2], [-L, w / 2]];
+  const out = xf([poly(RA, plus)], { rot: 45, tx: cx, ty: cy });
+  for (const a of [45, 135, 225, 315]) { const r = L + w * .55; out.push(circ(RA, cx + r * Math.cos(rad(a)), cy + r * Math.sin(rad(a)), w * .62)); }
+  return out;
+}
+function ship3d_old(c) {
   const L = 22, B = 11, sw = MAT3 + .2, sl = 5.5, hull = [];
   hull.push(item(CU, [{ cmds: [["M", 2.2, 0], ["L", 14, 0], ["C", 18, 0, 21, -B * .3, L, -B * .5 + B * .5], ["L", L, 0], ["C", 21, B * .3 - B * .5 + B * .5, 18, B, 14, B], ["L", 2.2, B], ["C", -0.8, B, -0.8, 0, 2.2, 0], ["Z"]].map(cmd => cmd) }]));
   // that outline is awkward to read as numbers: a spindle — stern arc on the left, bow point at (L, B/2)
@@ -673,7 +712,7 @@ function sailPattern(pat, polyPts) {
 function whirlpool(style, cx, cy) {
   const s = PIECE, it = [rect(CU, cx - s / 2, cy - s / 2, s, s, 2)], Rmax = s * .42;
   const spiral = (turns, w, a0) => { const b = (Rmax - a0 - w / 2) / (turns * Math.PI * 2), n = Math.round(turns * 40), pts = [], P = (th, r) => [cx + r * Math.cos(th), cy + r * Math.sin(th)]; for (let i = 0; i <= n; i++) { const th = i / n * turns * Math.PI * 2; pts.push(P(th, a0 + b * th + w / 2)); } for (let i = n; i >= 0; i--) { const th = i / n * turns * Math.PI * 2; pts.push(P(th, Math.max(0.05, a0 + b * th - w / 2))); } return poly(RA, pts); };
-  if (style === "swirl") it.push(...icon("swirl", cx, cy, s * .86));
+  if (style === "swirl") it.push(...artToken("swirl", cx, cy, s * .84, { cut: false }));
   else if (style === "spiral") it.push(spiral(2.5, 1.1, 1.0));
   else if (style === "rings") { for (const [r, a] of [[Rmax, 20], [Rmax * .66, 160], [Rmax * .33, 300]]) { const pts = [], w = 1.1; for (let i = 0; i <= 24; i++) pts.push([cx + (r + w / 2) * Math.cos(rad(a + i * 11.25)), cy + (r + w / 2) * Math.sin(rad(a + i * 11.25))]); for (let i = 24; i >= 0; i--) pts.push([cx + (r - w / 2) * Math.cos(rad(a + i * 11.25)), cy + (r - w / 2) * Math.sin(rad(a + i * 11.25))]); it.push(poly(RA, pts)); } it.push(circ(RA, cx, cy, 1.1)); }
   else { it.push(spiral(2, 1.7, 2.2), circ(RA, cx, cy, 1.6)); }
@@ -698,9 +737,11 @@ function waveCoast(cmds, notchMids, { amp = 0.7, lambda = 9, quiet = 7, step = 0
   return out;
 }
 // drop a notch into a dense polyline: points within hw of the midpoint (along the edge) are replaced by the notch
-function notchPolyline(pts, m, along, hw, notchPts) {
-  const idx = [], n = pts.length;
-  for (let i = 0; i < n; i++) { const d = (pts[i][0] - m[0]) * along[0] + (pts[i][1] - m[1]) * along[1], off = Math.abs((pts[i][0] - m[0]) * along[1] - (pts[i][1] - m[1]) * along[0]); if (Math.abs(d) <= hw && off < 1.2) idx.push(i); }
+function notchPolyline(ptsIn, m, along, hw, notchPts) {
+  // start the walk at the point farthest from the notch, so the window never straddles index 0
+  const n = ptsIn.length; let far = 0, fd = -1; for (let i = 0; i < n; i++) { const d = Math.hypot(ptsIn[i][0] - m[0], ptsIn[i][1] - m[1]); if (d > fd) { fd = d; far = i; } }
+  const pts = [...ptsIn.slice(far), ...ptsIn.slice(0, far)], idx = [];
+  for (let i = 0; i < n; i++) { const d = (pts[i][0] - m[0]) * along[0] + (pts[i][1] - m[1]) * along[1], off = Math.abs((pts[i][0] - m[0]) * along[1] - (pts[i][1] - m[1]) * along[0]); if (Math.abs(d) <= hw && off < 1.5) idx.push(i); }
   if (!idx.length) return pts;
   const first = idx[0], last = idx[idx.length - 1];
   return [...pts.slice(0, first), ...notchPts, ...pts.slice(last + 1)];
@@ -708,24 +749,29 @@ function notchPolyline(pts, m, along, hw, notchPts) {
 function islandPiece(v, shapeIdx) {
   const cells = ISLAND_SHAPES[shapeIdx], loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
   const inset = offsetPoly(loop, -CLR);
-  const outline = roundCorners(inset, v === "v3" ? 6.5 : 3);   // "round the corners more" — a quarter of the square
+  const outline = roundCorners(inset, v === "v3" ? 4.2 : 3);   // "round the corners more" — but leave a straight run for the dock notch and the band around it
   const edges = perimeterEdges(cells).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
   const it = [];
   if (v === "v3") {
     // the game's coast: a wavy sand edge (Wyatt, 2026-08-22). Wave first, then the dock slots.
-    let pts = waveCoast(outline.cmds, edges.map(e => e.m));
+    let pts = waveCoast(outline.cmds, edges.map(e => e.m), { quiet: 9 });
     for (const e of edges) pts = notchPolyline(pts, e.m, e.along, DOVE.socket.head / 2 + 0.2, dovetailPts(e.m, e.along, e.inward, DOVE.socket, +1));
     it.push(item(CU, [polyCmds(pts)]));
-    // sand band that follows the coast (the slots simply cut through it), then grass tufts along the inside of the band
-    const coast = waveCoast(outline.cmds, edges.map(e => e.m)), band = offsetPoly(coast, -1.3), inner = offsetPoly(coast, -2.4);
+    // the sand band goes AROUND each notch, 0.8 mm clear of the cut, so no cut ever crosses the engraving (Wyatt: "the
+    // notches cut into the islands' black raster lines, which will look messy"). It follows a coast whose notches are
+    // plain rectangles a little larger than the dovetails — offsets of an undercut would fold over on themselves.
+    let bandCoast = waveCoast(outline.cmds, edges.map(e => e.m), { quiet: 9 });
+    for (const e of edges) bandCoast = notchPolyline(bandCoast, e.m, e.along, DOVE.socket.head / 2 + 0.7, slotPts(e.m, e.along, e.inward, { hw: DOVE.socket.head / 2 + 0.5, depth: DOVE.socket.depth + 0.6 }, +1));
+    const band = offsetPoly(bandCoast, -0.9), inner = offsetPoly(bandCoast, -1.9);
     it.push(item(RA, [polyCmds(band), reverseSub(polyCmds(inner))]));
     const set = new Set(cells.map(c => c.join(","))), nb = c => [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(d => set.has(`${c[0] + d[0]},${c[1] + d[1]}`)).length;
     let seed = shapeIdx * 7919 + 13; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-    for (const [cx, cy] of cells) for (let k = 0; k < 3; k++) { const ang = rnd() * Math.PI * 2, rr = CELL * .33 + rnd() * CELL * .06, x = (cx + .5) * CELL + rr * Math.cos(ang), y = (cy + .5) * CELL + rr * Math.sin(ang); it.push(...icon("tuft", x, y, 3.2 + rnd() * 1.2)); }
+    // tufts live in the squares' corners — away from the edge midpoints where a dock nests, and from the token
+    for (const [cx, cy] of cells) for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { if (rnd() < 0.35) continue; const x = (cx + .5) * CELL + sx * (CELL * .3 + rnd() * 1.2), y = (cy + .5) * CELL + sy * (CELL * .3 + rnd() * 1.2); it.push(...icon("tuft", x, y, 3.2 + rnd() * 1.2)); }
     const best = cells.reduce((a, c) => nb(c) > nb(a) ? c : a, cells[0]);
     it.push(...icon("palm", (best[0] + .5) * CELL - 2, (best[1] + .5) * CELL - 1, CELL * .5));
     const rockCell = cells[cells.length - 1];
-    it.push(...icon("rock", (rockCell[0] + .5) * CELL + CELL * .25, (rockCell[1] + .5) * CELL + CELL * .22, 5));
+    it.push(...icon("rock", (rockCell[0] + .5) * CELL + CELL * .27, (rockCell[1] + .5) * CELL - CELL * .27, 4.5));
     return it;
   }
   if (v === "v2") for (const e of edges) insertNotch(outline.cmds, e.m, mushroomPts(e.m, e.along, e.inward, JIG.socket, +1));
@@ -741,7 +787,9 @@ const SLOT = { slot: { hw: (MAT + .3) / 2, depth: 4.5 } };
 // Wyatt, 2026-08-22: "little notches cut in along every of their square's edges, where a dock could slot in;
 // small and subtle so it doesn't take up much of the square". A dovetail 3 mm at the mouth, 4.2 at the
 // root, 2.4 deep: it locks against being pulled apart, and hides under the ingredient that sits on the square.
-const DOVE = { tab: { neck: 3.0, head: 4.2, depth: 2.4 }, socket: { neck: 3.2, head: 4.4, depth: 2.5 } };
+// Wyatt, later the same day: "widen the notches so that the entire dock design can nest directly into the island".
+// The tab is now as wide as the pier itself; 0.15 mm of play all round (the usual fit for 6 mm ply after kerf).
+const DOVE = { tab: { neck: 9.6, head: 11.0, depth: 3.0 }, socket: { neck: 9.75, head: 11.15, depth: 3.1 } };   // as wide as the pier deck
 function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
   const n = [inward[0] * dir, inward[1] * dir], t = along, P = (x, d) => [m[0] + t[0] * x + n[0] * d, m[1] + t[1] * x + n[1] * d];
   return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
@@ -754,6 +802,13 @@ function dockPiece(v, ing) {
   if (v === "v3") insertNotch(outline.cmds, m, dovetailPts(m, along, inward, DOVE.tab, -1));   // the tab that plugs into an island's notch
   const it = [item(CU, [outline])];
   if (v === "v1") it.push(...icon("anchor", s * .5, s * .42, s * .42), ...text(RA, "DOCK", s * .5, s * .85, s * .03, { align: "center", valign: "middle" }));
+  else if (v === "v3") {
+    // the pier runs from the tile onto the tab, so once nested it reads as one jetty reaching the island
+    const y0 = s / 2 - 4.6, y1 = s / 2 + 4.6, x0 = 4.5, x1 = s + DOVE.tab.depth - 0.5;
+    const deck = polyCmds([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]), slits = [];
+    for (let x = x0 + 2.6; x < x1 - 1.2; x += 2.6) slits.push(reverseSub(polyCmds([[x - .45, y0 + .9], [x + .45, y0 + .9], [x + .45, y1 - .9], [x - .45, y1 - .9]])));
+    it.push(item(RA, [deck, ...slits]), circ(RA, x0 + 1, y0 - 2, 1.2), circ(RA, x0 + 1, y1 + 2, 1.2), circ(RA, s - 2.2, y0 - 2, 1.2), circ(RA, s - 2.2, y1 + 2, 1.2));
+  }
   else it.push(...icon("pier", s * .5, s * .5, s * .84));
   const extra = [];
   if (v === "v1") { // pier top piece: glued on, overhangs onto the island by OVER
@@ -774,17 +829,23 @@ function recipeCards(v) {
     let size = 3.4; while (ftextWidth(r.title, size) > W - 8 && size > 2.2) size -= 0.2;
     it.push(...ftext(RA, r.title, W / 2, 8.6, size, { font: "georgia-bold", align: "center" }));
     it.push(...ftext(RA, `Recipe No. ${n + 1}`, W / 2, H - 4.2, 2.3, { font: "georgia-italic", align: "center" }));
-    r.ings.forEach((ing, i) => it.push(...TOKEN[v].recipeIcon(ing, W / 2 + (i - 2) * 11.2, 20, 8.2)));
+    r.ings.forEach((ing, i) => it.push(...TOKEN[v].recipeIcon(ing, W / 2 + (i - 2) * 11.6, 20.5, 9.4)));
     cards.push(it);
   });
   return cards;
 }
 
 function referenceCard() {
-  const lines = ["Sail 4 squares, 2 if any square is upwind", "Dock: heads 3 coins, tails 1 coin", "Crate price = 6 − crates left; sold out 10", "Powder 2; fire again for 2 more", "Call a battle right: +2 coins", "Storm: every ship 3 squares downwind"];
-  const sz = 2.6, W = Math.max(...lines.map(l => ftextWidth(l, sz, "avenir-next-demibold"))) + 10, H = lines.length * 4.6 + 12, it = [rect(CU, 0, 0, W, H, 3), ...frameBand(W / 2, H / 2, W - 2.4, H - 2.4, 0.4, 2.2)];
-  it.push(...ftext(RA, "The Sugar Seas", W / 2, 6.4, 3.6, { font: "georgia-bold", align: "center" }));
-  lines.forEach((l, i) => it.push(...ftext(RA, l, 5, 12.6 + i * 4.6, sz, { font: "avenir-next-demibold" })));
+  // each line: a bold category, then plain text in which "¤" is the game's coin (Wyatt: never write "coins")
+  const lines = [["Sail", "4 squares, 2 if any square is upwind"], ["Dock", "heads 3 ¤, tails 1 ¤"], ["Crate", "6 ¤ minus crates left; sold out 10 ¤"], ["Battle", "powder 2 ¤; fire again for 2 ¤"], ["Call it right", "+2 ¤"], ["Storm", "every ship 3 squares downwind"]];
+  const sz = 2.6, cw = 3.2;
+  const segW = txt => txt.split("¤").reduce((a, piece, i) => a + ftextWidth(piece, sz, "avenir-next") + (i ? cw + 0.6 : 0), 0);
+  const lineW = ([cat, txt]) => ftextWidth(cat + "  ", sz, "avenir-next-demibold") + segW(txt);
+  const W = Math.max(...lines.map(lineW)) + 10, H = lines.length * 4.8 + 13, it = [rect(CU, 0, 0, W, H, 3), ...frameBand(W / 2, H / 2, W - 2.4, H - 2.4, 0.4, 2.2)];
+  it.push(...ftext(RA, "Pastry Pirates", W / 2, 6.6, 3.8, { font: "georgia-bold", align: "center" }));
+  lines.forEach(([cat, txt], i) => { const y = 13.2 + i * 4.8; let x = 5;
+    it.push(...ftext(RA, cat, x, y, sz, { font: "avenir-next-demibold" })); x += ftextWidth(cat + "  ", sz, "avenir-next-demibold");
+    txt.split("¤").forEach((piece, j) => { if (j) { it.push(...coinGlyph(x + cw / 2, y - sz * .34, cw)); x += cw + 0.6; } it.push(...ftext(RA, piece, x, y, sz, { font: "avenir-next" })); x += ftextWidth(piece, sz, "avenir-next"); }); });
   return it;
 }
 
@@ -845,12 +906,14 @@ const EDGE_B = [[2, "in"], [4, "out"], [6, "in"]].map(([k, s]) => [k * CELL, s])
 // the grid lines that bound Tortuga's square on its right and its top. Rotated four times that leaves
 // exactly Tortuga's square as the hole, and every other square, berths and rim included, whole on one
 // piece. Knobs are centred mid-square, so each one lives inside a single square of its neighbour.
-function quadrantPts(Rb) {
+function quadrantPts(Rb, withCentre = false) {
   const C = CENTER, h = CELL / 2, pts = [], sr = Math.sqrt(Rb * Rb - h * h);
   const a0 = Math.atan2(-h, -sr), a1 = Math.atan2(-sr, h); // from the left rim point (C-sr, C-h), clockwise over the top, to (C+h, C-sr)
   for (let i = 0; i <= 90; i++) { const a = a0 + (a1 - a0) * i / 90; pts.push([C + Rb * Math.cos(a), C + Rb * Math.sin(a)]); }
   for (const [d, s] of EDGE_A) pts.push(...mushroomPts([C + h, C - d], [0, 1], [-1, 0], s === "out" ? JIGB.nub : JIGB.socket, s === "out" ? -1 : 1));
-  pts.push([C + h, C - h]);
+  // Wyatt, 2026-08-22: Tortuga is a piece that sits ON the board; the centre square belongs to this quadrant
+  if (withCentre) pts.push([C + h, C - h], [C + h, C + h], [C - h, C + h], [C - h, C - h]);
+  else pts.push([C + h, C - h]);
   for (const [d, s] of EDGE_B) pts.push(...mushroomPts([C - d, C - h], [-1, 0], [0, -1], s === "out" ? JIGB.nub : JIGB.socket, s === "out" ? -1 : 1));
   return pts;
 }
@@ -867,7 +930,8 @@ function allKnobs() {
 const QUAD = (() => { const C = CENTER, h = CELL / 2; return [
   { id: "NW", sx: -1, bx: C + h, sy: -1, by: C - h }, { id: "NE", sx: 1, bx: C + h, sy: -1, by: C + h },
   { id: "SE", sx: 1, bx: C - h, sy: 1, by: C + h }, { id: "SW", sx: -1, bx: C - h, sy: 1, by: C - h }]; })();
-const inQuad = (p, q, e = 1e-6) => (q.sx < 0 ? p[0] <= q.bx + e : p[0] >= q.bx - e) && (q.sy < 0 ? p[1] <= q.by + e : p[1] >= q.by - e);
+const inQuad = (p, q, e = 1e-6) => ((q.sx < 0 ? p[0] <= q.bx + e : p[0] >= q.bx - e) && (q.sy < 0 ? p[1] <= q.by + e : p[1] >= q.by - e))
+  || (q.id === "NW" && Math.abs(p[0] - CENTER) <= CELL / 2 + e && Math.abs(p[1] - CENTER) <= CELL / 2 + e);   // NW owns Tortuga's square
 function knobOwnerAt(p, knobs) {
   const { hw, nd, r } = JIGB.nub;
   for (const kb of knobs) { const dx = p[0] - kb.m[0], dy = p[1] - kb.m[1], u = dx * kb.n[0] + dy * kb.n[1], s = dx * kb.t[0] + dy * kb.t[1];
@@ -914,14 +978,29 @@ function boardFivePiece() {
   const { valid, rim, DIRS } = seaCells(), C = CENTER;
   let Rmax = 0; for (const k of valid) { const [x, y] = k.split(",").map(Number); for (const [cx, cy] of [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]]) Rmax = Math.max(Rmax, Math.hypot(cx * CELL - C, cy * CELL - C)); }
   const Rb = Rmax + 7;
-  const raster = [...tag(rimMarks(rim, "game"), "trade-winds"), ...tag(berthMarks(DIRS), "berths"), ...tag(rippleRings(), "ripples"), ...tag([ring(RA, C, C, Rmax + 3.2, Rmax + 2.5), ring(RA, C, C, Rmax + 1.9, Rmax + 1.4)], "edge-band")];
-  const knobs = allKnobs(), grid = gridForQuadrants(valid, knobs), canon = poly(CU, quadrantPts(Rb));
-  const quadrants = QUAD.map((q, k) => ({ name: `quadrant-${q.id}`, items: tag([...aboutCentre([canon], k), ...raster.map(it => clipItemQuadrant(it, q)).filter(Boolean), ...grid[k]], `quadrant-${q.id}`) }));
-  const ps = CELL - 0.1;  // Tortuga: drops into the 25 mm hole with 0.1 mm to spare
-  const plug = { name: "tortuga", items: tag([rect(CU, -ps / 2, -ps / 2, ps, ps, 0.6), ...homeSquareMarks(0, 0)], "tortuga") };
-  const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([canon], k), `seam-${q.id}`)), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga"), ...raster, ...tag(gridLines(valid), "grid")];
+  // where Tortuga sits: a dotted outline of the + shape, under the piece
+  const dotted = [];
+  { const cellsT = [[CC, CC - 1], [CC - 1, CC], [CC, CC], [CC + 1, CC], [CC, CC + 1]], loop = traceCells(cellsT)[0].map(([x, y]) => [x * CELL, y * CELL]);
+    const flat = flatten(roundCorners(offsetPoly(loop, -CLR), 6.5), 12).pts, step = 0.4; let acc = 0, run = null;
+    const flush = () => { if (run) { const [a, b] = [run.a, run.b], ux = (b[0] - a[0]), uy = (b[1] - a[1]), L = Math.hypot(ux, uy) || 1, nx = -uy / L * .2, ny = ux / L * .2; if (L > 0.5) dotted.push(poly(RA, [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]])); run = null; } };
+    for (let i = 0; i < flat.length; i++) { const a = flat[i], b = flat[(i + 1) % flat.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step));
+      for (let k = 0; k < n; k++) { const p = [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n], on = (acc % 3.6) < 2.0; acc += L / n;
+        if (on) { if (run) run.b = p; else run = { a: p, b: p }; } else flush(); } }
+    flush(); }
+  const raster = [...tag(rimMarks(rim, "game"), "trade-winds"), ...tag(dotted, "tortuga-outline"), ...tag(rippleRings(), "ripples"), ...tag([ring(RA, C, C, Rmax + 3.2, Rmax + 2.5), ring(RA, C, C, Rmax + 1.9, Rmax + 1.4)], "edge-band")];
+  const knobs = allKnobs(), grid = gridForQuadrants(valid, knobs), canon = poly(CU, quadrantPts(Rb)), canonNW = poly(CU, quadrantPts(Rb, true));
+  // small engraved marks go to the quadrant that owns their centre; only the rim bands need clipping
+  const assign = (it, q, k) => { const b = bbox([it]); if (b.w < 14 && b.h < 14) { const o = quadrantOf([(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2], knobs); return o === k ? it : (o === -2 ? clipItemQuadrant(it, q) : null); } return clipItemQuadrant(it, q); };
+  const quadrants = QUAD.map((q, k) => ({ name: `quadrant-${q.id}`, mat: MAT, items: tag([...aboutCentre([k === 0 ? canonNW : canon], k), ...raster.map(it => assign(it, q, k)).filter(Boolean), ...grid[k]], `quadrant-${q.id}`) }));
+  // Tortuga: a + of five squares that sits on the board like the islands do — anchor and name in the middle, a berth on each arm
+  const cellsT = [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]], loopT = traceCells(cellsT)[0].map(([x, y]) => [x * CELL, y * CELL]);
+  const coastT = waveCoast(roundCorners(offsetPoly(loopT, -CLR), 6.5).cmds, []), bandT = offsetPoly(coastT, -1.3), innerT = offsetPoly(coastT, -2.4);
+  const tort = [item(CU, [polyCmds(coastT)]), item(RA, [polyCmds(bandT), reverseSub(polyCmds(innerT))]), ...homeSquareMarks(1.5 * CELL, 1.5 * CELL)];
+  for (const d of [[0, -1], [0, 1], [1, 0], [-1, 0]]) { const cx = (1.5 + d[0]) * CELL, cy = (1.5 + d[1]) * CELL, rot = Math.atan2(-d[1], -d[0]) * 180 / Math.PI; tort.push(...icon("pier", cx, cy, CELL * .78, rot)); }
+  const plug = { name: "tortuga", mat: MAT, items: tag(xf(tort, { tx: -1.5 * CELL, ty: -1.5 * CELL }), "tortuga") };
+  const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([k === 0 ? canonNW : canon], k), `seam-${q.id}`)), ...raster, ...tag(gridLines(valid), "grid"), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga")];
   const assembled = { id: "board-assembled", title: "The board, assembled", kind: "design", items: xf(assembledItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 5,
-    notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four identical quadrants lock with three puzzle knobs per seam (knobs two squares apart, clear of the berths and the rim); Tortuga is the fifth piece, a ${ps} mm square that drops into the hole the four quadrants leave in the middle. The seams run along the grid lines that bound Tortuga's square (a pinwheel), so every square — berths and rim included — is whole on one piece, and each knob sits inside a single square of its neighbour. Rim marks are the app's own wind chevron.` };
+    notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four quadrants lock with three puzzle knobs per seam; the north-west one carries the centre square. Tortuga is a +-shaped 6 mm piece that sits on top of the board like the islands do — anchor and name in the middle, a berth on each arm — over a dotted outline that shows where it goes. Seams run along the grid lines, so every square is whole on one piece. Rim marks are the app's own wind chevron; the water is the art's brush strokes.` };
   return { assembled, quadrants, plug, Rb };
 }
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
@@ -969,7 +1048,7 @@ function fingerEdge(p0, p1, outward, t, spec, fingerW = 6) {
   return pts;
 }
 // hinge knuckles along an edge: every other segment is a tongue of height K with a dowel hole, rounded so it can swing
-function knuckleEdge(p0, p1, outward, spec, { K = 6.8, hole = 3.5, r = 3.3, n = 5 } = {}) {
+function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 5 } = {}) {
   const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), ux = (p1[0] - p0[0]) / L, uy = (p1[1] - p0[1]) / L, seg = L / n, pts = [], holes = [];
   const P = (sv, d) => [p0[0] + ux * sv + outward[0] * d, p0[1] + uy * sv + outward[1] * d];
   for (let i = 0; i < n; i++) {
@@ -984,13 +1063,17 @@ function knuckleEdge(p0, p1, outward, spec, { K = 6.8, hole = 3.5, r = 3.3, n = 
   pts.push(p1);
   return { pts, holes };
 }
+function hingeStrip(w, t) {
+  const k = knuckleEdge([0, 0], [w, 0], [0, -1], { start: false }), pts = [[0, 0], ...k.pts, ...fingerEdge([w, 0], [w, 0.4], [1, 0], t, { kind: "out", start: false }).slice(-1), ...fingerEdge([w, 0.4], [0, 0.4], [0, 1], t, { kind: "out", start: false }), [0, 0.4]];
+  const items = [item(CU, [polyCmds(pts)])]; for (const [hx, hy] of k.holes) items.push(circ(CU, hx, hy, 1.65)); return items;
+}
 // a wall panel w×h (nominal) with fingers on the bottom (down into the base) and both vertical edges (into the neighbours)
 function wallPanel(w, h, t, { start, top = null }) {
   const pts = [[0, 0]], holes = [];
   if (top && top.kind === "knuckle") { const k = knuckleEdge([0, 0], [w, 0], [0, -1], top); pts.push(...k.pts); holes.push(...k.holes); }
   else pts.push([w, 0]);
   pts.push(...fingerEdge([w, 0], [w, h], [1, 0], t, { kind: "out", start }));
-  pts.push(...fingerEdge([w, h], [0, h], [0, 1], t, { kind: "out", start: true }));
+  pts.push(...fingerEdge([w, h], [0, h], [0, 1], t, { kind: "out", start: false }));   // bottom fingers start one segment in, so the plate keeps its corners
   pts.push(...fingerEdge([0, h], [0, 0], [-1, 0], t, { kind: "out", start }));
   const items = [item(CU, [polyCmds(pts)])];
   for (const [hx, hy] of holes) items.push(circ(CU, hx, hy, 1.65));
@@ -999,19 +1082,25 @@ function wallPanel(w, h, t, { start, top = null }) {
 // the plate a box stands on (or a lid's top): full footprint, slots around the rim where the walls' fingers land
 function platePanel(L, W, t) {
   const pts = [];
-  const edge = (a, b, outward) => { const ux = Math.sign(b[0] - a[0]), uy = Math.sign(b[1] - a[1]); const i0 = [a[0] + ux * t, a[1] + uy * t], i1 = [b[0] - ux * t, b[1] - uy * t]; pts.push(a, i0, ...fingerEdge(i0, i1, outward, t, { kind: "in", start: true }), i1); };
+  const edge = (a, b, outward) => { const ux = Math.sign(b[0] - a[0]), uy = Math.sign(b[1] - a[1]); const i0 = [a[0] + ux * t, a[1] + uy * t], i1 = [b[0] - ux * t, b[1] - uy * t]; pts.push(a, i0, ...fingerEdge(i0, i1, outward, t, { kind: "in", start: false }), i1); };
   edge([0, 0], [L, 0], [0, -1]); edge([L, 0], [L, W], [1, 0]); edge([L, W], [0, W], [0, 1]); edge([0, W], [0, 0], [-1, 0]);
   return [item(CU, [polyCmds(pts)])];
 }
 const planks = (x, y, w, h, pitch, vertical = false) => { const out = []; if (vertical) for (let px = x + pitch; px < x + w - 1; px += pitch) out.push(rect(RA, px - .3, y + 1, .6, h - 2)); else for (let py = y + pitch; py < y + h - 1; py += pitch) out.push(rect(RA, x + 1, py - .3, w - 2, .6)); return out; };
 // an open cargo crate for a captain's hold: tokens stand on edge in it, icons showing (cargo is public in the game)
+// a slatted crate, like the classic wooden one (Wyatt's reference photo): three slats a side with real gaps cut
+// between them, solid corner posts engraved, a nail at each slat end
 function cargoCrate(captain) {
-  const t = MAT3, Lo = 44, Wo = 30, H = 18, hw = H - t, parts = [];
-  const front = wallPanel(Lo - 2 * t, hw, t, { start: true }), side = wallPanel(Wo - 2 * t, hw, t, { start: false });
-  const deco = (w) => [...planks(0, 0, w, hw, 4.5), circ(RA, 2, 2, .7), circ(RA, w - 2, 2, .7), circ(RA, 2, hw - 2, .7), circ(RA, w - 2, hw - 2, .7)];
-  parts.push(part(`crate-${captain}-front`, [...front, ...deco(Lo - 2 * t), ...sailPattern(CAPTAINS.indexOf(captain), [[Lo / 2 - 7, 3], [Lo / 2 + 1, 3], [Lo / 2 + 1, hw - 3], [Lo / 2 - 7, hw - 3]])]));
-  parts.push(part(`crate-${captain}-back`, [...front, ...deco(Lo - 2 * t)]));
-  parts.push(part(`crate-${captain}-side-1`, [...side, ...deco(Wo - 2 * t)]), part(`crate-${captain}-side-2`, [...side, ...deco(Wo - 2 * t)]));
+  const t = MAT3, Lo = 44, Wo = 30, H = 18, hw = H - t, parts = [], post = 4;
+  const slatted = (w, first) => { const it = wallPanel(w, hw, t, { start: first }); const g = 1.4, sh = (hw - 2 * g - 1) / 3;
+    for (const k of [1, 2]) it.push(rect(CU, post, 0.5 + k * sh + (k - 1) * g, w - 2 * post, g));   // the gaps between slats, cut through
+    it.push(rect(RA, 0.6, 0.4, post - 1.2, hw - 0.8), rect(RA, w - post + 0.6, 0.4, post - 1.2, hw - 0.8));   // corner posts
+    for (const k of [0, 1, 2]) { const yc = 0.5 + k * sh + k * g + sh / 2; it.push(circ(RA, post + 1.6, yc, .5), circ(RA, w - post - 1.6, yc, .5)); }
+    return it; };
+  const wF = Lo - 2 * t, wS = Wo - 2 * t;
+  parts.push(part(`crate-${captain}-front`, [...slatted(wF, true), ...sailPattern(CAPTAINS.indexOf(captain), [[wF / 2 - 5, 1.2], [wF / 2 + 5, 1.2], [wF / 2 + 5, 5.2], [wF / 2 - 5, 5.2]])]));
+  parts.push(part(`crate-${captain}-back`, slatted(wF, true)));
+  parts.push(part(`crate-${captain}-side-1`, slatted(wS, false)), part(`crate-${captain}-side-2`, slatted(wS, false)));
   parts.push(part(`crate-${captain}-base`, platePanel(Lo, Wo, t)));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
@@ -1020,17 +1109,26 @@ function treasureChest(captain) {
   const t = MAT3, Lo = 80, Wo = 54, Hb = 20, Hl = 10, hb = Hb - t, hl = Hl - t, parts = [], ci = CAPTAINS.indexOf(captain);
   const strap = (w, h) => [rect(RA, w * .25 - 2, 0, 4, h), rect(RA, w * .75 - 2, 0, 4, h), ...[.2, .5, .8].flatMap(f => [{ ...circ(RA, w * .25, h * f, .55), layer: RA }, circ(RA, w * .75, h * f, .55)])];
   const lock = (cx, cy) => [item(RA, [roundCorners([[cx - 4, cy - 4], [cx + 4, cy - 4], [cx + 4, cy + 4], [cx - 4, cy + 4]], 1.2), { circle: { cx, cy: cy - 1, r: 1.1, ccw: true } }, reverseSub(polyCmds([[cx - .7, cy - .4], [cx + .7, cy - .4], [cx + 1, cy + 2.6], [cx - 1, cy + 2.6]]))])];
+  // assembly labels (Wyatt: "add rastered labels ... so I can understand how they fit together"): the four vertical
+  // corners are 1–4 clockwise from the front-left; a wall's bottom edge says which plate edge it lands on; H = hinge
+  const lab = (txt, x, y, rot = 0) => xf(ftext(RA, txt, 0, 0, 2.2, { font: "avenir-next-demibold", align: "center", valign: "middle" }), { rot, tx: x, ty: y });
+  const wallLabels = (w, h, left, right, bottom, top) => [...(left ? lab(left, 3.2, h / 2, 90) : []), ...(right ? lab(right, w - 3.2, h / 2, -90) : []), ...lab(bottom, w / 2, h - 2.6), ...(top ? lab(top, w / 2, 2.6) : [])];
+  const plateLabels = (L, W, pre) => [...lab(pre + "F", L / 2, W - 3.4), ...lab(pre + "K", L / 2, 3.4), ...lab(pre + "S2", 3.6, W / 2, 90), ...lab(pre + "S1", L - 3.6, W / 2, -90)];
   // body
   const wFront = Lo - 2 * t, wSide = Wo - 2 * t;
-  parts.push(part(`chest-${captain}-front`, [...wallPanel(wFront, hb, t, { start: true }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb), ...lock(wFront / 2, hb / 2)]));
-  parts.push(part(`chest-${captain}-back`, [...wallPanel(wFront, hb, t, { start: true, top: { kind: "knuckle", start: true } }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb)]));
-  for (const n of [1, 2]) parts.push(part(`chest-${captain}-side-${n}`, [...wallPanel(wSide, hb, t, { start: false }), ...planks(0, 0, wSide, hb, 4.2)]));
-  parts.push(part(`chest-${captain}-base`, platePanel(Lo, Wo, t)));
+  parts.push(part(`chest-${captain}-front`, [...wallPanel(wFront, hb, t, { start: true }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb), ...lock(wFront / 2, hb / 2), ...wallLabels(wFront, hb, "1", "2", "B·F")]));
+  parts.push(part(`chest-${captain}-back`, [...wallPanel(wFront, hb, t, { start: true, top: { kind: "knuckle", start: true } }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb), ...wallLabels(wFront, hb, "3", "4", "B·K", "H")]));
+  parts.push(part(`chest-${captain}-side-1`, [...wallPanel(wSide, hb, t, { start: false }), ...planks(0, 0, wSide, hb, 4.2), ...wallLabels(wSide, hb, "2", "3", "B·S1")]));
+  parts.push(part(`chest-${captain}-side-2`, [...wallPanel(wSide, hb, t, { start: false }), ...planks(0, 0, wSide, hb, 4.2), ...wallLabels(wSide, hb, "4", "1", "B·S2")]));
+  parts.push(part(`chest-${captain}-base`, [...platePanel(Lo, Wo, t), ...plateLabels(Lo, Wo, "B·"), ...lab("BASE", Lo / 2, Wo / 2)]));
   // lid: a shallow box; its back wall carries the other half of the hinge on its free edge
-  parts.push(part(`chest-${captain}-lid-front`, [...wallPanel(wFront, hl, t, { start: true }), ...planks(0, 0, wFront, hl, 3.5)]));
-  parts.push(part(`chest-${captain}-lid-back`, [...wallPanel(wFront, hl, t, { start: true, top: { kind: "knuckle", start: false } }), ...planks(0, 0, wFront, hl, 3.5)]));
-  for (const n of [1, 2]) parts.push(part(`chest-${captain}-lid-side-${n}`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4)]));  // the rail line: glue the card rail below it
-  parts.push(part(`chest-${captain}-lid-top`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo).map(i => i), ...ftext(RA, CAPTAINS[ci][0] + CAPTAINS[ci].slice(1).toLowerCase(), Lo / 2, Wo / 2 + 1.6, 4.4, { font: "georgia-bold", align: "center" })]));
+  parts.push(part(`chest-${captain}-lid-front`, [...wallPanel(wFront, hl, t, { start: true }), ...planks(0, 0, wFront, hl, 3.5), ...wallLabels(wFront, hl, "L1", "L2", "T·F")]));
+  // the lid's hinge strip: fingers up into the top plate, knuckle tongues hanging down between the chest's; its
+  // axis sits 3.3 mm below the plate, exactly where the chest wall's tongues put theirs
+  parts.push(part(`chest-${captain}-lid-hinge`, [...hingeStrip(wFront, t), ...lab("H", wFront / 2, 9), ...lab("T·K", wFront * .15, 1.4)]));
+  parts.push(part(`chest-${captain}-lid-side-1`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "L2", "", "T·S1")]));
+  parts.push(part(`chest-${captain}-lid-side-2`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "", "L1", "T·S2")]));
+  parts.push(part(`chest-${captain}-lid-top`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo), ...plateLabels(Lo, Wo, "T·"), ...sailPattern(ci, [[Lo / 2 - 6, Wo / 2 - 4], [Lo / 2 + 6, Wo / 2 - 4], [Lo / 2 + 6, Wo / 2 + 4], [Lo / 2 - 6, Wo / 2 + 4]])]));
   for (const n of [1, 2]) parts.push(part(`chest-${captain}-card-rail-${n}`, [rect(CU, 0, 0, wSide, 3, .4)]));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
@@ -1039,35 +1137,77 @@ function treasureChest(captain) {
 function nestedSpinner() {
   const RB = 48, RD = 35, RI = RD + 0.4, parts = [];
   parts.push(part("spinner-backing", [circ(CU, 0, 0, RB), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, RD + .2, RD - .3)]));
-  const dial = [circ(CU, 0, 0, RD), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, RD - 1, RD - 1.7), ring(RA, 0, 0, RD - 5.6, RD - 6.2), ring(RA, 0, 0, 4.2, 3.4)];
-  for (let i = 0; i < 36; i++) { const a = rad(i * 10 + 5), rr = RD - 3.7; dial.push(circ(RA, rr * Math.cos(a), rr * Math.sin(a), .5)); }   // the scrolled band, as a row of beads
-  for (let i = 0; i < 4; i++) { const a = rad(-90 + i * 90), rr = RD - 3.6; dial.push(circ(RA, rr * Math.cos(a), rr * Math.sin(a), 5.2)); dial.push({ ...ring(RA, rr * Math.cos(a), rr * Math.sin(a), 5.2, 4.5), layer: RA }); }
-  // the medallions: a filled disc with the letter knocked out — exactly the art's N/E/S/W coins
-  dial.length = dial.length - 8; // rebuild the medallions as single items below
-  for (const [L, a] of [["N", -90], ["E", 0], ["S", 90], ["W", 180]]) { const rr = RD - 3.6, cx = rr * Math.cos(rad(a)), cy = rr * Math.sin(rad(a)); const disc = circ(RA, cx, cy, 5.2); const letter = ftext(RA, L, cx, cy, 6.2, { font: "avenir-next-demibold", align: "center", valign: "middle" }).map(reverseItem); dial.push({ ...disc, sub: [...disc.sub, ...letter.flatMap(i => i.sub)] }); }
-  for (const a of [45, 135, 225, 315]) dial.push(...xf([rect(RA, 7, -.4, RD - 14, .8)], { rot: a }));
-  for (const q of [-45, 45, 135, 225]) { const a0 = q + 72, a1 = q + 90, pts = []; for (let i = 0; i <= 8; i++) pts.push([22 * Math.cos(rad(a0 + (a1 - a0) * i / 8)), 22 * Math.sin(rad(a0 + (a1 - a0) * i / 8))]); for (let i = 8; i >= 0; i--) pts.push([9 * Math.cos(rad(a0 + (a1 - a0) * i / 8)), 9 * Math.sin(rad(a0 + (a1 - a0) * i / 8))]); const w = poly(RA, pts), am = rad((a0 + a1) / 2), cl = icon("cloudOnly", 15.5 * Math.cos(am), 15.5 * Math.sin(am), 6).map(reverseItem); dial.push({ ...w, sub: [...w.sub, ...cl.flatMap(i => i.sub)] }); }
-  dial.push(...icon("anchor", 0, -RD * .32, 7));
+  const dial = [circ(CU, 0, 0, RD), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, 4.2, 3.4)];
+  // the two scroll bands, broken where the medallions sit so no line ever crosses a letter
+  const arcBand = (r0, r1, a0, a1) => { const pts = [], n = 24; for (let i = 0; i <= n; i++) { const a = rad(a0 + (a1 - a0) * i / n); pts.push([r1 * Math.cos(a), r1 * Math.sin(a)]); } for (let i = n; i >= 0; i--) { const a = rad(a0 + (a1 - a0) * i / n); pts.push([r0 * Math.cos(a), r0 * Math.sin(a)]); } return poly(RA, pts); };
+  const medR = RD - 3.6, medRad = 5.4;
+  for (let q = 0; q < 4; q++) { const c0 = -90 + q * 90, c1 = c0 + 90; for (const [r0, r1] of [[RD - 1.7, RD - 1], [RD - 6.2, RD - 5.6]]) { const g = Math.asin((medRad + 0.8) / ((r0 + r1) / 2)) * 180 / Math.PI; dial.push(arcBand(r0, r1, c0 + g, c1 - g)); } }
+  for (let i = 0; i < 36; i++) { const ang = i * 10 + 5, near = [0, 90, 180, 270].some(m => Math.abs(((ang - m + 540) % 360) - 180) < 14), inWedge = [45, 135, 225, 315].some(m => Math.abs(((ang - m + 540) % 360) - 180) < 10); if (near || inWedge) continue; const a = rad(ang), rr = RD - 3.7; dial.push(circ(RA, rr * Math.cos(a), rr * Math.sin(a), .5)); }
+  // the medallions: a filled disc with the letter knocked out — the art's N/E/S/W coins
+  for (const [L, a] of [["N", -90], ["E", 0], ["S", 90], ["W", 180]]) { const cx = medR * Math.cos(rad(a)), cy = medR * Math.sin(rad(a)); const disc = circ(RA, cx, cy, medRad); const letter = ftext(RA, L, cx, cy, 6.2, { font: "avenir-next-demibold", align: "center", valign: "middle" }).map(reverseItem); dial.push({ ...disc, sub: [...disc.sub, ...letter.flatMap(i => i.sub)] }); }
+  // storm wedges: a fifth of each quadrant, centred on NE/SE/SW/NW, from the centre ring to the dial's edge, the
+  // game's storm cloud knocked out of each (Wyatt: "bring them all the way from the center to the rim ... bisect the
+  // orientation lines ... a lightning-bolt cloud, like in the game")
+  for (const mid of [45, 135, 225, 315]) { const a0 = mid - 9, a1 = mid + 9, w = arcBand(5.2, RD - 2.2, a0, a1), am = rad(mid), cl = artToken("storm", 19 * Math.cos(am), 19 * Math.sin(am), 9, { cut: false, solid: true, rot: mid + 90 }).map(reverseItem); dial.push({ ...w, sub: [...w.sub, ...cl.flatMap(i => i.sub)] }); }
+  dial.push(...icon("anchor", 0, -RD * .3, 7));
   parts.push(part("spinner-dial", dial));
   // Wyatt, 2026-08-22: "a 3D wind-now flag/vane that slots in to show the current wind direction visibly, and
   // differentiates it from the flat spun forecast". The ring carries a radial slot at its pointer; the vane's
   // tab drops through it and stands on the backing disc. Its pennant streams inward, toward the letter the
   // ring is set to — the way the wind blows — 25 mm above the flat needle, so the two can never be confused.
   const VS = MAT3 + .2, VL = 7, vr = RB - 5;   // slot: material-wide, 7 long, centred at r = 43
-  const ringPart = [circ(CU, 0, 0, RB), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RB - 1, RB - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RB - 2.6, 3, { font: "avenir-next-demibold", align: "center" })];
+  const ringPart = [circ(CU, 0, 0, RB), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RB - 1, RB - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RB - 5, 3, { font: "avenir-next-demibold", align: "center" })];
   for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RB - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
   parts.push(part("spinner-ring", ringPart));
-  const needle = [item(CU, [polyCmds([[-9, -1.6], [14, -1.6], [14, -3.2], [19, -3.2], [26, 0], [19, 3.2], [14, 3.2], [14, 1.6], [-9, 1.6], [-12, 4.2], [-14, 4.2], [-11, 0], [-14, -4.2], [-12, -4.2]])]), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, 3, 2.4), rect(RA, 4, -.4, 9, .8), ...icon("fleur", 20.5, 0, 9, 90)];
+  // the needle: cut only (Wyatt: "remove the raster from the arrow") — its fleur-de-lis is in the outline
+  const needle = [item(CU, [polyCmds([[-9, -1.6], [14, -1.6], [14, -3.2], [16, -3.2], [20, -5.5], [22.5, -3.2], [20, -1.4], [26.5, 0], [20, 1.4], [22.5, 3.2], [20, 5.5], [16, 3.2], [14, 3.2], [14, 1.6], [-9, 1.6], [-12, 4.2], [-14, 4.2], [-11, 0], [-14, -4.2], [-12, -4.2]])]), circ(CU, 0, 0, 1.65)];
   parts.push(part("spinner-needle", needle), part("spinner-washer", [circ(CU, 0, 0, 4), circ(CU, 0, 0, 1.65)]));
   // the vane: a pennant on a mast, the tab below the mast (through the ring, onto the backing). Drawn as it
   // stands — pennant at the top, tab at the bottom — so WIND NOW reads upright once it is in the slot.
-  const mh = 30, pw = 24, ph = 10, tab = VL - .4;
+  const mh = 30, pw = 30, ph = 10, tab = VL - .4;
   const pts = [[0, 0.6], [2.6, 0.6], [2.6, mh], [tab / 2 + 1.3, mh], [tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh], [0, mh],
     [0, ph + 0.6], [-pw, ph + 0.6], [-pw + 5, ph / 2 + 0.6], [-pw, 0.6]];
-  const vane = [item(CU, [polyCmds(pts)]), rect(RA, 0.9, ph + 2.4, 0.8, mh - ph - 3.6), ...ftext(RA, "WIND NOW", -pw / 2 - 1.4, ph / 2 + 0.6 + 1.1, 3.1, { font: "avenir-next-demibold", align: "center" })];
+  const vane = [item(CU, [polyCmds(pts)]), rect(RA, 0.9, ph + 2.4, 0.8, mh - ph - 3.6), ...ftext(RA, "WIND NOW", -(pw - 5) / 2 - 1, ph / 2 + 0.6 + 1, 2.8, { font: "avenir-next-demibold", align: "center" })];
   parts.push(part("spinner-vane", vane));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
+
+/* =========================================================================================
+   8d. MOCKUPS — an isometric picture of the assembled thing, for the page only (never a laser file)
+   ========================================================================================= */
+const V3 = { add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sc: (a, k) => [a[0] * k, a[1] * k, a[2] * k], cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], norm: a => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; } };
+// a placed slab: its 2D items drawn on the plane origin + u·U + v·V, thickness T behind that plane (along -N)
+function slab(items, { origin, U = [1, 0, 0], V = [0, 1, 0], T = MAT, xform = null, tint = 0 }) { return { items, origin, U: V3.norm(U), V: V3.norm(V), T, xform, tint }; }
+function isoScene(slabs, { scale = 3.2, pad = 20 } = {}) {
+  const C30 = Math.cos(Math.PI / 6), S30 = 0.5, cam = V3.norm([1, 1, 1.2]);
+  const proj = p => [(p[0] - p[1]) * C30, (p[0] + p[1]) * S30 - p[2]];
+  const faces = []; // {pts2:[[x,y]], depth, fill, stroke, rule}
+  for (const sb of slabs) {
+    const N = V3.cross(sb.U, sb.V), to3 = ([u, v], back = false) => { let p = V3.add(sb.origin, V3.add(V3.sc(sb.U, u), V3.sc(sb.V, v))); if (back) p = V3.add(p, V3.sc(N, -sb.T)); return sb.xform ? sb.xform(p) : p; };
+    const base = 0.86 - sb.tint, wood = `hsl(36,52%,${Math.round(base * 78)}%)`, side = `hsl(32,48%,${Math.round(base * 58)}%)`, back = `hsl(30,45%,${Math.round(base * 48)}%)`, ink = "#2a1d12";
+    const cutLoops = sb.items.filter(i => i.layer === CU).flatMap(i => i.sub.map(sp => flatten(sp, 8).pts));
+    const area2 = pts => pts.reduce((a, p, i) => a + p[0] * pts[(i + 1) % pts.length][1] - pts[(i + 1) % pts.length][0] * p[1], 0) / 2;
+    const outers = cutLoops.filter(l => !cutLoops.some(o => o !== l && pointInPoly(l[0], o)));
+    // painter's order: things stacked higher are drawn later (the scene is a stack), then nearer within a level
+    const allFront = cutLoops.flat().map(p => to3(p)), zb = Math.min(...allFront.map(p => p[2]), Infinity);
+    const depthOf = p3s => zb * 1000 + p3s.reduce((a, p) => a + V3.dot(p, cam), 0) / p3s.length;
+    const faceDepth = depthOf(allFront);
+    for (const l of outers) { const p3 = l.map(p => to3(p, true)); faces.push({ pts: [p3.map(proj)], depth: faceDepth - 0.03, fill: back }); }
+    for (const l of cutLoops) { const p3f = l.map(p => to3(p)), p3b = l.map(p => to3(p, true));
+      for (let i = 0; i < l.length; i++) { const j = (i + 1) % l.length, q = [p3f[i], p3f[j], p3b[j], p3b[i]], nrm = V3.cross(V3.add(q[1], V3.sc(q[0], -1)), V3.add(q[3], V3.sc(q[0], -1))); if (V3.dot(nrm, cam) <= 0) continue; faces.push({ pts: [q.map(proj)], depth: faceDepth - 0.02, fill: side }); } }
+    if (cutLoops.length) { const p3 = cutLoops.map(l => l.map(p => to3(p))); faces.push({ pts: p3.map(l => l.map(proj)), depth: faceDepth, fill: wood, rule: "evenodd", stroke: "#6b4a2a" }); }
+    for (const it of sb.items) { if (it.layer !== RA) continue; const p3 = it.sub.map(sp => flatten(sp, 6).pts.map(p => to3(p))); faces.push({ pts: p3.map(l => l.map(proj)), depth: faceDepth + 0.02, fill: ink, rule: "nonzero" }); }
+  }
+  faces.sort((a, b) => a.depth - b.depth);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const f of faces) for (const l of f.pts) for (const [x, y] of l) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const W = (x1 - x0) * scale + 2 * pad, H = (y1 - y0) * scale + 2 * pad, P = ([x, y]) => `${r3((x - x0) * scale + pad)} ${r3((y - y0) * scale + pad)}`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${r3(W)}" height="${r3(H)}" viewBox="0 0 ${r3(W)} ${r3(H)}"><rect width="${r3(W)}" height="${r3(H)}" fill="#f3ead6"/>`;
+  for (const f of faces) svg += `<path d="${f.pts.map(l => "M" + l.map(P).join("L") + "Z").join("")}" fill="${f.fill}"${f.rule ? ` fill-rule="${f.rule}"` : ""}${f.stroke ? ` stroke="${f.stroke}" stroke-width="0.5"` : ""}/>`;
+  return svg + "</svg>";
+}
+const flatAt = (items, x, y, z, T = MAT) => slab(items, { origin: [x, y, z + T], T });            // lying on the table, top face at z+T
+const standing = (items, origin, U, T = MAT3) => slab(items, { origin, U, V: [0, 0, -1], T });     // a vertical panel whose 2D top edge is at origin
 
 /* =========================================================================================
    9. Sheets — nest named parts left-to-right, wrapping at a width
@@ -1114,7 +1254,7 @@ function buildVersion(V) {
   const markerParts = v === "v3" ? [] : ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))); cutParts.push(...markerParts);
   if (v !== "v3") docs.push(sheet("markers", "Island markers (7)", markerParts, { notes: "Sits on an island at setup to say which ingredient grows there — the shapes are dealt fresh each game, so the ingredient can't be engraved on the island." }));
   const whirlParts = [0, 1, 2, 3].map(n => ({ ...part(`whirlpool-${n + 1}`, whirlpool(v === "v1" ? "spiral" : v === "v2" ? "rings" : "swirl", 0, 0)), mat: v === "v3" ? MAT3 : MAT })); cutParts.push(...whirlParts);
-  docs.push(sheet("whirlpools", "Whirlpools (4)", whirlParts, { notes: "One square each in 3 mm, 0.4 mm clearance, the game's swirl. Drop them on any four trade-wind squares — a ship carried by the current gets off at the next whirlpool." }));
+  docs.push(sheet("whirlpools", "Whirlpools (4)", whirlParts, { notes: "One square each in 3 mm, 0.4 mm clearance, the game's whirlpool art (assets/trade-swirl.png) traced and engraved. Drop them on any four trade-wind squares — a ship carried by the current gets off at the next whirlpool." }));
   // spinner
   const arr = spinnerArrows(0, 0);
   const spParts = v === "v3" ? nestedSpinner() : [part("dial", spinnerDial(v === "v1" ? "quadrants-storm" : "roulette", 40, 0, 0)), part("arrow-now", arr.now), part("arrow-next", arr.next), part("washer-1", arr.washers[0]), part("washer-2", arr.washers[1])];
@@ -1128,20 +1268,21 @@ function buildVersion(V) {
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
-  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "Three pieces each: a 6 mm hull seen from above (22 × 11 mm, deck planks, a tiller) with two slots on its centreline; a 3 mm mainsail and a 3 mm jib, each with a tab that drops through a slot and sits flush underneath. About 30 mm tall on the water." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
+  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on their masts — the game's skull over crossed bones on each, the captain's mark along the foot — whose tabs drop through the slots and sit flush underneath. About 30 mm tall." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
   docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
   // extras
-  const stormToken = xf([item(CU, [ICONS.cloud()[0].sub[0]]), poly(RA, [[54, 36], [60, 36], [52, 47], [60, 47], [44, 60], [50, 49], [42, 49]])], { s: .34 });
+  const stormToken = artToken("storm", 0, 0, 28);
   const extraParts = [part("storm-token", stormToken), part("first-player", [circ(CU, 0, 0, 14), ...icon("wheel", 0, 0, 25)]), part("reference-card", referenceCard())].map(p => ({ ...p, mat: MAT3 })); cutParts.push(...extraParts);
   if (v === "v3") {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
     cutParts.push(...crateParts, ...chestParts);
     docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: "One open crate per captain, 44 × 30 × 18 mm in 3 mm ply: box joints, plank engraving, the captain's mark on the front. Tokens stand on edge in it, five across, icons showing — cargo is public, as in the game." }));
-    docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 30 mm in 3 mm ply. Box-jointed body (20 mm) and lid (10 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; the captain's name on the lid." }));
+    docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 30 mm in 3 mm ply. Box-jointed body (20 mm) and lid (10 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; the captain's mark on the lid (no names — players choose their own). Labels: vertical corners 1–4 clockwise from front-left (L1, L2 on the lid, whose back is the hinge strip); a wall's bottom says which plate edge it meets (B·F = base front, T·K = lid top back); H = the hinge. The labels face the INSIDE. See the mockup for the whole thing open." }));
   }
   docs.push(sheet("extras", "Extras", extraParts, { notes: "A storm cloud to put on the board when the forecast says storm (the bolt is engraved inside the cut cloud). A ship's wheel for whoever sails first. A rules card with the numbers the app keeps for you." }));
+  if (v === "v3") docs.push(...mockups(five, { islandParts, dockParts, crates, whirlParts, spParts, shipParts, crateParts: CAPTAINS.flatMap(c => cargoCrate(c)), chestParts: CAPTAINS.flatMap(c => treasureChest(c)), recipeParts }));
   if (v === "v3") {
     // the cutting sheets: every part, tallest first, on bed-sized sheets, kerf-compensated
     // one run of sheets per material: the board and its tokens in 6 mm, the thin parts in 3 mm
@@ -1154,6 +1295,71 @@ function buildVersion(V) {
     docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet.`, count: all.reduce((a, d) => a + d.count, 0) }));
   }
   return { ...V, docs };
+}
+
+/* =========================================================================================
+   10b. The mockups themselves — Wyatt, 2026-08-22: "renders of the assembled ships, treasure
+        chests, and wind spinner, as well as a render of the assembled board"
+   ========================================================================================= */
+function mockups(five, P) {
+  const docs = [], byName = (parts, n) => parts.find(p => p.name === n).items;
+  const doc = (id, title, svg, notes) => ({ id, title, kind: "mockup", svg, notes, w: 0, h: 0, count: 0, items: [] });
+  // the ship: hull flat, two square sails standing athwartships in the slots
+  const shipSlabs = (c, x, y, z) => { const hull = byName(P.shipParts, `ship-${CAPTAINS[c]}-hull`), main = byName(P.shipParts, `ship-${CAPTAINS[c]}-main`), fore = byName(P.shipParts, `ship-${CAPTAINS[c]}-fore`);
+    const B = 12, sailAt = (items, sx) => { const b = bbox(items.filter(i => i.layer === CU)); const mh = b.y1 - MAT;
+      const shown = items.map(it => it.layer !== CU ? it : { ...it, sub: it.sub.map(sp => polyCmds(clipPolyHalf(flatten(sp, 8).pts, 0, 1, mh - 0.05))) });   // the tab is inside the hull
+      return standing(shown, [x + sx + MAT3 / 2, y + B / 2 - 1.3, z + MAT + mh], [0, 1, 0]); };
+    return [flatAt(hull, x, y, z), sailAt(main, 7.5), sailAt(fore, 15.5)]; };
+  docs.push(doc("mockup-ship", "Mockup: a ship, assembled", isoScene(shipSlabs(1, 0, 0, 0), { scale: 9 }), "The 6 mm hull with its two square sails dropped into the slots across the beam. Biscotti's stripes along the foot of each sail; the game's skull over crossed bones."));
+  // the treasure chest, open, card in the lid
+  const chestSlabs = (() => { const c = 0, g = n => byName(P.chestParts, `chest-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 80, Wo = 54, hb = 17;
+    const s = [flatAt(g("base"), 0, 0, 0, t)];
+    s.push(slab(g("front"), { origin: [t, t, t + hb], U: [1, 0, 0], V: [0, 0, -1], T: t }));
+    s.push(slab(g("back"), { origin: [Lo - t, Wo - t, t + hb], U: [-1, 0, 0], V: [0, 0, -1], T: t }));
+    s.push(slab(g("side-2"), { origin: [t, Wo - t, t + hb], U: [0, -1, 0], V: [0, 0, -1], T: t }));
+    s.push(slab(g("side-1"), { origin: [Lo - t, t, t + hb], U: [0, 1, 0], V: [0, 0, -1], T: t }));
+    // the lid, closed pose first, then swung open 110° about the hinge axis (y = Wo - t/2, z = t + hb + 3.3)
+    const ay = Wo - t / 2, az = t + hb + 3.3, th = rad(-110), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
+    const lidZ = t + hb + 7, hl = 7;
+    const lid = [slab(g("lid-top"), { origin: [0, 0, lidZ + t], T: t, xform: rot }),
+      slab(g("lid-front"), { origin: [t, t, lidZ - hl], U: [1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),
+      slab(g("lid-side-2"), { origin: [t, Wo - t, lidZ - hl], U: [0, -1, 0], V: [0, 0, 1], T: t, xform: rot }),
+      slab(g("lid-side-1"), { origin: [Lo - t, t, lidZ - hl], U: [0, 1, 0], V: [0, 0, 1], T: t, xform: rot }),
+      slab(g("lid-hinge"), { origin: [Lo - t, Wo - t, lidZ - 0.4], U: [-1, 0, 0], V: [0, 0, -1], T: t, xform: rot }),
+      slab(P.recipeParts[13].items, { origin: [8, 46, lidZ - t - 0.2], U: [1, 0, 0], V: [0, -1, 0], T: t, xform: rot, tint: 0.06 }),   // face down: you read it when the lid is open
+      slab(g("card-rail-1"), { origin: [Lo - t, t, lidZ - 3.4], U: [0, 1, 0], V: [0, 0, -1], T: t, xform: rot }), slab(g("card-rail-2"), { origin: [t, Wo - t, lidZ - 3.4], U: [0, -1, 0], V: [0, 0, -1], T: t, xform: rot })];
+    // a few coins inside
+    for (let i = 0; i < 3; i++) s.push(flatAt(coinGlyph(0, 0, 25.4).concat([circ(CU, 0, 0, 12.7)]), 22 + i * 9, 18, t + i * 0.4, 1.6));
+    return [...s, ...lid]; })();
+  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid swung back 110° on the dowel: the hinge strip under the lid top carries the lid's tongues between the chest's. The recipe card lies in the lid against the top, held by the two rails; coins in the body."));
+  // the spinner: backing, dial + ring at one level, needle above, vane standing in the ring's slot
+  const spSlabs = (() => { const g = n => byName(P.spParts, n), t = MAT3, s = [flatAt(g("spinner-backing"), 0, 0, 0, t), flatAt(g("spinner-dial"), 0, 0, t, t), flatAt(xf(g("spinner-ring"), { rot: 35 }), 0, 0, t, t), flatAt(xf(g("spinner-needle"), { rot: -60 }), 0, 0, 2 * t, t), flatAt(g("spinner-washer"), 0, 0, 3 * t, t)];
+    const a = rad(35 - 90), vr = 43, vx = vr * Math.cos(a), vy = vr * Math.sin(a); // the slot, turned with the ring
+    const vane = g("spinner-vane"), vb = bbox(vane.filter(i => i.layer === CU)); // tab bottom at vb.y1, mast base at vb.y1 - MAT3
+    s.push(slab(vane, { origin: [vx - 1.3 * Math.cos(a), vy - 1.3 * Math.sin(a), t + (vb.y1 - t)], U: [Math.cos(a), Math.sin(a), 0], V: [0, 0, -1], T: t }));
+    return s; })();
+  docs.push(doc("mockup-spinner", "Mockup: the wind spinner, assembled", isoScene(spSlabs, { scale: 4 }), "Backing disc; the compass dial glued on it with the ring turning around it; the flat forecast needle on the pivot above; the WIND NOW vane standing in the ring's slot, pennant toward the letter the ring is set to."));
+  // a cargo crate with tokens standing in it
+  const crateSlabs = (() => { const c = 2, g = n => byName(P.crateParts, `crate-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 44, Wo = 30, hw = 15;
+    const s = [flatAt(g("base"), 0, 0, 0, t), slab(g("front"), { origin: [t, t, t + hw], U: [1, 0, 0], V: [0, 0, -1], T: t }), slab(g("back"), { origin: [Lo - t, Wo - t, t + hw], U: [-1, 0, 0], V: [0, 0, -1], T: t }),
+      slab(g("side-2"), { origin: [t, Wo - t, t + hw], U: [0, -1, 0], V: [0, 0, -1], T: t }), slab(g("side-1"), { origin: [Lo - t, t, t + hw], U: [0, 1, 0], V: [0, 0, -1], T: t })];
+    ["wheat", "eggs", "spice"].forEach((ing, i) => { const tk = artToken(ing, 0, 0), b = bbox(tk.filter(x => x.layer === CU)); s.push(slab(xf(tk, { tx: -b.x0, ty: -b.y0 }), { origin: [Lo - t - 2.5 - i * 7.5, Wo / 2 + b.w / 2, t + b.h], U: [0, -1, 0], V: [0, 0, -1], T: MAT })); });
+    return s; })();
+  docs.push(doc("mockup-crate", "Mockup: a cargo crate", isoScene(crateSlabs, { scale: 6 }), "Slatted sides with real gaps, corner posts, Gingersnap's dots on the front; three ingredient tokens standing in it, icons showing."));
+  // the board on the table: quadrants, Tortuga on top, three islands with docks and tokens, two ships, a whirlpool
+  const boardSlabs = (() => { const s = five.quadrants.map(q => flatAt(q.items, 0, 0, 0)); const C = CENTER;
+    s.push(flatAt(xf(five.plug.items, { tx: C, ty: C }), 0, 0, MAT));
+    const place = (i, cx, cy, dockSide) => { const isl = P.islandParts[i].items, b = bbox(isl.filter(x => x.layer === CU)); s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT));
+      const cells = ISLAND_SHAPES[i]; cells.forEach(([a, b2], k) => { const ing = ING[(i * 3 + k) % 7], tk = artToken(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
+      const d = byName(P.dockParts, `dock-${ING[i % 7]}`); s.push(flatAt(xf(d, { rot: dockSide.rot, tx: dockSide.x, ty: dockSide.y }), 0, 0, MAT)); };
+    place(0, 3 * CELL, 4 * CELL, { rot: 180, x: 3 * CELL - CLR, y: 4 * CELL + CELL - CLR });        // I3, dock on its left end
+    place(4, 9 * CELL, 2 * CELL, { rot: 90, x: 10 * CELL + CELL - CLR, y: 4 * CELL + CLR });         // L4, dock below its foot
+    place(5, 4 * CELL, 9 * CELL, { rot: 0, x: 7 * CELL + CLR, y: 10 * CELL + CLR });                 // S, dock on its right end
+    s.push(flatAt(xf(P.whirlParts[0].items, { tx: 9.5 * CELL, ty: 0.5 * CELL }), 0, 0, MAT, MAT3));
+    s.push(...shipSlabs(0, 6 * CELL + 1, 6 * CELL + 6, MAT), ...shipSlabs(3, 8 * CELL + 1, 7 * CELL + 6, MAT));
+    return s; })();
+  docs.push(doc("mockup-board", "Mockup: the board on the table", isoScene(boardSlabs, { scale: 2.6 }), "The four quadrants locked, Tortuga sitting on top over its dotted outline, three islands with a dock plugged into each and their ingredients one per square, a whirlpool tile on the rim, two ships at Tortuga."));
+  return docs;
 }
 
 /* =========================================================================================
@@ -1207,6 +1413,7 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   fs.mkdirSync(dir, { recursive: true });
   const groups = [];
   for (const doc of built.docs) {
+    if (doc.kind === "mockup") { fs.writeFileSync(path.join(dir, `${doc.id}.svg`), doc.svg); groups.push({ id: doc.id, title: doc.title, kind: "mockup", mat: null, notes: doc.notes, w: 0, h: 0, count: 0, svg: doc.svg }); continue; }
     const svg = emitSVG(doc, V);
     fs.writeFileSync(path.join(dir, `${doc.id}.svg`), svg);
     fs.writeFileSync(path.join(dir, `${doc.id}.dxf`), emitDXF(doc));

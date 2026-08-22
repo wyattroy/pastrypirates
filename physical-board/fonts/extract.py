@@ -12,6 +12,7 @@ FONTS = {
   "georgia-italic": ("/System/Library/Fonts/Supplemental/Georgia Italic.ttf", None),
   "georgia":        ("/System/Library/Fonts/Supplemental/Georgia.ttf", None),
   "avenir-next-demibold": ("/System/Library/Fonts/Avenir Next.ttc", "AvenirNext-DemiBold"),
+  "avenir-next": ("/System/Library/Fonts/Avenir Next.ttc", "AvenirNext-Regular"),
 }
 out = {}
 for key, (path, psname) in FONTS.items():
