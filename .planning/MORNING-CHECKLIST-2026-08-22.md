@@ -32,9 +32,45 @@ emulating a phone with no browser bar. Nothing in the game changed for it.
 
 ---
 
-## SECOND — the things you asked for last night
+## SECOND — your afternoon list (Group E)
 
-*(Filled in as each lands — see the bottom of this file for the final state.)*
+**Narration timing — the one thing to judge by feel, not by looking.** You asked for 15% faster
+reading, applied to everything. Play a voyage and see whether it now moves at your pace.
+
+| Line length | Was on screen | Now |
+|---|---|---|
+| Short ("Blown into the trade winds!") | 2.9 s | **2.1 s** |
+| Medium (~78 characters) | 3.4 s | **4.3 s** |
+| Long — the ceiling | 5.3 s | **4.6 s** |
+
+Short lines give back about three quarters of a second each. Medium lines got *longer*, and that is
+the curve you picked — you chose the two anchor points yourself and the middle band follows from
+them. If the medium ones now drag, that is the number to tell me about.
+
+| # | Look at | What right looks like |
+|---|---|---|
+| 6 | **Any narration bubble** | It never pops up and vanishes in the same instant. One that used to be marked for removal **1 millisecond after it appeared** now stays 4.3 s. |
+| 7 | **A dock coin flip** | The "flips TAILS" line is readable. It used to spend 40% of its life underneath the flip veil, where you could not see it. |
+| 8 | **A storm** | **One** sentence summarising the whole storm, not a line per captain. Captains stopped by another ship are named in it — 82 of them used to be missing from their own summary. |
+| 9 | **The black market**, first time a shelf runs dry | The ceremony appears even when a **bot** empties the shelf. A bot takes the first dry shelf in 76% of solo voyages, so three players in four have never seen this. |
+| 10 | **The Dock petal** | Ingredient picture, the word Dock, and a *spinning* coin — no number, because the price has not landed yet. No anchor. |
+| 11 | **Buying a crate** | The sound and the crate pop land **on your click**, not after the narration has finished. |
+| 12 | **The recipe card** | Option C as you picked it: the gradient runs right up to the line under the title with no hard edge, and the picture is not cramped against the description. |
+
+### One I do NOT claim is fixed — please judge it yourself
+
+**Your item 1, "the prompt buttons are hard to notice."** The sail-square pulse was added to the
+prompt buttons as you asked. But when it was measured, the action menu was drawing as a **centred
+card**, not the radial fan — and those buttons *already* pulsed, near-identically. So the change
+helps the flat button rows that had no pulse at all, and probably does not answer your actual
+complaint. **Making them louder is your taste call.** Tell me how much louder.
+
+### Not established, so not claimed
+
+- **The guest's wind pill in a crew game.** The two-browser run did not happen — the lobby would not
+  start without more captains. So nothing is proven about the guest side of that.
+- **A Buy pill that overhung the right edge by 63px** on an older build does not reproduce now. The
+  wider desktop column is probably hiding it rather than fixing it; expect it back at a narrow width.
 
 ---
 
