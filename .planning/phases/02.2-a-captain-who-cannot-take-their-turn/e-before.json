@@ -1,0 +1,1050 @@
+{
+  "started": "2026-08-22T02:21:24.801Z",
+  "W": 1400,
+  "H": 900,
+  "cases": {
+    "C": {
+      "text": "Claude, what'll ye do:",
+      "chars": 22,
+      "selfretire_ms": 0,
+      "life_ms": 302,
+      "occluded_ms": 0,
+      "visible_ms": 302,
+      "veiled_at_birth": false,
+      "ambient": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1998:87) <-     at O"
+    },
+    "B": {
+      "text": "Claude — a battle's brewing! Call the winner — it's free, and ye get 2 if yer right.",
+      "chars": 84,
+      "selfretire_ms": 1,
+      "life_ms": 303,
+      "occluded_ms": 0,
+      "visible_ms": 303,
+      "veiled_at_birth": false,
+      "ambient": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1812:46) <-     at O"
+    },
+    "A": {
+      "text": "Claude flips  TAILS",
+      "chars": 19,
+      "selfretire_ms": 2557,
+      "life_ms": 2862,
+      "occluded_ms": 1140,
+      "visible_ms": 1722,
+      "veiled_at_birth": true,
+      "ambient": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    "D": {
+      "text": "TAILS — a turn on the docks. Buy a bundle of  Velvety Vanilla Beans?",
+      "chars": 68,
+      "selfretire_ms": 0,
+      "life_ms": 300,
+      "occluded_ms": 0,
+      "visible_ms": 300,
+      "veiled_at_birth": false,
+      "ambient": true,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1812:46) <-     at O"
+    }
+  },
+  "holds": {
+    "c27": 2855,
+    "c75": 3393,
+    "long": 5298
+  },
+  "pill": {
+    "msg": [
+      24,
+      392,
+      517.625,
+      429,
+      493.625,
+      37
+    ],
+    "body": [
+      14,
+      0,
+      869,
+      900,
+      855,
+      900
+    ],
+    "overRightPx": -351.37,
+    "overLeftPx": -10,
+    "text": "TAILS — a turn on the docks. Buy a bundle of  Velvety Vanilla Beans?"
+  },
+  "board_top": {
+    "samples": 1,
+    "first": 45,
+    "min": 45,
+    "max": 45,
+    "shift_px": 0,
+    "trace": [
+      [
+        3,
+        45
+      ]
+    ]
+  },
+  "buy_to_render_ms": 5489,
+  "redproof": {
+    "selfretire": "seen red (self-retired in 31ms)",
+    "occlusion": "seen red (420ms behind the veil)",
+    "overhang": "seen red (272px past body's right edge)",
+    "board_top": "seen red (board moved 40px)",
+    "prompt_attrs": "seen red (3 new samples on a forced change)",
+    "cues": "seen red (counted 2 forced cues)"
+  },
+  "stamp": "",
+  "pill_visible_at_start": {
+    "exists": true,
+    "text": "WIND NOW: ? · FORECAST: ?",
+    "shown": true
+  },
+  "posed_dock": {
+    "ok": true,
+    "pos": [
+      2,
+      10
+    ],
+    "need": "vanilla",
+    "dock": [
+      2,
+      10
+    ]
+  },
+  "holdsDone": true,
+  "holds_detail": {
+    "c27": {
+      "hold_ms": 2554,
+      "life_ms": 2855,
+      "chars": 27,
+      "text": "Blown into the trade winds!",
+      "interrupted": false
+    },
+    "c75": {
+      "hold_ms": 3091,
+      "life_ms": 3393,
+      "chars": 78,
+      "text": "The gale hauls ye three square",
+      "interrupted": false
+    },
+    "long": {
+      "hold_ms": 4996,
+      "life_ms": 5298,
+      "chars": 178,
+      "text": "A squall out of the black take",
+      "interrupted": false
+    }
+  },
+  "holds_measured_at": "human action menu, no centre-stage card",
+  "sawFlip": true,
+  "shots_flip": true,
+  "buy_cue_count": 1,
+  "bubbles": [
+    {
+      "text": "REDPROOF selfretire",
+      "chars": 19,
+      "created": 4207,
+      "out": 4238,
+      "removed": 4359,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at <anonymous>:4:60"
+    },
+    {
+      "text": "REDPROOF occlusion",
+      "chars": 18,
+      "created": 4483,
+      "out": null,
+      "removed": 4993,
+      "occluded": 420,
+      "ambient": false,
+      "veiled": true,
+      "stack": null
+    },
+    {
+      "text": "— Day 1: wind is blowin' north —  Next day: wind south.",
+      "chars": 55,
+      "created": 13595,
+      "out": 18592,
+      "removed": 18892,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Crustbeard takes the wheel…",
+      "chars": 27,
+      "created": 18595,
+      "out": 21151,
+      "removed": 21456,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Crustbeard sets sail",
+      "chars": 20,
+      "created": 21921,
+      "out": 24471,
+      "removed": 24774,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "HEADS! Crustbeard digs deep at Full Cream Folly and strikes buried treasure (+3) — then bu",
+      "chars": 124,
+      "created": 24474,
+      "out": 29469,
+      "removed": 29770,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "Flaky Jack takes the wheel…",
+      "chars": 27,
+      "created": 29474,
+      "out": 32025,
+      "removed": 32327,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Flaky Jack sets sail",
+      "chars": 20,
+      "created": 32759,
+      "out": 35313,
+      "removed": 35614,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Flaky Jack catches sight of a blueberry beluga spraying jam as it splashes down. Recipe id",
+      "chars": 98,
+      "created": 35320,
+      "out": 40319,
+      "removed": 40621,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "Dough Hook takes the wheel…",
+      "chars": 27,
+      "created": 40324,
+      "out": 42876,
+      "removed": 43177,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Dough Hook sets sail",
+      "chars": 20,
+      "created": 43607,
+      "out": 46158,
+      "removed": 46460,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "TAILS — Dough Hook spends the turn haulin' crates at Glitter Bay (+1)",
+      "chars": 69,
+      "created": 46165,
+      "out": 51163,
+      "removed": 51465,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Ahoy, Claude's turn!",
+      "chars": 20,
+      "created": 51168,
+      "out": 53901,
+      "removed": 54205,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Claude, what'll ye do:",
+      "chars": 22,
+      "created": 54311,
+      "out": 54311,
+      "removed": 54613,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1998:87) <-     at Object.syncPrompt (http://127.0.0.1:8645/4/src/ui/stage.js:2615:58) <-     at panel (http://127.0.0.1:8645/4/src/ui/panel.js:682:62)"
+    },
+    {
+      "text": "Blown into the trade winds!",
+      "chars": 27,
+      "created": 59366,
+      "out": 61920,
+      "removed": 62221,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "Blown into the trade winds!",
+      "chars": 27,
+      "created": 70604,
+      "out": 73160,
+      "removed": 73462,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "The gale hauls ye three squares north and the crates slide across the deck ohh",
+      "chars": 78,
+      "created": 81846,
+      "out": 84937,
+      "removed": 85239,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "The gale hauls ye three squares north and the crates slide across the deck ohh",
+      "chars": 78,
+      "created": 93085,
+      "out": 96182,
+      "removed": 96485,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "A squall out of the black takes the fleet abeam, hurls every captain three squares north, ",
+      "chars": 178,
+      "created": 104329,
+      "out": 109325,
+      "removed": 109627,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "A squall out of the black takes the fleet abeam, hurls every captain three squares north, ",
+      "chars": 178,
+      "created": 115571,
+      "out": 120575,
+      "removed": 120877,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Claude peeps into the clear water and sees a pokey pistachio pufferfish gettin' sassy. Rec",
+      "chars": 104,
+      "created": 123594,
+      "out": 128590,
+      "removed": 128892,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "— Day 2: wind is blowin' south —  Next day: wind east.",
+      "chars": 54,
+      "created": 128597,
+      "out": 133593,
+      "removed": 133894,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Crustbeard takes the wheel…",
+      "chars": 27,
+      "created": 133598,
+      "out": 136149,
+      "removed": 136451,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "Crustbeard sets sail",
+      "chars": 20,
+      "created": 136904,
+      "out": 139455,
+      "removed": 139756,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "HEADS! Crustbeard digs deep at Cocoa Cabana and strikes buried treasure (+3) — then buys a",
+      "chars": 126,
+      "created": 139461,
+      "out": 144458,
+      "removed": 144760,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Flaky Jack takes the wheel…",
+      "chars": 27,
+      "created": 144463,
+      "out": 147015,
+      "removed": 147316,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "Flaky Jack sets sail",
+      "chars": 20,
+      "created": 147753,
+      "out": 150304,
+      "removed": 150606,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "HEADS! Flaky Jack digs deep at the Spice Isle and strikes buried treasure (+3) — then buys",
+      "chars": 125,
+      "created": 150311,
+      "out": 155312,
+      "removed": 155613,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Dough Hook takes the wheel…",
+      "chars": 27,
+      "created": 155318,
+      "out": 157869,
+      "removed": 158170,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Dough Hook sets sail",
+      "chars": 20,
+      "created": 158601,
+      "out": 161152,
+      "removed": 161452,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Dough Hook attacks Flaky Jack! One broadside each…",
+      "chars": 50,
+      "created": 161157,
+      "out": 165693,
+      "removed": 166000,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Claude — a battle's brewing! Call the winner — it's free, and ye get 2 if yer right.",
+      "chars": 84,
+      "created": 165697,
+      "out": 165698,
+      "removed": 166000,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1812:46) <-     at Object.syncPrompt (http://127.0.0.1:8645/4/src/ui/stage.js:2615:58) <-     at panel (http://127.0.0.1:8645/4/src/ui/panel.js:682:62)"
+    },
+    {
+      "text": "Claude calls Dough Hook from the crow's nest.",
+      "chars": 45,
+      "created": 167969,
+      "out": 171902,
+      "removed": 172202,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Dough Hook attacks Flaky Jack, but both shots miss wildly and Flaky Jack slips away!",
+      "chars": 84,
+      "created": 178245,
+      "out": 183242,
+      "removed": 183543,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Ahoy, Claude's turn!",
+      "chars": 20,
+      "created": 183247,
+      "out": 185978,
+      "removed": 186283,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "Claude, what'll ye do:",
+      "chars": 22,
+      "created": 186819,
+      "out": 186830,
+      "removed": 187132,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1998:87) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2456:5)"
+    },
+    {
+      "text": "Docking at  Custard Key — dig for treasure!",
+      "chars": 43,
+      "created": 188657,
+      "out": 190823,
+      "removed": 191124,
+      "occluded": 2460,
+      "ambient": true,
+      "veiled": true,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at Object.stageFlash [as flash] (http://127.0.0.1:8645/4/src/ui/stage.js:997:18) <-     at flash (http://127.0.0.1:8645/4/src/ui/panel.js:1289:26) <-     at humanFlip (http://127.0.0.1:8645/4/src/ui/flow.js:313:9)"
+    },
+    {
+      "text": "Claude flips  TAILS",
+      "chars": 19,
+      "created": 190823,
+      "out": 193380,
+      "removed": 193685,
+      "occluded": 1140,
+      "ambient": false,
+      "veiled": true,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at tick (http://127.0.0.1:8645/4/src/ui/stage.js:2451:108)"
+    },
+    {
+      "text": "TAILS — a turn on the docks. Buy a bundle of  Velvety Vanilla Beans?",
+      "chars": 68,
+      "created": 193385,
+      "out": 193385,
+      "removed": 193685,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at Object.finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19) <-     at promptTick (http://127.0.0.1:8645/4/src/ui/stage.js:1812:46) <-     at Object.syncPrompt (http://127.0.0.1:8645/4/src/ui/stage.js:2615:58) <-     at panel (http://127.0.0.1:8645/4/src/ui/panel.js:682:62)"
+    },
+    {
+      "text": "TAILS — Claude spends the turn haulin' crates at Custard Key (+1) — then buys a bundle of ",
+      "chars": 119,
+      "created": 195564,
+      "out": 200561,
+      "removed": 200867,
+      "occluded": 0,
+      "ambient": false,
+      "veiled": false,
+      "stack": "    at DOMTokenList.add (<anonymous>:42:52) <-     at finish (http://127.0.0.1:8645/4/src/ui/stage.js:1133:19)"
+    },
+    {
+      "text": "— Day 3: wind is blowin' east —  Next day: wind south.",
+      "chars": 54,
+      "created": 200571,
+      "out": null,
+      "removed": null,
+      "occluded": 0,
+      "ambient": true,
+      "veiled": false,
+      "stack": null
+    }
+  ],
+  "attrs_tail": [
+    {
+      "ms": 26703,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26719,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26736,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26752,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26769,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26785,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26801,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26819,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26836,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26852,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26869,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26886,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26900,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26919,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26936,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26952,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26969,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 26986,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27002,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27019,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27036,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27053,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27070,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27085,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27103,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27120,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27137,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27153,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27169,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27185,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27201,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27219,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27236,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27251,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27269,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27285,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27302,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27319,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27336,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    },
+    {
+      "ms": 27352,
+      "why": "mutation",
+      "promptDisplay": "none",
+      "promptCls": "",
+      "pendingReveal": false,
+      "needsAction": false,
+      "apText": ""
+    }
+  ],
+  "blackmarket_solo": {
+    "drySeen": false,
+    "dryEvents": 0,
+    "dryBySeat": []
+  },
+  "consoleErrors": [],
+  "finished": "2026-08-22T02:25:26.773Z",
+  "pill_guest": {
+    "exists": true,
+    "text": "WIND NOW: W← · FORECAST: S↓",
+    "shown": true
+  },
+  "holds_guest": {
+    "c27": 2852,
+    "c75": 3393,
+    "long": 5297
+  },
+  "holds_host_crew": {
+    "c27": 2855,
+    "c75": 3391,
+    "long": 5296
+  },
+  "crew_bubbles_guest": [
+    {
+      "text": "TAILS — Flaky Jack spends the turn haulin' crates at the Flour Patch (+1) — then buys a sa",
+      "created": 1590,
+      "out": 4970,
+      "removed": 5270
+    },
+    {
+      "text": "Blown into the trade winds!",
+      "created": 4970,
+      "out": 6581,
+      "removed": 6883
+    },
+    {
+      "text": "— Day 2: wind is blowin' south —  Next day:  a storm's comin' — no tellin' which way she'l",
+      "created": 6581,
+      "out": 11581,
+      "removed": 11882
+    },
+    {
+      "text": "Ahoy, test1's turn!",
+      "created": 11584,
+      "out": 14285,
+      "removed": 14586
+    },
+    {
+      "text": "test1 is choosing where to sail…",
+      "created": 16045,
+      "out": 19609,
+      "removed": 19912
+    },
+    {
+      "text": "Blown into the trade winds!",
+      "created": 19609,
+      "out": 22161,
+      "removed": 22464
+    },
+    {
+      "text": "Blown into the trade winds!",
+      "created": 31831,
+      "out": 34382,
+      "removed": 34683
+    },
+    {
+      "text": "The gale hauls ye three squares north and the crates slide across the deck ohh",
+      "created": 68498,
+      "out": 71589,
+      "removed": 71891
+    },
+    {
+      "text": "The gale hauls ye three squares north and the crates slide across the deck ohh",
+      "created": 80723,
+      "out": 83817,
+      "removed": 84121
+    },
+    {
+      "text": "A squall out of the black takes the fleet abeam, hurls every captain three squares north, ",
+      "created": 117389,
+      "out": 122385,
+      "removed": 122686
+    },
+    {
+      "text": "A squall out of the black takes the fleet abeam, hurls every captain three squares north, ",
+      "created": 129616,
+      "out": 134612,
+      "removed": 134913
+    }
+  ]
+}
