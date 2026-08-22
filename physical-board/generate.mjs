@@ -545,13 +545,28 @@ function rimMarks(rim, style) {
 function homeSquareMarks(cx, cy) {
   return [...frameBand(cx, cy, CELL - 3, CELL - 3, 0.7, CELL * .25), ...icon("anchor", cx, cy - CELL * .13, CELL * .42), ...ftext(RA, "Tortuga", cx, cy + CELL * .36, CELL * .13, { font: "georgia-bold", align: "center" })];
 }
-// the board art's concentric ripples, as thin wavy rings on open water — between Tortuga's berths and the rim
+// the board art's ripples (assets/board.png): many concentric passes of short, brushy wave strokes
+// — tapered at both ends, broken by gaps, a little wobble, a little drift off the true radius — from
+// just outside the berths to the inner edge of the rim. Wyatt, 2026-08-22: "smaller tighter ripples".
 function rippleRings() {
   const C = CENTER, out = [];
-  const radii = [3.1, 3.8, 4.5, 5.2, 5.85].map(k => k * CELL);
-  radii.forEach((R0, k) => { const pts = [], n = 360; const r = th => R0 + 1.1 * Math.sin(7 * th + k * 1.3) + 0.5 * Math.sin(13 * th + k * 0.7);
-    for (let i = 0; i < n; i++) { const th = i / n * Math.PI * 2; pts.push([C + r(th) * Math.cos(th), C + r(th) * Math.sin(th)]); }
-    out.push(item(RA, [polyCmds(offsetPoly(pts, 0.17)), reverseSub(polyCmds(offsetPoly(pts, -0.17)))])); });
+  let seed = 20260822; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const r0 = CELL * 1.75, r1 = CELL * 6.05, pitch = 9;
+  for (let R0 = r0; R0 <= r1; R0 += pitch) {
+    let th = rnd() * Math.PI * 2; const end = th + Math.PI * 2;
+    const wob = 9 + Math.floor(rnd() * 5), ph = rnd() * Math.PI * 2;
+    while (th < end) {
+      const len = 16 + rnd() * 42, gap = 7 + rnd() * 18, dTh = len / R0, drift = (rnd() - .5) * 1.6, thick = 0.34 + rnd() * 0.18;
+      if (th + dTh > end) break;
+      const n = Math.max(6, Math.round(len / 2.5)), outer = [], inner = [];
+      for (let i = 0; i <= n; i++) {
+        const t = i / n, a = th + dTh * t, r = R0 + drift + 0.45 * Math.sin(wob * a + ph), w = thick * Math.sin(Math.PI * t) + 0.02;
+        outer.push([C + (r + w / 2) * Math.cos(a), C + (r + w / 2) * Math.sin(a)]); inner.push([C + (r - w / 2) * Math.cos(a), C + (r - w / 2) * Math.sin(a)]);
+      }
+      out.push(poly(RA, [...outer, ...inner.reverse()]));
+      th += dTh + gap / R0;
+    }
+  }
   return out;
 }
 // four berths, each pier facing back toward the island (dockOrient([-d]))
