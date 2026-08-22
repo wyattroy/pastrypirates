@@ -1359,9 +1359,27 @@ export async function humanDock(p,port){
   g.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
     paidIng:buy&&buy.paidIng?buy.paidIng:undefined,
     black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
-  await narrateLastEvent();
+  /* HIS ITEM 9: THE CRATE LANDS WHEN YE BUY IT. One call moved, none added.
+     "the crate sound and the crate animation arrive after the summary has faded, instead of on the
+     Buy click." Measured: 5489ms between the trusted mouse-down on the Buy petal and liveRender()
+     actually running. The cause was this ordering — the purchase event was emitted, then the FULL
+     narration was awaited (2 to 5 seconds under D-34), and only then did liveRender() run. Both the
+     crate pop (spawnPops) and the crate cue (playForEvent) hang off that one call, so both sat
+     behind the whole hold.
+     RULE 13 IS THE FRAME, not just the audio. A BOT's dock already does this in the right order —
+     botBeat() is literally `onLiveRender(); await narrateCurrent();`. The bot heard its crate at
+     the right moment and the human did not, which is exactly the asymmetry rule 13 forbids. This
+     brings the human into line with the bot rather than inventing a third ordering.
+     THE EVENT-TO-SOUND MAP IS UNTOUCHED and stays one entry per event. No second trigger, no call
+     into the audio module from the prompt handler, no special case for the dock cue. The map was
+     never what was wrong — the MOMENT was. A second trigger would fire the cue twice, which is a
+     worse defect than a late one and far harder to notice in a summary.
+     The two player-state writes travel WITH the render rather than staying behind it, so
+     liveRender() sees byte-identically the state it saw before this change. Neither is read by
+     narrateLastEvent(), which reads the event. */
   p.firstFlip.add(ing);p.dockedNow.add(ing);
   liveRender();
+  await narrateLastEvent();
 }
 /* ================= v2 rule 4: the table-wide open trade =================
    You no longer hail one captain. You stand on your deck and announce to the whole Sugar Seas
