@@ -186,10 +186,19 @@ function legVerdict(rec) {
     if (unexercised.length) v.push(`offered but never exercised: ${unexercised.join(", ")}`);
   }
   if (rec.consoleErrs && rec.consoleErrs.length) v.push(`${rec.consoleErrs.length} console error(s): ${rec.consoleErrs[0]}`);
-  const judgeFails = (rec.judged || []).filter(j => j.r.verdict === "FAIL");
+  /* A JUDGED SLOT CAN BE EMPTY, AND EVERY READER MUST COPE. judgeAll stops the whole pass on the
+     first FATAL, so screens it never reached come back `undefined` — deliberately, because an
+     unreached screen has NOT been cleared and must never be defaulted to PASS. This crashed a real
+     run of Wyatt's on 2026-08-22 (`Cannot read properties of undefined (reading 'verdict')`, twice:
+     here and in the contact sheet) because the producer learned to leave holes and its consumers
+     did not. Count the holes and say so, rather than assuming a dense array. */
+  const judged = (rec.judged || []).filter(j => j && j.r);
+  const judgeHoles = (rec.judged || []).length - judged.length;
+  const judgeFails = judged.filter(j => j.r.verdict === "FAIL");
   if (judgeFails.length) v.push(`vision judge FAILED ${judgeFails.length} screen(s)`);
-  const judgeErrs = (rec.judged || []).filter(j => j.r.verdict === "ERROR");
+  const judgeErrs = judged.filter(j => j.r.verdict === "ERROR" || j.r.verdict === "FATAL");
   if (judgeErrs.length) v.push(`vision judge errored on ${judgeErrs.length} screen(s) — those screens are NOT cleared`);
+  if (judgeHoles) v.push(`${judgeHoles} screen(s) never judged — NOT cleared`);
   if ((rec.queued || []).length) v.push(`vision pass DEFERRED for ${rec.queued.length} screen(s) — queued for a session, NOT cleared`);
   return v;
 }
@@ -198,7 +207,7 @@ async function contactSheet(rec, tag, idx) {
   try {
     const c = await openChrome({ W: 1700, H: 1000, dbgPort: DBG0 + 90 + idx, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, "prof-sheet-" + tag) });
     ownPorts.dbg.add(DBG0 + 90 + idx);
-    const tiles = rec.screens.map(s => { const j = (rec.judged || []).find(x => x.shot === s.shot);
+    const tiles = rec.screens.map(s => { const j = (rec.judged || []).find(x => x && x.r && x.shot === s.shot);
       const bad = s.fails.length || (j && j.r.verdict !== "PASS");
       return { cap: `${path.basename(s.shot)} · ${s.fails.length ? "STRUCT×" + s.fails.length : "struct ok"}${j ? " · judge " + j.r.verdict : ""}`,
         notes: [...s.fails.map(f => f.what), ...((j && j.r.issues) || [])], src: path.basename(s.shot), bad }; });
