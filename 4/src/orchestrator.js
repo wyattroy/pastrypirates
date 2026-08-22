@@ -70,7 +70,7 @@ import { appState } from "./state/index.js";
 import { pingVisit, pingStart, pingFin, usageGid } from "./ui/usage.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import {
-  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, iconImg, man,
+  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, seatHeldName, applyNameClaim, iconImg, man,
   ilabelImg, ovensNowEnabled,
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
@@ -111,6 +111,7 @@ import {
   MAX_NAME_LEN, // the live RTDB rule's own cap on seats/$seat/name — over it, the join dies server-side
   pendingAutoName, // NAME-01: was the resolved name CHOSEN by the player, or merely offered to them?
   openNameModal, // NAME-02: the room screen's "Change yer name" reuses the one naming modal
+  setNameWarning, nameTakenMsg, // item 16/D-19: the inline "that name's taken" line and its words
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
@@ -1571,12 +1572,12 @@ export async function abandonRoom(){
   clearSession();
   showHome();
 }
-// unusedDefaultName() counts EVERY seat in the map as taking a name, including the one being
-// claimed — so a player re-resolving their own seat would see their own old name as taken and drift
-// to a different default each pass. Hiding the seat under claim from the tally makes `preferIdx`
-// reliably return that seat's own captain, which is both stable and collision-free. Shared by
-// joinRoom() and renameMySeat().
-const withoutSeat=(s,i)=>{const o={};Object.keys(s||{}).forEach(k=>{if(+k!==i)o[k]=s[k];});return o;};
+// withoutSeat and applyNameClaim — the seat-naming rule — moved to src/shared/index.js on
+// 2026-08-22 (item 16, D-19). It is a PURE rule over a seat map, so it belongs in the pure leaf tier
+// beside unusedDefaultName() and seatHeldName(), the two helpers it is built from — and, being
+// there, it can be imported and exercised directly by a Node gate
+// (4/scripts/name_claim_check.js) instead of grepped for. This file keeps the three CALLERS:
+// joinRoom's fresh-claim and rejoin paths, and renameMySeat.
 // NAME-02 (Wyatt, 2026-08-01): "the player may just want to change their name." Rewrites this
 // player's OWN seat in place, so renaming never costs them the room. Deliberately narrow — it
 // touches one seat, only its owner's, and only in the lobby: once the voyage is under way narration
@@ -1587,12 +1588,18 @@ export async function renameMySeat(newName){
   const seat=appState.mySeat;
   const auto=pendingAutoName();
   const chosen=(auto&&newName===auto)?"":newName;
+  // item 16 (D-19): the same rule joinRoom uses. Reset on EVERY updater run — Firebase may call a
+  // transaction updater more than once (typically a cached pass, then the server value), so an
+  // outcome recorded on an earlier run would be read back as this run's answer.
+  let outcome=null;
   try{
     await netClaimSeat(appState.db,appState.room,s=>{
+      outcome=null;
       if(!s)return s;
       const cur=s[seat]||{};
       if(cur.id!==appState.myId)return s; // not mine any more — never stomp another captain's seat
-      s[seat]={...cur,name:chosen||unusedDefaultName(withoutSeat(s,seat),seat),id:appState.myId,bot:false};
+      outcome=applyNameClaim(s,seat,chosen,appState.numSeats||4,appState.myId,false);
+      if(outcome==="taken")return;        // undefined ABORTS the transaction — nothing is written
       return s;
     });
   }catch(e){
@@ -1600,10 +1607,20 @@ export async function renameMySeat(newName){
     // @copy misc.mperror.renamefailed
     alert("Couldn't change yer name just now — the seas are choppy. Try again in a moment.");
   }
+  /* REFUSED, so SAY SO — a rename that silently does not happen is the fix wearing the bug's
+     clothes. The name modal is the only route to a rename and it has already closed by now, so the
+     refusal is delivered by opening it again with the warning under the box, in the same words and
+     the same place as the JOIN screen's (rule 8). Same continuation, so confirming a different name
+     completes the rename the captain came here to make. Never an alert() — see setNameWarning. */
+  if(outcome==="taken")openNameModal(name=>{renameMySeat(name);},nameTakenMsg(newName));
   // no re-render here: netWatchSeats() is already live for this room and repaints every client,
   // this one included, the moment the write lands.
 }
 export async function joinRoom(){
+  // item 16 (D-19): every attempt starts from a clean slate. Without this a captain who fixed their
+  // name and pressed Join again would watch the old refusal sit under the box while the join
+  // succeeded behind it — which reads as "still refused" and is the opposite of what happened.
+  setNameWarning("joinName","");
   const typedName=($("joinName").value||"").trim().slice(0,MAX_NAME_LEN);
   const code=($("joinCode").value||"").toUpperCase().trim();
   // @copy misc.mperror.entercode
@@ -1643,27 +1660,44 @@ export async function joinRoom(){
     // into a voyage already under way must keep the seat's existing name: narration has already gone
     // out under it, and renaming mid-game would desync the roster against events guests have shown.
     if(r.status==="lobby"){
+      // item 16 (D-19): the rejoin is a THIRD name-write path and gets the identical rule. It is
+      // the one most likely to collide, too — it exists precisely so a captain can back out and
+      // come back under a different name, which is exactly when they might pick one somebody else
+      // has taken in the meantime.
+      let outcome=null;
       await netClaimSeat(appState.db,code,s=>{
+        outcome=null;                       // reset per updater run; Firebase may call this twice
         if(!s)return s;
         const cur=s[mine]||{};
         if(cur.id!==appState.myId)return s; // someone else holds it now — never stomp their seat
-        s[mine]={...cur,name:chosen||unusedDefaultName(withoutSeat(s,mine),mine),id:appState.myId,bot:false};
+        outcome=applyNameClaim(s,mine,chosen,r.numSeats,appState.myId,false);
+        if(outcome==="taken")return;        // undefined ABORTS — the seat keeps the name it had
         return s;
       });
+      if(outcome==="taken"){setNameWarning("joinName",nameTakenMsg(typedName));return;}
     }
     appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;
   }
   // @copy misc.mperror.alreadysailed
   if(r.status!=="lobby"){alert("⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.");return;}
-  let claimed=null;
+  let claimed=null,outcome=null;
   await netClaimSeat(appState.db,code,s=>{
+    claimed=null;outcome=null;            // reset per updater run; Firebase may call this twice
     if(!s)return s;
     for(let i=0;i<r.numSeats;i++){const cur=s[i]||{};if(!cur.id){
       // #2: blank name → an unused default captain name computed against the live seat map, so a
-      // late joiner never duplicates a name already in the room.
-      s[i]={name:chosen||unusedDefaultName(withoutSeat(s,i),i),id:appState.myId,bot:false};claimed=i;return s;}}
+      // late joiner never duplicates a name already in the room. item 16 (D-19) adds the other half:
+      // a name they DID type is now checked too — refused if a human holds it, granted (and the bot
+      // moved aside) if a bot does.
+      outcome=applyNameClaim(s,i,chosen,r.numSeats,appState.myId,true);
+      if(outcome==="taken")return;        // undefined ABORTS — no seat is claimed, nothing written
+      claimed=i;return s;}}
     return s;
   });
+  // Told where they typed it, not in a popup that blocks the page (T-02.2-23). The seat is NOT
+  // claimed, the code and name they typed are still in their boxes, and changing the name and
+  // pressing Join again is the whole recovery.
+  if(outcome==="taken"){setNameWarning("joinName",nameTakenMsg(typedName));return;}
   // @copy misc.mperror.roomfull
   if(claimed==null){alert("Too many pirates already in that game.");return;}
   appState.room=code;appState.mySeat=claimed;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();

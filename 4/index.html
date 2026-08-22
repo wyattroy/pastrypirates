@@ -1397,6 +1397,13 @@
   .nameLabel { display:block; text-align:left; font-size:13px; font-weight:700; color:var(--teal); margin-bottom:18px; }
   .nameLabel input { width:100%; margin-top:5px; font-size:16px; padding:9px 11px; border:1.5px solid var(--line);
     border-radius:9px; font-family:inherit; box-sizing:border-box; }
+  /* item 16 / D-19 — the inline "that name's taken" line, UNDER the box it belongs to. One rule for
+     both mounts (#joinNameWarn, #nameModalWarn), because it is one message in two places, not two
+     messages (rule 8). It sits below the input in DOM order, so it is revealed after the field it is
+     about, per the standing top-to-bottom rule. Not font-weight:700 like the label above it — this
+     is the game telling ye something, not a field name. */
+  .nameWarn { margin-top:7px; font-size:13px; font-weight:600; line-height:1.4; color:#c0392b; }
+  .nameLabel input.nameWarned { border-color:#c0392b; }
   .choiceRow { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .choiceCard { flex: 1 1 120px; min-width: 118px; display:flex; flex-direction:column; align-items:center; gap:4px;
     padding: 16px 8px 14px; border-radius: 14px; border: 2px solid transparent; font-family: inherit;
@@ -2384,7 +2391,12 @@
       <h3><img class="narrIcon" src="../assets/icons/key.png" alt=""> Join a Crew</h3>
       <div class="fieldRow"><input type="text" id="joinCode" maxlength="6" placeholder="CODE"></div>
       <label class="nameLabel">Yer captain name
-        <input type="text" id="joinName" maxlength="40" placeholder="e.g. Davy Scones"></label>
+        <input type="text" id="joinName" maxlength="40" placeholder="e.g. Davy Scones">
+        <!-- item 16 / D-19: a name another HUMAN already holds is refused HERE, under the box it was
+             typed in — never with a blocking alert(). Empty and hidden until setNameWarning() fills
+             it (src/ui/lobby.js), which writes textContent, never innerHTML: the string in it is
+             player-authored and every other client renders it too (T-02.2-22). -->
+        <div class="nameWarn" id="joinNameWarn" role="alert" hidden></div></label>
       <button class="primary big" id="btnJoin" type="button">Join the voyage</button>
     </div>
 
@@ -2418,7 +2430,11 @@
     <div class="modalStep">
       <h3>What do they call ye, captain?</h3>
       <label class="nameLabel">Yer captain name
-        <input type="text" id="nameModalInput" maxlength="40" placeholder="e.g. Davy Scones"></label>
+        <input type="text" id="nameModalInput" maxlength="40" placeholder="e.g. Davy Scones">
+        <!-- The SECOND MOUNT of the same warning line, not a second design (rule 8). This modal is
+             the only way to rename yourself mid-lobby, so a rename refused for the same reason must
+             say so in the same words, in the same place relative to the same box. -->
+        <div class="nameWarn" id="nameModalWarn" role="alert" hidden></div></label>
       <button class="primary big" id="btnNameConfirm" type="button">Aye, that's me name</button>
     </div>
   </div>

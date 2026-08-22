@@ -67,7 +67,7 @@ import {
   SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS, MOTION_BRIDGE_TICKS, MAX_NAME_LEN,
   vwPx, fixedRect,
 } from "./util.js";
-import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal } from "./lobby.js";
+import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal, setNameWarning } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
 import { netHandlers } from "./handlers.js";
 
@@ -2601,7 +2601,10 @@ export function wireWelcome(){
   // MAX_NAME_LEN server-side, and going over used to kill the join outright (Wyatt, 2026-08-19).
   // Set from the constant rather than typed into index.html's maxlength, so the box and the clamp
   // in joinRoom() cannot drift apart — the two-hand-synced-numbers trap 2e84477 was written about.
-  if(joinCard)joinCard.onclick=()=>{if(joinCard.classList.contains("disabled"))return;openNameModal(name=>{$("joinName").maxLength=MAX_NAME_LEN;$("joinName").value=name;showStep("stepJoin");});};
+  // item 16 (D-19): clear the "that name's taken" line as the JOIN screen OPENS, not only on the
+  // box's `input` event — writing .value from code fires no input event, so a refusal from a
+  // previous attempt would otherwise still be sitting under a box that has just been re-prefilled.
+  if(joinCard)joinCard.onclick=()=>{if(joinCard.classList.contains("disabled"))return;openNameModal(name=>{$("joinName").maxLength=MAX_NAME_LEN;$("joinName").value=name;setNameWarning("joinName","");showStep("stepJoin");});};
   // D-03 decision (22-01-PLAN.md): #ppName0 stays visible on stepPassPlay, pre-filled and editable
   // — Pass & Play still has to name seats 1-3, so consistency (same modal, same position in the
   // flow) was chosen over saving a click.

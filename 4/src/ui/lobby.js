@@ -106,6 +106,43 @@ export function requireName(){
   return v?v.slice(0,MAX_NAME_LEN):unusedDefaultName(null,0);
 }
 
+/* ================= the inline name warning (item 16 / D-19) ================= */
+
+// setNameWarning(inputId, text) — THE ONE WAY the game tells a captain their name is spoken for.
+//
+// Wyatt's ruling (D-19): a name another HUMAN already holds is refused with a warning UNDER the Yer
+// Captain Name box — not a blocking popup. There are two boxes in this game that write
+// seats/$seat/name (JOIN VOYAGE's #joinName and the name modal's #nameModalInput, which is how a
+// rename happens), so there are two mounts and ONE builder. Never two messages for one situation.
+//
+// IT IS NOT alert(), AND THAT IS NOT A STYLE PREFERENCE. Elsewhere in the join path alert() is the
+// established pattern and is deliberately NOT followed here: a blocking alert() has already frozen a
+// page mid-probe in this project and the tab looked hung (T-02.2-23). This writes a line and returns.
+//
+// textContent, NEVER innerHTML. The string carries a name a player typed, and that same name is
+// rendered by every other client in the lobby and the ribbon (T-02.2-22). textContent escapes it by
+// construction, which is stronger than remembering to call escHtml at each of two call sites.
+export function setNameWarning(inputId,text){
+  const el=$(inputId+"Warn"),input=$(inputId);
+  if(!el)return;
+  el.textContent=text||"";
+  el.hidden=!text;
+  if(input)input.classList.toggle("nameWarned",!!text);
+}
+// Clear it the moment they start fixing it. A warning about a name that is no longer in the box is
+// a warning about nothing, and leaving it up reads as "still refused" while they retype.
+export function wireNameWarnings(){
+  ["joinName","nameModalInput"].forEach(id=>{
+    const input=$(id);
+    if(input)input.addEventListener("input",()=>setNameWarning(id,""));
+  });
+}
+// @copy misc.mperror.nametaken — inside the game world, so pirate register (the credits and the
+// About page are the only places that are not). It names the name back so there is no doubt WHICH
+// one is spoken for, and it promises nothing the 18-character cap would then refuse — it asks for
+// another name rather than suggesting a way to decorate this one.
+export const nameTakenMsg=(nm)=>`Arrgh — a captain aboard already sails as ${nm}. Pick another name, matey.`;
+
 /* ================= name modal (FIX-01) ================= */
 // D-03: the same modal appears before all four mode cards. Each caller in wireWelcome() opens it
 // with a continuation (`next`) carrying that mode's remaining body; confirmName() resolves the
@@ -125,7 +162,12 @@ let pendingNameAction=null;
 // instead. `null` means the player typed something of their own, which is always honoured verbatim.
 let autoOfferedName=null;
 export function pendingAutoName(){return autoOfferedName;}
-export function openNameModal(next){
+// `warn` (item 16 / D-19) — re-opening the modal to say why the last name was refused. A rename is
+// only reachable through this modal, and by the time renameMySeat learns the name is spoken for the
+// modal has already closed, so the refusal is delivered by opening it again with the reason under
+// the box. Absent, any stale warning is cleared — a modal opened fresh must not still be shouting
+// about a name from ten minutes ago.
+export function openNameModal(next,warn){
   pendingNameAction=next;
   const saved=(getLastName()||"").trim();
   // Only a name the player has actually chosen before counts as chosen now; a blank store means the
@@ -135,6 +177,7 @@ export function openNameModal(next){
   // for a host and a joiner alike, and the database refuses anything longer than MAX_NAME_LEN.
   $("nameModalInput").maxLength=MAX_NAME_LEN;
   $("nameModalInput").value=saved?saved.slice(0,MAX_NAME_LEN):autoOfferedName;
+  setNameWarning("nameModalInput",warn||"");
   $("nameModal").style.display="flex";
   $("nameModalInput").focus();
   $("nameModalInput").select();
@@ -203,6 +246,9 @@ let nameModalWired=false;
 export function wireNameModal(){
   if(nameModalWired)return; // idempotent: a second call adds no second button, no duplicate listener
   nameModalWired=true;
+  // item 16: both name boxes clear their own warning as soon as the captain starts retyping. Wired
+  // here rather than at each box, so neither can be given the behaviour and the other forgotten.
+  wireNameWarnings();
   const overlay=$("nameModal");
   if(!overlay)return;
   const card=overlay.querySelector(".modalCard");

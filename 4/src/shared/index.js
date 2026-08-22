@@ -449,16 +449,114 @@ const DEFAULT_NAMES=NAMES.map(n=>n.replace("Capt. ",""));
 // bot's or another captain's default — the "two Crustbeards" bug). Instead pick a name no seat
 // in `seats` is already using, preferring the one that belongs to `preferIdx`'s own seat so the
 // solo/host player at seat 0 reliably becomes "Davy Scones".
+// seatHeldName(seats,i) — THE ONE ANSWER to "what name is this seat holding right now?"
+//
+// Item 16 (D-19) needs to ask that question of every seat before it lets a joining captain keep the
+// name they typed, and unusedDefaultName() below was already asking its own version of it to build
+// the taken-set. Two askers means two answers that drift, so there is one function and both name it
+// (CLAUDE.md rule 23).
+//
+// AN UNNAMED SEAT STILL HOLDS A NAME, and that is the whole subtlety. A networked bot seat is written
+// as {name:"", id:"", bot:true} (createRoom), so nothing in the database says "Crustbeard" — yet
+// pname() draws the seat-indexed captain default for it, and that is the name a player SEES at the
+// table. A human typing it would sit opposite their own twin, which is playtest 19's "two Dough
+// Hooks" bug arriving by a different door.
+//
+// WHAT THIS CHANGES IN unusedDefaultName, stated exactly, because it is a shared quantity and
+// HARD-WON-LESSONS §0 is emphatic about listing what reads one before altering how it is produced.
+// The old expression was `s.id ? (s.name||"").trim() : DEFAULT_NAMES[+k]`. Against every input any
+// call site in this repo can actually produce, the two agree on all but one case:
+//   - claimed + named        -> the typed name.        SAME
+//   - unclaimed bot, blank   -> the seat's default.    SAME
+//   - unclaimed bot, NAMED   -> old: the seat's default (wrong, it ignores the written name)
+//                               new: the written name.  CHANGED, and this is the point — item 16
+//                               renames a bot to accommodate a human, so from now on a bot seat can
+//                               carry a name that is not its index's default.
+//   - claimed + BLANK        -> old: "" ; new: the default. UNREACHABLE: no write path in this
+//                               codebase ever puts a blank name on a claimed seat (createRoom seat 0
+//                               takes requireName(), and joinRoom/renameMySeat both write
+//                               `chosen||unusedDefaultName(...)`), and buildRoster resolves a blank
+//                               human name before recording it. Listed rather than left implicit,
+//                               so the next reader does not have to re-derive that it cannot happen.
+function seatHeldName(seats,i){
+  const s=(seats&&seats[i])||{};
+  return (s.name||"").trim()||DEFAULT_NAMES[+i]||"";
+}
 function unusedDefaultName(seats,preferIdx){
   const taken=new Set();
   Object.keys(seats||{}).forEach(k=>{
-    const s=seats[k]||{};
-    const nm=s.id?(s.name||"").trim():DEFAULT_NAMES[+k];
+    const nm=seatHeldName(seats,k);
     if(nm)taken.add(nm);
   });
   if(preferIdx!=null&&!taken.has(DEFAULT_NAMES[preferIdx]))return DEFAULT_NAMES[preferIdx];
   return DEFAULT_NAMES.find(nm=>!taken.has(nm))||DEFAULT_NAMES[preferIdx||0];
 }
+// unusedDefaultName() counts EVERY seat in the map as taking a name, including the one being
+// claimed — so a player re-resolving their own seat would see their own old name as taken and drift
+// to a different default each pass. Hiding the seat under claim from the tally makes `preferIdx`
+// reliably return that seat's own captain, which is both stable and collision-free. Shared by
+// applyNameClaim() below, which is the only caller left in the tree.
+const withoutSeat=(s,i)=>{const o={};Object.keys(s||{}).forEach(k=>{if(+k!==i)o[k]=s[k];});return o;};
+
+/* ================= ITEM 16 / D-19 — a captain keeps the name they typed ================= */
+
+/* applyNameClaim(s,seat,chosen,numSeats,myId,fresh) — THE ONE RULE for what happens when a captain puts
+   a name on a seat. Returns "ok" (and has mutated `s`) or "taken" (and has touched nothing).
+
+   WYATT'S RULING, two different answers depending on who holds the name:
+     - another HUMAN holds it -> REFUSE. Nothing is written; the caller says so under the box the
+       name was typed in.
+     - a BOT holds it -> GRANT IT ANYWAY, and the bot swaps to a name nobody is using.
+
+   THERE ARE THREE WRITE PATHS, NOT TWO, and that is why this is a function rather than an edit in
+   two places. joinRoom has a fresh-claim path AND a rejoin path (NAME-01/C, added so "back out and
+   come back with a different name" honours the new name), and renameMySeat is the third. Fix two and
+   the rule holds on joining and fails on renaming — or, worse, holds on both and fails only on the
+   rejoin, which is the rarest path to test and the easiest to forget. One rule, three callers
+   (CLAUDE.md rule 23). Before this, all three wrote `chosen` verbatim with no collision check at all;
+   only the blank-name fallback, unusedDefaultName(), ever checked anything.
+
+   IT RUNS INSIDE THE TRANSACTION, and that is the whole point of its shape. netClaimSeat is a real
+   Firebase transaction on rooms/<code>/seats (src/net/readers.js), so `s` is the live server value
+   and the check and the write are one atomic step. Checked BEFORE the transaction instead, two
+   captains typing the same name in the same instant both pass the check and the last write wins —
+   the bug wearing a fix's clothes (T-02.2-21: two captains under one name at one table is an
+   impersonation surface, not a cosmetic clash).
+
+   `fresh` PRESERVES EACH CALLER'S EXISTING WRITE SHAPE, deliberately. The fresh claim writes a bare
+   {name,id,bot} record; the rejoin and rename paths spread the existing record first. They are kept
+   distinct rather than unified because the live RTDB rule validates this node, and quietly adding a
+   field (a bot seat's leftover `strat`) to a human seat's record is exactly the kind of change that
+   fails server-side and locks people out of games rather than showing a cosmetic fault.
+
+   THE BOT IS RENAMED AFTER THE HUMAN'S SEAT IS WRITTEN, which is what makes it collision-free for
+   free: unusedDefaultName() then reads a map that already contains the human's new name, so it
+   cannot hand the same name straight back. Both writes land in the SAME transaction, so there is no
+   instant in which two seats share a name. */
+function applyNameClaim(s,seat,chosen,numSeats,myId,fresh){
+  let clash=null;
+  if(chosen){
+    for(let i=0;i<numSeats;i++){
+      if(i===seat)continue;
+      // seatHeldName, not s[i].name: a networked bot seat is stored with name:"" and DISPLAYS its
+      // seat-indexed captain default, so the name a player can see is not the one in the record.
+      if(seatHeldName(s,i)===chosen){clash=i;break;}
+    }
+  }
+  // A HUMAN holds it (the seat has an id). Refuse, and write nothing at all.
+  if(clash!=null&&(s[clash]||{}).id)return "taken";
+  const cur=s[seat]||{};
+  const resolved=chosen||unusedDefaultName(withoutSeat(s,seat),seat);
+  s[seat]=fresh?{name:resolved,id:myId,bot:false}
+               :{...cur,name:resolved,id:myId,bot:false};
+  // A BOT held it: it swaps to accommodate the human, in this same transaction.
+  if(clash!=null){
+    const bot=s[clash]||{};
+    s[clash]={...bot,name:unusedDefaultName(withoutSeat(s,clash),clash)};
+  }
+  return "ok";
+}
+
 // playtest 19: TWO CAPTAINS CALLED "DOUGH HOOK". A bot seat was built as {name:"", id:""}, so its
 // display name came from pname()'s SEAT-INDEXED fallback (NAMES[i]) — which means a human who
 // typed one of the four default names got a bot twin at the table. Seen live at a Pass & Play
@@ -493,4 +591,4 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, BAKEOFF_ENABLED, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, bakeoffEnabled, OVENS_NOW, ovensNowEnabled, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, buildRoster, COLORS, HEXCOL, man };
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, BAKEOFF_ENABLED, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, bakeoffEnabled, OVENS_NOW, ovensNowEnabled, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, seatHeldName, withoutSeat, applyNameClaim, buildRoster, COLORS, HEXCOL, man };
