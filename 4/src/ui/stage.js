@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-22b";
+const PP4_STAMP = "2026-08-22c";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -613,7 +613,32 @@ function gestures(wrap){
         camTo(S.cam.tx - dx * sc, S.cam.ty - dy * sc, S.cam.tw, true); }
     }
   });
+  /* A FINGER THAT LEAVES THE BOARD STILL COMES UP — AND THE PEEK MUST END WHEN IT DOES.
+     Found while measuring Group G fault 5, and it is worse than the fault it was found under.
+     `pointerdown` on #boardwrap adds `pp4Peek` unconditionally (see the arm site above); this
+     handler, which is the only thing that ever removes it, was bound to #boardwrap ALONE, with no
+     pointer capture. So a pointer that goes down on the sea and comes up anywhere else — a pan
+     that runs off the edge, a drag that ends over the captains card, a phone swipe that lifts past
+     the bottom of the board — never disarms it.
+     MEASURED at 1890x960 (4/scripts/group_g_peek_probe.mjs, case D): press on the sea, move to the
+     captains column, release. `body.pp4Peek` is still set 2.5 seconds later, unattended, with
+     `#pp4Prompt` at opacity 0.13 AND pointer-events:none. Every prompt in the game is then both
+     invisible and untappable, and nothing on screen says why — the game reads as frozen. The only
+     way out is to tap the sea again, which nobody would think to do.
+     `ptrs` leaked the same way, taking the pinch and pan state with it.
+
+     Bound to the WINDOW, and it is the SAME function rather than a second copy, so there is one
+     answer to "is a finger still on the sea" instead of two kept in step (rule 23). The guard is
+     what makes one binding safe: a release whose pointerdown was not ours is not ours to act on,
+     which also stops a tap that BEGAN off the board from reaching the double-tap zoom.
+     setPointerCapture — which the End of Voyage drag one screen over already uses — was tried and
+     rejected here: capturing on #boardwrap retargets the compatibility mouse events too, and a
+     sail square answers a plain `click` (flow.js), so it would have broken sailing to fix a fade. */
   const up = e => {
+    if (!ptrs.has(e.pointerId)) return;
+    const wr = wrap.getBoundingClientRect();
+    const onBoard = e.clientX >= wr.left && e.clientX <= wr.right &&
+                    e.clientY >= wr.top && e.clientY <= wr.bottom;
     if (ptrs.size <= 1) setTimeout(() => document.body.classList.remove("pp4Peek"), 140);
     // D-39: count it only if they actually HELD — long enough for the board to have been revealed
     // and looked at. PEEK_HOLD_MS is the same 450ms a person needs before the fade reads as
@@ -621,7 +646,9 @@ function gestures(wrap){
     if (peekArmedAt && Date.now() - peekArmedAt > PEEK_HOLD_MS) notePeekUse();
     peekArmedAt = 0;
     ptrs.delete(e.pointerId); pinch0 = null;
-    if (ptrs.size === 0 && !moved){
+    // …and a TAP is still only a tap that ends on the board. Releasing over the captains card is
+    // not a double-tap on the sea and must not zoom the camera or hurry a bubble.
+    if (ptrs.size === 0 && !moved && onBoard){
       const now = Date.now();
       if (now - lastTap < 300){                      // double-tap: fit-board <-> zoom on my ship
         S.lock = true;
@@ -641,7 +668,8 @@ function gestures(wrap){
       if (S.hurry) S.hurry();                        // any tap hurries the live bubble
     }
   };
-  wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
+  // the WINDOW, not the board — see the note on `up`. One binding, so there is one truth.
+  window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
 }
 
 // playtest 11: the tap-your-own-ship stay-put confirmation. "Aye" presses the sail prompt's own
@@ -1250,6 +1278,64 @@ function stageFlash(msg, ms, holdMs, variants, opts){
 // its caption right beneath it — no fixed-position tricks, nothing above it to grey it out.
 // Disarm does NOT tear down: the veil holds while the spin plays and the landed face shows,
 // then the flippenator goes home to the (hidden) controls row.
+/* THE CEREMONY IS CENTRED IN THE BOARD BAND, NOT IN THE WINDOW (Group G fault 1).
+   Judged on solo-phone-015 and -016: "the battle 'Broadside!' caption text is drawn on top of the
+   CAPTAINS card; the captain names show through the white text and both are hard to read." Two
+   screens, so not a fluke, and desktop is fine (solo-desktop-018/-019) because the captains sit in
+   a side column there.
+
+   MEASURED at 390x664: the veil is `inset:0`, so its flex column centres in the whole 664px window
+   — title y154.6, coin y203-419, stakes y445-464, tap-hint y490-509 — while the captains card
+   starts at y433. The stakes line lands 19.3px inside the card and the tap-hint 19px inside it,
+   with the column's foot spilling 76.4px past the card's top edge. The words are white-on-dim and
+   the card behind them is a pale box full of captain names, so both become unreadable at once.
+
+   THE FIX IS THE ROOM, NOT THE WORDS. The scrim still covers the whole screen — dimming the ribbon
+   and the card is its job — but the COLUMN is given only the board band to centre in, by padding
+   the veil's head and foot with the strips the ribbon and the captains card occupy. `boardBand()`
+   and `capBandBottom()` are the existing answers to where those strips are (the plan's own
+   instruction: do not invent a new number), and the second of them already returns the full
+   viewport height in side-by-side — which is what the `stacked` test below reads, so the DESKTOP
+   ceremony comes out byte-identical rather than merely close.
+
+   Re-read every tick rather than once, for the same reason fxHost() is: the card grows a row when
+   a fourth captain joins and grows again as holds fill, and a ceremony can be on screen while it
+   does. Written only when the number changes, so a still ceremony costs one integer compare. */
+function cerBandTick(){
+  const veil = $("pp4Veil"); if (!veil) return;
+  const band = boardBand();
+  /* PAD THE FOOT BY THE CAPTAINS CARD, AND THE HEAD BY THE RIBBON — but the head only when there
+     IS a card under the board. `capBandBottom()` already encodes that question: it returns the full
+     viewport height in side-by-side, so `stacked` is false on desktop, the head padding is zero,
+     and the desktop ceremony is byte-identical. Padding the foot alone was tried first and moved
+     the fault rather than fixing it: the column then centred in 0..433 instead of 88..433, and the
+     title landed at y39.1 against a ribbon that ends at y45 — 5.9px into it, and into the wind pill
+     below that. Fixing one overlap by making another is not a fix (rule 8). */
+  const stacked = capBandBottom() < vhPx();
+  const padT = stacked ? Math.max(0, Math.round(band.top)) : 0;
+  const padB = Math.max(0, Math.round(vhPx() - band.bottom));
+  if (veil.dataset.padT !== String(padT)){ veil.style.paddingTop = padT + "px"; veil.dataset.padT = String(padT); }
+  if (veil.dataset.padB !== String(padB)){ veil.style.paddingBottom = padB + "px"; veil.dataset.padB = String(padB); }
+  /* …AND THE COLUMN'S OWN AIR CLOSES UP WHEN THE BAND IS SHORT, because on a phone the ceremony is
+     TALLER THAN THE BAND IT HAS TO LIVE IN. Measured at 390x664: title 22.4 + coin slot 216.1 +
+     stakes 19.4 + tap-hint 19 = 276.9px of content, three 26px gaps on top of that = 354.9px, in a
+     band of 345px. Something has to give, and it is the AIR — never the words, and never the coin,
+     which is the thing being asked for.
+     DERIVED, and stable because no term in it depends on the gap: the four children's own rendered
+     heights, the band the renderer produced, and the 6px of clear air every other stacked floater
+     in this file already leaves. The ceiling is the stylesheet's own resting value, READ from
+     --pp4CerGapMax rather than copied here, so there is one 26 in the project and not two.
+     On any band with room to spare the arithmetic saturates at that ceiling, which is why the
+     desktop ceremony — and a tall phone — are unchanged rather than merely nearly unchanged. */
+  const kids = [...veil.children].filter(el => getComputedStyle(el).display !== "none");
+  if (kids.length < 2) return;
+  const gapMax = parseFloat(getComputedStyle(veil).getPropertyValue("--pp4CerGapMax")) || 26;
+  const AIR = 6;
+  const contentH = kids.reduce((n, el) => n + el.getBoundingClientRect().height, 0);
+  const room = Math.max(0, band.bottom - band.top) - AIR * 2;
+  const g = Math.max(0, Math.min(gapMax, Math.floor((room - contentH) / (kids.length - 1))));
+  if (veil.dataset.gap !== String(g)){ veil.style.rowGap = g + "px"; veil.dataset.gap = String(g); }
+}
 function cerTeardown(){
   const veil = $("pp4Veil"); if (!veil) return;
   const fp = $("flipPanel"), row = $("controlsRow");
@@ -1308,6 +1394,9 @@ function flipArmed(el, onClick){
     });
   }
   veil.classList.remove("resolving");
+  // …and before the first paint, not on the next tick: the slow gear is 125ms away, which is long
+  // enough for the ceremony to be seen once in the wrong place (Group G fault 1).
+  cerBandTick();
   const fp = $("flipPanel"), slot = $("pp4CerSlot");
   if (fp && slot && fp.parentElement !== slot) slot.appendChild(fp);
   document.body.classList.add("pp4Cer");
@@ -2333,6 +2422,31 @@ function promptTick(){
         if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : clampTop(Math.min(cb.b + 8, capT - 44)); }
         S.pillLock = { key: S.turnSerial, at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
       }
+      /* …AND THE PILL'S BOTTOM CLEARS THE CAPTAINS CARD, WHICHEVER SPOT WAS CHOSEN (Group G
+         fault 3, judged on solo-phone-023: "the ask pill's bottom edge meets the top edge of the
+         CAPTAINS card with no gap between them").
+
+         `capT - 44` above is a CONSTANT STANDING IN FOR THE PILL'S HEIGHT — 44 is one line of pill
+         plus the 6px of air, and it has been right only for one-line asks. A trade's answer runs to
+         three lines and a counter-offer to five, so the taller the question the further it reaches
+         past the card. Measured at 390x664 on a posed five-line ask: the pill is 99px tall and its
+         bottom lands 65.4px INSIDE the captains card. RED-PROOF, same pill, boat high on the board:
+         229px of clear air — so this measures the placement and not merely "a big pill".
+
+         Two reasons it is applied HERE rather than by fixing the 44:
+           - the three branches above choose between four spots (above the boat, below it, above the
+             sail window, below it) and only two of them clamp at all; the ABOVE-the-boat spot,
+             which is the one that actually overran in the measurement, never had a bottom bound.
+             One clamp on the answer beats four copies of it (rule 23).
+           - the pill lock reuses a spot across a whole turn, so a later, TALLER prompt in the same
+             turn inherits a top chosen for a shorter one. Clamping on use rather than on store
+             means the lock keeps the pill still while the words keep it legible.
+
+         DERIVED, NOT TYPED: the pill's own rendered height, and the 6px of air every other stacked
+         floater in this file already leaves (`stackAt = pillB.bottom + 6`, the fan's own gap, the
+         peek hint's AIR). Never lifted above the band's own ceiling, which is what tSafe - 34 is. */
+      const mh = msg.offsetHeight || 0;
+      mTop = Math.max(tSafe - 34, Math.min(mTop, capT - 6 - mh));
       msg.style.left = Math.min(Math.max(cxA - mw / 2, 10 + backGap), vwPx() - mw - 10) + "px";
       msg.style.top = mTop + "px";
       // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — msg is itself
@@ -2750,6 +2864,7 @@ function tick(){
     if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
     promptTick();
     retireEchoBubble();   // D-46: one moment, one sentence — every prompt style, not just the fan
+    cerBandTick();    // the ceremony's words stay off the captains card, however tall it grows
     peekHintLast();   // SEAM (a): the hint is the LAST thing placed, so it dodges this tick's layout
 
   }

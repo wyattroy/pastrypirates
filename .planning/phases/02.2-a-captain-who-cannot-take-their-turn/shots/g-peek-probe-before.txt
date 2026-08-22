@@ -1,0 +1,10 @@
+booted.
+A (red-proof, no peek): {"peek":false,"bubOpacity":"1","bubText":"Crustbeard takes the wheel…","promptOpacity":"1","promptPE":"auto"}
+B (finger down on the sea, 600ms): {"peek":true,"bubOpacity":"0.13","bubText":"Crustbeard takes the wheel…","promptOpacity":"0.13","promptPE":"none"}
+B' (released on the sea): {"peek":false,"bubOpacity":"1","bubText":"Crustbeard sets sail","promptOpacity":"1","promptPE":"auto"}
+C (one ordinary tap on the sea) bubble opacity over ~840ms: 1 0.923985 0.583576 0.416165 0.257138 0.698814 0.881691 0.96901 0.995533 1 1 1 1 1
+C                              peek class over the same:   1 1 1 0 0 0 0 0 0 0 0 0 0 0
+D before drag: {"peek":false,"bubOpacity":"0.22237","bubText":"Ahoy, Davy Scones — yer turn!","promptOpacity":"1","promptPE":"auto"}
+D  after drag (released at 1246,153.9, outside #boardwrap 210-1126): {"peek":true,"bubOpacity":"0.13","bubText":"Flaky Jack sets sail","promptOpacity":"0.13","promptPE":"none"}
+D VERDICT — peek STUCK: true
+D 2.5s later, unattended: {"peek":true,"bubOpacity":"0.13","bubText":"Flaky Jack catches sight of a blueberry ","promptOpacity":"0.13","promptPE":"none"}

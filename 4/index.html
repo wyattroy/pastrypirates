@@ -1796,7 +1796,26 @@
      was the pp4Center one, then his item 1 ("the prompt buttons are hard to notice") is about
      buttons that were already pulsing — which means a pulse is not the answer and the next step is
      HIS call, not a bigger number picked here. Stated rather than quietly claimed as fixed. */
-  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]) {
+  /* …AND :not(.recipeCard), WHICH THIS RULE'S OWN NOTE ALREADY DECIDED AND NEVER SAID IN CSS.
+     The exclusion list above ends with "the draft-pick recipe cards — the whole card is the
+     control, 300px of it. A scale pulse there is a large, slow wobble on the biggest thing on
+     screen rather than a 'tap me' cue." A recipe card IS an .apBtn (class="apBtn recipeCard"), so
+     the selector caught the very surface the comment excused, and has since it was written.
+
+     GROUP G FAULT 4, and this is what the vision judge saw on solo-desktop-004/-005 as "the
+     subtitle is sliced across by the top edge of the two recipe cards". Measured at 1890x960 with
+     the card focused: layout height 276px, transform scaling 1.00072 -> 1.10962 on the 1.15s
+     cycle, painted height swinging 276.6 -> 306.7. Growing from its centre, the card's top edge
+     climbs 15.3px — from a layout top of ~489.7 to a painted 474.4 — while "Tap a recipe to
+     highlight its docks" ends at y484. So for a good part of every second the card covers the
+     bottom ~10px of a 15.5px line, and the hint flickers in and out of legibility.
+     It is not an animation ARTIFACT of the screenshot (the plan is right that -005 is settled):
+     the pulse is permanent, so the slicing is permanent too, just intermittent.
+
+     The same wobble also made the two cards collide with each other: 456.7px of painted card each
+     inside an 858px grid, overlapping by 34px at the peak. Nobody flagged that and it was equally
+     wrong. Both go with the one token, because both were the same pulse. */
+  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
     --pulseLo:1; --pulseHi:1;
     animation: sailBounce 1.15s ease-in-out infinite; }
   #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:hover { animation-play-state: paused; }
@@ -1989,8 +2008,12 @@
   .pp4Bub.below .pp4Tail { top:-9px; bottom:auto; transform:rotate(225deg); }   /* 45 + 180: the base tail is already rotated 45, so a bare 180 would square it off */
   .pp4Tail { position:absolute; bottom:-9px; width:15px; height:15px; background:#fffdf2;
     border-right:2px solid; border-bottom:2px solid; transform:rotate(45deg); }
+  /* --pp4CerGapMax is the RESTING air between the ceremony's four rows, and it is a variable
+     because stage.js's cerBandTick() has to read the ceiling rather than carry a second copy of it:
+     on a phone the column is taller than the board band, so the gap closes up to whatever fits and
+     saturates back to this value the moment there is room (Group G fault 1). */
   #pp4Veil { position:fixed; inset:0; z-index:44; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:26px;
+    align-items:center; justify-content:center; --pp4CerGapMax:26px; gap:var(--pp4CerGapMax);
     background:radial-gradient(circle at 50% 44%,rgba(20,50,60,.6),rgba(4,16,22,.92)); }
   .pp4CerTop { color:#ffd76b; font-weight:800; font-size:15px; letter-spacing:3px; text-align:center; }
   .pp4CerSub { color:#e8f4ee; font-weight:700; font-style:italic; font-size:14px; text-align:center;

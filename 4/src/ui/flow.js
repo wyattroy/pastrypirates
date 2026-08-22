@@ -1241,9 +1241,25 @@ export async function runStormLive(dirKey){
 // bearing wherever duplicates can be SPENT (the black market takes any two, same crate twice
 // included), and harmless everywhere else — so both pickers show it and neither has to be
 // remembered as the special one.
+/* EVERY CIRCLE CARRIES ITS NAME, INCLUDING THIS ONE (Group G fault 2, judged on solo-phone-021).
+   `short` used to be `iconImg(...)` — the picture and nothing else. The radial fan prefers `short`,
+   so a captain's own crates in a GIVE prompt bloomed as three unlabelled pictures while the WANT
+   prompt one screen earlier named all seven (solo-phone-011). Same gesture, two behaviours, which
+   is rule 8. Measured on a posed GIVE step at 390x664: three of four circles rendered as a lone
+   <img> with alt="" — no words for the eye and nothing for a screen reader either.
+   It is `ilabelImg`, the same helper the full label already uses, so the circle and the sentence
+   name the crate identically and there is no second spelling to keep in step; the <br> is the
+   in-circle form the trade's own answer circles already use (icon above, words below). The count
+   travels into the short form too — it is load-bearing here (the black market takes any two, the
+   same crate twice included), so dropping it in the one place a player actually taps would be
+   losing the information rather than shortening it.
+   FITS: every crate name in the game is 13 characters or fewer, inside the 16 that menuButtons()
+   already treats as circle-sized — the fan's own existing rule, not a new number. */
 function crateOpt(list,i){
   const n=list.filter(x=>x===i).length;
-  return {label:`${ilabelImg(i)}${n>1?` <span class="nobrk">×${n}</span>`:``}`,short:iconImg(ING_IMG[i]),value:i};
+  const count=n>1?` <span class="nobrk">×${n}</span>`:``;
+  return {label:`${ilabelImg(i)}${count}`,
+          short:`${iconImg(ING_IMG[i])}<br>${iname(i)}${count}`,value:i};
 }
 /* WHICH two crates the black market takes — the captain's choice, and the human twin of
    Game.blackMarketPick's for a bot. Two steps, Back at each, and nothing settles until the last
