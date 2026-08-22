@@ -84,11 +84,14 @@ def trace_image(im, cfg, key):
     for y in range(h):
         for x in range(w):
             p = px[x, y]
-            if p[3] > cfg["alpha"] and not (cfg.get("nowater") and is_water(p)): sp[x, y] = 255
+            if cfg.get("blackbg"):                     # rendered on black: anything lit is the shape
+                if lum(p) > 40: sp[x, y] = 255
+            elif p[3] > cfg["alpha"] and not (cfg.get("nowater") and is_water(p)): sp[x, y] = 255
     sil = sil_img.filter(ImageFilter.MaxFilter(2 * (pad + close) + 1)).filter(ImageFilter.MinFilter(2 * close + 1))
     silpx = sil.load()
     silmask = [[1 if silpx[x, y] else 0 for x in range(w)] for y in range(h)]
     def inky(p):
+        if cfg.get("blackbg"): return lum(p) > 40 and p[0] > 120 and p[0] > p[2] + 50      # the emoji's yellow bolt is the ink
         if p[3] <= 110: return False
         if cfg.get("nowater") and is_water(p): return False
         if key == "cocoa" and is_red(p): return False      # wrapper stays open for paint; its dark outline still traces
@@ -96,19 +99,37 @@ def trace_image(im, cfg, key):
     inset = cfg.get("inkInset", 0)
     core = sil.filter(ImageFilter.MinFilter(2 * inset + 1)).load() if inset else None     # ink only well inside the coast
     dark = [[1 if inky(px[x, y]) and (core is None or core[x, y]) else 0 for x in range(w)] for y in range(h)]
+    if cfg.get("blackbg"):   # close the bolt into one solid shape
+        dk = Image.new("L", (w, h), 0); dp_ = dk.load()
+        for y in range(h):
+            for x in range(w):
+                if dark[y][x]: dp_[x, y] = 255
+        dk = dk.filter(ImageFilter.MaxFilter(7)).filter(ImageFilter.MinFilter(7)); dp_ = dk.load()
+        dark = [[1 if dp_[x, y] else 0 for x in range(w)] for y in range(h)]
     cut = [dp(smooth(l, cfg.get("smooth", 4)), cfg.get("tol", 1.4)) for l in trace(silmask, w, h)]
     ras = [dp(smooth(l, 1), 0.6) for l in trace(dark, w, h)]
     big = max(abs(area(l)) for l in cut)
     cut = [l for l in cut if abs(area(l)) > big * 0.02]
     ras = [l for l in ras if abs(area(l)) > 6]
-    return cut, ras
+    # padding variants of the cut, for Wyatt to choose from: the silhouette dilated further, then smoothed
+    variants = {}
+    for name, extra in cfg.get("padVariants", {}).items():
+        v = sil.filter(ImageFilter.MinFilter(9)).filter(ImageFilter.MaxFilter(9))          # drop specks first
+        v = v.filter(ImageFilter.MaxFilter(2 * extra + 1)).filter(ImageFilter.MinFilter(2 * (extra // 2) + 1)).filter(ImageFilter.MaxFilter(2 * (extra // 2) + 1))
+        vp = v.load(); vm = [[1 if vp[x, y] else 0 for x in range(w)] for y in range(h)]
+        vl = [dp(smooth(l, 6), 1.8) for l in trace(vm, w, h)]
+        vb = max(abs(area(l)) for l in vl); variants[name] = [l for l in vl if abs(area(l)) > vb * 0.02]
+    return cut, ras, variants
 
-ASSETS = {**{ing: dict(path=f"{REPO}/assets/ingredients/{ing}.png", ink=112, alpha=110) for ing in ING},
-          "sugar": dict(path=f"{REPO}/assets/ingredients/sugar.png", ink=205, alpha=110),
-          "eggs": dict(path=f"{REPO}/assets/ingredients/eggs.png", ink=150, alpha=110, close=6, smooth=6, tol=1.8),
-          "dairy": dict(path=f"{REPO}/assets/ingredients/dairy.png", ink=150, alpha=110),
-          "cocoa": dict(path=f"{REPO}/assets/ingredients/cocoa.png", ink=112, alpha=110, close=5),
-          "spice": dict(path=f"{REPO}/assets/ingredients/spice.png", ink=100, alpha=110, close=5),
+PADS = {"cutB": 8, "cutC": 14}   # ~0.8 mm and ~1.4 mm more padding than the default (token art is ~10 px/mm)
+ASSETS = {**{ing: dict(path=f"{REPO}/assets/ingredients/{ing}.png", ink=112, alpha=110, padVariants=PADS) for ing in ING},
+          "sugar": dict(path=f"{REPO}/assets/ingredients/sugar.png", ink=205, alpha=110, padVariants=PADS),
+          "eggs": dict(path=f"{REPO}/assets/ingredients/eggs.png", ink=150, alpha=110, close=6, smooth=6, tol=1.8, padVariants=PADS),
+          "dairy": dict(path=f"{REPO}/assets/ingredients/dairy.png", ink=150, alpha=110, padVariants=PADS),
+          "cocoa": dict(path=f"{REPO}/assets/ingredients/cocoa.png", ink=112, alpha=110, close=5, padVariants=PADS),
+          "spice": dict(path=f"{REPO}/assets/ingredients/spice.png", ink=100, alpha=110, close=5, padVariants=PADS),
+          # the storm: the 🌩️ emoji itself, rendered by Chrome on black (art/storm-emoji.png) — Wyatt, 2026-08-22
+          "stormemoji": dict(path=f"{REPO}/physical-board/art/storm-emoji.png", ink=0, alpha=0, blackbg=True, pad=1, close=3, smooth=4, tol=1.4),
           "swirl": dict(path=f"{REPO}/assets/trade-swirl.png", ink=105, alpha=200),
           "skull": dict(path=f"{REPO}/assets/icons/skull.png", ink=120, alpha=110),
           "coin": dict(path=f"{REPO}/assets/icons/coin-emoji.png", ink=110, alpha=110),
@@ -118,11 +139,12 @@ ASSETS = {**{ing: dict(path=f"{REPO}/assets/ingredients/{ing}.png", ink=112, alp
 out = {}
 for key, cfg in ASSETS.items():
     im = Image.open(cfg["path"]).convert("RGBA")
-    cut, ras = trace_image(im, cfg, key)
+    cut, ras, variants = trace_image(im, cfg, key)
     xs = [p[0] for l in cut for p in l]; ys = [p[1] for l in cut for p in l]
     out[key] = {"w": im.size[0], "h": im.size[1], "bbox": [min(xs), min(ys), max(xs), max(ys)],
                 "cut": [[[round(x, 1), round(y, 1)] for x, y in l] for l in cut],
                 "raster": [[[round(x, 1), round(y, 1)] for x, y in l] for l in ras]}
+    for name, loops in variants.items(): out[key][name] = [[[round(x, 1), round(y, 1)] for x, y in l] for l in loops]
     print(key, "cut loops", len(cut), "raster loops", len(ras), file=sys.stderr)
 
 # Tortuga: the game has no + island, so one is composed from the I-shaped island art laid across itself;
@@ -132,7 +154,7 @@ W, H = i3.size; cellpx = W / 3.0          # the art spans three squares across
 canvas = Image.new("RGBA", (W, W), (0, 0, 0, 0))
 canvas.alpha_composite(i3, (0, int(W / 2 - H / 2)))
 canvas.alpha_composite(i3.rotate(90, expand=True), (int(W / 2 - H / 2), 0))
-cut, ras = trace_image(canvas, dict(ink=95, alpha=120, nowater=True, pad=1, close=4, smooth=5, tol=1.6, inkInset=16), "tortuga")
+cut, ras, _ = trace_image(canvas, dict(ink=95, alpha=120, nowater=True, pad=1, close=4, smooth=5, tol=1.6, inkInset=16), "tortuga")
 cx0, cy0, cx1, cy1 = W / 2 - cellpx * 0.42, W / 2 - cellpx * 0.42, W / 2 + cellpx * 0.42, W / 2 + cellpx * 0.42
 ras = [l for l in ras if not all(cx0 < x < cx1 and cy0 < y < cy1 for x, y in l)]
 xs = [p[0] for l in cut for p in l]; ys = [p[1] for l in cut for p in l]

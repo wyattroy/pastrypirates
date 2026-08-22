@@ -18,14 +18,14 @@ group of pieces; tick "approved" per group, leave notes, copy the lot as text.
 | The ingredient drawings (`assets/ingredients/*.png`) | **The tokens ARE the drawings**, cut along their own outline, the ink engraved — traced by [`art/trace.py`](art/trace.py). Outlines only on the cocoa, for painting. One sits on each island square, as in the game. The recipe cards use the same ink inside the app's rounded-square chip. |
 | Georgia (recipe titles, flavour) and Avenir Next (labels) | Every word on the wood, as outlines extracted by [`fonts/extract.py`](fonts/extract.py): recipe names and *Tortuga* in Georgia Bold, "Recipe No. 7" in Georgia Italic, compass letters and the rules card in Avenir Next. |
 | The 21 named recipes (`4/src/ui/recipe.js`) | The 21 recipe cards, by name, with each ingredient's silhouette in the app's rounded-square chip. |
-| Islands: sand rim, grass, palms, rocks | Per Wyatt's drawing (`notes/docknotch.jpeg`): a clean rounded outline is the cut, a thin line inside it at 4 mm is the sand's edge, and the art's palms, rocks and grass edge (traced from `assets/islands/N.png`) are engraved inside the line. |
+| Islands (per Wyatt's drawing, `notes/docknotch.jpeg`) | A gently wavy rounded coast is the cut; a thin sand line runs 4 mm inside it; grass tufts, a palm and a rock engraved; a plain 9 × 2.5 mm notch mid-edge on every outside square, between the cut and the line. |
 | The pier (`assets/dock.png`): upright planks, corner posts | The dock tile's engraving; the planks run onto the tab that nests into the island. |
 | The wind chevron (`assets/wind-arrow.png`) | One per ring square, rotated to the ring's clockwise tangent as `buildRimFlow()` does. |
 | The whirlpool (`assets/trade-swirl.png`) | Traced and engraved on the four whirlpool tiles. |
 | The board's water: short brushy wave strokes in concentric passes | About 170 tapered strokes, 9 mm between passes, from outside the berths to the rim. |
 | The compass: scrolled ring, N/E/S/W medallions, fleur-de-lis needle | The spinner's dial and needle. |
 | The pirate ship (`assets/icons/sailboat.png`): square sail with the skull and bones | Three-piece ships: a 6 mm hull seen from above with two slots across the beam, two 3 mm square sails that drop in, the game's skull (`assets/icons/skull.png`) over crossed bones on each, the captain's mark along the foot. |
-| The storm cloud and the coin (`assets/icons/`) | Traced: the storm cloud is the wedge cut-out on the spinner dial and the storm token; the coin stands in for every coin amount on the rules card. |
+| The 🌩️ emoji (rendered by Chrome on black into `art/storm-emoji.png`) and the coin (`assets/icons/`) | Traced: the emoji's cloud-and-bolt silhouette is knocked out of each storm wedge and is the storm token (bolt engraved); the coin stands in for every coin amount on the rules card. |
 
 ## The pieces — V3 · The Round Table, 25 mm squares
 
@@ -37,10 +37,11 @@ over a dotted outline that shows where it goes. Scrabble-sized (Scrabble is 381 
 
 **On the board, 6 mm:** 9 islands — every tetromino orientation: the app's seven footprints plus the
 mirror images of the L and the S (a flipped piece would show its blank back); seven go out each
-voyage. A plain 6 × 2.5 mm notch in the middle of every outside edge — shallower than the engraved
-line, so no cut meets engraving. 7 docks, each a pier whose 6 mm deck becomes the tab, planks running
-to the tab's end; 0.15 mm of play. 28 ingredient tokens
-(four per ingredient: three to stock an island, one black-market spare). 4 ship hulls (22 × 11 mm,
+voyage. A plain 9 × 2.5 mm notch in the middle of every outside edge — shallower than the engraved
+line, so no cut meets engraving. 7 docks, each a pier whose 9 mm deck becomes the tab, planks running
+to the tab's end, bollards touching the deck; 0.15 mm of play. 28 ingredient tokens
+(four per ingredient: three to stock an island, one black-market spare; three padding options A/B/C are on the
+page — the sheets carry B until Wyatt picks). 4 ship hulls (24 × 12 mm,
 plan view, deck planks, two slots).
 
 **On the board, 3 mm:** 4 whirlpool tiles; 8 sails — a mainsail and a jib per ship, each with a tab
@@ -51,8 +52,9 @@ that drops through a hull slot and sits flush underneath; the ship stands about 
   with a storm wedge in the last fifth of each quadrant (the app's 20%); a ring that turns around the
   dial — *this round's wind* — carrying a slot for the **WIND NOW vane**: a pennant on a 30 mm mast
   that drops into the slot and stands on the backing, streaming toward the letter the ring is set to
-  (put the pennant on the inside). The *forecast* is the flat fleur-de-lis needle on the centre
-  pivot, so the two can never be confused. Stack: backing → dial and ring (same level) → needle →
+  (put the pennant on the inside). The *forecast* is the flat needle on the centre pivot — a
+  fleur-de-lis head one way and the same outline the other, on a 9 mm hub, so it balances on the
+  axle and the hole leaves 2.85 mm of wood all round. Stack: backing → dial and ring (same level) → needle →
   washer; one M3 × 16 bolt and nyloc nut. Two layers of wood, one pivot, one flag.
 - **Cargo crates, 4.** Slatted crates like the classic wooden one, 44 × 30 × 18 mm: three slats a
   side with real gaps cut between them, solid corner posts, box joints, the captain's mark on the
@@ -63,8 +65,8 @@ that drops through a hull slot and sits flush underneath; the ship stands about 
   so only you read it when you open the chest. Straps, rivets, lock plate, the captain's mark (no
   names — players choose their own). Assembly labels face the inside: corners 1–4 clockwise from
   front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets (B·F = base front,
-  T·K = lid top back), H = the hinge. The lid's back is a hinge strip under the top plate whose
-  tongues hang between the chest's.
+  T·K = lid top back), H = the hinge. The lid's back is a hinge strip under the top plate (2.4 mm
+  body, fingers into the plate) whose tongues hang between the chest's.
 - 21 recipe cards (64 × 38), a rules card, a storm-cloud token, a first-player ship's wheel.
 
 **Captains:** CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked — the same four

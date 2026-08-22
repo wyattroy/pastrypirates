@@ -344,8 +344,8 @@ const MAT3 = 3; // the thin material: spinner, crates, chests, cards
 // the ingredient art itself, traced by art/trace.py: cut = silhouette loops, raster = the drawing's ink
 const ART = JSON.parse(fs.readFileSync(path.join(HERE, "art", "ingredients.json"), "utf8"));
 const TOKEN_MM = 20; // the longest side of a token; one sits on each island square of 25
-function artToken(name, cx, cy, size = TOKEN_MM, { cut = true, ink = true, solid = false, outline = 0, rot = 0 } = {}) {
-  const a = ART[name], [x0, y0, x1, y1] = a.bbox, k = size / Math.max(x1 - x0, y1 - y0), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+function artToken(name, cx, cy, size = TOKEN_MM, { cut = true, ink = true, solid = false, outline = 0, rot = 0, pad = "cut" } = {}) {
+  const a = { ...ART[name], cut: ART[name][pad] || ART[name].cut }, [x0, y0, x1, y1] = ART[name].bbox, k = size / Math.max(x1 - x0, y1 - y0), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
   const co = Math.cos(rad(rot)), si = Math.sin(rad(rot));
   const T = ([x, y]) => { const u = (x - mx) * k, v = (y - my) * k; return [cx + u * co - v * si, cy + u * si + v * co]; };
   const L = loop => polyCmds(loop.map(T));
@@ -761,25 +761,35 @@ function notchPolyline(ptsIn, m, along, hw, notchPts, offTol = 1.5) {
 // any engraving that would meet a notch is dropped, so no cut ever crosses ink.
 function islandFromArt(shapeIdx) {
   const cells = ISLAND_SHAPES[shapeIdx], artKey = shapeIdx === 7 ? "island5" : shapeIdx === 8 ? "island6" : `island${shapeIdx + 1}`, mirror = shapeIdx >= 7;
-  return islandClean(cells, artKey, mirror);
+  return islandClean(cells, artKey, mirror, [], shapeIdx);
 }
 // Wyatt's drawing: a clean rounded polyomino is the cut; a thin line runs inside it at an even distance; the game's
 // island art (palms, rocks, the grass edge) is engraved inside that line; a small square notch sits in the middle of
 // every outside edge, shallower than the line so the two never meet.
-function islandClean(cells, artKey, mirror = false, extra = []) {
+// Wyatt, 2026-08-22, third time: "Go back to the first version you showed me, then make that version look like the
+// diagram." So: the first version's gently wavy coast, engraved sand line, grass tufts, palm and rock — with the
+// drawing's rounder corners, the line thinner and further in, and a plain square notch in the middle of every outside
+// edge, between the cut and the line, never touching the line.
+function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, { palm = true } = {}) {
   const loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
   const rounded = roundCorners(offsetPoly(loop, -CLR), ISLAND_R);
-  let pts = flatten(rounded, 12).pts; if (signedArea(pts) < 0) pts = pts.reverse();
   const edges = perimeterEdges(cells).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
+  const coast = waveCoast(rounded.cmds, edges.map(e => e.m), { amp: 0.5, lambda: 10, quiet: NOTCH.socket.hw + 3 });
+  let pts = coast; if (signedArea(pts) < 0) pts = pts.reverse();
   for (const e of edges) pts = notchPolyline(pts, e.m, e.along, NOTCH.socket.hw + 0.2, slotPts(e.m, e.along, e.inward, NOTCH.socket, +1));
   const it = [item(CU, [polyCmds(pts)])];
-  // the line inside, 0.5 mm wide, at INNER_LINE from the cut — offset from the un-notched outline, so it ignores the notches
-  const base = flatten(rounded, 12).pts;
-  it.push(item(RA, [polyCmds(offsetPoly(base, -INNER_LINE)), reverseSub(polyCmds(offsetPoly(base, -INNER_LINE - 0.5)))]));
-  // the art's features, scaled to sit inside the line
-  const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]), w = (Math.max(...xs) + 1) * CELL, h = (Math.max(...ys) + 1) * CELL;
-  it.push(...artFit(artKey, 0, 0, w, h, { clr: INNER_LINE + 1.8, mirror, cut: false }));
+  // the sand line: 0.6 mm wide at INNER_LINE from the coast, offset from the un-notched coast so it ignores the notches
+  it.push(item(RA, [polyCmds(offsetPoly(coast, -INNER_LINE)), reverseSub(polyCmds(offsetPoly(coast, -INNER_LINE - 0.6)))]));
+  // grass in the corners, a palm on the best-connected square, a rock — as in the first version
+  const set = new Set(cells.map(c => c.join(","))), nb = c => [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(d => set.has(`${c[0] + d[0]},${c[1] + d[1]}`)).length;
+  let seed = seedBase * 7919 + 13; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  for (const [cx, cy] of cells) for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { if (rnd() < 0.4) continue; const x = (cx + .5) * CELL + sx * (CELL * .27 + rnd() * 1.0), y = (cy + .5) * CELL + sy * (CELL * .27 + rnd() * 1.0); it.push(...icon("tuft", x, y, 3.0 + rnd() * 1.2)); }
+  if (palm) { const best = cells.reduce((a, c) => nb(c) > nb(a) ? c : a, cells[0]);
+    it.push(...icon("palm", (best[0] + .5) * CELL - 2, (best[1] + .5) * CELL - 1, CELL * .5));
+    const rockCell = cells[cells.length - 1];
+    it.push(...icon("rock", (rockCell[0] + .5) * CELL + CELL * .25, (rockCell[1] + .5) * CELL - CELL * .24, 4.5)); }
   it.push(...extra);
+  void artKey; void mirror;
   return it;
 }
 function islandPiece(v, shapeIdx) {
@@ -830,7 +840,8 @@ const DOVE = { tab: { neck: 9.6, head: 11.0, depth: 3.0 }, socket: { neck: 9.75,
 // Wyatt's drawing, 2026-08-22 (notes/docknotch.jpeg): a plain square-cornered notch in the middle of every outside
 // edge, 6 mm wide and 2.5 mm deep, shallow enough never to reach the engraved line inside; the dock's deck is the
 // same 6 mm wide and becomes the tab. 0.15 mm of play.
-const NOTCH = { tab: { hw: 3.0, depth: 2.5 }, socket: { hw: 3.075, depth: 2.6 } }, ISLAND_R = 5, INNER_LINE = 4.0;
+// 2026-08-22, later: "make the dock, and notch, 50% wider" — 9 mm
+const NOTCH = { tab: { hw: 4.5, depth: 2.5 }, socket: { hw: 4.575, depth: 2.6 } }, ISLAND_R = 5, INNER_LINE = 4.0;
 function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
   const n = [inward[0] * dir, inward[1] * dir], t = along, P = (x, d) => [m[0] + t[0] * x + n[0] * d, m[1] + t[1] * x + n[1] * d];
   return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
@@ -849,7 +860,7 @@ function dockPiece(v, ing) {
     const y0 = s / 2 - NOTCH.tab.hw, y1 = s / 2 + NOTCH.tab.hw, x0 = s * 0.34, x1 = s + NOTCH.tab.depth - 0.25;
     const deck = polyCmds([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]), slits = [];
     for (let x = x0 + 1.9; x < x1 - 0.6; x += 1.9) slits.push(reverseSub(polyCmds([[x - .35, y0 + .5], [x + .35, y0 + .5], [x + .35, y1 - .5], [x - .35, y1 - .5]])));
-    it.push(item(RA, [deck, ...slits]), circ(RA, x0 + 0.6, y0 - 1.7, 1.1), circ(RA, x0 + 0.6, y1 + 1.7, 1.1), circ(RA, s - 1.6, y0 - 1.7, 1.1), circ(RA, s - 1.6, y1 + 1.7, 1.1));
+    it.push(item(RA, [deck, ...slits]), circ(RA, x0 + 1.1, y0 - 1.1, 1.1), circ(RA, x0 + 1.1, y1 + 1.1, 1.1), circ(RA, s - 1.6, y0 - 1.1, 1.1), circ(RA, s - 1.6, y1 + 1.1, 1.1));   // bollards touch the deck
   }
   else it.push(...icon("pier", s * .5, s * .5, s * .84));
   const extra = [];
@@ -1039,7 +1050,7 @@ function boardFivePiece() {
   // "Tortuga" in the middle, a berth on each arm reaching the middle square
   const piers = [];
   for (const d of [[0, -1], [0, 1], [1, 0], [-1, 0]]) { const cx = (1.5 + d[0] * 0.9) * CELL, cy = (1.5 + d[1] * 0.9) * CELL, rot = Math.atan2(-d[1], -d[0]) * 180 / Math.PI; piers.push(...icon("pier", cx, cy, CELL * .7, rot)); }
-  const tort = islandClean([[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]], "tortuga", false, [...piers, ...ftext(RA, "Tortuga", 1.5 * CELL, 1.5 * CELL + 1.5, 4.2, { font: "georgia-bold", align: "center" })]);
+  const tort = islandClean([[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]], "tortuga", false, [...piers, ...ftext(RA, "Tortuga", 1.5 * CELL, 1.5 * CELL + 1.5, 4.2, { font: "georgia-bold", align: "center" })], 99, { palm: false });
   const plug = { name: "tortuga", mat: MAT, items: tag(xf(tort, { tx: -1.5 * CELL, ty: -1.5 * CELL }), "tortuga") };
   const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([k === 0 ? canonNW : canon], k), `seam-${q.id}`)), ...raster, ...tag(gridLines(valid), "grid"), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga")];
   const assembled = { id: "board-assembled", title: "The board, assembled", kind: "design", items: xf(assembledItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 5,
@@ -1106,8 +1117,9 @@ function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 
   pts.push(p1);
   return { pts, holes };
 }
+const HINGE_BODY = 2.4;   // Wyatt: the strip was under a millimetre between cuts; 2.4 mm of body now, and the lid walls take it into account
 function hingeStrip(w, t) {
-  const k = knuckleEdge([0, 0], [w, 0], [0, -1], { start: false }), pts = [[0, 0], ...k.pts, ...fingerEdge([w, 0], [w, 0.4], [1, 0], t, { kind: "out", start: false }).slice(-1), ...fingerEdge([w, 0.4], [0, 0.4], [0, 1], t, { kind: "out", start: false }), [0, 0.4]];
+  const k = knuckleEdge([0, 0], [w, 0], [0, -1], { start: false }), pts = [[0, 0], ...k.pts, [w, HINGE_BODY], ...fingerEdge([w, HINGE_BODY], [0, HINGE_BODY], [0, 1], t, { kind: "out", start: false }), [0, HINGE_BODY]];
   const items = [item(CU, [polyCmds(pts)])]; for (const [hx, hy] of k.holes) items.push(circ(CU, hx, hy, 1.65)); return items;
 }
 // a wall panel w×h (nominal) with fingers on the bottom (down into the base) and both vertical edges (into the neighbours)
@@ -1168,7 +1180,7 @@ function treasureChest(captain) {
   parts.push(part(`chest-${captain}-lid-front`, [...wallPanel(wFront, hl, t, { start: true }), ...planks(0, 0, wFront, hl, 3.5), ...wallLabels(wFront, hl, "L1", "L2", "T·F")]));
   // the lid's hinge strip: fingers up into the top plate, knuckle tongues hanging down between the chest's; its
   // axis sits 3.3 mm below the plate, exactly where the chest wall's tongues put theirs
-  parts.push(part(`chest-${captain}-lid-hinge`, [...hingeStrip(wFront, t), ...lab("H", wFront / 2, 9), ...lab("T·K", wFront * .15, 1.4)]));
+  parts.push(part(`chest-${captain}-lid-hinge`, [...hingeStrip(wFront, t), ...lab("H", wFront / 2, 9), ...lab("T·K", wFront * .5, HINGE_BODY + 1.6)]));
   parts.push(part(`chest-${captain}-lid-side-1`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "L2", "", "T·S1")]));
   parts.push(part(`chest-${captain}-lid-side-2`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "", "L1", "T·S2")]));
   parts.push(part(`chest-${captain}-lid-top`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo), ...plateLabels(Lo, Wo, "T·"), ...sailPattern(ci, [[Lo / 2 - 6, Wo / 2 - 4], [Lo / 2 + 6, Wo / 2 - 4], [Lo / 2 + 6, Wo / 2 + 4], [Lo / 2 - 6, Wo / 2 + 4]])]));
@@ -1192,8 +1204,10 @@ function nestedSpinner() {
   // game's storm cloud knocked out of each (Wyatt: "bring them all the way from the center to the rim ... bisect the
   // orientation lines ... a lightning-bolt cloud, like in the game")
   // Wyatt: the storm icon like the 🌩️ emoji — a cloud with a bolt under it, drawn to fit the wedge — and the word STORM
+  // Wyatt: "Can you simply rasterise in the storm emoji?" — yes: art/storm-emoji.png is the 🌩️ emoji rendered by Chrome,
+  // traced like the ingredients; its silhouette is knocked out of each wedge, with the word STORM below it
   for (const mid of [45, 135, 225, 315]) { const w = arcBand(5.2, RD - 2.2, mid - 9, mid + 9);
-    const local = [...icon("cloudOnly", 26.5, 0, 6.6, 90), poly(RA, [[22.6, -0.2], [21.2, 1.2], [20.2, 0.3], [18.2, 2.4], [19.6, 0.1], [20.6, 0.9]]), ...ftext(RA, "STORM", 8.4, 0.5, 1.35, { font: "avenir-next-demibold" })];
+    const local = [...artToken("stormemoji", 24.5, 0, 7.2, { cut: false, solid: true, rot: 90 }), ...ftext(RA, "STORM", 8.4, 0.5, 1.35, { font: "avenir-next-demibold" })];
     const holes = xf(local, { rot: mid }).map(reverseItem); dial.push({ ...w, sub: [...w.sub, ...holes.flatMap(i => i.sub)] }); }
   dial.push(...icon("anchor", 0, -RD * .3, 7));
   parts.push(part("spinner-dial", dial));
@@ -1206,7 +1220,15 @@ function nestedSpinner() {
   for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RB - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
   parts.push(part("spinner-ring", ringPart));
   // the needle: cut only (Wyatt: "remove the raster from the arrow") — its fleur-de-lis is in the outline
-  const needle = [item(CU, [polyCmds([[-9, -1.6], [14, -1.6], [14, -3.2], [16, -3.2], [20, -5.5], [22.5, -3.2], [20, -1.4], [26.5, 0], [20, 1.4], [22.5, 3.2], [20, 5.5], [16, 3.2], [14, 3.2], [14, 1.6], [-9, 1.6], [-12, 4.2], [-14, 4.2], [-11, 0], [-14, -4.2], [-12, -4.2]])]), circ(CU, 0, 0, 1.65)];
+  // balanced about the axle (Wyatt): the same arm each side — a fleur-de-lis head one way, a counterweight of the
+  // same outline the other — on a 9 mm hub, so the pivot hole leaves 2.85 mm of wood all round
+  const head = [[14, -1.8], [14, -3.4], [16, -3.4], [20, -5.6], [22.5, -3.4], [20, -1.5], [26.5, 0], [20, 1.5], [22.5, 3.4], [20, 5.6], [16, 3.4], [14, 3.4], [14, 1.8]];
+  const arm = head.map(([x, y]) => [x, y]), tail = head.map(([x, y]) => [-x, y]).reverse();
+  const hubPts = []; for (let i = 0; i <= 12; i++) { const a = rad(90 - i * 15); hubPts.push([4.5 * Math.cos(a), 4.5 * Math.sin(a)]); }   // arc from top round the right... built below
+  const bulge = (from, to) => { const out = []; for (let i = 1; i < 12; i++) { const a = rad(from + (to - from) * i / 12); out.push([4.5 * Math.cos(a), 4.5 * Math.sin(a)]); } return out; };
+  const needleOutline = [[-4.2, -1.8], ...bulge(203.6, 336.4), [4.2, -1.8], ...arm, [4.2, 1.8], ...bulge(23.6, 156.4), [-4.2, 1.8], ...tail];
+  const needle = [item(CU, [polyCmds(needleOutline)]), circ(CU, 0, 0, 1.65)];
+  void hubPts;
   parts.push(part("spinner-needle", needle), part("spinner-washer", [circ(CU, 0, 0, 4), circ(CU, 0, 0, 1.65)]));
   // the vane: a pennant on a mast, the tab below the mast (through the ring, onto the backing). Drawn as it
   // stands — pennant at the top, tab at the bottom — so WIND NOW reads upright once it is in the slot.
@@ -1286,16 +1308,19 @@ function buildVersion(V) {
   else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
   const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
-  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S (a flipped piece would show its blank back). Seven go out each voyage. As drawn: a clean rounded outline, a thin line inside it at 4 mm, the game's island art (palms, rocks, grass edge) engraved inside the line, and a plain 6 × 2.5 mm notch in the middle of every outside edge — shallower than the line, so no cut ever meets engraving." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
+  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. The first version, shaped to your drawing: a gently wavy coast with 5 mm corners, a thin sand line 4 mm inside it, grass, a palm, a rock — and a plain 9 × 2.5 mm notch in the middle of every outside edge, between the cut and the line." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
   const dockParts = dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));
   const dockExtras = dp.flatMap((d, i) => d.extra.length ? [part(v === "v1" ? `pier-top-${ING[i]}` : `mooring-post-${ING[i]}`, d.extra)] : []);
   cutParts.push(...dockParts, ...dockExtras);
-  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece, as drawn: the pier's 6 mm deck runs to the island side and becomes the tab (6 × 2.5 mm, 0.15 mm of play) that plugs into any notch on any island; the planks run to the tab's end; four bollards on the tile." }));
+  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece, as drawn: the pier's 9 mm deck runs to the island side and becomes the tab (9 × 2.5 mm, 0.15 mm of play) that plugs into any notch on any island; planks to the tab's end; the four bollards touch the deck." }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
-  const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, TOKEN[v].crate(ing, 0, 0))));
+  const TOKEN_PAD = "cutB";   // the option on the cutting sheets until Wyatt picks
+  const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }) : TOKEN[v].crate(ing, 0, 0))));
   cutParts.push(...crates);
+  if (v === "v3") for (const [pad, label, mm] of [["cut", "A", "about 0.3 mm"], ["cutB", "B", "about 1.1 mm"], ["cutC", "C", "about 1.7 mm"]])
+    docs.push(sheet(`crates-${label.toLowerCase()}`, `Ingredient tokens — padding ${label}`, ING.map(ing => part(`token-${ing}`, artToken(ing, 0, 0, TOKEN_MM, { pad }))), { count: 7, notes: `Option ${label}: the cut line sits ${mm} outside the drawing's ink. Pick one; the cutting sheets currently carry option B.` }));
   docs.push(sheet("crates", "Ingredient crates (28)", crates, { notes: "Four per ingredient: three to stock an island at 3–4 players, one spare for the black market. Wheat, milk, sugar, eggs, cocoa, cinnamon, vanilla — the app's own icons, redrawn as cuttable outlines." }));
   const markerParts = v === "v3" ? [] : ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))); cutParts.push(...markerParts);
   if (v !== "v3") docs.push(sheet("markers", "Island markers (7)", markerParts, { notes: "Sits on an island at setup to say which ingredient grows there — the shapes are dealt fresh each game, so the ingredient can't be engraved on the island." }));
@@ -1319,7 +1344,7 @@ function buildVersion(V) {
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
   docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
   // extras
-  const stormToken = artToken("storm", 0, 0, 28);
+  const stormToken = artToken("stormemoji", 0, 0, 28);   // the 🌩️ emoji: cut round the cloud, the bolt engraved
   const extraParts = [part("storm-token", stormToken), part("first-player", [circ(CU, 0, 0, 14), ...icon("wheel", 0, 0, 25)]), part("reference-card", referenceCard())].map(p => ({ ...p, mat: MAT3 })); cutParts.push(...extraParts);
   if (v === "v3") {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
@@ -1372,7 +1397,7 @@ function mockups(five, P) {
       slab(g("lid-front"), { origin: [t, t, lidZ - hl], U: [1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-side-2"), { origin: [t, Wo - t, lidZ - hl], U: [0, -1, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-side-1"), { origin: [Lo - t, t, lidZ - hl], U: [0, 1, 0], V: [0, 0, 1], T: t, xform: rot }),
-      slab(g("lid-hinge"), { origin: [Lo - t, Wo - t, lidZ - 0.4], U: [-1, 0, 0], V: [0, 0, -1], T: t, xform: rot }),
+      slab(g("lid-hinge"), { origin: [Lo - t, Wo - t, lidZ - HINGE_BODY], U: [-1, 0, 0], V: [0, 0, -1], T: t, xform: rot }),
       slab(P.recipeParts[13].items, { origin: [8, 46, lidZ - t - 0.2], U: [1, 0, 0], V: [0, -1, 0], T: t, xform: rot, tint: 0.06 }),   // face down: you read it when the lid is open
       slab(g("card-rail-1"), { origin: [Lo - t, t, lidZ - 3.4], U: [0, 1, 0], V: [0, 0, -1], T: t, xform: rot }), slab(g("card-rail-2"), { origin: [t, Wo - t, lidZ - 3.4], U: [0, -1, 0], V: [0, 0, -1], T: t, xform: rot })];
     // a few coins inside
