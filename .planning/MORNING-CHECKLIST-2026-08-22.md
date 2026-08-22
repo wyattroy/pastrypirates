@@ -83,6 +83,12 @@ found a nine-day-old softlock the first night it was used.
 - [ ] **Pass-and-play** to the end card.
 - [ ] **A crew game** — two devices or two browsers — to the end card, watching both screens.
 
+**One specific thing to check in the crew game, because nobody has been able to prove it:** the
+**guest** should draw the wind pill, the clock chip and the day counter exactly like the host. This
+is requirement PAR-02. It was reported broken once, then re-measured and found fine, and last
+night's attempt to re-establish it never got a lobby started — so it is currently *unproven*, not
+*passing*. If your guest screen is missing any of those three, that is a real finding.
+
 **In a crew game, the one thing worth staring at:** the host's screen and the guest's screen should
 be showing you the same game. Different wording for the same moment, one side stuck on a prompt the
 other has finished, two cameras pointed at different places — those are the class of fault this
