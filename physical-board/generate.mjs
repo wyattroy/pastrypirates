@@ -25,14 +25,18 @@ const HERE = path.dirname(new URL(import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf("--" + k); return i >= 0 ? Number(argv[i + 1]) : d; };
 
-const CELL = opt("cell", 20);          // mm per grid square
-const MAT  = opt("material", 3);       // sheet thickness, mm (slot widths derive from it)
+const CELL = opt("cell", 25);          // mm per grid square (Wyatt, 2026-08-22: 25)
+const MAT  = opt("material", 6);       // sheet thickness, mm (slot widths derive from it) — 6 mm everything
+const KERF = opt("kerf", 0.18);        // beam width; cutting sheets are offset by half of this so pieces come out true size
+const BED_W = opt("bedw", 600), BED_H = opt("bedh", 400), BED_MARGIN = 6;   // his laser bed
+const ONLY = (argv.includes("--versions") ? argv[argv.indexOf("--versions") + 1] : "v3").split(",");
 const GRID = 15;                        // engine: cfg.grid
 const CC   = (GRID - 1) / 2;            // engine: centre of the round world
 const CLR  = 0.4;                       // per-side clearance so a loose piece drops into a square
 const PIECE = CELL - 2 * CLR;           // a one-square piece
 const GAP  = 4;                         // spacing between nested parts on a sheet
-const SHEET_W = opt("sheet", 300);      // wrap width for the all-pieces sheet
+const SHEET_W = opt("sheet", 300);      // wrap width for the preview sheets
+const CENTER = ((GRID - 1) / 2) * CELL + CELL / 2;   // the board's centre in mm
 
 /* =========================================================================================
    1. Geometry core — items are {layer, piece, sub:[subpath]}; a subpath is {cmds} or {circle}
@@ -127,7 +131,7 @@ const tag = (items, piece) => items.map(it => ({ ...it, piece: it.piece ?? piece
 
 // ---- flatten to polylines (DXF + bbox) ----
 function flatten(sub, n = 8) {
-  if (sub.circle) { const { cx, cy, r } = sub.circle, pts = []; for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } return { pts, closed: true }; }
+  if (sub.circle) { const { cx, cy, r, ccw } = sub.circle, pts = []; for (let i = 0; i < 48; i++) { const a = (ccw ? -i : i) / 48 * Math.PI * 2; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } return { pts, closed: true }; }
   const pts = []; let cur = null, closed = false;
   for (const c of sub.cmds) {
     if (c[0] === "M") { cur = [c[1], c[2]]; pts.push(cur); }
@@ -209,7 +213,9 @@ function traceCells(cells) {
 }
 function signedArea(pts) { let a = 0; for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; a += p[0] * q[1] - q[0] * p[1]; } return a / 2; }
 // offset outward by d (negative = inward); polygon is made CW first
-function offsetPoly(ptsIn, d) {
+function offsetPoly(ptsRaw, d) {
+  const ptsIn = ptsRaw.filter((p, i) => i === 0 || Math.hypot(p[0] - ptsRaw[i - 1][0], p[1] - ptsRaw[i - 1][1]) > 1e-6);
+  if (Math.hypot(ptsIn[0][0] - ptsIn[ptsIn.length - 1][0], ptsIn[0][1] - ptsIn[ptsIn.length - 1][1]) < 1e-6) ptsIn.pop();
   const pts = signedArea(ptsIn) < 0 ? [...ptsIn].reverse() : ptsIn;
   const n = pts.length, lines = [];
   for (let i = 0; i < n; i++) {
@@ -444,6 +450,9 @@ function rimMarks(rim, style) {
       const a = CELL * .2, t = CELL * .11;
       const chev = (ox) => poly(RA, [[ox - a, -a], [ox - a + t, -a], [ox + t, 0], [ox - a + t, a], [ox - a, a], [ox, 0]]);
       out.push(...xf([chev(-CELL * .1), chev(CELL * .16)], { tx: cx, ty: cy, rot: deg + 90 }));
+    } else if (style === "game") { // the app's own wind-arrow.png: one bold chevron, arms at 45°, corners lightly rounded
+      const a = CELL * .27, t = CELL * .17, ox = (a - t) / 2;
+      out.push(...xf([item(RA, [roundCorners([[ox - a, -a], [ox - a + t, -a], [ox + t, 0], [ox - a + t, a], [ox - a, a], [ox, 0]], CELL * .03)])], { tx: cx, ty: cy, rot: deg + 90 }));
     } else { // curved: an arc of the ring itself with a head at its clockwise end
       const half = (CELL * .3) / rr, w = CELL * .12, hw = CELL * .34, hl = CELL * .24, a0 = rad(deg) - half, a1 = rad(deg) + half, pts = [];
       const P = (a, r) => [C + r * Math.cos(a), C + r * Math.sin(a)];
@@ -456,16 +465,17 @@ function rimMarks(rim, style) {
   return out;
 }
 
-function homeMarks(DIRS) {
+// Isle of Tortuga's own square: sand edge band, anchor, name — centred on (cx,cy)
+function homeSquareMarks(cx, cy) {
+  return [...frameBand(cx, cy, CELL - 3, CELL - 3, 0.7, CELL * .25), ...icon("anchor", cx, cy - CELL * .12, CELL * .44), ...text(RA, "TORTUGA", cx, cy + CELL * .11, CELL * .019, { align: "center", valign: "top" })];
+}
+// four berths, each pier facing back toward the island (dockOrient([-d]))
+function berthMarks(DIRS) {
   const hx = CC, hy = CC, out = [];
-  // Isle of Tortuga: sand edge band, anchor, name
-  out.push(...frameBand((hx + .5) * CELL, (hy + .5) * CELL, CELL - 3, CELL - 3, 0.7, CELL * .25));
-  out.push(...icon("anchor", (hx + .5) * CELL, (hy + .38) * CELL, CELL * .44));
-  out.push(...text(RA, "TORTUGA", (hx + .5) * CELL, (hy + .5) * CELL + CELL * .11, CELL * .019, { align: "center", valign: "top" }));
-  // four berths, each pier facing back toward the island (dockOrient([-d]))
   for (const d of DIRS) { const cx = (hx + d[0] + .5) * CELL, cy = (hy + d[1] + .5) * CELL, rot = Math.atan2(-d[1], -d[0]) * 180 / Math.PI; out.push(...icon("pier", cx, cy, CELL * .82, rot)); }
   return out;
 }
+function homeMarks(DIRS) { return [...homeSquareMarks((CC + .5) * CELL, (CC + .5) * CELL), ...berthMarks(DIRS)]; }
 
 function spinnerDial(style, R, cx, cy, { onBoard = false } = {}) {
   const it = [];
@@ -652,6 +662,135 @@ function board(v) {
 }
 
 /* =========================================================================================
+   8b. THE FIVE-PIECE BOARD (Wyatt, 2026-08-22): four jigsaw quadrants that lock to each other,
+       and Tortuga as a fifth piece that drops into the square hole they leave in the middle.
+
+   One canonical quadrant (NW) is drawn and rotated four times, so all four quarters have the
+   SAME cut outline — interchangeable, and they nest identically. Its two straight edges carry
+   complementary knob patterns (out-in-out up the vertical seam, in-out-in along the horizontal
+   one) so that after rotation every knob meets a socket. Knobs sit mid-cell, two squares apart,
+   clear of the berths and the rim arrows, so the only engraving that crosses a knob is a grid
+   line — and those are carried across by ownership (see gridForQuadrants) rather than clipped.
+   ========================================================================================= */
+const JIGB = { nub: { hw: 4, nd: 2.5, r: 5.5 }, socket: { hw: 4.05, nd: 2.5, r: 5.55 } };  // 0.1 mm total play, after kerf
+const EDGE_A = [[6, "out"], [4, "in"], [2, "out"]].map(([k, s]) => [k * CELL, s]);
+const EDGE_B = [[2, "in"], [4, "out"], [6, "in"]].map(([k, s]) => [k * CELL, s]);
+// THE SEAMS RUN ALONG GRID LINES (Wyatt, 2026-08-22: "the jigs should be cut along or within the grid
+// lines"). A pinwheel: the canonical NW quadrant is everything left of x = C+h and above y = C-h —
+// the grid lines that bound Tortuga's square on its right and its top. Rotated four times that leaves
+// exactly Tortuga's square as the hole, and every other square, berths and rim included, whole on one
+// piece. Knobs are centred mid-square, so each one lives inside a single square of its neighbour.
+function quadrantPts(Rb) {
+  const C = CENTER, h = CELL / 2, pts = [], sr = Math.sqrt(Rb * Rb - h * h);
+  const a0 = Math.atan2(-h, -sr), a1 = Math.atan2(-sr, h); // from the left rim point (C-sr, C-h), clockwise over the top, to (C+h, C-sr)
+  for (let i = 0; i <= 90; i++) { const a = a0 + (a1 - a0) * i / 90; pts.push([C + Rb * Math.cos(a), C + Rb * Math.sin(a)]); }
+  for (const [d, s] of EDGE_A) pts.push(...mushroomPts([C + h, C - d], [0, 1], [-1, 0], s === "out" ? JIGB.nub : JIGB.socket, s === "out" ? -1 : 1));
+  pts.push([C + h, C - h]);
+  for (const [d, s] of EDGE_B) pts.push(...mushroomPts([C - d, C - h], [-1, 0], [0, -1], s === "out" ? JIGB.nub : JIGB.socket, s === "out" ? -1 : 1));
+  return pts;
+}
+const rot90 = (v, k) => { let [x, y] = v; for (let i = 0; i < k; i++) [x, y] = [-y, x]; return [x, y]; };
+const aboutCentre = (items, k) => xf(xf(items, { tx: -CENTER, ty: -CENTER }), { rot: 90 * k, tx: CENTER, ty: CENTER });
+// every knob on the assembled board: base point m on the seam, n pointing out of its owner, t along the seam
+function allKnobs() {
+  const C = CENTER, out = [];
+  const h = CELL / 2;
+  const canon = [...EDGE_A.filter(e => e[1] === "out").map(([d]) => ({ m: [C + h, C - d], n: [1, 0], t: [0, 1] })), ...EDGE_B.filter(e => e[1] === "out").map(([d]) => ({ m: [C - d, C - h], n: [0, 1], t: [1, 0] }))];
+  for (let k = 0; k < 4; k++) for (const kb of canon) { const rm = rot90([kb.m[0] - C, kb.m[1] - C], k); out.push({ m: [C + rm[0], C + rm[1]], n: rot90(kb.n, k), t: rot90(kb.t, k), owner: k }); }
+  return out;
+}
+const QUAD = (() => { const C = CENTER, h = CELL / 2; return [
+  { id: "NW", sx: -1, bx: C + h, sy: -1, by: C - h }, { id: "NE", sx: 1, bx: C + h, sy: -1, by: C + h },
+  { id: "SE", sx: 1, bx: C - h, sy: 1, by: C + h }, { id: "SW", sx: -1, bx: C - h, sy: 1, by: C - h }]; })();
+const inQuad = (p, q, e = 1e-6) => (q.sx < 0 ? p[0] <= q.bx + e : p[0] >= q.bx - e) && (q.sy < 0 ? p[1] <= q.by + e : p[1] >= q.by - e);
+function knobOwnerAt(p, knobs) {
+  const { hw, nd, r } = JIGB.nub;
+  for (const kb of knobs) { const dx = p[0] - kb.m[0], dy = p[1] - kb.m[1], u = dx * kb.n[0] + dy * kb.n[1], s = dx * kb.t[0] + dy * kb.t[1];
+    if (u >= -0.01 && u <= nd + 0.01 && Math.abs(s) <= hw) return kb.owner;
+    if ((u - nd - r) ** 2 + s * s <= r * r) return kb.owner; }
+  return -1;
+}
+// -2 = on a seam (both pieces claim it — the cut itself draws that line) or in Tortuga's hole
+function quadrantOf(p, knobs) { const o = knobOwnerAt(p, knobs); if (o >= 0) return o; const hits = QUAD.map((q, k) => inQuad(p, q) ? k : -1).filter(k => k >= 0); return hits.length === 1 ? hits[0] : -2; }
+// Sutherland–Hodgman against one half-plane: keep nx*x+ny*y <= d
+function clipPolyHalf(pts, nx, ny, d) {
+  const out = [], n = pts.length, f = p => nx * p[0] + ny * p[1] - d;
+  for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n], fa = f(a), fb = f(b);
+    if (fa <= 0) out.push(a);
+    if ((fa < 0 && fb > 0) || (fa > 0 && fb < 0)) { const t = fa / (fa - fb); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); } }
+  return out;
+}
+// an engraved shape, cut to one quadrant's quarter of the board (knobs carry only grid lines, handled separately)
+function clipItemQuadrant(it, { sx, bx, sy, by }) {
+  const b = bbox([it]);
+  const outX = sx < 0 ? b.x0 >= bx : b.x1 <= bx, outY = sy < 0 ? b.y0 >= by : b.y1 <= by;
+  if (outX || outY) return null;
+  const inX = sx < 0 ? b.x1 <= bx : b.x0 >= bx, inY = sy < 0 ? b.y1 <= by : b.y0 >= by;
+  if (inX && inY) return it;
+  const sub = [];
+  for (const sp of it.sub) { let pts = flatten(sp, 10).pts; pts = clipPolyHalf(pts, -sx, 0, -sx * bx); pts = clipPolyHalf(pts, 0, -sy, -sy * by); if (pts.length >= 3) sub.push(polyCmds(pts)); }
+  return sub.length ? { ...it, sub } : null;
+}
+// grid lines by OWNERSHIP, sampled every half millimetre: a line runs onto a knob with the knob's owner and
+// stops at a socket, so across a locked seam every grid line reads continuous
+function gridForQuadrants(valid, knobs) {
+  const per = [[], [], [], []];
+  for (const rc of gridLines(valid)) {
+    const p = rc.sub[0].cmds, x0 = p[0][1], y0 = p[0][2], x1 = p[2][1], y1 = p[2][2], horiz = (x1 - x0) > (y1 - y0);
+    const L = horiz ? x1 - x0 : y1 - y0, step = 0.5, n = Math.ceil(L / step); let run = null;
+    const flush = () => { if (run && run.o >= 0 && run.b - run.a > 0.3) per[run.o].push(horiz ? rect(RA, run.a, y0, run.b - run.a, y1 - y0) : rect(RA, x0, run.a, x1 - x0, run.b - run.a)); run = null; };
+    for (let i = 0; i <= n; i++) { const pos = (horiz ? x0 : y0) + Math.min(L, i * step), mid = horiz ? [pos, (y0 + y1) / 2] : [(x0 + x1) / 2, pos], o = quadrantOf(mid, knobs);
+      if (run && run.o === o) run.b = pos; else { flush(); run = { o, a: pos, b: pos }; } }
+    flush();
+  }
+  return per;
+}
+function boardFivePiece() {
+  const { valid, rim, DIRS } = seaCells(), C = CENTER;
+  let Rmax = 0; for (const k of valid) { const [x, y] = k.split(",").map(Number); for (const [cx, cy] of [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]]) Rmax = Math.max(Rmax, Math.hypot(cx * CELL - C, cy * CELL - C)); }
+  const Rb = Rmax + 7;
+  const raster = [...tag(rimMarks(rim, "game"), "trade-winds"), ...tag(berthMarks(DIRS), "berths"), ...tag([ring(RA, C, C, Rmax + 3.2, Rmax + 2.5), ring(RA, C, C, Rmax + 1.9, Rmax + 1.4)], "edge-band")];
+  const knobs = allKnobs(), grid = gridForQuadrants(valid, knobs), canon = poly(CU, quadrantPts(Rb));
+  const quadrants = QUAD.map((q, k) => ({ name: `quadrant-${q.id}`, items: tag([...aboutCentre([canon], k), ...raster.map(it => clipItemQuadrant(it, q)).filter(Boolean), ...grid[k]], `quadrant-${q.id}`) }));
+  const ps = CELL - 0.1;  // Tortuga: drops into the 25 mm hole with 0.1 mm to spare
+  const plug = { name: "tortuga", items: tag([rect(CU, -ps / 2, -ps / 2, ps, ps, 0.6), ...homeSquareMarks(0, 0)], "tortuga") };
+  const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([canon], k), `seam-${q.id}`)), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga"), ...raster, ...tag(gridLines(valid), "grid")];
+  const assembled = { id: "board-assembled", title: "The board, assembled", kind: "design", items: xf(assembledItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 5,
+    notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four identical quadrants lock with three puzzle knobs per seam (knobs two squares apart, clear of the berths and the rim); Tortuga is the fifth piece, a ${ps} mm square that drops into the hole the four quadrants leave in the middle. The seams run along the grid lines that bound Tortuga's square (a pinwheel), so every square — berths and rim included — is whole on one piece, and each knob sits inside a single square of its neighbour. Rim marks are the app's own wind chevron.` };
+  return { assembled, quadrants, plug, Rb };
+}
+// ---- kerf: push every cut line half a beam away from the wood that stays ----
+function pointInPoly(p, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; }
+function kerfCompensate(items, k) {
+  const out = [...items], byPiece = new Map();
+  items.forEach((it, i) => { if (it.layer !== CU) return; const key = it.piece || ("_" + i); if (!byPiece.has(key)) byPiece.set(key, []); byPiece.get(key).push({ it, i }); });
+  for (const [, group] of byPiece) {
+    const polys = group.flatMap(g => g.it.sub.map(sp => ({ sp, pts: flatten(sp, 12).pts })));
+    for (const g of group) out[g.i] = { ...g.it, sub: g.it.sub.map(sp => {
+      const pts = flatten(sp, 12).pts, isHole = polys.some(q => q.sp !== sp && pointInPoly(pts[0], q.pts)), d = isHole ? -k / 2 : k / 2;
+      return sp.circle ? { circle: { ...sp.circle, r: sp.circle.r + d } } : polyCmds(offsetPoly(pts, d));
+    }) };
+  }
+  return out;
+}
+// ---- shelf-pack named parts onto bed-sized sheets, tallest first ----
+function packSheets(parts) {
+  const W = BED_W, H = BED_H, m = BED_MARGIN, g = GAP, sorted = parts.map(p => ({ ...p, b: bbox(p.items) })).sort((a, b) => b.b.h - a.b.h);
+  const sheets = []; // each: {items, parts, shelves:[{y, h, x}]}
+  const place = (sh, shelf, p) => { sh.items.push(...tag(xf(p.items, { tx: shelf.x - p.b.x0, ty: shelf.y - p.b.y0 }), p.name)); sh.parts++; shelf.x += p.b.w + g; };
+  for (const p of sorted) {
+    let done = false;
+    for (const sh of sheets) { const shelf = sh.shelves.find(f => p.b.h <= f.h && shelf_fits(f, p)); if (shelf) { place(sh, shelf, p); done = true; break; } }
+    if (done) continue;
+    for (const sh of sheets) { const last = sh.shelves[sh.shelves.length - 1], y = last.y + last.h + g; if (y + p.b.h <= H - m) { const f = { y, h: p.b.h, x: m }; sh.shelves.push(f); place(sh, f, p); done = true; break; } }
+    if (done) continue;
+    const sh = { items: [], parts: 0, shelves: [{ y: m, h: p.b.h, x: m }] }; sheets.push(sh); place(sh, sh.shelves[0], p);
+  }
+  return sheets;
+  function shelf_fits(f, p) { return f.x + p.b.w <= W - m; }
+}
+
+/* =========================================================================================
    9. Sheets — nest named parts left-to-right, wrapping at a width
    ========================================================================================= */
 function sheet(id, title, parts, { maxW = SHEET_W, gap = GAP, notes = "", count } = {}) {
@@ -672,45 +811,61 @@ const part = (name, items) => ({ name, items });
 const VERSIONS = [
   { id: "v1", dir: "v1-plank", name: "V1 · The Plank", blurb: "A square plank with the round world engraved into it. The corners earn their keep: the wind dial lives top-left with its pivot cut into the board, a compass rose top-right, the title along the bottom. Docks are two-layer piers that overhang onto the island (glue the plank on top). Square crates, straight rim arrows, standing sloops." },
   { id: "v2", dir: "v2-pixel", name: "V2 · The Pixel World", blurb: "The board is cut along the stepped edge of the world itself — the sea IS the board. Jigsaw docks click into sockets cut in every island edge. Round tokens with the ingredient knocked out of a black badge, double-chevron rim (the app's own wind glyph), a 20-sector weather wheel with the storm odds built in, standing galleons." },
-  { id: "v3", dir: "v3-round", name: "V3 · The Round Table", blurb: "A true circle with a double ring at the water's edge and a curved current that runs with the ring. Docks moor to islands with a little standing post dropped through matching slots. Hexagonal crates, a plain wind dial plus a separate 5-sector storm spinner, flat disc ships." },
+  { id: "v3", dir: "v3-round", name: "V3 · The Round Table", blurb: "A true circle with a double ring at the water's edge, cut in five: four identical jigsaw quadrants whose seams follow the grid lines around Tortuga, and Tortuga itself as the centre plug. Rim marks are the app's own wind chevron. Docks moor to islands with a little standing post dropped through matching slots. Hexagonal crates, a plain wind dial plus a separate 5-sector storm spinner, flat disc ships." },
 ];
 
 function buildVersion(V) {
-  const v = V.id, docs = [];
-  docs.push(board(v));
+  const v = V.id, docs = [], cutParts = [];
+  let five = null;
+  if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled); cutParts.push(...five.quadrants, five.plug); }
+  else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
-  docs.push(sheet("islands", "Island shapes (7)", TET.map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))), { notes: v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
+  const islandParts = TET.map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
+  docs.push(sheet("islands", "Island shapes (7)", islandParts, { notes: v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
   const dockParts = dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));
   const dockExtras = dp.flatMap((d, i) => d.extra.length ? [part(v === "v1" ? `pier-top-${ING[i]}` : `mooring-post-${ING[i]}`, d.extra)] : []);
+  cutParts.push(...dockParts, ...dockExtras);
   docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece plus a mooring post. Push the dock against the island so the two slots line up, drop the post through — it stands up like a bollard and locks the pair." }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
   const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, TOKEN[v].crate(ing, 0, 0))));
+  cutParts.push(...crates);
   docs.push(sheet("crates", "Ingredient crates (28)", crates, { notes: "Four per ingredient: three to stock an island at 3–4 players, one spare for the black market. Wheat, milk, sugar, eggs, cocoa, cinnamon, vanilla — the app's own icons, redrawn as cuttable outlines." }));
-  docs.push(sheet("markers", "Island markers (7)", ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))), { notes: "Sits on an island at setup to say which ingredient grows there — the shapes are dealt fresh each game, so the ingredient can't be engraved on the island." }));
-  docs.push(sheet("whirlpools", "Whirlpools (4)", [0, 1, 2, 3].map(n => part(`whirlpool-${n + 1}`, whirlpool(v === "v1" ? "spiral" : v === "v2" ? "rings" : "bold", 0, 0))), { notes: "One square each, 0.4 mm clearance. Drop them on any four trade-wind squares — a ship carried by the current gets off at the next whirlpool." }));
+  const markerParts = ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))); cutParts.push(...markerParts);
+  docs.push(sheet("markers", "Island markers (7)", markerParts, { notes: "Sits on an island at setup to say which ingredient grows there — the shapes are dealt fresh each game, so the ingredient can't be engraved on the island." }));
+  const whirlParts = [0, 1, 2, 3].map(n => part(`whirlpool-${n + 1}`, whirlpool(v === "v1" ? "spiral" : v === "v2" ? "rings" : "bold", 0, 0))); cutParts.push(...whirlParts);
+  docs.push(sheet("whirlpools", "Whirlpools (4)", whirlParts, { notes: "One square each, 0.4 mm clearance. Drop them on any four trade-wind squares — a ship carried by the current gets off at the next whirlpool." }));
   // spinner
   const arr = spinnerArrows(0, 0);
   const spParts = [part("dial", spinnerDial(v === "v1" ? "quadrants-storm" : v === "v2" ? "roulette" : "quadrants", 40, 0, 0)), part("arrow-now", arr.now), part("arrow-next", arr.next), part("washer-1", arr.washers[0]), part("washer-2", arr.washers[1])];
   if (v === "v3") spParts.push(part("storm-dial", stormDial(24)), part("storm-arrow", [poly(CU, [[-7, -2], [11, -2], [11, -5], [18, 0], [11, 5], [11, 2], [-7, 2], [-4, 0]]), circ(CU, 0, 0, 1.65)]));
-  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "80 mm plain dial plus a 48 mm storm spinner with one storm sector in five. ") + "Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer, M3 bolt + nut (or a brass paper fastener)." }));
+  cutParts.push(...spParts);
+  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "80 mm plain dial plus a 48 mm storm spinner with one storm sector in five. ") + `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.` }));
   // ships
   const shipParts = [];
   for (let c = 0; c < 4; c++) {
     if (v === "v3") shipParts.push(part(`ship-${CAPTAINS[c]}`, [circ(CU, 0, 0, CELL * .36), ring(RA, 0, 0, CELL * .36 - .7, CELL * .36 - 1.2), ...icon("boat", 0, -CELL * .02, CELL * .5), ...sailPattern(c, [[-CELL * .22, CELL * .2], [CELL * .22, CELL * .2], [CELL * .22, CELL * .3], [-CELL * .22, CELL * .3]])]));
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
+  cutParts.push(...shipParts);
   docs.push(sheet("ships", "Ships (4)", shipParts, { notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "Flat tokens, one square wide." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
-  docs.push(sheet("recipes", "Recipe cards (21)", recipeCards(v).map((c, i) => part(`recipe-${i + 1}`, c)), { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
+  const recipeParts = recipeCards(v).map((c, i) => part(`recipe-${i + 1}`, c)); cutParts.push(...recipeParts);
+  docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
   // extras
   const stormToken = xf([item(CU, [ICONS.cloud()[0].sub[0]]), poly(RA, [[54, 36], [60, 36], [52, 47], [60, 47], [44, 60], [50, 49], [42, 49]])], { s: .34 });
-  docs.push(sheet("extras", "Extras", [part("storm-token", stormToken), part("first-player", [circ(CU, 0, 0, 14), ...icon("wheel", 0, 0, 25)]), part("reference-card", referenceCard())], { notes: "A storm cloud to put on the board when the forecast says storm (the bolt is engraved inside the cut cloud). A ship's wheel for whoever sails first. A rules card with the numbers the app keeps for you." }));
-  // one sheet with everything but the board
-  const all = docs.filter(d => d.id !== "board");
-  const allParts = all.map(d => part(d.id, d.items));
-  docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet. Re-run with --sheet to change the width.`, count: all.reduce((a, d) => a + d.count, 0) }));
+  const extraParts = [part("storm-token", stormToken), part("first-player", [circ(CU, 0, 0, 14), ...icon("wheel", 0, 0, 25)]), part("reference-card", referenceCard())]; cutParts.push(...extraParts);
+  docs.push(sheet("extras", "Extras", extraParts, { notes: "A storm cloud to put on the board when the forecast says storm (the bolt is engraved inside the cut cloud). A ship's wheel for whoever sails first. A rules card with the numbers the app keeps for you." }));
+  if (v === "v3") {
+    // the cutting sheets: every part, tallest first, on bed-sized sheets, kerf-compensated
+    const sheets = packSheets(cutParts), N = sheets.length;
+    sheets.forEach((sh, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N}`, kind: "sheet", kerf: KERF, items: kerfCompensate(sh.items, KERF), w: BED_W, h: BED_H, count: sh.parts,
+      notes: `${BED_W} × ${BED_H} mm bed, ${MAT} mm material. Every red line is already pushed ${KERF / 2} mm away from the wood that stays (kerf ${KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
+  } else {
+    const all = docs.filter(d => d.id !== "board"), allParts = all.map(d => part(d.id, d.items));
+    docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet.`, count: all.reduce((a, d) => a + d.count, 0) }));
+  }
   return { ...V, docs };
 }
 
@@ -724,7 +879,7 @@ function svgPathD(sub) {
 function emitSVG(doc, V) {
   const layers = [[RA, "RASTER", `fill="#000000" fill-rule="nonzero" stroke="none"`], [CU, "CUT", `fill="none" stroke="#ff0000" stroke-width="0.1"`]];
   let out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${doc.w}mm" height="${doc.h}mm" viewBox="0 0 ${doc.w} ${doc.h}">\n`;
-  out += `<title>Pastry Pirates — ${V.name} — ${doc.title}</title>\n<desc>${doc.notes.replace(/[<>&]/g, "")} Units: mm. ${CELL} mm squares, ${MAT} mm material. RASTER = black fill (engrave), CUT = red hairline (cut). Generated by physical-board/generate.mjs.</desc>\n`;
+  out += `<title>Pastry Pirates — ${V.name} — ${doc.title}</title>\n<desc>${doc.notes.replace(/[<>&]/g, "")} Units: mm. ${CELL} mm squares, ${MAT} mm material. ${doc.kind === "sheet" ? `KERF-COMPENSATED: cut lines offset ${KERF / 2} mm outward (kerf ${KERF} mm).` : "No kerf compensation in this file — it is a design view; cut from the sheet-N files."} RASTER = black fill (engrave), CUT = red hairline (cut). Generated by physical-board/generate.mjs.</desc>\n`;
   for (const [L, name, attrs] of layers) {
     out += `<g id="${name}" class="layer-${name.toLowerCase()}" inkscape:label="${name}" inkscape:groupmode="layer" ${attrs}>\n`;
     let curPiece = null;
@@ -759,8 +914,8 @@ function emitDXF(doc) {
 /* =========================================================================================
    12. Main
    ========================================================================================= */
-const siteData = { cell: CELL, material: MAT, generated: new Date().toISOString().slice(0, 10), versions: [] };
-for (const V of VERSIONS) {
+const siteData = { cell: CELL, material: MAT, kerf: KERF, bed: [BED_W, BED_H], generated: new Date().toISOString().slice(0, 10), versions: [] };
+for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   const built = buildVersion(V), dir = path.join(HERE, V.dir);
   fs.mkdirSync(dir, { recursive: true });
   const groups = [];
@@ -768,7 +923,7 @@ for (const V of VERSIONS) {
     const svg = emitSVG(doc, V);
     fs.writeFileSync(path.join(dir, `${doc.id}.svg`), svg);
     fs.writeFileSync(path.join(dir, `${doc.id}.dxf`), emitDXF(doc));
-    groups.push({ id: doc.id, title: doc.title, notes: doc.notes, w: doc.w, h: doc.h, count: doc.count, svg });
+    groups.push({ id: doc.id, title: doc.title, kind: doc.kind || "preview", notes: doc.notes, w: doc.w, h: doc.h, count: doc.count, svg });
   }
   siteData.versions.push({ id: V.id, dir: V.dir, name: V.name, blurb: V.blurb, groups });
   console.log(`${V.dir}: ${built.docs.length} files x2 (svg+dxf)`);
