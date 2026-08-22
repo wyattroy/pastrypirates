@@ -1102,16 +1102,18 @@ function fingerEdge(p0, p1, outward, t, spec, fingerW = 6) {
   return pts;
 }
 // hinge knuckles along an edge: every other segment is a tongue of height K with a dowel hole, rounded so it can swing
-function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 5 } = {}) {
+// side = lateral play per side of every tongue, so neighbouring tongues of the two parts can turn past each other
+function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 5, side = 0.15 } = {}) {
   const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), ux = (p1[0] - p0[0]) / L, uy = (p1[1] - p0[1]) / L, seg = L / n, pts = [], holes = [];
   const P = (sv, d) => [p0[0] + ux * sv + outward[0] * d, p0[1] + uy * sv + outward[1] * d];
   for (let i = 0; i < n; i++) {
-    const tab = (i % 2 === 0) === !!spec.start, s0 = i * seg, s1 = (i + 1) * seg;
-    if (!tab) { pts.push(P(s0, 0), P(s1, 0)); continue; }
+    const tab = (i % 2 === 0) === !!spec.start, s0 = i * seg + side, s1 = (i + 1) * seg - side;
+    if (!tab) { pts.push(P(i * seg, 0), P((i + 1) * seg, 0)); continue; }
+    pts.push(P(i * seg, 0));
     pts.push(P(s0, 0), P(s0, hole));
     for (let k = 0; k <= 6; k++) { const a = Math.PI + k / 6 * Math.PI / 2; pts.push(P(s0 + r + r * Math.cos(a), hole + r * Math.sin(a) * -1)); }
     for (let k = 0; k <= 6; k++) { const a = -Math.PI / 2 + k / 6 * Math.PI / 2; pts.push(P(s1 - r + r * Math.cos(a), hole + r * Math.sin(a) * -1)); }
-    pts.push(P(s1, hole), P(s1, 0));
+    pts.push(P(s1, hole), P(s1, 0), P((i + 1) * seg, 0));
     holes.push(P((s0 + s1) / 2, hole));
   }
   pts.push(p1);
