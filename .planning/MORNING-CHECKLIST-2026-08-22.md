@@ -74,7 +74,34 @@ complaint. **Making them louder is your taste call.** Tell me how much louder.
 
 ---
 
-## THIRD — a whole voyage in each mode
+## THIRD — two off your twenty-two (Group D): items 6 and 16
+
+**Item 6 — the Bake-Off card.** You asked that it not come back once you have attempted your bake.
+What was actually happening was worse: **it never left.** Once your ovens lit, the card stayed on
+screen through your verdict, through the whole of the next day's play, and straight into the next
+attempt — with the narration stacking up unreadably behind it and the board dimmed the entire time.
+
+| Look at | What right looks like |
+|---|---|
+| **The moment your bake is scored** | You get a few seconds to read "N of 5 in place…" — longer if the sentence is longer — and then **the card goes**, and you are back on the board. |
+| **The rest of that day** | You can see the board, the boats and the narration. Nothing is behind a spent card. |
+| **The next day, if you missed some** | A **fresh** Bake-Off card arrives for attempt 2. That is a new prompt, not the old one still sitting there. |
+
+*If you play a crew game where two captains bake on the same day, that is the case this was for —
+you should be able to watch theirs happen.* **See the note in the record below before you try it.**
+
+**Item 16 — you keep the name you type.** Until tonight the join screen wrote whatever you typed
+straight onto the seat with no check at all, so two captains could end up sharing a name.
+
+| Look at | What right looks like |
+|---|---|
+| **Join a crew and type a name a REAL person at the table already has** | A red line appears **under the name box** — *"Arrgh — a captain aboard already sails as X. Pick another name, matey."* **No popup.** Your typed name stays in the box, you edit it, and Join works. |
+| **Type a name one of the BOT captains has** (Davy Scones, Crustbeard, Dough Hook, Flaky Jack) | **You get it.** You are let straight in under that name, and the bot quietly takes a different one. Nobody at the table shares a name. |
+| **"Change yer name" in the lobby** | Same rule, same words. If a real person has that name, the name box reopens with the red line under it. |
+
+---
+
+## FOURTH — a whole voyage in each mode
 
 The bar is **complete voyages to the end-of-voyage card**, not stretches of play — that bar is what
 found a nine-day-old softlock the first night it was used.
@@ -98,7 +125,19 @@ phase exists to kill, and they are only visible with both screens side by side.
 
 ## Things I know are still wrong, so you do not have to report them
 
-*(Filled in at the end of the night.)*
+**A guest's Bake-Off is played on the HOST's screen, not theirs.** Found while fixing item 6, by
+reading the code — **not measured, so treat it as a strong suspicion rather than a fact.** The
+bake-off has no networked path at all: the function that runs it says so in its own comment, and the
+reason given is *"this is all built for v2 which doesn't have multiplayer"* — which was true when it
+was written and stopped being true when multiplayer came back in Phase 2. If that reading is right,
+then in a crew game the host is shown the guest's bench and asked to play it, while the guest waits
+on a single line of narration.
+
+**So do not judge item 6 by a crew game.** Judge it solo or pass-and-play, where it is fixed and
+proven. If you do reach a crew bake-off and something like this happens, it is this, it is
+pre-existing, and it is not something Group D touched.
+
+*(The rest filled in at the end of the night.)*
 
 ---
 
