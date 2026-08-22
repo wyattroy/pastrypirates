@@ -1531,7 +1531,16 @@
     padding:10px 12px calc(10px + env(safe-area-inset-bottom)); overflow:auto; display:none; }
   body.pp4Stage #pp4Cap { display:block; }
   body.pp4Stage #captainsPanel { display:block; margin:0; }
-  #pp4Prompt { position:fixed; z-index:30; display:none; opacity:.96; transition:opacity .16s; }
+  /* THE RESTING PROMPT IS OPAQUE. `.96` was never a look anybody chose — it arrived as a side
+     effect of building hold-to-peek (78778e1, 2026-08-11: "Base card opacity drops to .96",
+     one clause in a commit about the gesture) and it is the reason the recipe picker is
+     see-through: at 4% the CAPTAINS card behind the sheet reads clean through the cards, so
+     "CAPTAINS", "Davy Scones" and "Peg Leg Meg" ghost under the recipe titles. Six judge findings
+     on the 2026-08-21 phone legs (solo-phone-004/005, passplay-phone-004/005/007/008), all this
+     one property. The peek fade is untouched — it has its own value below and its own transition,
+     which is where the gesture's whole effect belongs. The radial fan never used this: it already
+     sets `opacity:1` on itself, so nothing about the circles or the ask pill changes here. */
+  #pp4Prompt { position:fixed; z-index:30; display:none; opacity:1; transition:opacity .16s; }
   /* playtest 15 item 4 (CONSISTENCY): hold-the-sea fades EVERY floating box the same way —
      prompts in every style, narration bubbles, the stay-put confirm, and (D-07, 02-05) the chat
      flash. The two sanctioned exceptions (Wyatt's pick): centre-stage intros and the flip ceremony

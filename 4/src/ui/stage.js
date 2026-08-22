@@ -29,7 +29,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-21g";
+const PP4_STAMP = "2026-08-21h";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -279,7 +279,103 @@ function peekHintTick(box){
     box.appendChild(hint);
   }
   const band = boardBand();
-  hint.style.top = Math.round(Math.max(band.top, band.bottom - 44)) + "px";
+  /* THE HINT IS THE ONE FLOATER THAT ALWAYS YIELDS, because it is the only one that is not part of
+     the question. It is `pointer-events:none` italic text explaining a gesture; everything it was
+     landing on is something a captain has to read or tap. It sat at a FIXED `band.bottom - 44`, and
+     that strip is inside the fan's own legal band BY CONSTRUCTION — the cornered dock puts circles
+     at `capT - D - 8` and the hint's line runs right through them. Measured on the 2026-08-21 gate:
+     the hint drawn straight across "Stay put" (solo-phone-020), across the ✓ of a trade
+     (passplay-phone-023) and over the second line of "Call Flaky Jack" (passplay-phone-029) — five
+     judge findings, all one cause, none of them a placement the fan could have avoided.
+     So the hint moves instead of the controls: keep the foot of the band when that strip is clear,
+     else hug the top of it, else say nothing this tick. Never a constant — the strip is judged
+     against the rects the renderer actually produced, so it is right at any screen size and for any
+     fan the placement search happens to choose. */
+  const span = hint.firstElementChild;
+  hint.style.display = "";
+  const sr = span ? span.getBoundingClientRect() : null;
+  const foot = Math.round(Math.max(band.top, band.bottom - 44));
+  if (!sr || !(sr.width > 0 && sr.height > 0)){ hint.style.top = foot + "px"; return; }
+  // everything the hint must not sit on: every control, the question itself, and any narration
+  // box that is already talking. One list, so a floater added later is covered by adding it here.
+  const busy = [...box.querySelectorAll(".apBtn, .apSliderWrap, .apMsg, .apSub"),
+                ...document.querySelectorAll(".sailCell, .pp4Bub")]
+    .map(e => e.getBoundingClientRect())
+    .filter(r => r.width > 2 && r.height > 2 && r.right > sr.left && r.left < sr.right);
+  /* CLEAR SPACE, not merely "not overlapping" — the judge's own words for this fault were "the
+     circle's bottom edge and text sit on top of the pill's top edge instead of having clear space
+     between them", and a hint grazing a button by a pixel reads exactly as badly as one covering it.
+     6px is the gap every other stacked floater in this file already leaves (`pillB.bottom + 6`, the
+     fan's own `gap`), so the hint is spaced like everything else rather than to a number invented
+     here — a layout dimension, not a game quantity. */
+  const AIR = 6;
+  const clear = y => y >= band.top && y + sr.height <= band.bottom &&
+    !busy.some(r => r.bottom > y - AIR && r.top < y + sr.height + AIR);
+  const head = Math.round(band.top + 4);
+  // …and a third spot BEFORE giving up: tucked just above whatever is standing in the foot's way.
+  // The hint belongs at the foot of the board, over the sea it names, so stepping up over the fan
+  // keeps it there; jumping to the ribbon is the last resort and hiding is the one after that,
+  // because a hint nobody sees teaches nobody (D-39).
+  const blockers = busy.filter(r => r.bottom > foot - AIR && r.top < foot + sr.height + AIR);
+  const above = blockers.length ? Math.round(Math.min(...blockers.map(r => r.top)) - sr.height - AIR) : foot;
+  for (const y of [foot, above, head]){
+    if (clear(y)){ hint.style.top = y + "px"; return; }
+  }
+  hint.style.display = "none";          // taught nothing this tick beats covering the answer
+}
+/* THE BACK CIRCLE RIDES THE PILL'S SHOULDER — one function, because the same two lines were
+   written out in THREE places (the placement pass, the lift-clear-of-fan pass and the
+   cornered-fan lift) and a floor added to any one of them would have left the other two wrong.
+   THE FLOOR IS THE FIX: `top = pill.top + (pill.height - 38) / 2` has no lower bound, and the
+   radial placement runs while `#pp4Prompt` is still `display:none` behind panel.js's
+   `pendingReveal` gate — so `fixedRect(msg)` is all zeros and the arithmetic reads
+   `0 + (0 - 38) / 2 = -19`, i.e. a grey half-circle hanging off the top-left corner over "DAY N".
+   Four judge findings on the 2026-08-21 phone leg (passplay-phone-014/015/016/028), reported as a
+   clipped "clock icon" because that is exactly what half a circle with a ‹ in it looks like.
+   Clamped to `tSafeV - 34`, which is the same floor the pill itself, the lift pass and clampTop()
+   already use — the band's own top edge, not a number chosen here. */
+function placeBackButton(ap, pillB, tSafeV){
+  const back = ap.querySelector(".apBack"); if (!back || !pillB) return;
+  const BK = 38, GAP = 8;                       // 46 = the circle plus the gap it always had
+  const floor = tSafeV - 34;
+  const shoulderY = Math.max(floor, pillB.top + (pillB.height - BK) / 2);
+  const shoulderX = pillB.left - (BK + GAP);
+  if (shoulderX >= 4){ back.style.left = shoulderX + "px"; back.style.top = shoulderY + "px"; return; }
+  /* NO ROOM ON THE SHOULDER, SO IT GOES ABOVE — and this only started happening once the pill was
+     made to fit the screen: a 343px pill on a 390px phone is flush left, and a circle clamped to
+     `left:4` then sits UNDER it, leaving a half-tappable escape hatch. Above the pill's own left
+     edge is where the top-to-bottom reveal rule (CLAUDE.md rule 11: back, message, buttons, helper)
+     already says the back belongs, so this is the arrangement the panel version has always used. */
+  const aboveY = pillB.top - BK - 6;
+  if (aboveY >= floor){ back.style.left = Math.max(4, pillB.left) + "px"; back.style.top = aboveY + "px"; return; }
+  back.style.left = "4px"; back.style.top = shoulderY + "px";   // nowhere left to go
+}
+/* THE PILL FITS THE SCREEN ON EVERY TICK, NOT ONLY ON THE TICK THAT PLACED IT — 18 of the 40 phone
+   findings on the 2026-08-21 gate, one cause. The placement pass chooses `left` from `mw`, and `mw`
+   was `msg.offsetWidth || 200` read while the box was `display:none` (panel.js's `pendingReveal`
+   gate holds the whole prompt hidden until the camera and ships settle). So the left edge is chosen
+   for a 200px box, the box turns out 343px, and the right edge leaves the screen — then `radKey`
+   memoises the layout and nothing ever measures it again. solo-phone-017 starts at x=95 of 390;
+   passplay-phone-023 at x=182, which is exactly the `vwPx() - 200 - 10` clamp for the guessed width.
+   Re-clamping here, above the memo, is the only version that cannot be out of date: it compares the
+   box's REAL rendered width against the real screen and moves nothing else. `.apSub` shares the
+   pill's placement rule so it is swept by the same loop (rule 8), and the back circle rides along
+   because its shoulder is defined by the pill it hangs off. */
+function clampAskToScreen(ap, tSafeV){
+  const vw = vwPx();
+  const backGap = ap.querySelector(".apBack") ? 50 : 0;   // same reservation as the placement pass
+  let pillB = null;
+  [".apMsg", ".apSub"].forEach(sel => {
+    const el = ap.querySelector(sel);
+    if (!el || !el.style.left) return;
+    const w = el.offsetWidth; if (!(w > 0)) return;
+    const was = parseFloat(el.style.left) || 0;
+    const left0 = sel === ".apMsg" ? 10 + backGap : 10;
+    const want = Math.max(left0, Math.min(was, vw - w - 10));
+    if (Math.abs(want - was) > 0.5) el.style.left = want + "px";
+    if (sel === ".apMsg") pillB = fixedRect(el);
+  });
+  if (pillB && pillB.height > 0) placeBackButton(ap, pillB, tSafeV);
 }
 /* Lifts the ask pill clear of any prompt circle already sitting on it (see the call site). */
 function liftAskClearOfFan(ap, tSafeV, capTV){
@@ -299,8 +395,7 @@ function liftAskClearOfFan(ap, tSafeV, capTV){
   const lifted = Math.max(tSafeV - 34, Math.min(blockTop - mr.height - 10, capTV - mr.height - 8));
   if (Math.abs((parseFloat(msg.style.top) || 0) - lifted) > 1){
     msg.style.top = lifted + "px";
-    const back = ap.querySelector(".apBack");
-    if (back){ const nb = fixedRect(msg); back.style.top = (nb.top + (nb.height - 38) / 2) + "px"; }
+    placeBackButton(ap, fixedRect(msg), tSafeV);
   }
 }
 function capBandBottom(){
@@ -1932,12 +2027,17 @@ function promptTick(){
        out of date. Shape-aware for the same reason the gate is: these are circles, and a corner
        clipping a text box is not a circle sitting on it. */
     liftAskClearOfFan(ap, tSafe, capT);
+    clampAskToScreen(ap, tSafe);
     const unplaced = menu.some(b => !b.style.left);
     if (radKey === S.radKey && !unplaced) return;
-    S.radKey = radKey;
+    /* A LAYOUT COMPUTED WHILE THE BOX WAS `display:none` IS A GUESS, AND THE MEMO WOULD KEEP IT
+       FOR THE WHOLE PROMPT. Nothing in radKey changes when the prompt becomes visible — same turn,
+       same buttons, same ship, same viewport — so the guess computed behind panel.js's
+       `pendingReveal` gate was frozen in place and never re-measured. Refusing to memoise a pass
+       that had no layout to read costs one extra placement per prompt and removes the whole class. */
+    S.radKey = (msg && !msg.offsetWidth) ? null : radKey;
     let pillB = null, stackAt = null, stackCx = null;
     if (msg){
-      const mw = Math.min(msg.offsetWidth || 200, vwPx() - 20);
       msg.style.position = "fixed";
       /* THE ASK PILL MUST FIT THE SCREEN, NOT JUST BE AIMED AT IT. `mw` was clamped to
          `vwPx() - 20` and then used only to CHOOSE a left edge — the element itself kept its
@@ -1950,8 +2050,20 @@ function promptTick(){
       // an inline `vwPx()-20` is LARGER than that on a phone (370 vs 343) and, being inline, wins —
       // so the first version of this cap made the very overflow it was meant to stop slightly worse.
       // Take the tighter of the two and the cap can only ever help.
-      msg.style.maxWidth = Math.min(vwPx() - 20, Math.round(vwPx() * 0.88)) + "px";
+      /* THE PILL LEAVES ROOM FOR ITS OWN BACK CIRCLE. Capping the box to fit the screen turned a
+         long trade ask into a 343px box on a 390px phone, which is the whole width — so the ‹ circle
+         that hangs off its shoulder had nowhere to stand and ended up two-thirds hidden UNDER the
+         pill, a half-tappable escape hatch. Reserving the circle's own footprint (38 + 8 gap + 4
+         margin, the numbers the shoulder placement already uses) costs a long ask one extra line
+         and keeps both fully on screen and fully touchable — which is the trade D-38 already made
+         for every other control. Nothing is reserved when the prompt has no back option. */
+      const backGap = ap.querySelector(".apBack") ? 50 : 0;
+      msg.style.maxWidth = (Math.min(vwPx() - 20, Math.round(vwPx() * 0.88)) - backGap) + "px";
       msg.style.boxSizing = "border-box";
+      /* CAP FIRST, MEASURE SECOND — this read used to sit ABOVE the two lines it depends on, so it
+         measured a box that had not been capped yet and then chose a left edge for a width the box
+         was about to stop having. Order is the whole fix here; the arithmetic below is unchanged. */
+      const mw = Math.min(msg.offsetWidth || 200, vwPx() - 20);
       // playtest 15 (Wyatt: "over the course of a single turn, it doesn't move around"): the
       // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
       // same turn reuses it — only the width re-clamps so a longer ask stays on screen.
@@ -1985,7 +2097,7 @@ function promptTick(){
         if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : clampTop(Math.min(cb.b + 8, capT - 44)); }
         S.pillLock = { key: S.turnSerial, at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
       }
-      msg.style.left = Math.min(Math.max(cxA - mw / 2, 10), vwPx() - mw - 10) + "px";
+      msg.style.left = Math.min(Math.max(cxA - mw / 2, 10 + backGap), vwPx() - mw - 10) + "px";
       msg.style.top = mTop + "px";
       // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — msg is itself
       // position:fixed, so its rendered box is always viewport-absolute regardless of what we just
@@ -1993,11 +2105,7 @@ function promptTick(){
       // frame everything else in this function is now working in.
       pillB = fixedRect(msg);
       // the back option, when present, is a small circle on the pill's shoulder
-      const back = ap.querySelector(".apBack");
-      if (back){
-        back.style.left = Math.max(4, pillB.left - 46) + "px";
-        back.style.top = (pillB.top + (pillB.height - 38) / 2) + "px";
-      }
+      placeBackButton(ap, pillB, tSafe);
       stackAt = pillB.bottom + 6; stackCx = cxA;
     }
     /* THE SLIDER AND THE HELPER LINE ARE PLACED WHETHER OR NOT THERE IS AN ASK PILL, AND ARE
@@ -2167,16 +2275,48 @@ function promptTick(){
       const perRow = Math.max(1, Math.floor((xMax - xMin + gap) / step));
       const rowsN = Math.ceil(menu.length / perRow);
       const blockH = rowsN * step - gap;
-      const topY = Math.max(yMin, Math.min(capT - blockH - 10, Math.max(yMin, yMax)));
-      pts = menu.map((b, n) => {
-        const r = Math.floor(n / perRow), c = n % perRow;
-        const inRow = Math.min(perRow, menu.length - r * perRow);
-        const rowW = inRow * step - gap;                        // left-edge span of this row
-        // xMax is the greatest LEFT coordinate a circle may take, so the row's own start is bounded
-        // by xMax minus the row's width beyond its first circle.
-        const startX = Math.min(Math.max(sx - rowW / 2, xMin), Math.max(xMin, xMax - (rowW - D)));
-        return [startX + c * step, topY + r * step];
-      });
+      const block = (cx, ty) => {
+        const top0 = Math.min(Math.max(ty, yMin), Math.max(yMin, yMax - (blockH - D)));
+        return menu.map((b, n) => {
+          const r = Math.floor(n / perRow), c = n % perRow;
+          const inRow = Math.min(perRow, menu.length - r * perRow);
+          const rowW = inRow * step - gap;                        // left-edge span of this row
+          // xMax is the greatest LEFT coordinate a circle may take, so the row's own start is bounded
+          // by xMax minus the row's width beyond its first circle.
+          const startX = Math.min(Math.max(cx - rowW / 2, xMin), Math.max(xMin, xMax - (rowW - D)));
+          return [startX + c * step, top0 + r * step];
+        });
+      };
+      const dockY = Math.max(yMin, Math.min(capT - blockH - 10, Math.max(yMin, yMax)));
+      /* …AND THE DOCK MUST NEVER LAND ON A SQUARE YOU HAVE TO TAP. D-38 (Wyatt, 2026-08-21) lets a
+         prompt cover the board and names exactly one exception: "sailing squares, which you have to
+         click and you cannot click them if they are covered by something." Every OTHER placement in
+         this function already treats the sail rects as obstacles; the cornered dock is the one that
+         did not, because it is what runs precisely when the obstacle-aware search has already given
+         up — so it docked the block above the captains box and dropped it straight onto the sail
+         window. That is all three of the 2026-08-21 passplay-phone structural failures at once, one
+         screen, one circle: `sail-clickable: 9 sail square(s) covered <- #apStay`, plus the `no-pile`
+         and `not-occluded` rules reporting the same overlap from their own angle.
+         The search is deliberately the SAME SHAPE the narration bubble already uses for the same
+         rule (see place() above): the two vertical spots the layout would consider anyway — clear
+         below the sail window, clear above it — each tried at the boat's own column, flush left and
+         flush right, taking the first that covers NO square and otherwise the least-covering. It
+         cannot wander: every candidate is one the old code would already have been happy with, and
+         with no sail window on screen the first candidate IS the old behaviour, unchanged. */
+      const covers = ps => cellRects.reduce((n, rc) =>
+        n + (ps.some(p => hitRect(p[0], p[1], rc, 0)) ? 1 : 0), 0);
+      const ys = cb ? [dockY, cb.b + 8, cb.t - blockH - 8] : [dockY];
+      const xs = [sx, -1e6, 1e6];        // the boat's column, then flush left, then flush right
+      let bestN = Infinity;
+      for (const ty of ys){
+        for (const cx of xs){
+          const cand = block(cx, ty);
+          const n = covers(cand);
+          if (n < bestN){ bestN = n; pts = cand; }
+          if (n === 0) break;
+        }
+        if (bestN === 0) break;
+      }
     }
     /* THE QUESTION MUST SURVIVE ITS OWN ANSWERS. D-38 lets the fan cover the BOARD, and holding
        the sea reveals what is underneath — but holding the sea does not reveal text sitting under
@@ -2193,8 +2333,7 @@ function promptTick(){
         const lifted = Math.max(tSafe - 34, blockTop - pillB.height - 10);
         msg.style.top = lifted + "px";
         pillB = fixedRect(msg);
-        const back = ap.querySelector(".apBack");
-        if (back){ back.style.top = (pillB.top + (pillB.height - 38) / 2) + "px"; }
+        placeBackButton(ap, pillB, tSafe);
       }
     }
     menu.forEach((b, i) => {
@@ -2244,7 +2383,24 @@ function promptTick(){
     const above = (y0 - 8) - topSafe;
     if (below >= H) top = y1 + 8;
     else if (above >= H) top = y0 - 8 - H;
-    else top = capTop - H - 6;                 // least-bad: hug the captains box
+    else {
+      /* LEAST-BAD IS STILL NOT ALLOWED TO COVER A SQUARE — the same D-38 rule the radial dock
+         above now obeys, on the card the sail prompt falls back to when the fan cannot be drawn.
+         The two vertical spots ARE the two branches above; all that is left to try here is the
+         row's horizontal position, so the card slides to whichever end of the band covers fewest
+         legal moves. On a 390px phone the card is 330 wide and that buys 44px of travel — say so
+         rather than pretend otherwise; it is the same search shape as the bubble's and it is what
+         there is room for. Zero-cover wins outright when it exists. */
+      top = capTop - H - 6;                    // least-bad: hug the captains box
+      const cr = cells.map(c => fixedRect(c));
+      const hits = (lx, ty) => cr.reduce((n, r) =>
+        n + ((lx < r.right && lx + W > r.left && ty < r.bottom && ty + H > r.top) ? 1 : 0), 0);
+      let bn = hits(left, top);
+      if (bn > 0) for (const lx of [8, Math.max(8, vwPx() - W - 8)]){
+        const n = hits(lx, top);
+        if (n < bn){ bn = n; left = lx; }
+      }
+    }
   } else {
     left = Math.min(Math.max(sx - W / 2, 8), vwPx() - W - 8);
     top = sy + 34;                             // just under the hull
