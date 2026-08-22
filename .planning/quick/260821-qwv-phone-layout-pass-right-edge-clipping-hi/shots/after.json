@@ -1,0 +1,518 @@
+{
+ "tag": "after",
+ "recipe": {
+  "opacity": 1,
+  "capVisible": true
+ },
+ "firstPrompt": {
+  "vw": 390,
+  "vh": 664,
+  "promptDisp": "block",
+  "promptOpacity": 1,
+  "msg": {
+   "l": 23.5,
+   "t": 86,
+   "r": 366.5,
+   "bo": 142,
+   "w": 343,
+   "h": 56
+  },
+  "msgText": "Davy Scones — a battle's brewing! Call the winner — it's free, a",
+  "msgOffRight": -23.5,
+  "back": null,
+  "backAboveTop": null,
+  "hint": {
+   "l": 78.5,
+   "t": 421,
+   "r": 311.5,
+   "bo": 443,
+   "w": 233,
+   "h": 22
+  },
+  "hintHidden": false,
+  "hintOverControl": [],
+  "btns": [
+   {
+    "txt": "Call Dough Hoo",
+    "l": 162,
+    "t": 265,
+    "r": 228,
+    "bo": 331,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Call Flaky Jac",
+    "l": 162,
+    "t": 338,
+    "r": 228,
+    "bo": 404,
+    "w": 66,
+    "h": 66
+   }
+  ],
+  "nCells": 0,
+  "cellsCovered": 0
+ },
+ "posedEarly": {
+  "vw": 390,
+  "vh": 664,
+  "promptDisp": "none",
+  "promptOpacity": 1,
+  "msg": {
+   "l": 0,
+   "t": 0,
+   "r": 0,
+   "bo": 0,
+   "w": 0,
+   "h": 0
+  },
+  "msgText": "Ye're GIVIN' 🥚 Speckled Eggs for 🌾 Toasty Wheat the table answ",
+  "msgOffRight": -390,
+  "back": {
+   "l": 0,
+   "t": 0,
+   "r": 0,
+   "bo": 0,
+   "w": 0,
+   "h": 0
+  },
+  "backAboveTop": false,
+  "hint": {
+   "l": 0,
+   "t": 0,
+   "r": 0,
+   "bo": 0,
+   "w": 0,
+   "h": 0
+  },
+  "hintHidden": false,
+  "hintOverControl": [],
+  "btns": [],
+  "nCells": 0,
+  "cellsCovered": 0
+ },
+ "posedAsk": {
+  "vw": 390,
+  "vh": 664,
+  "promptDisp": "block",
+  "promptOpacity": 1,
+  "msg": {
+   "l": 60,
+   "t": 138.1,
+   "r": 353,
+   "bo": 213.1,
+   "w": 293,
+   "h": 75
+  },
+  "msgText": "Ye're GIVIN' 🥚 Speckled Eggs for 🌾 Toasty Wheat the table answ",
+  "msgOffRight": -37,
+  "back": {
+   "l": 14,
+   "t": 156.6,
+   "r": 52,
+   "bo": 194.6,
+   "w": 38,
+   "h": 38
+  },
+  "backAboveTop": false,
+  "hint": {
+   "l": 78.5,
+   "t": 92,
+   "r": 311.5,
+   "bo": 114,
+   "w": 233,
+   "h": 22
+  },
+  "hintHidden": false,
+  "hintOverControl": [],
+  "btns": [
+   {
+    "txt": "Offer it!",
+    "l": 8,
+    "t": 317,
+    "r": 74,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Fresh Milk",
+    "l": 80,
+    "t": 317,
+    "r": 146,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Toasty Wheat",
+    "l": 152,
+    "t": 317,
+    "r": 218,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Cacao Pods",
+    "l": 224,
+    "t": 317,
+    "r": 290,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Hot Cinnamon",
+    "l": 8,
+    "t": 389,
+    "r": 74,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Speckled Eggs",
+    "l": 80,
+    "t": 389,
+    "r": 146,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Crystal Sugar",
+    "l": 152,
+    "t": 389,
+    "r": 218,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Nah",
+    "l": 224,
+    "t": 389,
+    "r": 290,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   }
+  ],
+  "nCells": 0,
+  "cellsCovered": 0
+ },
+ "plantHint": {
+  "vw": 390,
+  "vh": 664,
+  "promptDisp": "block",
+  "promptOpacity": 1,
+  "msg": {
+   "l": 60,
+   "t": 138.1,
+   "r": 353,
+   "bo": 213.1,
+   "w": 293,
+   "h": 75
+  },
+  "msgText": "Ye're GIVIN' 🥚 Speckled Eggs for 🌾 Toasty Wheat the table answ",
+  "msgOffRight": -37,
+  "back": {
+   "l": 14,
+   "t": 156.6,
+   "r": 52,
+   "bo": 194.6,
+   "w": 38,
+   "h": 38
+  },
+  "backAboveTop": false,
+  "hint": {
+   "l": 0,
+   "t": 0,
+   "r": 0,
+   "bo": 0,
+   "w": 0,
+   "h": 0
+  },
+  "hintHidden": true,
+  "hintOverControl": [],
+  "btns": [
+   {
+    "txt": "Offer it!",
+    "l": 128.5,
+    "t": 70,
+    "r": 194.5,
+    "bo": 136,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Fresh Milk",
+    "l": 80,
+    "t": 317,
+    "r": 146,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Toasty Wheat",
+    "l": 152,
+    "t": 317,
+    "r": 218,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Cacao Pods",
+    "l": 224,
+    "t": 317,
+    "r": 290,
+    "bo": 383,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Hot Cinnamon",
+    "l": 8,
+    "t": 389,
+    "r": 74,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Speckled Eggs",
+    "l": 80,
+    "t": 389,
+    "r": 146,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Crystal Sugar",
+    "l": 152,
+    "t": 389,
+    "r": 218,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Nah",
+    "l": 224,
+    "t": 389,
+    "r": 290,
+    "bo": 455,
+    "w": 66,
+    "h": 66
+   }
+  ],
+  "nCells": 0,
+  "cellsCovered": 0,
+  "planted": {
+   "ok": true,
+   "at": [
+    128.484375,
+    70
+   ]
+  }
+ },
+ "plantBack": {
+  "vw": 391,
+  "vh": 664,
+  "promptDisp": "block",
+  "promptOpacity": 1,
+  "msg": {
+   "l": 0,
+   "t": 0,
+   "r": 0,
+   "bo": 0,
+   "w": 0,
+   "h": 0
+  },
+  "msgText": "Ye're GIVIN' 🥚 Speckled Eggs for 🌾 Toasty Wheat the table answ",
+  "msgOffRight": -391,
+  "back": {
+   "l": 4,
+   "t": 86,
+   "r": 42,
+   "bo": 124,
+   "w": 38,
+   "h": 38
+  },
+  "backAboveTop": false,
+  "hint": {
+   "l": 79,
+   "t": 92,
+   "r": 312,
+   "bo": 114,
+   "w": 233,
+   "h": 22
+  },
+  "hintHidden": false,
+  "hintOverControl": [],
+  "btns": [
+   {
+    "txt": "Offer it!",
+    "l": 152.1,
+    "t": 148.6,
+    "r": 218.1,
+    "bo": 214.6,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Fresh Milk",
+    "l": 166.6,
+    "t": 221.2,
+    "r": 232.6,
+    "bo": 287.2,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Toasty Wheat",
+    "l": 181,
+    "t": 293.8,
+    "r": 247,
+    "bo": 359.8,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Cacao Pods",
+    "l": 195.5,
+    "t": 366.4,
+    "r": 261.5,
+    "bo": 432.4,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Hot Cinnamon",
+    "l": 224.7,
+    "t": 134.2,
+    "r": 290.7,
+    "bo": 200.2,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Speckled Eggs",
+    "l": 239.2,
+    "t": 206.8,
+    "r": 305.2,
+    "bo": 272.8,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Crystal Sugar",
+    "l": 253.6,
+    "t": 279.4,
+    "r": 319.6,
+    "bo": 345.4,
+    "w": 66,
+    "h": 66
+   },
+   {
+    "txt": "Nah",
+    "l": 268,
+    "t": 351.9,
+    "r": 334,
+    "bo": 417.9,
+    "w": 66,
+    "h": 66
+   }
+  ],
+  "nCells": 0,
+  "cellsCovered": 0
+ },
+ "plantDock": {
+  "plant": {
+   "l": 6.7,
+   "t": 283.4,
+   "r": 383.3,
+   "bo": 465.6
+  },
+  "btns": [
+   {
+    "txt": "Offer it!",
+    "l": 8,
+    "t": 131.7,
+    "r": 74,
+    "bo": 197.7
+   },
+   {
+    "txt": "Fresh Milk",
+    "l": 80,
+    "t": 131.7,
+    "r": 146,
+    "bo": 197.7
+   },
+   {
+    "txt": "Toasty Wheat",
+    "l": 152,
+    "t": 131.7,
+    "r": 218,
+    "bo": 197.7
+   },
+   {
+    "txt": "Cacao Pods",
+    "l": 224,
+    "t": 131.7,
+    "r": 290,
+    "bo": 197.7
+   },
+   {
+    "txt": "Hot Cinnamon",
+    "l": 8,
+    "t": 203.7,
+    "r": 74,
+    "bo": 269.7
+   },
+   {
+    "txt": "Speckled Egg",
+    "l": 80,
+    "t": 203.7,
+    "r": 146,
+    "bo": 269.7
+   },
+   {
+    "txt": "Crystal Suga",
+    "l": 152,
+    "t": 203.7,
+    "r": 218,
+    "bo": 269.7
+   },
+   {
+    "txt": "Nah",
+    "l": 224,
+    "t": 203.7,
+    "r": 290,
+    "bo": 269.7
+   }
+  ],
+  "onPlant": [],
+  "nSail": 1,
+  "sailRects": [
+   {
+    "l": 6.7,
+    "t": 283.4,
+    "r": 383.3,
+    "bo": 465.6
+   }
+  ],
+  "promptDisp": "block",
+  "geometry": {
+   "bandTop": 88,
+   "bandBottom": 465,
+   "plantTop": 284
+  }
+ },
+ "consoleErrs": []
+}

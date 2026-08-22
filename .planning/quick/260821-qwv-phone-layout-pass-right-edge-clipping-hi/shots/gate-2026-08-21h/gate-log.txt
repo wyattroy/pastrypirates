@@ -1,0 +1,65 @@
+[9s]   [solo-phone] DAY 0
+[9s]   [passplay-phone] DAY 0
+[20s]   [solo-phone] DAY 1
+[26s]   [passplay-phone] DAY 1
+[67s]   [solo-phone] DAY 2
+[102s]   [passplay-phone] DAY 2
+[129s]   [solo-phone] DAY 3
+[174s]   [passplay-phone] DAY 3
+[190s]   [solo-phone] DAY 4
+[236s]   [solo-phone] DAY 5
+[238s]   [passplay-phone] DAY 4
+[302s]   [solo-phone] DAY 6
+[325s]   [passplay-phone] DAY 5
+[378s]   [solo-phone] DAY 7
+[392s]   [passplay-phone] DAY 6
+[423s]   [solo-phone] DAY 8
+[461s]   [passplay-phone] DAY 7
+[484s]   [solo-phone] DAY 9
+[531s]   [passplay-phone] DAY 8
+[537s]   [solo-phone] DAY 10
+[591s]   [solo-phone] DAY 11
+[597s]   [passplay-phone] DAY 9
+[652s]   [solo-phone] DAY 12
+[671s]   [passplay-phone] DAY 10
+[705s]   [solo-phone] DAY 13
+[738s]   [passplay-phone] DAY 11
+[763s]   [solo-phone] DAY 14
+[802s]   [passplay-phone] DAY 12
+[831s]   [solo-phone] DAY 15
+[880s]   [solo-phone] END OF VOYAGE at day 15
+[880s] [solo-phone] vision-judging 25 screen(s)…
+[902s]   [passplay-phone] DAY 13
+[952s]   [judge FAIL] solo-phone-011.png: stray faint gray text reading 'hov.' overlaid on a board tile (~row 2, third tile) — looks like a leftover/truncated tooltip label bleeding onto the map art, not part of any tile or UI element
+[965s]   [passplay-phone] DAY 14
+[978s]   [judge FAIL] solo-phone-012.png: Crustbeard row in CAPTAINS panel: name/coins sit at the left, then a large empty gap, then a single ingredient icon isolated at the far right edge — looks detached and leaves the row mostly dead space, unlike Davy Scones' row where icons sit right after the coin count
+[1015s]   [judge FAIL] solo-phone-010.png: Attack (-2) and Trade action-circles overlap each other — their circular edges visibly intersect around the shared dock/anchor icon, merging into one cluttered cluster instead of two distinct buttons; Attack circle bleeds off the top-right island's edge onto open water, partially covering the island art it's supposed to target
+[1017s]   [judge FAIL] solo-phone-017.png: narration message 'Docking at Glitter Bay – dig for treasure!' appears twice — once at top and again duplicated in a box directly behind the FLIP coin; the duplicate text box is clipped/obscured by the coin overlapping on top of it, cutting off its words mid-sentence
+[1027s]   [passplay-phone] DAY 15
+[1031s]   [judge FAIL] solo-phone-018.png: duplicate 'Docking at Glitter Bay' text appears twice — a faint second copy sits directly behind/below the bold gold title; the faint duplicate text box is clipped by the coin/medallion graphic overlapping it
+[1074s]   [judge FAIL] solo-phone-021.png: "Crustbeard declines" toast overlaps/collides with the "Tap and hold the sea to reveal the board" tooltip bar directly below it, partially occluding the toast text
+[1095s]   [passplay-phone] DAY 16
+[1125s]   [judge FAIL] solo-phone-024.png: a green pill-button bar (looks like emoji/reaction shortcuts) is jammed at the very bottom edge, overlapping the End of Voyage card and sliced off by the screen bottom so only the top halves of its icons show
+[1133s]   [judge FAIL] solo-phone-eov.png: bottom action/toolbar bar (with play, camera, and other icons) is clipped by the screen's bottom edge — only a thin sliver of it is visible, rest is off-screen
+[1136s] [solo-phone] contact sheet: /private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/071a8491-34da-4fbe-9525-155f95eec977/scratchpad/gate/contact-solo-phone.png
+[1158s]   [passplay-phone] DAY 17
+[1235s]   [passplay-phone] DAY 18
+[1305s]   [passplay-phone] DAY 19
+[1374s]   [passplay-phone] END OF VOYAGE at day 19
+[1374s] [passplay-phone] vision-judging 30 screen(s)…
+[1429s]   [judge FAIL] passplay-phone-004.png: the two recipe cards' ingredient rows don't line up — the right card's 3-line title ('Cinnamon-Chocolate Fudge') pushes its divider and every ingredient row noticeably lower than the left card's 2-line title, so the side-by-side lists are misaligned
+[1448s]   [judge FAIL] passplay-phone-008.png: A green 'Dough Hook' player/coin row is stuck behind the recipe-picker card, sliced off by the bottom screen edge — only a thin sliver of text/icon is visible, looking like a stray leftover panel rather than intentional scroll content
+[1507s]   [judge FAIL] passplay-phone-013.png: teal ship's hull is hidden behind the 'Tap and hold the sea to reveal the board' hint bar, overlapping the piece instead of sitting beside it
+[1599s]   [judge FAIL] passplay-phone-021.png: Pass button's icon and top of circle are overlapped/hidden behind the gray helper text bubble above it ('Attacking costs ye 2...')
+[1686s] [passplay-phone] contact sheet: /private/tmp/claude-501/-Users-wyattroy-Documents-Projects-pastrypirates/071a8491-34da-4fbe-9525-155f95eec977/scratchpad/gate/contact-passplay-phone.png
+[1686s] 
+== solo-phone: FAIL
+[1686s]    ✗ offered but never exercised: vanilla beans
+[1686s]    ✗ vision judge FAILED 8 screen(s)
+[1686s]    coverage: arrgh:1/1  cinnamon sponge cakea fl:2/2  chocolate genoise sponge:0/2  start:1/1  sail square:15/15  pass #:6/15  menu:0/1  menu open:1/0  menu close:1/0  trade:6/14  toasty wheat:2/6  coins only:4/6  slider:6/6  offer it:6/6  fresh milk:1/4  crystal sugar:1/4  vanilla beans:0/4  dock:3/3  flip coin:3/3  buy #:2/3  nah:1/3  accept:1/1  counter:0/1  deny:0/1  hot cinnamon:1/3  dough hook:2/3  walk away:1/3  cacao pods:1/2  (icon):2/2
+[1686s] 
+== passplay-phone: FAIL
+[1686s]    ✗ vision judge FAILED 4 screen(s)
+[1686s]    coverage: arrgh:1/1  cinnamon dutch babya dra:2/2  cinnamonchocolate fudgea:0/2  at the helm:39/39  spiced cocoa shortbreadb:2/2  caramel slicea toastedco:0/2  start:1/1  sail square:46/46  pass #:17/38  call dough hook:1/3  call flaky jack:1/2  menu:0/1  menu open:1/0  menu close:1/0  trade:17/36  toasty wheat:4/17  coins only:9/16  slider:16/16  offer it:17/17  dough hook#:1/1  walk away:1/6  speckled eggs:4/14  (icon):10/22  dough hook:1/2  attack #:2/2  call peg leg meg:1/1  flip coin:5/5  accept:2/4  counter:1/3  deny:1/5  davy scones:1/1  cacao pods:3/10  vanilla beans:3/9  dock:2/2  buy #:1/2  nah:0/2  coin:1/1  ask it:1/1  hot cinnamon:3/3  flaky jack:1/1  # crates:1/1  peg leg meg:1/1
+[1686s] 
+RESULT: FAIL

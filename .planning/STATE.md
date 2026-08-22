@@ -523,6 +523,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 |---|-------------|------|--------|-----------|
 | 260818-vot | Pass payout in config, shown on the Pass button | 2026-08-18 | 831abd2 | [260818-vot-pass-payout-in-config](./quick/260818-vot-pass-payout-in-config/) |
 | 260821-aig | Corrected economy matrix: dock-flip lever, band metric (1<=N<=3), his 1/3 idea confirmed best | 2026-08-21 | 7d9d703 | [260821-aig-re-run-02-2-05-economy-matrix-with-dock-](./quick/260821-aig-re-run-02-2-05-economy-matrix-with-dock-/) |
+| 260821-qwv | Phone layout pass: right-edge clipping, hint-on-buttons, see-through recipe picker, back circle above the ribbon. Gate findings 40 -> 12, structural 4 -> 0 | 2026-08-22 | 297d84c | [260821-qwv-phone-layout-pass-right-edge-clipping-hi](./quick/260821-qwv-phone-layout-pass-right-edge-clipping-hi/) |
 
 ### Roadmap Evolution
 
