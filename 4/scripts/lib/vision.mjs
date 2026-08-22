@@ -41,7 +41,18 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
       { maxBuffer: 8 * 1024 * 1024 }, (err, stdout) => {
         if (err && !stdout) return resolve({ verdict: "ERROR", issues: ["vision call failed: " + String(err.message || err).slice(0, 120)], confidence: 0 });
         let text = stdout;
-        try { const outer = JSON.parse(stdout); text = outer.result ?? stdout; } catch {}   // --output-format json wraps the reply in {result,...}
+        let outer = null;
+        try { outer = JSON.parse(stdout); text = outer.result ?? stdout; } catch {}   // --output-format json wraps the reply in {result,...}
+        /* AN ENVIRONMENT FAILURE IS NOT A BAD ANSWER, AND IT MUST NOT BE COUNTED AS ONE.
+           2026-08-22: the machine's `claude` login expired. Every call returned a perfectly valid
+           JSON envelope whose `result` was "Failed to authenticate: OAuth session expired and could
+           not be refreshed" — so extractJSON found no verdict and this resolved "unparseable judge
+           reply", SIXTY-SEVEN TIMES, once per screenshot, while the run ground on. The judge cannot
+           work at all in that state, so the honest reading is FATAL: stop, say the one thing that
+           is wrong, and let the caller abandon the whole vision pass instead of manufacturing 67
+           findings-shaped non-findings. Anything that reads as a bad reply on EVERY screen is an
+           instrument failure, not a game with 67 broken screens. */
+        if (outer && outer.is_error === true) return resolve({ verdict: "FATAL", issues: ["the judge cannot run: " + String(text).slice(0, 160)], confidence: 0 });
         const j = extractJSON(String(text));
         if (!j || !j.verdict) return resolve({ verdict: "ERROR", issues: ["unparseable judge reply"], confidence: 0, raw: String(text).slice(0, 200) });
         resolve({ verdict: /fail/i.test(j.verdict) ? "FAIL" : "PASS", issues: Array.isArray(j.issues) ? j.issues : [], confidence: +j.confidence || 0 });
@@ -55,12 +66,21 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
 export async function judgeAll(items, { concurrency = 3, model = "claude-sonnet-5", onEach } = {}) {
   const results = new Array(items.length);
   let next = 0;
+  /* ONE FATAL STOPS THE WHOLE PASS. A FATAL means the judge cannot run at all (an expired login, a
+     missing CLI) — it says nothing about the screen it was pointed at, so every further call is
+     guaranteed to fail the same way and would only bury the one real message under a pile of
+     identical ones. Screens never reached are left `undefined` rather than marked PASS: a screen
+     that was not judged has NOT been cleared, and the caller must be able to tell those apart. */
+  let fatal = null;
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, async () => {
     while (next < items.length) {
+      if (fatal) return;
       const i = next++;
       results[i] = await judgeScreen(items[i].path, items[i].context || "", { model });
+      if (results[i] && results[i].verdict === "FATAL" && !fatal) fatal = results[i];
       if (onEach) onEach(items[i], results[i], i);
     }
   }));
+  results.fatal = fatal;
   return results;
 }

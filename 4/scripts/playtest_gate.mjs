@@ -292,7 +292,17 @@ async function runLeg(name, idx) {
     const results = await judgeAll(items, { concurrency: 3, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
     rec.judged = items.map((it, i) => ({ shot: it.shot, r: results[i] }));
   }
-  await contactSheet(rec, name, idx);
+  /* THE CONTACT SHEET MUST NOT BE ABLE TO HANG THE WHOLE RUN. 2026-08-22: after the judge failed,
+     the gate stopped here and never exited — 0% CPU, no log line, and its two sheet browsers left
+     alive at 47% of Wyatt's CPU for three hours until a human noticed. A step that only PRESENTS
+     results may never outlive the run that produced them, so it is bounded and its failure is
+     reported rather than fatal. The kill is scoped to this sheet's own port, never a bare pkill. */
+  const sheetPort = DBG0 + 90 + idx;
+  await Promise.race([
+    contactSheet(rec, name, idx),
+    sleep(120000).then(() => { log(`[${name}] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)`);
+      try { execSync(`pkill -9 -f "remote-debugging-port=${sheetPort}"`, { stdio: "ignore" }); } catch {} })
+  ]);
   rec.verdict = legVerdict(rec);
   if (rec.error) rec.verdict.push("leg error: " + rec.error);
   return rec;
