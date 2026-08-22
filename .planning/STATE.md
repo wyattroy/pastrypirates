@@ -5,13 +5,13 @@ milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
 stopped_at: "2026-08-21 evening session RESUMED: phone pass (quick task) -> Group E (02.2-07) -> Group D leftovers (02.2-06) -> one full gate, one playtest (D-41..43). Previous: Desktop layout rebuilt (build y); the piecemeal gates replaced by one general playtest gate (D-37); Wyatt's 3 desktop design notes shipped. READ .planning/HANDOFF-2026-08-21-evening.md"
-last_updated: "2026-08-21T12:12:18.815Z"
+last_updated: "2026-08-22T02:44:18.376Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
-  total_plans: 24
+  total_plans: 25
   completed_plans: 23
   percent: 33
 current_phase: 02.2
@@ -61,7 +61,6 @@ build step — nothing here is ever a cache.
 stepped away. It supersedes the afternoon handoff (whose "next action: Group E" is stale) and holds
 today's full state: the desktop rebuild, the new playtest gate (D-37), his three design notes, and
 the two bugs the gate found (one fixed-but-unverified, one diagnosed-not-fixed).
-
 
 Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01, 03, 04 and 05 EXECUTED, live as
 build `2026-08-20q`** (unchanged since 04 — 05 shipped no game code, so no new stamp).
@@ -525,6 +524,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | 260821-aig | Corrected economy matrix: dock-flip lever, band metric (1<=N<=3), his 1/3 idea confirmed best | 2026-08-21 | 7d9d703 | [260821-aig-re-run-02-2-05-economy-matrix-with-dock-](./quick/260821-aig-re-run-02-2-05-economy-matrix-with-dock-/) |
 | 260821-qwv | Phone layout pass: right-edge clipping, hint-on-buttons, see-through recipe picker, back circle above the ribbon. Gate findings 40 -> 12, structural 4 -> 0 | 2026-08-22 | 297d84c | [260821-qwv-phone-layout-pass-right-edge-clipping-hi](./quick/260821-qwv-phone-layout-pass-right-edge-clipping-hi/) |
 | 260821-wkd | Cloud-QA proof verdict recorded in GIT-AND-DEPLOY §7: all four items passed 2026-08-21; two-part Chromium TLS fix documented | 2026-08-21 | ac9a629 | [260821-wkd-record-the-cloud-qa-proof-verdict-in-doc](./quick/260821-wkd-record-the-cloud-qa-proof-verdict-in-doc/) |
+| 4 | Make the cloud browser TLS fix automatic via SessionStart hook | 2026-08-22 | 70bb1ee | — |
 
 ### Roadmap Evolution
 

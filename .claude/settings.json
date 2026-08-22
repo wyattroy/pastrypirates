@@ -10,6 +10,18 @@
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/cloud-session-start.sh\"",
+            "timeout": 300,
+            "statusMessage": "Cloud QA browser setup (no-op on the laptop)"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|Edit|Write|NotebookEdit",

@@ -328,8 +328,12 @@ is unchanged: `node 4/scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`.
 ### THE PROOF — RAN 2026-08-21, all four items passed.
 
 Run by the first cloud session, branch `claude/pastry-pirates-cloud-qa-a9jkeg`. Item 3 passed only
-after a two-part browser TLS fix — recorded below, and **the next cloud session applies it before
-any browser QA.**
+after a two-part browser TLS fix — **now applied AUTOMATICALLY at session start** by
+`.claude/hooks/cloud-session-start.sh` (a SessionStart hook in `.claude/settings.json`, added
+2026-08-21 at Wyatt's ask: *"I want this to work, now and always"*). It no-ops on the laptop
+(`CLAUDE_CODE_REMOTE` guard), is idempotent, and installs the fixed browser as `chromium` on PATH
+so `4/scripts/lib/chrome.mjs` resolves it with no env var. The manual recipe stays below as the
+fallback if the hook ever reports "skipped" — and as the record of what the fix IS.
 
 1. **Project-local GSD works.** `node .claude/gsd-core/bin/gsd-tools.cjs validate health` ran —
    known-noise W019s only. Also verified: `state get`, `progress` and the full command list all
@@ -349,7 +353,7 @@ any browser QA.**
 Also proven: the root `npm test` and all eight `4/scripts` static gates pass on bare Node in the
 container, and the repo's `.claude/hooks` (read-the-doc-first) fire correctly in the cloud.
 
-#### The environment fix — apply BEFORE any browser QA
+#### The environment fix — automatic via the SessionStart hook; manual fallback below
 
 Without it, item 3 fails **exactly as this section's own "fails SILENTLY" warning predicts**: the
 Firebase SDK never loads and a Host click produces **no room code at all**. The cloud container
@@ -380,8 +384,10 @@ chmod +x /tmp/chromium-tls12
 export CHROME_BIN=/tmp/chromium-tls12
 ```
 
-- **`CHROME_BIN` must be set explicitly** — the real binary is `/opt/pw-browsers/chromium` (a
-  symlink to `chromium-1194/chrome-linux/chrome`), and nothing matching is on PATH.
+- **The real binary is `/opt/pw-browsers/chromium`** (a symlink to
+  `chromium-1194/chrome-linux/chrome`); the image ships nothing matching on PATH. The hook fixes
+  that by installing the wrapper as `/usr/local/bin/chromium` — so `CHROME_BIN` only needs setting
+  when running WITHOUT the hook.
 - **The network policy itself needed nothing**: gstatic, `*.firebaseio.com`, googleapis,
   `playpastrypirates.com`, and GitHub push were all reachable through the proxy.
 
