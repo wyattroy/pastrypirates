@@ -11,7 +11,7 @@
 // half. None of those is a click failure. All of them are rectangles. And the "four clean passes"
 // kept no screenshots, so nobody looked.
 //
-// Usage:  node 4/scripts/stage_layout_check.mjs [--sizes=390x844,960x1080,1400x900,1890x960,1920x1080]
+// Usage:  node 4/scripts/stage_layout_check.mjs [--sizes=390x664,960x1080,1400x900,1890x960,1920x1080]
 //                                               [--out=DIR] [--port=N] [--dbg=N] [--parallel=2]
 // Exit 1 on any FAIL. Prints one line per check per size, then the contact sheet's path.
 // Hygiene: headless, muted, own ports, kills only its own Chrome/server (HARD-WON-LESSONS.md §8).
@@ -21,7 +21,10 @@ import path from "node:path";
 import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
-const SIZES = arg("sizes", "390x844,960x1080,1400x900,1890x960,1920x1080").split(",").map(s => s.split("x").map(Number));
+// D-42: the phone size is 390x664 — the viewport a real iPhone-class Safari/Chrome gives the page
+// once its bottom bar is accounted for, not the 390x844 screen. Kept in step with playtest_gate's
+// phone legs deliberately: two gates disagreeing about what a phone is would be two phones.
+const SIZES = arg("sizes", "390x664,960x1080,1400x900,1890x960,1920x1080").split(",").map(s => s.split("x").map(Number));
 const OUT = path.resolve(arg("out", path.join(process.cwd(), "layout-check-shots")));
 const PORT = +arg("port", 8720), DBG0 = +arg("dbg", 9720);
 const PAR = Math.max(1, +arg("parallel", 2));   // sizes run PAR at a time — five Chromes at once would heat his laptop; one at a time took >10 min

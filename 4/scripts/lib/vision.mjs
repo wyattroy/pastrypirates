@@ -16,6 +16,9 @@ Mark FAIL if you can see ANY of these:
 - a panel/card/box with large EMPTY dead space — much taller or wider than the content inside it;
 - a button, message, prompt, or bubble jammed into a corner or against an edge, floating detached from what it belongs to, or off-screen;
 - anything unreadable, misaligned, doubled, or obviously broken.
+ACCEPTED — these are DESIGNED behaviour, never a FAIL and never worth listing as an issue:
+- a scrollable card or sheet may run past the bottom of the screen; being cut off at the bottom edge is how it tells you to scroll;
+- board artwork (the map, islands, ships, logo, decorative art) may be clipped at the edge of the board itself — the board is a camera view of a larger map, so its contents are cut off by design.
 Mark PASS if the screen looks clean, balanced and intentional.
 Reply with ONLY a JSON object, no prose:
 {"verdict":"PASS"|"FAIL","issues":["short concrete phrase", "..."],"confidence":0.0-1.0}`;

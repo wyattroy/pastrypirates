@@ -200,12 +200,31 @@ async function contactSheet(rec, tag, idx) {
          <div style="font-weight:bold;margin-bottom:5px">${t.cap}</div><img src="${t.src}" style="width:100%;display:block;border-radius:4px;background:#000">
          ${t.notes.map(n => `<div style="color:#ff8fa5;margin-top:3px">✗ ${String(n).replace(/</g, "&lt;")}</div>`).join("")}</div>`).join("")}</div></body>`;
     fs.writeFileSync(path.join(OUT, `contact-${tag}.html`), html);
-    const rel = path.relative(REPO, path.join(OUT, `contact-${tag}.html`)).split(path.sep).join("/");
-    await c.nav(`http://127.0.0.1:${PORT0}/${rel}`); await sleep(1200);
-    await c.ev("Promise.all([...document.images].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})))");
+    /* THE SHEET IS SERVED FROM ITS OWN DIRECTORY, AND IT SAYS SO WHEN THE IMAGES DID NOT LOAD.
+       This used to build a URL relative to REPO and fetch it from the run's own server, which is
+       rooted at REPO — so ANY `--out` outside the repo produced `../../..` and python's http.server
+       answered 404. The sheet then screenshotted the 404 page: 1700x1000, 23,889 bytes, every time,
+       and the log still printed "contact sheet: <path>" as if it had one. Every sheet from the
+       2026-08-21 evening run is that same 404, all four legs, byte-identical — and nobody could
+       tell, because a blank sheet and a green sheet are both "a file that exists".
+       This is the failure `stage_layout_check.mjs` was already hardened against (its own loader
+       check, d9c9a71); the hardening never reached this gate. Now: a short-lived server rooted at
+       OUT so the sheet works from anywhere, plus the loaded-images check so a future variant of
+       the same mistake is LOUD instead of reassuring (docs/HARD-WON-LESSONS.md §3). */
+    const sheetPort = PORT0 + 70 + idx;
+    ownPorts.http.add(sheetPort);
+    const sheetSrv = spawn("python3", ["-m", "http.server", String(sheetPort)], { cwd: OUT, stdio: "ignore" });
+    await sleep(700);
+    await c.nav(`http://127.0.0.1:${sheetPort}/contact-${tag}.html`); await sleep(1200);
+    const widths = await c.ev("Promise.all([...document.images].map(i=>i.complete?i.naturalWidth:new Promise(r=>{i.onload=()=>r(i.naturalWidth);i.onerror=()=>r(0);})))");
+    const missing = Array.isArray(widths) ? widths.filter(w => !w).length : tiles.length;
     const h = await c.ev("document.documentElement.scrollHeight");
     await c.send("Emulation.setDeviceMetricsOverride", { width: 1700, height: Math.max(400, Math.min(h || 0, 16000)), deviceScaleFactor: 1, mobile: false }); await sleep(400);
     await c.shot(path.join(OUT, `contact-${tag}.png`)); c.close();
+    try { sheetSrv.kill("SIGKILL"); } catch {}
+    try { execSync(`pkill -f "http.server ${sheetPort}"`, { stdio: "ignore" }); } catch {}
+    if (missing || !Array.isArray(widths) || widths.length !== tiles.length)
+      log(`[${tag}] CONTACT SHEET INCOMPLETE: ${missing} of ${tiles.length} images did not load — DO NOT TRUST IT`);
     log(`[${tag}] contact sheet: ${path.join(OUT, `contact-${tag}.png`)}`);
   } catch (e) { log(`[${tag}] contact sheet failed: ${e.message}`); }
 }
@@ -218,8 +237,15 @@ async function contactSheet(rec, tag, idx) {
    the wrong game. */
 const legDefs = {
   "solo-desktop":  { W: 1890, H: 960 },
-  "solo-phone":    { W: 390, H: 844, mobile: true, dsf: 2 },
-  "passplay-phone":{ W: 390, H: 844, mobile: true, dsf: 2 },
+  /* D-42 — 664, NOT 844: the height a real phone browser GIVES THE PAGE. 844 is the iPhone 14's
+     screen; Safari and Chrome both keep a bottom bar, so the page never sees the last ~180px of it.
+     Emulating 844 handed the layout room no player has, and the judge duly reported the surplus as
+     "large empty dead space below the CAPTAINS panel" on eight screens across the two phone legs.
+     Wyatt, 2026-08-21: "it does not appear on my phone, in either safari or chrome... the search
+     bar is down there." The GAME is not changed for this — the instrument was measuring a phone
+     that does not exist. */
+  "solo-phone":    { W: 390, H: 664, mobile: true, dsf: 2 },
+  "passplay-phone":{ W: 390, H: 664, mobile: true, dsf: 2 },
   "crew-desktop":  { W: 1890, H: 960, guestW: 1400, guestH: 900 },
 };
 
