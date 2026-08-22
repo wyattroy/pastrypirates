@@ -41,7 +41,7 @@ import {
 import {
   soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
   waitWhilePaused, sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
-  pickNarrVariant,
+  pickNarrVariant, eventCeremony,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -1190,9 +1190,19 @@ export async function narrateLastEvent(){
   // the event's firstDry stamp (engine sets it exactly once), so a replayed voyage re-derives the
   // same single showing. Hand-built stage barrier, same pattern as the bake-off intro card —
   // panel.js may not import flow.js's localAsk (layering), and needs none of it.
-  if(e.firstDry&&!appState.replaying)await dryCeremony();
+  //
+  // HIS ITEM 7: THE GATE ITSELF MOVED OUT OF THIS FUNCTION. It used to be an inline
+  // `if(e.firstDry&&!appState.replaying)` right here, in the HUMAN narration path only — and a
+  // bot's dock narrates through util.js's narrateCurrent(), a structurally separate function that
+  // knew nothing about it. A bot claims the first dry shelf in 76% of solo voyages, and in every
+  // one of those the ceremony was swallowed for good. The gate is now eventCeremony() in util.js,
+  // which BOTH narration paths call — rule 23's "make the FIRST one go through the new path too",
+  // rather than a second copy of the check that would have to be kept in step by discipline.
+  await eventCeremony(e);
 }
-function dryCeremony(){
+// exported so the composition root (src/main.js) can hand it to eventCeremony() through the
+// handlers seam — util.js is imported BY this file and can never import it back.
+export function dryCeremony(){
   return new Promise(res=>{
     const ap=$("actionPanel");
     ap.dataset.pp4Stage="1";

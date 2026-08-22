@@ -1196,7 +1196,18 @@ export async function runStormLive(dirKey){
         }
         liveRender();
       }
-      // stormStep records its own `blocked` event when a ship holds the square ahead
+      // stormStep records its own `blocked` event when a ship holds the square ahead.
+      //
+      // HIS ITEM 3 LIVED HERE, and this is the call site b8e9eea never touched. That commit
+      // collapsed the storm's chatter into one summary by withdrawing the TEXT of windmove,
+      // blownOut and anchorHold — all three of which are recorded by noteStormOutcome, AFTER the
+      // per-square loop. This call is inside the loop and fires per collision, so the fourth
+      // outcome (a push stopped by another SHIP) kept narrating a line of its own in the middle of
+      // the storm. The line is now withdrawn the same way its siblings' were (the `blocked` entry
+      // in src/ui/util.js), which makes describeFor() return null and this narrateLastEvent() a
+      // clean no-op for it. The call STAYS: liveRender paints the square the ship fetched up on at
+      // the moment it lands, which is what D-22 exists to protect, and the awaited narration is
+      // the belt for any future in-loop event that does carry text.
       if(g.events.length>evBefore){liveRender();await narrateLastEvent();}
       if(outcome!=="moved")break;
     }

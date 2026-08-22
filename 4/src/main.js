@@ -98,6 +98,11 @@ if (typeof window !== "undefined") {
     onFlash: ui.flash,
     onSetClockUI: ui.setClockUI,
     onNarrateLastEvent: ui.narrateLastEvent,
+    // his item 7 (rule 23): the once-per-voyage black-market ceremony, reached by BOTH narration
+    // paths through util.js's eventCeremony(). panel.js owns the card; util.js owns the gate and
+    // cannot import panel.js back without closing a cycle, so the edge comes through here — the
+    // same (b)-case cycle-avoidance as onLiveRender and onFlash directly above.
+    onDryCeremony: ui.dryCeremony,
     onPopEmoji: ui.popEmoji,
     onRender: ui.render,
   });

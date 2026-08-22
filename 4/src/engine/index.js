@@ -468,16 +468,23 @@ class Game{
      So this is a summary ADDED and four texts withdrawn, which is why the seat lists are gathered
      here rather than re-derived by the UI: the engine already knows each outcome at the moment it
      decides it, and a second derivation in the renderer is a second thing to keep in step. */
+  /* THE ONE ENGINE CHANGE IN PLAN 02.2-07, DISCLOSED RATHER THAN SLIPPED IN.
+     `shipHeld` is a fourth outcome group: a captain whose storm push was stopped by another SHIP.
+     It is a change to what the event stream CARRIES, which normally forces a gated re-record of
+     the determinism corpus — the same basis plan 02.2-04 recorded applies here and was re-checked
+     before it was written: there is still no 4/ determinism corpus, so there is nothing to
+     invalidate. THE MOMENT A 4/ CORPUS IS RECORDED THIS BASIS EXPIRES and a change of this shape
+     needs a gated re-record instead. Nothing else about the event stream moves. */
   stormSummaryEvent(dirKey){
-    const g={moved:[],held:[],blown:[]};
+    const g={moved:[],held:[],shipHeld:[],blown:[]};
     for(const p of this.players){
       const o=p.stormNote;
       if(o&&g[o])g[o].push(p.idx);
       p.stormNote=null;
     }
     // nothing at all happened to anybody — say nothing rather than narrate an absence
-    if(!g.moved.length&&!g.held.length&&!g.blown.length)return;
-    this.ev({t:"stormSummary",dir:dirKey,moved:g.moved,held:g.held,blown:g.blown});
+    if(!g.moved.length&&!g.held.length&&!g.shipHeld.length&&!g.blown.length)return;
+    this.ev({t:"stormSummary",dir:dirKey,moved:g.moved,held:g.held,shipHeld:g.shipHeld,blown:g.blown});
   }
   noteStormOutcome(p,outcome,moved,wasDocked){
     // Land brought the ship up short — whether it moved first or was pinned from the start. This
@@ -485,6 +492,22 @@ class Game{
     // 'dropped anchor to avoid running aground' to remain."* Under v2.1 nothing runs aground any
     // more, so the line reports what the anchor SAVED you from rather than a penalty it dodged.
     if(outcome==="landHeld"){p.stormNote="held";this.ev({t:"anchorHold",p:p.idx,moved:moved?1:0});return;}
+    /* A PUSH STOPPED BY ANOTHER SHIP, AND THE CAPTAIN WHO NEVER MOVED AT ALL.
+       `if(!moved)return;` below is correct for every outcome but one. A captain pinned from the
+       first square by a hull ahead sets no stormNote, so stormSummaryEvent has nothing to say
+       about them — and the storm's one summary line silently leaves them out. Measured headless:
+       71 captains omitted across 300 seeded games. Combined with the inline `blocked` line the
+       same captain used to produce (now silenced in src/ui/util.js), they both narrated OUTSIDE
+       the summary and were MISSING from inside it — two halves of one omission.
+
+       Only the never-moved case is routed here. A captain who WAS driven some distance before
+       fetching up behind a hull keeps today's "moved"/"blown" note and today's windmove/blownOut
+       event, because that note is true and that event carries their board pop, their captains-box
+       capsule and their ship-move cue. Deliberately NOT the blanket treatment `landHeld` gets one
+       line above: land's branch can afford to overwrite the note because it emits `anchorHold` to
+       carry the same feedback, and this branch has no such substitute. Stated rather than left as
+       an asymmetry for the next reader to trip over. */
+    if(outcome==="held"&&!moved){p.stormNote="shipHeld";return;}
     if(!moved)return;
     p.justDocked=this.isBerth(p.pos);
     if(outcome!=="swept"){

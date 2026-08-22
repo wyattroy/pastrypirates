@@ -487,24 +487,39 @@ const EVENT_NARRATION={
       return {txt:joined,you:!!mine.length,n:list.length};
     };
     const mv=say(e.moved||[]),hd=say(e.held||[]),bl=say(e.blown||[]);
+    // HIS ITEM 3, the half nobody had noticed. A captain whose storm push was stopped by another
+    // SHIP used to narrate a line of their own outside this summary — and, if they never moved a
+    // square before being stopped, was left out of the summary entirely (noteStormOutcome's
+    // `if(!moved)return;`). Both an extra line AND a missing one, from the same omission. They now
+    // arrive here, in their own group, because the existing `held` clause says "land at their
+    // back" and for these captains that would simply be untrue: it was a hull, not a headland.
+    const sh=say(e.shipHeld||[]);
     const parts=[];
     if(mv.txt)parts.push(`the storm drives ${mv.txt} ${D}`);
     if(bl.txt)parts.push(`a gale tears ${bl.txt} off the dock`);
     const lead=parts.join(" and ");
+    // the possessive follows the READER, not the group: "ye and Crustbeard have land at YER
+    // backs", never "at their backs" with the reader standing inside the group
+    const heldClause=!hd.txt?"":(hd.n===1
+      ?`${hd.txt} ${hd.you?"have":"has"} land at ${hd.you?"yer":"their"} back and ${hd.you?"drop":"drops"} anchor`
+      :`${hd.txt} have land at ${hd.you?"yer":"their"} backs and drop anchor`);
+    const shipClause=!sh.txt?"":(sh.n===1
+      ?`${sh.txt} ${sh.you?"have":"has"} a hull dead ahead and ${sh.you?"strike":"strikes"} sail`
+      :`${sh.txt} have hulls dead ahead and strike sail`);
+    const stopped=[heldClause,shipClause].filter(Boolean).join(", and ");
     let txt="";
-    if(lead&&hd.txt){
-      // the possessive follows the READER, not the group: "ye and Crustbeard have land at YER
-      // backs", never "at their backs" with the reader standing inside the group
-      const held=hd.n===1
-        ?`${hd.txt} ${hd.you?"have":"has"} land at ${hd.you?"yer":"their"} back and ${hd.you?"drop":"drops"} anchor`
-        :`${hd.txt} have land at ${hd.you?"yer":"their"} backs and drop anchor`;
-      txt=`🌬️ ${cap(lead)} — but ${held}.`;
+    if(lead&&stopped){
+      txt=`🌬️ ${cap(lead)} — but ${stopped}.`;
     }else if(lead){
       txt=`🌬️ ${cap(lead)}.`;
-    }else if(hd.txt){
+    }else if(hd.txt&&!sh.txt){
       txt=hd.n===1
         ?`⚓ The storm hurls itself at ${hd.txt}, but ${hd.you?"ye've":"they've"} land at ${hd.you?"yer":"their"} back and the anchor bites.`
         :`⚓ The storm hurls itself at the fleet, but ${hd.txt} have land at ${hd.you?"yer":"their"} backs and every anchor bites.`;
+    }else if(stopped){
+      // nobody was driven anywhere — the whole table simply held. One sentence still, never one
+      // per captain, which is the entire point of this event (rule 7: a storm is ONE event).
+      txt=`⚓ The storm hurls itself at the fleet, but ${stopped}.`;
     }
     return {txt};
   },
@@ -649,13 +664,28 @@ const EVENT_NARRATION={
   // (including NEUTRAL_VIEWER, and describe()'s own default when appState.mySeat is unset) sees the
   // third-person line — see isLocalTo()'s own header comment for why.
   // v2.1: a storm stops short of land or of another ship, and that is the whole of it.
-  blocked:(e,at,cellPx,viewerSeat)=>{
-    let txt;
-    if(isLocalTo(e.p,viewerSeat))txt=`${pn(e.p)} — ye spot ${pn(e.other)} dead ahead, so ye strike sail and hold fast.`;
-    else if(isLocalTo(e.other,viewerSeat))txt=`${pn(e.p)} spots ye dead ahead, so strikes sail and holds fast.`;
-    else txt=`${pn(e.p)} spots ${pn(e.other)} dead ahead, so strikes sail and holds fast.`;
-    return {txt,pops:[[at(e.p),"⚓"]]};
-  },
+  //
+  // HIS ITEM 3 (Wyatt, build t): "before this work, the storm moved everyone simultaneously and
+  // reported just one narration summary at the end. How did this behavior get lost?" — then,
+  // crucially: "strangely, the storm narration summary DID happen once, later on in the game."
+  // Not lost. CONDITIONAL. This entry is the condition.
+  //
+  // b8e9eea (2026-08-14) collapsed the storm's per-ship chatter into one summary and its own
+  // header comment lists which outcomes it silenced: windmove, blownOut, anchorHold. It never
+  // mentions the FOURTH — a push stopped by another SHIP — because that one fires from a
+  // structurally separate call site (runStormLive's per-square loop, src/ui/flow.js) rather than
+  // from noteStormOutcome, and the commit only ever looked at the latter. Measured headless over
+  // 300 seeded games with the storm rate raised for signal: 14.5% of storms carry at least one of
+  // these, 16.8% in rounds 1-3 (every captain starts one square from the others at Tortuga)
+  // falling to 10.2% by round 16. That decline is exactly his account — one-by-one early, one
+  // clean summary later, but not a hard rule.
+  //
+  // So the text goes, the way its three siblings' text already went, and everything else stays:
+  // the ⚓ board pop, and now a captains-box capsule it never had (windmove/blownOut/anchorHold
+  // each kept theirs; this one had none, so a silenced blocked ship would otherwise vanish from
+  // the panel as well as the bubble). The captain is named instead inside the ONE summary line —
+  // see stormSummaryEvent's `shipHeld` group in src/engine/index.js.
+  blocked:(e,at,cellPx,viewerSeat)=>({caps:[[e.p,"⚓ holds fast"]],pops:[[at(e.p),"⚓"]]}),
   /* TWO WAYS INTO THE CHANNEL, AND ONLY ONE OF THEM IS SOMETHING DONE TO YE.
      playtest 22 item 3 (Wyatt): the line should say "sails the trade winds!" on every turn where the
      captain steered in on purpose, and "is blown into the trade winds" ONLY when a storm put him
@@ -1949,10 +1979,50 @@ export function stepDelay(){return 3000;}
 // hitting the most common narration path in the game (every bot action goes through botBeat()).
 // Now narrateCurrent() itself is the thing that paces this beat, via flash()'s length-aware timing.
 export async function botBeat(){netHandlers().onLiveRender();await narrateCurrent();}
+/* THE ONCE-PER-VOYAGE CEREMONY GATE — ONE PLACE, BOTH NARRATION PATHS (rule 23, his item 7).
+   Wyatt: "Did the on-stage narration for the black market appear the first time all ingredients
+   were removed from an island? ... it needs to be there. How did it get lost?" It never got lost.
+   It was built into ONE of the game's two narration functions and has been missing from the other
+   since the day it shipped (348ccf4, 2026-08-12).
+
+   A HUMAN's dock runs humanDock() -> narrateLastEvent() (src/ui/panel.js), which carried the
+   firstDry check. A BOT's dock runs the engine's doDock() -> botBeat() -> narrateCurrent(), right
+   here — a separate, older function (written 2026-08-11, a full day before the ceremony existed)
+   that had no reference to firstDry anywhere in its body. And `drySeen` is a single voyage-wide
+   latch that flips on the first shelf to empty WHOEVER empties it. So when a bot claims that
+   shelf, the ceremony is swallowed and can never appear again for the rest of the voyage.
+   Measured across 500 seeded games: a bot claims the first dry shelf in 76.0% of solo voyages.
+   His report — that it simply was not there — is what a 76% failure rate looks like from a
+   player's chair.
+
+   TWO FIXES WERE AVAILABLE AND THIS IS THE WIDER ONE. Adding the same `if(e.firstDry)` line to
+   this file would be smaller and the wrong shape: it leaves two narration functions that must be
+   kept in step by discipline, which is the definition of a thing that will drift. Rule 23 states
+   the move — when a SECOND consumer of the same thing appears, make the FIRST one go through the
+   new path too. So panel.js's narrateLastEvent() now calls THIS, and so does narrateCurrent()
+   below; the next feature gated on a once-per-voyage stamp gets both paths for free.
+
+   RULE 13 IS THE CHECK THAT IT LANDED: bots and humans have identical rules and affordances.
+   After this, who emptied the shelf cannot change whether the table is told.
+
+   WHY THE HANDLER SEAM RATHER THAN AN IMPORT. dryCeremony() draws a centre-stage card and lives
+   in panel.js, which imports THIS file — so util.js can never import it back (module_graph_check
+   forbids the cycle). handlers.js exists for exactly this edge and already carries onFlash and
+   onLiveRender, two calls of the same shape. No new mechanism. */
+export async function eventCeremony(e){
+  if(!e||!e.firstDry||appState.replaying)return;
+  const h=netHandlers();
+  if(h.onDryCeremony)await h.onDryCeremony();
+}
 // keep the yellow action panel in step with the bot's latest move — liveRender only
 // updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
 export async function narrateCurrent(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
+  await narrateCurrentBody(e);
+  // his item 7: a bot's dock reaches the black-market ceremony by the same door a human's does
+  await eventCeremony(e);
+}
+async function narrateCurrentBody(e){
   // D-07/D-25 (Wyatt-approved 2026-07-29): the one ad-hoc (non-EVENT_NARRATION-table) narration
   // line that lives here in util.js itself — the neutral-plus-variants shape, same as every other
   // ad-hoc flash() site in src/ui/flow.js.
