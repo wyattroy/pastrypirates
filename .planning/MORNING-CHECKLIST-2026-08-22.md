@@ -1,6 +1,6 @@
 # What to playtest — morning of 2026-08-22
 
-**Build to look for: `2026-08-22b`.** On a phone it is in the ☰ menu; on desktop the ☰ is gone and
+**Build to look for: `2026-08-22c`.** On a phone it is in the ☰ menu; on desktop the ☰ is gone and
 the stamp sits at the bottom of the new menu block under the captains box. **If it shows an older letter, stop and say so** — there
 is no build step and nothing is ever a cache, so an old stamp means the work is not on `main`.
 
@@ -146,6 +146,28 @@ phase exists to kill, and they are only visible with both screens side by side.
 
 ---
 
+## SIXTH — the pass after I judged the gate's own screenshots (build `2026-08-22c`)
+
+I read all 46 screens from your terminal run and found 8 failures. Four were real and are fixed; two
+were **my** misreadings and are written up as such below.
+
+| # | Look at | What right looks like |
+|---|---|---|
+| 26 | **A battle coin flip, on a phone** | "Crosswind — two heads and the cannonballs collide" is readable. It was being written across the CAPTAINS card with captain names showing through it. |
+| 27 | **Offering a crate in a trade** | The circles are **named** — "Toasty Wheat", "Fresh Milk". They were bare pictures, while the question one screen earlier named all seven. |
+| 28 | **A long trade question on a phone** | It stays out of the captains box. It used to run 20–46px *inside* the card and hide the word CAPTAINS. |
+| 29 | **The recipe sheet** | It sits still. Both cards were pulsing to 111% on a loop — climbing 15px, covering two thirds of "Tap a recipe to highlight its docks" half of every second, and colliding with each other by 34px. |
+| 30 | **Drag on the sea and lift your finger off the board** — over the captains box, or past the screen edge | The game still answers you. **This was the big one and it was not on my list** — doing that made every prompt drop to 13% and stop accepting taps *permanently*, with nothing on screen explaining why. It read as a frozen game; the only escape was tapping the sea again, which nobody would guess. |
+
+**Two things I reported that turned out not to exist** — measured, not argued away:
+- A narration bubble I said was drawn *underneath* the sail squares was on **top** and 18% faded —
+  hold-the-sea, your own gesture, caught mid-tap. It stood on 0 of 19 squares.
+- Two battle circles I said were "10px apart" are 82.98px centre-to-centre, the same as any other
+  fan. The 10px was the tap-me pulse, caught at 109% in a still frame.
+
+Both came from reading a still photograph and stating a *mechanism* rather than what I saw. Worth
+knowing, because chasing the first one is what found the drag-deafness above.
+
 ## Things I know are still wrong, so you do not have to report them
 
 **Your call, not a bug:**
@@ -153,6 +175,10 @@ phase exists to kill, and they are only visible with both screens side by side.
    the real radial petals — an earlier reading that said otherwise turned out to be measuring a
    ceremony card, which is a different screen. But whether it is *loud enough* is taste. Tell me how
    much louder and I will do it in one pass.
+
+**The clean next job, measured:** a narration bubble's placement only knows about sail squares, so
+it happily lands on top of the ask pill — the question it is answering. Three of the gate's four
+remaining judge findings share that one cause, and the obstacle list is a single array.
 
 **Known, measured, deliberately not touched:**
 2. **Two gate failures at tablet width, at the opening only.** They fail identically on the OLD
@@ -196,8 +222,8 @@ pre-existing, and it is not something Group D touched.
 
 ## The record
 
-**Build `2026-08-22b`**, live at `playpastrypirates.com/4`. It carries Groups E, F and D plus the
-recipe-picker fix.
+**Build `2026-08-22c`**, live at `playpastrypirates.com/4`. Groups E, F, D, the recipe-picker fix,
+and the six-fault pass below.
 
 **How well was it checked?** Honestly: **less than I wanted.** The four-mode gate did not complete.
 
