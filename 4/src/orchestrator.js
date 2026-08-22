@@ -97,7 +97,7 @@ import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   bakeoffPrompt, bakeoffReveal,
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
@@ -525,7 +525,12 @@ async function asyncBattleRun(att,def){
   let round=0;
   const nm=pn;
   const bd=(typeof stepDelay==="function")?stepDelay():500;
-  const spin=Math.max(260,Math.min(650,bd*0.7));  // coin tumble time
+  /* D-49: the battle's own `spin` const is GONE. It was clamp(260,650, stepDelay()*0.7), and with
+     stepDelay() a flat 3000 that resolved to 650 — nearly twice the dock flip's 340, so two flips
+     in one voyage took visibly different times by design. Both sites below now wait out the
+     remainder of the ONE clock stamped where the spin is painted (board.js's flipSpinLeftMs), so
+     "every flip takes the same 1.5s" is true across the two code paths and not just within one.
+     Still through this file's own `sleep`, which is what keeps ⏩, pause and replay unchanged. */
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
   const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
   const base=o=>Object.assign({att,def,a,d,round,need},o);
@@ -539,7 +544,7 @@ async function asyncBattleRun(att,def){
     // (hidden-under-the-stage) flippenator got the spin state and the card coin jumped
     // wait -> face with no motion at all
     renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));
-    await sleep(spin);
+    await sleep(flipSpinLeftMs());
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
@@ -555,7 +560,7 @@ async function asyncBattleRun(att,def){
     renderBattle(base(Object.assign({live:side,[key]:"wait"},extra)));
     broadcastFlip("spin");
     renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
-    await sleep(spin);
+    await sleep(flipSpinLeftMs());
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face

@@ -53,7 +53,7 @@ import {
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, setFlipCoin, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
+import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -304,7 +304,15 @@ export async function humanFlip(p,label,allowBack,sub){
   const v=await ask(label||"Flip the dubloon!",opts,null,sub);
   if(v==="back")return "back";
   netHandlers().onBroadcastFlip("spin");
-  await sleep(340);
+  /* D-49 — WAIT OUT THE REST OF THE FLIP, not a fixed 340ms from wherever this line happens to
+     resume. The coin has already been spinning since the TAP (localAsk paints it in the tap's own
+     frame, the playtest-22 fix), and everything between the tap and here — the promise resolving,
+     ask()'s shot-clock wrapper unwinding, this function being scheduled again — is latency nobody
+     designed and nobody can predict. Adding a flat 340 on top of it is why no two flips were the
+     same length. flipSpinLeftMs() is measured from the frame the spin was painted (board.js), so
+     the coin is on screen for FLIP_SPIN_MS however slow the chain was. Through this file's own
+     `sleep`, so fast-forward, pause and reload-replay behave exactly as before. */
+  await sleep(flipSpinLeftMs());
   const h=appState.game.flip(p);
   netHandlers().onBroadcastFlip(h?"H":"T");
   // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this

@@ -2101,6 +2101,44 @@ export function syncBoardSizing(){
   placeMuteButton();
 }
 
+/* ================= D-49: EVERY COIN FLIP TAKES THE SAME 1.5 SECONDS =================
+   Wyatt, 2026-08-21: "the coin flips take varying lengths of time; figure out why this is." Two
+   causes, both real, and neither of them a number anyone had looked at:
+
+   1. THE TWO CODE PATHS DISAGREED BY DESIGN. The dock flip (flow.js humanFlip) slept 340ms
+      between the spin and the result; a battle flip (orchestrator.js) slept
+      `clamp(260, 650, stepDelay()*0.7)`, and stepDelay() is a flat 3000, so it slept 650. Nearly
+      twice as long, in the same voyage, for the same coin.
+   2. THE CLOCK STARTED IN THE WRONG PLACE. `.coin.spin` is `animation:coinspin .34s linear
+      infinite` — an INFINITE spin whose length is decided entirely by when the result arrives.
+      Since the playtest-22 fix the coin starts spinning ON THE TAP, inside setFlipActive's
+      callback, and only then does the promise resolve, ask() return and humanFlip resume to run
+      its sleep. So what a player watched was scheduling latency PLUS 340ms — and this build's own
+      comment beside that line already admits it "has been caught losing whole timers to" exactly
+      that latency. No two flips were alike because no two resumptions were.
+
+   THE CLOCK IS STAMPED WHERE THE SPIN IS PAINTED, which is here — `setFlipCoin("spin")` is the one
+   spelling of a spinning coin in the whole game, reached by the dock tap, by broadcastFlip, and by
+   a guest's Firebase listener alike. Every caller then waits the REMAINDER of FLIP_SPIN_MS, so the
+   length on screen is the same however slow the chain that got there was.
+
+   ONE CLOCK, THREE WAITS, and the split is deliberate: this module owns WHEN the spin began and
+   HOW LONG a flip lasts; each call site owns HOW it waits, through its own `sleep`, which is what
+   keeps fast-forward, pause and reload-replay behaving exactly as they did. A raw setTimeout here
+   would have made a skipped battle crawl and a replay stall.
+
+   1500 IS A NUMBER WYATT CHOSE, and "nothing is a constant" does not reach it: that rule is about
+   quantities that shift with game state, and the whole point of this one is that it must NOT
+   shift. It is the fault, stated as a value. */
+export const FLIP_SPIN_MS = 1500;
+let flipSpinAt = 0;
+/* How much of the 1.5s is left, from the frame the spin was painted. Zero if no spin is running,
+   so a caller that reaches it out of order waits nothing rather than a phantom 1.5s. */
+export function flipSpinLeftMs(){
+  if (!flipSpinAt) return 0;
+  return Math.max(0, Math.round(FLIP_SPIN_MS - (performance.now() - flipSpinAt)));
+}
+
 // ---- the flippenator: one always-visible coin+button; every flip in the game plays here ----
 // The flippenator coin doubles as its own button — no separate FLIP button — so this sets
 // the coin's own class/text directly instead of using coinHTML() (which stays for the
@@ -2114,7 +2152,10 @@ export function setFlipCoin(state){
   el.classList.remove("heads","tails","spin","wait","active");el.onclick=null;el.style.backgroundImage="";
   if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
   else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
-  else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";if(!wasSpin)playFlip();}
+  // D-49: the flip's clock starts on the frame the spin is PAINTED, and only on the frame it
+  // actually starts — the `wasSpin` guard that already stops the sound doubling is the same
+  // guard that stops broadcastFlip's repaint a beat later restarting the timer under the tap.
+  else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";if(!wasSpin){flipSpinAt=performance.now();playFlip();}}
   else{el.classList.add("wait");el.textContent="";}
 }
 export function setFlipActive(onClick){

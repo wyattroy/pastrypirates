@@ -240,6 +240,30 @@ function topBandPx(){
   return ribHCache;
 }
 const isSideBySide = () => typeof document !== "undefined" && document.body.classList.contains("pp4Side");
+/* D-50 — ONE LIST, TWO MOUNTS. The captains card and the game's menu (#footerRow, the only list of
+   menu items there is) are MOVED between two homes rather than rendered twice:
+     side-by-side  -> both stand in #pp4Col, the column D-31 built beside the board, menu under card
+     everywhere else -> the card is its own fixed panel at the foot of the screen and the menu is
+                        the ☰ sheet over the board (D-18/D-31: the phone stays exactly as it is)
+   Moving the NODE is what makes "one list" true by construction — a second list is the fault rule
+   23 exists to prevent, and it is how the two-directors bug was born. Chosen by the SAME `pp4Side`
+   class computeStageGeometry() already sets: one decision, read twice, never two kept in step.
+   Every branch is guarded on the current parent, so this is a no-op on all but the tick a window
+   actually crosses the threshold. */
+function mountColumn(on){
+  const col = $("pp4Col"), cap = $("pp4Cap"), foot = $("footerRow"), body = document.body;
+  if (!col || !cap) return;
+  if (on){
+    if (cap.parentNode !== col) col.appendChild(cap);
+    if (foot && foot.parentNode !== col) col.appendChild(foot);
+    // the ☰ is hidden in this branch, so a sheet left open would be unclosable
+    if (body.classList.contains("pp4Foot")) body.classList.remove("pp4Foot");
+  } else {
+    if (cap.parentNode !== body) body.appendChild(cap);
+    const home = $("game");
+    if (foot && home && foot.parentNode !== home) home.appendChild(foot);
+  }
+}
 /* WHERE THE BOARD BAND ENDS — one answer, read by everything that has to place a floater above the
    captains card. THE BUG THIS EXISTS TO KILL: three separate places each did
    `cap.getBoundingClientRect().top`, which is the right bottom-boundary only while the captains
@@ -776,8 +800,28 @@ function pillHTML(){
     : (fc ? ` · FORECAST: ${fc}${AR[fc] || ""}` : "");
   return nowS + fcS;
 }
+/* WHERE THE WIND PILL LIVES — ONE DECISION, READ TWICE (D-47 + D-52, rule 23).
+   The stylesheet's own `@media (min-width:601px)` is the boundary that decides whether the header
+   row has space for the wind; matchMedia asks THAT question rather than typing 601 here as well,
+   so the two can never drift. matchMedia reads the true viewport, which is exactly what the media
+   query reads — never vwPx(), which on the stage is body's own capped column. */
+const pillRidesRibbon = () => { try { return matchMedia("(min-width: 601px)").matches; } catch (e) { return false; } };
 function pillTick(){
   const p = $("pp4Pill"); if (!p) return;
+  /* THE PILL IS A REAL CHILD OF THE HEADER ROW WHEREVER THE ROW HAS SPACE FOR IT.
+     Design note 2 moved it into the row visually and left it `position:fixed; left:50%`, so the
+     ribbon's flex children — which cannot know it exists — collided with it, and at z-index 19
+     under the ribbon the ribbon won: the gradient over the pill (D-47) and the ⏩ over the pill
+     (D-52) are the two symptoms of that one omission. Re-parenting is the fix, because spacing
+     and paint order then come free from the row itself.
+     Inserted BEFORE the clock chip, so the row reads DAY · boats · WIND · clock · ⏩ · 💬 · ☰ —
+     left group, wind, right group. Guarded on the current parent, so this is a no-op on all but
+     the one tick a window actually crosses the boundary; the phone keeps its own fixed pill below
+     the ribbon (D-18/D-31, the phone stays as it is). */
+  const rib = $("pp4Ribbon");
+  const wantRibbon = !!rib && pillRidesRibbon();
+  if (wantRibbon && p.parentNode !== rib) rib.insertBefore(p, $("pp4Clock") || rib.lastElementChild);
+  else if (!wantRibbon && p.parentNode !== document.body) document.body.appendChild(p);
   const h = pillHTML();
   if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; }
   // statsWrap's visibility is toggled via its inline style — read that, never getComputedStyle
@@ -1506,6 +1550,11 @@ function buildStage(){
   // rising to meet it when the zoomed-out board leaves blank water. Prompts float at the ship.
   const capBox = document.createElement("div"); capBox.id = "pp4Cap";
   document.body.appendChild(capBox);
+  /* THE DESKTOP COLUMN (D-50). Empty and display:none until computeStageGeometry() decides the
+     window is wide enough, at which point mountColumn() MOVES the captains card and the menu into
+     it. Built here rather than lazily so there is exactly one of it for the life of the stage. */
+  const col = document.createElement("div"); col.id = "pp4Col";
+  document.body.appendChild(col);
   const cr = $("controlsRow"), ap = $("actionPanel");
   if (cr) capBox.appendChild(cr);              // parked hidden — the ceremony borrows the coin from here
   const cap = $("captainsPanel"); if (cap) capBox.appendChild(cap);
@@ -1518,23 +1567,29 @@ function buildStage(){
   const prompt = document.createElement("div"); prompt.id = "pp4Prompt";
   document.body.appendChild(prompt);
   if (ap) prompt.appendChild(ap);
-  // menu: the old footer as an overlay, plus the turn-clock toggle (its panel left the sheet)
-  const clockRow = document.createElement("button");
-  clockRow.id = "pp4ClockRow"; clockRow.type = "button";
-  const clockLabel = () => { clockRow.textContent = appState.timerOff ? "⏱ Turn clock: OFF — no rush" : "⏱ Turn clock: ON — 30s a turn"; };
+  /* D-51 — THE TURN-CLOCK ROW HAS LEFT THE MENU. Wyatt, 2026-08-21: "remove the 'Turn clock: OFF
+     – no rush' button in the menu, it's already visible always in the header row." Two controls
+     for one state is exactly the consistency fault rule 8 exists to catch, and the ribbon chip is
+     the one that is always on screen. The TOGGLE itself is untouched — the chip has always called
+     this same function — so what goes is a duplicate control, never the ability to stop the clock.
+     Nothing else read #pp4ClockRow: its CSS rule is deleted in the same commit (index.html), and
+     the label writer went with the row it wrote to. */
   const clockToggle = () => { const t = $("scTimerToggle"); if (t) t.click();
-    else { appState.timerOff = !appState.timerOff; try{ localStorage.setItem("pp4_timerOff", appState.timerOff ? "1" : "0"); }catch(e){} }
-    setTimeout(clockLabel, 60); };
-  clockRow.onclick = clockToggle;
-  clockLabel();
-  // playtest 12: tapping the ribbon clock toggles it too, and the chip shows its OFF state
+    else { appState.timerOff = !appState.timerOff; try{ localStorage.setItem("pp4_timerOff", appState.timerOff ? "1" : "0"); }catch(e){} } };
+  // playtest 12: tapping the ribbon clock toggles it, and the chip shows its OFF state
   const rc = $("pp4Clock"); if (rc) rc.onclick = clockToggle;
-  const foot = $("footerRow"); if (foot) foot.insertBefore(clockRow, foot.firstChild);
+  const foot = $("footerRow");
+  /* ONE LIST, and this class is what says so (D-50, rule 23). The card look, the full-width rows
+     and the sound row all hang off it in index.html, so they follow the list into whichever mount
+     it is standing in. There is no second builder and there must never be one. */
+  if (foot) foot.classList.add("pp4MenuList");
   // playtest 10 item 2: the sound toggle was orphaned at the top-left of the stage (the horn
   // peeking under the ribbon in Wyatt's screenshots) — it lives in the ☰ menu now
   const ms = $("muteSlot");
   if (ms && foot){
-    foot.insertBefore(ms, clockRow); ms.style.cssText = "display:flex;justify-content:center;";
+    // FIRST in the list, which is where it has always rendered — it used to be inserted before
+    // the turn-clock row and that row has gone (D-51), so it anchors to the list's own head now.
+    foot.insertBefore(ms, foot.firstChild); ms.style.cssText = "display:flex;justify-content:center;";
     /* AND BRING THE BUTTON WITH IT. Wyatt, 2026-08-20: "the host has no mute button (guest does)."
        Moving the SLOT into the menu is not enough, because placeMuteButton() (ui/board.js) may
        already have moved the BUTTON out of it and into #controlsRow — which enterStage parks inside
@@ -1554,10 +1609,7 @@ function buildStage(){
     stamp.style.cssText = "opacity:.55;font-size:11px;text-align:center;padding:6px 0 2px;letter-spacing:.04em";
     foot.appendChild(stamp);
   }
-  $("pp4Menu").onclick = () => {
-    document.body.classList.toggle("pp4Foot");
-    clockLabel();
-  };
+  $("pp4Menu").onclick = () => { document.body.classList.toggle("pp4Foot"); };
   // playtest 12 item 6: tapping anywhere outside the open menu closes it. D-06 extends this SAME
   // capture-phase listener for the chat sheet rather than adding a second one — a second condition
   // block, not a folded selector, since the ☰ menu and the chat sheet close against different
@@ -1639,6 +1691,7 @@ function computeStageGeometry(){
     // PHONE: the `@media(min-width:601px)` rule this feeds never matches here regardless, but
     // clear the properties anyway (see the function-header note) — D-18's byte-identical promise.
     body.classList.remove("pp4Side");
+    mountColumn(false);
     body.style.removeProperty("--pp4W"); body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
     if (cap) cap.style.removeProperty("max-height");
     refreshNameMarquees();   // the column just widened back to full — drop any stale scroll
@@ -1660,6 +1713,7 @@ function computeStageGeometry(){
     // captains column sits beside it, level with the board's top, at a fixed comfortable width and
     // hugging its own content height (index.html).
     body.classList.add("pp4Side");
+    mountColumn(true);
     body.style.setProperty("--pp4W", boardSideFull + "px");
     body.style.setProperty("--pp4Top", topBand + "px");
     body.style.setProperty("--pp4CapColW", capColW + "px");
@@ -1686,12 +1740,22 @@ function computeStageGeometry(){
   // single measurement pass is an estimate, not a fixed-point solve, and the backstop is what turns
   // any remaining error into an internal scrollbar instead of a clipped top row.
   body.classList.remove("pp4Side");
+  mountColumn(false);
   body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
   const candidate = Math.max(240, Math.min(boardSideFull, iw));
-  const capH = measureCapNaturalHeight(candidate);
-  const boardSideStacked = Math.max(240, Math.min(candidate, ih - capH));
+  /* THE VOID HAS TO HOLD THE CARD *AND* THE AIR UNDER IT (D-52). On desktop the stacked card is
+     inset by --pp4CapGap on three sides (index.html), so it is measured at the width it will
+     actually have — a card measured 28px wider than it renders is a card that wraps a row nobody
+     reserved space for — and the board is narrowed by the gap as well, so the air beneath the card
+     can never be squeezed to nothing. The phone is byte-identical: it has no inset, and its own
+     media query is the one that decides that, so `gapBelow` reads the same boundary the CSS does
+     rather than a second copy of it. */
+  const insetCard = pillRidesRibbon();                 // the same @media (min-width:601px) boundary
+  const capInset = insetCard ? capGap : 0;
+  const capH = measureCapNaturalHeight(Math.max(240, candidate - capInset * 2));
+  const boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capInset));
   body.style.setProperty("--pp4W", boardSideStacked + "px");
-  if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked) + "px");
+  if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked - capInset) + "px");
   refreshNameMarquees();   // same reason as the side-by-side branch above — the board (and with
                            // it the name column, which spans the same derived width) just resized
 }
@@ -1792,6 +1856,18 @@ function enterCenterStage(){
     [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
     const m = ap.querySelector(".apMsg"); if (m){ m.style.position = ""; m.style.left = ""; m.style.top = ""; }
   }
+}
+/* THE PEEK HINT IS PLACED LAST IN THE TICK — seam (a) of the two named in 260821-qwv.
+   It is the one floater that always yields (see peekHintTick), which only works if it can see
+   where everything else has actually ended up. Called from tick() AFTER promptTick, rather than
+   from inside the radial branch where it used to sit, so it can never again be dodging last
+   frame's layout. One call site, so nothing has to remember: the radial prompt is the only style
+   that teaches the gesture (D-39), and every other style has already removed the hint by the time
+   this runs. */
+function peekHintLast(){
+  const box = $("pp4Prompt");
+  if (!box || !box.classList.contains("radial")) return;
+  peekHintTick(box);
 }
 function promptTick(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
@@ -1920,7 +1996,14 @@ function promptTick(){
   const uu = boatUXY(appState.mySeat ?? 0);
   if (menu && uu){
     box.classList.add("radial"); box.classList.remove("centered");
-    peekHintTick(box);      // D-39: a prompt IS over the board here — teach the gesture until learned
+    /* SEAM (a): peekHintTick() USED TO RUN HERE, FIRST, and that was the whole fault. It dodges
+       the pill, the helper line and every circle by reading their rendered rects — but at this
+       point in the tick none of them has been re-placed yet, so it always dodged where they were
+       LAST frame and was one tick behind wherever they ended up (measured on solo-phone-021: the
+       hint and the helper line overlapping by 1.75px, with .apSub already in the hint's own
+       obstacle list). It now runs at the very end of tick(), after this whole placement pass —
+       see peekHintLast(). D-39's rule is unchanged: a prompt IS over the board here, so the
+       gesture is taught until it has been learned. */
     // ITEM 22 (D-18): 100%, not 100vw — an inline style always wins the cascade, so this literal
     // viewport-width string would have overridden the CSS %-based fix (index.html) and kept the
     // radial fan's box pinned to the true desktop width regardless of item 22's stopgap cap.
@@ -2005,8 +2088,53 @@ function promptTick(){
         } else if (!inBand(sx, sy)) camToSeat(appState.mySeat ?? 0);
       }
     }
-    // playtest 12 item 8: circles hug the boat — as close as the ship-clearance allows
-    const R = 70, D = 66;
+    /* D-48 — PASS IS ALWAYS THE LOWEST CIRCLE ON SCREEN. Wyatt, 2026-08-21, typed at the keyboard:
+       "the Pass button is always the lowest one, so it's seen as the last option of what to do."
+       This is the other half of item 14 of the twenty-two, which 02.2-01 left open as "never
+       reproduced"; it is no longer a bug report, it is an instruction.
+
+       flow.js already pushes Pass LAST into `opts`, which is exactly why the flat CARD fallback has
+       always been right — DOM order puts the last option at the bottom. The fan then maps array
+       index -> spot and chooses the most OPEN heading from the boat, so the moment it fans upward
+       or sideways the "last" spot is no longer the lowest one on screen: measured on a posed
+       four-crate fan at 390×664 with the boat against the bottom rail, Pass came out at y307 with
+       three crates BELOW it at y390, and against the right rail with three below it again.
+
+       So the rule is stated the way the card already behaves — THE LAST OPTION TAKES THE LOWEST
+       SPOT — and it is applied once, to whichever set of points the search finally produced, so it
+       holds for the formation, for the outward rings, for the cornered dock and for the anchored
+       boats alike. A SWAP, not a re-sort: everything else keeps the order the fan gave it, and the
+       circle that had been lowest takes the place Pass vacated, which is the smallest disturbance
+       that satisfies him.
+       It needs no new field and nothing on the wire, so a guest gets it by construction — the same
+       reason the card fallback never needed one (rule 23). */
+    const lastLowest = pts => {
+      if (!pts || pts.length < 2) return pts;
+      const last = pts.length - 1;
+      let lo = 0;
+      for (let i = 1; i < pts.length; i++) if (pts[i][1] > pts[lo][1]) lo = i;
+      if (lo === last) return pts;
+      const outPts = pts.slice();
+      outPts[last] = pts[lo]; outPts[lo] = pts[last];
+      return outPts;
+    };
+    /* THE CIRCLE'S SIZE COMES FROM THE RENDERER, AND THE GAP IS A FRACTION OF IT (D-44, rule 9).
+       `D` was the literal 66 copied out of the stylesheet — but a RENDERED petal is 70px, because
+       `#pp4Prompt.radial .apBtn` carries a 2px border outside its 66px box. So every spacing in
+       this function was computed against a circle 4px smaller than the one on screen, and the
+       "6px gap" a player was supposed to get measured 2.8–4.2px on a posed eight-button fan at
+       390×664 (2026-08-22). Reading the width the renderer produced is BOARD-RENDERING §7's rule
+       one scale down: never compare against arithmetic of your own when the real box is right
+       there. Falls back to the stylesheet's 66 only if nothing has been laid out yet.
+
+       A QUARTER OF THE CIRCLE, derived rather than typed, so it tracks D at every screen size:
+       four petals plus three quarter-gaps is 4×70 + 3×17 = 331px, which still fits inside a 390px
+       phone's band with room either side — the measurement Wyatt was shown when he chose this.
+       R is the circle's own width plus a hair, which is byte-identical to the 70 this line has
+       always carried at the old D, and now grows with the petal instead of drifting from it. */
+    const D = Math.round((menu[0] && menu[0].offsetWidth) || 66);
+    const GAP = Math.round(D / 4);
+    const R = D + 4;
     const placed = [];
     // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
     // so every sail highlight is an obstacle nothing of ours may cover
@@ -2158,9 +2286,15 @@ function promptTick(){
        all. Same family as the side-bet circles, same cure — nothing a player must touch may be
        placed without being clamped below the band.
        playtest 21 item 7's ordering is kept: slider first, helper text pushed below it. */
-    {
-      const cxS = stackCx != null ? stackCx : sx;
-      let stackTop = stackAt != null ? stackAt : tSafe;
+    /* ONE FUNCTION FOR EVERYTHING THAT RIDES UNDER THE PILL, because the pill MOVES after this.
+       It was a bare block that ran once, before the fan was placed; the cornered-dock fallback
+       then lifts the pill clear of the circles and the helper line stayed behind, stranded on top
+       of them (measured: the line lying 23px deep across three crates on a posed eight-button fan
+       at 390×664). The slider and the helper line hang off the pill's bottom edge, so they have
+       to be re-stacked wherever the pill ends up — one definition, two call sites, rather than two
+       copies of the arithmetic to keep in step. */
+    const stackUnderPill = (cxS, startTop) => {
+      let stackTop = startTop;
       const floor = tSafe;                       // never above the band…
       const ceil = Math.max(floor, capT - 60);   // …and never under the captains card
       const slw = ap.querySelector(".apSliderWrap");
@@ -2182,7 +2316,8 @@ function promptTick(){
         sub.style.left = Math.min(Math.max(cxS - sw / 2, 10), vwPx() - sw - 10) + "px";
         sub.style.top = Math.min(Math.max(stackTop, floor), Math.max(floor, capT - 30)) + "px";
       }
-    }
+    };
+    stackUnderPill(stackCx != null ? stackCx : sx, stackAt != null ? stackAt : tSafe);
     // ---- playtest 15, ONE placement rule (Wyatt's pick): a TIGHT FAN on the open side ----
     // Find the most open direction from the boat (clear of screen edges, the captains box, the
     // pill and every sail square), then lay ALL the buttons along snug arc rows centred on it —
@@ -2204,7 +2339,7 @@ function promptTick(){
          through it. */
       const clampSpot = s => [Math.min(Math.max(s[0], xMin), xMax), Math.min(Math.max(s[1], yMin), yMax)];
       let spots = anchors.map(([ax, ay]) => clampSpot([ax - D / 2, ay + 26]));   // just off the stern
-      const NEED = D + 6;
+      const NEED = D + GAP;   // D-44: derived, never typed — see the D/GAP note above
       for (let pass = 0; pass < 4; pass++){
         let moved = false;
         for (let i = 0; i < spots.length; i++)
@@ -2232,6 +2367,7 @@ function promptTick(){
         const rowY = Math.min(Math.max(spots.reduce((t, p) => t + p[1], 0) / n, yMin), yMax);
         spots = spots.map((_, i) => [startX + (n > 1 ? (span / (n - 1)) * i : 0), rowY]);
       }
+      spots = lastLowest(spots);   // D-48, and it holds for the anchored-boats fan too
       menu.forEach((b, i) => {
         b.style.position = "fixed";
         b.style.left = spots[i][0] + "px";
@@ -2243,9 +2379,23 @@ function promptTick(){
       bx < r.right + m && bx + D > r.left - m && by < r.bottom + m && by + D > r.top - m;
     const obstacles = cellRects.slice();
     if (pillB) obstacles.push(pillB);
+    /* SEAM (b), MEASURED IN 260821-qwv AND FIXED HERE: THE HELPER LINE IS AN OBSTACLE TOO.
+       Only the ask pill was ever in this list, and nothing lifts `.apSub` the way
+       liftAskClearOfFan lifts the pill — so on passplay-phone-021 the italic line explaining why a
+       circle is greyed sat ON the Pass circle, and on a posed eight-button fan at 390×664 it lay
+       across FOUR of them, 23px deep. It is text a captain has to read to understand a dead
+       control: the same standing as the question itself, which has been an obstacle all along.
+       Pushed as the RENDERED rect (fixedRect, body-relative like everything else in this
+       function), not the styled one — the line wraps, so its height is only knowable after
+       layout. */
+    const subObs = ap.querySelector(".apSub");
+    if (subObs && subObs.style.top){
+      const sr = fixedRect(subObs);
+      if (sr.width > 2 && sr.height > 2) obstacles.push(sr);
+    }
     const inBounds = (bx, by) => bx >= xMin && bx <= xMax && by >= yMin && by <= yMax;
     const clash = (bx, by) =>
-      placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + 4) ||
+      placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + GAP) ||
       Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 26 ||
       obstacles.some(r => hitRect(bx, by, r, 2));
     // Playtest 16 (Wyatt: "fan them out in a more symmetrical orderly way"): the fan is a RIGID
@@ -2262,10 +2412,10 @@ function promptTick(){
       const pts = [];
       const split = rowSplit(menu.length);
       for (let ri = 0; ri < split.length; ri++){
-        const along = r0 + ri * (D + 8);
+        const along = r0 + ri * (D + GAP);
         const n = split[ri];
         for (let j = 0; j < n; j++){
-          const off = (j - (n - 1) / 2) * (D + 8);
+          const off = (j - (n - 1) / 2) * (D + GAP);
           pts.push([sx + ux * along + vx * off - D / 2, sy + uy * along + vy * off - D / 2]);
         }
       }
@@ -2280,7 +2430,7 @@ function promptTick(){
     for (let k = 0; k < 16; k++){
       const a = k * Math.PI / 8;
       let reach = 0;
-      for (let r = R; r <= R + 150; r += 15){
+      for (let r = R; r <= R + 150; r += GAP){
         const cx = sx + r * Math.cos(a) - D / 2, cy = sy + r * Math.sin(a) - D / 2;
         if (!inBounds(cx, cy) || obstacles.some(rc => hitRect(cx, cy, rc, 2))) break;
         reach = r;
@@ -2288,9 +2438,23 @@ function promptTick(){
       headings.push({ a, reach });
     }
     headings.sort((p, q) => q.reach - p.reach);
+    /* WHEN NOTHING FITS, THE CLUSTER DRIFTS AWAY FROM THE BOAT — IT NEVER PILES (D-44).
+       Wyatt, asked with the measurement in front of him: keep the circles full size, give them a
+       real gap, and let the group move out toward open water when the corner is tight. D-38's
+       "circles hug the boat" preference yields here, and he had already said why — a control you
+       cannot hit is the one unacceptable outcome.
+       The ladder used to be three fixed steps (0, 14, 28): a quarter of a circle's worth of
+       search, after which the cornered GRID took over and packed eight crates into a slab. Now it
+       steps outward in rings of half a circle-and-gap until the band's own diagonal is exhausted,
+       so the dock is reached only when there is genuinely nowhere in the band that holds the
+       formation at the required gap. Derived from the band, so it cannot be wrong at a size
+       nobody tested. Bounded by construction: the loop breaks the moment a layout passes. */
+    const rings = [];
+    for (let g = 0, lim = Math.hypot(Math.max(0, xMax - xMin), Math.max(0, yMax - yMin)),
+             stepG = Math.max(8, Math.round((D + GAP) / 2)); g <= lim; g += stepG) rings.push(g);
     let pts = null;
     outer:
-    for (const grow of [0, 14, 28]){
+    for (const grow of rings){
       for (const h of headings){
         for (const da of [0, Math.PI / 16, -Math.PI / 16]){
           const cand = formation(h.a + da, R + grow);
@@ -2309,7 +2473,7 @@ function promptTick(){
          spread first, clamp second, and let the clamp undo the spreading. The cure is the same in
          spirit: never lay out more per row than the band genuinely holds. Wrap instead, and stack
          the rows upward from the captains box. */
-      const gap = 6, step = D + gap;
+      const gap = GAP, step = D + gap;
       const perRow = Math.max(1, Math.floor((xMax - xMin + gap) / step));
       const rowsN = Math.ceil(menu.length / perRow);
       const blockH = rowsN * step - gap;
@@ -2355,6 +2519,14 @@ function promptTick(){
         }
         if (bestN === 0) break;
       }
+      /* AND IF EVEN THE DOCK CANNOT HOLD THEM, SAY SO OUT LOUD (D-44). Wyatt's ruling ends "a
+         layout that still cannot satisfy the gap must be reported, never silently accepted." The
+         layout gate already catches a pile from the outside, geometrically; this names it from the
+         inside, with the numbers, so a driven run is loud rather than merely red — a fallback that
+         quietly hands back overlapping circles is exactly the reassuring-green failure this
+         project keeps paying for. */
+      if (pts && pts.some((a, i) => pts.some((b2, j) => j > i && Math.abs(a[0] - b2[0]) < D && Math.abs(a[1] - b2[1]) < D)))
+        console.warn(`[pp4] fan fallback piled: ${menu.length} circles of ${D}px at a ${GAP}px gap do not fit the ${Math.round(xMax - xMin + D)}×${Math.round(yMax - yMin + D)} band`);
     }
     /* THE QUESTION MUST SURVIVE ITS OWN ANSWERS. D-38 lets the fan cover the BOARD, and holding
        the sea reveals what is underneath — but holding the sea does not reveal text sitting under
@@ -2368,12 +2540,27 @@ function promptTick(){
                                 p[1] < pillB.bottom && p[1] + D > pillB.top);
       if (hit){
         const blockTop = Math.min(...pts.map(p => p[1]));
-        const lifted = Math.max(tSafe - 34, blockTop - pillB.height - 10);
+        /* THE WHOLE ASK MOVES, SO THE WHOLE ASK HAS TO FIT. Lifting only the pill's own height
+           put its bottom 10px above the circles and then re-stacked a 23px helper line into that
+           10px — measured: the line back across three crates, 20px deep, which is the fault this
+           lift exists to prevent, reintroduced by the lift itself. Measure what actually hangs
+           below the pill (the slider and the helper line, with the same 6px air stackUnderPill
+           gives them) and clear the block by all of it. */
+        const under = [".apSliderWrap", ".apSub"].reduce((t, sel) => {
+          const el = ap.querySelector(sel); if (!el || !el.style.top) return t;
+          const r = fixedRect(el); return r.height > 0 ? t + r.height + 6 : t;
+        }, 0);
+        const lifted = Math.max(tSafe - 34, blockTop - pillB.height - under - 10);
         msg.style.top = lifted + "px";
         pillB = fixedRect(msg);
         placeBackButton(ap, pillB, tSafe);
+        // …AND THE HELPER LINE COMES WITH IT. The back circle already followed the pill here; the
+        // slider and `.apSub` did not, so the one piece of text that explains a greyed circle was
+        // left lying across the very circles it explains.
+        stackUnderPill(stackCx != null ? stackCx : sx, pillB.bottom + 6);
       }
     }
+    pts = lastLowest(pts);   // D-48 — applied to whichever search produced this layout
     menu.forEach((b, i) => {
       const spot = pts[i];
       placed.push(spot);
@@ -2492,6 +2679,8 @@ function tick(){
     // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
     if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
     promptTick();
+    peekHintLast();   // SEAM (a): the hint is the LAST thing placed, so it dodges this tick's layout
+
   }
   else if (S.slow || fc % 6 === 0) maybeBuildStage();
   if (S.hidden) { S.raf = 0; return; }   // backgrounded: stop dead, don't re-arm

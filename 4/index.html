@@ -1564,6 +1564,23 @@
      scroll — there is no in-flow content on the stage for it to scroll) so the column is not
      clipped to body's own narrower box now that a sibling is deliberately placed outside it. */
   body.pp4Stage.pp4Side { overflow:visible; margin:0 0 0 var(--pp4Left, auto); }   /* the board+column PAIR is centred (computeStageGeometry), not the board alone */
+  /* MOUNT 2 — THE DESKTOP COLUMN (D-50). D-31 built the space beside the board "with room for
+     chat/log later"; the menu is what lands in it first, below the captains card. #pp4Cap and
+     #footerRow are MOVED into this one fixed column (stage.js's mountColumn) in side-by-side only,
+     so the two are a single flex stack with one derived gap between them — no measured `top` for
+     the menu that could drift out of step when a captain row is opened, which is the class of
+     seam this project keeps paying for. The column carries the position #pp4Cap used to carry;
+     the card inside it goes back to being an ordinary block. */
+  #pp4Col { display:none; }
+  body.pp4Stage.pp4Side #pp4Col { display:flex; flex-direction:column; gap:var(--pp4CapGap);
+    position:fixed; left:calc(100% + var(--pp4CapGap)); top:var(--pp4Top, 0px);
+    width:var(--pp4CapColW, 300px); max-height:calc(100vh - var(--pp4Top, 0px) - 16px);
+    overflow-y:auto; z-index:22; }
+  body.pp4Stage.pp4Side #pp4Col > #pp4Cap { position:static; left:auto; right:auto; top:auto;
+    bottom:auto; width:auto; max-width:none; max-height:none; overflow:visible; flex:0 0 auto; }
+  body.pp4Stage.pp4Side #pp4Col > #footerRow { display:flex; flex:0 0 auto; }
+  /* nothing is left behind the hamburger on a full desktop, so the hamburger goes with it */
+  body.pp4Stage.pp4Side #pp4Menu { display:none; }
   body.pp4Stage.pp4Side #pp4Cap {
     left:calc(100% + var(--pp4CapGap)); right:auto;
     /* HUG THE CONTENT, do not fill the height. Pinning bottom:0 made the card a full-height empty
@@ -1614,6 +1631,28 @@
   body.pp4Stage #boardwrap { position:fixed; inset:0; max-width:none;
     margin:0; border-radius:0; z-index:5; overflow:hidden; }
   body.pp4Stage #board { width:100%; height:100%; }
+  /* D-52, AND IT IS THE THING HIS SCREENSHOT SHOWED THAT HE DID NOT FLAG (rule 22): in the
+     STACKED branch the captains card sat FLUSH against the bottom of the window, and was 84px
+     taller than its own rows — measured at 820×1180, box 315px behind 231px of content.
+     The mechanism, measured rather than guessed: camFrame() writes `top` inline every frame so the
+     card RISES TO MEET the board, and the base rule below pins `bottom:0`. A position:fixed box
+     with two explicit insets and `height:auto` does not ask its content how tall it is — per the
+     CSS spec it stretches to fill the gap. That is right on a phone, where the letterboxed board
+     leaves a void the card's own height; on a tall tablet window it is a slab of dead cream with
+     no air under it. (measureCapNaturalHeight's own comment records this exact spec behaviour
+     biting from the other direction — it is the same trap, one branch over.)
+     Releasing `bottom` lets height:auto mean what it says, and the card is then spaced by the SAME
+     --pp4CapGap the side-by-side column beside the board already uses — so the two desktop
+     branches draw the same component with the same air around it (rule 8), instead of one floating
+     card and one wall-to-wall slab. computeStageGeometry() reserves that gap when it derives the
+     board's size, so the air is never squeezed to nothing.
+     Desktop only. The phone keeps the full-bleed card pinned to the bottom edge, byte-identical
+     (D-18/D-31). */
+  @media (min-width: 601px) {
+    body.pp4Stage:not(.pp4Side) #pp4Cap {
+      left:var(--pp4CapGap); right:var(--pp4CapGap); bottom:auto; height:auto;
+      border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.28); }
+  }
   #pp4Cap { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
     border-radius:14px 14px 0 0; box-shadow:0 -6px 24px rgba(0,0,0,.28);
     padding:10px 12px calc(10px + env(safe-area-inset-bottom)); overflow:auto; display:none; }
@@ -1759,13 +1798,20 @@
   /* playtest 12 item 8: hold-the-sea peeks EVERY prompt style, radial included — one gesture,
      one behaviour (this replaces the old radial exemption) */
   body.pp4Stage #footerRow { display:none; }
-  /* playtest 12 item 6: one clean column, uniform widths */
-  body.pp4Foot #footerRow { display:flex; flex-direction:column; align-items:stretch; gap:9px;
-    position:fixed; left:12px; right:12px; top:64px;
-    z-index:60; background:#fffdf2; border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
-  body.pp4Foot #footerRow .footerBtn, body.pp4Foot #pp4ClockRow { width:100%; box-sizing:border-box;
-    margin:0; text-align:center; }
-  body.pp4Foot #pp4Stamp { order:99; }
+  /* ONE LIST, ONE LOOK, TWO MOUNTS (D-50, rule 23). Wyatt, 2026-08-21: "in desktop, move the menu
+     options out of the hamburger menu and put them neatly below the captain's box."
+     `pp4MenuList` is stamped on #footerRow once, in buildStage, so the card look belongs to the
+     LIST rather than to either of its homes — change it here and the phone sheet and the desktop
+     column change together. There is no second list of items anywhere and there must never be:
+     stage.js MOVES this node between mounts. Only `display` and POSITION are per-mount, below.
+     (playtest 12 item 6: one clean column, uniform widths.) */
+  #footerRow.pp4MenuList { flex-direction:column; align-items:stretch; gap:9px;
+    background:#fffdf2; border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
+  #footerRow.pp4MenuList .footerBtn { width:100%; box-sizing:border-box; margin:0; text-align:center; }
+  #footerRow.pp4MenuList #pp4Stamp { order:99; }
+  /* MOUNT 1 — the ☰ sheet, over the board. Phone and the stacked/tablet branch (D-18/D-31: the
+     phone stays exactly as it is; the tablet has no column to put a menu in). */
+  body.pp4Foot #footerRow { display:flex; position:fixed; left:12px; right:12px; top:64px; z-index:60; }
   /* D-06 (02-05): chat's slide-up sheet. #chatPanel (Scuttlebutt — #chatLog/#chatForm/#chatInput,
      unchanged ids) is re-parented into this container by stage.js's buildStage(), the same
      "build the container here, move the existing node into it" pattern buildStage already uses
@@ -1827,9 +1873,26 @@
      takes the LOWER of the ribbon's bottom and the pill's, so a pill inside the ribbon stops
      pushing the board down at all — the square simply grows. No code needed for that; it falls out
      of the one measurement both the camera and computeStageGeometry() already share. */
-  @media (min-width: 601px) {
-    body.pp4Stage #pp4Pill { top:calc(11px + env(safe-area-inset-top)); background:rgba(9,42,52,.34); }
-  }
+  /* D-47 + D-52 ARE ONE FAULT, AND THIS IS THE STRUCTURAL HALF OF THE FIX (2026-08-22).
+     Design note 2 moved the pill visually INTO the header row and left it `position:fixed;
+     left:50%` — drawn in the row but not part of it. Two symptoms followed, and Wyatt reported
+     both separately: the ribbon's own `linear-gradient` washed over the pill (D-47: at z-index 19
+     under the ribbon's 40 it was behind the paint), and the ribbon's flex children, which cannot
+     know the pill exists, walked straight into it — his Safari screenshot of a tall stacked window
+     reads `WI[⏩]NOW: S↓ · FORECAST: ↗`, the fast-forward button eating the "ND" of WIND (D-52).
+     A z-index bump cures the gradient and leaves the ⏩ on top of it; only being a real child of
+     the row cures both, and the whole collision class with them, because flex spacing and
+     document paint order then come free.
+     stage.js's pillTick() re-parents the node on exactly this boundary, read through
+     matchMedia("(min-width:601px)") rather than typed a second time — one decision, read twice.
+     THE PHONE KEEPS ITS OWN FIXED PILL BELOW THE RIBBON (D-18/D-31: the phone stays as it is).
+     `margin:0 auto` on a flex item absorbs the row's free space on both sides, so the pill centres
+     itself between the left group (DAY + boats) and the right group (clock, ⏩, 💬, ☰) and can
+     never reach either. #pp4Menu's own `margin-left:auto` has to stand down while the pill is
+     there, or three auto margins share the space three ways and the pill sits left of centre. */
+  #pp4Ribbon > #pp4Pill { position:static; top:auto; left:auto; transform:none; z-index:auto;
+    margin:0 auto; background:rgba(9,42,52,.34); max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+  #pp4Ribbon > #pp4Pill ~ #pp4Menu { margin-left:0; }
   /* THE MENU IS A CARD, AND NOTHING SHOULD BE SAWN IN HALF BY IT. Found 2026-08-20 while
      screenshotting the ☰ menu to prove the mute button had come back: the wind pill sits at the top
      of the stage on z-index 19, the menu card lands over it, and "WIND NOW: E→ • FORECAST: N↑" was
@@ -1862,17 +1925,19 @@
     line-height:1.45; font-weight:600; transition:opacity .35s; cursor:pointer; }
   #pp4ChatFlash.out { opacity:0; }
 
-  #pp4ClockRow { display:block; width:100%; font-family:inherit; font-size:13.5px; font-weight:700;
-    padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
-    color:#177; margin-bottom:8px; }
+  /* #pp4ClockRow's rule was HERE and is deleted with the row itself (D-51, Wyatt 2026-08-21:
+     "remove the 'Turn clock: OFF – no rush' button in the menu, it's already visible always in the
+     header row"). Two controls for one state is the consistency fault rule 8 exists to catch. The
+     sound row below inherited its box values from that rule by hand-copy, so it now carries them
+     on its own — the same values, not new ones, and now with only one place to change them. */
   /* THE SOUND CONTROL READS LIKE ITS NEIGHBOURS. Wyatt's pick, 2026-08-20: in the ☰ menu it was a
      bare 34×28 icon floating above a stack of full-width rows, so the one control in that list that
      did not look like a control was the only one you might actually want mid-voyage.
 
-     Same values as #pp4ClockRow directly above, on purpose — that row is the menu's other live
-     toggle and the two now read as a pair ("Turn clock: ON — 30s a turn" / "Sound: ON"), rather
-     than one row and one orphan. Consistency is a core value; a second recipe here would be a
-     second thing to keep in step.
+     It used to share its box values with #pp4ClockRow, the menu's other live toggle, so the two
+     read as a pair. D-51 removed that row (the header chip is the one control now), so the sound
+     row is the menu's only toggle and owns these values outright. They are unchanged; what has
+     gone is the second copy of them.
 
      THE LABEL IS CSS, NOT innerHTML, AND THAT IS THE POINT. setClockUI() (src/ui/panel.js) already
      writes the megaphone pair into this button twice a second and already writes aria-pressed to
@@ -1885,18 +1950,18 @@
      area that exists because the icon button is ~33px. A full-width row is already far past 44px in
      both directions, so here it is repurposed rather than fought with: position:static returns it
      to the flow as the label. Nothing outside the open menu is affected. */
-  body.pp4Foot #footerRow #muteSlot { display:block !important; width:100%; margin:0; }
-  body.pp4Foot #footerRow #btnMute { display:flex; align-items:center; justify-content:center; gap:8px;
+  #footerRow.pp4MenuList #muteSlot { display:block !important; width:100%; margin:0; }
+  #footerRow.pp4MenuList #btnMute { display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; box-sizing:border-box; font-family:inherit; font-size:13.5px; font-weight:700;
     padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
     color:#177; line-height:1.2; }
-  body.pp4Foot #footerRow #btnMute:hover { background:#f2fbfa; filter:none; }
-  body.pp4Foot #footerRow #btnMute img { width:20px; height:20px; }
+  #footerRow.pp4MenuList #btnMute:hover { background:#f2fbfa; filter:none; }
+  #footerRow.pp4MenuList #btnMute img { width:20px; height:20px; }
   /* @copy misc.stage.soundrow — plain register, matching "Turn clock: ON — 30s a turn" beside it.
      The ☰ menu speaks to the person holding the device, not to a captain. */
-  body.pp4Foot #footerRow #btnMute::after { content:"Sound: ON"; position:static; width:auto;
+  #footerRow.pp4MenuList #btnMute::after { content:"Sound: ON"; position:static; width:auto;
     height:auto; transform:none; font:inherit; }
-  body.pp4Foot #footerRow #btnMute[aria-pressed="true"]::after { content:"Sound: OFF"; }
+  #footerRow.pp4MenuList #btnMute[aria-pressed="true"]::after { content:"Sound: OFF"; }
   body.pp4Stage #actionPanel { margin:0; }
 
   /* playtest 22 item 7: the clipped host every board-anchored floater lives in. It spans the
