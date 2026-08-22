@@ -24,7 +24,7 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 import { REPO } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
-import { MEASURE, structuralChecks } from "./lib/checks.mjs";
+import { MEASURE, structuralChecks, waitSettled } from "./lib/checks.mjs";
 import { judgeAll, writeJudgeQueue } from "./lib/vision.mjs";
 import { makePlayer, sideQuests, GATE_SRC } from "./lib/player.mjs";
 
@@ -146,13 +146,37 @@ async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
     await sleep(650);
     await c.ev(GATE_SRC);
     // capture + structurally check every screen we have not seen before
+    /* TWO MOMENTS, TWO QUESTIONS (Wyatt, 2026-08-22). The gate used to take ONE shot, at the instant
+       the screen's signature changed — i.e. the instant the animation starts, which is reliably the
+       worst moment rather than a random one, and is what made the recipe picker fail three times a
+       run for a fault that does not exist once the cards land.
+         MOTION  — captured immediately, as before. Asks a NARROWER question: did anything flash off
+                   the screen edge or render unlabelled on the way in. Its findings are OBSERVATIONS
+                   and never fail the leg, because "two things overlap while sliding into place" is
+                   what an animation IS. Running the settled rules here would double the false
+                   alarms, which is the opposite of the point.
+         SETTLED — captured once the rects stop moving. THIS IS THE BAR: structural checks and the
+                   vision judge both read this one.
+       The settled shot REPLACES the motion shot in `rec.screens`, so the judge and the contact sheet
+       see the screen as a player leaves it, and the motion frame is kept beside it for reading. */
     const f = await player.captureIfNew(OUT, tag, ++shotN);
     if (f) {
+      const mMotion = await c.ev(MEASURE);
+      const motionFails = (mMotion && !mMotion.__err) ? structuralChecks(mMotion).filter(k => !k.ok) : [];
+
+      const settle = await waitSettled(c);
+      const fSettled = f.replace(/\.png$/, "-settled.png");
+      await c.shot(fSettled);
+
       const m = await c.ev(MEASURE);
       const checks = (m && !m.__err) ? structuralChecks(m) : [{ ok: false, rule: "measure", what: String(m && m.__err) }];
       const fails = checks.filter(k => !k.ok);
-      rec.screens.push({ shot: f, sig: player.P.screens.at(-1).sig, fails });
+      /* A screen that never fully stopped is RECORDED, not failed — see the note in waitSettled. */
+      if (!settle.settled) log(`  [${tag}] note: still moving at the cap (${settle.ms}ms) — checked anyway`);
+      rec.screens.push({ shot: fSettled, motionShot: f, sig: player.P.screens.at(-1).sig, fails, settle,
+        motionOnly: motionFails.filter(k => !fails.some(x => x.rule === k.rule)) });
       if (fails.length) for (const k of fails) log(`  [${tag}] STRUCT FAIL ${k.rule}: ${k.what}`);
+      for (const k of (rec.screens.at(-1).motionOnly || [])) log(`  [${tag}] during-animation only (not a failure) ${k.rule}: ${k.what}`);
     } else shotN--;
     const st = await player.state();
     if (st && st.day !== lastDay) { lastDay = st.day; log(`  [${tag}] DAY ${st.day}`); }
@@ -199,6 +223,10 @@ function legVerdict(rec) {
   const judgeErrs = judged.filter(j => j.r.verdict === "ERROR" || j.r.verdict === "FATAL");
   if (judgeErrs.length) v.push(`vision judge errored on ${judgeErrs.length} screen(s) — those screens are NOT cleared`);
   if (judgeHoles) v.push(`${judgeHoles} screen(s) never judged — NOT cleared`);
+  const motionOnly = rec.screens.reduce((n, s) => n + ((s.motionOnly || []).length), 0);
+  if (motionOnly) v.push(`${motionOnly} observation(s) seen only DURING an animation — not failures, read them in the log`);
+  const unsettled = rec.screens.filter(s => s.settle && !s.settle.settled).length;
+  if (unsettled) v.push(`${unsettled} screen(s) never stopped moving before being checked`);
   if ((rec.queued || []).length) v.push(`vision pass DEFERRED for ${rec.queued.length} screen(s) — queued for a session, NOT cleared`);
   return v;
 }

@@ -146,3 +146,57 @@ function shapeOverlap(A, B, tol = 3) {
   F(empty.length === 0, "hug-content", empty.length ? `panel stretched empty: ${empty.join(", ")}` : "panels hug their content");
   return out;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────────────────────
+   SETTLE — "has this screen stopped moving?" (Wyatt, 2026-08-22)
+
+   WHY. The gate screenshots the instant a screen's signature changes, which is the instant the
+   animation STARTS — reliably the worst moment, not a random one. On 2026-08-22 that produced three
+   structural failures every phone run at the recipe picker (cards reported overlapping and
+   off-screen) which do not exist once the cards land: measured at rest they are 7px apart with 12px
+   of clearance. A whole investigation went into that phantom.
+
+   WHY NOT A SLEEP. A fixed wait is a constant standing in for a quantity that moves (rule 9): right
+   for today's animation, wrong for the next one, and silently wrong in both directions — too short
+   and the phantom returns, too long and every screen costs that much. This asks the PAGE instead,
+   sampling the same rects the checks are about to read until they stop changing.
+
+   THE CAP IS NOT OPTIONAL. Something on this board always animates (the wind arrows, the active-turn
+   ripple), and a poll that waits for true stillness would wait forever — which is precisely the
+   failure that left ten Chromes on Wyatt's laptop for three hours the same morning. So: settle is
+   declared after `stableFor` consecutive identical samples OR at `capMs`, and which of the two it
+   was is REPORTED, because "we gave up waiting" and "it settled" are different facts and a caller
+   that cannot tell them apart will eventually trust the wrong one.
+
+   ONLY THE MEASURED ROLES COUNT. It watches the rects of things a player clicks and reads — not the
+   whole document — so ambient scenery cannot hold it open.
+   ───────────────────────────────────────────────────────────────────────────────────────────── */
+export const SETTLE_PROBE = `(() => {
+  const sel = '.apBtn, .btlBtn, .sailCell, .recipeCard, .bkoCard, .apSlider, #flipCoinWrap.active, .apMsg, .apSub, .pp4Bub, .pp4PeekHint, #pp4Prompt, #pp4Cap, #pp4Pill';
+  /* QUANTISED TO 8px ON PURPOSE. Half this board never stops moving — .sailCell carries a permanent
+     bounce, ships glide, the ripple pulses — so an exact-rect comparison never settles and the cap
+     is hit on every screen. Measured: with exact rects, 22 samples over 2.68s on essentially every
+     screen of a phone leg. A slide-in travels tens to hundreds of pixels; a bounce travels two to
+     four. Rounding to 8px separates "arriving" from "breathing" without naming a single element,
+     which keeps this a general rule rather than a list of exceptions to maintain (D-37). */
+  const q = v => Math.round(v / 8);
+  return [...document.querySelectorAll(sel)].map(el => { const r = el.getBoundingClientRect();
+    return q(r.left) + ',' + q(r.top) + ',' + q(r.width) + ',' + q(r.height); }).join(';');
+})()`;
+
+export async function waitSettled(c, { sampleMs = 120, stableFor = 3, capMs = 2600 } = {}) {
+  const t0 = Date.now();
+  let last = null, same = 0, samples = 0;
+  while (Date.now() - t0 < capMs) {
+    const now = await c.ev(SETTLE_PROBE);
+    samples++;
+    if (typeof now === "string" && now === last) { if (++same >= stableFor) return { settled: true, ms: Date.now() - t0, samples }; }
+    else { same = 0; last = now; }
+    await new Promise(r => setTimeout(r, sampleMs));
+  }
+  /* HITTING THE CAP IS NOT A FAULT, and an earlier version of this made it one — which fired on
+     nearly every screen of a real leg and would have trained its reader to ignore the gate entirely,
+     the exact failure HARD-WON-LESSONS warns about. It is a fact worth recording and nothing more:
+     the checks below still run, on the best moment available. */
+  return { settled: false, ms: Date.now() - t0, samples };
+}
