@@ -39,7 +39,7 @@ import {
   render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
+  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
   waitWhilePaused, sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
   pickNarrVariant,
 } from "./util.js";
@@ -1307,7 +1307,12 @@ export async function flash(msg,ms,holdMs,variants,opts){
   // MSG_HOLD_MULTIPLIER (0.72) and the chat-bubble curve are not to be touched at all. Removing the
   // hold would make lines race past each other, which is not what "never fade the last line" asks
   // for.
-  await sleep(typeof holdMs==="number"?holdMs:msgHoldMs(text));
+  // D-34/D-45: the classic-path fallback reads from the SAME reading-speed model the stage bubble
+  // does. It is dead in practice (initStage() sets window.__pp4 at boot, so the branch above always
+  // takes it) but it is a real second reader of "how long does one line of narration read", and two
+  // things that must agree are one thing or they will drift (rule 23). A numeric holdMs still wins
+  // -- that is botWindLeg's own per-square override (D-10), an argument, not a curve.
+  await sleep(typeof holdMs==="number"?holdMs:narrationHoldMs(text));
   // F6: the two things that CLEARED the box at the end are gone — the fadeOut class, and the
   // trailing sleep(500) that existed solely to let that fade finish. The next render replaces this
   // line, so it stays fully readable until something takes its place and the box is never empty.

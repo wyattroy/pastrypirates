@@ -16,7 +16,7 @@
 "use strict";
 import { appState } from "../state/index.js";
 import { boardShipEls } from "./board.js";
-import { msgHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
+import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
   waitLineIsSelfAddressed } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
@@ -1020,27 +1020,21 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   else if (S.battle) { /* hold the shot on the fight until it resolves */ }
   else if (subj != null && !document.querySelector("#actionPanel .btl")) camToSeat(subj);
   return new Promise(res => {
-    // playtest 11 (Wyatt: "the game currently feels like it's in rush mode and i cant read
-    // anything") — every narration hold runs 50% longer than the panel's own curve
-    // D-10 (Wyatt, 2026-08-20, playtest item 10): a long narration line should hold about two
-    // seconds longer than it did — CEILING only, floor (2550) and *1.5 multiplier untouched.
+    // HOW LONG A NARRATION LINE STAYS UP -- one call, and the model behind it lives in util.js
+    // beside the curve it replaced (narrationHoldMs, D-34/D-45).
     //
-    // FIRST ATTEMPT (kept only in git history): raised THIS outer 6750 to 8775 and shipped it —
-    // then measured, live in a two-tab crew game, that it changed nothing. msgHoldMs()'s OWN
-    // ceiling (util.js's HOLD_CEILING_MS=2000) was already capping every message before this
-    // outer clamp ever saw it: 2000*1.5=3000 sits well under 6750 regardless. Re-ruled by the
-    // orchestrator 2026-08-21: the lever moves to msgHoldMs()'s own ceiling, scoped to THIS call
-    // site only via its new optional second argument (util.js) — every other caller of
-    // msgHoldMs(), including panel.js's classic-path fallback, is untouched.
+    // What used to be here, and why none of it survives:
+    //   Math.max(2550, Math.min(8775, round(msgHoldMs(msg, 3330) * 1.5)))
+    // The outer 8775 never bound -- an earlier attempt raised it from 6750, shipped, and measured
+    // as changing nothing, because msgHoldMs's own ceiling capped every line before this clamp saw
+    // it. The 2550 FLOOR is the one that mattered: it is what made a 27-character turn banner hold
+    // exactly as long as a 75-character sentence, which is Wyatt's item 6 ("medium narration lines
+    // drag"). D-34 replaced the whole model with reading speed, and the elegant version of that
+    // change DELETES the floor rather than lowering it -- so there is nothing left to clamp here.
     //
-    // NARRATION_HOLD_CEILING_MS back-computed from the live measurement: the old path's longest
-    // observed bubble was 3305ms/3304ms (host/guest), which is round(2000*1.5) + the ~300ms fade
-    // tail in finish() below. Solving for a ~5300ms final hold — "about two seconds longer" —
-    // gives round(3330*1.5)+300 = 4995+300 = 5295, close enough to his ask that no further tuning
-    // is warranted without his own re-measurement. This outer clamp's 8775 is UNCHANGED and does
-    // not re-bind: 3330*1.5=4995 is still well under it.
-    const NARRATION_HOLD_CEILING_MS = 3330;
-    const hold = Math.max(2550, Math.min(8775, Math.round((msgHoldMs ? msgHoldMs(msg, NARRATION_HOLD_CEILING_MS) : 1700) * 1.5)));
+    // D-45 re-ruled D-10's long-line number in the open (5.3s -> 4.5s); the ceiling now lives in
+    // util.js, derived from D-10's own hold, and this call site names no milliseconds at all.
+    const hold = narrationHoldMs(msg);
     const b = document.createElement("div");
     b.className = "pp4Bub" + (subj == null ? " ambient" : "");
     if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";

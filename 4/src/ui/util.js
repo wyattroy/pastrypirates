@@ -1305,6 +1305,70 @@ export function msgHoldMs(text,ceilingMs){
   const ceiling=typeof ceilingMs==="number"?ceilingMs:HOLD_CEILING_MS;
   return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),ceiling));
 }
+// ---- D-34 / D-45: narration holds at READING SPEED --------------------------------------------
+// His item 6 on the afternoon solo list, build t: "medium narration lines drag". Measured, and the
+// curve above was not the culprit -- the FLOOR was. msgHoldMs() returns at least HOLD_FLOOR_MS,
+// stage.js then multiplied by 1.5 and floored the RESULT at 2550ms, so every line under about 85
+// characters sat at exactly 2550ms. "Blown into the trade winds!" (27 chars, computed 1560ms) and a
+// 75-character sentence held for the identical time. A floor is a price list standing in for a
+// quantity that moves by an order of magnitude across a voyage (rule 9), and it fails silently.
+//
+// D-34 -- Wyatt's own pick, shown three options and the measurement behind each: replace the
+// floor-plus-per-character model with a READING-SPEED one. Hold = a small overhead + characters
+// divided by a reading rate. He picked against two anchors, and those two anchors are the only
+// numbers typed here. Two points determine one line, so the rate and the overhead are SOLVED from
+// them rather than typed alongside them:
+//
+//     rate     = (75 - 27) chars / (4500 - 2100) ms = 0.0200 char/ms  (20 char/sec)
+//     overhead = 2100ms - 27 chars / 0.0200 char/ms = 750ms
+//
+// D-45 -- Wyatt, 2026-08-21 evening, asked directly with both numbers in front of him: "everything
+// 15% faster: long lines ~5.3s -> ~4.5s, short ~2.1s -> ~1.8s." BOTH of his after-numbers are his
+// own before-numbers divided by 1.15, so the speed-up divides the WHOLE hold, not only its reading
+// term. Dividing the overhead and multiplying the rate does exactly that at every length in
+// between, and it needs no third number. (D-41 recorded the earlier form of this ruling -- rate
+// only, ceiling held. D-45 supersedes it and says so.)
+//
+// D-45 ALSO RE-RULES D-10's CEILING, in the open, by the person who made both rulings. D-10 pinned
+// a long line at ~5.3s (live-measured 5304ms host / 5297ms guest) and this file used to describe
+// that number as guarded. It is not guarded any more: he was shown it and chose ~4.5s. D-10's
+// INTENT -- a long line stays on screen long enough to read -- is untouched; only its number moved.
+// So the new ceiling is D-10's own hold divided by the same 1.15, not a fourth typed number.
+//
+// WHAT MOVES WITH IT, enumerated before the change rather than discovered after it (the -21.2
+// ladder regression came from replacing a constant with a calculation and not listing its readers):
+//   - stage.js's narration bubble  -> MOVES. This is D-34's target and the only live consumer.
+//   - panel.js's flash() classic-path fallback -> MOVES, so the two cannot disagree about how long
+//     one line of narration reads (rule 23). It is dead in practice because initStage() sets
+//     window.__pp4 at boot, but it is a real second reader of the same pacing.
+//   - flash(holdMs) when holdMs is a NUMBER -> does NOT move. That is botWindLeg's explicit
+//     per-square override (D-10), an argument rather than a curve.
+//   - chatBubbleHoldMs()           -> does NOT move. D-15 pinned a chat bubble to its own curve on
+//     purpose: another player typing TO you earns the extra beat.
+//   - msgHoldMs() itself and its botMsgHoldMs() alias -> UNCHANGED. Nothing in 4/src calls either
+//     any more once the two above are moved; they are kept so the D-23 parity alias and any script
+//     harness reading HOLD_FLOOR_MS/HOLD_CEILING_MS keep behaving byte-identically.
+//   - scripts/narration_test.js's G28 pins -> read the ROOT tree's src/ui/util.js, not this file.
+//     Checked by path, not assumed.
+const READ_ANCHOR_SHORT  = [27, 2100];   // D-34: ~27 characters reads in ~2.1s
+const READ_ANCHOR_MEDIUM = [75, 4500];   // D-34: ~75 characters reads in ~4.5s
+export const READ_SPEEDUP = 1.15;        // D-45: assume people read 15% faster -- every line
+const READ_RATE_BASE_CPMS =
+  (READ_ANCHOR_MEDIUM[0] - READ_ANCHOR_SHORT[0]) / (READ_ANCHOR_MEDIUM[1] - READ_ANCHOR_SHORT[1]);
+export const READ_RATE_CPMS = READ_RATE_BASE_CPMS * READ_SPEEDUP;
+export const READ_OVERHEAD_MS =
+  (READ_ANCHOR_SHORT[1] - READ_ANCHOR_SHORT[0] / READ_RATE_BASE_CPMS) / READ_SPEEDUP;
+// D-10's approved hold exactly as this codebase produced it until today -- msgHoldMs's scoped
+// ceiling times stage.js's 1.5 -- kept as the SOURCE of the new ceiling so the lineage of the
+// number stays readable and D-45 is expressed in exactly one place.
+const D10_HOLD_CEILING_MS = 3330 * 1.5;  // 4995ms; measured on screen at 5304/5297 with the fade tail
+export const NARRATION_HOLD_CEILING_MS = Math.round(D10_HOLD_CEILING_MS / READ_SPEEDUP);
+export function narrationHoldMs(text){
+  if(appState.ff)return 0;   // fast-forward: no holds, same rule msgHoldMs already follows
+  const chars=String(text==null?"":text).length;
+  return Math.round(Math.min(READ_OVERHEAD_MS + chars / READ_RATE_CPMS, NARRATION_HOLD_CEILING_MS));
+}
+
 // D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
 // snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);
 // BOT_STORM_STEP_MS is the bot's own, snappier per-square beat (botWindLeg, src/ui/flow.js).
