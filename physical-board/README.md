@@ -18,7 +18,7 @@ group of pieces; tick "approved" per group, leave notes, copy the lot as text.
 | The ingredient drawings (`assets/ingredients/*.png`) | **The tokens ARE the drawings**, cut along their own outline, the ink engraved — traced by [`art/trace.py`](art/trace.py). Outlines only on the cocoa, for painting. One sits on each island square, as in the game. The recipe cards use the same ink inside the app's rounded-square chip. |
 | Georgia (recipe titles, flavour) and Avenir Next (labels) | Every word on the wood, as outlines extracted by [`fonts/extract.py`](fonts/extract.py): recipe names and *Tortuga* in Georgia Bold, "Recipe No. 7" in Georgia Italic, compass letters and the rules card in Avenir Next. |
 | The 21 named recipes (`4/src/ui/recipe.js`) | The 21 recipe cards, by name, with each ingredient's silhouette in the app's rounded-square chip. |
-| Islands (per Wyatt's drawing, `notes/docknotch.jpeg`) | A gently wavy rounded coast is the cut; a thin sand line runs 4 mm inside it; grass tufts, a palm and a rock engraved; a plain 9 × 2.5 mm notch mid-edge on every outside square, between the cut and the line. |
+| Islands (per Wyatt's second drawing, `notes/islands.jpeg`) | A straight-edged rounded polyomino is the cut; a **shore line** and a **grass line** are engraved inside it, each waving its own way, with bare wood between them for the beach; one mark per square — the wind-blown palm, a cluster of three stones, the game's grass tuft; a plain 9 × 2.5 mm notch mid-edge on every outside square, its floor just into the shore line so a docked pier touches the sand. |
 | The pier (`assets/dock.png`): upright planks, corner posts | The dock tile's engraving; the planks run onto the tab that nests into the island. |
 | The wind chevron (`assets/wind-arrow.png`) | One per ring square, rotated to the ring's clockwise tangent as `buildRimFlow()` does. |
 | The whirlpool (`assets/trade-swirl.png`) | Traced and engraved on the four whirlpool tiles. |
@@ -37,8 +37,8 @@ over a dotted outline that shows where it goes. Scrabble-sized (Scrabble is 381 
 
 **On the board, 6 mm:** 9 islands — every tetromino orientation: the app's seven footprints plus the
 mirror images of the L and the S (a flipped piece would show its blank back); seven go out each
-voyage. A plain 9 × 2.5 mm notch in the middle of every outside edge — shallower than the engraved
-line, so no cut meets engraving. 7 docks, each a pier whose 9 mm deck becomes the tab, planks running
+voyage. A plain 9 × 2.5 mm notch in the middle of every outside edge, its floor biting 0.3 mm into the
+engraved shore line so a docked pier reads as touching the sand (Wyatt, 2026-08-22). 7 docks, each a pier whose 9 mm deck becomes the tab, planks running
 to the tab's end, bollards touching the deck; 0.15 mm of play. 28 ingredient tokens
 (four per ingredient: three to stock an island, one black-market spare; three padding options A/B/C are on the
 page — the sheets carry B until Wyatt picks). 4 ship hulls (24 × 12 mm,

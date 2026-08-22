@@ -373,6 +373,65 @@ function coinGlyph(cx, cy, d) { return artToken("coin", cx, cy, d, { cut: false,
    5. Icons — each authored in a 100x100 box, RASTER, outer outlines CW and holes CCW
    ========================================================================================= */
 const RA = "RASTER", CU = "CUT", GU = "GUIDE";   // GUIDE never reaches a laser file — it is for the page only
+
+// ---- island art helpers (the sampler's drawing code, 2026-08-22): everything in the icons' 100 x 100 box ----
+const islandArt = (() => {
+  const rad = a => a * Math.PI / 180;
+  const P = (cx, cy, a, r) => [cx + r * Math.cos(rad(a)), cy + r * Math.sin(rad(a))];
+  const Bz = (p0, c, p1, t) => [(1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]];
+  const Bt = (p0, c, p1, t) => { const x = 2 * (1 - t) * (c[0] - p0[0]) + 2 * t * (p1[0] - c[0]), y = 2 * (1 - t) * (c[1] - p0[1]) + 2 * t * (p1[1] - c[1]), L = Math.hypot(x, y) || 1; return [x / L, y / L]; };
+  const q2c = (p0, c, p1) => ["C", p0[0] + 2 / 3 * (c[0] - p0[0]), p0[1] + 2 / 3 * (c[1] - p0[1]), p1[0] + 2 / 3 * (c[0] - p1[0]), p1[1] + 2 / 3 * (c[1] - p1[1]), p1[0], p1[1]];
+  // a fan: ONE closed path — blades radiating from a hub circle (cx,cy,R), joined by arcs along the hub
+  function fan(cx, cy, R, blades) {
+    const bs = [...blades].sort((p, q) => p.a - q.a), cmds = [];
+    bs.forEach((b, i) => {
+      const d = (b.w / R) * 180 / Math.PI, p0 = P(cx, cy, b.a - d, R), p1 = P(cx, cy, b.a + d, R), tip = P(cx, cy, b.a, b.l);
+      const ux = Math.cos(rad(b.a)), uy = Math.sin(rad(b.a)), nx = -uy, ny = ux, m = P(cx, cy, b.a, (R + b.l) / 2), bend = b.bend || 0, bw = (b.belly ?? 1.8) * b.w;
+      const c0 = [m[0] + nx * (bend - bw), m[1] + ny * (bend - bw)], c1 = [m[0] + nx * (bend + bw), m[1] + ny * (bend + bw)];
+      cmds.push(i === 0 ? ["M", ...p0] : ["L", ...p0]); cmds.push(q2c(p0, c0, tip)); cmds.push(q2c(tip, c1, p1));
+      const next = bs[(i + 1) % bs.length], a0 = b.a + d, a1 = (i + 1 < bs.length ? next.a : next.a + 360) - (next.w / R) * 180 / Math.PI;
+      for (let k = 1; k < 6; k++) cmds.push(["L", ...P(cx, cy, a0 + (a1 - a0) * k / 6, R)]);
+    });
+    cmds.push(["Z"]); return { cmds };
+  }
+  // a lumpy stone: an ellipse-ish blob with a few bumps
+  function stone(cx, cy, rx, ry, seed = 1) {
+    const n = 9, pts = []; let s = seed * 977 + 1; const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, k = 0.88 + rnd() * 0.18; pts.push([cx + rx * k * Math.cos(a), cy + ry * k * Math.sin(a)]); }
+    const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    const cmds = [["M", ...mid(pts[n - 1], pts[0])]]; for (let i = 0; i < n; i++) cmds.push(q2c(i === 0 ? mid(pts[n - 1], pts[0]) : mid(pts[i - 1], pts[i]), pts[i], mid(pts[i], pts[(i + 1) % n]))); cmds.push(["Z"]);
+    return { cmds };
+  }
+  // a solid leaf with shallow V-notches along ONE edge (never past 45 % of the half-width, so it stays one piece)
+  function leafNotched(p0, c, p1, { n = 60, wmax = 6.5, w0 = 1.2, notches = 3, depth = 0.55, side = -1 } = {}) {
+    const L = [], R = [];
+    const tri = t => { if (t < 0.15 || t > 0.92) return 0; const x = ((t - 0.15) / (0.92 - 0.15)) * notches % 1; return Math.max(0, 1 - Math.abs(x - 0.5) / 0.16); };
+    for (let i = 0; i <= n; i++) { const t = i / n, p = Bz(p0, c, p1, t), u = Bt(p0, c, p1, t), nn = [-u[1], u[0]];
+      const base = w0 + (wmax - w0) * Math.sin(Math.PI * Math.pow(t, 0.8)) * (1 - t * 0.1), k = 1 - depth * tri(t);
+      const hl = side > 0 ? base * k : base, hr = side < 0 ? base * k : base;
+      L.push([p[0] + nn[0] * hl, p[1] + nn[1] * hl]); R.push([p[0] - nn[0] * hr, p[1] - nn[1] * hr]); }
+    return polyCmds([...L, ...R.reverse()]);
+  }
+  // a curved tapered trunk in ring segments (real gaps between them)
+  function trunk(bx, by, tx, ty, { w0 = 6, w1 = 3.2, bow = 10, rings = 0, gap = 1.6 } = {}) {
+    const p0 = [bx, by], c = [(bx + tx) / 2 + bow, (by + ty) / 2], p1 = [tx, ty], out = [], n = rings > 0 ? rings + 1 : 1;
+    for (let k = 0; k < n; k++) { const ta = k / n, tb = (k + 1) / n, Lp = [], Rp = [], m = 10;
+      for (let i = 0; i <= m; i++) { const t = ta + (tb - ta) * i / m, p = Bz(p0, c, p1, t), u = Bt(p0, c, p1, t), nn = [-u[1], u[0]], hw = w0 + (w1 - w0) * t;
+        const shrink = rings > 0 ? (i === 0 ? gap / 2 : i === m ? -gap / 2 : 0) : 0, q = [p[0] + u[0] * shrink, p[1] + u[1] * shrink];
+        Lp.push([q[0] + nn[0] * hw, q[1] + nn[1] * hw]); Rp.push([q[0] - nn[0] * hw, q[1] - nn[1] * hw]); }
+      out.push(polyCmds([...Lp, ...Rp.reverse()])); }
+    return out;
+  }
+  // a crown: a hub and fronds at the given screen angles (-90 = up), each arching up then drooping the short way round
+  function crown(cx, cy, fronds, make, hubR = 4.5) {
+    const turn = d => ((d + 180) % 360 + 360) % 360 - 180, out = [{ circle: { cx, cy, r: hubR, ccw: false } }];
+    for (const f of fronds) { const a = f.a, len = f.len, arch = f.arch ?? 0, droop = f.droop ?? 0.3;
+      const p0 = P(cx, cy, a, hubR + 0.6), c = P(cx, cy, a + turn(-90 - a) * arch, len * 0.62), p1 = P(cx, cy, a + turn(90 - a) * droop, len);
+      out.push(make(p0, c, p1, f)); }
+    return out;
+  }
+  return { fan, stone, leafNotched, trunk, crown };
+})();
 const ICONS = {
   // a single wheat ear: grains up both sides of a stem, matching assets/ingredients/wheat.png
   wheat() {
@@ -432,12 +491,14 @@ const ICONS = {
     const body = { cmds: [["M", 46, 26], ["L", 54, 26], ["L", 54, 36], ["L", 72, 36], ["L", 72, 42], ["L", 54, 42], ["L", 54, 70], ["C", 60, 72, 68, 68, 72, 60], ["L", 82, 68], ["C", 78, 84, 64, 96, 50, 96], ["C", 36, 96, 22, 84, 18, 68], ["L", 28, 60], ["C", 32, 68, 40, 72, 46, 70], ["L", 46, 42], ["L", 28, 42], ["L", 28, 36], ["L", 46, 36], ["Z"]] };
     return [ring(RA, 50, 14, 9, 5), item(RA, [body])];
   },
-  // palm tree for island pieces
+  // palm tree for island pieces — Wyatt's pick from the second line-up (2026-08-22): "H · wind-blown", a leaning
+  // ringed trunk with every notched leaf streaming to the right, a nod to the game's wind. Authored as the
+  // sampler drew it: a curved trunk in ring segments, a hub, five solid leaves with shallow V-notches on the lee edge.
   palm() {
-    const trunk = { cmds: [["M", 44, 96], ["C", 46, 80, 50, 62, 58, 48], ["L", 63, 50], ["C", 56, 64, 53, 80, 52, 96], ["Z"]] };
-    const it = [item(RA, [trunk])];
-    it.push(circ(RA, 62, 42, 4));
-    for (const a of [-160, -110, -60, -10, 40]) { const cx = 62 + 19 * Math.cos(rad(a)), cy = 42 + 19 * Math.sin(rad(a)); it.push(ellipse(RA, cx, cy, 14, 5, a)); }
+    const it = [];
+    for (const seg of islandArt.trunk(36, 98, 40, 40, { w0: 6, w1: 3, bow: -10, rings: 5 })) it.push(item(RA, [seg]));
+    const fronds = [{ a: -135, len: 40, droop: 0.7 }, { a: -100, len: 46, droop: 0.62 }, { a: -65, len: 50, droop: 0.5 }, { a: -30, len: 50, droop: 0.4 }, { a: 5, len: 44, droop: 0.3 }];
+    for (const sh of islandArt.crown(40, 34, fronds, (p0, c, p1) => islandArt.leafNotched(p0, c, p1, { wmax: 5.4, w0: 1.3, notches: 3, depth: 0.55, side: -1 }))) it.push(item(RA, [sh]));
     return it;
   },
   // storm cloud (one outline) with a bolt beneath
@@ -458,10 +519,11 @@ const ICONS = {
     const slits = [36, 50, 64, 78, 92].map(x => reverseSub(polyCmds([[x - 1.1, 31], [x + 1.1, 31], [x + 1.1, 69], [x - 1.1, 69]])));
     return [item(RA, [deck, ...slits]), circ(RA, 22, 24, 5), circ(RA, 22, 76, 5), circ(RA, 98, 24, 5), circ(RA, 98, 76, 5)];
   },
-  // a grass tuft: three short blades
-  tuft() { return [poly(RA, [[44, 70], [50, 40], [52, 70]]), poly(RA, [[30, 72], [38, 48], [44, 72]]), poly(RA, [[56, 72], [64, 50], [70, 72]])]; },
-  // a rock, after the grey boulders on the island art
-  rock() { return [item(RA, [{ cmds: [["M", 20, 70], ["C", 16, 50, 34, 30, 52, 32], ["C", 70, 30, 86, 44, 82, 62], ["C", 80, 74, 60, 78, 48, 76], ["C", 34, 78, 22, 78, 20, 70], ["Z"]] }])]; },
+  // a grass tuft — Wyatt's pick (2026-08-22): "C · the game's tuft", four fat blades curving outward like the green
+  // art's tufts, ONE closed shape (a fan from a small hub) so the laser's fill never sees an overlap
+  tuft() { return [item(RA, [islandArt.fan(50, 92, 14, [{ a: -158, l: 54, w: 5, bend: -12, belly: 2.2 }, { a: -112, l: 80, w: 5, bend: -6, belly: 2.2 }, { a: -68, l: 80, w: 5, bend: 6, belly: 2.2 }, { a: -22, l: 54, w: 5, bend: 12, belly: 2.2 }, { a: 90, l: 14, w: 0.1 }])])]; },
+  // stones — Wyatt's pick (2026-08-22): "C · a cluster of three": big, middle and a pebble, grouped as the island art does
+  stones() { return [item(RA, [islandArt.stone(30, 52, 28, 24, 7)]), item(RA, [islandArt.stone(67, 62, 17, 15, 2)]), item(RA, [islandArt.stone(90, 74, 8, 7, 9)])]; },
   // the trade-wind whirlpool, after assets/trade-swirl.png: two spiral arms about an eye
   swirl() {
     const arm = (phase) => { const pts = [], turns = 0.9, a0 = 10, b = (44 - a0) / (turns * Math.PI * 2), w0 = 7, w1 = 14; const P = (th, r) => [50 + r * Math.cos(th + phase), 50 + r * Math.sin(th + phase)];
@@ -730,16 +792,19 @@ function whirlpool(style, cx, cy) {
 
 // a closed polyline with the coast gently waved along its outward normal — still, the wave dies out
 // within `quiet` mm of each notch midpoint so the dock slots stay on straight shore
-function waveCoast(cmds, notchMids, { amp = 0.7, lambda = 9, quiet = 7, step = 0.8 } = {}) {
+function waveCoast(cmds, notchMids, { amp = 0.7, lambda = 9, quiet = 7, step = 0.8, phase = 0, ripple = 0 } = {}) {
   const raw = flatten({ cmds }, 16).pts, pts = [];
   for (let i = 0; i < raw.length; i++) { const a = raw[i], b = raw[(i + 1) % raw.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step)); for (let k = 0; k < n; k++) pts.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); }
   const cw = signedArea(pts) > 0, out = []; let sArc = 0;
+  // fit whole waves round the loop, so the coast closes without a step where it started
+  let perim = 0; for (let i = 0; i < pts.length; i++) { const q = pts[(i + 1) % pts.length]; perim += Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]); }
+  const lam = perim / Math.max(1, Math.round(perim / lambda)), lam2 = perim / Math.max(1, Math.round(perim / (lambda * 0.53)));
   for (let i = 0; i < pts.length; i++) {
     const p = pts[i], q = pts[(i + 1) % pts.length], pr = pts[(i + pts.length - 1) % pts.length];
     const tx = q[0] - pr[0], ty = q[1] - pr[1], tl = Math.hypot(tx, ty) || 1, nx = (cw ? ty : -ty) / tl, ny = (cw ? -tx : tx) / tl; // outward
     const dmin = Math.min(...notchMids.map(m => Math.hypot(p[0] - m[0], p[1] - m[1])));
     const f = dmin <= quiet ? 0 : dmin >= quiet + 5 ? 1 : (dmin - quiet) / 5;
-    const w = amp * f * Math.sin(2 * Math.PI * sArc / lambda);
+    const w = amp * f * (Math.sin(2 * Math.PI * sArc / lam + phase) + ripple * Math.sin(2 * Math.PI * sArc / lam2 + phase * 1.7)) / (1 + ripple);
     out.push([p[0] + nx * w, p[1] + ny * w]);
     sArc += Math.hypot(q[0] - p[0], q[1] - p[1]);
   }
@@ -763,31 +828,37 @@ function islandFromArt(shapeIdx) {
   const cells = ISLAND_SHAPES[shapeIdx], artKey = shapeIdx === 7 ? "island5" : shapeIdx === 8 ? "island6" : `island${shapeIdx + 1}`, mirror = shapeIdx >= 7;
   return islandClean(cells, artKey, mirror, [], shapeIdx);
 }
-// Wyatt's drawing: a clean rounded polyomino is the cut; a thin line runs inside it at an even distance; the game's
-// island art (palms, rocks, the grass edge) is engraved inside that line; a small square notch sits in the middle of
-// every outside edge, shallower than the line so the two never meet.
-// Wyatt, 2026-08-22, third time: "Go back to the first version you showed me, then make that version look like the
-// diagram." So: the first version's gently wavy coast, engraved sand line, grass tufts, palm and rock — with the
-// drawing's rounder corners, the line thinner and further in, and a plain square notch in the middle of every outside
-// edge, between the cut and the line, never touching the line.
+// Wyatt's SECOND drawing (notes/islands.jpeg, 2026-08-22) and his answers to the questions, all rulings his:
+//   the cut is ruler-straight between 5 mm corners (no wave), 0.4 mm inside the squares, a plain 9 x 2.6 notch in the
+//   middle of every outside edge whose floor bites a little into the shore line; TWO engraved lines inside it — shore
+//   and grass, 0.6 mm, each waving its own way, bare wood between them as the beach; one mark per square, centred: the
+//   wind-blown palm on an end square, the three stones on the junction square with a tuft beside them, the game's tuft
+//   on every other square. Tortuga (marks: false) gets the same coast and keeps its piers and name.
 function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, { palm = true } = {}) {
   const loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
-  const rounded = roundCorners(offsetPoly(loop, -CLR), ISLAND_R);
   const edges = perimeterEdges(cells).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
-  const coast = waveCoast(rounded.cmds, edges.map(e => e.m), { amp: 0.5, lambda: 10, quiet: NOTCH.socket.hw + 3 });
-  let pts = coast; if (signedArea(pts) < 0) pts = pts.reverse();
+  // the cut: the rounded polyomino, straight-edged, notched
+  const rounded = roundCorners(offsetPoly(loop, -CLR), ISLAND_R);
+  let pts = waveCoast(rounded.cmds, [], { amp: 0, step: 0.5 });
+  if (signedArea(pts) < 0) pts = pts.reverse();
   for (const e of edges) pts = notchPolyline(pts, e.m, e.along, NOTCH.socket.hw + 0.2, slotPts(e.m, e.along, e.inward, NOTCH.socket, +1));
   const it = [item(CU, [polyCmds(pts)])];
-  // the sand line: 0.6 mm wide at INNER_LINE from the coast, offset from the un-notched coast so it ignores the notches
-  it.push(item(RA, [polyCmds(offsetPoly(coast, -INNER_LINE)), reverseSub(polyCmds(offsetPoly(coast, -INNER_LINE - 0.6)))]));
-  // grass in the corners, a palm on the best-connected square, a rock — as in the first version
-  const set = new Set(cells.map(c => c.join(","))), nb = c => [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(d => set.has(`${c[0] + d[0]},${c[1] + d[1]}`)).length;
-  let seed = seedBase * 7919 + 13; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-  for (const [cx, cy] of cells) for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { if (rnd() < 0.4) continue; const x = (cx + .5) * CELL + sx * (CELL * .27 + rnd() * 1.0), y = (cy + .5) * CELL + sy * (CELL * .27 + rnd() * 1.0); it.push(...icon("tuft", x, y, 3.0 + rnd() * 1.2)); }
-  if (palm) { const best = cells.reduce((a, c) => nb(c) > nb(a) ? c : a, cells[0]);
-    it.push(...icon("palm", (best[0] + .5) * CELL - 2, (best[1] + .5) * CELL - 1, CELL * .5));
-    const rockCell = cells[cells.length - 1];
-    it.push(...icon("rock", (rockCell[0] + .5) * CELL + CELL * .25, (rockCell[1] + .5) * CELL - CELL * .24, 4.5)); }
+  // the two lines: each an inset of the footprint with its own 5 mm corners (so the beach widens a little at every
+  // corner, as in the drawing), waved on its own phase, drawn LINE_W wide as a ring
+  const lineAt = (d, phase) => { const c = roundCorners(offsetPoly(loop, -CLR - d), ISLAND_R), w = waveCoast(c.cmds, [], { amp: 0.5, lambda: 11, quiet: 0, step: 0.6, phase, ripple: 0.4 });
+    return item(RA, [polyCmds(offsetPoly(w, LINE_W / 2)), reverseSub(polyCmds(offsetPoly(w, -LINE_W / 2)))]); };
+  it.push(lineAt(SHORE_LINE, seedBase * 1.37), lineAt(GRASS_LINE, seedBase * 2.71 + 1.9));
+  // the marks
+  if (palm) {
+    const set = new Set(cells.map(c => c.join(","))), nb = c => [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(d => set.has(`${c[0] + d[0]},${c[1] + d[1]}`)).length;
+    const nbs = cells.map(nb), minNb = Math.min(...nbs), maxNb = Math.max(...nbs);
+    const palmCell = cells[cells.map((c, i) => i).filter(i => nbs[i] === minNb).pop()];
+    const stonesCell = cells.find((c, i) => nbs[i] === maxNb && c !== palmCell) || cells.find(c => c !== palmCell);
+    for (const c of cells) { const x = (c[0] + .5) * CELL, y = (c[1] + .5) * CELL;
+      if (c === palmCell) it.push(...icon("palm", x, y, CELL * .5));
+      else if (c === stonesCell) { it.push(...icon("stones", x - CELL * .1, y - CELL * .04, 6)); it.push(...icon("tuft", x + CELL * .16, y + CELL * .1, 4)); }
+      else it.push(...icon("tuft", x, y, 4)); }
+  }
   it.push(...extra);
   void artKey; void mirror;
   return it;
@@ -841,7 +912,13 @@ const DOVE = { tab: { neck: 9.6, head: 11.0, depth: 3.0 }, socket: { neck: 9.75,
 // edge, 6 mm wide and 2.5 mm deep, shallow enough never to reach the engraved line inside; the dock's deck is the
 // same 6 mm wide and becomes the tab. 0.15 mm of play.
 // 2026-08-22, later: "make the dock, and notch, 50% wider" — 9 mm
-const NOTCH = { tab: { hw: 4.5, depth: 2.5 }, socket: { hw: 4.575, depth: 2.6 } }, ISLAND_R = 5, INNER_LINE = 4.0;
+const NOTCH = { tab: { hw: 4.5, depth: 2.5 }, socket: { hw: 4.575, depth: 2.6 } }, ISLAND_R = 5;
+// Wyatt's second drawing (notes/islands.jpeg, 2026-08-22): two engraved lines inside the cut — the SHORE line and the
+// GRASS line, bare wood between them is the beach. He drew them 3.5 and 6.5 mm in; they sit 0.9 mm further out here
+// because he also ruled that the notch floor should bite a little INTO the shore line ("the dock is literally touching
+// the sand") while the dock's 2.5 mm tab stays as it is — so the shore line straddles the 2.6 mm notch floor. The beach
+// between the lines is the drawing's 2.4 mm.
+const SHORE_LINE = 2.6, GRASS_LINE = 5.6, LINE_W = 0.6;
 function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
   const n = [inward[0] * dir, inward[1] * dir], t = along, P = (x, d) => [m[0] + t[0] * x + n[0] * d, m[1] + t[1] * x + n[1] * d];
   return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
@@ -1310,7 +1387,7 @@ function buildVersion(V) {
   else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
   const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
-  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. The first version, shaped to your drawing: a gently wavy coast with 5 mm corners, a thin sand line 4 mm inside it, grass, a palm, a rock — and a plain 9 × 2.5 mm notch in the middle of every outside edge, between the cut and the line." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
+  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. Your second drawing: a straight-edged coast with 5 mm corners; a shore line and a grass line engraved inside it, 0.6 mm, each waving its own way, bare wood between them for the beach; a plain 9 × 2.5 mm notch in the middle of every outside edge, its floor just into the shore line so a dock touches the sand; one mark a square — the wind-blown palm on an end square, three stones and a tuft on the junction square, the game\u2019s grass tuft on the rest." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
   const dockParts = dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));

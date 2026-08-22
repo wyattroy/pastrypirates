@@ -34,7 +34,7 @@ lettering (Georgia, Avenir Next) as outlines from `fonts/extract.py`.
 |---|---|---|
 | Board | not yet approved | Four jigsaw quadrants on grid-line seams; NW carries the centre square; a **dotted outline** where Tortuga sits; water = short brushy wave strokes (not rings); rim = the app's chevron. |
 | Tortuga | (part of board) | A **+‑shaped piece that sits ON the board**, same style as the islands, says "Tortuga", **no anchor**, berth piers on the arms **reaching the middle square**, no palm. |
-| Islands (9) | **not approved — the sore point, see §3** | Per his drawing `notes/docknotch.jpeg`: the FIRST version's gently wavy rounded coast + thin sand line 4 mm inside + tufts, palm, rock; a **plain square 9 × 2.5 mm notch mid-edge on every outside square**, between the cut and the line. Shapes 8/9 = mirrored L and S. |
+| Islands (9) | **round five built to his second drawing — not yet seen by him, see §8** | Per `notes/islands.jpeg` and his answers: straight-edged cut, 5 mm corners; shore line + grass line (0.6 mm, each waving its own way) with bare wood between as the beach; **notch floor bites 0.3 mm into the shore line**; one mark per square — wind-blown palm (H), three stones (C), the game's tuft (C), all his picks from rendered line-ups. Shapes 8/9 = mirrored L and S. |
 | Docks (7) | "these look good" then widened | Pier whose **9 mm deck becomes the tab** (9 × 2.5, 0.15 play), planks to the tab's end, **bollards touching the deck**, no anchor. |
 | Ingredient tokens (28) | waiting on his pick | The ingredient PNG traced: cut = silhouette, engrave = ink; cocoa = squares filled, wrapper outlined open (for gouache). **Three padding options A/B/C on the page**; sheets carry B. |
 | Whirlpools (4) | **approved** | 3 mm tile, the swirl art traced. Do not touch. |
@@ -110,3 +110,37 @@ Plain English, state the size of what you did, ask 2–5 questions with the ques
 building anything non-trivial, read every screenshot he sends pixel by pixel, QA your own renders
 before he sees them, restate every mid-flight instruction, and never claim a defect or a fix you
 have not looked at.
+
+## 8. Round five — the islands from his SECOND drawing (2026-08-22, evening)
+
+He drew `notes/islands.jpeg` (an L on a pencil grid: red = cut, black = engraving, in the project's own
+colours) and asked for 10–20 questions before anything was built. Fifteen were asked with the question
+UI, in four batches; then he asked to SEE grass tufts, stones and palms before choosing, so two
+line-up sheets were rendered (four of each, magnified and at true size on a 25 mm square). The first
+palm sheet he rejected outright ("draw them better"); the second he chose from. **All of the below are
+his rulings, not inferences:**
+
+- **Cut:** ruler-straight between the corners (the wave moved off the cut), corners **stay 5 mm**
+  (his drawing's ≈7.5 was the pen), clearance stays 0.4, notch **stays 9 mm** to match the dock.
+- **Notch floor goes a little INTO the shore line** — "we want it to look like the dock is literally
+  touching the sand." With the dock unchanged (2.5 mm tab) that fixes where the shore line can be:
+  `SHORE_LINE = 2.6` (spans 2.3–2.9, floor at 2.6), `GRASS_LINE = 5.6`. The drawing had them at ≈3.5
+  and ≈6.5; the 2.4 mm beach between is the drawing's. **This was a judgment call** — three rulings
+  (dock unchanged, notch bites line, drawing's spacing) could not all hold — and it was told to him.
+- **Two lines:** outer = shore, inner = grass, the wood between is the beach; **0.6 mm** (he kept the
+  build's weight over the pen's 0.7); **each wavy its own way** (`waveCoast` now takes `phase` and
+  `ripple`, and fits whole waves round the loop so the line closes without a step).
+- **Tokens cover what they cover** — he knows a 20 mm token hides the grass line on a stocked square.
+- **Marks, one per square, centred:** palm on an end square, the stones on the junction square with a
+  tuft beside them, a tuft on every other square. Sizes: palm box stays 12.5 mm, stones 6, tufts 4.
+- **The art, by his pick:** tuft = "C · the game's tuft" (four fat blades, one closed fan), stones =
+  "C · a cluster of three", palm = **"H · wind-blown"** (he first answered E, the traced 🌴 emoji, then
+  interrupted: "Actually I prefer H!"). Drawing code lives in `islandArt` beside `ICONS`.
+- **Tortuga** gets the same coast (piers and name kept, no marks). Dock untouched.
+
+How the line-ups were made, for next time: author each candidate in the icons' 100-box, render ONE
+`<path fill-rule="evenodd">` per candidate so any overlap between shapes shows as a white hole (the
+laser's fill mode does the same), magnified beside a true-size 25 mm square with the two lines. Three
+rounds of that caught: blades drawn as petals floating off their base (edge control points on the
+wrong side), crowded hubs, and a "droop toward the ground" that rotated the long way round for leaves
+pointing left — every one visible in the render, none in the code.
