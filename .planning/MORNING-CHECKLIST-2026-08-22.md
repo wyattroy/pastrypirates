@@ -147,6 +147,36 @@ phase exists to kill, and they are only visible with both screens side by side.
 
 ## Things I know are still wrong, so you do not have to report them
 
+**Your call, not a bug:**
+1. **The prompt buttons may still be too quiet (your item 1).** The pulse shipped and it does reach
+   the real radial petals — an earlier reading that said otherwise turned out to be measuring a
+   ceremony card, which is a different screen. But whether it is *loud enough* is taste. Tell me how
+   much louder and I will do it in one pass.
+
+**Known, measured, deliberately not touched:**
+2. **Two gate failures at tablet width, at the opening only.** They fail identically on the OLD
+   build, so they are not from last night. The cause is measured: the check compares the captains
+   card against the camera strip rather than the painted board, and at full zoom the square
+   letterboxes so the strip runs 91px past the art. The card is sitting over empty void, not over
+   the board. **The assertion was deliberately not weakened to make it green** — that belongs with
+   the camera work.
+3. **A Buy pill that overhung the right edge by 63px** on an older build does not reproduce now.
+   The wider desktop column is probably hiding it rather than fixing it. Expect it back at a narrow
+   width.
+4. **A prompt that has a slider but no helper line** has not been posed, so the slider is not yet
+   proven to dodge the button fan the way the helper line now does.
+
+**Suspected but NOT measured — read from the code only, so do not treat it as fact:**
+5. **A guest's Bake-Off may be played on the host's screen.** That code has no networked path and
+   says so in its own comment, giving the reason "this is all built for v2 which doesn't have
+   multiplayer" — true when written, false since Phase 2. **So do not judge item 6 (the Bake-Off
+   card) by a crew game** — judge it solo or pass-and-play. Settling it properly is an architecture
+   decision that is yours; the cheap way in has been written down so nobody pays to find it twice.
+
+**Not established, so not claimed:**
+6. **The guest's wind pill, clock chip and day counter in a crew game (PAR-02).** Pinned in the crew
+   section above as something for you to look at.
+
 **A guest's Bake-Off is played on the HOST's screen, not theirs.** Found while fixing item 6, by
 reading the code — **not measured, so treat it as a strong suspicion rather than a fact.** The
 bake-off has no networked path at all: the function that runs it says so in its own comment, and the
