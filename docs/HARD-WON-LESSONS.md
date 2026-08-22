@@ -998,3 +998,108 @@ and clean (0 piled controls, 0 off-screen controls, 0 dead sliders, 0 ribbon occ
 classes that had been failing). Had the phantom stall been reported alongside them, it would have
 put every one of those true results in doubt. **An unmeasured claim shipped beside measured ones
 does not merely add noise; it discredits the measurements it travels with** (CLAUDE.md rule 6).
+
+---
+
+## 9. 2026-08-22 — the day the instruments cost more than the bugs
+
+Every entry here is from one overnight run plus the morning after it. **Not one of them is a fault in
+the game.** They are all faults in the things built to find faults in the game, which is why they
+belong together: a QA layer is unreviewed code that nobody plays, so it rots in the dark.
+
+### A QA TOOL THAT CAN OUTLIVE ITS OWN RUN WILL BE FOUND HEATING HIS LAPTOP
+
+`playtest_gate.mjs` was launched against build `2026-08-22a`. It played for 37 minutes, then sat at
+**0% CPU for three hours with ten headless Chromes alive at 47% of Wyatt's CPU**, until he asked why
+it was still running. Three faults stacked:
+
+1. **The judge could not tell a dead instrument from a bad answer** (below).
+2. **It kept calling anyway** — 67 times, once per screenshot.
+3. **The contact sheet hung the run.** A step that only PRESENTS results outlived the run that
+   produced them and held its own browsers open indefinitely.
+
+CLAUDE.md's rule 17 says kill every headless Chrome before you reply. **That rule assumes the probe
+ENDS.** This one did not, and the session reported "still running" for hours without once checking
+whether it was *progressing*. **A long-running probe needs a watchdog that can kill it, and a
+liveness check that reads the log's timestamp rather than the process's existence** — `ps` said it
+was alive, and it was alive the way a corpse is warm.
+
+### ANYTHING THAT FAILS ON EVERY SCREEN IS AN INSTRUMENT FAILURE, NOT A GAME WITH THAT MANY BUGS
+
+The machine's `claude` login had expired. Every judge call returned a perfectly well-formed JSON
+envelope whose `result` was *"Failed to authenticate: OAuth session expired and could not be
+refreshed"* — so the parser found no verdict and resolved **"unparseable judge reply"**, 67 times.
+The one fact that mattered appeared nowhere; it was buried under 67 findings-shaped non-findings.
+
+**A uniform failure rate is diagnostic.** 67 of 67 is never a property of the thing being measured.
+Detect the environment failure explicitly, make it FATAL, and stop — and when you stop, leave the
+screens **unjudged rather than passed**, because those two must never be confused.
+
+### WHEN A PRODUCER LEARNS TO RETURN HOLES, GREP EVERY CONSUMER — THE CHANGE THAT ADDS THE HOLE IS NEVER THE ONE THAT CRASHES
+
+Fixing the above, `judgeAll` was taught to stop on the first FATAL, leaving unreached slots
+`undefined` — deliberately, so an unjudged screen could not read as a pass. **Two consumers assumed a
+dense array.** Wyatt's own run died on it twice in one leg:
+
+```
+contact sheet failed: Cannot read properties of undefined (reading 'verdict')
+TypeError ... at legVerdict (playtest_gate.mjs:181)
+```
+
+It took the gate down **after solo-desktop had already played a complete voyage to day 15**, so the
+crash discarded a finished leg. He was running the exact build that had the first half of the change
+and not the second.
+
+### A GATE THAT FIRES ON EVERY SCREEN TRAINS ITS READER TO IGNORE IT — WHICH IS WORSE THAN NO GATE
+
+The gate had **no notion of a settled screen**: it screenshots the instant a screen's signature
+changes, i.e. the instant the animation STARTS. Reliably the worst moment, not a random one. That is
+why the recipe picker reported overlapping, off-screen cards three times a phone leg for a fault
+that does not exist once the cards land (measured at rest: 7px apart, 12px of clearance).
+
+**The first fix was worse than the bug.** It compared exact rects and treated hitting the cap as a
+FAILURE. But **half this board never stops moving** — `.sailCell` carries a permanent bounce, ships
+glide, the ripple pulses — so nothing ever settled: **22 samples over 2.68s on essentially every
+screen of a real leg.** A rare phantom had become a constant one.
+
+Two things came out of it. **Quantise, do not enumerate:** a slide-in travels tens to hundreds of
+pixels and a bounce travels two to four, so rounding rects to 8px separates *arriving* from
+*breathing* without maintaining a list of exceptions. And **hitting a cap is a fact to record, never
+a failure to raise** — the checks still run on the best moment available.
+
+### RECONCILE A THEORY WITH THE EVIDENCE YOU ALREADY HAVE BEFORE OFFERING IT
+
+The auth failure was diagnosed as a shared-credential race: the app session and the CLI read one
+Keychain token, the app refreshes it, refreshing rotates it, the CLI's copy dies. Every fact fitted —
+the credential existed, it had been rewritten twenty minutes earlier, stripping every inherited
+`ANTHROPIC_*` and `CLAUDE_CODE_*` variable changed nothing.
+
+**The theory predicted that running from a plain Terminal would work. Wyatt ran it from a plain
+Terminal and it failed identically — and that output was already in the transcript when the theory
+was restated.** `/login` fixed it. A hypothesis that survives only because you did not check it
+against the evidence in front of you is not a hypothesis, it is a preference.
+
+**And the same session then contradicted itself in the other direction:** having just built the
+queue handoff *specifically to remove the CLI dependency*, it told him the vision pass "stays manual
+until you re-authenticate." He caught it. **When you remove a dependency, update your model of what
+is blocked — the old blocker survives in your own sentences long after it stops being true.**
+
+### CHASING A FALSE ALARM IS HOW THE TRUE ONE WAS FOUND — SO CHASE IT, BUT SAY WHICH IS WHICH
+
+The recipe-picker structural failure was a mid-animation artifact on phone. Investigating it turned
+up a **real** fault one layer over: on DESKTOP the picker's subtitle is sliced by the cards in a
+settled state. The phantom was worth chasing. It was not worth *reporting* — and the two were only
+distinguishable because the settled state was measured rather than assumed.
+
+Related, and the reason the phantom was reachable at all: **the phone legs had been emulating a
+390×844 screen with no browser bar** — 180px no real Safari ever gives a page. Correcting it to 664
+made nine "empty dead space" findings evaporate and exposed the recipe cards being cut off at the
+bottom **on the first screen of the game**. An instrument that models a device nobody owns reports
+faults nobody has and hides faults everybody has.
+
+### DO NOT RUN A GATE ON A MACHINE ANOTHER AGENT IS ALREADY DRIVING
+
+A verification re-run boot-failed with *"solo card not clickable"* at 7 seconds. Not the change under
+test: another agent was driving browsers on the same laptop and the page never finished loading in
+the boot window. **Check for other agents' Chromes before launching, and scope the conclusion when
+you do not** — that failure was nearly filed against the settle detector.
