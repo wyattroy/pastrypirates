@@ -1858,7 +1858,33 @@ export async function humanAct(p,sailCtx){
   // (:above) was already correct and is deliberately untouched.
   // /4 radial (Wyatt's pick: short verbs in the circles, details in the pill): each long label
   // carries a `short` form for the bloom; the card fallback keeps the full sentence. Draft copy.
-  if(canDock)opts.push({label:`⚓ Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)}`,short:`⚓ Dock ${iconImg(ING_IMG[port])}`,value:"dock"});
+  /* D-33 (Wyatt, his item 4, build t): the anchor goes, and the petal reads as the INGREDIENT, the
+     word Dock, and a COIN WITH NO NUMBER. His reason is exact and worth keeping verbatim: the flip
+     decides whether it pays 1 or 3, so a number printed before the flip would be a lie.
+
+     THE COIN GLYPH IS 🪙, NOT 🌕, AND THAT IS THE WHOLE POINT. emojify maps 🌕 to the game's flat
+     coin and 🪙 to COIN_SPIN_IMG — the coin mid-flip. A still-spinning coin says "this price has
+     not landed yet" in one character, which is precisely the fact he wants the button to carry.
+
+     THE ONE PLACE HIS NOTE IS NOT TAKEN LITERALLY, flagged so he can overrule it in a word: he
+     wrote the label as `{ingredient} Dock +🪙`. That `+` is read here as a list separator ("and a
+     coin"), the way the phase plan itself restates it, NOT as a sign — because in this game's own
+     button vocabulary a leading + means a GAIN (treasure reads "+3") and the neighbouring Attack
+     button writes its cost with a minus. Docking is a cost, so a + would be the one misleading
+     mark on a button whose entire redesign is about not stating a price it does not know yet.
+
+     The neighbouring ruling this does NOT undo: Attack states its powder and Pass pays a known
+     amount BECAUSE THOSE ARE KNOWN BEFORE YE COMMIT. Dock is a coin flip and states no number.
+     D-33 is the application of that consistency rule, not an exception to it.
+
+     Wyatt, 2026-08-14, on the icon's position: *"the ingredient icon should go directly in front of
+     the island name — 'Dock at 🥛 Full Cream Folly'"*. Kept: the ingredient still leads, and the
+     island name still follows it in the full card label. Only the anchor and the missing coin
+     changed. The dock FLIP prompt (:above) was already correct and stays untouched.
+     /4 radial (his pick: short verbs in the circles, details in the pill): the long label is the
+     card fallback, `short` is what the petal shows. ONE builder — optionButtonsHTML carries both to
+     the host, to a guest and to the draft card, so this single edit reaches all three. */
+  if(canDock)opts.push({label:`Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)} 🪙`,short:`${iconImg(ING_IMG[port])} Dock 🪙`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   // playtest 21 item 5: a greyed circle carries its OWN reason, spoken at the circle when tapped.
