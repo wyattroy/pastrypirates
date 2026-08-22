@@ -17,13 +17,13 @@ sheets, and every group of pieces; tick "approved" per group, leave notes, copy 
 | The ingredient drawings (`assets/ingredients/*.png`) | **The tokens ARE the drawings**, cut along their own outline, the ink engraved — traced by [`art/trace.py`](art/trace.py). One sits on each island square, as in the game. |
 | Georgia (recipe titles, flavour) and Avenir Next (labels) | Every word on the wood, as outlines extracted by [`fonts/extract.py`](fonts/extract.py): recipe names and *Tortuga* in Georgia Bold, "Recipe No. 7" in Georgia Italic, compass letters and the rules card in Avenir Next. |
 | The 21 named recipes (`4/src/ui/recipe.js`) | The 21 recipe cards, by name, with each ingredient's silhouette in the app's rounded-square chip. |
-| Islands: wavy sand edge, grass, palms, rocks | Cut outline gently waved (straight where a dock moors), sand band, grass tufts, a palm, a rock. |
+| Islands: wavy sand edge, grass, palms, rocks | Cut outline gently waved (straight where a dock plugs in), corners rounded to a quarter of a square, sand band, grass tufts, a palm, a rock. |
 | The pier (`assets/dock.png`): upright planks, corner posts, an anchor | The dock tile's engraving. |
 | The wind chevron (`assets/wind-arrow.png`) | One per ring square, rotated to the ring's clockwise tangent as `buildRimFlow()` does. |
 | The whirlpool (`assets/trade-swirl.png`) | Two-armed swirl on the four whirlpool tiles. |
 | The board's concentric ripples | Five fine wavy rings on open water between the berths and the rim. |
 | The compass: scrolled ring, N/E/S/W medallions, fleur-de-lis needle | The spinner's dial and needle. |
-| The boats: jib and mainsail, hull with portholes | The ship discs, told apart by the sail patterns. |
+| The boats: jib and mainsail, hull with portholes | Three-piece ships: a 6 mm hull seen from above with two slots, a 3 mm mainsail and a 3 mm jib that drop in — told apart by the sail patterns. |
 
 ## The pieces — V3 · The Round Table, 25 mm squares
 
@@ -32,10 +32,16 @@ seams follow the grid lines that frame Tortuga's square, so every square — ber
 is whole on one piece) and Tortuga as the fifth piece, a 24.9 mm plug that drops into the hole they
 leave. Scrabble-sized (Scrabble is 381 mm; Monopoly 508).
 
-**On the board, 6 mm:** 7 islands (the seven footprints, with a slot on every outside edge), 7 docks
-+ 7 mooring posts (butt the dock to any island edge, drop the post through both slots), 28
-ingredient tokens (four per ingredient: three to stock an island, one black-market spare), 4
-whirlpool tiles, 4 ship discs.
+**On the board, 6 mm:** 9 islands — every tetromino orientation: the app's seven footprints plus the
+mirror images of the L and the S (a flipped piece would show its blank back); seven go out each
+voyage. A small dovetail notch (3 mm at the mouth, 2.4 deep) in the middle of every outside edge,
+under where the ingredient sits. 7 docks, each the pier with a matching dovetail tab on its island
+side — plug it into any notch on any island; it locks against being pulled off. 28 ingredient tokens
+(four per ingredient: three to stock an island, one black-market spare). 4 ship hulls (22 × 11 mm,
+plan view, deck planks, two slots).
+
+**On the board, 3 mm:** 4 whirlpool tiles; 8 sails — a mainsail and a jib per ship, each with a tab
+that drops through a hull slot and sits flush underneath; the ship stands about 30 mm tall.
 
 **Thin parts, 3 mm:**
 - **Wind spinner, nested.** A 96 mm backing disc; the game's compass as a 70 mm dial glued onto it,
@@ -78,6 +84,8 @@ python3 physical-board/fonts/extract.py physical-board/fonts/glyphs.json  # re-e
 
 **Board.** Lock the four quadrants (any quadrant fits any position — match the engraving), then press
 Tortuga into the centre hole last.
+
+**Ships.** Drop the mainsail into the aft slot and the jib into the forward one; no glue needed.
 
 **Crates and chests.** Box joints; glue. Chest: glue the two card rails to the inside of the lid's
 end walls with their top edge on the engraved line, slide the dowel through the five knuckles.

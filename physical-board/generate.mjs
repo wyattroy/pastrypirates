@@ -329,6 +329,9 @@ function seaCells() {
   return { valid, rim, DIRS };
 }
 const TET = [[[0, 0], [1, 0], [2, 0]], [[0, 0], [1, 0], [0, 1]], [[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [2, 0], [0, 1]], [[0, 0], [1, 0], [1, 1], [2, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]]];
+// the physical set needs the MIRROR of the two chiral shapes too (8 = L reversed, 9 = S reversed): the app
+// flips art freely, a wooden piece cannot. Seven of the nine go out each voyage.
+const ISLAND_SHAPES = [...TET, [[0, 0], [1, 0], [2, 0], [2, 1]], [[1, 0], [2, 0], [0, 1], [1, 1]]];
 const ING = ["wheat", "dairy", "sugar", "eggs", "cocoa", "spice", "vanilla"];
 const ING_NAME = { wheat: "TOASTY WHEAT", dairy: "FRESH MILK", sugar: "CRYSTAL SUGAR", eggs: "SPECKLED EGGS", cocoa: "CACAO PODS", vanilla: "VANILLA BEANS", spice: "HOT CINNAMON" };
 const CAPTAINS = ["CRUMBLE", "BISCOTTI", "GINGERSNAP", "SHORTBREAD"]; // pink, teal, green, orange in the app
@@ -634,6 +637,21 @@ function shipStanding(kind, captain) {
   const base = [rect(CU, 0, 0, 18, 9, 2), rect(CU, 9 - (MAT + .15) / 2, 1.4, MAT + .15, 6.2)];
   return { profile: it, base };
 }
+// Wyatt, 2026-08-22: "Make the ships 3d by slotting two vertical sails into a horizontal ship bottom. The sails in
+// 3mm, bottom in 6mm." The hull is the boat seen from above — pointed bow, round stern, deck planks — with two
+// slots along its centreline; the main sail and the jib each carry a tab that drops through a slot.
+function ship3d(c) {
+  const L = 22, B = 11, sw = MAT3 + .2, sl = 5.5, hull = [];
+  hull.push(item(CU, [{ cmds: [["M", 2.2, 0], ["L", 14, 0], ["C", 18, 0, 21, -B * .3, L, -B * .5 + B * .5], ["L", L, 0], ["C", 21, B * .3 - B * .5 + B * .5, 18, B, 14, B], ["L", 2.2, B], ["C", -0.8, B, -0.8, 0, 2.2, 0], ["Z"]].map(cmd => cmd) }]));
+  // that outline is awkward to read as numbers: a spindle — stern arc on the left, bow point at (L, B/2)
+  hull[0] = item(CU, [{ cmds: [["M", 2.2, 0], ["L", 13, 0], ["C", 17.5, 0, 20.5, B * .2, L, B / 2], ["C", 20.5, B * .8, 17.5, B, 13, B], ["L", 2.2, B], ["C", -0.9, B, -0.9, 0, 2.2, 0], ["Z"]] }]);
+  hull.push(rect(CU, 4, B / 2 - sw / 2, sl, sw), rect(CU, 11.5, B / 2 - sw / 2, sl, sw));
+  for (const py of [B * .22, B * .78]) hull.push(rect(RA, 2.5, py - .25, 15, .5));
+  hull.push(rect(RA, 1.2, B / 2 - .3, 1.8, .6)); // tiller
+  const main = [item(CU, [polyCmds([[0, 0], [2, 0], [2, 4], [14, 18], [2, 20], [2, 24], [5.3 + 2, 24], [5.3 + 2, 24 + MAT], [2, 24 + MAT], [0, 24 + MAT]])]), ...sailPattern(c, [[3.2, 5.5], [11.5, 17], [3.2, 18.5]])];
+  const jib = [item(CU, [polyCmds([[0, 0], [2, 0], [2, 2], [11, 14.5], [2, 15.5], [2, 18], [7.3, 18], [7.3, 18 + MAT], [2, 18 + MAT], [0, 18 + MAT]])]), ...sailPattern(c, [[3.2, 3.5], [9.2, 13.5], [3.2, 14]])];
+  return [{ ...part(`ship-${CAPTAINS[c]}-hull`, hull), mat: MAT }, { ...part(`ship-${CAPTAINS[c]}-main`, main), mat: MAT3 }, { ...part(`ship-${CAPTAINS[c]}-jib`, jib), mat: MAT3 }];
+}
 // four captains told apart in black and white: 0 plain, 1 stripes, 2 dots, 3 checks — kept inside the sail polygon
 function sailPattern(pat, polyPts) {
   const b = bbox([poly(RA, polyPts)]), out = [];
@@ -688,15 +706,15 @@ function notchPolyline(pts, m, along, hw, notchPts) {
   return [...pts.slice(0, first), ...notchPts, ...pts.slice(last + 1)];
 }
 function islandPiece(v, shapeIdx) {
-  const cells = TET[shapeIdx], loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
+  const cells = ISLAND_SHAPES[shapeIdx], loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
   const inset = offsetPoly(loop, -CLR);
-  const outline = roundCorners(inset, 3);
+  const outline = roundCorners(inset, v === "v3" ? 6.5 : 3);   // "round the corners more" — a quarter of the square
   const edges = perimeterEdges(cells).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
   const it = [];
   if (v === "v3") {
     // the game's coast: a wavy sand edge (Wyatt, 2026-08-22). Wave first, then the dock slots.
     let pts = waveCoast(outline.cmds, edges.map(e => e.m));
-    for (const e of edges) pts = notchPolyline(pts, e.m, e.along, SLOT.slot.hw, slotPts(e.m, e.along, e.inward, SLOT.slot, +1));
+    for (const e of edges) pts = notchPolyline(pts, e.m, e.along, DOVE.socket.head / 2 + 0.2, dovetailPts(e.m, e.along, e.inward, DOVE.socket, +1));
     it.push(item(CU, [polyCmds(pts)]));
     // sand band that follows the coast (the slots simply cut through it), then grass tufts along the inside of the band
     const coast = waveCoast(outline.cmds, edges.map(e => e.m)), band = offsetPoly(coast, -1.3), inner = offsetPoly(coast, -2.4);
@@ -720,12 +738,20 @@ function islandPiece(v, shapeIdx) {
 }
 const JIG = { nub: { hw: 1.5, nd: 1.4, r: 2.3 }, socket: { hw: 1.65, nd: 1.4, r: 2.45 } };
 const SLOT = { slot: { hw: (MAT + .3) / 2, depth: 4.5 } };
+// Wyatt, 2026-08-22: "little notches cut in along every of their square's edges, where a dock could slot in;
+// small and subtle so it doesn't take up much of the square". A dovetail 3 mm at the mouth, 4.2 at the
+// root, 2.4 deep: it locks against being pulled apart, and hides under the ingredient that sits on the square.
+const DOVE = { tab: { neck: 3.0, head: 4.2, depth: 2.4 }, socket: { neck: 3.2, head: 4.4, depth: 2.5 } };
+function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
+  const n = [inward[0] * dir, inward[1] * dir], t = along, P = (x, d) => [m[0] + t[0] * x + n[0] * d, m[1] + t[1] * x + n[1] * d];
+  return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
+}
 
 function dockPiece(v, ing) {
   const s = PIECE, pts = [[0, 0], [s, 0], [s, s], [0, s]], outline = roundCorners(pts, 2);
   const m = [s, s / 2], along = [0, 1], inward = [-1, 0];
   if (v === "v2") insertNotch(outline.cmds, m, mushroomPts(m, along, inward, JIG.nub, -1));
-  if (v === "v3") insertNotch(outline.cmds, m, slotPts(m, along, inward, SLOT.slot, +1));
+  if (v === "v3") insertNotch(outline.cmds, m, dovetailPts(m, along, inward, DOVE.tab, -1));   // the tab that plugs into an island's notch
   const it = [item(CU, [outline])];
   if (v === "v1") it.push(...icon("anchor", s * .5, s * .42, s * .42), ...text(RA, "DOCK", s * .5, s * .85, s * .03, { align: "center", valign: "middle" }));
   else it.push(...icon("pier", s * .5, s * .5, s * .84));
@@ -736,10 +762,7 @@ function dockPiece(v, ing) {
     extra.push(item(CU, [deck]));
     for (let x = 3; x < L - 2; x += 3.2) extra.push(rect(RA, x - .4, 1.2, .8, w - 2.4));
   }
-  if (v === "v3") { // mooring post: stands in the joined slots, MAT thick
-    const L = SLOT.slot.depth * 2 - .4, H = MAT + 6;
-    extra.push(item(CU, [roundCorners([[0, 0], [L, 0], [L, H], [0, H]], 1.2)]), rect(RA, L * .3, 1.2, L * .4, 1.2));
-  }
+  
   return { dock: it, extra };
 }
 
@@ -1064,22 +1087,22 @@ function buildVersion(V) {
   if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled); cutParts.push(...five.quadrants, five.plug); }
   else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
-  const islandParts = TET.map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
-  docs.push(sheet("islands", "Island shapes (7)", islandParts, { notes: v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
+  const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
+  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S (a flipped piece would show its blank back). Seven go out each voyage. Wavy coast, corners rounded to a quarter of a square, a small dovetail notch in the middle of every outside edge for a dock — 3 mm at the mouth, 2.4 deep, under where the ingredient sits." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
   const dockParts = dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));
   const dockExtras = dp.flatMap((d, i) => d.extra.length ? [part(v === "v1" ? `pier-top-${ING[i]}` : `mooring-post-${ING[i]}`, d.extra)] : []);
   cutParts.push(...dockParts, ...dockExtras);
-  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece plus a mooring post. Push the dock against the island so the two slots line up, drop the post through — it stands up like a bollard and locks the pair." }));
+  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece: the pier, with a small dovetail tab on its island side that plugs into any notch on any island edge and locks against being pulled off." }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
   const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, TOKEN[v].crate(ing, 0, 0))));
   cutParts.push(...crates);
   docs.push(sheet("crates", "Ingredient crates (28)", crates, { notes: "Four per ingredient: three to stock an island at 3–4 players, one spare for the black market. Wheat, milk, sugar, eggs, cocoa, cinnamon, vanilla — the app's own icons, redrawn as cuttable outlines." }));
   const markerParts = v === "v3" ? [] : ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))); cutParts.push(...markerParts);
   if (v !== "v3") docs.push(sheet("markers", "Island markers (7)", markerParts, { notes: "Sits on an island at setup to say which ingredient grows there — the shapes are dealt fresh each game, so the ingredient can't be engraved on the island." }));
-  const whirlParts = [0, 1, 2, 3].map(n => part(`whirlpool-${n + 1}`, whirlpool(v === "v1" ? "spiral" : v === "v2" ? "rings" : "swirl", 0, 0))); cutParts.push(...whirlParts);
-  docs.push(sheet("whirlpools", "Whirlpools (4)", whirlParts, { notes: "One square each, 0.4 mm clearance. Drop them on any four trade-wind squares — a ship carried by the current gets off at the next whirlpool." }));
+  const whirlParts = [0, 1, 2, 3].map(n => ({ ...part(`whirlpool-${n + 1}`, whirlpool(v === "v1" ? "spiral" : v === "v2" ? "rings" : "swirl", 0, 0)), mat: v === "v3" ? MAT3 : MAT })); cutParts.push(...whirlParts);
+  docs.push(sheet("whirlpools", "Whirlpools (4)", whirlParts, { notes: "One square each in 3 mm, 0.4 mm clearance, the game's swirl. Drop them on any four trade-wind squares — a ship carried by the current gets off at the next whirlpool." }));
   // spinner
   const arr = spinnerArrows(0, 0);
   const spParts = v === "v3" ? nestedSpinner() : [part("dial", spinnerDial(v === "v1" ? "quadrants-storm" : "roulette", 40, 0, 0)), part("arrow-now", arr.now), part("arrow-next", arr.next), part("washer-1", arr.washers[0]), part("washer-2", arr.washers[1])];
@@ -1089,11 +1112,11 @@ function buildVersion(V) {
   // ships
   const shipParts = [];
   for (let c = 0; c < 4; c++) {
-    if (v === "v3") shipParts.push(part(`ship-${CAPTAINS[c]}`, [circ(CU, 0, 0, CELL * .36), ring(RA, 0, 0, CELL * .36 - .7, CELL * .36 - 1.2), ...icon("boat", 0, -CELL * .02, CELL * .5), ...sailPattern(c, [[-CELL * .22, CELL * .2], [CELL * .22, CELL * .2], [CELL * .22, CELL * .3], [-CELL * .22, CELL * .3]])]));
+    if (v === "v3") shipParts.push(...ship3d(c));
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
-  docs.push(sheet("ships", "Ships (4)", shipParts, { notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "Flat tokens, one square wide." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
+  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "Three pieces each: a 6 mm hull seen from above (22 × 11 mm, deck planks, a tiller) with two slots on its centreline; a 3 mm mainsail and a 3 mm jib, each with a tab that drops through a slot and sits flush underneath. About 30 mm tall on the water." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
   docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
