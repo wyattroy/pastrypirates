@@ -4,15 +4,15 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "2026-08-21 evening session RESUMED: phone pass (quick task) -> Group E (02.2-07) -> Group D leftovers (02.2-06) -> one full gate, one playtest (D-41..43). Previous: Desktop layout rebuilt (build y); the piecemeal gates replaced by one general playtest gate (D-37); Wyatt's 3 desktop design notes shipped. READ .planning/HANDOFF-2026-08-21-evening.md"
-last_updated: "2026-08-21T12:12:18.815Z"
+stopped_at: Completed 02.2-08-PLAN.md (Group F) — no stamp bump, no push; Group D still to land
+last_updated: "2026-08-22T10:45:46.701Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
   completed_phases: 4
-  total_plans: 24
-  completed_plans: 23
+  total_plans: 26
+  completed_plans: 25
   percent: 33
 current_phase: 02.2
 ---
@@ -61,7 +61,6 @@ build step — nothing here is ever a cache.
 stepped away. It supersedes the afternoon handoff (whose "next action: Group E" is stale) and holds
 today's full state: the desktop rebuild, the new playtest gate (D-37), his three design notes, and
 the two bugs the gate found (one fixed-but-unverified, one diagnosed-not-fixed).
-
 
 Phase: **02.2 (a-captain-who-cannot-take-their-turn), plans 01, 03, 04 and 05 EXECUTED, live as
 build `2026-08-20q`** (unchanged since 04 — 05 shipped no game code, so no new stamp).
@@ -373,6 +372,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.2 P03 | ~5h | 5 tasks | 3 files |
 | Phase 02.2 P04 | ~2h | 3 tasks | 4 files |
 | Phase 02.2 P05 | ~1h | 3 tasks | 2 files |
+| Phase 02.2 P08 | one night session | 4 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -453,6 +453,11 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: 02.2-04: item 4 (bot passes AND bakes) fixed at both bot fallback sites with the same canBake(p) predicate the human menu already uses; proven from the event stream via a red-proofed check (99 violations pre-fix, 0 post-fix). PAR-11 complete.
 - [Phase ?]: 02.2-05: item 12 (the economy) MEASURED, not changed, per D-17. New scripts/economy_table.js, red-proofed against bot_ladder4.js, ran today's settings and both of Wyatt's candidate levers at 300 games each. Finding: his dock-price idea makes purses worse against his own target (52%→85% of games with someone over 10 coins); his battle-cost idea barely moves purses and boxes out more captains. Neither gets him to target. No game code changed, no PP4_STAMP bumped. Wyatt asked to pick. PAR-12 complete.
 - [Phase ?]: 02.2-04: item 4 (bot passes AND bakes) fixed at both bot fallback sites (canBake(p), same predicate as the human menu's canOvens); bot_bake_pass_check.js red-proofed (99 violations pre-fix, 0 post-fix, 60 seeded games); live 2026-08-20q. PAR-11 complete.
+- [Phase ?]: D-44: the fan's gap is derived from the RENDERED petal (68-70px, not the stylesheet's 66) and is a quarter of it; when no layout fits, the cluster drifts outward in rings instead of packing
+- [Phase ?]: D-48 is stated as 'the last option takes the lowest spot' — what the card fallback already does — so it needs no new field and nothing on the wire, and a guest gets it by construction
+- [Phase ?]: D-49's 1.5s lives in board.js where the spin is painted; each of the three flip sites waits the remainder through its OWN sleep, so fast-forward, pause and replay are unchanged
+- [Phase ?]: D-50's desktop menu is the SAME NODE as the phone's, moved into a flex column — a measured top was rejected because the captains card's height changes when a row is opened
+- [Phase ?]: The layout gate's contact-sheet SCREENSHOT is deleted: it had never once succeeded on a real multi-size run, only photographed its own 404
 
 ### Pending Todos
 
@@ -516,6 +521,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 - Four small throwaway entries (gamelogs/17871453713N, /17871454233N, /1787145352658, /1787145353126) landed in the live production gamelogs/ node during 02-01's self-test and cannot be removed by any client — Firebase's write-once rule denies delete/overwrite on that path for everyone, including Wyatt. Sub-1KB, clearly tagged test data; only Firebase console admin access can remove them. Full account: 02-01-SUMMARY.md 'Known Issue'.
 - 02-03 found (and fixed) that 4/src/ui/stage.js's maybeBuildStage() silently prevented the entire stage/ribbon from building in ANY networked game until this plan's fix — a stale 2026-08-13 pre-multiplayer no-op turned real bug by 02-01. Any remaining phase-2 plan assuming the ribbon exists in networked mode (02-04's chat button, D-06/D-07) should re-verify against the fixed tree.
+- 02.2-08: stage_layout_check fails two checks at 820x1180's OPENING only — 'captains card sits below the board' and 'does not cover the board'. Both reproduce identically on the pre-fix build (3 fails became 2). Cause measured: the check compares the card against #boardwrap, the camera STRIP, and at full zoom the square letterboxes so the strip runs 91px past the painted board. The card is over empty void, not board art (shots/f-12). Assertion deliberately NOT weakened — for whoever owns the camera work.
 
 ### Quick Tasks Completed
 
@@ -543,8 +549,8 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-21T12:12:18.800Z
-Stopped at: Completed quick task 260821-aig: economy matrix, band metric (1<=N<=3) — his 1/3 dock idea confirmed best-performing setting
+Last session: 2026-08-22T10:45:25.409Z
+Stopped at: Completed 02.2-08-PLAN.md (Group F) — no stamp bump, no push; Group D still to land
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.
