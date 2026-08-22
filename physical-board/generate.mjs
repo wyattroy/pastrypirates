@@ -1049,11 +1049,23 @@ function nestedSpinner() {
   for (const q of [-45, 45, 135, 225]) { const a0 = q + 72, a1 = q + 90, pts = []; for (let i = 0; i <= 8; i++) pts.push([22 * Math.cos(rad(a0 + (a1 - a0) * i / 8)), 22 * Math.sin(rad(a0 + (a1 - a0) * i / 8))]); for (let i = 8; i >= 0; i--) pts.push([9 * Math.cos(rad(a0 + (a1 - a0) * i / 8)), 9 * Math.sin(rad(a0 + (a1 - a0) * i / 8))]); const w = poly(RA, pts), am = rad((a0 + a1) / 2), cl = icon("cloudOnly", 15.5 * Math.cos(am), 15.5 * Math.sin(am), 6).map(reverseItem); dial.push({ ...w, sub: [...w.sub, ...cl.flatMap(i => i.sub)] }); }
   dial.push(...icon("anchor", 0, -RD * .32, 7));
   parts.push(part("spinner-dial", dial));
-  const ringPart = [circ(CU, 0, 0, RB), circ(CU, 0, 0, RI), ring(RA, 0, 0, RB - 1, RB - 1.6), ...icon("fleur", 0, -(RI + 5.2), 9, 180), ...ftext(RA, "WIND NOW", 0, RB - 2.6, 3, { font: "avenir-next-demibold", align: "center" })];
+  // Wyatt, 2026-08-22: "a 3D wind-now flag/vane that slots in to show the current wind direction visibly, and
+  // differentiates it from the flat spun forecast". The ring carries a radial slot at its pointer; the vane's
+  // tab drops through it and stands on the backing disc. Its pennant streams inward, toward the letter the
+  // ring is set to — the way the wind blows — 25 mm above the flat needle, so the two can never be confused.
+  const VS = MAT3 + .2, VL = 7, vr = RB - 5;   // slot: material-wide, 7 long, centred at r = 43
+  const ringPart = [circ(CU, 0, 0, RB), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RB - 1, RB - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RB - 2.6, 3, { font: "avenir-next-demibold", align: "center" })];
   for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RB - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
   parts.push(part("spinner-ring", ringPart));
   const needle = [item(CU, [polyCmds([[-9, -1.6], [14, -1.6], [14, -3.2], [19, -3.2], [26, 0], [19, 3.2], [14, 3.2], [14, 1.6], [-9, 1.6], [-12, 4.2], [-14, 4.2], [-11, 0], [-14, -4.2], [-12, -4.2]])]), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, 3, 2.4), rect(RA, 4, -.4, 9, .8), ...icon("fleur", 20.5, 0, 9, 90)];
   parts.push(part("spinner-needle", needle), part("spinner-washer", [circ(CU, 0, 0, 4), circ(CU, 0, 0, 1.65)]));
+  // the vane: a pennant on a mast, the tab below the mast (through the ring, onto the backing). Drawn as it
+  // stands — pennant at the top, tab at the bottom — so WIND NOW reads upright once it is in the slot.
+  const mh = 30, pw = 24, ph = 10, tab = VL - .4;
+  const pts = [[0, 0.6], [2.6, 0.6], [2.6, mh], [tab / 2 + 1.3, mh], [tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh], [0, mh],
+    [0, ph + 0.6], [-pw, ph + 0.6], [-pw + 5, ph / 2 + 0.6], [-pw, 0.6]];
+  const vane = [item(CU, [polyCmds(pts)]), rect(RA, 0.9, ph + 2.4, 0.8, mh - ph - 3.6), ...ftext(RA, "WIND NOW", -pw / 2 - 1.4, ph / 2 + 0.6 + 1.1, 3.1, { font: "avenir-next-demibold", align: "center" })];
+  parts.push(part("spinner-vane", vane));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
 
@@ -1108,7 +1120,7 @@ function buildVersion(V) {
   const spParts = v === "v3" ? nestedSpinner() : [part("dial", spinnerDial(v === "v1" ? "quadrants-storm" : "roulette", 40, 0, 0)), part("arrow-now", arr.now), part("arrow-next", arr.next), part("washer-1", arr.washers[0]), part("washer-2", arr.washers[1])];
   
   cutParts.push(...spParts);
-  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "Nested, all 3 mm: a 96 mm backing disc; the game's compass as a 70 mm dial glued on it (storm wedge in the last fifth of each quadrant); a ring that turns around the dial with a fleur-de-lis pointer for THIS round's wind; a fleur-de-lis needle on the centre pivot for the forecast. Stack: backing, dial + ring (same level), needle, washer — an M3 × 16 bolt with a nyloc nut. ") + `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.` }));
+  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "Nested, all 3 mm: a 96 mm backing disc; the game's compass as a 70 mm dial glued on it (storm wedge in the last fifth of each quadrant); a ring that turns around the dial — its slot takes the standing WIND NOW vane, a pennant on a 30 mm mast that streams toward the letter the ring is set to; a flat fleur-de-lis needle on the centre pivot for the forecast. Stack: backing, dial + ring (same level), needle, washer — an M3 × 16 bolt with a nyloc nut; the vane just drops into the ring. ") + `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.` }));
   // ships
   const shipParts = [];
   for (let c = 0; c < 4; c++) {

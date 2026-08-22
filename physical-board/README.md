@@ -46,9 +46,11 @@ that drops through a hull slot and sits flush underneath; the ship stands about 
 **Thin parts, 3 mm:**
 - **Wind spinner, nested.** A 96 mm backing disc; the game's compass as a 70 mm dial glued onto it,
   with a storm wedge in the last fifth of each quadrant (the app's 20%); a ring that turns around the
-  dial with a fleur-de-lis pointer — *this round's wind*; a fleur-de-lis needle on the centre pivot —
-  *the forecast*. Stack: backing → dial and ring (same level) → needle → washer; one M3 × 16 bolt
-  and nyloc nut. Two layers of wood, one pivot.
+  dial — *this round's wind* — carrying a slot for the **WIND NOW vane**: a pennant on a 30 mm mast
+  that drops into the slot and stands on the backing, streaming toward the letter the ring is set to
+  (put the pennant on the inside). The *forecast* is the flat fleur-de-lis needle on the centre
+  pivot, so the two can never be confused. Stack: backing → dial and ring (same level) → needle →
+  washer; one M3 × 16 bolt and nyloc nut. Two layers of wood, one pivot, one flag.
 - **Cargo crates, 4.** Open box-jointed crates, 44 × 30 × 18 mm, plank-engraved, the captain's mark
   on the front. Tokens stand on edge in them, five across, icons showing — cargo is public in the game.
 - **Treasure chests, 4.** 80 × 54 × 30 mm: a box-jointed body (20 mm) and lid (10 mm) hinged on a
