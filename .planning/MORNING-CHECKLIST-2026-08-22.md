@@ -74,7 +74,29 @@ complaint. **Making them louder is your taste call.** Tell me how much louder.
 
 ---
 
-## THIRD — two off your twenty-two (Group D): items 6 and 16
+## THIRD — the seven things you typed at me last night (Group F)
+
+| # | Look at | What right looks like | The number behind it |
+|---|---|---|---|
+| 13 | **The action circles on a phone** | Clear air between them. They used to read as one packed slab. | ~3px apart → **~15px**. The gap is now a quarter of the circle's own size, so it stays right if the circles ever change. |
+| 14 | **A prompt with your boat in a corner** | The whole cluster moves out into open water rather than stacking on itself. | It warns in the log if it ever still has to pile, so a silent squeeze can't pass as a pass. |
+| 15 | **Pass** | The **bottom** circle, every time, whichever way the fan points. | Two of five fan directions used to put crates *below* Pass. |
+| 16 | **The italic "why is this greyed out" line** | Beside the choices, never lying across them. | It was 23px deep across four circles. |
+| 17 | **Every coin flip** — dock and battle | All take the same beat. | **1.5s, six flips measured, all within 100ms.** Before: dock 335ms, battle 648ms — a 315ms spread. |
+| 18 | **The wind and forecast, on tablet and desktop** | Legible in the header row, in front of the dark gradient. The ⏩ can no longer be drawn on top of them. | Your screenshot — this and the "hidden behind the gradient" item were **one** fault. |
+| 19 | **A tall window** (your tablet shape) | The captains box is a card with air under it, not a slab flush to the bottom edge. | It had 84px of dead cream inside it. |
+| 20 | **Desktop menu** | The menu items sit under the captains box; no hamburger. The turn-clock row is gone from the menu everywhere — the ⏱ chip in the header row is the only control for it. | |
+| 21 | **Phone: end of a voyage** | **"Play again!" is on screen.** | It was 212px below the fold — you had to know to scroll. |
+| 22 | **Phone: docking** | "Docking at…" appears **once**. | It was printing twice, one copy hidden behind the flip coin. |
+| 23 | **Phone: the captains list** | The fourth captain is not sliced by the bottom edge. | |
+| 24 | **Phone: the recipe picker** | The two cards' ingredient lists line up even when one title wraps to three lines. | |
+
+**One of your five did not reproduce.** The faint **"hov."** text on a board tile: every text node
+and every attribute in the document was walked at phone size, and it is in neither — nor anywhere in
+the source. Reported with the measurement rather than counted as fixed. If you see it again, a
+screenshot of it would settle it.
+
+## FOURTH — two off your twenty-two (Group D): items 6 and 16
 
 **Item 6 — the Bake-Off card.** You asked that it not come back once you have attempted your bake.
 What was actually happening was worse: **it never left.** Once your ovens lit, the card stayed on
@@ -101,7 +123,7 @@ straight onto the seat with no check at all, so two captains could end up sharin
 
 ---
 
-## FOURTH — a whole voyage in each mode
+## FIFTH — a whole voyage in each mode
 
 The bar is **complete voyages to the end-of-voyage card**, not stretches of play — that bar is what
 found a nine-day-old softlock the first night it was used.
