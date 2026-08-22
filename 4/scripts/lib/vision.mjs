@@ -7,8 +7,9 @@
 // auth — no API key to manage, works the same on the laptop and in a cloud session. Proven
 // 2026-08-21 to catch the build-v empty tower + name/coin overlap from one general prompt.
 import { execFile } from "node:child_process";
+import fs from "node:fs";
 
-const RUBRIC = `You are a meticulous UI reviewer looking at ONE screenshot of the browser board game "Pastry Pirates".
+export const RUBRIC = `You are a meticulous UI reviewer looking at ONE screenshot of the browser board game "Pastry Pirates".
 Judge ONLY the visual layout and presentation — NOT the gameplay, and NOT which islands/ships/recipes appear (those are randomized and always fine).
 Mark FAIL if you can see ANY of these:
 - an element cut off or clipped by a screen edge, by the top ribbon, or by another element;
@@ -83,4 +84,52 @@ export async function judgeAll(items, { concurrency = 3, model = "claude-sonnet-
   }));
   results.fatal = fatal;
   return results;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────────────────
+   THE QUEUE HANDOFF — judging without a second credential (Wyatt, 2026-08-22)
+
+   WHY THIS EXISTS. The judge used to shell out to `claude -p` once per screenshot. That reads the
+   ONE OAuth credential in the macOS Keychain — the same one a running Claude Code session holds and
+   periodically refreshes. Refreshing rotates it, so a gate launched from inside a session gets a
+   token that has already been rotated out from under it and dies with "OAuth session expired and
+   could not be refreshed". There is no per-tool login to escape this with: the CLI's own help says
+   non-interactive auth is strictly ANTHROPIC_API_KEY or an apiKeyHelper, and in that mode the
+   keychain is never read at all. Wyatt's ruling: no separately-billed key for a routine QA step.
+
+   SO THE VEHICLE CHANGES. The gate stops trying to BE a judge and instead leaves a queue: every
+   screenshot it wants looked at, the rubric to look with, and the context. Any Claude session — the
+   one he already has open, on the laptop or in the cloud — reads the images directly and writes the
+   verdicts back. Same model, same rubric, no CLI, no keychain, nothing to expire, nothing to bill.
+
+   THE TRADE-OFF, STATED HONESTLY: it is not unattended. A run with nobody home still plays complete
+   voyages and runs every structural check — which is what caught the recipe picker on 2026-08-22 —
+   but the visual pass waits for a session. That is the right trade, because the unattended path is
+   precisely the one that failed.
+
+   THE QUEUE FILE CARRIES ITS OWN INSTRUCTIONS. A session that opens it should not need to be told
+   what to do with it, and should not have to find this comment to find out.
+   ───────────────────────────────────────────────────────────────────────────────────────────── */
+export function writeJudgeQueue(dir, entries, meta = {}) {
+  const q = {
+    what: "A vision-judging queue left by 4/scripts/playtest_gate.mjs.",
+    how_to_use: [
+      "You are a Claude session. Judge these screenshots yourself — do NOT shell out to `claude -p`;",
+      "that path is what this file exists to replace (one shared OAuth credential, see vision.mjs).",
+      "1. Read `rubric` below. It is the exact rubric the gate used to send.",
+      "2. For EACH entry in `screens`, open the image at its `shot` path and judge it against the rubric.",
+      "3. Write your verdicts to `judge-results.json` beside this file, as",
+      "   {\"results\": [{\"shot\": \"<same shot path>\", \"verdict\": \"PASS\"|\"FAIL\", \"issues\": [\"...\"], \"confidence\": 0..1}]}",
+      "4. Run: node 4/scripts/apply_judge_results.mjs <this directory>",
+      "   It merges them into judge-findings.txt in the same shape the gate has always produced.",
+      "A screen you do not judge stays UNJUDGED — it is not cleared. Never mark one PASS to finish the list."
+    ],
+    status: "pending",
+    created_hint: "timestamps are not written here on purpose — the gate's own log carries them",
+    meta,
+    rubric: RUBRIC,
+    screens: entries.map(e => ({ shot: e.shot, context: e.context || "" }))
+  };
+  fs.writeFileSync(dir + "/judge-queue.json", JSON.stringify(q, null, 1));
+  return q.screens.length;
 }

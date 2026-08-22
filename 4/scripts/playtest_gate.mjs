@@ -25,14 +25,22 @@ import { execSync } from "node:child_process";
 import { REPO } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 import { MEASURE, structuralChecks } from "./lib/checks.mjs";
-import { judgeAll } from "./lib/vision.mjs";
+import { judgeAll, writeJudgeQueue } from "./lib/vision.mjs";
 import { makePlayer, sideQuests, GATE_SRC } from "./lib/player.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const LEGS = arg("legs", "solo-desktop,solo-phone,passplay-phone,crew-desktop").split(",");
 const OUT = path.resolve(arg("out", path.join(process.cwd(), "playtest-gate")));
 const PORT0 = +arg("port", 8800), DBG0 = +arg("dbg", 9800);
-const JUDGE = arg("judge", "on") !== "off";
+/* THREE MODES, not two (Wyatt, 2026-08-22). `on` shells out to the `claude` CLI, which needs the
+   machine's shared OAuth credential and therefore CANNOT work from inside a Claude session — see
+   the queue note in lib/vision.mjs. `queue` skips the CLI entirely and leaves the screens for a
+   session to judge. `off` skips the vision pass altogether.
+   AND `on` FALLS BACK TO `queue` RATHER THAN LOSING THE PASS: if the judge reports it cannot run at
+   all, the run does not simply forfeit its visual review — it writes the queue and says so. That is
+   the whole "it should always work" property; the pass is deferred, never dropped. */
+const JUDGE_MODE = arg("judge", "on");            // on | queue | off
+const JUDGE = JUDGE_MODE !== "off";
 const MODEL = arg("model", "claude-sonnet-5");
 const MAX_MS = +arg("max-min", 35) * 60_000;
 const PAR = Math.max(1, +arg("parallel", 2));
@@ -182,6 +190,7 @@ function legVerdict(rec) {
   if (judgeFails.length) v.push(`vision judge FAILED ${judgeFails.length} screen(s)`);
   const judgeErrs = (rec.judged || []).filter(j => j.r.verdict === "ERROR");
   if (judgeErrs.length) v.push(`vision judge errored on ${judgeErrs.length} screen(s) — those screens are NOT cleared`);
+  if ((rec.queued || []).length) v.push(`vision pass DEFERRED for ${rec.queued.length} screen(s) — queued for a session, NOT cleared`);
   return v;
 }
 
@@ -288,9 +297,21 @@ async function runLeg(name, idx) {
   // vision judge over every distinct screen (capped)
   if (JUDGE && rec.screens.length) {
     const items = rec.screens.slice(0, JUDGE_CAP).map(s => ({ path: s.shot, context: `${name} — ${s.sig.slice(0, 60)}`, shot: s.shot }));
-    log(`[${name}] vision-judging ${items.length} screen(s)…`);
-    const results = await judgeAll(items, { concurrency: 3, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
-    rec.judged = items.map((it, i) => ({ shot: it.shot, r: results[i] }));
+    if (JUDGE_MODE === "queue") {
+      rec.queued = (rec.queued || []).concat(items);
+      log(`[${name}] ${items.length} screen(s) queued for a session to judge`);
+    } else {
+      log(`[${name}] vision-judging ${items.length} screen(s)…`);
+      const results = await judgeAll(items, { concurrency: 3, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
+      if (results.fatal) {
+        /* THE JUDGE IS DEAD, NOT THE SCREENS. Defer rather than forfeit — see the JUDGE_MODE note. */
+        log(`[${name}] !! the vision judge cannot run: ${results.fatal.issues[0]}`);
+        log(`[${name}] falling back to the QUEUE — these ${items.length} screen(s) are deferred, not cleared`);
+        rec.queued = (rec.queued || []).concat(items);
+      } else {
+        rec.judged = items.map((it, i) => ({ shot: it.shot, r: results[i] }));
+      }
+    }
   }
   /* THE CONTACT SHEET MUST NOT BE ABLE TO HANG THE WHOLE RUN. 2026-08-22: after the judge failed,
      the gate stopped here and never exited — 0% CPU, no log line, and its two sheet browsers left
@@ -324,4 +345,14 @@ for (const r of results) {
 }
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, (k, v) => v instanceof Map ? Object.fromEntries(v) : k === "screens" && Array.isArray(v) && v.length > 60 ? v.slice(0, 60) : v, 2));
 log(anyFail ? "\nRESULT: FAIL" : "\nRESULT: PASS");
+/* Write the queue LAST, once, for every leg that deferred — one file for the whole run, because a
+   session judging it wants one list, not one per leg. */
+{
+  const queued = results.filter(Boolean).flatMap(r => (r.queued || []).map(it => ({ shot: it.shot, context: it.context })));
+  if (queued.length) {
+    const n = writeJudgeQueue(OUT, queued, { build: "see 4/src/ui/stage.js PP4_STAMP", legs: LEGS });
+    log(`WROTE ${path.join(OUT, "judge-queue.json")} — ${n} screen(s) awaiting a session's eyes.`);
+    log(`  A session should read that file; it carries its own instructions and the rubric.`);
+  }
+}
 killAll(); process.exit(anyFail ? 1 : 0);
