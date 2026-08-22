@@ -89,7 +89,7 @@
   const fb = JSON.parse(localStorage.getItem(KEY) || "{}");
   const save = () => { localStorage.setItem(KEY, JSON.stringify(fb)); document.getElementById("saved").textContent = "Saved " + new Date().toLocaleTimeString(); };
   document.getElementById("dims").textContent = `${D.cell} mm squares · ${D.material} mm material · kerf ${D.kerf} mm · bed ${D.bed[0]} × ${D.bed[1]} mm · generated ${D.generated}`;
-  if (single) { document.getElementById("h1").textContent = `Pastry Pirates — ${D.versions[0].name}`; document.getElementById("sub").textContent = "Black = engraved (RASTER layer), red hairline = cut (CUT layer). Dashed-bordered sheets are the files to cut — their lines already include the kerf. Everything else is a design view."; }
+  if (single) { document.getElementById("h1").textContent = `Pastry Pirates — ${D.versions[0].name}`; document.getElementById("sub").textContent = "Styled after the game's own art: its ingredient drawings cut out as tokens, its compass, its pier, its chevrons, Georgia and Avenir lettering. Black = engraved, red hairline = cut. Dashed-bordered sheets are the files to cut (6 mm board and tokens, 3 mm spinner, crates, chests and cards) — their lines already include the kerf. Everything else is a design view."; }
   else document.getElementById("sub").textContent = "Pick one version per piece and leave notes. Black = engraved, red hairline = cut.";
   document.getElementById("cols").style.gridTemplateColumns = single ? "1fr" : `repeat(${D.versions.length}, minmax(0,1fr))`;
 
@@ -105,7 +105,7 @@
     for (const v of D.versions) {
       const g = v.groups.find(x => x.id === cur);
       const card = document.createElement("div"); card.className = "card" + ((single ? f.ok : f.pick === v.id) ? " ok" : "");
-      const badge = kind === "sheet" ? `<span class="badge sheet">cutting sheet · kerf ${D.kerf}</span>` : kind === "design" ? `<span class="badge design">assembled view</span>` : `<span class="badge">design view</span>`;
+      const badge = kind === "sheet" ? `<span class="badge sheet">cutting sheet · ${g.mat} mm · kerf ${D.kerf}</span>` : kind === "design" ? `<span class="badge design">assembled view</span>` : `<span class="badge">design view</span>`;
       card.innerHTML = `<h2>${single ? g.title : v.name} ${badge}</h2><p class="blurb">${cur === "board-assembled" || cur === "board" ? v.blurb : ""}</p>
         <div class="art ${kind === "sheet" ? "sheet" : ""}" title="click to enlarge">${g.svg}</div>
         <div class="meta"><b>${g.count}</b> piece${g.count === 1 ? "" : "s"} · <b>${g.w} × ${g.h} mm</b><p class="notes">${g.notes}</p></div>
