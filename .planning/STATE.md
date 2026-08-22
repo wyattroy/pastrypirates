@@ -525,6 +525,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | 260821-qwv | Phone layout pass: right-edge clipping, hint-on-buttons, see-through recipe picker, back circle above the ribbon. Gate findings 40 -> 12, structural 4 -> 0 | 2026-08-22 | 297d84c | [260821-qwv-phone-layout-pass-right-edge-clipping-hi](./quick/260821-qwv-phone-layout-pass-right-edge-clipping-hi/) |
 | 260821-wkd | Cloud-QA proof verdict recorded in GIT-AND-DEPLOY §7: all four items passed 2026-08-21; two-part Chromium TLS fix documented | 2026-08-21 | ac9a629 | [260821-wkd-record-the-cloud-qa-proof-verdict-in-doc](./quick/260821-wkd-record-the-cloud-qa-proof-verdict-in-doc/) |
 | 4 | Make the cloud browser TLS fix automatic via SessionStart hook | 2026-08-22 | 70bb1ee | — |
+| 260822-djh | Printable physical-edition rulebooks (EN + pirate) as two 6-page PDFs with in-game imagery, for the V3 laser-cut set | 2026-08-22 | 2dc9fa4 | [260822-djh-printable-physical-edition-rulebooks-en-](./quick/260822-djh-printable-physical-edition-rulebooks-en-/) |
 
 ### Roadmap Evolution
 
