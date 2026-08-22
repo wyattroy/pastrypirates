@@ -208,3 +208,58 @@ export const measureHold = async (C, key, text, waitMs) => {
   return { hold_ms: got.out - got.created, life_ms: got.removed != null ? got.removed - got.created : null,
     chars: got.chars, text: got.text, interrupted: !!got.interrupted || !!got.centre };
 };
+
+/* ---- D-35: the recipe modal's two measured facts -------------------------------------------
+ * Wyatt's two changes to option C are both geometry, so both are read with getBoundingClientRect
+ * rather than eyeballed:
+ *   1. the gap between the bottom of the image and the top of the italic description, against
+ *      that description's OWN line-height (his complaint is relative to the type, not to a pixel);
+ *   2. the distance between the top of the gradient behind the image and the BOTTOM EDGE of the
+ *      title's separator — which is not its own element but the h2's `border-bottom: 3px double`,
+ *      so the separator's bottom IS the h2's border-box bottom. Reading anything else would
+ *      measure a line that does not exist.
+ * Returns `missing:true` rather than throwing when the modal is not open, so a leg that never
+ * reaches a recipe reports honestly instead of failing the whole run. */
+export const RECIPE_PROBE_SRC = `(async () => {
+  const g = window.appState && appState.game;
+  const seat = (window.appState && appState.mySeat) || 0;
+  const rec = g && g.players && g.players[seat] && g.players[seat].recipe;
+  if (!rec) return { missing: true, why: "no recipe on this seat yet" };
+  const ui = await import("/4/src/ui/index.js");
+  ui.openRecipeModal(rec);
+  await new Promise(r => setTimeout(r, 700));
+  const body = document.getElementById("recipeModalBody");
+  if (!body) return { missing: true, why: "no #recipeModalBody" };
+  const h2 = body.querySelector("h2");
+  /* "THE LINE SEPARATING THE TITLE" IS THE 3px DOUBLE RULE, AND SINCE D-35 IT BELONGS TO THE ROW,
+     NOT TO THE h2. Reading h2.bottom instead measured the bottom of the TEXT — which sits 20px
+     above the rule, because the row is a flex box centring a one-line heading against two 38px
+     icon buttons. That first reading condemned a gradient that was in fact flush, which is the
+     whole reason CLAUDE.md says to suspect the check when it condemns something that looks right.
+     The row's border-BOX bottom is the rule's own bottom edge, so that is what is read. */
+  const sepEl = body.querySelector(".recipeModalTitleRow") || h2;
+  const img = body.querySelector(".recipeModalThumb");
+  const wrap = body.querySelector(".recipeModalThumbWrap") || img;
+  const desc = body.querySelector(".recipeModalDesc");
+  const rb = el => el ? el.getBoundingClientRect() : null;
+  const H = rb(sepEl), I = rb(img), Wp = rb(wrap), D = rb(desc);
+  const cs = desc ? getComputedStyle(desc) : null;
+  const lh = cs ? (cs.lineHeight === "normal" ? parseFloat(cs.fontSize) * 1.2 : parseFloat(cs.lineHeight)) : null;
+  const wcs = wrap ? getComputedStyle(wrap) : null;
+  const grad = wcs ? (wcs.backgroundImage || "") : "";
+  return {
+    title_above_image: !!(H && I) && H.top < I.top,
+    separator_el: sepEl && sepEl.className ? String(sepEl.className) : (h2 ? "h2" : null),
+    separator_bottom: H ? +H.bottom.toFixed(2) : null,
+    gradient_top: Wp ? +Wp.top.toFixed(2) : null,
+    gradient_declared: /gradient/.test(grad),
+    gradient_fades_to_transparent: /transparent|rgba\\([^)]*,\\s*0\\)/.test(grad),
+    image_top: I ? +I.top.toFixed(1) : null,
+    image_bottom: I ? +I.bottom.toFixed(1) : null,
+    desc_top: D ? +D.top.toFixed(1) : null,
+    image_to_desc_gap_px: (I && D) ? +(D.top - I.bottom).toFixed(2) : null,
+    desc_line_height_px: lh ? +lh.toFixed(2) : null,
+    title_row_sticky: h2 ? (getComputedStyle(h2.closest(".recipeModalTitleRow") || h2).position === "sticky") : null,
+    icons_in_title_row: !!body.querySelector(".recipeModalTitleRow .recipeIconBtn"),
+  };
+})()`;
