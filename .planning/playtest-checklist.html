@@ -61,7 +61,7 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — playtest checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026-08-23b</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
+  <div class="sub">Build <strong id="stamp">2026-08-23c</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
    — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
   <div class="bar">
     <span class="count" id="count">0 / 0</span>
@@ -144,6 +144,14 @@ const DATA = [
  {n:46,look:"Crew game: close a tab mid-bake",right:"The table does not hang. That captain forfeits in about 2½ seconds and the voyage carries on.",why:"There is no shot clock during a bake at all now — also your ruling."},
  {note:"<strong>Two things about the bake-off I could NOT verify, so do not assume them:</strong> no paired screenshot of the swap animation actually running (the probe mis-identified which browser held the controls three runs in a row), and a host reload mid-bake was never driven. The property it rests on is measured; the reload itself is not."},
 
+ {h:"Eighth — trades over the wire (Phase 5, new tonight)"},
+ {note:"<strong>Bot hail volume is unchanged: 2.45 a game before and after, byte-identical over 150 voyages.</strong> That number is pinned on your ruling — “we don't want the table continuously spammed with shitty trade requests” — so it gets checked whether or not anyone thinks they touched it."},
+ {n:47,look:"Crew game: as a GUEST, counter-offer with a number of coins",right:"You drag a real slider, same as the host. The ± circles are gone.",why:"A guest used to get +1/−1 circles drawn INSIDE the radial action arc — the exact thing playtest 21 removed from the host's arc. Same gesture, two behaviours."},
+ {n:48,look:"How long a counter-offer takes",right:"It should feel like one exchange, not a series of them.",why:"An 8-coin counter: 11 prompt round trips and 61.2s before, 3 and 24.9s now. The longest unbroken “…is deciding…” on the asker's screen went 52.6s → 16.2s."},
+ {n:49,look:"Counter-offer, then refresh mid-voyage",right:"The voyage replays to the same place — your dragged number is remembered, not reset to 1.",why:"An 8-coin remote counter used to write 12 log entries and now writes 4, the same as an identical local one. The log's length no longer depends on how the trade was routed."},
+ {n:50,look:"❓ PASS-AND-PLAY: a second captain's trade-answer prompt appears with NO hand-off card",right:"YOUR TASTE CALL, not a bug. It was recorded as correct — cargo is public and answering costs no turn, so there is nothing private to hand over. But you may want the hand-off anyway. One line either way.",why:"Confirmed by watching, not assumed."},
+ {note:"<strong>What did NOT land in Phase 5, plainly.</strong> Holders in a multi-captain trade are still asked <em>one at a time</em> — proven from the write log, not assumed. The two-minute bar is met now the stepper is gone, but the design defect behind it is not fixed. It was stopped deliberately: a half-done parallel round is a stalled table, and the measurement moved the premise — the stepper was 52 seconds of dead screen for ONE captain, whereas each further holder costs about 5."},
+
  {h:"Sixth — a whole voyage in each mode"},
  {note:"The bar is <strong>complete voyages to the end-of-voyage card</strong>, not stretches of play. That bar is what found a nine-day-old softlock the first night it was used."},
  {n:39,look:"Solo, to the end card"},
@@ -153,7 +161,7 @@ const DATA = [
  {note:"<strong>Don't judge the Bake-Off card by a crew game.</strong> Measured last night: in a crew game the host bakes on their own screen and the guest sees only a one-line narration — no bench, nothing to watch. A guest cannot take their own bake at all; there is no code path for it. That's Phase 4, not a bug. Judge the Bake-Off card solo or pass-and-play."}
 ];
 
-const KEY="pp4-playtest-2026-08-23b";
+const KEY="pp4-playtest-2026-08-23c";
 let state=JSON.parse(localStorage.getItem(KEY)||"{}");
 const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
 const list=document.getElementById("list");
