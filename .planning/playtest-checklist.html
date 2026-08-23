@@ -61,7 +61,7 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — playtest checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026-08-23a</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
+  <div class="sub">Build <strong id="stamp">2026-08-23b</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
    — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
   <div class="bar">
     <span class="count" id="count">0 / 0</span>
@@ -136,6 +136,14 @@ const DATA = [
  {n:37,look:"A sail prompt — how far back does the board sit?",right:"Room for the question without standing on a square you have to tap. If it feels too zoomed out, say so — that number is yours to set."},
  {n:38,look:"A narration bubble while sail squares are up",right:"The bubble avoids the squares AND the question it's covering.",why:"Its placement previously only knew about sail squares, so it landed on the question."},
 
+ {h:"Seventh — the networked bake-off (Phase 4, new tonight)"},
+ {note:"<strong>This is a whole phase that did not exist yesterday, and it needs a CREW game to judge — two browsers or two devices.</strong> Until tonight, when a guest's turn at the ovens came round their screen showed nothing at all, and the <em>host</em> silently played that guest's bake with the host's own hands. That was measured and proven three ways, not guessed."},
+ {n:43,look:"Crew game: a GUEST reaches the ovens",right:"They bake in their OWN browser — their recipe, their five face-down crates, Ready to bake!, the shuffle, tapping in order, the reveal.",why:"Before tonight the host played it for them and the guest saw nothing."},
+ {n:44,look:"Crew game: while ANY captain bakes, look at the other screens",right:"Everyone watches the same face-down bench — the same shuffle, the same badges appearing as each crate is named, the same verdict. Nobody reads a waiting note at the finish line.",why:"Your 2026-08-18 ruling. At three sampled moments the badges on the baker's and the watcher's screens were byte-identical, including mid-reveal."},
+ {n:45,look:"Crew game: tap “Watch again 🌕1” as a guest",right:"Your purse drops immediately on your own screen, the prompt stays open, the shuffle replays — and the host ends on the same number.",why:"The purse drops optimistically on your screen and the host settles the true value; the alternative (a live spend channel) is recorded in the plan."},
+ {n:46,look:"Crew game: close a tab mid-bake",right:"The table does not hang. That captain forfeits in about 2½ seconds and the voyage carries on.",why:"There is no shot clock during a bake at all now — also your ruling."},
+ {note:"<strong>Two things about the bake-off I could NOT verify, so do not assume them:</strong> no paired screenshot of the swap animation actually running (the probe mis-identified which browser held the controls three runs in a row), and a host reload mid-bake was never driven. The property it rests on is measured; the reload itself is not."},
+
  {h:"Sixth — a whole voyage in each mode"},
  {note:"The bar is <strong>complete voyages to the end-of-voyage card</strong>, not stretches of play. That bar is what found a nine-day-old softlock the first night it was used."},
  {n:39,look:"Solo, to the end card"},
@@ -145,7 +153,7 @@ const DATA = [
  {note:"<strong>Don't judge the Bake-Off card by a crew game.</strong> Measured last night: in a crew game the host bakes on their own screen and the guest sees only a one-line narration — no bench, nothing to watch. A guest cannot take their own bake at all; there is no code path for it. That's Phase 4, not a bug. Judge the Bake-Off card solo or pass-and-play."}
 ];
 
-const KEY="pp4-playtest-2026-08-23a";
+const KEY="pp4-playtest-2026-08-23b";
 let state=JSON.parse(localStorage.getItem(KEY)||"{}");
 const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
 const list=document.getElementById("list");
