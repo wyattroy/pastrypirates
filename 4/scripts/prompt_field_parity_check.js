@@ -355,6 +355,95 @@ export function checkSailFieldParity(root) {
   return res;
 }
 
+/* ================= assertion 4 — THE THIRD PROMPT CHANNEL: the bake =================
+ * 04-01 Task 2 (MP-04) gave the bake-off a remote branch. bakeoffPrompt() (src/ui/flow.js) now
+ * sends a THIRD payload, kind:"bake", and watchPrompt() rebuilds a bench out of it. That is one
+ * more pair of code that has to agree about a field set, and the ONLY reason it does not have to
+ * be kept in step by hand is that both sides hand the same shape to the same choreography
+ * function — but nothing enforced the SHAPE until this assertion.
+ *
+ * WHY IT IS WORTH ADDING RATHER THAN TRUSTING THE SHARED FUNCTION. The seven historic drifts on
+ * the ask channel all happened while both sides already called shared BUILDERS. A shared builder
+ * cannot police the wire, because the guest can only pass along a field it actually read off the
+ * payload — that sentence is this file's own header, and it is exactly as true here. Drop `locked`
+ * on the guest and a captain's earned crates come back unlocked, silently, on their second attempt.
+ *
+ * Same shape as assertions 1 and 2, deliberately. The floor is 4: order, before, swaps, locked are
+ * the minimum a bench cannot be drawn without. */
+const BAKE_MIN_FIELDS = 4;
+const BAKEOFF_REL = "src/ui/bakeoff.js";   // where the ONE choreography lives
+const BAKE_GUEST_ONLY_OK = {
+  id:     "stamped by remotePrompt() (orchestrator.js), not by bakeoffPrompt() — the round-trip's own identifier",
+  seat:   "stamped by remotePrompt() alongside id; the bake branch also uses it to name whose purse to redraw (MP-06)",
+  kind:   "the discriminant itself — read to choose this branch, never a field the renderer draws",
+};
+// Sent for the HOST's own bookkeeping and deliberately not read back off the wire by the sender's
+// own branch. Each needs a reason, exactly like the ask channel's allow-list.
+const BAKE_HOST_ONLY_OK = {
+  coins:  "READ on the guest as p.coins for the optimistic purse (MP-06). Listed here only because a future host-side field would need a reason, not an omission.",
+};
+export function checkBakeFieldParity(root) {
+  const res = mk('assertion 4 — bake wire-field parity (bakeoffPrompt\'s kind:"bake" payload vs watchPrompt\'s bake branch)');
+  const flowRaw = read(root, FLOW_REL);
+  const orchRaw = read(root, ORCH_REL);
+  if (flowRaw === null) { fail(res, `PARITY-BAKE: ${FLOW_REL} is missing — the host's bake payload has nothing to read.`); return res; }
+  if (orchRaw === null) { fail(res, `PARITY-BAKE: ${ORCH_REL} is missing — the guest's bake reader has nothing to read.`); return res; }
+  const flow = stripComments(flowRaw), orch = stripComments(orchRaw);
+
+  /* ---- (A) the wire ---- */
+  const bI = flow.indexOf('{kind:"bake"');
+  if (bI < 0) { fail(res, `PARITY-BAKE: no {kind:"bake"...} payload found in ${FLOW_REL} — a remote captain is not being sent their own bench at all, which is the state measured on 2026-08-23 where the HOST played the guest's bake on its own screen. Re-anchor this gate rather than deleting it.`); return res; }
+  const bClose = matchBracket(flow, bI);
+  if (bClose < 0) { fail(res, `PARITY-BAKE: the kind:"bake" payload literal in ${FLOW_REL} does not close — this gate could not read it.`); return res; }
+  const hostFields = new Set(payloadKeys(flow.slice(bI, bClose + 1)));
+
+  /* ---- (B) the guest ---- */
+  const wp = sliceFn(orch, "export function watchPrompt(");
+  if (!wp) { fail(res, `PARITY-BAKE: watchPrompt() was not located in ${ORCH_REL} — if it was renamed, re-anchor this gate; do NOT delete the assertion.`); return res; }
+  const gI = wp.indexOf('if(p.kind==="bake")');
+  const gI2 = gI < 0 ? wp.indexOf('else if(p.kind==="bake")') : gI;
+  const at = gI2 < 0 ? wp.indexOf('p.kind==="bake"') : gI2;
+  if (at < 0) { fail(res, `PARITY-BAKE: watchPrompt() in ${ORCH_REL} has no kind==="bake" branch — a remote captain cannot be shown their own bench at all. It must FAIL rather than pass over an absent branch.`); return res; }
+  const gOpen = wp.indexOf("{", at + 'p.kind==="bake"'.length);
+  const gClose = matchBracket(wp, gOpen);
+  if (gClose < 0) { fail(res, `PARITY-BAKE: watchPrompt()'s bake branch in ${ORCH_REL} does not close — this gate could not read it.`); return res; }
+  const guestFields = new Set([...wp.slice(at, gClose + 1).matchAll(/\bp\.([A-Za-z_$][\w$]*)/g)].map((m) => m[1]));
+
+  if (hostFields.size < BAKE_MIN_FIELDS) fail(res, `PARITY-BAKE-VACUITY: only ${hostFields.size} field(s) read out of the kind:"bake" payload in ${FLOW_REL} (expected at least ${BAKE_MIN_FIELDS}) — this gate is reading almost nothing, so its PASS would mean nothing.`);
+  if (guestFields.size < BAKE_MIN_FIELDS) fail(res, `PARITY-BAKE-VACUITY: only ${guestFields.size} p.<field> read(s) found in watchPrompt's bake branch in ${ORCH_REL} (expected at least ${BAKE_MIN_FIELDS}) — this gate is reading almost nothing, so its PASS would mean nothing.`);
+
+  for (const f of [...hostFields].sort()) {
+    if (f === "kind" || guestFields.has(f) || f in BAKE_HOST_ONLY_OK) continue;
+    fail(res, `PARITY-BAKE: bakeoffPrompt() (${FLOW_REL}) SENDS "${f}" on the bake payload and watchPrompt's bake branch (${ORCH_REL}) never reads p.${f} — the captain on this device gets that fact about their bench and a remote captain does not. Drop "locked" and a captain's earned crates come back unlocked on their second attempt, silently. Read it on the guest, or stop sending it.`);
+  }
+  for (const f of [...guestFields].sort()) {
+    if (hostFields.has(f) || f in BAKE_GUEST_ONLY_OK) continue;
+    fail(res, `PARITY-BAKE: watchPrompt's bake branch (${ORCH_REL}) reads p.${f} and bakeoffPrompt() (${FLOW_REL}) never sends "${f}" — the guest is reading a field that is never on the wire, so it silently falls back on every remote bake. Send it, or stop reading it.`);
+  }
+
+  /* ---- (C) ONE choreography, named DIRECTLY by both tiers ----
+     The thing that makes the two benches agree is that they are the same function reading the same
+     object (rule 23). A guest-only wrapper would satisfy the field check above and reintroduce the
+     two-orchestrations fault underneath it, so: exactly one definition of playBakeoffLive, and both
+     bakeoffPrompt and watchPrompt's bake branch must NAME IT. */
+  const bakeoffRaw = read(root, BAKEOFF_REL);
+  if (bakeoffRaw === null) {
+    fail(res, `PARITY-BAKE-BUILDER: ${BAKEOFF_REL} is missing — the choreography this whole channel converges on cannot be counted, and this assertion must not pass over a tree it cannot read.`);
+  } else {
+    const hits = (n) => (n.match(/export async function playBakeoffLive\s*\(/g) || []).length;
+    const pblDefs = hits(flow) + hits(stripComments(bakeoffRaw));
+    if (pblDefs !== 1) fail(res, `PARITY-BAKE-BUILDER: expected exactly 1 definition of playBakeoffLive(), found ${pblDefs}. Two choreographies is two chances for a baker's screen and a watcher's to disagree about the same shuffle.`);
+  }
+  const bp = sliceFn(flow, "export async function bakeoffPrompt(");
+  if (!bp) fail(res, `PARITY-BAKE-BUILDER: bakeoffPrompt() was not located in ${FLOW_REL} — re-anchor this gate rather than deleting it.`);
+  else if (!/playBakeoffLive\s*\(/.test(bp)) fail(res, `PARITY-BAKE-BUILDER: bakeoffPrompt() does not name playBakeoffLive() — the local branch is running something else.`);
+  if (!/playBakeoffLive\s*\(/.test(wp.slice(at, gClose + 1))) fail(res, `PARITY-BAKE-BUILDER: watchPrompt's bake branch does not name playBakeoffLive() DIRECTLY. A guest-only wrapper is exactly what stops the orchestration parity gate seeing a convergence — name the choreography function.`);
+
+  note(res, `bake payload fields: ${[...hostFields].sort().join(", ")}`);
+  note(res, `guest reads: ${[...guestFields].sort().join(", ")}`);
+  return res;
+}
+
 /* ================= assertion 3 — THE STANDING STATIC SOLO GUARD =================
  * 02.15-02-PLAN.md Task 3, action item 8 (T-02.15-06 / 02.15-VALIDATION.md's Wave 0 gap): the
  * highest-severity failure mode in the whole pick-channel conversion is the LOCAL render-and-resolve
@@ -431,7 +520,10 @@ function runAll(root, { quiet = false } = {}) {
   const a3 = checkSoloGuard(root);
   log(`${a3.ok ? "PASS" : "FAIL"} ${a3.name}`);
   for (const n of a3.notes) log(`      ${n}`);
-  return [a1, a2, a3];
+  const a4 = checkBakeFieldParity(root);
+  log(`${a4.ok ? "PASS" : "FAIL"} ${a4.name}`);
+  for (const n of a4.notes) log(`      ${n}`);
+  return [a1, a2, a3, a4];
 }
 
 /* ================= --drill: prove the assertion CAN fail ================= */
@@ -445,6 +537,10 @@ function drill() {
   const realUtil = fs.readFileSync(path.join(REAL_ROOT, UTIL_REL), "utf8");
   const realOrch = fs.readFileSync(path.join(REAL_ROOT, ORCH_REL), "utf8");
   const realFlow = fs.readFileSync(path.join(REAL_ROOT, FLOW_REL), "utf8");
+  // 04-01 Task 2: assertion 4 part (C) counts playBakeoffLive across flow.js AND bakeoff.js, so the
+  // disposable tree has to carry bakeoff.js too. Without it every bake drill failed for the wrong
+  // reason — a missing file, not the planted fault — which is a drill that proves nothing.
+  const realBakeoff = fs.readFileSync(path.join(REAL_ROOT, BAKEOFF_REL), "utf8");
 
   const write = (rel, content) => {
     const full = path.join(tmpRoot, rel);
@@ -452,7 +548,7 @@ function drill() {
     fs.writeFileSync(full, content);
   };
   // restore all three to the real, unmodified sources before each case
-  const reset = () => { write(UTIL_REL, realUtil); write(ORCH_REL, realOrch); write(FLOW_REL, realFlow); };
+  const reset = () => { write(UTIL_REL, realUtil); write(ORCH_REL, realOrch); write(FLOW_REL, realFlow); write(BAKEOFF_REL, realBakeoff); };
   // a replacement that REFUSES to be a no-op — a drill whose surgery silently missed would report
   // the gate as broken (or, worse, as fine) for the wrong reason
   const surgery = (src, from, to) => {
@@ -595,6 +691,52 @@ function drill() {
     `export function localPickCell(p,spec){`, `export function localPickCellGONE(p,spec){`));
   expect("drill 3c (anti-vacuity — both local-path functions renamed away must FAIL, not silently pass)", checkSoloGuard(tmpRoot), true, "PARITY-SOLOGUARD");
 
+  /* ===== assertion 4's own red-proof — THE BAKE CHANNEL (04-01 Task 2) =====
+     Written the same night the channel was. A gate nobody has seen fail is a gate nobody has
+     tested, and this one guards the shape of a two-minute interaction where a dropped field costs
+     a captain crates they already earned. */
+
+  // 4a — the host stops SENDING `locked`. This is the expensive one and the reason the assertion
+  //      exists: `locked` is which crates the captain already won on an earlier attempt, and
+  //      without it a remote captain's second attempt hands them back the whole bench.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `    locked:p.bake.locked.slice(),\n`, ``));
+  expect("drill 4a (bake payload stops sending locked)", checkBakeFieldParity(tmpRoot), true, 'never sends "locked"');
+
+  // 4b — the reverse: the guest stops READING `swaps`, so a remote captain's crates never move and
+  //      the puzzle is trivially solvable. Same damage, opposite side.
+  reset();
+  write(ORCH_REL, surgery(realOrch, `before:p.before||[],swaps:p.swaps||[],`, `before:p.before||[],swaps:[],`));
+  expect("drill 4b (guest's bake branch stops reading p.swaps)", checkBakeFieldParity(tmpRoot), true, "never reads p.swaps");
+
+  // 4c — the branch vanishes entirely: back to the measured 2026-08-23 state where the HOST played
+  //      the guest's bake on its own screen. It must go LOUD, not quiet.
+  reset();
+  write(ORCH_REL, surgery(realOrch, `}else if(p.kind==="bake"){`, `}else if(p.kind==="nope"){`));
+  expect("drill 4c (the guest's bake branch vanishes)", checkBakeFieldParity(tmpRoot), true, "no kind===\"bake\" branch");
+
+  // 4d — the payload vanishes: the host stops offering a remote captain their own bench at all.
+  reset();
+  write(FLOW_REL, surgery(realFlow, `  const spec={kind:"bake",`, `  const spec={kind:"bakeXX",`));
+  expect("drill 4d (the host stops sending a bake payload)", checkBakeFieldParity(tmpRoot), true, "no {kind:\"bake\"...} payload");
+
+  // 4e — A GUEST-ONLY WRAPPER around the choreography. Every field can be present and correct and
+  //      this still reopens the two-directors fault, because a wrapper is exactly what stops the
+  //      orchestration parity gate seeing a convergence. Part (C) is what catches it.
+  reset();
+  write(ORCH_REL, surgery(realOrch, `      playBakeoffLive({order:p.order||[],before:p.before||[],swaps:p.swaps||[],
+                       locked:p.locked||[],attempts:p.attempts||0,cost},null,spend)`,
+                                    `      guestBenchWrapper({order:p.order||[],before:p.before||[],swaps:p.swaps||[],
+                       locked:p.locked||[],attempts:p.attempts||0,cost},null,spend)`));
+  expect("drill 4e (a guest-only wrapper replaces the named choreography)", checkBakeFieldParity(tmpRoot), true, "PARITY-BAKE-BUILDER");
+
+  // 4f — a SECOND playBakeoffLive appears. Every field can be correct on both sides and the two
+  //      benches still diverge, because there are now two things drawing them. The COUNT is what
+  //      catches it — the same idiom 2f uses for sailPanelHTML.
+  reset();
+  write(BAKEOFF_REL, realBakeoff + `\nexport async function playBakeoffLive(spec){return null;}\n`);
+  expect("drill 4f (a SECOND playBakeoffLive appears — two choreographies)", checkBakeFieldParity(tmpRoot), true, "expected exactly 1 definition of playBakeoffLive");
+
   // Z — negative control: the REAL, unmodified tree passes. Without this the drill only proves the
   //     gate can shout, not that it can ever be quiet.
   {
@@ -606,7 +748,7 @@ function drill() {
   }
 
   fs.rmSync(tmpRoot, { recursive: true, force: true });
-  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 16 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
+  console.log(`\n${allOk ? "RED-PROOF DRILLED OK — 22 synthetic violations caught, real tree clean" : "DRILL FAILURE — the assertion did not fail against its own synthetic violation"}`);
   process.exit(allOk ? 0 : 1);
 }
 

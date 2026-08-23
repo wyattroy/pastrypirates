@@ -656,13 +656,21 @@ export function pickCell(p,cells){
    day would get no handoff between them at all. passGate is a no-op in solo and whenever the
    device is already with the right seat, so this costs those modes nothing.
 
-   THERE IS NO REMOTE PATH, and that is a decision rather than an omission. Wyatt, 2026-08-08:
-   *"This is all built for v2 which doesn't have multiplayer — we're testing the game dynamic."*
-   v2's welcome screen has no Host a Crew or Join a Crew (index.html), and in the two modes it does
-   ship every human seat is local — solo has one, and pass-and-play treats them all as local. So a
-   remote branch would be unreachable code whose only behaviour is to forfeit somebody's bake to
-   the bot without telling them. The FALLBACK below is a different thing and is genuinely live: it
-   is the shot-clock forfeit, which any mode can hit. */
+   THE REMOTE PATH EXISTS NOW (04-01 Task 2, MP-04). The note that stood here said there was none,
+   and it was right when it was written: *"This is all built for v2 which doesn't have multiplayer"*
+   (Wyatt, 2026-08-08), and a remote branch would then have been unreachable code whose only
+   behaviour was to forfeit somebody's bake to the bot without telling them. Multiplayer came back
+   in Phase 2, and what that left was measured on 2026-08-23 in a real two-browser room: the HOST
+   was playing the GUEST's bake, on the host's own screen, with the guest's screen showing nothing
+   at all — not a bench, not a waiting note (.planning/phases/04-the-networked-bakeoff/shots/t1/).
+   So the branch below is not symmetry; it is the fix for that.
+
+   THE FORK IS decisionIsLocal(p.idx), NEVER isHost AND NEVER seatLocal (DISPLAY-RULES Rule B).
+   decisionIsLocal is true for EVERY human seat at a pass-and-play table, which is what keeps that
+   mode working when several seats are local on one device.
+
+   The FALLBACK below is a different thing again and is genuinely live: it is the shot-clock
+   forfeit, which any mode can hit, and which a `null` reply from a remote captain reuses. */
 export async function bakeoffPrompt(p,setup,fallback){
   await (ffEndNow()||0);   // the bake is his own hands-on turn — recap first if a skip was live
   // Before the replay early-return, exactly as humanTurn does it: passGate self-handles replay by
@@ -684,26 +692,52 @@ export async function bakeoffPrompt(p,setup,fallback){
   // {wait:true} — same fault, found by the rule-8 sweep rather than by Wyatt: this is the other
   // per-turn spectator line whose subject is "nothing is happening yet". Also fire-and-forget.
   netHandlers().onBroadcast(`${pn(p.idx)} steps up to the ovens…`,[{seat:p.idx,html:""}],{wait:true});
-  // NO decisionIsLocal BRANCH, deliberately. v2 ships solo and pass-and-play only — Host a Crew and
-  // Join a Crew are gone from the welcome screen (index.html) — and in both of those every human
-  // seat is local by definition. A remote branch here would be a path no test can reach and no
-  // player can trigger, whose only behaviour is to hand somebody's bake to the bot without saying
-  // so. A silent forfeit down a dead branch is strictly worse than not having the branch.
+  /* THE ONE SPEC, BUILT ONCE, HANDED TO BOTH BRANCHES — pickCell()'s tracer pattern verbatim
+     (see the `const spec={kind:"pick",...}` comment 60 lines up). The local render and the remote
+     wire payload cannot drift apart because they are literally the same object, and the captain in
+     the other browser runs the SAME playBakeoffLive from it.
+
+     It carries what the choreography needs and nothing else. THE ANSWER IS NOT IN IT: the engine's
+     post-shuffle bench never leaves this machine, because `before` + `locked` already determine
+     every solved step (a locked bowl never moves — see playBakeoffLive's own note). A captain
+     cannot read their own solution off the wire.
+
+     `id` and `seat` keep being stamped by remotePrompt() (orchestrator.js), never added here —
+     same rule the sail payload follows, and the prompt-field parity gate asserts it. */
+  const spec={kind:"bake",
+    order:p.bake.order.slice(),
+    before:(setup.before||p.bake.slots).slice(),
+    swaps:(setup.swaps||[]).map(sw=>[sw[0],sw[1]]),
+    locked:p.bake.locked.slice(),
+    attempts:p.bake.attempts,
+    cost:BAKE_REWATCH_COST,
+    coins:p.coins};
   let resolveArmed;const armed=new Promise(res=>{resolveArmed=res;});
   // Spending a coin goes through the ENGINE, live, one at a time — so the purse on screen drops the
   // moment the player buys a look rather than after the whole prompt resolves. `canAfford` lets the
   // button grey out without the UI having to know the price.
+  //
+  // MP-06, THE REMOTE HALF, and it is deliberately asymmetric in ONE place only: a guest has no
+  // engine to debit, so its own copy of this pair (orchestrator.js's bake branch) decrements the
+  // purse ON SCREEN and reports the COUNT back in the single reply, which the host then charges
+  // authoritatively. The engine stays the only thing that moves a real coin.
   const onRewatch=(n)=>appState.game.bakeRewatch(p,n)>0&&(liveRender(),true);
   onRewatch.canAfford=()=>p.coins>=BAKE_REWATCH_COST;
-  const base=playBakeoffLive(p,setup,()=>{armClock(p.idx);resolveArmed();},onRewatch);
+  const base=decisionIsLocal(p.idx)
+    ? playBakeoffLive(spec,()=>{armClock(p.idx);resolveArmed();},onRewatch)
+    : netHandlers().onRemotePrompt(p.idx,spec);
   // Belt: playBakeoffLive can return before it ever arms, because it bails out if the bench failed
   // to render. `armed` must still settle or the chain below waits forever and the voyage stops,
-  // which is worse than an unclocked decision.
+  // which is worse than an unclocked decision. The remote branch never arms at all — it settles
+  // this the same way, when the answer lands.
   base.then(()=>resolveArmed(),()=>resolveArmed());
   return armed.then(()=>withShotClock(p.idx,base,null))
     .then(r=>{
-      // playBakeoffLive resolves {guess,rewatches}; a shot-clock forfeit resolves null and forfeits
-      // to the engine's own guess, having bought nothing.
+      // ONE TAIL FOR BOTH BRANCHES, which is what keeps the roadmap's fourth criterion true by
+      // construction rather than by care. playBakeoffLive resolves {guess,rewatches} and the remote
+      // captain replies with the SAME SHAPE, so nothing below has to know which tier answered. A
+      // shot-clock forfeit — or a `null` from a captain whose tab went away — resolves null and
+      // forfeits to the engine's own guess, having bought nothing.
       const answer=fillLocked(p.bake,(r&&r.guess)||fallback);
       const watched=(r&&r.rewatches)||0;
       // LOGGED TOGETHER, as one decision. The coins a rewatch spends are game state that the

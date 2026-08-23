@@ -95,10 +95,11 @@ import {
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
-  bakeoffPrompt, bakeoffReveal,
+  bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, flipSpinLeftMs, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
+  showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, wireRestoreFail,
@@ -962,11 +963,21 @@ async function bakeTurnLive(p){
   // called for a human seat even under replay — that is the whole point, since it is what returns
   // the guess the player ACTUALLY made rather than re-deriving one from the bot.
   const dec=human?await bakeoffPrompt(p,setup,fallback):{g:fallback,w:0};
-  // REPLAY ONLY. Live, each rewatch was already charged the instant it was bought (flow.js's
-  // onRewatch calls the engine per click, so the purse on screen falls as you spend). Under replay
-  // the prompt early-returns without ever running the UI, so nothing has been charged and the whole
-  // count is settled here in one go. Both paths end on the same coins.
-  if(appState.replaying&&dec.w)g.bakeRewatch(p,dec.w);
+  /* WHERE A RE-WATCH IS ACTUALLY PAID FOR — three cases, one debit site, and the engine is the
+     only thing that ever moves a coin.
+       LOCAL, LIVE      already charged, one click at a time, by flow.js's onRewatch — so the purse
+                        on screen falls as you spend.
+       REPLAY           the prompt early-returns without ever running the UI, so nothing has been
+                        charged and the whole count settles here in one go.
+       REMOTE, LIVE     (04-01 Task 2, MP-06) the buyer has no engine to debit. Their own screen
+                        dropped the number optimistically the moment they bought; the COUNT rode
+                        home in the single reply, and this is where it becomes real. Same site,
+                        same call, same one-entry decision log — the host stays authoritative and
+                        the settled purse is what the end-of-voyage ranking reads.
+     bakeRewatch DRAWS NO RANDOM NUMBERS (see its note in the engine), so adding the remote case
+     cannot fork the seeded stream; it emits a `rewatch` event, exactly as the other two do, which
+     is also what reconciles the buyer's optimistic figure back to the settled one. */
+  if(dec.w&&(appState.replaying||!decisionIsLocal(p.idx)))g.bakeRewatch(p,dec.w);
   const out=g.bakeResolve(p,dec.g);
   if(human&&!appState.replaying)await bakeoffReveal(p,out.res);
   liveRender();
@@ -1451,9 +1462,57 @@ export function watchPrompt(){
       // `hint` is the sail self-check's shout, composed by pickCell for EVERY captain since 02.15
       // Stage 4 — rendered here, never authored here, exactly like `msg` (D-35).
       renderPickPrompt({cells:p.cells||[],msg:p.msg,hint:p.hint||null},cell=>sendResponse(p.id,cell));
+    }else if(p.kind==="bake"){
+      /* MP-04 — THE BAKE, TAKEN BY ITS OWN CAPTAIN (04-01 Task 2, THE TRACER).
+         Before this branch existed, a guest's bake was played on the HOST's screen by the host's
+         own hands while the guest's screen showed nothing at all — measured 2026-08-23 in a real
+         two-browser room (.planning/phases/04-the-networked-bakeoff/shots/t1/ANSWER.md).
+
+         IT NAMES THE CHOREOGRAPHY FUNCTION DIRECTLY, not through a guest-only wrapper. That is
+         what lets the orchestration parity gate (assertion 6, scripts/host_guest_parity_check.js)
+         SEE the convergence — a wrapper would satisfy the eye and nothing else. playBakeoffLive is
+         handed the same spec bakeoffPrompt built, so the shuffle a remote captain watches is the
+         same arcs, the same 1000ms swaps and the same 700ms settles, drawn by the same code. */
+      appState.inBattlePrompt=false;
+      setFlipActive(null);
+      /* ONE PROMPT, ONE CHOREOGRAPHY. This callback fires on every write to the prompt node and
+         also on re-attach, and a bake is a two-minute interaction rather than a re-render — a
+         second start would put two benches in one panel and answer twice. Same edge-trigger idiom
+         watchBattle uses for spectatingBattle: read before you assign. */
+      if(_liveBakePromptId===p.id)return;
+      _liveBakePromptId=p.id;
+      /* MP-06, THE REMOTE PURSE. The engine is the only thing that moves a real coin and it lives
+         on the host, so what happens here is DISPLAY: the buyer's own purse drops the moment they
+         buy, the count rides home in the single reply, and the host charges it authoritatively
+         through Game.bakeRewatch — after which the ordinary `rewatch` event reconciles this screen
+         with the settled number.
+         THE ALTERNATIVE, RECORDED RATHER THAN TAKEN (D-56): a live spend channel would show the
+         true number instantly, at the price of a round-trip in the middle of a prompt and a second
+         way for a purse to be wrong. If the optimistic figure is ever seen to disagree with the
+         settled one, report the number — do not paper over it. */
+      const cost=p.cost||1;
+      let purse=(p.coins==null?0:p.coins);
+      const spend=(n)=>{
+        const want=cost*(n||0);
+        if(want<=0||purse<want)return false;
+        purse-=want;showSeatCoins(p.seat,purse);
+        return true;
+      };
+      spend.canAfford=()=>purse>=cost;
+      playBakeoffLive({order:p.order||[],before:p.before||[],swaps:p.swaps||[],
+                       locked:p.locked||[],attempts:p.attempts||0,cost},null,spend)
+        // The SAME SHAPE playBakeoffLive resolves for a local captain — {guess,rewatches} — so the
+        // host's tail in bakeoffPrompt never has to know which tier answered. `null` (the bench
+        // failed to render) travels as no `choice` at all, which remotePrompt already resolves to
+        // null and the tail already treats as a forfeit to the engine's own guess.
+        .then(r=>{_liveBakePromptId=null;sendResponse(p.id,r||null);},
+              e=>{_liveBakePromptId=null;console.error("bake prompt",e);sendResponse(p.id,null);});
     }
   });
 }
+// The prompt id whose bake choreography is currently running on THIS client — see watchPrompt's
+// bake branch. Module-local, like _watchRoomAttachedFor and _hostGoneArmedFor below.
+let _liveBakePromptId=null;
 /* ONE DRAW PATH (02.15-01 Stage 1, D-25). This used to call showNarration(), which reaches the
    bubble through __pp4.narr — a DIFFERENT entry to the same renderer than the one the host's own
    game loop uses (narrateCurrent -> flash -> __pp4.flash). Same bubble, two orchestrations, and

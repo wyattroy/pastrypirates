@@ -1571,6 +1571,21 @@ export function paintShipAt(seat,c){
   if(chatBubbles[seat])positionChatBubble(seat,x,y); // the bubble rides along, as renderLiveShips does
   if(activeRing&&activeTurnSeat()===seat)ringTo(seat,x,y);
 }
+/* ONE PLACE DRAWS A PURSE (rule 23 / DISPLAY-RULES §1).
+   These four lines lived inline in render(), which was fine while render() was the only thing that
+   ever moved a coin on screen. 04-01 Task 2 produced a SECOND consumer — a captain baking in
+   another browser who pays for a re-watch, whose coin the host has not charged yet, because the
+   count rides home in the single reply and settles there. The rule when a second consumer appears
+   is CONVERGE, not add a path: so render() goes through this too, and the pulse, the dataset stamp
+   and the markup are one statement rather than two copies drifting.
+   `coins` is a NUMBER, and 0 is a real purse — every test in here is explicit, never truthiness. */
+export function showSeatCoins(seat,coins){
+  const el=$("coins"+seat);
+  if(!el)return;
+  if(el.dataset.coins!==undefined&&+el.dataset.coins!==coins)pulseEl(el);
+  el.dataset.coins=coins;
+  el.innerHTML=`${iconImg(COIN_IMG)} ${coins}`;
+}
 export function render(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
   const st=e.state;
@@ -1607,10 +1622,7 @@ export function render(){
     // ovens were lit shows a solid ship again.
     shipEls[i].style.opacity=st[i].baking?0.42:1;
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
-    const coinsEl=$("coins"+i),newCoins=st[i].coins;
-    if(coinsEl.dataset.coins!==undefined&&+coinsEl.dataset.coins!==newCoins)pulseEl(coinsEl);
-    coinsEl.dataset.coins=newCoins;
-    coinsEl.innerHTML=`${iconImg(COIN_IMG)} ${newCoins}`;
+    showSeatCoins(i,st[i].coins);
     const hold=[...st[i].ing];
     const chipsEl=$("chips"+i);
     let newChipsHtml;

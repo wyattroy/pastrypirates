@@ -36,6 +36,13 @@ const PORT = +arg("port", 8771), DBG = +arg("dbg", 9771);
 const [W, H] = arg("size", "390x844").split("x").map(Number);
 const MOBILE = has("mobile");
 const ROOT = path.resolve(arg("root", REPO));
+/* --pnp boots PASS-AND-PLAY with two human captains instead of solo (04-01 Task 2). It is the
+   third mode, it has no room at all, and a two-tab crew test cannot see it by construction — so
+   every change to the bake's decision seam has to be shown here too. Two humans also means the
+   pass-the-device handoff (passGate) fires BETWEEN the two bakes, which is the one thing in
+   bakeoffPrompt that has to stay ahead of the local/remote fork. Solo stays the default, so the
+   existing invocation is byte-identical in behaviour. */
+const PNP = has("pnp");
 const TAG = arg("tag", `${W}x${H}`);
 fs.mkdirSync(OUT, { recursive: true });
 const log = (...a) => { const s = a.join(" "); console.log(s); fs.appendFileSync(path.join(OUT, "log.txt"), s + "\n"); };
@@ -100,12 +107,13 @@ const BKO_VISIBLE = `(() => {
            hint: (document.getElementById('bkoHint')||{}).textContent || '' };
 })()`;
 
-log(`\n=== ${TAG} ${MOBILE ? "(touch)" : ""} — booting a solo voyage at ?ovens=1 ===`);
+log(`\n=== ${TAG} ${MOBILE ? "(touch)" : ""} — booting a ${PNP ? "PASS-AND-PLAY" : "solo"} voyage at ?ovens=1 ===`);
+out.mode = PNP ? "pass-and-play" : "solo";
 await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2000);
 await ev("localStorage.clear(); 1");
 await c.nav(`http://127.0.0.1:${PORT}/4/?ovens=1`); await sleep(2500);
 await armGate();
-if (!await clickSel("#choiceSolo")) await die("solo card not clickable");
+if (!await clickSel(PNP ? "#choicePassPlay" : "#choiceSolo")) await die(`${PNP ? "pass&play" : "solo"} card not clickable`);
 await sleep(900);
 {
   const ni = await ev("(()=>{const el=document.getElementById('nameModalInput'); if(!el) return null; const g=__gate(el); return g.ok?g:null;})()");
@@ -116,13 +124,20 @@ await sleep(900);
   }
 }
 if (!await clickSel("#btnNameConfirm")) await die("name confirm not clickable");
+if (PNP) {
+  await sleep(900);
+  await ev(`(()=>{const v=["Wyatt","Juju","",""];for(let i=0;i<4;i++){const el=document.getElementById('ppName'+i);if(el)el.value=v[i]||'';}return 1})()`);
+  if (!await clickSel("#btnStartPassPlay")) await die("pass&play start not clickable");
+  await sleep(1200);
+}
 { // a game with a HUMAN seat — never merely "a game exists" (§3's attract-board trap)
   let ok = false;
   for (let i = 0; i < 60 && !ok; i++) { await sleep(500);
     ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/4/src/state/index.js');window.appState=m.appState;}
-      const g=window.appState.game; return !!(g&&g.players.some(p=>p.strategy==='human')&&document.getElementById('pp4Ribbon'));}catch(e){return false}})()`);
+      const g=window.appState.game; const hs=g?g.players.filter(p=>p.strategy==='human').length:0;
+      return !!(g&&hs>=${PNP ? 2 : 1}&&document.getElementById('pp4Ribbon'));}catch(e){return false}})()`);
   }
-  if (!ok) await die("no human solo game inside 30s");
+  if (!ok) await die(PNP ? "no two-human pass-and-play game inside 30s" : "no human solo game inside 30s");
 }
 await ev(`(async()=>{ window.__B = { st:(await import('/4/src/state/index.js')).appState }; return 1; })()`);
 

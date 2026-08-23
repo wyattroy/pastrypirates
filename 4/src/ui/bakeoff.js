@@ -99,8 +99,10 @@ function stepOfSlot(order,slots){
 }
 
 // `slots` is what the bench LOOKS LIKE right now, which during a live attempt is the engine's
-// pre-shuffle arrangement (setup.before) — NOT bake.slots, which the engine has already advanced to
-// the post-shuffle answer. See shuffleSlots' own note for what conflating the two shipped.
+// pre-shuffle arrangement (spec.before) — NOT the post-shuffle bench, which the engine has already
+// advanced to the answer. See shuffleSlots' own note for what conflating the two shipped. Since
+// 04-01 Task 2 the answer is not on this client at all, so the wrong one cannot be reached from
+// here even by accident.
 function benchHTML(bake,slots){
   // A LOCKED BOWL KEEPS ITS STEP NUMBER ON SHOW. Without it a retry hands the player three solved
   // bowls and no way to tell WHICH steps they solved — measured at 360px, attempt 2 showed
@@ -126,7 +128,10 @@ function listSteps(steps){
   return n.slice(0,-1).join(", ")+" and "+n[n.length-1];
 }
 
-function shellHTML(p,bake,slots,hint,btnLabel,btnEnabled){
+// `p` used to be the first argument here and was never read in the body — the whole shell is
+// composed from the BAKE, which is the only thing a bench is about. Dropped in 04-01 Task 2, where
+// the choreography stopped taking a player at all (see playBakeoffLive).
+function shellHTML(bake,slots,hint,btnLabel,btnEnabled){
   const att=bake.attempts+1;
   return `<div class="bko">
     <div class="bkoHd">${iconImg(CUPCAKE_IMG)} The Bake-Off<span class="bkoAtt">attempt ${att}</span></div>
@@ -232,17 +237,44 @@ function retireBakeCard(){
 
 /* ================= the interaction ================= */
 
-// playBakeoffLive(p) — the whole human attempt, start to finish, resolving to a guess: an array of
-// BOWL INDICES in recipe order (guess[k] = the bowl the player says holds step k). Locked steps
-// resolve to null, which scoreAttempt already accepts.
-//
-// `setup.swaps` is the engine's own list. Animating that rather than re-deriving one is the single
-// most important line in this file.
-// `onArm` is called at the exact moment the bench becomes answerable — see bakeoffPrompt (flow.js)
-// for why the shot clock starts there and not when the prompt opened.
-export async function playBakeoffLive(p,setup,onArm,onRewatch){
-  const bake=p.bake;
+/* playBakeoffLive(spec,onArm,onRewatch) — the whole human attempt, start to finish, resolving to
+   {guess,rewatches}: `guess` is an array of BOWL INDICES in recipe order (guess[k] = the bowl the
+   player says holds step k).
+
+   ONE SPEC, AND IT IS THE WHOLE POINT (04-01 Task 2, THE TRACER — rule 23 / DISPLAY-RULES §1).
+   This used to take the live player object and the engine's setup, which meant only the machine
+   holding the engine could run it. It now takes a plain SPEC — and the same spec is what crosses
+   the wire, so the captain baking in another browser runs THIS function, from THIS data, and the
+   two screens cannot be paced or aimed differently because they are literally the same code
+   reading the same object. That is pickCell()'s tracer pattern applied verbatim (flow.js's
+   `const spec={kind:"pick",...}`): one spec, built once, handed to both branches.
+
+     spec.order    the recipe's ingredient sequence — order[k] is the ingredient used at step k
+     spec.before   the PRE-SHUFFLE bench: what the player studies, and what the swaps start from
+     spec.swaps    the engine's own swap list, animated rather than re-derived (see shuffleSlots)
+     spec.locked   per BENCH POSITION, solved on an earlier attempt and never moved again
+     spec.attempts how many attempts have already been spent (0 shows the story card)
+     spec.cost     the price of one re-watch, so the button can say it without importing a constant
+
+   THE ANSWER IS NOT IN THE SPEC, and that is deliberate rather than incidental. The engine's
+   post-shuffle `bake.slots` never appears here: everything this function needs about which steps
+   are already solved is recoverable from `before` + `locked`, because a LOCKED BOWL NEVER MOVES
+   (scrambleBench and shuffleSlots both draw only from unlocked positions). So
+   `before.indexOf(order[k])` lands on a locked bowl exactly when step k is itself locked — the
+   same answer `slots.indexOf(order[k])` gave, with no way for a captain to read the solution off
+   their own network tab.
+
+   `onArm` is called at the exact moment the bench becomes answerable — see bakeoffPrompt (flow.js)
+   for why the shot clock starts there and not when the prompt opened. `onRewatch(n)` spends the
+   coins and returns whether it bought anything; `onRewatch.canAfford()` greys the button. Both are
+   the RESPONSE MECHANISM, which is the only thing that differs between one tier and another. */
+export async function playBakeoffLive(spec,onArm,onRewatch){
+  const swaps=spec.swaps||[];
+  // The shape cardHTML/benchHTML/stepOfSlot have always read. Built from the spec rather than
+  // handed in, so this function never touches a live engine object.
+  const bake={order:spec.order,locked:(spec.locked||[]).slice(),attempts:spec.attempts||0};
   const n=bake.order.length;
+  while(bake.locked.length<n)bake.locked.push(false);
 
   // Playtest 16 (Wyatt: "the bakeoff itself is still in a yellow action box, which we were
   // supposed to get rid of! It should also happen over the stage"): the WHOLE bake — intro card,
@@ -259,11 +291,11 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // rest of src/ui/ uses toward stage.js — absent (stage not active) it is a harmless no-op.
   if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
 
-  // setup.before, NOT bake.slots: the engine already advanced bake.slots to the post-shuffle answer
-  // when it built this setup, so rendering from it would preview the solution and then shuffle a
-  // second time. Falls back to bake.slots only if a caller hands over a setup from before `before`
-  // existed, which at least keeps a live voyage running.
-  const shown=setup.before?setup.before.slice():bake.slots.slice();
+  // spec.before, NOT the post-shuffle bench: the engine advances bake.slots to the ANSWER the
+  // instant it builds a setup, so rendering from that would preview the solution and then shuffle
+  // a second time (see shuffleSlots' own note for the screenshot that caught it). `before` is the
+  // only arrangement this function ever draws, and building the spec is where it is chosen.
+  const shown=(spec.before||[]).slice();
 
   // ---- phase 0: THE STORY, before any of the machinery ----
   // (Wyatt, 2026-08-08: "We need more context before the sequence fully starts. Something like a
@@ -279,7 +311,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // a tap in that window is silently swallowed, which reads as the game ignoring you. Rendering it
   // disabled and enabling it at the exact moment it works removes the dead window instead of hiding
   // it. Found by a probe that clicked at 800ms and hung.
-  panel(shellHTML(p,bake,shown,
+  panel(shellHTML(bake,shown,
     "Study the order. Start the shuffle when yer ready.","Ready to bake!",false),true);
   // the shell is in the DOM and carries .bko — from here the content keeps the stage lit, so the
   // intro's flag can go (see the note at the top of this function)
@@ -354,7 +386,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   await runSwaps();
 
   async function runSwaps(){
-  for(const [a,b] of setup.swaps){
+  for(const [a,b] of swaps){
     const A=bowls[a],B=bowls[b];
     if(!A||!B)continue;
     if(reduced){
@@ -421,10 +453,17 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
   // The shot clock is armed HERE, not when the prompt opened: ~4.5s of preview and shuffle would
   // otherwise eat a sixth of a 30s window before the player could act.
   const guess=new Array(n).fill(null);
-  // steps already solved on an earlier attempt are not asked about again
+  /* Steps already solved on an earlier attempt are not asked about again.
+     READ OFF `shown`, NOT THE ENGINE'S ANSWER (04-01 Task 2). This used to index bake.slots — the
+     post-shuffle arrangement, i.e. the solution — and that single line was the only thing in the
+     whole choreography that needed it. It is EXACTLY equivalent: a locked bowl never moves, so
+     `shown[j] === slots[j]` at every locked j; `shown.indexOf(order[k])` therefore lands on a
+     locked bowl precisely when step k is locked, and on some unlocked bowl otherwise. Same result,
+     and the answer no longer has to exist on this client at all — which is what lets the identical
+     function run in the baker's own browser. */
   const openSteps=[];
   for(let k=0;k<n;k++){
-    const solvedBowl=bake.slots.indexOf(bake.order[k]);
+    const solvedBowl=shown.indexOf(bake.order[k]);
     if(solvedBowl>=0&&bake.locked[solvedBowl])guess[k]=solvedBowl; else openSteps.push(k);
   }
 
@@ -453,7 +492,7 @@ export async function playBakeoffLive(p,setup,onArm,onRewatch){
        there is nothing to re-watch before the shuffle has run once, and it must never compete with
        "Ready to bake!" for the same tap.
 
-       IT CANNOT CHANGE THE ANSWER. It repaints the bench to setup.before and replays setup.swaps —
+       IT CANNOT CHANGE THE ANSWER. It repaints the bench to spec.before and replays spec.swaps —
        the engine's own list, the same one already applied — so a replay is a recording, not a
        re-shuffle.
 
