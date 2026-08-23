@@ -1,0 +1,909 @@
+{
+  "mode": "pass-and-play",
+  "startedAt": "2026-08-23T08:31:30.317Z",
+  "steps": [
+    {
+      "name": "00-opened",
+      "note": "the voyage screen",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "ing": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 0,
+      "events": 0,
+      "apMsg": "Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!",
+      "apBtns": [
+        "Arrgh!"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "01-my-action-menu",
+      "note": "the captain's own turn",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 5,
+      "events": 11,
+      "apMsg": "test1, what'll ye do:",
+      "apBtns": [
+        "Trade",
+        "Pass +1"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "02-what-do-ye-want",
+      "note": "step 0 of humanTrade — every crate, the unheld ones greyed",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 6,
+      "events": 11,
+      "apMsg": "What do ye WANT from the table?",
+      "apBtns": [
+        "Toasty Wheat",
+        "Fresh Milk",
+        "Crystal Sugar",
+        "Speckled Eggs",
+        "Cacao Pods",
+        "Hot Cinnamon",
+        "Vanilla Beans"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "03-what-will-ye-give",
+      "note": "step 1 of humanTrade",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 7,
+      "events": 11,
+      "apMsg": "What will ye GIVE for Toasty Wheat?",
+      "apBtns": [
+        "Fresh Milk ×2",
+        "— coins only —"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "04-coin-slider",
+      "note": "the coin step — the SAME builder the guest now gets",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 8,
+      "events": 11,
+      "apMsg": "Ye're GIVIN' Fresh Milk for Toasty Wheat",
+      "apBtns": [
+        "Offer it!"
+      ],
+      "hasSlider": true,
+      "hasSliderWrap": true,
+      "sliderVal": 0,
+      "sliderMax": 6,
+      "sliderOut": "0",
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "05-dragged",
+      "note": "dragged to 3 — the pill re-states the whole deal",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 8,
+      "events": 11,
+      "apMsg": "Ye're GIVIN' Fresh Milk + 3 for Toasty Wheat",
+      "apBtns": [
+        "Offer it!"
+      ],
+      "hasSlider": true,
+      "hasSliderWrap": true,
+      "sliderVal": 3,
+      "sliderMax": 6,
+      "sliderOut": "3",
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "07-answer-prompt",
+      "note": "a holder's answer prompt, on this device",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 10,
+      "events": 12,
+      "apMsg": "Crustbeard: test1 offers Fresh Milk + 3 coins for yer Toasty Wheat.",
+      "apBtns": [
+        "Accept",
+        "Counter",
+        "Deny"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "08-the-table-answers",
+      "note": "every answer, one captain per line",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        6,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 11,
+      "events": 12,
+      "apMsg": "Fer yer Toasty Wheat the table answers: Crustbeard takes yer Fresh Milk + 3Take a deal, or walk away?",
+      "apBtns": [
+        "Crustbeard",
+        "Walk away"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "09-settled",
+      "note": "after the trade",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": true,
+      "strategies": [
+        "human",
+        "human",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        3,
+        9,
+        1,
+        2
+      ],
+      "ing": [
+        [
+          "dairy",
+          "wheat"
+        ],
+        [
+          "dairy",
+          "dairy",
+          "dairy"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 12,
+      "events": 13,
+      "apMsg": null,
+      "apBtns": [],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": "test1 trades Fresh Milk + 3 to Crustbeard for Toasty Wheat"
+    }
+  ],
+  "notes": [],
+  "pose": {
+    "ok": true,
+    "mySeat": 1,
+    "want": "wheat",
+    "mine": "dairy",
+    "coins": 6,
+    "holders": [
+      {
+        "idx": 0,
+        "strategy": "human"
+      }
+    ]
+  },
+  "humanSeats": [
+    0,
+    1
+  ],
+  "dlogBefore": 5,
+  "tradeButton": {
+    "present": true,
+    "disabled": false,
+    "why": null
+  },
+  "promptLayerOverTime": {
+    "samples": 32,
+    "distinct": [
+      "block/696x950"
+    ],
+    "trace": [
+      {
+        "ms": 0,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 251,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 502,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 753,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 1005,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 1257,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 1509,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 1761,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 2014,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 2267,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 2517,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 2769,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 3021,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 3272,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 3524,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 3776,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 4028,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 4280,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 4532,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 4783,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 5035,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 5285,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 5537,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 5788,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 6040,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 6293,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 6544,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 6796,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 7049,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 7300,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 7550,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      },
+      {
+        "ms": 7802,
+        "d": "block",
+        "w": 696,
+        "h": 950
+      }
+    ]
+  },
+  "promptGeometry": {
+    "viewport": {
+      "w": 1200,
+      "h": 950
+    },
+    "bodyClass": "pp4Stage",
+    "bodyTransform": "matrix(1, 0, 0, 1, 0, 0)",
+    "panel": {
+      "rect": {
+        "x": 252,
+        "y": 0,
+        "w": 628,
+        "h": 0
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "static",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": false,
+      "hitIsSelf": false,
+      "hitTag": null
+    },
+    "promptLayer": {
+      "rect": {
+        "x": 252,
+        "y": 0,
+        "w": 696,
+        "h": 950
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "none",
+      "zIndex": "30",
+      "inViewport": true,
+      "hitIsSelf": false,
+      "hitTag": {}
+    },
+    "sliderWrap": {
+      "rect": {
+        "x": 409,
+        "y": 220,
+        "w": 249,
+        "h": 36
+      },
+      "display": "flex",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": true,
+      "hitTag": "apSlider"
+    },
+    "sliderInput": {
+      "rect": {
+        "x": 427,
+        "y": 235,
+        "w": 170,
+        "h": 6
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "static",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": true,
+      "hitTag": "apSlider"
+    },
+    "apMsgEl": {
+      "rect": {
+        "x": 369,
+        "y": 177,
+        "w": 328,
+        "h": 37
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": false,
+      "hitTag": {}
+    },
+    "firstBtn": {
+      "rect": {
+        "x": 567,
+        "y": 307,
+        "w": 72,
+        "h": 72
+      },
+      "display": "flex",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "matrix(1.08909, 0, 0, 1.08909, 0, 0)",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": true,
+      "hitTag": "apBtn primary"
+    },
+    "panelParent": "pp4Prompt"
+  },
+  "drag": {
+    "set": 3,
+    "reads": 3,
+    "out": "3"
+  },
+  "sliderRestatedDeal": {
+    "before": "Ye're GIVIN' Fresh Milk for Toasty Wheat",
+    "after": "Ye're GIVIN' Fresh Milk + 3 for Toasty Wheat",
+    "changed": true
+  },
+  "dlogAfter": 12,
+  "ledger": {
+    "ing": [
+      [
+        "dairy",
+        "wheat"
+      ],
+      [
+        "dairy",
+        "dairy",
+        "dairy"
+      ],
+      [],
+      []
+    ],
+    "coins": [
+      3,
+      9,
+      1,
+      2
+    ],
+    "dlog": [
+      0,
+      0,
+      0,
+      0,
+      [
+        7,
+        5
+      ],
+      0,
+      0,
+      0,
+      0,
+      3,
+      0,
+      0
+    ],
+    "tradeEvents": [
+      {
+        "t": "openoffer",
+        "p": 0,
+        "want": "wheat",
+        "gave": "Fresh Milk + 3 coins"
+      },
+      {
+        "t": "trade",
+        "a": 0,
+        "b": 1,
+        "got": "wheat",
+        "gave": "Fresh Milk + 3 coins"
+      }
+    ]
+  },
+  "passAndPlayAnswerPrompt": {
+    "tick": 3,
+    "apMsg": "Crustbeard: test1 offers Fresh Milk + 3 coins for yer Toasty Wheat.",
+    "handOffFirst": false
+  },
+  "sawHandOffBeforeAnswerPrompt": false,
+  "finishedAt": "2026-08-23T08:33:29.368Z"
+}

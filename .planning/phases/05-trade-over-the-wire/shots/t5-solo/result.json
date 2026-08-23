@@ -1,0 +1,773 @@
+{
+  "mode": "solo",
+  "startedAt": "2026-08-23T08:29:46.092Z",
+  "steps": [
+    {
+      "name": "00-opened",
+      "note": "the voyage screen",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "ing": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 0,
+      "events": 0,
+      "apMsg": "Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!",
+      "apBtns": [
+        "Arrgh!"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "01-my-action-menu",
+      "note": "the captain's own turn",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        5,
+        1,
+        6
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 3,
+      "events": 8,
+      "apMsg": "test1, what'll ye do:",
+      "apBtns": [
+        "Trade",
+        "Pass +1"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "02-what-do-ye-want",
+      "note": "step 0 of humanTrade — every crate, the unheld ones greyed",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        5,
+        1,
+        6
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 4,
+      "events": 8,
+      "apMsg": "What do ye WANT from the table?",
+      "apBtns": [
+        "Toasty Wheat",
+        "Fresh Milk",
+        "Crystal Sugar",
+        "Speckled Eggs",
+        "Cacao Pods",
+        "Hot Cinnamon",
+        "Vanilla Beans"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "03-what-will-ye-give",
+      "note": "step 1 of humanTrade",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        5,
+        1,
+        6
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 5,
+      "events": 8,
+      "apMsg": "What will ye GIVE for Toasty Wheat?",
+      "apBtns": [
+        "Fresh Milk ×2",
+        "— coins only —"
+      ],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "04-coin-slider",
+      "note": "the coin step — the SAME builder the guest now gets",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        5,
+        1,
+        6
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 6,
+      "events": 8,
+      "apMsg": "Ye're GIVIN' Fresh Milk for Toasty Wheat",
+      "apBtns": [
+        "Offer it!"
+      ],
+      "hasSlider": true,
+      "hasSliderWrap": true,
+      "sliderVal": 0,
+      "sliderMax": 6,
+      "sliderOut": "0",
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "05-dragged",
+      "note": "dragged to 3 — the pill re-states the whole deal",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        5,
+        1,
+        6
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 6,
+      "events": 8,
+      "apMsg": "Ye're GIVIN' Fresh Milk + 3 for Toasty Wheat",
+      "apBtns": [
+        "Offer it!"
+      ],
+      "hasSlider": true,
+      "hasSliderWrap": true,
+      "sliderVal": 3,
+      "sliderMax": 6,
+      "sliderOut": "3",
+      "handOff": false,
+      "handOffText": null,
+      "bub": null
+    },
+    {
+      "name": "09-settled",
+      "note": "after the trade",
+      "mySeat": 0,
+      "room": null,
+      "passAndPlay": false,
+      "strategies": [
+        "human",
+        "pirate",
+        "trader",
+        "rusher"
+      ],
+      "coins": [
+        6,
+        5,
+        1,
+        6
+      ],
+      "ing": [
+        [
+          "dairy",
+          "dairy"
+        ],
+        [
+          "wheat"
+        ],
+        [],
+        []
+      ],
+      "ings": [
+        "wheat",
+        "dairy",
+        "sugar",
+        "eggs",
+        "cocoa",
+        "spice",
+        "vanilla"
+      ],
+      "dlogLen": 8,
+      "events": 10,
+      "apMsg": null,
+      "apBtns": [],
+      "hasSlider": false,
+      "hasSliderWrap": false,
+      "sliderVal": null,
+      "sliderMax": null,
+      "sliderOut": null,
+      "handOff": false,
+      "handOffText": null,
+      "bub": "No captain will part with Toasty Wheat for that."
+    }
+  ],
+  "notes": [],
+  "pose": {
+    "ok": true,
+    "mySeat": 0,
+    "want": "wheat",
+    "mine": "dairy",
+    "coins": 6,
+    "holders": [
+      {
+        "idx": 1,
+        "strategy": "pirate"
+      }
+    ]
+  },
+  "humanSeats": [
+    0
+  ],
+  "dlogBefore": 3,
+  "tradeButton": {
+    "present": true,
+    "disabled": false,
+    "why": null
+  },
+  "promptLayerOverTime": {
+    "samples": 32,
+    "distinct": [
+      "block/698x950"
+    ],
+    "trace": [
+      {
+        "ms": 0,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 252,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 503,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 754,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 1005,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 1257,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 1510,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 1763,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 2015,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 2268,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 2520,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 2772,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 3023,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 3275,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 3526,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 3779,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 4029,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 4282,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 4535,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 4787,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 5037,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 5287,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 5539,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 5790,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 6041,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 6292,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 6543,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 6795,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 7046,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 7297,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 7549,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      },
+      {
+        "ms": 7801,
+        "d": "block",
+        "w": 698,
+        "h": 950
+      }
+    ]
+  },
+  "promptGeometry": {
+    "viewport": {
+      "w": 1200,
+      "h": 950
+    },
+    "bodyClass": "pp4Stage",
+    "bodyTransform": "matrix(1, 0, 0, 1, 0, 0)",
+    "panel": {
+      "rect": {
+        "x": 251,
+        "y": 0,
+        "w": 628,
+        "h": 0
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "static",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": false,
+      "hitIsSelf": false,
+      "hitTag": null
+    },
+    "promptLayer": {
+      "rect": {
+        "x": 251,
+        "y": 0,
+        "w": 698,
+        "h": 950
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "none",
+      "zIndex": "30",
+      "inViewport": true,
+      "hitIsSelf": false,
+      "hitTag": {}
+    },
+    "sliderWrap": {
+      "rect": {
+        "x": 392,
+        "y": 130,
+        "w": 249,
+        "h": 36
+      },
+      "display": "flex",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": true,
+      "hitTag": "apSlider"
+    },
+    "sliderInput": {
+      "rect": {
+        "x": 410,
+        "y": 145,
+        "w": 170,
+        "h": 6
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "static",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": true,
+      "hitTag": "apSlider"
+    },
+    "apMsgEl": {
+      "rect": {
+        "x": 353,
+        "y": 87,
+        "w": 328,
+        "h": 37
+      },
+      "display": "block",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "none",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": false,
+      "hitTag": {}
+    },
+    "firstBtn": {
+      "rect": {
+        "x": 551,
+        "y": 216,
+        "w": 73,
+        "h": 73
+      },
+      "display": "flex",
+      "visibility": "visible",
+      "opacity": 1,
+      "position": "fixed",
+      "transform": "matrix(1.10205, 0, 0, 1.10205, 0, 0)",
+      "zIndex": "auto",
+      "inViewport": true,
+      "hitIsSelf": true,
+      "hitTag": "apBtn primary"
+    },
+    "panelParent": "pp4Prompt"
+  },
+  "drag": {
+    "set": 3,
+    "reads": 3,
+    "out": "3"
+  },
+  "sliderRestatedDeal": {
+    "before": "Ye're GIVIN' Fresh Milk for Toasty Wheat",
+    "after": "Ye're GIVIN' Fresh Milk + 3 for Toasty Wheat",
+    "changed": true
+  },
+  "dlogAfter": 8,
+  "ledger": {
+    "ing": [
+      [
+        "dairy",
+        "dairy"
+      ],
+      [
+        "wheat"
+      ],
+      [],
+      []
+    ],
+    "coins": [
+      6,
+      5,
+      1,
+      6
+    ],
+    "dlog": [
+      0,
+      0,
+      [
+        7,
+        5
+      ],
+      0,
+      0,
+      0,
+      0,
+      3
+    ],
+    "tradeEvents": [
+      {
+        "t": "openoffer",
+        "p": 0,
+        "want": "wheat",
+        "gave": "Fresh Milk + 3 coins"
+      },
+      {
+        "t": "parley",
+        "a": 0,
+        "b": null,
+        "want": "wheat",
+        "gave": "Fresh Milk + 3 coins"
+      }
+    ]
+  },
+  "passAndPlayAnswerPrompt": null,
+  "sawHandOffBeforeAnswerPrompt": false,
+  "finishedAt": "2026-08-23T08:31:21.187Z"
+}

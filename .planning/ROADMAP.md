@@ -882,30 +882,52 @@ so it must not alter what the engine emits.
 **Requirements**: MP-07, MP-08, MP-09
 **Success Criteria** (what must be TRUE):
 
-  1. A player can make and receive counter-offers in a networked game, including a counter that replaces the give side with a crate ("keep yer coin, I want yer milk").
-  2. A guest gets the same coin control as the host — or the stepper fallback is a decision Wyatt made and recorded, not an open hole flagged in the code.
-  3. A trade that reaches three other captains resolves inside one turn, without the rest of the table watching a "…is deciding" line for over two minutes.
-  4. The decision log records the same entries in the same order however a trade was routed, so a host reload still replays.
+  1. A player can make and receive counter-offers in a networked game, including a counter that replaces the give side with a crate ("keep yer coin, I want yer milk"). **[VERIFIED 05-01 — measured, not assumed]**
+  2. A guest sets their coins on the SAME slider the host uses, built by one function both tiers name — and the ± stepper no longer exists in the tree. **[LANDED 05-01]**
+  3. A trade that reaches three other captains resolves inside one turn, without the rest of the table watching a "…is deciding" line for over two minutes. **[MET on the measured plumbing after 05-01; the DESIGN DEFECT behind it — holders asked in series — is NOT fixed. See below.]**
+  4. The decision log records the same entries in the same order however a trade was routed, so a host reload still replays. **[LENGTH half LANDED 05-01; ORDER half OPEN]**
 
-**Plans**: TBD
+**Plans**: `05-01` — Trade Over the Wire. Tasks 1–3 and 5 landed (build `2026-08-23c`); **Task 4,
+the parallel answering round, was NOT done.** See `05-01-SUMMARY.md` for the numbers and the reason.
 
-**Better news than expected on MP-07.** The whole counter-offer loop already goes through `ask()`
-(`4/src/ui/flow.js:1591`), so it routes remote correctly with no changes — this criterion is mostly
-verification, and it is the cheapest thing in the phase.
+**MP-07 was "mostly verification" and that reading was RIGHT — now measured rather than assumed.**
+In a real crew room a guest countered a bot's hail with *"keep yer coin, I want yer Crystal Sugar"*,
+and the engine ledger confirms the crate that moved was the one asked for while the original give
+side was cleared: the asker kept its dairy and all eight coins. No fix was needed. `shots/t2c`.
 
-**MP-08 is a decision before it is work.** `4/src/ui/util.js:1437-1442` flags it in the code:
-*"threading a live control through that contract is a large change for a mode /4 does not ship …
-and this must be closed if /4 ever ships online multiplayer."* The stepper fallback at `:1451`
-already works and already logs identically (`logQuantity`, `4/src/ui/flow.js:1441`), so **accepting
-it is a legitimate answer** — it just means a guest gets a visibly worse control than the host.
-Wyatt's call, and it should be asked with a measurement attached.
+**MP-08 WAS NEVER A DECISION, and this paragraph used to say it was.** It read *"accepting it is a
+legitimate answer … Wyatt's call, and it should be asked with a measurement attached."* **That framing
+is wrong and it is the failure D-56 exists to stop.** Rule 23 / DISPLAY-RULES §1 had already settled
+it — host/guest decides who COMPUTES, never what is DRAWN — and rule 8 had settled it again. The code
+comment flagging the hole was an admission, not a ruling. Wyatt, 2026-08-23, when a session queued the
+question anyway: *"guest should OBVIOUSLY get the real coin slider, and you already know why — guests
+and hosts are given the same experience. stop asking stupid questions and refer to your documents."*
+Recorded as D-55. **The stepper is deleted; every seat drags one slider.** Said plainly rather than
+quietly deleted, because a roadmap line that offers a choice a standing rule has already made is
+stale, and the next reader needs to know which way it went.
 
-**MP-09 is the real work, and it has a wall.** One player's trade currently asks up to three other
-seats *in sequence*, each on its own 30-second shot clock, then asks the original player again —
-roughly five sequential round trips inside one turn. The right fix is per-seat parallel prompts, for
-which `draftPrompts/<seat>` is the working precedent — **but it must collect in fixed seat order so
-the decision log stays stable.** A log whose length or order depends on routing only replays under
-the same routing (`4/src/ui/flow.js:1432-1436`).
+**MP-09 IS THE REMAINING WORK, and the wall is exactly where this said it was.** Measured 2026-08-23
+in a real crew room with responders held at a fixed 3s: the prompt-node write log shows seat 1 asked
+at +4.3s and cleared at +9.1s, and seat 2 not asked until +9.1s — **holders are asked strictly in
+series**, one 30-second shot-clock window each. Two holders cost 18.2s and 9.6s of unbroken
+*"…is deciding…"*; each further holder adds ~4.8s of plumbing on top of that captain's own thinking
+time. **Criterion 3's stated NUMBER is met** — even three holders each burning the full 30s clock is
+90s, under the two-minute bar, and the thing that actually blew past it (a remote counter costing
+eleven prompt round trips and 52.6s of dead screen) was deleted by Task 3. **The design defect is
+not met**, and it is one function away: `humanTrade` and `botOpenTradeLive` still hold the answering
+loop TWICE, byte-identical but for a `worthReAsking` filter. The deliverable is
+`collectTableAnswers(asker, offer, holders)` taking the holder list as an ARGUMENT — so who gets
+hailed cannot move and invariant I1 is protected by the shape of the code — with `recipeDraftNet`
+(`4/src/orchestrator.js`) as the working precedent for every hard part: a pass-and-play sequential
+branch, a `pending.map` + `Promise.all` crew branch, ONE narration line with per-seat variants,
+`logDecision` after the round in fixed order, and a replay short-circuit that consumes the log in
+that same order. Reuse `draftPrompts/<seat>`; do not add a tenth listener.
+
+**Read `docs/TRADE-SYSTEM.md` before touching anything that trades.** It is self-declared canonical,
+it is `4/`-native, and the "NOTHING IS A CONSTANT" rule was earned twice in one day in this
+subsystem. **Hails per game is a guarded number** — baseline it with
+`node 4/scripts/trade_offer_measure.js 150` before a line changes and report it first, whatever else
+improved.
 
 **Read `docs/TRADE-SYSTEM.md` before touching anything that trades.** It is self-declared canonical,
 it is `4/`-native, and the "NOTHING IS A CONSTANT" rule was earned twice in one day in this

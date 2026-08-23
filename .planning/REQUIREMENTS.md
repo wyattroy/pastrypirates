@@ -37,9 +37,9 @@ bake-shaped ones and writing a bench renderer beside `renderBattleFromSnap`.
 - [x] **MP-05**: A player who is not baking **watches the bake-off live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — seeing the same **face-down** bench the baker sees, not the answer. Replaces today's `⏳ Waiting for {name}…` note (`battleFooter`, `4/src/ui/flow.js:2270`)
 - [x] **MP-06**: A player can spend coins mid-bake-off (the pay-to-rewatch button) in a networked game
 - [x] **MP-13**: The bake-off runs with **no shot clock**, and a captain who disconnects or closes their tab mid-bake does not stall the table — the engine's fallback guess fires on presence loss instead of on a timer
-- [ ] **MP-07**: A player can make and receive trade counter-offers in a networked game
-- [ ] **MP-08**: A player can use the coin slider in a networked trade (local-path only today — flagged in `c8e2937` as *"must be closed if /4 ever ships online multiplayer"*)
-- [ ] **MP-09**: A multi-captain trade completes inside one turn without stalling the table (~5 sequential round trips today)
+- [x] **MP-07**: A player can make and receive trade counter-offers in a networked game — verified end to end in a real crew room (05-01): a guest countered a bot's hail with *"keep yer coin, I want yer Crystal Sugar"*, the crate that moved was the one asked for, and the original give side was cleared. No code change was needed; the reading that this was "mostly verification" was right, and is now measured rather than assumed.
+- [x] **MP-08**: A player uses THE SAME coin slider in a networked trade that they use everywhere else — `coinStepper` is deleted, one builder (`sliderWrapHTML` + `wireSlider`, `4/src/ui/util.js`) is named directly by both tiers and gated by the parity check. The number a guest drags to reaches the decision log through the one `logQuantity()` call a local drag uses. D-55; the old parenthetical here read *"local-path only today"*.
+- [ ] **MP-09**: A multi-captain trade completes inside one turn without stalling the table. **PARTLY.** The expensive half is gone — a remote counter cost 11 prompt round trips and 52.6s of dead screen and now costs 3 and 16.2s (05-01 Task 3) — but holders are still asked STRICTLY IN SERIES, measured at +4.3s / +9.1s on the prompt node for two holders. The one answering loop (`collectTableAnswers`) is not built; the loop still exists twice.
 - [ ] **MP-10**: Hiding or backgrounding a tab does not pause or resume the shared clock for everyone (`4/src/main.js:148` writes the shared `paused` node; currently safe only because it sits behind `soloBotGame()`)
 - [ ] **MP-11**: Fast-forward cannot let one player skip narration other players are still watching (`4/src/state/index.js:99`)
 - [ ] **MP-12**: A host who reloads mid-voyage resumes from the decision log with the game intact
@@ -267,9 +267,9 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | MP-05 | Phase 4 — The Networked Bake-off | Complete |
 | MP-06 | Phase 4 — The Networked Bake-off | Complete |
 | MP-13 | Phase 4 — The Networked Bake-off | Complete |
-| MP-07 | Phase 5 — Trade Over the Wire | Pending |
-| MP-08 | Phase 5 — Trade Over the Wire | Pending |
-| MP-09 | Phase 5 — Trade Over the Wire | Pending |
+| MP-07 | Phase 5 — Trade Over the Wire | Complete (05-01, verified in a crew room) |
+| MP-08 | Phase 5 — Trade Over the Wire | Complete (05-01, D-55) |
+| MP-09 | Phase 5 — Trade Over the Wire | Partial (05-01 Task 3 removed the counter's cost; the answering round is still sequential — Task 4 not done) |
 | CUT-01 | Phase 6 — The Cutover | Pending |
 | CUT-02 | Phase 6 — The Cutover | Pending |
 | CUT-03 | Phase 6 — The Cutover | Pending |

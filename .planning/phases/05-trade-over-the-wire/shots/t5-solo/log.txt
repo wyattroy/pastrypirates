@@ -1,0 +1,184 @@
+=== local trade probe — solo — http://127.0.0.1:8893/4/ ===
+
+--- 00-opened (the voyage screen)
+    apMsg="Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!"
+    btns=["Arrgh!"]
+    slider=false wrap=false val=null/null out="null" handOff=false
+  open: Arrgh!
+  open: RECIPE
+  open: RECIPE
+  open: Start
+
+=== pose (tick 10): {"ok":true,"mySeat":0,"want":"wheat","mine":"dairy","coins":6,"holders":[{"idx":1,"strategy":"pirate"}]}
+  reached my own action menu at tick 52
+
+--- 01-my-action-menu (the captain's own turn)
+    apMsg="test1, what'll ye do:"
+    btns=["Trade","Pass +1"]
+    slider=false wrap=false val=null/null out="null" handOff=false
+  human seats: [0]  passAndPlay=false  room=null
+  Trade button: {"present":true,"disabled":false,"why":null}
+  Trade  <- Trade
+
+--- 02-what-do-ye-want (step 0 of humanTrade — every crate, the unheld ones greyed)
+    apMsg="What do ye WANT from the table?"
+    btns=["Toasty Wheat","Fresh Milk","Crystal Sugar","Speckled Eggs","Cacao Pods"]
+    slider=false wrap=false val=null/null out="null" handOff=false
+    click -> Toasty Wheat
+
+--- 03-what-will-ye-give (step 1 of humanTrade)
+    apMsg="What will ye GIVE for Toasty Wheat?"
+    btns=["Fresh Milk ×2","— coins only —"]
+    slider=false wrap=false val=null/null out="null" handOff=false
+    click -> Fresh Milk ×2
+
+--- 04-coin-slider (the coin step — the SAME builder the guest now gets)
+    apMsg="Ye're GIVIN' Fresh Milk for Toasty Wheat"
+    btns=["Offer it!"]
+    slider=true wrap=true val=0/6 out="0" handOff=false
+
+  #pp4Prompt over 8.0s: ["block/698x950"]
+
+  PROMPT GEOMETRY: {
+ "viewport": {
+  "w": 1200,
+  "h": 950
+ },
+ "bodyClass": "pp4Stage",
+ "bodyTransform": "matrix(1, 0, 0, 1, 0, 0)",
+ "panel": {
+  "rect": {
+   "x": 251,
+   "y": 0,
+   "w": 628,
+   "h": 0
+  },
+  "display": "block",
+  "visibility": "visible",
+  "opacity": 1,
+  "position": "static",
+  "transform": "none",
+  "zIndex": "auto",
+  "inViewport": false,
+  "hitIsSelf": false,
+  "hitTag": null
+ },
+ "promptLayer": {
+  "rect": {
+   "x": 251,
+   "y": 0,
+   "w": 698,
+   "h": 950
+  },
+  "display": "block",
+  "visibility": "visible",
+  "opacity": 1,
+  "position": "fixed",
+  "transform": "none",
+  "zIndex": "30",
+  "inViewport": true,
+  "hitIsSelf": false,
+  "hitTag": {}
+ },
+ "sliderWrap": {
+  "rect": {
+   "x": 392,
+   "y": 130,
+   "w": 249,
+   "h": 36
+  },
+  "display": "flex",
+  "visibility": "visible",
+  "opacity": 1,
+  "position": "fixed",
+  "transform": "none",
+  "zIndex": "auto",
+  "inViewport": true,
+  "hitIsSelf": true,
+  "hitTag": "apSlider"
+ },
+ "sliderInput": {
+  "rect": {
+   "x": 410,
+   "y": 145,
+   "w": 170,
+   "h": 6
+  },
+  "display": "block",
+  "visibility": "visible",
+  "opacity": 1,
+  "position": "static",
+  "transform": "none",
+  "zIndex": "auto",
+  "inViewport": true,
+  "hitIsSelf": true,
+  "hitTag": "apSlider"
+ },
+ "apMsgEl": {
+  "rect": {
+   "x": 353,
+   "y": 87,
+   "w": 328,
+   "h": 37
+  },
+  "display": "block",
+  "visibility": "visible",
+  "opacity": 1,
+  "position": "fixed",
+  "transform": "none",
+  "zIndex": "auto",
+  "inViewport": true,
+  "hitIsSelf": false,
+  "hitTag": {}
+ },
+ "firstBtn": {
+  "rect": {
+   "x": 551,
+   "y": 216,
+   "w": 73,
+   "h": 73
+  },
+  "display": "flex",
+  "visibility": "visible",
+  "opacity": 1,
+  "position": "fixed",
+  "transform": "matrix(1.10205, 0, 0, 1.10205, 0, 0)",
+  "zIndex": "auto",
+  "inViewport": true,
+  "hitIsSelf": true,
+  "hitTag": "apBtn primary"
+ },
+ "panelParent": "pp4Prompt"
+}
+  DRAG -> {"set":3,"reads":3,"out":"3"}
+
+--- 05-dragged (dragged to 3 — the pill re-states the whole deal)
+    apMsg="Ye're GIVIN' Fresh Milk + 3 for Toasty Wheat"
+    btns=["Offer it!"]
+    slider=true wrap=true val=3/6 out="3" handOff=false
+  the ask re-stated the deal: true
+     before: "Ye're GIVIN' Fresh Milk for Toasty Wheat"
+     after : "Ye're GIVIN' Fresh Milk + 3 for Toasty Wheat"
+  Offer it!  <- confirm
+  MY trade settled at tick 3: {"t":"parley","a":0,"b":null,"want":"wheat","gave":"Fresh Milk + 3 coins"}
+
+--- 09-settled (after the trade)
+    apMsg=""
+    btns=[]
+    slider=false wrap=false val=null/null out="null" handOff=false
+    bubble="No captain will part with Toasty Wheat for that."
+
+================ RESULT ================
+  mode                     solo   (room=null, passAndPlay=false)
+  slider present locally   true (.apSlider) / true (.apSliderWrap)
+  dragged to               {"set":3,"reads":3,"out":"3"}
+  the ask re-stated deal   true
+  decision log             3 -> 8  (+5)
+  dlog                     [0,0,[7,5],0,0,0,0,3]
+  EV openoffer  a=undefined b=undefined want=wheat got=undefined gave="Fresh Milk + 3 coins"
+  EV parley  a=0 b=null want=wheat got=undefined gave="Fresh Milk + 3 coins"
+  holds after              [["dairy","dairy"],["wheat"],[],[]]
+  coins after              [6,5,1,6]
+========================================
+
+wrote /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/05-trade-over-the-wire/shots/t5-solo/result.json
