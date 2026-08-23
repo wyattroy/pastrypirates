@@ -377,3 +377,12 @@ nobody has asked. **Observed, not measured, and not claimed as a defect.**
 - **No crew voyage was driven to an end of voyage**, so no permanent `gamelogs` row was written.
   Every room was deleted.
 - `PP4_STAMP` is **`2026-08-23b`**.
+
+---
+
+## Self-Check: PASSED
+
+`04-01-SUMMARY.md`, `shots/t1/ANSWER.md` and `4/scripts/crew_bake_probe.mjs` all exist on disk. All
+four commits (`36b2166`, `9bb0354`, `51a7794`, `c69d6e8`) are in `git log`. `npm test` exits 0 with
+30 gates, 8 reading `4/`. `origin/main` and `main` are level both ways. No headless Chrome and no
+`http.server` this run started is still alive.
