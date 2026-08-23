@@ -124,10 +124,10 @@ scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3.
 - [x] **TEST-01**: `4/src/ui/stage.js` imports under Node without throwing (bare `addEventListener` at `:190` makes the largest new module — 1,545 lines — untestable headlessly today)
 - [x] **TEST-02**: `4/scripts/no_undef_check.js` exits 0 (fails today, exit 1)
 - [ ] **TEST-03**: A determinism corpus exists for the v2 engine and verifies green
-- [ ] **TEST-04**: The contract gates — engine, module graph, net, state, UI — run against the promoted tree
-- [ ] **TEST-05**: `npm test` covers the promoted game, and its gate count is stated in `package.json`
-- [ ] **TEST-06**: Host/guest parity is mechanically gated, not maintained by discipline
-- [ ] **TEST-07**: The two dangling citations are made true or removed — `4/src/orchestrator.js:880` and `4/src/ui/util.js:1484` each claim a check gates them; neither check exists
+- [x] **TEST-04**: The contract gates — engine, module graph, net, state, UI — run against the promoted tree
+- [x] **TEST-05**: `npm test` covers the promoted game, and its gate count is stated in `package.json`
+- [x] **TEST-06**: Host/guest parity is mechanically gated, not maintained by discipline
+- [x] **TEST-07**: No comment in `4/` claims a check gates it when that check does not exist or never opens `4/` — enforced by `4/scripts/gate_citation_check.js`. *(Originally written as "the two dangling citations… `4/src/orchestrator.js:880` and `4/src/ui/util.js:1484`". Measured 2026-08-23: both line numbers had drifted since intake and point at unrelated code, and there were NINETY citations, not two. Swept behind a gate rather than chased — 36 satisfied, 8 declared root-tree, 46 declared UNGATED-IN-4.)*
 
 ### Cutover (CUT)
 
@@ -259,10 +259,10 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Satisfied — `docs/DISPLAY-RULES.md` exists; 5 code claims spot-checked at verification. See 02.15-VERIFICATION.md |
 | PAR-13 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group D, plans 02.2-01 (sketches) and 02.2-06 |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
-| TEST-04 | Phase 3 — The Safety Net | Pending |
-| TEST-05 | Phase 3 — The Safety Net | Pending |
-| TEST-06 | Phase 3 — The Safety Net | Pending |
-| TEST-07 | Phase 3 — The Safety Net | Pending |
+| TEST-04 | Phase 3 — The Safety Net | Complete |
+| TEST-05 | Phase 3 — The Safety Net | Complete |
+| TEST-06 | Phase 3 — The Safety Net | Complete |
+| TEST-07 | Phase 3 — The Safety Net | Complete |
 | MP-04 | Phase 4 — The Networked Bake-off | Pending |
 | MP-05 | Phase 4 — The Networked Bake-off | Pending |
 | MP-06 | Phase 4 — The Networked Bake-off | Pending |

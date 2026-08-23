@@ -4,16 +4,16 @@ milestone: v2.0
 milestone_name: The New Game
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "2026-08-22 overnight COMPLETE and PUSHED as PP4_STAMP 2026-08-22a: Groups E (02.2-07), F (02.2-08) and D (02.2-06) on ONE build. Wyatt has .planning/MORNING-CHECKLIST-2026-08-22.md. FOUR THINGS OPEN, none of them a shipped game fault: (1) the vision judge is DEAD — the claude CLI OAuth session expired, only Wyatt can re-auth, and every judge call returns that error as an unparseable reply; (2) playtest_gate.mjs HANGS instead of exiting when the judge fails and does not kill its browsers — it left 10 Chromes at 47% CPU for 3 hours on his laptop; (3) solo-phone stalled at day 5 in that run — driver suspected, NOT established; (4) the recipe picker fails no-pile/on-screen at 390x664 on the first screen — reproducible, not yet diagnosed, and probably a fault the old 390x844 emulation was hiding rather than a regression."
-last_updated: "2026-08-22T16:54:01.000Z"
+stopped_at: "2026-08-22 overnight COMPLETE and PUSHED as PP4_STAMP 2026-08-22a: Groups E (02.2-07), F (02.2-08) and D (02.2-06) on ONE build. Wyatt has .planning/MORNING-CHECKLIST-2026-08-22.md. FOUR THINGS OPEN, none of them a shipped game fault: (1) the vision judge is DEAD — the claude CLI OAuth session expired, only Wyatt can re-auth, and every judge call returns that error as an unparseable reply; (2) playtest_gate.mjs HANGS instead of exiting when the judge fails and does not kill its browsers — it left 10 Chromes at 47% CPU for 3 hours on his laptop; (3) solo-phone stalled at day 5 in that run — driver suspected, NOT established; (4) the recipe picker fails no-pile/on-screen at 390x664 on the first screen — reproducible, not yet diagnosed, and probably a fault the old 390x844 emulation was hiding rather than a regression. THEN 2026-08-23 overnight: 03-01 complete — npm test now runs 30 gates and 8 of them read 4/, up from 21 and ZERO. Nothing Wyatt plays moved: PP4_STAMP is still 2026-08-23a and the only 4/src edits are comments. TEST-04/05/06/07 done; TEST-03 (the determinism corpus) deliberately deferred to 03-03 with the reasoning and its alternative in docs/DETERMINISM-CAPTURE-4.md; ui_contract_check triaged for 03-02 in 03-UI-CONTRACT-TRIAGE.md. The four items above are UNTOUCHED and still open."
+last_updated: "2026-08-23T05:51:35.883Z"
 last_activity: 2026-08-19
 last_activity_desc: the phase gate ran in real Safari for the first time and returned a
 progress:
   total_phases: 12
-  completed_phases: 4
-  total_plans: 26
-  completed_plans: 26
-  percent: 33
+  completed_phases: 6
+  total_plans: 30
+  completed_plans: 28
+  percent: 50
 current_phase: 02.2
 ---
 
@@ -373,6 +373,7 @@ Phase 1 is the first v2.0 phase executed. Prior-milestone velocity is archived i
 | Phase 02.2 P04 | ~2h | 3 tasks | 4 files |
 | Phase 02.2 P05 | ~1h | 3 tasks | 2 files |
 | Phase 02.2 P08 | one night session | 4 tasks | 6 files |
+| Phase 03 P01 | ~5h | 5 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -458,6 +459,9 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: D-49's 1.5s lives in board.js where the spin is painted; each of the three flip sites waits the remainder through its OWN sleep, so fast-forward, pause and replay are unchanged
 - [Phase ?]: D-50's desktop menu is the SAME NODE as the phone's, moved into a flex column — a measured top was rejected because the captains card's height changes when a row is opened
 - [Phase ?]: The layout gate's contact-sheet SCREENSHOT is deleted: it had never once succeeded on a real multi-size run, only photographed its own 404
+- [Phase ?]: 03-01: TEST-03 deferred — the determinism door stays OPEN for Phases 4 and 5. Reasoning AND its alternative in docs/DETERMINISM-CAPTURE-4.md §2; one sentence from Wyatt overturns it.
+- [Phase ?]: 03-01: scripts/lib/ twins are GATED, never deduped — deduping would re-root the engine loader at the root tree and measure the old game, green (HARD-WON-LESSONS §3).
+- [Phase ?]: 03-01: the ten existing 4/scripts/ gates all exit 0 but were NOT wired into npm test — none was red-proofed tonight, and an unproven gate in the chain is worse than no gate. Cheapest coverage win available to 03-02.
 
 ### Pending Todos
 
@@ -549,8 +553,11 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 
 ## Session Continuity
 
-Last session: 2026-08-22T10:45:25.409Z
-Stopped at: Completed 02.2-08-PLAN.md (Group F) — no stamp bump, no push; Group D still to land
+Last session: 2026-08-23T05:50:19.221Z
+Stopped at: Completed 03-01-PLAN.md — 30 gates, 8 of them reading 4/ (was 21 and zero). No game code, no
+stamp bump. TEST-04/05/06/07 complete; TEST-03 deferred to 03-03 (see docs/DETERMINISM-CAPTURE-4.md §2
+for the decision AND its alternative). The 2026-08-22 overnight run's four open items are untouched —
+they are restated in full in the frontmatter `stopped_at` above, which a tool briefly overwrote.
 Resume file: None
 
 Earlier on 2026-08-18: Phase 1 context gathered, and this file re-based from v1.3 to v2.0.

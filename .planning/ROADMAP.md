@@ -712,12 +712,13 @@ see the correction on 02.1's Wave 4 row); the doubled flip sound (Wyatt's earlie
   4. Host/guest parity fails the build when it breaks, instead of being noticed in a playtest.
   5. No comment in the tree claims a check gates it when that check does not exist.
 
-**Plans**: 0/1 planned so far — 03-01 covers four of the five requirements; two follow-ups named.
+**Plans**: 1 of 1 planned so far EXECUTED — 03-01 landed four of the five requirements. Two
+follow-ups are named below and not yet written: 03-02 (`ui_contract_check.js`) and 03-03 (TEST-03).
 
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — the gates learn to read the game we are actually shipping: five contract gates
+- [x] 03-01-PLAN.md — the gates learn to read the game we are actually shipping: five contract gates
   and the parity gate re-aimed at `4/` and red-proofed BOTH ways, a falsifiable gate count in
   `package.json`, and the ~66 comment citations swept behind a gate (TEST-04, TEST-05, TEST-06,
   TEST-07). **No game code, no stamp bump, no corpus captured.**
@@ -725,9 +726,11 @@ Plans:
 **Named but not yet written** *(both deliberate, both with the measurement they start from recorded
 in `03-01-PLAN.md`)*:
 
-- `03-02-PLAN.md` — `ui_contract_check.js` blocking against `4/`. Measured at planning: **8 PASS and
-  4 FAIL groups holding ~60 findings**, most of them a copy-register rule `4/` never adopted. Shaped
-  by `03-UI-CONTRACT-TRIAGE.md`, which 03-01 Task 5 writes.
+- `03-02-PLAN.md` — `ui_contract_check.js` blocking against `4/`. **Measured for real in 03-01:
+  9 PASS, 4 FAIL groups, 68 findings** — 54 of them the D-29 copy-register rule `4/` never adopted,
+  9 anchors that moved, 4 real greyed-control faults and 1 allowlist entry. Shaped by
+  `03-UI-CONTRACT-TRIAGE.md`, which carries the bucket counts and a recommended two-half shape.
+
 - `03-03-PLAN.md` — **TEST-03, the corpus.** The three inherited engine purity fixes and the capture
   as ONE pass, per `docs/DETERMINISM-RERECORD-NEXT.md` §7.
 
@@ -1084,7 +1087,7 @@ The first phase is independent of every promotion decision and can start immedia
 | 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
 | **02.15 One Log, One Display Path (INSERTED)** | 0/TBD | Planning | Wyatt's architecture — the host draws from the log like everyone else. Absorbed 02.2's Group A (items 15, 17, 18, 19, 20, 21) and runs BEFORE it |
 | 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 6/7 | In Progress|  |
-| 3. The Safety Net | 0/TBD | Not started | - |
+| 3. The Safety Net | 1/1 written, 1 executed | In Progress | 03-01 done: 30 gates, 8 reading 4/. 03-02 (ui contract) and 03-03 (TEST-03 corpus) still to write |
 | 4. The Networked Bake-off | 0/TBD | Not started | - |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
 | 6. The Cutover | 0/TBD | Not started | - |
