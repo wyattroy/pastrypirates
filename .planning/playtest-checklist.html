@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pastry Pirates — playtest checklist</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style></head><body>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — playtest checklist</h1>
+  <div class="sub">Build <strong id="stamp">2026-08-23a</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
+   — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"First — the phone, where most of the work went"},
+ {n:1,look:"Any long question — a trade ask, a battle prompt",right:"The whole white box is on screen. No word cut off at the right edge.",why:"This alone was 17 of the 40 phone faults."},
+ {n:2,look:"“Tap and hold the sea to reveal the board”",right:"It never sits on top of a button.",why:"It was drawing itself across “Stay put” and the ✓ button."},
+ {n:3,look:"A sail prompt with “Stay put” showing",right:"Every yellow square you could sail to is tappable — none hidden under the button.",why:"“Stay put” covered nine sail squares in one measured game. A move you cannot tap."},
+ {n:4,look:"The recipe picker on Day 1",right:"Solid cards. No “CAPTAINS” or captain names showing through them.",why:"The whole prompt layer was slightly see-through."},
+ {n:5,look:"Top-left corner, during a prompt with a ‹ back button",right:"No grey half-circle poking above “DAY N”.",why:"The back circle had no floor and slid up behind the ribbon."},
+
+ {h:"Second — your afternoon list"},
+ {note:"<strong>Narration timing is the one to judge by feel, not by looking.</strong> You asked for 15% faster, applied to everything. Short lines 2.9s → 2.1s. Long-line ceiling 5.3s → 4.6s. Medium (~78 chars) went <em>up</em>, 3.4s → 4.3s — that's your own curve, since you picked the two anchor points. If the medium ones now drag, that's the number to tell me."},
+ {n:6,look:"Any narration bubble",right:"It never pops up and vanishes in the same instant.",why:"One used to be marked for removal 1 millisecond after it appeared; it now stays 4.3s."},
+ {n:7,look:"A dock coin flip",right:"The “flips TAILS” line is readable.",why:"It used to spend 40% of its life underneath the flip veil."},
+ {n:8,look:"A storm",right:"One sentence summarising the whole storm, not a line per captain. Captains stopped by another ship are named in it.",why:"82 blocked captains used to be missing from their own summary."},
+ {n:9,look:"The black market, the first time a shelf runs dry",right:"The ceremony appears even when a bot empties the shelf.",why:"A bot takes the first dry shelf in 76% of solo voyages — three players in four have never seen this."},
+ {n:10,look:"The Dock petal",right:"Ingredient picture, the word Dock, and a spinning coin — no number, no anchor.",why:"The price hasn't landed yet, so it shouldn't claim one."},
+ {n:11,look:"Buying a crate",right:"The sound and the crate pop land on your click, not after the narration finishes."},
+ {n:12,look:"The recipe card",right:"Option C as you picked it: gradient runs to the line under the title with no hard edge, picture not cramped against the description."},
+ {n:13,look:"⚠️ Your item 1 — are the prompt buttons loud enough?",right:"YOUR CALL, not a bug. The sail-square pulse was added, but those circles already pulsed near-identically, so it probably doesn't answer your complaint. Tell me how much louder.",why:"I do not claim this one is fixed."},
+
+ {h:"Third — the seven you typed at me"},
+ {n:14,look:"The action circles on a phone",right:"Clear air between them.",why:"~3px apart → ~15px. The gap is a quarter of the circle's own size, so it stays right if circles change."},
+ {n:15,look:"A prompt with your boat in a corner",right:"The whole cluster moves out into open water rather than stacking on itself.",why:"It warns in the log if it ever still has to pile."},
+ {n:16,look:"Pass",right:"The bottom circle, every time, whichever way the fan points.",why:"Two of five fan directions used to put crates below it."},
+ {n:17,look:"The italic “why is this greyed out” line",right:"Beside the choices, never lying across them.",why:"It was 23px deep across four circles."},
+ {n:18,look:"Every coin flip — dock and battle",right:"All take the same beat.",why:"1.5s, six flips measured, all within 100ms. Before: dock 335ms, battle 648ms — a 315ms spread."},
+ {n:19,look:"Wind and forecast, on tablet and desktop",right:"Legible in the header row, in front of the dark gradient. The ⏩ can no longer be drawn on top.",why:"Your screenshot — this and “hidden behind the gradient” were one fault."},
+ {n:20,look:"A tall window (your tablet shape)",right:"The captains box is a card with air under it, not a slab flush to the bottom edge.",why:"It had 84px of dead cream inside it."},
+ {n:21,look:"Desktop menu",right:"Menu items sit under the captains box; no hamburger. The turn-clock row is gone from the menu — the ⏱ chip in the header is the only control."},
+ {n:22,look:"Phone: end of a voyage",right:"“Play again!” is on screen.",why:"It was 212px below the fold — you had to know to scroll."},
+ {n:23,look:"Phone: docking",right:"“Docking at…” appears once.",why:"It printed twice, one copy hidden behind the flip coin."},
+ {n:24,look:"Phone: the captains list",right:"The fourth captain is not sliced by the bottom edge."},
+ {n:25,look:"Phone: the recipe picker",right:"The two cards' ingredient lists line up even when one title wraps to three lines."},
+ {n:26,look:"Phone: the recipe picker, first screen of the game",right:"Both recipe cards fit — you can see all five ingredients and each card's bottom edge.",why:"They were cut off mid-list with no cue that it scrolled. Cards ended 1px from the edge; now 12px clear."},
+
+ {h:"Fourth — the Bake-Off card and your name"},
+ {n:27,look:"The moment your bake is scored",right:"You get a few seconds to read “N of 5 in place…”, then the card goes and you're back on the board.",why:"It never left before — it sat there through the whole next day with narration stacking behind it."},
+ {n:28,look:"The rest of that day, and the next attempt",right:"Nothing is behind a spent card. If you missed some, a fresh Bake-Off card arrives for attempt 2."},
+ {n:29,look:"Join a crew and type a name a REAL person already has",right:"A red line under the name box — no popup. Your typed name stays, you edit it, Join works."},
+ {n:30,look:"Type a name one of the BOT captains has",right:"You get it. The bot quietly takes another. Nobody shares a name.",why:"Davy Scones, Crustbeard, Dough Hook, Flaky Jack."},
+ {n:31,look:"“Change yer name” in the lobby",right:"Same rule, same words."},
+
+ {h:"Fifth — after I judged the gate's own screenshots"},
+ {n:32,look:"A battle coin flip, on a phone",right:"“Crosswind — two heads and the cannonballs collide” is readable.",why:"It was being written across the CAPTAINS card with captain names showing through."},
+ {n:33,look:"Offering a crate in a trade",right:"The circles are named — “Toasty Wheat”, “Fresh Milk”.",why:"They were bare pictures, while the question one screen earlier named all seven."},
+ {n:34,look:"A long trade question on a phone",right:"It stays out of the captains box.",why:"It ran 20–46px inside the card and hid the word CAPTAINS."},
+ {n:35,look:"The recipe sheet",right:"It sits still.",why:"Both cards were pulsing to 111% on a loop — climbing 15px and colliding with each other by 34px."},
+ {n:36,look:"Drag on the sea and lift your finger off the board — over the captains box, or past the screen edge",right:"The game still answers you.",why:"THE BIG ONE, and it wasn't on anyone's list. Doing that made every prompt drop to 13% and stop accepting taps permanently, with nothing explaining why. It read as a frozen game."},
+
+ {h:"Sixth — brand new tonight, and NOT verified"},
+ {note:"<strong>These two shipped after you went to bed and I could not measure them.</strong> You approved the idea — “the director can zoom out more to find places to put the elements without covering sail squares” — but I never caught the fault on camera, so I can't claim it's fixed. <strong>Judge the zoom by eye: how far the board sits back on a sail prompt is taste, and taste is yours.</strong>"},
+ {n:37,look:"A sail prompt — how far back does the board sit?",right:"Room for the question without standing on a square you have to tap. If it feels too zoomed out, say so — that number is yours to set."},
+ {n:38,look:"A narration bubble while sail squares are up",right:"The bubble avoids the squares AND the question it's covering.",why:"Its placement previously only knew about sail squares, so it landed on the question."},
+
+ {h:"Sixth — a whole voyage in each mode"},
+ {note:"The bar is <strong>complete voyages to the end-of-voyage card</strong>, not stretches of play. That bar is what found a nine-day-old softlock the first night it was used."},
+ {n:39,look:"Solo, to the end card"},
+ {n:40,look:"Pass-and-play, to the end card"},
+ {n:41,look:"A crew game — two devices — to the end card, watching both screens",right:"Host and guest should be showing you the same game. Different wording for the same moment, one side stuck on a prompt the other finished, two cameras pointed at different places — those are the faults this phase exists to kill."},
+ {n:42,look:"⚠️ In the crew game: does the GUEST draw the wind pill, clock chip and day counter?",right:"This is requirement PAR-02 and it is UNPROVEN, not passing. Reported broken once, re-measured as fine, and every attempt since failed to get a lobby started. If your guest screen is missing any of the three, that's a real finding."},
+ {note:"<strong>Don't judge the Bake-Off card by a crew game.</strong> Measured last night: in a crew game the host bakes on their own screen and the guest sees only a one-line narration — no bench, nothing to watch. A guest cannot take their own bake at all; there is no code path for it. That's Phase 4, not a bug. Judge the Bake-Off card solo or pass-and-play."}
+];
+
+const KEY="pp4-playtest-2026-08-23a";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}");
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v}; 
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+document.getElementById("copy").onclick=()=>{
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+  document.getElementById("out").showModal();
+};
+document.getElementById("docopy").onclick=async()=>{
+  const t=document.getElementById("outtxt"); t.select();
+  try{ await navigator.clipboard.writeText(t.value); document.getElementById("docopy").textContent="Copied ✓"; }
+  catch(e){ document.execCommand("copy"); document.getElementById("docopy").textContent="Copied ✓"; }
+  setTimeout(()=>document.getElementById("docopy").textContent="Copy to clipboard",1500);
+};
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; localStorage.removeItem(KEY); location.reload(); };
+</script></body></html>
