@@ -712,7 +712,43 @@ see the correction on 02.1's Wave 4 row); the doubled flip sound (Wyatt's earlie
   4. Host/guest parity fails the build when it breaks, instead of being noticed in a playtest.
   5. No comment in the tree claims a check gates it when that check does not exist.
 
-**Plans**: TBD
+**Plans**: 0/1 planned so far — 03-01 covers four of the five requirements; two follow-ups named.
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — the gates learn to read the game we are actually shipping: five contract gates
+  and the parity gate re-aimed at `4/` and red-proofed BOTH ways, a falsifiable gate count in
+  `package.json`, and the ~66 comment citations swept behind a gate (TEST-04, TEST-05, TEST-06,
+  TEST-07). **No game code, no stamp bump, no corpus captured.**
+
+**Named but not yet written** *(both deliberate, both with the measurement they start from recorded
+in `03-01-PLAN.md`)*:
+
+- `03-02-PLAN.md` — `ui_contract_check.js` blocking against `4/`. Measured at planning: **8 PASS and
+  4 FAIL groups holding ~60 findings**, most of them a copy-register rule `4/` never adopted. Shaped
+  by `03-UI-CONTRACT-TRIAGE.md`, which 03-01 Task 5 writes.
+- `03-03-PLAN.md` — **TEST-03, the corpus.** The three inherited engine purity fixes and the capture
+  as ONE pass, per `docs/DETERMINISM-RERECORD-NEXT.md` §7.
+
+> **THE ONE-WAY DOOR WAS DELIBERATELY LEFT OPEN, 2026-08-23, and this is a judgement Wyatt can
+> overrule.** ROADMAP's own text below says capture the corpus in this phase. `03-01-PLAN.md` §1
+> argues for capturing it LAST instead: the corpus is an oracle against *unintended* engine drift,
+> and Phases 4 and 5 are the two phases most likely to make an *intended* engine change — a gate that
+> fires on changes you meant to make is `HARD-WON-LESSONS` §9. The claim that neither phase needs an
+> engine change is an inference from 2026-08-18 intake research, not a measurement of today's tree
+> (which 02.2-04 and 02.15 have both changed since). And the `gave` purity fix sits on the **trade**
+> event, which is what Phase 5 exists to rework. **Confirmed in code, not assumed:** all three queued
+> purity fixes are inherited by `4/src/engine/index.js` (`:8`, `:1140`/`:1166`, `:1793`/`:1797`), and
+> `4/scripts/fixtures/` does not exist, so the door is still open. `docs/DETERMINISM-CAPTURE-4.md`
+> (written by 03-01 Task 5) records the capture and re-record procedures so spending the door is a
+> costed, reviewed act rather than a crisis.
+
+> **TEST-07 is bigger than this file says.** ROADMAP names two dangling citations; **there are about
+> 66**, counted 2026-08-23 across `4/src/**` and `4/index.html` — thirteen naming the UI contract
+> gate, nine the module graph gate, four the parity gate, and a long tail. **The two line numbers
+> below have both drifted since intake and now point at unrelated code — do not chase them.** 03-01
+> Task 4 sweeps behind a gate instead, per D-37 (a universal rule, never per-bug assertions).
 
 **Why the safety net comes before the bake-off, not after.** Root `npm test` runs 21 gates and
 **not one of them loads `4/`** — the exact "gate scanning the wrong tree is not silent, it is
