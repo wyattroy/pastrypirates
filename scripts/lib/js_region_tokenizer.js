@@ -21,6 +21,55 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.join(__dirname, "..", "..");
 export const INDEX_HTML = path.join(ROOT, "index.html");
 
+/**
+ * BLANK EVERY COMMENT, KEEP EVERY BYTE — the one comment strip that is safe in this repo.
+ *
+ * Added 03-01 (Phase 3, TEST-04) as the SINGLE definition of a technique three gates needed at
+ * once: host_guest_parity_check.js (which wrote the first version and now imports this),
+ * net_contract_check.js and wind_dot_contract_check.js. One spelling of "what is a comment"
+ * (CLAUDE.md rule 23).
+ *
+ * WHY IT IS NOT A `//`-TO-END-OF-LINE STRIP, which is the obvious implementation and is wrong
+ * here. src/net/index.js carries the Firebase `databaseURL` — a `https://...` literal — so a
+ * trailing strip truncates that line at the `//` INSIDE THE STRING, and any real violation later
+ * on the same line is silently discarded. net_contract_check.js's header is a whole section about
+ * that false negative and it is correct. This uses classify() below instead, which knows a `//`
+ * inside a string literal is string content, so the databaseURL line survives intact and complete.
+ *
+ * WHY IT IS NOT A "DROP WHOLE-LINE COMMENTS" FILTER EITHER, which was this function's first
+ * implementation and was replaced the same night. Against 4/ the two NO-APP-STATE hits were
+ * 4/src/net/writers.js:174 and :193 — CONTINUATION lines inside a long `/* ... *\/` block, which
+ * begin with ordinary prose and match no comment-opening pattern at all. A regex that cannot
+ * track block-comment state cannot see them, and a gate that only half-strips is worse than one
+ * that does not strip, because its remaining false positives look like real findings.
+ *
+ * EVERY BYTE IS PRESERVED: comment characters become spaces, newlines stay newlines. So character
+ * OFFSETS and LINE NUMBERS are both unchanged, and a caller can brace-match, slice a function body
+ * by content, or report `file:line` against the stripped text and still be pointing at the truth.
+ *
+ * STRINGS ARE NOT TOUCHED. Only comments. A denylisted name inside a real string literal is still
+ * found — which matters, because net_contract_check.js's denylist was written knowing that
+ * Firebase path strings legitimately contain some of these words.
+ *
+ * AND THE TRAP THAT COMES WITH IT: an assertion whose SUBJECT IS A COMMENT must not use this.
+ * scripts/engine_contract_check.js counts an order-is-load-bearing annotation that exists only in
+ * comments; stripping first would count zero and pass forever — a vacuous check that still reads
+ * as protection (docs/HARD-WON-LESSONS.md §2, §3). Strip PER-ASSERTION, never globally.
+ *
+ * @param {string} src
+ * @returns {string} the same source, same length, with comment characters replaced by spaces.
+ */
+export function stripCommentSegments(src) {
+  const out = src.split("");
+  for (const seg of classify(src)) {
+    if (seg.type !== "comment") continue;
+    for (let i = seg.start; i < seg.end; i++) {
+      if (out[i] !== "\n") out[i] = " ";
+    }
+  }
+  return out.join("");
+}
+
 const BARE_SCRIPT_OPEN = "<script>";
 const SCRIPT_CLOSE = "</script>";
 

@@ -147,6 +147,7 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { pickTree, treeLine, REPO_ROOT } from "./lib/pick_tree.js";
+import { stripCommentSegments } from "./lib/js_region_tokenizer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REAL_ROOT = REPO_ROOT;
@@ -164,9 +165,20 @@ const read = (root, rel) => {
   return fs.existsSync(full) ? fs.readFileSync(full, "utf8") : null;
 };
 
-// full-line leading comments only — a trailing `//` strip would eat the `https://` inside string
-// literals, the same false-negative net_contract_check.js's header warns about
-const stripComments = (src) => src.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+// Comments are blanked before every assertion below — a renderer that MENTIONS `apDisabled` in a
+// comment while no longer emitting it must not pass. Drill 1c pins exactly that.
+//
+// NEVER a trailing `//`-to-end-of-line strip: it would eat the `//` inside `https://` string
+// literals, the false negative net_contract_check.js's header is a whole section about.
+//
+// CONVERGED 03-01 Task 2. This was a private line-filter here — the first of what would have been
+// three copies by the end of the night (net and wind-dot both needed it). Three definitions of
+// "what is a comment" is three chances to disagree, so there is now ONE, in the shared tokenizer,
+// and it is STRONGER than what it replaced: classify()-backed, so it blanks the interior of a
+// `/* ... */` block (which a line filter cannot see — that miss is what left two false NO-APP-STATE
+// findings standing in 4/src/net/writers.js) and it preserves every byte, so offsets, brace
+// matching and line numbers are all unchanged. The full --drill suite passes unchanged.
+const stripComments = stripCommentSegments;
 
 // slice a named function's body: from its header to the next TOP-LEVEL `export ` (column 0), or to
 // end of file. Located by CONTENT — never by line number — so a line shift makes this go loud
