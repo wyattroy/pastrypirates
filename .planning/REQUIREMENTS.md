@@ -33,10 +33,10 @@ bake-shaped ones and writing a bench renderer beside `renderBattleFromSnap`.
 - [ ] **MP-01**: A player can host a networked game from the promoted build and share a room code
 - [ ] **MP-02**: A second player can join by room code, claim a seat, and be named without collision
 - [ ] **MP-03**: A guest sees the host's board, ships, narration and prompts in sync for a full voyage
-- [ ] **MP-04**: A player can take a bake-off turn in a networked game
-- [ ] **MP-05**: A player who is not baking **watches the bake-off live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — seeing the same **face-down** bench the baker sees, not the answer. Replaces today's `⏳ Waiting for {name}…` note (`battleFooter`, `4/src/ui/flow.js:2270`)
-- [ ] **MP-06**: A player can spend coins mid-bake-off (the pay-to-rewatch button) in a networked game
-- [ ] **MP-13**: The bake-off runs with **no shot clock**, and a captain who disconnects or closes their tab mid-bake does not stall the table — the engine's fallback guess fires on presence loss instead of on a timer
+- [x] **MP-04**: A player can take a bake-off turn in a networked game
+- [x] **MP-05**: A player who is not baking **watches the bake-off live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — seeing the same **face-down** bench the baker sees, not the answer. Replaces today's `⏳ Waiting for {name}…` note (`battleFooter`, `4/src/ui/flow.js:2270`)
+- [x] **MP-06**: A player can spend coins mid-bake-off (the pay-to-rewatch button) in a networked game
+- [x] **MP-13**: The bake-off runs with **no shot clock**, and a captain who disconnects or closes their tab mid-bake does not stall the table — the engine's fallback guess fires on presence loss instead of on a timer
 - [ ] **MP-07**: A player can make and receive trade counter-offers in a networked game
 - [ ] **MP-08**: A player can use the coin slider in a networked trade (local-path only today — flagged in `c8e2937` as *"must be closed if /4 ever ships online multiplayer"*)
 - [ ] **MP-09**: A multi-captain trade completes inside one turn without stalling the table (~5 sequential round trips today)
@@ -263,10 +263,10 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | TEST-05 | Phase 3 — The Safety Net | Complete |
 | TEST-06 | Phase 3 — The Safety Net | Complete |
 | TEST-07 | Phase 3 — The Safety Net | Complete |
-| MP-04 | Phase 4 — The Networked Bake-off | Pending |
-| MP-05 | Phase 4 — The Networked Bake-off | Pending |
-| MP-06 | Phase 4 — The Networked Bake-off | Pending |
-| MP-13 | Phase 4 — The Networked Bake-off | Pending |
+| MP-04 | Phase 4 — The Networked Bake-off | Complete |
+| MP-05 | Phase 4 — The Networked Bake-off | Complete |
+| MP-06 | Phase 4 — The Networked Bake-off | Complete |
+| MP-13 | Phase 4 — The Networked Bake-off | Complete |
 | MP-07 | Phase 5 — Trade Over the Wire | Pending |
 | MP-08 | Phase 5 — Trade Over the Wire | Pending |
 | MP-09 | Phase 5 — Trade Over the Wire | Pending |

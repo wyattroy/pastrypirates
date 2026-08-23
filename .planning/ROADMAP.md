@@ -1114,7 +1114,7 @@ The first phase is independent of every promotion decision and can start immedia
 | **02.15 One Log, One Display Path (INSERTED)** | 0/TBD | Planning | Wyatt's architecture — the host draws from the log like everyone else. Absorbed 02.2's Group A (items 15, 17, 18, 19, 20, 21) and runs BEFORE it |
 | 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 6/7 | In Progress|  |
 | 3. The Safety Net | 1/1 written, 1 executed | In Progress | 03-01 done: 30 gates, 8 reading 4/. 03-02 (ui contract) and 03-03 (TEST-03 corpus) still to write |
-| 4. The Networked Bake-off | 0/TBD | Not started | - |
+| 4. The Networked Bake-off | 1/1 | In Progress|  |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
 | 6. The Cutover | 0/TBD | Not started | - |
 | 7. The Board Fits | 0/TBD | Not started | - |
