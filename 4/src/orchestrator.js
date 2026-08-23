@@ -92,6 +92,7 @@ import {
   netSetTurnOrder, netWatchTurnOrder, netWatchRecipes,
   netLeaveRoom, netSetFeedback, netReadDlog, netReadEv,
   netMarkHostGoneOnDisconnect, netClearHostGone,
+  netForfeitOnDisconnect, netClearForfeitOnDisconnect,
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
@@ -390,18 +391,149 @@ export function renderBattle(o){
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
 }
 // battleSnapshot/renderBattleFromSnap moved verbatim to src/ui/flow.js (11-05).
+
+/* ================= THE SHARED BENCH (04-01 Task 3, MP-05) =================
+
+   WYATT, 2026-08-18: *"how hard would it be to let other players watch the bakeoff, instead of
+   just see a standard 'waiting for {Player} to decide' note? that seems like a better design."*
+   He reversed his own earlier "private until the reveal" the same day, so the bench is FACE DOWN
+   for everyone, the baker included — the watcher sees the same puzzle and can be wrong too.
+
+   WHAT MAKES THE BAKER'S SCREEN AND A WATCHER'S SCREEN AGREE (rule 23, asked before a line):
+   they are the same function reading the same object. playBakeoffLive is fully data-driven — the
+   spec determines every frame of the cover sweep, every swap arc and every reveal — so a watcher
+   is handed THE SAME SPEC and runs THE SAME CHOREOGRAPHY from it. Nothing is streamed frame by
+   frame. What crosses the wire is only what a watcher cannot derive: the DISCRETE MOMENTS that are
+   player decisions rather than animation — Ready pressed, each pick landing and un-landing, a paid
+   replay restarting the shuffle, and the verdict.
+
+   WHO PUBLISHES, AND WHY IT IS NOT "THE HOST". The baker is the only party who knows when Ready
+   was pressed or which crate was just tapped, and the baker may be a guest. So the rule is:
+   THE CAPTAIN WHOSE DECISION IT IS PUBLISHES THE BENCH; EVERY OTHER CLIENT RENDERS IT — one rule
+   taking the ACTOR as its input, exactly the shape DISPLAY-RULES §2 sanctions for the captains
+   list ("a rule that takes the viewer as an input is not two rules"). It is watchChat's shape:
+   every client both sends and listens. The VERDICT is the one moment the host publishes, because
+   the host is the only thing that scores.
+
+   THE GUARD IS `db && room && !replaying`, NOT `isHost && db && room` (DISPLAY-RULES Rule A), and
+   the deviation is deliberate and narrow. The safety property Rule A exists for is that a SOLO
+   game never writes — and `room` alone is what is null in solo (Rule A's own measured correction
+   says so). The `isHost` half of it encodes "who computes", which is precisely the thing that must
+   not decide what is drawn. Local render always; the write only when there is a room.
+
+   NO TENTH LISTENER. This rides `rooms/<CODE>/battle` and `watchBattle`, which already exist and
+   already carry a live many-writes-per-event stage. */
+const BENCH_TITLE="\uD83E\uDDC1 The Bake-Off";   // a `title` keeps the battle sting silent — see watchBattle
+
+// The watcher session currently on this screen, or null. Module-local, like _hostGoneArmedFor.
+let _bench=null;
+
+/* Publish one moment of a bench. `spec` is the SAME object the choreography is running from, so a
+   watcher cannot be handed a bench that disagrees with the one being played. */
+export function benchPublish(spec,seat,patch){
+  const snap=Object.assign({seat,order:spec.order,before:spec.before,swaps:spec.swaps||[],
+    locked:spec.locked||[],attempts:spec.attempts||0,epoch:0},patch||{});
+  applyBenchSnap(snap);                                   // LOCAL RENDER ALWAYS
+  if(appState.db&&appState.room&&!appState.replaying)
+    netSetBattle(appState.db,appState.room,{title:BENCH_TITLE,bake:snap},netFail("bake bench"));
+}
+
+/* Start a watcher session: the identical choreography, with the response mechanism replaced by the
+   moments arriving off the wire. Returns nothing — a watcher has no promise for the engine. */
+function benchWatch(snap){
+  let resolveStarted,resolveDone,pickCb=null,picks=snap.picks||[];
+  const ctl={
+    // @copy misc.bakeoff.watching
+    hint:`${pname(snap.seat)} is at the ovens — watch the crates.`,
+    started:new Promise(r=>{resolveStarted=r;}),
+    done:new Promise(r=>{resolveDone=r;}),
+    onPicks:(cb)=>{pickCb=cb;},
+    picksNow:()=>picks,
+  };
+  const sess={seat:snap.seat,epoch:snap.epoch||0,
+    start:()=>resolveStarted(),
+    finish:()=>resolveDone(),
+    // Set SYNCHRONOUSLY, before finish() resolves `done`, or the watcher wakes a microtask later
+    // and retires the very card bakeoffReveal is about to animate on.
+    markRevealed:()=>{ctl.revealed=true;},
+    /* SUPERSEDED, NOT ENDED — and this one was measured, not foreseen. A paid replay bumps the
+       epoch, so the old watcher session is finished and a new one starts SYNCHRONOUSLY on the next
+       line. The old session's own `await watch.done` then wakes A MICROTASK LATER, by which point
+       the new bench is already on the glass — and its tidy-up call to retireBakeCard() found that
+       bench, cleared it, and left the watching captain staring at nothing for the rest of the bake.
+       Teardown after setup. The flag says "somebody else owns the panel now; do not tidy it". */
+    markSuperseded:()=>{ctl.superseded=true;},
+    setPicks:(p)=>{picks=p||[];if(pickCb)pickCb(picks);}};
+  _bench=sess;
+  playBakeoffLive({order:snap.order,before:snap.before,swaps:snap.swaps||[],
+                   locked:snap.locked||[],attempts:snap.attempts||0},{watch:ctl})
+    .catch(e=>{console.error("bench watch",e);})
+    .then(()=>{if(_bench===sess)_bench=null;});
+  // A watcher that arrives after the shuffle has begun does not sit on a Ready that will never be
+  // pressed — it starts where the bench already is.
+  if(snap.phase!=="open")sess.start();
+  return sess;
+}
+
+/* Apply one bench moment to THIS screen. The single entry both tiers reach: the publisher calls it
+   directly (mirror-when-remote), a listening client calls it from watchBattle. */
+export function applyBenchSnap(snap){
+  if(!snap){ if(_bench){_bench.finish();_bench=null;} return null; }
+  if(snap.phase==="reveal"){
+    /* EVERY CAPTAIN RENDERS THE VERDICT, on whatever bench they are holding — the baker's own, a
+       watcher's, the host's. The session ends first so the watcher's `done` releases and stops
+       waiting for a moment that has already arrived. */
+    if(_bench){_bench.markRevealed();_bench.finish();_bench=null;}
+    return bakeoffReveal({order:snap.order,slots:snap.slots||snap.before},
+                         {correct:snap.correct||[],perfect:!!snap.perfect});
+  }
+  // MY OWN HANDS ARE ON THIS BENCH. The publisher reads its own write back (it calls this directly,
+  // and the host also listens now), and a second choreography over the top of a live one is the
+  // two-directors fault in miniature.
+  if(decisionIsLocal(snap.seat))return null;
+  if(_bench&&_bench.seat===snap.seat&&_bench.epoch===(snap.epoch||0)){
+    if(snap.phase!=="open")_bench.start();
+    if(snap.phase==="pick")_bench.setPicks(snap.picks||[]);
+    return null;
+  }
+  // A different captain, or a paid replay (a new epoch): the session restarts and watches it again.
+  if(_bench){_bench.markSuperseded();_bench.finish();_bench=null;}
+  benchWatch(snap);
+  return null;
+}
+
 export function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
+    /* THE BAKE COMES FIRST AND RETURNS. A bench snapshot carries `bake` and has no attIdx/defIdx,
+       so renderBattleFromSnap would bail on it anyway — but reaching that line at all would set
+       spectatingBattle and silence narration for the rest of the voyage. */
+    if(v&&v.bake){applyBenchSnap(v.bake);return;}
+    if(!v)applyBenchSnap(null);                 // the node cleared: any watcher session ends
+    /* THE BATTLE PATH STAYS GUEST-ONLY, AND THAT IS A DECLARED GAP, NOT AN OVERSIGHT.
+       watchBattle is now attached by EVERY client (see beginGame) because a bench is published by
+       whoever is BAKING, and the baker may be a guest — so the host has to listen. The battle
+       scoreboard is the opposite: the host DRAWS ITS OWN from the game loop and must never read
+       itself back through Firebase (DISPLAY-RULES Rule A). battleAsk is prompt fork 3 in
+       DISPLAY-RULES §4 and is still unconverged; converging it is that fork's own piece of work,
+       not a side effect of the bake-off. */
+    if(appState.isHost)return;
     if(v){
       // 260801-7f4 (guest tier): reading spectatingBattle BEFORE assigning it true IS the edge
       // trigger — this callback fires on every write to the battle node (many times per fight,
       // once per renderBattle()), so without the read-then-assign order the clash would re-fire
-      // on every scoreboard update instead of once per battle. The `!v.title` half of the guard is
-      // the bakeoff exclusion: battleSnapshot only carries a `title` for a bakeoff snapshot
-      // (asyncBakeoff's base() is the only producer of one anywhere in the repo), and un-silencing
-      // the bakeoff is a design call belonging to Wyatt, not a side effect of this timing fix — the
-      // bakeoff stays exactly as silent as it is today. Known, accepted variance: this lands on the
+      // on every scoreboard update instead of once per battle.
+      //
+      // `!v.title` — REWRITTEN 04-01 Task 3 TO SAY WHAT IT NOW DOES rather than what it was left
+      // waiting for. It used to be described as "the bakeoff exclusion... the bakeoff stays exactly
+      // as silent as it is today", parked on a snapshot producer that turned out not to exist in
+      // this tree at all: asyncBakeoff is ROOT-ONLY (v2 rule 12 deleted it from 4/), so nothing
+      // here ever produced a `title` and the guard had never once fired. It fires now. A BENCH
+      // SNAPSHOT CARRIES A TITLE, so the battle sting cannot play over a bake — and the bake branch
+      // above returns before this line anyway, which makes this the belt rather than the braces.
+      // Keep both: a future bench field that forgot `bake` would still not sound a clash.
+      //
+      // Known, accepted variance on the battle path itself: this lands on the
       // first battle-node write (the scoreboard appearing), which trails the host's own clash on
       // the announcement by a few seconds when a human spectator is put through side-bet prompts —
       // still before the first flip, still fixing the "end of fight" complaint on this tier too.
@@ -979,12 +1111,31 @@ async function bakeTurnLive(p){
      is also what reconciles the buyer's optimistic figure back to the settled one. */
   if(dec.w&&(appState.replaying||!decisionIsLocal(p.idx)))g.bakeRewatch(p,dec.w);
   const out=g.bakeResolve(p,dec.g);
-  if(human&&!appState.replaying)await bakeoffReveal(p,out.res);
+  if(human&&!appState.replaying)await benchReveal(p,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
   // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking
   // evIdx to narrate both was a mistake; that field drives the scrubber, not this.
   await narrateLastEvent();
+}
+/* THE VERDICT — the one bench moment the HOST publishes, because the host is the only thing that
+   scores (04-01 Task 3, MP-05).
+
+   ORDER IS LOAD-BEARING: the write goes out BEFORE the local render, so every other captain starts
+   their reveal at the same moment this one does rather than four seconds later. Then the node is
+   CLEARED once the local reveal has finished, the way asyncBattle clears it at the end of a fight —
+   without that, nothing downstream can take the panel back and a watcher session could never end.
+
+   `slots` is on this snapshot and that is not a leak: it is the arrangement the crates are being
+   lifted off, public to everyone the instant the reveal plays. */
+async function benchReveal(p,res){
+  const snap={seat:p.idx,phase:"reveal",
+    order:p.bake.order.slice(),slots:p.bake.slots.slice(),
+    correct:res.correct.map(Boolean),perfect:!!res.perfect};
+  const live=appState.db&&appState.room&&!appState.replaying;
+  if(live)netSetBattle(appState.db,appState.room,{title:BENCH_TITLE,bake:snap},netFail("bake bench"));
+  await applyBenchSnap(snap);                       // LOCAL RENDER ALWAYS
+  if(live)netRemoveBattle(appState.db,appState.room,netFail("bake bench clear"));
 }
 /* ?ovens=1 — SKIP THE VOYAGE, GO STRAIGHT TO THE BAKE-OFF.
 
@@ -1225,13 +1376,19 @@ export function remotePrompt(seat,payload){
   });
 }
 // remote: post my answer back to the host
-export function sendResponse(id,choice){
+export function sendResponse(id,choice,keepPanel){
   const o={id};
   if(choice!==null&&choice!==undefined)o.choice=choice;
   netSetResponse(appState.db,appState.room,o,netFail("response"));
   // Mirror localAsk's done() (flow.js:213): the centre-stage stamp is cleared as part of answering,
   // not left for the next prompt to overwrite. Without this the guest's board stays dimmed behind a
   // card they have already dismissed.
+  //
+  // `keepPanel` is for a card that still has a beat to play AFTER the answer, and there is exactly
+  // one: the bake-off's bench, which stays up for the verdict coming back on the bench channel and
+  // then leaves through its own single exit, retireBakeCard (item 6 / D-16). Clearing here would
+  // take a card down mid-animation and strand the captain with no verdict at all.
+  if(keepPanel)return;
   delete $("actionPanel").dataset.pp4Stage;
   panel("");
 }
@@ -1374,7 +1531,15 @@ export function watchEvents(){
 export function watchPrompt(){
   netWatchPrompt(appState.db,appState.room,snap=>{
     const p=snap.val();
-    if(!p||p.seat!==appState.mySeat){panel("");setFlipActive(null);appState.inBattlePrompt=false;return;}
+    /* A BAKE BENCH OUTLIVES ITS OWN PROMPT, so this clear must not take one down (04-01 Task 3).
+       MEASURED: the remote captain answered, remotePrompt removed the prompt node, this callback
+       fired with p===null and wiped the bench a beat before the verdict arrived on the bench
+       channel — so the one captain who had actually played the bake was the only one who never saw
+       how it went. The same guard protects a WATCHER, whose bench is not tied to any prompt of
+       their own. The card leaves through its one exit, retireBakeCard (item 6 / D-16), never here. */
+    if(!p||p.seat!==appState.mySeat){
+      if(!document.querySelector("#actionPanel .bko"))panel("");
+      setFlipActive(null);appState.inBattlePrompt=false;return;}
     if(p.kind==="ask"){
       if(p.battle){
         // this seat owns the live battle decision — render the same scoreboard everyone else
@@ -1499,14 +1664,41 @@ export function watchPrompt(){
         return true;
       };
       spend.canAfford=()=>purse>=cost;
-      playBakeoffLive({order:p.order||[],before:p.before||[],swaps:p.swaps||[],
-                       locked:p.locked||[],attempts:p.attempts||0,cost},null,spend)
+      /* THE SPEC IS THE OBJECT THAT CAME OVER THE WIRE, held once and handed both to the
+         choreography and to the publisher — so a remote captain's bench and the bench every other
+         captain watches are built from literally the same fields. */
+      const wireSpec={order:p.order||[],before:p.before||[],swaps:p.swaps||[],
+                      locked:p.locked||[],attempts:p.attempts||0,cost};
+      const seat=p.seat;
+      /* MP-13 (04-01 Task 4) — A CAPTAIN WHO DROPS MID-BAKE DOES NOT STALL THE TABLE.
+         The bake has no shot clock any more (Wyatt, 2026-08-18: the finish line gets as long as it
+         needs), and the clock was the only thing that used to stop an absent captain hanging the
+         voyage. So the fallback fires on PRESENCE LOSS instead, armed HERE, on the SERVER, the
+         moment this captain's bench opens — the tab closing, the browser crashing and the wifi
+         dropping are exactly the cases a client-side goodbye cannot cover.
+         The host is already holding an open promise on the response node, so this needs no new
+         watcher and no new node: the armed write carries this prompt's id and NO `choice`, which
+         remotePrompt resolves to null and the tail already treats as a forfeit to the engine's own
+         guess, having bought nothing. One entry, both facts.
+         CANCELLING IS NOT OPTIONAL — see the writer's own note. It is cancelled on the answer path
+         AND on the error path below, which are the only two ways out of this branch. */
+      netForfeitOnDisconnect(appState.db,appState.room,p.id);
+      playBakeoffLive(wireSpec,{onRewatch:spend,onBench:(patch)=>benchPublish(wireSpec,seat,patch)})
         // The SAME SHAPE playBakeoffLive resolves for a local captain — {guess,rewatches} — so the
         // host's tail in bakeoffPrompt never has to know which tier answered. `null` (the bench
         // failed to render) travels as no `choice` at all, which remotePrompt already resolves to
         // null and the tail already treats as a forfeit to the engine's own guess.
-        .then(r=>{_liveBakePromptId=null;sendResponse(p.id,r||null);},
-              e=>{_liveBakePromptId=null;console.error("bake prompt",e);sendResponse(p.id,null);});
+        //
+        // KEEP THE PANEL (the third argument). sendResponse ordinarily clears #actionPanel as part
+        // of answering, which is right for every other prompt — but a bake's card has one beat
+        // left on it: the reveal, which arrives back from the host on the bench channel and plays
+        // on THIS bench. The card's exit is retireBakeCard's, at the end of that (item 6 / D-16).
+        .then(r=>{_liveBakePromptId=null;
+                  netClearForfeitOnDisconnect(appState.db,appState.room);
+                  sendResponse(p.id,r||null,true);},
+              e=>{_liveBakePromptId=null;console.error("bake prompt",e);
+                  netClearForfeitOnDisconnect(appState.db,appState.room);
+                  sendResponse(p.id,null,true);});
     }
   });
 }
@@ -1943,7 +2135,16 @@ export function beginGame(cfg,seed){
      stopped the game with an empty panel and, measured, NOTHING in the console. See
      voyageAground()'s note in util.js for why that is worse than a crash. */
   if(appState.isHost){runLiveNet().catch(e=>voyageAground(e,"runLiveNet"));}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchBattle();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
+  /* EVERY CLIENT WATCHES THE BENCH NODE, THE HOST INCLUDED — watchChat's shape, one line below,
+     and for the same reason (04-01 Task 3, MP-05). A bake-off bench is published by whoever is
+     BAKING, and the baker may be a guest, so a host that only ever wrote to this node could never
+     watch a rival's bake. watchBattle's own body keeps the battle scoreboard guest-only; it is the
+     BAKE branch that both tiers reach.
+     GUARDED ON `room`, which is what is null in solo and pass-and-play (DISPLAY-RULES Rule A's
+     measured correction — `db` is a real handle in every mode). Without this a solo game would
+     attach a listener to rooms/null/battle. */
+  if(appState.db&&appState.room)watchBattle();
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
   watchTimer(); // #7: every client tracks the shared timer-off flag
   watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag

@@ -91,6 +91,12 @@ const BENCH_REPORT = `JSON.stringify((()=>{
     goBtn:(()=>{const b=document.getElementById('bkoGo');return b?{txt:(b.textContent||'').trim(),disabled:!!b.disabled}:null})(),
     watchBtn:(()=>{const b=document.getElementById('bkoWatch');return b?{txt:(b.textContent||'').trim(),hidden:!!b.hidden,disabled:!!b.disabled}:null})(),
     introGo: !!document.getElementById('bkoIntroGo'),
+    watching: !!document.querySelector('#actionPanel .bko.bkoWatching'),
+    badges:[...document.querySelectorAll('#actionPanel .bkoBowl')].map(b=>({
+      n:(b.querySelector('.bkoNum')||{}).textContent||'',
+      picked:b.classList.contains('picked'),locked:b.classList.contains('locked'),
+      covered:b.classList.contains('covered'),
+      right:b.classList.contains('right'),wrong:b.classList.contains('wrong')})),
     apMsg:(()=>{const e=document.querySelector('#actionPanel .apMsg');return e?(e.textContent||'').trim().replace(/\\s+/g,' ').slice(0,110):null})(),
     apBtns:[...document.querySelectorAll('#actionPanel .apBtn')].map(b=>(b.textContent||'').trim().slice(0,24)),
     narr:(()=>{const e=document.querySelector('.narrBub,#pp4Narr');return e?(e.textContent||'').trim().replace(/\\s+/g,' ').slice(0,110):null})(),
@@ -145,11 +151,11 @@ async function pair(name, note) {
   out.steps.push(row);
   log(`\n--- ${name} ${note ? "(" + note + ")" : ""}`);
   log(`    HOST  bench=${h.shellPresent ? (h.shell && h.shell.visible ? "VISIBLE " + h.shell.w + "x" + h.shell.h : "present-but-not-painted") : "none"}` +
-      `  bowls=${h.bowlCount}  whose=${fmtWhose(row.hostBench, h)}  hint="${(h.hint || "").slice(0, 46)}"`);
+      `  bowls=${h.bowlCount}  ${h.watching ? "WATCHING" : h.goBtn ? "BAKING" : ""}  whose=${fmtWhose(row.hostBench, h)}  hint="${(h.hint || "").slice(0, 52)}"`);
   log(`          apMsg="${(h.apMsg || "").slice(0, 70)}"  btns=${JSON.stringify((h.apBtns || []).slice(0, 4))}`);
   if (guestAlive) {
     log(`    GUEST bench=${g.shellPresent ? (g.shell && g.shell.visible ? "VISIBLE " + g.shell.w + "x" + g.shell.h : "present-but-not-painted") : "none"}` +
-        `  bowls=${g.bowlCount}  whose=${fmtWhose(row.guestBench, g)}  hint="${(g.hint || "").slice(0, 46)}"`);
+        `  bowls=${g.bowlCount}  ${g.watching ? "WATCHING" : g.goBtn ? "BAKING" : ""}  whose=${fmtWhose(row.guestBench, g)}  hint="${(g.hint || "").slice(0, 52)}"`);
     log(`          apMsg="${(g.apMsg || "").slice(0, 70)}"  btns=${JSON.stringify((g.apBtns || []).slice(0, 4))}`);
   } else log(`    GUEST (tab closed)`);
   return row;
@@ -267,6 +273,21 @@ async function commitBench(C, tr) {
 }
 
 const BAKE_SURFACE = `!!document.querySelector('#actionPanel .bko')||!!document.getElementById('bkoIntroGo')`;
+/* A BENCH IS NOT THE SAME THING AS A BAKER. Since 04-01 Task 3 every captain has a bench on screen
+   during a bake — the baker's takes taps and a watcher's does not — so "who is holding a bench" no
+   longer says who to drive. The controls are the tell: only the baker's shell renders #bkoGo (or,
+   on the first attempt, #bkoIntroGo). Drive the wrong one and the probe reports "'Ready to bake!'
+   never became live" about a game that is working perfectly. */
+const BAKER_SURFACE = `(()=>{
+  const i=document.getElementById('bkoIntroGo');
+  if(i&&i.getBoundingClientRect().width>10)return true;
+  /* NOT MERELY "#bkoGo EXISTS" — it survives the whole reveal reading "In the oven...", so a client
+     that has just FINISHED baking still answers yes to that and the probe drove the wrong browser
+     for three runs, screenshotting four identical frames of a bench nobody had started. The button
+     has to be one a captain could actually press. */
+  const b=document.getElementById('bkoGo');
+  return !!(b&&!b.disabled&&/ready|bake it/i.test(b.textContent||''));
+})()`;
 
 /* Wait, bounded, until a bake surface appears on EITHER client, keeping the voyage moving.
    INSTRUMENT CORRECTION, 2026-08-23, found in this probe's own first run: waiting for "a bench" a
@@ -283,23 +304,78 @@ async function waitForBake(maxTicks, { driveHost = true, driveGuest = true, clea
        one bake from the next, and the second captain's intro card can legitimately appear on the
        OTHER browser before the first captain's card has finished its verdict hold. That is exactly
        what happened, and the probe reported INCONCLUSIVE about a game that was working. */
+    /* WAIT FOR EVERY BENCH TO GO, and test `.bko` ONLY — not the intro card. Since Task 3 both
+       captains hold a bench during a bake, so waiting on one of them is not enough; but the NEXT
+       captain's story card (#bkoIntroGo) can legitimately be up on the other browser before this
+       one's verdict hold has finished, so including it in the test reported INCONCLUSIVE about a
+       game that was working. Bounded, and a timeout is RECORDED rather than fatal — the pair that
+       follows says what was on the glass either way. */
     let cleared = false;
     for (let i = 0; i < 60 && !cleared; i++) {
-      const held = clearOn === "guest" ? (guestAlive ? await G.ev(BAKE_SURFACE) : false) : await H.ev(BAKE_SURFACE);
-      if (!held) { cleared = true; clearedAfter = i; break; }
+      const h = await H.ev(`!!document.querySelector('#actionPanel .bko')`);
+      const g = guestAlive ? await G.ev(`!!document.querySelector('#actionPanel .bko')`) : false;
+      if (!h && !g) { cleared = true; clearedAfter = i; break; }
       await sleep(1000);
     }
-    if (!cleared) return { host: false, guest: false, ticks: 0, neverCleared: true };
+    if (!cleared) clearedAfter = -1;   // recorded, not fatal
   }
   for (let i = 0; i < maxTicks; i++) {
-    const hb = await H.ev(BAKE_SURFACE);
+    const hb = await H.ev(BAKE_SURFACE), hk = await H.ev(BAKER_SURFACE);
     const gb = guestAlive ? await G.ev(BAKE_SURFACE) : false;
-    if (hb || gb) return { host: hb, guest: gb, ticks: i, clearedAfter };
+    const gk = guestAlive ? await G.ev(BAKER_SURFACE) : false;
+    if (hb || gb) return { host: hb, guest: gb, hostIsBaker: hk, guestIsBaker: gk, ticks: i, clearedAfter };
     if (driveHost) { const a = await H.ev(TICK); if (a && a !== "BAKE-ON-SCREEN") log(`      host tick ${i}: ${a}`); }
     if (driveGuest && guestAlive) { const a = await G.ev(TICK); if (a && a !== "BAKE-ON-SCREEN") log(`      guest tick ${i}: ${a}`); }
     await sleep(1100);
   }
   return { host: false, guest: false, ticks: maxTicks, timedOut: true };
+}
+
+/* THE DROP, MP-13. Drive the guest's bench to answerable, then CLOSE THE TAB — the case a
+   client-side goodbye cannot cover — and watch the host's table from the outside. What must be
+   true: the voyage carries on within seconds, and exactly ONE decision-log entry lands for that
+   bake, the same entry a completed bake writes. */
+async function dropMidBake(owner) {
+  log("\n=== drop: closing the guest's tab mid-bake ===");
+  for (let i = 0; i < 40; i++) {
+    if (await owner.ev(`(()=>{const b=document.getElementById('bkoIntroGo');return !!(b&&b.getBoundingClientRect().width>10)})()`)) { await owner.ev(`document.getElementById('bkoIntroGo').click();true`); break; }
+    if (await owner.ev(`!!document.querySelector('#actionPanel .bko')`)) break;
+    await sleep(500);
+  }
+  let rdy = false;
+  for (let i = 0; i < 40 && !rdy; i++) { rdy = await owner.ev(`(()=>{const b=document.getElementById('bkoGo');return !!(b&&!b.disabled&&/ready/i.test(b.textContent))})()`); if (!rdy) await sleep(500); }
+  if (rdy) await owner.ev(`document.getElementById('bkoGo').click();true`);
+  let armed3 = false;
+  for (let i = 0; i < 80 && !armed3; i++) { armed3 = await owner.ev(`(()=>{const b=document.getElementById('bkoGo');return !!(b&&/bake it/i.test(b.textContent))})()`); if (!armed3) await sleep(700); }
+  await pair("d0-before-drop", "the guest's bench, answerable — and no countdown on either screen");
+  const dlogBefore = await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.dlog||[]).length})()`);
+  const evBefore = await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.game.events||[]).length})()`);
+  out.drop = { dlogBefore, evBefore, armedBench: armed3, closedAt: Date.now() };
+  log(`  closing the guest tab (dlog=${dlogBefore}, events=${evBefore})`);
+  await G.send("Page.close").catch(() => {});
+  guestAlive = false;
+  out.drop.samples = [];
+  for (let k = 0; k < 24; k++) {
+    await sleep(2500);
+    const sm = { tMs: (k + 1) * 2500,
+      dlog: await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.dlog||[]).length})()`),
+      events: await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.game.events||[]).length})()`),
+      bko: await H.ev(`!!document.querySelector('#actionPanel .bko')`),
+      last: await H.ev(`(()=>{const s=__pp_app_state_debug();const e=(s.game.events||[]);return e.length?e[e.length-1].t:null})()`) };
+    out.drop.samples.push(sm);
+    log(`  +${(sm.tMs / 1000).toFixed(1)}s dlog=${sm.dlog} events=${sm.events} bko=${sm.bko} last=${sm.last}`);
+    if (sm.events > evBefore + 2) break;
+  }
+  await pair("d1-after-drop", "the host's table, after the guest vanished");
+  const lastS = out.drop.samples[out.drop.samples.length - 1] || {};
+  const firstS = out.drop.samples.find(sm => sm.events > evBefore);
+  out.drop.verdict = {
+    tableCarriedOn: (lastS.events || 0) > evBefore,
+    secondsToCarryOn: firstS ? firstS.tMs / 1000 : null,
+    dlogEntriesAdded: (lastS.dlog || 0) - dlogBefore,
+    lastDlogEntry: await H.ev(`(()=>{const s=__pp_app_state_debug();const d=(s.dlog||[]);return d.length?d[d.length-1]:null})()`)
+  };
+  log("DROP VERDICT: " + JSON.stringify(out.drop.verdict));
 }
 
 /* ---------- teardown, on every path ---------- */
@@ -377,7 +453,12 @@ try {
   };
 
   // Play whichever client is holding the first bench.
-  const firstOnHost = first.host;
+  // whichever client holds the CONTROLS is the baker; a watcher's shell has none
+  const firstOnHost = first.hostIsBaker || (!first.guestIsBaker && first.host);
+  /* --drop-mid-bake takes the FIRST bake the GUEST is holding, whichever one that is. Waiting for
+     "the second bake" was wrong: the bake order is shuffled, so on half the runs the second bake
+     was the host's and there was nothing to drop. */
+  if (DROP && !firstOnHost) { await dropMidBake(G); await finish(0); }
   const C1 = firstOnHost ? H : G;
   log(`\n=== playing the first bake on the ${firstOnHost ? "HOST" : "GUEST"} ===`);
   const t1 = await playBench(C1, firstOnHost ? "host" : "guest", { buyRewatch: !firstOnHost });
@@ -399,12 +480,7 @@ try {
   const second = await waitForBake(180, { clearOn: firstOnHost ? "host" : "guest" });
   out.secondBakeSurface = second;
   log(`second bake surface: host=${second.host} guest=${second.guest} after ${second.ticks} ticks`);
-  if (second.neverCleared) {
-    out.answer = "INCONCLUSIVE — the first bake's card never left the screen, so a second bench could not be told apart from it";
-    log("LIMIT: " + out.answer);
-    await pair("04-second-bake-nevercleared");
-    await finish(1);
-  }
+  if (second.clearedAfter === -1) log("NOTE: a bench was still on screen after 60s of waiting for the first bake to clear — the pair below says which.");
   if (second.timedOut) {
     out.answer = "INCONCLUSIVE — no second bake surface appeared on either client inside ~3 minutes";
     log("LIMIT: " + out.answer);
@@ -415,7 +491,7 @@ try {
 
   /* PLAY THE SECOND BAKE TOO, on whichever client is holding it — and buy a re-watch when that
      client is the GUEST, because MP-06's whole question is what a remote captain's purse does. */
-  const secondOnGuest = second.guest && !second.host;
+  const secondOnGuest = second.guestIsBaker || (!second.hostIsBaker && second.guest && !second.host);
   const C2 = secondOnGuest ? G : H;
   log(`\n=== playing the second bake on the ${secondOnGuest ? "GUEST" : "HOST"} ===`);
   const t2 = await playBench(C2, secondOnGuest ? "guest" : "host", { buyRewatch: secondOnGuest });
@@ -468,8 +544,24 @@ try {
   if (SPECTATE) {
     /* Four paired moments across the second captain's bake, for the spectator criterion. */
     log("\n=== spectate: four paired moments ===");
-    const owner = guestHasBench && !hostHasBench ? G : (hostHasBench ? H : G);
-    const spec = { moments: [] };
+    /* RE-DETECT WHO IS BAKING, RIGHT NOW. `second.*` was captured two bakes ago and reusing it
+       aimed the driver at a browser that had long since handed the crates back — so this leg
+       screenshotted four moments of a bench nobody had pressed Ready on and called them
+       mid-shuffle, a pick landed, mid-reveal and the verdict. They were all the same frame.
+       Bounded: if neither client is holding controls, say so rather than driving the wrong one. */
+    let owner = null, ownerTag = "none";
+    for (let i = 0; i < 90 && !owner; i++) {
+      if (await H.ev(BAKER_SURFACE)) { owner = H; ownerTag = "host"; break; }
+      if (guestAlive && await G.ev(BAKER_SURFACE)) { owner = G; ownerTag = "guest"; break; }
+      await H.ev(TICK); if (guestAlive) await G.ev(TICK);
+      await sleep(1100);
+    }
+    if (!owner) { log("LIMIT: no captain was holding bake controls inside ~100s — the spectate leg has nothing to drive"); out.spectate = { aborted: "no baker" }; await finish(1); }
+    /* THE WATCHER IS THE OTHER ONE, and it is the whole point of this leg: at each of the four
+       moments below, one screen is being tapped and the other is watching, and they must show the
+       same bench. */
+    const spec = { moments: [], baker: ownerTag, watcher: ownerTag === "guest" ? "host" : "guest" };
+    log(`  baker=${ownerTag}, watcher=${spec.watcher}`);
     // moment A: mid-shuffle. Press Ready and sample while the swaps run.
     for (let i = 0; i < 40; i++) {
       if (await owner.ev(`(()=>{const b=document.getElementById('bkoIntroGo');return !!(b&&b.getBoundingClientRect().width>10)})()`)) { await owner.ev(`document.getElementById('bkoIntroGo').click();true`); break; }
@@ -497,51 +589,11 @@ try {
     spec.moments.push((await pair("s4-verdict", "the verdict line")).name);
     out.spectate = spec;
   } else if (DROP) {
-    /* THE NEGATIVE CASE IS PROVEN FIRST, one run earlier: the plain run (no flag) is the
-       "a captain who finishes is never forfeited" half. This run is the drop. */
-    log("\n=== drop: closing the guest's tab mid-bake ===");
-    const owner = guestHasBench ? G : H;
-    if (owner === H) { out.dropNote = "the second bake was NOT on the guest — nothing to drop; reporting that rather than dropping the host"; log("LIMIT: " + out.dropNote); }
-    else {
-      for (let i = 0; i < 40; i++) {
-        if (await owner.ev(`(()=>{const b=document.getElementById('bkoIntroGo');return !!(b&&b.getBoundingClientRect().width>10)})()`)) { await owner.ev(`document.getElementById('bkoIntroGo').click();true`); break; }
-        if (await owner.ev(`!!document.querySelector('#actionPanel .bko')`)) break;
-        await sleep(500);
-      }
-      let rdy = false;
-      for (let i = 0; i < 40 && !rdy; i++) { rdy = await owner.ev(`(()=>{const b=document.getElementById('bkoGo');return !!(b&&!b.disabled&&/ready/i.test(b.textContent))})()`); if (!rdy) await sleep(500); }
-      if (rdy) await owner.ev(`document.getElementById('bkoGo').click();true`);
-      let armed3 = false;
-      for (let i = 0; i < 80 && !armed3; i++) { armed3 = await owner.ev(`(()=>{const b=document.getElementById('bkoGo');return !!(b&&/bake it/i.test(b.textContent))})()`); if (!armed3) await sleep(700); }
-      await pair("d0-before-drop", "the guest's bench, answerable");
-      const dlogBefore = await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.dlog||[]).length})()`);
-      const evBefore = await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.game.events||[]).length})()`);
-      out.drop = { dlogBefore, evBefore, closedAt: Date.now() };
-      log(`  closing the guest tab (dlog=${dlogBefore}, events=${evBefore})`);
-      await G.send("Page.close").catch(() => {});
-      guestAlive = false;
-      // Bounded watch: does the host's table carry on, and does exactly one entry land?
-      out.drop.samples = [];
-      for (let k = 0; k < 24; k++) {
-        await sleep(2500);
-        const s = { tMs: (k + 1) * 2500,
-          dlog: await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.dlog||[]).length})()`),
-          events: await H.ev(`(()=>{const s=__pp_app_state_debug();return (s.game.events||[]).length})()`),
-          bko: await H.ev(`!!document.querySelector('#actionPanel .bko')`),
-          apMsg: await H.ev(`(()=>{const e=document.querySelector('#actionPanel .apMsg');return e?(e.textContent||'').trim().slice(0,60):null})()`) };
-        out.drop.samples.push(s);
-        log(`  +${(s.tMs / 1000).toFixed(1)}s dlog=${s.dlog} events=${s.events} bko=${s.bko} "${s.apMsg || ""}"`);
-        if (s.events > evBefore + 2 && !s.bko) break;
-      }
-      await pair("d1-after-drop", "the host's table, after the guest vanished");
-      const last = out.drop.samples[out.drop.samples.length - 1] || {};
-      out.drop.verdict = {
-        tableCarriedOn: (last.events || 0) > evBefore,
-        secondsToCarryOn: (out.drop.samples.find(s => s.events > evBefore) || {}).tMs / 1000 || null,
-        dlogEntriesAdded: (last.dlog || 0) - dlogBefore
-      };
-      log("DROP VERDICT: " + JSON.stringify(out.drop.verdict));
-    }
+    /* THE NEGATIVE CASE IS PROVEN BY THE PLAIN RUN, which is the "a captain who finishes normally
+       is never forfeited" half. This branch only runs when neither of the first two bakes was the
+       guest's; the drop itself is taken at the first guest bake, far above. */
+    if (second.guestIsBaker) { await dropMidBake(G); }
+    else { out.dropNote = "neither of the first two bakes was the guest's — nothing to drop; reported rather than dropping the host"; log("LIMIT: " + out.dropNote); }
   }
 
   await finish(0);

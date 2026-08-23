@@ -724,10 +724,8 @@ function drill() {
   //      this still reopens the two-directors fault, because a wrapper is exactly what stops the
   //      orchestration parity gate seeing a convergence. Part (C) is what catches it.
   reset();
-  write(ORCH_REL, surgery(realOrch, `      playBakeoffLive({order:p.order||[],before:p.before||[],swaps:p.swaps||[],
-                       locked:p.locked||[],attempts:p.attempts||0,cost},null,spend)`,
-                                    `      guestBenchWrapper({order:p.order||[],before:p.before||[],swaps:p.swaps||[],
-                       locked:p.locked||[],attempts:p.attempts||0,cost},null,spend)`));
+  write(ORCH_REL, surgery(realOrch, `playBakeoffLive(wireSpec,{onRewatch:spend,`,
+                                    `guestBenchWrapper(wireSpec,{onRewatch:spend,`));
   expect("drill 4e (a guest-only wrapper replaces the named choreography)", checkBakeFieldParity(tmpRoot), true, "PARITY-BAKE-BUILDER");
 
   // 4f — a SECOND playBakeoffLive appears. Every field can be correct on both sides and the two

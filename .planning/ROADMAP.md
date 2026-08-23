@@ -40,7 +40,7 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
 - [ ] **Phase 2: Multiplayer Revival** - The Firebase tags come back and a host and guest play a full networked voyage with the bake-off switched off — which measures what is really broken before the large work is planned
 - [ ] **Phase 02.15: One Log, One Display Path** *(inserted)* - The game is displayed from one place according to one set of rules, on every screen — the host draws from the event log like a guest and the scrubber already do, and Firebase becomes a copier rather than a second way of finding out what happened
 - [ ] **Phase 3: The Safety Net** - A determinism corpus for the v2 engine, the contract gates pointed at the tree being promoted, and host/guest parity gated rather than remembered
-- [ ] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
+- [x] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
 - [ ] **Phase 5: Trade Over the Wire** - A multi-captain trade completes inside one turn, counter-offers cross the wire, and a guest gets the same controls as the host
 - [ ] **Phase 6: The Cutover** - `playpastrypirates.com` serves the new game, today's game keeps playing at `/classic`, and nothing that identifies the live site exists in more than one tree
 - [ ] **Phase 7: The Board Fits** - The whole board is visible on a laptop and the director stops cropping the choices it is asking the player to make
@@ -791,7 +791,13 @@ the moment either is fixed. TEST-07's two dangling citations are `4/src/orchestr
   4. A host who reloads during the bake-off replays the voyage to the same finish — the bake still logs as one decision per captain.
   5. The bake-off runs with no shot clock, and a captain who drops mid-bake does not stall the table.
 
-**Plans**: TBD
+**Plans**: 1/1 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 04-01-PLAN.md — The Networked Bake-off (MP-04, MP-05, MP-06, MP-13)
+
 **UI hint**: yes
 
 **This is the single largest piece of work in the milestone, and the blocker is concrete.** Today's
@@ -809,20 +815,35 @@ single hardest thing in the milestone. Wyatt reversed it: *"how hard would it be
 watch the bakeoff, instead of just see a standard 'waiting for {Player} to decide' note? that seems
 like a better design."*
 
-**The spectator channel already exists, and the bake-off already writes into it.** `rooms/<C>/battle`
-is host-written (`4/src/orchestrator.js:378`), watched by every guest (`watchBattle`, `:381`), and
-rendered by `renderBattleFromSnap` — it updates many times per fight, so it is a live stage, not a
-one-shot. `battleSnapshot` already carries a `title` for a bake-off snapshot and `asyncBakeoff` is
-its only producer anywhere in the repo. The bake-off is **muted by one guard** at `:396`, whose
-comment says: *"un-silencing the bakeoff is a design call belonging to Wyatt, not a side effect of
-this timing fix — the bakeoff stays exactly as silent as it is today."* A previous session hit this
-question, declined to decide it, and left it for him. This phase is that decision landing.
+**THE SPECTATOR CHANNEL EXISTS. THE HALF THAT SAID THE BAKE-OFF ALREADY WROTE INTO IT WAS FALSE FOR
+`4/`, AND IT IS CORRECTED HERE IN THE OPEN (rule 6, corrected 2026-08-23 while executing 04-01).**
 
-**The work, concretely:** `battleSnapshot` (`4/src/ui/flow.js:2252`) whitelists 15 battle-shaped keys
-(`round, a, d, atState, dfState…`); a watchable bench needs bake-shaped ones instead — bowls, which
-are locked, which bowl is being touched, attempt count, rewatches — plus a bench renderer beside
-`renderBattleFromSnap`. Since MP-04 already puts the baker's picks in motion between host and guest,
-the state to broadcast is already travelling.
+True as written: `rooms/<C>/battle` is host-written (`4/src/orchestrator.js:389`), watched by every
+guest (`watchBattle`), and rendered by `renderBattleFromSnap` — it updates many times per fight, so
+it is a live stage, not a one-shot.
+
+**False as written:** this paragraph said *"the bake-off already writes into it"* and *"the bake-off
+is muted by one guard at `:396`"*, i.e. that un-silencing that guard would deliver criterion 2.
+Measured by reading the tree: `asyncBakeoff()` — the only thing that ever produced a `title`
+snapshot — **exists only in the ROOT tree** (`src/ui/flow.js:1639`), and it is v1's head-to-head
+coin-flip ladder, a different mechanic from the crate-memory bake entirely. **v2 rule 12 deleted it
+from `4/`.** So in `4/` nothing produced a bake snapshot at all, the guard had never once fired, and
+flipping it would have delivered nothing. **Criterion 2 was not a guard flip; it was build a bench
+publisher, build one bench renderer, and route the baker and every watcher through the same one.**
+
+**What actually shipped (04-01 Task 3):** `playBakeoffLive` is fully data-driven, so a watcher is
+handed the **same spec** and runs the **same choreography** from it — nothing is streamed frame by
+frame. Only the DISCRETE MOMENTS cross the wire, and they are published by **whoever is baking**,
+not by the host, because a guest baker is the only party who knows when Ready was pressed. The host
+therefore had to start listening on that node too. **The guard was kept and now fires for the first
+time**, because a bench snapshot carries a `title` — so the battle sting cannot sound over a bake.
+Full account: `docs/DISPLAY-RULES.md` §2's bake-off row and §4's sixth fork.
+
+**The work, concretely — and "a bench renderer BESIDE `renderBattleFromSnap`" is the one instruction
+in this section that was wrong to follow.** A second renderer beside the first is the two-directors
+shape rule 23 forbids. What shipped instead is one snapshot shape carried under a `bake` key on the
+same node, discriminated before `renderBattleFromSnap` is ever reached, and rendered by the SAME
+`playBakeoffLive` the baker is running.
 
 **There is no competitive leak to protect.** Each captain bakes their own recipe on their own
 shuffled bench (`newBake(order)`, `4/src/engine/bakeoff.js:39`), so seeing a rival's bowls teaches
@@ -835,12 +856,17 @@ so a guest cannot say "I bought a look" and keep the prompt open. Folding the re
 the single reply and settling at the end matches what replay already does at
 `4/src/orchestrator.js:908-912` — and keeps criterion 4 true for free.
 
-**The bake-off gets NO shot clock (Wyatt, 2026-08-18) — and that is why criterion 5 exists.** Today
-`bakeoffPrompt` wraps the bake in `withShotClock` (`4/src/ui/flow.js:604`) and an expiry forfeits to
-the engine's own fallback guess. **Removing the clock removes that safety net**, so a captain who
-closes their tab mid-bake would hang the table forever with no timer to rescue it. The fallback must
-therefore fire on **presence loss** instead — the room already tracks presence (`watchPresence`), so
-the trigger changes, not the mechanism.
+**The bake-off gets NO shot clock (Wyatt, 2026-08-18) — and that is why criterion 5 exists.**
+`bakeoffPrompt` wrapped the bake in `withShotClock` and an expiry forfeited to the engine's own
+fallback guess. **Removing the clock removes that safety net**, so a captain who closes their tab
+mid-bake would hang the table forever with no timer to rescue it. The fallback therefore fires on
+**presence loss** instead.
+
+**One correction to the mechanism named here (04-01 Task 4):** it does not go through
+`watchPresence`, which is a site-wide busy counter and says nothing about a particular room. It uses
+the same `onDisconnect` pattern `netMarkHostGoneOnDisconnect` already uses — armed by the baker on
+`rooms/<C>/response`, the node the host is already holding an open promise on, so it needed no new
+watcher and no new node.
 
 **Whatever fires the fallback must still write one decision to the log.** Expiry currently writes a
 default into the decision log (`4/src/orchestrator.js:1104-1110`), and that is the only reason a

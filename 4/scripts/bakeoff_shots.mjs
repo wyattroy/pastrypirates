@@ -24,6 +24,7 @@
  * Hygiene: headless, --mute-audio, its own ports, bounded loops, kills what it starts.
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { REPO } from "./lib/chrome.mjs";
@@ -47,8 +48,11 @@ const TAG = arg("tag", `${W}x${H}`);
 fs.mkdirSync(OUT, { recursive: true });
 const log = (...a) => { const s = a.join(" "); console.log(s); fs.appendFileSync(path.join(OUT, "log.txt"), s + "\n"); };
 
+// THE CHROME PROFILE GOES TO tmpdir, NEVER TO --out. It used to be written under the shots
+// directory, and 1,468 files of Chrome profile went into a commit alongside twelve screenshots
+// (04-01). --out is a directory a human reads; nothing that is not evidence belongs in it.
 const c = await openChrome({ W, H, dbgPort: DBG, httpPort: PORT, serveRoot: ROOT,
-  profileDir: path.join(OUT, `prof-${TAG}`), mobile: MOBILE });
+  profileDir: fs.mkdtempSync(path.join(os.tmpdir(), `bakeoff-shots-${TAG}-`)), mobile: MOBILE });
 const out = { tag: TAG, W, H, mobile: MOBILE };
 async function finish(code) {
   fs.writeFileSync(path.join(OUT, `result-${TAG}.json`), JSON.stringify(out, null, 2));

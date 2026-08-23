@@ -203,6 +203,45 @@ export function netClearHostGone(db, room) {
   db.ref("rooms/" + room + "/status").onDisconnect().cancel().catch(() => {});
 }
 
+/* ---------- a captain who drops mid-bake does not stall the table (MP-13, 04-01 Task 4) ----------
+   Wyatt, 2026-08-18: the bake-off's finish line gets AS LONG AS IT NEEDS — no shot clock. That
+   removes the only thing that used to stop an absent captain hanging the whole voyage, so the two
+   halves ship together or neither does: the clock goes, and the fallback fires on PRESENCE LOSS
+   instead of on a countdown.
+
+   WHY onDisconnect AND NOT A HEARTBEAT — the same reason netMarkHostGoneOnDisconnect above gives:
+   it is armed on the SERVER, so it fires for the cases a client-side goodbye cannot cover — the tab
+   closed, the browser crashed, the wifi dropped.
+
+   IT NEEDS NO NEW WATCHER AND NO NEW NODE. The host is ALREADY holding an open promise on
+   rooms/<CODE>/response, waiting for this captain's answer. So the captain arms a write to that
+   same node carrying only the prompt's id and NO `choice`; remotePrompt resolves
+   `v.choice===undefined?null:v.choice`, and the existing tail already treats a null as *forfeit to
+   the engine's own guess, having bought nothing*. One decision-log entry, both facts, exactly as a
+   completed bake writes.
+
+   CANCELLING IS NOT OPTIONAL. netMarkHostGoneOnDisconnect earned that in capitals and the failure
+   here is the same shape: an armed handler that outlives a real answer would forfeit a bake the
+   captain actually completed. Cancel the moment the answer is sent, and on every other exit.
+   (There is one belt behind it, and it is worth knowing rather than relying on: the payload carries
+   the prompt's OWN id, so a stale firing lands on a node whose watcher is looking for a different
+   id and is ignored. That is a second line of defence, not a reason to skip the cancel.)
+
+   BOTH SWALLOW THEIR OWN FAILURES, matching the presence writers directly above: an older Firebase
+   project can permission-deny an onDisconnect, and HARD-WON-LESSONS §1b is explicit that a throw in
+   the turn chain is an invisible stall the console never shows. A forfeit that could not be armed
+   is a game that behaves exactly as it did yesterday; a throw is a voyage that stops. */
+
+export function netForfeitOnDisconnect(db, room, id) {
+  if (!db || !room || !id) return;
+  db.ref("rooms/" + room + "/response").onDisconnect().set({ id }).catch(() => {});
+}
+
+export function netClearForfeitOnDisconnect(db, room) {
+  if (!db || !room) return;
+  db.ref("rooms/" + room + "/response").onDisconnect().cancel().catch(() => {});
+}
+
 export function netMarkPresence(db, myId) {
   const myRef = db.ref("presence/" + myId);
   myRef.onDisconnect().remove().catch(() => {});

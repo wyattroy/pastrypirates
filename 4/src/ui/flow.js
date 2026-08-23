@@ -642,12 +642,23 @@ export function pickCell(p,cells){
    a different answer locks different bowls, and the NEXT shuffle draws only from the unlocked ones,
    so the r() stream diverges from that point and the rest of the voyage is a different game.
 
-   THE CLOCK. A bake was previously the one decision in the game with no shot clock at all — an
-   absent player at the ovens stalled the table forever, in a mode whose whole point is that
-   everyone else keeps taking turns. It is armed LATE, by playBakeoffLive itself once the preview
-   and swaps are done: arming at prompt time would spend ~4.5s of a 30s window on animation the
-   player cannot act during. `armed` is what withShotClock chains onto, exactly as ask() does — it
-   returns `base` unwrapped unless the seat is already the armed one, so the order matters.
+   THE CLOCK IS GONE — WYATT'S RULING, 2026-08-18: the finish line gets AS LONG AS IT NEEDS
+   (04-01 Task 4, MP-13). A bake is the one decision in this game that is a puzzle rather than a
+   choice, and timing a memory test rewards reflex over memory.
+
+   WHAT WENT WITH IT, because removing a mechanism means removing what fed it: the `armed` promise,
+   the `onArm` callback that playBakeoffLive used to fire the moment the bench became answerable,
+   the belt that settled `armed` when the bench failed to render, and the withShotClock wrapper
+   itself. Leaving that scaffolding standing is how dead branches get built — and every line of it
+   existed only to solve "the 30s window must not start during 4.5s of animation", a problem that
+   no longer exists.
+
+   THE SAFETY NET IT USED TO BE IS REPLACED, NOT DROPPED, and the two halves ship together or
+   neither does. The clock was the only thing stopping an absent captain hanging the table, so the
+   fallback now fires on PRESENCE LOSS instead: a remote captain's own client arms an onDisconnect
+   write to the response node when their bench opens (netForfeitOnDisconnect, src/net/writers.js),
+   the server fires it if the tab closes, and the tail below sees a null and forfeits to the
+   engine's own guess having bought nothing — the same one entry a completed bake writes.
 
    PASS THE DEVICE FIRST. A bake is a whole turn, but it is taken in the END-OF-DAY loop rather
    than the seat loop, so it never passes through humanTurn — and humanTurn is where every other
@@ -712,7 +723,6 @@ export async function bakeoffPrompt(p,setup,fallback){
     attempts:p.bake.attempts,
     cost:BAKE_REWATCH_COST,
     coins:p.coins};
-  let resolveArmed;const armed=new Promise(res=>{resolveArmed=res;});
   // Spending a coin goes through the ENGINE, live, one at a time — so the purse on screen drops the
   // moment the player buys a look rather than after the whole prompt resolves. `canAfford` lets the
   // button grey out without the UI having to know the price.
@@ -723,15 +733,16 @@ export async function bakeoffPrompt(p,setup,fallback){
   // authoritatively. The engine stays the only thing that moves a real coin.
   const onRewatch=(n)=>appState.game.bakeRewatch(p,n)>0&&(liveRender(),true);
   onRewatch.canAfford=()=>p.coins>=BAKE_REWATCH_COST;
+  /* THE BENCH IS PUBLISHED BY WHOEVER IS BAKING (04-01 Task 3, MP-05). Only the captain with their
+     hand on the crates knows when Ready was pressed or which crate was just named, so the same
+     `io.onBench` hook exists on both tiers and the guest's copy (orchestrator.js's bake branch)
+     is the identical call. It is handed the SAME spec the choreography is running from, so a
+     watcher can never be sent a bench that disagrees with the one being played. */
+  const onBench=(patch)=>netHandlers().onBenchPublish(spec,p.idx,patch);
   const base=decisionIsLocal(p.idx)
-    ? playBakeoffLive(spec,()=>{armClock(p.idx);resolveArmed();},onRewatch)
+    ? playBakeoffLive(spec,{onRewatch,onBench})
     : netHandlers().onRemotePrompt(p.idx,spec);
-  // Belt: playBakeoffLive can return before it ever arms, because it bails out if the bench failed
-  // to render. `armed` must still settle or the chain below waits forever and the voyage stops,
-  // which is worse than an unclocked decision. The remote branch never arms at all — it settles
-  // this the same way, when the answer lands.
-  base.then(()=>resolveArmed(),()=>resolveArmed());
-  return armed.then(()=>withShotClock(p.idx,base,null))
+  return base
     .then(r=>{
       // ONE TAIL FOR BOTH BRANCHES, which is what keeps the roadmap's fourth criterion true by
       // construction rather than by care. playBakeoffLive resolves {guess,rewatches} and the remote

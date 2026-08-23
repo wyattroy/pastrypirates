@@ -156,6 +156,59 @@ never a host/guest divergence (the host fell back identically, because `runLiveN
 turn order until after `showAhoyIntro` returns, so the value truly does not exist yet on either
 tier) — it was one rule, broken for everyone, fixed once.
 
+### The bake-off bench — `playBakeoffLive()`, reached through `applyBenchSnap()` (04-01 Task 3, MP-05)
+
+**Entry point:** `playBakeoffLive(spec, io)`, `4/src/ui/bakeoff.js`. **Three callers name it, and
+all three are drawing the same bench face down:**
+
+| Caller | Tier | Who that is |
+|---|---|---|
+| `bakeoffPrompt`'s `decisionIsLocal` branch (`4/src/ui/flow.js`) | host loop | the captain baking on THIS device — solo, pass-and-play, or the host's own bake |
+| `watchPrompt`'s `kind==="bake"` branch (`4/src/orchestrator.js`) | listener | a captain baking in ANOTHER browser, with their own hands on their own crates |
+| `benchWatch`, reached from `watchBattle` **and** from `benchPublish` through `applyBenchSnap` | both | **every other captain, watching** |
+
+**What makes them agree: one spec, and no second animation.** `playBakeoffLive` is fully
+data-driven — `spec.before`, `spec.swaps`, `spec.locked`, `spec.attempts` and `spec.order` determine
+every frame of the cover sweep, every swap arc and every reveal. A watcher is handed **the same
+spec** and runs **the same choreography** from it, so the shuffle they see is the same arcs, the
+same 1000ms swaps and the same 700ms settles, drawn by that code. **Nothing is streamed frame by
+frame** — that would give jump-cuts and a second timing model to keep in step.
+
+**Only the RESPONSE MECHANISM differs, and it is the second argument.** `io` is either
+`{onArm,onRewatch,onBench}` (a baker) or `{watch}` (a watcher: crate clicks unwired, no re-watch
+button, no promise to resolve). There is one swap loop and one badge painter (`paintBadges`) in the
+file; a second of either is the defect this row exists to prevent.
+
+**What crosses the wire is DISCRETE MOMENTS, not animation** — the player decisions a watcher
+cannot derive: Ready pressed, each pick landing **and un-landing**, a paid replay restarting the
+shuffle (carried as an `epoch` bump, which is what restarts the watcher's own session), and the
+verdict.
+
+**WHO PUBLISHES IS THE ACTOR, NOT THE HOST.** The baker is the only party who knows when Ready was
+pressed or which crate was just tapped, and **the baker may be a guest** — so the rule is *the
+captain whose decision it is publishes the bench; every other client renders it.* One rule taking
+the ACTOR as its input, the same shape as the captains-list row above ("a rule that takes the
+viewer as an input is not two rules"), and the same shape as `watchChat`. **The VERDICT is the one
+moment the host publishes**, because the host is the only thing that scores.
+
+**The channel is `rooms/<CODE>/battle`, reusing `watchBattle` — no tenth listener.** A bench
+snapshot is discriminated by carrying `bake`, handled before `renderBattleFromSnap` is reached, and
+it also carries a `title`, which makes the long-dormant `!v.title` guard fire for the first time so
+the battle sting cannot sound over a bake. **`watchBattle` is now attached by EVERY client with a
+room** (`beginGame`), because a host that only ever wrote to that node could never watch a rival's
+bake. Its BATTLE branch stays guest-only behind an explicit `if(appState.isHost)return;` — see §4
+fork 3, which is still unconverged.
+
+**How long it stays:** the host clears the node after the reveal, exactly as `asyncBattle` does at
+the end of a fight. Without that, nothing downstream can take the panel back and a watcher session
+could never end. The card itself leaves through its one exit, `retireBakeCard` (item 6 / D-16), on
+every tier.
+
+**The answer is not on the wire.** The engine's post-shuffle bench — the solution — never leaves the
+host during the attempt: `before` + `locked` already determine every solved step, because a locked
+crate never moves. `slots` appears only on the REVEAL snapshot, when the crates are being lifted off
+and it is public anyway.
+
 ### The prompt CARD markup — `optionButtonsHTML` and `sailPanelHTML` + `sailHighlightRect`
 
 Already one builder each, gated by the parity gate's assertions 1 and 2 — this is markup parity, not
@@ -186,6 +239,14 @@ if(appState.isHost && appState.db && appState.room) /* write to Firebase */
 ```
 
 **Local render always. A Firebase write happens only under this guard.**
+
+**ONE NAMED REFINEMENT, 04-01 Task 3, and it is narrow.** `benchPublish` (`4/src/orchestrator.js`)
+writes under **`db && room && !replaying`** — the same guard *minus `isHost`*. That is deliberate:
+the safety property this rule exists for is that **a solo game never writes**, and `room` alone is
+what is null in solo (this section's own measured correction says so, and `db` is a real handle in
+every mode). The `isHost` half encodes *who computes*, which is precisely the thing rule 23 forbids
+from deciding what is drawn — and a bench is published by whoever is BAKING, who may be a guest.
+**Any future writer that is not about an actor's own decision still uses the full guard.**
 
 **MEASURED CORRECTION (02.15-02 Task 3), because an earlier framing here was wrong and it is worth
 recording why.** `4/index.html` loads the real Firebase SDK (multiplayer was restored in Phase 2),
@@ -238,12 +299,14 @@ force-resolves at zero: the 30-second auto-skip every player relies on stops fir
 
 ---
 
-## 4. THE FIVE PROMPT FORKS, NAMED — converged or not
+## 4. THE SIX PROMPT FORKS, NAMED — converged or not
 
-**Fork 1 (`pickCell()`) converged 02.15-02 Task 3.** See §2's "The sail prompt" row above. The
-remaining four are below.
+**Fork 1 (`pickCell()`) converged 02.15-02 Task 3.** See §2's "The sail prompt" row above.
+**Fork 6 (`bakeoffPrompt()`) converged 04-01 Task 3.** See §2's bake-off row. The other four are
+below, still open.
 
-**"The prompt channel" is not one thing. It is these five fork sites**, confirmed by reading the
+**"The prompt channel" is not one thing. It is these SIX fork sites** — five when this table was
+written; the bake-off is the sixth and was missing because it had no remote branch to fork on, confirmed by reading the
 tree at build `2026-08-20k`. This table is this document's honesty — it is what stops a reader who
 sees the narration and active-seat channels converged from concluding the prompt channel is too.
 
@@ -254,6 +317,7 @@ sees the narration and active-seat channels converged from concluding the prompt
 | 3 | `battleAsk()` | `4/src/orchestrator.js:443` | **Yes, more than expected** — `renderBattleFromSnap` delegates to `renderBattle`, so both tiers already end in one card builder | **NOT YET CONVERGED** — only the CONTROL WIRING (arming the coin, wiring `.btlBtn`) differs, not the card. Target of 02.15-02 Task 5, expected NOT to be reached under D-04. |
 | 4 | `recipeDraftNet()` | `4/src/orchestrator.js:855` | Yes — `optionButtonsHTML` via `watchDraftPrompt` | **LEFT — not a task in 02.15-02.** Forks on `seatLocal(s)`, not `decisionIsLocal(s)`. See Rule B above — the landmine is real and disarming it is its own piece of work. |
 | 5 | `netIntroBarrier()` | `4/src/ui/flow.js:2265` | Same `draftPrompts` node, same builder | **LEFT — not a task in 02.15-02.** Same `seatLocal` fork; additionally has its own `appState.passAndPlay` interception (`4/src/ui/flow.js:2249-2261`) that a careless dispatch extension would break. |
+| 6 | `bakeoffPrompt()` | `4/src/ui/flow.js` | **Yes** — one shell, one bench, one badge painter, all in `4/src/ui/bakeoff.js` | **CONVERGED 04-01 TASK 3.** Not in the original table at all, because until 04-01 Task 2 **it had no remote branch**: measured 2026-08-23, a guest's bake was played on the HOST's screen while the guest's showed nothing. One choreography, `playBakeoffLive`, named by `bakeoffPrompt`'s `decisionIsLocal` branch, by `watchPrompt`'s `kind==="bake"` branch, and reached by every watching captain through `applyBenchSnap`. See §2's bake-off row. |
 
 **Nobody may read "the prompt channel is done" off a partial convergence of this table.** Each fork
 either converges — one renderer, named by both the host's loop and by a Firebase listener, with the

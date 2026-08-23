@@ -121,6 +121,22 @@ function benchHTML(bake,slots){
      </button>`;}).join("")+`</div>`;
 }
 
+/* THE ONE THING THAT WRITES A BADGE ONTO A CRATE (04-01 Task 3, rule 23).
+   It was a closure inside the baker's own taps loop; the moment a WATCHER also had to show which
+   crates had been named, that closure was about to be copied — and a second badge painter is two
+   chances for the two screens to disagree about the same bench. So it is one function, called by
+   the baker's paint() and by the watcher's pick stream, and neither knows where its list came from.
+   A LOCKED CRATE IS NEVER TOUCHED: its badge is the step number the captain already earned. */
+function paintBadges(bowls,openSteps,picks){
+  bowls.forEach((b,pos)=>{
+    if(b.classList.contains("locked"))return;
+    const at=picks.indexOf(pos);
+    const num=b.querySelector(".bkoNum");
+    if(num)num.textContent=at>=0?String(openSteps[at]+1):"";
+    b.classList.toggle("picked",at>=0);
+  });
+}
+
 // "2", "2 and 4", "2, 4 and 5" — the ordinals of the steps still owed, from 0-based step indices.
 function listSteps(steps){
   const n=steps.map(k=>k+1);
@@ -131,17 +147,21 @@ function listSteps(steps){
 // `p` used to be the first argument here and was never read in the body — the whole shell is
 // composed from the BAKE, which is the only thing a bench is about. Dropped in 04-01 Task 2, where
 // the choreography stopped taking a player at all (see playBakeoffLive).
-function shellHTML(bake,slots,hint,btnLabel,btnEnabled){
+function shellHTML(bake,slots,hint,btnLabel,btnEnabled,watching){
   const att=bake.attempts+1;
-  return `<div class="bko">
+  /* THE SAME SHELL FOR A WATCHER (04-01 Task 3, MP-05). Same header, same recipe card, same bench,
+     same attempt number — the ONLY difference is that the two controls are absent, because a
+     watcher has nothing to answer. That is the whole shape of this convergence: the response
+     mechanism is what differs between tiers, never the drawing. */
+  return `<div class="bko${watching?" bkoWatching":""}">
     <div class="bkoHd">${iconImg(CUPCAKE_IMG)} The Bake-Off<span class="bkoAtt">attempt ${att}</span></div>
     ${cardHTML(bake)}
     ${benchHTML(bake,slots)}
     <div class="bkoHint" id="bkoHint">${hint}</div>
-    <div class="bkoBtns">
+    ${watching?"":`<div class="bkoBtns">
       <button class="apBtn bkoWatch" id="bkoWatch" type="button" hidden>Watch again ${iconImg(COIN_IMG)}1</button>
       <button class="apBtn bkoGo" id="bkoGo" type="button"${btnEnabled?"":" disabled"}>${btnLabel}</button>
-    </div>
+    </div>`}
   </div>`;
 }
 
@@ -237,7 +257,7 @@ function retireBakeCard(){
 
 /* ================= the interaction ================= */
 
-/* playBakeoffLive(spec,onArm,onRewatch) — the whole human attempt, start to finish, resolving to
+/* playBakeoffLive(spec,io) — the whole human attempt, start to finish, resolving to
    {guess,rewatches}: `guess` is an array of BOWL INDICES in recipe order (guess[k] = the bowl the
    player says holds step k).
 
@@ -264,11 +284,44 @@ function retireBakeCard(){
    same answer `slots.indexOf(order[k])` gave, with no way for a captain to read the solution off
    their own network tab.
 
-   `onArm` is called at the exact moment the bench becomes answerable — see bakeoffPrompt (flow.js)
-   for why the shot clock starts there and not when the prompt opened. `onRewatch(n)` spends the
-   coins and returns whether it bought anything; `onRewatch.canAfford()` greys the button. Both are
-   the RESPONSE MECHANISM, which is the only thing that differs between one tier and another. */
-export async function playBakeoffLive(spec,onArm,onRewatch){
+   THE RESPONSE MECHANISM IS THE SECOND ARGUMENT, AND IT IS THE ONLY THING THAT DIFFERS BETWEEN
+   ONE CLIENT AND ANOTHER (04-01 Task 3, MP-05). `io` is either a BAKER's or a WATCHER's:
+
+     BAKER    { onRewatch, onBench }
+              onRewatch(n) spends the coins and returns whether it bought anything, with
+              onRewatch.canAfford() greying the button; onBench(patch) publishes the DISCRETE
+              MOMENTS only the baker can know — Ready pressed, each pick landing and un-landing, a
+              paid replay restarting.
+              THERE IS NO `onArm` ANY MORE (04-01 Task 4, MP-13). It existed for one purpose — to
+              start the shot clock at the moment the bench became answerable rather than burning
+              4.5s of a 30s window on animation — and the bake has no shot clock now. Removing a
+              mechanism means removing what fed it.
+
+     WATCHER  { watch }
+              The identical sequence, driven by those same moments instead of by taps: crate
+              clicks unwired, no re-watch button, no promise to resolve. NOTHING IS STREAMED FRAME
+              BY FRAME — the watcher is handed the same spec and runs the same choreography from
+              it, so the shuffle they see is the same arcs, the same 1000ms swaps and the same
+              700ms settles, drawn by this code. Snapshot-streaming the animation would give
+              jump-cuts and a second timing model to keep in step; this gives neither.
+              watch.hint      the line under the bench, naming who is baking
+              watch.started   resolves when the baker presses Ready
+              watch.onPicks   registers a callback for the badge state
+              watch.done      resolves when the bake is over (the verdict, or the node clearing)
+
+   THERE IS NO SECOND SWAP LOOP ANYWHERE BELOW, and if a future edit is about to copy one, that is
+   the defect this task exists to prevent, not a shortcut. */
+export async function playBakeoffLive(spec,io){
+  io=io||{};
+  const watch=io.watch||null;                 // present => this client is WATCHING, not baking
+  const onRewatch=io.onRewatch||null;
+  /* EVERY PUBLISHED MOMENT CARRIES THE SAME EPOCH, and getting that wrong is the one way this can
+     stutter: a watcher restarts its session when the epoch moves, so a `pick` still stamped with
+     the old epoch after a paid replay would restart it again, every tap. `epoch` is bumped exactly
+     once per paid replay, by the one line that buys one. */
+  let epoch=0;
+  const rawBench=io.onBench||function(){};    // a no-op in solo and for a watcher
+  const bench=(patch)=>rawBench(Object.assign({epoch},patch));
   const swaps=spec.swaps||[];
   // The shape cardHTML/benchHTML/stepOfSlot have always read. Built from the spec rather than
   // handed in, so this function never touches a live engine object.
@@ -302,7 +355,9 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
   // narration card saying that you have your ingredients, now you must combine them in the correct
   // order to bake your recipe.") Only on the FIRST attempt — on a retry he already knows what game
   // he is playing, and a card explaining it again would be in the way.
-  if(bake.attempts===0){
+  // A WATCHER GETS NO STORY CARD. It is the captain's own beat — "ye must bake YER recipe" with a
+  // button on it — and a watcher has not stepped up to anything. They join at the bench.
+  if(!watch&&bake.attempts===0){
     await bakeoffIntroCard(bake);
   }
 
@@ -312,7 +367,8 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
   // disabled and enabling it at the exact moment it works removes the dead window instead of hiding
   // it. Found by a probe that clicked at 800ms and hung.
   panel(shellHTML(bake,shown,
-    "Study the order. Start the shuffle when yer ready.","Ready to bake!",false),true);
+    watch?watch.hint:"Study the order. Start the shuffle when yer ready.",
+    "Ready to bake!",false,!!watch),true);
   // the shell is in the DOM and carries .bko — from here the content keeps the stage lit, so the
   // intro's flag can go (see the note at the top of this function)
   delete $("actionPanel").dataset.pp4Stage;
@@ -338,7 +394,7 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
   // an explicit clear), and the wait is measured off panel.js's own exported constant rather than a
   // second copy of the duration.
   if(document.querySelector("#actionPanel .apMsg.fadeOut"))await sleep(GHOST_FADE_MS+80);
-  {const g0=$("bkoGo"); if(g0)g0.disabled=false;}   // the bench is clean; the button is now real
+  {const g0=$("bkoGo"); if(g0)g0.disabled=false;}   // the bench is clean; the button is now real (absent for a watcher)
   // The ghost crates (see .bkoBack) fade up for the study phase, so the ingredients are sitting IN
   // something rather than floating on an empty bench. They go the moment the real crates close over
   // them — from then on the crate the player is tracking is the solid one.
@@ -351,11 +407,19 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
   // one: a fixed study window punishes reading speed rather than memory, and it started running
   // while the previous line was still fading over the bench. Untimed here is safe because the shot
   // clock is not armed until the bench is answerable, further down.
-  await new Promise(res=>{
-    const go=$("bkoGo");
-    if(!go){res();return;}
-    go.onclick=()=>{go.onclick=null;go.disabled=true;res();};
-  });
+  if(watch){
+    // The watcher's Ready is the BAKER's Ready, crossing the wire. Same gate, different hand on it.
+    bench({phase:"open"});
+    await watch.started;
+  }else{
+    bench({phase:"open"});
+    await new Promise(res=>{
+      const go=$("bkoGo");
+      if(!go){res();return;}
+      go.onclick=()=>{go.onclick=null;go.disabled=true;res();};
+    });
+    bench({phase:"shuffle"});
+  }
 
   // ---- phase 2: crates down, ONE BY ONE, LEFT TO RIGHT ----
   // (Wyatt, 2026-08-10, playtester feedback: "when the player clicks 'ready', animate in the
@@ -449,9 +513,10 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
     bowls.forEach((b,i)=>{ const img=b.querySelector(".bkoIng"); if(img&&arr[i])img.setAttribute("src",ING_IMG[arr[i]]); });
   }
 
-  // ---- phase 4: arm, and take taps ----
-  // The shot clock is armed HERE, not when the prompt opened: ~4.5s of preview and shuffle would
-  // otherwise eat a sixth of a 30s window before the player could act.
+  // ---- phase 4: take taps ----
+  // This used to arm the shot clock, HERE rather than at prompt time, so that ~4.5s of preview and
+  // shuffle did not eat a sixth of a 30s window. Wyatt removed the clock from the bake outright on
+  // 2026-08-18 — the finish line gets as long as it needs — so the arming went with it (Task 4).
   const guess=new Array(n).fill(null);
   /* Steps already solved on an earlier attempt are not asked about again.
      READ OFF `shown`, NOT THE ENGINE'S ANSWER (04-01 Task 2). This used to index bake.slots — the
@@ -471,15 +536,40 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
   // On a retry the instruction "tap in recipe order" is true but unhelpful — the order that remains
   // is 2 then 4, not 1 to 5, and saying so is the difference between the player counting and the
   // player playing.
-  if(hint)hint.textContent=openSteps.length===n
+  if(hint)hint.textContent=watch?watch.hint
+    :openSteps.length===n
     ?"Tap the crates in recipe order. Tap again to undo."
     :`${openSteps.length} left — tap them for step${openSteps.length>1?"s":""} ${listSteps(openSteps)}. Tap again to undo.`;
+
+  /* ---- THE WATCHER'S HALF OF PHASE 4 (04-01 Task 3, MP-05) ----
+     Everything above ran identically. What a watcher does not have is a hand on the bench: no
+     shot clock to arm (they are not being asked anything), no crate handlers, no confirm button,
+     and no promise for the engine to wait on. What they DO get is the badges appearing as the
+     baker names each crate — the same paintBadges() the baker's own screen uses, driven by the
+     pick list off the wire instead of by clicks. */
+  if(watch){
+    setNeedsAction(false);
+    watch.onPicks(picks=>paintBadges(bowls,openSteps,picks||[]));
+    if(watch.picksNow)paintBadges(bowls,openSteps,watch.picksNow());
+    await watch.done;
+    /* THE CARD STILL LEAVES THROUGH THE ONE EXIT (item 6 / D-16). bakeoffReveal calls
+       retireBakeCard itself, so this only fires on the paths it did NOT run: the bench node
+       cleared, or the captain being watched dropped out. Without it a watcher is left holding a
+       covered bench for the rest of the voyage — the exact fault item 6 was written for, one tier
+       over.
+       BOTH FLAGS ARE SET SYNCHRONOUSLY BEFORE `done` RESOLVES, which is the only thing that makes
+       this safe: `revealed` stops it destroying the verdict animation, and `superseded` stops it
+       destroying the NEXT session's bench when a paid replay restarts the watch. The second was
+       measured — a watching captain lost their bench the moment the baker bought another look. */
+    if(!watch.revealed&&!watch.superseded)retireBakeCard();
+    return null;
+  }
+
   setNeedsAction(true);
   // The same button served as "Ready to bake!"; it becomes the confirm control now, disabled until
   // every open step has been assigned.
   const goBtn=$("bkoGo");
   if(goBtn){goBtn.textContent="Bake it!";goBtn.disabled=true;}
-  if(onArm)onArm();
 
   let rewatches=0;                        // paid replays, logged so a resume charges the same coins
 
@@ -518,6 +608,11 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
       if(!(onRewatch&&onRewatch(1)))return;   // engine says no coins — nothing spent, nothing shown
       rewatches++;
       replaying=true;
+      // A PAID REPLAY RESTARTS THE SHUFFLE FOR EVERYONE. `epoch` is what tells a watcher this is a
+      // new run of the same swaps rather than a snapshot it has already seen, so its own session
+      // restarts and it watches the replay too — through this same function, from this same spec.
+      epoch=rewatches;
+      bench({phase:"shuffle"});
       picks.length=0;                    // the tapped numbers go with the restart, badges and all
       paint();                           // repaints every badge empty and re-disables Bake it!
       if(go)go.disabled=true;
@@ -538,25 +633,31 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
       paint();
     };
     const paint=()=>{
-      bowls.forEach((b,pos)=>{
-        if(b.classList.contains("locked"))return;   // its badge is its earned step number — leave it
-        const at=picks.indexOf(pos);
-        b.querySelector(".bkoNum").textContent=at>=0?String(openSteps[at]+1):"";
-        b.classList.toggle("picked",at>=0);
-      });
+      paintBadges(bowls,openSteps,picks);
       if(go)go.disabled=replaying||picks.length!==openSteps.length;
       paintButtons();
+      // THE PICKS ARE A DISCRETE MOMENT, not animation — a player decision, so it crosses the wire
+      // (04-01 Task 3). Every landing AND un-landing, because "tap again to undo" is a decision too
+      // and a watcher left holding a badge the baker has taken back is watching a different bench.
+      bench({phase:"pick",picks:picks.slice()});
     };
     const finish=()=>{
       appState.activePickCleanup=null;
       setNeedsAction(false);
+      // SPENT THE MOMENT THE GUESS LEAVES. bakeoffReveal greys it too, but on a remote captain's
+      // screen the verdict has to travel to the host and back first, and a live "Bake it!" sitting
+      // on a decision that has already resolved is an invitation to press it again (the same
+      // reasoning bakeoffReveal's own note gives for greying it at all).
+      if(go){go.disabled=true;}
       openSteps.forEach((k,i)=>{guess[k]=picks[i];});
       if(watch)watch.hidden=true;
       resolve({guess,rewatches});
     };
-    // the shot clock's teardown hook: it may force this panel closed at any moment, and the engine
-    // will fall back to the bot's guess, so this only has to stop leaking handlers — and drop the
-    // stage flag, or a forfeited bake would leave the next ordinary prompt playing centre stage.
+    // Teardown, registered the way every hand-built prompt in this file registers one. It was the
+    // SHOT CLOCK's hook until Task 4 took the clock off the bake; nothing forces a bench closed on
+    // a timer any more, and it is kept because it is the standing contract for abandoning a prompt's
+    // DOM — it stops handlers leaking and drops the stage flag, or an abandoned bake would leave the
+    // next ordinary prompt playing centre stage.
     appState.activePickCleanup=()=>{appState.activePickCleanup=null;setNeedsAction(false);
       delete $("actionPanel").dataset.pp4Stage;};
 
@@ -575,11 +676,21 @@ export async function playBakeoffLive(spec,onArm,onRewatch){
   });
 }
 
-// bakeoffReveal(p,setup,result) — phase 5. Called AFTER the engine has scored, and animates its
-// verdict: bowls lift one at a time in recipe order, each stamped right or wrong, then the correct
-// ones settle into their lock.
-export async function bakeoffReveal(p,result){
-  const bake=p.bake;
+/* bakeoffReveal(view,result) — phase 5. Called AFTER the engine has scored, and animates its
+   verdict: crates lift one at a time in recipe order, each stamped right or wrong, then the
+   correct ones settle into their lock.
+
+   IT TAKES A PLAIN VIEW NOW, NOT THE LIVE PLAYER (04-01 Task 3). `view` is {order,slots} — the
+   recipe's sequence and the FINAL bench, which stops being a secret the instant the crates come
+   off. That is what lets EVERY captain run this: the baker on their own bench, a watcher on the
+   bench they have been watching, the host on either. One broadcast, one renderer, and nobody is
+   shown a verdict computed on their own machine.
+
+   IT RENDERS ONTO WHATEVER BENCH IS ON SCREEN and returns quietly if there is none — which is the
+   correct behaviour for a captain whose card has already gone, and the reason this is safe to call
+   from a broadcast handler rather than only from the turn loop. */
+export async function bakeoffReveal(view,result){
+  const bake=view;
   const row=document.querySelector("#actionPanel .bkoRow");
   // Nothing left to reveal onto — the attempt is still spent, so the card still leaves (item 6).
   if(!row){retireBakeCard();return;}

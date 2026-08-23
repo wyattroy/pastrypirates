@@ -625,6 +625,22 @@ const ORCHESTRATION_DECL = [
      is auditable rather than asserted. */
   { fn: "localPickCell(", superseded: "renderPickPrompt(", why: "not a renderer any more — the LOCAL RESPONSE MECHANISM, reached THROUGH renderPickPrompt on both tiers. 02.15-02 Task 3 (THE TRACER)." },
   { fn: "renderPickPrompt(", shared: true, why: "shared — PROMOTED BY 02.15-02 TASK 3 (THE TRACER), in the same commit that made it true. The ONE sail-window renderer, named directly by localPickCell (the local response mechanism) and by watchPrompt's kind===\"pick\" branch." },
+  /* 04-01 TASK 3 (MP-05) ADDS TWO ROWS, AND THEY WERE WATCHED RED AGAINST THE PRE-TASK TREE BEFORE
+     THEY WERE ADDED — a row added after the fact proves nothing (see 04-01-SUMMARY.md for the run).
+     Against build 2026-08-23a `playBakeoffLive` read listeners=0 host-loop=1 and `applyBenchSnap`
+     did not exist at all, i.e. PARITY-ORCH and PARITY-ORCH-ABSENT respectively.
+
+     TWO ROWS RATHER THAN ONE, because the bake-off is reached from the listener tier by two
+     different listeners and only one of them can name the choreography directly:
+       watchPrompt  — the REMOTE CAPTAIN's own hands. Names playBakeoffLive directly, exactly as
+                      the sail tracer's pick branch names renderPickPrompt.
+       watchBattle  — EVERY OTHER CAPTAIN, watching. Reaches the same choreography through
+                      applyBenchSnap, which is the ONE entry both the publisher (mirror-when-remote,
+                      local render always) and the listener go through. That is not a guest-only
+                      wrapper — it is the shared seam — so it gets its own tracked row instead of
+                      being hidden behind the first one. */
+  { fn: "playBakeoffLive(", shared: true, why: "shared — PROMOTED BY 04-01 TASK 3 (MP-05), in the same commit that made it true. The ONE bake-off choreography: the baker's own hands and every watching captain run this same function from the same spec, face down for all of them. Named directly by bakeoffPrompt's decisionIsLocal branch and by watchPrompt's kind===\"bake\" branch." },
+  { fn: "applyBenchSnap(", shared: true, why: "shared — PROMOTED BY 04-01 TASK 3 (MP-05). The one entry a bench moment reaches this screen through, called by benchPublish (local render always) and by watchBattle's bench branch. It is what carries the watching captain into playBakeoffLive." },
 ];
 
 // Slice a function body by BRACE MATCHING from its `export function NAME(` header. Located by

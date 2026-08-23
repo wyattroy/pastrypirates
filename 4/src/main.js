@@ -82,6 +82,9 @@ if (typeof window !== "undefined") {
     onLeave: orchestrator.leaveGame,
     // 11-07 additions — src/orchestrator.js (main-tier) targets:
     onRemotePrompt: orchestrator.remotePrompt,
+    // 04-01 Task 3 (MP-05): the bake-off's bench moments. A (a)-case edge — benchPublish is
+    // main-tier (it reaches src/net/) and src/ui/ can never import a main-tier file.
+    onBenchPublish: orchestrator.benchPublish,
     onRemoteDraftPrompt: orchestrator.remoteDraftPrompt,
     onLogDecision: orchestrator.logDecision,
     onBeginGame: orchestrator.beginGame,

@@ -1,0 +1,163 @@
+{
+  "tag": "390x844",
+  "W": 390,
+  "H": 844,
+  "mobile": false,
+  "mode": "solo",
+  "ovens": [
+    {
+      "baking": true,
+      "done": false,
+      "human": true
+    },
+    {
+      "baking": false,
+      "done": false,
+      "human": false
+    },
+    {
+      "baking": false,
+      "done": false,
+      "human": false
+    },
+    {
+      "baking": false,
+      "done": false,
+      "human": false
+    }
+  ],
+  "introShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-01-intro-card.png",
+  "benchShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-02-bench-study.png",
+  "armedShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-03-bench-answerable.png",
+  "guessShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-04-guess-entered.png",
+  "after": [
+    {
+      "tMs": 2400,
+      "present": true,
+      "visible": true,
+      "w": 310.6,
+      "h": 312.1,
+      "t": 265.9,
+      "opacity": 1,
+      "hitIsBko": true,
+      "stage": false,
+      "hint": "Opening the crates…",
+      "narr": ""
+    },
+    {
+      "tMs": 3900,
+      "present": true,
+      "visible": true,
+      "w": 310.6,
+      "h": 328.1,
+      "t": 257.9,
+      "opacity": 1,
+      "hitIsBko": true,
+      "stage": false,
+      "hint": "2 of 5 in place. Those stay put; the rest get shuffled again tomorrow.",
+      "narr": ""
+    },
+    {
+      "tMs": 5400,
+      "present": true,
+      "visible": true,
+      "w": 310.6,
+      "h": 328.1,
+      "t": 257.9,
+      "opacity": 1,
+      "hitIsBko": true,
+      "stage": false,
+      "hint": "2 of 5 in place. Those stay put; the rest get shuffled again tomorrow.",
+      "narr": ""
+    },
+    {
+      "tMs": 6900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 8400,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 9900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 11400,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 12900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 14400,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 15900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 17400,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 18900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 20400,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 21900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 23400,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    },
+    {
+      "tMs": 24900,
+      "present": false,
+      "visible": false,
+      "narr": ""
+    }
+  ],
+  "revealShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-05-reveal-running.png",
+  "afterShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-06-just-after-attempt.png",
+  "laterShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-07-two-beats-later.png",
+  "finalShot": "/Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t5-solo/390x844-08-end-of-window.png",
+  "verdict": {
+    "everGone": true,
+    "backAfterGone": false,
+    "stillUpAt4s": true,
+    "stillUpAt10s": false
+  },
+  "consoleErrs": []
+}
