@@ -53,7 +53,7 @@
 // layer holds while storms arrive and leave); a non-storm-only rule is WIND-01's, and Phase 20's.
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 //
 // Deviation ($ duplicate, mirrors 11-01's recipe.js precedent): `$` is a classic-script-local
 // `const $=id=>document.getElementById(id)` (index.html:863), used ~120+ times across the

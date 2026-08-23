@@ -701,7 +701,7 @@ async function asyncBattleRun(att,def){
   // way it did. The engine's own emit has always carried it (src/engine/index.js); this live path
   // dropped it, which is why the durable line could only ever say "wins 1-0" — see the battle
   // narration builder in src/ui/util.js. Display-only, and /4 is outside the determinism corpus
-  // (scripts/lib/load_engine.js loads the ROOT src/engine), so no fixture is touched.
+  // (scripts/lib/load_engine.js loads the ROOT src/engine), so no fixture is touched.  [ROOT-TREE-CITATION: load_engine.js reads the root tree on purpose — true as written]
   appState.game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,spoilChosen:false,downwind});
   liveRender();
   // narrate the outcome now — settlement pushes further events right after this, and callers only
@@ -934,7 +934,7 @@ async function runLiveDayClassic(order){
 
    The per-attempt sequence lives in Game.bakeAttempt and NOWHERE ELSE — this driver supplies only
    which promise to await, never what to compute. That is what keeps the live and headless loops
-   from drifting, and scripts/bakeoff_parity_test.js asserts it rather than trusting the comment. */
+   from drifting, and scripts/bakeoff_parity_test.js asserts it rather than trusting the comment.  [UNGATED-IN-4: bakeoff_parity_test.js reads the root tree, not this one] */
 async function runLiveDayBakeoff(order){
   const g=appState.game;
   for(const i of order){
@@ -2132,7 +2132,7 @@ export function boot(){
   if(!fbOk){
     // v2 always lands here — there is no Firebase SDK on the page at all. The elements these
     // lines marked up no longer exist, so each is guarded; the branch itself is kept because
-    // ui_contract_check.js's BOOT-FBINIT-OFFLINE assertion forbids restructuring the path
+    // ui_contract_check.js's BOOT-FBINIT-OFFLINE assertion forbids restructuring the path  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // between here and resumeSoloGame(), and because an offline refresh mid-solo-game still has
     // to resume through exactly this route.
     const hostCard=$("choiceHost");if(hostCard)hostCard.classList.add("disabled");
@@ -2140,7 +2140,7 @@ export function boot(){
     const note=$("fbnote");if(note)note.style.display="";
   }
 
-  // if/else rather than an early return, deliberately: ui_contract_check.js's BOOT-FBINIT-OFFLINE
+  // if/else rather than an early return, deliberately: ui_contract_check.js's BOOT-FBINIT-OFFLINE  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
   // assertion forbids ANY `return` between the !fbOk branch and resumeSoloGame(solo), because that
   // is how an offline refresh mid-solo-game once stopped resuming. The early return this replaced
   // sat on the not-resuming path and could not have caused that — but the assertion is a textual

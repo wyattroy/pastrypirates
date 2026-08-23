@@ -22,7 +22,7 @@
 // here (flow.js's wireWelcome imports both from this file, extending its existing import).
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 //
 // Deviation ($ duplicate, mirrors 11-01/11-03/11-04's precedent): `$` is a classic-script-local
 // `const $=id=>document.getElementById(id)` (index.html:863, pre-11-07), used ~120+ times across
@@ -385,12 +385,12 @@ export function renderSeatList(seats){
     // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
     // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
     // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
-    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
+    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // alike (the
     // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
-    // of scope. scripts/ui_contract_check.js now gates this permanently.
+    // of scope. scripts/ui_contract_check.js now gates this permanently.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // F1 + UI-06 (Wyatt-approved 2026-07-29, 15-PLAYTEST-NOTES.md): two fixes in two lines.
     //
     // F1 — THE LABEL CLASS. The pirate register (D-29) applies to text the game SPEAKS. This is not
@@ -399,7 +399,7 @@ export function renderSeatList(seats){
     // not pirate, it is a grammar error: `ye` is a pronoun standing in for a person, so a bare
     // `Wyatt — ye` reads "Wyatt — thou" rather than "Wyatt — that's the one that's you". The ~50
     // in-sentence ADDRESS sites in this codebase are correct as ye/yer and none of them change.
-    // scripts/ui_contract_check.js carries a named, content-anchored, staleness-checked exception
+    // scripts/ui_contract_check.js carries a named, content-anchored, staleness-checked exception  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // for exactly these three label sites, so a later pass cannot "fix" them back.
     //
     // F2/UI-06 — ONE NAME PER SEAT. `label` used to begin with the seated player's name while the

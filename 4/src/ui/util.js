@@ -8,7 +8,7 @@
 // the bridge's global-object spread until Phase 11 (11-07) deleted it).
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 //
 // Deviation (mirrors 11-01's RECIPE_BOOK/$ finding): a handful of these functions read `cell`
 // (the board's current px-per-grid-cell) or `shipEls` (the array of ship <g> elements) — both
@@ -32,9 +32,9 @@
 // localStorage has never actually persisted; fixed while moving (Rule 1).
 //
 // Deviation (Rule 3 — blocking): `replayShortfall`/`REPLAY_SHORTFALL_TOLERANCE` used to live inside
-// a sentinel-comment region in index.html that scripts/dlog_replay_test.js sliced out via
+// a sentinel-comment region in index.html that scripts/dlog_replay_test.js sliced out via  [UNGATED-IN-4: dlog_replay_test.js reads the root tree, not this one]
 // `node:vm` at test time (see that script's original header). Moving them here retires that
-// slicing hack entirely — dlog_replay_test.js now does a native `import` of this module instead;
+// slicing hack entirely — dlog_replay_test.js now does a native `import` of this module instead;  [UNGATED-IN-4: dlog_replay_test.js reads the root tree, not this one]
 // see its updated header comment for the full account.
 
 import {
@@ -140,15 +140,15 @@ export function buildPlayerRows(){
     // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
     // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
     // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
-    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
+    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // alike (the
     // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
-    // of scope. scripts/ui_contract_check.js now gates this permanently.
+    // of scope. scripts/ui_contract_check.js now gates this permanently.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // F1 (Wyatt-approved 2026-07-29): the LABEL class — this tooltip points AT a row to say "this
     // one is the reader", so it is UI chrome rather than the game speaking, and takes plain "you".
-    // See src/ui/lobby.js's renderSeatList for the full rule; ui_contract_check.js gates it.
+    // See src/ui/lobby.js's renderSeatList for the full rule; ui_contract_check.js gates it.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||appState.game.cfg.strategies[i]})`;
     const displayName=pname(i);
@@ -1378,7 +1378,7 @@ export function msgHoldMs(text,ceilingMs){
 //   - msgHoldMs() itself and its botMsgHoldMs() alias -> UNCHANGED. Nothing in 4/src calls either
 //     any more once the two above are moved; they are kept so the D-23 parity alias and any script
 //     harness reading HOLD_FLOOR_MS/HOLD_CEILING_MS keep behaving byte-identically.
-//   - scripts/narration_test.js's G28 pins -> read the ROOT tree's src/ui/util.js, not this file.
+//   - scripts/narration_test.js's G28 pins -> read the ROOT tree's src/ui/util.js, not this file.  [ROOT-TREE-CITATION: narration_test.js reads the root tree on purpose — true as written]
 //     Checked by path, not assumed.
 const READ_ANCHOR_SHORT  = [27, 2100];   // D-34: ~27 characters reads in ~2.1s
 const READ_ANCHOR_MEDIUM = [75, 4500];   // D-34: ~75 characters reads in ~4.5s
@@ -1795,7 +1795,7 @@ export function ask(msg,opts,colors,sub,extra){
   // content, and the actor's own prompt as that seat's variant. netNarrate forwards `variants` to
   // pickNarrVariant on the host and through netSetNarr to watchNarr on every guest, so each client
   // selects for itself. No new copy — both strings already existed.
-  // scripts/ui_contract_check.js assertion 7 gates the rule.
+  // scripts/ui_contract_check.js assertion 7 gates the rule.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
   /* 19 — THE HOST'S DEAD BOARD, and this is the line that was dying on it. While a guest answers,
      every other screen holds this "…is deciding…" line, and it is the only thing explaining the
      pause. On the ordinary hold curve it retired after a few seconds and left a board with nothing
@@ -2065,7 +2065,7 @@ export function seatLocal(s){return s===appState.mySeat;}
 // viewer-neutral default line narrationVariants() diffs every per-seat rendering against.
 export const NEUTRAL_VIEWER=-1;
 // D-10/Pitfall 2: viewerSeat null/undefined MUST delegate to seatLocal()'s live appState.mySeat
-// read and therefore behave byte-identically to today — scripts/bot_storm_narration_test.js
+// read and therefore behave byte-identically to today — scripts/bot_storm_narration_test.js  [UNGATED-IN-4: bot_storm_narration_test.js reads the root tree, not this one]
 // never sets appState.mySeat, so this default is exactly what keeps that script green
 // unmodified. An explicit numeric viewerSeat (including NEUTRAL_VIEWER) instead compares
 // directly, ignoring whatever the live appState.mySeat happens to be.

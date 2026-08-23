@@ -12,7 +12,7 @@
 // retained global (`window.revealMyRecipe`, D-05), calls `boot()` directly, and hosts the small
 // handful of top-level browser-lifecycle statements (auto-pause, clock tick, resize/orientation)
 // that used to live in the classic script as bare top-level statements (never function
-// declarations, so they never showed up in analyze_classic.mjs's function-only inventory, but
+// declarations, so they never showed up in analyze_classic.mjs's function-only inventory, but  [ROOT-TREE-CITATION: analyze_classic.mjs reads the root tree on purpose — true as written]
 // still needed a real home once that region was deleted).
 
 import { MODULE_OK_FLAG } from "./module-contract.js";
@@ -57,7 +57,10 @@ if (typeof window !== "undefined") {
   //
   // 11-07 (bridge deletion, post-hoc fix): deleting the bridge exposed a much larger set of bare
   // cross-module CALLS the bridge had been silently satisfying beyond those original 5 edges —
-  // caught by a dedicated no-undef gate (scripts/no_undef_check.js) added this same wave, and
+  // caught by a dedicated no-undef gate (4/scripts/no_undef_check.js) added this same wave, and
+  // (CORRECTED 03-01/TEST-07: this said `scripts/no_undef_check.js`  [ROOT-TREE-CITATION: no_undef_check.js named here IS the root copy, deliberately], which scans the
+  // root game's src/ and has never opened this file. The 4/ copy is byte-identical and tree-relative,
+  // so it is the one that actually covers this tree — HARD-WON-LESSONS §3. It is NOT yet in npm test.)
   // confirmed independently in a live Chrome session (renderDecorativeBoard/startSinglePlayer
   // threw ReferenceError on the bridge-deleted build). Every one of the keys below is either (a)
   // a src/orchestrator.js (main-tier) function a ui-tier module needs to CALL — src/ui/ can never
@@ -141,13 +144,13 @@ if (typeof window !== "undefined") {
   // automatically reachable there. Since converting that one button to addEventListener would
   // mean board.js reaching back into a DOM-attach step outside its own render pass, GLOBAL-02/03's
   // "single documented mechanism" principle is honored the other way: one explicit, named,
-  // commented `window.` assignment, exactly like the debug hooks above. ui_contract_check.js's
+  // commented `window.` assignment, exactly like the debug hooks above. ui_contract_check.js's  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
   // retained-globals-allowlist assertion enforces that this is the ONLY new non-debug window.*
   // assignment anywhere under src/.
   window.revealMyRecipe = ui.revealMyRecipe;
 
   // 11-07: moved verbatim from the (now-deleted) classic <script> region. These are top-level
-  // statements, not function declarations, so they never appeared in analyze_classic.mjs's
+  // statements, not function declarations, so they never appeared in analyze_classic.mjs's  [ROOT-TREE-CITATION: analyze_classic.mjs reads the root tree on purpose — true as written]
   // function-only inventory across 11-01..11-06 — but they still execute every page load and
   // needed a real module home once the classic region itself was removed.
 

@@ -178,7 +178,7 @@ const dockPlace=x=>DOCK_PLACE[x]||"the island";
 // UNCHANGED in signature AND in value — all 7 joined strings stay byte-identical, because two things
 // depend on that: the seven `misc:dockFlavor:<ing>` audit cards render dockFlavor(ing) directly (so
 // Wyatt's seven reviewed rows read exactly as they did), and the neutral dock narration's own
-// wording is not what F5 changes. scripts/narration_test.js pins all 7 against hardcoded literals.
+// wording is not what F5 changes. scripts/narration_test.js pins all 7 against hardcoded literals.  [UNGATED-IN-4: narration_test.js reads the root tree, not this one]
 const dockFlavor=x=>{const f=DOCK_FLAVOR[x];return f?`${f.prefix} ${f.name}`:iname(x);};
 const iname=x=>ING_NAME[x]||x;
 const ilabel=x=>ING_EMOJI[x]+" "+iname(x);
@@ -192,7 +192,7 @@ const iconImg=src=>`<img class="narrIcon" src="${src}" alt="">`;
 // F5: dockFlavor() with the ingredient's icon inserted immediately before the NAME, per the declared
 // {prefix,name} split above. THE ONE PLACE that decides where a dock-flavour icon goes — every dock
 // string in src/ui/flow.js and src/ui/util.js routes through here, so the branches cannot drift apart
-// again. Differs from dockFlavor() by nothing but the inserted icon; narration_test.js proves that by
+// again. Differs from dockFlavor() by nothing but the inserted icon; narration_test.js proves that by  [UNGATED-IN-4: narration_test.js reads the root tree, not this one]
 // stripping the icon back out and comparing (D-16: an icon is never dropped, only moved).
 // The unknown-key fallback emits no icon rather than an `src="undefined"` img: for a key with no art
 // there is no icon to drop, so D-16 has nothing to protect here.
@@ -357,7 +357,7 @@ const STORM_PUSH=3;
    See v2bakeoff/src/engine/bakeoff.js for the pure core and RULES-V2.md for the ruleset.
 
    BAKEOFF_ENABLED IS A ROLLBACK SWITCH, NOT A TUNING KNOB. False restores the pre-bake-off game
-   exactly — the instant finish and the one-lap final round — and scripts/bakeoff_baseline.js proves
+   exactly — the instant finish and the one-lap final round — and scripts/bakeoff_baseline.js proves  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one]
    that mechanically against a fingerprint captured before the feature existed, rather than leaving
    it as a claim nobody re-checks.
 

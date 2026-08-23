@@ -28,7 +28,7 @@
 // adds several at once, the creaming convention decides — fat, then sugar, then eggs, then flour,
 // then flavourings — which is a plausible baker's order even where the original just says "blend".
 //
-// LINE RULES, enforced by scripts/bakeoff_recipe_check.js: five entries, ≤34 characters (the 360px
+// LINE RULES, enforced by scripts/bakeoff_recipe_check.js: five entries, ≤34 characters (the 360px  [UNGATED-IN-4: bakeoff_recipe_check.js reads the root tree, not this one]
 // one-line budget), begins with a capital, contains no digit, and `ings` is a permutation of the key.
 export const RECIPE_STEPS={
   // Spiced Cocoa Shortbread

@@ -26,7 +26,7 @@
 // rewritten `state.room` inside e.g. `broadcastFlip()` silently read `.room` off the LOCAL
 // flip-outcome parameter instead of this object: no syntax error, just a wrong room code at
 // runtime. `appState` was grepped and confirmed to have ZERO existing occurrences anywhere in
-// index.html or src/**/*.js before being chosen. See scripts/migrate_app_state.js's header for
+// index.html or src/**/*.js before being chosen. See scripts/migrate_app_state.js's header for  [ROOT-TREE-CITATION: migrate_app_state.js reads the root tree on purpose — true as written]
 // the full account and 10-01-SUMMARY.md's Deviations section.
 //
 // REASSIGNING THE `appState` BINDING ITSELF (`appState = {...}` anywhere, including in this
@@ -49,7 +49,7 @@
 // Every default below is seeded from the classic script's OWN declaration-site initializer
 // (index.html:864, :2015-2051, :3896-3903, :3976, :4590 as of this task — re-confirmed against
 // the live file, not copied from RESEARCH.md's illustrative table). The 46 names are exactly
-// APP_STATE_NAMES in scripts/migrate_app_state.js — the 7 UI-render-handle names (cell, shipEls,
+// APP_STATE_NAMES in scripts/migrate_app_state.js — the 7 UI-render-handle names (cell, shipEls,  [ROOT-TREE-CITATION: migrate_app_state.js reads the root tree on purpose — true as written]
 // activeRing, spinNeedle, stormText, stormDial, windLabels) are deliberately absent; they have
 // zero non-UI readers (RESEARCH Q4) and belong to Phase 11's UI extraction.
 export const appState = {
@@ -57,7 +57,7 @@ export const appState = {
   game: null,
   evIdx: 0,
   timer: null, // confirmed NOT an active setInterval/setTimeout handle — declaration-only, dead
-  // state in the current codebase (see scripts/migrate_app_state.js's TIMER_IS_ACTIVE_INTERVAL_HANDLE)
+  // state in the current codebase (see scripts/migrate_app_state.js's TIMER_IS_ACTIVE_INTERVAL_HANDLE)  [ROOT-TREE-CITATION: migrate_app_state.js reads the root tree on purpose — true as written]
   logLines: [],
 
   // index.html:3896-3903 — networking plumbing + lobby/session bookkeeping

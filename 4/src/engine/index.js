@@ -59,7 +59,7 @@ const PERSONALITY={
 // me 2 turns and a fight I might lose" and picks the cheaper. Nothing here is a magic score.
 /* v3 race planner: the two constants of the logistic curve raceScore3 reads every pairwise race
    off — P(I beat q) = σ((ETA_q − myFinish + RACE_BIAS) / RACE_SPREAD). MEASURED, not tuned:
-   scripts/measure_race_spread.mjs replays a seeded corpus and fits both by maximum likelihood on
+   scripts/measure_race_spread.mjs replays a seeded corpus and fits both by maximum likelihood on  [UNGATED-IN-4: measure_race_spread.mjs reads the root tree, not this one]
    27,867 observed did-p-beat-q outcomes (2026-08-09, incumbent-driven corpus, seeds 1..300×7919).
    RACE_BIAS is positive because the two estimators lean opposite ways: my contested tour is
    pessimistic (it prices contention), a rival's public ETA is optimistic (it assumes the cheapest
@@ -274,7 +274,7 @@ class Game{
         coolUntil:{},grudge:null,justLost:null,fightLog:{},
         // THE BAKE-OFF (v2.1). Initialised unconditionally, flag or no flag: they consume no r()
         // and are not in ev()'s snapshot, so with the feature off they are three inert fields and
-        // the event stream is byte-identical (proved by scripts/bakeoff_baseline.js).
+        // the event stream is byte-identical (proved by scripts/bakeoff_baseline.js).  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one]
         // `baking` is still NOT `done` — done means the voyage is over and won, and it is what
         // finishOrder, bakeRank and resolveEnd read. But a baking captain IS off the board: see
         // inPlay() below, the single predicate every "still in play" test now asks. An earlier
@@ -317,7 +317,7 @@ class Game{
     // `baking` rides in the snapshot so the board can render a captain's out-of-play state from the
     // EVENT rather than from live state — which is what keeps the scrubber honest when you drag it
     // back to before the ovens were lit. It consumes no r() and is not part of the baseline
-    // fingerprint's key set, so the flag-off stream is unchanged (bakeoff_baseline.js proves it).
+    // fingerprint's key set, so the flag-off stream is unchanged (bakeoff_baseline.js proves it).  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one]
     o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done,baking:!!p.baking}));
     o.tokens={...this.tokens};this.events.push(o);}
   // during a reload-replay, fast-forwarding has no real delays between turns, and a bot's turn
@@ -1864,7 +1864,7 @@ class Game{
     const upwind=wind&&legs.some(k=>k===OPPOSITE[wind]);
     /* FRACTIONAL, NOT CEILED — load-bearing for the objective, not a rounding taste.
        As ceil(d/4) this returned the same number for a ship 5 squares out and one 8 squares out, so
-       the objective could not see a turn of sailing at all: in scripts/bot_matrix.js every sail
+       the objective could not see a turn of sailing at all: in scripts/bot_matrix.js every sail  [UNGATED-IN-4: bot_matrix.js reads the root tree, not this one]
        option scored exactly -1.00, the cost of the turn with no credit for the ground made. A bot
        that cannot see movement shortening its voyage stops moving and waits at berths, which is
        exactly what the mixed-table run showed — docks up, crates bought down, purse trebled.
@@ -2431,7 +2431,7 @@ class Game{
   /* P(win). My finish is (this turn) + (the contested tour after it); each rival's is their ETA.
      Each pairwise race reads off a logistic curve over the margin in turns — RACE_SPREAD is the
      measured scatter between a mid-voyage prediction and the finish it predicted (see the header
-     of scripts/measure_race_spread.mjs for the measurement), not a tuned taste. Margins are
+     of scripts/measure_race_spread.mjs for the measurement), not a tuned taste. Margins are  [UNGATED-IN-4: measure_race_spread.mjs reads the root tree, not this one]
      clamped so a hopeless race is 0 and a won one is 1 without overflow. */
   raceScore3(myT,plans,overrides){
     let s=1;
@@ -2792,7 +2792,7 @@ class Game{
      thirteen special cases, and anything added later inherits the rule for free.
 
      WITH THE BAKE-OFF OFF THIS IS EXACTLY `!done`, because `baking` can never become true — which
-     is why scripts/bakeoff_baseline.js stays byte-identical across all 200 games. */
+     is why scripts/bakeoff_baseline.js stays byte-identical across all 200 games.  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one] */
   inPlay(p){ return !p.done&&!p.baking; }
   canBake(p){ return !this.needs(p).length&&man(p.pos,this.home)<=1; }
   // Light the ovens. Returns true only on the transition, so a caller can narrate it once.
@@ -2953,7 +2953,7 @@ class Game{
   /* v2.1: two rulesets, two loops, dispatched here. Split rather than branched INSIDE one loop on
      purpose — playClassic is today's body moved verbatim, so "flag off = byte-for-byte" is a
      property of the code's shape rather than a claim about a conditional, and
-     scripts/bakeoff_baseline.js proves it against a fingerprint taken before any of this existed. */
+     scripts/bakeoff_baseline.js proves it against a fingerprint taken before any of this existed.  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one] */
   play(){ return this.cfg.bakeoff?this.playBakeoff():this.playClassic(); }
   /* THE BAKE-OFF LOOP. Three differences from playClassic, all of them consequences of one rule —
      the bake, not the arrival, is the finish line:

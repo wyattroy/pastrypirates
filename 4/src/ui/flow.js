@@ -13,7 +13,7 @@
 // flags.
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 //
 // Task 3 (this same file, added after tasks 1-2 land) resolves the remaining 3 of the milestone's
 // 6 UI->orchestration edges through src/ui/handlers.js's injected-handler seam (11-04 resolved the
@@ -805,7 +805,7 @@ export function moveCrate(from,to,ing){
 }
 // G14 (Wyatt-approved 2026-07-30): the ordered rim cells a trade-wind sweep passes THROUGH, from
 // just after `from` up to and including its arc head. PURE and DOM-free, so it is tested headlessly
-// over real boards in scripts/narration_flow_test.js. Never includes `from` itself.
+// over real boards in scripts/narration_flow_test.js. Never includes `from` itself.  [UNGATED-IN-4: narration_flow_test.js reads the root tree, not this one]
 //
 // Wyatt: *"the tradewinds to move players square-by-square, quickly… then we don't need a new
 // narration line, and the players are just seeing what happens."* He watched a storm push a bot onto
@@ -896,7 +896,7 @@ export function rimSweepCurve(cells,perCell=48){
 // eased 0..1 — the winds take hold, then the whirlpool receives the boat rather than snapping it
 const rimSweepEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 // ── THE TWO FUNCTIONS BELOW ARE THE SWEEP'S MOTION, AND THE ONLY COPY OF IT ────────────────────
-// Extracted 2026-07-31 so scripts/rim_sweep_trace_test.js can enumerate exactly what the live
+// Extracted 2026-07-31 so scripts/rim_sweep_trace_test.js can enumerate exactly what the live  [UNGATED-IN-4: rim_sweep_trace_test.js reads the root tree, not this one]
 // animation will aim at, without a browser. That harness is only worth anything if it measures the
 // REAL motion rather than a re-implementation that can drift, so animateRimSweepIfAny below calls
 // these and does no position maths of its own — and host_guest_parity_check.js assertion 4 fails if
@@ -2027,7 +2027,7 @@ export async function humanAct(p,sailCtx){
   //      only fires when nothing is greyed, because telling a player how Attack works does not
   //      explain why Trade is unavailable.
   // No new copy: all three strings already existed and are already Wyatt-approved.
-  // scripts/ui_contract_check.js assertion 6 gates this shape, red-proofed against the ab98e04 code.
+  // scripts/ui_contract_check.js assertion 6 gates this shape, red-proofed against the ab98e04 code.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
   let sub=null;
   if(targets.length&&!canAfford)sub=`Yer too poor to afford powder — ye need ${appState.game.cfg.powder}🌕 to fire.`;
   if(targets.length&&canAfford&&!attackable.length)sub=[sub,`Their holds are empty — nothin' to plunder.`].filter(Boolean).join(" ");
@@ -2350,7 +2350,7 @@ export async function botTurn(p){
   if(plan.type==="dock"&&g.adjPort(p)===plan.ing&&g.doDock(p,plan.ing)){await botBeat();return;}
   // THE FALLBACK, and it has to be repeated HERE rather than inherited: botTurn does not call
   // Game.takeTurn — it reimplements the turn so each step can animate (see the note in
-  // scripts/bakeoff_parity_test.js). A fallback added only to the engine would fix the simulator
+  // scripts/bakeoff_parity_test.js). A fallback added only to the engine would fix the simulator  [UNGATED-IN-4: bakeoff_parity_test.js reads the root tree, not this one]
   // and leave every real browser game exactly as broken, which is the opposite of the point.
   // Same rule as the engine's: work the berth under your feet, nothing cleverer.
   const fallbackPort=g.adjPort(p);

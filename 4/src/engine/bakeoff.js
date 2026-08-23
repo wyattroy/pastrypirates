@@ -20,7 +20,7 @@
 // A guess is an array of BOWL INDICES in recipe order: guess[0] is the bowl the player believes
 // holds order[0]. So the attempt is correct at step k when slots[guess[k]] === order[k]. Nothing
 // in this file ever compares an ingredient id to a bowl index; if a future edit makes that
-// possible, the property tests in scripts/bakeoff_test.js will catch it.
+// possible, the property tests in scripts/bakeoff_test.js will catch it.  [UNGATED-IN-4: bakeoff_test.js reads the root tree, not this one]
 
 /* ================= building a bake ================= */
 
@@ -50,11 +50,11 @@ export function newBake(order){
 // about. shuffleSlots' three swaps then happen ON TOP of an arrangement the player has had to learn.
 //
 // Locked crates are excluded, so a retry cannot move a crate the player already earned — the same
-// invariant shuffleSlots keeps, asserted over both in scripts/bakeoff_test.js.
+// invariant shuffleSlots keeps, asserted over both in scripts/bakeoff_test.js.  [UNGATED-IN-4: bakeoff_test.js reads the root tree, not this one]
 //
 // The rng is passed in, like everything else here, so a bake replays identically. With the bake-off
 // off this is never reached (lightOvens returns false before it), so the flag-off stream is
-// untouched — bakeoff_baseline.js is the proof.
+// untouched — bakeoff_baseline.js is the proof.  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one]
 export function scrambleBench(bake,rng){
   const open=[];
   for(let i=0;i<bake.slots.length;i++)if(!bake.locked[i])open.push(i);
@@ -79,7 +79,7 @@ export function scrambleBench(bake,rng){
 // landing on a doubly-shuffled bench. Caught by screenshot at 360px: a bowl badged "step 2 — beat
 // in the sugar" was sitting over the vanilla. The animation must START from `before` and ARRIVE at
 // `slots`; the invariant that swaps applied in order turn one into the other is asserted in
-// scripts/bakeoff_test.js so it cannot rot.
+// scripts/bakeoff_test.js so it cannot rot.  [UNGATED-IN-4: bakeoff_test.js reads the root tree, not this one]
 //
 // Swaps are drawn only from unlocked positions (rule: a solved bowl never moves again), so the
 // puzzle shrinks with every attempt. Two guards matter:
@@ -184,8 +184,19 @@ export function unsolvedCount(bake){ return bake.locked.filter(x=>!x).length; }
 // swapped, which is precisely how a person fails at this. A flat roll produces either a clean win or
 // total noise, and never the "so close" that makes a rival's bake worth watching.
 //
-// `attention` is tuned by measurement (scripts/bakeoff_tune.js sweeps it against mean attempts to
-// solve), never picked by eye.
+// `attention` is tuned by measurement, never picked by eye.
+//
+// CORRECTED 03-01/TEST-07 — THIS SENTENCE NAMED A SWEEP THAT HAS NEVER EXISTED. It used to read
+// "(scripts/bakeoff_tune.js sweeps it against mean attempts to solve)". There is no such file  [UNGATED-IN-4: bakeoff_tune.js has never existed — quoted here as the finding]
+// in this repo and `git log -S bakeoff_tune` finds no commit that ever added one — the name arrived
+// with the file it describes and was never written. So the claim of a tuning sweep was false from
+// the first day, and it is left named here rather than deleted because a comment that promised a
+// measurement and delivered none is the finding.
+//
+// WHAT ACTUALLY TOUCHES `attention` TODAY, measured 2026-08-23: only scripts/bakeoff_test.js  [UNGATED-IN-4: bakeoff_test.js reads the root tree, not this one]
+// mentions it anywhere in the repo
+// — and it is not in `npm test` either. NOTHING GATES THIS VALUE IN 4/. Re-deriving it is not
+// this plan's work; naming the gap is.
 export function botGuess(bake,rng,attention){
   const n=bake.order.length;
   // steps still to answer, and the bowls that actually hold them

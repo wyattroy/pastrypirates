@@ -11,7 +11,7 @@
 // inside initAudio(), isMuted() and setMuted() — never at module load, and never anywhere else in
 // this file. That is what makes the module import cleanly under plain Node (where window,
 // document and AudioContext are all undefined) — a hard structural requirement from
-// 21-VALIDATION.md, not a style preference: scripts/audio_mapping_test.js (Task 2) cannot exist
+// 21-VALIDATION.md, not a style preference: scripts/audio_mapping_test.js (Task 2) cannot exist  [UNGATED-IN-4: audio_mapping_test.js reads the root tree, not this one]
 // without it. It also keeps the second tier rule intact: this file imports nothing from anywhere
 // under src/ — scripts/module_graph_check.js auto-scans every new file under src/ against that
 // shape with no registration needed.

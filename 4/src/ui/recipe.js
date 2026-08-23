@@ -8,7 +8,7 @@
 // most safety-critical directional rule this whole phase exists to enforce. UI code may call
 // into net-published functions only through handler injection from main (the existing net->UI
 // seam Phase 9 established stays in that direction), never via a direct import here.
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 
 import { ASSET_BASE, ING_NAME, ING_PLAIN, iname, ingImg } from "../shared/index.js";
 import { appState } from "../state/index.js";
@@ -29,7 +29,7 @@ export function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&
 // notes/pastry_pirates_recipes.md — shown in the in-game recipe modal (see openRecipeModal).
 // Ingredient list entries prefixed "## " render as a sub-header (for recipes with parts, e.g.
 // a base + filling) instead of a bullet.
-// exported (rather than kept module-private, as it was before FIX-08) so scripts/narration_test.js
+// exported (rather than kept module-private, as it was before FIX-08) so scripts/narration_test.js  [UNGATED-IN-4: narration_test.js reads the root tree, not this one]
 // can enumerate every entry's {ings,title,article} and match its assertions by title text, never
 // by array index — the same discipline recipeInfo()'s ings-based lookup already keys on.
 export const RECIPE_BOOK=[
