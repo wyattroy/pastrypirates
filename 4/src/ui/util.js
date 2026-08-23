@@ -1734,6 +1734,78 @@ export function optionButtonsHTML(items){
 // the real choices in the button row. Both call sites hand-built this identical string; same
 // reason as the row above, one definition.
 export function backButtonHTML(idx){return `<button class="apBack" data-i="${idx}" aria-label="Back">‹</button>`;}
+
+/* ================= ONE COIN SLIDER, BUILT AND WIRED IN ONE PLACE (05-01 Task 3, MP-08) =========
+
+   Wyatt, 2026-08-23: "guest should OBVIOUSLY get the real coin slider, and you already know why —
+   guests and hosts are given the same experience." (D-55.) It was never a decision: CLAUDE.md
+   rule 23 / DISPLAY-RULES §1 already say host/guest decides WHO COMPUTES and WHO CREATES THE ROOM,
+   never WHAT IS DRAWN, and rule 8 says the same gesture behaves the same way everywhere unless he
+   chose the exception. He did not choose this one — the code itself had been flagging it as an open
+   hole since playtest 21 ("close this if /4 ever ships online multiplayer"), which is an admission,
+   not a ruling. /4 is shipping online multiplayer. This is that closure.
+
+   THE DESIGN-TIME QUESTION, answered before a line of it was written: what makes the host's coin
+   control and a guest's coin control agree? THEY ARE THE SAME TWO FUNCTIONS. Not two controls kept
+   in step. localAsk (flow.js) and watchPrompt's ask branch (orchestrator.js) both name
+   sliderWrapHTML and wireSlider directly — no tier-only wrapper, because a wrapper is exactly what
+   stops the parity gate from seeing a convergence.
+
+   THE CLASS NAMES ARE LOAD-BEARING AND THAT IS WHY THIS IS ONE BUILDER. stage.js identifies the
+   slider BY CLASS in two places: menuButtons exempts `input:not(.apSlider)` so a slider does not
+   knock its own prompt out of radial mode, and the placement memo key reads `.apSliderWrap` without
+   which the bar renders at 0,0 in the corner. A guest whose markup differed by one class name would
+   get a flat card where the host gets the radial bloom — the 2026-08-19 complaint, waiting to happen
+   an eighth time. With one builder that is unrepresentable.
+
+   WHAT CROSSES THE WIRE AND WHAT DOES NOT. The spec is {min,max,start,ref,fmt,aria}. Four of those
+   six are a plain number or a string and ride across untouched. The two that cannot:
+     - `fmt` is a closure over live game state, so it is PRE-RENDERED on the host into `texts` —
+       max-min+1 short strings, one per stop. It is not dropped: the pill re-stating the whole deal
+       as ye drag is the reason the number is never read in isolation (TRADE-SYSTEM §4), and a guest
+       handed a bare number would have a different control again.
+     - `ref` is the mutable object the CALLER reads the answer out of. It does not cross and does not
+       need to: the guest builds its own ref, the chosen number rides home beside the button index
+       as {i,n}, and ask() lands it in the HOST's ref before resolveOpt ever runs. So coinSlider's
+       single logQuantity() call fires for a remote drag exactly as it does for a local one — the
+       decision-log requirement satisfied BY CONSTRUCTION rather than by care, which is the point,
+       because HARD-WON-LESSONS §5 is the account of this very control replaying at its floor. */
+export function sliderWrapHTML(sl){
+  return `<div class="apSliderWrap"><input class="apSlider" type="range" min="${sl.min}" max="${sl.max}" value="${sl.start}" step="1" aria-label="${escHtml(sl.aria||"Amount")}"><output class="apSliderOut">${sl.start}</output></div>`;
+}
+/* The deal re-stated at THIS stop. `fmt` on the tier that has the game, `texts` on the tier that was
+   handed the strings — one function so the two can never say different things at the same stop. */
+export function sliderText(sl,n){
+  if(sl.fmt)return sl.fmt(n);
+  if(sl.texts&&sl.texts[n-sl.min]!=null)return sl.texts[n-sl.min];
+  return null;
+}
+/* Wires the control the markup above built. `sl.ref.value` is where the running position lands, and
+   the CALLER reads its answer from there — locally on the drag, remotely when ask() unpacks {i,n}.
+   Same function, same class names, same repaint, on every tier. */
+export function wireSlider(root,sl){
+  const inp=root.querySelector(".apSlider"),outEl=root.querySelector(".apSliderOut");
+  if(!inp)return;
+  const paint=()=>{
+    const n=+inp.value;
+    if(sl.ref)sl.ref.value=n;
+    if(outEl)outEl.textContent=String(n);
+    const t=sliderText(sl,n);
+    if(t!=null){const m=root.querySelector(".apMsg");if(m)m.innerHTML=emojify(t);}
+  };
+  inp.addEventListener("input",paint);
+  paint();
+}
+/* The wire form of a slider spec: the four serialisable fields plus the pre-rendered strings.
+   Built on the host, where the game lives. Returns null when there is no slider, so ask()'s payload
+   simply never carries the key — additive, omitted when absent, the same shape netSetNarr's
+   variants/wait params use, so an old client reading a new payload never sees it. */
+export function sliderWirePayload(sl){
+  if(!sl)return null;
+  const texts=[];
+  for(let n=sl.min;n<=sl.max;n++){const t=sliderText(sl,n);texts.push(t==null?"":String(t));}
+  return {min:sl.min,max:sl.max,start:sl.start,aria:sl.aria||"Amount",texts};
+}
 // opts[i] can come back missing — a remote seat's answer can resolve to null (remotePrompt
 // resolves null when Firebase gives back a response with no `choice` field, e.g. a dropped
 // connection), or a replay log can be stale/corrupt. Left unguarded that throws mid-decision
@@ -1743,13 +1815,13 @@ export function resolveOpt(opts,i,fallback){
   console.warn("resolveOpt(): invalid choice index",i,"of",opts.length,"options — defaulting to",fallback);
   return{i:fallback,opt:opts[fallback]};
 }
-/* `extra` (playtest 21 item 7) carries a SLIDER spec for a quantity prompt. It reaches localAsk
-   only — a remote seat's prompt crosses the wire as labels and flags, and threading a live control
-   through that contract is a large change for a mode /4 does not ship. NAMED EXCEPTION rather than
-   a silent one: solo and pass-and-play are both LOCAL decisions (decisionIsLocal returns true for
-   any human seat at a pass-and-play table), so every human quantity prompt /4 actually presents
-   gets the slider. coinSlider falls back to the old stepper for a genuinely remote seat, so that
-   path still works — and this must be closed if /4 ever ships online multiplayer. */
+/* `extra` (playtest 21 item 7) carries a SLIDER spec for a quantity prompt. IT NOW REACHES EVERY
+   SEAT (05-01 Task 3, MP-08, D-55). The named exception that used to sit here said this must be
+   closed if /4 ever shipped online multiplayer; /4 is shipping online multiplayer, so it is closed.
+   The four serialisable fields plus pre-rendered `texts` ride across in `slider:` (sliderWirePayload
+   above); the guest builds the SAME markup with the SAME builder, and the number it drags to comes
+   home beside the button index as {i,n} and lands in this tier's `ref` below, before resolveOpt.
+   coinStepper is gone from the tree, and with it the routing-dependent decision-log length. */
 export function ask(msg,opts,colors,sub,extra){
   // during reload-replay, return the recorded choice (an index) mapped through the freshly
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
@@ -1839,6 +1911,10 @@ export function ask(msg,opts,colors,sub,extra){
        // truthiness — and the guest reading it back must be just as careful.
        seats:opts.map(o=>o&&o.seat!=null?o.seat:""),
        stage:opts.some(o=>o&&o.stage)?1:null,
+       /* MP-08. Additive and OMITTED WHEN ABSENT — sliderWirePayload returns null for a prompt
+          with no quantity on it, and Firebase drops a null key, so nothing changes for the ~99%
+          of prompts that are just buttons. */
+       slider:sliderWirePayload(extra&&extra.slider),
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
   // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip
   // prompt (opts.length===1 with a `flip`) never calls panel() at all (see localAsk()), so there
@@ -1856,7 +1932,21 @@ export function ask(msg,opts,colors,sub,extra){
   // armed (shotClockSeat is already set) before withShotClock ever inspects it, so the 30s
   // auto-skip resolver is installed for every clocked decision, never skipped (T-18-12).
   const idxP=armed.then(()=>withShotClock(seat,base,0));
-  return idxP.then(i=>{const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
+  return idxP.then(v=>{
+    /* A QUANTITY PROMPT COMES BACK AS {i,n} — the button and the number the captain dragged to.
+       Unpacked HERE, before resolveOpt, for two reasons. First, resolveOpt has always taken an
+       INDEX and an unguarded object would fall through to its fallback, silently answering index 0.
+       Second, `n` has to be in `ref` before the caller's own confirm branch reads it, and that
+       branch is what calls logQuantity() — so the number reaches the decision log through the ONE
+       call a local drag already uses, for a remote drag too.
+       A BARE NUMBER MUST STILL WORK: withShotClock(seat,base,0) force-resolves with a plain 0 at
+       30s, and a forced answer is an index, not a pair. */
+    let i=v;
+    if(v&&typeof v==="object"&&v.i!=null){
+      i=v.i;
+      if(v.n!=null&&extra&&extra.slider&&extra.slider.ref)extra.slider.ref.value=v.n;
+    }
+    const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
 }
 // re-arms the shot clock with a fresh 30s window right before a new decision is shown to
 // whichever seat is being asked — every ask()/pickCell()/non-flip battleAsk() call in the

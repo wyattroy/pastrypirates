@@ -268,11 +268,37 @@ along invisibly from an offer that was just rejected.
   saw *"the game was simply reset and stalled and the captains log was empty."* Gated by
   `4/scripts/dlog_quantity_check.js`; the failure and its lessons are in `HARD-WON-LESSONS.md` §5.
 
-**Named exception:** the slider reaches the **local** prompt path only. Solo and pass-and-play are
-both local decisions, so every human quantity prompt /4 presents gets it; a genuinely remote seat
-falls back to the stepper. **Close this if /4 ever ships online multiplayer.** Note this is why
-*both* controls log: which one a seat gets is a routing decision, and a log whose length depends on
-routing only replays under the same routing.
+**That exception is CLOSED (05-01 Task 3, MP-08, D-55).** This paragraph used to record a named
+hole: the slider reached the local prompt path only, a genuinely remote seat fell back to a ± coin
+stepper, and it said *"close this if /4 ever ships online multiplayer."* /4 is shipping online
+multiplayer. **`coinStepper` no longer exists in the tree.** Every seat — solo, pass-and-play, host,
+guest — drags the same bar, built by `sliderWrapHTML` and wired by `wireSlider` (`4/src/ui/util.js`),
+named directly by `localAsk` and by `watchPrompt`'s ask branch and gated as shared by
+`scripts/host_guest_parity_check.js` assertion 6.
+
+Wyatt, 2026-08-23: *"guest should OBVIOUSLY get the real coin slider, and you already know why —
+guests and hosts are given the same experience."* It was never a decision; rule 23 had already
+settled it and the code comment was an admission, not a ruling.
+
+**What the wire carries:** `min`, `max`, `start` and `aria` ride across as they are; `fmt` is a
+closure over live game state, so it is pre-rendered on the host into `texts` — one short string per
+stop, because the pill re-stating the whole deal as ye drag is the reason the number is never read in
+isolation. `ref` does not cross: the guest keeps its own, the chosen number comes home beside the
+button index as `{i,n}`, and `ask()` lands it in the host's `ref` **before** `resolveOpt`. So
+`coinSlider`'s single `logQuantity()` call records a remote drag exactly as it records a local one.
+
+**One control means one record, which is a criterion-4 win arriving through criterion 2.** Measured
+in a real crew room, 2026-08-23, one guest countering with a crate plus 8 coins:
+
+| | ± stepper (before) | slider (after) |
+|---|---|---|
+| prompt round trips | **11** | **3** |
+| decision-log entries | **+12** | **+4** |
+| wall clock, responder held at 3s | **61.2s** | **24.9s** |
+| longest unbroken *"…is deciding…"* on the asker's screen | **52.6s** | **16.2s** |
+
+For the first time **the log's LENGTH does not depend on how the trade was routed, or on how many
+coins were asked for** — it was N+2 entries on the stepper and is 2 either way now.
 
 ---
 
@@ -378,9 +404,15 @@ Engine — `4/src/engine/index.js`:
 Public inference: `noteDemand` · `demandFor` · `likelyNeeds` · `visibleProgress`
 Units: `coinTurns` · `acquireTurns` · `PLAN.coinsPerDockTurn` · `PLAN.leverageTurns`
 
-UI — `4/src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `coinStepper` (remote
-fallback) · `crateOpt` · `logQuantity`
-Harnesses — `4/scripts/trade_offer_measure.js` · `4/scripts/dlog_quantity_check.js`
+UI — `4/src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `crateOpt` · `logQuantity`
+UI, shared by both tiers — `4/src/ui/util.js`: `ask` · `optionButtonsHTML` · `sliderWrapHTML` ·
+`sliderText` · `wireSlider` · `sliderWirePayload`
+Harnesses — `4/scripts/trade_offer_measure.js` (the guarded number) ·
+`4/scripts/dlog_quantity_check.js` (reads flow.js **and** util.js since 05-01) ·
+`4/scripts/crew_trade_probe.mjs` (a real crew trade: pacing, prompt round trips, the longest
+unbroken *"is deciding"* span, the settlement ledger) ·
+`4/scripts/local_trade_probe.mjs` (the same trade in solo and pass-and-play, the two modes a
+two-tab test cannot see)
 
 ### A deal is settled in THREE places, and they must agree
 

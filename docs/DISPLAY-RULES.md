@@ -209,6 +209,44 @@ host during the attempt: `before` + `locked` already determine every solved step
 crate never moves. `slots` appears only on the REVEAL snapshot, when the crates are being lifted off
 and it is public anyway.
 
+### The coin slider — `sliderWrapHTML` + `wireSlider` (05-01 Task 3, MP-08, D-55)
+
+**Entry points:** `sliderWrapHTML(spec)` and `wireSlider(root,spec)`, `4/src/ui/util.js`. **Both
+tiers name both functions directly:** the host's `localAsk` (`4/src/ui/flow.js`) and a guest's
+`watchPrompt` ask branch (`4/src/orchestrator.js`). No tier-only wrapper — a wrapper satisfies the
+eye and stops the parity gate seeing the convergence. Promoted to shared in **05-01 Task 3**, in the
+same commit that made it true, with both rows watched RED against build `2026-08-23b` first
+(`PARITY-ORCH-ABSENT`, `listeners=0 host-loop=0` on each).
+
+**What it replaced:** a remote seat used to get `coinStepper`, a ± pair costing a whole prompt round
+trip per coin. `coinStepper` is deleted. Wyatt, 2026-08-23: *"guest should OBVIOUSLY get the real
+coin slider, and you already know why — guests and hosts are given the same experience."*
+
+**The class names are the reason there is one builder, not two kept in step.** `stage.js` identifies
+this control by class in two places — `menuButtons` exempts `input:not(.apSlider)` so a slider does
+not knock its own prompt out of radial mode, and the placement memo key reads `.apSliderWrap`
+without which the bar renders at 0,0. A second copy differing by one class name would give a guest a
+flat card where the host gets the bloom. **Measured before the change** (`shots/t2`): the guest's ±
+circles rendered *inside the radial arc*, which is exactly what playtest 21 took out of the host's
+arc — *"THE ARC IS FOR ACTIONS ONLY."* Same gesture, two behaviours, on the one axis rule 23 forbids.
+
+**What crosses the wire:** `slider:{min,max,start,aria,texts}` on `ask()`'s existing remote payload —
+**additive and omitted entirely when absent**, the same shape `netSetNarr`'s `variants`/`wait` params
+use, so no new node and no new listener. `texts` is `max-min+1` pre-rendered strings, one per stop,
+because `fmt` is a closure over live game state and a guest handed a bare number would have a
+different control again.
+
+**Where the answer lands:** the guest keeps its own `ref` and sends `{i,n}` — `sendResponse` puts
+`choice` on the wire unchanged, so an object needs no channel change (04-01 established this for the
+bake's `{g:[…],w:n}`). `ask()` unpacks it **before `resolveOpt`** and writes `n` into the host's own
+`ref`, so `coinSlider`'s single `logQuantity()` call records a remote drag identically to a local
+one. **A bare number must still work** and does: `withShotClock` force-resolves with a plain `0`.
+
+**How long it stays:** it is part of the prompt and leaves with it. **It is `display:none` for
+roughly the first 750ms** of that prompt's life while the layer reveals — measured 3 of 32 samples
+at 250ms — so anything screenshotting a prompt must wait for the paint, not for the DOM. Two runs
+photographed inside that window and read exactly like a game-stopping layout fault.
+
 ### The prompt CARD markup — `optionButtonsHTML` and `sailPanelHTML` + `sailHighlightRect`
 
 Already one builder each, gated by the parity gate's assertions 1 and 2 — this is markup parity, not
@@ -303,7 +341,9 @@ force-resolves at zero: the 30-second auto-skip every player relies on stops fir
 
 **Fork 1 (`pickCell()`) converged 02.15-02 Task 3.** See §2's "The sail prompt" row above.
 **Fork 6 (`bakeoffPrompt()`) converged 04-01 Task 3.** See §2's bake-off row. The other four are
-below, still open.
+below, still open — **including fork 2, whose COIN SLIDER converged in 05-01 Task 3 while the fork
+itself did not.** That row says which half, deliberately: a partial convergence recorded as a whole
+one is the aspirational writing this document's own header forbids.
 
 **"The prompt channel" is not one thing. It is these SIX fork sites** — five when this table was
 written; the bake-off is the sixth and was missing because it had no remote branch to fork on, confirmed by reading the
@@ -313,7 +353,7 @@ sees the narration and active-seat channels converged from concluding the prompt
 | # | Fork | File:line | Rendering shared? | State |
 |---|---|---|---|---|
 | 1 | `pickCell()` | `4/src/ui/flow.js:605` | **Yes** — `sailPanelHTML` + `sailHighlightRect`, both gated | **CONVERGED 02.15-02 Task 3 (THE TRACER).** One renderer, `renderPickPrompt`, named directly by `localPickCell` (local response mechanism) and `watchPrompt`'s pick branch. `localPickCell` is `superseded` in the parity gate. |
-| 2 | `ask()` | `4/src/ui/util.js:1577` | **Yes** — `optionButtonsHTML`, gated | **NOT YET CONVERGED** — orchestration: `localAsk` (host loop) vs `watchPrompt`'s ask branch. Target of 02.15-02 Task 4. |
+| 2 | `ask()` | `4/src/ui/util.js` | **Yes** — `optionButtonsHTML` and, since 05-01, `sliderWrapHTML` + `wireSlider`; all three gated | **STILL NOT CONVERGED — one SUB-CASE is, and this row says which half.** The COIN SLIDER converged in **05-01 Task 3** (MP-08, D-55): one builder and one wiring, named directly by `localAsk` and by `watchPrompt`'s ask branch, both rows in the parity gate, `coinStepper` deleted. **The FORK ITSELF is untouched** — `localAsk` and `watchPrompt`'s ask branch are still two orchestrations, `localAsk` is still a DECLARED GAP in `ORCHESTRATION_DECL`, and the flip-ceremony `window.__pp4.flipMsg` landmine 02.15-02 parked over is exactly where it was. Nothing here converges the dispatch; 05-01 scoped itself to the slider for that reason. |
 | 3 | `battleAsk()` | `4/src/orchestrator.js:443` | **Yes, more than expected** — `renderBattleFromSnap` delegates to `renderBattle`, so both tiers already end in one card builder | **NOT YET CONVERGED** — only the CONTROL WIRING (arming the coin, wiring `.btlBtn`) differs, not the card. Target of 02.15-02 Task 5, expected NOT to be reached under D-04. |
 | 4 | `recipeDraftNet()` | `4/src/orchestrator.js:855` | Yes — `optionButtonsHTML` via `watchDraftPrompt` | **LEFT — not a task in 02.15-02.** Forks on `seatLocal(s)`, not `decisionIsLocal(s)`. See Rule B above — the landmine is real and disarming it is its own piece of work. |
 | 5 | `netIntroBarrier()` | `4/src/ui/flow.js:2265` | Same `draftPrompts` node, same builder | **LEFT — not a task in 02.15-02.** Same `seatLocal` fork; additionally has its own `appState.passAndPlay` interception (`4/src/ui/flow.js:2249-2261`) that a careless dispatch extension would break. |

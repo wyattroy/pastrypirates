@@ -117,6 +117,7 @@ import {
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
+  sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, applyActiveSeat, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
   stopShotClock, waitWhilePaused, sleepMs, applyTimerOff, BOARD_LAST_LOOK_MS,
@@ -1600,12 +1601,27 @@ export function watchPrompt(){
       const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
       const grid=cls.some(c=>c)?" recipes":"";
       const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
+      /* MP-08 — THE COIN SLIDER, ON THIS SEAT TOO (05-01 Task 3, D-55). Until this build a remote
+         captain got coinStepper's +/- pair instead: three round trips per coin, and — measured in a
+         real crew room on 2026-08-23, shots/t2/03-mid-round-guest1.png — those +/- circles rendered
+         IN THE RADIAL ARC, which is precisely what playtest 21 took out of the host's arc ("THE ARC
+         IS FOR ACTIONS ONLY"). Same gesture, two behaviours, on the one axis rule 23 forbids.
+         IT NAMES sliderWrapHTML AND wireSlider DIRECTLY, not through a guest-only wrapper — that is
+         what lets the orchestration parity gate SEE the convergence rather than a lookalike.
+         `ref` is built HERE and read at click time; the number rides home as {i,n} and ask() lands
+         it in the HOST's own ref before resolveOpt, so coinSlider's single logQuantity() records a
+         dragged number identically whoever dragged it. */
+      const sl=p.slider?Object.assign({},p.slider,{ref:{value:p.slider.start}}):null;
+      const slHtml=sl?sliderWrapHTML(sl):"";
       // The guest half of the two fields added to this payload in util.js's ask(). Stamped BEFORE
       // panel() so the stage loop sees it on the same tick localAsk's does (flow.js:214).
       if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
       // @copy prompt.net.promptrerenderbuttons
-      panel(`${backHtml}<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
+      panel(`${backHtml}<div class="apMsg">${p.msg}</div>${slHtml}<div class="apBtns${grid}">`+
         optionButtonsHTML(rest.map(x=>({i:x.i,label:x.l,cls:cls[x.i],disabled:dis[x.i],why:why[x.i],seat:(seats[x.i]===""||seats[x.i]==null)?null:seats[x.i],color:cols[x.i]})))+`</div>${subHtml}`,true);
+      // ...wired by the same function localAsk wires it with. The slider sits BETWEEN the message
+      // and the buttons on both tiers, which is also where the top-to-bottom reveal rule puts it.
+      if(sl)wireSlider($("actionPanel"),sl);
       // menuButtons() reads _shortHtml off the BUTTON, so the guest has to hang it on the same way
       // localAsk does (flow.js:271) — an empty string means "this option had no short label",
       // which is not the same as having one, so it must not be assigned.
@@ -1614,7 +1630,10 @@ export function watchPrompt(){
         const i=+b.dataset.i;
         if(shorts[i])b._shortHtml=shorts[i];
         if(isDisabledBtn(b)){b.onclick=()=>showWhy(b);return;}
-        b.onclick=()=>sendResponse(p.id,i);
+        /* {i,n} WHEN THERE IS A NUMBER TO SEND, a bare index when there is not. sendResponse puts
+           `choice` on the wire unchanged and remotePrompt resolves it unchanged, so an OBJECT needs
+           no new node and no new listener — 04-01 established that for the bake's {g:[...],w:n}. */
+        b.onclick=()=>sendResponse(p.id,sl?{i,n:sl.ref.value}:i);
       });
     }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;

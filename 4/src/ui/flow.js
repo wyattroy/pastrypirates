@@ -58,7 +58,7 @@ import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
-  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, ask, armClock, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
+  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, armClock, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
   decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
@@ -239,8 +239,13 @@ export function localAsk(msg,opts,colors,sub,extra){
        narration-box rule puts it, since content is revealed in the order it appears top to bottom
        (back, message, THIS, buttons, helper text) and a control that edits the message belongs
        with the message rather than among the answers. */
+    /* 05-01 Task 3 (MP-08): the markup is no longer built here. sliderWrapHTML (util.js) is the ONE
+       definition of what a coin slider IS, named directly by this tier and by watchPrompt's ask
+       branch — the same shape optionButtonsHTML has, and for the same recorded reason: stage.js
+       needs the class names too and flow.js must not be imported there (module_graph_check.js
+       forbids the cycle). */
     const sl=extra&&extra.slider;
-    const slHtml=sl?`<div class="apSliderWrap"><input class="apSlider" type="range" min="${sl.min}" max="${sl.max}" value="${sl.start}" step="1" aria-label="${(sl.aria||"Amount").replace(/"/g,"&quot;")}"><output class="apSliderOut">${sl.start}</output></div>`:"";
+    const slHtml=sl?sliderWrapHTML(sl):"";
     // @copy prompt.plumbing.localask
     /* playtest 21 item 5 — a greyed circle now SAYS WHY when ye tap it (Wyatt's pick), and the
        reason appears at the circle itself rather than in a line floating near the top of the
@@ -264,20 +269,10 @@ export function localAsk(msg,opts,colors,sub,extra){
     panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
       optionButtonsHTML(rest.map(x=>({i:x.i,label:x.o.label,cls:x.o.cls,disabled:x.o.disabled,why:x.o.why,seat:x.o.seat,color:colors&&colors[x.i]})))+`</div>${subHtml}`,
       true);
-    if(sl){
-      const inp=$("actionPanel").querySelector(".apSlider"),outEl=$("actionPanel").querySelector(".apSliderOut");
-      if(inp){
-        const paint=()=>{
-          const n=+inp.value;
-          if(sl.ref)sl.ref.value=n;            // the caller reads the answer from here
-          if(outEl)outEl.textContent=String(n);
-          // the ask itself re-states the deal as ye drag, so the number is never read in isolation
-          if(sl.fmt){const m=$("actionPanel").querySelector(".apMsg");if(m)m.innerHTML=emojify(sl.fmt(n));}
-        };
-        inp.addEventListener("input",paint);
-        paint();
-      }
-    }
+    // ...and neither is the wiring. wireSlider writes the running position into sl.ref (which is
+    // where coinSlider reads its answer), repaints the readout, and re-states the whole deal in the
+    // ask itself as ye drag — so the number is never read in isolation (TRADE-SYSTEM §4).
+    if(sl)wireSlider($("actionPanel"),sl);
     $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
       // /4 stage: an option may carry a `short` label — the radial bloom shows that compact form
       // in its circle while the card fallback keeps the full sentence (element property, never a
@@ -1606,10 +1601,11 @@ async function counterOffer(q,p,offer){
    bakeoffPrompt() already use — record the value itself, replay the recorded one — applied at the
    ONE place a quantity is confirmed.
 
-   BOTH controls log it, not just the slider. coinStepper's number is derivable from its own logged
-   button presses, so logging is redundant there — but which control a seat gets is decided by
-   decisionIsLocal(), and a log whose LENGTH depends on that is a log that only replays under the
-   same routing. Same gesture, same record. */
+   THERE IS NOW ONE CONTROL, SO THERE IS ONE RECORD (05-01 Task 3, MP-08). This paragraph used to
+   read "BOTH controls log it" and explain that a log whose LENGTH depends on routing is a log that
+   only replays under the same routing. That hazard is gone rather than managed: coinStepper is
+   deleted, every seat drags the slider, and this single call is the only way a coin quantity can
+   reach the log — locally or across the wire. */
 function logQuantity(n){
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return appState.dlog[appState.dlogIdx++];}
@@ -1618,8 +1614,13 @@ function logQuantity(n){
   netHandlers().onLogDecision(n);
   return n;
 }
+/* EVERY SEAT DRAGS THIS. The line that used to stand here — `if(!decisionIsLocal(seat)) return
+   coinStepper(...)` — is what D-55 deleted (05-01 Task 3, MP-08). A remote seat now gets the same
+   slider, built by the same builder, and the number it lands on arrives in `ref` through ask()'s
+   {i,n} unpack. That means the ONE logQuantity() call below fires for a remote drag exactly as it
+   does for a local one, and for the first time the decision log's LENGTH does not depend on how the
+   trade was routed: an N-coin counter cost N+2 entries on the stepper and costs 2 either way now. */
 async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
-  if(!decisionIsLocal(seat))return coinStepper(msgFor,start,min,max,confirmLabel,extraOpt);
   if(max<=min){
     // nothing to choose — do not present a slider with one stop on it
     const opts=[{label:confirmLabel,value:"ok",cls:"primary"}];
@@ -1646,25 +1647,6 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
   }
   if(v==="__back__"||v==null)return "__back__";
   return v;
-}
-async function coinStepper(msgFor,start,min,max,confirmLabel,extraOpt){
-  let n=start;
-  for(;;){
-    const opts=[
-      {label:"− 1🌕",value:"minus",disabled:n<=min},
-      {label:"+ 1🌕",value:"plus",disabled:n>=max},
-      {label:confirmLabel,value:"ok",cls:"primary"},
-    ];
-    if(extraOpt)opts.push(extraOpt);
-    opts.push({label:"← Back",back:true,value:"__back__"});
-    const v=await ask(msgFor(n),opts);
-    if(appState.turnExpired)return null;
-    if(v==="minus")n=Math.max(min,n-1);
-    else if(v==="plus")n=Math.min(max,n+1);
-    else if(v==="ok")return Math.max(min,Math.min(max,logQuantity(n)));   // logQuantity: same record, either control
-    else if(v==="__back__"||v==null)return "__back__";
-    else return v;   // the extra option's value (e.g. "deny")
-  }
 }
 export async function humanTrade(p){
   setActor(p.idx);

@@ -641,6 +641,18 @@ const ORCHESTRATION_DECL = [
                       being hidden behind the first one. */
   { fn: "playBakeoffLive(", shared: true, why: "shared — PROMOTED BY 04-01 TASK 3 (MP-05), in the same commit that made it true. The ONE bake-off choreography: the baker's own hands and every watching captain run this same function from the same spec, face down for all of them. Named directly by bakeoffPrompt's decisionIsLocal branch and by watchPrompt's kind===\"bake\" branch." },
   { fn: "applyBenchSnap(", shared: true, why: "shared — PROMOTED BY 04-01 TASK 3 (MP-05). The one entry a bench moment reaches this screen through, called by benchPublish (local render always) and by watchBattle's bench branch. It is what carries the watching captain into playBakeoffLive." },
+  /* 05-01 TASK 3 (MP-08, D-55) ADDS TWO ROWS, WATCHED RED AGAINST THE PRE-TASK TREE BEFORE THEY
+     WERE ADDED — a row added after the fact proves nothing, and this gate spent three phases green
+     while pointed at a game nobody was developing. Against build 2026-08-23b both read
+     PARITY-ORCH-ABSENT: neither function existed, because a remote captain got coinStepper's +/-
+     pair instead of a slider and the markup was one inline line in localAsk.
+
+     TWO ROWS RATHER THAN ONE, for the same reason the bake-off took two: the markup and the wiring
+     are separately droppable. A tier that built the bar and forgot to wire it would render a dead
+     control — measured as a real failure class by the playtest gate ("0 dead sliders" is one of the
+     four things it counts) — and a tier that wired without building would render nothing at all. */
+  { fn: "sliderWrapHTML(", shared: true, why: "shared — PROMOTED BY 05-01 TASK 3 (MP-08, D-55), in the same commit that made it true. The ONE definition of what a coin slider IS, carrying the two class names stage.js identifies the control by (.apSlider keeps the prompt in radial mode, .apSliderWrap keys the placement memo). Named directly by localAsk and by watchPrompt's ask branch." },
+  { fn: "wireSlider(", shared: true, why: "shared — PROMOTED BY 05-01 TASK 3 (MP-08, D-55). The ONE wiring: writes the running position into the caller's ref, repaints the readout, and re-states the whole deal in the ask as ye drag. Named directly by localAsk and by watchPrompt's ask branch — not through a tier-only wrapper, which is what would satisfy the eye and nothing else." },
 ];
 
 // Slice a function body by BRACE MATCHING from its `export function NAME(` header. Located by
