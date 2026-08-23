@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-22c";
+const PP4_STAMP = "2026-08-23a";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -82,7 +82,7 @@ function camToSeat(i){
    the same shot, and one number cannot be right for both (CLAUDE.md, "nothing is a constant").
    Shared by the sail window and the battle framing below, so those two cannot drift apart. */
 const CAM_FIT_PAD = 1.2;                             // cells of water left around the subject
-function camFitCells(cells, maxZoom){
+function camFitCells(cells, maxZoom, reservePx){
   if (!cells || !cells.length) return;
   const cp = cellPx();
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -91,6 +91,27 @@ function camFitCells(cells, maxZoom){
   const bw = (x1 - x0 + 1 + 2 * P) * cp, bh = (y1 - y0 + 1 + 2 * P) * cp;
   let side = Math.max(bw, bh);
   side = Math.max(side, 640 / zoomCap(maxZoom || 2.2));   // D-36: less zoom on a big board
+  /* THE DIRECTOR MAKES THE ROOM (Wyatt, 2026-08-23): "you can always have the director zoom out
+     more if it needs to, to find places to put the elements without covering sail squares."
+     A placement search can only choose among the spaces the camera has already left it — so when a
+     full sail window fills the strip there is genuinely nowhere legal to stand, and "least-bad"
+     meant standing on seven of twenty-two squares. The lever is the FRAME, not the placement.
+
+     ONE THING DECIDES THE FRAME, and that is why this lives here rather than in place(). If the
+     bubble asked the camera to move, the camera and the placement would be two directors of the
+     same picture, oscillating (rule 23, the fault this project already paid for once). The fit
+     reserves the room; the placement then simply finds it.
+
+     DERIVED, NOT TYPED: `reservePx` is the height the prompt actually measures on screen. Growing
+     the frame by strip/(strip - reserve) shrinks the board content by exactly the fraction of the
+     strip the prompt occupies, so the freed band IS the prompt's own size — no constant, and it
+     tracks a longer question or a bigger phone automatically. Still clamped to the whole board:
+     640 is the entire ocean and there is nothing further to zoom out to. */
+  if (reservePx > 0){
+    const strip = Math.max(1, boardBand().bottom - boardBand().top);
+    const room = Math.max(0.35, (strip - reservePx) / strip);   // never give away more than 65%
+    side = side / room;
+  }
   side = Math.min(side, 640);
   camTo((x0 - P) * cp + bw / 2 - side / 2, (y0 - P) * cp + bh / 2 - side / 2, side);
 }
@@ -126,7 +147,15 @@ function camFitSail(seat){
     .map(r => [+r.dataset.gx, +r.dataset.gy])
     .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
   cells.push(who.pos);
-  camFitCells(cells, 2.2);
+  /* Reserve the room the prompt will need, measured from what is on screen rather than guessed:
+     the ask pill and its helper line are what a sail prompt actually draws, and a narration bubble
+     is the other thing that has to stand somewhere. Nothing on screen yet (the very first fit of a
+     turn) reserves nothing and behaves exactly as before. */
+  const need = [".apMsg", ".apSub", ".pp4Bub:not(.out)"]
+    .map(sel => document.querySelector(sel))
+    .filter(e => e && e.getBoundingClientRect().height > 4)
+    .reduce((h, e) => h + e.getBoundingClientRect().height + 8, 0);
+  camFitCells(cells, 2.2, need);
 }
 // frame a set of captains — both combatants of a fight, whatever the water between them
 function camFitSeats(seats){
@@ -1173,18 +1202,44 @@ function stageFlash(msg, ms, holdMs, variants, opts){
          each also tried flush left and flush right in the band — and it takes the first placement
          that covers NO square, else the least-bad one. It cannot wander, because every candidate
          is one the old code would already have been happy with. */
-      const cells = [...document.querySelectorAll(".sailCell")].map(r => fixedRect(r));
-      if (cells.length){
-        const hits = (x, y) => cells.reduce((n, r) =>
-          n + ((x < r.right && x + W > r.left && y < r.bottom && y + bh > r.top) ? 1 : 0), 0);
-        const ys = (above >= band.top) ? [above, belowY] : [belowY, above];
-        const xs = [left, band.left, Math.max(band.left, band.right - W)];
+      /* THE OBSTACLE LIST IS EVERY THING THE PLAYER MUST READ OR TAP — not just sail squares.
+         Two measurements drove this. The judge kept finding a narration bubble sitting on the ASK
+         PILL ("Crustbeard declines" over "Take a deal, or walk away?") — the search had no idea the
+         pill existed. And posing a sail prompt on a 390x664 phone measured the bubble standing on
+         SEVEN of twenty-two sail squares, a straight D-38 violation, because six candidate spots on
+         a board that full are not enough and "least-bad" was genuinely bad.
+
+         WEIGHTED, so D-38's own exception cannot be traded away. A sail square is the thing Wyatt
+         singled out — you cannot make the move if you cannot tap it — so it outranks everything;
+         then the controls; then the question; then its helper line. Covering the sea, an island or
+         a ship stays explicitly free, exactly as D-38 says.
+
+         AND IT STILL PREFERS THE BOAT. Widening the search is what makes a clear spot findable, but
+         D-38 also says the words should stay near the ship, so distance from the boat is the
+         TIE-BREAK rather than a cost of its own: among equally clear spots the nearest wins, and no
+         amount of distance can buy covering a square. That is what stops a wider search wandering,
+         which is the risk the narrower version was written to avoid. */
+      const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
+        .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
+          .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
+          .map(e => ({ r: fixedRect(e), w })));
+      if (OBST.length){
+        const cost = (x, y) => OBST.reduce((n, o) =>
+          n + ((x < o.r.right && x + W > o.r.left && y < o.r.bottom && y + bh > o.r.top) ? o.w : 0), 0);
+        const ys = [];
+        for (const y of [above, belowY, band.top + 4, band.bottom - bh - 4]) {
+          const yy = Math.max(band.top, Math.min(y, band.bottom - bh - 4));
+          if (!ys.some(v => Math.abs(v - yy) < 6)) ys.push(yy);
+        }
+        const xLo = band.left, xHi = Math.max(band.left, band.right - W), span = xHi - xLo;
+        const xs = [left, xLo, xHi];
+        for (let k = 1; k <= 5; k++) { const x = Math.round(xLo + span * k / 6); if (!xs.some(v => Math.abs(v - x) < 8)) xs.push(x); }
         let best = null;
-        for (const y of ys) for (const x of xs){
-          if (y < band.top || y > band.bottom - bh) continue;
-          const n = hits(x, y);
-          if (n === 0){ best = [x, y, 0]; break; }
-          if (!best || n < best[2]) best = [x, y, n];
+        for (const y of ys) for (const x0 of xs){
+          const x = Math.max(xLo, Math.min(x0, xHi));
+          const c0 = cost(x, y);
+          const near = Math.hypot((x + W / 2) - sx, (y + bh / 2) - sy);   // tie-break only
+          if (!best || c0 < best[2] || (c0 === best[2] && near < best[3])) best = [x, y, c0, near];
         }
         if (best){ left = best[0]; top = best[1]; }
       }
