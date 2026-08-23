@@ -90,9 +90,35 @@
 // green. *A gate aimed at the wrong tree is not silent, it is reassuring* (HARD-WON-LESSONS §3).
 //
 // A bare run still scans the root tree, unchanged, so the existing npm test wiring is untouched.
-// Pass `--tree=4` for the game under development. See pickTree() at the foot of this file.
+// Pass `--tree=4` for the game under development. See pickTreeHere() at the foot of this file,
+// which now defers to the SHARED selector scripts/lib/pick_tree.js.
 //
-// MEASURED THE DAY THE SELECTOR LANDED, and recorded so nobody mistakes it for proof of anything:
+// ============================================================================
+// 2026-08-23 (03-01 Task 3, TEST-05 + TEST-06) — THE TRAINING WHEELS ARE OFF
+// ============================================================================
+// `npm test` now runs BOTH aims, and the 4/ aim runs WITHOUT `--report`. A host/guest parity break
+// in the game under development FAILS THE BUILD. That is what TEST-06 asked for and what the
+// measured block below was blocking.
+//
+// Assertions 2 and 4 were red against 4/ for reasons that had nothing to do with parity — the
+// subjects had been RENAMED and MOVED, not forked — so they were re-anchored to 4/'s own code.
+// Neither was weakened; both gained a drill proving the re-anchored form can still go red
+// (2d/2e, 4h/4i/4j), and assertion 4 gained a property it could not have had before the tree it
+// describes split its guard from its ride: EXACTLY ONE RIDE.
+//
+// WHAT DID NOT CHANGE, deliberately, and it is the easiest wrong thing to do in this file:
+// ASSERTION 6'S DECLARED GAP IS STILL DECLARED. `localAsk` is still named as an open fork, which
+// is 02.15's D-04 safe stop, recorded on purpose. Green on assertion 6 means "NO WORSE THAN
+// DECLARED", never "converted". Widening the declaration to buy a full green would convert an
+// honest partial into a lie — 02.15-VERIFICATION.md says outright that it was not widened then,
+// and it was not widened now.
+//
+// AND WHAT THIS GATE STILL CANNOT SEE, stated so a green is not over-read: whether the host's
+// sentence and the guest's sentence READ THE SAME has no automated check here or anywhere else in
+// the repo. Every assertion below is markup, call graph or orchestration. Content parity is
+// rule 19's two-tab pass, and this task did not change that.
+//
+// MEASURED THE DAY THE SELECTOR LANDED (2026-08-20), kept because it is the before-picture:
 //   assertion 1 against 4/  — ALREADY GREEN (6 tokens each side). 02.1-03 unified the button
 //                             builder, so the markup vocabulary genuinely does match. THE RE-AIM
 //                             ALONE PROVES NOTHING; assertion 6 is what was red.
@@ -104,10 +130,8 @@
 //   assertion 5 against 4/  — PASS.
 //   assertion 6 against 4/  — FAIL (--strict), naming flash, setActor and localAsk as driven by
 //                             the host's loop and reachable from ZERO of the nine listeners.
-// Assertions 2 and 4 are red against 4/ for reasons unrelated to host/guest parity, so they are
-// REPORTED (`--report`) rather than made to block. Porting them properly is Phase 3 / TEST-06;
-// wiring --tree=4 into root npm test is TEST-05. A red gate for unrelated reasons teaches people
-// to ignore the gate, which costs more than the coverage buys.
+// BOTH OF THOSE ARE NOW GREEN AND BLOCKING — re-anchored 2026-08-23, see the section above. The
+// re-anchor moved the ASSERTIONS onto 4/'s code; it did not move 4/'s code onto the assertions.
 //
 // ============================================================================
 // Comment stripping, and why it is not optional here
@@ -122,9 +146,10 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { pickTree, treeLine, REPO_ROOT } from "./lib/pick_tree.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REAL_ROOT = path.join(__dirname, "..");
+const REAL_ROOT = REPO_ROOT;
 
 const FLOW_REL = path.join("src", "ui", "flow.js");
 const ORCH_REL = path.join("src", "orchestrator.js");
@@ -191,9 +216,33 @@ export function checkOneSailHighlightBuilder(root) {
   if (flow === null) { fail(res, `${FLOW_REL} is missing`); return res; }
   const live = stripComments(flow);
 
-  const builders = (live.match(/class:"sailCell"/g) || []).length;
+  /* RE-ANCHORED 03-01 Task 3 (TEST-06) — THE SUBJECT EXISTS; THE SPELLING MOVED.
+     This counted `class:"sailCell"` only, which is how the ROOT tree writes it: an attribute-object
+     key handed to el("rect",{...}). `4/` builds the square as an HTML div instead — playtest 20,
+     because UI-06's bounce animates transform:scale and on an SVG element that forces a full layout
+     every frame (measured: 60.1 layouts/sec from the transform alone, zero from the opacity) — so
+     4/src/ui/flow.js:513 sets the class as a DOM PROPERTY, `d.className="sailCell"`.
+
+     The gate therefore found ZERO builders in the game we actually ship and reported "expected 1"
+     — a false alarm about the most load-bearing rule it guards, and the kind that gets a gate
+     ignored. It was NOT a drift: there is exactly one builder in 4/, written a different way.
+
+     So: count builders that apply the class by EITHER SPELLING, and keep the assertion at exactly
+     one. What the assertion protects is completely unchanged, and its reason for existing is
+     restated in the failure text below because that sentence is the whole value of the gate.
+
+     Deliberately NOT a bare /sailCell/ grep. That would also match `.sailCells(` (a __pp4 test
+     hook), the class name inside a comment, and any future `classList.contains("sailCell")` READ —
+     none of which builds anything. A reader is not a builder, and a gate that cannot tell them
+     apart counts wrong in the direction that fakes a green. */
+  const SAIL_BUILDER_SPELLINGS = [
+    /class:\s*"sailCell"/g,                       // attribute-object key — el("rect",{class:"sailCell"}) (root)
+    /\.className\s*=\s*"sailCell"/g,              // DOM property — d.className="sailCell" (4/)
+    /\.classList\.add\(\s*"sailCell"\s*\)/g,      // DOM method — the third way to write the same thing
+  ];
+  const builders = SAIL_BUILDER_SPELLINGS.reduce((n, re) => n + (live.match(re) || []).length, 0);
   if (builders !== 1) {
-    fail(res, `PARITY-SAILRECT: ${builders} rect builder(s) in ${FLOW_REL} carry class:"sailCell", expected exactly 1. Two builders is how D-55 happened — the guest's squares were a different orange, dimmer, unanimated and unhoverable for a whole phase. One builder, called by both paths.`);
+    fail(res, `PARITY-SAILRECT: ${builders} builder(s) in ${FLOW_REL} apply the sailCell class (counted across all three spellings: class:"sailCell", .className="sailCell", .classList.add("sailCell")), expected exactly 1. Two builders is how D-55 happened — the guest's squares were a different orange, dimmer, unanimated and unhoverable for a whole phase. One builder, called by both paths.`);
   }
   if (!/export function sailHighlightRect\(/.test(live)) {
     fail(res, `PARITY-SAILRECT: the shared builder sailHighlightRect() is not exported from ${FLOW_REL} — without it there is nothing for the two pick paths to share.`);
@@ -332,24 +381,75 @@ export function checkRimSweepArrivesAndRestores(root) {
   if (flow === null) { fail(res, `${FLOW_REL} is missing`); return res; }
   const live = stripComments(flow);
 
-  // Isolate animateRimSweepIfAny's body by brace matching — a regex over the whole file would
-  // happily match a paint in some unrelated function and report a green that means nothing.
-  const start = live.indexOf("export async function animateRimSweepIfAny");
-  if (start < 0) {
-    fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny is not in ${FLOW_REL} at all. ANTI-VACUITY: this assertion fails rather than passing over an absent function.`);
+  /* RE-ANCHORED 03-01 Task 3 (TEST-06) — 4/ SPLIT THE GUARD FROM THE RIDE, AND THAT IS BETTER.
+     This used to brace-match animateRimSweepIfAny and demand the curve be built inside it. That
+     described the root tree, where the guard and the ride are one function. In `4/` they are two:
+     animateRimSweepIfAny is now a thin GUARD (is the last event a tradewind? is `from` on the rim?
+     have we already swept this event index?) which ends in `return animateRimSweepRun(seat,from,to)`,
+     and animateRimSweepRun holds the entire ride.
+
+     The split is load-bearing, not cosmetic, and its own comment says why: a SWEPT STORM STEP emits
+     nothing between stepping onto the rim and tradewind(), so the event stream cannot supply `from`
+     — but runStormLive is holding the pre-step square in its hand. Giving the ride an entry point
+     that takes `from` explicitly is what lets a storm ride animate at all WITHOUT adding a field to
+     the event stream. That last part matters more than it looks: adding the entry cell to the event
+     is the STORM-02 class of change, i.e. a determinism re-record (docs/DETERMINISM-CAPTURE-4.md).
+     4/ got the animation and kept the one-way door shut.
+
+     So the gate reports the extraction as a regression, and the gate is wrong. Its own failure text
+     is the instruction — *"must be rewritten, not deleted"* — so: FIND THE RIDE, wherever it lives,
+     and assert every one of the same properties against it.
+
+     ANTI-VACUITY, and this is the part that must not be lost: "find the ride" cannot be allowed to
+     mean "find nothing and pass". The guard must exist; it must reach exactly ONE ride; the ride
+     must build a curve. Every one of those is a named failure below, and the one-ride COUNT further
+     down is what stops the extraction quietly becoming two rides that drift apart — which is D-55's
+     failure class one layer up from where D-55 happened. */
+  const sliceBody = (name) => {
+    const start = live.indexOf(`export async function ${name}`);
+    if (start < 0) return null;
+    const open = live.indexOf("{", start);
+    let depth = 0;
+    for (let i = open; i < live.length; i++) {
+      if (live[i] === "{") depth++;
+      else if (live[i] === "}") { depth--; if (depth === 0) return live.slice(open, i); }
+    }
+    return null;
+  };
+
+  const guardBody = sliceBody("animateRimSweepIfAny");
+  if (guardBody === null) {
+    fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny is not in ${FLOW_REL} at all (or its body could not be brace-matched). ANTI-VACUITY: this assertion fails rather than passing over an absent function.`);
     return res;
   }
-  const open = live.indexOf("{", start);
-  let depth = 0, end = -1;
-  for (let i = open; i < live.length; i++) {
-    if (live[i] === "{") depth++;
-    else if (live[i] === "}") { depth--; if (depth === 0) { end = i; break; } }
+
+  // Which shape is this tree in? INLINE (root: the guard IS the ride) or EXTRACTED (4/).
+  let rideName = "animateRimSweepIfAny";
+  let body = guardBody;
+  if (guardBody.indexOf("rimSweepCurve(") < 0) {
+    // EXTRACTED. The guard must delegate to exactly one ride. Anything named animateRimSweep* that
+    // the guard calls and that is not the guard itself is a candidate.
+    const called = [...new Set(
+      [...guardBody.matchAll(/\b(animateRimSweep[A-Za-z0-9_]*)\s*\(/g)].map((m) => m[1])
+    )].filter((n) => n !== "animateRimSweepIfAny");
+    if (called.length === 0) {
+      fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny neither builds a rimSweepCurve nor calls any animateRimSweep* ride. The sweep has been moved somewhere this assertion cannot follow — re-anchor it, do NOT delete it.`);
+      return res;
+    }
+    if (called.length > 1) {
+      fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny reaches ${called.length} different rides (${called.join(", ")}). Two rides is two chances to disagree about how a boat crosses the ring — exactly the fork D-55 recorded one layer down. One ride, entered from wherever you like.`);
+      return res;
+    }
+    rideName = called[0];
+    body = sliceBody(rideName);
+    if (body === null) {
+      fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny delegates to ${rideName}(), which is not an \`export async function\` in ${FLOW_REL} (or its body could not be brace-matched). Re-anchor this gate rather than deleting the assertion.`);
+      return res;
+    }
   }
-  if (end < 0) { fail(res, `PARITY-SWEEPARRIVE: could not brace-match animateRimSweepIfAny's body`); return res; }
-  const body = live.slice(open, end);
 
   const loopAt = body.indexOf("rimSweepCurve(");
-  if (loopAt < 0) { fail(res, `PARITY-SWEEPARRIVE: animateRimSweepIfAny no longer builds a rimSweepCurve — this assertion no longer describes the code and must be rewritten, not deleted.`); return res; }
+  if (loopAt < 0) { fail(res, `PARITY-SWEEPARRIVE: ${rideName}() does not build a rimSweepCurve — this assertion no longer describes the code and must be rewritten, not deleted.`); return res; }
   const beforeLoop = body.slice(0, loopAt);
 
   // 1. arrival: paint `from`, then YIELD, both before the loop
@@ -361,8 +461,17 @@ export function checkRimSweepArrivesAndRestores(root) {
   }
 
   // 2. the glide is retuned for the sweep, and restored afterwards
-  if (!/setShipGlideMs\(\s*seat\s*,\s*RIM_SWEEP_TICK_MS\s*,\s*"linear"\s*\)/.test(body)) {
-    fail(res, `PARITY-SWEEPARRIVE: the sweep does not set a one-tick LINEAR glide. Left at SHIP_GLIDE_MS the ship is re-aimed mid-glide and takes the chord instead of the arc; left eased, every individual tick eases in and out and the line shimmers.`);
+  // RE-ANCHORED 03-01 Task 3. This demanded the glide be EXACTLY `RIM_SWEEP_TICK_MS`. 4/ writes
+  // `RIM_SWEEP_TICK_MS*MOTION_BRIDGE_TICKS` — a glide that deliberately OUTLASTS the tick, so the
+  // browser always has a transition in flight to interpolate and soaks up setTimeout's jitter
+  // (measured; see MOTION_BRIDGE_TICKS in util.js). One tick's worth, which is what the root tree
+  // still has, leaves the glide finished before the next target lands and the boat renders on
+  // every other frame. That is a REFINEMENT of this assertion's property, not a violation of it.
+  // The two things that are actually load-bearing — the glide is DERIVED FROM the sweep tick rather
+  // than left at SHIP_GLIDE_MS, and it is LINEAR — are both still pinned. Pinning the exact
+  // expression would have made the honest fix red, which is how a gate gets ignored.
+  if (!/setShipGlideMs\(\s*seat\s*,[^,)]*\bRIM_SWEEP_TICK_MS\b[^,)]*,\s*"linear"\s*\)/.test(body)) {
+    fail(res, `PARITY-SWEEPARRIVE: the sweep does not set a LINEAR glide derived from RIM_SWEEP_TICK_MS. Left at SHIP_GLIDE_MS the ship is re-aimed mid-glide and takes the chord instead of the arc; left eased, every individual tick eases in and out and the line shimmers.`);
   }
 
   // 3. progress is derived from ELAPSED TIME, and the loop is NOT rAF-driven.
@@ -392,7 +501,20 @@ export function checkRimSweepArrivesAndRestores(root) {
   if (fin < 0 || !/setShipGlideMs\(\s*seat\s*,\s*null\s*\)/.test(body.slice(fin))) {
     fail(res, `PARITY-SWEEPARRIVE: the glide restore is not inside the \`finally\`. A turn expiry or a thrown paint mid-sweep would then strand the ship on the short glide permanently.`);
   }
-  note(res, `sweep arrives at \`from\` and yields before stepping; glide retuned and restored in finally`);
+  /* EXACTLY ONE RIDE, 03-01 Task 3. Earned by the extraction above and not assertable before it.
+     Every property this assertion pins is pinned against ONE function body. The moment a second
+     function builds a rimSweepCurve, half of them are unguarded on the other one — and it would
+     stay green, which is the reassuring-gate failure this whole phase exists to close. Count call
+     sites (total mentions minus the definition) rather than naming the ride, so this cannot be
+     satisfied by renaming. Same COUNT idiom assertion 2 uses; one gesture, one behaviour. */
+  const curveMentions = (live.match(/rimSweepCurve\(/g) || []).length;
+  const curveDef = /export function rimSweepCurve\(/.test(live) ? 1 : 0;
+  const rideCount = curveMentions - curveDef;
+  if (rideCount !== 1) {
+    fail(res, `PARITY-SWEEPARRIVE-ONERIDE: rimSweepCurve( is built in ${rideCount} place(s) in ${FLOW_REL}, expected exactly 1 (${rideName}). Every property above is asserted against ONE body; a second ride is a second set of arrival, glide-restore and elapsed-time properties that nothing checks.`);
+  }
+
+  note(res, `the ride is ${rideName}(); it arrives at \`from\` and yields before stepping, retunes the glide from RIM_SWEEP_TICK_MS and restores it in finally; ${rideCount} function build(s) the curve`);
   return res;
 }
 
@@ -716,6 +838,40 @@ function drill() {
   fixture(FLOW_REL, GOOD_PICK);
   expect("drill 2c (negative control — one renderer, one caller, converged)", checkOneSailHighlightBuilder(tmpRoot), false);
 
+  /* 2d / 2e — THE SPELLINGS, 03-01 Task 3. The re-anchor above taught this assertion to count the
+     sail class applied as a DOM PROPERTY as well as as an attribute-object key, because that is how
+     `4/` writes it. A widening is exactly the kind of change that can quietly turn a gate vacuous,
+     so both halves are drilled: the new spelling must still be able to make the count go RED (2d),
+     AND a tree written entirely in the new spelling must pass for the right reason (2e). Without
+     2d the widening would be indistinguishable from deleting the assertion. */
+  const GOOD_PICK_DOM = [
+    `const SAIL_HL_SCALE=0.9;`,
+    `export function sailHighlightRect(c,cellPx,svg){`,
+    `  const d=document.createElement("div");`,
+    `  d.className="sailCell";`,
+    `  return d;`,
+    `}`,
+    `export function renderPickPrompt(spec,answer){`,
+    `  const cellPx=boardCell();`,
+    `  spec.cells.forEach(c=>{const r=sailHighlightRect(c,cellPx,svg);hs.push(r);});`,
+    `}`,
+    ``,
+  ].join("\n");
+
+  // 2d: a SECOND builder written in the DOM-property spelling. Before the re-anchor this was
+  //     invisible — the gate counted `class:"sailCell"` only, so a whole second builder written the
+  //     4/ way scored zero and the gate reported "0 builders" while two existed.
+  resetFixture();
+  fixture(FLOW_REL, GOOD_PICK_DOM.replace(
+    `  d.className="sailCell";`,
+    `  d.className="sailCell";\n  const guest=document.createElement("div");\n  guest.className="sailCell";`));
+  expect("drill 2d (a second builder in the DOM-PROPERTY spelling — invisible before the re-anchor)", checkOneSailHighlightBuilder(tmpRoot), true, "expected exactly 1");
+
+  // 2e: negative control for the new spelling — one builder, written the way 4/ writes it, passes.
+  resetFixture();
+  fixture(FLOW_REL, GOOD_PICK_DOM);
+  expect("drill 2e (negative control — ONE builder in the DOM-property spelling, the 4/ shape)", checkOneSailHighlightBuilder(tmpRoot), false);
+
   // --- assertion 3 fixtures ---
   const GOOD_SWEEP_FLOW = `export function rimSweepPath(game,from){return [];}\nexport async function animateRimSweepIfAny(){}\n`;
   const GOOD_SWEEP_ORCH = `export function watchEvents(){ await animateRimSweepIfAny(); render(); }\n`;
@@ -829,6 +985,53 @@ function drill() {
   resetFixture();
   fixture(FLOW_REL, `export function rimSweepPath(){}\n`);
   expect("drill 4d (anti-vacuity — no animateRimSweepIfAny at all must FAIL)", checkRimSweepArrivesAndRestores(tmpRoot), true, "not in");
+
+  /* 4h / 4i / 4j — THE EXTRACTED SHAPE, 03-01 Task 3. Every drill above writes the guard and the
+     ride as ONE function, which is the root tree's shape. `4/` splits them, and the re-anchor added
+     a whole branch to follow the split. A branch nothing drills is a branch that has only ever been
+     seen pass against one real tree — §2's *"a check you have only ever seen pass is
+     indistinguishable from a check that cannot fail"*, arriving inside the gate itself. So the
+     split shape gets the same three: it can go red on a property (4h), it passes for the right
+     reason (4i), and it refuses a FORK rather than picking one of two rides (4j). */
+  const EXTRACTED_RIDE_BODY = `  try{
+    setShipGlideMs(seat,RIM_SWEEP_ARRIVE_MS,"linear");
+    paintShipAt(seat,from);
+    await sleep(RIM_SWEEP_ARRIVE_MS);
+    const curve=rimSweepCurve([from,...path]);
+    const total=rimSweepDurationMs(path.length);
+    setShipGlideMs(seat,RIM_SWEEP_TICK_MS*MOTION_BRIDGE_TICKS,"linear");
+    const began=Date.now();
+    for(;;){ const t=Math.min(1,(Date.now()-began)/total); const p=rimSweepPointAt(curve,t); if(p)paintShipAtPoint(seat,p[0],p[1]); if(t>=1)break; await routeTick(RIM_SWEEP_TICK_MS); }
+  }finally{ setShipGlideMs(seat,null); paintShipAt(seat,to); }
+  return true;`;
+  const EXTRACTED_GUARD = `export async function animateRimSweepIfAny(){
+  const g=appState.game;
+  if(!g||appState.replaying)return false;
+  return animateRimSweepRun(seat,from,to);
+}
+`;
+
+  // 4h: the split is followed, and the ride is missing the glide RESTORE. The gate must find the
+  //     ride and fail on the property — not shrug because the guard looks fine.
+  resetFixture();
+  fixture(FLOW_REL, EXTRACTED_GUARD + `export async function animateRimSweepRun(seat,from,to){\n` +
+    EXTRACTED_RIDE_BODY.replace(`}finally{ setShipGlideMs(seat,null); paintShipAt(seat,to); }`, `}finally{ paintShipAt(seat,to); }`) + `\n}\n`);
+  expect("drill 4h (EXTRACTED shape — the ride never restores the glide)", checkRimSweepArrivesAndRestores(tmpRoot), true, "never restores the glide");
+
+  // 4i: negative control for the split — a correct guard delegating to a correct ride passes.
+  resetFixture();
+  fixture(FLOW_REL, EXTRACTED_GUARD + `export async function animateRimSweepRun(seat,from,to){\n` + EXTRACTED_RIDE_BODY + `\n}\n`);
+  expect("drill 4i (negative control — EXTRACTED guard + one correct ride, the 4/ shape)", checkRimSweepArrivesAndRestores(tmpRoot), false);
+
+  // 4j: the guard reaches TWO rides. Picking either one would leave the other's arrival, glide and
+  //     elapsed-time properties unguarded — and it would read as green. Refuse, and name both.
+  resetFixture();
+  fixture(FLOW_REL, EXTRACTED_GUARD.replace(
+    `  return animateRimSweepRun(seat,from,to);`,
+    `  if(storm)return animateRimSweepStormRun(seat,from,to);\n  return animateRimSweepRun(seat,from,to);`) +
+    `export async function animateRimSweepRun(seat,from,to){\n` + EXTRACTED_RIDE_BODY + `\n}\n` +
+    `export async function animateRimSweepStormRun(seat,from,to){\n` + EXTRACTED_RIDE_BODY + `\n}\n`);
+  expect("drill 4j (a FORK — the guard reaches two different rides)", checkRimSweepArrivesAndRestores(tmpRoot), true, "different rides");
 
   // --- assertion 5 fixtures ---
   const GOOD_RING = `export function setShipGlideMs(seat,ms,ease){
@@ -968,13 +1171,17 @@ const IS_MAIN = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPa
 //
 // Wiring --tree=4 into root `npm test` is Phase 3 / TEST-05, not this phase; a green root run still
 // says nothing about 4/, so run this by name like every other 4/-side gate.
-function pickTree(argv) {
-  const arg = argv.find((a) => a.startsWith("--tree"));
-  if (!arg) return { root: REAL_ROOT, label: "root (the OLD game — not the tree under development)", orchestration: false };
-  const v = arg.includes("=") ? arg.split("=").slice(1).join("=") : "4";
-  if (v === "root") return { root: REAL_ROOT, label: "root (the OLD game — not the tree under development)", orchestration: false };
-  if (v === "4") return { root: path.join(REAL_ROOT, "4"), label: "4/ (the game actually being developed)", orchestration: true };
-  return { root: path.resolve(v), label: path.resolve(v), orchestration: true };
+// CONVERGED, 03-01 Task 3. This function used to live here, as this file's own private copy of
+// the idiom. Phase 3 gave the same selector to six more gates, and six copies is the shape rule 23
+// forbids — *what makes these agree?* Nothing. So there is now exactly ONE of it, in
+// scripts/lib/pick_tree.js, and this file was moved onto it rather than left running beside it.
+// The behaviour is unchanged in every mode, including the arbitrary-path mode the drills use.
+// `orchestration` is this gate's own name for "the tree has a guest tier worth asserting against",
+// which is true of 4/ and of a synthetic tree and false of the root game — derived here rather
+// than pushed into the shared selector, because no other gate has that concept.
+function pickTreeHere(argv) {
+  const t = pickTree(argv);
+  return { root: t.root, label: t.label, orchestration: t.name !== "root" };
 }
 
 if (!IS_MAIN) {
@@ -982,7 +1189,7 @@ if (!IS_MAIN) {
 } else if (process.argv.includes("--drill")) {
   drill();
 } else {
-  const { root, label, orchestration } = pickTree(process.argv);
+  const { root, label, orchestration } = pickTreeHere(process.argv);
   const strict = process.argv.includes("--strict");
   // --report: print every verdict and exit 0 regardless. Assertions 2-5 pin subjects (the sail
   // rect builder, the rim-sweep stepper, the glide restore, the active ring) that may or may not
@@ -990,12 +1197,21 @@ if (!IS_MAIN) {
   // subject does not exist either fails for an unrelated reason or is loose enough to pass an
   // empty tree. Reporting them is useful; letting them BLOCK this phase would teach people to
   // ignore the gate, which costs more than the coverage buys. Porting them properly is TEST-06.
+  // `--report` survives as an EXPLORATION mode only — it is no longer used by npm test, which runs
+  // the 4/ aim bare so a parity break exits non-zero (03-01 Task 3 / TEST-06). It now says so on
+  // every run it is used on, because a gate that exits 0 while printing failures is the single
+  // easiest thing in this repo to quote as a green.
   const reportOnly = process.argv.includes("--report");
   console.log(`tree: ${label}`);
+  if (reportOnly) console.log(`--report: EXPLORATION MODE — this run will exit 0 even if it fails. It is NOT what npm test runs and a green from it proves nothing.`);
   const results = runAll(root, { orchestration, strict });
   const failed = results.filter((r) => !r.ok);
   if (failed.length) {
-    console.error("\nFAILURES:");
+    // NAME THE TREE IN THE FAILURE HEADER TOO. The `tree:` line at the top says it, but a failure
+    // pasted into a summary or a commit message travels without it — and every path below is
+    // RELATIVE (src/ui/flow.js reads identically for both trees, which is the two-trees hazard
+    // CLAUDE.md rule 18 is about). One repetition here makes a quoted failure self-describing.
+    console.error(`\nFAILURES — tree: ${label}`);
     for (const r of failed) for (const f of r.failures) console.error(`  - ${f}`);
     if (!reportOnly) process.exit(1);
     console.error("\n(--report: exiting 0 anyway — these are reported, not gating)");
