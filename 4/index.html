@@ -1582,10 +1582,23 @@
   body.pp4Stage.pp4Side #pp4Col { display:flex; flex-direction:column; gap:var(--pp4CapGap);
     position:fixed; left:calc(100% + var(--pp4CapGap)); top:var(--pp4Top, 0px);
     width:var(--pp4CapColW, 300px); max-height:calc(100vh - var(--pp4Top, 0px) - 16px);
+    /* item 21 (his pick): the column fills the page's height so the menu can bottom-align */
+    height:calc(100vh - var(--pp4Top, 0px) - 16px);
     overflow-y:auto; z-index:22; }
   body.pp4Stage.pp4Side #pp4Col > #pp4Cap { position:static; left:auto; right:auto; top:auto;
     bottom:auto; width:auto; max-width:none; max-height:none; overflow:visible; flex:0 0 auto; }
-  body.pp4Stage.pp4Side #pp4Col > #footerRow { display:flex; flex:0 0 auto; }
+  /* item 21 (his pick): bottom-aligned with the page, and NO surface of its own — the sea is the
+     background. The rows go light to stand on it; Leave game keeps its red, in a shade that reads
+     on the dark water. */
+  body.pp4Stage.pp4Side #pp4Col > #footerRow { display:flex; flex:0 0 auto; margin-top:auto;
+    background:none; box-shadow:none; padding:6px 0; }
+  body.pp4Stage.pp4Side #footerRow.pp4MenuList .footerBtn,
+  body.pp4Stage.pp4Side #footerRow.pp4MenuList #btnMute { color:#d9eef2; }
+  body.pp4Stage.pp4Side #footerRow.pp4MenuList .footerBtn:hover,
+  body.pp4Stage.pp4Side #footerRow.pp4MenuList #btnMute:hover { background:rgba(255,255,255,.10); }
+  body.pp4Stage.pp4Side #footerRow.pp4MenuList button.footerLeave { color:#ffb4ae;
+    border-top:1px solid rgba(255,255,255,.16); }
+  body.pp4Stage.pp4Side #footerRow.pp4MenuList #pp4Stamp { color:rgba(255,255,255,.45); }
   /* nothing is left behind the hamburger on a full desktop, so the hamburger goes with it */
   body.pp4Stage.pp4Side #pp4Menu { display:none; }
   body.pp4Stage.pp4Side #pp4Cap {
@@ -1842,9 +1855,22 @@
      column change together. There is no second list of items anywhere and there must never be:
      stage.js MOVES this node between mounts. Only `display` and POSITION are per-mount, below.
      (playtest 12 item 6: one clean column, uniform widths.) */
-  #footerRow.pp4MenuList { flex-direction:column; align-items:stretch; gap:9px;
-    background:#fffdf2; border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
-  #footerRow.pp4MenuList .footerBtn { width:100%; box-sizing:border-box; margin:0; text-align:center; }
+  /* ITEM 21, HIS PICK (2026-08-24, from three rendered variants): the QUIET LIST — plain rows,
+     left-aligned, no per-button pill borders — bottom-aligned with the page, and on desktop "no
+     background — just use the page as its background". ONE structure for both mounts (rows below);
+     only the SURFACE is per-mount, because the mounts stand on different ground: the ☰ sheet
+     floats OVER the board and keeps its cream card, the desktop column sits on the open sea and
+     wears nothing (his words). The desktop colours live in the pp4Side block further down. */
+  #footerRow.pp4MenuList { flex-direction:column; align-items:stretch; gap:2px;
+    background:#fffdf2; border-radius:14px; padding:8px; box-shadow:0 12px 40px rgba(0,0,0,.4); }
+  #footerRow.pp4MenuList .footerBtn { width:100%; box-sizing:border-box; margin:0;
+    border:none; background:none; box-shadow:none; border-radius:8px;
+    display:flex; align-items:center; justify-content:flex-start; gap:10px; text-align:left;
+    padding:8px 14px; font-size:14px; font-weight:500; color:#2c4a55; }
+  #footerRow.pp4MenuList .footerBtn:hover { background:rgba(42,105,125,.10); }
+  /* the destructive action stands apart, in the standard way */
+  #footerRow.pp4MenuList button.footerLeave { color:#a8352e; margin-top:6px;
+    border-top:1px solid rgba(44,74,85,.18); border-radius:0 0 8px 8px; }
   #footerRow.pp4MenuList #pp4Stamp { order:99; }
   /* MOUNT 1 — the ☰ sheet, over the board. Phone and the stacked/tablet branch (D-18/D-31: the
      phone stays exactly as it is; the tablet has no column to put a menu in). */
@@ -1988,11 +2014,12 @@
      both directions, so here it is repurposed rather than fought with: position:static returns it
      to the flow as the label. Nothing outside the open menu is affected. */
   #footerRow.pp4MenuList #muteSlot { display:block !important; width:100%; margin:0; }
-  #footerRow.pp4MenuList #btnMute { display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; box-sizing:border-box; font-family:inherit; font-size:13.5px; font-weight:700;
-    padding:9px 12px; border:1.5px solid rgba(23,119,119,.4); border-radius:9px; background:#fff;
-    color:#177; line-height:1.2; }
-  #footerRow.pp4MenuList #btnMute:hover { background:#f2fbfa; filter:none; }
+  /* item 21: the sound row wears the same quiet-list row as its neighbours — one look, one list */
+  #footerRow.pp4MenuList #btnMute { display:flex; align-items:center; justify-content:flex-start; gap:10px;
+    width:100%; box-sizing:border-box; font-family:inherit; font-size:14px; font-weight:500;
+    padding:8px 14px; border:none; border-radius:8px; background:none; box-shadow:none;
+    color:#2c4a55; line-height:1.2; }
+  #footerRow.pp4MenuList #btnMute:hover { background:rgba(42,105,125,.10); filter:none; }
   #footerRow.pp4MenuList #btnMute img { width:20px; height:20px; }
   /* @copy misc.stage.soundrow — plain register, matching "Turn clock: ON — 30s a turn" beside it.
      The ☰ menu speaks to the person holding the device, not to a captain. */
