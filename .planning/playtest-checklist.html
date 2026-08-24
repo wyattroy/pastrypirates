@@ -61,7 +61,7 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — playtest checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026-08-24d</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
+  <div class="sub">Build <strong id="stamp">2026-08-24e</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
    — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
   <div class="bar">
     <span class="count" id="count">0 / 0</span>
@@ -85,7 +85,7 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 <script>
 const DATA = [
  {h:"First — the three that stopped your last playtest"},
- {note:"<strong>Everything from your evening list shipped today, in three builds — 2026-08-24a (the three blockers), b (the thirteen visible bugs), c (the menu and the pulse).</strong> All three are live; the stamp to look for is <strong>2026-08-24c</strong>. Every item below says what I measured, and where a call is yours, it says that instead."},
+ {note:"<strong>Everything from your evening list shipped today, in three builds — 2026-08-24a (the three blockers), b (the thirteen visible bugs), c (the menu and the pulse).</strong> All are live — with your two afternoon corrections shipped as d and e; the stamp to look for is <strong>2026-08-24e</strong>. Every item below says what I measured, and where a call is yours, it says that instead."},
  {n:1,look:"Crew game: as the HOST, close the tab mid-voyage, then reopen the site",right:"You're back in your voyage within a few seconds. No endless “⚓ Reconnecting to yer voyage…”.",why:"The hang that ended your last playtest. Root cause: the “host left” alarm fired on EVERY host disconnect — your own reload included — and then the resume path refused to resume a “host left” room. You were locked out permanently. Reproduced in two windows, fixed on both sides."},
  {n:2,look:"Crew game: as a GUEST, when the host closes the tab for good",right:"After a few seconds you get the “host left the voyage” card. But if the host merely reloads and comes straight back, you are NOT kicked.",why:"The guest now waits 4 seconds and checks again before believing the host is gone."},
  {n:3,look:"IF any reconnect ever does sit there — about 15 seconds",right:"The card changes to “⚓ Still reconnectin'…” with a Back to port button that takes you home. You can never be stranded on that screen again.",why:"The escape hatch you asked for. I forced a stall to prove it fires, and proved it stands down when the resume is genuinely working."},
@@ -115,7 +115,7 @@ const DATA = [
  {n:22,look:"A narration bubble while sail squares are up",right:"The bubble lands on open water — never on a square you have to tap, and not on the question either.",why:"Your #38. The director's room reservation now survives the whole turn instead of evaporating after the first camera fit."},
 
  {h:"Fourth — the two you ruled on today"},
- {n:23,look:"Everything that asks for a tap — your afternoon re-ruling, rebuilt in 24d",right:"Two cues, one rule, every mode the same. ON A STAGE (ceremonies, battle cards, the flip coin, and the Start buttons of every mode) the button breathes the coin's orange glow. OVER THE BOARD (the action circles, the stay-put confirm, floating card buttons) it visibly SWELLS — no ring. Greyed circles never pulse.",why:"Measured: the old fan pulse was running but invisible — a 6px swell with a faint ring that read over dock sand and vanished over the sea, which is why it seemed to pulse only at docks. The swell is now 10px on a 66px circle, and every assignment lives in one block of CSS."},
+ {n:23,look:"Everything that asks for a tap — your afternoon re-ruling, rebuilt in 24d and made Safari-proof in 24e",right:"Two cues, one rule, every mode the same. ON A STAGE (ceremonies, battle cards, the flip coin, and the Start buttons of every mode) the button breathes the coin's orange glow. OVER THE BOARD (the action circles, the stay-put confirm, floating card buttons) it visibly SWELLS — no ring. Greyed circles never pulse.",why:"Measured: the old fan pulse was running but invisible — a 6px swell with a faint ring that read over dock sand and vanished over the sea, which is why it seemed to pulse only at docks. The swell is now 10px on a 66px circle, and every assignment lives in one block of CSS."},
  {n:24,look:"The desktop menu",right:"Your pick — A1 with no background: a quiet left-aligned list at the bottom of the captains column, the sea showing through behind it, Leave the ship in red at the very bottom under a thin rule.",why:"Item 21. Shipped exactly the variant you chose."},
  {n:25,look:"The phone ☰ menu",right:"The same quiet rows in the slide-up sheet — one look for the same menu on both devices.",why:"Consistency rule: same list, two mounts, one stylesheet."},
 
