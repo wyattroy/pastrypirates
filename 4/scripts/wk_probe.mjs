@@ -60,10 +60,12 @@ try {
   const out = await api("POST", `/session/${sessionId}/execute/async`, { script, args: [] });
   const parsed = JSON.parse(out.value);
   console.log(JSON.stringify({ engine: "webkitgtk", url, selector, ...parsed }));
-  process.exit(parsed.error ? 1 : 0);
+  process.exitCode = parsed.error ? 1 : 0;   // exitCode, NEVER process.exit(): exit() inside try
+                                             // skips this finally and leaks the driver — caught
+                                             // 2026-08-24, four orphaned WebKitWebDrivers (rule 17)
 } catch (e) {
   console.error("WK-PROBE ERROR:", e.message);
-  process.exit(1);
+  process.exitCode = 1;
 } finally {
   try { if (sessionId) await api("DELETE", `/session/${sessionId}`); } catch {}
   try { drv.kill("SIGKILL"); } catch {}
