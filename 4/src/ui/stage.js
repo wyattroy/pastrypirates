@@ -2008,7 +2008,16 @@ function enterCenterStage(){
   const capH = (cap && !isSideBySide()) ? Math.max(0, Math.round(vhPx() - cap.getBoundingClientRect().top)) : 0;
   const need = ap.offsetHeight || 0;
   const dip = Math.max(0, Math.round((vhPx() + need) / 2 - (vhPx() - capH)));
-  const pad = dip > 0 ? Math.min(capH, dip * 2) + "px" : "";
+  /* ITEM 9 (Wyatt, 2026-08-23c, the black-market card): "it was not centered vertically and the
+     top of it was nested behind the header row." The lift above clears the captains box but
+     nothing guarded the TOP — a tall card (the black-market ceremony is the longest in the game)
+     was hoisted until its title ran under the ribbon. The lift is now also capped by the room the
+     top band leaves: with align-items:center and a bottom pad of P, the card's top sits at
+     (vh − P)/2 − need/2, so keeping it below the band means P ≤ vh − 2·band.top − need. When even
+     P=0 cannot fit the card, the card overlaps the CAPTAINS box instead of the header — the
+     captains are passive; the title is not. */
+  const topRoom = Math.max(0, Math.round(vhPx() - 2 * boardBand().top - need));
+  const pad = dip > 0 ? Math.min(capH, dip * 2, topRoom) + "px" : "";
   if (box.style.paddingBottom !== pad) box.style.paddingBottom = pad;
   // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
   // sheet must never share the centre stage (see the strip bug above)
