@@ -534,7 +534,19 @@ function camFrame(){
   // D-46 fault 3: what the card NEEDS (measured on the geometry clock), never 30% of the window.
   // Falls back to the old fraction until the first measurement lands, so the very first frames of
   // a voyage look exactly as they always did.
-  const CAP_BASE = side ? 0 : Math.min(250, S.capNeed || Math.round(vhPx() * 0.30));
+  /* THE BOARD'S SQUARE OUTRANKS THE CAPTAINS CARD — Wyatt, 2026-08-23c (problems 1+4), with the
+     Day-9 screenshot as evidence: "the board cuts off the top row" and "the aspect ratio of the
+     board window on mobile is no longer square, but it needs to be." The card's measured need
+     (capped 250) came off the strip unconditionally, so on a real phone viewport (~664px of page
+     under Safari's chrome) the strip fell below the board's own width, the full-board frame became
+     a wide SLICE of the square viewBox, and the camera cropped rows — his ship on the top row,
+     clipped in half. The reservation is now also capped by the room a square leaves
+     (vh − band − width); when four fat rows need more than that, the card scrolls inside its own
+     max-height backstop instead of eating the board. Floor of 64 so the card never vanishes on a
+     freak-short viewport — at that point squareness gives way by exactly the overflow, which is
+     the least-bad corner. Side-by-side is untouched (no reservation at all, as before). */
+  const squareRoom = Math.max(64, vhPx() - ribH - vwPx());
+  const CAP_BASE = side ? 0 : Math.min(250, S.capNeed || Math.round(vhPx() * 0.30), squareRoom);
   const availH = Math.max(200, vhPx() - ribH - CAP_BASE);
   if (wrap){
     if (Math.abs((parseFloat(wrap.style.top) || 0) - ribH) > 1) wrap.style.top = ribH + "px";
