@@ -1819,8 +1819,20 @@
     --pulseLo:1; --pulseHi:1;
     animation: sailBounce 1.15s ease-in-out infinite; }
   #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:hover { animation-play-state: paused; }
+  /* ITEM 13 (Wyatt, 2026-08-23c): "you need to fully QA to make sure ALL prompt buttons are
+     pulsing." The sweep, prompt style by prompt style: radial .apBtn (rule above), centre-stage
+     .apBtn (pp4StagePulse), sail squares (sailBounce), Stay put (#apStay is an .apBtn), the flip
+     coin (its own sanctioned flipglow), bake intro (pp4Center) — all pulsed. The BATTLE buttons
+     (.btlBtn — Call the winner, FLIP!, side bets) were the one style with no pulse at all: D-32's
+     rule reaches only .apBtn. Same one vocabulary, wrapper-independent because a battle card is
+     framed by __pp4.battle rather than the radial/centre classes. */
+  #actionPanel .btlBtn:not(:disabled):not([aria-disabled="true"]) {
+    --pulseLo:1; --pulseHi:1;
+    animation: sailBounce 1.15s ease-in-out infinite; }
+  #actionPanel .btlBtn:hover { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) {
-    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn { animation: none; } }
+    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn { animation: none; }
+    #actionPanel .btlBtn { animation: none; } }
   /* playtest 12 item 8: hold-the-sea peeks EVERY prompt style, radial included — one gesture,
      one behaviour (this replaces the old radial exemption) */
   body.pp4Stage #footerRow { display:none; }
