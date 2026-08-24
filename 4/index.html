@@ -601,8 +601,9 @@
      treatment "Ready to bake!" already got for its own ghost window. */
   #actionPanel.pendingReveal .bkoIntroBtns { visibility: visible; opacity: .4; pointer-events: none; }
   .bkoIntroBtns { transition: opacity .2s ease; }
-  .ahoyGlow { animation: ahoyglow 1.4s ease-in-out infinite; }
-  @keyframes ahoyglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.6); } 50% { box-shadow: 0 0 0 8px rgba(245,159,45,0); } }
+  /* .ahoyGlow is assigned in THE ATTENTION VOCABULARY block (end of this stylesheet) — it used
+     to carry its own private @keyframes ahoyglow, the second of three hand-rolled copies of the
+     same orange ring. One definition now: pp4Glow. */
   /* ---- battle scoreboard ---- */
   .btl { text-align: center; }
   .btl-hd { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
@@ -667,8 +668,10 @@
   #flipCoinWrap.active { border-color: var(--accent); background-color: #f5a623;
     background-size: cover; background-position: center;
     color: #f5a623; text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 3px rgba(0,0,0,.7), 0 0 1px #000;
-    font-weight: 800; cursor: pointer; animation: flipglow 1s ease-in-out infinite; }
-  @keyframes flipglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,159,45,.5); } 50% { box-shadow: 0 0 0 9px rgba(245,159,45,0); } }
+    font-weight: 800; cursor: pointer; }
+  /* the coin's glow is assigned in THE ATTENTION VOCABULARY block (end of this stylesheet) —
+     the same pp4Glow every stage button breathes. plankglow stays: it is the plank SURFACE
+     echoing the coin, an inset compound, not a button cue. */
   @keyframes plankglow { 0%, 100% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 0 rgba(245,159,45,.65); }
     50% { box-shadow: inset 0 2px 5px rgba(0,0,0,.28), 0 0 0 14px rgba(245,159,45,0); } }
   /* ---- shot clock: a brass ship's gauge, left-aligned like a real instrument readout ---- */
@@ -999,19 +1002,11 @@
   .sailCell:hover { opacity: 1; box-shadow: inset 0 0 0 2px #fff;
     filter: brightness(1.18) drop-shadow(0 0 6px rgba(255,178,40,1)) drop-shadow(0 0 14px rgba(255,178,40,.55));
     animation-play-state: paused; }
-  /* D-32 (Wyatt, his item 1: "the prompt buttons are hard to notice"): THIS is the pulse the prompt
-     buttons now share. He was shown five existing glows — flipglow, pp4FocusPulse, pp4StagePulse,
-     ahoyglow, goldShimmer — and picked the sail squares'. The point is the VOCABULARY, not the
-     animation: on this board, pulsing means "tap me", and rule 8 says it should mean that
-     everywhere. So this stays the ONE definition and the petals reference it; a second @keyframes
-     block with the same shape would be exactly the "two things kept in step by discipline" the
-     consistency rule exists to prevent.
-     THE TWO CUSTOM PROPERTIES ARE WHY IT CAN BE SHARED. A sail square pulses its OPACITY as well
-     as its scale (.5 -> .72) because it is a translucent overlay on the board; a prompt circle is
-     an opaque control and a button that fades to half is a button that reads as disabled. The
-     opacity stops are therefore read from the element rather than written here, and .sailCell sets
-     neither — so the fallbacks reproduce its old keyframes byte for byte, while the petals set
-     both to 1 and get the scale rhythm alone. */
+  /* sailBounce is the SAIL SQUARES' own bounce and nothing else's — Wyatt, 2026-08-24, item 23:
+     "don't touch the sail squares." The prompt buttons used to borrow these keyframes (that is
+     what the --pulseLo/--pulseHi custom properties were for); they now pulse from THE ATTENTION
+     VOCABULARY block at the end of this stylesheet instead. The fallback values below ARE the
+     sail squares' animation — a translucent overlay breathing opacity .5 -> .72 with its scale. */
   @keyframes sailBounce {
     0%, 100% { transform: scale(1); opacity: var(--pulseLo, .5); }
     50%      { transform: scale(1.11); opacity: var(--pulseHi, .72); } }
@@ -1777,74 +1772,17 @@
   #pp4Prompt.radial .apBtn { font-size:9.5px; line-height:1; gap:0; padding:5px; }
   #pp4Prompt.radial .apBtn img { width:17px; height:17px; }
   #pp4Prompt.radial .apBtn.apDisabled { filter:grayscale(.7); opacity:.55; }
-  /* D-32, THE SWEEP. One attention vocabulary for "this is asking you to tap it" (rule 8). The
-     rule is deliberately written against #actionPanel .apBtn rather than against the radial petal
-     alone, so the radial fan, the flat button row and the battle buttons — three prompt styles,
-     one class — all get the same gesture without three rules to keep in step.
-     SURFACES DELIBERATELY LEFT OUT, each with its reason, because an unexplained exception is how
-     a consistency rule dies:
-       - .apDisabled / :disabled / [aria-disabled] — a greyed circle is not asking for a tap. It is
-         the one case where pulsing would be a lie.
-       - #pp4Prompt.pp4Center — a centre-stage ceremony card already owns the whole screen behind
-         the veil (Wyatt's own sanctioned hold-the-sea exception). Its single "Arrgh!" is the only
-         thing you can touch; a pulse adds no information there and competes with the ceremony.
-       - .apBack — the little back circle is a way OUT of the question, not an answer to it.
-       - the FLIP coin (#flipCoinWrap, flipglow) — not an .apBtn at all: a different element with
-         its own bespoke ceremony glow, converging which is not trivial and is not what D-32 asked
-         for. Left as it is, said out loud rather than left as a silent inconsistency.
-       - the draft-pick recipe cards — the whole card is the control, 300px of it. A scale pulse
-         there is a large, slow wobble on the biggest thing on screen rather than a "tap me" cue.
-     HOVER PAUSES IT, the same way .sailCell's does — for the same reason recorded there: a
-     transform in a running keyframe would win over anything a :hover rule tried to set.
-     The reduced-motion opt-out travels WITH the animation. A pulse copied without the rule that
-     stops it is a regression wearing a feature's clothes. */
-  /* ⚠ MEASURED AFTER THE FACT, AND IT QUALIFIES THE CLAIM — read this before assuming item 1 is
-     solved. Driving a solo game at 1400x900 AND at 390x844 and posing the action menu at a dock,
-     #pp4Prompt came up `pp4Center` BOTH times, never `radial`. The pp4Center circles are excluded
-     below and they ALREADY carry pp4StagePulse — scale 1.09 on a 1.1s cycle plus a 16px orange ring
-     at 28% alpha which, read off the screenshot, is invisible against the teal sea. sailBounce is
-     scale 1.11 on a 1.15s cycle: near enough the same movement.
-     SO: this rule is a real gain for the flat button rows and the battle buttons, which had NO
-     pulse at all. It is NOT yet proven on a live radial petal, and if the menu Wyatt was looking at
-     was the pp4Center one, then his item 1 ("the prompt buttons are hard to notice") is about
-     buttons that were already pulsing — which means a pulse is not the answer and the next step is
-     HIS call, not a bigger number picked here. Stated rather than quietly claimed as fixed. */
-  /* …AND :not(.recipeCard), WHICH THIS RULE'S OWN NOTE ALREADY DECIDED AND NEVER SAID IN CSS.
-     The exclusion list above ends with "the draft-pick recipe cards — the whole card is the
-     control, 300px of it. A scale pulse there is a large, slow wobble on the biggest thing on
-     screen rather than a 'tap me' cue." A recipe card IS an .apBtn (class="apBtn recipeCard"), so
-     the selector caught the very surface the comment excused, and has since it was written.
-
-     GROUP G FAULT 4, and this is what the vision judge saw on solo-desktop-004/-005 as "the
-     subtitle is sliced across by the top edge of the two recipe cards". Measured at 1890x960 with
-     the card focused: layout height 276px, transform scaling 1.00072 -> 1.10962 on the 1.15s
-     cycle, painted height swinging 276.6 -> 306.7. Growing from its centre, the card's top edge
-     climbs 15.3px — from a layout top of ~489.7 to a painted 474.4 — while "Tap a recipe to
-     highlight its docks" ends at y484. So for a good part of every second the card covers the
-     bottom ~10px of a 15.5px line, and the hint flickers in and out of legibility.
-     It is not an animation ARTIFACT of the screenshot (the plan is right that -005 is settled):
-     the pulse is permanent, so the slicing is permanent too, just intermittent.
-
-     The same wobble also made the two cards collide with each other: 456.7px of painted card each
-     inside an 858px grid, overlapping by 34px at the peak. Nobody flagged that and it was equally
-     wrong. Both go with the one token, because both were the same pulse. */
-  /* ITEM 13, RULED TWICE (Wyatt, 2026-08-23c and again 2026-08-24 in the question UI):
-     "everything that pulses should use the same pulse." There were TWO pulses on buttons — the
-     centre-stage circles' pp4StagePulse (scale + a 16px orange ring, the one he reads as clearly
-     pulsing) and a quieter scale-only sailBounce on the radial fan, which is exactly why
-     Pass/Trade/Attack looked to him like they never pulsed beside the ringed ones. ONE definition
-     now: every prompt button — radial fan, centre-stage circle, battle buttons (which had no pulse
-     at all until this pass) — pulses pp4StagePulse. The sail squares keep their own sailBounce
-     (they are translucent board overlays, not buttons — a filled ring on a square would paint the
-     sea), and the flip coin keeps its sanctioned ceremony glow. */
-  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard),
-  #actionPanel .btlBtn:not(:disabled):not([aria-disabled="true"]) {
-    animation: pp4StagePulse 1.1s ease-in-out infinite; }
-  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:hover,
-  #actionPanel .btlBtn:hover { animation-play-state: paused; }
-  @media (prefers-reduced-motion: reduce) {
-    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn { animation: none; }
-    #actionPanel .btlBtn { animation: none; } }
+  /* ITEM 23, THE THIRD RULING (Wyatt, 2026-08-24, and the one that ends the series): the prompt
+     buttons' attention animation is assigned in THE ATTENTION VOCABULARY block at the end of this
+     stylesheet, and ONLY there. The history that earned that block, kept short: D-32 gave the
+     radial fan a scale-only pulse; item 13 swapped it for a scale+ring hybrid; both were
+     measured RUNNING and still read as dead — scale 1.09 of a 66px circle with a 28%-alpha ring
+     is invisible over the open sea (and visible over dock sand, which is why "the pulsing DOES
+     happen only during docks" — same animation, different background). Meanwhile the orange ring
+     itself existed as THREE private copies (flipglow, ahoyglow, pp4StagePulse's shadow half).
+     His ruling: glow on stage, grow over board, defined once. The graveyard note that survives
+     from the old rules: the recipe cards must NEVER pulse (Group G fault 4 — a 276px card scaling
+     1.11 sliced the hint line above it and collided the two cards by 34px at peak). */
   /* playtest 12 item 8: hold-the-sea peeks EVERY prompt style, radial included — one gesture,
      one behaviour (this replaces the old radial exemption) */
   body.pp4Stage #footerRow { display:none; }
@@ -2181,12 +2119,10 @@
   #pp4Prompt.pp4Center .apBtns { display:flex; justify-content:center; width:100%; }
   #pp4Prompt.pp4Center .apBtn { width:110px; height:110px; border-radius:50%; border:3px solid #177;
     background:#fffdf2; color:#0e3b3b; font-size:15px; font-weight:800;
-    display:flex; align-items:center; justify-content:center;
-    animation:pp4StagePulse 1.1s ease-in-out infinite; }
-  @keyframes pp4StagePulse {
-    0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(245,166,35,.0); }
-    50% { transform:scale(1.09); box-shadow:0 0 0 16px rgba(245,166,35,.28); }
-  }
+    display:flex; align-items:center; justify-content:center; }
+  /* the centre-stage button's glow is assigned in THE ATTENTION VOCABULARY block (end of this
+     stylesheet) — a stage button breathes the coin's orange ring, not a private pulse. The old
+     pp4StagePulse keyframes (scale 1.09 + a 16px ring at 28% alpha) are gone with it. */
   /* playtest 19 item 1 (Wyatt: "the first stage seems to be cut off vertically — visible in the
      attention ring animating, but also with the appearing of the text box itself").
      EVERY prompt draws inside #apGridInner, which is overflow:hidden inside #apGrid's pinned px row
@@ -2405,6 +2341,65 @@
     background:#fffdf2; color:#0e3b3b; font-size:11px; font-weight:800; line-height:1.1;
     box-shadow:0 6px 18px rgba(0,0,0,.35); }
   .pp4Stay button.aye { background:#177; color:#fffdf2; }
+
+  /* ═══════════════════════ THE ATTENTION VOCABULARY — ONE BLOCK, TWO CUES ═══════════════════════
+     Wyatt's ruling, 2026-08-24 (item 23, his words): "ALL MODES LOOK and behave THE SAME…
+     every clickable button that is on a STAGE [gets] the orange glow, and every action prompt
+     button that is over the board [gets] a scale pulse… an action prompt button that is clickable
+     should always call one display function, which we only change once."
+
+     THIS BLOCK IS THAT ONE PLACE. To make a new surface glow or grow, add its selector here —
+     never write a new @keyframes or a per-surface animation rule elsewhere. The drift this
+     replaces: the orange ring existed as three private copies (flipglow, ahoyglow, and the shadow
+     half of pp4StagePulse), and button attention was assigned by four scattered rules whose radial
+     result was measured RUNNING yet invisible over the sea.
+
+     DELIBERATELY NOT HERE, each with its reason:
+       - the sail squares (sailBounce) — his explicit "don't touch the sail squares";
+       - the plank behind the coin (plankglow) — a surface echo of the coin's glow, not a button;
+       - .pp4Focus (pp4FocusPulse) — feedback on a tap already made, not a call for one;
+       - disabled/greyed controls and the .apBack escape circle — a button that is not asking for
+         a tap must not pulse (pulsing there is a lie);
+       - the draft-pick recipe cards — Group G fault 4: a 276px card scaling 1.11 sliced the hint
+         line above it and collided the two cards by 34px at peak. Cards never pulse. */
+
+  /* THE GLOW — on a stage, whatever you may press breathes the coin's orange ring.
+     The stage owns the whole screen, so the glow needs no motion — it IS the coin's ceremony cue,
+     now shared by every stage control: the coin itself, the Ahoy barrier button, centre-stage
+     circles, battle buttons, and the Start-the-voyage buttons of every mode's setup screen. */
+  @keyframes pp4Glow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(245,159,45,.55); }
+    50%     { box-shadow: 0 0 0 10px rgba(245,159,45,0); } }
+  #flipCoinWrap.active,
+  .ahoyGlow,
+  #pp4Prompt.pp4Center #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
+  #actionPanel .btlBtn:not(:disabled):not([aria-disabled="true"]),
+  #btnStart:not(:disabled),
+  #btnConfirmStart:not(:disabled),
+  #btnStartPassPlay:not(:disabled) {
+    animation: pp4Glow 1.1s ease-in-out infinite; }
+
+  /* THE GROW — over the live board, the buttons asking for your answer visibly swell.
+     Scale ONLY, no ring: the golden ring belongs to the stage (his pick: "strong grow, no ring").
+     The swing is set per geometry IN THIS BLOCK ONLY: a 66px radial petal needs a big swell to
+     read at arm's length over open water (1.09 was measured invisible); a full-width card row at
+     the same scale would collide with its neighbours, so it swells gently. */
+  @keyframes pp4Grow {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(var(--growHi, 1.05)); } }
+  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard),
+  .pp4Stay button {
+    animation: pp4Grow 1.1s ease-in-out infinite; }
+  #pp4Prompt.radial #actionPanel .apBtn,
+  .pp4Stay button { --growHi: 1.15; }
+
+  /* Hover pauses the pulse (a transform in a running keyframe beats anything :hover sets — the
+     sail squares' own lesson), and reduced motion silences the GROW everywhere while keeping the
+     GLOW: the ring does not move, and on the coin it is the only cue that the coin is a button. */
+  #actionPanel .apBtn:hover, #actionPanel .btlBtn:hover, .pp4Stay button:hover,
+  #btnStart:hover, #btnConfirmStart:hover, #btnStartPassPlay:hover { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) {
+    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn, .pp4Stay button { animation: none; } }
 </style>
 </head>
 <body>
