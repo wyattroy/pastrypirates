@@ -247,4 +247,12 @@ if (typeof window !== "undefined") {
   // are in place, same ordering as before.
   boot();
 initStage();
+/* THE PULSE BEACON (?debug=pulse) — Wyatt's sanctioned debug instrument, 2026-08-24: the pulse
+   bug lives only on real devices, so the game itself can testify. Dynamic import, gated on the
+   URL flag: zero bytes fetched and zero work done for every ordinary player. The beacon is
+   DOM-only by design (see its own header) — it can never touch the engine or the replay. */
+try {
+  if (new URLSearchParams(location.search).get("debug") === "pulse")
+    import("./ui/pulsebeacon.js");
+} catch (e) {}
 }

@@ -220,7 +220,7 @@ both sides before any group is handed to him** (rule 19).
 
 *02.1 remains closed on his ruling, and its own must-have — "Wyatt has played a stretch of the
 voyage himself and said it holds together" — remains NOT met. Nothing below changes that.*
-Last activity: 2026-08-24 - Completed quick task 260824-txl: his stepping-away playtest notes (build 2026-08-24f)
+Last activity: 2026-08-24 - Completed quick task 260824-wkw: the pulse-debug system (build 2026-08-24g)
 negative result.
 
 **The build:** `PP4_STAMP` is **`2026-08-20a`** (commit `54806c6`) — the sound fix, the six
@@ -538,6 +538,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | 260824-nh8 | Item 23 re-opened: the attention vocabulary — glow on stage (Start buttons included), grow over board, one CSS block — build 2026-08-24d | 2026-08-24 | 9735f3a | [260824-nh8-item-23-re-opened-one-attention-vocabula](./quick/260824-nh8-item-23-re-opened-one-attention-vocabula/) |
 | 260824-oyh | Item 23 in Safari: swell never ran (var() in keyframes raced) — literal amplitudes, fan reserves the peak, Reduce Motion falls back to the glow — build 2026-08-24e | 2026-08-24 | e1fd119 | [260824-oyh-item-23-in-safari-the-swell-never-ran-no](./quick/260824-oyh-item-23-in-safari-the-swell-never-ran-no/) |
 | 260824-txl | His stepping-away notes: 30s host grace, one-tap recipe confirm, Enter submits names, the stay-put redesign — build 2026-08-24f | 2026-08-24 | d890b30 | [260824-txl-his-stepping-away-playtest-notes-30s-hos](./quick/260824-txl-his-stepping-away-playtest-notes-30s-hos/) |
+| 260824-wkw | The pulse-debug system: ledgers, the ?debug=pulse beacon, the WebKit runner, and the /oracle-debug handoff plan — build 2026-08-24g | 2026-08-24 | (this commit) | [260824-wkw-the-pulse-debug-system-hypothesis-eviden](./quick/260824-wkw-the-pulse-debug-system-hypothesis-eviden/) |
 
 ### Roadmap Evolution
 
