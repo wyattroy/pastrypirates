@@ -174,7 +174,16 @@ function camFitSail(seat){
     .map(sel => document.querySelector(sel))
     .filter(e => e && e.getBoundingClientRect().height > 4)
     .reduce((h, e) => h + e.getBoundingClientRect().height + 8, 0);
-  camFitCells(cells, 2.2, need);
+  /* ITEM 38 (Wyatt, 2026-08-23c) — the hole in this reserve, named by the overnight gate as the
+     one structural fault ('a sail square covering the tap-to-sail question — the existing clamp
+     provably cannot reach it'): the FIRST fit of a turn runs before the pill exists, measures
+     nothing, reserves nothing — so the frame never grew and the placement search had no legal
+     ground, exactly when the whole sail window fills the strip. The fallback is the LAST measured
+     need — the game's own number from the previous prompt, not a typed constant — so from the
+     second prompt of a voyage onward the director always leaves the words their room. The very
+     first prompt of a session still reserves nothing, exactly as before. */
+  if (need > 0) S.lastPromptNeed = need;
+  camFitCells(cells, 2.2, need || S.lastPromptNeed || 0);
 }
 // frame a set of captains — both combatants of a fight, whatever the water between them
 function camFitSeats(seats){
@@ -564,7 +573,13 @@ function camFrame(){
      max-height backstop instead of eating the board. Floor of 64 so the card never vanishes on a
      freak-short viewport — at that point squareness gives way by exactly the overflow, which is
      the least-bad corner. Side-by-side is untouched (no reservation at all, as before). */
-  const squareRoom = Math.max(64, vhPx() - ribH - vwPx());
+  /* PHONE ONLY (≤600px, the same boundary computeStageGeometry's branches use). The square rule
+     is about the full-bleed phone board, whose width is the viewport's. A stacked DESKTOP window
+     already keeps its board square by narrowing --pp4W instead — and its captains card is
+     bottom:auto (not pinned), so shrinking ITS reservation pushed the card past the window bottom:
+     bottom=1109 of 1080, caught by stage_layout_check before it shipped, twice (the first scoping,
+     portrait-vs-landscape, still let an 800×1080 stacked window through). */
+  const squareRoom = (vwPx() <= 600) ? Math.max(64, vhPx() - ribH - vwPx()) : Infinity;
   const CAP_BASE = side ? 0 : Math.min(250, S.capNeed || Math.round(vhPx() * 0.30), squareRoom);
   const availH = Math.max(200, vhPx() - ribH - CAP_BASE);
   if (wrap){
