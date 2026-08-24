@@ -1396,9 +1396,15 @@ export async function humanDock(p,port){
       const canBuy=p.coins>=price;
       const canBarter=g.canBlackMarket(p,ing);
       const scarcity=(!black&&left<1e9&&left<=1)?` Last one on the island!`:``;
+      /* ITEM 17 (Wyatt, 2026-08-23c): the greyed-out explainer said "The price has risen to 3🌕 —
+         more than ye can pay" when the price had never risen — it STARTED at 3 and he held 1. The
+         honest sentence states the cost and the purse, and it is written ONCE: the same string is
+         the button's tap-why and the italic helper line, so the two can never tell two stories
+         about one greyed circle (rule 23). */
+      const shortWhy=`It costs ${price}🌕 and ye've ${p.coins}🌕 — ${price-p.coins}🌕 short.`;
       const opts=[
         {label:`Buy ${ilabelImg(ing)} <span class="nobrk">−${price}🌕</span>`,short:`Buy ${iconImg(ING_IMG[ing])} −${price}🌕`,value:"coin",disabled:!canBuy,
-          why:`It costs ${price}🌕 and ye've ${p.coins}🌕 — ${price-p.coins}🌕 short.`},
+          why:shortWhy},
       ];
       // @copy misc.blackmarket.barterbtn — draft, Wyatt rewrites
       if(black)opts.push({label:`Trade any 2 crates fer ${ilabelImg(ing)}`,short:`2 crates → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter,
@@ -1410,7 +1416,7 @@ export async function humanDock(p,port){
           ?`The shelves be bare… but after dark, anything's fer sale — ${price}🌕, or any two crates out o' yer hold.`
           :`The black market wants ${price}🌕 or two crates — ye've neither.`)
         :canBuy?(scarcity||null)
-        :`The price has risen to ${price}🌕 — more than ye can pay.`;
+        :shortWhy;   // item 17: the one truthful sentence, shared with the button's tap-why above
       const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
       if(appState.turnExpired)break;
       // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
