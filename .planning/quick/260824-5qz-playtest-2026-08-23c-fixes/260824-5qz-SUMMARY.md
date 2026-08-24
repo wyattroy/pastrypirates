@@ -53,10 +53,15 @@ room-reservation survives the first fit of a turn (item 38's structural hole).
 - The captains-panel "holds divergence" seen during QA was measured to be the DESIGN (own row
   shows your recipe; other rows show public holds) — engine, guest snapshot and both DOMs agree.
 
-## Tier 3 — awaiting his pick
+## Tier 3 — shipped as build 2026-08-24c (`d17f374`)
 
-Three desktop-menu variants rendered as real screenshots (settings list / compact grid /
-content-width pills) and put to him with the question UI. Nothing shipped until he picks.
+Three desktop-menu variants rendered as real screenshots and put to him with the question UI; he
+steered twice (bottom-aligned + muted blue → three more variants → "A1 with no background — just
+use the page as its background") and that exact pick shipped (`d17f374`): one quiet list, two
+mounts (phone ☰ sheet / desktop column), bottom-aligned, the sea as its background, Leave-the-ship
+in red under a thin rule. In the same build, his pulse correction — "everything that pulses should
+use the same pulse" — converged every prompt button on the ringed `pp4StagePulse` (`5362319`),
+verified live by reading `animationName` off every visible prompt style.
 
 ## Verification
 

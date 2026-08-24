@@ -61,7 +61,7 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — playtest checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026-08-23c</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
+  <div class="sub">Build <strong id="stamp">2026-08-24c</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
    — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
   <div class="bar">
     <span class="count" id="count">0 / 0</span>
@@ -84,88 +84,57 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <script>
 const DATA = [
- {h:"First — the phone, where most of the work went"},
- {n:1,look:"Any long question — a trade ask, a battle prompt",right:"The whole white box is on screen. No word cut off at the right edge.",why:"This alone was 17 of the 40 phone faults."},
- {n:2,look:"“Tap and hold the sea to reveal the board”",right:"It never sits on top of a button.",why:"It was drawing itself across “Stay put” and the ✓ button."},
- {n:3,look:"A sail prompt with “Stay put” showing",right:"Every yellow square you could sail to is tappable — none hidden under the button.",why:"“Stay put” covered nine sail squares in one measured game. A move you cannot tap."},
- {n:4,look:"The recipe picker on Day 1",right:"Solid cards. No “CAPTAINS” or captain names showing through them.",why:"The whole prompt layer was slightly see-through."},
- {n:5,look:"Top-left corner, during a prompt with a ‹ back button",right:"No grey half-circle poking above “DAY N”.",why:"The back circle had no floor and slid up behind the ribbon."},
+ {h:"First — the three that stopped your last playtest"},
+ {note:"<strong>Everything from your evening list shipped today, in three builds — 2026-08-24a (the three blockers), b (the thirteen visible bugs), c (the menu and the pulse).</strong> All three are live; the stamp to look for is <strong>2026-08-24c</strong>. Every item below says what I measured, and where a call is yours, it says that instead."},
+ {n:1,look:"Crew game: as the HOST, close the tab mid-voyage, then reopen the site",right:"You're back in your voyage within a few seconds. No endless “⚓ Reconnecting to yer voyage…”.",why:"The hang that ended your last playtest. Root cause: the “host left” alarm fired on EVERY host disconnect — your own reload included — and then the resume path refused to resume a “host left” room. You were locked out permanently. Reproduced in two windows, fixed on both sides."},
+ {n:2,look:"Crew game: as a GUEST, when the host closes the tab for good",right:"After a few seconds you get the “host left the voyage” card. But if the host merely reloads and comes straight back, you are NOT kicked.",why:"The guest now waits 4 seconds and checks again before believing the host is gone."},
+ {n:3,look:"IF any reconnect ever does sit there — about 15 seconds",right:"The card changes to “⚓ Still reconnectin'…” with a Back to port button that takes you home. You can never be stranded on that screen again.",why:"The escape hatch you asked for. I forced a stall to prove it fires, and proved it stands down when the resume is genuinely working."},
+ {n:4,look:"Just play — solo AND crew. The blank “thinking” gaps between narrations and prompt buttons",right:"Prompts now type onto the screen while you watch, instead of a long blank and then popping in finished. It should feel alive, not laggy.",why:"The box was doing its whole entrance — fade, resize, typewriter — invisibly, then appearing done. Dead air in 3 minutes of play: 6.0s before, 1.5s after; longest single gap 2.9s → 0.7s. Your chosen pacing is untouched — it just happens on screen now."},
 
- {h:"Second — your afternoon list"},
- {note:"<strong>Narration timing is the one to judge by feel, not by looking.</strong> You asked for 15% faster, applied to everything. Short lines 2.9s → 2.1s. Long-line ceiling 5.3s → 4.6s. Medium (~78 chars) went <em>up</em>, 3.4s → 4.3s — that's your own curve, since you picked the two anchor points. If the medium ones now drag, that's the number to tell me."},
- {n:6,look:"Any narration bubble",right:"It never pops up and vanishes in the same instant.",why:"One used to be marked for removal 1 millisecond after it appeared; it now stays 4.3s."},
- {n:7,look:"A dock coin flip",right:"The “flips TAILS” line is readable.",why:"It used to spend 40% of its life underneath the flip veil."},
- {n:8,look:"A storm",right:"One sentence summarising the whole storm, not a line per captain. Captains stopped by another ship are named in it.",why:"82 blocked captains used to be missing from their own summary."},
- {n:9,look:"The black market, the first time a shelf runs dry",right:"The ceremony appears even when a bot empties the shelf.",why:"A bot takes the first dry shelf in 76% of solo voyages — three players in four have never seen this."},
- {n:10,look:"The Dock petal",right:"Ingredient picture, the word Dock, and a spinning coin — no number, no anchor.",why:"The price hasn't landed yet, so it shouldn't claim one."},
- {n:11,look:"Buying a crate",right:"The sound and the crate pop land on your click, not after the narration finishes."},
- {n:12,look:"The recipe card",right:"Option C as you picked it: gradient runs to the line under the title with no hard edge, picture not cramped against the description."},
- {n:13,look:"⚠️ Your item 1 — are the prompt buttons loud enough?",right:"YOUR CALL, not a bug. The sail-square pulse was added, but those circles already pulsed near-identically, so it probably doesn't answer your complaint. Tell me how much louder.",why:"I do not claim this one is fixed."},
+ {h:"Second — the crew bake-off, now triggerable"},
+ {note:"<strong>How to trigger it (this is the answer to your “?ovens=1 doesn't seem to work”):</strong> the HOST creates the room from <a href='https://playpastrypirates.com/4/?ovens=1' target='_blank' rel='noopener'>playpastrypirates.com/4/?ovens=1</a> — guests join normally, no flag needed. Every human hold is stocked on Day 1 and the ovens light. It only works on a BRAND-NEW voyage — added to a game in progress it does nothing, and a refresh resumes rather than restarts. It now also survives the host reloading mid-game. Verified live in a real room: both screens, holds stocked, ovens lit, bench up. Items 5–8 are your untested 43–46 from last time."},
+ {n:5,look:"Crew game: a GUEST reaches the ovens",right:"They bake in their OWN browser — their recipe, their five face-down crates, Ready to bake!, the shuffle, tapping in order, the reveal.",why:"Your old #43."},
+ {n:6,look:"Crew game: while ANY captain bakes, look at the other screens",right:"Everyone watches the same face-down bench — the same shuffle, the same badges appearing as each crate is named, the same verdict.",why:"Your old #44."},
+ {n:7,look:"Crew game: tap “Watch again 🌕1” as a guest",right:"Your purse drops immediately on your own screen, the prompt stays open, the shuffle replays — and the host ends on the same number.",why:"Your old #45."},
+ {n:8,look:"Crew game: close a tab mid-bake",right:"The table does not hang. That captain forfeits in about 2½ seconds and the voyage carries on.",why:"Your old #46."},
+ {n:9,look:"Solo with ?ovens=1: the moment your bake is scored",right:"You get a few seconds to read “N of 5 in place…”, then the card goes and you're back on the board.",why:"Your old #27 — now testable the same way, fresh solo voyage from the ?ovens=1 link."},
+ {n:10,look:"Solo: the rest of that day, and the next attempt",right:"Nothing is behind a spent card. If you missed some, a fresh Bake-Off card arrives for attempt 2.",why:"Your old #28."},
 
- {h:"Third — the seven you typed at me"},
- {n:14,look:"The action circles on a phone",right:"Clear air between them.",why:"~3px apart → ~15px. The gap is a quarter of the circle's own size, so it stays right if circles change."},
- {n:15,look:"A prompt with your boat in a corner",right:"The whole cluster moves out into open water rather than stacking on itself.",why:"It warns in the log if it ever still has to pile."},
- {n:16,look:"Pass",right:"The bottom circle, every time, whichever way the fan points.",why:"Two of five fan directions used to put crates below it."},
- {n:17,look:"The italic “why is this greyed out” line",right:"Beside the choices, never lying across them.",why:"It was 23px deep across four circles."},
- {n:18,look:"Every coin flip — dock and battle",right:"All take the same beat.",why:"1.5s, six flips measured, all within 100ms. Before: dock 335ms, battle 648ms — a 315ms spread."},
- {n:19,look:"Wind and forecast, on tablet and desktop",right:"Legible in the header row, in front of the dark gradient. The ⏩ can no longer be drawn on top.",why:"Your screenshot — this and “hidden behind the gradient” were one fault."},
- {n:20,look:"A tall window (your tablet shape)",right:"The captains box is a card with air under it, not a slab flush to the bottom edge.",why:"It had 84px of dead cream inside it."},
- {n:21,look:"Desktop menu",right:"Menu items sit under the captains box; no hamburger. The turn-clock row is gone from the menu — the ⏱ chip in the header is the only control."},
- {n:22,look:"Phone: end of a voyage",right:"“Play again!” is on screen.",why:"It was 212px below the fold — you had to know to scroll."},
- {n:23,look:"Phone: docking",right:"“Docking at…” appears once.",why:"It printed twice, one copy hidden behind the flip coin."},
- {n:24,look:"Phone: the captains list",right:"The fourth captain is not sliced by the bottom edge."},
- {n:25,look:"Phone: the recipe picker",right:"The two cards' ingredient lists line up even when one title wraps to three lines."},
- {n:26,look:"Phone: the recipe picker, first screen of the game",right:"Both recipe cards fit — you can see all five ingredients and each card's bottom edge.",why:"They were cut off mid-list with no cue that it scrolled. Cards ended 1px from the edge; now 12px clear."},
+ {h:"Third — your thirteen visible bugs, fixed"},
+ {n:11,look:"A storm that sweeps someone into the trade winds",right:"ONE report, in the post-storm summary — “the trade winds sweep Flaky Jack along the rim” — never a separate line during the storm.",why:"Your #8."},
+ {n:12,look:"The black market's first dry shelf — and every centre-stage card",right:"The card sits clear of the header row, vertically comfortable. Never nested behind “DAY N”.",why:"Your #9. The card's lift is now capped by the header band, so no centre-stage card can run under it."},
+ {n:13,look:"The recipe card",right:"Two taps: one to select, one to choose.",why:"Your #12. Measured two taps end-to-end on this build. My best explanation for your third: the old invisible reveal was eating a tap that landed before the buttons went live — exactly what item 4's fix removed. If you still count three, tell me which tap dies."},
+ {n:14,look:"Pass, in every direction the fan can point",right:"When the circles run side to side, Pass is the RIGHTMOST — you read it last. When they run up and down, it's the lowest. The switch is at your 45° cutoff.",why:"Your #16."},
+ {n:15,look:"The italic “why is this greyed out” line — flip TAILS at a dock you can't afford",right:"It tells the truth — “It costs 3🌕 and ye've 1🌕 — 2🌕 short.” No invented price rise. And it sits with its own greyed circle, not across some other box.",why:"Your #17, both halves. The copy is fixed outright. The position I believe was the same stale-layout class as the lag — please look at where it lands."},
+ {n:16,look:"Every coin flip — yours, a bot's, dock and battle",right:"All take the same one second. A bot docking flips a real spinning coin that lands, same as yours.",why:"Your #18, including your 1.0s correction. One clock in one place now; the bots' dock flips previously skipped the spin entirely."},
+ {n:17,look:"Join a crew and type a bot's name in any capitalization — “flaky jack”",right:"You get the name. The bot quietly takes another. Nobody shares a name, whatever the capitalization.",why:"Your #30."},
+ {n:18,look:"“Join a crew” from the home screen",right:"Straight to the join screen — code field and captain-name field, your last name already filled in. The “What do they call ye, captain?” modal between is gone.",why:"Your #31."},
+ {n:19,look:"The board on a phone",right:"Square again, and the top row of islands is never cut off. The “CAPTAINS” heading line is gone from the captains box.",why:"Your problems 1 and 4, one fault: the captains card was taking the board's height. It now yields."},
+ {n:20,look:"Anything on the stage — a coin flip, a ceremony",right:"The board behind it holds STILL. No director movement, no narration bubbles appearing behind the veil. The stage gets all your attention; when it clears, the game resumes.",why:"Your #7, your principle implemented at the one camera seam rather than patched per case."},
+ {n:21,look:"“Stay put”, then its confirm",right:"The original Stay put circle disappears while “Aye, stay put / Keep sailin'” is up — no duplicate-button feeling. Cancel or confirm, and the world is back in order.",why:"Your problem 3."},
+ {n:22,look:"A narration bubble while sail squares are up",right:"The bubble lands on open water — never on a square you have to tap, and not on the question either.",why:"Your #38. The director's room reservation now survives the whole turn instead of evaporating after the first camera fit."},
 
- {h:"Fourth — the Bake-Off card and your name"},
- {n:27,look:"The moment your bake is scored",right:"You get a few seconds to read “N of 5 in place…”, then the card goes and you're back on the board.",why:"It never left before — it sat there through the whole next day with narration stacking behind it."},
- {n:28,look:"The rest of that day, and the next attempt",right:"Nothing is behind a spent card. If you missed some, a fresh Bake-Off card arrives for attempt 2."},
- {n:29,look:"Join a crew and type a name a REAL person already has",right:"A red line under the name box — no popup. Your typed name stays, you edit it, Join works."},
- {n:30,look:"Type a name one of the BOT captains has",right:"You get it. The bot quietly takes another. Nobody shares a name.",why:"Davy Scones, Crustbeard, Dough Hook, Flaky Jack."},
- {n:31,look:"“Change yer name” in the lobby",right:"Same rule, same words."},
+ {h:"Fourth — the two you ruled on today"},
+ {n:23,look:"Everything that pulses, everywhere",right:"ONE pulse: the gentle grow with the soft orange ring. Pass, Trade, Attack, battle buttons, centre-stage buttons — all of them, and all the SAME.",why:"Your ruling this morning: there were two different pulses living side by side, which is worse than one missing. Converged on the ringed one; measured every visible prompt style carrying it."},
+ {n:24,look:"The desktop menu",right:"Your pick — A1 with no background: a quiet left-aligned list at the bottom of the captains column, the sea showing through behind it, Leave the ship in red at the very bottom under a thin rule.",why:"Item 21. Shipped exactly the variant you chose."},
+ {n:25,look:"The phone ☰ menu",right:"The same quiet rows in the slide-up sheet — one look for the same menu on both devices.",why:"Consistency rule: same list, two mounts, one stylesheet."},
 
- {h:"Fifth — after I judged the gate's own screenshots"},
- {n:32,look:"A battle coin flip, on a phone",right:"“Crosswind — two heads and the cannonballs collide” is readable.",why:"It was being written across the CAPTAINS card with captain names showing through."},
- {n:33,look:"Offering a crate in a trade",right:"The circles are named — “Toasty Wheat”, “Fresh Milk”.",why:"They were bare pictures, while the question one screen earlier named all seven."},
- {n:34,look:"A long trade question on a phone",right:"It stays out of the captains box.",why:"It ran 20–46px inside the card and hid the word CAPTAINS."},
- {n:35,look:"The recipe sheet",right:"It sits still.",why:"Both cards were pulsing to 111% on a loop — climbing 15px and colliding with each other by 34px."},
- {n:36,look:"Drag on the sea and lift your finger off the board — over the captains box, or past the screen edge",right:"The game still answers you.",why:"THE BIG ONE, and it wasn't on anyone's list. Doing that made every prompt drop to 13% and stop accepting taps permanently, with nothing explaining why. It read as a frozen game."},
+ {h:"Fifth — the whole-voyage bar, and what's still unchecked from last time"},
+ {note:"The bar is <strong>complete voyages to the end-of-voyage card</strong>, not stretches of play. Items 26–33 are your old 39–42 and 47–50 — none of them has ever been checked by you."},
+ {n:26,look:"Solo, to the end card"},
+ {n:27,look:"Pass-and-play, to the end card"},
+ {n:28,look:"A crew game — two devices — to the end card, watching both screens",right:"Host and guest showing the same game: same wording for the same moment, neither stuck on a prompt the other finished, cameras agreeing."},
+ {n:29,look:"⚠️ In the crew game: does the GUEST draw the wind pill, clock chip and day counter?",right:"Still UNPROVEN, not passing. If your guest screen is missing any of the three, that's a real finding."},
+ {n:30,look:"Crew game: as a GUEST, counter-offer with a number of coins",right:"A real slider, same as the host. No ± circles.",why:"Your old #47."},
+ {n:31,look:"How long a counter-offer takes",right:"One exchange, not a series of them.",why:"Your old #48."},
+ {n:32,look:"Counter-offer, then refresh mid-voyage",right:"The voyage replays to the same place — your dragged number remembered, not reset to 1.",why:"Your old #49."},
+ {n:33,look:"❓ PASS-AND-PLAY: a second captain's trade-answer prompt appears with NO hand-off card",right:"YOUR TASTE CALL, not a bug. Recorded as correct — cargo is public and answering costs no turn — but you may want the hand-off anyway. One line either way.",why:"Your old #50."},
 
- {h:"Sixth — brand new tonight, and NOT verified"},
- {note:"<strong>These two shipped after you went to bed and I could not measure them.</strong> You approved the idea — “the director can zoom out more to find places to put the elements without covering sail squares” — but I never caught the fault on camera, so I can't claim it's fixed. <strong>Judge the zoom by eye: how far the board sits back on a sail prompt is taste, and taste is yours.</strong>"},
- {n:37,look:"A sail prompt — how far back does the board sit?",right:"Room for the question without standing on a square you have to tap. If it feels too zoomed out, say so — that number is yours to set."},
- {n:38,look:"A narration bubble while sail squares are up",right:"The bubble avoids the squares AND the question it's covering.",why:"Its placement previously only knew about sail squares, so it landed on the question."},
-
- {h:"Seventh — the networked bake-off (Phase 4, new tonight)"},
- {note:"<strong>This is a whole phase that did not exist yesterday, and it needs a CREW game to judge — two browsers or two devices.</strong> Until tonight, when a guest's turn at the ovens came round their screen showed nothing at all, and the <em>host</em> silently played that guest's bake with the host's own hands. That was measured and proven three ways, not guessed."},
- {n:43,look:"Crew game: a GUEST reaches the ovens",right:"They bake in their OWN browser — their recipe, their five face-down crates, Ready to bake!, the shuffle, tapping in order, the reveal.",why:"Before tonight the host played it for them and the guest saw nothing."},
- {n:44,look:"Crew game: while ANY captain bakes, look at the other screens",right:"Everyone watches the same face-down bench — the same shuffle, the same badges appearing as each crate is named, the same verdict. Nobody reads a waiting note at the finish line.",why:"Your 2026-08-18 ruling. At three sampled moments the badges on the baker's and the watcher's screens were byte-identical, including mid-reveal."},
- {n:45,look:"Crew game: tap “Watch again 🌕1” as a guest",right:"Your purse drops immediately on your own screen, the prompt stays open, the shuffle replays — and the host ends on the same number.",why:"The purse drops optimistically on your screen and the host settles the true value; the alternative (a live spend channel) is recorded in the plan."},
- {n:46,look:"Crew game: close a tab mid-bake",right:"The table does not hang. That captain forfeits in about 2½ seconds and the voyage carries on.",why:"There is no shot clock during a bake at all now — also your ruling."},
- {note:"<strong>Two things about the bake-off I could NOT verify, so do not assume them:</strong> no paired screenshot of the swap animation actually running (the probe mis-identified which browser held the controls three runs in a row), and a host reload mid-bake was never driven. The property it rests on is measured; the reload itself is not."},
-
- {h:"Eighth — trades over the wire (Phase 5, new tonight)"},
- {note:"<strong>Bot hail volume is unchanged: 2.45 a game before and after, byte-identical over 150 voyages.</strong> That number is pinned on your ruling — “we don't want the table continuously spammed with shitty trade requests” — so it gets checked whether or not anyone thinks they touched it."},
- {n:47,look:"Crew game: as a GUEST, counter-offer with a number of coins",right:"You drag a real slider, same as the host. The ± circles are gone.",why:"A guest used to get +1/−1 circles drawn INSIDE the radial action arc — the exact thing playtest 21 removed from the host's arc. Same gesture, two behaviours."},
- {n:48,look:"How long a counter-offer takes",right:"It should feel like one exchange, not a series of them.",why:"An 8-coin counter: 11 prompt round trips and 61.2s before, 3 and 24.9s now. The longest unbroken “…is deciding…” on the asker's screen went 52.6s → 16.2s."},
- {n:49,look:"Counter-offer, then refresh mid-voyage",right:"The voyage replays to the same place — your dragged number is remembered, not reset to 1.",why:"An 8-coin remote counter used to write 12 log entries and now writes 4, the same as an identical local one. The log's length no longer depends on how the trade was routed."},
- {n:50,look:"❓ PASS-AND-PLAY: a second captain's trade-answer prompt appears with NO hand-off card",right:"YOUR TASTE CALL, not a bug. It was recorded as correct — cargo is public and answering costs no turn, so there is nothing private to hand over. But you may want the hand-off anyway. One line either way.",why:"Confirmed by watching, not assumed."},
- {note:"<strong>What did NOT land in Phase 5, plainly.</strong> Holders in a multi-captain trade are still asked <em>one at a time</em> — proven from the write log, not assumed. The two-minute bar is met now the stepper is gone, but the design defect behind it is not fixed. It was stopped deliberately: a half-done parallel round is a stalled table, and the measurement moved the premise — the stepper was 52 seconds of dead screen for ONE captain, whereas each further holder costs about 5."},
-
- {h:"Already found — please do NOT spend time reporting these"},
- {note:"<strong>The four-mode gate ran on this exact build and every leg finished — the first time that has ever happened, crew included (host and guest both to day 15).</strong> Judge findings went from 53 two nights ago to 5. Those 5 and one structural fault are listed here so you can skip past them. Everything else on this list is genuinely unchecked by me."},
- {note:"<strong>1.</strong> Phone, a trade with the coin slider: the offer text is hidden behind the slider box and “Toasty Wheat” is clipped by its rounded bottom edge.<br><strong>2.</strong> Desktop recipe picker: on the <em>selected</em> card, “Bake this!” covers the plate icon almost entirely (the unselected card's is fine — a layering bug, not a style choice).<br><strong>3.</strong> Phone: Deny / Counter / Accept circles overlap the italic helper line above them.<br><strong>4.</strong> Pass-and-play: <strong>“Attack −2” is largely hidden behind “Pass +1”</strong> — this one deserves suspicion, because the derived gap shipped last night was meant to end exactly that.<br><strong>5.</strong> Crew, host's opening screen: no narration box where there should be one, plus an empty band under CAPTAINS. <em>Not measured — may be the reveal gate caught mid-animation.</em><br><strong>Structural:</strong> a sail square covering the “tap to sail” question, three times. Known; the existing clamp provably cannot reach it."},
-
- {h:"Sixth — a whole voyage in each mode"},
- {note:"The bar is <strong>complete voyages to the end-of-voyage card</strong>, not stretches of play. That bar is what found a nine-day-old softlock the first night it was used."},
- {n:39,look:"Solo, to the end card"},
- {n:40,look:"Pass-and-play, to the end card"},
- {n:41,look:"A crew game — two devices — to the end card, watching both screens",right:"Host and guest should be showing you the same game. Different wording for the same moment, one side stuck on a prompt the other finished, two cameras pointed at different places — those are the faults this phase exists to kill."},
- {n:42,look:"⚠️ In the crew game: does the GUEST draw the wind pill, clock chip and day counter?",right:"This is requirement PAR-02 and it is UNPROVEN, not passing. Reported broken once, re-measured as fine, and every attempt since failed to get a lobby started. If your guest screen is missing any of the three, that's a real finding."},
- {note:"<strong>Don't judge the Bake-Off card by a crew game.</strong> Measured last night: in a crew game the host bakes on their own screen and the guest sees only a one-line narration — no bench, nothing to watch. A guest cannot take their own bake at all; there is no code path for it. That's Phase 4, not a bug. Judge the Bake-Off card solo or pass-and-play."}
+ {h:"Already known — please do NOT spend time reporting these"},
+ {note:"<strong>1.</strong> Phone, a trade with the coin slider: the offer text hidden behind the slider box, “Toasty Wheat” clipped by its rounded edge — still on the books, untouched today.<br><strong>2.</strong> Desktop recipe picker: “Bake this!” covering the plate icon on the selected card — still on the books.<br><strong>3.</strong> Deny / Counter / Accept circles overlapping the italic helper line — <em>possibly</em> cured by the same fix as item 15; if you still see it, mark item 15 instead of reporting it fresh.<br><strong>4.</strong> Occasional stacked circles in a crowded fan (“Attack −2 behind Pass +1”) — predates this round; the intermittent case is known and mine to catch.<br><strong>5.</strong> On extremely odd window shapes the board deliberately letterboxes — that's a choice, not a fault.<br><strong>Also known and deliberate:</strong> in a multi-captain trade, holders are still asked one at a time — the parallel round was stopped on purpose and is recorded as open work, not a bug."}
 ];
 
-const KEY="pp4-playtest-2026-08-23c";
+const KEY="pp4-playtest-2026-08-24c";
 let state=JSON.parse(localStorage.getItem(KEY)||"{}");
 const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
 const list=document.getElementById("list");
@@ -193,7 +162,7 @@ for(const d of DATA){
     if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
     b.onclick=()=>{
       const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
-      state[d.n]={...cur,v}; 
+      state[d.n]={...cur,v};
       it.classList.remove("pass","fail"); if(v) it.classList.add(v);
       it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
       save();
