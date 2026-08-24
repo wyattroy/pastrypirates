@@ -2329,6 +2329,23 @@ export async function botOpenTradeLive(p){
   await botBeat();
   return true;
 }
+/* A COIN FLIP IS A COIN FLIP — item 18 (Wyatt, 2026-08-23c): "all flips should last the same
+   amount of time. it seems like bot flips (and maybe other players' flips?) take shorter time."
+   Measured true, and worse than shorter: a BOT's dock flip had NO coin at all. The engine flips
+   inside doDock() and botBeat() narrates the finished sentence, so the human watched a 1s spin on
+   their own docks and an instant verdict on everyone else's. Battle flips were already uniform
+   (hFlip/bFlip both wait out the one clock); the dock was the odd one out.
+   Same ceremony as humanFlip, same ONE clock (board.js FLIP_SPIN_MS via flipSpinLeftMs): spin,
+   wait out the remainder, land on the face the event already recorded — then the caller's
+   botBeat() narrates over the landed face, and the coin returns to "wait" after. Draws no RNG
+   (the flip already happened in the engine), so replay is untouched; sleep() is the replay-aware
+   one, so a reload fast-forwards straight through it. */
+async function botDockCoin(dockEv){
+  if(!dockEv||dockEv.t!=="dock")return;
+  netHandlers().onBroadcastFlip("spin");
+  await sleep(flipSpinLeftMs());
+  netHandlers().onBroadcastFlip(dockEv.heads?"H":"T");
+}
 export async function botTurn(p){
   applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers (02.15-01 Stage 2)
   const g=appState.game;
@@ -2374,14 +2391,30 @@ export async function botTurn(p){
   if(plan.type==="trade"){
     if(await botOpenTradeLive(p))return;
   }
-  if(plan.type==="dock"&&g.adjPort(p)===plan.ing&&g.doDock(p,plan.ing)){await botBeat();return;}
+  if(plan.type==="dock"&&g.adjPort(p)===plan.ing){
+    const n0=g.events.length;
+    if(g.doDock(p,plan.ing)){
+      await botDockCoin(g.events.slice(n0).find(ev=>ev.t==="dock"));   // item 18: the same coin, the same clock
+      await botBeat();
+      netHandlers().onBroadcastFlip("wait");
+      return;
+    }
+  }
   // THE FALLBACK, and it has to be repeated HERE rather than inherited: botTurn does not call
   // Game.takeTurn — it reimplements the turn so each step can animate (see the note in
   // scripts/bakeoff_parity_test.js). A fallback added only to the engine would fix the simulator  [UNGATED-IN-4: bakeoff_parity_test.js reads the root tree, not this one]
   // and leave every real browser game exactly as broken, which is the opposite of the point.
   // Same rule as the engine's: work the berth under your feet, nothing cleverer.
   const fallbackPort=g.adjPort(p);
-  if(fallbackPort&&g.canDock(p,fallbackPort)&&g.doDock(p,fallbackPort)){await botBeat();return;}
+  if(fallbackPort&&g.canDock(p,fallbackPort)){
+    const n0=g.events.length;
+    if(g.doDock(p,fallbackPort)){
+      await botDockCoin(g.events.slice(n0).find(ev=>ev.t==="dock"));   // item 18: same as the planned dock above
+      await botBeat();
+      netHandlers().onBroadcastFlip("wait");
+      return;
+    }
+  }
   // ITEM 4 / D-15: a bake-eligible captain never reaches the pass line below. canOvens (:1857,
   // this same file) already suppresses the human's Pass button the instant g.canBake(p) is true
   // and shows "Fire up the ovens!" instead — the SAME g.canBake(p), not a second hand-written

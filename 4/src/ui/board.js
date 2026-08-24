@@ -2139,10 +2139,12 @@ export function syncBoardSizing(){
    keeps fast-forward, pause and reload-replay behaving exactly as they did. A raw setTimeout here
    would have made a skipped battle crawl and a replay stall.
 
-   1500 IS A NUMBER WYATT CHOSE, and "nothing is a constant" does not reach it: that rule is about
+   THIS IS A NUMBER WYATT CHOSE, and "nothing is a constant" does not reach it: that rule is about
    quantities that shift with game state, and the whole point of this one is that it must NOT
-   shift. It is the fault, stated as a value. */
-export const FLIP_SPIN_MS = 1500;
+   shift. It is the fault, stated as a value. 1500 -> 1000 is his own correction, playtest
+   2026-08-23c item 18: "it should be 1 second, not 1.5 seconds (this last part is my mistake —
+   1.5 feels too long)". */
+export const FLIP_SPIN_MS = 1000;
 let flipSpinAt = 0;
 /* How much of the 1.5s is left, from the frame the spin was painted. Zero if no spin is running,
    so a caller that reaches it out of order waits nothing rather than a phantom 1.5s. */
