@@ -1815,20 +1815,19 @@
      The same wobble also made the two cards collide with each other: 456.7px of painted card each
      inside an 858px grid, overlapping by 34px at the peak. Nobody flagged that and it was equally
      wrong. Both go with the one token, because both were the same pulse. */
-  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
-    --pulseLo:1; --pulseHi:1;
-    animation: sailBounce 1.15s ease-in-out infinite; }
-  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:hover { animation-play-state: paused; }
-  /* ITEM 13 (Wyatt, 2026-08-23c): "you need to fully QA to make sure ALL prompt buttons are
-     pulsing." The sweep, prompt style by prompt style: radial .apBtn (rule above), centre-stage
-     .apBtn (pp4StagePulse), sail squares (sailBounce), Stay put (#apStay is an .apBtn), the flip
-     coin (its own sanctioned flipglow), bake intro (pp4Center) — all pulsed. The BATTLE buttons
-     (.btlBtn — Call the winner, FLIP!, side bets) were the one style with no pulse at all: D-32's
-     rule reaches only .apBtn. Same one vocabulary, wrapper-independent because a battle card is
-     framed by __pp4.battle rather than the radial/centre classes. */
+  /* ITEM 13, RULED TWICE (Wyatt, 2026-08-23c and again 2026-08-24 in the question UI):
+     "everything that pulses should use the same pulse." There were TWO pulses on buttons — the
+     centre-stage circles' pp4StagePulse (scale + a 16px orange ring, the one he reads as clearly
+     pulsing) and a quieter scale-only sailBounce on the radial fan, which is exactly why
+     Pass/Trade/Attack looked to him like they never pulsed beside the ringed ones. ONE definition
+     now: every prompt button — radial fan, centre-stage circle, battle buttons (which had no pulse
+     at all until this pass) — pulses pp4StagePulse. The sail squares keep their own sailBounce
+     (they are translucent board overlays, not buttons — a filled ring on a square would paint the
+     sea), and the flip coin keeps its sanctioned ceremony glow. */
+  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard),
   #actionPanel .btlBtn:not(:disabled):not([aria-disabled="true"]) {
-    --pulseLo:1; --pulseHi:1;
-    animation: sailBounce 1.15s ease-in-out infinite; }
+    animation: pp4StagePulse 1.1s ease-in-out infinite; }
+  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:hover,
   #actionPanel .btlBtn:hover { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) {
     #pp4Prompt:not(.pp4Center) #actionPanel .apBtn { animation: none; }
