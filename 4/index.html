@@ -2126,7 +2126,13 @@
   #pp4Prompt.pp4Center .bko,
   #pp4Prompt.pp4Center .bkoRow,
   #pp4Prompt.pp4Center .bkoCard { align-self:stretch; width:100%; box-sizing:border-box; }
-  #pp4Prompt.pp4Center .apBtns, #pp4Prompt.pp4Center .apBtn { visibility:visible !important; }
+  /* :not(.pendingReveal) since the blank-space-lag fix (2026-08-24): centre-stage cards are now
+     VISIBLE while their text types in (pendingStage lifts before pendingReveal), so this force-
+     visible must not defeat the button gate — buttons still arrive after the text, top-to-bottom
+     rule intact. Before that fix the whole box was hidden through the reveal, so the !important
+     here never showed anything early. */
+  #pp4Prompt.pp4Center #actionPanel:not(.pendingReveal) .apBtns,
+  #pp4Prompt.pp4Center #actionPanel:not(.pendingReveal) .apBtn { visibility:visible !important; }
   #pp4Prompt.pp4Center .apBtns { display:flex; justify-content:center; width:100%; }
   #pp4Prompt.pp4Center .apBtn { width:110px; height:110px; border-radius:50%; border:3px solid #177;
     background:#fffdf2; color:#0e3b3b; font-size:15px; font-weight:800;

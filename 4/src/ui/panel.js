@@ -441,7 +441,7 @@ export function panel(html,needsAction=false){
       pendingClear=null;
       inner.innerHTML="";
       $("actionPanel").style.display="none";
-      $("actionPanel").classList.remove("needsAction","pendingReveal");
+      $("actionPanel").classList.remove("needsAction","pendingReveal","pendingStage");
       resizePanel(false);
     },CLEAR_GRACE_MS);
     return;
@@ -543,7 +543,23 @@ export function panel(html,needsAction=false){
   // has no .apMsg/.apBtns/.apBack at all, so they are correctly untouched by this gate.
   const gateEl=needsAction?$("actionPanel"):null;
   const hasButtons=!!(gateEl&&gateEl.querySelector(".apBtns, .apBack"));
-  if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal");
+  /* TWO GATES, BECAUSE THEY ANSWER TWO QUESTIONS — Wyatt's blank-space lag, 2026-08-23 tier 1.
+     `pendingReveal` answers "may the player ACT yet" and holds the BUTTON ROW until the typewriter
+     and the board have both finished. Reusing that same flag for the whole popup's visibility
+     (D-20's stage.js gates) accidentally made the box wait for its OWN INVISIBLE TYPING: fade
+     (800ms) + resize (180ms) + 20ms/char all ran behind display:none, so every prompt was seconds
+     of dead air and then a fully-formed card — "it's like the game is thinking" (his words). The
+     typewriter is pointless while hidden; the player pays for it and never sees it.
+     `pendingStage` answers the question D-20 actually asked — "has the board stopped moving" — and
+     is what the box's visibility now reads (stage.js promptTick/centre-stage). It lifts the moment
+     stageSettled() resolves, so the box appears at once on a still board, the old line fades in
+     view, and the new text TYPES IN VISIBLY, exactly as notes/edits #1 always specified. Buttons
+     still arrive last (top-to-bottom rule), through the unchanged pendingReveal CSS. */
+  if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal","pendingStage");
+  /* The board-settled promise, taken ONCE here so the box gate, the typewriter's start and the
+     button unhide all read the same answer (a second call could disagree mid-tween). Resolved
+     immediately when the stage is inactive (crew lobby, battle cards) or motion is reduced. */
+  const settledP=(hasButtons&&!reduced&&window.__pp4&&window.__pp4.settled)?window.__pp4.settled():Promise.resolve();
   // P3 + P5 (Wyatt, 2026-08-01): "the 2nd line is cut off during writing, but only sometimes" and
   // "narrow window action button: fail". Both are the SAME cause, and the intermittency is the tell
   // — he also noticed "sometimes the box adjusts to the correct size during fade-out", i.e. the
@@ -590,6 +606,11 @@ export function panel(html,needsAction=false){
     let settleReveal; const revealDone=new Promise(res=>{settleReveal=res;});
     panelRevealSettle=settleReveal;
     canReveal=runHeightSequence({ghostEl:(ghost&&!reduced)?ghost:null,targetH,fromH,revealDone});
+    // The typewriter also waits for the BOARD: the box becomes visible when settledP resolves
+    // (pendingStage lifts), so starting the type-in on the same signal means the box never pops
+    // with half its text already on screen. On a still board settledP is already resolved and this
+    // adds nothing.
+    if(hasButtons&&!reduced)canReveal=canReveal.then(()=>settledP);
   }
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
@@ -623,6 +644,12 @@ export function panel(html,needsAction=false){
   if(hasButtons&&!reduced){
     const seq=++panelSeq;
     gateEl.dataset.revealSeq=String(seq);
+    // The box's own gate lifts on the board settling, independently of the typewriter — same seq
+    // guard, so a late-resolving earlier settle can never unhide a newer prompt's box early.
+    settledP.then(()=>{
+      if(gateEl.dataset.revealSeq!==String(seq))return;
+      gateEl.classList.remove("pendingStage");
+    });
     // D-02 (18-05): THIS is the button row becoming clickable — the seam armClock defers onto.
     // clockPendingSeat drives setClockUI()'s frozen pending display on whichever browser renders
     // it: the host's own screen for a local decision, or the deciding guest's own screen for a
@@ -647,12 +674,11 @@ export function panel(html,needsAction=false){
        Consequence worth stating: the shot clock arms on this same promise, so a captain no longer
        burns seconds of their 30 while the board is still moving under them. That is a fix in its
        own right, and it falls out of putting the wait in the existing seam instead of beside it. */
-    const settled=(window.__pp4&&window.__pp4.settled)?window.__pp4.settled():Promise.resolve();
-    Promise.all([revealDone,settled]).then(()=>{
+    Promise.all([revealDone,settledP]).then(()=>{
       // T-18-15: reuse the SAME seq stamp the unhide above is gated by — a late-resolving EARLIER
       // reveal must never clear a NEWER prompt's clockPendingSeat or arm a stale seat's clock.
       if(gateEl.dataset.revealSeq!==String(seq))return;
-      gateEl.classList.remove("pendingReveal");
+      gateEl.classList.remove("pendingReveal","pendingStage");
       appState.clockPendingSeat=null;
       // armFn() marks the continuation claimed (unblocking ask()'s withShotClock chain) and hands
       // back the REAL asked seat — armClock(seat) is what actually starts the 30s window.

@@ -1977,7 +1977,13 @@ function enterCenterStage(){
      done yet", so re-checking it here rather than adding a second clock keeps the two gates unable
      to disagree. Evaluated fresh on every call (not just the pp4Center class transition below),
      because promptTick() calls this function on every tick a stage-flagged prompt is up. */
-  box.style.display = ap.classList.contains("pendingReveal") ? "none" : "flex";
+  /* pendingStage, NOT pendingReveal (Wyatt's blank-space lag, 2026-08-23 tier 1): this gate is
+     D-20's "no popup until the camera and ships have stopped" — which is exactly what pendingStage
+     tracks. Reading pendingReveal here made the ceremony card also wait for its own typewriter,
+     typed invisibly behind display:none: "the crew draws lots" arrived after seconds of dead air,
+     which is the LONG blank he reported by name. The buttons inside still wait for the full reveal
+     through the unchanged pendingReveal CSS. */
+  box.style.display = ap.classList.contains("pendingStage") ? "none" : "flex";
   // centre within the water, not the viewport: the captains box owns the bottom of the screen,
   // and a stage column tall enough to reach it (the bake-off intro was first) had its button
   // clipped mid-letter at the panel's top edge. Padding, not a shorter box — the dim paints
@@ -2076,7 +2082,14 @@ function promptTick(){
      so a buttonless wait-line or battle flip-card (already framed synchronously by
      window.__pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
      appearing immediately, exactly as before. */
-  const want = (has && !ap.classList.contains("pendingReveal")) ? "block" : "none";
+  /* pendingStage, NOT pendingReveal (Wyatt's blank-space lag, 2026-08-23 tier 1). The paragraph
+     above still holds — the whole popup waits for the BOARD — but the flag it read also waited for
+     the prompt's own typewriter, which typed invisibly behind display:none: fade + resize +
+     20ms/char of dead air before anything appeared, on every prompt, every trade step. pendingStage
+     is the board-settled half alone; the box now appears the moment the camera and ships are still,
+     the old line fades in view, the new text types in visibly, and the buttons keep arriving last
+     through the unchanged pendingReveal CSS (top-to-bottom rule intact). */
+  const want = (has && !ap.classList.contains("pendingStage")) ? "block" : "none";
   if (box.style.display !== want) box.style.display = want;
   /* BEING ASKED SOMETHING IS THE END OF WAITING — Wyatt, 2026-08-20, and this is the half of his
      two wait-line reports that survived the first fix. A screenshot of the HOST at the recipe
