@@ -2037,6 +2037,13 @@
   #pp4CerSlot #shotClockPanel, #pp4CerSlot #muteSlot, #pp4CerSlot #btnMute { display:none !important; }
   /* playtest 10 item 5: the old prompt card never shows through the veil — its words move onto it */
   body.pp4Cer #pp4Prompt { visibility:hidden; }
+  /* ITEM 7 (Wyatt, 2026-08-23c): "shouldn't all narration boxes only appear after the veil
+     disappears?" — yes. A bubble born (or standing) while the flip-ceremony veil is up used to sit
+     UNDER it, readable in slivers around the coin — the "things happening behind the stage"
+     feeling he named. Hidden by the same body class that hides the prompt, so every bubble appears
+     the frame the veil drops; their reading clocks already wait for that same moment (stageFlash's
+     veil-deferred hold), so nothing is ever retired unseen. */
+  body.pp4Cer #pp4Fx .pp4Bub { visibility:hidden; }
   .pp4CerTitle { color:#ffe9b0; font-weight:800; font-size:16px; text-align:center;
     max-width:86vw; line-height:1.4; text-shadow:0 2px 8px rgba(0,0,0,.7); }
   .pp4CerStakes { color:#e8dcc0; font-size:12.5px; font-style:italic; text-align:center;

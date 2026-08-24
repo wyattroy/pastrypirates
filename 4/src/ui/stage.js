@@ -57,7 +57,26 @@ function svgEl(){ return $("board"); }
 function grid(){ const g = appState.game; return g ? g.cfg.grid : 15; }
 function cellPx(){ return 640 / grid(); }
 
+/* THE STAGE HOLDS THE DIRECTOR STILL — Wyatt's item 7, 2026-08-23c, stated as a principle and
+   quoted in full because he asked that the intention be understood, not just the instance:
+   "at EVERY stage, when things happen on stage, the board waits for the stage to disappear before
+   serving more narrations/director movement/etc — the etc is important here so i want you to
+   understand my intention: the stage should get all your attention; if things happen behind it,
+   the player feels like they're missing out, and the stage is BLOCKING them from seeing important
+   things. that's the worst feeling."
+   camTo() is the ONE door every director move walks through (camFull/camToCell/camToSeat/
+   camFitCells all funnel here), so the rule lives here once: while the flip-ceremony veil
+   (body.pp4Cer) or a centre-stage card (#actionPanel[data-pp4-stage]) holds the audience, a
+   requested glide is REMEMBERED, not performed — and tick() performs the LAST one the moment the
+   stage clears. Immediate positioning (boot layout) is exempt: it is setup, not direction. */
+function stageHoldsAttention(){
+  if (document.body.classList.contains("pp4Cer")) return true;
+  const ap = $("actionPanel");
+  return !!(ap && ap.dataset.pp4Stage);
+}
 function camTo(x, y, w, immediate){
+  if (!immediate && S.active && stageHoldsAttention()){ S.camHeld = [x, y, w]; return; }
+  S.camHeld = null;   // a performed move supersedes anything remembered
   S.cam.tx = Math.max(0, Math.min(640 - w, x));
   S.cam.ty = Math.max(0, Math.min(640 - w, y));
   S.cam.tw = Math.min(640, w);
@@ -693,12 +712,17 @@ function gestures(wrap){
       const now = Date.now();
       if (now - lastTap < 300){                      // double-tap: fit-board <-> zoom on my ship
         S.lock = true;
+        // problem 3 (2026-08-23c): a double-tap on yer own boat is NAVIGATION — the first tap's
+        // stay-put confirm must not be left standing while the camera flies (his recording's f22:
+        // the confirm circles migrating onto the pill mid-zoom was exactly this collision).
+        document.querySelector(".pp4Stay")?.remove();
         if (S.cam.tw > 500){ const g = appState.game, me = g && g.players[appState.mySeat ?? 0];
           if (me) camToCell(me.pos, 2.0); } else camFull();
         lastTap = 0;
       } else lastTap = now;
       // playtest 11: during YOUR sail prompt, tapping your own boat offers "stay put" with a
-      // confirmation right where you tapped — the radial Stay put circle stays as the other door
+      // confirmation right where you tapped — the radial Stay put circle steps aside while it is
+      // up (problem 3: one decision on screen at a time; see stayConfirm)
       if (document.querySelector(".sailCell")){
         const u = boatUXY(appState.mySeat ?? 0);
         if (u){
@@ -727,15 +751,23 @@ function stayConfirm(bx, by){
   box.className = "pp4Stay";
   box.innerHTML = `<button class="aye" type="button">⚓ Aye,<br>stay put</button><button type="button">↩ Keep<br>sailin'</button>`;
   document.body.appendChild(box);
+  /* PROBLEM 3 (Wyatt, 2026-08-23c): "the 'aye stay put' button feels like it's a duplicate of
+     'stay put', and it's not clear what causes it." His screen recording showed all three circles
+     at once — the radial Stay put standing beside its own confirm pair. The two doors are his own
+     playtest-11 pick and both stay; what goes is the COEXISTENCE: while the confirm is up, the
+     radial circle steps aside (visibility, so the layout it anchors keeps its shape), and comes
+     back the moment the confirm closes either way. One decision on screen at a time. */
+  stayBtn.style.visibility = "hidden";
+  const restore = () => { stayBtn.style.visibility = ""; };
   const W = 130, left = Math.min(Math.max(bx - W / 2, 8), vwPx() - W - 8);
   box.style.left = left + "px";
   box.style.top = Math.max(54, by + 44) + "px";
   const [aye, nay] = box.querySelectorAll("button");
-  aye.onclick = () => { box.remove(); stayBtn.click(); };
-  nay.onclick = () => box.remove();
+  aye.onclick = () => { box.remove(); restore(); stayBtn.click(); };
+  nay.onclick = () => { box.remove(); restore(); };
   // the confirm dies with the prompt (a sail was picked, or the turn moved on)
   const iv = setInterval(() => {
-    if (!document.querySelector(".sailCell") || !document.body.contains(box)){ clearInterval(iv); box.remove(); }
+    if (!document.querySelector(".sailCell") || !document.body.contains(box)){ clearInterval(iv); box.remove(); restore(); }
   }, 300);
 }
 
@@ -2961,6 +2993,8 @@ function tick(){
   if (S.bubDue && Date.now() >= S.bubDue){ const f = S.bubFinish; S.bubDue = 0; S.bubFinish = null; if (f) f(); }
   if (S.bubPlace) S.bubPlace();   // the live bubble moves in the same frame as the camera
   if (S.active){
+    // item 7: the move the stage held back plays the moment the stage is gone — see camTo()
+    if (S.camHeld && !stageHoldsAttention()){ const t = S.camHeld; S.camHeld = null; camTo(t[0], t[1], t[2]); }
     // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
     if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
     promptTick();
