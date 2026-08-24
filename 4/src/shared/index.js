@@ -482,14 +482,20 @@ function seatHeldName(seats,i){
   const s=(seats&&seats[i])||{};
   return (s.name||"").trim()||DEFAULT_NAMES[+i]||"";
 }
+// Item 30 (playtest 2026-08-23c): two names that READ the same ARE the same. Wyatt joined as
+// "flaky jack" and Flaky Jack the bot stayed at the table — the collision checks compared exact
+// strings, so a case difference smuggled a twin in. Every name comparison in this file goes
+// through this one norm (rule 23: one rule, however many askers), so the claim check and the
+// default-name pool can never disagree about what counts as taken.
+const sameName=(a,b)=>String(a||"").trim().toLowerCase()===String(b||"").trim().toLowerCase();
 function unusedDefaultName(seats,preferIdx){
   const taken=new Set();
   Object.keys(seats||{}).forEach(k=>{
     const nm=seatHeldName(seats,k);
-    if(nm)taken.add(nm);
+    if(nm)taken.add(nm.toLowerCase());   // item 30: the pool is capitalization-normed too
   });
-  if(preferIdx!=null&&!taken.has(DEFAULT_NAMES[preferIdx]))return DEFAULT_NAMES[preferIdx];
-  return DEFAULT_NAMES.find(nm=>!taken.has(nm))||DEFAULT_NAMES[preferIdx||0];
+  if(preferIdx!=null&&!taken.has(DEFAULT_NAMES[preferIdx].toLowerCase()))return DEFAULT_NAMES[preferIdx];
+  return DEFAULT_NAMES.find(nm=>!taken.has(nm.toLowerCase()))||DEFAULT_NAMES[preferIdx||0];
 }
 // unusedDefaultName() counts EVERY seat in the map as taking a name, including the one being
 // claimed — so a player re-resolving their own seat would see their own old name as taken and drift
@@ -540,7 +546,8 @@ function applyNameClaim(s,seat,chosen,numSeats,myId,fresh){
       if(i===seat)continue;
       // seatHeldName, not s[i].name: a networked bot seat is stored with name:"" and DISPLAYS its
       // seat-indexed captain default, so the name a player can see is not the one in the record.
-      if(seatHeldName(s,i)===chosen){clash=i;break;}
+      // sameName, not ===: "flaky jack" and "Flaky Jack" are one name at the table (item 30).
+      if(sameName(seatHeldName(s,i),chosen)){clash=i;break;}
     }
   }
   // A HUMAN holds it (the seat has an id). Refuse, and write nothing at all.

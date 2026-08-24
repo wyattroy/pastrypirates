@@ -97,6 +97,21 @@ console.log("\n  -- a bot that already swapped once holds its WRITTEN name, not 
   ok("...and nobody shares a name", dupes(s), []);
 }
 
+console.log("\n  -- item 30: the collision is capitalization-normed — 'flaky jack' IS 'Flaky Jack' --");
+{
+  const s = room();
+  const botsName = seatHeldName(s, 3);               // "Flaky Jack", Wyatt's own repro seat
+  ok("a lowercase twin of a bot's name is granted", applyNameClaim(s, 1, botsName.toLowerCase(), 4, MY, true), "ok");
+  ok("...the human keeps the case THEY typed", s[1].name, botsName.toLowerCase());
+  ok("...the bot has moved off the colliding name", seatHeldName(s, 3) !== botsName, true);
+  ok("...and no two seats read the same (case-normed)",
+     (() => { const v = names(s).map(x => x.toLowerCase()); return v.filter((x, i) => v.indexOf(x) !== i); })(), []);
+}
+{
+  const s = room("Bess");
+  ok("a lowercase twin of a HUMAN's name is still refused", applyNameClaim(s, 1, "bess", 4, MY, true), "taken");
+}
+
 console.log("\n  -- a blank name still falls back collision-free (the pre-existing rule, unbroken) --");
 {
   const s = room();
