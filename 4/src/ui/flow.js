@@ -1256,7 +1256,13 @@ export async function runStormLive(dirKey){
       // clean no-op for it. The call STAYS: liveRender paints the square the ship fetched up on at
       // the moment it lands, which is what D-22 exists to protect, and the awaited narration is
       // the belt for any future in-loop event that does carry text.
-      if(g.events.length>evBefore){liveRender();await narrateLastEvent();}
+      /* ITEM 8 (Wyatt, 2026-08-23c): "The storm narrated the fact that flaky jack was blown into
+         the trade winds — it shouldn't. trade winds, like everything else, should be reported once
+         with the post-storm summary." The tradewind EVENT still fires — the ride animation above,
+         the board state, and an ordinary sail's narration all hang off it — only its mid-storm
+         bubble is withheld here, and the summary's swept clause reports it once the storm is done
+         (noteStormOutcome now notes "swept"). */
+      if(g.events.length>evBefore){liveRender();if(g.events[g.events.length-1].t!=="tradewind")await narrateLastEvent();}
       if(outcome!=="moved")break;
     }
     const moved=(p.pos[0]!==before[0]||p.pos[1]!==before[1]);

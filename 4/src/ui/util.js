@@ -487,6 +487,9 @@ const EVENT_NARRATION={
       return {txt:joined,you:!!mine.length,n:list.length};
     };
     const mv=say(e.moved||[]),hd=say(e.held||[]),bl=say(e.blown||[]);
+    // ITEM 8: swept-into-the-trade-winds joins the one summary line instead of narrating mid-storm.
+    // Clause starts with a literal lowercase word ("the"), keeping cap()'s position-0 rule safe.
+    const sw=say(e.swept||[]);
     // HIS ITEM 3, the half nobody had noticed. A captain whose storm push was stopped by another
     // SHIP used to narrate a line of their own outside this summary — and, if they never moved a
     // square before being stopped, was left out of the summary entirely (noteStormOutcome's
@@ -497,6 +500,7 @@ const EVENT_NARRATION={
     const parts=[];
     if(mv.txt)parts.push(`the storm drives ${mv.txt} ${D}`);
     if(bl.txt)parts.push(`a gale tears ${bl.txt} off the dock`);
+    if(sw.txt)parts.push(`the trade winds sweep ${sw.txt} along the rim`);
     const lead=parts.join(" and ");
     // the possessive follows the READER, not the group: "ye and Crustbeard have land at YER
     // backs", never "at their backs" with the reader standing inside the group

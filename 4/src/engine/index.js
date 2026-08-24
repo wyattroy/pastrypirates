@@ -476,15 +476,15 @@ class Game{
      invalidate. THE MOMENT A 4/ CORPUS IS RECORDED THIS BASIS EXPIRES and a change of this shape
      needs a gated re-record instead. Nothing else about the event stream moves. */
   stormSummaryEvent(dirKey){
-    const g={moved:[],held:[],shipHeld:[],blown:[]};
+    const g={moved:[],held:[],shipHeld:[],blown:[],swept:[]};
     for(const p of this.players){
       const o=p.stormNote;
       if(o&&g[o])g[o].push(p.idx);
       p.stormNote=null;
     }
     // nothing at all happened to anybody — say nothing rather than narrate an absence
-    if(!g.moved.length&&!g.held.length&&!g.shipHeld.length&&!g.blown.length)return;
-    this.ev({t:"stormSummary",dir:dirKey,moved:g.moved,held:g.held,shipHeld:g.shipHeld,blown:g.blown});
+    if(!g.moved.length&&!g.held.length&&!g.shipHeld.length&&!g.blown.length&&!g.swept.length)return;
+    this.ev({t:"stormSummary",dir:dirKey,moved:g.moved,held:g.held,shipHeld:g.shipHeld,blown:g.blown,swept:g.swept});
   }
   noteStormOutcome(p,outcome,moved,wasDocked){
     // Land brought the ship up short — whether it moved first or was pinned from the start. This
@@ -515,6 +515,13 @@ class Game{
       p.stormNote=blown?"blown":"moved";
       this.ev({t:blown?"blownOut":"windmove",p:p.idx});
     }
+    /* ITEM 8 (Wyatt, 2026-08-23c): a ship the storm blows into the trade winds is reported ONCE,
+       in the post-storm summary, like every other outcome. It used to set no note at all — the
+       mid-storm tradewind event narrated a line of its own AND the summary left the captain out,
+       the same two-halves-of-one-omission shape shipHeld had. The tradewind event itself still
+       fires (the ride animation, the board state and an ordinary sail's narration all hang off
+       it); the live path now withholds only its mid-storm bubble (runStormLive). */
+    else p.stormNote="swept";
   }
   // Ships in the order the storm reaches them: furthest downwind first, so the lead ship clears
   // its square before the one behind arrives (rule 7b).
