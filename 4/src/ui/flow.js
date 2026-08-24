@@ -402,8 +402,14 @@ export function sailPickMsg(seat){
    The .apSub is LAST, per the standing top-to-bottom reveal rule for anything in #actionPanel. */
 export function sailPanelHTML(msg,hint){
   // @copy prompt.sail.pickpanel
+  /* ITEM 21 REDESIGN (Wyatt, 2026-08-24): "when sailing, there is never a 'stay put' button UNTIL
+     the player taps their own boat. then the normal Stay Put button appears." So the button ships
+     hidden; the yellow stay square behind the boat (renderPickPrompt) and a tap on the boat itself
+     (stage.js's pointer handler) are the two doors that reveal it. The Aye/Keep-sailin' confirm
+     pair is deleted outright — his call: "Get rid of the Aye Stay Put and Keep Sailin' button
+     flow entirely" (the Keep sailin' circle broke the consistent-back-button value). */
   return `<div class="apMsg">${msg}</div>`+
-    `<div class="apBtns"><button class="apBtn" id="apStay">Stay put</button></div>`+
+    `<div class="apBtns"><button class="apBtn" id="apStay" style="display:none">Stay put</button></div>`+
     (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``);
 }
 // The wind's effect on THIS move, spelled out at the moment the move is made. The highlighted
@@ -545,9 +551,26 @@ export function renderPickPrompt(spec,answer){
   const teardown=()=>{hs.forEach(h=>h.remove());panel("");appState.currentPrompt=null;};
   const done=v=>{teardown();answer(v);};
   const cellPx=boardCell();
-  (spec.cells||[]).forEach(c=>{
+  /* ITEM 21: the yellow flashing square UNDER the captain's own boat — "to indicate that they may
+     stay there too." It rides the same list, same builder, ONE call site (the parity gate's
+     PARITY-SAILRECT-GEOM insists on exactly one, so a second renderer can never reappear — this
+     stays inside it). It renders BEHIND the boat for free: #sailHost is z-index 2 and #boardShips
+     is 4, Wyatt's own 2026-08-02 layering ("the sail highlights are below the ships"). Tapping it
+     (or the boat above it — stage.js) reveals the hidden Stay put button rather than sailing,
+     because staying is a decision, not a move. spec.pos is absent only across a version skew
+     (an older host feeding a newer guest) — then there is simply no stay square, same degrade
+     shape as the spec.msg fallback below. */
+  const squares=(spec.cells||[]).map(c=>({c}));
+  if(spec.pos)squares.push({c:spec.pos,stay:true});
+  squares.forEach(({c,stay})=>{
     const r=sailHighlightRect(c,cellPx,svg);
-    r.addEventListener("click",()=>done(c));
+    if(stay){
+      r.classList.remove("sailSwept");delete r.dataset.sweptTo;
+      r.classList.add("pp4StayCell");
+      r.addEventListener("click",()=>{const b=$("apStay");if(b)b.style.display="";});
+    } else {
+      r.addEventListener("click",()=>done(c));
+    }
     hs.push(r);
   });
   // The wind hint goes in .apSub — last in the DOM, so it is revealed last, per the standing
@@ -619,9 +642,11 @@ export function pickCell(p,cells){
   const bug=sailSelfCheck(p,cells);
   // THE TRACER (02.15-02 Task 3): ONE spec, built ONCE, handed to BOTH branches — the local render
   // and the remote wire payload can never drift apart because they are literally the same object.
-  // Exactly kind/cells/msg/hint on the wire — id and seat keep being stamped by remotePrompt()
-  // (orchestrator.js), never added here.
-  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null};
+  // kind/cells/msg/hint/pos on the wire — id and seat keep being stamped by remotePrompt()
+  // (orchestrator.js), never added here. `pos` (item 21) is the captain's own square, carried so
+  // the renderer can draw the stay square on BOTH tiers from the same authoritative value — a
+  // guest's game.players[].pos is a stale render shell and must never be read for this.
+  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null,pos:[p.pos[0],p.pos[1]]};
   const base=decisionIsLocal(p.idx)?localPickCell(p,spec)
     :netHandlers().onRemotePrompt(p.idx,spec);
   const cellP=withShotClock(p.idx,base,null);
@@ -2707,6 +2732,16 @@ export function wireWelcome(){
   // flow) was chosen over saving a click.
   $("choicePassPlay").onclick=()=>{openNameModal(name=>{$("ppName0").value=name;showStep("stepPassPlay");});};
   $("btnNameConfirm").onclick=()=>{confirmName();};
+  /* #17's UX tweak (Wyatt, 2026-08-24): "when the player hits enter after writing their name,
+     that should trigger the continue button." Swept across EVERY name field (rule 8), one helper:
+     the name modal, the join screen (code and name both), and the four pass-and-play names. The
+     chat box keeps its own Enter — it sends a message, not a screen. */
+  const enterClicks=(inputId,btnId)=>{const i=$(inputId);
+    if(i)i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const b=$(btnId);if(b)b.click();}});};
+  enterClicks("nameModalInput","btnNameConfirm");
+  enterClicks("joinCode","btnJoin");
+  enterClicks("joinName","btnJoin");
+  ["ppName0","ppName1","ppName2","ppName3"].forEach(id=>enterClicks(id,"btnStartPassPlay"));
   // D-02: wires the modal's other three dismissal routes (✕, Escape, backdrop click) to also
   // confirm rather than cancel. Idempotent — safe even though wireWelcome() only runs once.
   wireNameModal();

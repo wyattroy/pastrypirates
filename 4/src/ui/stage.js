@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-24e";
+const PP4_STAMP = "2026-08-24f";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -727,22 +727,24 @@ function gestures(wrap){
       const now = Date.now();
       if (now - lastTap < 300){                      // double-tap: fit-board <-> zoom on my ship
         S.lock = true;
-        // problem 3 (2026-08-23c): a double-tap on yer own boat is NAVIGATION — the first tap's
-        // stay-put confirm must not be left standing while the camera flies (his recording's f22:
-        // the confirm circles migrating onto the pill mid-zoom was exactly this collision).
-        document.querySelector(".pp4Stay")?.remove();
         if (S.cam.tw > 500){ const g = appState.game, me = g && g.players[appState.mySeat ?? 0];
           if (me) camToCell(me.pos, 2.0); } else camFull();
         lastTap = 0;
       } else lastTap = now;
-      // playtest 11: during YOUR sail prompt, tapping your own boat offers "stay put" with a
-      // confirmation right where you tapped — the radial Stay put circle steps aside while it is
-      // up (problem 3: one decision on screen at a time; see stayConfirm)
+      /* ITEM 21 REDESIGN (Wyatt, 2026-08-24): tapping yer own boat during a sail prompt reveals
+         the NORMAL Stay put button — the same door the yellow stay square under the boat opens
+         (renderPickPrompt, flow.js). The old Aye/Keep-sailin' confirm pair is deleted at his word:
+         "Get rid of the Aye Stay Put and Keep Sailin' button flow entirely" — the Keep sailin'
+         circle broke the consistent-back-button value, and the pair coexisting with the radial
+         circle was his problem 3. One button, two ways to summon it, no confirm theatre. */
       if (document.querySelector(".sailCell")){
         const u = boatUXY(appState.mySeat ?? 0);
         if (u){
           const [bx, by] = toScreen(u[0], u[1]);
-          if (Math.hypot(e.clientX - bx, e.clientY - by) < 34){ stayConfirm(bx, by); }
+          if (Math.hypot(e.clientX - bx, e.clientY - by) < 34){
+            const b = document.getElementById("apStay");
+            if (b) b.style.display = "";
+          }
         }
       }
       if (S.hurry) S.hurry();                        // any tap hurries the live bubble
@@ -752,39 +754,11 @@ function gestures(wrap){
   window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
 }
 
-// playtest 11: the tap-your-own-ship stay-put confirmation. "Aye" presses the sail prompt's own
-// Stay put button (the ONE .apBtn a sail prompt has), so the decision flows through pickCell
-// exactly as if the circle had been tapped — this UI never resolves anything itself.
-function stayConfirm(bx, by){
-  document.querySelector(".pp4Stay")?.remove();
-  // isDisabledBtn, not `!b.disabled` — playtest 21 item 5 moved greyed options onto aria-disabled
-  // so they can be tapped for their reason, which means the DOM property is now false on EVERY
-  // button and this finder would have happily picked a greyed one to hang the confirm on.
-  const stayBtn = [...document.querySelectorAll("#actionPanel .apBtn")].find(b => !isDisabledBtn(b));
-  if (!stayBtn) return;
-  const box = document.createElement("div");
-  box.className = "pp4Stay";
-  box.innerHTML = `<button class="aye" type="button">⚓ Aye,<br>stay put</button><button type="button">↩ Keep<br>sailin'</button>`;
-  document.body.appendChild(box);
-  /* PROBLEM 3 (Wyatt, 2026-08-23c): "the 'aye stay put' button feels like it's a duplicate of
-     'stay put', and it's not clear what causes it." His screen recording showed all three circles
-     at once — the radial Stay put standing beside its own confirm pair. The two doors are his own
-     playtest-11 pick and both stay; what goes is the COEXISTENCE: while the confirm is up, the
-     radial circle steps aside (visibility, so the layout it anchors keeps its shape), and comes
-     back the moment the confirm closes either way. One decision on screen at a time. */
-  stayBtn.style.visibility = "hidden";
-  const restore = () => { stayBtn.style.visibility = ""; };
-  const W = 130, left = Math.min(Math.max(bx - W / 2, 8), vwPx() - W - 8);
-  box.style.left = left + "px";
-  box.style.top = Math.max(54, by + 44) + "px";
-  const [aye, nay] = box.querySelectorAll("button");
-  aye.onclick = () => { box.remove(); restore(); stayBtn.click(); };
-  nay.onclick = () => { box.remove(); restore(); };
-  // the confirm dies with the prompt (a sail was picked, or the turn moved on)
-  const iv = setInterval(() => {
-    if (!document.querySelector(".sailCell") || !document.body.contains(box)){ clearInterval(iv); box.remove(); restore(); }
-  }, 300);
-}
+/* The tap-your-own-ship stay-put CONFIRM (the Aye / Keep-sailin' pair, playtest 11) lived here
+   until 2026-08-24 — deleted at Wyatt's word (item 21 redesign): the Keep sailin' circle broke
+   the consistent-back-button value and the pair read as a duplicate of the radial Stay put.
+   Tapping the boat now simply reveals the hidden #apStay (the pointer handler above), the same
+   door the yellow .pp4StayCell square under the boat opens. */
 
 /* ================= end-of-voyage card: the A+C park gesture (item 8, D-14) =================
    Wyatt's pick, decoded 2026-08-21: the card starts fully up; scrolling it (normal overflow:auto,
@@ -1561,7 +1535,12 @@ function recipeGuard(){
   document.addEventListener("click", e => {
     if (!S.active) return;
     const btn = e.target.closest("#actionPanel .apBtn");
-    if (!btn || !btn.querySelector(".recipeList")) { focusBtn = null; return; }
+    /* #13 (Wyatt, 2026-08-24): "tapping the board does not clear the selected state, so it should
+       not force two taps." This line used to reset focusBtn on ANY outside tap — the hold-the-sea
+       peek included — while the card's visible selection (pp4Focus, the Bake this! door, the dock
+       glow) all stayed. Pixels and state disagreed, and the next tap re-selected instead of
+       confirming. The internal state now follows the visible one: an outside tap changes nothing. */
+    if (!btn || !btn.querySelector(".recipeList")) return;
     if (focusBtn === btn) { clearGlow(); clearBake(); focusBtn = null; return; }  // second tap: let it through
     e.stopPropagation(); e.preventDefault();                          // first tap: focus + glow
     focusBtn = btn;

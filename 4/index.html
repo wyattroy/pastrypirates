@@ -1689,7 +1689,6 @@
      stay solid. */
   body.pp4Peek #pp4Prompt,
   body.pp4Peek .pp4Bub,
-  body.pp4Peek .pp4Stay,
   body.pp4Peek #pp4ChatFlash,
   /* item 8 (D-14, CLAUDE.md rule 8): the end-of-voyage card is a floating box like every other one
      here, so a hold on the sea fades it exactly the same way — it is NOT one of the two sanctioned
@@ -1697,7 +1696,6 @@
      its own pull-to-park gesture below. */
   body.pp4Peek #statsWrap { opacity:.13; pointer-events:none; }
   body.pp4Peek #pp4Prompt.pp4Center { opacity:1; pointer-events:auto; }
-  .pp4Stay { transition:opacity .16s; }
   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
     width:min(348px, 94vw) !important; max-height:78vh; overflow:auto; }
   #pp4Prompt #actionPanel { margin:0; box-shadow:0 10px 30px rgba(0,0,0,.35); border-radius:13px; }
@@ -2335,12 +2333,10 @@
   body.pp4Stage .prowTop .prowRecipe { display:none; flex-basis:100%; }
   body.pp4Stage .player-row.pp4Open .prowRecipe { display:block; }
   body.pp4Stage .player-row { cursor:pointer; }
-  /* playtest 11: tap-your-own-ship stay-put confirmation */
-  .pp4Stay { position:fixed; z-index:31; display:flex; gap:10px; }
-  .pp4Stay button { width:60px; height:60px; border-radius:50%; border:2.5px solid #177;
-    background:#fffdf2; color:#0e3b3b; font-size:11px; font-weight:800; line-height:1.1;
-    box-shadow:0 6px 18px rgba(0,0,0,.35); }
-  .pp4Stay button.aye { background:#177; color:#fffdf2; }
+  /* the tap-your-own-ship confirm pair (.pp4Stay) lived here until the item-21 redesign
+     (2026-08-24): tapping the boat now reveals the normal Stay put petal instead, and the yellow
+     .pp4StayCell square under the boat (a sail-square sibling, same host, same bounce) is the
+     standing indicator. No styles needed: the square IS a .sailCell. */
 
   /* ═══════════════════════ THE ATTENTION VOCABULARY — ONE BLOCK, TWO CUES ═══════════════════════
      Wyatt's ruling, 2026-08-24 (item 23, his words): "ALL MODES LOOK and behave THE SAME…
@@ -2407,8 +2403,7 @@
      instead of 66→76). */
   #pp4Prompt:not(.pp4Center):not(.radial) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
     animation: pp4GrowSoft 1.1s ease-in-out infinite; }
-  #pp4Prompt.radial #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
-  .pp4Stay button {
+  #pp4Prompt.radial #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]) {
     animation: pp4Grow 1.1s ease-in-out infinite; }
 
   /* Hover pauses the pulse (a transform in a running keyframe beats anything :hover sets — the
@@ -2418,11 +2413,11 @@
      move. (The old rules silenced the radial pulse outright under Reduce Motion while the dock
      coin and centre-stage circles kept glowing — which is precisely "the pulsing only ever
      happens during docks" for anyone with that setting on.) */
-  #actionPanel .apBtn:hover, #actionPanel .btlBtn:hover, .pp4Stay button:hover,
+  #actionPanel .apBtn:hover, #actionPanel .btlBtn:hover,
   #btnStart:hover, #btnConfirmStart:hover, #btnStartPassPlay:hover { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) {
-    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard),
-    .pp4Stay button { animation: pp4Glow 1.1s ease-in-out infinite; } }
+    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
+      animation: pp4Glow 1.1s ease-in-out infinite; } }
 </style>
 </head>
 <body>
