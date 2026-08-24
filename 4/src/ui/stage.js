@@ -2342,14 +2342,26 @@ function promptTick(){
        that satisfies him.
        It needs no new field and nothing on the wire, so a guest gets it by construction — the same
        reason the card fallback never needed one (rule 23). */
+    /* ITEM 16 (Wyatt, 2026-08-23c) AMENDS D-48: "when right-to-left orientation of buttons, pass
+       should be on the right, not the left — humans read left to right, so when you put it on the
+       left we read it first... decide where pass goes based on whether the fan is more horizontal
+       or more vertical, at the 45 degree cutoff." So the rule is READING ORDER, not gravity: a fan
+       spread wider than it is tall reads left-to-right and Pass takes the RIGHTMOST spot; taller
+       than wide reads top-to-bottom and Pass keeps D-48's LOWEST spot. The cutoff is the spread's
+       own aspect (width ≥ height ⇔ the fan's axis is within 45° of horizontal). Still a SWAP, for
+       D-48's own reason: everything else keeps the order the fan gave it. */
     const lastLowest = pts => {
       if (!pts || pts.length < 2) return pts;
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      const horizontal = (Math.max(...xs) - Math.min(...xs)) >= (Math.max(...ys) - Math.min(...ys));
       const last = pts.length - 1;
-      let lo = 0;
-      for (let i = 1; i < pts.length; i++) if (pts[i][1] > pts[lo][1]) lo = i;
-      if (lo === last) return pts;
+      let target = 0;
+      for (let i = 1; i < pts.length; i++){
+        if (horizontal ? (pts[i][0] > pts[target][0]) : (pts[i][1] > pts[target][1])) target = i;
+      }
+      if (target === last) return pts;
       const outPts = pts.slice();
-      outPts[last] = pts[lo]; outPts[lo] = pts[last];
+      outPts[last] = pts[target]; outPts[target] = pts[last];
       return outPts;
     };
     /* THE CIRCLE'S SIZE COMES FROM THE RENDERER, AND THE GAP IS A FRACTION OF IT (D-44, rule 9).
