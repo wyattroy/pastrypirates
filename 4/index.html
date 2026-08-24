@@ -2383,23 +2383,46 @@
      Scale ONLY, no ring: the golden ring belongs to the stage (his pick: "strong grow, no ring").
      The swing is set per geometry IN THIS BLOCK ONLY: a 66px radial petal needs a big swell to
      read at arm's length over open water (1.09 was measured invisible); a full-width card row at
-     the same scale would collide with its neighbours, so it swells gently. */
+     the same scale would collide with its neighbours, so it swells gently.
+     LITERAL VALUES ONLY IN THESE KEYFRAMES — never var(). Wyatt's Safari screen recording of
+     build 24d showed the swell dead flat (121px in all 16 frames across 3.6 cycles) while every
+     Chromium probe measured it running; WebKit spent years unable to resolve custom properties
+     inside @keyframes, and a transform it cannot resolve leaves the button at scale(1) forever.
+     Two @keyframes for one cue is deliberate and stays — they are the same gesture at two
+     amplitudes, side by side here so they cannot drift apart. */
   @keyframes pp4Grow {
     0%,100% { transform: scale(1); }
-    50%     { transform: scale(var(--growHi, 1.05)); } }
-  #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard),
+    50%     { transform: scale(1.15); } }
+  @keyframes pp4GrowSoft {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.05); } }
+  /* the peak, declared ONCE for everything that is not a keyframe: the radial fan's layout
+     (stage.js) reads this to reserve the room the swell will use, so circles never kiss at the
+     top of the pulse. It MUST equal pp4Grow's 50% literal above — the literal exists only
+     because Safari cannot resolve var() inside @keyframes. Change them together. */
+  :root { --pp4GrowPeak: 1.15; }
+  /* the two selectors are MUTUALLY EXCLUSIVE (:not(.radial) vs .radial) rather than relying on
+     specificity to pick a winner — the first draft did, the card rule's extra :not() outweighed
+     the radial one, and every petal quietly got the gentle swell (caught by the probe, 66→69.3px
+     instead of 66→76). */
+  #pp4Prompt:not(.pp4Center):not(.radial) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
+    animation: pp4GrowSoft 1.1s ease-in-out infinite; }
+  #pp4Prompt.radial #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
   .pp4Stay button {
     animation: pp4Grow 1.1s ease-in-out infinite; }
-  #pp4Prompt.radial #actionPanel .apBtn,
-  .pp4Stay button { --growHi: 1.15; }
 
   /* Hover pauses the pulse (a transform in a running keyframe beats anything :hover sets — the
-     sail squares' own lesson), and reduced motion silences the GROW everywhere while keeping the
-     GLOW: the ring does not move, and on the coin it is the only cue that the coin is a button. */
+     sail squares' own lesson). REDUCE MOTION swaps the grow for the STILL glow rather than for
+     nothing: the pulse is information — "this is the button being asked of you" — and a player
+     who turns motion off must not lose the answer, only the movement. A fading ring does not
+     move. (The old rules silenced the radial pulse outright under Reduce Motion while the dock
+     coin and centre-stage circles kept glowing — which is precisely "the pulsing only ever
+     happens during docks" for anyone with that setting on.) */
   #actionPanel .apBtn:hover, #actionPanel .btlBtn:hover, .pp4Stay button:hover,
   #btnStart:hover, #btnConfirmStart:hover, #btnStartPassPlay:hover { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) {
-    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn, .pp4Stay button { animation: none; } }
+    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard),
+    .pp4Stay button { animation: pp4Glow 1.1s ease-in-out infinite; } }
 </style>
 </head>
 <body>

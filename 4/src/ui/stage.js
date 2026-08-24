@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-24d";
+const PP4_STAMP = "2026-08-24e";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -2439,6 +2439,13 @@ function promptTick(){
        always carried at the old D, and now grows with the petal instead of drifting from it. */
     const D = Math.round((menu[0] && menu[0].offsetWidth) || 66);
     const GAP = Math.round(D / 4);
+    /* THE PETAL BREATHES — the attention vocabulary (index.html) swells it to --pp4GrowPeak.
+       Separation must reserve that room: at D+GAP two diagonal neighbours closed to under 1px of
+       painted gap at every pulse peak (2026-08-24e layout gate). offsetWidth is layout size, so
+       measuring mid-swell cannot double-count. The || fallback is the declared token's own value,
+       for a pathological boot order only — the declaration lives in the vocabulary block. */
+    if (!S.growPeak) S.growPeak = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--pp4GrowPeak")) || 1.15;
+    const SEP = Math.round(D * S.growPeak) + GAP;
     const R = D + 4;
     const placed = [];
     // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
@@ -2671,7 +2678,7 @@ function promptTick(){
          through it. */
       const clampSpot = s => [Math.min(Math.max(s[0], xMin), xMax), Math.min(Math.max(s[1], yMin), yMax)];
       let spots = anchors.map(([ax, ay]) => clampSpot([ax - D / 2, ay + 26]));   // just off the stern
-      const NEED = D + GAP;   // D-44: derived, never typed — see the D/GAP note above
+      const NEED = SEP;   // D-44: derived, never typed — swollen petal + quarter-gap, see the SEP note above
       for (let pass = 0; pass < 4; pass++){
         let moved = false;
         for (let i = 0; i < spots.length; i++)
@@ -2727,7 +2734,7 @@ function promptTick(){
     }
     const inBounds = (bx, by) => bx >= xMin && bx <= xMax && by >= yMin && by <= yMax;
     const clash = (bx, by) =>
-      placed.some(q => Math.hypot(bx - q[0], by - q[1]) < D + GAP) ||
+      placed.some(q => Math.hypot(bx - q[0], by - q[1]) < SEP) ||
       Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 26 ||
       obstacles.some(r => hitRect(bx, by, r, 2));
     // Playtest 16 (Wyatt: "fan them out in a more symmetrical orderly way"): the fan is a RIGID
@@ -2744,10 +2751,10 @@ function promptTick(){
       const pts = [];
       const split = rowSplit(menu.length);
       for (let ri = 0; ri < split.length; ri++){
-        const along = r0 + ri * (D + GAP);
+        const along = r0 + ri * SEP;
         const n = split[ri];
         for (let j = 0; j < n; j++){
-          const off = (j - (n - 1) / 2) * (D + GAP);
+          const off = (j - (n - 1) / 2) * SEP;
           pts.push([sx + ux * along + vx * off - D / 2, sy + uy * along + vy * off - D / 2]);
         }
       }
@@ -2783,7 +2790,7 @@ function promptTick(){
        nobody tested. Bounded by construction: the loop breaks the moment a layout passes. */
     const rings = [];
     for (let g = 0, lim = Math.hypot(Math.max(0, xMax - xMin), Math.max(0, yMax - yMin)),
-             stepG = Math.max(8, Math.round((D + GAP) / 2)); g <= lim; g += stepG) rings.push(g);
+             stepG = Math.max(8, Math.round(SEP / 2)); g <= lim; g += stepG) rings.push(g);
     let pts = null;
     outer:
     for (const grow of rings){
@@ -2805,7 +2812,7 @@ function promptTick(){
          spread first, clamp second, and let the clamp undo the spreading. The cure is the same in
          spirit: never lay out more per row than the band genuinely holds. Wrap instead, and stack
          the rows upward from the captains box. */
-      const gap = GAP, step = D + gap;
+      const gap = GAP, step = SEP;
       const perRow = Math.max(1, Math.floor((xMax - xMin + gap) / step));
       const rowsN = Math.ceil(menu.length / perRow);
       const blockH = rowsN * step - gap;
