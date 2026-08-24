@@ -1987,6 +1987,31 @@ export async function joinRoom(){
 // D-13: module-scope guard so a repeated watchRoom() call for the SAME room (a normal guest-join
 // lifecycle invokes this more than once) does not re-attach netWatchSeats()/netWatchStatus() and
 // trip src/net/registry.js's "duplicate attach refused" ERROR — see this file's own header note.
+/* THE 30-SECOND GRACE (Wyatt, 2026-08-24, his design verbatim): "We should instead give the host
+   30 seconds to reopen the site, and in that time, display a message to the guest saying 'yer
+   matey has left the game... Let's give 'em 30 seconds to return before callin' off yer voyage'".
+   His playtest found the old 4s window shorter than a real reload — the voyage was called off
+   before he could get the site open again. 30_000 is HIS number, a design pick like a pacing
+   constant, not a derived quantity. Polls every 2s so a returning host (resumeHostGame writes
+   "playing" back on boot) ends the wait early; the wait line retires itself on the next narration
+   once play resumes. ONE helper for both callers — the live status watcher and the boot-time
+   re-entry — so the two waits can never drift apart (rule 23). `quiet` is the boot case: the
+   stage is not built yet, so the boot loader stays the message. */
+async function hostGoneGrace(quiet){
+  if(!quiet){
+    // @copy prompt.net.hostgrace — his copy, in-world register (the voice boundary)
+    showNarration("⚓ Yer matey has left the game… let's give 'em 30 seconds to return before callin' off yer voyage.",{wait:true});
+  }
+  const T0=Date.now();
+  let last=null;
+  while(Date.now()-T0<30000){
+    await new Promise(res=>setTimeout(res,2000));
+    last=(await netReadRoom(appState.db,appState.room)).val();
+    if(!last)return {gone:true,room:null};
+    if(last.status!=="hostgone")return {gone:false,room:last};
+  }
+  return {gone:!last||last.status==="hostgone",room:last};
+}
 let _watchRoomAttachedFor=null;
 export async function watchRoom(){
   const r0=(await netReadRoom(appState.db,appState.room)).val();
@@ -1995,13 +2020,13 @@ export async function watchRoom(){
   appState.numSeats=r0.numSeats;appState.isHost=(r0.host===appState.myId);
   // A GUEST rebooting into a room already marked "hostgone" (Wyatt's problem 5, the guest half):
   // the status watcher below only acts on hostgone once gameStarted is true, so a guest whose
-  // refresh landed while the host was away used to sit under the boot loader forever. Same 4s
-  // grace the live watcher gives — a returning host writes "playing" back within moments
-  // (resumeHostGame), so a re-read separates a real departure from a blip before going terminal.
+  // refresh landed while the host was away used to sit under the boot loader forever. The same
+  // 30-second grace the live watcher gives (hostGoneGrace above) — quiet, because the stage is
+  // not built yet: the boot loader stays the message, and the resume escape hatch remains the
+  // player's own way out of a wait they don't want.
   if(r0.status==="hostgone"&&!appState.isHost){
-    await new Promise(res=>setTimeout(res,4000));
-    const still=(await netReadRoom(appState.db,appState.room)).val();
-    if(!still||still.status==="hostgone"){hideBootLoader();hostLeftTheVoyage(still||null);return;}
+    const g=await hostGoneGrace(true);
+    if(g.gone){hideBootLoader();hostLeftTheVoyage(g.room);return;}
   }
   if(r0.status==="lobby")showRoom();
   if(_watchRoomAttachedFor===appState.room)return; // already watching this room — see D-13 above
@@ -2020,14 +2045,15 @@ export async function watchRoom(){
        tells somebody their crewmate walked out. */
     if(st==="hostgone"&&!appState.isHost&&appState.gameStarted&&!appState.hostGoneShown){
       appState.hostGoneShown=true;
-      await new Promise(r=>setTimeout(r,4000));
-      const still=(await netReadRoom(appState.db,appState.room)).val();
+      // The 30-second grace (Wyatt's design, 2026-08-24 — see hostGoneGrace above): the guest
+      // reads his message while the host gets a real chance to reopen the site.
+      const g=await hostGoneGrace(false);
       // Pass the room through — hostLeftTheVoyage() names the departed captain from room.host
       // matched against the seat list. Verified 2026-08-20: calling it bare made the card read
       // "Yer matey has left the voyage" when it could have said the name.
-      if(!still||still.status==="hostgone"){hostLeftTheVoyage(still||null);return;}
-      appState.hostGoneShown=false;                      // false alarm — they sailed back in
-      return;
+      if(g.gone){hostLeftTheVoyage(g.room);return;}
+      appState.hostGoneShown=false;                      // they sailed back in — play resumes and
+      return;                                           // the next narration retires the wait line
     }
     if((st==="playing"||st==="ended")&&!appState.gameStarted){
       const r=(await netReadRoom(appState.db,appState.room)).val();
