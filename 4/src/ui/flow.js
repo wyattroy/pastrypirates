@@ -2734,6 +2734,11 @@ export function endReplay(){
                             // frontier instead of skipping everything the replay failed to rebuild
   }
   appState.evPushed=appState.resumeEvLen;   // events 0..resumeEvLen-1 are already in Firebase; push only what's new
+  // The resumed host is live again: re-arm the full host-gone kit (onDisconnect + the reconnect
+  // re-assert watcher). resumeHostGame already re-marked the bare onDisconnect for the reconnect
+  // window; this is the durable arming, deliberately AFTER replaying clears so armHostGone()'s
+  // own replay guard passes. No-op for guests and solo (armHostGone checks isHost/room itself).
+  netHandlers().onHostBack?.();
   liveRender();           // flush any freshly-rebuilt events + paint the current board
 }
 

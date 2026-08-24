@@ -1981,6 +1981,16 @@ export async function watchRoom(){
   // @copy misc.mperror.gamegone
   if(!r0){alert(GAME_GONE_MSG);clearSession();showHome();return;}
   appState.numSeats=r0.numSeats;appState.isHost=(r0.host===appState.myId);
+  // A GUEST rebooting into a room already marked "hostgone" (Wyatt's problem 5, the guest half):
+  // the status watcher below only acts on hostgone once gameStarted is true, so a guest whose
+  // refresh landed while the host was away used to sit under the boot loader forever. Same 4s
+  // grace the live watcher gives — a returning host writes "playing" back within moments
+  // (resumeHostGame), so a re-read separates a real departure from a blip before going terminal.
+  if(r0.status==="hostgone"&&!appState.isHost){
+    await new Promise(res=>setTimeout(res,4000));
+    const still=(await netReadRoom(appState.db,appState.room)).val();
+    if(!still||still.status==="hostgone"){hideBootLoader();hostLeftTheVoyage(still||null);return;}
+  }
   if(r0.status==="lobby")showRoom();
   if(_watchRoomAttachedFor===appState.room)return; // already watching this room — see D-13 above
   _watchRoomAttachedFor=appState.room;
@@ -2087,14 +2097,17 @@ function hostLeftTheVoyage(room){
    future caller arms twice. */
 let _hostGoneArmedFor = null;
 export function armHostGone(){
-  if(!appState.isHost||!appState.db||!appState.room||appState.replaying)return;
+  // liveDone: a finished voyage must never be re-marked — endVoyage cancels the onDisconnect on
+  // purpose (its cancel-first note), and endReplay's onHostBack call would otherwise re-arm it
+  // when a fully-ended game is resumed from the log.
+  if(!appState.isHost||!appState.db||!appState.room||appState.replaying||appState.liveDone)return;
   const armedRoom = appState.room;                      // THIS room, not "the current room" later
   netMarkHostGoneOnDisconnect(appState.db,armedRoom);
   if(_hostGoneArmedFor===armedRoom)return;              // never stack a second watcher on one room
   _hostGoneArmedFor=armedRoom;
   netWatchConnected(appState.db,snap=>{
     if(snap.val()!==true)return;
-    if(appState.room!==armedRoom||!appState.isHost||!appState.gameStarted)return;
+    if(appState.room!==armedRoom||!appState.isHost||!appState.gameStarted||appState.liveDone)return;
     netUpdateRoom(appState.db,armedRoom,{status:"playing"},()=>{});
     netMarkHostGoneOnDisconnect(appState.db,armedRoom);
   },()=>{});
@@ -2327,6 +2340,18 @@ export async function resumeHostGame(r){
   if(!r.cfg){ // never actually started (reloaded on the "playing" flag before cfg was written)
     clearSession();showHome();return;
   }
+  // The old connection's onDisconnect stamped "hostgone" when the tab dropped. Put "playing" back
+  // FIRST — before the (potentially long) dlog read and replay — so a guest's 4s grace re-read in
+  // watchRoom sees the truth and withdraws the "yer matey left" verdict instead of going terminal.
+  // And re-arm the onDisconnect for THIS connection: the server-side write is one-shot, so a
+  // resumed host who closed the tab a second time used to leave the crew with no notice at all.
+  // (armHostGone()'s full kit — the reconnect re-assert watcher — is armed once the replay hands
+  // back to live play, via endReplay's onHostBack; arming a watcher mid-replay is what its own
+  // replaying guard exists to prevent.)
+  if(r.status==="hostgone")netUpdateRoom(appState.db,appState.room,{status:"playing"},netFail("host back"));
+  // Never on an "ended" room — endVoyage CANCELS the onDisconnect precisely so a finished game's
+  // status can't be overwritten by the host reasonably closing the tab (see its cancel-first note).
+  if(r.status!=="ended")netMarkHostGoneOnDisconnect(appState.db,appState.room);
   // notes/edits BUG-03: these two reads used to swallow their errors entirely (`catch(e){}`), which
   // conflated three very different outcomes — the read THREW, the read succeeded and returned
   // nothing, and the read succeeded with data. A thrown read then looked identical to a brand-new
@@ -2344,6 +2369,53 @@ export async function resumeHostGame(r){
   panel('<div class="apMsg">⚓ Reconnecting to yer voyage…</div>');
   appState.replaying=true;
   beginGame(r.cfg,r.seed);
+}
+
+/* THE RESUME ESCAPE HATCH — Wyatt, 2026-08-23 (problem 5): "give that screen an escape hatch so it
+   can never strand him again." The hostgone routing above fixes the hang we measured; this is the
+   guarantee for every stall we did NOT foresee. A watchdog armed at the start of either resume
+   journey: if, after 15s, the player is still behind the boot loader or still mid-replay, a small
+   card offers one honest door — abandon this voyage and sail home. Clicking it clears ONLY the blob
+   being resumed (a stalled room resume must not eat a healthy solo save, and vice versa) and
+   reloads, so the next boot has nothing to trip over.
+   Raw DOM and no renderer calls, for voyageAground()'s reason: the thing that stalled may BE the
+   render path, and a rescue that needs the broken machine is not a rescue. */
+function armResumeEscapeHatch(kind){
+  let stuckSecs=0,goodTicks=0;
+  const iv=setInterval(()=>{
+    const loader=document.getElementById("bootLoader");
+    const loaderUp=!!(loader&&!loader.classList.contains("hidden"));
+    const stuck=loaderUp||appState.replaying;
+    const box=document.getElementById("ppResumeEscape");
+    if(!stuck){
+      // Stand down only after the resume has looked healthy for 3 straight ticks — the loader and
+      // the replaying flag hand over to each other with sub-second gaps, and a watchdog that
+      // disarms on one lucky tick is a watchdog that misses the stall it was armed for (proven by
+      // this hatch's own red-proof, 2026-08-24: the first version stood down at t+1s and ignored a
+      // loader that came back at t+2s).
+      stuckSecs=0;
+      if(++goodTicks>=3){clearInterval(iv);if(box)box.remove();}
+      return;
+    }
+    goodTicks=0;
+    stuckSecs++;
+    if(stuckSecs<15||box)return;
+    const b=document.createElement("div");
+    b.id="ppResumeEscape";
+    b.style.cssText="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:10001;"+
+      "background:#fffdf2;border:2px solid #2aa9b8;border-radius:16px;padding:14px 18px;max-width:22rem;"+
+      "box-shadow:0 10px 40px rgba(0,0,0,.35);text-align:center;font:15px/1.45 system-ui,sans-serif;color:#123";
+    b.innerHTML=
+      '<div style="font-weight:700;color:#12707c;margin-bottom:6px">⚓ Still reconnectin’…</div>'+
+      '<div style="margin-bottom:12px">If yer voyage won’t come back, ye can abandon ship and set out afresh.</div>'+
+      '<button id="ppResumeEscapeBtn" style="font:600 15px system-ui,sans-serif;background:#2aa9b8;color:#fff;'+
+      'border:0;border-radius:999px;padding:10px 24px;cursor:pointer">Back to port</button>';
+    document.body.appendChild(b);
+    document.getElementById("ppResumeEscapeBtn").onclick=()=>{
+      try{if(kind==="room")clearSession();else clearSoloState();}catch(e){}
+      location.reload();
+    };
+  },1000);
 }
 
 export function boot(){
@@ -2464,6 +2536,7 @@ export function boot(){
   // for the same reason — boot-loader copy sits outside the audit by precedent, not by oversight.
   const bootMsg=document.querySelector("#bootLoader .bootMsg");
   if(bootMsg)bootMsg.textContent="Reconnecting to yer voyage…";
+  armResumeEscapeHatch(resumingRoom?"room":"solo");   // problem 5: this screen can never strand again
   Promise.race([preloadAssets(),new Promise(r=>setTimeout(r,6000))]).then(()=>{
     // Solo first and BEFORE the Firebase gate — the ordering constraint the comment above records:
     // an offline refresh mid-solo-game still has to resume. resumingSolo is already false whenever
@@ -2477,11 +2550,21 @@ export function boot(){
       if(!snap.exists()){clearSession();showHome();return;}
       const r=snap.val();
       appState.isHost=(r.host===appState.myId);
-      if(appState.isHost&&(r.status==="playing"||r.status==="ended")){
+      if(appState.isHost&&(r.status==="playing"||r.status==="ended"||r.status==="hostgone")){
         // The host's browser drives the game. On an accidental reload, replay the recorded
         // decision log to rebuild the exact game state and keep driving it — then check the
         // rebuild actually landed (see endReplay). If it came up short, the player is asked
         // what to do rather than handed a silently-reset board.
+        //
+        // "hostgone" IS a resumable status FOR THE HOST — Wyatt's problem 5, 2026-08-23, measured
+        // in the two-window rig 2026-08-24. armHostGone()'s server-side onDisconnect writes
+        // status:"hostgone" the moment the host's old connection drops — a tab close, but ALSO a
+        // plain reload. This branch used to require "playing"/"ended", so the returning host fell
+        // through to watchRoom(), whose every handler guards against exactly this state, and the
+        // boot loader sat on "Reconnecting to yer voyage…" forever — with every further reload
+        // re-entering the same dead end via pp4_sess. The very flag that tells guests their host
+        // left was locking the host out. The host being back is the news: resume, and let
+        // resumeHostGame() put "playing" back on the room.
         resumeHostGame(r);return;
       }
       watchRoom();

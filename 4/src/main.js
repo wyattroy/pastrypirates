@@ -97,6 +97,11 @@ if (typeof window !== "undefined") {
     onRenderBattle: orchestrator.renderBattle,
     onBattleAsk: orchestrator.battleAsk,
     onAsyncBattle: orchestrator.asyncBattle,
+    // Wyatt's problem 5 (2026-08-23): endReplay tells the orchestrator the resumed host is live
+    // again, so the host-gone safety net is re-armed for the NEW connection (the old one's
+    // server-side onDisconnect burned when it fired). An (a)-case edge like onRemotePrompt:
+    // armHostGone reaches src/net/ and flow.js can never import a main-tier file.
+    onHostBack: orchestrator.armHostGone,
     // 11-07 additions — ui-tier sibling targets (cycle-avoidance, not net-adjacency):
     onEndReplay: ui.endReplay,
     onLocalAsk: ui.localAsk,
