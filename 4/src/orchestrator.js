@@ -109,7 +109,7 @@ import {
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
-  requireName, getLastName, // FIX-01: the one read chokepoint (createRoom) and the raw persisted read (Feedback)
+  requireName, getLastName, saveLastName, // FIX-01: the one read chokepoint (createRoom) and the raw persisted read (Feedback); saveLastName for item 31's modal-free join
   MAX_NAME_LEN, // the live RTDB rule's own cap on seats/$seat/name — over it, the join dies server-side
   pendingAutoName, // NAME-01: was the resolved name CHOSEN by the player, or merely offered to them?
   openNameModal, // NAME-02: the room screen's "Change yer name" reuses the one naming modal
@@ -1954,6 +1954,9 @@ export async function joinRoom(){
       });
       if(outcome==="taken"){setNameWarning("joinName",nameTakenMsg(typedName));return;}
     }
+    // Item 31: the join screen's own name box is the naming step now (no modal), so persisting the
+    // durable pp_lastName moves here — only a name they actually CHOSE, same rule confirmName kept.
+    if(chosen)saveLastName(chosen);
     appState.room=code;appState.mySeat=mine;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();return;
   }
   // @copy misc.mperror.alreadysailed
@@ -1978,6 +1981,7 @@ export async function joinRoom(){
   if(outcome==="taken"){setNameWarning("joinName",nameTakenMsg(typedName));return;}
   // @copy misc.mperror.roomfull
   if(claimed==null){alert("Too many pirates already in that game.");return;}
+  if(chosen)saveLastName(chosen);   // item 31: see the rejoin path above
   appState.room=code;appState.mySeat=claimed;appState.isHost=(r.host===appState.myId);saveSession();watchRoom();
 }
 // D-13: module-scope guard so a repeated watchRoom() call for the SAME room (a normal guest-join

@@ -64,7 +64,7 @@ import {
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS, isDisabledBtn,
-  SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS, MOTION_BRIDGE_TICKS, MAX_NAME_LEN,
+  SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS, MOTION_BRIDGE_TICKS, MAX_NAME_LEN, getLastName,
   vwPx, fixedRect,
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal, setNameWarning } from "./lobby.js";
@@ -2647,7 +2647,16 @@ export function wireWelcome(){
   // item 16 (D-19): clear the "that name's taken" line as the JOIN screen OPENS, not only on the
   // box's `input` event — writing .value from code fires no input event, so a refusal from a
   // previous attempt would otherwise still be sitting under a box that has just been re-prefilled.
-  if(joinCard)joinCard.onclick=()=>{if(joinCard.classList.contains("disabled"))return;openNameModal(name=>{$("joinName").maxLength=MAX_NAME_LEN;$("joinName").value=name;setNameWarning("joinName","");showStep("stepJoin");});};
+  // Item 31 (Wyatt, 2026-08-23): "when you hit 'Join a crew' you should go straight to the Join a
+  // Crew screen which has the 4-letter code button and the Yer captain name field. Remove the
+  // 'What do they call ye, captain?' modal in between, it's now unnecessary." The join screen's own
+  // name box IS the naming step — prefilled from the same durable pp_lastName the modal read, and
+  // whatever they type there is what joinRoom claims. Solo/Host/Pass&Play keep the modal: none of
+  // those flows has a second name box to land on (D-03's consistency pick stands for Pass & Play).
+  if(joinCard)joinCard.onclick=()=>{if(joinCard.classList.contains("disabled"))return;
+    $("joinName").maxLength=MAX_NAME_LEN;
+    $("joinName").value=(getLastName()||"").trim().slice(0,MAX_NAME_LEN);
+    setNameWarning("joinName","");showStep("stepJoin");};
   // D-03 decision (22-01-PLAN.md): #ppName0 stays visible on stepPassPlay, pre-filled and editable
   // — Pass & Play still has to name seats 1-3, so consistency (same modal, same position in the
   // flow) was chosen over saving a click.
