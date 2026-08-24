@@ -1171,7 +1171,15 @@ async function stockHoldsForBakeTest(){
   // that does not exist yet. Old saves predate the field and fall back to the URL, which is what
   // they behaved like anyway.
   const meta=appState.soloMeta;
-  const on=(meta&&meta.ovens!==undefined)?!!meta.ovens:ovensNowEnabled();
+  // Precedence: the solo save, then the game's own cfg, then the URL. The cfg leg is the CREW
+  // game's equivalent of "the save outranks the URL": roundCfg() threads ovensNowEnabled() onto
+  // cfg, startGame writes that cfg into the room, and a host-reload replay rebuilds from it — so
+  // a test room stays a test room across a resume even when the query string is gone. The bare
+  // URL fallback only decides for a game whose cfg predates the field.
+  const cfg=appState.game&&appState.game.cfg;
+  const on=(meta&&meta.ovens!==undefined)?!!meta.ovens
+          :(cfg&&cfg.ovens!==undefined)?!!cfg.ovens
+          :ovensNowEnabled();
   if(!on)return;
   const g=appState.game;
   const humans=g.players.filter(p=>p.strategy==="human");

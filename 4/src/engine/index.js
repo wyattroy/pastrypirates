@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, BAKEOFF_ENABLED, bakeoffEnabled, man, ilabelImg } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, BAKEOFF_ENABLED, bakeoffEnabled, ovensNowEnabled, man, ilabelImg } from "../shared/index.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { newBake, scrambleBench, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
 
@@ -3096,7 +3096,14 @@ function roundCfg(strategies){
     // point of having the override — A/B'ing both rulesets on a phone with no redeploy. Reading
     // BAKEOFF_ENABLED here left that switch wired to nothing. It falls back to the constant wherever
     // there is no location to read (every headless script), so the simulator is unaffected.
-    bakeoff:bakeoffEnabled()};
+    bakeoff:bakeoffEnabled(),
+    // ?ovens=1 rides on cfg for the same two reasons bakeoff does just above — and for a third
+    // that is multiplayer's own: a CREW room's cfg is written to Firebase at startGame and is what
+    // a host-reload replay rebuilds from, so the shortcut has to live where the replay can see it.
+    // A host who started a test room at ?ovens=1 and resumed at a bare URL would otherwise replay
+    // the decision log against captains whose holds were never stocked — a structurally different
+    // game. Falls back to the constant (false) headless, like bakeoffEnabled().
+    ovens:ovensNowEnabled()};
 }
 
 export { rollStorm, PERSONALITY, PLAN, Game, roundCfg };
