@@ -220,7 +220,7 @@ both sides before any group is handed to him** (rule 19).
 
 *02.1 remains closed on his ruling, and its own must-have — "Wyatt has played a stretch of the
 voyage himself and said it holds together" — remains NOT met. Nothing below changes that.*
-Last activity: 2026-08-19 — the phase gate ran in real Safari for the first time and returned a
+Last activity: 2026-08-24 - Completed quick task 260824-nh8: the attention vocabulary (build 2026-08-24d)
 negative result.
 
 **The build:** `PP4_STAMP` is **`2026-08-20a`** (commit `54806c6`) — the sound fix, the six
@@ -535,6 +535,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | 260821-aig | Corrected economy matrix: dock-flip lever, band metric (1<=N<=3), his 1/3 idea confirmed best | 2026-08-21 | 7d9d703 | [260821-aig-re-run-02-2-05-economy-matrix-with-dock-](./quick/260821-aig-re-run-02-2-05-economy-matrix-with-dock-/) |
 | 260821-qwv | Phone layout pass: right-edge clipping, hint-on-buttons, see-through recipe picker, back circle above the ribbon. Gate findings 40 -> 12, structural 4 -> 0 | 2026-08-22 | 297d84c | [260821-qwv-phone-layout-pass-right-edge-clipping-hi](./quick/260821-qwv-phone-layout-pass-right-edge-clipping-hi/) |
 | 260824-5qz | The 2026-08-23c playtest fixes (evening handoff): reconnect hang + escape hatch, crew ?ovens=1, blank-space lag, the 13-item visible-bug batch, one-pulse convergence and his A1 desktop menu — builds 2026-08-24a/b/c | 2026-08-24 | d17f374 | [260824-5qz-playtest-2026-08-23c-fixes](./quick/260824-5qz-playtest-2026-08-23c-fixes/) |
+| 260824-nh8 | Item 23 re-opened: the attention vocabulary — glow on stage (Start buttons included), grow over board, one CSS block — build 2026-08-24d | 2026-08-24 | 9735f3a | [260824-nh8-item-23-re-opened-one-attention-vocabula](./quick/260824-nh8-item-23-re-opened-one-attention-vocabula/) |
 
 ### Roadmap Evolution
 
