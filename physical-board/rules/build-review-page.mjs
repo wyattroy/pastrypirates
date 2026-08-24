@@ -9,7 +9,7 @@ const OUT = process.argv[2] || new URL('./review-page.html', import.meta.url).pa
 
 // ---------- collect + transform the six page sections ----------
 let sections = SRC.match(/<section class="page">[\s\S]*?<\/section>/g);
-if (!sections || sections.length !== 6) throw new Error('expected 6 sections, got ' + (sections ? sections.length : 0));
+if (!sections || sections.length !== 4) throw new Error('expected 4 sections, got ' + (sections ? sections.length : 0));
 
 const used = new Map(); // ref -> file path
 const addImg = (ref, path) => { used.set(ref, path); return ref; };
