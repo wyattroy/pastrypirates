@@ -202,12 +202,22 @@ function bakeoffIntroCard(bake){
     // where Notes substitutes a curly ' automatically, so the glyph in what he sends is an artefact
     // of his keyboard rather than a choice. This file's copy is 41 straight elisions and zero curly,
     // so straight it is — words untouched, and no need to ask again.
+    /* THE WARNING MOVED INTO THE MESSAGE, 2026-08-25. Wyatt: "get rid of both … but add the text
+       of 'add them in this exact order or it's a ruined mess.' to the text of the bakeoff intro."
+       It was the last `.apSub` on this card and the shared helper line is gone everywhere else —
+       it is a slab of grey italic set apart from the thing it is warning about, and here it was
+       warning about the recipe card sitting directly above it. Same words, same position, now part
+       of what the card says instead of a separate register beneath it. HIS WORDS ARE UNTOUCHED:
+       the sentence is carried across verbatim, straight apostrophe included, per this block's own
+       standing rule two comments up. Note for him rather than a silent edit: the line above already
+       says "addin' them in the correct order", so the two sit close together — his call whether to
+       tighten, not mine. */
     panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens be roarin'! Yer ingredients be
       waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.<br><br>
       <b>${escHtml(recipeTitle(bake.order))} Recipe</b>
-      ${cardHTML(bake)}</div>
-      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>
-      <div class="apSub">Add them in this exact order or it's a ruined mess.</div>`,true);
+      ${cardHTML(bake)}<br>
+      Add them in this exact order or it's a ruined mess.</div>
+      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>`,true);
     const go=$("bkoIntroGo");
     if(!go){res();return;}
     go.onclick=()=>{go.onclick=null;res();};

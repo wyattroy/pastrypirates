@@ -1351,10 +1351,12 @@ async function pickBarterCrates(p,ing){
     const msg=first===null
       ?`The black market'll take any 2 crates fer ${dockFlavorIcon(ing)} — what's the first?`
       :`Givin' ${ilabelImg(first)} an' one more fer ${dockFlavorIcon(ing)} — what's the second?`;
-    const sub=first===null
-      ?`Both crates leave the Sugar Seas fer good.`
-      :`Tap it an' the bargain's struck — both crates leave the Sugar Seas fer good.`;
-    const v=await ask(msg,opts,null,sub);
+    /* THE LAST SHARED HELPER LINE IS GONE (Wyatt, 2026-08-25). It read "Both crates leave the
+       Sugar Seas fer good." on the first pick and "Tap it an' the bargain's struck — both crates
+       leave the Sugar Seas fer good." on the second. The message above already says the market
+       takes TWO crates and names the one already given, so the grey slab underneath was restating
+       the bargain a captain had just read while they were reaching for the second crate. */
+    const v=await ask(msg,opts);
     if(appState.turnExpired)return null;
     if(v==="__back__"||v==null){
       if(first===null)return null;
