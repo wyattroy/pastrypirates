@@ -1239,7 +1239,7 @@ export function dryCeremony(){
       opens after dark. Any sold-out island — marked with the black flag — will find ye one more
       crate… for <b>10🌕</b>.</div>
       <div class="apBtns"><button class="apBtn" id="bmCerGo" type="button">Arrgh!</button></div>
-      <div class="apSub">Steep, aye. But no recipe be ever truly sunk.</div>`,true);
+      `,true);   /* the "Steep, aye…" helper line is gone — his call, 2026-08-25 */
     const go=$("bmCerGo");
     if(!go){delete ap.dataset.pp4Stage;res();return;}
     go.onclick=()=>{go.onclick=null;delete ap.dataset.pp4Stage;panel("");res();};

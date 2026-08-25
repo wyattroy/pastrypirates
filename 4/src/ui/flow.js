@@ -412,18 +412,12 @@ export function sailPanelHTML(msg,hint){
     `<div class="apBtns"><button class="apBtn" id="apStay" style="display:none">Stay put</button></div>`+
     (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``);
 }
-// The wind's effect on THIS move, spelled out at the moment the move is made. The highlighted
-// squares already encode rule 1 exactly, but they encode it silently: a captain who misreads the
-// compass reads the highlights as a bug rather than as the rule. Naming the direction and both
-// ranges here means the prompt and the board can never disagree, and there is nothing left to
-// infer from the dial. (Wyatt, 2026-08-05, reported "sailed 3 upwind" after taking the forecast
-// needle for the live one — the engine was right and the display was ambiguous.)
-export function sailWindHint(){
-  const w=appState.game.windNow;
-  if(!w)return null;
-  const arrow={N:"↑",E:"→",S:"↓",W:"←"}[w]||"";
-  return `🌬️ Wind blows <b>${DIRNAME[w]}</b> ${arrow} — ye can run <b>4 squares</b> with it or across it, but only <b>2</b> if yer route bites into it.`;
-}
+/* THE WIND HINT IS GONE (Wyatt, 2026-08-25): "Remove the sail prompt saying wind blows east
+   entirely because the game calculates this for you." It was ALREADY invisible — `sailWindHint()`
+   was exported and never called by anything in 4/src, so the sentence it built had not rendered
+   for as long as that was true. Deleted rather than left as a function nobody calls, which is its
+   own small trap: the next reader finds it, assumes it ships, and reasons about copy the player
+   has never seen. The wind ribbon above the board still names the direction and the forecast. */
 // G25 (Wyatt-approved 2026-07-30, D-55 PULLED FORWARD): THE ONE PLACE that decides what a sail
 // square looks like. Asked whether the four host/guest drifts were structurally fixed so they
 // cannot drift again, he said: "yes, add it and pull D-55 forward." Deferred to Phase 16 twice; it
@@ -1420,7 +1414,6 @@ export async function humanDock(p,port){
       // when the hold is short: a captain carrying one crate still learns the swap exists.
       const canBuy=p.coins>=price;
       const canBarter=g.canBlackMarket(p,ing);
-      const scarcity=(!black&&left<1e9&&left<=1)?` Last one on the island!`:``;
       /* ITEM 17 (Wyatt, 2026-08-23c): the greyed-out explainer said "The price has risen to 3🌕 —
          more than ye can pay" when the price had never risen — it STARTED at 3 and he held 1. The
          honest sentence states the cost and the purse, and it is written ONCE: the same string is
@@ -1436,11 +1429,15 @@ export async function humanDock(p,port){
         why:`The barter takes two crates off yer hands, and ye're carryin' ${p.ing.length}.`});
       opts.push({label:"Nah",value:false});
       // @copy misc.blackmarket.whisper — draft, Wyatt rewrites
+      /* HIS COPY PASS, 2026-08-25. The black-market whisper said in a sentence what the two
+         buttons beneath it already say; "Last one on the island!" was deleted outright. What is
+         left is the price and the alternative, and — when ye cannot pay — the one truthful
+         sentence about why (item 17), which is the same string the greyed button's tap-why uses. */
       const sub=black
         ?(canBuy||canBarter
-          ?`The shelves be bare… but after dark, anything's fer sale — ${price}🌕, or any two crates out o' yer hold.`
-          :`The black market wants ${price}🌕 or two crates — ye've neither.`)
-        :canBuy?(scarcity||null)
+          ?`${price}🌕 or any two crates.`
+          :`Ye need ${price}🌕 or two crates — ye've neither.`)
+        :canBuy?null
         :shortWhy;   // item 17: the one truthful sentence, shared with the button's tap-why above
       const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
       if(appState.turnExpired)break;
@@ -2093,14 +2090,20 @@ export async function humanAct(p,sailCtx){
   // No new copy: all three strings already existed and are already Wyatt-approved.
   // scripts/ui_contract_check.js assertion 6 gates this shape, red-proofed against the ab98e04 code.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
   let sub=null;
-  if(targets.length&&!canAfford)sub=`Yer too poor to afford powder — ye need ${appState.game.cfg.powder}🌕 to fire.`;
-  if(targets.length&&canAfford&&!attackable.length)sub=[sub,`Their holds are empty — nothin' to plunder.`].filter(Boolean).join(" ");
+  /* HIS COPY PASS, 2026-08-25 — SHORTER, line by line, his wording. The helper line is a long grey
+     slab under the prompt; every word in it is read while a captain is trying to act, so the ones
+     that survive say only the thing that is not already on the button. */
+  if(targets.length&&!canAfford)sub=`Ye need ${appState.game.cfg.powder}🌕 to fire.`;
+  if(targets.length&&canAfford&&!attackable.length)sub=[sub,`Their holds are empty.`].filter(Boolean).join(" ");
   // independent conditions, independent `if`s (same lesson as Attack, two lines up): canOffer and
   // "does anyone else hold cargo" are unrelated facts, so a broke captain's own reason must never
   // be silently swallowed by the other one firing first.
-  if(!canOffer)sub=[sub,`Ye've nothin' to trade — an empty hold and an empty purse.`].filter(Boolean).join(" ");
+  if(!canOffer)sub=[sub,`Ye've nothin' to trade.`].filter(Boolean).join(" ");
   else if(!canTrade)sub=[sub,`No one's holding cargo to trade for yet.`].filter(Boolean).join(" ");
-  if(!sub&&targets.length)sub=`Attacking costs ye ${appState.game.cfg.powder}🌕 for powder. Firing downwind wins ties!`;
+  /* DELETED 2026-08-25, his call: "we can completely get rid of the attacking costs 2 for powder
+     because that's already expressed in the button itself." The Attack circle reads "Attack −2🌕",
+     so the sentence was the button's own label spelled out underneath it. The downwind tie-break
+     went with it — a rules footnote is not what a captain is reading the prompt for. */
   // v2 rule 2: sailing is free, so an empty purse never stops the crew — the old broke-captain
   // reframing of this prompt is gone with it.
   const prompt=`${pn(p.idx)}, what'll ye do:`;
