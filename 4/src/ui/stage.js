@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-25a";
+const PP4_STAMP = "2026-08-25b";
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -205,6 +205,48 @@ function toScreen(ux, uy){
   const sc = br.width / S.cam.w;
   const o = fixedOrigin();
   return [(ux - S.cam.x) * sc + br.left - o.x, (uy - (S.vy ?? S.cam.y)) * sc + br.top - o.y];
+}
+/* WHERE A BOARD POINT WILL BE ONCE THE DIRECTOR HAS FINISHED — the same projection through the
+   camera's TARGET instead of its live position. Wyatt, 2026-08-25, on the narration bubble:
+   "the narration bubble appears first below the boat at the beginning of its run and then above
+   the boat later… ideally, the narration bubble stays in its same location with respect to the
+   boat for the whole time because if it has to flip from below to above, that's when it looks
+   jittery." He is explicit that the bubble MOVING with the camera is good and he wants it kept —
+   "i love that look and feel… as long as it is smooth". Only the SIDE may not change.
+   A side chosen from the live position is chosen from a number that is still travelling, so it
+   flips the instant the pan makes room above. Chosen from where the boat comes to REST it is
+   right for the whole life of the bubble, and the glide is untouched. */
+function toScreenRest(ux, uy){
+  const svg = svgEl(); if (!svg) return [0, 0];
+  const br = svg.getBoundingClientRect();
+  const w = S.cam.tw || S.cam.w;
+  const sc = br.width / w;
+  const o = fixedOrigin();
+  const cx = (S.cam.tx != null) ? S.cam.tx : S.cam.x;
+  const cy = (S.cam.ty != null) ? S.cam.ty : S.cam.y;
+  return [(ux - cx) * sc + br.left - o.x, (uy - cy) * sc + br.top - o.y];
+}
+/* A PULSING BUTTON HAS NO SINGLE SIZE, AND EVERY LAYOUT THAT DODGES ONE MUST AGREE ON WHICH SIZE.
+   `getBoundingClientRect()` on a button running pp4Grow returns its ANIMATED box — measured on
+   the rig at 66px -> 75.9px and back, every 1.1s. Two placements read those live rects every tick
+   and re-decide against them: the peek hint's clear-strip search, and the narration bubble's
+   weighted obstacle cost. So both can change their answer at the pulse frequency whenever a
+   button edge sits near a decision boundary — the gap they allow is 6px and the pulse moves an
+   edge by ~10px, which is why it reads as "it doesn't know where to resolve" (Wyatt, 2026-08-25,
+   who also guessed the cause exactly: "I think it's because of the pulsing of the buttons").
+   The fan's OWN layout already solved this — it reserves --pp4GrowPeak so circles never kiss at
+   the top of the pulse. These two were the placements that had not been told. Measuring the PEAK
+   box (the layout size, which a transform does not touch, scaled about the unmoving centre) makes
+   every one of them agree and makes the decision stable through the whole cycle. */
+const swellPeak = () => parseFloat(getComputedStyle(document.documentElement)
+  .getPropertyValue("--pp4GrowPeak")) || 1.15;
+function swellRect(el, r){
+  const cl = el && el.classList;
+  if (!cl || !(cl.contains("apBtn") || cl.contains("btlBtn"))) return r;
+  const k = swellPeak();
+  const w = (el.offsetWidth || r.width) * k, h = (el.offsetHeight || r.height) * k;
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;   // scale origin is the centre
+  return { left: cx - w / 2, right: cx + w / 2, top: cy - h / 2, bottom: cy + h / 2, width: w, height: h };
 }
 /* WAIT FOR THE BOAT TO ARRIVE BEFORE BLOOMING THE FAN — playtest 21 item 2 (Wyatt: "only appear
    the action prompt fan buttons AFTER the boat has finished moving — currently, they appear before
@@ -382,7 +424,7 @@ function peekHintTick(box){
   // box that is already talking. One list, so a floater added later is covered by adding it here.
   const busy = [...box.querySelectorAll(".apBtn, .apSliderWrap, .apMsg, .apSub"),
                 ...document.querySelectorAll(".sailCell, .pp4Bub")]
-    .map(e => e.getBoundingClientRect())
+    .map(e => swellRect(e, e.getBoundingClientRect()))    // the PEAK box — see swellRect's note
     .filter(r => r.width > 2 && r.height > 2 && r.right > sr.left && r.left < sr.right);
   /* CLEAR SPACE, not merely "not overlapping" — the judge's own words for this fault were "the
      circle's bottom edge and text sit on top of the pill's top edge instead of having clear space
@@ -1223,7 +1265,16 @@ function stageFlash(msg, ms, holdMs, variants, opts){
          the only placement that keeps both the ship and the words visible. */
       const above = sy - bh - 40;
       const belowY = Math.min(sy + 44, band.bottom - bh - 4);
-      let top = (above >= band.top) ? above : belowY;
+      /* THE SIDE IS CHOSEN ONCE AND NEVER RE-CHOSEN (Wyatt, 2026-08-25 — see toScreenRest above).
+         It is latched off the RESTING screen position, so it is the side that will be correct when
+         the director stops, not the side that happens to fit mid-pan. Latched only once the box
+         has a measured height: deciding against bh=0 would pick "above" for everything. */
+      if (b._side == null && bh > 0){
+        const [, syRest] = toScreenRest(u[0], u[1]);
+        b._side = (syRest - bh - 40 >= band.top) ? "above" : "below";
+      }
+      const side = b._side || ((above >= band.top) ? "above" : "below");
+      let top = side === "above" ? above : belowY;
       /* …AND NEVER OVER A SQUARE YOU HAVE TO CLICK — D-38 (Wyatt, 2026-08-21): "always keep the
          prompt and buttons closer to the boat, even if they start to block some of the board
          elements. One exception to this rule is for sailing squares, which you have to click and
@@ -1255,12 +1306,15 @@ function stageFlash(msg, ms, holdMs, variants, opts){
       const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
         .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
           .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
-          .map(e => ({ r: fixedRect(e), w })));
+          .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
       if (OBST.length){
         const cost = (x, y) => OBST.reduce((n, o) =>
           n + ((x < o.r.right && x + W > o.r.left && y < o.r.bottom && y + bh > o.r.top) ? o.w : 0), 0);
+        /* CANDIDATES ON THE LATCHED SIDE ONLY. The search may still slide the box along, and step
+           to the band's edge on its own side to clear a sail square — it may never cross the boat,
+           because crossing IS the flip he asked us to remove. */
         const ys = [];
-        for (const y of [above, belowY, band.top + 4, band.bottom - bh - 4]) {
+        for (const y of (side === "above" ? [above, band.top + 4] : [belowY, band.bottom - bh - 4])) {
           const yy = Math.max(band.top, Math.min(y, band.bottom - bh - 4));
           if (!ys.some(v => Math.abs(v - yy) < 6)) ys.push(yy);
         }
@@ -1278,7 +1332,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
       }
       b.style.left = (left - 0) + "px";
       b.style.top = (Math.max(band.top, Math.min(top, band.bottom - bh - 4)) - band.top) + "px";
-      b.classList.toggle("below", top > sy);
+      b.classList.toggle("below", side === "below");   // the tail follows the LATCHED side
       const t = b.querySelector(".pp4Tail");
       // the tail tracks the ship, clamped INSIDE the box — and the box can now be narrow, so the
       // two bounds are ordered rather than nested: with a fixed 290px width `Math.max(16, …W-32)`

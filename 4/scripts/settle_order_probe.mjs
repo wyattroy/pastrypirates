@@ -22,7 +22,16 @@
 //      It printed "the box is drawn 501ms before the board stops" about a box that had been up
 //      for seconds already.
 // So it now records EVENTS, not frames: every time a narration bubble APPEARS (new text), with
-// the board's state at that instant. The claim under test is Wyatt's, 2026-08-25: "the narration
+// the board's state at that instant, plus how far it moves and whether it ever changes SIDE.
+//
+// THE SIDE-FLIP COLUMN HAS NEVER GONE RED IN THIS RIG, AND A ZERO THERE PROVES NOTHING. Wyatt sees
+// the flip on his iPhone (2026-08-25: "the narration bubble appears first below the boat at the
+// beginning of its run and then above the boat later"). Measured here across two full voyages and
+// a posed test that panned the camera under five live bubbles for ~780 frames: zero flips, on the
+// code BEFORE the fix as well as after. Every bubble in this rig is born ABOVE, because the camera
+// always frames the subject boat — the flip needs the boat high on screen while the camera is
+// still catching up, which is what a sail does on a phone and what this rig never produces.
+// So treat a green here as "nothing broke", never as "the flip is fixed". The claim under test is Wyatt's, 2026-08-25: "the narration
 // box appears while the board is still moving." One bubble born mid-motion proves it.
 //
 // Usage:  PW_DIR=/tmp/pw node 4/scripts/settle_order_probe.mjs [--phone]
@@ -69,7 +78,8 @@ const SAMPLER = `(() => {
       window.__seen++;
       window.__ev.push({ t: Math.round(performance.now() - t0), text,
                          camMoving: camMoved, shipMoving, camFrames: camMovingFrames,
-                         x: Math.round(r.left), y: Math.round(r.top) });
+                         x: Math.round(r.left), y: Math.round(r.top),
+                         side0: bub.classList.contains('below') ? 'below' : 'above', flips: 0 });
     }
     lastText = text;
     // follow each live bubble for a beat to see whether it MOVES after it is up (the jitter)
@@ -79,6 +89,9 @@ const SAMPLER = `(() => {
         e.x0 = e.x0 === undefined ? e.x : e.x0; e.y0 = e.y0 === undefined ? e.y : e.y0;
         e.dx = Math.max(e.dx || 0, Math.abs(Math.round(r.left) - e.x0));
         e.dy = Math.max(e.dy || 0, Math.abs(Math.round(r.top) - e.y0));
+        // THE THING UNDER TEST: does this bubble ever change which side of the boat it is on?
+        const nowSide = bub.classList.contains('below') ? 'below' : 'above';
+        if (nowSide !== e.side0) { e.flips++; e.side0 = nowSide; }
       }
     }
     requestAnimationFrame(f);
@@ -121,10 +134,12 @@ try {
     console.log(`narration bubbles born: ${ev.length}`);
     console.log(`  ...while the board was MOVING: ${during.length}`);
     console.log(`  ...on a still board          : ${ev.length - during.length}\n`);
-    console.log(`  t       board        moved-after  text`);
+    const flipped = ev.filter(e => (e.flips || 0) > 0);
+    console.log(`  side FLIPS (below<->above during a bubble's life): ${flipped.length} of ${ev.length}`);
+    console.log(`\n  t       board        moved-after  flips  text`);
     for (const e of ev) console.log(`  ${String(e.t).padStart(6)}  `
       + `${(e.camMoving || e.shipMoving) ? "MOVING " : "still  "}     `
-      + `${String((e.dx||0)+"," + (e.dy||0)).padEnd(9)}  "${e.text}"`);
+      + `${String((e.dx||0)+"," + (e.dy||0)).padEnd(9)}  ${String(e.flips||0).padStart(4)}   "${e.text}"`);
     if (during.length) console.log(`\n  *** ${during.length} of ${ev.length} bubbles were BORN while the board was still moving. Wyatt is right. ***`);
     else console.log(`\n  Every bubble was born on a still board in this run. Not a refutation — see the header.`);
   }
