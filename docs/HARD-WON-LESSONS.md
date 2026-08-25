@@ -308,6 +308,77 @@ Two things the gate itself taught, both worth copying into the next one:
 This is the single biggest theme of the session. Every one of these was a confident, plausible,
 **wrong** conclusion that a two-minute measurement overturned.
 
+### THE USER'S DEVICE CAN BE THE ONLY INSTRUMENT — and three innocent engines look like proof
+
+**The pulse bug, 2026-08-24/25, and it cost eight days.** Action-prompt buttons that should swell
+were sometimes completely static on Wyatt's iPhone. Every theory assumed a FROZEN animation, and
+every probe was built to catch one.
+
+Three engines were driven at it and all three were innocent, honestly and repeatably:
+
+| Instrument | Result |
+|---|---|
+| WebKitGTK 2.52 (`wk_probe.mjs`) | correct |
+| WebKit 26.5, 12 isolated birth conditions (`wk_birth_matrix.mjs`) | all 12 swing at 1.15 |
+| WebKit 26.5 playing real voyages (`pulse_menu_probe.mjs`) | 12 turn menus, 69 buttons, zero flat |
+
+**Every one of those green results was true and none of them was evidence**, because the engine in
+the fault was iOS 18.7 / AppleWebKit 605.1.15 — a generation older than anything drivable, and
+reachable only on his phone. A negative from an instrument that cannot reach the fault is not a
+negative about the fault. Say which engine you measured, in the sentence where you report the
+result, or the reader will hear "not reproducible" and stop.
+
+**What actually found it: making the game testify on HIS device.** The `?debug=pulse` beacon
+(`4/src/ui/pulsebeacon.js`) printed one line that ended it:
+
+    Trade:none(pp4Grow/running)   Pass +1:none(pp4Grow/running)
+
+Three fields that cannot all be true: the stylesheet grants `pp4Grow`, the computed play-state is
+`running`, and `getAnimations()` returns NOTHING. **The animation was never created.** There was no
+frozen animation because there was no animation. Eight days of theories were all answering the
+wrong question, and no amount of further instrumentation on the wrong engine would have found it.
+
+**And the thing that made the log worth reading was HIS controlled comparison, not our tooling.**
+Wyatt: *"if i stay put instead of sail, the pass/trade buttons DO swell."* One action toggled,
+everything else held still — that turned an intermittent ghost into a switch and pointed straight
+at the only code branch on that axis (`stageSettled()`, the camera tween). **When something is
+intermittent, ask him for the toggle before you build another probe.** It is thirty seconds of his
+time and it outranks a day of ours.
+
+**The generalisable shape, worth recognising early:** a UI gate that HIDES an element while
+something else finishes will also hide it from the engine's animation machinery. Anything granted
+to a not-yet-drawn element can be silently declined. Grant it at reveal, not at build — and better,
+per Wyatt's own ruling, **do not build the thing at all until the board has stopped moving.**
+
+### WIDEN THE SCOPE TO WHAT HAPPENED JUST BEFORE — the trigger is rarely inside the broken thing
+
+**Wyatt's takeaway from the pulse bug, 2026-08-25, in his words:** *"when you debug, expand your
+search scope to look at the events that happened just before the bug (in this case, sailing) in
+order to create your hypotheses."*
+
+**This is the lesson that would have saved eight days, and the evidence was already on the screen.**
+Every hypothesis for a week was about the broken thing itself — the button, its CSS, its classes,
+its birth conditions, the engine's animation machinery. All of it looked INSIDE the dead prompt.
+The cause was an action the player took two seconds earlier: **sailing**. Sail, and the boat's glide
+makes the reveal gate hold the buttons hidden for up to 1.4s, and the animation is never created.
+Stay put, and the gate is instant and the button breathes.
+
+**The evidence had been sitting in our own artefacts, unread as such.** Frame strips of the seconds
+before each dead prompt had already been built and looked at — and read for *"what does this prompt
+look like"* rather than *"what did he just DO"*. The sail is plainly visible in four of them. One
+sentence from Wyatt named it; no further instrumentation was needed after that.
+
+**Do this by default when a bug is intermittent:**
+- For every occurrence, write down the last 2-5 seconds of PLAYER ACTIONS and GAME EVENTS before it
+  — not the state at the moment it appeared. A prompt's own DOM tells you what it IS, never what
+  happened TO it.
+- Then look for what the bad occurrences share and the good ones do not. Here it was one word.
+- **Ask him for the toggle.** "Is there something you can do differently that makes it stop?" He
+  produced *"if i stay put instead of sail, the pass/trade buttons DO swell"* in thirty seconds,
+  which is a controlled experiment no probe had thought to run.
+- Prefer this BEFORE building instruments. A day of measuring the wrong thing is indistinguishable
+  from a day of measuring nothing (see the three innocent engines above).
+
 ### Never present an inference from a screenshot as proof
 
 Twice I read pixel positions off a phone screenshot, reasoned about them, and stated the conclusion

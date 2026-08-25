@@ -193,6 +193,39 @@ muted; Web Audio cut at `ctx.destination`), verified programmatically. It delibe
 touch the game's own mute control — that subsystem has live defects (docs/AUDIO.md) and flipping it
 would change the state of the thing under test.
 
+## 2026-08-25 — SOLVED. His beacon log, and the fix confirmed green on his phone
+
+- [M] **His device, iOS 18.7 / AppleWebKit 605.1.15, `?debug=pulse`, on a dead turn menu:**
+
+      35.8  PROMPT  [radial] Trade:none(pp4Grow/running) Pass +1:none(pp4Grow/running)
+
+  Three fields that cannot all be true: the stylesheet grants `pp4Grow`, computed
+  `animation-play-state` is `running`, and `getAnimations()` returns NOTHING. **The animation was
+  never created.** Seven seconds earlier the same log reads `Arrgh!:LIVE(pp4Glow/running)`, so the
+  instrument was working and the difference is real.
+- [M] Same log, `Start:none(pp4Glow/running)` — a CENTRE-STAGE button with the same fault. Not a
+  radial-fan bug: every attention rule that fires behind the reveal gate was affected.
+- [T] **His controlled comparison, which is what cracked it:** *"if i stay put instead of sail, the
+  pass/trade buttons DO swell."* One action toggled, everything else held still.
+- [M] **The recording agrees.** Tracking his ship's pink sail across all 289s of clip 1: the one
+  turn menu he reached WITHOUT sailing is ALIVE; 5 of the 6 he reached after a sail are DEAD. The
+  gap between the ship stopping and the menu appearing is 0.20–0.40s for alive and dead alike, so
+  it is the sail itself, not the settle timing.
+- [M] **Clip 2 (`notes/pulsebug2.MP4`, 12s) is the pair in one turn:** the menu right after the
+  sail measures ratio 1.001 (frozen); the trade fan 4 seconds later in the SAME turn measures
+  1.25–1.31 with a clean 1.10s period.
+- **THE MECHANISM:** `panel()` adds `pendingReveal` and holds the buttons at `visibility:hidden`
+  until the typewriter AND `stageSettled()` resolve — and `stageSettled()` is the camera tween plus
+  the ship's glide (`SETTLE_CAP_MS` 1400). Sailing means up to 1.4s declared-but-not-drawn.
+- **THE FIX (build 2026-08-25a):** every attention rule now carries
+  `#actionPanel:not(.pendingReveal)`, so the animation is granted at reveal, never at build.
+  Regression-checked in WebKit 26.5: 27 buttons across 16 prompts, all still 1.15.
+- [T] **Confirmed green by Wyatt on his own phone, 2026-08-25:** *"green — pulse works after
+  sailing now."*
+- **STILL OPEN, and it is his ruling, not a nice-to-have:** *"the fan should not be laid out at all,
+  until the camera anchors… a huge cause of messy jitters in narration boxes that i've been trying
+  to solve for a long time."* The stopgap is redundant once that lands.
+
 ## Pending ingestion
 
 - ~~His 5-minute phone recording~~ — **INGESTED** 2026-08-24 (build 24f section above).

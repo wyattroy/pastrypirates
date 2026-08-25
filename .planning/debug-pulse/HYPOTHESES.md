@@ -1,5 +1,28 @@
 # The pulse bug — HYPOTHESIS LEDGER
 
+> # ✅ SOLVED — 2026-08-25, confirmed green by Wyatt on his own iPhone (build 2026-08-25a).
+>
+> **The animation was never CREATED.** Not frozen — absent. His beacon log on iOS 18.7 /
+> AppleWebKit 605.1.15 showed a button whose stylesheet grants `pp4Grow`, whose computed
+> play-state reads `running`, and whose `getAnimations()` returns nothing.
+>
+> **Cause:** `#actionPanel.pendingReveal` holds the buttons at `visibility:hidden` until the
+> typewriter AND `stageSettled()` (the camera tween + the ship's glide) both resolve. Sail, and
+> the button is declared-but-not-drawn for up to 1400ms; that WebKit never starts the animation
+> once the element finally paints. Stay put, and the wait is zero and it breathes.
+>
+> **Fix:** every attention rule now says `#actionPanel:not(.pendingReveal)` — the animation is
+> granted at REVEAL, never at build. **This is a STOPGAP.** His ruling is that nothing should be
+> laid out until the camera anchors; when that lands, the `:not(.pendingReveal)` goes with the
+> early-build path.
+>
+> **What found it, in order:** his 5-minute recording (the freeze is one prompt, the turn menu) →
+> his own controlled comparison, *"if i stay put instead of sail, the pass/trade buttons DO
+> swell"* → the beacon log on his device. **Three drivable engines were all innocent and none of
+> that was evidence** — the faulty engine exists only on his phone.
+>
+> Everything below is the record of how it was narrowed, kept as written.
+
 **The rule of this file (Wyatt's charter, 2026-08-24): every theory gets a kill-criterion BEFORE
 its experiment runs. Killed theories never come back. No fix may be proposed from a theory still
 marked OPEN. Claims are labelled measured / observed-once / inferred.**
