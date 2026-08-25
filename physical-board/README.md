@@ -39,7 +39,7 @@ over a dotted outline that shows where it goes. Scrabble-sized (Scrabble is 381 
 mirror images of the L and the S (a flipped piece would show its blank back); seven go out each
 voyage. A plain 9 × 2.5 mm notch in the middle of every outside edge, its floor biting 0.3 mm into the
 engraved shore line so a docked pier reads as touching the sand (Wyatt, 2026-08-22). 7 docks, each a pier whose 9 mm deck becomes the tab, planks running
-to the tab's end, bollards touching the deck; 0.15 mm of play. 28 ingredient tokens
+to the tab's end, bollards touching the deck; 0.05 mm of play — it snaps. 28 ingredient tokens
 (four per ingredient: three to stock an island, one black-market spare; three padding options A/B/C are on the
 page — the sheets carry B until Wyatt picks). 4 ship hulls (24 × 12 mm,
 plan view, deck planks, two slots).
@@ -74,10 +74,12 @@ marks on each captain's ship, crate and chest.
 
 ## Cutting
 
-- **Kerf 0.18 mm**, compensated on the cutting sheets only: every cut line is pushed 0.09 mm away
-  from the wood that stays (outward on outlines, inward on holes). Knob/socket play is 0.1 mm.
+- **Kerf 0.18 mm** (set it from a caliper measurement with `--kerf`), compensated in **every cut
+  file** — sheets and per-group files alike; `board-assembled` is the one uncompensated design view.
+  Every cut line is pushed half a kerf away from the wood that stays (outward on outlines, inward on
+  holes). Knob/socket play is 0.1 mm; the dock tab snaps at 0.05 mm.
 - **600 × 400 mm bed.** Sheets 1–2 are 6 mm, sheets 3–4 are 3 mm. Cut on the red line.
-- Design views (`board-assembled`, `islands`, …) carry no kerf and say so in their `<desc>`.
+- Only `board-assembled` carries no kerf (a design view); every other file is cut-ready.
 
 ```bash
 node physical-board/generate.mjs                          # 25 mm, 6 mm / 3 mm, kerf 0.18, 600x400
