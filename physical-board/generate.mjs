@@ -1565,6 +1565,7 @@ function buildVersion(V) {
     docs.push(sheet("one-ship-sails", "One ship — sails (test cut, thin ply)", oneShip.filter(p => p.mat === MAT3), { notes: `One mainsail and one jib, ${MAT3} mm ply. Kerf-compensated — cut on the line.` }));
     docs.push(sheet("one-crate", "One cargo crate (test cut, thin ply)", cargoCrate(CAPTAINS[0]), { maxW: 110, notes: `A single crate, ${MAT3} mm ply: four slatted walls and the base. Kerf-compensated — cut on the line.` }));
     docs.push(sheet("one-chest", "One treasure chest (test cut, thin ply)", treasureChest(CAPTAINS[0]), { maxW: 175, notes: `A single chest, ${MAT3} mm ply: body, lid, hinge strip, two card rails. Blue labels are read-only, not engraved. Kerf-compensated — cut on the line.` }));
+    docs.push(sheet("one-tortuga", "Tortuga (test cut, thick ply)", [{ ...part("tortuga", tortugaPiece()), mat: MAT }], { notes: `The one-square Tortuga with its four baked T-docks (~50 × 50 mm), ${MAT} mm ply. Kerf-compensated — cut on the line.` }));
   }
   }
   docs.push(sheet("extras", "Extras", extraParts, { notes: "A rules card with the numbers the app keeps for you. (The storm cloud and first-player wheel were cut on 2026-08-25 — the needle parked in a storm wedge is the forecast.)" }));
