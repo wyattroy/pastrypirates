@@ -345,6 +345,9 @@ const CAPTAINS = ["CRUMBLE", "BISCOTTI", "GINGERSNAP", "SHORTBREAD"]; // pink, t
 // the game's own recipe book — 21 named recipes, one per 5-of-7 combination (4/src/ui/recipe.js)
 const RECIPE_BOOK = (await import(path.join(HERE, "..", "4", "src", "ui", "recipe.js"))).RECIPE_BOOK;
 const MAT3 = opt("material3", 2.6); // the thin material: spinner, crates, chests, sails — Wyatt calipered his "3 mm" ply at 2.6 (2026-08-25)
+const KERF3 = opt("kerf3", 0.08);  // thin-ply kerf: his UNcompensated chest already snaps REALLY firmly — "maybe a TINY
+                                   // bit of compensation is necessary, but very little" (2026-08-25, from the built chest)
+let KERF_FOR = () => KERF;         // set per version once the parts know their materials
 // the ingredient art itself, traced by art/trace.py: cut = silhouette loops, raster = the drawing's ink
 const ART = JSON.parse(fs.readFileSync(path.join(HERE, "art", "ingredients.json"), "utf8"));
 const TOKEN_MM = 20; // the longest side of a token; one sits on each island square of 25
@@ -961,13 +964,15 @@ function dockPiece(v, ing) {
 
 function recipeCards(v) {
   // the game's own recipe book: 21 named recipes, one per 5-of-7 combination, in the modal's Georgia
-  const W = 64, H = 38, cards = [];
+  // 64 × 20 since 2026-08-25: the chest is half as deep, so the card is a strip — title above, the five
+  // ingredients in a row below. ("Recipe No." went; there is no room and the title carries the identity.)
+  const W = 64, H = 20, cards = [];
   RECIPE_BOOK.forEach((r, n) => {
     const it = [rect(CU, 0, 0, W, H, 3), ...frameBand(W / 2, H / 2, W - 2.4, H - 2.4, 0.4, 2.2)];
-    let size = 3.4; while (ftextWidth(r.title, size) > W - 8 && size > 2.2) size -= 0.2;
-    it.push(...ftext(RA, r.title, W / 2, 8.6, size, { font: "georgia-bold", align: "center" }));
-    it.push(...ftext(RA, `Recipe No. ${n + 1}`, W / 2, H - 4.2, 2.3, { font: "georgia-italic", align: "center" }));
-    r.ings.forEach((ing, i) => it.push(...TOKEN[v].recipeIcon(ing, W / 2 + (i - 2) * 11.6, 20.5, 9.4)));
+    let size = 3.0; while (ftextWidth(r.title, size) > W - 8 && size > 2.0) size -= 0.2;
+    it.push(...ftext(RA, r.title, W / 2, 6.6, size, { font: "georgia-bold", align: "center" }));
+    r.ings.forEach((ing, i) => it.push(...TOKEN[v].recipeIcon(ing, W / 2 + (i - 2) * 10.4, 13.2, 7.6)));
+    void n;
     cards.push(it);
   });
   return cards;
@@ -1145,12 +1150,13 @@ function boardFivePiece() {
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
 function pointInPoly(p, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; }
 function kerfCompensate(items, k) {
+  const kf = typeof k === "function" ? k : () => k;
   const out = [...items], byPiece = new Map();
   items.forEach((it, i) => { if (it.layer !== CU) return; const key = it.piece || ("_" + i); if (!byPiece.has(key)) byPiece.set(key, []); byPiece.get(key).push({ it, i }); });
   for (const [, group] of byPiece) {
     const polys = group.flatMap(g => g.it.sub.map(sp => ({ sp, pts: flatten(sp, 12).pts })));
     for (const g of group) out[g.i] = { ...g.it, sub: g.it.sub.map(sp => {
-      const pts = flatten(sp, 12).pts, isHole = polys.some(q => q.sp !== sp && pointInPoly(pts[0], q.pts)), d = isHole ? -k / 2 : k / 2;
+      const pts = flatten(sp, 12).pts, kp = kf(g.it.piece), isHole = polys.some(q => q.sp !== sp && pointInPoly(pts[0], q.pts)), d = isHole ? -kp / 2 : kp / 2;
       return sp.circle ? { circle: { ...sp.circle, r: sp.circle.r + d } } : polyCmds(offsetPoly(pts, d));
     }) };
   }
@@ -1188,7 +1194,10 @@ function fingerEdge(p0, p1, outward, t, spec, fingerW = 6) {
 }
 // hinge knuckles along an edge: every other segment is a tongue of height K with a dowel hole, rounded so it can swing
 // side = lateral play per side of every tongue, so neighbouring tongues of the two parts can turn past each other
-function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 5, side = 0.15 } = {}) {
+// Wyatt, 2026-08-25, from the built chest: NO dowel holes — a laser cuts through the sheet's face, so a hole for an
+// axle along the edge is impossible to cut in place (he had to discard them). The hinge is a FRICTION fit instead:
+// side play per tongue down from 0.15 to 0.03, so the interleaved tongues wedge and the lid stays where you put it.
+function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 5, side = 0.03 } = {}) {
   const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), ux = (p1[0] - p0[0]) / L, uy = (p1[1] - p0[1]) / L, seg = L / n, pts = [], holes = [];
   const P = (sv, d) => [p0[0] + ux * sv + outward[0] * d, p0[1] + uy * sv + outward[1] * d];
   for (let i = 0; i < n; i++) {
@@ -1206,8 +1215,10 @@ function knuckleEdge(p0, p1, outward, spec, { K = 6.4, hole = 3.3, r = 3.1, n = 
 }
 const HINGE_BODY = 2.4;   // Wyatt: the strip was under a millimetre between cuts; 2.4 mm of body now, and the lid walls take it into account
 function hingeStrip(w, t) {
-  const k = knuckleEdge([0, 0], [w, 0], [0, -1], { start: false }), pts = [[0, 0], ...k.pts, [w, HINGE_BODY], ...fingerEdge([w, HINGE_BODY], [0, HINGE_BODY], [0, 1], t, { kind: "out", start: false }), [0, HINGE_BODY]];
-  const items = [item(CU, [polyCmds(pts)])]; for (const [hx, hy] of k.holes) items.push(circ(CU, hx, hy, 1.65)); return items;
+  // the strip runs t FURTHER at each end (Wyatt, 2026-08-25: "it should extend a little further on each side"),
+  // filling the corner voids his photos show and slotting against the side walls' back-edge teeth
+  const k = knuckleEdge([0, 0], [w, 0], [0, -1], { start: false }), pts = [[-t, 0], ...k.pts, [w + t, 0], [w + t, HINGE_BODY], ...fingerEdge([w, HINGE_BODY], [0, HINGE_BODY], [0, 1], t, { kind: "out", start: false }), [-t, HINGE_BODY]];
+  return [item(CU, [polyCmds(pts)])];
 }
 // a wall panel w×h (nominal) with fingers on the bottom (down into the base) and both vertical edges (into the neighbours)
 function wallPanel(w, h, t, { start, top = null }) {
@@ -1217,9 +1228,8 @@ function wallPanel(w, h, t, { start, top = null }) {
   pts.push(...fingerEdge([w, 0], [w, h], [1, 0], t, { kind: "out", start }));
   pts.push(...fingerEdge([w, h], [0, h], [0, 1], t, { kind: "out", start: false }));   // bottom fingers start one segment in, so the plate keeps its corners
   pts.push(...fingerEdge([0, h], [0, 0], [-1, 0], t, { kind: "out", start }));
-  const items = [item(CU, [polyCmds(pts)])];
-  for (const [hx, hy] of holes) items.push(circ(CU, hx, hy, 1.65));
-  return items;
+  void holes;   // no dowel holes — the hinge is a friction fit (2026-08-25)
+  return [item(CU, [polyCmds(pts)])];
 }
 // the plate a box stands on (or a lid's top): full footprint, slots around the rim where the walls' fingers land
 function platePanel(L, W, t) {
@@ -1248,8 +1258,12 @@ function cargoCrate(captain) {
 }
 // a treasure chest: coins inside, the captain's recipe card held in the lid where only they can read it
 function treasureChest(captain) {
-  const t = MAT3, Lo = 80, Wo = 54, Hb = 20, Hl = 12, hb = Hb - t, hl = Hl - t, parts = [], ci = CAPTAINS.indexOf(captain);
-  const strap = (w, h) => [rect(RA, w * .25 - 2, 0, 4, h), rect(RA, w * .75 - 2, 0, 4, h), ...[.2, .5, .8].flatMap(f => [{ ...circ(RA, w * .25, h * f, .55), layer: RA }, circ(RA, w * .75, h * f, .55)])];
+  // Wyatt, 2026-08-25, from the built chest: "the entire chest should be 50% less deep" — players hold under 10
+  // coins. Depth (away from you, facing the lock) 54 → 27; the recipe cards shrink with it.
+  const t = MAT3, Lo = 80, Wo = 27, Hb = 20, Hl = 12, hb = Hb - t, hl = Hl - t, parts = [], ci = CAPTAINS.indexOf(captain);
+  const SX = [Lo * .25, Lo * .75], SXW = SX.map(x => x - t);   // strap positions in ASSEMBLED x, so the "iron bars"
+  // line up from the top plate down the front and back (2026-08-25: "they are misaligned" — walls sit t inboard)
+  const strap = (w, h, xs = [w * .25, w * .75]) => xs.flatMap(sx => [rect(RA, sx - 2, 0, 4, h), ...[.2, .5, .8].map(f => circ(RA, sx, h * f, .55))]);
   const lock = (cx, cy) => [item(RA, [roundCorners([[cx - 4, cy - 4], [cx + 4, cy - 4], [cx + 4, cy + 4], [cx - 4, cy + 4]], 1.2), { circle: { cx, cy: cy - 1, r: 1.1, ccw: true } }, reverseSub(polyCmds([[cx - .7, cy - .4], [cx + .7, cy - .4], [cx + 1, cy + 2.6], [cx - 1, cy + 2.6]]))])];
   // assembly labels (Wyatt: "add rastered labels ... so I can understand how they fit together"): the four vertical
   // corners are 1–4 clockwise from the front-left; a wall's bottom edge says which plate edge it lands on; H = hinge
@@ -1258,20 +1272,23 @@ function treasureChest(captain) {
   const plateLabels = (L, W, pre) => [...lab(pre + "F", L / 2, W - 3.4), ...lab(pre + "K", L / 2, 3.4), ...lab(pre + "S2", 3.6, W / 2, 90), ...lab(pre + "S1", L - 3.6, W / 2, -90)];
   // body
   const wFront = Lo - 2 * t, wSide = Wo - 2 * t;
-  parts.push(part(`chest-${captain}-front`, [...wallPanel(wFront, hb, t, { start: true }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb), ...lock(wFront / 2, hb / 2), ...wallLabels(wFront, hb, "1", "2", "B·F")]));
-  parts.push(part(`chest-${captain}-back`, [...wallPanel(wFront, hb, t, { start: true, top: { kind: "knuckle", start: true } }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb), ...wallLabels(wFront, hb, "3", "4", "B·K", "H")]));
+  parts.push(part(`chest-${captain}-front`, [...wallPanel(wFront, hb, t, { start: true }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb, SXW), ...lock(wFront / 2, hb / 2), ...wallLabels(wFront, hb, "1", "2", "B·F")]));
+  parts.push(part(`chest-${captain}-back`, [...wallPanel(wFront, hb, t, { start: true, top: { kind: "knuckle", start: true } }), ...planks(0, 0, wFront, hb, 4.2), ...strap(wFront, hb, SXW), ...wallLabels(wFront, hb, "3", "4", "B·K", "H")]));
   parts.push(part(`chest-${captain}-side-1`, [...wallPanel(wSide, hb, t, { start: false }), ...planks(0, 0, wSide, hb, 4.2), ...wallLabels(wSide, hb, "2", "3", "B·S1")]));
   parts.push(part(`chest-${captain}-side-2`, [...wallPanel(wSide, hb, t, { start: false }), ...planks(0, 0, wSide, hb, 4.2), ...wallLabels(wSide, hb, "4", "1", "B·S2")]));
-  parts.push(part(`chest-${captain}-base`, [...platePanel(Lo, Wo, t), ...plateLabels(Lo, Wo, "B·"), ...lab("BASE", Lo / 2, Wo / 2)]));
+  parts.push(part(`chest-${captain}-base`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo), ...plateLabels(Lo, Wo, "B·"), ...lab("BASE", Lo / 2, Wo / 2)]));
   // lid: a shallow box; its back wall carries the other half of the hinge on its free edge
-  parts.push(part(`chest-${captain}-lid-front`, [...wallPanel(wFront, hl, t, { start: true }), ...planks(0, 0, wFront, hl, 3.5), ...wallLabels(wFront, hl, "L1", "L2", "T·F")]));
+  parts.push(part(`chest-${captain}-lid-front`, [...wallPanel(wFront, hl, t, { start: true }), ...planks(0, 0, wFront, hl, 3.5), ...strap(wFront, hl, SXW), ...wallLabels(wFront, hl, "L1", "L2", "T·F")]));
   // the lid's hinge strip: fingers up into the top plate, knuckle tongues hanging down between the chest's; its
   // axis sits 3.3 mm below the plate, exactly where the chest wall's tongues put theirs
   parts.push(part(`chest-${captain}-lid-hinge`, [...hingeStrip(wFront, t), ...lab("H", wFront / 2, 9), ...lab("T·K", wFront * .5, HINGE_BODY + 1.6)]));
-  parts.push(part(`chest-${captain}-lid-side-1`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "L2", "", "T·S1")]));
-  parts.push(part(`chest-${captain}-lid-side-2`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "", "L1", "T·S2")]));
+  parts.push(part(`chest-${captain}-lid-side-1`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 5.6, wSide - 2, .4), ...wallLabels(wSide, hl, "L2", "", "T·S1")]));
+  parts.push(part(`chest-${captain}-lid-side-2`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 5.6, wSide - 2, .4), ...wallLabels(wSide, hl, "", "L1", "T·S2")]));
   parts.push(part(`chest-${captain}-lid-top`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo), ...plateLabels(Lo, Wo, "T·")]));   // no captain's mark — paint it, like the crates (Wyatt, 2026-08-25: the marks read as drilled holes)
-  for (const n of [1, 2]) parts.push(part(`chest-${captain}-card-rail-${n}`, [rect(CU, 0, 0, wSide, 5, .4), ...lab(`RAIL ${n}`, wSide / 2, 2.5)]));
+  // the card channel sits UNDER the hinge strip (rail line at 5.6): the card slides in and out through the lid's open
+  // back — Wyatt, 2026-08-25: it must "fall out with gravity", never stick inside the lid. Rails cover only the front
+  // 60 % of each end wall, so the back half is a clear exit ramp.
+  for (const n of [1, 2]) parts.push(part(`chest-${captain}-card-rail-${n}`, [rect(CU, 0, 0, r3(wSide * .6), 3, .4), ...lab(`RAIL ${n}`, wSide * .3, 1.5)]));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
 // the nested spinner: a backing disc; a fixed dial glued on it (the game's compass); a ring that turns around the dial
@@ -1431,7 +1448,7 @@ function buildVersion(V) {
   docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
-  docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
+  docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64 × 20 mm (sized for the shallow chest lid: the card slides under the hinge strip and tips out of the open back with gravity). Deal two to each captain, keep one, as the app does." }));
   // extras
   // Wyatt, 2026-08-25: "delete the cloud and captain's wheel, the game doesn't need them." The spinner's needle
   // parked in a storm wedge IS the forecast; nothing marks the board. Only the rules card remains here.
@@ -1440,7 +1457,7 @@ function buildVersion(V) {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
     cutParts.push(...crateParts, ...chestParts);
     docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: "One open crate per captain, 44 × 30 × 18 mm in 3 mm ply: three slats a side with real gaps cut between them, solid corner posts, box joints. Tokens stand on edge in it, icons showing — cargo is public, as in the game. Paint to mark whose it is." }));
-    docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 32 mm in 3 mm ply. Box-jointed body (20 mm) and lid (12 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; no captain's mark — paint it, like the crates (the engraved marks read as drilled holes on a lid). The blue labels are for reading only — they are NOT in the cut files: vertical corners 1–4 clockwise from front-left (L1, L2 on the lid, whose back is the hinge strip); a wall's bottom says which plate edge it meets (B·F = base front, T·K = lid top back); H = the hinge; the two RAIL strips (42 × 5 mm) glue inside the lid's end walls under the engraved line. See the mockups for the whole thing open and closed." }));
+    docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 27 × 32 mm in 2.6 mm ply — half as deep since 2026-08-25 (players hold under 10 coins). Box-jointed body (20 mm) and lid (12 mm). The hinge is a FRICTION fit, no dowel and no holes: the lid's two tongues wedge between the body's three and the lid stays where you put it; the hinge strip runs a ply-thickness further at each end so it fills the corners against the side walls' teeth. Both big plates carry the planks and straps, so either can face up. The recipe card (64 × 20) slides UNDER the hinge strip into rails on the lid's end walls; the rails cover only the front 60 %, so tipping the open chest lets the card fall out of the lid's back. Straps line up from the plates down the front and back. Blue labels are read-only, never engraved: corners 1–4 clockwise from front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets, H = the hinge strip; the two RAIL strips glue inside the lid's end walls under the engraved line." }));
 
   // one-offs for scrap-by-scrap test cuts (Wyatt, 2026-08-25: "i'm printing these test runs on scraps of wood
   // offcuts ... give me the ships, crates, and chests as 1-offs") — one unit each, split by material so each
@@ -1461,8 +1478,10 @@ function buildVersion(V) {
     const noGuide = p => ({ ...p, items: p.items.filter(i => i.layer !== GU) });
     const thick = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT).map(noGuide)), thin = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT3).map(noGuide));
     const all = [...thick.map(sh => ({ sh, m: MAT })), ...thin.map(sh => ({ sh, m: MAT3 }))], N = all.length;
-    all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: KERF, mat: m, items: kerfCompensate(sh.items, KERF), w: BED_W, h: BED_H, count: sh.parts,
-      notes: `${BED_W} × ${BED_H} mm bed, ${m} mm material. Every red line is already pushed ${KERF / 2} mm away from the wood that stays (kerf ${KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
+  const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
+  KERF_FOR = name => (matByPart.get(name) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf, everywhere
+    all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: m === MAT3 ? KERF3 : KERF, mat: m, items: kerfCompensate(sh.items, KERF_FOR), w: BED_W, h: BED_H, count: sh.parts,
+      notes: `${BED_W} × ${BED_H} mm bed, ${m} mm material. Every red line is already pushed ${(m === MAT3 ? KERF3 : KERF) / 2} mm away from the wood that stays (kerf ${m === MAT3 ? KERF3 : KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
   } else {
     const all = docs.filter(d => d.id !== "board"), allParts = all.map(d => part(d.id, d.items));
     docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet.`, count: all.reduce((a, d) => a + d.count, 0) }));
@@ -1485,27 +1504,27 @@ function mockups(five, P) {
     return [flatAt(hull, x, y, z), sailAt(main, 7.5), sailAt(fore, 15.5)]; };
   docs.push(doc("mockup-ship", "Mockup: a ship, assembled", isoScene(shipSlabs(1, 0, 0, 0), { scale: 9 }), "The 6 mm hull with its two square sails dropped into the slots across the beam. Biscotti's stripes along the foot of each sail; the game's skull over crossed bones."));
   // the treasure chest, open, card in the lid
-  const chestSlabs = (() => { const c = 0, g = n => byName(P.chestParts, `chest-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 80, Wo = 54, hb = 17;
+  const chestSlabs = (() => { const c = 0, g = n => byName(P.chestParts, `chest-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 80, Wo = 27, hb = 20 - MAT3;
     const s = [flatAt(g("base"), 0, 0, 0, t)];
     s.push(slab(g("front"), { origin: [t, t, t + hb], U: [1, 0, 0], V: [0, 0, -1], T: t }));
     s.push(slab(g("back"), { origin: [Lo - t, Wo - t, t + hb], U: [-1, 0, 0], V: [0, 0, -1], T: t }));
     s.push(slab(g("side-2"), { origin: [t, Wo - t, t + hb], U: [0, -1, 0], V: [0, 0, -1], T: t }));
     s.push(slab(g("side-1"), { origin: [Lo - t, t, t + hb], U: [0, 1, 0], V: [0, 0, -1], T: t }));
     // the lid, closed pose first, then swung open 110° about the hinge axis (y = Wo - t/2, z = t + hb + 3.3)
-    const ay = Wo - t / 2, az = t + hb + 3.3, th = rad(-110), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
-    const lidZ = t + hb + 9, hl = 9;
+    const ay = Wo - t / 2, az = t + hb + 2.2, th = rad(-110), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
+    const lidZ = t + hb + (12 - MAT3), hl = 12 - MAT3;
     const lid = [slab(g("lid-top"), { origin: [0, 0, lidZ + t], T: t, xform: rot }),
       slab(g("lid-front"), { origin: [t, t, lidZ - hl], U: [1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-side-2"), { origin: [t, Wo - t, lidZ - hl], U: [0, -1, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-side-1"), { origin: [Lo - t, t, lidZ - hl], U: [0, 1, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-hinge"), { origin: [Lo - t, Wo - t, lidZ - HINGE_BODY], U: [-1, 0, 0], V: [0, 0, -1], T: t, xform: rot }),
-      slab(P.recipeParts[13].items, { origin: [8, 46, lidZ - t - 0.2], U: [1, 0, 0], V: [0, -1, 0], T: t, xform: rot, tint: 0.06 }),   // face down: you read it when the lid is open
-      slab(g("card-rail-1"), { origin: [Lo - t, t, lidZ - 3.4], U: [0, 1, 0], V: [0, 0, -1], T: t, xform: rot }), slab(g("card-rail-2"), { origin: [t, Wo - t, lidZ - 3.4], U: [0, -1, 0], V: [0, 0, -1], T: t, xform: rot })];
+      slab(P.recipeParts[13].items, { origin: [8, 23, lidZ - t - 2.9], U: [1, 0, 0], V: [0, -1, 0], T: t, xform: rot, tint: 0.06 }),   // face down in the channel UNDER the hinge strip; tips out of the open back
+      slab(g("card-rail-1"), { origin: [Lo - t, t, lidZ - 5.6], U: [0, 1, 0], V: [0, 0, -1], T: t, xform: rot }), slab(g("card-rail-2"), { origin: [t, Wo - t, lidZ - 5.6], U: [0, -1, 0], V: [0, 0, -1], T: t, xform: rot })];
     // a few coins inside
-    for (let i = 0; i < 3; i++) s.push(flatAt(coinGlyph(0, 0, 25.4).concat([circ(CU, 0, 0, 12.7)]), 22 + i * 9, 18, t + i * 0.4, 1.6));
+    for (let i = 0; i < 3; i++) s.push({ ...flatAt(coinGlyph(0, 0, 18).concat([circ(CU, 0, 0, 9)]), 22 + i * 9, 13.5, t + i * 0.4, 1.6), openOnly: true });   // 18 mm coins lie flat (interior 21.8 deep); hidden in the closed pose, where the painter would bleed them through the wall
     return [...s, ...lid]; })();
-  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid swung back 110° on the dowel: the hinge strip under the lid top carries the lid's tongues between the chest's. The recipe card lies in the lid against the top, held by the two rails; coins in the body."));
-  docs.push(doc("mockup-chest-closed", "Mockup: a treasure chest, closed", isoScene(chestSlabs.map(sb => sb.xform ? { ...sb, xform: null } : sb), { scale: 5 }), "The same chest shut: lid walls meet the body walls, the tongues interleave at the back."));
+  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid swung back 110° on the friction hinge — the strip's tongues wedge between the chest's and hold the pose. The recipe card rides in the channel under the hinge strip, on the two front rails; tip the open chest and it falls out of the lid's back. Coins in the body."));
+  docs.push(doc("mockup-chest-closed", "Mockup: a treasure chest, closed", isoScene(chestSlabs.filter(sb => !sb.openOnly).map(sb => sb.xform ? { ...sb, xform: null } : sb), { scale: 5 }), "The same chest shut: lid walls meet the body walls, the tongues interleave at the back."));
   // the spinner: backing, dial + ring at one level, needle above, vane standing in the ring's slot
   const spSlabs = (() => { const g = n => byName(P.spParts, n), t = MAT3, s = [flatAt(g("spinner-backing"), 0, 0, 0, t), flatAt(g("spinner-dial"), 0, 0, t, t), flatAt(xf(g("spinner-ring"), { rot: 35 }), 0, 0, t, t), flatAt(xf(g("spinner-needle"), { rot: -60 }), 0, 0, 2 * t, t), flatAt(g("spinner-washer"), 0, 0, 3 * t, t)];
     const a = rad(35 - 90), vr = 43, vx = vr * Math.cos(a), vy = vr * Math.sin(a); // the slot, turned with the ring
@@ -1602,7 +1621,7 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
     // warning lived in an SVG <desc> his Rhino flow never shows, and the docks wiggled ~0.5 mm. Now EVERY cut file
     // is compensated; only the assembled-board design view is not. Page previews stay uncompensated.
     const cuttable = doc.kind !== "sheet" && doc.kind !== "design";
-    const diskDoc = cuttable ? { ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF) } : doc;
+    const diskDoc = cuttable ? { ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF_FOR) } : doc;
     const svg = emitSVG(diskDoc, V), pageSvg = emitSVG(doc, V, true);
     fs.writeFileSync(path.join(dir, `${doc.id}.svg`), svg);
     dxfDocs.push({ path: path.join(dir, `${doc.id}.dxf`), w: doc.w, h: doc.h, entities: dxfEntities(diskDoc) });

@@ -59,14 +59,15 @@ that drops through a hull slot and sits flush underneath; the ship stands about 
 - **Cargo crates, 4.** Slatted crates like the classic wooden one, 44 × 30 × 18 mm: three slats a
   side with real gaps cut between them, solid corner posts, box joints, the captain's mark on the
   front. Tokens stand on edge in them, icons showing — cargo is public in the game.
-- **Treasure chests, 4.** 80 × 54 × 30 mm: a box-jointed body (20 mm) and lid (10 mm) hinged on a
-  3 mm dowel (a bamboo skewer) through five knuckles. The lid is a shallow box: your recipe card lies
-  inside it against the top, held by two rails glued to the lid's end walls along the engraved line,
-  so only you read it when you open the chest. Straps, rivets, lock plate — no captain's mark: paint it,
-  like the crates (engraved marks read as drilled holes on a lid). Assembly labels face the inside: corners 1–4 clockwise from
-  front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets (B·F = base front,
-  T·K = lid top back), H = the hinge. The lid's back is a hinge strip under the top plate (2.4 mm
-  body, fingers into the plate) whose tongues hang between the chest's.
+- **Treasure chests, 4.** 80 × 27 × 32 mm (half as deep since 2026-08-25 — players hold under
+  10 coins): a box-jointed body (20 mm) and lid (12 mm). **The hinge is a friction fit — no dowel,
+  no holes** (a laser cannot drill along an edge; the first build proved it): the lid's tongues
+  wedge between the body's and the lid stays where you put it, and the hinge strip runs a
+  ply-thickness further at each end to fill the corners. Both big plates carry planks and straps,
+  so either face can be the top. Your recipe card (64 × 20) slides under the hinge strip into
+  rails on the lid's end walls — they cover only the front 60 %, so tipping the open chest drops
+  the card into your hand. Straps, rivets, lock plate — no captain's mark: paint it, like the
+  crates.
 - 21 recipe cards (64 × 38) and a rules card.
 
 **Captains:** CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked — the same four
@@ -102,7 +103,8 @@ Tortuga into the centre hole last.
 **Ships.** Drop the mainsail into the aft slot and the jib into the forward one; no glue needed.
 
 **Crates and chests.** Box joints; glue. Chest: glue the two card rails to the inside of the lid's
-end walls with their top edge on the engraved line, slide the dowel through the five knuckles.
+end walls with their top edge on the engraved line — front-flush, the back half stays open. No dowel:
+press the lid's tongues between the body's and the friction hinge is done.
 
 ## How the physical rules differ from the app
 

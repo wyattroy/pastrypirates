@@ -41,7 +41,7 @@ lettering (Georgia, Avenir Next) as outlines from `fonts/extract.py`.
 | Spinner | **rebuilt to his 2026-08-25 notes — not yet seen** | His five notes, all done: cloud padded ~0.9 mm off the wedge edges; STORM across the wedge's wide end, tops toward the hub (outside the needle's reach); anchor removed; WIND NOW on the flag at 4.2 mm; the needle is now a compass needle — symmetric rhombus, the POINTING half rastered. |
 | Ships (4) | **skull added 2026-08-25 — not yet seen** | 6 mm hull + two 3 mm sails; his reference skull (art/skull-ref.png, traced black-on-white; the ☠️ emoji was tried first and rejected on sight) big on BOTH sail faces — sails settled by the question UI; overrules "plain sails". |
 | Cargo crates (4) | **approved** | Slatted, box-jointed, no captain marks. |
-| Treasure chests (4) | **lids cleaned 2026-08-25 — not yet seen** | His note "remove the holes from the chest lid": the holes WERE the captains' marks (CRUMBLE's plain mark = one dot, GINGERSNAP's = a dot field); his pick via the question UI: no marks on lids, paint like the crates. Hinge/knuckle holes untouched (the dowel needs them). Body, hinge, rails as before. |
+| Treasure chests (4) | **REBUILT to his build notes 2026-08-25 evening — not yet recut** | He BUILT one (photos in v3-round/chest-images/). Now: 80 × 27 × 32 (half as deep), FRICTION hinge (no dowel, no holes — his catch: a laser cannot drill along an edge; tongues at 0.03 side play, strip extended t each end into the side walls' teeth), both plates rastered (either face up), straps aligned in assembled x, card channel under the strip with 60 %-length rails so the card tips out the back. Recipe cards now 64 × 20 strips. |
 | Extras | rules card only | Storm token and first-player wheel DELETED (2026-08-25, his call: “the game doesn't need them”) — the needle parked in a storm wedge is the forecast. Rules card unchanged. |
 | Recipe cards (21) | liked, egg fixed | The game's 21 recipe titles, ink icons in the app's rounded-square chip. |
 | Mockups | — | Isometric renders on the page: board on the table, ship, chest open + closed, spinner, crate. Built from the real cut geometry (`isoScene`). |
@@ -110,6 +110,20 @@ Plain English, state the size of what you did, ask 2–5 questions with the ques
 building anything non-trivial, read every screenshot he sends pixel by pixel, QA your own renders
 before he sees them, restate every mid-flight instruction, and never claim a defect or a fix you
 have not looked at.
+
+## 8d. THE CHEST IN WOOD, and its eight lessons (2026-08-25, evening)
+
+He built the chest (photos: `v3-round/chest-images/`, read them). His notes, all now in the code:
+uncompensated thin-ply joints ALREADY snap firmly → `KERF3 = 0.08` ("a tiny bit"), split from the
+thick ply's 0.275 via `KERF_FOR` (per-part material lookup — the ships group mixes 5.9 and 2.6 in
+one file); hinge strip extended t each end (the corner voids in his photos were a missing box-joint
+tooth); base plate rastered like the top (he assembled it upside down — now either face works);
+straps aligned in assembled coordinates (walls sit t inboard, so w*.25 of the WALL ≠ Lo*.25 of the
+PLATE — off by 1.3 mm in the photos); dowel hinge DELETED — his catch: the knuckle holes pointed
+through the sheet face, 90° wrong, impossible to laser in place; MVP friction hinge instead
+(tongues at 0.03 side play, "the lid can snuggly stay open"); chest depth 54 → 27 (under 10 coins);
+recipe cards 64 × 20, riding UNDER the hinge strip on 60 %-length rails so gravity retrieves them —
+his warning: a card stuck inside the lid is a failure. Cards not yet cut; that ruling awaits wood.
 
 ## 8c. His caliper numbers, and the one-offs (2026-08-25, later)
 
