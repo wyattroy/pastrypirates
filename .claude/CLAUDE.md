@@ -53,7 +53,7 @@ documents; the rules themselves are all here, in full.
 | 3 | **Talk to him in plain English AND state the SIZE** — what a player gets, how much of the problem it covers, what it leaves undone | [§1](#1-working-with-wyatt) |
 | 4 | **Before he walks away, make sure he can still reach the work from his phone** | [§1](#1-working-with-wyatt) |
 | 5 | **Hold the whole game, not the ticket — engineer AND designer.** His list outranks yours; break any process step that blocks him handing it over | [§1](#1-working-with-wyatt) |
-| 6 | **Never report a defect as confirmed before you have measured it** | [§1](#1-working-with-wyatt) |
+| 6 | **Never report a defect as confirmed before you have measured it — and A COMMENT IS NOT A MEASUREMENT** | [§1](#1-working-with-wyatt) |
 | 7 | **Do not build tooling when the ask is to fix the game** | [§1](#1-working-with-wyatt) |
 | 8 | **Consistency is a core value** — same gesture, same behaviour, everywhere | [§2](#2-design-rules) |
 | 9 | **Nothing is a constant** — derive it from what the game already computes | [§2](#2-design-rules) |
@@ -383,6 +383,35 @@ unearned confidence.** The table format itself asserted a certainty that did not
 - **Correct the record in the open** when a claim turns out false — see the correction on 02.1's
   Wave 4 row. A requirement marked failed on a bad measurement rots exactly like one marked complete
   on a bad one.
+
+### A comment is not a measurement — and never write one that can rot
+
+Wyatt, 2026-08-25, after being told the narration box waits for the board to stop: *"this is wrong…
+the narration box appears while the board is still moving."* The claim had come from a comment in
+`panel.js` describing what the code was *meant* to do, repeated to him as fact. He then asked
+whether the answer was to stop writing comments at all.
+
+**It is not.** The comments in this repo are the graveyard (rule 10) — what was tried, what was
+rejected, what a number cost somebody. Strip them and every settled argument gets re-run. Keep them.
+
+**The rule is about what a comment is FOR, and what it can never be used AS.**
+
+1. **A comment explains WHY. It is never evidence of WHAT the code does at runtime.** Before telling
+   Wyatt how something behaves, measure it — or say *"the comment claims X; unverified."* A comment
+   is a statement of intent by somebody who has since left the room.
+2. **Do not write comments that make behavioural claims, because those rot silently.** *"1400ms,
+   because a gate that can wait forever is a game that can hang"* is a REASON and stays true
+   forever. *"…so the box appears at once on a still board"* is a claim about runtime — and it is
+   the one that misled a session on 2026-08-25. If a behavioural claim really must be written down,
+   mark it with how and when it was measured, so the next reader can see it is dated evidence
+   rather than a standing fact.
+3. **Restating what the line does is noise.** Match the density of the file you are in — long
+   `WHY`-comments in `stage.js` and `index.html` are the house style and are load-bearing; a
+   comment saying `// increment i` is not.
+
+**Why this is rule 6's other half.** Both failures are the same one: believing something without
+measuring it. A screenshot you reasoned about, a check that could not fail, and a comment describing
+intent are three faces of the same mistake — **evidence that was never actually gathered.**
 
 ### Do not build tooling when the ask is to fix the game
 
