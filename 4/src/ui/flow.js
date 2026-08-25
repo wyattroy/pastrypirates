@@ -1442,12 +1442,11 @@ export async function humanDock(p,port){
          buttons beneath it already say; "Last one on the island!" was deleted outright. What is
          left is the price and the alternative, and — when ye cannot pay — the one truthful
          sentence about why (item 17), which is the same string the greyed button's tap-why uses. */
-      const sub=black
-        ?(canBuy||canBarter
-          ?`${price}🌕 or any 2 crates.`
-          :`Ye need ${price}🌕 or 2 crates — ye've neither.`)
-        :canBuy?null
-        :shortWhy;   // item 17: the one truthful sentence, shared with the button's tap-why above
+      /* GONE with the rest of the shared helper lines (2026-08-25). Item 17 had already made this
+         string and the greyed Buy button's tap-why THE SAME STRING, so the line under the pill was
+         a second copy of a sentence the button says while pointing at itself. The price and the
+         barter alternative are both on the two buttons' own labels. */
+      const sub=null;
       const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
       if(appState.turnExpired)break;
       // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
@@ -1721,8 +1720,9 @@ export async function humanTrade(p){
       if(!anyHeld){await flash("No one has cargo to trade for.");return false;}
       opts.push({label:"← Back",back:true,value:"__back__"});
       // @copy prompt.trade.want
-      const want=await ask("What do ye WANT from the table?",opts,null,
-        `Greyed-out crates are ones no captain is carryin'.`);
+      // no shared helper line: every greyed crate above carries "No captain on the water is
+      // carryin' <that crate>", which names the crate the general sentence could not (2026-08-25).
+      const want=await ask("What do ye WANT from the table?",opts);
       if(want==="__back__"||want==null)return false;
       st.want=want;step=1;
     }else if(step===1){
@@ -1732,9 +1732,10 @@ export async function humanTrade(p){
       ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins,
         why:`Yer purse is empty — ye've no coin to offer, so it must be a crate.`});
       ingOpts.push({label:"← Back",back:true,value:"__back__"});
-      const offerSub=canOfferCoins?null:`Ye don't have any coin to offer — pick a crate instead.`;
+      // no shared helper line: the greyed "— coins only —" option already carries "Yer purse is
+      // empty — ye've no coin to offer, so it must be a crate." (2026-08-25)
       // @copy prompt.trade.give
-      const baseIng=await ask(`What will ye GIVE for ${ilabelImg(st.want)}?`,ingOpts,null,offerSub);
+      const baseIng=await ask(`What will ye GIVE for ${ilabelImg(st.want)}?`,ingOpts);
       if(baseIng==="__back__"){step=0;continue;}
       if(baseIng==null)return false;
       st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=2;
@@ -2098,23 +2099,33 @@ export async function humanAct(p,sailCtx){
   //      explain why Trade is unavailable.
   // No new copy: all three strings already existed and are already Wyatt-approved.
   // scripts/ui_contract_check.js assertion 6 gates this shape, red-proofed against the ab98e04 code.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
-  let sub=null;
-  /* HIS COPY PASS, 2026-08-25 — SHORTER, line by line, his wording. The helper line is a long grey
-     slab under the prompt; every word in it is read while a captain is trying to act, so the ones
-     that survive say only the thing that is not already on the button. */
-  if(targets.length&&!canAfford)sub=`Ye need ${appState.game.cfg.powder}🌕 to fire.`;
-  if(targets.length&&canAfford&&!attackable.length)sub=[sub,`Their holds are empty.`].filter(Boolean).join(" ");
-  // independent conditions, independent `if`s (same lesson as Attack, two lines up): canOffer and
-  // "does anyone else hold cargo" are unrelated facts, so a broke captain's own reason must never
-  // be silently swallowed by the other one firing first.
-  if(!canOffer)sub=[sub,`Ye've nothin' to trade.`].filter(Boolean).join(" ");
-  else if(!canTrade)sub=[sub,`No one's holding cargo to trade for yet.`].filter(Boolean).join(" ");
-  /* DELETED 2026-08-25, his call: "we can completely get rid of the attacking costs 2 for powder
-     because that's already expressed in the button itself." The Attack circle reads "Attack −2🌕",
-     so the sentence was the button's own label spelled out underneath it. The downwind tie-break
-     went with it — a rules footnote is not what a captain is reading the prompt for. */
-  // v2 rule 2: sailing is free, so an empty purse never stops the crew — the old broke-captain
-  // reframing of this prompt is gone with it.
+  /* THE SHARED HELPER LINE IS GONE (Wyatt, 2026-08-25, after seeing the anchored version driven
+     and screenshotted: "this looks great to me — delete the tooltip at the top").
+
+     IT WAS A DUPLICATE, AND THE WORSE COPY OF THE TWO. Every sentence it could show was already on
+     the control it described, as that option's own `why` — shown in `.apWhy`, which is
+     position:fixed ON the button with a tail pointing at it (flow.js showWhy):
+
+       shared line, under the pill        the button's own why, anchored to it
+       "Ye need 2🌕 to fire."             "Ye can't afford the powder — 2🌕 a broadside, and yer
+                                           purse won't stretch."
+       "Their holds are empty."           "Their holds are empty — there's nothin' aboard worth
+                                           takin'."
+       "Ye've nothin' to trade."          "Ye've nothin' to trade — an empty hold and an empty
+                                           purse."
+       "No one's holding cargo…"          "Not a captain on the water is carryin' cargo to trade
+                                           for."
+
+     MEASURED before deleting, on a driven phone-sized voyage: the shared line sat 6px under the
+     narration pill and 182px from the nearest button it was about, while each greyed control's own
+     reason appeared on the control itself and only one was ever on screen at a time. His copy pass
+     the day before had been shortening this line — it was shortening a copy.
+
+     D-41's structural lesson SURVIVES and is not undone: independent conditions must never suppress
+     one another. It is now enforced where it belongs, on the options themselves — Attack's why and
+     Trade's why are separate strings on separate buttons, so neither can swallow the other by
+     construction, which is stronger than the two independent `if`s this replaced. */
+  const sub=null;
   const prompt=`${pn(p.idx)}, what'll ye do:`;
   // @copy prompt.act.menu
   const v=await ask(prompt,opts,null,sub);
