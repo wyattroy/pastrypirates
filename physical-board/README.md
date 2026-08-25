@@ -24,7 +24,7 @@ group of pieces; tick "approved" per group, leave notes, copy the lot as text.
 | The whirlpool (`assets/trade-swirl.png`) | Traced and engraved on the four whirlpool tiles. |
 | The board's water: short brushy wave strokes in concentric passes | About 170 tapered strokes, 9 mm between passes, from outside the berths to the rim. |
 | The compass: scrolled ring, N/E/S/W medallions, fleur-de-lis needle | The spinner's dial and needle. |
-| The pirate ship (`assets/icons/sailboat.png`): square sail with the skull and bones | Three-piece ships: a 6 mm hull seen from above with two slots across the beam, two 3 mm square sails that drop in, the ☠️ emoji engraved big on each. |
+| The pirate ship (`assets/icons/sailboat.png`): square sail with the skull and bones | Three-piece ships: a 6 mm hull seen from above with two slots across the beam, two 3 mm square sails that drop in, the skull and crossbones (`art/skull-ref.png`) engraved big on each. |
 | The 🌩️ emoji (rendered by Chrome on black into `art/storm-emoji.png`) and the coin (`assets/icons/`) | Traced: the emoji's cloud-and-bolt silhouette is knocked out of each storm wedge; the coin stands in for every coin amount on the rules card. |
 
 ## The pieces — V3 · The Round Table, 25 mm squares

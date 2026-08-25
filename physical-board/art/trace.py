@@ -89,11 +89,14 @@ def trace_image(im, cfg, key):
             p = px[x, y]
             if cfg.get("blackbg"):                     # rendered on black: anything lit is the shape
                 if lum(p) > 40: sp[x, y] = 255
+            elif cfg.get("whitebg"):                   # black art on white paper: anything dark is the shape
+                if p[3] > 110 and lum(p) < 128: sp[x, y] = 255
             elif p[3] > cfg["alpha"] and not (cfg.get("nowater") and is_water(p)): sp[x, y] = 255
     sil = sil_img.filter(ImageFilter.MaxFilter(2 * (pad + close) + 1)).filter(ImageFilter.MinFilter(2 * close + 1))
     silpx = sil.load()
     silmask = [[1 if silpx[x, y] else 0 for x in range(w)] for y in range(h)]
     def inky(p):
+        if cfg.get("whitebg"): return False            # the silhouette IS the engraving; no separate ink pass
         if cfg.get("blackbg"): return lum(p) > 40 and p[0] > 120 and p[0] > p[2] + 50      # the emoji's yellow bolt is the ink
         if p[3] <= 110: return False
         if cfg.get("nowater") and is_water(p): return False
@@ -136,8 +139,9 @@ ASSETS = {**{ing: dict(path=f"{REPO}/assets/ingredients/{ing}.png", ink=112, alp
           "spice": dict(path=f"{REPO}/assets/ingredients/spice.png", ink=100, alpha=110, close=5, padVariants=PADS),
           # the storm: the 🌩️ emoji itself, rendered by Chrome on black (art/storm-emoji.png) — Wyatt, 2026-08-22
           "stormemoji": dict(path=f"{REPO}/physical-board/art/storm-emoji.png", ink=0, alpha=0, blackbg=True, pad=1, close=3, smooth=4, tol=1.4),
-          # the ships' skull: the ☠️ emoji, rendered by Chrome on black (art/skull-emoji.png) — Wyatt, 2026-08-25
-          "skullemoji": dict(path=f"{REPO}/physical-board/art/skull-emoji.png", ink=0, alpha=0, blackbg=True, pad=1, close=3, smooth=4, tol=1.4),
+          # the ships' skull: Wyatt's reference image, black on white (2026-08-25, on seeing the traced ☠️:
+          # "the emoji raster doesn't look right -- use notes/skull-ref.png instead")
+          "skullref": dict(path=f"{REPO}/physical-board/art/skull-ref.png", ink=0, alpha=0, whitebg=True, pad=1, close=2, smooth=3, tol=1.2),
           "swirl": dict(path=f"{REPO}/assets/trade-swirl.png", ink=105, alpha=200),
           "skull": dict(path=f"{REPO}/assets/icons/skull.png", ink=120, alpha=110),
           "coin": dict(path=f"{REPO}/assets/icons/coin-emoji.png", ink=110, alpha=110),

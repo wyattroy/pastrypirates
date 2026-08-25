@@ -735,11 +735,12 @@ function ship3d(c) {
     const sq = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [1.3, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
     const foot = sq.findIndex(p => p[0] === 0 && p[1] === y0 && sq.indexOf(p) > 0);
     const outline = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [2.6, y1 + 2.4], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
-    // Wyatt, 2026-08-25: "raster this emoji ☠️ on the ships' masts" — clarified with the question UI: the traced
-    // ☠️ (art/skull-emoji.png, the 🌩️ pipeline), BIG on both sail faces; overrules "plain sails" (2026-08-22)
+    // Wyatt, 2026-08-25: skull BIG on both sail faces (the question UI settled sails over his word "masts";
+    // overrules "plain sails", 2026-08-22). Same day, on seeing the traced ☠️: "the emoji raster doesn't look
+    // right -- use notes/skull-ref.png instead" — his reference, traced black-on-white (art/skull-ref.png).
     const cx = 1.3, cy = y0 + 1.4 + (hgt - 1.4) * .5, sk = Math.min(w - 4, hgt - 3.4);
     void pat;
-    return [item(CU, [polyCmds(outline)]), rect(RA, -(w / 2 - 1.3), y0 + .6, w, .5), ...artToken("skullemoji", cx, cy, sk, { cut: false, solid: true })];
+    return [item(CU, [polyCmds(outline)]), rect(RA, -(w / 2 - 1.3), y0 + .6, w, .5), ...artToken("skullref", cx, cy, sk, { cut: false, solid: true })];
   };
   const main = sail(15, 13, c), fore = sail(12, 11, c);
   return [{ ...part(`ship-${CAPTAINS[c]}-hull`, hull), mat: MAT }, { ...part(`ship-${CAPTAINS[c]}-main`, main), mat: MAT3 }, { ...part(`ship-${CAPTAINS[c]}-fore`, fore), mat: MAT3 }];
@@ -1400,7 +1401,7 @@ function buildVersion(V) {
   const TOKEN_PAD = "cutC";   // Wyatt, 2026-08-25: "This is the correct amount of padding (C)"
   const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }) : TOKEN[v].crate(ing, 0, 0))));
   cutParts.push(...crates);
-  if (v === "v3") for (const [pad, label, mm] of [["cut", "A", "about 0.3 mm"], ["cutB", "B", "about 1.1 mm"], ["cutC", "C", "about 1.7 mm"]])
+  if (v === "v3") for (const [pad, label, mm] of [["cutC", "C", "about 1.7 mm"]])   // A and B removed (Wyatt, 2026-08-25: "I like c best")
     docs.push(sheet(`crates-${label.toLowerCase()}`, `Ingredient tokens — padding ${label}`, ING.map(ing => part(`token-${ing}`, artToken(ing, 0, 0, TOKEN_MM, { pad }))), { count: 7, notes: `Option ${label}: the cut line sits ${mm} outside the drawing's ink. Pick one; the cutting sheets currently carry option B.` }));
   docs.push(sheet("crates", "Ingredient crates (28)", crates, { notes: "Four per ingredient: three to stock an island at 3–4 players, one spare for the black market. Wheat, milk, sugar, eggs, cocoa, cinnamon, vanilla — the app's own icons, redrawn as cuttable outlines." }));
   const markerParts = v === "v3" ? [] : ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))); cutParts.push(...markerParts);
@@ -1420,7 +1421,7 @@ function buildVersion(V) {
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
-  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the ☠️ emoji engraved big on each. About 24 mm tall. Paint the sails for the captain." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
+  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
   docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
