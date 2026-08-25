@@ -1351,33 +1351,44 @@ function nestedSpinner() {
    ========================================================================================= */
 const V3 = { add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sc: (a, k) => [a[0] * k, a[1] * k, a[2] * k], cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], norm: a => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; } };
 // a placed slab: its 2D items drawn on the plane origin + u·U + v·V, thickness T behind that plane (along -N)
-function slab(items, { origin, U = [1, 0, 0], V = [0, 1, 0], T = MAT, xform = null, tint = 0 }) { return { items, origin, U: V3.norm(U), V: V3.norm(V), T, xform, tint }; }
+function slab(items, { origin, U = [1, 0, 0], V = [0, 1, 0], T = MAT, xform = null, tint = 0, bias = 0 }) { return { items, origin, U: V3.norm(U), V: V3.norm(V), T, xform, tint, bias }; }
 function isoScene(slabs, { scale = 3.2, pad = 20 } = {}) {
+  // Rewritten 2026-08-25 after Wyatt's adversarial-review gate: the old painter gave every slab ONE depth and ALWAYS
+  // drew its art face, whichever way it pointed — an open lid past 90° showed its outside where its inside is, and
+  // rotated parts sorted wrong ("captured from the wrong face"). Now: each face carries its own view depth; the two
+  // big faces are orientation-culled; the engraving is drawn only when the art face genuinely looks at the camera;
+  // a visible back face renders as bare wood — which is what the back of a ply part is.
   const C30 = Math.cos(Math.PI / 6), S30 = 0.5, cam = V3.norm([1, 1, 1.2]);
   const proj = p => [(p[0] - p[1]) * C30, (p[0] + p[1]) * S30 - p[2]];
-  const faces = []; // {pts2:[[x,y]], depth, fill, stroke, rule}
+  const faces = [];
   for (const sb of slabs) {
     const N = V3.cross(sb.U, sb.V), to3 = ([u, v], back = false) => { let p = V3.add(sb.origin, V3.add(V3.sc(sb.U, u), V3.sc(sb.V, v))); if (back) p = V3.add(p, V3.sc(N, -sb.T)); return sb.xform ? sb.xform(p) : p; };
-    const base = 0.86 - sb.tint, wood = `hsl(36,52%,${Math.round(base * 78)}%)`, side = `hsl(32,48%,${Math.round(base * 58)}%)`, back = `hsl(30,45%,${Math.round(base * 48)}%)`, ink = "#2a1d12";
-    const cutLoops = sb.items.filter(i => i.layer === CU).flatMap(i => i.sub.map(sp => flatten(sp, 8).pts));
-    const area2 = pts => pts.reduce((a, p, i) => a + p[0] * pts[(i + 1) % pts.length][1] - pts[(i + 1) % pts.length][0] * p[1], 0) / 2;
-    const outers = cutLoops.filter(l => !cutLoops.some(o => o !== l && pointInPoly(l[0], o)));
-    // painter's order: things stacked higher are drawn later (the scene is a stack), then nearer within a level
-    const allFront = cutLoops.flat().map(p => to3(p)), zb = Math.min(...allFront.map(p => p[2]), Infinity);
-    const depthOf = p3s => zb * 1000 + p3s.reduce((a, p) => a + V3.dot(p, cam), 0) / p3s.length;
-    const faceDepth = depthOf(allFront);
-    for (const l of outers) { const p3 = l.map(p => to3(p, true)); faces.push({ pts: [p3.map(proj)], depth: faceDepth - 0.03, fill: back }); }
-    for (const l of cutLoops) { const p3f = l.map(p => to3(p)), p3b = l.map(p => to3(p, true));
-      for (let i = 0; i < l.length; i++) { const j = (i + 1) % l.length, q = [p3f[i], p3f[j], p3b[j], p3b[i]], nrm = V3.cross(V3.add(q[1], V3.sc(q[0], -1)), V3.add(q[3], V3.sc(q[0], -1))); if (V3.dot(nrm, cam) <= 0) continue; faces.push({ pts: [q.map(proj)], depth: faceDepth - 0.02, fill: side }); } }
-    if (cutLoops.length) { const p3 = cutLoops.map(l => l.map(p => to3(p))); faces.push({ pts: p3.map(l => l.map(proj)), depth: faceDepth, fill: wood, rule: "evenodd", stroke: "#6b4a2a" }); }
-    for (const it of sb.items) { if (it.layer !== RA) continue; const p3 = it.sub.map(sp => flatten(sp, 6).pts.map(p => to3(p))); faces.push({ pts: p3.map(l => l.map(proj)), depth: faceDepth + 0.02, fill: ink, rule: "nonzero" }); }
+    const base = 0.86 - sb.tint, wood = `hsl(36,52%,${Math.round(base * 78)}%)`, side = `hsl(32,48%,${Math.round(base * 58)}%)`, rear = `hsl(34,50%,${Math.round(base * 70)}%)`, ink = "#2a1d12";
+    let cutLoops = sb.items.filter(i => i.layer === CU).flatMap(i => i.sub.map(sp => flatten(sp, 8).pts));
+    if (!cutLoops.length) continue;
+    // normalize winding: outer loops positive area, holes negative — the side-quad culling below reads orientation
+    // from the winding, and mixed-winding sources shed "debris" quads from the far silhouette
+    cutLoops = cutLoops.map(l => { const hole = cutLoops.some(o => o !== l && pointInPoly(l[0], o)); return ((signedArea(l) < 0) === hole) ? [...l].reverse() : l; });   // outers negative, holes positive: the camera-side quads survive the cull
+    // depth: pure view depth for rotated slabs; unrotated slabs add a strong stack term (a flat scene's true painter
+    // order IS bottom-up) and the scene may bias a slab whose containment the mean cannot see (tokens inside a crate)
+    const zBoost = sb.xform ? 0 : 50 * Math.min(...sb.items.filter(i => i.layer === CU).flatMap(i => i.sub.map(sp => flatten(sp, 8).pts)).flat().map(pt => { const q = V3.add(sb.origin, V3.add(V3.sc(sb.U, pt[0]), V3.sc(sb.V, pt[1]))); return Math.min(q[2], q[2] - sb.T * N[2]); })) + (sb.bias || 0);
+    const depth = p3s => p3s.reduce((a2, p) => a2 + V3.dot(p, cam), 0) / p3s.length + zBoost;
+    const f0 = to3(cutLoops[0][0]), b0 = to3(cutLoops[0][0], true), facing = V3.dot(V3.add(f0, V3.sc(b0, -1)), cam) > 0;
+    const bigPts = cutLoops.map(l => l.map(p => to3(p, !facing)));
+    const faceDepth = depth(bigPts.flat());
+    faces.push({ pts: bigPts.map(l => l.map(proj)), depth: faceDepth, fill: facing ? wood : rear, rule: "evenodd", stroke: "#6b4a2a", sw: 1 });
+    // the engraving lives ON its face: it sorts WITH the face (+epsilon), never by its own position — otherwise art on
+    // the far half of a large face sorts behind the face itself and is painted over (the "bald half" bug)
+    if (facing) for (const it of sb.items) { if (it.layer !== RA) continue; const p3 = it.sub.map(sp => flatten(sp, 6).pts.map(p => to3(p))); faces.push({ pts: p3.map(l => l.map(proj)), depth: faceDepth + 0.06, fill: ink, rule: "nonzero" }); }
+    for (const l of cutLoops) { const pf = l.map(p => to3(p)), pb = l.map(p => to3(p, true));
+      for (let i = 0; i < l.length; i++) { const j = (i + 1) % l.length, q = [pf[i], pf[j], pb[j], pb[i]], nrm = V3.cross(V3.add(q[1], V3.sc(q[0], -1)), V3.add(q[3], V3.sc(q[0], -1))); if (V3.dot(nrm, cam) <= 0) continue; faces.push({ pts: [q.map(proj)], depth: faceDepth - 0.01, fill: side }); } }   // sides ride just beneath their own face: a neighbour piece then covers a shared seam wall, and a slab's rim never paints over its own engraving
   }
-  faces.sort((a, b) => a.depth - b.depth);
+  faces.sort((a2, b2) => a2.depth - b2.depth);
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const f of faces) for (const l of f.pts) for (const [x, y] of l) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
   const W = (x1 - x0) * scale + 2 * pad, H = (y1 - y0) * scale + 2 * pad, P = ([x, y]) => `${r3((x - x0) * scale + pad)} ${r3((y - y0) * scale + pad)}`;
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${r3(W)}" height="${r3(H)}" viewBox="0 0 ${r3(W)} ${r3(H)}"><rect width="${r3(W)}" height="${r3(H)}" fill="#f3ead6"/>`;
-  for (const f of faces) svg += `<path d="${f.pts.map(l => "M" + l.map(P).join("L") + "Z").join("")}" fill="${f.fill}"${f.rule ? ` fill-rule="${f.rule}"` : ""}${f.stroke ? ` stroke="${f.stroke}" stroke-width="0.5"` : ""}/>`;
+  for (const f of faces) svg += `<path d="${f.pts.map(l => "M" + l.map(P).join("L") + "Z").join("")}" fill="${f.fill}"${f.rule ? ` fill-rule="${f.rule}"` : ""}${f.stroke ? ` stroke="${f.stroke}" stroke-width="${f.sw || 0.5}"` : ""}${process.env.PB_DEBUG_DEPTH ? ` data-depth="${r3(f.depth)}"` : ""}/>`;
   return svg + "</svg>";
 }
 const flatAt = (items, x, y, z, T = MAT) => slab(items, { origin: [x, y, z + T], T });            // lying on the table, top face at z+T
@@ -1500,48 +1511,54 @@ function mockups(five, P) {
   const shipSlabs = (c, x, y, z) => { const hull = byName(P.shipParts, `ship-${CAPTAINS[c]}-hull`), main = byName(P.shipParts, `ship-${CAPTAINS[c]}-main`), fore = byName(P.shipParts, `ship-${CAPTAINS[c]}-fore`);
     const B = 12, sailAt = (items, sx) => { const b = bbox(items.filter(i => i.layer === CU)); const mh = b.y1 - MAT;
       const shown = items.map(it => it.layer !== CU ? it : { ...it, sub: it.sub.map(sp => polyCmds(clipPolyHalf(flatten(sp, 8).pts, 0, 1, mh - 0.05))) });   // the tab is inside the hull
-      return standing(shown, [x + sx + MAT3 / 2, y + B / 2 - 1.3, z + MAT + mh], [0, 1, 0]); };
+      return standing(shown, [x + sx + MAT3 / 2, y + B / 2 - 1.3, z + MAT + mh], [0, -1, 0]); };   // art face toward +x = the camera
     return [flatAt(hull, x, y, z), sailAt(main, 7.5), sailAt(fore, 15.5)]; };
   docs.push(doc("mockup-ship", "Mockup: a ship, assembled", isoScene(shipSlabs(1, 0, 0, 0), { scale: 9 }), "The 6 mm hull with its two square sails dropped into the slots across the beam. Biscotti's stripes along the foot of each sail; the game's skull over crossed bones."));
   // the treasure chest, open, card in the lid
   const chestSlabs = (() => { const c = 0, g = n => byName(P.chestParts, `chest-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 80, Wo = 27, hb = 20 - MAT3;
-    const s = [flatAt(g("base"), 0, 0, 0, t)];
-    s.push(slab(g("front"), { origin: [t, t, t + hb], U: [1, 0, 0], V: [0, 0, -1], T: t }));
-    s.push(slab(g("back"), { origin: [Lo - t, Wo - t, t + hb], U: [-1, 0, 0], V: [0, 0, -1], T: t }));
-    s.push(slab(g("side-2"), { origin: [t, Wo - t, t + hb], U: [0, -1, 0], V: [0, 0, -1], T: t }));
-    s.push(slab(g("side-1"), { origin: [Lo - t, t, t + hb], U: [0, 1, 0], V: [0, 0, -1], T: t }));
+    // every slab's art face points OUTWARD, and the chest faces the camera (+y): the camera sees the +x/+y/top
+    // faces only, so the lock-plate wall must be on the +y side or it can never be seen. Hinge goes to y = 0.
+    const s = [slab(g("base"), { origin: [0, Wo, 0], U: [1, 0, 0], V: [0, -1, 0], T: t, bias: -40 })];   // art face down (outside bottom); floor paints first
+    s.push(slab(g("front"), { origin: [t, Wo, t + hb], U: [1, 0, 0], V: [0, 0, -1], T: t }));       // lock side, toward the camera
+    s.push(slab(g("back"), { origin: [Lo - t, 0, t + hb], U: [-1, 0, 0], V: [0, 0, -1], T: t }));   // knuckle side, away
+    s.push(slab(g("side-2"), { origin: [0, Wo - t, t + hb], U: [0, -1, 0], V: [0, 0, -1], T: t }));
+    s.push(slab(g("side-1"), { origin: [Lo, t, t + hb], U: [0, 1, 0], V: [0, 0, -1], T: t }));
     // the lid, closed pose first, then swung open 110° about the hinge axis (y = Wo - t/2, z = t + hb + 3.3)
-    const ay = Wo - t / 2, az = t + hb + 2.2, th = rad(-78), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
+    const ay = t / 2, az = t + hb + 2.2, th = rad(125), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
     const lidZ = t + hb + (12 - MAT3), hl = 12 - MAT3;
     const lid = [slab(g("lid-top"), { origin: [0, 0, lidZ + t], T: t, xform: rot }),
-      slab(g("lid-front"), { origin: [t, t, lidZ - hl], U: [1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),
-      slab(g("lid-side-2"), { origin: [t, Wo - t, lidZ - hl], U: [0, -1, 0], V: [0, 0, 1], T: t, xform: rot }),
-      slab(g("lid-side-1"), { origin: [Lo - t, t, lidZ - hl], U: [0, 1, 0], V: [0, 0, 1], T: t, xform: rot }),
-      slab(g("lid-hinge"), { origin: [Lo - t, Wo - t, lidZ - HINGE_BODY], U: [-1, 0, 0], V: [0, 0, -1], T: t, xform: rot }),
+      slab(g("lid-front"), { origin: [Lo - t, Wo, lidZ - hl], U: [-1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),
+      slab(g("lid-side-2"), { origin: [0, Wo - t, lidZ - hl], U: [0, -1, 0], V: [0, 0, 1], T: t, xform: rot }),
+      slab(g("lid-side-1"), { origin: [Lo, t, lidZ - hl], U: [0, 1, 0], V: [0, 0, 1], T: t, xform: rot }),
+      slab(g("lid-hinge"), { origin: [t, 0, lidZ - HINGE_BODY], U: [1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),   // seated: body 27..29.4 under the plate, tongues hanging BELOW
       slab(g("card-rail-1"), { origin: [Lo - t, t, lidZ - 5.6], U: [0, 1, 0], V: [0, 0, -1], T: t, xform: rot }), slab(g("card-rail-2"), { origin: [t, Wo - t, lidZ - 5.6], U: [0, -1, 0], V: [0, 0, -1], T: t, xform: rot })];
     // a few coins inside
-    for (let i = 0; i < 3; i++) s.push({ ...flatAt(coinGlyph(0, 0, 18).concat([circ(CU, 0, 0, 9)]), 22 + i * 9, 13.5, t + i * 0.4, 1.6), openOnly: true });   // 18 mm coins lie flat (interior 21.8 deep); hidden in the closed pose, where the painter would bleed them through the wall
+    // the coins lie on the table beside the card: inside the body they are geometrically invisible at this camera
+    // (walls 17.4 tall, box 21.8 deep), and painting them "visible anyway" was the wrong-face lie all over again
+    for (let i = 0; i < 3; i++) s.push({ ...flatAt(coinGlyph(0, 0, 18).concat([circ(CU, 0, 0, 9)]), 78 + i * 8, Wo + 14 + i * 6, i * 1.7, 1.6), openOnly: true });   // 18 mm coins lie flat (interior 21.8 deep); hidden in the closed pose, where the painter would bleed them through the wall
     // the card lies on the table in front, face up — just tipped out of the open lid. (Inside the lid it rides on the
     // two rails, under the hinge strip; past 90° this painter would show the lid's outside where its inside is, so the
     // lid stays under 90° and the card tells its story here. Wyatt, 2026-08-25: "captured from the wrong face".)
-    s.push({ ...flatAt(P.recipeParts[13].items, 8, -27, 0, t), openOnly: true });
+    s.push({ ...flatAt(P.recipeParts[13].items, 4, Wo + 10, 0, t), openOnly: true });   // on the table, viewer side, clear of the chest
     return [...s, ...lid]; })();
-  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid tilted back on the friction hinge — the tongues wedge and hold the pose. The recipe card lies in front, just tipped out: inside the lid it rides on the two rails (front 60 % of the end walls), under the hinge strip, and falls free when you tip the open chest. Coins in the body."));
+  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid tilted back on the friction hinge — the tongues wedge and hold the pose. The recipe card lies in front, just tipped out: inside the lid it rides on the two rails (front 60 % of the end walls), under the hinge strip, and falls free when you tip the open chest. Coins spilled on the table beside it."));
   docs.push(doc("mockup-chest-closed", "Mockup: a treasure chest, closed", isoScene(chestSlabs.filter(sb => !sb.openOnly).map(sb => sb.xform ? { ...sb, xform: null } : sb), { scale: 5 }), "The same chest shut: lid walls meet the body walls, the tongues interleave at the back."));
   // the spinner: backing, dial + ring at one level, needle above, vane standing in the ring's slot
-  const spSlabs = (() => { const g = n => byName(P.spParts, n), t = MAT3, s = [flatAt(g("spinner-backing"), 0, 0, 0, t), flatAt(g("spinner-dial"), 0, 0, t, t), flatAt(xf(g("spinner-ring"), { rot: 35 }), 0, 0, t, t), flatAt(xf(g("spinner-needle"), { rot: -60 }), 0, 0, 2 * t, t), flatAt(g("spinner-washer"), 0, 0, 3 * t, t)];
-    const a = rad(35 - 90), vr = 43, vx = vr * Math.cos(a), vy = vr * Math.sin(a); // the slot, turned with the ring
+  const spSlabs = (() => { const g = n => byName(P.spParts, n), t = MAT3, s = [flatAt(g("spinner-backing"), 0, 0, 0, t), flatAt(g("spinner-dial"), 0, 0, t, t), flatAt(xf(g("spinner-ring"), { rot: -30 }), 0, 0, t, t), flatAt(xf(g("spinner-needle"), { rot: -20 }), 0, 0, 2 * t, t), flatAt(g("spinner-washer"), 0, 0, 3 * t, t)];
+    const a = rad(-30 - 90), vr = 43, vx = vr * Math.cos(a), vy = vr * Math.sin(a); // the slot, turned with the ring
     const vane = g("spinner-vane"), vb = bbox(vane.filter(i => i.layer === CU)); // tab bottom at vb.y1, mast base at vb.y1 - MAT3
-    s.push(slab(vane, { origin: [vx - 1.3 * Math.cos(a), vy - 1.3 * Math.sin(a), t + (vb.y1 - t)], U: [Math.cos(a), Math.sin(a), 0], V: [0, 0, -1], T: t }));
+    s.push(slab(vane, { origin: [vx - 1.3 * Math.cos(a), vy - 1.3 * Math.sin(a), t + (vb.y1 - t)], U: [Math.cos(a), Math.sin(a), 0], V: [0, 0, -1], T: t, bias: 60 }));
     return s; })();
   docs.push(doc("mockup-spinner", "Mockup: the wind spinner, assembled", isoScene(spSlabs, { scale: 4 }), "Backing disc; the compass dial glued on it with the ring turning around it; the flat forecast needle on the pivot above; the WIND NOW vane standing in the ring's slot, pennant toward the letter the ring is set to."));
   // a cargo crate with tokens standing in it
   const crateSlabs = (() => { const c = 2, g = n => byName(P.crateParts, `crate-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 44, Wo = 30, hw = 15;
-    const s = [flatAt(g("base"), 0, 0, 0, t), slab(g("front"), { origin: [t, t, t + hw], U: [1, 0, 0], V: [0, 0, -1], T: t }), slab(g("back"), { origin: [Lo - t, Wo - t, t + hw], U: [-1, 0, 0], V: [0, 0, -1], T: t }),
-      slab(g("side-2"), { origin: [t, Wo - t, t + hw], U: [0, -1, 0], V: [0, 0, -1], T: t }), slab(g("side-1"), { origin: [Lo - t, t, t + hw], U: [0, 1, 0], V: [0, 0, -1], T: t })];
-    ["wheat", "eggs", "spice"].forEach((ing, i) => { const tk = artToken(ing, 0, 0), b = bbox(tk.filter(x => x.layer === CU)); s.push(slab(xf(tk, { tx: -b.x0, ty: -b.y0 }), { origin: [Lo - t - 2.5 - i * 7.5, Wo / 2 + b.w / 2, t + b.h], U: [0, -1, 0], V: [0, 0, -1], T: MAT })); });
+    const s = [{ ...flatAt(g("base"), 0, 0, 0, t), bias: -40 }, slab(g("front"), { origin: [Lo - t, 0, t + hw], U: [-1, 0, 0], V: [0, 0, -1], T: t }), slab(g("back"), { origin: [t, Wo, t + hw], U: [1, 0, 0], V: [0, 0, -1], T: t }),   // the floor paints FIRST: a big flat face out-means standing walls in this projection
+      slab(g("side-2"), { origin: [0, t, t + hw], U: [0, 1, 0], V: [0, 0, -1], T: t }), slab(g("side-1"), { origin: [Lo, Wo - t, t + hw], U: [0, -1, 0], V: [0, 0, -1], T: t })];
+    // no tokens in this scene: five adversarial-review rounds showed the painter cannot draw "a standing piece
+    // inside an open box" without lying somewhere (occlusion, gaps, or parallax). The crate is shown empty and
+    // TRUE; the tokens' own art is on the tokens sheet, and the caption tells the story.
     return s; })();
-  docs.push(doc("mockup-crate", "Mockup: a cargo crate", isoScene(crateSlabs, { scale: 6 }), "Slatted sides with real gaps, corner posts, Gingersnap's dots on the front; three ingredient tokens standing in it, icons showing."));
+  docs.push(doc("mockup-crate", "Mockup: a cargo crate", isoScene(crateSlabs, { scale: 6 }), "Slatted sides with real gaps, corner posts. In play the ingredient tokens stand inside on edge, icons showing — cargo is public, as in the game (the tokens are on their own sheet)."));
   // the board on the table: quadrants, Tortuga on top, three islands with docks and tokens, two ships, a whirlpool
   const boardSlabs = (() => { const s = five.quadrants.map(q => flatAt(q.items, 0, 0, 0)); const C = CENTER;
     s.push(flatAt(xf(five.plug.items, { tx: C, ty: C }), 0, 0, MAT));

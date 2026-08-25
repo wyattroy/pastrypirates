@@ -157,6 +157,18 @@ He is measuring the cut pieces with calipers: from the uncompensated test,
 real kerf = 9.00 − (tab width) = (notch width) − 9.15. When his numbers arrive, regenerate with
 `--kerf <measured>` — that is the whole change.
 
+## 8e. The mockup renderer, and the evening Wyatt stopped (2026-08-25, late)
+
+He said the chest mockup was "captured from the wrong face" and gated all mockups behind an
+adversarial describer agent. Five review rounds later: isoScene now culls faces by true orientation,
+sorts per-face (z-boosted for unrotated slabs, `bias` knob for contained pieces), engraves only
+visible art faces, and every mockup scene was re-authored art-outward (most walls were inside-out —
+the old always-paint-the-front painter had hidden it). Four mockups verified honest; the crate is
+shown EMPTY (the painter cannot draw standing-pieces-in-a-box without lying somewhere); then Wyatt
+stopped the loop: "this is ridiculous." The lesson is in memory (timebox-cosmetic-loops): cosmetic
+work gets two rounds, gates need exits, and his chest PHOTOS (chest-images/) would have been the
+best mockup all along. `PB_DEBUG_DEPTH=1` makes the generator stamp face depths for debugging.
+
 ## 8a. DXF: raster arrives FILLED — and ezdxf writes the files (2026-08-25)
 
 Wyatt: "your dxf files don't correctly save the black raster area as filled in." First fix: a
