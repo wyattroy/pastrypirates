@@ -644,7 +644,11 @@ function rippleRings() {
   let seed = 20260822; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   // "more wavy, jittery, scattered" (Wyatt): shorter strokes, each on its own wobble, scattered off the pass by
   // up to half the pitch, so no two strokes line up into a ring
-  const r0 = CELL * 1.75, r1 = CELL * 6.05, pitch = 7.5;
+  // r0 was CELL*1.75 while the + plug covered the berth squares; with the one-square Tortuga
+  // (2026-08-25) the water runs in over them — strokes just stay 2 mm clear of the dotted silhouette
+  const nearTort = (x, y) => { const dx = Math.abs(x - C), dy = Math.abs(y - C);
+    return (dx <= CELL * .5 + 2 && dy <= CELL * .5 + 2) || (dx <= TDOCK.stem / 2 + 2 && dy <= CELL * .5 + TDOCK.reach + 2) || (dy <= TDOCK.stem / 2 + 2 && dx <= CELL * .5 + TDOCK.reach + 2); };
+  const r0 = CELL * .85, r1 = CELL * 6.05, pitch = 7.5;
   for (let R0 = r0; R0 <= r1; R0 += pitch) {
     let th = rnd() * Math.PI * 2; const end = th + Math.PI * 2;
     while (th < end) {
@@ -656,7 +660,7 @@ function rippleRings() {
         const t = i / n, a = th + dTh * t, r = R0 + drift + amp * Math.sin(wob * a + ph), w = thick * Math.sin(Math.PI * t) + 0.02;
         outer.push([C + (r + w / 2) * Math.cos(a), C + (r + w / 2) * Math.sin(a)]); inner.push([C + (r - w / 2) * Math.cos(a), C + (r - w / 2) * Math.sin(a)]);
       }
-      out.push(poly(RA, [...outer, ...inner.reverse()]));
+      if (!outer.some(p => nearTort(p[0], p[1]))) out.push(poly(RA, [...outer, ...inner.reverse()]));
       th += dTh + gap / R0;
     }
   }
@@ -937,21 +941,93 @@ function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
   return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
 }
 
+// ---- THE T-DOCK (Wyatt's remake, 2026-08-25 evening — twenty question-UI rulings) ----
+// The square dock tile is GONE: the pier itself is the cut. ONE geometry serves the seven player
+// docks and Tortuga's four baked arms — two things that must agree are one thing (CLAUDE.md rule 23).
+// stem 9 wide (the deck IS the tab, unchanged, so the already-cut islands keep working); reach 12.5
+// total so the head's outer face lands on the square's midline — the 24 × 12 hull lies BROADSIDE
+// against the straight berth face and fits the outer half of the square (nose-in was measured out:
+// only 8 mm of water beside a centred 9 mm stem); head 18 × 3.5, 1 mm rounds on its corners.
+// Bollards are part of the CUT, not engraving: half-round lugs off the stem's sides — his pen
+// drawing at the laser: two pairs, one near the sand, one at the head; nothing drawn on them.
+// Frame: the island's cut edge passes through `m` along unit `t`; unit `o` points to sea.
+const TDOCK = { stem: 9, reach: 12.5, head: 18, headD: 3.5, r: 1, lug: 1.1, lugAt: [1.8, 7.2] };
+function tArmPts(m, t, o, { lugs = true } = {}) {
+  const { stem, reach, head, headD, r, lug, lugAt } = TDOCK, hs = stem / 2, hh = head / 2, d0 = reach - headD;
+  const pts = [], P = (u, d) => pts.push([m[0] + t[0] * u + o[0] * d, m[1] + t[1] * u + o[1] * d]);
+  const arc = (cu, cd, rr, a0, a1, n = 6) => { for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; P(cu + rr * Math.cos(a), cd + rr * Math.sin(a)); } };
+  P(-hs, 0);
+  if (lugs) for (const d of lugAt) arc(-hs, d, lug, -Math.PI / 2, -1.5 * Math.PI, 8);
+  P(-hs, d0);
+  arc(-hh + r, d0 + r, r, -Math.PI / 2, -Math.PI, 4);
+  arc(-hh + r, reach - r, r, Math.PI, Math.PI / 2, 4);
+  arc(hh - r, reach - r, r, Math.PI / 2, 0, 4);
+  arc(hh - r, d0 + r, r, 0, -Math.PI / 2, 4);
+  P(hs, d0);
+  if (lugs) for (const d of [...lugAt].reverse()) arc(hs, d, lug, Math.PI / 2, -Math.PI / 2, 8);
+  P(hs, 0);
+  return pts;
+}
+// the engraving: the stem's deck (planks across the walk, as the old tile's deck had) runs from
+// `inshore` mm PAST the island edge — onto the tab, or onto Tortuga's sand — to a thin bare seam
+// before the head; the head's own deck has its planks turned 90°, spaced along the bar, as both the
+// approved line-up and his pen drawing have them.
+function tArmRaster(m, t, o, inshore) {
+  const { stem, reach, headD, head } = TDOCK, hs = stem / 2, hh = head / 2, d0 = reach - headD;
+  const Pt = (u, d) => [m[0] + t[0] * u + o[0] * d, m[1] + t[1] * u + o[1] * d];
+  const Q = (u0, dA, u1, dB) => polyCmds([Pt(u0, dA), Pt(u1, dA), Pt(u1, dB), Pt(u0, dB)]);
+  const deck = Q(-hs, -inshore, hs, d0 - 0.3), slits = [];
+  for (let d = -inshore + 1.9; d < d0 - 0.9; d += 1.9) slits.push(reverseSub(Q(-hs + 0.5, d - 0.35, hs - 0.5, d + 0.35)));
+  const hd = Q(-hh + 0.6, d0 + 0.3, hh - 0.6, reach - 0.6), hSlits = [];
+  const nS = Math.floor((head - 3.4) / 1.9);   // slits centred on the stem so the bar's two end boards match
+  for (let i = 0; i < nS; i++) { const u = (i - (nS - 1) / 2) * 1.9; hSlits.push(reverseSub(Q(u - 0.35, d0 + 0.3, u + 0.35, reach - 0.6))); }
+  return [item(RA, [deck, ...slits]), item(RA, [hd, ...hSlits])];
+}
+// Tortuga, remade (same rulings): a ONE-square island wearing the treatment of the nine — straight
+// edges, 5 mm corners, shore AND grass lines — with the four T-docks baked into the cut, their decks
+// starting at the shore line ("the dock is literally touching the sand"), a big anchor and no name,
+// nothing else on the sand. The shore line PARTS under each deck so the rasters never overlap (fill
+// mode cancels overlaps); the grass line ring stays whole — the decks stop short of it.
+function tortugaPiece() {
+  const loop = traceCells([[0, 0]])[0].map(([x, y]) => [x * CELL, y * CELL]);
+  const edges = perimeterEdges([[0, 0]]).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
+  let pts = waveCoast(roundCorners(offsetPoly(loop, -CLR), ISLAND_R).cmds, [], { amp: 0, step: 0.5 });
+  if (signedArea(pts) < 0) pts = pts.reverse();
+  for (const e of edges) pts = notchPolyline(pts, e.m, e.along, TDOCK.stem / 2 + 0.2, tArmPts(e.m, e.along, [-e.inward[0], -e.inward[1]]));
+  const it = [item(CU, [polyCmds(pts)])];
+  const grass = waveCoast(roundCorners(offsetPoly(loop, -CLR - GRASS_LINE), ISLAND_R).cmds, [], { amp: 0.5, lambda: 11, quiet: 0, step: 0.6, phase: 99 * 2.71 + 1.9, ripple: 0.4 });
+  it.push(item(RA, [polyCmds(offsetPoly(grass, LINE_W / 2)), reverseSub(polyCmds(offsetPoly(grass, -LINE_W / 2)))]));
+  const shore = waveCoast(roundCorners(offsetPoly(loop, -CLR - SHORE_LINE), ISLAND_R).cmds, [], { amp: 0.5, lambda: 11, quiet: 0, step: 0.6, phase: 99 * 1.37, ripple: 0.4 });
+  const under = p => edges.some(e => Math.abs((p[0] - e.m[0]) * e.along[0] + (p[1] - e.m[1]) * e.along[1]) < TDOCK.stem / 2 + 1.1 && Math.abs((p[0] - e.m[0]) * e.inward[0] + (p[1] - e.m[1]) * e.inward[1]) < 6);
+  const s0 = shore.findIndex(under), rot = s0 < 0 ? shore : [...shore.slice(s0), ...shore.slice(0, s0)];
+  const chains = []; let ch = [];
+  for (const p of rot) { if (under(p)) { if (ch.length > 3) chains.push(ch); ch = []; } else ch.push(p); }
+  if (ch.length > 3) chains.push(ch);
+  for (const c of chains) {
+    const fwd = [], back = [];
+    for (let i = 0; i < c.length; i++) { const a = c[Math.max(0, i - 1)], b = c[Math.min(c.length - 1, i + 1)]; const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L * LINE_W / 2, ny = dx / L * LINE_W / 2; fwd.push([c[i][0] + nx, c[i][1] + ny]); back.push([c[i][0] - nx, c[i][1] - ny]); }
+    it.push(poly(RA, [...fwd, ...back.reverse()]));
+  }
+  it.push(...icon("anchor", CELL / 2, CELL / 2, CELL * .42));
+  for (const e of edges) it.push(...tArmRaster(e.m, e.along, [-e.inward[0], -e.inward[1]], 3.2));
+  return it;
+}
+
 function dockPiece(v, ing) {
+  if (v === "v3") {
+    // the cut-out T: outline is the pier itself; the 9 × 2.5 tab closes the island side, and the
+    // deck's planks run onto it so the nested jetty reads as touching the sand
+    const m = [TDOCK.reach, TDOCK.head / 2], t = [0, 1], o = [-1, 0];
+    const pts = tArmPts(m, t, o);
+    pts.push([m[0] + NOTCH.tab.depth, m[1] + TDOCK.stem / 2], [m[0] + NOTCH.tab.depth, m[1] - TDOCK.stem / 2]);
+    const it = [item(CU, [polyCmds(pts)]), ...tArmRaster(m, t, o, NOTCH.tab.depth - 0.25)];
+    return { dock: it, extra: [] };
+  }
   const s = PIECE, pts = [[0, 0], [s, 0], [s, s], [0, s]], outline = roundCorners(pts, 2);
   const m = [s, s / 2], along = [0, 1], inward = [-1, 0];
   if (v === "v2") insertNotch(outline.cmds, m, mushroomPts(m, along, inward, JIG.nub, -1));
-  if (v === "v3") insertNotch(outline.cmds, m, slotPts(m, along, inward, NOTCH.tab, -1));   // the tab that plugs into an island's notch — as drawn
   const it = [item(CU, [outline])];
   if (v === "v1") it.push(...icon("anchor", s * .5, s * .42, s * .42), ...text(RA, "DOCK", s * .5, s * .85, s * .03, { align: "center", valign: "middle" }));
-  else if (v === "v3") {
-    // the pier runs from the tile onto the tab, so once nested it reads as one jetty reaching the island
-    // the deck is the tab's width and runs onto it; plank slits cross the deck all the way to the tab's end
-    const y0 = s / 2 - NOTCH.tab.hw, y1 = s / 2 + NOTCH.tab.hw, x0 = s * 0.34, x1 = s + NOTCH.tab.depth - 0.25;
-    const deck = polyCmds([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]), slits = [];
-    for (let x = x0 + 1.9; x < x1 - 0.6; x += 1.9) slits.push(reverseSub(polyCmds([[x - .35, y0 + .5], [x + .35, y0 + .5], [x + .35, y1 - .5], [x - .35, y1 - .5]])));
-    it.push(item(RA, [deck, ...slits]), circ(RA, x0 + 1.1, y0 - 1.1, 1.1), circ(RA, x0 + 1.1, y1 + 1.1, 1.1), circ(RA, s - 1.6, y0 - 1.1, 1.1), circ(RA, s - 1.6, y1 + 1.1, 1.1));   // bollards touch the deck
-  }
   else it.push(...icon("pier", s * .5, s * .5, s * .84));
   const extra = [];
   if (v === "v1") { // pier top piece: glued on, overhangs onto the island by OVER
@@ -1123,10 +1199,15 @@ function boardFivePiece() {
   const { valid, rim, DIRS } = seaCells(), C = CENTER;
   let Rmax = 0; for (const k of valid) { const [x, y] = k.split(",").map(Number); for (const [cx, cy] of [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]]) Rmax = Math.max(Rmax, Math.hypot(cx * CELL - C, cy * CELL - C)); }
   const Rb = Rmax + 7;
-  // where Tortuga sits: a dotted outline of the + shape, under the piece
+  // where Tortuga sits: a dotted outline of the new one-square-plus-docks silhouette, under the piece
+  // (lugs left off the ghost — dots that small read as noise). Wyatt, 2026-08-25: outline updated.
   const dotted = [];
-  { const cellsT = [[CC, CC - 1], [CC - 1, CC], [CC, CC], [CC + 1, CC], [CC, CC + 1]], loop = traceCells(cellsT)[0].map(([x, y]) => [x * CELL, y * CELL]);
-    const flat = flatten(roundCorners(offsetPoly(loop, -CLR), 6.5), 12).pts, step = 0.4; let acc = 0, run = null;
+  { const loop = traceCells([[0, 0]])[0].map(([x, y]) => [(x + CC) * CELL, (y + CC) * CELL]);
+    const edgesT = perimeterEdges([[0, 0]]).map(e => ({ ...e, m: [(e.m[0] + CC) * CELL + e.inward[0] * CLR, (e.m[1] + CC) * CELL + e.inward[1] * CLR] }));
+    let gp = waveCoast(roundCorners(offsetPoly(loop, -CLR), ISLAND_R).cmds, [], { amp: 0, step: 0.5 });
+    if (signedArea(gp) < 0) gp = gp.reverse();
+    for (const e of edgesT) gp = notchPolyline(gp, e.m, e.along, TDOCK.stem / 2 + 0.2, tArmPts(e.m, e.along, [-e.inward[0], -e.inward[1]], { lugs: false }));
+    const flat = gp, step = 0.4; let acc = 0, run = null;
     const flush = () => { if (run) { const [a, b] = [run.a, run.b], ux = (b[0] - a[0]), uy = (b[1] - a[1]), L = Math.hypot(ux, uy) || 1, nx = -uy / L * .2, ny = ux / L * .2; if (L > 0.5) dotted.push(poly(RA, [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]])); run = null; } };
     for (let i = 0; i < flat.length; i++) { const a = flat[i], b = flat[(i + 1) % flat.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step));
       for (let k = 0; k < n; k++) { const p = [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n], on = (acc % 3.6) < 2.0; acc += L / n;
@@ -1137,16 +1218,12 @@ function boardFivePiece() {
   // small engraved marks go to the quadrant that owns their centre; only the rim bands need clipping
   const assign = (it, q, k) => { const b = bbox([it]); if (b.w < 14 && b.h < 14) { const o = quadrantOf([(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2], knobs); return o === k ? it : (o === -2 ? clipItemQuadrant(it, q) : null); } return clipItemQuadrant(it, q); };
   const quadrants = QUAD.map((q, k) => ({ name: `quadrant-${q.id}`, mat: MAT, items: tag([...aboutCentre([k === 0 ? canonNW : canon], k), ...raster.map(it => assign(it, q, k)).filter(Boolean), ...grid[k]], `quadrant-${q.id}`) }));
-  // Tortuga: a + of five squares that sits on the board like the islands do — anchor and name in the middle, a berth on each arm
-  // Tortuga looks like every other island (Wyatt): the I-island art laid across itself as a +, its ink engraved,
-  // "Tortuga" in the middle, a berth on each arm reaching the middle square
-  const piers = [];
-  for (const d of [[0, -1], [0, 1], [1, 0], [-1, 0]]) { const cx = (1.5 + d[0] * 0.9) * CELL, cy = (1.5 + d[1] * 0.9) * CELL, rot = Math.atan2(-d[1], -d[0]) * 180 / Math.PI; piers.push(...icon("pier", cx, cy, CELL * .7, rot)); }
-  const tort = islandClean([[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]], "tortuga", false, [...piers, ...ftext(RA, "Tortuga", 1.5 * CELL, 1.5 * CELL + 1.5, 4.2, { font: "georgia-bold", align: "center" })], 99, { palm: false });
-  const plug = { name: "tortuga", mat: MAT, items: tag(xf(tort, { tx: -1.5 * CELL, ty: -1.5 * CELL }), "tortuga") };
+  // Tortuga: ONE square with its four T-docks baked into the cut (Wyatt's remake, 2026-08-25 —
+  // the + of five squares is retired). The island treatment of the nine, a big anchor, no name.
+  const plug = { name: "tortuga", mat: MAT, items: tag(xf(tortugaPiece(), { tx: -0.5 * CELL, ty: -0.5 * CELL }), "tortuga") };
   const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([k === 0 ? canonNW : canon], k), `seam-${q.id}`)), ...raster, ...tag(gridLines(valid), "grid"), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga")];
   const assembled = { id: "board-assembled", title: "The board, assembled", kind: "design", items: xf(assembledItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 5,
-    notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four quadrants lock with three puzzle knobs per seam; the north-west one carries the centre square. Tortuga is a +-shaped 6 mm piece that sits on top of the board like the islands do — anchor and name in the middle, a berth on each arm — over a dotted outline that shows where it goes. Seams run along the grid lines, so every square is whole on one piece. Rim marks are the app's own wind chevron; the water is the art's brush strokes.` };
+    notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four quadrants lock with three puzzle knobs per seam; the north-west one carries the centre square. Tortuga is a ONE-square 6 mm island with its four T-docks baked into the cut — a big anchor in the middle, no name — sitting on the board over a dotted outline of its silhouette; ships berth broadside against the dock heads in the four squares around it, where the water now runs. Seams run along the grid lines, so every square is whole on one piece. Rim marks are the app's own wind chevron; the water is the art's brush strokes.` };
   return { assembled, quadrants, plug, Rb };
 }
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
@@ -1417,7 +1494,7 @@ const part = (name, items) => ({ name, items });
 const VERSIONS = [
   { id: "v1", dir: "v1-plank", name: "V1 · The Plank", blurb: "A square plank with the round world engraved into it. The corners earn their keep: the wind dial lives top-left with its pivot cut into the board, a compass rose top-right, the title along the bottom. Docks are two-layer piers that overhang onto the island (glue the plank on top). Square crates, straight rim arrows, standing sloops." },
   { id: "v2", dir: "v2-pixel", name: "V2 · The Pixel World", blurb: "The board is cut along the stepped edge of the world itself — the sea IS the board. Jigsaw docks click into sockets cut in every island edge. Round tokens with the ingredient knocked out of a black badge, double-chevron rim (the app's own wind glyph), a 20-sector weather wheel with the storm odds built in, standing galleons." },
-  { id: "v3", dir: "v3-round", name: "V3 · The Round Table", blurb: "A true circle with a double ring at the water's edge, cut in five: four identical jigsaw quadrants whose seams follow the grid lines around Tortuga, and Tortuga itself as the centre plug. Rim marks are the app's own wind chevron. Docks moor to islands with a little standing post dropped through matching slots. Hexagonal crates, a plain wind dial plus a separate 5-sector storm spinner, flat disc ships." },
+  { id: "v3", dir: "v3-round", name: "V3 · The Round Table", blurb: "A true circle with a double ring at the water's edge, cut in five: four identical jigsaw quadrants whose seams follow the grid lines around Tortuga, and Tortuga itself as the centre plug. Rim marks are the app's own wind chevron. T-shaped cut-out docks snap into a notch on any island edge; Tortuga is a one-square island with its four docks baked in. Hexagonal crates, a plain wind dial plus a separate 5-sector storm spinner, flat disc ships." },
 ];
 
 function buildVersion(V) {
@@ -1433,7 +1510,7 @@ function buildVersion(V) {
   const dockParts = dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));
   const dockExtras = dp.flatMap((d, i) => d.extra.length ? [part(v === "v1" ? `pier-top-${ING[i]}` : `mooring-post-${ING[i]}`, d.extra)] : []);
   cutParts.push(...dockParts, ...dockExtras);
-  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece, as drawn: the pier's 9 mm deck runs to the island side and becomes the tab (9 × 2.5 mm, 0.15 mm of play) that plugs into any notch on any island; planks to the tab's end; the four bollards touch the deck." }));
+  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "The cut-out T (Wyatt, 2026-08-25): the pier itself is the piece — 9 mm stem whose deck becomes the unchanged 9 × 2.5 mm tab (0.05 play), 12.5 mm total reach so the head's outer face sits on the square's midline, 18 × 3.5 mm head with 1 mm rounds and a straight berth face the 24 × 12 hull lies broadside against. Planks run onto the tab; the head's planks turn 90°. The four bollards are half-round lugs CUT into the stem's sides — his pen drawing." }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
   const TOKEN_PAD = "cutC";   // Wyatt, 2026-08-25: "This is the correct amount of padding (C)"
   const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }) : TOKEN[v].crate(ing, 0, 0))));
