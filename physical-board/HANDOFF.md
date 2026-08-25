@@ -111,6 +111,19 @@ building anything non-trivial, read every screenshot he sends pixel by pixel, QA
 before he sees them, restate every mid-flight instruction, and never claim a defect or a fix you
 have not looked at.
 
+## 8c. His caliper numbers, and the one-offs (2026-08-25, later)
+
+From the uncompensated test pieces: **dock tab 8.7** (kerf 0.30 on outer cuts), **island notch 9.4**
+(kerf 0.25 on holes), **"6 mm" ply is really 5.9**. KERF's default is now **0.275** — the average,
+because with one compensation value the tab and socket errors cancel and every joint lands on its
+designed play. MAT = 5.9. **MAT3 = 2.6 — his caliper number for the "3 mm" ply (same day), a 0.4 mm lie by the label.**
+Kerf 0.275 was measured on the 5.9 mm stock; the first thin-ply cut is the coupon for thin kerf —
+the sail tab is drawn 6.9 wide; if it calipers under 6.9, split KERF by material rather than
+re-averaging.
+
+He test-cuts on scrap offcuts one file at a time, so there are four single-material one-off files:
+`one-ship-hull`, `one-ship-sails`, `one-crate`, `one-chest` (one unit each, captains identical now).
+
 ## 8b. THE FIRST WOOD (2026-08-25) — and the kerf lesson
 
 He cut islands, docks and tokens — the set exists physically. The docks "totally wiggle" (~0.5 mm):

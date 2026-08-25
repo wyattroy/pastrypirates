@@ -27,8 +27,11 @@ const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf("--" + k); return i >= 0 ? Number(argv[i + 1]) : d; };
 
 const CELL = opt("cell", 25);          // mm per grid square (Wyatt, 2026-08-22: 25)
-const MAT  = opt("material", 6);       // sheet thickness, mm (slot widths derive from it) — 6 mm everything
-const KERF = opt("kerf", 0.18);        // beam width; cutting sheets are offset by half of this so pieces come out true size
+const MAT  = opt("material", 5.9);     // thick-sheet thickness, mm — Wyatt calipered his "6 mm" ply at 5.9 (2026-08-25)
+const KERF = opt("kerf", 0.275);       // beam width, MEASURED from Wyatt's 2026-08-25 test cut (uncompensated files):
+                                       // dock tab 8.7 of 9.00 drawn = 0.30 on outer cuts; island notch 9.4 of 9.15 =
+                                       // 0.25 on holes. The average — the two errors cancel, so every joint lands on
+                                       // its designed play. Every cut file is offset by half of this.
 const BED_W = opt("bedw", 600), BED_H = opt("bedh", 400), BED_MARGIN = 6;   // his laser bed
 const ONLY = (argv.includes("--versions") ? argv[argv.indexOf("--versions") + 1] : "v3").split(",");
 const GRID = 15;                        // engine: cfg.grid
@@ -341,7 +344,7 @@ const ING_NAME = { wheat: "TOASTY WHEAT", dairy: "FRESH MILK", sugar: "CRYSTAL S
 const CAPTAINS = ["CRUMBLE", "BISCOTTI", "GINGERSNAP", "SHORTBREAD"]; // pink, teal, green, orange in the app
 // the game's own recipe book — 21 named recipes, one per 5-of-7 combination (4/src/ui/recipe.js)
 const RECIPE_BOOK = (await import(path.join(HERE, "..", "4", "src", "ui", "recipe.js"))).RECIPE_BOOK;
-const MAT3 = 3; // the thin material: spinner, crates, chests, cards
+const MAT3 = opt("material3", 2.6); // the thin material: spinner, crates, chests, sails — Wyatt calipered his "3 mm" ply at 2.6 (2026-08-25)
 // the ingredient art itself, traced by art/trace.py: cut = silhouette loops, raster = the drawing's ink
 const ART = JSON.parse(fs.readFileSync(path.join(HERE, "art", "ingredients.json"), "utf8"));
 const TOKEN_MM = 20; // the longest side of a token; one sits on each island square of 25
@@ -1438,6 +1441,17 @@ function buildVersion(V) {
     cutParts.push(...crateParts, ...chestParts);
     docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: "One open crate per captain, 44 × 30 × 18 mm in 3 mm ply: three slats a side with real gaps cut between them, solid corner posts, box joints. Tokens stand on edge in it, icons showing — cargo is public, as in the game. Paint to mark whose it is." }));
     docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 32 mm in 3 mm ply. Box-jointed body (20 mm) and lid (12 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; no captain's mark — paint it, like the crates (the engraved marks read as drilled holes on a lid). The blue labels are for reading only — they are NOT in the cut files: vertical corners 1–4 clockwise from front-left (L1, L2 on the lid, whose back is the hinge strip); a wall's bottom says which plate edge it meets (B·F = base front, T·K = lid top back); H = the hinge; the two RAIL strips (42 × 5 mm) glue inside the lid's end walls under the engraved line. See the mockups for the whole thing open and closed." }));
+
+  // one-offs for scrap-by-scrap test cuts (Wyatt, 2026-08-25: "i'm printing these test runs on scraps of wood
+  // offcuts ... give me the ships, crates, and chests as 1-offs") — one unit each, split by material so each
+  // file goes onto one scrap. Captains no longer differ on any of these (marks are painted), so one of each is all.
+  if (v === "v3") {
+    const oneShip = ship3d(0);
+    docs.push(sheet("one-ship-hull", "One ship — hull (test cut, thick ply)", oneShip.filter(p => p.mat === MAT), { notes: `A single hull, ${MAT} mm ply. Kerf-compensated — cut on the line.` }));
+    docs.push(sheet("one-ship-sails", "One ship — sails (test cut, thin ply)", oneShip.filter(p => p.mat === MAT3), { notes: `One mainsail and one jib, ${MAT3} mm ply. Kerf-compensated — cut on the line.` }));
+    docs.push(sheet("one-crate", "One cargo crate (test cut, thin ply)", cargoCrate(CAPTAINS[0]), { maxW: 110, notes: `A single crate, ${MAT3} mm ply: four slatted walls and the base. Kerf-compensated — cut on the line.` }));
+    docs.push(sheet("one-chest", "One treasure chest (test cut, thin ply)", treasureChest(CAPTAINS[0]), { maxW: 175, notes: `A single chest, ${MAT3} mm ply: body, lid, hinge strip, two card rails. Blue labels are read-only, not engraved. Kerf-compensated — cut on the line.` }));
+  }
   }
   docs.push(sheet("extras", "Extras", extraParts, { notes: "A rules card with the numbers the app keeps for you. (The storm cloud and first-player wheel were cut on 2026-08-25 — the needle parked in a storm wedge is the forecast.)" }));
   if (v === "v3") docs.push(...mockups(five, { islandParts, dockParts, crates, whirlParts, spParts, shipParts, crateParts: CAPTAINS.flatMap(c => cargoCrate(c)), chestParts: CAPTAINS.flatMap(c => treasureChest(c)), recipeParts }));

@@ -74,7 +74,7 @@ marks on each captain's ship, crate and chest.
 
 ## Cutting
 
-- **Kerf 0.18 mm** (set it from a caliper measurement with `--kerf`), compensated in **every cut
+- **Kerf 0.275 mm** — measured from the 2026-08-25 test cut (set yours with `--kerf`), compensated in **every cut
   file** — sheets and per-group files alike; `board-assembled` is the one uncompensated design view.
   Every cut line is pushed half a kerf away from the wood that stays (outward on outlines, inward on
   holes). Knob/socket play is 0.1 mm; the dock tab snaps at 0.05 mm.
