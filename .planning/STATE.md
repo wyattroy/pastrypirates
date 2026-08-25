@@ -9,7 +9,7 @@ milestone_name: The New Game
 current_phase: "02.2"
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
-stopped_at: "2026-08-25. THE PULSE BUG IS SOLVED and confirmed green by Wyatt on his own iPhone — live as PP4_STAMP 2026-08-25f. Full account in HANDOFF-2026-08-25.md; ledgers closed in .planning/debug-pulse/. Also shipped: the narration bubble no longer flips sides mid-run, two placements stopped measuring a pulsing button, and every shared grey helper line is gone except the dock coin flip's, which he kept. HIS BIGGEST OPEN RULING, scoped in the handoff §2: nothing should be laid out until the camera anchors — the :not(.pendingReveal) fix is an explicit stopgap until that lands. THE ROADMAP'S OWN STATUS TABLE IS STALE and no phase-level percentage should be trusted until somebody audits it: 02.15 reads Planning with 2/2 plans summarised, 05 reads Not started with 1/1, and 04 reads In Progress while the 2026-08-23 note reports it complete."
+stopped_at: "2026-08-25. THE PULSE BUG IS SOLVED and confirmed green by Wyatt on his own iPhone — live as PP4_STAMP 2026-08-25f. Full account in HANDOFF-2026-08-25.md; ledgers closed in .planning/debug-pulse/. Also shipped: the narration bubble no longer flips sides mid-run, two placements stopped measuring a pulsing button, and every shared grey helper line is gone except the dock coin flip's, which he kept. CLOSED 2026-08-25 (D-57): the camera-anchor rewrite is NOT happening. Wyatt approved the current architecture — \"i like that the narration arrives before the camera settles\" — so :not(.pendingReveal) is the DESIGN, not a stopgap, and the early-build path stays. Do not plan it; do not re-ask it. Handoff §2 has the full ruling. THE ROADMAP'S OWN STATUS TABLE IS STALE and no phase-level percentage should be trusted until somebody audits it: 02.15 reads Planning with 2/2 plans summarised, 05 reads Not started with 1/1, and 04 reads In Progress while the 2026-08-23 note reports it complete."
 last_updated: "2026-08-25T18:00:00.000Z"
 last_activity: 2026-08-25
 last_activity_desc: the pulse bug is solved — the swell is granted at reveal, the narration bubble stops flipping sides, and every shared helper line is gone
@@ -72,8 +72,10 @@ build step — nothing here is ever a cache.
 ## Current Position
 
 **→ START HERE: [`HANDOFF-2026-08-25.md`](./HANDOFF-2026-08-25.md)** — written 2026-08-25 when Wyatt
-cleared context. THE PULSE BUG IS SOLVED (build 2026-08-25f); his open design ruling — "nothing laid
-out until the camera anchors" — is scoped in its §2. It supersedes the 2026-08-21 handoff below.
+cleared context. THE PULSE BUG IS SOLVED (build 2026-08-25f). Its §2 no longer holds an open ruling:
+Wyatt CLOSED the camera-anchor question on 2026-08-25 (D-57) by approving the current architecture —
+the early-build path stays and `:not(.pendingReveal)` is permanent. It supersedes the 2026-08-21
+handoff below.
 
 <!-- superseded -->
 [`HANDOFF-2026-08-21-evening.md`](./HANDOFF-2026-08-21-evening.md) — written 2026-08-21 when Wyatt

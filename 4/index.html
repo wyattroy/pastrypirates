@@ -2400,15 +2400,15 @@
      when the animation lands, so there is nothing for an engine to decline. It costs nothing on
      engines that were already correct.
 
-     THIS IS A STOPGAP AND IT IS NOT THE ARCHITECTURE. Wyatt, same day: "the fan should not be
-     laid out at all, until the camera anchors. the fact that any narrations, or prompt buttons,
-     are laid out BEFORE the camera anchors is a huge cause of messy jitters in narration boxes
-     that i've been trying to solve for a long time." He is right, and this bug is that fault
-     wearing a different coat: a prompt built early and then hidden is a prompt whose layout AND
-     whose animation are both computed against a board that is still moving. The real fix is to
-     BUILD NOTHING until the camera has anchored, at which point this `:not(.pendingReveal)`
-     becomes redundant and should be deleted with the rest of the early-build path. Do not treat
-     it as settled design. ==================================================================== */
+     THIS IS SETTLED DESIGN. It was written as a stopgap, and Wyatt closed that question the same
+     day (D-57, `.planning/phases/02.2-.../02.2-CONTEXT.md`). He had proposed building nothing until
+     the camera anchors; shown this selector as the interim, he ruled: "this is no longer open... I
+     approve of the current architecture, i like that the narration arrives before the camera
+     settles." The early-build path STAYS, prompts continue to travel with the director, and there
+     is no follow-up change that deletes these `:not(.pendingReveal)` selectors.
+
+     KEEP THEM. Removing one re-opens the pulse bug on his phone, and no engine you can reach will
+     tell you so. ========================================================================== */
   #flipCoinWrap.active,
   .ahoyGlow,
   #pp4Prompt.pp4Center #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
