@@ -956,15 +956,19 @@ function tArmPts(m, t, o, { lugs = true } = {}) {
   const { stem, reach, head, headD, r, lug, lugAt } = TDOCK, hs = stem / 2, hh = head / 2, d0 = reach - headD;
   const pts = [], P = (u, d) => pts.push([m[0] + t[0] * u + o[0] * d, m[1] + t[1] * u + o[1] * d]);
   const arc = (cu, cd, rr, a0, a1, n = 6) => { for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; P(cu + rr * Math.cos(a), cd + rr * Math.sin(a)); } };
+  // bollards are FULL circles, as his pen drawing has them (2026-08-25, second correction — the
+  // first build cut semicircles): the circle's centre stands `bite` short of a full radius off the
+  // stem's edge, so almost the whole ring shows and a ~1.5 mm neck of wood attaches it
+  const bite = 0.8, A = Math.acos(bite / lug);
   P(-hs, 0);
-  if (lugs) for (const d of lugAt) arc(-hs, d, lug, -Math.PI / 2, -1.5 * Math.PI, 8);
+  if (lugs) for (const d of lugAt) arc(-hs - bite, d, lug, -A, -(2 * Math.PI - A), 12);
   P(-hs, d0);
   arc(-hh + r, d0 + r, r, -Math.PI / 2, -Math.PI, 4);
   arc(-hh + r, reach - r, r, Math.PI, Math.PI / 2, 4);
   arc(hh - r, reach - r, r, Math.PI / 2, 0, 4);
   arc(hh - r, d0 + r, r, 0, -Math.PI / 2, 4);
   P(hs, d0);
-  if (lugs) for (const d of [...lugAt].reverse()) arc(hs, d, lug, Math.PI / 2, -Math.PI / 2, 8);
+  if (lugs) for (const d of [...lugAt].reverse()) arc(hs + bite, d, lug, Math.PI - A, -(Math.PI - A), 12);
   P(hs, 0);
   return pts;
 }
@@ -976,11 +980,14 @@ function tArmRaster(m, t, o, inshore) {
   const { stem, reach, headD, head } = TDOCK, hs = stem / 2, hh = head / 2, d0 = reach - headD;
   const Pt = (u, d) => [m[0] + t[0] * u + o[0] * d, m[1] + t[1] * u + o[1] * d];
   const Q = (u0, dA, u1, dB) => polyCmds([Pt(u0, dA), Pt(u1, dA), Pt(u1, dB), Pt(u0, dB)]);
+  // ONE plank language on both parts of the T (his third correction: the first build reversed the
+  // figure-ground between stem and head): planks 1.5, bare seams 0.4, everywhere
+  const PITCH = 1.9, GAP = 0.4;
   const deck = Q(-hs, -inshore, hs, d0 - 0.3), slits = [];
-  for (let d = -inshore + 1.9; d < d0 - 0.9; d += 1.9) slits.push(reverseSub(Q(-hs + 0.5, d - 0.35, hs - 0.5, d + 0.35)));
+  for (let d = -inshore + PITCH; d < d0 - 0.9; d += PITCH) slits.push(reverseSub(Q(-hs + 0.5, d - GAP / 2, hs - 0.5, d + GAP / 2)));
   const hd = Q(-hh + 0.6, d0 + 0.3, hh - 0.6, reach - 0.6), hSlits = [];
-  const nS = Math.floor((head - 3.4) / 1.9);   // slits centred on the stem so the bar's two end boards match
-  for (let i = 0; i < nS; i++) { const u = (i - (nS - 1) / 2) * 1.9; hSlits.push(reverseSub(Q(u - 0.35, d0 + 0.3, u + 0.35, reach - 0.6))); }
+  const nS = Math.floor((head - 3.4) / PITCH);   // slits centred on the stem so the bar's two end boards match
+  for (let i = 0; i < nS; i++) { const u = (i - (nS - 1) / 2) * PITCH; hSlits.push(reverseSub(Q(u - GAP / 2, d0 + 0.3, u + GAP / 2, reach - 0.6))); }
   return [item(RA, [deck, ...slits]), item(RA, [hd, ...hSlits])];
 }
 // Tortuga, remade (same rulings): a ONE-square island wearing the treatment of the nine — straight
