@@ -134,7 +134,7 @@ scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3.
 A one-way promotion. `4/` forked 2026-08-11; the root has had no code commit since 2026-08-02.
 
 - [ ] **CUT-01**: `playpastrypirates.com` serves the promoted game
-- [ ] **CUT-02**: Today's game stays playable at `/classic`, so no existing bookmark breaks
+- [ ] **CUT-02**: Today's game stays playable at `/classic`, so no existing bookmark breaks. **DECIDED 2026-08-25 (D-60): `/4` BOUNCES to the front page** — it neither 404s nor serves a second copy of the game.
 - [ ] **CUT-03**: `v2/`, `v2bakeoff/` and `3/` are removed from the working tree (~40k lines; preserved in git history)
 - [ ] **CUT-04**: The promoted game is indexable — `noindex, nofollow` removed from `4/index.html:10`, `robots.txt` `Disallow: /4/` resolved, `sitemap.xml` correct, and the page title no longer reads `v3 bot test`
 - [ ] **CUT-05**: Every image resolves from the root (`ASSET_BASE="../assets/"` at `4/src/shared/index.js:24` points one directory above the app)
@@ -174,10 +174,10 @@ disagree with the code.
 ### Standalone Fixes (FIX)
 
 - [x] **FIX-01**: The new game's turn-clock preference is stored under its **own** key, so its default does not reach into the other game. **The default being OFF is intentional (Wyatt, 2026-08-18) and must not be changed** — the defect is only that `4/src/ui/stage.js:1478` writes the shared, un-namespaced `pp_timerOff`, which v1 reads at `src/orchestrator.js:1399` and pushes to the whole room at `:1404`. `4/` already namespaces `pp4_sess` and `pp4_solo`; this key was missed. The fix survives the cutover, where the new game and `/classic` still share one origin and want opposite defaults.
-- [ ] **FIX-02**: `?ovens=1` (skips the entire 16-day voyage) and `?windhud=1` are gated or removed before the game is public
+- [ ] **FIX-02**: `?ovens=1` (skips the entire 16-day voyage) and `?windhud=1` are gated or removed before the game is public. **DECIDED 2026-08-25 (D-58): GATED, not removed** — both stay, behind a developer key stored in the browser, so a shared link cannot unlock them. `?ovens=1` is Wyatt's own instrument and he extended it to crew games the day before. `?bakeoff=0/1` is explicitly OUT of scope.
 - [ ] **FIX-03**: The sparse-draft crash at `4/src/orchestrator.js:1591` is fixed, along with the unguarded `.val()` at `:1501` and the unescaped host HTML at `:1239`
 - [ ] **FIX-04**: Safari storm performance is re-measured on a real device — the BUG-01 fix is intact, but rain is now full-viewport (~5× paint area) and a 60fps camera tween runs during storms, and this has never been measured on Safari
-- [ ] **FIX-05**: The wind-dot prototype's shipping default is a decision, not an accident (`4/src/ui/board.js:570` ships `true` at 20 dots; live deliberately keeps it `false` at 10)
+- [ ] **FIX-05**: The wind-dot prototype's shipping default is a decision, not an accident (`4/src/ui/board.js:570` ships `true` at 20 dots; live deliberately keeps it `false` at 10). **DECIDED 2026-08-25 (D-59): ships ON at 20** — Wyatt, declining an offer to measure it first: *"it's well measured in safari, i've been playtesting it all week."* The requirement is met by making that value deliberate and **correcting the comment at `:569`, which says "Off by default" directly above `=true`.**
 - [x] **FIX-06**: The dead bot brain is resolved — `planTurnClassic` (`4/src/engine/index.js:2739`, ~210 lines) has zero callers and `planTurn:2197` dispatches to v3 unconditionally
 
 ---
