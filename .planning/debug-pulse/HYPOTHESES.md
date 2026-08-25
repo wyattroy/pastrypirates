@@ -4,25 +4,42 @@
 its experiment runs. Killed theories never come back. No fix may be proposed from a theory still
 marked OPEN. Claims are labelled measured / observed-once / inferred.**
 
-**The symptom, stated precisely:** action-prompt buttons that should carry the swell are sometimes
-completely static — same build, same session, no reload — on iPhone Safari (frame-measured), and
-reported on desktop Safari and Chrome. When the swell runs, it is correct (his confirmation:
-"I can see the swelling when it is being correctly triggered; the problem is that it is sometimes
-not triggered at all").
+**The symptom, stated precisely (sharpened 2026-08-24 by the 5-minute recording):** action-prompt
+buttons that should carry the swell are sometimes completely static — same build, same session, no
+reload, no hide — on iPhone Safari (frame-measured), and reported on desktop Safari and Chrome.
+When the swell runs, it is correct (his confirmation: "I can see the swelling when it is being
+correctly triggered; the problem is that it is sometimes not triggered at all").
+
+**What the 5-minute recording adds, and it narrows the search enormously:** the freeze is BORN WITH
+A PROMPT and dies with it — a dead menu is followed 4 seconds later by a fully alive trade fan on
+the same un-reloaded page — and it is ALWAYS THE SAME PROMPT: the "Wyargh, what'll ye do:" turn
+menu, 5 of its 7 appearances, against 0 of the other 14 prompts measured. This is not an episode
+that sweeps the page. It is one prompt being built wrong.
 
 ## OPEN
 
+**Everything below is reasoning about ONE fact, established 2026-08-24 by the 5-minute recording
+(EVIDENCE.md): the freeze is BORN WITH A PROMPT, it is always the same prompt — the
+"Wyargh, what'll ye do:" TURN MENU (5 of its 7 appearances; 0 of the other 14 prompts) — and the
+page around it is entirely healthy while it is frozen.**
+
 | # | Hypothesis | Prediction | Kill criterion | Status |
 |---|---|---|---|---|
-| H1 | **Stuck animation clock**: Safari suspends the page's CSS-animation timeline on a hide (Control Center, app switch, lock) and sometimes fails to resume it; while stuck, even NEWLY created animations are frozen; a later hide/show unsticks it. | Deaths cluster after visibility events; whole-page (all prompts dead together); revives page-wide at a later visibility event. | Beacon shows a frozen probe-animation clock with NO preceding visibility event; or clock never freezes across many hide/show cycles on his phone. | OPEN — best fit for the 4-clip dead/dead/alive/alive split on one un-reloaded page |
-| H2 | **The screen recorder is the perturbing event** (ReplayKit takeover, not visibility per se). | Deaths only ever occur in recorded sessions. | One frozen-pulse observation on the phone with no recording running (beacon log suffices). | OPEN |
-| H3 | **Birth-at-the-boundary**: animations created in the same instant as a visibility flip start life suspended even when the clock otherwise recovers. | Dead prompts are specifically those that appeared during/just after a hide; the next naturally-born prompt is alive. | Beacon shows a prompt born >2s away from any visibility event with frozen buttons. | OPEN |
-| H4 | **Tick-loop death** (stage.js): one uncaught exception kills the per-frame loop; the watchdog cannot revive it (S.raf holds a stale truthy id — verified by code read, `tick()`/watchdog, stage.js ~2989/3024). Prompts after a death render without the fan costume. | Dead prompts are card-styled rows, camera frozen, permanent until reload. | The four iPhone clips show correctly-fanned CIRCLES while dead → tick was alive for those. KILLED **for the recorded clips**; stays OPEN as a latent fragility for other reports (desktop?). | OPEN (latent) |
+| H2 | **The screen recorder is the perturbing event** (ReplayKit takeover). | Deaths only ever occur in recorded sessions. | One frozen-pulse observation on the phone with no recording running (beacon log suffices). | OPEN but WEAKENED — the recorder ran for all 289s of the 5-minute clip and 16 prompts pulsed perfectly, so recording cannot be SUFFICIENT. |
+| H4 | **Tick-loop death** (stage.js): one uncaught exception kills the per-frame loop; the watchdog cannot revive it (`S.raf` holds a stale truthy id, stage.js ~2989/3024). | Dead prompts render without the fan costume; camera frozen; permanent until reload. | Dead prompts drawn as correctly-fanned CIRCLES over a live board. | OPEN (latent only) — killed again by the 5-minute clip: dead petals are correctly fanned circles and the board around them animates. Stays on the hardening list. |
+| H5 | **Born behind the settle gate.** `#actionPanel.pendingReveal` holds radial petals at `visibility:hidden !important` until `Promise.all([revealDone, settledP])`, and `settledP` is `stageSettled()` — *"waits on the camera tween and the ship's rendered transform"* (panel.js ~675). The turn menu is the one prompt reliably built while the boat is still arriving. | Exactly the prompts born during board motion die; prompts built on a still board live. | An isolated WebKit page where a petal born `visibility:hidden` and revealed later fails to swell. | **KILLED as a standalone mechanism** — see the isolated test in EVIDENCE.md: case B swings at full 1.15. Survives ONLY as "the gate plus something else the isolated page lacks". |
+| H6 | **Camera-layer compositing.** The petals are `position:fixed` inside an ancestor carrying a live `transform` during the director's glide; WebKit discards an animation started in a layer being transformed. | Same deaths; a petal outside a moving layer pulses fine. | An isolated WebKit page where a tweening transformed ancestor makes no difference. | **KILLED as a standalone mechanism** — cases C, D, F all swing at 1.15. |
+| H7 | **Hidden birth alone**, regardless of the camera. | ALL radial prompts should die. | Any radial prompt measured alive. | **KILLED** — 16 of 21 prompts alive in one recording, and case B swings in WebKit. |
+| H8 | **Something in the turn menu's own build path, not the reveal gate.** The turn menu is the only prompt assembled from the engine's own turn-open sequence (digest ⏩ → sail prompt → menu) rather than from a player tap. Whatever it is, it is invisible to a 12-case isolated page — the freeze needs the real game. | The full-game WebKit run reproduces flat turn menus while its trade fans pulse. | The full-game WebKit run shows every prompt pulsing — which would push the whole bug back onto iOS-Safari-specific engine behaviour and make his device the only instrument. | **OPEN — the live front-runner.** Nothing has tested it yet. |
+| H9 | **iOS Safari differs from every WebKit we can drive.** Playwright's WebKit 26.5 and WebKitGTK 2.52 both behave correctly; his iPhone does not. | No headless engine will ever reproduce it. | Any headless reproduction at all. | OPEN — the fallback if H8's experiment comes up green. Costly: it makes his phone the only instrument. |
 
 ## KILLED — do not resurrect
 
 | Theory | Killed by |
 |---|---|
+| **H1 — stuck animation clock** (the long-standing front-runner) | **The 5-minute recording, 2026-08-24.** During BOTH measured dead windows the board's `.rimFlow` current arrows run at full amplitude on a clean 2.53–2.60s period — `rimDrift 2.6s linear infinite`, a plain CSS animation on the same page, in the same frames where the buttons are flat to within 8px of area. The page's animation timeline is not stuck; only the buttons are out. |
+| **H3 — birth at a visibility boundary** | **The 5-minute recording, 2026-08-24.** Safari's chrome bar is present and identically bright in all 1,158 sampled frames across 289 continuous seconds (status clock 6:49→6:54 unbroken). There was NO hide, app switch or lock in the whole recording, and five prompts died anyway. |
+| Hidden birth / tweening-camera ancestor / late ancestor class / reparenting / per-frame position or attribute churn, as STANDALONE WebKit mechanisms | **The isolated WebKit 26.5 test, 2026-08-24** (EVIDENCE.md). Twelve birth conditions carrying the game's own `pp4Grow` keyframes; all twelve swing at ratio 1.15 with a monotonic animation clock. Red-proofed: the plain control swings. |
 | macOS/iOS Reduce Motion | His check: setting is OFF (2026-08-24). |
 | Greyed-circle perception | His ruling: "these look fine, they are not the problem." Banned. |
 | Card/slider rows' gentle swell | His ruling: "this is not the problem." |
