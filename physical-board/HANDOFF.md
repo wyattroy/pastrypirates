@@ -34,14 +34,14 @@ lettering (Georgia, Avenir Next) as outlines from `fonts/extract.py`.
 |---|---|---|
 | Board | not yet approved | Four jigsaw quadrants on grid-line seams; NW carries the centre square; a **dotted outline** where Tortuga sits; water = short brushy wave strokes (not rings); rim = the app's chevron. |
 | Tortuga | (part of board) | A **+‑shaped piece that sits ON the board**, same style as the islands, says "Tortuga", **no anchor**, berth piers on the arms **reaching the middle square**, no palm. |
-| Islands (9) | **round five built to his second drawing — not yet seen by him, see §8** | Per `notes/islands.jpeg` and his answers: straight-edged cut, 5 mm corners; shore line + grass line (0.6 mm, each waving its own way) with bare wood between as the beach; **notch floor bites 0.3 mm into the shore line**; one mark per square — wind-blown palm (H), three stones (C), the game's tuft (C), all his picks from rendered line-ups. Shapes 8/9 = mirrored L and S. |
+| Islands (9) | **APPROVED 2026-08-25** | Per `notes/islands.jpeg` and his answers: straight-edged cut, 5 mm corners; shore line + grass line (0.6 mm, each waving its own way) with bare wood between as the beach; **notch floor bites 0.3 mm into the shore line**; one mark per square — wind-blown palm (H), three stones (C), the game's tuft (C), all his picks from rendered line-ups. Shapes 8/9 = mirrored L and S. |
 | Docks (7) | "these look good" then widened | Pier whose **9 mm deck becomes the tab** (9 × 2.5, 0.15 play), planks to the tab's end, **bollards touching the deck**, no anchor. |
 | Ingredient tokens (28) | **C picked (2026-08-25), two defects fixed, not re-approved yet** | Padding C on the sheets. His two findings fixed in `trace.py`: the dilation clipped flat at the PNG canvas (a 24 px margin is now added first), and a 1 px speck under the sugar grew into a notch (specks are dropped from the raw silhouette before dilation). Options A and B removed from the page (2026-08-25: "I like c best"). |
 | Whirlpools (4) | **approved** | 3 mm tile, the swirl art traced. Do not touch. |
-| Spinner | not yet approved | Backing disc + compass dial (glued) + turning ring with a slot + flat balanced needle + standing **WIND NOW vane**. Storm wedges on the diagonals, centre-to-rim, **the 🌩️ emoji silhouette knocked out** (`art/storm-emoji.png`, rendered by Chrome on black) with STORM. |
+| Spinner | **rebuilt to his 2026-08-25 notes — not yet seen** | His five notes, all done: cloud padded ~0.9 mm off the wedge edges; STORM across the wedge's wide end, tops toward the hub (outside the needle's reach); anchor removed; WIND NOW on the flag at 4.2 mm; the needle is now a compass needle — symmetric rhombus, the POINTING half rastered. |
 | Ships (4) | **skull added 2026-08-25 — not yet seen** | 6 mm hull + two 3 mm sails; his reference skull (art/skull-ref.png, traced black-on-white; the ☠️ emoji was tried first and rejected on sight) big on BOTH sail faces — sails settled by the question UI; overrules "plain sails". |
 | Cargo crates (4) | **approved** | Slatted, box-jointed, no captain marks. |
-| Treasure chests (4) | not yet approved | Box-jointed body 20 + lid 12; hinge = chest back wall tongues + a 2.4 mm **hinge strip** under the lid top + 3 mm dowel; 0.15 mm side play on tongues; card rails 5 mm; **labels are blue GUIDE layer, page-only, never in cut files**. |
+| Treasure chests (4) | **lids cleaned 2026-08-25 — not yet seen** | His note "remove the holes from the chest lid": the holes WERE the captains' marks (CRUMBLE's plain mark = one dot, GINGERSNAP's = a dot field); his pick via the question UI: no marks on lids, paint like the crates. Hinge/knuckle holes untouched (the dowel needs them). Body, hinge, rails as before. |
 | Extras | rules card only | Storm token and first-player wheel DELETED (2026-08-25, his call: “the game doesn't need them”) — the needle parked in a storm wedge is the forecast. Rules card unchanged. |
 | Recipe cards (21) | liked, egg fixed | The game's 21 recipe titles, ink icons in the app's rounded-square chip. |
 | Mockups | — | Isometric renders on the page: board on the table, ship, chest open + closed, spinner, crate. Built from the real cut geometry (`isoScene`). |
@@ -110,6 +110,15 @@ Plain English, state the size of what you did, ask 2–5 questions with the ques
 building anything non-trivial, read every screenshot he sends pixel by pixel, QA your own renders
 before he sees them, restate every mid-flight instruction, and never claim a defect or a fix you
 have not looked at.
+
+## 8a. DXF: raster arrives FILLED (2026-08-25)
+
+Wyatt, mid-session: "your dxf files don't correctly save the black raster area as filled in." The DXF
+writer now emits **R2000 with one solid HATCH per raster item** (loops = the item's sub-paths,
+odd-parity so holes stay open); CUT stays bare LWPOLYLINE/CIRCLE. Validated by loading every emitted
+DXF with `ezdxf` (recover + audit, zero errors across all 19 files) — but ezdxf is not Rhino:
+**have him eyeball one file in Rhino before a cut.** Stale crates-a/b and markers files were deleted
+from v3-round when the A/B options went.
 
 ## 8. Round five — the islands from his SECOND drawing (2026-08-22, evening)
 

@@ -62,8 +62,8 @@ that drops through a hull slot and sits flush underneath; the ship stands about 
 - **Treasure chests, 4.** 80 × 54 × 30 mm: a box-jointed body (20 mm) and lid (10 mm) hinged on a
   3 mm dowel (a bamboo skewer) through five knuckles. The lid is a shallow box: your recipe card lies
   inside it against the top, held by two rails glued to the lid's end walls along the engraved line,
-  so only you read it when you open the chest. Straps, rivets, lock plate, the captain's mark (no
-  names — players choose their own). Assembly labels face the inside: corners 1–4 clockwise from
+  so only you read it when you open the chest. Straps, rivets, lock plate — no captain's mark: paint it,
+  like the crates (engraved marks read as drilled holes on a lid). Assembly labels face the inside: corners 1–4 clockwise from
   front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets (B·F = base front,
   T·K = lid top back), H = the hinge. The lid's back is a hinge strip under the top plate (2.4 mm
   body, fingers into the plate) whose tongues hang between the chest's.
@@ -89,7 +89,7 @@ python3 physical-board/fonts/extract.py physical-board/fonts/glyphs.json  # re-e
 ## Opening in Rhino
 
 - **SVG**: `Import`; millimetres; `CUT` and `RASTER` are layer-named groups.
-- **DXF**: R12, layers `CUT` (colour 1) and `RASTER` (colour 7), polylines. Set units to mm.
+- **DXF**: R2000, layers `CUT` (colour 1, bare curves) and `RASTER` (colour 7, **solid hatches** — the raster areas arrive filled). Units mm.
 - Red hairline = cut. Black fill = engrave.
 
 ## Assembly

@@ -1265,7 +1265,7 @@ function treasureChest(captain) {
   parts.push(part(`chest-${captain}-lid-hinge`, [...hingeStrip(wFront, t), ...lab("H", wFront / 2, 9), ...lab("T·K", wFront * .5, HINGE_BODY + 1.6)]));
   parts.push(part(`chest-${captain}-lid-side-1`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "L2", "", "T·S1")]));
   parts.push(part(`chest-${captain}-lid-side-2`, [...wallPanel(wSide, hl, t, { start: false }), rect(RA, 1, 3.4, wSide - 2, .4), ...wallLabels(wSide, hl, "", "L1", "T·S2")]));
-  parts.push(part(`chest-${captain}-lid-top`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo), ...plateLabels(Lo, Wo, "T·"), ...sailPattern(ci, [[Lo / 2 - 6, Wo / 2 - 4], [Lo / 2 + 6, Wo / 2 - 4], [Lo / 2 + 6, Wo / 2 + 4], [Lo / 2 - 6, Wo / 2 + 4]])]));
+  parts.push(part(`chest-${captain}-lid-top`, [...platePanel(Lo, Wo, t), ...planks(t, t, Lo - 2 * t, Wo - 2 * t, 5), ...strap(Lo, Wo), ...plateLabels(Lo, Wo, "T·")]));   // no captain's mark — paint it, like the crates (Wyatt, 2026-08-25: the marks read as drilled holes)
   for (const n of [1, 2]) parts.push(part(`chest-${captain}-card-rail-${n}`, [rect(CU, 0, 0, wSide, 5, .4), ...lab(`RAIL ${n}`, wSide / 2, 2.5)]));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
@@ -1289,9 +1289,11 @@ function nestedSpinner() {
   // Wyatt: "Can you simply rasterise in the storm emoji?" — yes: art/storm-emoji.png is the 🌩️ emoji rendered by Chrome,
   // traced like the ingredients; its silhouette is knocked out of each wedge, with the word STORM below it
   for (const mid of [45, 135, 225, 315]) { const w = arcBand(5.2, RD - 2.2, mid - 9, mid + 9);
-    const local = [...artToken("stormemoji", 24.5, 0, 7.2, { cut: false, solid: true, rot: 90 }), ...ftext(RA, "STORM", 8.4, 0.5, 1.35, { font: "avenir-next-demibold" })];
+    // Wyatt, 2026-08-25: cloud clear of the wedge edges (~0.9 mm each side), STORM written ACROSS the wedge's wide
+    // end with the letters' tops toward the hub — outside the needle's 26.5 mm reach, so it stays readable with the
+    // needle lying on top of the wedge
+    const local = [...artToken("stormemoji", 23.5, 0, 5.8, { cut: false, solid: true, rot: 90 }), ...xf(ftext(RA, "STORM", 0, 0, 2.0, { font: "avenir-next-demibold", align: "center", valign: "middle" }), { rot: -90, tx: 29.5, ty: 0 })];
     const holes = xf(local, { rot: mid }).map(reverseItem); dial.push({ ...w, sub: [...w.sub, ...holes.flatMap(i => i.sub)] }); }
-  dial.push(...icon("anchor", 0, -RD * .3, 7));
   parts.push(part("spinner-dial", dial));
   // Wyatt, 2026-08-22: "a 3D wind-now flag/vane that slots in to show the current wind direction visibly, and
   // differentiates it from the flat spun forecast". The ring carries a radial slot at its pointer; the vane's
@@ -1301,23 +1303,23 @@ function nestedSpinner() {
   const ringPart = [circ(CU, 0, 0, RB), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RB - 1, RB - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RB - 5, 3, { font: "avenir-next-demibold", align: "center" })];
   for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RB - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
   parts.push(part("spinner-ring", ringPart));
-  // the needle: cut only (Wyatt: "remove the raster from the arrow") — its fleur-de-lis is in the outline
-  // balanced about the axle (Wyatt): the same arm each side — a fleur-de-lis head one way, a counterweight of the
-  // same outline the other — on a 9 mm hub, so the pivot hole leaves 2.85 mm of wood all round
-  const head = [[14, -1.8], [14, -3.4], [16, -3.4], [20, -5.6], [22.5, -3.4], [20, -1.5], [26.5, 0], [20, 1.5], [22.5, 3.4], [20, 5.6], [16, 3.4], [14, 3.4], [14, 1.8]];
-  const arm = head.map(([x, y]) => [x, y]), tail = head.map(([x, y]) => [-x, y]).reverse();
-  const hubPts = []; for (let i = 0; i <= 12; i++) { const a = rad(90 - i * 15); hubPts.push([4.5 * Math.cos(a), 4.5 * Math.sin(a)]); }   // arc from top round the right... built below
-  const bulge = (from, to) => { const out = []; for (let i = 1; i < 12; i++) { const a = rad(from + (to - from) * i / 12); out.push([4.5 * Math.cos(a), 4.5 * Math.sin(a)]); } return out; };
-  const needleOutline = [[-4.2, -1.8], ...bulge(203.6, 336.4), [4.2, -1.8], ...arm, [4.2, 1.8], ...bulge(23.6, 156.4), [-4.2, 1.8], ...tail];
-  const needle = [item(CU, [polyCmds(needleOutline)]), circ(CU, 0, 0, 1.65)];
-  void hubPts;
+  // the needle: a classic compass needle (Wyatt, 2026-08-25: the balanced double-fleur was symmetric — "it is not
+  // clear which direction it is facing. change the shape to match a compass needle and raster one half of it").
+  // A long rhombus, outline still symmetric about the axle so it balances; the POINTING half is engraved dark,
+  // stopping at a half-round clear of the pivot hole so no cut meets ink.
+  const NL = 26.5, NW = 4.5, NR = 2.3;
+  const needleOutline = [[NL, 0], [0, NW], [-NL, 0], [0, -NW]];
+  const darkHalf = [[NL, 0], [0, NW], [0, NR]];
+  for (let i = 0; i <= 8; i++) { const a = rad(90 - i * 22.5); darkHalf.push([NR * Math.cos(a), NR * Math.sin(a)]); }
+  darkHalf.push([0, -NR], [0, -NW]);
+  const needle = [item(CU, [polyCmds(needleOutline)]), circ(CU, 0, 0, 1.65), poly(RA, darkHalf)];
   parts.push(part("spinner-needle", needle), part("spinner-washer", [circ(CU, 0, 0, 4), circ(CU, 0, 0, 1.65)]));
   // the vane: a pennant on a mast, the tab below the mast (through the ring, onto the backing). Drawn as it
   // stands — pennant at the top, tab at the bottom — so WIND NOW reads upright once it is in the slot.
   const mh = 30, pw = 30, ph = 10, tab = VL - .4;
   const pts = [[0, 0.6], [2.6, 0.6], [2.6, mh], [tab / 2 + 1.3, mh], [tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh], [0, mh],
     [0, ph + 0.6], [-pw, ph + 0.6], [-pw + 5, ph / 2 + 0.6], [-pw, 0.6]];
-  const vane = [item(CU, [polyCmds(pts)]), rect(RA, 0.9, ph + 2.4, 0.8, mh - ph - 3.6), ...ftext(RA, "WIND NOW", -(pw - 5) / 2 - 1, ph / 2 + 0.6 + 1, 2.8, { font: "avenir-next-demibold", align: "center" })];
+  const vane = [item(CU, [polyCmds(pts)]), rect(RA, 0.9, ph + 2.4, 0.8, mh - ph - 3.6), ...ftext(RA, "WIND NOW", -(pw - 5) / 2 - 1, ph / 2 + 0.6 + 1.7, 4.2, { font: "avenir-next-demibold", align: "center" })];   // 4.2 (Wyatt, 2026-08-25: bigger)
   parts.push(part("spinner-vane", vane));
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
@@ -1413,7 +1415,7 @@ function buildVersion(V) {
   const spParts = v === "v3" ? nestedSpinner() : [part("dial", spinnerDial(v === "v1" ? "quadrants-storm" : "roulette", 40, 0, 0)), part("arrow-now", arr.now), part("arrow-next", arr.next), part("washer-1", arr.washers[0]), part("washer-2", arr.washers[1])];
   
   cutParts.push(...spParts);
-  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "Nested, all 3 mm: a 96 mm backing disc; the game's compass as a 70 mm dial glued on it (storm wedge in the last fifth of each quadrant); a ring that turns around the dial — its slot takes the standing WIND NOW vane, a pennant on a 30 mm mast that streams toward the letter the ring is set to; a flat fleur-de-lis needle on the centre pivot for the forecast. Stack: backing, dial + ring (same level), needle, washer — an M3 × 16 bolt with a nyloc nut; the vane just drops into the ring. ") + `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.` }));
+  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "Nested, all 3 mm: a 96 mm backing disc; the game's compass as a 70 mm dial glued on it (storm wedge in the last fifth of each quadrant); a ring that turns around the dial — its slot takes the standing WIND NOW vane, a pennant on a 30 mm mast that streams toward the letter the ring is set to; a flat compass needle on the centre pivot for the forecast — the dark half is the pointer. Stack: backing, dial + ring (same level), needle, washer — an M3 × 16 bolt with a nyloc nut; the vane just drops into the ring. ") + (v === "v3" ? "" : `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.`) }));
   // ships
   const shipParts = [];
   for (let c = 0; c < 4; c++) {
@@ -1433,7 +1435,7 @@ function buildVersion(V) {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
     cutParts.push(...crateParts, ...chestParts);
     docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: "One open crate per captain, 44 × 30 × 18 mm in 3 mm ply: three slats a side with real gaps cut between them, solid corner posts, box joints. Tokens stand on edge in it, icons showing — cargo is public, as in the game. Paint to mark whose it is." }));
-    docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 32 mm in 3 mm ply. Box-jointed body (20 mm) and lid (12 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; the captain's mark on the lid (no names — players choose their own). The blue labels are for reading only — they are NOT in the cut files: vertical corners 1–4 clockwise from front-left (L1, L2 on the lid, whose back is the hinge strip); a wall's bottom says which plate edge it meets (B·F = base front, T·K = lid top back); H = the hinge; the two RAIL strips (42 × 5 mm) glue inside the lid's end walls under the engraved line. See the mockups for the whole thing open and closed." }));
+    docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 32 mm in 3 mm ply. Box-jointed body (20 mm) and lid (12 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; no captain's mark — paint it, like the crates (the engraved marks read as drilled holes on a lid). The blue labels are for reading only — they are NOT in the cut files: vertical corners 1–4 clockwise from front-left (L1, L2 on the lid, whose back is the hinge strip); a wall's bottom says which plate edge it meets (B·F = base front, T·K = lid top back); H = the hinge; the two RAIL strips (42 × 5 mm) glue inside the lid's end walls under the engraved line. See the mockups for the whole thing open and closed." }));
   }
   docs.push(sheet("extras", "Extras", extraParts, { notes: "A rules card with the numbers the app keeps for you. (The storm cloud and first-player wheel were cut on 2026-08-25 — the needle parked in a storm wedge is the forecast.)" }));
   if (v === "v3") docs.push(...mockups(five, { islandParts, dockParts, crates, whirlParts, spParts, shipParts, crateParts: CAPTAINS.flatMap(c => cargoCrate(c)), chestParts: CAPTAINS.flatMap(c => treasureChest(c)), recipeParts }));
@@ -1544,18 +1546,43 @@ function emitSVG(doc, V, forPage = false) {
   return out + `</svg>\n`;
 }
 function emitDXF(doc) {
+  // R2000 (AC1015) — the first DXF with HATCH, because Wyatt, 2026-08-25: "your dxf files don't correctly save the
+  // black raster area as filled in ... fix this so that the entire raster area is filled in." Every RASTER item is
+  // ONE solid hatch; its sub-paths are the loops, odd-parity (style 0), so holes stay open exactly as the SVG fills
+  // them. CUT stays bare curves (LWPOLYLINE/CIRCLE) — a laser cuts lines, not regions.
   const L = [], w = (c, v) => { L.push(String(c), String(v)); }, H = doc.h;
-  w(0, "SECTION"); w(2, "HEADER"); w(9, "$ACADVER"); w(1, "AC1009"); w(9, "$EXTMIN"); w(10, 0); w(20, 0); w(9, "$EXTMAX"); w(10, doc.w); w(20, doc.h); w(0, "ENDSEC");
-  w(0, "SECTION"); w(2, "TABLES"); w(0, "TABLE"); w(2, "LAYER"); w(70, 2);
-  for (const [n, col] of [["CUT", 1], ["RASTER", 7]]) { w(0, "LAYER"); w(2, n); w(70, 0); w(62, col); w(6, "CONTINUOUS"); }
-  w(0, "ENDTAB"); w(0, "ENDSEC"); w(0, "SECTION"); w(2, "ENTITIES");
-  for (const it of doc.items) for (const sp of it.sub) {
+  let hseed = 0x100; const hx = () => (hseed++).toString(16).toUpperCase();
+  w(0, "SECTION"); w(2, "HEADER");
+  w(9, "$ACADVER"); w(1, "AC1015");
+  w(9, "$HANDSEED"); w(5, "FFFF");
+  w(9, "$INSUNITS"); w(70, 4);   // millimetres
+  w(9, "$EXTMIN"); w(10, 0); w(20, 0); w(30, 0); w(9, "$EXTMAX"); w(10, doc.w); w(20, doc.h); w(30, 0);
+  w(0, "ENDSEC");
+  w(0, "SECTION"); w(2, "TABLES");
+  w(0, "TABLE"); w(2, "LAYER"); w(5, hx()); w(100, "AcDbSymbolTable"); w(70, 2);
+  for (const [n, col] of [["CUT", 1], ["RASTER", 7]]) { w(0, "LAYER"); w(5, hx()); w(100, "AcDbSymbolTableRecord"); w(100, "AcDbLayerTableRecord"); w(2, n); w(70, 0); w(62, col); w(6, "Continuous"); w(370, -3); }
+  w(0, "ENDTAB"); w(0, "ENDSEC");
+  w(0, "SECTION"); w(2, "ENTITIES");
+  const ent = (type, layer) => { w(0, type); w(5, hx()); w(100, "AcDbEntity"); w(8, layer); };
+  const loopPts = sp => { if (sp.circle) { const { cx, cy, r } = sp.circle, pts = []; for (let i = 0; i < 48; i++) { const a = i / 48 * 2 * Math.PI; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } return { pts }; } return flatten(sp); };
+  for (const it of doc.items) {
     if (it.layer === GU) continue;
-    if (sp.circle) { w(0, "CIRCLE"); w(8, it.layer); w(10, r3(sp.circle.cx)); w(20, r3(H - sp.circle.cy)); w(30, 0); w(40, r3(sp.circle.r)); continue; }
-    const { pts, closed } = flatten(sp);
-    w(0, "POLYLINE"); w(8, it.layer); w(66, 1); w(70, closed ? 1 : 0);
-    for (const [x, y] of pts) { w(0, "VERTEX"); w(8, it.layer); w(10, r3(x)); w(20, r3(H - y)); w(30, 0); }
-    w(0, "SEQEND"); w(8, it.layer);
+    if (it.layer === RA) {
+      const loops = it.sub.map(loopPts).filter(l => l.pts.length > 2);
+      if (!loops.length) continue;
+      ent("HATCH", "RASTER"); w(100, "AcDbHatch"); w(10, 0); w(20, 0); w(30, 0); w(210, 0); w(220, 0); w(230, 1);
+      w(2, "SOLID"); w(70, 1); w(71, 0); w(91, loops.length);
+      for (const { pts } of loops) { w(92, 2); w(72, 0); w(73, 1); w(93, pts.length);
+        for (const [x, y] of pts) { w(10, r3(x)); w(20, r3(H - y)); } w(97, 0); }
+      w(75, 0); w(76, 1); w(98, 1); w(10, 0); w(20, 0);
+      continue;
+    }
+    for (const sp of it.sub) {
+      if (sp.circle) { ent("CIRCLE", it.layer); w(100, "AcDbCircle"); w(10, r3(sp.circle.cx)); w(20, r3(H - sp.circle.cy)); w(30, 0); w(40, r3(sp.circle.r)); continue; }
+      const { pts, closed } = flatten(sp);
+      ent("LWPOLYLINE", it.layer); w(100, "AcDbPolyline"); w(90, pts.length); w(70, closed ? 1 : 0);
+      for (const [x, y] of pts) { w(10, r3(x)); w(20, r3(H - y)); }
+    }
   }
   w(0, "ENDSEC"); w(0, "EOF");
   return L.join("\n") + "\n";
