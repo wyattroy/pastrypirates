@@ -6,8 +6,8 @@ current_phase_name: the-networked-bakeoff
 status: in-progress
 stopped_at: "2026-08-23 overnight, PHASE 4 COMPLETE AND PUSHED as PP4_STAMP 2026-08-23b. THE BAKE-OFF WORKS OVER THE WIRE. Measured first (shots/t1/ANSWER.md): a guest's bake was being PLAYED ON THE HOST'S SCREEN by the host's own hands while the guest's screen showed nothing at all — that question had been open since 2026-08-08 and is now settled. Now: a guest taps their own crates in their own browser (MP-04); every other captain watches the same face-down bench, same shuffle, same badges, same verdict, no waiting note (MP-05); a re-watch drops the buyer's purse on screen and the host settles the same number (MP-06); the shot clock is off the bake and a captain who closes their tab forfeits in ~2.5s to the engine's own guess, one decision-log entry, both facts (MP-13). ROADMAP's Phase 4 paragraph was FALSE for 4/ and is corrected in the open. DISPLAY-RULES has the bake-off row and a sixth prompt fork. NOT DONE, named in 04-01-SUMMARY.md §10: no paired screenshot of the swap animation running (the probe mis-identified the baker three runs in a row — the byte-identical badge arrays are the evidence instead), and a host reload mid-bake was not driven. Earlier and STILL OPEN, untouched tonight: the vision judge's expired CLI login, playtest_gate.mjs hanging instead of exiting, the solo-phone day-5 stall, and the recipe picker at 390x664. Phase 3's TEST-03 corpus is still deferred to 03-03 and the determinism door is still open — nothing the engine emits changed tonight."
 last_updated: "2026-08-23T09:40:00.000Z"
-last_activity: 2026-08-23
-last_activity_desc: the bake-off went over the wire — a guest bakes in their own browser and every other captain watches the same face-down bench
+last_activity: 2026-08-25
+last_activity_desc: the pulse bug is solved — the swell is granted at reveal, the narration bubble stops flipping sides, and every shared helper line is gone
 progress:
   total_phases: 12
   completed_phases: 7
@@ -57,7 +57,12 @@ build step — nothing here is ever a cache.
 
 ## Current Position
 
-**→ START HERE: [`HANDOFF-2026-08-21-evening.md`](./HANDOFF-2026-08-21-evening.md)** — written 2026-08-21 when Wyatt
+**→ START HERE: [`HANDOFF-2026-08-25.md`](./HANDOFF-2026-08-25.md)** — written 2026-08-25 when Wyatt
+cleared context. THE PULSE BUG IS SOLVED (build 2026-08-25f); his open design ruling — "nothing laid
+out until the camera anchors" — is scoped in its §2. It supersedes the 2026-08-21 handoff below.
+
+<!-- superseded -->
+[`HANDOFF-2026-08-21-evening.md`](./HANDOFF-2026-08-21-evening.md) — written 2026-08-21 when Wyatt
 stepped away. It supersedes the afternoon handoff (whose "next action: Group E" is stale) and holds
 today's full state: the desktop rebuild, the new playtest gate (D-37), his three design notes, and
 the two bugs the gate found (one fixed-but-unverified, one diagnosed-not-fixed).
