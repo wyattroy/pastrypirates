@@ -1511,19 +1511,22 @@ function mockups(five, P) {
     s.push(slab(g("side-2"), { origin: [t, Wo - t, t + hb], U: [0, -1, 0], V: [0, 0, -1], T: t }));
     s.push(slab(g("side-1"), { origin: [Lo - t, t, t + hb], U: [0, 1, 0], V: [0, 0, -1], T: t }));
     // the lid, closed pose first, then swung open 110° about the hinge axis (y = Wo - t/2, z = t + hb + 3.3)
-    const ay = Wo - t / 2, az = t + hb + 2.2, th = rad(-110), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
+    const ay = Wo - t / 2, az = t + hb + 2.2, th = rad(-78), rot = p => [p[0], ay + (p[1] - ay) * Math.cos(th) - (p[2] - az) * Math.sin(th), az + (p[1] - ay) * Math.sin(th) + (p[2] - az) * Math.cos(th)];
     const lidZ = t + hb + (12 - MAT3), hl = 12 - MAT3;
     const lid = [slab(g("lid-top"), { origin: [0, 0, lidZ + t], T: t, xform: rot }),
       slab(g("lid-front"), { origin: [t, t, lidZ - hl], U: [1, 0, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-side-2"), { origin: [t, Wo - t, lidZ - hl], U: [0, -1, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-side-1"), { origin: [Lo - t, t, lidZ - hl], U: [0, 1, 0], V: [0, 0, 1], T: t, xform: rot }),
       slab(g("lid-hinge"), { origin: [Lo - t, Wo - t, lidZ - HINGE_BODY], U: [-1, 0, 0], V: [0, 0, -1], T: t, xform: rot }),
-      slab(P.recipeParts[13].items, { origin: [8, 23, lidZ - t - 2.9], U: [1, 0, 0], V: [0, -1, 0], T: t, xform: rot, tint: 0.06 }),   // face down in the channel UNDER the hinge strip; tips out of the open back
       slab(g("card-rail-1"), { origin: [Lo - t, t, lidZ - 5.6], U: [0, 1, 0], V: [0, 0, -1], T: t, xform: rot }), slab(g("card-rail-2"), { origin: [t, Wo - t, lidZ - 5.6], U: [0, -1, 0], V: [0, 0, -1], T: t, xform: rot })];
     // a few coins inside
     for (let i = 0; i < 3; i++) s.push({ ...flatAt(coinGlyph(0, 0, 18).concat([circ(CU, 0, 0, 9)]), 22 + i * 9, 13.5, t + i * 0.4, 1.6), openOnly: true });   // 18 mm coins lie flat (interior 21.8 deep); hidden in the closed pose, where the painter would bleed them through the wall
+    // the card lies on the table in front, face up — just tipped out of the open lid. (Inside the lid it rides on the
+    // two rails, under the hinge strip; past 90° this painter would show the lid's outside where its inside is, so the
+    // lid stays under 90° and the card tells its story here. Wyatt, 2026-08-25: "captured from the wrong face".)
+    s.push({ ...flatAt(P.recipeParts[13].items, 8, -27, 0, t), openOnly: true });
     return [...s, ...lid]; })();
-  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid swung back 110° on the friction hinge — the strip's tongues wedge between the chest's and hold the pose. The recipe card rides in the channel under the hinge strip, on the two front rails; tip the open chest and it falls out of the lid's back. Coins in the body."));
+  docs.push(doc("mockup-chest", "Mockup: a treasure chest, open", isoScene(chestSlabs, { scale: 5 }), "Body on its base, lid tilted back on the friction hinge — the tongues wedge and hold the pose. The recipe card lies in front, just tipped out: inside the lid it rides on the two rails (front 60 % of the end walls), under the hinge strip, and falls free when you tip the open chest. Coins in the body."));
   docs.push(doc("mockup-chest-closed", "Mockup: a treasure chest, closed", isoScene(chestSlabs.filter(sb => !sb.openOnly).map(sb => sb.xform ? { ...sb, xform: null } : sb), { scale: 5 }), "The same chest shut: lid walls meet the body walls, the tongues interleave at the back."));
   // the spinner: backing, dial + ring at one level, needle above, vane standing in the ring's slot
   const spSlabs = (() => { const g = n => byName(P.spParts, n), t = MAT3, s = [flatAt(g("spinner-backing"), 0, 0, 0, t), flatAt(g("spinner-dial"), 0, 0, t, t), flatAt(xf(g("spinner-ring"), { rot: 35 }), 0, 0, t, t), flatAt(xf(g("spinner-needle"), { rot: -60 }), 0, 0, 2 * t, t), flatAt(g("spinner-washer"), 0, 0, 3 * t, t)];
