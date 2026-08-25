@@ -149,10 +149,55 @@ playState / startTime / clock advance (docs/DRIVING-THE-GAME.md §7).
 - Consequence: the freeze is **not** a generic WebKit fragility that a small page can provoke. It
   needs either the real game's full context, or an iOS-Safari-specific engine difference.
 
+## 2026-08-25 — THE FULL-GAME WebKit run (the experiment H8 was waiting for)
+
+New instruments, both durable: `4/scripts/lib/wk.mjs` (a WebKit MOUNT for the existing driver) and
+`4/scripts/pulse_menu_probe.mjs` (measures the swell per prompt during a real voyage).
+
+**The driver is `lib/player.mjs` — unchanged.** Wyatt, 2026-08-25, on finding a hand-rolled second
+driver: *"You need to create a durable document that you use to play games. THIS ALREADY EXISTS.
+use it."* He was right, and the hand-rolled one was already worse: it had no focus emulation, so
+the game's own tab-hide pause could have been silently in play — the exact forgery
+`player.ensureVisible()` exists to prevent. ONE DRIVER, TWO MOUNTS (rule 23).
+
+Two solo voyages, headless WebKit 26.5, 390x844 with touch emulation:
+
+| Run | Turn menus | Other radial prompts | Enabled buttons | FLAT |
+|---|---|---|---|---|
+| 1 | 9 | 20 | 59 | **0** |
+| 2 (after the mute fix) | 3 | 3 | 10 | **0** |
+| **total** | **12** | **23** | **69** | **0** |
+
+- [M] **EVERY enabled radial button swelled at exactly 1.15, in every prompt, in both runs.** Turn
+  menus included — the very prompt that dies 5 times in 7 on his phone. Dock, Trade, Pass, Attack,
+  the trade fans, Accept/Counter/Deny, Buy/Nah: all running, all 1.15.
+- [M] The probe red-proofs itself: a run where nothing swings, or where no radial prompt is ever
+  seen, reports "broken run, not a result" rather than a verdict. Both runs passed that check.
+- [M] Disabled crates, recipe cards and centre-stage (glow-not-grow) prompts are excluded from the
+  verdict BY DESIGN. A first draft counted them and "found" 22 broken prompts that were all
+  correct — recorded here because it is exactly the invented defect rule 6 exists to stop.
+
+**So H8 is not reproduced.** Twelve turn menus in the real game, driven by the real driver, on the
+Safari-family engine, at his phone's size — and not one of them froze. Against 5 of 7 frozen on his
+iPhone in one un-reloaded session.
+
+**What this does NOT prove:** Playwright's WebKit 26.5 is not iOS Safari. Different build, different
+compositor, no ReplayKit, no real touch hardware, no low-power or thermal state. The negative
+narrows where the fault can live; it does not clear the code.
+
+### [M] An instrument fault found and fixed, recorded so it is not repeated
+The first WebKit mount played the game's SOUND OUT LOUD on Wyatt's machine — `lib/cdp.mjs` gets
+silence free from Chrome's `--mute-audio` and the new mount simply forgot. WebKit takes no such
+flag, so `wk.mjs` now installs silence in the page before any game script runs (media elements born
+muted; Web Audio cut at `ctx.destination`), verified programmatically. It deliberately does NOT
+touch the game's own mute control — that subsystem has live defects (docs/AUDIO.md) and flipping it
+would change the state of the thing under test.
+
 ## Pending ingestion
 
 - ~~His 5-minute phone recording~~ — **INGESTED** 2026-08-24 (build 24f section above).
-- The FULL-GAME WebKit reproduction: drive a solo voyage in headless WebKit and read
-  `getAnimations()` off a real turn-menu petal. The isolated page came up dry, so this is the
-  next instrument. Not yet run.
+- ~~The FULL-GAME WebKit reproduction~~ — RUN 2026-08-25, above. No reproduction: 12 turn menus,
+  69 enabled buttons, zero flat.
+- **His device is now the only untried instrument.** The beacon (`?debug=pulse`) was built for
+  exactly this and has never been run on the phone during a real freeze.
 - His Control-Center experiment result (see HYPOTHESES.md, "His device").
