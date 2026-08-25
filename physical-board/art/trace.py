@@ -78,6 +78,9 @@ def is_red(px): return px[0] > px[1] + 60 and px[0] > px[2] + 60                
 def trace_image(im, cfg, key):
     """cut = the silhouette (alpha, minus water halo if asked), dilated `pad` px and closed `close` px;
        raster = the ink (dark pixels, with per-asset exceptions)."""
+    M = 24                                       # dilation head-room: padded variants grow up to ~19 px, and PIL's
+    big = Image.new("RGBA", (im.size[0] + 2 * M, im.size[1] + 2 * M), (0, 0, 0, 0))   # filters cannot grow past the canvas —
+    big.paste(im, (M, M)); im = big              # without this the padding clips flat ("cut off by a bounding box", Wyatt 2026-08-25)
     w, h = im.size; px = im.load()
     pad, close = cfg.get("pad", 2), cfg.get("close", 3)
     sil_img = Image.new("L", (w, h), 0); sp = sil_img.load()
@@ -114,7 +117,10 @@ def trace_image(im, cfg, key):
     # padding variants of the cut, for Wyatt to choose from: the silhouette dilated further, then smoothed
     variants = {}
     for name, extra in cfg.get("padVariants", {}).items():
-        v = sil.filter(ImageFilter.MinFilter(9)).filter(ImageFilter.MaxFilter(9))          # drop specks first
+        # drop dead pixels from the RAW silhouette, BEFORE any dilation can weld them to the body — a 1 px speck
+        # under the sugar grew into a notch in its C padding (Wyatt, 2026-08-25)
+        raw = sil_img.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.MaxFilter(5))
+        v = raw.filter(ImageFilter.MaxFilter(2 * (pad + close) + 1)).filter(ImageFilter.MinFilter(2 * close + 1))
         v = v.filter(ImageFilter.MaxFilter(2 * extra + 1)).filter(ImageFilter.MinFilter(2 * (extra // 2) + 1)).filter(ImageFilter.MaxFilter(2 * (extra // 2) + 1))
         vp = v.load(); vm = [[1 if vp[x, y] else 0 for x in range(w)] for y in range(h)]
         vl = [dp(smooth(l, 6), 1.8) for l in trace(vm, w, h)]
@@ -130,6 +136,8 @@ ASSETS = {**{ing: dict(path=f"{REPO}/assets/ingredients/{ing}.png", ink=112, alp
           "spice": dict(path=f"{REPO}/assets/ingredients/spice.png", ink=100, alpha=110, close=5, padVariants=PADS),
           # the storm: the 🌩️ emoji itself, rendered by Chrome on black (art/storm-emoji.png) — Wyatt, 2026-08-22
           "stormemoji": dict(path=f"{REPO}/physical-board/art/storm-emoji.png", ink=0, alpha=0, blackbg=True, pad=1, close=3, smooth=4, tol=1.4),
+          # the ships' skull: the ☠️ emoji, rendered by Chrome on black (art/skull-emoji.png) — Wyatt, 2026-08-25
+          "skullemoji": dict(path=f"{REPO}/physical-board/art/skull-emoji.png", ink=0, alpha=0, blackbg=True, pad=1, close=3, smooth=4, tol=1.4),
           "swirl": dict(path=f"{REPO}/assets/trade-swirl.png", ink=105, alpha=200),
           "skull": dict(path=f"{REPO}/assets/icons/skull.png", ink=120, alpha=110),
           "coin": dict(path=f"{REPO}/assets/icons/coin-emoji.png", ink=110, alpha=110),

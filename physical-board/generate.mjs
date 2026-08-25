@@ -735,9 +735,11 @@ function ship3d(c) {
     const sq = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [1.3, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
     const foot = sq.findIndex(p => p[0] === 0 && p[1] === y0 && sq.indexOf(p) > 0);
     const outline = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [2.6, y1 + 2.4], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
-    const cx = 1.3, cy = y0 + hgt * .42;
-    void pat; void cx; void cy;
-    return [item(CU, [polyCmds(outline)]), rect(RA, -(w / 2 - 1.3), y0 + .6, w, .5)];   // plain sails (Wyatt) — the yard only
+    // Wyatt, 2026-08-25: "raster this emoji ☠️ on the ships' masts" — clarified with the question UI: the traced
+    // ☠️ (art/skull-emoji.png, the 🌩️ pipeline), BIG on both sail faces; overrules "plain sails" (2026-08-22)
+    const cx = 1.3, cy = y0 + 1.4 + (hgt - 1.4) * .5, sk = Math.min(w - 4, hgt - 3.4);
+    void pat;
+    return [item(CU, [polyCmds(outline)]), rect(RA, -(w / 2 - 1.3), y0 + .6, w, .5), ...artToken("skullemoji", cx, cy, sk, { cut: false, solid: true })];
   };
   const main = sail(15, 13, c), fore = sail(12, 11, c);
   return [{ ...part(`ship-${CAPTAINS[c]}-hull`, hull), mat: MAT }, { ...part(`ship-${CAPTAINS[c]}-main`, main), mat: MAT3 }, { ...part(`ship-${CAPTAINS[c]}-fore`, fore), mat: MAT3 }];
@@ -1395,7 +1397,7 @@ function buildVersion(V) {
   cutParts.push(...dockParts, ...dockExtras);
   docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "One piece, as drawn: the pier's 9 mm deck runs to the island side and becomes the tab (9 × 2.5 mm, 0.15 mm of play) that plugs into any notch on any island; planks to the tab's end; the four bollards touch the deck." }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
-  const TOKEN_PAD = "cutB";   // the option on the cutting sheets until Wyatt picks
+  const TOKEN_PAD = "cutC";   // Wyatt, 2026-08-25: "This is the correct amount of padding (C)"
   const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }) : TOKEN[v].crate(ing, 0, 0))));
   cutParts.push(...crates);
   if (v === "v3") for (const [pad, label, mm] of [["cut", "A", "about 0.3 mm"], ["cutB", "B", "about 1.1 mm"], ["cutC", "C", "about 1.7 mm"]])
@@ -1418,20 +1420,21 @@ function buildVersion(V) {
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
-  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two plain 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath. About 24 mm tall. Paint the sails for the captain." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
+  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the ☠️ emoji engraved big on each. About 24 mm tall. Paint the sails for the captain." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
   docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64x38 mm. Deal two to each captain, keep one, as the app does." }));
   // extras
-  const stormToken = artToken("stormemoji", 0, 0, 28);   // the 🌩️ emoji: cut round the cloud, the bolt engraved
-  const extraParts = [part("storm-token", stormToken), part("first-player", [circ(CU, 0, 0, 14), ...icon("wheel", 0, 0, 25)]), part("reference-card", referenceCard())].map(p => ({ ...p, mat: MAT3 })); cutParts.push(...extraParts);
+  // Wyatt, 2026-08-25: "delete the cloud and captain's wheel, the game doesn't need them." The spinner's needle
+  // parked in a storm wedge IS the forecast; nothing marks the board. Only the rules card remains here.
+  const extraParts = [part("reference-card", referenceCard())].map(p => ({ ...p, mat: MAT3 })); cutParts.push(...extraParts);
   if (v === "v3") {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
     cutParts.push(...crateParts, ...chestParts);
     docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: "One open crate per captain, 44 × 30 × 18 mm in 3 mm ply: three slats a side with real gaps cut between them, solid corner posts, box joints. Tokens stand on edge in it, icons showing — cargo is public, as in the game. Paint to mark whose it is." }));
     docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 54 × 32 mm in 3 mm ply. Box-jointed body (20 mm) and lid (12 mm) hinged on a 3 mm dowel through five knuckles. The lid is a shallow box: the recipe card (64 × 38) lies inside it against the top, held by two rails glued to the lid's end walls along the engraved line — open the chest and only you read it. Straps, rivets and a lock plate engraved; the captain's mark on the lid (no names — players choose their own). The blue labels are for reading only — they are NOT in the cut files: vertical corners 1–4 clockwise from front-left (L1, L2 on the lid, whose back is the hinge strip); a wall's bottom says which plate edge it meets (B·F = base front, T·K = lid top back); H = the hinge; the two RAIL strips (42 × 5 mm) glue inside the lid's end walls under the engraved line. See the mockups for the whole thing open and closed." }));
   }
-  docs.push(sheet("extras", "Extras", extraParts, { notes: "A storm cloud to put on the board when the forecast says storm (the bolt is engraved inside the cut cloud). A ship's wheel for whoever sails first. A rules card with the numbers the app keeps for you." }));
+  docs.push(sheet("extras", "Extras", extraParts, { notes: "A rules card with the numbers the app keeps for you. (The storm cloud and first-player wheel were cut on 2026-08-25 — the needle parked in a storm wedge is the forecast.)" }));
   if (v === "v3") docs.push(...mockups(five, { islandParts, dockParts, crates, whirlParts, spParts, shipParts, crateParts: CAPTAINS.flatMap(c => cargoCrate(c)), chestParts: CAPTAINS.flatMap(c => treasureChest(c)), recipeParts }));
   if (v === "v3") {
     // the cutting sheets: every part, tallest first, on bed-sized sheets, kerf-compensated

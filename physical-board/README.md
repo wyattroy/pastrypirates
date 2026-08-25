@@ -24,8 +24,8 @@ group of pieces; tick "approved" per group, leave notes, copy the lot as text.
 | The whirlpool (`assets/trade-swirl.png`) | Traced and engraved on the four whirlpool tiles. |
 | The board's water: short brushy wave strokes in concentric passes | About 170 tapered strokes, 9 mm between passes, from outside the berths to the rim. |
 | The compass: scrolled ring, N/E/S/W medallions, fleur-de-lis needle | The spinner's dial and needle. |
-| The pirate ship (`assets/icons/sailboat.png`): square sail with the skull and bones | Three-piece ships: a 6 mm hull seen from above with two slots across the beam, two 3 mm square sails that drop in, the game's skull (`assets/icons/skull.png`) over crossed bones on each, the captain's mark along the foot. |
-| The 🌩️ emoji (rendered by Chrome on black into `art/storm-emoji.png`) and the coin (`assets/icons/`) | Traced: the emoji's cloud-and-bolt silhouette is knocked out of each storm wedge and is the storm token (bolt engraved); the coin stands in for every coin amount on the rules card. |
+| The pirate ship (`assets/icons/sailboat.png`): square sail with the skull and bones | Three-piece ships: a 6 mm hull seen from above with two slots across the beam, two 3 mm square sails that drop in, the ☠️ emoji engraved big on each. |
+| The 🌩️ emoji (rendered by Chrome on black into `art/storm-emoji.png`) and the coin (`assets/icons/`) | Traced: the emoji's cloud-and-bolt silhouette is knocked out of each storm wedge; the coin stands in for every coin amount on the rules card. |
 
 ## The pieces — V3 · The Round Table, 25 mm squares
 
@@ -67,7 +67,7 @@ that drops through a hull slot and sits flush underneath; the ship stands about 
   front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets (B·F = base front,
   T·K = lid top back), H = the hinge. The lid's back is a hinge strip under the top plate (2.4 mm
   body, fingers into the plate) whose tongues hang between the chest's.
-- 21 recipe cards (64 × 38), a rules card, a storm-cloud token, a first-player ship's wheel.
+- 21 recipe cards (64 × 38) and a rules card.
 
 **Captains:** CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked — the same four
 marks on each captain's ship, crate and chest.
@@ -108,8 +108,8 @@ end walls with their top edge on the engraved line, slide the dowel through the 
   four whirlpool tiles on any four ring squares; a ship that enters the ring is carried clockwise
   to the next whirlpool.
 - **Wind and forecast.** At the start of a round, turn the ring's pointer to where the needle points,
-  then spin the needle. If it lands in a storm wedge, put the storm cloud on the board and leave the
-  needle; when that round begins, spin the ring itself — the storm blows that way, three squares,
+  then spin the needle. If it lands in a storm wedge, the forecast is a storm — leave the needle
+  there; when that round begins, spin the ring itself — the storm blows that way, three squares,
   every ship (the app hides a coming storm's direction too).
 
 ## Not built, on purpose

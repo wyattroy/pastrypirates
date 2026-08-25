@@ -36,13 +36,13 @@ lettering (Georgia, Avenir Next) as outlines from `fonts/extract.py`.
 | Tortuga | (part of board) | A **+‑shaped piece that sits ON the board**, same style as the islands, says "Tortuga", **no anchor**, berth piers on the arms **reaching the middle square**, no palm. |
 | Islands (9) | **round five built to his second drawing — not yet seen by him, see §8** | Per `notes/islands.jpeg` and his answers: straight-edged cut, 5 mm corners; shore line + grass line (0.6 mm, each waving its own way) with bare wood between as the beach; **notch floor bites 0.3 mm into the shore line**; one mark per square — wind-blown palm (H), three stones (C), the game's tuft (C), all his picks from rendered line-ups. Shapes 8/9 = mirrored L and S. |
 | Docks (7) | "these look good" then widened | Pier whose **9 mm deck becomes the tab** (9 × 2.5, 0.15 play), planks to the tab's end, **bollards touching the deck**, no anchor. |
-| Ingredient tokens (28) | waiting on his pick | The ingredient PNG traced: cut = silhouette, engrave = ink; cocoa = squares filled, wrapper outlined open (for gouache). **Three padding options A/B/C on the page**; sheets carry B. |
+| Ingredient tokens (28) | **C picked (2026-08-25), two defects fixed, not re-approved yet** | Padding C on the sheets. His two findings fixed in `trace.py`: the dilation clipped flat at the PNG canvas (a 24 px margin is now added first), and a 1 px speck under the sugar grew into a notch (specks are dropped from the raw silhouette before dilation). |
 | Whirlpools (4) | **approved** | 3 mm tile, the swirl art traced. Do not touch. |
 | Spinner | not yet approved | Backing disc + compass dial (glued) + turning ring with a slot + flat balanced needle + standing **WIND NOW vane**. Storm wedges on the diagonals, centre-to-rim, **the 🌩️ emoji silhouette knocked out** (`art/storm-emoji.png`, rendered by Chrome on black) with STORM. |
-| Ships (4) | **approved** | 6 mm hull (slots across the beam) + two plain 3 mm square sails on short masts. |
+| Ships (4) | **skull added 2026-08-25 — not yet seen** | 6 mm hull + two 3 mm sails; the traced ☠️ emoji (art/skull-emoji.png, the 🌩️ pipeline) big on BOTH sail faces — he wrote "masts", the question UI settled sails; overrules "plain sails". |
 | Cargo crates (4) | **approved** | Slatted, box-jointed, no captain marks. |
 | Treasure chests (4) | not yet approved | Box-jointed body 20 + lid 12; hinge = chest back wall tongues + a 2.4 mm **hinge strip** under the lid top + 3 mm dowel; 0.15 mm side play on tongues; card rails 5 mm; **labels are blue GUIDE layer, page-only, never in cut files**. |
-| Extras | **approved** | Storm token (emoji), first-player wheel, rules card ("Pastry Pirates", bold categories, coin art). |
+| Extras | rules card only | Storm token and first-player wheel DELETED (2026-08-25, his call: “the game doesn't need them”) — the needle parked in a storm wedge is the forecast. Rules card unchanged. |
 | Recipe cards (21) | liked, egg fixed | The game's 21 recipe titles, ink icons in the app's rounded-square chip. |
 | Mockups | — | Isometric renders on the page: board on the table, ship, chest open + closed, spinner, crate. Built from the real cut geometry (`isoScene`). |
 
