@@ -79,6 +79,20 @@ const MEASURE_SRC = `(async () => {
 })()`;
 
 const isMenu = m => /what'll ye do/i.test(m);
+/* WYATT, 2026-08-25: "the pulsing still doesn't work AFTER sailing. same bug." His recording backs
+   it — the one turn menu he reached WITHOUT sailing is the one that pulses, and 5 of the 6 he
+   reached after a sail are dead. So a probe that cannot say whether a sail preceded each menu is
+   not testing his case at all, however many menus it counts. This reads the seat's own square. */
+const WHERE_SRC = `(async () => { try {
+  if (!window.appState) { const m = await import('/4/src/state/index.js'); window.appState = m.appState; }
+  const g = window.appState.game; if (!g) return null;
+  const me = g.players[window.appState.mySeat]; if (!me || !me.pos) return null;
+  /* p.pos, NOT p.x/p.y. The first version read me.x/me.y - which do not exist - so the position
+     was [undefined, undefined] every time, 'sailed' compared undefined !== undefined, and was
+     ALWAYS FALSE. A check that cannot fire reads exactly like a check that passes: five turn
+     menus were reported 'not after a sail' when nothing had been measured at all. */
+  return [me.pos[0], me.pos[1]];
+} catch (e) { return null; } })()`;
 const log = s => console.log(s);
 let c;
 const menus = [], others = [], skipped = [];
@@ -105,19 +119,22 @@ try {
   log("solo voyage started");
 
   const player = makePlayer(c, { log: m => log("  [drv] " + m) });
-  const t0 = Date.now(); let lastSig = "", idle = 0, ticks = 0, lastMark = "", stallSince = Date.now();
+  const t0 = Date.now(); let lastSig = "", idle = 0, ticks = 0, lastMark = "", stallSince = Date.now(), lastWhere = null;
   while (menus.length < WANT && Date.now() - t0 < 600000) {
     const sig = await player.sig();
     if (sig !== lastSig) {
       lastSig = sig;
+      const here = await c.ev(WHERE_SRC);
+      const sailed = !!(here && lastWhere && (here[0] !== lastWhere[0] || here[1] !== lastWhere[1]));
       const m = await c.ev(MEASURE_SRC);
       if (m && !m.__err && !m.skip && m.btns?.length) {
         const flat = m.btns.filter(b => b.ratio <= 1.05);
-        (isMenu(m.msg) ? menus : others).push({ ...m, flat: flat.length });
-        log(`  ${isMenu(m.msg) ? "MENU" : "    "} [${(isMenu(m.msg) ? menus : others).length}] "${m.msg}" `
+        (isMenu(m.msg) ? menus : others).push({ ...m, flat: flat.length, sailed });
+        log(`  ${isMenu(m.msg) ? "MENU" : "    "} [${(isMenu(m.msg) ? menus : others).length}]${sailed ? " AFTER-SAIL" : "          "} "${m.msg}" `
           + `${m.btns.length}btn ${flat.length ? `*** ${flat.length} FLAT ***` : "swing"}  `
           + m.btns.map(b => `${b.label}:${b.ratio}${b.state === "running" ? "" : "/" + b.state}`).join(" "));
       } else if (m?.skip) skipped.push(m.skip);
+      if (here) lastWhere = here;
     }
     const r = await player.tick();
     ticks++;
@@ -139,7 +156,10 @@ finally {
   const anySwing = allBtns.some(b => b.ratio > 1.05);
   console.log("\n================ RESULT ================");
   console.log(`engine        : ${WEBKIT ? "WebKit" : "Chrome"}${PHONE ? " @390x844 touch" : ""}`);
+  const sailMenus = menus.filter(r => r.sailed), stillMenus = menus.filter(r => !r.sailed);
   console.log(`TURN MENUS    : ${menus.length}   with a flat button: ${flatOf(menus)}`);
+  console.log(`  ...AFTER A SAIL : ${sailMenus.length}   flat: ${flatOf(sailMenus)}   <-- Wyatt's case`);
+  console.log(`  ...no sail first: ${stillMenus.length}   flat: ${flatOf(stillMenus)}`);
   console.log(`OTHER radial  : ${others.length}   with a flat button: ${flatOf(others)}`);
   if (!allBtns.length) console.log("  NO MEASUREMENTS — the probe never saw a radial prompt. Broken run, not a result.");
   else if (!anySwing) console.log("  RED-PROOF FAILED: nothing swung anywhere. Suspect the instrument, not the game.");

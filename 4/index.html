@@ -2366,9 +2366,52 @@
   @keyframes pp4Glow {
     0%,100% { box-shadow: 0 0 0 0 rgba(245,159,45,.55); }
     50%     { box-shadow: 0 0 0 10px rgba(245,159,45,0); } }
+
+  /* ============================ THE REVEAL RACE (2026-08-25) ============================
+     WHY EVERY ATTENTION RULE BELOW SAYS `#actionPanel:not(.pendingReveal)`.
+
+     Wyatt, 2026-08-25: "the pulsing still doesn't work AFTER sailing", then the control that
+     turned it into a switch — "if i stay put instead of sail, the pass/trade buttons DO swell."
+
+     MEASURED ON HIS PHONE, not inferred. The ?debug=pulse beacon on iOS 18.7 (AppleWebKit
+     605.1.15) reported, on a dead turn menu:
+         Trade:none(pp4Grow/running)   Pass +1:none(pp4Grow/running)
+     Three facts that cannot all be true: the stylesheet grants pp4Grow, the computed play-state
+     is `running`, and `getAnimations()` on the button returns NOTHING. The animation was never
+     CREATED. It is not frozen — it does not exist.
+
+     The cause is the reveal gate doing its job. panel() adds `pendingReveal` to #actionPanel and
+     the buttons sit at `visibility:hidden` until BOTH the typewriter and stageSettled() resolve —
+     and stageSettled() is the camera tween plus the ship's glide. Stay put and that wait is zero,
+     so the button is drawn and its animation is created normally. SAIL and the button spends up
+     to SETTLE_CAP_MS (1400ms) declared-but-not-drawn; this WebKit never goes back to start the
+     animation once the element finally paints, and the button is parked at scale(1) for life.
+     His whole recording is this: 5 of 7 turn menus dead, every one of them after a sail, while
+     the trade fans later in the SAME turn — built on a still board — all swell at 1.15.
+
+     WHY NO PROBE EVER CAUGHT IT. Three engines were driven at this bug and all three were
+     innocent: WebKitGTK 2.52, and WebKit 26.5 both in isolation (twelve birth conditions,
+     including this exact one) and playing real voyages. They are a generation NEWER than his
+     phone and they create the animation correctly. The engine in the fault is only reachable on
+     his device, which is why his beacon log is the only thing that could have found this.
+
+     THE RULE THAT FIXES IT: never grant an attention animation to a button that is not being
+     drawn yet. Declaring it at reveal instead of at build means the element always has a box
+     when the animation lands, so there is nothing for an engine to decline. It costs nothing on
+     engines that were already correct.
+
+     THIS IS A STOPGAP AND IT IS NOT THE ARCHITECTURE. Wyatt, same day: "the fan should not be
+     laid out at all, until the camera anchors. the fact that any narrations, or prompt buttons,
+     are laid out BEFORE the camera anchors is a huge cause of messy jitters in narration boxes
+     that i've been trying to solve for a long time." He is right, and this bug is that fault
+     wearing a different coat: a prompt built early and then hidden is a prompt whose layout AND
+     whose animation are both computed against a board that is still moving. The real fix is to
+     BUILD NOTHING until the camera has anchored, at which point this `:not(.pendingReveal)`
+     becomes redundant and should be deleted with the rest of the early-build path. Do not treat
+     it as settled design. ==================================================================== */
   #flipCoinWrap.active,
   .ahoyGlow,
-  #pp4Prompt.pp4Center #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
+  #pp4Prompt.pp4Center #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
   #actionPanel .btlBtn:not(:disabled):not([aria-disabled="true"]),
   #btnStart:not(:disabled),
   #btnConfirmStart:not(:disabled),
@@ -2401,9 +2444,9 @@
      specificity to pick a winner — the first draft did, the card rule's extra :not() outweighed
      the radial one, and every petal quietly got the gentle swell (caught by the probe, 66→69.3px
      instead of 66→76). */
-  #pp4Prompt:not(.pp4Center):not(.radial) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
+  #pp4Prompt:not(.pp4Center):not(.radial) #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
     animation: pp4GrowSoft 1.1s ease-in-out infinite; }
-  #pp4Prompt.radial #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]) {
+  #pp4Prompt.radial #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]) {
     animation: pp4Grow 1.1s ease-in-out infinite; }
 
   /* Hover pauses the pulse (a transform in a running keyframe beats anything :hover sets — the
@@ -2416,7 +2459,7 @@
   #actionPanel .apBtn:hover, #actionPanel .btlBtn:hover,
   #btnStart:hover, #btnConfirmStart:hover, #btnStartPassPlay:hover { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) {
-    #pp4Prompt:not(.pp4Center) #actionPanel .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
+    #pp4Prompt:not(.pp4Center) #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
       animation: pp4Glow 1.1s ease-in-out infinite; } }
 </style>
 </head>

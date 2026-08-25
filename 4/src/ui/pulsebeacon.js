@@ -66,9 +66,22 @@ setInterval(() => {
 const box = () => document.getElementById("pp4Prompt");
 const ap = () => document.getElementById("actionPanel");
 
+/* MISSING vs none vs FROZEN, and the distinction is the whole bug (2026-08-25).
+   The first version reported a bare "none" whenever getAnimations() came back empty, and the chip
+   counted only FROZEN. So on the day the answer finally appeared on Wyatt's screen — a button
+   whose stylesheet grants pp4Grow, whose computed play-state reads `running`, and which has NO
+   animation object at all — the chip stayed blank and the finding sat unlabelled in the log text.
+   A badge that cannot count the thing that actually happens is a badge that says "nothing found".
+     MISSING = the CSS grants an animation and the engine never created one  <- THE FAULT
+     none    = the CSS grants no animation (recipe cards, disabled controls) <- correct and normal
+     FROZEN  = an animation exists and its clock is not advancing
+     LIVE    = an animation exists and its clock advanced */
 const verdictOf = (b, ct0) => {
   const a = b.getAnimations && b.getAnimations()[0];
-  if (!a) return "none";
+  if (!a) {
+    const n = getComputedStyle(b).animationName;
+    return (n && n !== "none") ? "MISSING" : "none";
+  }
   if (ct0 === null || ct0 === undefined) return "new";
   return (a.currentTime - ct0) > 200 ? "LIVE" : "FROZEN";
 };
@@ -88,7 +101,7 @@ const inspect = () => {
     const rows = btns.map((b, i) => {
       const cs = getComputedStyle(b);
       const v = verdictOf(b, t0s[i]);
-      if (v === "FROZEN" && b.getAttribute("aria-disabled") !== "true") frozenCount++;
+      if ((v === "FROZEN" || v === "MISSING") && b.getAttribute("aria-disabled") !== "true") frozenCount++;
       return `${b.textContent.trim().slice(0, 14)}:${v}(${cs.animationName}/${cs.animationPlayState}${b.getAttribute("aria-disabled") === "true" ? "/dis" : ""})`;
     });
     push("PROMPT", `[${cls}] ${rows.join(" ")}`);
