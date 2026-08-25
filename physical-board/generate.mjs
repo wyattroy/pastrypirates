@@ -344,7 +344,9 @@ const ING_NAME = { wheat: "TOASTY WHEAT", dairy: "FRESH MILK", sugar: "CRYSTAL S
 const CAPTAINS = ["CRUMBLE", "BISCOTTI", "GINGERSNAP", "SHORTBREAD"]; // pink, teal, green, orange in the app
 // the game's own recipe book — 21 named recipes, one per 5-of-7 combination (4/src/ui/recipe.js)
 const RECIPE_BOOK = (await import(path.join(HERE, "..", "4", "src", "ui", "recipe.js"))).RECIPE_BOOK;
-const MAT3 = opt("material3", 2.6); // the thin material: spinner, crates, chests, sails — Wyatt calipered his "3 mm" ply at 2.6 (2026-08-25)
+const MAT3 = opt("material3", 3.1); // the thin material: spinner, crates, chests, sails — Wyatt calipered the NEW "3 mm" sheet
+                                    // at 3.1 (2026-08-25, evening, at the laser). The first batch measured 2.6 — a 0.5 mm spread
+                                    // between sheets with the same label, so CALIPER EVERY NEW SHEET and pass --material3.
 const KERF3 = opt("kerf3", 0.08);  // thin-ply kerf: his UNcompensated chest already snaps REALLY firmly — "maybe a TINY
                                    // bit of compensation is necessary, but very little" (2026-08-25, from the built chest)
 let KERF_FOR = () => KERF;         // set per version once the parts know their materials
