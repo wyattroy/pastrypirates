@@ -69,6 +69,20 @@ every fix made after this phase has to be made in the new tree.
   state the shipped default and cite this decision. **This is rule 6's other half and it is not
   optional cleanup.**
 
+### Safari and storms (FIX-04)
+
+- **D-62: FIX-04 IS CLOSED, MET ON HIS OWN iPHONE. Do not schedule a re-measurement.**
+  Asked directly — and separately from the wind dots, because his wind answer did not cover storms
+  and assuming it did would have been rule 6 all over again — whether a storm had actually hit him
+  during the week: *"Yes, and storms are fine."*
+
+  **This retires a sentence that appears in several planning documents:** *"nothing in `4/` has ever
+  been measured on Safari."* It was written about instrumented runs and it overlooked a week of real
+  voyages on the only device where the fault would show. **That is precisely the blind spot that cost
+  eight days on the pulse bug** — three engines cleared it honestly and none of them was his phone.
+
+  — **Reversibility:** n/a — a measurement verdict, not a change.
+
 ### The old URL (CUT-01, CUT-02)
 
 - **D-60: `playpastrypirates.com/4` BOUNCES to the front page. It does not 404 and it does not serve
