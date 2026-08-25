@@ -111,14 +111,20 @@ building anything non-trivial, read every screenshot he sends pixel by pixel, QA
 before he sees them, restate every mid-flight instruction, and never claim a defect or a fix you
 have not looked at.
 
-## 8a. DXF: raster arrives FILLED (2026-08-25)
+## 8a. DXF: raster arrives FILLED — and ezdxf writes the files (2026-08-25)
 
-Wyatt, mid-session: "your dxf files don't correctly save the black raster area as filled in." The DXF
-writer now emits **R2000 with one solid HATCH per raster item** (loops = the item's sub-paths,
-odd-parity so holes stay open); CUT stays bare LWPOLYLINE/CIRCLE. Validated by loading every emitted
-DXF with `ezdxf` (recover + audit, zero errors across all 19 files) — but ezdxf is not Rhino:
-**have him eyeball one file in Rhino before a cut.** Stale crates-a/b and markers files were deleted
-from v3-round when the A/B options went.
+Wyatt: "your dxf files don't correctly save the black raster area as filled in." First fix: a
+hand-written R2000 with HATCH entities, "validated" with ezdxf in RECOVER mode — **a check that
+cannot fail the way Rhino fails, and it didn't: Rhino refused the files outright** ("Opendesign
+error: null object id ... Can't recover file"). ODA wants the full R2000 object structure.
+
+So the generator no longer writes DXF bytes at all: `generate.mjs` hands the geometry as JSON to
+`art/dxf.py`, and **ezdxf writes the files** (R2000; RASTER = one solid HATCH per item, loops =
+its sub-paths, odd-parity so holes stay open; CUT = bare polylines/circles). Validation is now
+strict-mode `ezdxf.readfile` + audit, zero errors — and the bytes come FROM the reference library
+rather than being blessed by it. **One-time setup on a new machine: `pip3 install --user ezdxf`**
+(generate.mjs fails loudly without it). Stale crates-a/b and markers files were deleted from
+v3-round when the A/B options went. He has not yet re-tried Rhino on these.
 
 ## 8. Round five — the islands from his SECOND drawing (2026-08-22, evening)
 

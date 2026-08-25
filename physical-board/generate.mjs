@@ -22,6 +22,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
+import { execSync } from "node:child_process";
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf("--" + k); return i >= 0 ? Number(argv[i + 1]) : d; };
 
@@ -1545,47 +1546,30 @@ function emitSVG(doc, V, forPage = false) {
   }
   return out + `</svg>\n`;
 }
-function emitDXF(doc) {
-  // R2000 (AC1015) — the first DXF with HATCH, because Wyatt, 2026-08-25: "your dxf files don't correctly save the
-  // black raster area as filled in ... fix this so that the entire raster area is filled in." Every RASTER item is
-  // ONE solid hatch; its sub-paths are the loops, odd-parity (style 0), so holes stay open exactly as the SVG fills
-  // them. CUT stays bare curves (LWPOLYLINE/CIRCLE) — a laser cuts lines, not regions.
-  const L = [], w = (c, v) => { L.push(String(c), String(v)); }, H = doc.h;
-  let hseed = 0x100; const hx = () => (hseed++).toString(16).toUpperCase();
-  w(0, "SECTION"); w(2, "HEADER");
-  w(9, "$ACADVER"); w(1, "AC1015");
-  w(9, "$HANDSEED"); w(5, "FFFF");
-  w(9, "$INSUNITS"); w(70, 4);   // millimetres
-  w(9, "$EXTMIN"); w(10, 0); w(20, 0); w(30, 0); w(9, "$EXTMAX"); w(10, doc.w); w(20, doc.h); w(30, 0);
-  w(0, "ENDSEC");
-  w(0, "SECTION"); w(2, "TABLES");
-  w(0, "TABLE"); w(2, "LAYER"); w(5, hx()); w(100, "AcDbSymbolTable"); w(70, 2);
-  for (const [n, col] of [["CUT", 1], ["RASTER", 7]]) { w(0, "LAYER"); w(5, hx()); w(100, "AcDbSymbolTableRecord"); w(100, "AcDbLayerTableRecord"); w(2, n); w(70, 0); w(62, col); w(6, "Continuous"); w(370, -3); }
-  w(0, "ENDTAB"); w(0, "ENDSEC");
-  w(0, "SECTION"); w(2, "ENTITIES");
-  const ent = (type, layer) => { w(0, type); w(5, hx()); w(100, "AcDbEntity"); w(8, layer); };
-  const loopPts = sp => { if (sp.circle) { const { cx, cy, r } = sp.circle, pts = []; for (let i = 0; i < 48; i++) { const a = i / 48 * 2 * Math.PI; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } return { pts }; } return flatten(sp); };
+// DXF: the geometry is handed to ezdxf (art/dxf.py) which writes real R2000 — Wyatt's Rhino refused the
+// hand-rolled version ("Opendesign error: null object id", 2026-08-25): ODA wants the full object/handle
+// structure, and the reference library is the only honest way to produce it. RASTER = one solid HATCH per
+// item (loops = its sub-paths, odd-parity so holes stay open); CUT = bare polylines/circles.
+function dxfEntities(doc) {
+  const H = doc.h, out = [];
+  const loopPts = sp => { if (sp.circle) { const { cx, cy, r } = sp.circle, pts = []; for (let i = 0; i < 48; i++) { const a = i / 48 * 2 * Math.PI; pts.push([r3(cx + r * Math.cos(a)), r3(H - (cy + r * Math.sin(a)))]); } return pts; } return flatten(sp).pts.map(([x, y]) => [r3(x), r3(H - y)]); };
   for (const it of doc.items) {
     if (it.layer === GU) continue;
-    if (it.layer === RA) {
-      const loops = it.sub.map(loopPts).filter(l => l.pts.length > 2);
-      if (!loops.length) continue;
-      ent("HATCH", "RASTER"); w(100, "AcDbHatch"); w(10, 0); w(20, 0); w(30, 0); w(210, 0); w(220, 0); w(230, 1);
-      w(2, "SOLID"); w(70, 1); w(71, 0); w(91, loops.length);
-      for (const { pts } of loops) { w(92, 2); w(72, 0); w(73, 1); w(93, pts.length);
-        for (const [x, y] of pts) { w(10, r3(x)); w(20, r3(H - y)); } w(97, 0); }
-      w(75, 0); w(76, 1); w(98, 1); w(10, 0); w(20, 0);
-      continue;
-    }
+    if (it.layer === RA) { const loops = it.sub.map(loopPts).filter(l => l.length > 2); if (loops.length) out.push({ type: "hatch", loops }); continue; }
     for (const sp of it.sub) {
-      if (sp.circle) { ent("CIRCLE", it.layer); w(100, "AcDbCircle"); w(10, r3(sp.circle.cx)); w(20, r3(H - sp.circle.cy)); w(30, 0); w(40, r3(sp.circle.r)); continue; }
+      if (sp.circle) { out.push({ type: "circle", layer: it.layer, cx: r3(sp.circle.cx), cy: r3(H - sp.circle.cy), r: r3(sp.circle.r) }); continue; }
       const { pts, closed } = flatten(sp);
-      ent("LWPOLYLINE", it.layer); w(100, "AcDbPolyline"); w(90, pts.length); w(70, closed ? 1 : 0);
-      for (const [x, y] of pts) { w(10, r3(x)); w(20, r3(H - y)); }
+      out.push({ type: "poly", layer: it.layer, closed: !!closed, pts: pts.map(([x, y]) => [r3(x), r3(H - y)]) });
     }
   }
-  w(0, "ENDSEC"); w(0, "EOF");
-  return L.join("\n") + "\n";
+  return out;
+}
+function writeDXFs(dxfDocs) {
+  const j = path.join(HERE, ".dxf-build.json");
+  fs.writeFileSync(j, JSON.stringify(dxfDocs));
+  try { execSync(`python3 ${JSON.stringify(path.join(HERE, "art", "dxf.py"))} ${JSON.stringify(j)}`, { stdio: "inherit" }); }
+  catch (e) { console.error("DXF EMISSION FAILED — the .dxf files were NOT written. Install the writer: pip3 install --user ezdxf"); throw e; }
+  finally { fs.unlinkSync(j); }
 }
 
 /* =========================================================================================
@@ -1594,16 +1578,18 @@ function emitDXF(doc) {
 const siteData = { cell: CELL, material: MAT, kerf: KERF, bed: [BED_W, BED_H], generated: new Date().toISOString().slice(0, 10), versions: [] };
 for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   const built = buildVersion(V), dir = path.join(HERE, V.dir);
+  const dxfDocs = [];
   fs.mkdirSync(dir, { recursive: true });
   const groups = [];
   for (const doc of built.docs) {
     if (doc.kind === "mockup") { fs.writeFileSync(path.join(dir, `${doc.id}.svg`), doc.svg); groups.push({ id: doc.id, title: doc.title, kind: "mockup", mat: null, notes: doc.notes, w: 0, h: 0, count: 0, svg: doc.svg }); continue; }
     const svg = emitSVG(doc, V), pageSvg = emitSVG(doc, V, true);
     fs.writeFileSync(path.join(dir, `${doc.id}.svg`), svg);
-    fs.writeFileSync(path.join(dir, `${doc.id}.dxf`), emitDXF(doc));
+    dxfDocs.push({ path: path.join(dir, `${doc.id}.dxf`), w: doc.w, h: doc.h, entities: dxfEntities(doc) });
     groups.push({ id: doc.id, title: doc.title, kind: doc.kind || "preview", mat: doc.mat || null, notes: doc.notes, w: doc.w, h: doc.h, count: doc.count, svg: pageSvg });
   }
   siteData.versions.push({ id: V.id, dir: V.dir, name: V.name, blurb: V.blurb, groups });
+  writeDXFs(dxfDocs);
   console.log(`${V.dir}: ${built.docs.length} files x2 (svg+dxf)`);
 }
 fs.writeFileSync(path.join(HERE, "site-data.js"), "window.PB_DATA = " + JSON.stringify(siteData) + ";\n");
