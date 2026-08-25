@@ -408,9 +408,18 @@ export function sailPanelHTML(msg,hint){
      (stage.js's pointer handler) are the two doors that reveal it. The Aye/Keep-sailin' confirm
      pair is deleted outright — his call: "Get rid of the Aye Stay Put and Keep Sailin' button
      flow entirely" (the Keep sailin' circle broke the consistent-back-button value). */
+  /* THE RED SHOUT IS NO LONGER DRAWN (Wyatt, 2026-08-25: "I don't care about the red shout at all
+     — it's not useful any more"). It was never what it looked like: not the game explaining a
+     refused move, but a developer alarm that fired only when the highlighted squares disagreed
+     with sailSelfCheck()'s independent re-derivation of the sail rules. In three years of his
+     playing it has never once spoken, because the two have never disagreed on his screen.
+     sailSelfCheck() ITSELF STAYS and still console.error()s — it costs a player nothing, it is the
+     only thing that would catch a genuine "I sailed 3 upwind" fault, and it was red-proofed on
+     2026-08-25 (silent on a real board; fires on an impossible square). What is gone is the
+     player-facing red text. `hint` stays in the signature and on the wire so the spec shape and
+     the guest payload are unchanged. */
   return `<div class="apMsg">${msg}</div>`+
-    `<div class="apBtns"><button class="apBtn" id="apStay" style="display:none">Stay put</button></div>`+
-    (hint?`<div class="apSub" style="color:#b3261e;font-weight:bold">${hint}</div>`:``);
+    `<div class="apBtns"><button class="apBtn" id="apStay" style="display:none">Stay put</button></div>`;
 }
 /* THE WIND HINT IS GONE (Wyatt, 2026-08-25): "Remove the sail prompt saying wind blows east
    entirely because the game calculates this for you." It was ALREADY invisible — `sailWindHint()`
@@ -1340,7 +1349,7 @@ async function pickBarterCrates(p,ing){
     opts.push({label:"← Back",back:true,value:"__back__"});
     // @copy misc.blackmarket.pick1 / pick2 — draft, Wyatt rewrites
     const msg=first===null
-      ?`The black market'll take any two crates fer ${dockFlavorIcon(ing)} — what's the first?`
+      ?`The black market'll take any 2 crates fer ${dockFlavorIcon(ing)} — what's the first?`
       :`Givin' ${ilabelImg(first)} an' one more fer ${dockFlavorIcon(ing)} — what's the second?`;
     const sub=first===null
       ?`Both crates leave the Sugar Seas fer good.`
@@ -1426,7 +1435,7 @@ export async function humanDock(p,port){
       ];
       // @copy misc.blackmarket.barterbtn — draft, Wyatt rewrites
       if(black)opts.push({label:`Trade any 2 crates fer ${ilabelImg(ing)}`,short:`2 crates → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter,
-        why:`The barter takes two crates off yer hands, and ye're carryin' ${p.ing.length}.`});
+        why:`The barter takes 2 crates off yer hands, and ye're carryin' ${p.ing.length}.`});
       opts.push({label:"Nah",value:false});
       // @copy misc.blackmarket.whisper — draft, Wyatt rewrites
       /* HIS COPY PASS, 2026-08-25. The black-market whisper said in a sentence what the two
@@ -1435,8 +1444,8 @@ export async function humanDock(p,port){
          sentence about why (item 17), which is the same string the greyed button's tap-why uses. */
       const sub=black
         ?(canBuy||canBarter
-          ?`${price}🌕 or any two crates.`
-          :`Ye need ${price}🌕 or two crates — ye've neither.`)
+          ?`${price}🌕 or any 2 crates.`
+          :`Ye need ${price}🌕 or 2 crates — ye've neither.`)
         :canBuy?null
         :shortWhy;   // item 17: the one truthful sentence, shared with the button's tap-why above
       const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
