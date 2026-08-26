@@ -92,6 +92,23 @@ export function openKofi(){
 /* ================= welcome modal ================= */
 export function showStep(id){
   ["stepChoose","stepHost","stepJoin","stepPassPlay"].forEach(s=>{$(s).style.display=(s===id?"":"none");});
+  /* T-22 (Wyatt, 2026-08-26): "the focus cursor automatically lands in the top text box (either
+     name or crew code) on all pre-game mode modals."
+
+     WIRED HERE, NOT PER SCREEN. The name modal already focused its own field (openNameModal), and
+     the join and pass-and-play steps did not — one screen having the courtesy and its neighbours
+     not is the consistency rule as a bug. Every step goes through this one function, so no future
+     step can be added without it.
+
+     Reads the first visible text input rather than a hard-coded id, so a step that gains or
+     reorders fields keeps working. rAF, because the step is unhidden on the line above and an
+     element cannot take focus in the same frame it stops being display:none. */
+  requestAnimationFrame(()=>{
+    const step=$(id); if(!step)return;
+    const first=[...step.querySelectorAll('input[type="text"], input:not([type])')]
+      .find(e=>{const r=e.getBoundingClientRect();return r.width>1&&r.height>1&&!e.disabled&&!e.readOnly;});
+    if(first){try{first.focus();first.select();}catch(err){}}
+  });
 }
 // FIX-01: the single read chokepoint every caller goes through. Was a direct read of the
 // welcome-screen input's value — that field is gone (D-01); the persisted last-used name

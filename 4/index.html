@@ -183,6 +183,14 @@
      (index.html ~146-147) so every primary button reads as one house pattern, not a fourth orange. */
   button.primary { border: 1.5px solid #e89827; background: #fdf3e3; color: #8a5a12; }
   button.primary:hover { background: #fae7cb; }
+  /* T-21 (Wyatt, 2026-08-26): "Change the styling of the 'wait not yet' button to blue. this is an
+     inconsistent design element and it's brighter than the orange, which is confusing."  It was
+     taking the bare `button` default — lemon on a teal border — which put the LOUDER colour on the
+     control that backs out, beside the warm primary that sails. Blue is the same recipe as
+     .primary (soft ground, darker ink, matching border), one hue along, so a decline reads as
+     quieter than the commit without reading as disabled. */
+  #btnCancelStart { border: 1.5px solid #2b8ca8; background: #e8f4f8; color: #14576b; }
+  #btnCancelStart:hover { background: #d5eaf2; }
   button:disabled { opacity: .4; cursor: default; }
   /* UI-01: top padding was 4px. #footerRow is a SIBLING of #layout, not a grid item, so the space
      above it is #layout's own 14px bottom padding PLUS this — 18px, against the 14px rhythm every

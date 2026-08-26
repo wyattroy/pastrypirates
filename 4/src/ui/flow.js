@@ -1764,8 +1764,14 @@ export async function humanTrade(p){
       // ARC, not about one prompt — leaving ±1 circles on the offer-building step and removing them
       // from the counter would be the same gesture behaving two ways, which is the consistency rule
       // this project treats as a bug in its own right.
+      /* T-19 (Wyatt, 2026-08-26): "currently the text is very confusing when the slider appears:
+         it says 'Yer GIVING' {ingredient1} for {ingredient2} and it doesn't say what the slider is
+         for at all. Instead, when the slider appears, it should say 'Would ye offer any coin on
+         top?'"  His sentence, verbatim. The line now asks the question the control answers; the
+         running amount is not lost, because the slider draws its own value beside the handle.
+         The deal itself is still on screen — this prompt sits under the offer being built. */
       const n=await coinSlider(p.idx,
-        k=>`Ye're GIVIN' ${giveBits(k)} for ${ilabelImg(st.want)}`,
+        k=>`Would ye offer any coin on top?`,
         minC,minC,maxC,"Offer it!");
       if(n==null)return false;
       if(n==="__back__"){step=1;continue;}
@@ -2005,7 +2011,13 @@ export async function humanAct(p,sailCtx){
      /4 radial (his pick: short verbs in the circles, details in the pill): the long label is the
      card fallback, `short` is what the petal shows. ONE builder — optionButtonsHTML carries both to
      the host, to a guest and to the draft card, so this single edit reaches all three. */
-  if(canDock)opts.push({label:`Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)} 🪙`,short:`${iconImg(ING_IMG[port])} Dock 🪙`,value:"dock"});
+  /* T-20 (Wyatt, 2026-08-26): "remove the coin image from the dock button; just use the image of
+     the ingredient at that island (eg cinnamon, when docking at the spice isle)." The button
+     already carried the island's own ingredient; the trailing coin was a second picture competing
+     with it for the same glance, and it named a reward the button does not actually hand out (the
+     dock's coin depends on the flip). Both forms lose it together — long and short are one control
+     wearing two widths, and a difference between them is the consistency rule as a bug. */
+  if(canDock)opts.push({label:`Dock at ${iconImg(ING_IMG[port])} ${dockPlace(port)}`,short:`${iconImg(ING_IMG[port])} Dock`,value:"dock"});
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   // playtest 21 item 5: a greyed circle carries its OWN reason, spoken at the circle when tapped.
