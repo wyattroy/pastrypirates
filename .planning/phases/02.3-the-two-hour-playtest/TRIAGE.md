@@ -48,7 +48,7 @@ running it by hand rather than a hole in CI.
 
 ---
 
-## 0b. STATUS AFTER THE OVERNIGHT RUN (2026-08-26, build `2026-08-26g`)
+## 0b. STATUS AFTER THE OVERNIGHT RUN (2026-08-26, build `2026-08-26h`)
 
 **22 of 35 addressed (1 partial). 4 verified on screen. 5 parked with a diagnosis. 8 untouched.**
 
