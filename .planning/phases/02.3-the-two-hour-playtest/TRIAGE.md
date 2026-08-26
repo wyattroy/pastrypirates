@@ -50,7 +50,10 @@ running it by hand rather than a hole in CI.
 
 ## 0b. STATUS AFTER THE OVERNIGHT RUN (2026-08-26, build `2026-08-26g`)
 
-**21 of 35 addressed. 4 verified on screen. 5 deliberately parked with a diagnosis. 9 untouched.**
+**22 of 35 addressed (1 partial). 4 verified on screen. 5 parked with a diagnosis. 8 untouched.**
+
+*Counts checked against the rows below rather than typed from memory — the first version of this
+line was stale within an hour, which is what conventions §2 warns about.*
 
 | | Item | State | Evidence |
 |---|---|---|---|
@@ -84,7 +87,30 @@ running it by hand rather than a hole in CI.
 | T-01 | solo Enter dumps home | **parked** | does NOT reproduce in Chrome; goes to the WebKit mount |
 | T-18 | parentheses split | **parked** | `nobrk` holds in solo at 390px; needs the ceremony at width |
 | T-03 | wind announcement | **parked** | I claimed a screenshot confirmed it. **It did not.** Retracted |
-| T-05, T-06, T-10, T-14, T-17, T-23, T-26, T-28, T-32, T-34, T-35 | | **untouched** | |
+| T-01, T-03, T-09, T-18, T-28 | | **parked, each with a diagnosis** | see below |
+| T-05, T-06, T-10, T-14, T-23, T-24, T-26, T-32 | | **untouched** | |
+
+### T-06 — "no message on the host's screen" during a guest's bake: established, NOT fixed
+
+Read, not reproduced (a crew bake needs the two-window rig, which is parked at budget):
+
+- **The host DOES receive bench snapshots.** `watchBattle`'s bake branch —
+  `if(v&&v.bake){applyBenchSnap(v.bake);return;}` — sits BEFORE the `if(appState.isHost)return;`
+  guard, deliberately, because a bench is published by whoever is baking and that may be a guest.
+- **`applyBenchSnap` skips only the publisher's own seat**, so a host watching a guest's bake should
+  reach `benchWatch(snap)` and draw the bench.
+- **`remotePrompt`'s `panel("")` is not the culprit** — it is on the ANSWER path and already carries
+  a `keepPanel` exception for exactly this card.
+- **A wait line IS broadcast**: `"{captain} steps up to the ovens…"` with `{wait:true}`.
+
+**By reading, the host should show either the bench or that line. He saw neither.** That is exactly
+where guessing gets expensive, so it stops here. Get `crew_stayput_check.mjs` finishing first; the
+same rig then answers this.
+
+> **Ask him before building either.** His expectation ("it should say the same 'waiting for {player}
+> to decide' message") and the built design (every captain WATCHES the bake on a face-down bench —
+> his own 2026-08-18 ruling) are different things. He may simply not have known the bench was
+> supposed to be there.
 
 > **TWO numbering corrections, in the open — and it is the same mistake twice.** The storm fix was
 > labelled **T-32** and belongs to **T-08**; the tap-to-finish fix was labelled **T-24** and belongs
