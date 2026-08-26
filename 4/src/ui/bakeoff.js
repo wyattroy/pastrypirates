@@ -676,6 +676,29 @@ export async function playBakeoffLive(spec,io){
       paintBench(shown);
       row.classList.add("bkoStudy");
       bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.remove("covered"); });
+      /* T-28 (Wyatt, 2026-08-26) IS THIS LINE, AND IT IS DELIBERATELY NOT FIXED YET: "after
+         hitting 'watch again' the crates cover the ingredients too fast. instead, watch again
+         should trigger the same pattern as before, where you can study the crates as long as you
+         want and say 'i'm ready'."
+
+         He is right, and the asymmetry is plain: phase 1 above deleted its 2.5s auto-timer on his
+         own 2026-08-08 ruling ("Don't hide the cups after a few seconds — let the user decide when
+         to start"), and a PAID look still runs on a fixed 900ms clock. The player buys a second
+         read and gets less time than the free one.
+
+         WHY IT IS NOT A ONE-LINE SWAP, and why nobody should make it one. A watcher runs THIS SAME
+         function from the published bench phases (epoch restarts its session). Replacing this sleep
+         with a Ready-button wait on the baker's screen alone would leave the watcher covering on
+         the old clock while the baker is still studying — a baker and a watcher watching different
+         benches, which is precisely the divergence class this whole playtest is about. Creating one
+         while fixing his list would be worse than the wait.
+
+         THE CORRECT FIX, scoped so it is not re-derived: a rewatch must publish `{phase:"open"}`
+         and wait, exactly as phase 1 does — baker on its own Ready click, watcher on
+         `watch.started` — and only then publish `{phase:"shuffle"}` and cover. That needs
+         `watch.started` re-armable per epoch, which it is not today (it is a promise resolved
+         once). One protocol change, one re-armable gate, and it must be seen in two browsers
+         before it is believed. */
       await sleep(reduced?400:900);
       row.classList.remove("bkoStudy");
       await coverBench();
