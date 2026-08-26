@@ -1,0 +1,146 @@
+[9s]   [solo-phone] DAY 0
+[9s]   [solo-desktop] DAY 0
+[22s]   [solo-phone] DAY 1
+[23s]   [solo-desktop] DAY 1
+[43s]   [solo-desktop] note: still moving at the cap (2698ms) — checked anyway
+[53s]   [solo-phone] note: still moving at the cap (2686ms) — checked anyway
+[53s]   [solo-phone] STRUCT FAIL no-cover-ask: control covering the question it answers: "sailCell" over "Davy Scones: tap to sail"
+[71s]   [solo-desktop] DAY 2
+[91s]   [solo-phone] DAY 2
+[93s]   [solo-desktop] note: still moving at the cap (2693ms) — checked anyway
+[128s]   [solo-phone] note: still moving at the cap (2692ms) — checked anyway
+[142s]   [solo-desktop] DAY 3
+[160s]   [solo-phone] DAY 3
+[189s]   [solo-phone] note: still moving at the cap (2693ms) — checked anyway
+[189s]   [solo-phone] STRUCT FAIL no-cover-ask: control covering the question it answers: "sailCell" over "Davy Scones: tap to sail"
+[203s]   [solo-phone] DAY 4
+[206s]   [solo-desktop] DAY 4
+[269s]   [solo-desktop] DAY 5
+[284s]   [solo-phone] DAY 5
+[317s]   [solo-desktop] DAY 6
+[343s]   [solo-phone] DAY 6
+[393s]   [solo-desktop] DAY 7
+[399s]   [solo-phone] DAY 7
+[454s]   [solo-desktop] DAY 8
+[461s]   [solo-phone] DAY 8
+[518s]   [solo-desktop] DAY 9
+[524s]   [solo-phone] DAY 9
+[565s]   [solo-desktop] DAY 10
+[571s]   [solo-phone] DAY 10
+[624s]   [solo-desktop] DAY 11
+[643s]   [solo-phone] DAY 11
+[681s]   [solo-desktop] DAY 12
+[696s]   [solo-phone] DAY 12
+[731s]   [solo-phone] note: still moving at the cap (2693ms) — checked anyway
+[742s]   [solo-phone] note: still moving at the cap (2693ms) — checked anyway
+[746s]   [solo-desktop] DAY 13
+[766s]   [solo-phone] DAY 13
+[792s]   [solo-desktop] DAY 14
+[821s]   [solo-phone] DAY 14
+[857s]   [solo-desktop] DAY 15
+[877s]   [solo-phone] END OF VOYAGE at day 14
+[877s] [solo-phone] vision-judging 26 screen(s)…
+[904s]   [solo-desktop] END OF VOYAGE at day 15
+[904s] [solo-desktop] vision-judging 20 screen(s)…
+[935s]   [judge FAIL] solo-phone-014-settled.png: trade offer text is hidden behind/overlapped by the coin slider box (only fragments like 'Yo...s...ed f...' visible); 'Toasty Wheat' label is clipped by the bottom edge of the slider's rounded box, half the text cut off
+[976s]   [judge FAIL] solo-desktop-003-settled.png: On the selected 'Cinnamon-Sugar Churros' card, the 'Bake this!' button sits directly on top of the recipe's plate icon, hiding almost all of it (only a sliver of a churro pokes out above the button) — the matching plate icon on the unselected card is fully visible, so this reads as a layering bug, not a style choice
+[997s]   [judge FAIL] solo-phone-017-settled.png: Deny/Counter/Accept button circles overlap the bottom of the italic sub-text bubble above them ('...ye can take it or leave it.') instead of sitting clear of it
+[1072s] [solo-desktop] contact sheet: /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/playtest-2026-08-23c/contact-solo-desktop.png
+[1081s]   [passplay-phone] DAY 0
+[1092s]   [passplay-phone] note: still moving at the cap (2708ms) — checked anyway
+[1105s]   [passplay-phone] DAY 1
+[1123s]   [passplay-phone] note: still moving at the cap (2696ms) — checked anyway
+[1123s]   [passplay-phone] during-animation only (not a failure) not-occluded: clickable covered by something else: sailCell <- covered by .pp4Tail <div>, sailCell <- covered by .pp4Bub out <div>
+[1123s]   [passplay-phone] during-animation only (not a failure) sail-clickable: 2 sail square(s) covered: a sail square <- .pp4Tail <div>, a sail square <- .pp4Bub out <div>
+[1128s]   [passplay-phone] note: still moving at the cap (2697ms) — checked anyway
+[1162s]   [passplay-phone] note: still moving at the cap (2696ms) — checked anyway
+[1162s]   [passplay-phone] STRUCT FAIL no-cover-ask: control covering the question it answers: "sailCell" over "Peg Leg Meg: tap to sail"
+[1188s] [solo-desktop] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[1214s] [solo-phone] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[1222s] [crew-desktop] room SPUM created by test1
+[1224s]   [passplay-phone] DAY 2
+[1230s] [crew-desktop] test2 joined SPUM
+[1234s]   [crew-desktop-guest] DAY 0
+[1234s]   [crew-desktop-host] DAY 0
+[1246s]   [crew-desktop-guest] DAY 1
+[1246s]   [crew-desktop-host] DAY 1
+[1267s]   [crew-desktop-guest] note: still moving at the cap (2692ms) — checked anyway
+[1271s]   [crew-desktop-guest] note: still moving at the cap (2690ms) — checked anyway
+[1277s]   [passplay-phone] DAY 3
+[1297s]   [crew-desktop-host] note: still moving at the cap (2687ms) — checked anyway
+[1332s]   [crew-desktop-host] DAY 2
+[1332s]   [crew-desktop-guest] DAY 2
+[1341s]   [passplay-phone] DAY 4
+[1353s]   [crew-desktop-guest] note: still moving at the cap (2698ms) — checked anyway
+[1385s]   [crew-desktop-host] DAY 3
+[1385s]   [crew-desktop-guest] DAY 3
+[1421s]   [passplay-phone] DAY 5
+[1431s]   [crew-desktop-host] note: still moving at the cap (2700ms) — checked anyway
+[1465s]   [crew-desktop-host] DAY 4
+[1465s]   [crew-desktop-guest] DAY 4
+[1468s]   [passplay-phone] DAY 6
+[1536s]   [crew-desktop-guest] DAY 5
+[1536s]   [crew-desktop-host] DAY 5
+[1540s]   [passplay-phone] DAY 7
+[1604s]   [crew-desktop-guest] DAY 6
+[1604s]   [crew-desktop-host] DAY 6
+[1606s]   [passplay-phone] DAY 8
+[1650s]   [crew-desktop-host] DAY 7
+[1651s]   [crew-desktop-guest] DAY 7
+[1675s]   [passplay-phone] DAY 9
+[1717s]   [crew-desktop-guest] DAY 8
+[1717s]   [crew-desktop-host] DAY 8
+[1736s]   [passplay-phone] DAY 10
+[1764s]   [crew-desktop-host] DAY 9
+[1765s]   [crew-desktop-guest] DAY 9
+[1808s]   [passplay-phone] DAY 11
+[1829s]   [crew-desktop-guest] DAY 10
+[1829s]   [crew-desktop-host] DAY 10
+[1873s]   [passplay-phone] DAY 12
+[1875s]   [crew-desktop-host] DAY 11
+[1876s]   [crew-desktop-guest] DAY 11
+[1933s]   [passplay-phone] END OF VOYAGE at day 12
+[1933s] [passplay-phone] vision-judging 30 screen(s)…
+[1979s]   [crew-desktop-host] DAY 12
+[1979s]   [crew-desktop-guest] DAY 12
+[2037s]   [crew-desktop-host] note: still moving at the cap (2686ms) — checked anyway
+[2057s]   [crew-desktop-host] note: still moving at the cap (2696ms) — checked anyway
+[2058s]   [crew-desktop-guest] DAY 13
+[2058s]   [crew-desktop-host] DAY 13
+[2079s]   [judge FAIL] passplay-phone-027-settled.png: 'Attack -2' action circle is overlapped and largely hidden behind the 'Pass +1' circle, its left portion clipped so only the right sliver is visible
+[2113s]   [crew-desktop-host] DAY 14
+[2113s]   [crew-desktop-guest] DAY 14
+[2177s]   [crew-desktop-guest] DAY 15
+[2178s]   [crew-desktop-host] DAY 15
+[2229s]   [crew-desktop-guest] END OF VOYAGE at day 15
+[2233s]   [crew-desktop-host] END OF VOYAGE at day 15
+[2233s] [crew-desktop] vision-judging 30 screen(s)…
+[2245s] [passplay-phone] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[2245s]   [judge FAIL] crew-desktop-host-001-settled.png: no narration/prompt box visible for host despite 'sel:' and 'Ahoy!' context suggesting a message should be shown; large empty side panel below CAPTAINS list before menu buttons block
+[2481s] [crew-desktop] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[2481s] 
+== solo-desktop: FAIL
+[2481s]    ✗ vision judge FAILED 1 screen(s)
+[2481s]    ✗ 2 screen(s) never stopped moving before being checked
+[2481s]    coverage: arrgh:2/2  cinnamonsugar churroscri:2/2  dark chocolate cream puf:0/2  start:1/1  sail square:15/15  pass #:7/15  menu:0/1  trade:7/14  crystal sugar:1/7  coins only:3/7  slider:7/7  offer it:7/7  toasty wheat:2/6  cacao pods:1/6  attack #:1/1  flip coin:1/1  fresh milk:4/9  speckled eggs:1/5  hot cinnamon:1/5  dough hook:1/1  walk away:0/1  vanilla beans:1/4
+[2481s] 
+== solo-phone: FAIL
+[2481s]    ✗ 2 structural check failure(s)
+[2481s]    ✗ vision judge FAILED 2 screen(s)
+[2481s]    ✗ 5 screen(s) never stopped moving before being checked
+[2481s]    coverage: arrgh:2/2  mexican chocolate potssi:2/2  chocolate genoise sponge:0/2  start:1/1  sail square:14/14  attack #:1/1  trade:6/14  pass #:5/14  flip coin:3/3  menu:0/1  menu open:1/0  menu close:1/0  toasty wheat:3/7  speckled eggs:1/6  crystal sugar:1/6  coins only:4/6  slider:6/6  offer it:6/6  dough hook:1/2  walk away:1/2  accept:1/1  counter:0/1  deny:0/1  cacao pods:1/3  call dough hook:1/1  call crustbeard:0/1  fresh milk:1/3  hot cinnamon:1/3  dock:2/2  buy #:1/1  nah:1/2
+[2481s] 
+== passplay-phone: FAIL
+[2481s]    ✗ 1 structural check failure(s)
+[2481s]    ✗ vision judge FAILED 1 screen(s)
+[2481s]    ✗ 2 observation(s) seen only DURING an animation — not failures, read them in the log
+[2481s]    ✗ 4 screen(s) never stopped moving before being checked
+[2481s]    coverage: arrgh:2/2  cinnamon sponge cakea fl:2/2  mexican chocolate tortea:0/2  at the helm:25/25  spiced fudge browniesdee:2/2  chocolate genoise sponge:0/2  start:1/1  sail square:24/24  dock:5/5  pass #:9/24  flip coin:8/8  buy #:3/4  nah:2/5  trade:9/22  crystal sugar:3/13  vanilla beans:2/13  coins only:3/9  slider:8/8  offer it:9/9  flaky jack#:1/1  walk away:0/2  call dough hook:1/1  call davy scones:0/1  menu:0/1  menu open:1/0  menu close:1/0  speckled eggs:3/12  dough hook:1/1  cacao pods:1/6  attack #:1/1  toasty wheat:2/6  hot cinnamon:2/6  fresh milk:2/3
+[2481s] 
+== crew-desktop: FAIL
+[2481s]    ✗ 1 console error(s): ERR [src/net/registry.js] duplicate attach refused for key "session|https://pastry-pirates-default-rtdb.firebaseio.com/.info/connected|value|connected" — was the caller's setup entry point invoked twice?
+[2481s]    ✗ vision judge FAILED 1 screen(s)
+[2481s]    ✗ 7 screen(s) never stopped moving before being checked
+[2481s]    coverage: arrgh:2/2  mexican chocolate potssi:2/2  mayan cocoa souffléa soa:0/2  start:1/1  sail square:15/15  trade:7/15  pass #:7/15  fresh milk:2/8  coins only:5/7  slider:7/7  offer it:7/7  menu:0/1  chat:1/1  chat open:1/0  chat close:1/0  cacao pods:1/5  vanilla beans:2/7  hot cinnamon:1/6  toasty wheat:3/5  crystal sugar:1/2  attack #:1/1  flip coin:1/1  dough hook:1/1  walk away:0/1
+[2481s] 
+RESULT: FAIL

@@ -1,0 +1,126 @@
+[9s]   [solo-phone] DAY 0
+[9s]   [solo-desktop] DAY 0
+[12s]   [solo-phone] STRUCT FAIL on-screen: clickable off-screen: Spiced Fudge BrowniesDee, Mexican Chocolate PotsSi
+[12s]   [solo-phone] STRUCT FAIL no-pile: overlapping controls: Spiced Fudge BrowniesDee/Mexican Chocolate PotsSi
+[13s]   [solo-desktop] STRUCT FAIL no-pile: overlapping controls: Cinnamon SnapsCrisp, rus/Chocolate Genoise Sponge
+[13s]   [solo-phone] STRUCT FAIL on-screen: clickable off-screen: Spiced Fudge BrowniesDee, Mexican Chocolate PotsSi
+[21s]   [solo-desktop] DAY 1
+[22s]   [solo-phone] DAY 1
+[69s]   [solo-phone] DAY 2
+[104s]   [solo-desktop] DAY 2
+[131s]   [solo-phone] DAY 3
+[147s]   [solo-desktop] DAY 3
+[192s]   [solo-phone] DAY 4
+[205s]   [solo-desktop] DAY 4
+[256s]   [solo-phone] DAY 5
+[280s]   [solo-desktop] DAY 5
+[346s]   [solo-desktop] DAY 6
+[420s]   [solo-desktop] DAY 7
+[467s]   [solo-desktop] DAY 8
+[527s]   [solo-desktop] DAY 9
+[579s]   [solo-desktop] DAY 10
+[667s]   [solo-desktop] DAY 11
+[750s]   [solo-desktop] DAY 12
+[828s]   [solo-desktop] DAY 13
+[895s]   [solo-desktop] END OF VOYAGE at day 13
+[895s] [solo-desktop] vision-judging 26 screen(s)…
+[901s]   [judge ERROR] solo-desktop-003.png: unparseable judge reply
+[901s]   [judge ERROR] solo-desktop-002.png: unparseable judge reply
+[901s]   [judge ERROR] solo-desktop-001.png: unparseable judge reply
+[906s]   [judge ERROR] solo-desktop-004.png: unparseable judge reply
+[906s]   [judge ERROR] solo-desktop-006.png: unparseable judge reply
+[906s]   [judge ERROR] solo-desktop-005.png: unparseable judge reply
+[910s]   [judge ERROR] solo-desktop-007.png: unparseable judge reply
+[910s]   [judge ERROR] solo-desktop-009.png: unparseable judge reply
+[910s]   [judge ERROR] solo-desktop-008.png: unparseable judge reply
+[914s]   [judge ERROR] solo-desktop-010.png: unparseable judge reply
+[914s]   [judge ERROR] solo-desktop-011.png: unparseable judge reply
+[914s]   [judge ERROR] solo-desktop-012.png: unparseable judge reply
+[919s]   [judge ERROR] solo-desktop-015.png: unparseable judge reply
+[919s]   [judge ERROR] solo-desktop-014.png: unparseable judge reply
+[919s]   [judge ERROR] solo-desktop-013.png: unparseable judge reply
+[923s]   [judge ERROR] solo-desktop-017.png: unparseable judge reply
+[923s]   [judge ERROR] solo-desktop-018.png: unparseable judge reply
+[923s]   [judge ERROR] solo-desktop-016.png: unparseable judge reply
+[927s]   [judge ERROR] solo-desktop-020.png: unparseable judge reply
+[927s]   [judge ERROR] solo-desktop-021.png: unparseable judge reply
+[927s]   [judge ERROR] solo-desktop-019.png: unparseable judge reply
+[931s]   [judge ERROR] solo-desktop-022.png: unparseable judge reply
+[931s]   [judge ERROR] solo-desktop-023.png: unparseable judge reply
+[932s]   [judge ERROR] solo-desktop-024.png: unparseable judge reply
+[935s]   [judge ERROR] solo-desktop-025.png: unparseable judge reply
+[935s]   [judge ERROR] solo-desktop-eov.png: unparseable judge reply
+[939s] [solo-desktop] contact sheet: /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/02.2-a-captain-who-cannot-take-their-turn/playtest-2026-08-22/contact-solo-desktop.png
+[948s]   [passplay-phone] DAY 0
+[952s]   [passplay-phone] STRUCT FAIL on-screen: clickable off-screen: Dark Chocolate Cream Puf, Vanilla Bean Crème Brûlé
+[952s]   [passplay-phone] STRUCT FAIL no-pile: overlapping controls: Dark Chocolate Cream Puf/Vanilla Bean Crème Brûlé
+[962s]   [passplay-phone] STRUCT FAIL no-pile: overlapping controls: Cinnamon SnapsCrisp, rus/Caramel SliceA toasted-c
+[963s]   [passplay-phone] STRUCT FAIL no-pile: overlapping controls: Cinnamon SnapsCrisp, rus/Caramel SliceA toasted-c
+[969s]   [passplay-phone] DAY 1
+[999s]   [passplay-phone] STRUCT FAIL on-screen: clickable off-screen: sailCell
+[999s]   [passplay-phone] STRUCT FAIL not-occluded: clickable covered by something else: sailCell <- covered by .pp4Tail <div>, sailCell <- covered by .pp4Bub out <div>, sailCell <- covered by .pp4Bub out <div>
+[999s]   [passplay-phone] STRUCT FAIL sail-clickable: 4 sail square(s) covered: a sail square <- .pp4Tail <div>, a sail square <- .pp4Bub out <div>, a sail square <- nothing (outside any element)
+[1023s]   [passplay-phone] STRUCT FAIL no-cover-ask: control covering the question it answers: "sailCell" over "Peg Leg Meg: tap to sail"
+[1029s]   [passplay-phone] DAY 2
+[1095s]   [passplay-phone] DAY 3
+[1155s]   [passplay-phone] DAY 4
+[1215s]   [passplay-phone] DAY 5
+[1275s]   [passplay-phone] DAY 6
+[1335s]   [passplay-phone] DAY 7
+[1403s]   [passplay-phone] DAY 8
+[1473s]   [passplay-phone] DAY 9
+[1535s]   [passplay-phone] DAY 10
+[1600s]   [passplay-phone] DAY 11
+[1665s]   [passplay-phone] DAY 12
+[1731s]   [passplay-phone] DAY 13
+[1794s]   [passplay-phone] DAY 14
+[1854s]   [passplay-phone] DAY 15
+[1914s]   [passplay-phone] DAY 16
+[1986s]   [passplay-phone] DAY 17
+[2046s]   [passplay-phone] DAY 18
+[2108s]   [solo-phone] TIMED OUT after 35 min without reaching the end of voyage
+[2108s] [solo-phone] vision-judging 17 screen(s)…
+[2113s]   [judge ERROR] solo-phone-001.png: unparseable judge reply
+[2113s]   [judge ERROR] solo-phone-002.png: unparseable judge reply
+[2113s]   [judge ERROR] solo-phone-003.png: unparseable judge reply
+[2117s]   [judge ERROR] solo-phone-005.png: unparseable judge reply
+[2117s]   [judge ERROR] solo-phone-004.png: unparseable judge reply
+[2117s]   [judge ERROR] solo-phone-006.png: unparseable judge reply
+[2121s]   [judge ERROR] solo-phone-009.png: unparseable judge reply
+[2121s]   [judge ERROR] solo-phone-007.png: unparseable judge reply
+[2121s]   [judge ERROR] solo-phone-008.png: unparseable judge reply
+[2124s]   [passplay-phone] DAY 19
+[2126s]   [judge ERROR] solo-phone-011.png: unparseable judge reply
+[2126s]   [judge ERROR] solo-phone-010.png: unparseable judge reply
+[2126s]   [judge ERROR] solo-phone-012.png: unparseable judge reply
+[2130s]   [judge ERROR] solo-phone-013.png: unparseable judge reply
+[2130s]   [judge ERROR] solo-phone-014.png: unparseable judge reply
+[2130s]   [judge ERROR] solo-phone-015.png: unparseable judge reply
+[2134s]   [judge ERROR] solo-phone-017.png: unparseable judge reply
+[2134s]   [judge ERROR] solo-phone-016.png: unparseable judge reply
+[2170s]   [passplay-phone] END OF VOYAGE at day 19
+[2170s] [passplay-phone] vision-judging 24 screen(s)…
+[2175s]   [judge ERROR] passplay-phone-003.png: unparseable judge reply
+[2175s]   [judge ERROR] passplay-phone-001.png: unparseable judge reply
+[2175s]   [judge ERROR] passplay-phone-002.png: unparseable judge reply
+[2179s]   [judge ERROR] passplay-phone-004.png: unparseable judge reply
+[2179s]   [judge ERROR] passplay-phone-006.png: unparseable judge reply
+[2179s]   [judge ERROR] passplay-phone-005.png: unparseable judge reply
+[2184s]   [judge ERROR] passplay-phone-007.png: unparseable judge reply
+[2184s]   [judge ERROR] passplay-phone-009.png: unparseable judge reply
+[2184s]   [judge ERROR] passplay-phone-008.png: unparseable judge reply
+[2188s]   [judge ERROR] passplay-phone-010.png: unparseable judge reply
+[2188s]   [judge ERROR] passplay-phone-011.png: unparseable judge reply
+[2188s]   [judge ERROR] passplay-phone-012.png: unparseable judge reply
+[2192s]   [judge ERROR] passplay-phone-013.png: unparseable judge reply
+[2192s]   [judge ERROR] passplay-phone-014.png: unparseable judge reply
+[2192s]   [judge ERROR] passplay-phone-015.png: unparseable judge reply
+[2196s]   [judge ERROR] passplay-phone-016.png: unparseable judge reply
+[2196s]   [judge ERROR] passplay-phone-017.png: unparseable judge reply
+[2196s]   [judge ERROR] passplay-phone-018.png: unparseable judge reply
+[2200s]   [judge ERROR] passplay-phone-019.png: unparseable judge reply
+[2200s]   [judge ERROR] passplay-phone-020.png: unparseable judge reply
+[2200s]   [judge ERROR] passplay-phone-021.png: unparseable judge reply
+[2204s]   [judge ERROR] passplay-phone-022.png: unparseable judge reply
+[2204s]   [judge ERROR] passplay-phone-023.png: unparseable judge reply
+[2204s]   [judge ERROR] passplay-phone-eov.png: unparseable judge reply
