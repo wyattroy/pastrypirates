@@ -53,7 +53,7 @@ import {
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
+import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -2425,6 +2425,13 @@ async function botDockCoin(dockEv){
   netHandlers().onBroadcastFlip("spin");
   await sleep(flipSpinLeftMs());
   netHandlers().onBroadcastFlip(dockEv.heads?"H":"T");
+  /* T-34 (Wyatt, 2026-08-26): "I'm not convinced these are consistent." THIS WAS THE ONE THAT WAS
+     NOT. Every other flip in the game holds its landed face — both battle flips for
+     FLIP_LAND_HOLD_MS, the human's dock flip for the length of its own narration — and this one set
+     the face and returned, so a bot's dock coin landed and vanished in the same frame. His
+     checklist item read "bots' dock coins spin and land like yers"; the spin did, the landing did
+     not. Same constant as the battle flips, so the four paths now answer one question one way. */
+  await sleep(FLIP_LAND_HOLD_MS);
 }
 export async function botTurn(p){
   applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers (02.15-01 Stage 2)

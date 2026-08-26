@@ -2197,10 +2197,57 @@ export function syncBoardSizing(){
    shift. It is the fault, stated as a value. 1500 -> 1000 is his own correction, playtest
    2026-08-23c item 18: "it should be 1 second, not 1.5 seconds (this last part is my mistake —
    1.5 feels too long)". */
-export const FLIP_SPIN_MS = 1000;
+/* T-35 (Wyatt, 2026-08-26): "the coin flip should be the exact length of the audio file, so that
+   the coin ALWAYS lands when the coin in the audio file lands -- it's the final 'blip' in the file
+   which you should be able to notice, but if not i can try to time it myself and give you time
+   code."  He does not need to time it. MEASURED 2026-08-26 from sfx/coin-flip.mp3 itself, decoded
+   to PCM and read as a 10ms peak envelope:
+
+       file duration                    965ms
+       transient 1 (the toss)             0ms
+       transient 2 (THE LANDING BLIP)   790-800ms, peaking at 795ms
+       after that                       ~165ms of decay tail, nothing struck
+
+   So at 1000ms the coin was landing on screen about 205ms AFTER the sound of it landing — which is
+   exactly the mismatch he suspected without being able to name it. 795 is the blip, so 795 is the
+   flip.
+
+   NOT THE FILE'S 965ms LENGTH, and the distinction is his own sentence: he asks for the coin to
+   land "when the coin in the audio file lands", and what follows the blip is decay, not an event.
+   Matching the file length would have re-created the same lateness, 30ms smaller.
+
+   WHY A MEASURED CONSTANT RATHER THAN A DERIVED ONE (rule 9 asks, and it deserves an answer): the
+   blip's position is a property of the ASSET, not of game state — it does not shift across a
+   voyage, which is what rule 9 is about. Deriving it at runtime would mean decoding the file on
+   every boot to find a number that only changes when somebody re-exports the sound. IF THAT SOUND
+   IS EVER RE-EXPORTED, RE-MEASURE THIS. That is the one thing that invalidates it.
+
+   HISTORY, kept: 1500 -> 1000 was his own correction (playtest 2026-08-23c item 18, "it should be
+   1 second, not 1.5 seconds -- this last part is my mistake"). 1000 -> 795 is this measurement. If
+   795 reads as hurried on his screen, the honest fix is a different sound, not a coin that lands
+   after its own noise. */
+export const FLIP_SPIN_MS = 795;
+/* HOW LONG A LANDED COIN STAYS ON ITS FACE — the flip's second beat, and until now it had three
+   different answers. T-34 (Wyatt, 2026-08-26): "I'm not convinced these are consistent. write a
+   unit test to do each one." He passed the item and doubted it anyway, and he was right: the SPIN
+   was converged onto FLIP_SPIN_MS on 2026-08-23, the HOLD never was. Measured across the four
+   paths:
+       battle, human (hFlip)        sleep(800)
+       battle, bot   (bFlip)        sleep(800)
+       dock,  human  (humanFlip)    however long the narration's own hold runs
+       dock,  bot    (botDockCoin)  NOTHING — the face was set and the function returned
+   So a bot's dock coin landed and vanished while every other flip held, which is exactly the
+   "bots' dock coins spin and land like yers" claim being almost true.
+
+   800 is HIS number, playtest 13: "hold the finished coin heads/tails for longer — .8 seconds
+   maybe". It is named here so the four paths cannot drift again, and so a gate can read it.
+   The human dock flip keeps its narration hold rather than adding this on top: flash() floors a
+   message's hold at 1000ms, which already exceeds this, and stacking them would make one flip
+   longer than the rest to fix an inconsistency. */
+export const FLIP_LAND_HOLD_MS = 800;
 let flipSpinAt = 0;
-/* How much of the 1.5s is left, from the frame the spin was painted. Zero if no spin is running,
-   so a caller that reaches it out of order waits nothing rather than a phantom 1.5s. */
+/* How much of the spin is left, from the frame it was painted. Zero if no spin is running, so a
+   caller that reaches it out of order waits nothing rather than a phantom full spin. */
 export function flipSpinLeftMs(){
   if (!flipSpinAt) return 0;
   return Math.max(0, Math.round(FLIP_SPIN_MS - (performance.now() - flipSpinAt)));

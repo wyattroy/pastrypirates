@@ -98,7 +98,7 @@ import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
@@ -723,8 +723,9 @@ async function asyncBattleRun(att,def){
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
-    // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe")
-    await sleep(800);
+    // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe").
+    // T-34: the number is FLIP_LAND_HOLD_MS now, shared with the other flips (board.js).
+    await sleep(FLIP_LAND_HOLD_MS);
     broadcastFlip("wait");
     return h;
   };
@@ -738,7 +739,7 @@ async function asyncBattleRun(att,def){
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
-    await sleep(800);   // playtest 13: the landed face holds long enough to actually read
+    await sleep(FLIP_LAND_HOLD_MS);   // playtest 13 / T-34: the landed face holds, same as every other flip
     broadcastFlip("wait");
     return h;
   };
