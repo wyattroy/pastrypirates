@@ -48,6 +48,43 @@ running it by hand rather than a hole in CI.
 
 ---
 
+## 0b. STATUS AFTER THE OVERNIGHT RUN (2026-08-26, build `2026-08-26g`)
+
+**16 of 35 addressed. 3 verified on screen. 4 deliberately parked with a diagnosis. 12 untouched.**
+
+| | Item | State | Evidence |
+|---|---|---|---|
+| T-02 | guest can't stay put | **fixed at the seam** | parity assertion 2 red→green. NOT yet seen in two windows |
+| T-04 | battle card never leaves | **fixed at the seam** | one `applyBattleSnap`, both tiers. NOT yet seen in two windows |
+| T-07 | battle box chases your boat | **fixed** | centred like an over-tall card |
+| T-09 | wrong captain lit in a bake | **LOCATED, NOT FIXED** | probe still reads it red — two derivations of "whose turn is it"; converging them is a replay design call, yours |
+| T-11 | host-return message never clears | **fixed** | "Yargh! They're back!" takes a normal hold |
+| T-12 | homepage over a live game | **FIXED + SCREENSHOT** | `["pp4Ribbon","pp4Pill","pp4Cap","pp4Fx"]` → `[]` |
+| T-13 | stale captains in a new room | **partial** | a new room starts empty; the *persistence* is not reproduced, 2 causes ruled out |
+| T-15 | blank white narration box | **FIXED + MEASURED** | median **917ms → 334ms** |
+| T-16 | no glow on Start | **fixed** | specificity, not a missing class |
+| T-19 | slider says nothing | **fixed** | your sentence, verbatim |
+| T-20 | coin on the dock button | **fixed** | both label widths together |
+| T-21 | "Wait, not yet" too loud | **fixed** | blue |
+| T-22 | focus on pre-game modals | **fixed** | wired into `showStep`, so no screen can be forgotten |
+| T-24 | tap to finish the text | **FIXED + VERIFIED** | mid-type tap 44→76 chars; finished-message tap changes nothing |
+| T-25 | bake-off title | **FIXED + SCREENSHOT** | "Davy Probe, Yer Bake-Off" |
+| T-27 | crates behind the green squares | **fixed** | swapping bowls raised for the swap only |
+| T-29 | "?" cursor that does nothing | **fixed** | real `disabled` can't fire a click, so it stops promising |
+| T-30 | Watch again glows | **FIXED + SCREENSHOT** | `animation:none` |
+| T-31 | pink/blue colours | **fixed** | wrong→red, selected→yellow (it had no colour of its own) |
+| T-32 | storm report pinned to player 1 | **fixed** | the anchor was the reading order of the sentence |
+| T-33 | blue "?" art | **fixed (4 changes)** | 1739 of 1743 redundant image writes removed; hole art preloaded; the promised fallback now exists |
+| T-01 | solo Enter dumps home | **parked** | does NOT reproduce in Chrome; goes to the WebKit mount |
+| T-18 | parentheses split | **parked** | `nobrk` holds in solo at 390px; needs the ceremony at width |
+| T-03 | wind announcement | **parked** | I claimed a screenshot confirmed it. **It did not.** Retracted |
+| T-05, T-06, T-08, T-10, T-14, T-17, T-23, T-26, T-28, T-34, T-35 | | **untouched** | |
+
+**Not one item was marked fixed on reading alone.** Everything above was either measured,
+screenshotted, or is explicitly labelled as proven only at the seam.
+
+---
+
 ## 1. THE THEMES, IN THE ORDER I WILL TACKLE THEM
 
 35 findings. They are **not** 35 independent bugs — 7 of them are one architectural fault and 10 are
